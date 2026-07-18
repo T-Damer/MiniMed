@@ -1,16 +1,9 @@
-name: Bootstrap LocalMed source
+name: Diagnose LocalMed bootstrap archive
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/bootstrap-localmed.yml
   issues:
     types:
       - opened
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -18,88 +11,54 @@ permissions:
   issues: read
 
 concurrency:
-  group: bootstrap-localmed-source
+  group: diagnose-localmed-bootstrap
   cancel-in-progress: false
 
 jobs:
-  import:
-    if: github.event_name != 'issues' || github.event.issue.title == '[bootstrap] LocalMed source import'
+  diagnose:
+    if: github.event_name != 'issues' || github.event.issue.title == '[bootstrap] Diagnose LocalMed archive'
     runs-on: ubuntu-latest
     env:
       TARGET_BRANCH: agent/import-localmed-0.2.2
-      ARCHIVE_SHA256: 42052e6293032931cc6475b3f61cc3c10d7e79aa3a74179c2d85af21b1ffad4b
     steps:
-      - name: Check out the target PR branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
 
-      - name: Mark bootstrap workflow start
+      - name: Diagnose reconstructed archive
         shell: bash
         run: |
-          set -euo pipefail
-          printf 'run_id=%s\nevent=%s\nstarted_at=%s\n' \
-            "$GITHUB_RUN_ID" "$GITHUB_EVENT_NAME" "$(date -u +%FT%TZ)" \
-            > .bootstrap-actions-started
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .bootstrap-actions-started
-          git commit -m "chore: mark LocalMed bootstrap start"
-          git push origin "HEAD:${TARGET_BRANCH}"
-
-      - name: Reassemble and diagnose source archive
-        shell: bash
-        run: |
-          set -euo pipefail
+          set -uo pipefail
           archive="$RUNNER_TEMP/localmed.tar.xz"
-          part_count="$(find .bootstrap/parts -maxdepth 1 -type f -name 'part-*' | wc -l)"
-          test "$part_count" -eq 13
+          tar_output="$RUNNER_TEMP/localmed.tar"
+          error_output="$RUNNER_TEMP/xz-error.txt"
           cat .bootstrap/parts/part-* > "$archive"
+
+          xz --robot --list "$archive" > "$RUNNER_TEMP/xz-list.txt" 2>&1
+          list_status=$?
+          xz --decompress --stdout "$archive" > "$tar_output" 2> "$error_output"
+          decompress_status=$?
+
           {
-            echo "expected_sha256=$ARCHIVE_SHA256"
             echo "actual_sha256=$(sha256sum "$archive" | awk '{print $1}')"
             echo "archive_bytes=$(wc -c < "$archive")"
-            echo "part_count=$part_count"
-            for part in .bootstrap/parts/part-*; do
-              printf '%s bytes=%s sha256=%s\n' \
-                "$part" "$(wc -c < "$part")" "$(sha256sum "$part" | awk '{print $1}')"
-            done
-          } > .bootstrap-archive-diagnostic
+            echo "xz_list_status=$list_status"
+            echo "xz_decompress_status=$decompress_status"
+            echo "decompressed_bytes=$(wc -c < "$tar_output")"
+            echo "--- xz list ---"
+            cat "$RUNNER_TEMP/xz-list.txt"
+            echo "--- xz error ---"
+            cat "$error_output"
+            echo "--- archive tail ---"
+            tail -c 96 "$archive" | base64 -w0
+            echo
+          } > .bootstrap-xz-diagnostic
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .bootstrap-archive-diagnostic
-          git commit -m "chore: record LocalMed archive diagnostics"
+          git add .bootstrap-xz-diagnostic
+          git commit -m "chore: record xz bootstrap diagnostics" || true
           git push origin "HEAD:${TARGET_BRANCH}"
-          xz --test "$archive"
-          mkdir -p "$RUNNER_TEMP/source"
-          tar -xJf "$archive" -C "$RUNNER_TEMP/source"
-          test -f "$RUNNER_TEMP/source/package.json"
-          test -f "$RUNNER_TEMP/source/.github/workflows/ci.yml"
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - uses: astral-sh/setup-uv@v6
-
-      - name: Generate deterministic dependency locks
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP/source"
-          corepack enable
-          pnpm install --lockfile-only --no-frozen-lockfile
-          uv lock --project tools/ingest
-
-      - name: Replace bootstrap tree with LocalMed source
-        shell: bash
-        run: |
-          set -euo pipefail
-          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-          cp -a "$RUNNER_TEMP/source/." .
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "feat: import LocalMed 0.2.2 baseline"
-          git push origin "HEAD:${TARGET_BRANCH}"
+          exit "$decompress_status"
