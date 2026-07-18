@@ -46,24 +46,40 @@ jobs:
           git commit -m "chore: mark LocalMed bootstrap start"
           git push origin "HEAD:${TARGET_BRANCH}"
 
+      - name: Reassemble and diagnose source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/localmed.tar.xz"
+          part_count="$(find .bootstrap/parts -maxdepth 1 -type f -name 'part-*' | wc -l)"
+          test "$part_count" -eq 13
+          cat .bootstrap/parts/part-* > "$archive"
+          {
+            echo "expected_sha256=$ARCHIVE_SHA256"
+            echo "actual_sha256=$(sha256sum "$archive" | awk '{print $1}')"
+            echo "archive_bytes=$(wc -c < "$archive")"
+            echo "part_count=$part_count"
+            for part in .bootstrap/parts/part-*; do
+              printf '%s bytes=%s sha256=%s\n' \
+                "$part" "$(wc -c < "$part")" "$(sha256sum "$part" | awk '{print $1}')"
+            done
+          } > .bootstrap-archive-diagnostic
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .bootstrap-archive-diagnostic
+          git commit -m "chore: record LocalMed archive diagnostics"
+          git push origin "HEAD:${TARGET_BRANCH}"
+          xz --test "$archive"
+          mkdir -p "$RUNNER_TEMP/source"
+          tar -xJf "$archive" -C "$RUNNER_TEMP/source"
+          test -f "$RUNNER_TEMP/source/package.json"
+          test -f "$RUNNER_TEMP/source/.github/workflows/ci.yml"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - uses: astral-sh/setup-uv@v6
-
-      - name: Reassemble and verify source archive
-        shell: bash
-        run: |
-          set -euo pipefail
-          archive="$RUNNER_TEMP/localmed.tar.xz"
-          test "$(find .bootstrap/parts -maxdepth 1 -type f -name 'part-*' | wc -l)" -eq 13
-          cat .bootstrap/parts/part-* > "$archive"
-          echo "$ARCHIVE_SHA256  $archive" | sha256sum -c -
-          mkdir -p "$RUNNER_TEMP/source"
-          tar -xJf "$archive" -C "$RUNNER_TEMP/source"
-          test -f "$RUNNER_TEMP/source/package.json"
-          test -f "$RUNNER_TEMP/source/.github/workflows/ci.yml"
 
       - name: Generate deterministic dependency locks
         shell: bash
