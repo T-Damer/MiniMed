@@ -44,13 +44,13 @@ jobs:
             d48d1e0879b37ee39e552df14b333ec4daae9698
             f6408a5d59dd87a34b38fe1074aa2412ab4fcac9
             9e9b2e8fb160fea2b6787ea210f8dc81512b2d8f
-            71345605c9e596bc57d42a864284efcea5a31861
-            2cb3fd3d68e818c2e060bd8a5df314134a78a64e
-            74c2bc144933a734c59c412bd961f381d335fb73
-            2b3b7a758fbff32f1dca8c21b763282d64a5c6a7
-            7ada2c516c8a509a75946e453fd5c77c5a4d198d
-            cbd2016fa3f21f9dfe3698b698a7b97973e16a25
-            e59fd2ff50a56338d049a8ff3403e3fb8a770647
+            97cfd098822bf93b3e6c667f6638b8ebce375e79
+            a75d32ebc89ebb2691693ff8b65a12da628020e5
+            b75f19ae64d29db90ce0bef40b62448c01399a61
+            53062707bd34a28bd2b1d7884aae21173b6c66a7
+            a98d68ebbda21fb9054cac68dda7e56a70f4313d
+            3065c85ef40d69d855ab2b01722033c6155289bd
+            15cdba7fb7d63648415d6a519f0eb9360d60bf29
           )
           for blob in "${blobs[@]}"; do
             curl --fail-with-body --silent --show-error \
@@ -58,7 +58,7 @@ jobs:
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GH_TOKEN" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/blobs/${blob}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/git/blobs/${blob}" \
               | jq -r '.content' \
               | tr -d '\n' \
               | base64 --decode >> "$archive"
