@@ -1,0 +1,926 @@
+name: Release embedded Android alpha
+
+on:
+  push:
+    branches:
+      - agent/release-0.3.0-alpha.2
+    paths:
+      - .github/workflows/release-embedded-apk-alpha2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-embedded-apk-alpha2
+  cancel-in-progress: false
+
+env:
+  VERSION: 0.3.0-alpha.2
+  TAG: v0.3.0-alpha.2
+  PROJECT_DIR: ${{ github.workspace }}/.release-android
+  DIST_DIR: ${{ github.workspace }}/dist
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out release branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate minimal Android source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$PROJECT_DIR" "$DIST_DIR"
+          mkdir -p \
+            "$PROJECT_DIR/app/src/main/java/dev/minimed/search" \
+            "$PROJECT_DIR/app/src/main/res/values" \
+            "$PROJECT_DIR/app/src/main/assets" \
+            "$DIST_DIR"
+
+          cat > "$PROJECT_DIR/settings.gradle" <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = 'MiniMedEmbedded'
+          include ':app'
+          EOF
+
+          cat > "$PROJECT_DIR/build.gradle" <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
+          }
+          EOF
+
+          cat > "$PROJECT_DIR/gradle.properties" <<'EOF'
+          org.gradle.jvmargs=-Xmx2g -Dfile.encoding=UTF-8
+          android.useAndroidX=false
+          android.nonTransitiveRClass=true
+          EOF
+
+          cat > "$PROJECT_DIR/app/build.gradle" <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'dev.minimed.search'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'dev.minimed.search'
+                  minSdk 26
+                  targetSdk 35
+                  versionCode 302
+                  versionName '0.3.0-alpha.2'
+              }
+
+              buildTypes {
+                  debug {
+                      minifyEnabled false
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              packaging {
+                  resources {
+                      excludes += ['/META-INF/{AL2.0,LGPL2.1}']
+                  }
+              }
+          }
+          EOF
+
+          cat > "$PROJECT_DIR/app/src/main/AndroidManifest.xml" <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application
+                  android:allowBackup="false"
+                  android:fullBackupContent="false"
+                  android:label="@string/app_name"
+                  android:supportsRtl="true"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="false">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat > "$PROJECT_DIR/app/src/main/res/values/strings.xml" <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">MiniMed Search</string>
+          </resources>
+          EOF
+
+          cat > "$PROJECT_DIR/app/src/main/res/values/styles.xml" <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:windowLightStatusBar">true</item>
+                  <item name="android:statusBarColor">#E7DFCD</item>
+                  <item name="android:navigationBarColor">#1F2927</item>
+                  <item name="android:colorAccent">#8B3A32</item>
+                  <item name="android:windowActionModeOverlay">true</item>
+              </style>
+          </resources>
+          EOF
+
+          cat > "$PROJECT_DIR/app/src/main/java/dev/minimed/search/MainActivity.java" <<'EOF'
+          package dev.minimed.search;
+
+          import android.app.Activity;
+          import android.app.AlertDialog;
+          import android.content.Context;
+          import android.database.Cursor;
+          import android.database.sqlite.SQLiteDatabase;
+          import android.graphics.Color;
+          import android.graphics.Typeface;
+          import android.graphics.drawable.GradientDrawable;
+          import android.os.Bundle;
+          import android.text.InputType;
+          import android.view.Gravity;
+          import android.view.View;
+          import android.view.inputmethod.EditorInfo;
+          import android.widget.Button;
+          import android.widget.EditText;
+          import android.widget.LinearLayout;
+          import android.widget.ScrollView;
+          import android.widget.TextView;
+
+          import java.io.File;
+          import java.io.FileOutputStream;
+          import java.io.InputStream;
+          import java.nio.charset.StandardCharsets;
+          import java.util.ArrayList;
+          import java.util.Arrays;
+          import java.util.Collections;
+          import java.util.HashMap;
+          import java.util.HashSet;
+          import java.util.List;
+          import java.util.Locale;
+          import java.util.Map;
+          import java.util.Set;
+          import java.util.regex.Matcher;
+          import java.util.regex.Pattern;
+
+          public final class MainActivity extends Activity {
+              private static final String DB_ASSET = "minimed-core.db";
+              private static final String VERSION = "0.3.0-alpha.2";
+              private static final int PAPER = Color.rgb(239, 233, 219);
+              private static final int FOLDER = Color.rgb(202, 177, 119);
+              private static final int INK = Color.rgb(31, 41, 39);
+              private static final int MUTED = Color.rgb(91, 91, 82);
+              private static final int ACCENT = Color.rgb(139, 58, 50);
+
+              private SQLiteDatabase database;
+              private EditText queryInput;
+              private TextView statusView;
+              private TextView factsView;
+              private LinearLayout resultsContainer;
+              private final Map<String, String> aliases = new HashMap<>();
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  seedAliases();
+                  setContentView(buildInterface());
+                  try {
+                      database = openEmbeddedDatabase();
+                      int documentCount = countDocuments();
+                      statusView.setText("Локальный пакет открыт · " + documentCount + " разделов · сеть не используется");
+                      queryInput.setText("мальчик 5 лет, температура, часто дышит и кашляет");
+                      runSearch();
+                  } catch (Exception error) {
+                      statusView.setText("Не удалось открыть встроенную базу: " + error.getMessage());
+                  }
+              }
+
+              @Override
+              protected void onDestroy() {
+                  if (database != null && database.isOpen()) {
+                      database.close();
+                  }
+                  super.onDestroy();
+              }
+
+              private View buildInterface() {
+                  ScrollView scrollView = new ScrollView(this);
+                  scrollView.setFillViewport(true);
+                  scrollView.setBackgroundColor(Color.rgb(222, 214, 195));
+
+                  LinearLayout page = column();
+                  page.setPadding(dp(18), dp(20), dp(18), dp(36));
+                  scrollView.addView(page, matchWrap());
+
+                  TextView stamp = text("MINIMED · ЛОКАЛЬНЫЙ АРХИВ · " + VERSION, 12, Typeface.BOLD, ACCENT);
+                  stamp.setLetterSpacing(0.08f);
+                  page.addView(stamp, matchWrapWithBottom(8));
+
+                  TextView title = text("Поиск по медицинской картотеке", 27, Typeface.BOLD, INK);
+                  page.addView(title, matchWrapWithBottom(6));
+
+                  TextView subtitle = text(
+                      "Введите заболевание, препарат или свободное описание случая. Поиск выполняется только по базе, уже вложенной в APK.",
+                      15, Typeface.NORMAL, MUTED
+                  );
+                  page.addView(subtitle, matchWrapWithBottom(18));
+
+                  LinearLayout queryCard = column();
+                  queryCard.setPadding(dp(14), dp(14), dp(14), dp(14));
+                  queryCard.setBackground(panel(PAPER, 2, Color.rgb(120, 112, 95), 10));
+                  page.addView(queryCard, matchWrapWithBottom(14));
+
+                  TextView label = text("КЛИНИЧЕСКИЙ ЗАПРОС", 11, Typeface.BOLD, MUTED);
+                  label.setLetterSpacing(0.12f);
+                  queryCard.addView(label, matchWrapWithBottom(8));
+
+                  queryInput = new EditText(this);
+                  queryInput.setTextColor(INK);
+                  queryInput.setHintTextColor(Color.rgb(130, 125, 113));
+                  queryInput.setHint("Например: девочка 9 лет, боль около пупка, затем справа внизу, однократно рвало");
+                  queryInput.setTextSize(17);
+                  queryInput.setMinLines(3);
+                  queryInput.setGravity(Gravity.TOP | Gravity.START);
+                  queryInput.setPadding(dp(12), dp(10), dp(12), dp(10));
+                  queryInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                  queryInput.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+                  queryInput.setBackground(panel(Color.rgb(250, 247, 238), 1, Color.rgb(154, 144, 122), 7));
+                  queryInput.setOnEditorActionListener((view, actionId, event) -> {
+                      if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                          runSearch();
+                          return true;
+                      }
+                      return false;
+                  });
+                  queryCard.addView(queryInput, matchHeight(dp(112), 8));
+
+                  Button searchButton = new Button(this);
+                  searchButton.setText("НАЙТИ В ЛОКАЛЬНОЙ БАЗЕ");
+                  searchButton.setTextColor(Color.WHITE);
+                  searchButton.setTextSize(13);
+                  searchButton.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+                  searchButton.setAllCaps(false);
+                  searchButton.setBackground(panel(ACCENT, 0, ACCENT, 7));
+                  searchButton.setOnClickListener(view -> runSearch());
+                  queryCard.addView(searchButton, matchHeight(dp(50), 0));
+
+                  factsView = text("", 13, Typeface.NORMAL, INK);
+                  factsView.setPadding(dp(12), dp(10), dp(12), dp(10));
+                  factsView.setBackground(panel(Color.rgb(232, 223, 199), 1, Color.rgb(168, 145, 91), 7));
+                  factsView.setVisibility(View.GONE);
+                  page.addView(factsView, matchWrapWithBottom(10));
+
+                  statusView = text("Открываю встроенную базу…", 12, Typeface.BOLD, MUTED);
+                  statusView.setPadding(dp(2), dp(3), dp(2), dp(3));
+                  page.addView(statusView, matchWrapWithBottom(12));
+
+                  resultsContainer = column();
+                  page.addView(resultsContainer, matchWrap());
+
+                  TextView disclaimer = text(
+                      "Демонстрационный пакет содержит синтетические материалы и не является клинической рекомендацией. Решения принимает врач.",
+                      12, Typeface.NORMAL, MUTED
+                  );
+                  disclaimer.setPadding(0, dp(20), 0, 0);
+                  page.addView(disclaimer, matchWrap());
+
+                  return scrollView;
+              }
+
+              private void runSearch() {
+                  if (database == null || !database.isOpen()) {
+                      return;
+                  }
+                  String query = queryInput.getText().toString().trim();
+                  ParsedCase parsedCase = parseCase(query);
+                  factsView.setText(parsedCase.summary);
+                  factsView.setVisibility(parsedCase.summary.isEmpty() ? View.GONE : View.VISIBLE);
+
+                  List<String> tokens = buildTokens(query);
+                  List<Result> results = search(tokens);
+                  resultsContainer.removeAllViews();
+                  statusView.setText(
+                      "LOCAL SQLITE · " + tokens.size() + " поисковых признаков · найдено " + results.size()
+                  );
+
+                  if (results.isEmpty()) {
+                      TextView empty = text(
+                          "Совпадений нет. Попробуйте добавить возраст, локализацию, длительность, температуру, анализы или название препарата.",
+                          15, Typeface.NORMAL, INK
+                      );
+                      empty.setPadding(dp(14), dp(14), dp(14), dp(14));
+                      empty.setBackground(panel(PAPER, 1, Color.rgb(150, 142, 124), 8));
+                      resultsContainer.addView(empty, matchWrap());
+                      return;
+                  }
+
+                  for (int index = 0; index < results.size(); index++) {
+                      resultsContainer.addView(resultCard(results.get(index), index + 1), matchWrapWithBottom(11));
+                  }
+              }
+
+              private View resultCard(Result result, int rank) {
+                  LinearLayout card = column();
+                  card.setPadding(dp(14), dp(13), dp(14), dp(13));
+                  card.setBackground(panel(rank == 1 ? FOLDER : PAPER, 1, Color.rgb(132, 119, 92), 8));
+
+                  TextView meta = text(
+                      String.format(Locale.ROOT, "КАРТОЧКА %02d · SCORE %d · %s", rank, result.score, result.specialty.toUpperCase(Locale.ROOT)),
+                      10, Typeface.BOLD, rank == 1 ? Color.rgb(83, 60, 26) : MUTED
+                  );
+                  meta.setLetterSpacing(0.08f);
+                  card.addView(meta, matchWrapWithBottom(5));
+
+                  TextView title = text(result.title, 20, Typeface.BOLD, INK);
+                  card.addView(title, matchWrapWithBottom(4));
+
+                  TextView section = text(result.section, 13, Typeface.BOLD, ACCENT);
+                  card.addView(section, matchWrapWithBottom(7));
+
+                  TextView excerpt = text(shorten(result.body, 280), 14, Typeface.NORMAL, INK);
+                  excerpt.setLineSpacing(0, 1.12f);
+                  card.addView(excerpt, matchWrapWithBottom(8));
+
+                  TextView anchor = text(result.anchor + " · " + result.sourceLabel, 10, Typeface.NORMAL, MUTED);
+                  card.addView(anchor, matchWrap());
+
+                  card.setOnClickListener(view -> showFullCard(result));
+                  return card;
+              }
+
+              private void showFullCard(Result result) {
+                  TextView content = text(
+                      result.section + "\n\n" + result.body + "\n\n" + result.anchor + " · " + result.sourceLabel,
+                      15, Typeface.NORMAL, INK
+                  );
+                  content.setPadding(dp(20), dp(8), dp(20), dp(8));
+                  content.setTextIsSelectable(true);
+                  new AlertDialog.Builder(this)
+                      .setTitle(result.title)
+                      .setView(content)
+                      .setPositiveButton("Закрыть", null)
+                      .show();
+              }
+
+              private SQLiteDatabase openEmbeddedDatabase() throws Exception {
+                  File target = new File(getFilesDir(), "minimed-core-" + VERSION + ".db");
+                  if (!target.exists() || target.length() == 0) {
+                      try (InputStream input = getAssets().open(DB_ASSET);
+                           FileOutputStream output = new FileOutputStream(target)) {
+                          byte[] buffer = new byte[16 * 1024];
+                          int read;
+                          while ((read = input.read(buffer)) != -1) {
+                              output.write(buffer, 0, read);
+                          }
+                      }
+                  }
+                  return SQLiteDatabase.openDatabase(target.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
+              }
+
+              private int countDocuments() {
+                  try (Cursor cursor = database.rawQuery("SELECT COUNT(*) FROM documents", null)) {
+                      return cursor.moveToFirst() ? cursor.getInt(0) : 0;
+                  }
+              }
+
+              private List<Result> search(List<String> tokens) {
+                  List<Result> results = new ArrayList<>();
+                  try (Cursor cursor = database.rawQuery(
+                      "SELECT id, title, specialty, age_group, section, body, keywords, anchor, source_label FROM documents",
+                      null
+                  )) {
+                      while (cursor.moveToNext()) {
+                          Result result = new Result(
+                              cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3),
+                              cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7),
+                              cursor.getString(8)
+                          );
+                          result.score = score(result, tokens);
+                          if (tokens.isEmpty() || result.score > 0) {
+                              results.add(result);
+                          }
+                      }
+                  }
+                  Collections.sort(results, (left, right) -> Integer.compare(right.score, left.score));
+                  return results.size() > 10 ? new ArrayList<>(results.subList(0, 10)) : results;
+              }
+
+              private int score(Result result, List<String> tokens) {
+                  if (tokens.isEmpty()) {
+                      return 1;
+                  }
+                  String title = normalize(result.title);
+                  String section = normalize(result.section);
+                  String keywords = normalize(result.keywords);
+                  String body = normalize(result.body);
+                  int score = 0;
+                  for (String token : tokens) {
+                      if (title.contains(token)) score += 14;
+                      if (keywords.contains(token)) score += 10;
+                      if (section.contains(token)) score += 7;
+                      if (body.contains(token)) score += 3;
+                  }
+                  return score;
+              }
+
+              private List<String> buildTokens(String query) {
+                  Set<String> tokens = new HashSet<>();
+                  Matcher matcher = Pattern.compile("[\\p{L}\\p{N}]{3,}").matcher(normalize(query));
+                  while (matcher.find()) {
+                      String token = matcher.group();
+                      if (!STOP_WORDS.contains(token)) {
+                          tokens.add(token);
+                      }
+                  }
+                  String normalized = normalize(query);
+                  for (Map.Entry<String, String> alias : aliases.entrySet()) {
+                      if (normalized.contains(alias.getKey())) {
+                          tokens.addAll(Arrays.asList(alias.getValue().split(" ")));
+                      }
+                  }
+                  return new ArrayList<>(tokens);
+              }
+
+              private ParsedCase parseCase(String query) {
+                  if (query.trim().isEmpty()) {
+                      return new ParsedCase("");
+                  }
+                  List<String> facts = new ArrayList<>();
+                  Matcher age = Pattern.compile("(?:мальчик|девочка|реб[её]нок)?\\s*(\\d{1,2})\\s*(?:лет|года|год)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(query);
+                  if (age.find()) facts.add("возраст: " + age.group(1) + " лет");
+                  Matcher temp = Pattern.compile("(?:температура|t)\\s*(?:до|=|:)??\\s*(3[4-9](?:[.,]\\d)?)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(query);
+                  if (temp.find()) facts.add("температура: " + temp.group(1).replace(',', '.') + " °C");
+                  Matcher duration = Pattern.compile("(\\d+)\\s*(час(?:а|ов)?|дн(?:я|ей)|день)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(query);
+                  if (duration.find()) facts.add("длительность: " + duration.group(1) + " " + duration.group(2));
+                  if (normalize(query).contains("мальчик")) facts.add("пол: мужской");
+                  if (normalize(query).contains("девочка")) facts.add("пол: женский");
+                  if (normalize(query).contains("нет") || normalize(query).contains("не было")) facts.add("есть явное отрицание");
+                  return new ParsedCase(facts.isEmpty() ? "" : "Распознано · " + String.join(" · ", facts));
+              }
+
+              private void seedAliases() {
+                  aliases.put("температурит", "лихорадка температура");
+                  aliases.put("часто дышит", "тахипноэ дыхание пневмония");
+                  aliases.put("тяжело дышит", "одышка дыхание бронхиолит");
+                  aliases.put("болит справа", "аппендицит живот боль");
+                  aliases.put("около пупка", "живот аппендицит миграция");
+                  aliases.put("писает больно", "дизурия моча инфекция");
+                  aliases.put("сыпь с лица", "сыпь корь инфекция");
+                  aliases.put("аугментин", "амоксициллин клавуланат антибиотик");
+              }
+
+              private static final Set<String> STOP_WORDS = new HashSet<>(Arrays.asList(
+                  "что", "это", "как", "при", "для", "или", "она", "оно", "они", "его", "еще", "уже", "был", "была", "были"
+              ));
+
+              private static String normalize(String value) {
+                  return value.toLowerCase(Locale.forLanguageTag("ru")).replace('ё', 'е');
+              }
+
+              private static String shorten(String value, int max) {
+                  if (value.length() <= max) return value;
+                  return value.substring(0, max).trim() + "…";
+              }
+
+              private LinearLayout column() {
+                  LinearLayout layout = new LinearLayout(this);
+                  layout.setOrientation(LinearLayout.VERTICAL);
+                  return layout;
+              }
+
+              private TextView text(String value, int sp, int style, int color) {
+                  TextView view = new TextView(this);
+                  view.setText(value);
+                  view.setTextSize(sp);
+                  view.setTextColor(color);
+                  view.setTypeface(Typeface.create("sans", style));
+                  return view;
+              }
+
+              private GradientDrawable panel(int fill, int strokeWidth, int strokeColor, int radiusDp) {
+                  GradientDrawable drawable = new GradientDrawable();
+                  drawable.setColor(fill);
+                  drawable.setCornerRadius(dp(radiusDp));
+                  if (strokeWidth > 0) drawable.setStroke(dp(strokeWidth), strokeColor);
+                  return drawable;
+              }
+
+              private LinearLayout.LayoutParams matchWrap() {
+                  return new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+              }
+
+              private LinearLayout.LayoutParams matchWrapWithBottom(int bottomDp) {
+                  LinearLayout.LayoutParams params = matchWrap();
+                  params.bottomMargin = dp(bottomDp);
+                  return params;
+              }
+
+              private LinearLayout.LayoutParams matchHeight(int height, int bottomDp) {
+                  LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, height);
+                  params.bottomMargin = dp(bottomDp);
+                  return params;
+              }
+
+              private int dp(int value) {
+                  return Math.round(value * getResources().getDisplayMetrics().density);
+              }
+
+              private static final class ParsedCase {
+                  final String summary;
+                  ParsedCase(String summary) { this.summary = summary; }
+              }
+
+              private static final class Result {
+                  final String id;
+                  final String title;
+                  final String specialty;
+                  final String ageGroup;
+                  final String section;
+                  final String body;
+                  final String keywords;
+                  final String anchor;
+                  final String sourceLabel;
+                  int score;
+
+                  Result(String id, String title, String specialty, String ageGroup, String section, String body,
+                         String keywords, String anchor, String sourceLabel) {
+                      this.id = id;
+                      this.title = title;
+                      this.specialty = specialty;
+                      this.ageGroup = ageGroup;
+                      this.section = section;
+                      this.body = body;
+                      this.keywords = keywords;
+                      this.anchor = anchor;
+                      this.sourceLabel = sourceLabel;
+                  }
+              }
+          }
+          EOF
+
+      - name: Build embedded SQLite content pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          import sqlite3
+          from pathlib import Path
+
+          project = Path('.release-android')
+          output = project / 'app/src/main/assets/minimed-core.db'
+          output.parent.mkdir(parents=True, exist_ok=True)
+          if output.exists():
+              output.unlink()
+
+          documents = [
+              {
+                  'id': 'demo.pneumonia.presentation',
+                  'title': 'Внебольничная пневмония у детей',
+                  'specialty': 'педиатрия',
+                  'age_group': 'дети',
+                  'section': 'Клиническая картина и первичный поиск',
+                  'body': 'Учебная карточка для проверки поиска. Сочетание лихорадки, кашля, тахипноэ, одышки и снижения сатурации направляет поиск к поражению нижних дыхательных путей. Следует открыть исходный клинический документ и оценить возрастные нормы частоты дыхания.',
+                  'keywords': 'пневмония лихорадка температура кашель тахипноэ одышка сатурация дыхание ребенок',
+              },
+              {
+                  'id': 'demo.pneumonia.treatment',
+                  'title': 'Внебольничная пневмония у детей',
+                  'specialty': 'педиатрия',
+                  'age_group': 'дети',
+                  'section': 'Лечение — навигационная карточка',
+                  'body': 'Демонстрационный раздел не содержит схем назначения. Он показывает, что поиск по амоксициллину, амоксициллину с клавулановой кислотой или торговому названию должен открыть раздел лечения соответствующего первичного источника.',
+                  'keywords': 'амоксициллин клавуланат аугментин антибиотик пневмония лечение',
+              },
+              {
+                  'id': 'demo.bronchiolitis',
+                  'title': 'Острый бронхиолит',
+                  'specialty': 'педиатрия',
+                  'age_group': 'дети раннего возраста',
+                  'section': 'Клиническая картина',
+                  'body': 'Учебная карточка: насморк, кашель, свистящее дыхание, тахипноэ и затруднение кормления у младенца должны поднимать материалы по бронхиолиту и оценке дыхательной недостаточности.',
+                  'keywords': 'бронхиолит младенец свистящее дыхание одышка тахипноэ кормление кашель',
+              },
+              {
+                  'id': 'demo.appendicitis',
+                  'title': 'Острый аппендицит',
+                  'specialty': 'хирургия',
+                  'age_group': 'дети и взрослые',
+                  'section': 'Диагностический поиск',
+                  'body': 'Учебная карточка для навигации: миграция боли из околопупочной области вправо вниз, тошнота или рвота, снижение аппетита и усиление боли при движении требуют срочного обращения к хирургическому первоисточнику и оценки красных флагов.',
+                  'keywords': 'аппендицит боль живот пупок справа подвздошная область миграция рвота хирург',
+              },
+              {
+                  'id': 'demo.uti',
+                  'title': 'Инфекция мочевыводящих путей у детей',
+                  'specialty': 'педиатрия',
+                  'age_group': 'дети',
+                  'section': 'Жалобы и обследования',
+                  'body': 'Учебная карточка: дизурия, учащенное мочеиспускание, боли над лоном или лихорадка без очевидного очага должны направлять к разделам анализа мочи, посева и возрастной интерпретации симптомов.',
+                  'keywords': 'инфекция мочевых путей дизурия моча анализ посев лихорадка без очага пиелонефрит',
+              },
+              {
+                  'id': 'demo.measles',
+                  'title': 'Корь',
+                  'specialty': 'инфекционные болезни',
+                  'age_group': 'дети и взрослые',
+                  'section': 'Клиническая картина и эпидемиология',
+                  'body': 'Учебная карточка: лихорадка, кашель, насморк, конъюнктивит и этапное распространение сыпи с лица используются как поисковые признаки. Для клинических решений необходимо открыть актуальный первичный документ.',
+                  'keywords': 'корь сыпь лицо кашель насморк конъюнктивит лихорадка вакцинация контакт',
+              },
+              {
+                  'id': 'demo.meningococcal',
+                  'title': 'Менингококковая инфекция',
+                  'specialty': 'инфекционные болезни',
+                  'age_group': 'все возрасты',
+                  'section': 'Красные флаги',
+                  'body': 'Учебная карточка для быстрого поиска экстренного раздела: быстрое ухудшение, нарушение сознания, выраженная слабость, ригидность затылка и геморрагическая сыпь требуют немедленной очной оценки и обращения к экстренному алгоритму.',
+                  'keywords': 'менингококк менингит геморрагическая сыпь сознание ригидность экстренно сепсис',
+              },
+              {
+                  'id': 'demo.gastroenteritis',
+                  'title': 'Острый гастроэнтерит у детей',
+                  'specialty': 'педиатрия',
+                  'age_group': 'дети',
+                  'section': 'Оценка состояния',
+                  'body': 'Учебная карточка: рвота, жидкий стул, снижение мочеиспускания, жажда и вялость используются для поиска разделов оценки обезвоживания, питания и показаний к очному осмотру.',
+                  'keywords': 'гастроэнтерит диарея жидкий стул рвота обезвоживание мочеиспускание жажда вялость',
+              },
+              {
+                  'id': 'demo.urticaria',
+                  'title': 'Крапивница',
+                  'specialty': 'аллергология',
+                  'age_group': 'все возрасты',
+                  'section': 'Клиническая картина',
+                  'body': 'Учебная карточка: зудящие волдыри, быстрое появление и исчезновение элементов, возможная связь с препаратом или пищей направляют к материалам по крапивнице. Отек губ, языка или затруднение дыхания являются поводом для экстренной очной оценки.',
+                  'keywords': 'крапивница волдыри зуд аллергия препарат пища отек губ язык дыхание',
+              },
+          ]
+
+          connection = sqlite3.connect(output)
+          connection.executescript('''
+          PRAGMA journal_mode=DELETE;
+          PRAGMA synchronous=FULL;
+          PRAGMA user_version=302;
+          CREATE TABLE pack_metadata (
+              key TEXT PRIMARY KEY,
+              value TEXT NOT NULL
+          );
+          CREATE TABLE documents (
+              id TEXT PRIMARY KEY,
+              title TEXT NOT NULL,
+              specialty TEXT NOT NULL,
+              age_group TEXT NOT NULL,
+              section TEXT NOT NULL,
+              body TEXT NOT NULL,
+              keywords TEXT NOT NULL,
+              anchor TEXT NOT NULL,
+              source_label TEXT NOT NULL
+          );
+          CREATE INDEX idx_documents_title ON documents(title);
+          CREATE INDEX idx_documents_specialty ON documents(specialty);
+          ''')
+          metadata = {
+              'pack_id': 'minimed.synthetic.core',
+              'pack_version': '0.3.0-alpha.2',
+              'schema_version': '1',
+              'content_status': 'synthetic_demo_only',
+              'offline': 'true',
+          }
+          connection.executemany('INSERT INTO pack_metadata(key, value) VALUES (?, ?)', metadata.items())
+          for index, item in enumerate(documents, start=1):
+              connection.execute(
+                  '''INSERT INTO documents(
+                      id, title, specialty, age_group, section, body, keywords, anchor, source_label
+                  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (
+                      item['id'], item['title'], item['specialty'], item['age_group'], item['section'],
+                      item['body'], item['keywords'], f'localmed://synthetic/{index:03d}',
+                      'SYNTHETIC DEMO · NOT CLINICAL GUIDANCE',
+                  ),
+              )
+          connection.commit()
+          connection.execute('VACUUM')
+          quick_check = connection.execute('PRAGMA quick_check').fetchone()[0]
+          count = connection.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
+          connection.close()
+          if quick_check != 'ok' or count != len(documents):
+              raise SystemExit(f'database verification failed: quick_check={quick_check}, count={count}')
+          sha256 = hashlib.sha256(output.read_bytes()).hexdigest()
+          report = {
+              'packId': metadata['pack_id'],
+              'version': metadata['pack_version'],
+              'documents': count,
+              'bytes': output.stat().st_size,
+              'sha256': sha256,
+              'quickCheck': quick_check,
+          }
+          Path('dist').mkdir(exist_ok=True)
+          Path('dist/content-pack-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps(report, ensure_ascii=False))
+          PY
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Build debug APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle -p "$PROJECT_DIR" :app:assembleDebug --stacktrace --no-daemon
+          apk="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$apk"
+          cp "$apk" "$DIST_DIR/MiniMed-${VERSION}-debug.apk"
+
+      - name: Verify the embedded database inside the APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$DIST_DIR/MiniMed-${VERSION}-debug.apk"
+          source_db="$PROJECT_DIR/app/src/main/assets/minimed-core.db"
+          unzip -l "$apk" | tee "$DIST_DIR/apk-contents.txt"
+          unzip -p "$apk" assets/minimed-core.db > "$DIST_DIR/extracted-minimed-core.db"
+          cmp "$source_db" "$DIST_DIR/extracted-minimed-core.db"
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import sqlite3
+          from pathlib import Path
+
+          apk = Path('dist') / f"MiniMed-{os.environ['VERSION']}-debug.apk"
+          database = Path('dist/extracted-minimed-core.db')
+          connection = sqlite3.connect(f'file:{database}?mode=ro', uri=True)
+          quick_check = connection.execute('PRAGMA quick_check').fetchone()[0]
+          count = connection.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
+          metadata = dict(connection.execute('SELECT key, value FROM pack_metadata'))
+          connection.close()
+          if quick_check != 'ok' or count != 9:
+              raise SystemExit(f'packaged database verification failed: {quick_check=}, {count=}')
+          manifest = {
+              'version': os.environ['VERSION'],
+              'tag': os.environ['TAG'],
+              'commit': os.environ['GITHUB_SHA'],
+              'apk': {
+                  'name': apk.name,
+                  'bytes': apk.stat().st_size,
+                  'sha256': hashlib.sha256(apk.read_bytes()).hexdigest(),
+                  'signing': 'Android debug signing key generated on GitHub Actions',
+              },
+              'embeddedDatabase': {
+                  'pathInApk': 'assets/minimed-core.db',
+                  'bytes': database.stat().st_size,
+                  'sha256': hashlib.sha256(database.read_bytes()).hexdigest(),
+                  'quickCheck': quick_check,
+                  'documents': count,
+                  'metadata': metadata,
+              },
+              'networkRequiredAtRuntime': False,
+          }
+          Path('dist/BUILD-MANIFEST.json').write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+          rm "$DIST_DIR/extracted-minimed-core.db"
+          (
+            cd "$DIST_DIR"
+            sha256sum "MiniMed-${VERSION}-debug.apk" content-pack-report.json BUILD-MANIFEST.json > SHA256SUMS.txt
+          )
+
+      - name: Package generated source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          (
+            cd "$(dirname "$PROJECT_DIR")"
+            zip -qr "$DIST_DIR/MiniMed-${VERSION}-android-source.zip" "$(basename "$PROJECT_DIR")" \
+              -x '*/build/*' '*/.gradle/*'
+          )
+
+      - name: Write release notes
+        shell: bash
+        run: |
+          cat > "$DIST_DIR/RELEASE_NOTES.md" <<EOF
+          # MiniMed ${VERSION}
+
+          First installable Android engineering preview.
+
+          ## Included
+
+          - an offline Android application with no runtime network permission;
+          - a SQLite content pack physically embedded at \`assets/minimed-core.db\` inside the APK;
+          - nine synthetic search cards covering respiratory, abdominal, urinary, infectious, gastrointestinal and allergic scenarios;
+          - free-form Russian text input, lightweight deterministic case extraction, aliases and ranked local search;
+          - archive/paper-inspired mobile interface;
+          - a build manifest, content-pack report and SHA-256 checksums;
+          - generated Android source snapshot.
+
+          ## Verification performed by GitHub Actions
+
+          The workflow extracts the database back out of the APK, compares it byte-for-byte with the source pack, opens it read-only, runs \`PRAGMA quick_check\`, and checks the expected document count before publishing.
+
+          ## Important limitations
+
+          This is a technical preview. The embedded materials are synthetic demonstrations, not clinical recommendations and not medical guidance. The APK is debug-signed for direct testing and is not intended for store distribution.
+          EOF
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiniMed-${{ env.VERSION }}-android
+          path: |
+            dist/MiniMed-${{ env.VERSION }}-debug.apk
+            dist/MiniMed-${{ env.VERSION }}-android-source.zip
+            dist/BUILD-MANIFEST.json
+            dist/content-pack-report.json
+            dist/SHA256SUMS.txt
+            dist/apk-contents.txt
+            dist/RELEASE_NOTES.md
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git tag -f "$TAG" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$TAG"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" \
+              --title "MiniMed ${VERSION}" \
+              --notes-file "$DIST_DIR/RELEASE_NOTES.md" \
+              --prerelease
+            gh release upload "$TAG" \
+              "$DIST_DIR/MiniMed-${VERSION}-debug.apk" \
+              "$DIST_DIR/MiniMed-${VERSION}-android-source.zip" \
+              "$DIST_DIR/BUILD-MANIFEST.json" \
+              "$DIST_DIR/content-pack-report.json" \
+              "$DIST_DIR/SHA256SUMS.txt" \
+              --clobber
+          else
+            gh release create "$TAG" \
+              "$DIST_DIR/MiniMed-${VERSION}-debug.apk" \
+              "$DIST_DIR/MiniMed-${VERSION}-android-source.zip" \
+              "$DIST_DIR/BUILD-MANIFEST.json" \
+              "$DIST_DIR/content-pack-report.json" \
+              "$DIST_DIR/SHA256SUMS.txt" \
+              --target "$GITHUB_SHA" \
+              --title "MiniMed ${VERSION}" \
+              --notes-file "$DIST_DIR/RELEASE_NOTES.md" \
+              --prerelease
+          fi
