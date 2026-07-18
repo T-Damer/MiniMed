@@ -1,6 +1,11 @@
 name: Diagnose LocalMed bootstrap archive
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bootstrap-localmed.yml
   issues:
     types:
       - opened
