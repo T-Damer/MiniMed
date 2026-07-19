@@ -1,0 +1,83 @@
+name: Verify alpha 5 release asset
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[release] Verify MiniMed alpha 5 asset'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report verification run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment "${{ github.event.issue.number }}" --body "Release verification run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
+      - name: Download canonical release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir release-asset
+          gh release download v0.3.0-alpha.5 --dir release-asset --pattern 'MiniMed-0.3.0-alpha.5-rf-public-pilot-debug.apk'
+          gh release download v0.3.0-alpha.5 --dir release-asset --pattern 'BUILD-MANIFEST.json'
+          gh release download v0.3.0-alpha.5 --dir release-asset --pattern 'SOURCE-INDEX.json'
+          gh release download v0.3.0-alpha.5 --dir release-asset --pattern 'rf-public-pilot-benchmark.json'
+          gh release download v0.3.0-alpha.5 --dir release-asset --pattern 'SHA256SUMS.txt'
+      - name: Verify release APK and embedded database
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk='release-asset/MiniMed-0.3.0-alpha.5-rf-public-pilot-debug.apk'
+          test -s "$apk"
+          embedded_path="$(unzip -Z1 "$apk" | awk '/(^|\/)core-demo\.db$/ { print; exit }')"
+          test -n "$embedded_path"
+          unzip -p "$apk" "$embedded_path" > release-asset/rf-public-pilot-from-release.db
+          python3 - <<'PY'
+          import hashlib, json, sqlite3
+          from pathlib import Path
+          apk = Path('release-asset/MiniMed-0.3.0-alpha.5-rf-public-pilot-debug.apk')
+          db_path = Path('release-asset/rf-public-pilot-from-release.db')
+          manifest = json.loads(Path('release-asset/BUILD-MANIFEST.json').read_text(encoding='utf-8'))
+          db = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
+          quick = db.execute('pragma quick_check').fetchone()[0]
+          fk = db.execute('pragma foreign_key_check').fetchall()
+          docs = db.execute('select count(*) from documents').fetchone()[0]
+          chunks = db.execute('select count(*) from chunks').fetchone()[0]
+          db.close()
+          apk_sha = hashlib.sha256(apk.read_bytes()).hexdigest()
+          db_sha = hashlib.sha256(db_path.read_bytes()).hexdigest()
+          assert quick == 'ok'
+          assert fk == []
+          assert docs == 7
+          assert chunks == 42
+          assert apk_sha == manifest['apk']['sha256']
+          assert db_sha == manifest['embeddedDatabase']['sha256']
+          report = {
+              'apk': apk.name,
+              'apkBytes': apk.stat().st_size,
+              'apkSha256': apk_sha,
+              'embeddedDatabaseSha256': db_sha,
+              'quickCheck': quick,
+              'foreignKeyViolations': len(fk),
+              'documents': docs,
+              'chunks': chunks,
+          }
+          Path('release-asset/INDEPENDENT-VERIFICATION.json').write_text(json.dumps(report, indent=2) + '\n')
+          print(json.dumps(report, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiniMed-0.3.0-alpha.5-canonical-release
+          if-no-files-found: error
+          retention-days: 30
+          path: release-asset/
+      - name: Close trigger issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue close "${{ github.event.issue.number }}" --comment 'Canonical alpha.5 release asset downloaded and independently verified.'
