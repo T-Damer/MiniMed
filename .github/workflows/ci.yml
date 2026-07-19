@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm native:source:check
+      - run: pnpm build
+      - run: pnpm benchmark:all
+      - run: pnpm secrets:check
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - run: uv run --project tools/ingest medbase lint --input content/fixtures
+      - run: uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest pytest tools/ingest/tests
+      - run: >-
+          uv run --project tools/ingest medbase build
+          --input content/fixtures
+          --output data/build/core-demo.db
+          --json-output packages/test-fixtures/src/generated/core-demo.json
+          --report data/build/core-demo-report.json
+      - run: git diff --exit-code -- packages/test-fixtures/src/generated/core-demo.json

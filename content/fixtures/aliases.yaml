@@ -1,0 +1,56 @@
+aliases:
+  - id: alias.tachypnea.colloquial
+    canonicalTerm: тахипноэ
+    alias: часто дышит
+    category: symptom
+    weight: 1.0
+  - id: alias.tachypnea.expanded
+    canonicalTerm: тахипноэ
+    alias: учащенное дыхание
+    category: symptom
+    weight: 1.0
+  - id: alias.fever.colloquial
+    canonicalTerm: лихорадка
+    alias: температурит
+    category: symptom
+    weight: 1.0
+  - id: alias.oak.short
+    canonicalTerm: общий анализ крови
+    alias: оак
+    category: investigation
+    weight: 1.0
+  - id: alias.oam.short
+    canonicalTerm: общий анализ мочи
+    alias: оам
+    category: investigation
+    weight: 1.0
+  - id: alias.ultrasound.short
+    canonicalTerm: ультразвуковое исследование
+    alias: узи
+    category: investigation
+    weight: 1.0
+  - id: alias.augmentin.trade
+    canonicalTerm: амоксициллин клавулановая кислота
+    alias: аугментин
+    category: medication
+    weight: 1.0
+  - id: alias.abdominal.location
+    canonicalTerm: правая подвздошная область
+    alias: справа внизу живота
+    category: location
+    weight: 1.0
+  - id: alias.crp.short
+    canonicalTerm: с-реактивный белок
+    alias: crp
+    category: investigation
+    weight: 1.0
+  - id: alias.dysuria.colloquial
+    canonicalTerm: дизурия болезненное мочеиспускание
+    alias: рези при мочеиспускании
+    category: symptom
+    weight: 1.0
+  - id: alias.dysuria.term
+    canonicalTerm: болезненное мочеиспускание рези при мочеиспускании
+    alias: дизурия
+    category: symptom
+    weight: 1.0
