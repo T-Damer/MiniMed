@@ -5,6 +5,7 @@ coverage/
 playwright-report/
 test-results/
 .astro/
+.cache/
 .DS_Store
 .env
 .env.*
@@ -21,6 +22,8 @@ data/raw/*
 !data/raw/.gitkeep
 data/intermediate/*
 !data/intermediate/.gitkeep
+data/synced/*
+!data/synced/.gitkeep
 data/build/*
 !data/build/.gitkeep
 !data/build/core-demo.db
