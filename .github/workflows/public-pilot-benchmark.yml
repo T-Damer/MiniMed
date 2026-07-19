@@ -42,8 +42,9 @@ jobs:
         shell: bash
         run: |
           set +e
-          pnpm benchmark:pilot
-          status=$?
+          mkdir -p data/build
+          pnpm benchmark:pilot 2>&1 | tee data/build/rf-public-pilot-benchmark.log
+          status=${PIPESTATUS[0]}
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Upload pilot benchmark evidence
@@ -56,6 +57,7 @@ jobs:
             data/build/rf-public-pilot.db
             data/build/rf-public-pilot-report.json
             data/build/rf-public-pilot-benchmark.json
+            data/build/rf-public-pilot-benchmark.log
       - name: Enforce pilot benchmark gate
         env:
           BENCHMARK_EXIT_CODE: ${{ steps.benchmark.outputs.exit_code }}
