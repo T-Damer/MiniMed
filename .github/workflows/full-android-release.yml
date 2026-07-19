@@ -28,26 +28,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22.16.0
           cache: pnpm
-
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.10.0"
           enable-cache: true
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-
       - uses: android-actions/setup-android@v3
 
       - name: Install Android SDK components
@@ -55,10 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-36" \
-            "build-tools;${BUILD_TOOLS_VERSION}"
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;${BUILD_TOOLS_VERSION}"
 
       - name: Install locked dependencies
         shell: bash
@@ -67,7 +59,7 @@ jobs:
           pnpm install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
 
-      - name: Rebuild and verify the embedded content pack
+      - name: Verify source, content pack and retrieval
         shell: bash
         run: |
           set -euo pipefail
@@ -79,7 +71,7 @@ jobs:
           pnpm benchmark:all
           pnpm secrets:check
 
-      - name: Build and synchronize the Capacitor application
+      - name: Build and synchronize Capacitor
         shell: bash
         run: |
           set -euo pipefail
@@ -89,11 +81,9 @@ jobs:
       - name: Assemble debug-signed APK
         working-directory: apps/app/android
         shell: bash
-        run: |
-          set -euo pipefail
-          ./gradlew --no-daemon --stacktrace assembleDebug
+        run: ./gradlew --no-daemon --stacktrace assembleDebug
 
-      - name: Verify APK, signature and embedded SQLite
+      - name: Verify final APK and embedded SQLite
         shell: bash
         run: |
           set -euo pipefail
@@ -108,10 +98,7 @@ jobs:
           unzip -l "$apk" | tee release-output/APK-CONTENTS.txt
 
           embedded_path="$(unzip -Z1 "$apk" | awk '/(^|\/)core-demo\.db$/ { print; exit }')"
-          if [[ -z "$embedded_path" ]]; then
-            echo "Unable to locate core-demo.db in the final APK." >&2
-            exit 1
-          fi
+          test -n "$embedded_path"
           printf '%s\n' "$embedded_path" | tee release-output/EMBEDDED-DB-PATH.txt
           unzip -p "$apk" "$embedded_path" > "$extracted_db"
           test -s "$extracted_db"
@@ -132,18 +119,17 @@ jobs:
 
           apk = Path('release-output/MiniMed-0.3.0-alpha.4-full-debug.apk')
           db_path = Path(os.environ['RUNNER_TEMP']) / 'core-demo-from-apk.db'
-          report_path = Path('apps/app/public/content/core-demo-report.json')
-          report = json.loads(report_path.read_text(encoding='utf-8'))
+          report = json.loads(Path('apps/app/public/content/core-demo-report.json').read_text(encoding='utf-8'))
 
-          connection = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
-          quick_check = connection.execute('PRAGMA quick_check').fetchone()[0]
-          foreign_key_violations = len(connection.execute('PRAGMA foreign_key_check').fetchall())
-          documents = connection.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
-          sections = connection.execute('SELECT COUNT(*) FROM sections').fetchone()[0]
-          chunks = connection.execute('SELECT COUNT(*) FROM search_chunks').fetchone()[0]
-          embedding_profiles = connection.execute('SELECT COUNT(*) FROM embedding_profiles').fetchone()[0]
-          embeddings = connection.execute('SELECT COUNT(*) FROM chunk_embeddings').fetchone()[0]
-          connection.close()
+          db = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
+          quick_check = db.execute('PRAGMA quick_check').fetchone()[0]
+          foreign_key_violations = len(db.execute('PRAGMA foreign_key_check').fetchall())
+          documents = db.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
+          sections = db.execute('SELECT COUNT(*) FROM sections').fetchone()[0]
+          chunks = db.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
+          embedding_profiles = db.execute('SELECT COUNT(*) FROM embedding_profiles').fetchone()[0]
+          embeddings = db.execute('SELECT COUNT(*) FROM chunk_embeddings').fetchone()[0]
+          db.close()
 
           assert quick_check == 'ok'
           assert foreign_key_violations == 0
@@ -190,41 +176,20 @@ jobs:
           print(json.dumps(manifest, ensure_ascii=False, indent=2))
           PY
 
-          git archive --format=zip \
-            --output="release-output/MiniMed-${RELEASE_VERSION}-source.zip" \
-            HEAD
-
+          git archive --format=zip --output="release-output/MiniMed-${RELEASE_VERSION}-source.zip" HEAD
           cp apps/app/public/content/core-demo-report.json release-output/content-pack-report.json
           cp data/build/search-benchmark.json release-output/search-benchmark.json
           cp data/build/clinical-case-benchmark.json release-output/clinical-case-benchmark.json
-
-          sha256sum \
-            "$apk" \
-            "$original_db" \
-            "release-output/MiniMed-${RELEASE_VERSION}-source.zip" \
-            > release-output/SHA256SUMS.txt
+          sha256sum "$apk" "$original_db" "release-output/MiniMed-${RELEASE_VERSION}-source.zip" > release-output/SHA256SUMS.txt
 
           cat > release-output/RELEASE_NOTES.md <<'EOF'
           # MiniMed 0.3.0-alpha.4 — full offline Android preview
 
-          This prerelease is built from the complete SolidJS + Capacitor + MedicalCore monorepo.
+          Built from the complete SolidJS + Capacitor + MedicalCore monorepo.
 
-          ## Included
+          Includes the archive-style interface, unrestricted Russian clinical text input, deterministic case parsing, SQLite FTS5/BM25 retrieval, the portable local semantic scaffold, hybrid ranking, native Android SQLite with WASM fallback, and an SQLite content pack verified inside the final APK.
 
-          - installable debug-signed Android APK;
-          - archive-style LocalMed interface;
-          - unrestricted Russian clinical text input;
-          - deterministic extraction of patient facts and explicit negations;
-          - SQLite FTS5/BM25 lexical retrieval;
-          - portable local semantic-retrieval scaffold and hybrid ranking;
-          - compiled SQLite content pack physically embedded in the APK;
-          - Android native SQLite bridge with SQLite WASM fallback;
-          - build manifest, signature report, benchmarks and checksums.
-
-          ## Important
-
-          The bundled medical documents are synthetic engineering fixtures. They are **not clinical guidance** and contain no patient data.
-          The APK is debug-signed for engineering evaluation.
+          The bundled medical documents are synthetic engineering fixtures. They are **not clinical guidance** and contain no patient data. The APK is debug-signed for engineering evaluation.
           EOF
 
       - name: Upload verified build artifact
@@ -257,18 +222,9 @@ jobs:
             release-output/EMBEDDED-DB-PATH.txt
             release-output/SHA256SUMS.txt
           )
-
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
-            gh release edit "$RELEASE_TAG" \
-              --target "$(git rev-parse HEAD)" \
-              --title "MiniMed ${RELEASE_VERSION} — full offline Android preview" \
-              --notes-file release-output/RELEASE_NOTES.md \
-              --prerelease
+            gh release edit "$RELEASE_TAG" --target "$(git rev-parse HEAD)" --title "MiniMed ${RELEASE_VERSION} — full offline Android preview" --notes-file release-output/RELEASE_NOTES.md --prerelease
           else
-            gh release create "$RELEASE_TAG" "${assets[@]}" \
-              --target "$(git rev-parse HEAD)" \
-              --title "MiniMed ${RELEASE_VERSION} — full offline Android preview" \
-              --notes-file release-output/RELEASE_NOTES.md \
-              --prerelease
+            gh release create "$RELEASE_TAG" "${assets[@]}" --target "$(git rev-parse HEAD)" --title "MiniMed ${RELEASE_VERSION} — full offline Android preview" --notes-file release-output/RELEASE_NOTES.md --prerelease
           fi
