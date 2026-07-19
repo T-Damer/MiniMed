@@ -1,0 +1,244 @@
+name: Apply persistent search workspace UX
+
+on:
+  push:
+    branches: [agent/app-ux-history-graph-parser]
+    paths:
+      - .github/workflows/apply-search-workspace-ux.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/app-ux-history-graph-parser
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Patch persistent search state and source drawer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/app/src/features/search/SearchWorkspace.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          text = text.replace(
+              "import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';",
+              "import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';",
+              1,
+          )
+          text = text.replace(
+              "import { HighlightedText } from '../../components/HighlightedText';\n",
+              "import { HighlightedText } from '../../components/HighlightedText';\nimport type { SearchHistoryEntry } from '../history/search-history';\n",
+              1,
+          )
+          text = text.replace(
+              "interface SearchWorkspaceProps {\n  readonly core: MedicalCore;\n}\n",
+              "export interface SearchRestoreRequest {\n  readonly id: number;\n  readonly query: string;\n}\n\ninterface SearchWorkspaceProps {\n  readonly core: MedicalCore;\n  readonly history: readonly SearchHistoryEntry[];\n  readonly restoreRequest: SearchRestoreRequest | undefined;\n  readonly onHistoryEntry: (entry: Omit<SearchHistoryEntry, 'id' | 'searchedAt'>) => void;\n}\n",
+              1,
+          )
+          text = text.replace(
+              "const HISTORY_KEY = 'localmed.search-history.v2';\n",
+              "const DRAFT_KEY = 'localmed.search-draft.v1';\n",
+              1,
+          )
+          save_history = """function saveHistory(query: string, current: readonly string[]): readonly string[] {
+  const next = [query, ...current.filter((item) => item !== query)].slice(0, 6);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+  return next;
+}
+
+"""
+          if save_history not in text:
+              raise SystemExit('saveHistory block not found')
+          text = text.replace(save_history, '', 1)
+          text = text.replace("  const [history, setHistory] = createSignal<readonly string[]>([]);\n", '', 1)
+          text = text.replace(
+              "  let copyTimer: ReturnType<typeof setTimeout> | undefined;\n",
+              "  let copyTimer: ReturnType<typeof setTimeout> | undefined;\n  let lastRestoreRequestId = -1;\n",
+              1,
+          )
+
+          mount_anchor = """  onMount(() => {
+    setHistory(loadStringArray(HISTORY_KEY));
+    setBookmarks(new Set(loadStringArray(BOOKMARKS_KEY)));
+  });
+"""
+          mount_replacement = """  onMount(() => {
+    setBookmarks(new Set(loadStringArray(BOOKMARKS_KEY)));
+    const draft = localStorage.getItem(DRAFT_KEY)?.trim();
+    if (draft) {
+      setQuery(draft);
+      scheduleAnalysis(draft);
+      requestAnimationFrame(() => {
+        if (textarea) resizeTextarea(textarea);
+      });
+    }
+  });
+
+  createEffect(() => {
+    const request = props.restoreRequest;
+    if (!request || request.id === lastRestoreRequestId) return;
+    lastRestoreRequestId = request.id;
+    updateQuery(request.query);
+    requestAnimationFrame(() => {
+      if (textarea) resizeTextarea(textarea);
+    });
+    void runSearch(request.query);
+  });
+"""
+          if mount_anchor not in text:
+              raise SystemExit('onMount anchor not found')
+          text = text.replace(mount_anchor, mount_replacement, 1)
+
+          text = text.replace(
+              """  function updateQuery(value: string): void {
+    setQuery(value);
+    scheduleAnalysis(value);
+  }
+""",
+              """  function updateQuery(value: string): void {
+    setQuery(value);
+    if (value.trim()) localStorage.setItem(DRAFT_KEY, value);
+    else localStorage.removeItem(DRAFT_KEY);
+    scheduleAnalysis(value);
+  }
+""",
+              1,
+          )
+          text = text.replace(
+              """    setError(undefined);
+    setActiveCategory('all');
+    const result = await props.core.search({
+""",
+              """    setError(undefined);
+    setActiveCategory('all');
+    setContext(undefined);
+    setSelectedResult(undefined);
+    const result = await props.core.search({
+""",
+              1,
+          )
+          result_anchor = """    setResponse(result.value);
+    setDraftAnalysis(result.value.analysis);
+    setHistory((current) => saveHistory(trimmed, current));
+    const first = result.value.groups[0]?.results[0];
+    if (first) await openResult(first);
+    else {
+      setContext(undefined);
+      setSelectedResult(undefined);
+    }
+"""
+          result_replacement = """    setResponse(result.value);
+    setDraftAnalysis(result.value.analysis);
+    props.onHistoryEntry({
+      query: trimmed,
+      resultCount: result.value.groups.length,
+      candidateCount: result.value.diagnostics.candidateCount,
+      modeUsed: result.value.modeUsed,
+    });
+"""
+          if result_anchor not in text:
+              raise SystemExit('search result anchor not found')
+          text = text.replace(result_anchor, result_replacement, 1)
+
+          text = text.replace(
+              """    setQuery('');
+    setDraftAnalysis(undefined);
+""",
+              """    setQuery('');
+    localStorage.removeItem(DRAFT_KEY);
+    setDraftAnalysis(undefined);
+""",
+              1,
+          )
+          navigate_anchor = """  async function copyFocusChunk(): Promise<void> {
+"""
+          close_function = """  function closeReader(): void {
+    setContext(undefined);
+    setSelectedResult(undefined);
+    setShowFullSection(false);
+  }
+
+"""
+          if navigate_anchor not in text:
+              raise SystemExit('close reader insertion anchor not found')
+          text = text.replace(navigate_anchor, close_function + navigate_anchor, 1)
+
+          text = text.replace(
+              '<section class="workspace archive-desk" aria-label="Локальный медицинский поиск">',
+              '<section class="workspace archive-desk search-home" aria-label="Локальный медицинский поиск">',
+              1,
+          )
+          text = text.replace(
+              '<span>Ctrl / ⌘ + Enter — поиск</span>',
+              '<span class="keyboard-only">Ctrl / ⌘ + Enter — поиск</span>',
+              1,
+          )
+          text = text.replace(
+              '<Show when={!response() && history().length > 0}>',
+              '<Show when={!response() && props.history.length > 0}>',
+              1,
+          )
+          text = text.replace('<For each={history()}>', '<For each={props.history.slice(0, 6)}>', 1)
+
+          aside_anchor = '<aside class="reader-column source-folder" aria-live="polite">'
+          aside_replacement = """<Show when={context()}>
+        <button
+          class="reader-backdrop"
+          type="button"
+          aria-label="Закрыть источник"
+          onClick={closeReader}
+        />
+      </Show>
+      <aside
+        class="reader-column source-folder source-drawer"
+        classList={{ open: Boolean(context()) }}
+        aria-live="polite"
+        aria-hidden={!context()}
+      >"""
+          if aside_anchor not in text:
+              raise SystemExit('reader aside anchor not found')
+          text = text.replace(aside_anchor, aside_replacement, 1)
+          text = text.replace(
+              """              <header class="reader-header">
+                <div>
+""",
+              """              <header class="reader-header">
+                <button class="reader-close" type="button" aria-label="Закрыть источник" onClick={closeReader}>
+                  ×
+                </button>
+                <div>
+""",
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Format and validate search workspace
+        run: |
+          pnpm check --write
+          pnpm typecheck
+          pnpm test:unit
+      - name: Commit tested workspace changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-search-workspace-ux.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(app): preserve search sessions and use a source drawer'
+          git push origin HEAD:agent/app-ux-history-graph-parser
