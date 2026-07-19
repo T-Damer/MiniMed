@@ -1,0 +1,71 @@
+aliases:
+  - id: alias.pilot.fever-no-focus
+    canonicalTerm: лихорадка без очага инфекции
+    alias: температура без других симптомов
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.frequent-urination
+    canonicalTerm: частое мочеиспускание дизурия
+    alias: часто писает
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.painful-urination
+    canonicalTerm: болезненное мочеиспускание дизурия
+    alias: больно писать
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.flank-pain
+    canonicalTerm: боль в боку боль в пояснице пиелонефрит
+    alias: болит сбоку спины
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.retractions
+    canonicalTerm: втяжение уступчивых мест грудной клетки дыхательный дистресс
+    alias: втягивает ребра при дыхании
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.grunting
+    canonicalTerm: кряхтящее стонущее дыхание дыхательный дистресс
+    alias: стонет на выдохе
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.wheezy-infant
+    canonicalTerm: свистящее дыхание бронхиолит ребенок до двух лет
+    alias: грудничок свистит при дыхании
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.nonblanching-rash
+    canonicalTerm: геморрагическая сыпь не бледнеет при надавливании менингококковая инфекция
+    alias: сыпь не исчезает под стаканом
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.rash-from-face
+    canonicalTerm: корь этапная сыпь начинается с лица
+    alias: сыпь пошла с лица вниз
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.vomiting-diarrhea
+    canonicalTerm: рвота водянистая диарея обезвоживание ротавирусный гастроэнтерит
+    alias: рвет и понос
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.cant-drink
+    canonicalTerm: невозможность пить отказ от жидкости дегидратация
+    alias: не может пить
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.low-saturation
+    canonicalTerm: гипоксемия низкая сатурация дыхательная недостаточность
+    alias: низкая сатурация
+    category: measurement
+    weight: 1.0
+  - id: alias.pilot.persistent-fever
+    canonicalTerm: стойкая лихорадка более трех дней пневмония
+    alias: температура держится четвертый день
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.focal-breath-sounds
+    canonicalTerm: локальные асимметричные изменения дыхания пневмония
+    alias: с одной стороны дыхание хуже
+    category: finding
+    weight: 1.0
