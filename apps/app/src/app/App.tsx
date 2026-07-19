@@ -1,31 +1,49 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
-import { createSignal, type JSX, Match, onCleanup, onMount, Show, Switch } from 'solid-js';
+import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { createBrowserCore } from '../composition/create-browser-core';
+import { NavIcon, type NavIconName } from '../components/NavIcon';
+import {
+  clearSearchHistory,
+  readSearchHistory,
+  recordSearchHistory,
+  type SearchHistoryEntry,
+} from '../features/history/search-history';
+import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
-import { SearchWorkspace } from '../features/search/SearchWorkspace';
+import { SearchWorkspace, type SearchRestoreRequest } from '../features/search/SearchWorkspace';
 import { StatusPanel } from '../features/status/StatusPanel';
 
-type View = 'search' | 'documents' | 'status';
+type View = 'search' | 'documents' | 'history' | 'status';
 
 interface ReadyState {
   readonly core: MedicalCore;
   readonly status: CoreStatus;
 }
 
-const VIEW_LABELS: Readonly<Record<View, { number: string; title: string }>> = {
-  search: { number: '01', title: 'Поиск' },
-  documents: { number: '02', title: 'Архив' },
-  status: { number: '03', title: 'Система' },
+interface ViewLabel {
+  readonly title: string;
+  readonly icon: NavIconName;
+}
+
+const VIEW_LABELS: Readonly<Record<View, ViewLabel>> = {
+  search: { title: 'Поиск', icon: 'search' },
+  documents: { title: 'Архив', icon: 'archive' },
+  history: { title: 'История', icon: 'history' },
+  status: { title: 'Система', icon: 'status' },
 };
 
 export function App(): JSX.Element {
   const [view, setView] = createSignal<View>('search');
   const [ready, setReady] = createSignal<ReadyState>();
   const [error, setError] = createSignal<string>();
+  const [history, setHistory] = createSignal<readonly SearchHistoryEntry[]>([]);
+  const [restoreRequest, setRestoreRequest] = createSignal<SearchRestoreRequest>();
+  let restoreSequence = 0;
   let coreToClose: MedicalCore | undefined;
 
   onMount(async () => {
+    setHistory(readSearchHistory());
     try {
       const core = await createBrowserCore();
       coreToClose = core;
@@ -44,13 +62,21 @@ export function App(): JSX.Element {
     if (coreToClose) void coreToClose.close();
   });
 
+  function recordHistory(input: Omit<SearchHistoryEntry, 'id' | 'searchedAt'>): void {
+    setHistory((current) => recordSearchHistory(current, input));
+  }
+
+  function openHistoryQuery(query: string): void {
+    restoreSequence += 1;
+    setRestoreRequest({ id: restoreSequence, query });
+    setView('search');
+  }
+
   return (
     <div class="app-shell archive-app">
       <header class="topbar archive-rail">
         <button class="brand archive-brand" type="button" onClick={() => setView('search')}>
-          <span class="brand-monogram" aria-hidden="true">
-            LM
-          </span>
+          <img class="brand-icon" src="./favicon.svg" alt="" aria-hidden="true" />
           <span class="brand-copy">
             <small>ЛОКАЛЬНАЯ МЕДИЦИНСКАЯ</small>
             <strong>КАРТОТЕКА</strong>
@@ -58,19 +84,22 @@ export function App(): JSX.Element {
           <span class="brand-index">ПИЛОТ РФ</span>
         </button>
 
-        <nav class="archive-tabs" aria-label="Основная навигация">
-          {(Object.entries(VIEW_LABELS) as [View, { number: string; title: string }][]).map(
-            ([key, item]) => (
+        <nav class="archive-tabs icon-tabs" aria-label="Основная навигация">
+          <For each={Object.entries(VIEW_LABELS) as [View, ViewLabel][] }>
+            {([key, item]) => (
               <button
                 classList={{ active: view() === key }}
                 type="button"
+                title={item.title}
+                aria-label={item.title}
+                aria-current={view() === key ? 'page' : undefined}
                 onClick={() => setView(key)}
               >
-                <span>{item.number}</span>
-                {item.title}
+                <NavIcon name={item.icon} />
+                <span>{item.title}</span>
               </button>
-            ),
-          )}
+            )}
+          </For>
         </nav>
 
         <div class="status-pill archive-status">
@@ -106,26 +135,36 @@ export function App(): JSX.Element {
         }
       >
         {(state) => (
-          <main>
-            <Switch>
-              <Match when={view() === 'search'}>
-                <SearchWorkspace core={state().core} />
-              </Match>
-              <Match when={view() === 'documents'}>
-                <DocumentLibrary core={state().core} />
-              </Match>
-              <Match when={view() === 'status'}>
-                <StatusPanel core={state().core} initialStatus={state().status} />
-              </Match>
-            </Switch>
+          <main class="app-content">
+            <div class="app-view" hidden={view() !== 'search'}>
+              <SearchWorkspace
+                core={state().core}
+                history={history()}
+                restoreRequest={restoreRequest()}
+                onHistoryEntry={recordHistory}
+              />
+            </div>
+            <div class="app-view" hidden={view() !== 'documents'}>
+              <DocumentLibrary core={state().core} />
+            </div>
+            <div class="app-view" hidden={view() !== 'history'}>
+              <SearchHistoryView
+                entries={history()}
+                onOpen={openHistoryQuery}
+                onClear={() => setHistory(clearSearchHistory())}
+              />
+            </div>
+            <div class="app-view" hidden={view() !== 'status'}>
+              <StatusPanel core={state().core} initialStatus={state().status} />
+            </div>
           </main>
         )}
       </Show>
 
       <footer class="footer-note archive-footer">
         <span>MINIMED / BUILD 0.3.0-alpha.5</span>
-        <span>Публичный пилот: краткие карточки по КР · сверяйте актуальный первоисточник</span>
-        <span>OFFLINE FIRST / RETRIEVAL BEFORE GENERATION</span>
+        <span>Публичный пилот · локальный поиск · сверяйте первоисточник</span>
+        <span>OFFLINE FIRST</span>
       </footer>
     </div>
   );
