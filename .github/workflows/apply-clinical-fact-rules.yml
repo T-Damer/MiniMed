@@ -1,0 +1,94 @@
+name: Apply clinical fact parser wiring
+
+on:
+  push:
+    branches: [agent/app-ux-history-graph-parser]
+    paths:
+      - .github/workflows/apply-clinical-fact-rules.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/app-ux-history-graph-parser
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Wire supplemental facts into query analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('packages/search-lexical/src/analysis.ts')
+          text = path.read_text(encoding='utf-8')
+
+          import_anchor = "import { expandAliases } from './aliases';\n"
+          import_line = "import { extractSupplementalClinicalFacts } from './clinical-facts';\n"
+          if import_line not in text:
+              if import_anchor not in text:
+                  raise SystemExit('import anchor not found')
+              text = text.replace(import_anchor, import_anchor + import_line, 1)
+
+          extraction_anchor = "  extractNegations(query, aliases, facts);\n  extractAliasFacts(query, aliases, facts);\n"
+          extraction_replacement = """  extractNegations(query, aliases, facts);
+  const negativeRanges = facts
+    .filter((fact) => fact.kind === 'negative-finding')
+    .map((fact) => fact.range);
+  for (const candidate of extractSupplementalClinicalFacts(query, negativeRanges)) {
+    addFact(facts, candidate);
+  }
+  extractAliasFacts(query, aliases, facts);
+"""
+          if extraction_anchor not in text:
+              raise SystemExit('extraction anchor not found')
+          text = text.replace(extraction_anchor, extraction_replacement, 1)
+
+          terms_anchor = """  const clinicalTerms = [...new Set([...positiveTerms, ...canonicalTerms])].slice(0, MAX_FTS_TERMS);
+"""
+          terms_replacement = """  const factTerms = termsWithStems(
+    facts
+      .filter(
+        (fact) =>
+          fact.polarity === 'positive' &&
+          (fact.kind === 'symptom' || fact.kind === 'location' || fact.kind === 'epidemiology'),
+      )
+      .map((fact) => fact.normalizedValue),
+  );
+  const clinicalTerms = [...new Set([...positiveTerms, ...canonicalTerms, ...factTerms])].slice(
+    0,
+    MAX_FTS_TERMS,
+  );
+"""
+          if terms_anchor not in text:
+              raise SystemExit('clinical terms anchor not found')
+          text = text.replace(terms_anchor, terms_replacement, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Format and validate query analysis
+        run: |
+          pnpm check --write
+          pnpm typecheck
+          pnpm test:unit
+      - name: Commit tested parser wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-clinical-fact-rules.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(search): parse bare age and inflected symptoms'
+          git push origin HEAD:agent/app-ux-history-graph-parser
