@@ -1,0 +1,43 @@
+[
+  {"query":"Девочка 6 лет, больно писать и часто ходит в туалет","expectedDocumentIds":["kr.rf.281_3.uti"],"category":"uti"},
+  {"query":"Ребенок 8 месяцев, температура без насморка и кашля, нужен анализ мочи","expectedDocumentIds":["kr.rf.281_3.uti"],"category":"uti"},
+  {"query":"Лихорадка, рвота и боль в боку у ребенка, подозрение на пиелонефрит","expectedDocumentIds":["kr.rf.281_3.uti"],"category":"uti"},
+  {"query":"Мутная резко пахнущая моча и новый энурез","expectedDocumentIds":["kr.rf.281_3.uti"],"category":"uti"},
+  {"query":"Грудничок вялый, плохо ест и температурит без ясного очага","expectedDocumentIds":["kr.rf.281_3.uti"],"category":"uti"},
+
+  {"query":"Кашель после ОРВИ, рассеянные хрипы, умеренная температура без одышки","expectedDocumentIds":["kr.rf.381_3.bronchitis"],"category":"bronchitis"},
+  {"query":"Острый кашель и цветная мокрота, нужны ли антибиотики при бронхите","expectedDocumentIds":["kr.rf.381_3.bronchitis"],"category":"bronchitis"},
+  {"query":"Вирусный бронхит у ребенка, нужен ли рентген","expectedDocumentIds":["kr.rf.381_3.bronchitis"],"category":"bronchitis"},
+  {"query":"Длительный кашель без локальных изменений в легких и без дыхательной недостаточности","expectedDocumentIds":["kr.rf.381_3.bronchitis"],"category":"bronchitis"},
+  {"query":"Бронхит: питье, контроль температуры и наблюдение за дыханием","expectedDocumentIds":["kr.rf.381_3.bronchitis"],"category":"bronchitis"},
+
+  {"query":"Грудничок свистит при дыхании и втягивает ребра","expectedDocumentIds":["kr.rf.360_3.bronchiolitis"],"category":"bronchiolitis"},
+  {"query":"Ребенок 5 месяцев, после насморка кашель, тахипноэ и свистящие хрипы","expectedDocumentIds":["kr.rf.360_3.bronchiolitis"],"category":"bronchiolitis"},
+  {"query":"Недоношенный младенец, первым симптомом стало апноэ, подозрение на бронхиолит","expectedDocumentIds":["kr.rf.360_3.bronchiolitis"],"category":"bronchiolitis"},
+  {"query":"Ребенок до года отказывается пить, часто дышит и свистит","expectedDocumentIds":["kr.rf.360_3.bronchiolitis"],"category":"bronchiolitis"},
+  {"query":"Критерии выписки при бронхиолите: сатурация 95, нет дистресса, пьет","expectedDocumentIds":["kr.rf.360_3.bronchiolitis"],"category":"bronchiolitis"},
+
+  {"query":"Температура, кашель, конъюнктивит, затем сыпь пошла с лица вниз","expectedDocumentIds":["kr.rf.563_2.measles"],"category":"measles"},
+  {"query":"Пятна Коплика на слизистой щек у ребенка","expectedDocumentIds":["kr.rf.563_2.measles"],"category":"measles"},
+  {"query":"Непривитый ребенок контактировал с больным, лихорадка и этапная сыпь","expectedDocumentIds":["kr.rf.563_2.measles"],"category":"measles"},
+  {"query":"Подозрение на корь: изоляция и эпидемиологические мероприятия","expectedDocumentIds":["kr.rf.563_2.measles"],"category":"measles"},
+  {"query":"Сыпь появилась после насморка, кашля и конъюнктивита","expectedDocumentIds":["kr.rf.563_2.measles"],"category":"measles"},
+
+  {"query":"Ребенка рвет и понос, не может пить","expectedDocumentIds":["kr.rf.755_1.rotavirus"],"category":"rotavirus"},
+  {"query":"Водянистый стул, рвота, мало мочится, признаки обезвоживания","expectedDocumentIds":["kr.rf.755_1.rotavirus"],"category":"rotavirus"},
+  {"query":"Гастроэнтерит у ребенка: низкоосмолярный раствор для регидратации","expectedDocumentIds":["kr.rf.755_1.rotavirus"],"category":"rotavirus"},
+  {"query":"Ротавирус, оральная регидратация маленькими порциями","expectedDocumentIds":["kr.rf.755_1.rotavirus"],"category":"rotavirus"},
+  {"query":"После диареи ребенок вялый и редко мочится","expectedDocumentIds":["kr.rf.755_1.rotavirus"],"category":"rotavirus"},
+
+  {"query":"Температура и сыпь не исчезает под стаканом","expectedDocumentIds":["kr.rf.58_2.meningococcal"],"category":"meningococcal"},
+  {"query":"Геморрагическая сыпь, лихорадка, холодные конечности, возможный шок","expectedDocumentIds":["kr.rf.58_2.meningococcal"],"category":"meningococcal"},
+  {"query":"Младенец вялый, монотонно кричит и выбухает родничок","expectedDocumentIds":["kr.rf.58_2.meningococcal"],"category":"meningococcal"},
+  {"query":"Подозрение на менингококковую инфекцию, нужна срочная госпитализация","expectedDocumentIds":["kr.rf.58_2.meningococcal"],"category":"meningococcal"},
+  {"query":"Лихорадка, повторная рвота, судороги и нарушение сознания","expectedDocumentIds":["kr.rf.58_2.meningococcal"],"category":"meningococcal"},
+
+  {"query":"Температура держится четвертый день, кашель, часто дышит, сатурация 92","expectedDocumentIds":["kr.rf.714_2.pneumonia"],"category":"pneumonia"},
+  {"query":"Локально дыхание ослаблено с одной стороны и болит живот, исключить пневмонию","expectedDocumentIds":["kr.rf.714_2.pneumonia"],"category":"pneumonia"},
+  {"query":"Внебольничная пневмония у ребенка, амоксициллин амбулаторно","expectedDocumentIds":["kr.rf.714_2.pneumonia"],"category":"pneumonia"},
+  {"query":"Ребенок 2 месяца, кашель, цианоз и сатурация 88 процентов","expectedDocumentIds":["kr.rf.714_2.pneumonia"],"category":"pneumonia"},
+  {"query":"Нет ответа на стартовый антибиотик через 72 часа при пневмонии","expectedDocumentIds":["kr.rf.714_2.pneumonia"],"category":"pneumonia"}
+]
