@@ -43,7 +43,9 @@ const root = resolve(import.meta.dirname, '../../..');
 const fixtures = parseCases(
   JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/clinical-cases.json'), 'utf8')),
 );
-const databaseBytes = new Uint8Array(readFileSync(resolve(root, 'data/build/core-demo.db')));
+const databaseBytes = new Uint8Array(
+  readFileSync(resolve(root, 'apps/app/public/content/core-demo.db')),
+);
 const store = await SqliteMedicalStore.createFromBytes(databaseBytes);
 const core = createMedicalCore({ store, platform: 'test' });
 const initialized = await core.initialize();
