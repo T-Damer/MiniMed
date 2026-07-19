@@ -1,0 +1,27 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "dev.minimed.preview"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "dev.minimed.preview"
+        minSdk 26
+        targetSdk 35
+        versionCode 30003
+        versionName "0.3.0-alpha.3"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+    }
+}
