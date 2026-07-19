@@ -310,7 +310,9 @@ def _sync_remote(
 
     if offline:
         if not cached_valid or metadata is None:
-            raise FileNotFoundError(f"No cached payload is available for remote source {source.id}.")
+            raise FileNotFoundError(
+                f"No cached payload is available for remote source {source.id}."
+            )
         status = "cache-fallback"
     else:
         headers = {
@@ -324,7 +326,7 @@ def _sync_remote(
                 headers["If-Modified-Since"] = metadata.last_modified
         request = urllib.request.Request(source.location, headers=headers)
         try:
-            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310
+            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
                 payload = _read_limited(response, source.max_bytes)
                 _validate_payload(payload, content_type, source.id)
                 checksum = _sha256_bytes(payload)

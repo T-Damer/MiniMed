@@ -16,7 +16,7 @@ class _SourceHandler(BaseHTTPRequestHandler):
     etag: ClassVar[str] = '"pilot-v1"'
     request_count: ClassVar[int] = 0
 
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self) -> None:
         type(self).request_count += 1
         if self.headers.get("If-None-Match") == self.etag:
             self.send_response(304)

@@ -50,9 +50,7 @@ def import_command(
 def sync_command(
     manifest: Annotated[Path, typer.Option("--manifest", exists=True, dir_okay=False)],
     output_root: Annotated[Path, typer.Option("--output-root")],
-    cache_root: Annotated[Path, typer.Option("--cache-root")] = Path(
-        ".cache/localmed/sources"
-    ),
+    cache_root: Annotated[Path, typer.Option("--cache-root")] = Path(".cache/localmed/sources"),
     input_root: Annotated[
         Path | None, typer.Option("--input-root", exists=True, file_okay=False)
     ] = None,
