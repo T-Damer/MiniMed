@@ -105,7 +105,7 @@ const categories = Object.fromEntries(
 );
 const report = {
   generatedAt: new Date().toISOString(),
-  corpus: initialized.value.pack.id,
+  corpus: initialized.value.contentPackIds[0] ?? 'unknown',
   queryCount: rows.length,
   recallAt1: mean(rows.map((row) => Number(row.hitAt1))),
   recallAt5: mean(rows.map((row) => Number(row.hitAt5))),
