@@ -35,7 +35,7 @@ describe('SqliteMedicalStore', () => {
   });
 
   it('opens a precompiled SQLite content pack without replaying the JSON seed', async () => {
-    const bytes = new Uint8Array(await readFile('data/build/core-demo.db'));
+    const bytes = new Uint8Array(await readFile('apps/app/public/content/core-demo.db'));
     const store = await SqliteMedicalStore.createFromBytes(bytes);
     stores.push(store);
     const health = await store.initialize();
