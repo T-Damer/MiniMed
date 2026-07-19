@@ -2,6 +2,8 @@
 
 MiniMed `0.3.0-alpha.5` contains a small source-linked pilot corpus derived from seven Russian pediatric clinical recommendations.
 
+Source metadata and public links were reviewed on 19 July 2026. The official Minzdrav document remains authoritative if a linked mirror or this pilot card differs from it.
+
 ## Scope
 
 | Topic | Official ID | Year | Official source |
