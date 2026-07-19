@@ -1,0 +1,78 @@
+name: Validate full-source pull request
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/validate-full-source-pr.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-full-source-pr
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out full-source branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/full-source-0.3.0-alpha.1
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile 2>&1 | tee install-js.log
+          uv sync --project tools/ingest --all-groups --locked 2>&1 | tee install-python.log
+
+      - name: Run repository verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm verify 2>&1 | tee verify.log
+
+      - name: Run Chromium E2E
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec playwright install --with-deps chromium 2>&1 | tee playwright-install.log
+          pnpm test:e2e 2>&1 | tee e2e.log
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-source-validation-logs
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            install-js.log
+            install-python.log
+            verify.log
+            playwright-install.log
+            e2e.log
+            data/build/*report*.json
+            data/build/*benchmark*.json
+            playwright-report/**
+            test-results/**
