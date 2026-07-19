@@ -15,16 +15,16 @@ jobs:
   report:
     runs-on: ubuntu-24.04
     steps:
-      - name: Extract failed migration log tail
+      - name: Extract failed verification log tail
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run view 29697205331 --repo "$GITHUB_REPOSITORY" --log-failed > failed.log
-          tail -n 100 failed.log > failed-tail.log
+          gh run view 29697423701 --repo "$GITHUB_REPOSITORY" --log-failed > failed.log
+          tail -n 140 failed.log > failed-tail.log
           {
-            echo 'Alpha.6 migration failure tail:'
+            echo 'Alpha.6 verification failure tail:'
             echo
             echo '```text'
             cat failed-tail.log
