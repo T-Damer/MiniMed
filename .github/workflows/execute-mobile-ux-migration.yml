@@ -27,7 +27,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          issue_number="${{ github.event.issue.number || 47 }}"
+          issue_number="${{ github.event.issue.number || 48 }}"
           gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" \
             --body "Mobile UX migration run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
 
@@ -88,13 +88,12 @@ jobs:
           css_path.write_text(css, encoding='utf-8')
           PY
 
-      - name: Refresh dependencies and format generated source
+      - name: Refresh dependency lockfiles
         shell: bash
         run: |
           set -euo pipefail
           pnpm install --no-frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
-          pnpm check --write
 
       - name: Publish generated migration to the draft branch
         shell: bash
