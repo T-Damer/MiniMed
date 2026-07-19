@@ -1,13 +1,18 @@
 import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
 import { createSignal, For, type JSX, onMount, Show } from 'solid-js';
 
+import { CorpusGraph } from './CorpusGraph';
+
 interface DocumentLibraryProps {
   readonly core: MedicalCore;
 }
 
+type LibraryMode = 'folders' | 'graph';
+
 export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
   const [selected, setSelected] = createSignal<MedicalDocument>();
+  const [mode, setMode] = createSignal<LibraryMode>('folders');
   const [error, setError] = createSignal<string>();
 
   onMount(async () => {
@@ -30,16 +35,37 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   }
 
   return (
-    <section class="library-layout archive-library">
+    <section
+      class="library-layout archive-library"
+      classList={{ 'graph-mode': mode() === 'graph' }}
+    >
       <aside class="library-list archive-cabinet">
         <div class="folder-tab">ФОНД / ДОКУМЕНТЫ</div>
         <header>
-          <p class="archive-kicker">Локальный корпус</p>
-          <h1>Архив документов</h1>
-          <p>
-            Каждый файл хранит структуру разделов, стабильные якоря и исходные абзацы. В этой сборке
-            — три синтетические рекомендации.
-          </p>
+          <div>
+            <p class="archive-kicker">Локальный корпус</p>
+            <h1>Архив документов</h1>
+            <p>
+              Каждый файл хранит редакцию, структуру разделов, стабильные якоря и исходные абзацы.
+              Активный пакет содержит {documents().length} документов.
+            </p>
+          </div>
+          <div class="library-mode-switch" role="group" aria-label="Представление архива">
+            <button
+              type="button"
+              classList={{ active: mode() === 'folders' }}
+              onClick={() => setMode('folders')}
+            >
+              Папки
+            </button>
+            <button
+              type="button"
+              classList={{ active: mode() === 'graph' }}
+              onClick={() => setMode('graph')}
+            >
+              Связи
+            </button>
+          </div>
         </header>
 
         <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
@@ -49,26 +75,37 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           <strong>{documents().length.toString().padStart(3, '0')}</strong>
         </div>
 
-        <div class="document-folders">
-          <For each={documents()}>
-            {(document, index) => (
-              <button
-                class="document-folder"
-                classList={{ selected: selected()?.id === document.id }}
-                type="button"
-                onClick={() => void openDocument(document.id)}
-              >
-                <span class="document-folder-tab">
-                  {String(index() + 1).padStart(2, '0')} /{' '}
-                  {document.sourceType.replaceAll('_', ' ')}
-                </span>
-                <strong>{document.title}</strong>
-                <span class="folder-specialties">{document.specialties.join(' · ')}</span>
-                <small>{document.versionLabel}</small>
-              </button>
-            )}
-          </For>
-        </div>
+        <Show
+          when={mode() === 'folders'}
+          fallback={
+            <CorpusGraph
+              documents={documents()}
+              selectedId={selected()?.id}
+              onSelect={(id) => void openDocument(id)}
+            />
+          }
+        >
+          <div class="document-folders">
+            <For each={documents()}>
+              {(document, index) => (
+                <button
+                  class="document-folder"
+                  classList={{ selected: selected()?.id === document.id }}
+                  type="button"
+                  onClick={() => void openDocument(document.id)}
+                >
+                  <span class="document-folder-tab">
+                    {String(index() + 1).padStart(2, '0')} /{' '}
+                    {document.sourceType.replaceAll('_', ' ')}
+                  </span>
+                  <strong>{document.title}</strong>
+                  <span class="folder-specialties">{document.specialties.join(' · ')}</span>
+                  <small>{document.versionLabel}</small>
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
       </aside>
 
       <div class="library-reader source-folder">
@@ -79,7 +116,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
             <div class="reader-empty library-empty">
               <span class="empty-file-mark">LM–DOC</span>
               <p class="archive-kicker">Структура документа</p>
-              <h2>Выберите папку слева</h2>
+              <h2>{mode() === 'graph' ? 'Выберите узел документа' : 'Выберите папку слева'}</h2>
               <p>Здесь откроется полный текст с оглавлением и стабильными якорями.</p>
               <div class="empty-rules" aria-hidden="true" />
             </div>
