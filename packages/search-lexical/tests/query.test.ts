@@ -91,6 +91,17 @@ describe('lexical query planning', () => {
     expect(clinical?.terms).toContain('мочеиспускание');
   });
 
+  it('keeps diagnosis context searchable after a negated treatment-response phrase', () => {
+    const plan = analyzeClinicalQuery(
+      'Нет ответа на стартовый антибиотик через 72 часа при пневмонии',
+      aliases,
+    );
+    const negative = plan.analysis.facts.find((fact) => fact.kind === 'negative-finding');
+    const clinical = plan.branches.find((branch) => branch.kind === 'clinical');
+    expect(negative?.normalizedValue).toBe('ответа на стартовый антибиотик');
+    expect(clinical?.terms.some((term) => term.startsWith('пневмони'))).toBe(true);
+  });
+
   it('splits long descriptions into observable search branches', () => {
     const plan = analyzeClinicalQuery(
       'Мальчик 7 лет. Боль справа внизу живота появилась вчера. Однократная рвота. Общий анализ мочи без изменений.',
