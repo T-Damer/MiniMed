@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: apply-alpha6-pr-migration
@@ -17,6 +18,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
+      - name: Report run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 46 --repo "$GITHUB_REPOSITORY" --body "PR-scoped alpha.6 migration run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
       - uses: actions/checkout@v4
         with:
           ref: agent/mobile-ux-0.3.0-alpha.6
@@ -49,7 +54,8 @@ jobs:
 
           css_path = Path('apps/app/src/styles/mobile-shell.css')
           css = css_path.read_text(encoding='utf-8').replace('display: none !important;', 'display: none;')
-          css += '''
+          if '.sr-only {' not in css:
+              css += '''
 
 .sr-only {
   position: absolute;
