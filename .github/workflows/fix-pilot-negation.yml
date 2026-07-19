@@ -3,6 +3,7 @@ name: Fix pilot negation scope
 on:
   issues:
     types: [opened]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -10,7 +11,7 @@ permissions:
 
 jobs:
   fix:
-    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Fix pilot negation scope'
+    if: github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Fix pilot negation scope')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -94,6 +95,7 @@ jobs:
           git commit -m 'fix(search): preserve diagnosis after treatment-response negation'
           git push origin HEAD:agent/rf-public-pilot-0.3.0-alpha.5
       - name: Close trigger issue
+        if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh issue close "${{ github.event.issue.number }}" --comment 'Negation-scope regression fix applied and unit-tested.'
