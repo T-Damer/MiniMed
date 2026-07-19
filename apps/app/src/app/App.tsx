@@ -44,7 +44,9 @@ export function App(): JSX.Element {
     window.history.replaceState({ view: next }, '', `#/${next}`);
   };
 
-  const handleHashChange = (): void => setView(viewFromLocation());
+  const handleHashChange = (): void => {
+    setView(viewFromLocation());
+  };
 
   onMount(async () => {
     window.addEventListener('hashchange', handleHashChange);
