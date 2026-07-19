@@ -1,0 +1,13 @@
+{
+  "documents": 3,
+  "sections": 15,
+  "chunks": 15,
+  "aliases": 11,
+  "embeddingProfiles": 1,
+  "embeddings": 15,
+  "warnings": [],
+  "errors": [],
+  "outputChecksum": "sha256:68b7c9d957e35c83b6d3f949886c597c3b15e60daaf6752bcdebfff3787dbf57",
+  "sqliteIntegrity": "ok",
+  "foreignKeyViolations": 0
+}

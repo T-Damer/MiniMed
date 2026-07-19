@@ -1,0 +1,39 @@
+pack:
+  id: localmed.private-pilot
+  version: 2026.07.1
+  schemaVersion: 2
+  title: LocalMed private clinical-recommendation pilot
+  builtAt: "2026-07-17T00:00:00Z"
+
+sources:
+  - id: kr.private.pediatrics.example
+    path: example-recommendation.pdf
+    title: Название клинической рекомендации
+    shortTitle: Короткое название
+    versionLabel: "2026"
+    sourceType: clinical_recommendation
+    status: draft
+    specialties:
+      - pediatrics
+    ageGroups:
+      - children
+    effectiveFrom: "2026-01-01"
+    extraction:
+      topMarginRatio: 0.12
+      bottomMarginRatio: 0.10
+      repeatedBlockPageRatio: 0.50
+      minRepeatedPages: 2
+      minPageCharacters: 40
+      minHeadingFontRatio: 1.12
+      maxHeadingCharacters: 180
+      removeRepeatedMarginalia: true
+      joinHyphenatedLines: true
+    metadata:
+      collection: personal-pilot
+
+aliases:
+  - id: alias.example.colloquial
+    canonicalTerm: медицинский термин
+    alias: бытовая формулировка
+    category: symptom
+    weight: 1.0

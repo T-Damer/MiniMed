@@ -1,0 +1,22 @@
+{
+  "name": "@localmed/storage-capacitor",
+  "version": "0.3.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.4.1",
+    "@localmed/contracts": "workspace:*",
+    "@localmed/domain": "workspace:*",
+    "@localmed/storage": "workspace:*"
+  },
+  "devDependencies": {
+    "@localmed/test-fixtures": "workspace:*"
+  }
+}
