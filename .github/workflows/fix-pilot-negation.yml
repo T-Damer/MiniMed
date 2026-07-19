@@ -1,0 +1,99 @@
+name: Fix pilot negation scope
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  fix:
+    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Fix pilot negation scope'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rf-public-pilot-0.3.0-alpha.5
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Narrow treatment-response negation at temporal reassessment boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          analysis = Path('packages/search-lexical/src/analysis.ts')
+          text = analysis.read_text(encoding='utf-8')
+          old = """  const explicitBoundary = normalizedCaptured.search(
+            /\\s+(?:жалуется|принимает|получает|назначен[а-я]*|обследован[а-я]*|оак|оам|сатурац[а-я]*)(?=\\s|$)/u,
+          );
+          if (explicitBoundary >= 0) boundary = Math.min(boundary, explicitBoundary);
+
+          return (
+          """
+          new = """  const explicitBoundary = normalizedCaptured.search(
+            /\\s+(?:жалуется|принимает|получает|назначен[а-я]*|обследован[а-я]*|оак|оам|сатурац[а-я]*)(?=\\s|$)/u,
+          );
+          if (explicitBoundary >= 0) boundary = Math.min(boundary, explicitBoundary);
+
+          // A temporal reassessment phrase ends the negated finding. In `нет ответа на антибиотик через
+          // 72 часа при пневмонии`, only the absent treatment response is negative; the diagnosis after
+          // the time boundary must remain searchable.
+          const temporalBoundary = normalizedCaptured.search(
+            /\\s+(?:через|спустя)\\s+\\d+(?:[.,]\\d+)?\\s*(?:минут[а-я]*|час[а-я]*|дн(?:я|ей|и)|сут(?:ок|ки)?|недел[а-я]*|месяц[а-я]*)(?=\\s|$)/u,
+          );
+          if (temporalBoundary >= 0) boundary = Math.min(boundary, temporalBoundary);
+
+          return (
+          """
+          if old not in text:
+              raise SystemExit('analysis replacement target not found')
+          analysis.write_text(text.replace(old, new), encoding='utf-8')
+
+          tests = Path('packages/search-lexical/tests/query.test.ts')
+          test_text = tests.read_text(encoding='utf-8')
+          needle = """  it('splits long descriptions into observable search branches', () => {
+          """
+          insertion = """  it('keeps diagnosis context searchable after a negated treatment-response phrase', () => {
+            const plan = analyzeClinicalQuery(
+              'Нет ответа на стартовый антибиотик через 72 часа при пневмонии',
+              aliases,
+            );
+            const negative = plan.analysis.facts.find((fact) => fact.kind === 'negative-finding');
+            const clinical = plan.branches.find((branch) => branch.kind === 'clinical');
+            expect(negative?.normalizedValue).toBe('ответа на стартовый антибиотик');
+            expect(clinical?.terms.some((term) => term.startsWith('пневмони'))).toBe(true);
+          });
+
+          """
+          if needle not in test_text:
+              raise SystemExit('test insertion target not found')
+          tests.write_text(test_text.replace(needle, insertion + needle), encoding='utf-8')
+          PY
+      - name: Format and test lexical query analysis
+        run: |
+          pnpm check --write
+          pnpm typecheck
+          pnpm test:unit
+      - name: Commit fix
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add packages/search-lexical/src/analysis.ts packages/search-lexical/tests/query.test.ts
+          git commit -m 'fix(search): preserve diagnosis after treatment-response negation'
+          git push origin HEAD:agent/rf-public-pilot-0.3.0-alpha.5
+      - name: Close trigger issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue close "${{ github.event.issue.number }}" --comment 'Negation-scope regression fix applied and unit-tested.'
