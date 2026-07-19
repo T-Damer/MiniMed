@@ -1,16 +1,17 @@
 name: Full Android alpha release
 
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches:
-      - agent/full-android-0.3.0-alpha.4
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: full-android-0.3.0-alpha.4
+  group: full-android-0.3.0-alpha.4-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -229,6 +230,7 @@ jobs:
           path: release-output/
 
       - name: Publish GitHub prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
