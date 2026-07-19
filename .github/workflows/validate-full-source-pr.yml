@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: validate-full-source-pr
@@ -19,6 +20,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
+      - name: Report validation run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment 14 --body "Full-source validation run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
+
       - name: Check out full-source branch
         uses: actions/checkout@v4
         with:
