@@ -33,7 +33,9 @@ function formatDate(value: string): string {
 export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
   const [entries, setEntries] = createSignal<readonly SearchHistoryEntry[]>([]);
 
-  const refresh = (): void => setEntries(loadSearchHistory());
+  const refresh = (): void => {
+    setEntries(loadSearchHistory());
+  };
 
   onMount(() => {
     refresh();
@@ -92,7 +94,9 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
                   class="history-remove"
                   type="button"
                   aria-label="Удалить запись"
-                  onClick={() => setEntries(removeSearchHistoryEntry(entry.id))}
+                  onClick={() => {
+                    setEntries(removeSearchHistoryEntry(entry.id));
+                  }}
                 >
                   <AppGlyph name="close" />
                 </button>
