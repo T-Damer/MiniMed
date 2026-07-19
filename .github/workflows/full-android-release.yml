@@ -1,0 +1,264 @@
+name: Full Android alpha release
+
+on:
+  push:
+    branches:
+      - agent/full-android-0.3.0-alpha.4
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: full-android-0.3.0-alpha.4
+  cancel-in-progress: true
+
+env:
+  RELEASE_VERSION: 0.3.0-alpha.4
+  RELEASE_TAG: v0.3.0-alpha.4
+  APK_NAME: MiniMed-0.3.0-alpha.4-full-debug.apk
+  BUILD_TOOLS_VERSION: 36.0.0
+  PACK_ASSET_PATH: assets/public/content/core-demo.db
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;${BUILD_TOOLS_VERSION}"
+
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+
+      - name: Rebuild and verify the embedded content pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm content:build
+          pnpm check
+          pnpm typecheck
+          pnpm test:unit
+          pnpm native:source:check
+          pnpm benchmark:all
+          pnpm secrets:check
+
+      - name: Build and synchronize the Capacitor application
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm build:app
+          pnpm native:sync:android
+
+      - name: Assemble debug-signed APK
+        working-directory: apps/app/android
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon --stacktrace assembleDebug
+
+      - name: Verify APK, signature and embedded SQLite
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-output
+          apk_source="apps/app/android/app/build/outputs/apk/debug/app-debug.apk"
+          apk="release-output/${APK_NAME}"
+          original_db="apps/app/public/content/core-demo.db"
+          extracted_db="$RUNNER_TEMP/core-demo-from-apk.db"
+
+          test -s "$apk_source"
+          cp "$apk_source" "$apk"
+          unzip -l "$apk" | tee release-output/APK-CONTENTS.txt
+          unzip -p "$apk" "$PACK_ASSET_PATH" > "$extracted_db"
+          test -s "$extracted_db"
+          cmp "$original_db" "$extracted_db"
+
+          aapt="${ANDROID_HOME}/build-tools/${BUILD_TOOLS_VERSION}/aapt"
+          apksigner="${ANDROID_HOME}/build-tools/${BUILD_TOOLS_VERSION}/apksigner"
+          "$aapt" dump badging "$apk" | tee release-output/APK-BADGING.txt
+          "$aapt" dump permissions "$apk" | tee release-output/APK-PERMISSIONS.txt
+          "$apksigner" verify --verbose --print-certs "$apk" | tee release-output/APK-SIGNATURE.txt
+
+          SOURCE_SHA="$(git rev-parse HEAD)" python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import sqlite3
+          from pathlib import Path
+
+          apk = Path('release-output/MiniMed-0.3.0-alpha.4-full-debug.apk')
+          db_path = Path(os.environ['RUNNER_TEMP']) / 'core-demo-from-apk.db'
+          report_path = Path('apps/app/public/content/core-demo-report.json')
+          report = json.loads(report_path.read_text(encoding='utf-8'))
+
+          connection = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
+          quick_check = connection.execute('PRAGMA quick_check').fetchone()[0]
+          foreign_key_violations = len(connection.execute('PRAGMA foreign_key_check').fetchall())
+          documents = connection.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
+          sections = connection.execute('SELECT COUNT(*) FROM sections').fetchone()[0]
+          chunks = connection.execute('SELECT COUNT(*) FROM search_chunks').fetchone()[0]
+          embedding_profiles = connection.execute('SELECT COUNT(*) FROM embedding_profiles').fetchone()[0]
+          embeddings = connection.execute('SELECT COUNT(*) FROM chunk_embeddings').fetchone()[0]
+          connection.close()
+
+          assert quick_check == 'ok'
+          assert foreign_key_violations == 0
+          assert documents == report['documents'] == 3
+          assert sections == report['sections'] == 15
+          assert chunks == report['chunks'] == 15
+          assert embedding_profiles == report['embeddingProfiles'] == 1
+          assert embeddings == report['embeddings'] == 15
+
+          manifest = {
+              'version': '0.3.0-alpha.4',
+              'sourceSha': os.environ['SOURCE_SHA'],
+              'applicationId': 'dev.localmed.search',
+              'apk': {
+                  'name': apk.name,
+                  'bytes': apk.stat().st_size,
+                  'sha256': hashlib.sha256(apk.read_bytes()).hexdigest(),
+                  'debugSigned': True,
+              },
+              'embeddedDatabase': {
+                  'apkPath': 'assets/public/content/core-demo.db',
+                  'bytes': db_path.stat().st_size,
+                  'sha256': hashlib.sha256(db_path.read_bytes()).hexdigest(),
+                  'quickCheck': quick_check,
+                  'foreignKeyViolations': foreign_key_violations,
+                  'documents': documents,
+                  'sections': sections,
+                  'chunks': chunks,
+                  'embeddingProfiles': embedding_profiles,
+                  'embeddings': embeddings,
+                  'synthetic': True,
+              },
+              'retrieval': {
+                  'lexical': 'SQLite FTS5/BM25',
+                  'semantic': 'portable int8 feature-hash scaffold',
+                  'mode': 'local hybrid retrieval',
+              },
+              'clinicalGuidance': False,
+          }
+          Path('release-output/BUILD-MANIFEST.json').write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+
+          git archive --format=zip \
+            --output="release-output/MiniMed-${RELEASE_VERSION}-source.zip" \
+            HEAD
+
+          cp apps/app/public/content/core-demo-report.json release-output/content-pack-report.json
+          cp data/build/search-benchmark.json release-output/search-benchmark.json
+          cp data/build/clinical-case-benchmark.json release-output/clinical-case-benchmark.json
+
+          sha256sum \
+            "$apk" \
+            "$original_db" \
+            "release-output/MiniMed-${RELEASE_VERSION}-source.zip" \
+            > release-output/SHA256SUMS.txt
+
+          cat > release-output/RELEASE_NOTES.md <<'EOF'
+          # MiniMed 0.3.0-alpha.4 — full offline Android preview
+
+          This prerelease is built from the complete SolidJS + Capacitor + MedicalCore monorepo.
+
+          ## Included
+
+          - installable debug-signed Android APK;
+          - archive-style LocalMed interface;
+          - unrestricted Russian clinical text input;
+          - deterministic extraction of patient facts and explicit negations;
+          - SQLite FTS5/BM25 lexical retrieval;
+          - portable local semantic-retrieval scaffold and hybrid ranking;
+          - compiled SQLite content pack physically embedded in the APK;
+          - Android native SQLite bridge with SQLite WASM fallback;
+          - build manifest, signature report, benchmarks and checksums.
+
+          ## Important
+
+          The bundled medical documents are synthetic engineering fixtures. They are **not clinical guidance** and contain no patient data.
+          The APK is debug-signed for engineering evaluation.
+          EOF
+
+      - name: Upload verified build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiniMed-0.3.0-alpha.4-full-android
+          if-no-files-found: error
+          retention-days: 30
+          path: release-output/
+
+      - name: Publish GitHub prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          assets=(
+            "release-output/${APK_NAME}"
+            "release-output/MiniMed-${RELEASE_VERSION}-source.zip"
+            release-output/BUILD-MANIFEST.json
+            release-output/content-pack-report.json
+            release-output/search-benchmark.json
+            release-output/clinical-case-benchmark.json
+            release-output/APK-CONTENTS.txt
+            release-output/APK-BADGING.txt
+            release-output/APK-PERMISSIONS.txt
+            release-output/APK-SIGNATURE.txt
+            release-output/SHA256SUMS.txt
+          )
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+            gh release edit "$RELEASE_TAG" \
+              --target "$(git rev-parse HEAD)" \
+              --title "MiniMed ${RELEASE_VERSION} — full offline Android preview" \
+              --notes-file release-output/RELEASE_NOTES.md \
+              --prerelease
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --target "$(git rev-parse HEAD)" \
+              --title "MiniMed ${RELEASE_VERSION} — full offline Android preview" \
+              --notes-file release-output/RELEASE_NOTES.md \
+              --prerelease
+          fi
