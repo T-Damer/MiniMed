@@ -3,7 +3,7 @@ import { createMemo, For, type JSX } from 'solid-js';
 
 interface KnowledgeGraphProps {
   readonly documents: readonly MedicalDocumentSummary[];
-  readonly selectedId?: string;
+  readonly selectedId: string | undefined;
   readonly onSelect: (id: string) => void;
 }
 
@@ -52,81 +52,80 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   );
 
   return (
-    <div class="knowledge-graph paper-card">
-      <div class="graph-key" aria-hidden="true">
-        <span><i class="graph-dot root" /> корпус</span>
-        <span><i class="graph-dot specialty" /> специальность</span>
-        <span><i class="graph-dot document" /> документ</span>
-      </div>
-      <svg viewBox="0 0 900 660" role="img" aria-label="Связи документов и специальностей">
-        <title>Граф связей документов и медицинских специальностей</title>
-        <g class="graph-edges">
-          <For each={specialtyNodes()}>
-            {(node) => <path d={`M112 330 C160 330 190 ${node.y} ${node.x - 25} ${node.y}`} />}
-          </For>
-          <For each={props.documents}>
-            {(document) => {
-              const target = documentPosition().get(document.id);
-              return (
-                <For each={document.specialties}>
-                  {(specialty) => {
-                    const source = specialtyPosition().get(specialty);
-                    if (!source || !target) return null;
-                    return (
-                      <path
-                        classList={{ active: props.selectedId === document.id }}
-                        d={`M${source.x + 74} ${source.y} C465 ${source.y} 510 ${target.y} ${target.x - 98} ${target.y}`}
-                      />
-                    );
-                  }}
-                </For>
-              );
-            }}
-          </For>
-        </g>
-
-        <g class="graph-root">
-          <circle cx="90" cy="330" r="43" />
-          <text x="90" y="325">MINIMED</text>
-          <text class="secondary" x="90" y="344">КОРПУС</text>
-        </g>
-
-        <For each={specialtyNodes()}>
-          {(node) => (
-            <g class="graph-specialty" transform={`translate(${node.x} ${node.y})`}>
-              <rect x="-74" y="-22" width="148" height="44" rx="4" />
-              <text x="0" y="4">{shortened(node.label, 21)}</text>
-            </g>
-          )}
-        </For>
-
-        <For each={documentNodes()}>
-          {(node) => (
-            <a
-              href={`#document-${node.id}`}
-              aria-label={`Открыть документ «${node.label}»`}
-              onClick={(event) => {
-                event.preventDefault();
-                props.onSelect(node.id);
+    <section class="knowledge-graph-card paper-card" aria-labelledby="knowledge-graph-title">
+      <header>
+        <div>
+          <p class="archive-kicker">Граф корпуса</p>
+          <h2 id="knowledge-graph-title">Документы и специализации</h2>
+        </div>
+        <span>{props.documents.length} документов · {specialties().length} областей</span>
+      </header>
+      <div class="knowledge-graph-scroll">
+        <svg
+          class="knowledge-graph"
+          viewBox="0 0 940 660"
+          role="img"
+          aria-label="Граф связей документов и медицинских специализаций"
+        >
+          <title>Граф связей документов и медицинских специализаций</title>
+          <g class="knowledge-links">
+            <For each={props.documents}>
+              {(document) => {
+                const target = documentPosition().get(document.id);
+                return (
+                  <For each={document.specialties}>
+                    {(specialty) => {
+                      const source = specialtyPosition().get(specialty);
+                      if (!source || !target) return null;
+                      return <line x1={source.x} y1={source.y} x2={target.x} y2={target.y} />;
+                    }}
+                  </For>
+                );
               }}
-            >
-              <g
-                class="graph-document"
-                classList={{ selected: props.selectedId === node.id }}
-                transform={`translate(${node.x} ${node.y})`}
-              >
-                <rect x="-98" y="-27" width="196" height="54" rx="4" />
-                <path d="M-98-27h55l12 10h129" />
-                <text x="0" y="5">{shortened(node.label)}</text>
-              </g>
-            </a>
-          )}
-        </For>
-      </svg>
-      <p class="graph-note">
-        Связи строятся из метаданных корпуса: специальность → документ. Нажмите на папку, чтобы открыть
-        ее структуру и исходные разделы.
+            </For>
+          </g>
+          <g class="knowledge-specialties">
+            <For each={specialtyNodes()}>
+              {(node) => (
+                <g transform={`translate(${node.x} ${node.y})`}>
+                  <circle r="38" />
+                  <text text-anchor="middle" dy="-2">{shortened(node.label, 16)}</text>
+                  <text class="node-kind" text-anchor="middle" dy="13">ОБЛАСТЬ</text>
+                </g>
+              )}
+            </For>
+          </g>
+          <g class="knowledge-documents">
+            <For each={documentNodes()}>
+              {(node) => (
+                <g
+                  classList={{ selected: props.selectedId === node.id }}
+                  transform={`translate(${node.x} ${node.y})`}
+                  role="button"
+                  tabindex="0"
+                  aria-label={`Открыть документ: ${node.label}`}
+                  onClick={() => props.onSelect(node.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      props.onSelect(node.id);
+                    }
+                  }}
+                >
+                  <rect x="-96" y="-34" width="192" height="68" rx="4" />
+                  <path d="M-82 -34h50l10 10h104" />
+                  <text text-anchor="middle" dy="-2">{shortened(node.label)}</text>
+                  <text class="node-kind" text-anchor="middle" dy="15">ДОКУМЕНТ</text>
+                </g>
+              )}
+            </For>
+          </g>
+        </svg>
+      </div>
+      <p class="knowledge-graph-caption">
+        Линии показывают принадлежность документа к специальности. Выберите документ, затем откройте
+        его оглавление и источник.
       </p>
-    </div>
+    </section>
   );
 }
