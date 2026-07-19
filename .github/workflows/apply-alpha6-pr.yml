@@ -46,6 +46,34 @@ jobs:
           lines = source[start:end].splitlines()
           script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
           exec(compile(script, 'apply-mobile-ux-alpha6.py', 'exec'))
+
+          css_path = Path('apps/app/src/styles/mobile-shell.css')
+          css = css_path.read_text(encoding='utf-8').replace('display: none !important;', 'display: none;')
+          css += '''
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+fieldset.library-mode-tabs {
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+}
+
+ol.history-list {
+  padding: 0;
+  list-style: none;
+}
+'''
+          css_path.write_text(css, encoding='utf-8')
           PY
       - name: Refresh dependencies, format and verify
         shell: bash
