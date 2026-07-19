@@ -1,0 +1,38 @@
+version: 1
+sources:
+  - id: manifest
+    location: pilot-rf/manifest.yaml
+    target: manifest.yaml
+    content_type: text
+  - id: aliases
+    location: pilot-rf/aliases.yaml
+    target: aliases.yaml
+    content_type: text
+  - id: recommendation-uti
+    location: pilot-rf/uti.md
+    target: uti.md
+    content_type: markdown
+  - id: recommendation-bronchitis
+    location: pilot-rf/bronchitis.md
+    target: bronchitis.md
+    content_type: markdown
+  - id: recommendation-bronchiolitis
+    location: pilot-rf/bronchiolitis.md
+    target: bronchiolitis.md
+    content_type: markdown
+  - id: recommendation-measles
+    location: pilot-rf/measles.md
+    target: measles.md
+    content_type: markdown
+  - id: recommendation-rotavirus
+    location: pilot-rf/rotavirus.md
+    target: rotavirus.md
+    content_type: markdown
+  - id: recommendation-meningococcal
+    location: pilot-rf/meningococcal.md
+    target: meningococcal.md
+    content_type: markdown
+  - id: recommendation-pneumonia
+    location: pilot-rf/pneumonia.md
+    target: pneumonia.md
+    content_type: markdown

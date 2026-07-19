@@ -1,0 +1,139 @@
+name: Automated content database rebuild
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: Ignore conditional HTTP metadata and refresh remote inputs
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: automated-content-rebuild-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip db rebuild]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Restore validated source cache
+        id: restore-source-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/localmed/sources
+          key: medbase-sources-${{ runner.os }}-${{ hashFiles('content/pilot-rf-sources.yaml') }}-${{ github.run_id }}
+          restore-keys: |
+            medbase-sources-${{ runner.os }}-${{ hashFiles('content/pilot-rf-sources.yaml') }}-
+            medbase-sources-${{ runner.os }}-
+
+      - name: Install locked dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+
+      - name: Determine synchronization mode
+        id: sync-mode
+        shell: bash
+        env:
+          DISPATCH_FORCE: ${{ inputs.force_refresh || false }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || '' }}
+        run: |
+          set -euo pipefail
+          force=false
+          if [[ "$DISPATCH_FORCE" == "true" ]] || [[ "$COMMIT_MESSAGE" == *"MEM:UPD"* ]]; then
+            force=true
+          fi
+          echo "force=$force" >> "$GITHUB_OUTPUT"
+          echo "Force remote refresh: $force"
+
+      - name: Synchronize links and files through the validated cache
+        shell: bash
+        env:
+          FORCE_REFRESH: ${{ steps.sync-mode.outputs.force }}
+        run: |
+          set -euo pipefail
+          args=(
+            --manifest content/pilot-rf-sources.yaml
+            --input-root content
+            --output-root data/synced/rf-public-pilot
+            --cache-root .cache/localmed/sources
+            --report data/build/source-sync-report.json
+          )
+          if [[ "$FORCE_REFRESH" == "true" ]]; then
+            args+=(--force-refresh)
+          fi
+          uv run --project tools/ingest medbase sync "${args[@]}"
+
+      - name: Rebuild vectorized SQLite and run retrieval gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --project tools/ingest medbase lint --input data/synced/rf-public-pilot
+          pnpm content:build:synced
+          pnpm benchmark:pilot
+          cp data/build/rf-public-pilot.db apps/app/public/content/core-demo.db
+          cp data/build/rf-public-pilot-report.json apps/app/public/content/core-demo-report.json
+          pnpm build:app
+
+      - name: Save validated source cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/localmed/sources
+          key: medbase-sources-${{ runner.os }}-${{ hashFiles('content/pilot-rf-sources.yaml') }}-${{ github.run_id }}
+
+      - name: Upload rebuild evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minimed-content-database-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 21
+          path: |
+            data/build/source-sync-report.json
+            data/build/rf-public-pilot.db
+            data/build/rf-public-pilot-report.json
+            data/build/rf-public-pilot-benchmark.json
+
+      - name: Commit changed application database
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/app/public/content/core-demo.db apps/app/public/content/core-demo-report.json
+          if git diff --cached --quiet; then
+            echo 'The compiled application database is already current.'
+            exit 0
+          fi
+          git commit -m 'chore(content): rebuild vectorized database [skip db rebuild]'
+          git push origin HEAD:main
