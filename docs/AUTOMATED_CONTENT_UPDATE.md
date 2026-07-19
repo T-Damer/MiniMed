@@ -95,7 +95,7 @@ The workflow:
 7. uploads the database and reports as an Actions artifact;
 8. on `main`, commits the application database only when its bytes changed.
 
-The generated bot commit includes `[skip db rebuild]` to prevent a workflow loop.
+The artifact retains the synchronization report, compiled database, build report and retrieval benchmark so every automatic update has inspectable evidence. The generated bot commit includes `[skip db rebuild]` to prevent a workflow loop.
 
 ## Public and private repositories
 
