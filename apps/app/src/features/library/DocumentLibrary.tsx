@@ -46,7 +46,8 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
             источниками. Граф показывает структуру корпуса, список открывает полный текст карточки.
           </p>
         </div>
-        <div class="library-mode-tabs" role="group" aria-label="Представление архива">
+        <fieldset class="library-mode-tabs">
+          <legend class="sr-only">Представление архива</legend>
           <button
             classList={{ active: mode() === 'graph' }}
             type="button"
@@ -61,7 +62,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           >
             <AppGlyph name="list" /> Список
           </button>
-        </div>
+        </fieldset>
       </header>
 
       <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
