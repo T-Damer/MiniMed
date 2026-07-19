@@ -59,6 +59,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
         <span><i class="graph-dot document" /> документ</span>
       </div>
       <svg viewBox="0 0 900 660" role="img" aria-label="Связи документов и специальностей">
+        <title>Граф связей документов и медицинских специальностей</title>
         <g class="graph-edges">
           <For each={specialtyNodes()}>
             {(node) => <path d={`M112 330 C160 330 190 ${node.y} ${node.x - 25} ${node.y}`} />}
@@ -101,21 +102,24 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
 
         <For each={documentNodes()}>
           {(node) => (
-            <g
-              class="graph-document"
-              classList={{ selected: props.selectedId === node.id }}
-              transform={`translate(${node.x} ${node.y})`}
-              role="button"
-              tabindex="0"
-              onClick={() => props.onSelect(node.id)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') props.onSelect(node.id);
+            <a
+              href={`#document-${node.id}`}
+              aria-label={`Открыть документ «${node.label}»`}
+              onClick={(event) => {
+                event.preventDefault();
+                props.onSelect(node.id);
               }}
             >
-              <rect x="-98" y="-27" width="196" height="54" rx="4" />
-              <path d="M-98-27h55l12 10h129" />
-              <text x="0" y="5">{shortened(node.label)}</text>
-            </g>
+              <g
+                class="graph-document"
+                classList={{ selected: props.selectedId === node.id }}
+                transform={`translate(${node.x} ${node.y})`}
+              >
+                <rect x="-98" y="-27" width="196" height="54" rx="4" />
+                <path d="M-98-27h55l12 10h129" />
+                <text x="0" y="5">{shortened(node.label)}</text>
+              </g>
+            </a>
           )}
         </For>
       </svg>
