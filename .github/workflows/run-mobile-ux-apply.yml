@@ -67,4 +67,4 @@ jobs:
           git commit -m 'feat(app): simplify mobile search and archive navigation'
           git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
 
-# retriggered after the initial draft PR creation
+# retriggered after the base-branch migration workflow was registered
