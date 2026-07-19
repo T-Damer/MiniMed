@@ -55,7 +55,7 @@ export function App(): JSX.Element {
             <small>ЛОКАЛЬНАЯ МЕДИЦИНСКАЯ</small>
             <strong>КАРТОТЕКА</strong>
           </span>
-          <span class="brand-index">ФОНД 2026</span>
+          <span class="brand-index">ПИЛОТ РФ</span>
         </button>
 
         <nav class="archive-tabs" aria-label="Основная навигация">
@@ -88,14 +88,14 @@ export function App(): JSX.Element {
           <main class="boot-screen archive-boot">
             <div class="boot-card paper-sheet">
               <span class="boot-spinner" />
-              <p class="archive-kicker">SQLite WASM / FTS5 / PACK 001</p>
+              <p class="archive-kicker">SQLITE / FTS5 / PUBLIC PILOT</p>
               <h1>{error() ? 'Архив не открылся' : 'Открываем локальный фонд…'}</h1>
               <p>
                 {error() ?? 'Загружаем скомпилированную базу и проверяем полнотекстовый индекс.'}
               </p>
               <div class="boot-ledger" aria-hidden="true">
                 <span>SCHEMA</span>
-                <b>01</b>
+                <b>02</b>
                 <span>MODE</span>
                 <b>LOCAL</b>
                 <span>NETWORK</span>
@@ -123,8 +123,8 @@ export function App(): JSX.Element {
       </Show>
 
       <footer class="footer-note archive-footer">
-        <span>LOCALMED SEARCH / BUILD 0.3.0-alpha.1</span>
-        <span>Демонстрационный фонд синтетический · клинической рекомендацией не является</span>
+        <span>MINIMED / BUILD 0.3.0-alpha.5</span>
+        <span>Публичный пилот: краткие карточки по КР · сверяйте актуальный первоисточник</span>
         <span>OFFLINE FIRST / RETRIEVAL BEFORE GENERATION</span>
       </footer>
     </div>

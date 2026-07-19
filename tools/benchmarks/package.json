@@ -1,6 +1,6 @@
 {
   "name": "@localmed/benchmarks",
-  "version": "0.3.0-alpha.1",
+  "version": "0.3.0-alpha.5",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "benchmark:search": "tsx src/run.ts",
-    "benchmark:cases": "tsx src/run-cases.ts"
+    "benchmark:cases": "tsx src/run-cases.ts",
+    "benchmark:pilot": "tsx src/run-pilot.ts"
   },
   "dependencies": {
     "@localmed/core": "workspace:*",
