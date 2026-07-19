@@ -1,0 +1,17 @@
+version: 1
+sources:
+  # Remote inputs use conditional HTTP requests and a persistent validated cache.
+  - id: official-recommendation
+    location: https://example.org/recommendation.pdf
+    target: official-recommendation.pdf
+    content_type: pdf
+    max_bytes: 104857600
+    # Optional immutable checksum. Omit it when the URL is expected to publish revisions.
+    # sha256: 0123456789abcdef...
+
+  # Local files are copied through the same content-addressed cache.
+  # The path is resolved relative to --input-root, or to this manifest when omitted.
+  - id: local-protocol
+    location: local-protocol.md
+    target: local-protocol.md
+    content_type: markdown
