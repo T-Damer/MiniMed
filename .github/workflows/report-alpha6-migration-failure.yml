@@ -32,4 +32,4 @@ jobs:
             cat findings.log
             echo '```'
           } > comment.md
-          gh issue comment 42 --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          gh issue comment 43 --repo "$GITHUB_REPOSITORY" --body-file comment.md
