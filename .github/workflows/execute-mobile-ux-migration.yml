@@ -22,6 +22,10 @@ jobs:
         with:
           ref: agent/mobile-ux-0.3.0-alpha.6
           fetch-depth: 0
+      - name: Report migration run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 40 --body "Mobile UX migration run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
