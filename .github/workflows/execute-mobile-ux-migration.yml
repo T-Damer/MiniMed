@@ -27,7 +27,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          issue_number="${{ github.event.issue.number || 48 }}"
+          issue_number="${{ github.event.issue.number || 50 }}"
           gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" \
             --body "Mobile UX migration run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
 
@@ -88,6 +88,10 @@ jobs:
           css_path.write_text(css, encoding='utf-8')
           PY
 
+      - name: Keep workflow changes for the authenticated connector
+        shell: bash
+        run: git checkout -- .github/workflows
+
       - name: Refresh dependency lockfiles
         shell: bash
         run: |
@@ -95,11 +99,10 @@ jobs:
           pnpm install --no-frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
 
-      - name: Publish generated migration to the draft branch
+      - name: Publish generated product migration to the draft branch
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/workflows/apply-mobile-ux-alpha6.yml .github/workflows/run-mobile-ux-apply.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
@@ -113,4 +116,4 @@ jobs:
         if: github.event_name == 'issues' && success()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Mobile UX migration completed and verified.'
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Mobile UX product migration completed and verified.'
