@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "vite/client"]
+  },
+  "include": [
+    "packages/**/*.ts",
+    "apps/app/src/**/*.ts",
+    "apps/app/src/**/*.tsx",
+    "apps/app/vite.config.ts",
+    "apps/app/capacitor.config.ts",
+    "tools/benchmarks/src/**/*.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["**/node_modules/**", "**/dist/**", "apps/app/android/**", "apps/app/ios/**"]
+}

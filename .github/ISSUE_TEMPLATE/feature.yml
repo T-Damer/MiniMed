@@ -1,0 +1,28 @@
+name: Feature request
+description: Scoped product or technical improvement
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope
+    validations:
+      required: true
+  - type: dropdown
+    id: metric
+    attributes:
+      label: Primary metric
+      options:
+        - Search relevance
+        - Search speed
+        - Source navigation
+        - Reliability
+    validations:
+      required: true

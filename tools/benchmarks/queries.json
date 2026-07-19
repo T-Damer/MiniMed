@@ -1,0 +1,152 @@
+[
+  {
+    "query": "лихорадка кашель тахипноэ",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "exact"
+  },
+  {
+    "query": "ребенок часто дышит и температурит",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "alias"
+  },
+  {
+    "query": "сатурация одышка кашель",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "symptoms"
+  },
+  {
+    "query": "амоксициллин клавулановая кислота",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "medication"
+  },
+  {
+    "query": "аугментин пневмония",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "alias"
+  },
+  {
+    "query": "общий анализ крови маркеры воспаления",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "investigation"
+  },
+  {
+    "query": "затруднение дыхания не может пить",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "lay"
+  },
+  {
+    "query": "частота дыхания температура сатурация",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "investigation"
+  },
+  {
+    "query": "заболевание нижних дыхательных путей",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "exact"
+  },
+  {
+    "query": "маршрутизация тяжесть дыхательных нарушений",
+    "expectedDocumentIds": ["kr.demo.pediatrics.pneumonia"],
+    "category": "routing"
+  },
+  {
+    "query": "правая подвздошная область рвота",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "exact"
+  },
+  {
+    "query": "справа внизу живота тошнота",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "alias"
+  },
+  {
+    "query": "боль в животе снижение аппетита",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "symptoms"
+  },
+  {
+    "query": "своевременная оценка хирургом",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "routing"
+  },
+  {
+    "query": "миграция боли стул мочеиспускание",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "investigation"
+  },
+  {
+    "query": "острая абдоминальная боль мезаденит",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "differential"
+  },
+  {
+    "query": "аппендицит клиническая картина",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "exact"
+  },
+  {
+    "query": "субфебрильная температура рвота",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "symptoms"
+  },
+  {
+    "query": "гастроэнтерит инфекция мочевых путей мезаденит",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "differential"
+  },
+  {
+    "query": "локализация и миграция боли",
+    "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
+    "category": "investigation"
+  },
+  {
+    "query": "лихорадка без очага дизурия",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "symptoms"
+  },
+  {
+    "query": "оам бактериальная культура мочи",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "alias"
+  },
+  {
+    "query": "рези при мочеиспускании",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "lay"
+  },
+  {
+    "query": "болезненное мочеиспускание поясница",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "symptoms"
+  },
+  {
+    "query": "бактериальная культура мочи",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "investigation"
+  },
+  {
+    "query": "антибактериальная терапия ответ на лечение",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "treatment"
+  },
+  {
+    "query": "маленький ребенок неспецифичные проявления",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "lay"
+  },
+  {
+    "query": "образец мочи до терапии",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "investigation"
+  },
+  {
+    "query": "факторы риска повторная оценка",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "follow-up"
+  },
+  {
+    "query": "учащенное мочеиспускание боль в пояснице",
+    "expectedDocumentIds": ["kr.demo.pediatrics.urinary-tract-infection"],
+    "category": "symptoms"
+  }
+]

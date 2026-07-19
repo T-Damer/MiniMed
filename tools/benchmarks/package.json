@@ -1,0 +1,19 @@
+{
+  "name": "@localmed/benchmarks",
+  "version": "0.3.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "benchmark:search": "tsx src/run.ts",
+    "benchmark:cases": "tsx src/run-cases.ts"
+  },
+  "dependencies": {
+    "@localmed/core": "workspace:*",
+    "@localmed/storage-sqlite": "workspace:*",
+    "@localmed/test-fixtures": "workspace:*",
+    "@localmed/search-semantic": "workspace:*"
+  }
+}

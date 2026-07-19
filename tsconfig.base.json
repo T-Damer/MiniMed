@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "paths": {
+      "@localmed/contracts": ["packages/contracts/src/index.ts"],
+      "@localmed/domain": ["packages/domain/src/index.ts"],
+      "@localmed/storage": ["packages/storage/src/index.ts"],
+      "@localmed/search-lexical": ["packages/search-lexical/src/index.ts"],
+      "@localmed/core": ["packages/core/src/index.ts"],
+      "@localmed/storage-sqlite": ["packages/storage-sqlite/src/index.ts"],
+      "@localmed/storage-capacitor": ["packages/storage-capacitor/src/index.ts"],
+      "@localmed/test-fixtures": ["packages/test-fixtures/src/index.ts"],
+      "@localmed/search-semantic": ["packages/search-semantic/src/index.ts"]
+    }
+  }
+}

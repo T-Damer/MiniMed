@@ -1,0 +1,58 @@
+[
+  {
+    "id": "respiratory-with-negation-and-treatment",
+    "query": "Мальчик 5 лет. Второй день температура до 39,2 °C, часто дышит. Кашля нет. Сатурация 94%. Принимает аугментин.",
+    "expectedDocumentId": "kr.demo.pediatrics.pneumonia",
+    "expectedFactKinds": [
+      "sex",
+      "age",
+      "duration",
+      "temperature",
+      "symptom",
+      "negative-finding",
+      "measurement",
+      "medication"
+    ],
+    "expectedBranchKinds": ["clinical", "medication", "clause"],
+    "negativeContains": ["каш"],
+    "excludedClinicalTerms": ["кашл"]
+  },
+  {
+    "id": "migrating-abdominal-pain",
+    "query": "Девочка 9 лет. Боль началась вчера около пупка, затем сместилась справа внизу живота. Дважды была рвота. ОАК: лейкоцитоз.",
+    "expectedDocumentId": "kr.demo.surgery.appendicitis",
+    "expectedFactKinds": ["sex", "age", "duration", "location", "investigation"],
+    "expectedBranchKinds": ["clinical", "investigation", "clause"]
+  },
+  {
+    "id": "urinary-case-with-negative-respiratory-findings",
+    "query": "Девочка 4 лет, третий день температура 38,7 без кашля и насморка. Жалуется на рези при мочеиспускании. Общий анализ мочи: лейкоцитурия.",
+    "expectedDocumentId": "kr.demo.pediatrics.urinary-tract-infection",
+    "expectedFactKinds": [
+      "sex",
+      "age",
+      "duration",
+      "temperature",
+      "symptom",
+      "negative-finding",
+      "investigation"
+    ],
+    "expectedBranchKinds": ["clinical", "investigation", "clause"],
+    "negativeContains": ["каш"]
+  },
+  {
+    "id": "uncertain-history",
+    "query": "Со слов матери, ребёнку 2 года. Кажется, уже 3 дня лихорадка около 38. Часто дышит, но сатурация 97%.",
+    "expectedDocumentId": "kr.demo.pediatrics.pneumonia",
+    "expectedFactKinds": ["age", "duration", "temperature", "symptom", "measurement"],
+    "expectedBranchKinds": ["clinical", "clause"],
+    "minimumWarnings": 1
+  },
+  {
+    "id": "therapy-and-investigation-branches",
+    "query": "Мальчик 6 лет, кашель и лихорадка 3 дня, принимает аугментин по поводу предполагаемой пневмонии. ОАК выполнен.",
+    "expectedDocumentId": "kr.demo.pediatrics.pneumonia",
+    "expectedFactKinds": ["sex", "age", "duration", "medication", "investigation"],
+    "expectedBranchKinds": ["clinical", "medication", "investigation", "clause"]
+  }
+]

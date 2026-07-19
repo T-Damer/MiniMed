@@ -1,0 +1,23 @@
+{
+  "name": "@localmed/core",
+  "version": "0.3.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@localmed/contracts": "workspace:*",
+    "@localmed/domain": "workspace:*",
+    "@localmed/search-lexical": "workspace:*",
+    "@localmed/storage": "workspace:*",
+    "@localmed/search-semantic": "workspace:*"
+  },
+  "devDependencies": {
+    "@localmed/test-fixtures": "workspace:*"
+  }
+}
