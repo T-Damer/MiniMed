@@ -1,0 +1,68 @@
+name: Execute mobile UX migration
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  apply:
+    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Execute MiniMed mobile UX migration'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/mobile-ux-0.3.0-alpha.6
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+      - name: Execute checked-in migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          source = Path('.github/workflows/apply-mobile-ux-alpha6.yml').read_text(encoding='utf-8')
+          marker = "          python3 - <<'PY'\n"
+          start = source.index(marker) + len(marker)
+          end = source.index("\n          PY\n", start)
+          script = dedent(source[start:end])
+          exec(compile(script, 'apply-mobile-ux-alpha6.py', 'exec'))
+          PY
+      - name: Refresh dependencies, format and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --no-frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+          pnpm check --write
+          pnpm verify
+      - name: Commit tested migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/apply-mobile-ux-alpha6.yml .github/workflows/run-mobile-ux-apply.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(app): simplify mobile search and archive navigation'
+          git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
+      - name: Close trigger issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue close "${{ github.event.issue.number }}" --comment 'Mobile UX migration completed and verified.'
