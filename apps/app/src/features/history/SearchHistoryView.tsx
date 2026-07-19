@@ -74,10 +74,10 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
           </div>
         }
       >
-        <div class="history-list" role="list">
+        <ol class="history-list">
           <For each={entries()}>
             {(entry, index) => (
-              <article class="history-entry paper-card" role="listitem">
+              <li class="history-entry paper-card">
                 <button class="history-replay" type="button" onClick={() => props.onReplay(entry.query)}>
                   <span class="history-sequence">{String(index() + 1).padStart(2, '0')}</span>
                   <span class="history-copy">
@@ -96,10 +96,10 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
                 >
                   <AppGlyph name="close" />
                 </button>
-              </article>
+              </li>
             )}
           </For>
-        </div>
+        </ol>
       </Show>
     </section>
   );
