@@ -1,0 +1,63 @@
+name: Public pilot retrieval benchmark
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-pilot-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+      - name: Install locked dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+      - name: Build pilot pack
+        run: |
+          pnpm content:lint:pilot
+          pnpm content:build:pilot
+      - name: Run pilot benchmark and retain report
+        id: benchmark
+        shell: bash
+        run: |
+          set +e
+          pnpm benchmark:pilot
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload pilot benchmark evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf-public-pilot-benchmark-evidence
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            data/build/rf-public-pilot.db
+            data/build/rf-public-pilot-report.json
+            data/build/rf-public-pilot-benchmark.json
+      - name: Enforce pilot benchmark gate
+        env:
+          BENCHMARK_EXIT_CODE: ${{ steps.benchmark.outputs.exit_code }}
+        run: |
+          test "$BENCHMARK_EXIT_CODE" = "0"
