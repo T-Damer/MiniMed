@@ -38,13 +38,13 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          from textwrap import dedent
 
           source = Path('.github/workflows/apply-mobile-ux-alpha6.yml').read_text(encoding='utf-8')
           marker = "          python3 - <<'PY'\n"
           start = source.index(marker) + len(marker)
           end = source.index("\n          PY\n", start)
-          script = dedent(source[start:end])
+          lines = source[start:end].splitlines()
+          script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
           exec(compile(script, 'apply-mobile-ux-alpha6.py', 'exec'))
           PY
       - name: Refresh dependencies, format and verify
@@ -67,4 +67,4 @@ jobs:
           git commit -m 'feat(app): simplify mobile search and archive navigation'
           git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
 
-# retriggered after the base-branch migration workflow was registered
+# retriggered with fixed YAML-prefix stripping
