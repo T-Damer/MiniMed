@@ -30,4 +30,4 @@ jobs:
             cat failed-tail.log
             echo '```'
           } > comment.md
-          gh issue comment 38 --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          gh issue comment 42 --repo "$GITHUB_REPOSITORY" --body-file comment.md
