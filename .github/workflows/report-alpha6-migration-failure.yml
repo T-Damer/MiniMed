@@ -1,0 +1,33 @@
+name: Report alpha 6 migration failure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/report-alpha6-migration-failure.yml
+
+permissions:
+  actions: read
+  issues: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Extract failed migration log tail
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run view 29697205331 --repo "$GITHUB_REPOSITORY" --log-failed > failed.log
+          tail -n 100 failed.log > failed-tail.log
+          {
+            echo 'Alpha.6 migration failure tail:'
+            echo
+            echo '```text'
+            cat failed-tail.log
+            echo '```'
+          } > comment.md
+          gh issue comment 38 --repo "$GITHUB_REPOSITORY" --body-file comment.md
