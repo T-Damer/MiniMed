@@ -10,6 +10,7 @@ import typer
 from .builder import build_content_pack, lint_content_pack, load_content_pack
 from .pdf_import import import_pdf
 from .source_registry import prepare_registry
+from .source_sync import sync_source_manifest
 from .text_import import import_text
 
 app = typer.Typer(no_args_is_help=True, help="Build and inspect LocalMed content packs.")
@@ -43,6 +44,41 @@ def import_command(
     else:
         raise typer.BadParameter("--format must be auto, pdf, text, or markdown")
     typer.echo(str(output))
+
+
+@app.command("sync")
+def sync_command(
+    manifest: Annotated[Path, typer.Option("--manifest", exists=True, dir_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    cache_root: Annotated[Path, typer.Option("--cache-root")] = Path(
+        ".cache/localmed/sources"
+    ),
+    input_root: Annotated[
+        Path | None, typer.Option("--input-root", exists=True, file_okay=False)
+    ] = None,
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+    force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
+    offline: Annotated[bool, typer.Option("--offline")] = False,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+) -> None:
+    """Synchronize URL or local-file inputs into a validated, cache-backed source workspace."""
+    sync_report = sync_source_manifest(
+        manifest,
+        output_root,
+        cache_root,
+        input_root=input_root,
+        force_refresh=force_refresh,
+        offline=offline,
+        timeout_seconds=timeout_seconds,
+    )
+    payload = sync_report.model_dump(mode="json")
+    if report is not None:
+        report.parent.mkdir(parents=True, exist_ok=True)
+        report.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
 @app.command("prepare")
