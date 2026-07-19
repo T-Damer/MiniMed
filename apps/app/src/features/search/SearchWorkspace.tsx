@@ -10,7 +10,9 @@ import type {
 } from '@localmed/contracts';
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { AppGlyph } from '../../components/AppGlyph';
 import { HighlightedText } from '../../components/HighlightedText';
+import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '../../state/search-history';
 
 interface SearchWorkspaceProps {
   readonly core: MedicalCore;
@@ -22,7 +24,6 @@ const EXAMPLES = [
   'Лихорадка без очага и рези при мочеиспускании',
 ] as const;
 
-const HISTORY_KEY = 'localmed.search-history.v2';
 const BOOKMARKS_KEY = 'localmed.search-bookmarks.v1';
 
 const CATEGORY_LABELS: Readonly<Record<SearchResultCategory, string>> = {
@@ -65,11 +66,6 @@ function loadStringArray(key: string): readonly string[] {
   }
 }
 
-function saveHistory(query: string, current: readonly string[]): readonly string[] {
-  const next = [query, ...current.filter((item) => item !== query)].slice(0, 6);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-  return next;
-}
 
 function saveBookmarks(bookmarks: ReadonlySet<string>): void {
   localStorage.setItem(BOOKMARKS_KEY, JSON.stringify([...bookmarks]));
@@ -97,7 +93,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [contextLoading, setContextLoading] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
   const [error, setError] = createSignal<string>();
-  const [history, setHistory] = createSignal<readonly string[]>([]);
   const [bookmarks, setBookmarks] = createSignal<ReadonlySet<string>>(new Set());
   const [activeCategory, setActiveCategory] = createSignal<SearchResultCategory | 'all'>('all');
   const [showFullSection, setShowFullSection] = createSignal(false);
@@ -135,12 +130,23 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     return showFullSection() ? resolved.section.chunks : resolved.chunks;
   });
 
+  const handleReplaySearch = (event: Event): void => {
+    const replay = event as CustomEvent<string>;
+    if (typeof replay.detail !== 'string' || !replay.detail.trim()) return;
+    updateQuery(replay.detail);
+    requestAnimationFrame(() => {
+      if (textarea) resizeTextarea(textarea);
+      void runSearch(replay.detail);
+    });
+  };
+
   onMount(() => {
-    setHistory(loadStringArray(HISTORY_KEY));
     setBookmarks(new Set(loadStringArray(BOOKMARKS_KEY)));
+    window.addEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
   });
 
   onCleanup(() => {
+    window.removeEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
     if (analysisTimer) clearTimeout(analysisTimer);
     if (copyTimer) clearTimeout(copyTimer);
   });
@@ -188,13 +194,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
-    setHistory((current) => saveHistory(trimmed, current));
-    const first = result.value.groups[0]?.results[0];
-    if (first) await openResult(first);
-    else {
-      setContext(undefined);
-      setSelectedResult(undefined);
-    }
+    appendSearchHistory(trimmed, result.value);
+    setContext(undefined);
+    setSelectedResult(undefined);
   }
 
   async function openResult(result: SearchResult): Promise<void> {
@@ -286,8 +288,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
         <header class="case-heading">
           <div>
-            <p class="archive-kicker">Локальная картотека · FTS5 + VECTOR · без генерации</p>
-            <h1>Опишите случай обычным текстом.</h1>
+            <p class="archive-kicker">Локально · быстро · с переходом к источнику</p>
+            <h1>Что нужно найти?</h1>
           </div>
           <span class="offline-stamp">
             OFFLINE
@@ -330,10 +332,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             onKeyDown={handleKeyDown}
             placeholder="Например: мальчик 5 лет, второй день лихорадка до 39, часто дышит, кашля нет…"
             maxlength={20_000}
+            autocomplete="off"
+            autocapitalize="sentences"
+            spellcheck={false}
           />
           <div class="query-actions">
             <div class="query-shortcuts">
-              <span>Ctrl / ⌘ + Enter — поиск</span>
+              <span class="keyboard-only">Ctrl / ⌘ + Enter — поиск</span>
               <Show when={query().length > 16_000}>
                 <strong>{query().length.toLocaleString('ru-RU')} / 20 000</strong>
               </Show>
@@ -358,72 +363,75 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </form>
 
         <Show when={activeAnalysis()}>
-          {(analysis) => (
-            <section class="query-index" aria-label="Разбор запроса">
-              <div class="index-row">
-                <div class="index-label">
-                  <span>Распознано</span>
-                  <small>
-                    {analysisLoading() ? 'обновляем карточку…' : `${analysis().facts.length} полей`}
-                  </small>
-                </div>
-                <div class="fact-strip">
-                  <For each={analysis().facts}>
-                    {(fact) => (
-                      <span
-                        class="fact-tag"
-                        classList={{ negative: fact.polarity === 'negative' }}
-                        title={fact.label}
-                      >
-                        <small>{FACT_LABELS[fact.kind]}</small>
-                        {factDisplayValue(fact)}
-                      </span>
-                    )}
-                  </For>
-                  <Show when={analysis().facts.length === 0}>
-                    <span class="empty-index">Пока только свободный текст — это допустимо.</span>
-                  </Show>
-                </div>
-              </div>
+{(analysis) => (
+  <section class="query-index" aria-label="Разбор запроса">
+    <Show when={analysis().suggestions.length > 0}>
+      <div class="index-row suggestions-row">
+        <div class="index-label">
+          <span>Можно добавить</span>
+          <small>необязательно</small>
+        </div>
+        <div class="suggestion-strip">
+          <For each={analysis().suggestions}>
+            {(suggestion) => (
+              <button
+                type="button"
+                title={suggestion.detail}
+                onClick={() => insertSuggestion(suggestion)}
+              >
+                <span>+</span> {suggestion.label}
+              </button>
+            )}
+          </For>
+        </div>
+      </div>
+    </Show>
 
-              <Show when={analysis().suggestions.length > 0}>
-                <div class="index-row suggestions-row">
-                  <div class="index-label">
-                    <span>Можно добавить</span>
-                    <small>необязательно</small>
-                  </div>
-                  <div class="suggestion-strip">
-                    <For each={analysis().suggestions}>
-                      {(suggestion) => (
-                        <button
-                          type="button"
-                          title={suggestion.detail}
-                          onClick={() => insertSuggestion(suggestion)}
-                        >
-                          <span>+</span> {suggestion.label}
-                        </button>
-                      )}
-                    </For>
-                  </div>
-                </div>
-              </Show>
-
-              <div class="branch-ledger">
-                <span>Поисковые ветки</span>
-                <For each={analysis().branches}>
-                  {(branch, index) => (
-                    <span class="branch-ticket">
-                      {String(index() + 1).padStart(2, '0')} · {branch.label}
-                    </span>
-                  )}
-                </For>
-              </div>
-
-              <For each={analysis().warnings}>
-                {(warning) => <p class="analysis-warning">Примечание: {warning}</p>}
-              </For>
-            </section>
+    <details class="analysis-details">
+      <summary>
+        {analysisLoading()
+          ? 'Обновляем разбор…'
+          : `Распознано ${analysis().facts.length} полей · показать детали`}
+      </summary>
+      <div class="index-row">
+        <div class="index-label">
+          <span>Распознано</span>
+          <small>{analysis().facts.length} полей</small>
+        </div>
+        <div class="fact-strip">
+          <For each={analysis().facts}>
+            {(fact) => (
+              <span
+                class="fact-tag"
+                classList={{ negative: fact.polarity === 'negative' }}
+                title={fact.label}
+              >
+                <small>{FACT_LABELS[fact.kind]}</small>
+                {factDisplayValue(fact)}
+              </span>
+            )}
+          </For>
+          <Show when={analysis().facts.length === 0}>
+            <span class="empty-index">Свободный текст сохранён без изменений.</span>
+          </Show>
+        </div>
+      </div>
+      <div class="branch-ledger">
+        <span>Поисковые ветки</span>
+        <For each={analysis().branches}>
+          {(branch, index) => (
+            <span class="branch-ticket">
+              {String(index() + 1).padStart(2, '0')} · {branch.label}
+            </span>
           )}
+        </For>
+      </div>
+      <For each={analysis().warnings}>
+        {(warning) => <p class="analysis-warning">Примечание: {warning}</p>}
+      </For>
+    </details>
+  </section>
+)}
         </Show>
 
         <Show when={!activeAnalysis()}>
@@ -574,25 +582,25 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </Show>
         </div>
 
-        <Show when={!response() && history().length > 0}>
-          <div class="history-panel">
-            <div class="history-title">
-              <span>ЖУРНАЛ</span>
-              <strong>Недавние запросы</strong>
-            </div>
-            <For each={history()}>
-              {(item, index) => (
-                <button type="button" onClick={() => void runSearch(item)}>
-                  <span>{String(index() + 1).padStart(2, '0')}</span>
-                  {item}
-                </button>
-              )}
-            </For>
-          </div>
-        </Show>
       </div>
 
-      <aside class="reader-column source-folder" aria-live="polite">
+      <aside
+        class="reader-column source-folder"
+        classList={{ open: Boolean(context()) }}
+        aria-live="polite"
+        aria-hidden={!context()}
+      >
+        <button
+          class="reader-close"
+          type="button"
+          aria-label="Закрыть источник"
+          onClick={() => {
+            setContext(undefined);
+            setSelectedResult(undefined);
+          }}
+        >
+          <AppGlyph name="close" />
+        </button>
         <div class="folder-tab source-tab" aria-hidden="true">
           ИСТОЧНИК / ЛИСТ
         </div>

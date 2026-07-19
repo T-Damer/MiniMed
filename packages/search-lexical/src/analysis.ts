@@ -196,6 +196,7 @@ function extractAge(query: string, facts: QueryFact[]): void {
   const explicitPatterns = [
     /возраст(?:ом)?\s*[:=]?\s*(\d{1,3})\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
     /(?:мальчик|мальчику|девочка|девочке|ребенок|ребёнок|ребенку|ребёнку|пациент|пациентка|мужчина|женщина|младенец)\s*,?\s*(\d{1,3})\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
+    /(\d{1,3})\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,
     /(\d{1,3})\s*[- ]\s*летн[а-я]*/giu,
   ] as const;
 
@@ -446,6 +447,79 @@ function extractAliasFacts(
       start: index,
       end: index + alias.alias.length,
     });
+  }
+}
+
+
+const SYMPTOM_PATTERNS: readonly {
+  readonly pattern: RegExp;
+  readonly canonical: string;
+  readonly label: string;
+}[] = [
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:кашл(?:яет|яют|яю|яешь|ять|ель|я|ем|ете)|покашливает))(?=$|[^а-яёa-z])/giu,
+    canonical: 'кашель',
+    label: 'Кашель',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:лихорад(?:ка|ит|ило)|температурит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'лихорадка',
+    label: 'Лихорадка',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:рвота|рвало|рвет|рвёт|тошнит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'рвота',
+    label: 'Рвота',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:диаре[яию]|понос|жидкий\s+стул))(?=$|[^а-яёa-z])/giu,
+    canonical: 'диарея',
+    label: 'Диарея',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:сыпь|сыпи|высыпания|высыпало))(?=$|[^а-яёa-z])/giu,
+    canonical: 'сыпь',
+    label: 'Сыпь',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:одышка|одышку|задыхается|тяжело\s+дышит|часто\s+дышит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'одышка тахипноэ',
+    label: 'Нарушение дыхания',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:тошнота|тошнит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'тошнота',
+    label: 'Тошнота',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:вялость|вялый|вялая|сонливость|сонливый))(?=$|[^а-яёa-z])/giu,
+    canonical: 'вялость',
+    label: 'Вялость',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:боль|болит|болело|болит\s+живот))(?=$|[^а-яёa-z])/giu,
+    canonical: 'боль',
+    label: 'Боль',
+  },
+];
+
+function extractSymptoms(query: string, facts: QueryFact[]): void {
+  const negativeRanges = facts
+    .filter((fact) => fact.kind === 'negative-finding')
+    .map((fact) => fact.range);
+  for (const item of SYMPTOM_PATTERNS) {
+    for (const match of query.matchAll(item.pattern)) {
+      const symptomRange = groupRange(match, 1);
+      if (negativeRanges.some((negativeRange) => overlaps(negativeRange, symptomRange))) continue;
+      addFact(facts, {
+        kind: 'symptom',
+        label: item.label,
+        value: match[1] ?? match[0],
+        normalizedValue: item.canonical,
+        start: symptomRange.start,
+        end: symptomRange.end,
+      });
+    }
   }
 }
 
@@ -706,6 +780,7 @@ export function analyzeClinicalQuery(
   extractDuration(query, facts);
   extractMeasurements(query, facts);
   extractNegations(query, aliases, facts);
+  extractSymptoms(query, facts);
   extractAliasFacts(query, aliases, facts);
   extractKnownTerms(query, facts);
   extractMedicationPhrase(query, facts);
