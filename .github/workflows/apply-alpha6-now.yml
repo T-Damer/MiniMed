@@ -1,10 +1,9 @@
 name: Apply alpha 6 now
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/apply-alpha6-now.yml
+  issues:
+    types: [opened]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,13 +15,15 @@ concurrency:
 
 jobs:
   apply:
+    if: github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Apply MiniMed alpha 6 now')
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     steps:
       - name: Report run
+        if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment 44 --repo "$GITHUB_REPOSITORY" --body "Explicit alpha.6 apply run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
+        run: gh issue comment "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --body "Explicit alpha.6 apply run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
 
       - uses: actions/checkout@v4
         with:
@@ -112,8 +113,7 @@ ol.history-list {
           git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
 
       - name: Mark diagnostics complete
+        if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment 44 --repo "$GITHUB_REPOSITORY" --body "Alpha.6 migration and full repository verification succeeded. Branch commit: $(git rev-parse HEAD)."
-
-# registered on main; this commit starts the one-shot apply
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "Alpha.6 migration and full repository verification succeeded. Branch commit: $(git rev-parse HEAD)."
