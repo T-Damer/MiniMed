@@ -49,9 +49,7 @@ const root = resolve(import.meta.dirname, '../../..');
 const queries = parseQueries(
   JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/pilot-rf-queries.json'), 'utf8')),
 );
-const databaseBytes = new Uint8Array(
-  readFileSync(resolve(root, 'data/build/rf-public-pilot.db')),
-);
+const databaseBytes = new Uint8Array(readFileSync(resolve(root, 'data/build/rf-public-pilot.db')));
 const store = await SqliteMedicalStore.createFromBytes(databaseBytes);
 const core = createMedicalCore({
   store,
@@ -92,20 +90,18 @@ await core.close();
 
 const latencies = rows.map((row) => row.elapsedMs);
 const categories = Object.fromEntries(
-  [...new Set(rows.map((row) => row.category))]
-    .toSorted()
-    .map((category) => {
-      const categoryRows = rows.filter((row) => row.category === category);
-      return [
-        category,
-        {
-          queryCount: categoryRows.length,
-          recallAt1: mean(categoryRows.map((row) => Number(row.hitAt1))),
-          recallAt5: mean(categoryRows.map((row) => Number(row.hitAt5))),
-          mrrAt5: mean(categoryRows.map((row) => row.reciprocalRank)),
-        },
-      ];
-    }),
+  [...new Set(rows.map((row) => row.category))].toSorted().map((category) => {
+    const categoryRows = rows.filter((row) => row.category === category);
+    return [
+      category,
+      {
+        queryCount: categoryRows.length,
+        recallAt1: mean(categoryRows.map((row) => Number(row.hitAt1))),
+        recallAt5: mean(categoryRows.map((row) => Number(row.hitAt5))),
+        mrrAt5: mean(categoryRows.map((row) => row.reciprocalRank)),
+      },
+    ];
+  }),
 );
 const report = {
   generatedAt: new Date().toISOString(),
