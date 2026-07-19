@@ -1,0 +1,562 @@
+name: Apply mobile UX alpha 6
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/mobile-ux-0.3.0-alpha.6'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/mobile-ux-0.3.0-alpha.6
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Apply parser, workspace, dependency and release changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import json
+          import re
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              if old not in text:
+                  raise SystemExit(f'{label}: replacement target not found')
+              return text.replace(old, new, 1)
+
+          # --- Search workspace: persistent journal, compact analysis, source drawer. ---
+          path = Path('apps/app/src/features/search/SearchWorkspace.tsx')
+          text = path.read_text(encoding='utf-8')
+          text = replace_once(
+              text,
+              "import { HighlightedText } from '../../components/HighlightedText';\n",
+              "import { AppGlyph } from '../../components/AppGlyph';\n"
+              "import { HighlightedText } from '../../components/HighlightedText';\n"
+              "import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '../../state/search-history';\n",
+              'search imports',
+          )
+          text = text.replace("const HISTORY_KEY = 'localmed.search-history.v2';\n", '')
+          text = re.sub(
+              r"\nfunction saveHistory\(query: string, current: readonly string\[\]\): readonly string\[\] \{.*?\n\}\n",
+              '\n',
+              text,
+              count=1,
+              flags=re.S,
+          )
+          text = text.replace("  const [history, setHistory] = createSignal<readonly string[]>([]);\n", '')
+          text = replace_once(
+              text,
+              "  onMount(() => {\n    setHistory(loadStringArray(HISTORY_KEY));\n    setBookmarks(new Set(loadStringArray(BOOKMARKS_KEY)));\n  });\n",
+              "  const handleReplaySearch = (event: Event): void => {\n"
+              "    const replay = event as CustomEvent<string>;\n"
+              "    if (typeof replay.detail !== 'string' || !replay.detail.trim()) return;\n"
+              "    updateQuery(replay.detail);\n"
+              "    requestAnimationFrame(() => {\n"
+              "      if (textarea) resizeTextarea(textarea);\n"
+              "      void runSearch(replay.detail);\n"
+              "    });\n"
+              "  };\n\n"
+              "  onMount(() => {\n"
+              "    setBookmarks(new Set(loadStringArray(BOOKMARKS_KEY)));\n"
+              "    window.addEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);\n"
+              "  });\n",
+              'search onMount',
+          )
+          text = replace_once(
+              text,
+              "  onCleanup(() => {\n    if (analysisTimer) clearTimeout(analysisTimer);\n    if (copyTimer) clearTimeout(copyTimer);\n  });\n",
+              "  onCleanup(() => {\n"
+              "    window.removeEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);\n"
+              "    if (analysisTimer) clearTimeout(analysisTimer);\n"
+              "    if (copyTimer) clearTimeout(copyTimer);\n"
+              "  });\n",
+              'search onCleanup',
+          )
+          text = text.replace(
+              "    setHistory((current) => saveHistory(trimmed, current));\n"
+              "    const first = result.value.groups[0]?.results[0];\n"
+              "    if (first) await openResult(first);\n"
+              "    else {\n"
+              "      setContext(undefined);\n"
+              "      setSelectedResult(undefined);\n"
+              "    }\n",
+              "    appendSearchHistory(trimmed, result.value);\n"
+              "    setContext(undefined);\n"
+              "    setSelectedResult(undefined);\n",
+          )
+          text = text.replace(
+              "            maxlength={20_000}\n          />",
+              "            maxlength={20_000}\n"
+              "            autocomplete=\"off\"\n"
+              "            autocapitalize=\"sentences\"\n"
+              "            spellcheck={false}\n"
+              "          />",
+          )
+          text = text.replace(
+              '<span>Ctrl / ⌘ + Enter — поиск</span>',
+              '<span class="keyboard-only">Ctrl / ⌘ + Enter — поиск</span>',
+          )
+          text = text.replace(
+              '<h1>Опишите случай обычным текстом.</h1>',
+              '<h1>Что нужно найти?</h1>',
+          )
+          text = text.replace(
+              '<p class="archive-kicker">Локальная картотека · FTS5 + VECTOR · без генерации</p>',
+              '<p class="archive-kicker">Локально · быстро · с переходом к источнику</p>',
+          )
+
+          start = text.index('        <Show when={activeAnalysis()}>')
+          end = text.index('        <Show when={!activeAnalysis()}>', start)
+          analysis_block = '''        <Show when={activeAnalysis()}>
+          {(analysis) => (
+            <section class="query-index" aria-label="Разбор запроса">
+              <Show when={analysis().suggestions.length > 0}>
+                <div class="index-row suggestions-row">
+                  <div class="index-label">
+                    <span>Можно добавить</span>
+                    <small>необязательно</small>
+                  </div>
+                  <div class="suggestion-strip">
+                    <For each={analysis().suggestions}>
+                      {(suggestion) => (
+                        <button
+                          type="button"
+                          title={suggestion.detail}
+                          onClick={() => insertSuggestion(suggestion)}
+                        >
+                          <span>+</span> {suggestion.label}
+                        </button>
+                      )}
+                    </For>
+                  </div>
+                </div>
+              </Show>
+
+              <details class="analysis-details">
+                <summary>
+                  {analysisLoading()
+                    ? 'Обновляем разбор…'
+                    : `Распознано ${analysis().facts.length} полей · показать детали`}
+                </summary>
+                <div class="index-row">
+                  <div class="index-label">
+                    <span>Распознано</span>
+                    <small>{analysis().facts.length} полей</small>
+                  </div>
+                  <div class="fact-strip">
+                    <For each={analysis().facts}>
+                      {(fact) => (
+                        <span
+                          class="fact-tag"
+                          classList={{ negative: fact.polarity === 'negative' }}
+                          title={fact.label}
+                        >
+                          <small>{FACT_LABELS[fact.kind]}</small>
+                          {factDisplayValue(fact)}
+                        </span>
+                      )}
+                    </For>
+                    <Show when={analysis().facts.length === 0}>
+                      <span class="empty-index">Свободный текст сохранён без изменений.</span>
+                    </Show>
+                  </div>
+                </div>
+                <div class="branch-ledger">
+                  <span>Поисковые ветки</span>
+                  <For each={analysis().branches}>
+                    {(branch, index) => (
+                      <span class="branch-ticket">
+                        {String(index() + 1).padStart(2, '0')} · {branch.label}
+                      </span>
+                    )}
+                  </For>
+                </div>
+                <For each={analysis().warnings}>
+                  {(warning) => <p class="analysis-warning">Примечание: {warning}</p>}
+                </For>
+              </details>
+            </section>
+          )}
+        </Show>
+
+'''
+          text = text[:start] + analysis_block + text[end:]
+
+          history_start = text.find('        <Show when={!response() && history().length > 0}>')
+          if history_start >= 0:
+              history_end_marker = '        </Show>\n      </div>\n\n      <aside'
+              history_end = text.index(history_end_marker, history_start)
+              text = text[:history_start] + '      </div>\n\n      <aside' + text[history_end + len(history_end_marker):]
+
+          text = replace_once(
+              text,
+              '      <aside class="reader-column source-folder" aria-live="polite">\n',
+              '      <aside\n'
+              '        class="reader-column source-folder"\n'
+              '        classList={{ open: Boolean(context()) }}\n'
+              '        aria-live="polite"\n'
+              '        aria-hidden={!context()}\n'
+              '      >\n'
+              '        <button\n'
+              '          class="reader-close"\n'
+              '          type="button"\n'
+              '          aria-label="Закрыть источник"\n'
+              '          onClick={() => {\n'
+              '            setContext(undefined);\n'
+              '            setSelectedResult(undefined);\n'
+              '          }}\n'
+              '        >\n'
+              '          <AppGlyph name="close" />\n'
+              '        </button>\n',
+              'reader drawer',
+          )
+          path.write_text(text, encoding='utf-8')
+
+          # --- Clinical parser: reverse age order and explicit symptom facts. ---
+          path = Path('packages/search-lexical/src/analysis.ts')
+          text = path.read_text(encoding='utf-8')
+          text = replace_once(
+              text,
+              "    /(?:мальчик|мальчику|девочка|девочке|ребенок|ребёнок|ребенку|ребёнку|пациент|пациентка|мужчина|женщина|младенец)\\s*,?\\s*(\\d{1,3})\\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,\n",
+              "    /(?:мальчик|мальчику|девочка|девочке|ребенок|ребёнок|ребенку|ребёнку|пациент|пациентка|мужчина|женщина|младенец)\\s*,?\\s*(\\d{1,3})\\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,\n"
+              "    /(\\d{1,3})\\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)\\s*,?\\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,\n",
+              'reverse age',
+          )
+          symptom_code = r'''
+const SYMPTOM_PATTERNS: readonly {
+  readonly pattern: RegExp;
+  readonly canonical: string;
+  readonly label: string;
+}[] = [
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:кашл(?:яет|яют|яю|яешь|ять|ель|я|ем|ете)|покашливает))(?=$|[^а-яёa-z])/giu,
+    canonical: 'кашель',
+    label: 'Кашель',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:лихорад(?:ка|ит|ило)|температурит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'лихорадка',
+    label: 'Лихорадка',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:рвота|рвало|рвет|рвёт|тошнит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'рвота',
+    label: 'Рвота',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:диаре[яию]|понос|жидкий\s+стул))(?=$|[^а-яёa-z])/giu,
+    canonical: 'диарея',
+    label: 'Диарея',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:сыпь|сыпи|высыпания|высыпало))(?=$|[^а-яёa-z])/giu,
+    canonical: 'сыпь',
+    label: 'Сыпь',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:одышка|одышку|задыхается|тяжело\s+дышит|часто\s+дышит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'одышка тахипноэ',
+    label: 'Нарушение дыхания',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:тошнота|тошнит))(?=$|[^а-яёa-z])/giu,
+    canonical: 'тошнота',
+    label: 'Тошнота',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:вялость|вялый|вялая|сонливость|сонливый))(?=$|[^а-яёa-z])/giu,
+    canonical: 'вялость',
+    label: 'Вялость',
+  },
+  {
+    pattern: /(?:^|[^а-яёa-z])((?:боль|болит|болело|болит\s+живот))(?=$|[^а-яёa-z])/giu,
+    canonical: 'боль',
+    label: 'Боль',
+  },
+];
+
+function extractSymptoms(query: string, facts: QueryFact[]): void {
+  const negativeRanges = facts
+    .filter((fact) => fact.kind === 'negative-finding')
+    .map((fact) => fact.range);
+  for (const item of SYMPTOM_PATTERNS) {
+    for (const match of query.matchAll(item.pattern)) {
+      const symptomRange = groupRange(match, 1);
+      if (negativeRanges.some((negativeRange) => overlaps(negativeRange, symptomRange))) continue;
+      addFact(facts, {
+        kind: 'symptom',
+        label: item.label,
+        value: match[1] ?? match[0],
+        normalizedValue: item.canonical,
+        start: symptomRange.start,
+        end: symptomRange.end,
+      });
+    }
+  }
+}
+
+'''
+          text = replace_once(
+              text,
+              'function extractKnownTerms(query: string, facts: QueryFact[]): void {\n',
+              symptom_code + 'function extractKnownTerms(query: string, facts: QueryFact[]): void {\n',
+              'symptom extractor',
+          )
+          text = replace_once(
+              text,
+              '  extractNegations(query, aliases, facts);\n  extractAliasFacts(query, aliases, facts);\n',
+              '  extractNegations(query, aliases, facts);\n  extractSymptoms(query, facts);\n  extractAliasFacts(query, aliases, facts);\n',
+              'symptom call',
+          )
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('packages/search-lexical/tests/query.test.ts')
+          tests = test_path.read_text(encoding='utf-8')
+          test_anchor = "  it('splits long descriptions into observable search branches', () => {\n"
+          regression = '''  it('extracts age before sex and recognizes an inflected cough verb', () => {
+    const plan = analyzeClinicalQuery('5 лет, мальчик, кашляет', aliases);
+    expect(plan.analysis.facts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'age', normalizedValue: '5 лет' }),
+        expect.objectContaining({ kind: 'sex', normalizedValue: 'мужской' }),
+        expect.objectContaining({ kind: 'symptom', normalizedValue: 'кашель' }),
+      ]),
+    );
+    expect(plan.branches[0]?.terms.some((term) => term.startsWith('кашл'))).toBe(true);
+  });
+
+  it('does not turn a negated cough into a positive symptom fact', () => {
+    const plan = analyzeClinicalQuery('Мальчик 5 лет, кашля нет', aliases);
+    expect(plan.analysis.facts.some((fact) => fact.kind === 'symptom' && fact.normalizedValue === 'кашель')).toBe(false);
+    expect(plan.analysis.facts).toEqual(
+      expect.arrayContaining([expect.objectContaining({ kind: 'negative-finding' })]),
+    );
+  });
+
+'''
+          tests = replace_once(tests, test_anchor, regression + test_anchor, 'parser tests')
+          test_path.write_text(tests, encoding='utf-8')
+
+          # --- Versions and safe curated dependency updates. TypeScript remains pinned to 5.9.3. ---
+          def update_json(path_value: str, callback) -> None:
+              file_path = Path(path_value)
+              payload = json.loads(file_path.read_text(encoding='utf-8'))
+              callback(payload)
+              file_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          update_json('package.json', lambda value: value.update(version='0.3.0-alpha.6'))
+
+          def update_app(value: dict) -> None:
+              value['version'] = '0.3.0-alpha.6'
+              for section in ('dependencies', 'devDependencies'):
+                  deps = value.get(section, {})
+                  for name in ('@capacitor/core', '@capacitor/android', '@capacitor/cli', '@capacitor/ios'):
+                      if name in deps:
+                          deps[name] = '8.4.2'
+                  if 'vite' in deps:
+                      deps['vite'] = '8.1.5'
+                  if 'vite-plugin-solid' in deps:
+                      deps['vite-plugin-solid'] = '2.11.13'
+          update_json('apps/app/package.json', update_app)
+
+          def update_landing(value: dict) -> None:
+              value['version'] = '0.3.0-alpha.6'
+              value['dependencies']['astro'] = '7.1.1'
+              value['devDependencies']['@astrojs/check'] = '0.9.9'
+              value['devDependencies']['typescript'] = '5.9.3'
+          update_json('apps/landing/package.json', update_landing)
+
+          gradle = Path('apps/app/android/app/build.gradle')
+          gradle_text = gradle.read_text(encoding='utf-8')
+          gradle_text = re.sub(r'versionCode\s+\d+', 'versionCode 8', gradle_text, count=1)
+          gradle_text = re.sub(r'versionName\s+"[^"]+"', 'versionName "0.3.0-alpha.6"', gradle_text, count=1)
+          gradle.write_text(gradle_text, encoding='utf-8')
+
+          sw = Path('apps/app/public/sw.js')
+          if sw.exists():
+              sw.write_text(sw.read_text(encoding='utf-8').replace('0.3.0-alpha.5', '0.3.0-alpha.6'), encoding='utf-8')
+
+          dependabot = Path('.github/dependabot.yml')
+          dependabot.write_text('''version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      javascript-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+  - package-ecosystem: pip
+    directory: /tools/ingest
+    schedule:
+      interval: weekly
+''', encoding='utf-8')
+
+          for workflow in Path('.github/workflows').glob('*.yml'):
+              workflow_text = workflow.read_text(encoding='utf-8')
+              workflow_text = workflow_text.replace('actions/checkout@v4', 'actions/checkout@v7')
+              workflow_text = workflow_text.replace('actions/setup-node@v4', 'actions/setup-node@v7')
+              workflow_text = workflow_text.replace('softprops/action-gh-release@v2', 'softprops/action-gh-release@v3')
+              workflow_text = workflow_text.replace('actions/deploy-pages@v4', 'actions/deploy-pages@v5')
+              workflow_text = workflow_text.replace('actions/upload-pages-artifact@v3', 'actions/upload-pages-artifact@v5')
+              workflow.write_text(workflow_text, encoding='utf-8')
+
+          # Future Android releases expose one user-facing asset; detailed evidence remains an Actions artifact.
+          for workflow_name in (
+              '.github/workflows/public-pilot-android-release.yml',
+              '.github/workflows/full-android-release.yml',
+          ):
+              workflow = Path(workflow_name)
+              if not workflow.exists():
+                  continue
+              workflow_text = workflow.read_text(encoding='utf-8')
+              workflow_text = re.sub(
+                  r'          assets=\(\n.*?\n          \)\n',
+                  '          assets=("release-output/${APK_NAME}")\n',
+                  workflow_text,
+                  count=1,
+                  flags=re.S,
+              )
+              workflow.write_text(workflow_text, encoding='utf-8')
+
+          # Favicon references for the landing and app are relative to their built roots.
+          # Additional graph selection styles are kept with the compact-shell overrides.
+          css = Path('apps/app/src/styles/mobile-shell.css')
+          css_text = css.read_text(encoding='utf-8')
+          css_text += '''
+
+.library-embedded {
+  width: min(1280px, 100%);
+  min-height: 660px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgb(79 65 37 / 28%);
+  box-shadow: var(--shadow-folder);
+}
+
+.graph-selection {
+  display: flex;
+  width: min(900px, 100%);
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 14px auto 0;
+  padding: 15px 18px;
+  transform: none;
+}
+
+.graph-selection > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.graph-selection span,
+.graph-selection small {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.graph-selection strong {
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-selection button {
+  flex: 0 0 auto;
+  padding: 9px 11px;
+  border: 0;
+  color: #f6eedb;
+  background: var(--green-file);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.brand-mark-image {
+  object-fit: contain;
+}
+
+@media (max-width: 760px) {
+  .graph-selection {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .graph-selection button {
+    align-self: flex-start;
+  }
+}
+'''
+          css.write_text(css_text, encoding='utf-8')
+          PY
+
+      - name: Refresh the lockfile and format source
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --no-frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+          pnpm check --write
+
+      - name: Validate the complete repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm verify
+
+      - name: Commit tested alpha 6 changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-mobile-ux-alpha6.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(app): simplify mobile search and archive navigation'
+          git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
