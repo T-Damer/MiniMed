@@ -15,19 +15,21 @@ jobs:
   report:
     runs-on: ubuntu-24.04
     steps:
-      - name: Extract failed verification log tail
+      - name: Extract concise verifier findings
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           gh run view 29697568005 --repo "$GITHUB_REPOSITORY" --log-failed > failed.log
-          tail -n 180 failed.log > failed-tail.log
+          sed -r 's/\x1B\[[0-9;]*[mK]//g' failed.log \
+            | grep -E 'lint/|error TS|Type error| × |Process completed|Verification phase|ERR_|Error:' \
+            | tail -n 160 > findings.log || true
           {
-            echo 'Alpha.6 latest verification failure tail:'
+            echo 'Alpha.6 concise verifier findings:'
             echo
             echo '```text'
-            cat failed-tail.log
+            cat findings.log
             echo '```'
           } > comment.md
           gh issue comment 42 --repo "$GITHUB_REPOSITORY" --body-file comment.md
