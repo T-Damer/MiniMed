@@ -115,3 +115,5 @@ ol.history-list {
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh issue comment 44 --repo "$GITHUB_REPOSITORY" --body "Alpha.6 migration and full repository verification succeeded. Branch commit: $(git rev-parse HEAD)."
+
+# registered on main; this commit starts the one-shot apply
