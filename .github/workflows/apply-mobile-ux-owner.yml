@@ -12,12 +12,20 @@ permissions:
   contents: write
   issues: write
 
+concurrency:
+  group: apply-minimed-mobile-ux-alpha6
+  cancel-in-progress: true
+
 jobs:
   apply:
     if: github.event_name == 'push' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Apply MiniMed mobile UX alpha 6')
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
+      - name: Report migration run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 36 --body "Alpha.6 migration run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
       - uses: actions/checkout@v4
         with:
           ref: agent/mobile-ux-0.3.0-alpha.6
