@@ -55,6 +55,8 @@ pnpm benchmark:pilot
 
 `tools/benchmarks/pilot-rf-queries.json` contains 35 physician-style engineering queries, five per recommendation. It measures Recall@1, Recall@5, MRR@5, zero-result rate, hybrid-path use, semantic-path use and latency.
 
+The query suite includes a regression for a negated treatment-response phrase such as “нет ответа на стартовый антибиотик через 72 часа при пневмонии”; the negative span must stop at the temporal reassessment boundary so the diagnosis remains searchable.
+
 This is a small engineering benchmark, not a clinical validation study. Before a physician beta, it must be extended with at least 50–100 independently authored queries and reviewed expected sections.
 
 ## Public repository boundary
