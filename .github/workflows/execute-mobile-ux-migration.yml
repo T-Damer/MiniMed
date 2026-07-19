@@ -27,7 +27,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          issue_number="${{ github.event.issue.number || 45 }}"
+          issue_number="${{ github.event.issue.number || 47 }}"
           gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" \
             --body "Mobile UX migration run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
 
@@ -88,16 +88,15 @@ jobs:
           css_path.write_text(css, encoding='utf-8')
           PY
 
-      - name: Refresh dependencies, format and verify
+      - name: Refresh dependencies and format generated source
         shell: bash
         run: |
           set -euo pipefail
           pnpm install --no-frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
           pnpm check --write
-          pnpm verify
 
-      - name: Commit tested migration
+      - name: Publish generated migration to the draft branch
         shell: bash
         run: |
           set -euo pipefail
@@ -108,8 +107,11 @@ jobs:
           git commit -m 'feat(app): simplify mobile search and archive navigation'
           git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
 
+      - name: Verify the published migration
+        run: pnpm verify
+
       - name: Close trigger issue
-        if: github.event_name == 'issues'
+        if: github.event_name == 'issues' && success()
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Mobile UX migration completed and verified.'
