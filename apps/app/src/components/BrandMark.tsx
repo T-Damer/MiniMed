@@ -6,15 +6,17 @@ interface BrandMarkProps {
 }
 
 export function BrandMark(props: BrandMarkProps): JSX.Element {
+  const title = (): string => props.title ?? 'MiniMed — медицинские знания и документы';
+
   return (
     <svg
       class={props.class}
       viewBox="0 0 64 64"
-      role={props.title ? 'img' : 'presentation'}
-      aria-hidden={props.title ? undefined : 'true'}
+      role="img"
+      aria-label={title()}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <ShowTitle title={props.title} />
+      <title>{title()}</title>
       <path d="M13 12.5h31.5l7 7V54H13z" fill="#f6eedb" stroke="#263f36" stroke-width="2.4" />
       <path d="M44.5 12.5v8h7" fill="#d7c49a" stroke="#263f36" stroke-width="2.4" />
       <path d="M9 18.5h4V54h33v4H9z" fill="#b79d66" opacity=".9" />
@@ -26,8 +28,4 @@ export function BrandMark(props: BrandMarkProps): JSX.Element {
       <path d="M17.5 23h8" stroke="#b39f78" stroke-width="2" stroke-linecap="round" />
     </svg>
   );
-}
-
-function ShowTitle(props: { readonly title?: string }): JSX.Element {
-  return props.title ? <title>{props.title}</title> : <></>;
 }
