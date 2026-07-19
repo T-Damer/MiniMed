@@ -21,15 +21,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run view 29698410104 --repo "$GITHUB_REPOSITORY" --log-failed > failed.log
+          gh run view 29698490946 --repo "$GITHUB_REPOSITORY" --log-failed > failed.log
           sed -r 's/\x1B\[[0-9;]*[mK]//g' failed.log \
-            | grep -E 'lint/|error TS|Type error| × |Process completed|Verification phase|ERR_|Error:|failed|FAIL|AssertionError' \
-            | tail -n 260 > findings.log || true
+            | grep -E 'lint/|error TS|Type error| × |Process completed|Verification phase|ERR_|Error:|failed|FAIL|AssertionError|No matching version|lockfile' \
+            | tail -n 280 > findings.log || true
           {
-            echo 'Second alpha.6 migration findings:'
+            echo 'Publish-first alpha.6 migration findings:'
             echo
             echo '```text'
             cat findings.log
             echo '```'
           } > comment.md
-          gh issue comment 47 --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          gh issue comment 48 --repo "$GITHUB_REPOSITORY" --body-file comment.md
