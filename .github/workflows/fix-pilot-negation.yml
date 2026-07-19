@@ -1,6 +1,10 @@
 name: Fix pilot negation scope
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-pilot-negation.yml
   issues:
     types: [opened]
   workflow_dispatch:
@@ -11,7 +15,7 @@ permissions:
 
 jobs:
   fix:
-    if: github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Fix pilot negation scope')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Fix pilot negation scope')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
