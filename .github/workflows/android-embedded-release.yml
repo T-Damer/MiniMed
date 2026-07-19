@@ -1,0 +1,231 @@
+name: Build MiniMed embedded Android APK
+
+on:
+  issues:
+    types:
+      - opened
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: minimed-0.3.0-alpha.3-release
+  cancel-in-progress: false
+
+env:
+  SOURCE_BRANCH: agent/release-0.3.0-alpha.3
+  RELEASE_TAG: v0.3.0-alpha.3
+  RELEASE_VERSION: 0.3.0-alpha.3
+  APK_NAME: MiniMed-0.3.0-alpha.3-debug.apk
+  BUILD_TOOLS: 35.0.0
+
+jobs:
+  build:
+    if: github.event_name != 'issues' || github.event.issue.title == '[release] MiniMed 0.3.0-alpha.3'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out Android preview source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_BRANCH }}
+          fetch-depth: 0
+
+      - name: Record source revision
+        shell: bash
+        run: echo "SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdkmanager"
+          yes | "$sdkmanager" --licenses >/dev/null || true
+          "$sdkmanager" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;${BUILD_TOOLS}"
+
+      - name: Build embedded SQLite pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf release-output
+          mkdir -p release-output app/src/main/assets
+          python3 tools/build_demo_db.py \
+            app/src/main/assets/minimed-core.db \
+            --report release-output/content-pack-report.json
+
+      - name: Assemble debug-signed APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle --no-daemon --stacktrace :app:assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk "release-output/${APK_NAME}"
+
+      - name: Verify final APK and embedded database
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="release-output/${APK_NAME}"
+          original="app/src/main/assets/minimed-core.db"
+          extracted="$RUNNER_TEMP/minimed-core-from-apk.db"
+
+          test -s "$apk"
+          unzip -p "$apk" assets/minimed-core.db > "$extracted"
+          cmp "$original" "$extracted"
+
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import sqlite3
+          from pathlib import Path
+
+          apk = Path("release-output/MiniMed-0.3.0-alpha.3-debug.apk")
+          db_path = Path(os.environ["RUNNER_TEMP"]) / "minimed-core-from-apk.db"
+          db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+          quick_check = db.execute("PRAGMA quick_check").fetchone()[0]
+          card_count = db.execute("SELECT COUNT(*) FROM knowledge_cards").fetchone()[0]
+          metadata = dict(db.execute("SELECT key, value FROM app_meta"))
+          db.close()
+
+          assert quick_check == "ok"
+          assert card_count == 9
+          assert metadata["pack_version"] == "0.3.0-alpha.3"
+
+          manifest = {
+              "version": "0.3.0-alpha.3",
+              "sourceSha": os.environ["SOURCE_SHA"],
+              "apk": {
+                  "name": apk.name,
+                  "bytes": apk.stat().st_size,
+                  "sha256": hashlib.sha256(apk.read_bytes()).hexdigest(),
+                  "debugSigned": True,
+              },
+              "embeddedDatabase": {
+                  "apkPath": "assets/minimed-core.db",
+                  "bytes": db_path.stat().st_size,
+                  "sha256": hashlib.sha256(db_path.read_bytes()).hexdigest(),
+                  "quickCheck": quick_check,
+                  "cardCount": card_count,
+                  "packId": metadata["pack_id"],
+                  "packVersion": metadata["pack_version"],
+                  "synthetic": True,
+              },
+              "networkPermission": False,
+              "clinicalGuidance": False,
+          }
+          Path("release-output/BUILD-MANIFEST.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+
+          aapt="${ANDROID_HOME}/build-tools/${BUILD_TOOLS}/aapt"
+          "$aapt" dump permissions "$apk" | tee release-output/APK-PERMISSIONS.txt
+          if grep -q "android.permission.INTERNET" release-output/APK-PERMISSIONS.txt; then
+            echo "Unexpected INTERNET permission" >&2
+            exit 1
+          fi
+
+          git archive --format=zip \
+            --output=release-output/MiniMed-0.3.0-alpha.3-source.zip \
+            "$SOURCE_SHA"
+
+          sha256sum \
+            "$apk" \
+            "$original" \
+            release-output/MiniMed-0.3.0-alpha.3-source.zip \
+            > release-output/SHA256SUMS.txt
+
+          cat > release-output/RELEASE_NOTES.md <<'EOF'
+          # MiniMed 0.3.0-alpha.3 — embedded Android preview
+
+          This prerelease contains a real installable, debug-signed Android APK.
+
+          ## Included
+
+          - native offline Android application;
+          - SQLite knowledge pack embedded at `assets/minimed-core.db`;
+          - nine synthetic Russian-language demonstration cards;
+          - unrestricted free-text search;
+          - local normalization, aliases and deterministic ranking;
+          - no `INTERNET` permission;
+          - CI verification by extracting and opening the database from the final APK;
+          - source archive, checksums and build manifest.
+
+          ## Important
+
+          The embedded cards are synthetic test data and are **not clinical guidance**.
+          The APK is debug-signed for engineering evaluation.
+          EOF
+
+      - name: Upload Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiniMed-0.3.0-alpha.3-android
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            release-output/MiniMed-0.3.0-alpha.3-debug.apk
+            release-output/MiniMed-0.3.0-alpha.3-source.zip
+            release-output/BUILD-MANIFEST.json
+            release-output/content-pack-report.json
+            release-output/APK-PERMISSIONS.txt
+            release-output/SHA256SUMS.txt
+            release-output/RELEASE_NOTES.md
+
+      - name: Publish GitHub prerelease with APK asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          assets=(
+            "release-output/${APK_NAME}"
+            "release-output/MiniMed-0.3.0-alpha.3-source.zip"
+            "release-output/BUILD-MANIFEST.json"
+            "release-output/content-pack-report.json"
+            "release-output/APK-PERMISSIONS.txt"
+            "release-output/SHA256SUMS.txt"
+          )
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+            gh release edit "$RELEASE_TAG" \
+              --title "MiniMed 0.3.0-alpha.3 — embedded Android preview" \
+              --notes-file release-output/RELEASE_NOTES.md \
+              --prerelease
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --target "$SOURCE_SHA" \
+              --title "MiniMed 0.3.0-alpha.3 — embedded Android preview" \
+              --notes-file release-output/RELEASE_NOTES.md \
+              --prerelease
+          fi
+
+      - name: Close successful trigger issue
+        if: github.event_name == 'issues' && success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue close "${{ github.event.issue.number }}" \
+            --comment "Verified APK and embedded SQLite database were published in v0.3.0-alpha.3."
