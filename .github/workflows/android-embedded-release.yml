@@ -34,6 +34,15 @@ jobs:
           ref: ${{ env.SOURCE_BRANCH }}
           fetch-depth: 0
 
+      - name: Report workflow run
+        if: github.event_name == 'issues'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" \
+            --body "Android release run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
+
       - name: Record source revision
         shell: bash
         run: echo "SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
@@ -228,4 +237,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh issue close "${{ github.event.issue.number }}" \
-            --comment "Verified APK and embedded SQLite database were published in v0.3.0-alpha.3."
+            --comment "Verified APK and embedded SQLite database were published in v0.3.0-alpha.3. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
