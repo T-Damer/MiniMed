@@ -1,6 +1,10 @@
 name: Verify alpha 5 release asset
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/verify-alpha5-release.yml
   issues:
     types: [opened]
 
@@ -10,14 +14,14 @@ permissions:
 
 jobs:
   verify:
-    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[release] Verify MiniMed alpha 5 asset'
+    if: github.event_name == 'push' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[release] Verify MiniMed alpha 5 asset')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Report verification run
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment "${{ github.event.issue.number }}" --body "Release verification run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
+        run: gh issue comment 30 --body "Release verification run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} (run_id=${GITHUB_RUN_ID})."
       - name: Download canonical release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -80,4 +84,4 @@ jobs:
       - name: Close trigger issue
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue close "${{ github.event.issue.number }}" --comment 'Canonical alpha.5 release asset downloaded and independently verified.'
+        run: gh issue close 30 --comment 'Canonical alpha.5 release asset downloaded and independently verified.'
