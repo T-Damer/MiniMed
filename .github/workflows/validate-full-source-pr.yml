@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - .github/workflows/validate-full-source-pr.yml
+  issues:
+    types: [opened]
   workflow_dispatch:
 
 permissions:
@@ -17,6 +19,7 @@ concurrency:
 
 jobs:
   validate:
+    if: github.event_name != 'issues' || (github.actor == 'T-Damer' && github.event.issue.title == '[ci] Validate full MiniMed source')
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -84,3 +87,11 @@ jobs:
             data/build/*benchmark*.json
             playwright-report/**
             test-results/**
+
+      - name: Close successful trigger issue
+        if: github.event_name == 'issues' && success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue close "${{ github.event.issue.number }}" --comment "Full-source validation succeeded. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
