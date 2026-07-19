@@ -337,6 +337,14 @@ function trimPrefixNegation(captured: string, aliases: readonly AliasRecord[]): 
   );
   if (explicitBoundary >= 0) boundary = Math.min(boundary, explicitBoundary);
 
+  // A temporal reassessment phrase ends the negated finding. In `нет ответа на антибиотик через
+  // 72 часа при пневмонии`, only the absent treatment response is negative; the diagnosis after
+  // the time boundary must remain searchable.
+  const temporalBoundary = normalizedCaptured.search(
+    /\s+(?:через|спустя)\s+\d+(?:[.,]\d+)?\s*(?:минут[а-я]*|час[а-я]*|дн(?:я|ей|и)|сут(?:ок|ки)?|недел[а-я]*|месяц[а-я]*)(?=\s|$)/u,
+  );
+  if (temporalBoundary >= 0) boundary = Math.min(boundary, temporalBoundary);
+
   return (
     captured
       .slice(0, boundary)
