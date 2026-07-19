@@ -154,6 +154,10 @@ jobs:
             exit 1
           fi
 
+          apksigner="${ANDROID_HOME}/build-tools/${BUILD_TOOLS}/apksigner"
+          "$apksigner" verify --verbose --print-certs "$apk" \
+            | tee release-output/APK-SIGNATURE.txt
+
           git archive --format=zip \
             --output=release-output/MiniMed-0.3.0-alpha.3-source.zip \
             "$SOURCE_SHA"
@@ -198,6 +202,7 @@ jobs:
             release-output/BUILD-MANIFEST.json
             release-output/content-pack-report.json
             release-output/APK-PERMISSIONS.txt
+            release-output/APK-SIGNATURE.txt
             release-output/SHA256SUMS.txt
             release-output/RELEASE_NOTES.md
 
@@ -213,6 +218,7 @@ jobs:
             "release-output/BUILD-MANIFEST.json"
             "release-output/content-pack-report.json"
             "release-output/APK-PERMISSIONS.txt"
+            "release-output/APK-SIGNATURE.txt"
             "release-output/SHA256SUMS.txt"
           )
 
