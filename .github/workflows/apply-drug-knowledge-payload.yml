@@ -27,7 +27,7 @@ jobs:
           cat .agent/payload.part* | base64 --decode > /tmp/payload.tar.gz
           echo '188718a00bdf83487ff9bf7969ba36a8ca0d6e7fb93d5ff9ba451cbef5d9f6a8  /tmp/payload.tar.gz' | sha256sum --check
           tar -xzf /tmp/payload.tar.gz
-          rm -rf .agent .agent-validation-report.md
+          rm -rf .agent
           rm -f .github/workflows/apply-drug-knowledge-payload.yml
       - name: Correct validation fixtures
         run: |
@@ -97,22 +97,57 @@ jobs:
           uv sync --project tools/ingest --all-groups --locked
           pnpm check --write
           uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
-      - name: Validate product changes
+      - name: Validate and publish
+        shell: bash
         run: |
           set -euo pipefail
-          pnpm check
-          pnpm typecheck
-          pnpm test:unit
-          pnpm schema:check
-          uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest pytest tools/ingest/tests
-      - name: Commit tested product changes
-        run: |
-          set -euo pipefail
+          report=.agent-validation-report.md
+          work=/tmp/minimed-validation
+          mkdir -p "$work"
+          {
+            echo '# Drug knowledge validation failure'
+            echo
+            echo "Run: $GITHUB_RUN_ID"
+          } > "$report"
+          failed=0
+          run_check() {
+            label="$1"
+            shift
+            log="$work/$label.log"
+            set +e
+            "$@" >"$log" 2>&1
+            status=$?
+            set -e
+            echo "=== $label (exit $status) ==="
+            tail -n 120 "$log"
+            if [ "$status" -ne 0 ]; then
+              failed=1
+              {
+                echo
+                echo "## $label — exit $status"
+                echo '```text'
+                tail -n 180 "$log"
+                echo '```'
+              } >> "$report"
+            fi
+          }
+          run_check pnpm-check pnpm check
+          run_check typecheck pnpm typecheck
+          run_check unit-tests pnpm test:unit
+          run_check schema-check pnpm schema:check
+          run_check ruff-format uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+          run_check ruff-check uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          run_check pyright uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          run_check pytest uv run --project tools/ingest pytest tools/ingest/tests
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ "$failed" -ne 0 ]; then
+            git add "$report"
+            git commit -m 'chore(ci): record drug knowledge validation failure'
+            git push origin HEAD:agent/drug-knowledge-graph
+            exit 1
+          fi
+          rm -f "$report"
           git add -A
           git commit -m 'feat(content): add offline drug knowledge pipeline'
           git push origin HEAD:agent/drug-knowledge-graph
