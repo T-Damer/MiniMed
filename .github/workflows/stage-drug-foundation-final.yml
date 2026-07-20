@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: stage-final-drug-foundation
+  cancel-in-progress: false
+
 jobs:
   stage:
     runs-on: ubuntu-24.04
@@ -59,6 +63,7 @@ jobs:
           git checkout HEAD -- package.json packages/search-lexical/src/analysis.ts
           python3 - <<'PY'
           import json
+          import subprocess
           from pathlib import Path
 
           package_path = Path('package.json')
@@ -82,7 +87,7 @@ jobs:
 
           mobile = Path('/tmp/mobile-analysis.ts').read_text(encoding='utf-8')
           source_path = Path('packages/search-lexical/src/analysis.ts')
-          source = subprocess_source = __import__('subprocess').check_output(
+          source = subprocess.check_output(
               ['git', 'show', 'origin/agent/drug-knowledge-graph:packages/search-lexical/src/analysis.ts'],
               text=True,
           )
@@ -93,7 +98,7 @@ jobs:
               insertion_index = next(
                   index + 1
                   for index, line in enumerate(lines)
-                  if 'младенец)' in line and '(\\d{1,3})' in line and 'const patterns' not in line
+                  if 'младенец)' in line and '(\\d{1,3})' in line
               )
               lines.insert(insertion_index, reverse_pattern)
               source = '\n'.join(lines) + '\n'
@@ -101,9 +106,11 @@ jobs:
           if 'const SYMPTOM_PATTERNS' not in source:
               start = mobile.index('const SYMPTOM_PATTERNS')
               end = mobile.index('function extractKnownTerms', start)
-              symptom_block = mobile[start:end]
-              marker = 'function extractKnownTerms'
-              source = source.replace(marker, symptom_block + marker, 1)
+              source = source.replace(
+                  'function extractKnownTerms',
+                  mobile[start:end] + 'function extractKnownTerms',
+                  1,
+              )
           if 'extractSymptoms(query, facts);' not in source:
               source = source.replace(
                   '  extractNegations(query, aliases, facts);\n',
@@ -113,7 +120,7 @@ jobs:
           source_path.write_text(source, encoding='utf-8')
           PY
 
-      - name: Resolve any remaining generated-schema merge and reject unknown conflicts
+      - name: Resolve generated schema and reject unknown conflicts
         shell: bash
         run: |
           set -euo pipefail
