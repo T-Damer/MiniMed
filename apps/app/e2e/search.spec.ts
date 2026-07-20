@@ -23,7 +23,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(page.getByTestId('reader-context')).toContainText('тахипноэ');
 });
 
-test('keeps the active search mounted while navigating through the app', async ({ page }) => {
+test('preserves the active search while navigating between mounted routes', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
