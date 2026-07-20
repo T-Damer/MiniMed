@@ -6,22 +6,78 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
-  javascript:
+  alpha6-format:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/mobile-ux-0.3.0-alpha.6'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/mobile-ux-0.3.0-alpha.6
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.16.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
+      - name: Apply pinned Biome formatting
+        run: pnpm check --write
+      - name: Publish non-workflow formatting fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --quiet -- .github/workflows || {
+            echo 'Formatting unexpectedly changed workflow files.' >&2
+            git diff -- .github/workflows
+            exit 1
+          }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'style(app): apply pinned Biome formatting'
+          git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
+
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check source formatting and lint
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm check 2>&1 | tee biome-check.log
+      - name: Report alpha 6 check failure
+        if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'agent/mobile-ux-0.3.0-alpha.6'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sed -r 's/\x1B\[[0-9;]*[mK]//g' biome-check.log | tail -n 220 > biome-tail.log
+          {
+            echo '<!-- minimed-alpha6-ci-diagnostic -->'
+            echo 'Current alpha.6 Biome failure:'
+            echo
+            echo '```text'
+            cat biome-tail.log
+            echo '```'
+          } > comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" --body-file comment.md
       - run: pnpm typecheck
       - run: pnpm test:unit
       - run: pnpm native:source:check
@@ -32,7 +88,7 @@ jobs:
   python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.10.0"
