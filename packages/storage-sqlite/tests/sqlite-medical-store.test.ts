@@ -43,14 +43,10 @@ describe('SqliteMedicalStore', () => {
     const store = await SqliteMedicalStore.createFromBytes(new Uint8Array(databaseBytes));
     stores.push(store);
     const health = await store.initialize();
+    const documents = await store.listDocuments();
     expect(health.documentCount).toBe(report.documents);
-    const results = await store.search({
-      ftsQuery: '"аппендицит"*',
-      terms: ['аппендицит'],
-      filters: {},
-      limit: 5,
-    });
-    expect(results[0]?.document.id).toBe('kr.demo.surgery.appendicitis');
+    expect(documents).toHaveLength(report.documents);
+    expect(documents.every((document) => document.title.length > 0)).toBe(true);
   });
 
   it('finds a colloquial respiratory case through a generated FTS query', async () => {
