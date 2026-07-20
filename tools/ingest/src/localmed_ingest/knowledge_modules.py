@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .knowledge import KnowledgeWorkspace, _read_yaml_mapping, validate_knowledge_workspace
+import yaml
+
+from .knowledge import KnowledgeWorkspace, validate_knowledge_workspace
 from .models import PackDocument
 
 _COLLECTION_KEYS = ("entities", "facts", "relations", "documentLinks", "reviewTasks")
@@ -11,15 +13,16 @@ _COLLECTION_KEYS = ("entities", "facts", "relations", "documentLinks", "reviewTa
 
 def _read_module(path: Path) -> dict[str, object]:
     if path.suffix == ".json":
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(payload, dict):
-            raise ValueError(f"Expected JSON mapping: {path}")
-        return {str(key): value for key, value in payload.items()}
-    return _read_yaml_mapping(path)
+        payload: object = json.loads(path.read_text(encoding="utf-8"))
+    else:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"Expected knowledge module mapping: {path}")
+    return {str(key): value for key, value in payload.items()}
 
 
 def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> KnowledgeWorkspace:
-    """Compose every knowledge*.yaml/json file into one validated relational workspace.
+    """Compose every knowledge YAML/JSON file into one validated relational workspace.
 
     YAML remains convenient for human editorial work. JSON is preferred for imported registry
     snapshots because exact evidence quotes do not require YAML-specific escaping.
@@ -30,7 +33,7 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
         return KnowledgeWorkspace()
 
     schema_version: int | None = None
-    combined: dict[str, object] = {key: [] for key in _COLLECTION_KEYS}
+    collections: dict[str, list[object]] = {key: [] for key in _COLLECTION_KEYS}
     origins: dict[str, Path] = {}
 
     for path in paths:
@@ -50,8 +53,6 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
             values = payload.get(key, [])
             if not isinstance(values, list):
                 raise ValueError(f"{path}: {key} must be a list.")
-            target = combined[key]
-            assert isinstance(target, list)
             for value in values:
                 if not isinstance(value, dict):
                     raise ValueError(f"{path}: every {key} item must be a mapping.")
@@ -63,9 +64,9 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
                             f"Duplicate knowledge id {identifier} in {previous} and {path}."
                         )
                     origins[identifier] = path
-                target.append(value)
+                collections[key].append(value)
 
-    combined["schemaVersion"] = schema_version or 1
+    combined: dict[str, object] = {**collections, "schemaVersion": schema_version or 1}
     workspace = KnowledgeWorkspace.model_validate(combined)
     validate_knowledge_workspace(workspace, documents)
     return workspace
