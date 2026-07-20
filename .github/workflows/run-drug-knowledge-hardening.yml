@@ -61,6 +61,20 @@ jobs:
                   inside_raw_string = True
           script = "\n".join(script_lines)
           exec(compile(script, 'apply-drug-knowledge-hardening.py', 'exec'))
+
+          generated = Path('tools/ingest/src/localmed_ingest/knowledge.py')
+          generated_text = generated.read_text(encoding='utf-8')
+          long_line = (
+              '                    f"Task {response.task_id} entity {proposal.key} has '
+              'conflicting identity mappings."\n'
+          )
+          replacement = (
+              '                    f"Task {response.task_id} entity {proposal.key} has conflicting "\n'
+              '                    "identity mappings."\n'
+          )
+          if generated_text.count(long_line) != 1:
+              raise SystemExit('long identity error line was not found exactly once')
+          generated.write_text(generated_text.replace(long_line, replacement, 1), encoding='utf-8')
           PY
           status=$?
           set -e
