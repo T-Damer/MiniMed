@@ -1,14 +1,11 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
 
 const query = 'Ребёнок часто дышит и температурит второй день';
 
 function pneumoniaResult(page: Page): Locator {
-  return page
-    .getByTestId('search-results')
-    .getByText('Внебольничная пневмония у детей')
-    .first();
+  return page.getByTestId('search-results').getByText('Внебольничная пневмония у детей').first();
 }
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
