@@ -1,10 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
 
 const query = 'Ребёнок часто дышит и температурит второй день';
 
-function pneumoniaResult(page: Parameters<typeof test>[0] extends never ? never : any) {
+function pneumoniaResult(page: Page) {
   return page
     .getByTestId('search-results')
     .getByText('Внебольничная пневмония у детей')
