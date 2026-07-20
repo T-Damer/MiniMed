@@ -58,16 +58,26 @@ jobs:
             tools/ingest/tests/test_knowledge_modules.py
           rm -f .github/drug-real-data-staging-marker.txt
 
-      - name: Install and normalize formatting
+      - name: Install locked dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+
+      - name: Normalize JavaScript and JSON
         shell: bash
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile
-          uv sync --project tools/ingest --all-groups --locked
-          pnpm exec biome check --write --unsafe .
+          pnpm exec biome format --write .
+          pnpm exec biome check --write --unsafe . || true
           pnpm check
+
+      - name: Normalize Python
+        shell: bash
+        run: |
+          set -euo pipefail
           uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests || true
+          uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
           uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
 
       - name: Verify repository and real-data pack
