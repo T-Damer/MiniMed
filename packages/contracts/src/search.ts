@@ -58,7 +58,31 @@ export interface QueryFact {
   readonly range: TextRange;
 }
 
-export type QueryBranchKind = 'clinical' | 'original' | 'clause' | 'investigation' | 'medication';
+export type SearchIntentKind =
+  | 'diagnosis'
+  | 'treatment'
+  | 'medication'
+  | 'disease-reference'
+  | 'care-guidance'
+  | 'administrative-reference'
+  | 'mixed'
+  | 'unknown';
+
+export interface QueryIntent {
+  readonly primary: SearchIntentKind;
+  readonly secondary: readonly SearchIntentKind[];
+  readonly confidence: number;
+  readonly matchedSignals: readonly string[];
+  readonly needsClarification: boolean;
+}
+
+export type QueryBranchKind =
+  | 'clinical'
+  | 'original'
+  | 'clause'
+  | 'investigation'
+  | 'medication'
+  | 'intent';
 
 export interface QueryBranch {
   readonly id: string;
@@ -77,7 +101,13 @@ export type SearchSuggestionField =
   | 'temperature'
   | 'medications'
   | 'investigations'
-  | 'epidemiology';
+  | 'epidemiology'
+  | 'diagnosis'
+  | 'severity'
+  | 'control'
+  | 'weight'
+  | 'context'
+  | 'goal';
 
 export interface SearchSuggestion {
   readonly id: string;
@@ -92,6 +122,7 @@ export interface SearchSuggestion {
 export interface QueryAnalysis {
   readonly originalQuery: string;
   readonly normalizedQuery: string;
+  readonly intent?: QueryIntent;
   readonly facts: readonly QueryFact[];
   readonly branches: readonly QueryBranch[];
   readonly suggestions: readonly SearchSuggestion[];

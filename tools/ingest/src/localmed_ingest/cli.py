@@ -8,6 +8,15 @@ from typing import Annotated
 import typer
 
 from .builder import build_content_pack, lint_content_pack, load_content_pack
+from .drug_sources import collect_drug_sources
+from .knowledge import (
+    approve_knowledge,
+    export_chatgpt_tasks,
+    import_chatgpt_responses,
+    knowledge_summary,
+    load_knowledge_workspace,
+    load_workspace_documents,
+)
 from .pdf_import import import_pdf
 from .source_registry import prepare_registry
 from .source_sync import sync_source_manifest
@@ -79,6 +88,35 @@ def sync_command(
     typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
+@app.command("collect-drugs")
+def collect_drugs_command(
+    catalog: Annotated[Path, typer.Option("--catalog", exists=True, dir_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    cache_root: Annotated[Path, typer.Option("--cache-root")] = Path(".cache/localmed/drugs"),
+    input_root: Annotated[
+        Path | None, typer.Option("--input-root", exists=True, file_okay=False)
+    ] = None,
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+    force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
+    offline: Annotated[bool, typer.Option("--offline")] = False,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+) -> None:
+    """Collect explicitly licensed drug sources without crawling or scraping public interfaces."""
+    result = collect_drug_sources(
+        catalog,
+        output_root,
+        cache_root,
+        input_root=input_root,
+        force_refresh=force_refresh,
+        offline=offline,
+        timeout_seconds=timeout_seconds,
+        report_path=report,
+    )
+    typer.echo(
+        json.dumps(result.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
+    )
+
+
 @app.command("prepare")
 def prepare_command(
     registry: Annotated[Path, typer.Option("--registry", exists=True, dir_okay=False)],
@@ -89,6 +127,62 @@ def prepare_command(
     """Prepare private PDF/TXT sources as a build-ready Markdown workspace."""
     prepare_report = prepare_registry(registry, source_root, output, force=force)
     typer.echo(json.dumps(prepare_report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("ai-export")
+def ai_export_command(
+    input_dir: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Export source-preserving JSONL tasks for manual processing in ChatGPT chat."""
+    tasks = export_chatgpt_tasks(input_dir, output)
+    typer.echo(json.dumps({"tasks": tasks, "output": str(output)}, ensure_ascii=False, indent=2))
+
+
+@app.command("ai-import")
+def ai_import_command(
+    input_dir: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    responses: Annotated[Path, typer.Option("--responses", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    base: Annotated[Path | None, typer.Option("--base", exists=True, dir_okay=False)] = None,
+) -> None:
+    """Validate ChatGPT JSONL proposals and write a proposed knowledge workspace."""
+    report = import_chatgpt_responses(input_dir, responses, output, base_path=base)
+    typer.echo(
+        json.dumps(report.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
+    )
+
+
+@app.command("knowledge-lint")
+def knowledge_lint_command(
+    input_dir: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+) -> None:
+    """Validate knowledge ids, graph references, source chunks, and exact evidence quotes."""
+    documents = load_workspace_documents(input_dir)
+    workspace = load_knowledge_workspace(input_dir, documents)
+    typer.echo(
+        json.dumps(
+            knowledge_summary(workspace).model_dump(by_alias=True, mode="json"),
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+
+@app.command("knowledge-approve")
+def knowledge_approve_command(
+    source: Annotated[Path, typer.Option("--source", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    identifiers: Annotated[
+        list[str], typer.Option("--id", help="Fact/relation/link id to approve")
+    ],
+    reviewer: Annotated[str, typer.Option("--reviewer")],
+) -> None:
+    """Record explicit human approval; AI imports can never mark records reviewed."""
+    summary = approve_knowledge(source, output, set(identifiers), reviewer)
+    typer.echo(
+        json.dumps(summary.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
+    )
 
 
 @app.command()
@@ -107,7 +201,7 @@ def build(
 def lint_command(
     input_dir: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
 ) -> None:
-    """Validate source metadata, stable identifiers, anchors, and chunks."""
+    """Validate source metadata, knowledge evidence, stable identifiers, anchors, and chunks."""
     errors = lint_content_pack(load_content_pack(input_dir))
     if errors:
         for error in errors:
