@@ -7,6 +7,12 @@ from pathlib import Path
 import yaml
 
 from .embedding import PORTABLE_HASH_PROFILE, build_chunk_embedding
+from .knowledge import (
+    apply_search_projection,
+    knowledge_summary,
+    load_knowledge_workspace,
+    write_knowledge_sqlite,
+)
 from .markdown_parser import parse_markdown_document
 from .models import Alias, BuildReport, ContentPack, PackManifest
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
@@ -46,10 +52,23 @@ def load_content_pack(input_dir: Path) -> ContentPack:
     document_ids = [document.id for document in documents]
     if len(document_ids) != len(set(document_ids)):
         raise ValueError("Duplicate document id in content pack.")
+
+    knowledge = load_knowledge_workspace(input_dir, documents)
+    apply_search_projection(documents, knowledge)
+
     embeddings = [
         build_chunk_embedding(
             chunk.id,
-            "\n".join([document.title, *section.section_path, chunk.original_text]),
+            "\n".join(
+                value
+                for value in [
+                    document.title,
+                    *section.section_path,
+                    chunk.original_text,
+                    str(chunk.metadata.get("knowledgeProjectionText", "")),
+                ]
+                if value
+            ),
         )
         for document in documents
         for section in document.sections
@@ -115,6 +134,8 @@ def build_content_pack(
     if errors:
         raise ValueError("Content lint failed:\n" + "\n".join(errors))
     write_sqlite_pack(pack, output)
+    knowledge = load_knowledge_workspace(input_dir, pack.documents)
+    write_knowledge_sqlite(output, knowledge)
     integrity, foreign_keys, chunk_count, fts_rows, profile_count, embedding_count = (
         inspect_integrity(output)
     )
@@ -127,6 +148,15 @@ def build_content_pack(
     ):
         raise ValueError("Generated SQLite pack failed integrity checks.")
     output_checksum = f"sha256:{hashlib.sha256(output.read_bytes()).hexdigest()}"
+    warnings = collect_content_warnings(pack)
+    summary = knowledge_summary(knowledge)
+    if summary.entities or summary.review_tasks:
+        warnings.append(
+            "knowledge: "
+            f"{summary.entities} entities, {summary.facts} facts "
+            f"({summary.reviewed_facts} reviewed), {summary.relations} relations "
+            f"({summary.reviewed_relations} reviewed), {summary.review_tasks} review tasks"
+        )
     report = BuildReport(
         documents=len(pack.documents),
         sections=sum(len(document.sections) for document in pack.documents),
@@ -134,7 +164,7 @@ def build_content_pack(
         aliases=len(pack.aliases),
         embedding_profiles=len(pack.embedding_profiles),
         embeddings=len(pack.embeddings),
-        warnings=collect_content_warnings(pack),
+        warnings=warnings,
         errors=[],
         output_checksum=output_checksum,
         sqlite_integrity=integrity,
@@ -143,14 +173,22 @@ def build_content_pack(
     if json_output:
         json_output.parent.mkdir(parents=True, exist_ok=True)
         json_output.write_text(
-            json.dumps(pack.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
+            json.dumps(
+                pack.model_dump(by_alias=True, mode="json"),
+                ensure_ascii=False,
+                indent=2,
+            )
             + "\n",
             encoding="utf-8",
         )
     if report_path:
         report_path.parent.mkdir(parents=True, exist_ok=True)
         report_path.write_text(
-            json.dumps(report.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
+            json.dumps(
+                report.model_dump(by_alias=True, mode="json"),
+                ensure_ascii=False,
+                indent=2,
+            )
             + "\n",
             encoding="utf-8",
         )

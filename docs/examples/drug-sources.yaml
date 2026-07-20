@@ -1,0 +1,129 @@
+schemaVersion: 1
+sources:
+  # GRLS: use a supported database export or written-access channel. Do not scrape search pages.
+  - id: ru.grls.registry
+    title: Государственный реестр лекарственных средств — лицензированный экспорт
+    acquisition: manual
+    enabled: false
+    jurisdiction: RU
+    categories:
+      - registration
+      - official-labels
+      - manufacturers
+    updateCadence: verify with provider
+    rights:
+      owner: Ministry of Health of the Russian Federation
+      licenseId: written-access-required
+      allowsOfflineStorage: false
+      allowsDerivativeProcessing: false
+      allowsRedistribution: false
+      notes: Replace with the terms attached to the official database-access/export agreement.
+    metadata:
+      expectedIdentifiers:
+        - registration-number
+        - marketing-authorization
+
+  # ESKLP: use an official exchange snapshot whose reuse terms have been reviewed.
+  - id: ru.esklp.normalized-products
+    title: ЕСКЛП — официальный обменный файл
+    acquisition: manual
+    enabled: false
+    jurisdiction: RU
+    categories:
+      - normalized-drug-identities
+      - smnn
+      - klp
+    updateCadence: verify with provider
+    rights:
+      owner: Russian Federation / responsible ESKLP operator
+      licenseId: terms-review-required
+      allowsOfflineStorage: false
+      allowsDerivativeProcessing: false
+      allowsRedistribution: false
+      notes: Record the exact exchange specification and snapshot version before enabling.
+    metadata:
+      expectedIdentifiers:
+        - smnn-uuid
+        - klp-uuid
+
+  # Pick a licensed commercial master, not both by default. Put the delivered file under data/raw.
+  - id: vendor.drug-master
+    title: Licensed RLS Aurora or Vidal integration export
+    acquisition: vendor-export
+    enabled: false
+    jurisdiction: RU
+    categories:
+      - drug-master
+      - official-instructions
+      - interactions
+      - packaging
+    updateCadence: contract-defined
+    rights:
+      owner: Replace with contracted vendor
+      licenseId: replace-with-contract-id
+      allowsOfflineStorage: false
+      allowsDerivativeProcessing: false
+      allowsRedistribution: false
+      notes: The contract must permit offline device storage, indexing, updates, and required retention.
+    metadata:
+      expectedDelivery: XML/JSON/SQL archive plus schema and change feed
+
+  # Each guideline should be a direct supported file/export with its own provenance, not an index crawl.
+  - id: ru.clinical-recommendations
+    title: Russian clinical recommendations — approved local snapshot
+    acquisition: manual
+    enabled: false
+    jurisdiction: RU
+    categories:
+      - clinical-guidelines
+      - treatment-relations
+      - pediatric-guidance
+    updateCadence: release-driven
+    rights:
+      owner: Relevant publisher/rightsholder
+      licenseId: source-specific-review-required
+      allowsOfflineStorage: false
+      allowsDerivativeProcessing: false
+      allowsRedistribution: false
+      notes: Register each direct document/version in the normal source registry after collection.
+    metadata:
+      sourceOfTruthFor:
+        - condition-treatment-relations
+
+  # Allmed is intentionally blocked until a written licence and supported export are supplied.
+  - id: allmed.reference-only
+    title: Allmed product/database
+    acquisition: manual
+    enabled: false
+    jurisdiction: RU
+    categories:
+      - product-reference
+    rights:
+      owner: Allmed rightsholder
+      licenseId: written-licence-required
+      allowsOfflineStorage: false
+      allowsDerivativeProcessing: false
+      allowsRedistribution: false
+      notes: Use as UX inspiration only unless a written database licence/export is obtained.
+    metadata:
+      prohibitedDefaultAction: scrape-or-extract-app-database
+
+  # Example of a source that can be enabled after a licensed file is placed below input-root.
+  - id: local.example-licensed-export
+    title: Example local licensed text export
+    acquisition: local-export
+    location: licensed-drugs/example.txt
+    target: licensed/example.txt
+    contentType: text
+    enabled: false
+    jurisdiction: RU
+    categories:
+      - drug-labels
+    rights:
+      owner: Example vendor
+      licenseId: EXAMPLE-ONLY
+      allowsOfflineStorage: true
+      allowsDerivativeProcessing: true
+      allowsRedistribution: false
+      attribution: Replace with contract attribution
+      notes: Synthetic configuration example; do not enable until the file and real contract exist.

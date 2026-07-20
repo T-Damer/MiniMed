@@ -30,6 +30,9 @@ sources:
       joinHyphenatedLines: true
     metadata:
       collection: personal-pilot
+      rights:
+        licenseId: replace-with-reviewed-terms-id
+        allowsDerivativeProcessing: false
 
 aliases:
   - id: alias.example.colloquial
