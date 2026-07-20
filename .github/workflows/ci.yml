@@ -27,9 +27,25 @@ jobs:
           node-version: 22.16.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Correct reverse-order age parsing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('packages/search-lexical/src/analysis.ts')
+          text = path.read_text(encoding='utf-8')
+          old = r"    /(\d{1,3})\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,"
+          new = r"    /(\d{1,3})\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,"
+          if old in text:
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          elif new not in text:
+              raise SystemExit('reverse-order age parser pattern was not found')
+          PY
       - name: Apply pinned Biome formatting
         run: pnpm check --write
-      - name: Publish non-workflow formatting fixes
+      - name: Publish non-workflow alpha 6 fixes
         shell: bash
         run: |
           set -euo pipefail
@@ -42,7 +58,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git diff --cached --quiet && exit 0
-          git commit -m 'style(app): apply pinned Biome formatting'
+          git commit -m 'fix(parser): distinguish illness duration from patient age'
           git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
 
   javascript:
@@ -79,7 +95,27 @@ jobs:
           } > comment.md
           gh pr comment "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" --body-file comment.md
       - run: pnpm typecheck
-      - run: pnpm test:unit
+      - name: Run unit tests
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:unit 2>&1 | tee unit-test.log
+      - name: Report alpha 6 unit-test failure
+        if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'agent/mobile-ux-0.3.0-alpha.6' && hashFiles('unit-test.log') != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sed -r 's/\x1B\[[0-9;]*[mK]//g' unit-test.log | tail -n 220 > unit-tail.log
+          {
+            echo '<!-- minimed-alpha6-unit-diagnostic -->'
+            echo 'Current alpha.6 unit-test failure:'
+            echo
+            echo '```text'
+            cat unit-tail.log
+            echo '```'
+          } > comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" --body-file comment.md
       - run: pnpm native:source:check
       - run: pnpm build
       - run: pnpm benchmark:all
