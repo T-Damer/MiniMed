@@ -44,11 +44,11 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     }));
   });
 
-  const specialtyPosition = createMemo(() =>
-    new Map(specialtyNodes().map((node) => [node.label, node] as const)),
+  const specialtyPosition = createMemo(
+    () => new Map(specialtyNodes().map((node) => [node.label, node] as const)),
   );
-  const documentPosition = createMemo(() =>
-    new Map(documentNodes().map((node) => [node.id, node] as const)),
+  const documentPosition = createMemo(
+    () => new Map(documentNodes().map((node) => [node.id, node] as const)),
   );
 
   return (
@@ -58,7 +58,9 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           <p class="archive-kicker">Граф корпуса</p>
           <h2 id="knowledge-graph-title">Документы и специализации</h2>
         </div>
-        <span>{props.documents.length} документов · {specialties().length} областей</span>
+        <span>
+          {props.documents.length} документов · {specialties().length} областей
+        </span>
       </header>
       <div class="knowledge-graph-scroll">
         <svg
@@ -89,8 +91,12 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
               {(node) => (
                 <g transform={`translate(${node.x} ${node.y})`}>
                   <circle r="38" />
-                  <text text-anchor="middle" dy="-2">{shortened(node.label, 16)}</text>
-                  <text class="node-kind" text-anchor="middle" dy="13">ОБЛАСТЬ</text>
+                  <text text-anchor="middle" dy="-2">
+                    {shortened(node.label, 16)}
+                  </text>
+                  <text class="node-kind" text-anchor="middle" dy="13">
+                    ОБЛАСТЬ
+                  </text>
                 </g>
               )}
             </For>
@@ -98,25 +104,28 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           <g class="knowledge-documents">
             <For each={documentNodes()}>
               {(node) => (
-                <g
-                  classList={{ selected: props.selectedId === node.id }}
-                  transform={`translate(${node.x} ${node.y})`}
-                  role="button"
-                  tabindex="0"
+                <a
+                  href={`#document-${node.id}`}
                   aria-label={`Открыть документ: ${node.label}`}
-                  onClick={() => props.onSelect(node.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      props.onSelect(node.id);
-                    }
+                  onClick={(event) => {
+                    event.preventDefault();
+                    props.onSelect(node.id);
                   }}
                 >
-                  <rect x="-96" y="-34" width="192" height="68" rx="4" />
-                  <path d="M-82 -34h50l10 10h104" />
-                  <text text-anchor="middle" dy="-2">{shortened(node.label)}</text>
-                  <text class="node-kind" text-anchor="middle" dy="15">ДОКУМЕНТ</text>
-                </g>
+                  <g
+                    classList={{ selected: props.selectedId === node.id }}
+                    transform={`translate(${node.x} ${node.y})`}
+                  >
+                    <rect x="-96" y="-34" width="192" height="68" rx="4" />
+                    <path d="M-82 -34h50l10 10h104" />
+                    <text text-anchor="middle" dy="-2">
+                      {shortened(node.label)}
+                    </text>
+                    <text class="node-kind" text-anchor="middle" dy="15">
+                      ДОКУМЕНТ
+                    </text>
+                  </g>
+                </a>
               )}
             </For>
           </g>
