@@ -1,2 +1,2 @@
 Temporary marker removed by the PR-driven foundation integration workflow.
-Diagnostic rerun: 2
+Diagnostic rerun: 3
