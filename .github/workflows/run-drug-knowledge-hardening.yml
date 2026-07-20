@@ -1,0 +1,124 @@
+name: Run drug knowledge hardening
+
+on:
+  push:
+    branches: [agent/drug-knowledge-graph]
+    paths:
+      - .github/workflows/apply-drug-knowledge-hardening.yml
+      - .github/workflows/run-drug-knowledge-hardening.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: run-drug-knowledge-hardening
+  cancel-in-progress: true
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/drug-knowledge-graph
+          fetch-depth: 0
+      - name: Execute checked-in hardening patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/apply-drug-knowledge-hardening.yml').read_text(encoding='utf-8')
+          marker = "          python3 - <<'PY'\n"
+          start = source.index(marker) + len(marker)
+          end = source.index("\n          PY\n", start)
+          lines = source[start:end].splitlines()
+          script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
+          exec(compile(script, 'apply-drug-knowledge-hardening.py', 'exec'))
+          PY
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - name: Install and format
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+          pnpm check --write
+          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
+      - name: Run validation gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          work=/tmp/minimed-hardening
+          mkdir -p "$work"
+          failed=0
+          run_check() {
+            label="$1"; shift
+            set +e
+            "$@" >"$work/$label.log" 2>&1
+            status=$?
+            set -e
+            printf '%s\n' "$status" >"$work/$label.status"
+            echo "=== $label (exit $status) ==="
+            tail -n 100 "$work/$label.log"
+            if [ "$status" -ne 0 ]; then failed=1; fi
+          }
+          run_check content-build pnpm content:build
+          run_check biome pnpm check
+          run_check typecheck pnpm typecheck
+          run_check unit-tests pnpm test:unit
+          run_check production-build pnpm build
+          run_check python-check pnpm python:check
+          run_check benchmark-search pnpm benchmark:search
+          run_check benchmark-cases pnpm benchmark:cases
+          run_check native-contract pnpm native:source:check
+          run_check peer-dependencies pnpm peers:check
+          run_check secret-scan pnpm secrets:check
+          printf '%s\n' "$failed" >"$work/failed"
+      - name: Publish diagnostics or tested changes
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          work=/tmp/minimed-hardening
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          test -f "$work/failed"
+          if [ "$(cat "$work/failed")" != '0' ]; then
+            {
+              echo '# Drug knowledge hardening validation failure'
+              echo
+              echo "Run: $GITHUB_RUN_ID"
+              for status_file in "$work"/*.status; do
+                label="$(basename "$status_file" .status)"
+                status="$(cat "$status_file")"
+                if [ "$status" = '0' ]; then continue; fi
+                echo
+                echo "## $label — exit $status"
+                echo '```text'
+                tail -n 220 "$work/$label.log"
+                echo '```'
+              done
+            } > .agent-hardening-report.md
+            git add .agent-hardening-report.md
+            git commit -m 'chore(ci): record drug knowledge hardening failure'
+            git push origin HEAD:agent/drug-knowledge-graph
+            exit 1
+          fi
+          rm -f .agent-hardening-report.md
+          rm -f .github/workflows/apply-drug-knowledge-hardening.yml
+          rm -f .github/workflows/run-drug-knowledge-hardening.yml
+          git add -A
+          git commit -m 'fix(content): enforce source rights and medication identity'
+          git push origin HEAD:agent/drug-knowledge-graph
