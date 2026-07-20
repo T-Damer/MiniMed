@@ -32,4 +32,4 @@ All registry facts and document links in this pilot remain `proposed`. The only 
 
 Proposed records are persisted with their evidence for review, while only records promoted by an identified human reviewer may enter the structured `knowledge_fts` projection. The registry cards themselves remain discoverable through the ordinary source-chunk index.
 
-The Android release gate extracts the finished SQLite file from the APK and verifies the current build report, recommendation provenance, official-registry provenance, medication graph counts, signature, and byte-for-byte database identity instead of relying on obsolete fixed corpus counts.
+The Android release gate extracts the finished SQLite file from the APK and verifies the current build report, recommendation provenance, official-registry provenance, medication graph counts, signature, and byte-for-byte database identity instead of relying on obsolete fixed corpus counts. Every document must retain at least one exact source span; the only allowed unsourced chunks are the explicit editorial boundary paragraphs that state what the registry card does not establish.
