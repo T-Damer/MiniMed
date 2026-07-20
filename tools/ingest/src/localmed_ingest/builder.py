@@ -7,12 +7,8 @@ from pathlib import Path
 import yaml
 
 from .embedding import PORTABLE_HASH_PROFILE, build_chunk_embedding
-from .knowledge import (
-    apply_search_projection,
-    knowledge_summary,
-    load_knowledge_workspace,
-    write_knowledge_sqlite,
-)
+from .knowledge import apply_search_projection, knowledge_summary, write_knowledge_sqlite
+from .knowledge_modules import load_knowledge_modules
 from .markdown_parser import parse_markdown_document
 from .models import Alias, BuildReport, ContentPack, PackManifest
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
@@ -53,7 +49,7 @@ def load_content_pack(input_dir: Path) -> ContentPack:
     if len(document_ids) != len(set(document_ids)):
         raise ValueError("Duplicate document id in content pack.")
 
-    knowledge = load_knowledge_workspace(input_dir, documents)
+    knowledge = load_knowledge_modules(input_dir, documents)
     apply_search_projection(documents, knowledge)
 
     embeddings = [
@@ -134,7 +130,7 @@ def build_content_pack(
     if errors:
         raise ValueError("Content lint failed:\n" + "\n".join(errors))
     write_sqlite_pack(pack, output)
-    knowledge = load_knowledge_workspace(input_dir, pack.documents)
+    knowledge = load_knowledge_modules(input_dir, pack.documents)
     write_knowledge_sqlite(output, knowledge)
     integrity, foreign_keys, chunk_count, fts_rows, profile_count, embedding_count = (
         inspect_integrity(output)
