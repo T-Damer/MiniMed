@@ -5,8 +5,8 @@ import {
   clearSearchHistory,
   loadSearchHistory,
   removeSearchHistoryEntry,
-  type SearchHistoryEntry,
   SEARCH_HISTORY_EVENT,
+  type SearchHistoryEntry,
 } from '../../state/search-history';
 
 interface SearchHistoryViewProps {
@@ -50,7 +50,9 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
         <div>
           <p class="archive-kicker">Локальный журнал</p>
           <h1>История поиска</h1>
-          <p>Запросы хранятся только на этом устройстве. Клинический текст не отправляется в сеть.</p>
+          <p>
+            Запросы хранятся только на этом устройстве. Клинический текст не отправляется в сеть.
+          </p>
         </div>
         <Show when={entries().length > 0}>
           <button
@@ -72,7 +74,9 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
           <div class="history-empty paper-card">
             <AppGlyph name="history" />
             <h2>Журнал пока пуст</h2>
-            <p>После первого поиска здесь появятся запрос, время, число найденных документов и режим.</p>
+            <p>
+              После первого поиска здесь появятся запрос, время, число найденных документов и режим.
+            </p>
           </div>
         }
       >
@@ -80,15 +84,22 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
           <For each={entries()}>
             {(entry, index) => (
               <li class="history-entry paper-card">
-                <button class="history-replay" type="button" onClick={() => props.onReplay(entry.query)}>
+                <button
+                  class="history-replay"
+                  type="button"
+                  onClick={() => props.onReplay(entry.query)}
+                >
                   <span class="history-sequence">{String(index() + 1).padStart(2, '0')}</span>
                   <span class="history-copy">
                     <strong>{entry.query}</strong>
                     <small>
-                      {formatDate(entry.createdAt)} · {entry.resultCount} док. · {MODE_LABELS[entry.modeUsed]}
+                      {formatDate(entry.createdAt)} · {entry.resultCount} док. ·{' '}
+                      {MODE_LABELS[entry.modeUsed]}
                     </small>
                   </span>
-                  <span class="history-arrow" aria-hidden="true">↗</span>
+                  <span class="history-arrow" aria-hidden="true">
+                    ↗
+                  </span>
                 </button>
                 <button
                   class="history-remove"
