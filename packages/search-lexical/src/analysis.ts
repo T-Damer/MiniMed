@@ -5,6 +5,7 @@ import type {
   QueryFact,
   QueryFactKind,
   QueryFactPolarity,
+  QueryIntent,
   SearchSuggestion,
   SearchSuggestionField,
   TextRange,
@@ -12,6 +13,7 @@ import type {
 import type { AliasRecord } from '@localmed/domain';
 
 import { expandAliases } from './aliases';
+import { classifyMedicalQueryIntent } from './intent';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from './normalize';
 
 export interface LexicalQueryBranchPlan extends QueryBranch {
@@ -26,16 +28,20 @@ export interface ClinicalQueryPlan {
   readonly ftsQuery: string;
 }
 
-const MAX_FTS_TERMS = 28;
-const MAX_BRANCHES = 7;
+const MAX_FTS_TERMS = 34;
+const MAX_BRANCHES = 8;
 
 const STRUCTURAL_TERMS = new Set([
   'возраст',
   'пол',
   'мальчик',
+  'мальчику',
   'девочка',
+  'девочке',
   'ребенок',
+  'ребенку',
   'ребёнок',
+  'ребёнку',
   'пациент',
   'пациентка',
   'мужчина',
@@ -107,13 +113,66 @@ const EPIDEMIOLOGY_TERMS = [
 ] as const;
 
 const FIELD_DETAILS: Record<SearchSuggestionField, string> = {
-  age: 'Возраст меняет применимость рекомендаций и маршрутизацию.',
+  age: 'Возраст меняет применимость рекомендаций, дозировок и маршрутизацию.',
   sex: 'Пол может сузить дифференциальный поиск.',
   duration: 'Время начала и динамика помогают выбрать нужный раздел.',
   temperature: 'Укажите максимум и текущую температуру, если измерялась.',
-  medications: 'Добавьте уже принятые препараты и эффект от них.',
+  medications: 'Добавьте уже принятые препараты, дозы и эффект от них.',
   investigations: 'Добавьте анализы, осмотр и инструментальные исследования.',
   epidemiology: 'Поездки, контакты, укусы и регион иногда меняют ветку поиска.',
+  diagnosis: 'Уточните заболевание, симптом или терапевтическую цель препарата.',
+  severity: 'Степень тяжести и красные флаги влияют на тактику и маршрутизацию.',
+  control: 'Для хронического заболевания укажите контроль, обострение и текущую ступень.',
+  weight: 'Масса нужна для проверки многих детских доз и ограничений.',
+  context: 'Добавьте беременность, лактацию, аллергии, сопутствующие болезни и функцию органов.',
+  goal: 'Укажите, какой результат нужен: купирование симптома, профилактика или базисная терапия.',
+};
+
+const QUERY_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
+  контоля: ['контроль', 'контроля'],
+  ссаденой: ['ссадина', 'ссадиной'],
+  ссаденая: ['ссадина'],
+};
+
+const INTENT_BRANCH: Readonly<
+  Record<QueryIntent['primary'], { label: string; terms: string; weight: number }>
+> = {
+  diagnosis: {
+    label: 'Диагностический поиск',
+    terms: 'диагноз диагностика клиническая картина',
+    weight: 1.28,
+  },
+  treatment: {
+    label: 'Лечение и тактика',
+    terms: 'лечение терапия назначение тактика',
+    weight: 1.36,
+  },
+  medication: {
+    label: 'Лекарственные средства',
+    terms: 'препарат лекарство фармакотерапия дозировка',
+    weight: 1.34,
+  },
+  'disease-reference': {
+    label: 'Справка о заболевании',
+    terms: 'определение классификация течение прогноз',
+    weight: 1.2,
+  },
+  'care-guidance': {
+    label: 'Уход и рекомендации',
+    terms: 'рекомендации уход питание развитие профилактика',
+    weight: 1.3,
+  },
+  'administrative-reference': {
+    label: 'Нормативная справка',
+    terms: 'критерии правила группа здоровья наблюдение',
+    weight: 1.32,
+  },
+  mixed: {
+    label: 'Смешанный клинический запрос',
+    terms: 'диагностика лечение рекомендации',
+    weight: 1.3,
+  },
+  unknown: { label: 'Свободный запрос', terms: '', weight: 1 },
 };
 
 function range(start: number, end: number): TextRange {
@@ -172,44 +231,65 @@ function hasFact(facts: readonly QueryFact[], kind: QueryFactKind): boolean {
 }
 
 function extractSex(query: string, facts: QueryFact[]): void {
-  const patterns: readonly [RegExp, string, string][] = [
-    [/(?:мальчик|мальчику|мужчина|мужчине|пациент|пол\s*[:=]?\s*мужской)/giu, 'Пол', 'мужской'],
-    [/(?:девочка|девочке|женщина|женщине|пациентка|пол\s*[:=]?\s*женский)/giu, 'Пол', 'женский'],
+  const patterns: readonly [RegExp, string][] = [
+    [/(?:мальчик|мальчику|мужчина|мужчине|пациент|пол\s*[:=]?\s*мужской)/iu, 'мужской'],
+    [/(?:девочка|девочке|женщина|женщине|пациентка|пол\s*[:=]?\s*женский)/iu, 'женский'],
   ];
-  for (const [pattern, label, normalizedValue] of patterns) {
-    const match = query.matchAll(pattern).next().value;
+  for (const [pattern, normalizedValue] of patterns) {
+    const match = pattern.exec(query);
     if (!match) continue;
-    const matchStart = match.index ?? 0;
+    const start = match.index;
     addFact(facts, {
       kind: 'sex',
-      label,
+      label: 'Пол',
       value: match[0],
       normalizedValue,
-      start: matchStart,
-      end: matchStart + match[0].length,
+      start,
+      end: start + match[0].length,
     });
     return;
   }
 }
 
 function extractAge(query: string, facts: QueryFact[]): void {
-  const explicitPatterns = [
+  const patterns = [
     /возраст(?:ом)?\s*[:=]?\s*(\d{1,3})\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
-    /(?:мальчик|мальчику|девочка|девочке|ребенок|ребёнок|ребенку|ребёнку|пациент|пациентка|мужчина|женщина|младенец)\s*,?\s*(\d{1,3})\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
-    /(\d{1,3})\s*[- ]\s*летн[а-я]*/giu,
+    /(?:мальчик|мальчику|девочка|девочке|ребенок|ребёнок|ребенку|ребёнку|пациент|пациентка|мужчина|женщина|младенец)\s*,?\s*(\d{1,3})\s*(дн(?:я|ей)?|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
+    /(?:у\s+)?(?:ребенка|ребёнка|ребенку|ребёнку|мальчика|девочки|младенца)\s+(?:в\s+возрасте\s+|в\s+)?(\d{1,3})\s*(дн(?:я|ей)?|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
+    /(\d{1,3})\s*[- ]\s*(?:летн|месячн|дневн)[а-я]*/giu,
   ] as const;
-
-  for (const pattern of explicitPatterns) {
+  for (const pattern of patterns) {
     for (const match of query.matchAll(pattern)) {
-      const matchStart = match.index ?? 0;
+      const start = match.index ?? 0;
+      const amount = match[1] ?? '';
+      const unit = match[2] ?? (match[0].includes('месяч') ? 'месяцев' : 'лет');
       addFact(facts, {
         kind: 'age',
         label: 'Возраст',
         value: match[0],
-        normalizedValue: `${match[1] ?? ''} ${match[2] ?? 'лет'}`.trim(),
-        unit: match[2] ?? 'лет',
-        start: matchStart,
-        end: matchStart + match[0].length,
+        normalizedValue: `${amount} ${unit}`.trim(),
+        unit,
+        start,
+        end: start + match[0].length,
+      });
+    }
+  }
+  if (
+    !hasFact(facts, 'age') &&
+    /(?:прикорм|вскармливан|прибавк[а-я]*\s+(?:в\s+)?вес)/iu.test(query)
+  ) {
+    for (const match of query.matchAll(
+      /в\s+(\d{1,3})\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)(?=$|[\s,.;!?])/giu,
+    )) {
+      const start = match.index ?? 0;
+      addFact(facts, {
+        kind: 'age',
+        label: 'Возраст',
+        value: match[0],
+        normalizedValue: `${match[1] ?? ''} ${match[2] ?? ''}`.trim(),
+        unit: match[2] ?? null,
+        start,
+        end: start + match[0].length,
       });
     }
   }
@@ -222,16 +302,15 @@ function extractTemperature(query: string, facts: QueryFact[]): void {
   ] as const;
   for (const pattern of patterns) {
     for (const match of query.matchAll(pattern)) {
-      const matchStart = match.index ?? 0;
-      const value = (match[1] ?? match[0]).replace(',', '.');
+      const start = match.index ?? 0;
       addFact(facts, {
         kind: 'temperature',
         label: 'Температура',
         value: match[0],
-        normalizedValue: value,
+        normalizedValue: (match[1] ?? match[0]).replace(',', '.'),
         unit: '°C',
-        start: matchStart,
-        end: matchStart + match[0].length,
+        start,
+        end: start + match[0].length,
       });
     }
   }
@@ -246,8 +325,8 @@ function extractDuration(query: string, facts: QueryFact[]): void {
   ] as const;
   for (const pattern of patterns) {
     for (const match of query.matchAll(pattern)) {
-      const matchStart = match.index ?? 0;
-      const matchRange = range(matchStart, matchStart + match[0].length);
+      const start = match.index ?? 0;
+      const matchRange = range(start, start + match[0].length);
       if (ageRanges.some((ageRange) => overlaps(ageRange, matchRange))) continue;
       addFact(facts, {
         kind: 'duration',
@@ -299,18 +378,17 @@ function extractMeasurements(query: string, facts: QueryFact[]): void {
       normalizer: (match) => `${match[1] ?? ''}/${match[2] ?? ''}`,
     },
   ];
-
   for (const item of patterns) {
     for (const match of query.matchAll(item.pattern)) {
-      const matchStart = match.index ?? 0;
+      const start = match.index ?? 0;
       addFact(facts, {
         kind: 'measurement',
         label: item.label,
         value: match[0],
         normalizedValue: item.normalizer?.(match) ?? match[0],
         unit: match[2] && item.label === 'Масса' ? match[2] : item.unit,
-        start: matchStart,
-        end: matchStart + match[0].length,
+        start,
+        end: start + match[0].length,
       });
     }
   }
@@ -319,10 +397,6 @@ function extractMeasurements(query: string, facts: QueryFact[]): void {
 function trimPrefixNegation(captured: string, aliases: readonly AliasRecord[]): string {
   const normalizedCaptured = normalizeSurfaceText(captured);
   let boundary = captured.length;
-
-  // A common terse notation is `лихорадка без очага дизурия`: `дизурия` starts a new positive
-  // concept rather than belonging to the negated phrase. Stop before a known concept unless it is
-  // explicitly connected to the negative list with `и`, `или`, `либо`, or a comma.
   for (const alias of aliases) {
     const normalizedAlias = normalizeSurfaceText(alias.alias);
     const index = normalizedCaptured.indexOf(normalizedAlias);
@@ -331,20 +405,14 @@ function trimPrefixNegation(captured: string, aliases: readonly AliasRecord[]): 
     if (/(?:^|\s)(?:и|или|либо)$/u.test(before) || before.endsWith(',')) continue;
     boundary = Math.min(boundary, index);
   }
-
   const explicitBoundary = normalizedCaptured.search(
     /\s+(?:жалуется|принимает|получает|назначен[а-я]*|обследован[а-я]*|оак|оам|сатурац[а-я]*)(?=\s|$)/u,
   );
   if (explicitBoundary >= 0) boundary = Math.min(boundary, explicitBoundary);
-
-  // A temporal reassessment phrase ends the negated finding. In `нет ответа на антибиотик через
-  // 72 часа при пневмонии`, only the absent treatment response is negative; the diagnosis after
-  // the time boundary must remain searchable.
   const temporalBoundary = normalizedCaptured.search(
     /\s+(?:через|спустя)\s+\d+(?:[.,]\d+)?\s*(?:минут[а-я]*|час[а-я]*|дн(?:я|ей|и)|сут(?:ок|ки)?|недел[а-я]*|месяц[а-я]*)(?=\s|$)/u,
   );
   if (temporalBoundary >= 0) boundary = Math.min(boundary, temporalBoundary);
-
   return (
     captured
       .slice(0, boundary)
@@ -374,7 +442,6 @@ function extractNegations(
       end: capturedRange.start + shortened.length,
     });
   }
-
   const postfixPattern =
     /([^,.;:\n]{2,50}?)\s+(?:нет|не\s+было|не\s+отмечается|не\s+наблюдается)(?=[,.;:\n]|$)/giu;
   for (const match of query.matchAll(postfixPattern)) {
@@ -508,6 +575,7 @@ function suggestion(
   label: string,
   insertion: string,
   priority: number,
+  kind: SearchSuggestion['kind'] = 'missing-field',
 ): SearchSuggestion {
   return {
     id: field,
@@ -516,36 +584,81 @@ function suggestion(
     insertion,
     detail: FIELD_DETAILS[field],
     priority,
-    kind: 'missing-field',
+    kind,
   };
 }
 
 function buildSuggestions(
   normalizedQuery: string,
   facts: readonly QueryFact[],
+  intent: QueryIntent,
 ): readonly SearchSuggestion[] {
   const suggestions: SearchSuggestion[] = [];
-  if (!hasFact(facts, 'age')) suggestions.push(suggestion('age', 'Возраст', 'Возраст: ', 100));
-  if (!hasFact(facts, 'duration')) {
-    suggestions.push(suggestion('duration', 'Длительность', 'Длительность: ', 95));
+  const add = (item: SearchSuggestion): void => {
+    if (!suggestions.some((candidate) => candidate.id === item.id)) suggestions.push(item);
+  };
+  const childContext = /(?:ребен|ребён|мальчик|девоч|младен|\b\d+\s*месяц)/u.test(normalizedQuery);
+  const hasTarget = /(?:лечени[ея]|терапи[яию]|при|для)\s+[а-яa-z][а-яa-z-]{3,}/u.test(
+    normalizedQuery,
+  );
+
+  if (intent.primary === 'diagnosis' || intent.primary === 'mixed') {
+    if (!hasFact(facts, 'age')) add(suggestion('age', 'Возраст', 'Возраст: ', 100));
+    if (!hasFact(facts, 'duration'))
+      add(suggestion('duration', 'Длительность', 'Длительность: ', 95));
+    if (!hasFact(facts, 'temperature'))
+      add(suggestion('temperature', 'Температура', 'Температура: ', 85));
+    if (!hasFact(facts, 'sex')) add(suggestion('sex', 'Пол', 'Пол: ', 70));
+    if (!hasFact(facts, 'investigation'))
+      add(suggestion('investigations', 'Обследования', 'Обследования: ', 65));
+    if (!hasFact(facts, 'medication'))
+      add(suggestion('medications', 'Препараты', 'Препараты: ', 55));
+    if (
+      /(?:сып|лихорад|инфекц|укус|диаре|кашл|контакт|клещ)\w*/u.test(normalizedQuery) &&
+      !hasFact(facts, 'epidemiology')
+    ) {
+      add(suggestion('epidemiology', 'Контакты и поездки', 'Эпидемиология: ', 60));
+    }
   }
-  if (!hasFact(facts, 'temperature')) {
-    suggestions.push(suggestion('temperature', 'Температура', 'Температура: ', 85));
-  }
-  if (!hasFact(facts, 'sex')) suggestions.push(suggestion('sex', 'Пол', 'Пол: ', 70));
-  if (!hasFact(facts, 'investigation')) {
-    suggestions.push(suggestion('investigations', 'Обследования', 'Обследования: ', 65));
-  }
-  if (!hasFact(facts, 'medication')) {
-    suggestions.push(suggestion('medications', 'Препараты', 'Препараты: ', 55));
-  }
+
   if (
-    /(?:сып|лихорад|инфекц|укус|диаре|кашл|контакт|клещ)\w*/u.test(normalizedQuery) &&
-    !hasFact(facts, 'epidemiology')
+    intent.primary === 'treatment' ||
+    intent.primary === 'medication' ||
+    intent.primary === 'mixed'
   ) {
-    suggestions.push(suggestion('epidemiology', 'Контакты и поездки', 'Эпидемиология: ', 60));
+    if (!hasTarget) add(suggestion('diagnosis', 'Диагноз или цель', 'Диагноз/цель: ', 100));
+    if (!hasFact(facts, 'age')) add(suggestion('age', 'Возраст', 'Возраст: ', 98));
+    add(suggestion('severity', 'Тяжесть', 'Тяжесть/красные флаги: ', 88));
+    if (
+      /астм/u.test(normalizedQuery) &&
+      !/(?:контрол|контол|обострен|ступен)/u.test(normalizedQuery)
+    ) {
+      add(suggestion('control', 'Контроль заболевания', 'Контроль/ступень: ', 92));
+    }
+    if (!hasFact(facts, 'medication'))
+      add(suggestion('medications', 'Текущая терапия', 'Текущая терапия: ', 75));
+    if (
+      childContext &&
+      !facts.some((fact) => fact.kind === 'measurement' && fact.label === 'Масса')
+    ) {
+      add(suggestion('weight', 'Масса', 'Масса: ', 82));
+    }
+    add(suggestion('context', 'Ограничения', 'Аллергии/сопутствующие состояния: ', 64));
   }
-  return suggestions.toSorted((left, right) => right.priority - left.priority).slice(0, 6);
+
+  if (intent.primary === 'medication') {
+    add(suggestion('goal', 'Цель терапии', 'Цель терапии: ', 90, 'query-refinement'));
+  }
+  if (intent.primary === 'care-guidance') {
+    if (!hasFact(facts, 'age')) add(suggestion('age', 'Возраст', 'Возраст: ', 100));
+    add(suggestion('context', 'Контекст', 'Тип вскармливания/особенности: ', 74));
+  }
+  if (intent.primary === 'administrative-reference') {
+    add(suggestion('severity', 'Тяжесть и осложнения', 'Тяжесть/осложнения: ', 100));
+    add(suggestion('context', 'Текущее состояние', 'Ремиссия/обострение/ограничения: ', 92));
+  }
+
+  return suggestions.toSorted((left, right) => right.priority - left.priority).slice(0, 7);
 }
 
 function ftsToken(term: string): string {
@@ -560,6 +673,10 @@ function termsWithStems(values: readonly string[]): readonly string[] {
       if (/^\d+$/u.test(token) || STRUCTURAL_TERMS.has(token)) continue;
       terms.add(token);
       terms.add(lightStemRussian(token));
+      for (const expansion of QUERY_EXPANSIONS[token] ?? []) {
+        terms.add(expansion);
+        terms.add(lightStemRussian(expansion));
+      }
     }
   }
   return [...terms].filter((term) => term.length >= 2).slice(0, MAX_FTS_TERMS);
@@ -600,6 +717,7 @@ function buildBranches(
   query: string,
   aliases: readonly AliasRecord[],
   facts: readonly QueryFact[],
+  intent: QueryIntent,
 ): readonly LexicalQueryBranchPlan[] {
   const normalizedQuery = normalizeSurfaceText(query);
   const expansion = expandAliases(normalizedQuery, aliases);
@@ -621,16 +739,30 @@ function buildBranches(
   );
   const clinicalTerms = [...new Set([...positiveTerms, ...canonicalTerms])].slice(0, MAX_FTS_TERMS);
   const branches: LexicalQueryBranchPlan[] = [];
-
+  const clinicalWeight = intent.primary === 'diagnosis' ? 1.32 : 1.18;
   const clinical = makeBranch(
     'clinical',
     'clinical',
     'Клинические признаки',
     query,
     clinicalTerms,
-    1.25,
+    clinicalWeight,
   );
   if (clinical) branches.push(clinical);
+
+  const intentSpec = INTENT_BRANCH[intent.primary];
+  if (intent.primary !== 'unknown') {
+    const branch = makeBranch(
+      'intent',
+      'intent',
+      intentSpec.label,
+      query,
+      [normalizedQuery, intentSpec.terms],
+      intentSpec.weight,
+    );
+    if (branch && !branches.some((item) => item.ftsQuery === branch.ftsQuery))
+      branches.push(branch);
+  }
 
   const original = makeBranch(
     'original',
@@ -640,7 +772,8 @@ function buildBranches(
     positiveTerms,
     1,
   );
-  if (original && original.ftsQuery !== clinical?.ftsQuery) branches.push(original);
+  if (original && !branches.some((item) => item.ftsQuery === original.ftsQuery))
+    branches.push(original);
 
   const investigations = facts
     .filter((fact) => fact.kind === 'investigation' || fact.label === 'Сатурация')
@@ -689,7 +822,6 @@ function buildBranches(
         branches.push(branch);
     }
   }
-
   return branches.slice(0, MAX_BRANCHES);
 }
 
@@ -699,6 +831,7 @@ export function analyzeClinicalQuery(
   includeSuggestions = true,
 ): ClinicalQueryPlan {
   const normalizedQuery = normalizeSurfaceText(query);
+  const intent = classifyMedicalQueryIntent(query);
   const facts: QueryFact[] = [];
   extractSex(query, facts);
   extractAge(query, facts);
@@ -710,12 +843,15 @@ export function analyzeClinicalQuery(
   extractKnownTerms(query, facts);
   extractMedicationPhrase(query, facts);
   const orderedFacts = facts.toSorted((left, right) => left.range.start - right.range.start);
-  const branches = buildBranches(query, aliases, orderedFacts);
+  const branches = buildBranches(query, aliases, orderedFacts, intent);
   const expansion = expandAliases(normalizedQuery, aliases);
-  const suggestions = includeSuggestions ? buildSuggestions(normalizedQuery, orderedFacts) : [];
+  const suggestions = includeSuggestions
+    ? buildSuggestions(normalizedQuery, orderedFacts, intent)
+    : [];
   const analysis: QueryAnalysis = {
     originalQuery: query,
     normalizedQuery,
+    intent,
     facts: orderedFacts,
     branches: branches.map(({ ftsQuery: _ftsQuery, ...branch }) => branch),
     suggestions,
