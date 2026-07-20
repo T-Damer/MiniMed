@@ -1,0 +1,114 @@
+name: Validate real Russian drug pilot
+
+on:
+  push:
+    branches: [agent/drug-real-data-pilot]
+  pull_request:
+    branches: [agent/drug-knowledge-graph]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+
+      - name: Lint and build the extended public pack
+        run: |
+          pnpm content:lint:pilot
+          pnpm content:build:pilot
+
+      - name: Verify real drug documents and structured knowledge
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import sqlite3
+          from pathlib import Path
+
+          database = Path('data/build/rf-public-pilot.db')
+          report = json.loads(Path('data/build/rf-public-pilot-report.json').read_text(encoding='utf-8'))
+          connection = sqlite3.connect(f'file:{database}?mode=ro', uri=True)
+          try:
+              assert connection.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
+              assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
+
+              documents = connection.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
+              chunks = connection.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
+              entities = connection.execute('SELECT COUNT(*) FROM knowledge_entities').fetchone()[0]
+              profiles = connection.execute('SELECT COUNT(*) FROM medication_profiles').fetchone()[0]
+              facts = connection.execute('SELECT COUNT(*) FROM knowledge_facts').fetchone()[0]
+              relations = connection.execute('SELECT COUNT(*) FROM knowledge_relations').fetchone()[0]
+              evidence = connection.execute('SELECT COUNT(*) FROM knowledge_evidence').fetchone()[0]
+              tasks = connection.execute('SELECT COUNT(*) FROM knowledge_review_tasks').fetchone()[0]
+              proposed = connection.execute(
+                  "SELECT COUNT(*) FROM knowledge_facts WHERE review_status = 'proposed'"
+              ).fetchone()[0]
+              reviewed = connection.execute(
+                  "SELECT COUNT(*) FROM knowledge_facts WHERE review_status = 'reviewed'"
+              ).fetchone()[0]
+
+              assert documents == report['documents'] == 10
+              assert chunks == report['chunks'] == 48
+              assert entities == 4
+              assert profiles == 3
+              assert facts == 3
+              assert relations == 1
+              assert evidence == 4
+              assert tasks == 2
+              assert proposed == 3
+              assert reviewed == 0
+
+              ids = {
+                  row[0]
+                  for row in connection.execute(
+                      'SELECT id FROM knowledge_entities WHERE entity_type = ?', ('medication',)
+                  )
+              }
+              assert ids == {
+                  'medication.paracetamol.suspension.120mg-5ml',
+                  'medication.ibuprofen.suspension.100mg-5ml',
+                  'medication.amoxicillin.tablet.500mg',
+              }
+          finally:
+              connection.close()
+          PY
+
+      - name: Run drug/knowledge unit tests
+        run: |
+          uv run --project tools/ingest pytest \
+            tools/ingest/tests/test_drug_sources.py \
+            tools/ingest/tests/test_knowledge.py
+
+      - name: Upload validation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: drug-real-data-pilot
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            data/build/rf-public-pilot.db
+            data/build/rf-public-pilot-report.json
