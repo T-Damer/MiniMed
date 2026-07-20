@@ -5,9 +5,12 @@ on:
     branches: [main]
     paths:
       - .github/workflows/stage-drug-foundation-final.yml
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: stage-final-drug-foundation
@@ -15,6 +18,7 @@ concurrency:
 
 jobs:
   stage:
+    if: github.event_name == 'push' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Stage final drug foundation')
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -155,3 +159,9 @@ jobs:
           git add -A
           git commit -m 'feat(drugs): integrate offline knowledge foundation with alpha 6'
           git push origin HEAD:agent/drug-foundation-final
+
+      - name: Close trigger issue
+        if: github.event_name == 'issues' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Final drug foundation branch staged and verified.'
