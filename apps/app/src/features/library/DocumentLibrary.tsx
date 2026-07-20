@@ -42,8 +42,9 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           <p class="archive-kicker">Локальный корпус</p>
           <h1>Архив знаний</h1>
           <p>
-            {documents().length || '—'} документов связаны со специальностями, разделами и стабильными
-            источниками. Граф показывает структуру корпуса, список открывает полный текст карточки.
+            {documents().length || '—'} документов связаны со специальностями, разделами и
+            стабильными источниками. Граф показывает структуру корпуса, список открывает полный
+            текст карточки.
           </p>
         </div>
         <fieldset class="library-mode-tabs">
@@ -92,7 +93,8 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                     onClick={() => void openDocument(document.id)}
                   >
                     <span class="document-folder-tab">
-                      {String(index() + 1).padStart(2, '0')} / {document.sourceType.replaceAll('_', ' ')}
+                      {String(index() + 1).padStart(2, '0')} /{' '}
+                      {document.sourceType.replaceAll('_', ' ')}
                     </span>
                     <strong>{document.title}</strong>
                     <span class="folder-specialties">{document.specialties.join(' · ')}</span>
@@ -138,9 +140,18 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                       <p class="archive-kicker">{document().sourceType.replaceAll('_', ' ')}</p>
                       <h2>{document().title}</h2>
                       <dl>
-                        <div><dt>Редакция</dt><dd>{document().versionLabel}</dd></div>
-                        <div><dt>Статус</dt><dd>{document().status}</dd></div>
-                        <div><dt>Разделов</dt><dd>{document().sections.length}</dd></div>
+                        <div>
+                          <dt>Редакция</dt>
+                          <dd>{document().versionLabel}</dd>
+                        </div>
+                        <div>
+                          <dt>Статус</dt>
+                          <dd>{document().status}</dd>
+                        </div>
+                        <div>
+                          <dt>Разделов</dt>
+                          <dd>{document().sections.length}</dd>
+                        </div>
                       </dl>
                     </header>
                     <For each={document().sections}>
@@ -171,9 +182,13 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
             <div>
               <span>ВЫБРАНА ПАПКА</span>
               <strong>{document().title}</strong>
-              <small>{document().specialties.join(' · ')} · {document().versionLabel}</small>
+              <small>
+                {document().specialties.join(' · ')} · {document().versionLabel}
+              </small>
             </div>
-            <button type="button" onClick={() => setMode('list')}>Открыть документ →</button>
+            <button type="button" onClick={() => setMode('list')}>
+              Открыть документ →
+            </button>
           </div>
         )}
       </Show>
