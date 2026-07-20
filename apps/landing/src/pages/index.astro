@@ -2,7 +2,7 @@
 import '../styles/global.css';
 
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes this value in the template.
-const githubUrl = import.meta.env.PUBLIC_GITHUB_URL ?? 'https://github.com';
+const githubUrl = import.meta.env.PUBLIC_GITHUB_URL ?? 'https://github.com/T-Damer/MiniMed';
 
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes this value in the template.
 const milestones = [
@@ -59,16 +59,17 @@ const principles = [
     <meta name="viewport" content="width=device-width" />
     <meta
       name="description"
-      content="LocalMed Search — локальная медицинская картотека с быстрым поиском по выбранному корпусу документов."
+      content="MiniMed — локальная медицинская картотека с быстрым поиском по выбранному корпусу документов."
     />
     <meta name="theme-color" content="#48453f" />
-    <title>LocalMed Search — локальная медицинская картотека</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>MiniMed — локальная медицинская картотека</title>
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
     <header class="archive-nav">
-      <a class="brand" href="#top" aria-label="LocalMed Search — к началу страницы">
-        <span class="brand-mark">LM</span>
+      <a class="brand" href="#top" aria-label="MiniMed — к началу страницы">
+        <img class="brand-mark brand-mark-image" src="./favicon.svg" alt="" width="42" height="42" />
         <span class="brand-title">
           <small>Локальная медицинская</small>
           <strong>Картотека</strong>
@@ -82,13 +83,13 @@ const principles = [
       </nav>
       <div class="nav-register">
         <small>ФОНД</small>
-        <strong>2026 / 002</strong>
+        <strong>2026 / 003</strong>
       </div>
     </header>
 
     <main id="top">
       <section class="hero-folder">
-        <div class="folder-tab">ДЕЛО № 002 · LOCALMED SEARCH</div>
+        <div class="folder-tab">ДЕЛО № 003 · MINIMED</div>
         <div class="hero-grid">
           <div class="hero-copy">
             <p class="kicker">Offline-first · retrieval before generation</p>
@@ -118,157 +119,71 @@ const principles = [
               <div><dt>срок</dt><dd>2 дня</dd></div>
               <div class="negative"><dt>отрицается</dt><dd>кашель</dd></div>
             </dl>
-            <div class="found-slip">
-              <span>НАЙДЕННЫЙ ЛИСТ</span>
-              <strong>Внебольничная пневмония → Клиническая картина</strong>
-              <p>…лихорадка и тахипноэ могут быть ведущими признаками у ребёнка…</p>
-              <small>исходный абзац / соседний контекст →</small>
+            <div class="result-slip">
+              <small>НАЙДЕННЫЙ РАЗДЕЛ</small>
+              <strong>Пневмония / Диагностика</strong>
+              <p>…тахипноэ и локальные физикальные признаки требуют оценки…</p>
             </div>
-            <span class="offline-stamp">OFFLINE<br />READY</span>
           </aside>
         </div>
+      </section>
 
-        <div class="hero-register" aria-label="Ключевые свойства">
-          <div><span>ХРАНИЛИЩЕ</span><strong>SQLite / FTS5 + vector</strong></div>
-          <div><span>ВВОД</span><strong>Свободный текст</strong></div>
-          <div><span>ВЫХОД</span><strong>Раздел + anchor</strong></div>
-          <div><span>СЕТЬ</span><strong>Не требуется</strong></div>
+      <section class="dossier-section" id="dossier">
+        <div class="section-register">
+          <span>ДОСЬЕ / 01</span>
+          <strong>Что уже работает</strong>
+        </div>
+        <div class="dossier-grid">
+          <article><span>01</span><h2>Свободный ввод</h2><p>До 20 000 символов клинического описания без обязательной анкеты.</p></article>
+          <article><span>02</span><h2>Локальный индекс</h2><p>SQLite FTS5 и предрассчитанные векторы находятся вместе с корпусом.</p></article>
+          <article><span>03</span><h2>Точный источник</h2><p>Результат ведёт к разделу, абзацу, соседнему контексту и стабильному якорю.</p></article>
+          <article><span>04</span><h2>Без обязательного сервера</h2><p>Поиск и чтение продолжают работать в самолётном режиме.</p></article>
         </div>
       </section>
 
-      <section id="dossier" class="dossier-section">
-        <aside class="section-index">
-          <span>01</span>
-          <p>ДОСЬЕ ПРОЕКТА</p>
-        </aside>
-        <div class="section-body">
-          <p class="kicker">Назначение</p>
-          <h2>Не медицинский чат. Поисковый инструмент по выбранному фонду.</h2>
-          <div class="dossier-grid">
-            <article class="memo-sheet">
-              <span class="memo-number">A–01</span>
-              <h3>Проблема</h3>
-              <p>
-                Точный термин, торговое название, симптом или критерий могут быть распределены по
-                десяткам документов. Обычный поиск возвращает страницу; врачу нужен конкретный лист.
-              </p>
-            </article>
-            <article class="memo-sheet">
-              <span class="memo-number">A–02</span>
-              <h3>Решение</h3>
-              <p>
-                Документы заранее превращаются в локальный content pack со структурой, полнотекстовым
-                индексом и стабильными точками перехода.
-              </p>
-            </article>
-            <article class="memo-sheet">
-              <span class="memo-number">A–03</span>
-              <h3>Граница</h3>
-              <p>
-                Версия 0.3 alpha ищет и объясняет, почему материал найден. Она не сочиняет медицинский ответ
-                и не зависит от облачной модели.
-              </p>
-            </article>
+      <section class="method-section" id="method">
+        <div class="method-sheet">
+          <span class="paper-clip" aria-hidden="true"></span>
+          <div class="section-register dark-register">
+            <span>МЕТОД / 02</span>
+            <strong>Как устроен поиск</strong>
           </div>
+          <ol>
+            <li><span>01</span><div><strong>Сохранить исходный рассказ</strong><p>Описание не заменяется скрытым резюме.</p></div></li>
+            <li><span>02</span><div><strong>Выделить факты и отрицания</strong><p>Возраст, длительность, показатели, препараты и отсутствующие признаки остаются проверяемыми.</p></div></li>
+            <li><span>03</span><div><strong>Построить несколько веток</strong><p>Точный термин, исходная формулировка, обследования и терапия ищутся независимо.</p></div></li>
+            <li><span>04</span><div><strong>Объединить FTS5 и vector evidence</strong><p>Точное совпадение не теряется из-за смыслового ранжирования.</p></div></li>
+          </ol>
         </div>
-      </section>
-
-      <section id="method" class="method-folder">
-        <div class="folder-tab dark-tab">МЕТОД / ПОИСКОВОЕ ПРОИЗВОДСТВО</div>
-        <div class="method-heading">
-          <p class="kicker">От рассказа к первоисточнику</p>
-          <h2>Длинный запрос не сжимается в одну догадку.</h2>
-          <p>
-            Ядро сохраняет исходный текст и параллельно строит отдельные ветки для клинических
-            терминов, измерений, обследований и препаратов. Результаты объединяются прозрачно.
-          </p>
-        </div>
-        <ol class="process-ledger">
-          <li>
-            <span>01</span>
-            <div><small>ПРИЁМ</small><strong>Свободное описание</strong></div>
-            <p>До 20 000 знаков, без обязательной анкеты перед поиском.</p>
-          </li>
-          <li>
-            <span>02</span>
-            <div><small>КАРТОЧКА</small><strong>Детерминированные факты</strong></div>
-            <p>Возраст, пол, сроки, температура, измерения и отрицания.</p>
-          </li>
-          <li>
-            <span>03</span>
-            <div><small>РАЗВЕТВЛЕНИЕ</small><strong>Несколько запросов</strong></div>
-            <p>Исходная, клиническая, инструментальная и лекарственная ветки.</p>
-          </li>
-          <li>
-            <span>04</span>
-            <div><small>ВЫДАЧА</small><strong>Hybrid fusion</strong></div>
-            <p>FTS5/BM25 и локальные vector-кандидаты объединяются без генеративного шага.</p>
-          </li>
-          <li>
-            <span>05</span>
-            <div><small>ЧТЕНИЕ</small><strong>Исходный лист</strong></div>
-            <p>Раздел, найденный абзац, соседний контекст и техническая карточка.</p>
-          </li>
-        </ol>
-      </section>
-
-      <section class="principles-section">
-        <div class="section-heading-inline">
-          <p class="kicker">Правила фонда</p>
-          <h2>Три ограничения, которые делают продукт надёжнее.</h2>
-        </div>
-        <div class="principle-cards">
+        <aside class="principle-stack">
           {principles.map(([number, title, copy]) => (
             <article>
-              <span>{number}</span>
-              <h3>{title}</h3>
-              <p>{copy}</p>
+              <span>{number}</span><h3>{title}</h3><p>{copy}</p>
+            </article>
+          ))}
+        </aside>
+      </section>
+
+      <section class="roadmap-section" id="roadmap">
+        <div class="section-register">
+          <span>ОПИСЬ / 03</span>
+          <strong>Версии и границы</strong>
+        </div>
+        <div class="roadmap-table">
+          {milestones.map((milestone) => (
+            <article>
+              <span class="version-tab">{milestone.version}</span>
+              <div><small>{milestone.state}</small><h2>{milestone.title}</h2><p>{milestone.copy}</p></div>
             </article>
           ))}
         </div>
       </section>
-
-      <section id="roadmap" class="roadmap-section">
-        <aside class="section-index light-index">
-          <span>02</span>
-          <p>ОПИСЬ РАБОТ</p>
-        </aside>
-        <div class="roadmap-sheet">
-          <header>
-            <div>
-              <p class="kicker">Версии фонда</p>
-              <h2>Сначала полезный поиск. Затем интеллект поверх него.</h2>
-            </div>
-            <span class="review-stamp">ПЛАН<br />ПРИНЯТ</span>
-          </header>
-          <div class="roadmap-table">
-            {milestones.map((item) => (
-              <article class:list={{ current: item.version === '0.3' }}>
-                <span class="roadmap-version">{item.version}</span>
-                <span class="roadmap-state">{item.state}</span>
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>{item.copy}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section class="repository-card">
-        <div>
-          <p class="kicker">Открытый журнал разработки</p>
-          <h2>Рабочее ядро уже собирает SQLite-фонд и выполняет поиск локально.</h2>
-        </div>
-        <a href={githubUrl}>Перейти в репозиторий <span>↗</span></a>
-      </section>
     </main>
 
     <footer>
-      <span>LOCALMED SEARCH / PERSONAL ENGINEERING PROTOTYPE</span>
-      <span>Fixture corpus не является медицинской рекомендацией</span>
-      <span>BUILD 0.3.0-alpha.1 / 2026</span>
+      <span>MINIMED / PUBLIC PILOT</span>
+      <span>Справочно-поисковая система · не заменяет решение врача</span>
+      <a href={githubUrl}>Репозиторий ↗</a>
     </footer>
   </body>
 </html>

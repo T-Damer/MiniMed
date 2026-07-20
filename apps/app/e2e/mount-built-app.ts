@@ -86,5 +86,5 @@ export async function mountBuiltApp(page: Page): Promise<void> {
   const source = await readFile(join(DIST_ROOT, 'index.html'), 'utf8');
   const html = source.replace('<head>', `<head><base href="${ASSET_ORIGIN}/">`);
   await page.setContent(html, { waitUntil: 'domcontentloaded' });
-  await page.getByText('Опишите случай обычным текстом.').waitFor();
+  await page.getByTestId('search-input').waitFor();
 }
