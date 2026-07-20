@@ -30,3 +30,19 @@ test('keeps the active search mounted while navigating through the app', async (
   await expect(page.getByTestId('search-input')).toHaveValue(query);
   await expect(page.getByText('Внебольничная пневмония у детей').first()).toBeVisible();
 });
+
+test('replays a saved query from local search history', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.getByTestId('search-input').fill(query);
+  await page.getByTestId('search-submit').click();
+  await expect(page.getByText('Внебольничная пневмония у детей').first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'История' }).click();
+  await expect(page.getByRole('heading', { name: 'История поиска' })).toBeVisible();
+  const historyEntry = page.locator('.history-replay').filter({ hasText: query }).first();
+  await expect(historyEntry).toBeVisible();
+  await historyEntry.click();
+
+  await expect(page.getByTestId('search-input')).toHaveValue(query);
+  await expect(page.getByText('Внебольничная пневмония у детей').first()).toBeVisible();
+});
