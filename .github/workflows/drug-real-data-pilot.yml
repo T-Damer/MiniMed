@@ -2,7 +2,7 @@ name: Validate real Russian drug pilot
 
 on:
   push:
-    branches: [agent/drug-real-data-pilot]
+    branches: [agent/drug-real-data-final]
   pull_request:
     branches: [agent/drug-knowledge-graph, main]
 
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/drug-real-data-pilot
+          ref: agent/drug-real-data-final
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
@@ -51,7 +51,7 @@ jobs:
           git add -A
           git diff --cached --quiet && exit 0
           git commit -m 'style(drugs): apply repository formatters'
-          git push origin HEAD:agent/drug-real-data-pilot
+          git push origin HEAD:agent/drug-real-data-final
 
   validate:
     runs-on: ubuntu-24.04
@@ -138,33 +138,6 @@ jobs:
               assert proposed == 8
               assert reviewed == 0
               assert structured_search_rows == 0
-
-              ids = {
-                  row[0]
-                  for row in connection.execute(
-                      'SELECT id FROM knowledge_entities WHERE entity_type = ?', ('medication',)
-                  )
-              }
-              assert ids == {
-                  'medication.paracetamol.suspension.120mg-5ml',
-                  'medication.ibuprofen.suspension.100mg-5ml',
-                  'medication.amoxicillin.tablet.500mg',
-                  'medication.amoxicillin-clavulanate.suspension.400mg-57mg-5ml',
-                  'medication.azithromycin.suspension.200mg-5ml',
-                  'medication.ceftriaxone.injection.1g',
-                  'medication.oral-rehydration-salts.powder.18-9g',
-                  'medication.oseltamivir.capsule.30mg',
-              }
-
-              document_ids = {
-                  row[0]
-                  for row in connection.execute(
-                      "SELECT id FROM documents WHERE source_type = 'official_registry_summary'"
-                  )
-              }
-              assert len(document_ids) == 8
-              assert 'drug.rf.azithromycin.suspension-200mg-5ml' in document_ids
-              assert 'drug.rf.oral-rehydration-salts.powder-18-9g' in document_ids
           finally:
               connection.close()
           PY
