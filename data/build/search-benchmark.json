@@ -1,0 +1,591 @@
+{
+  "generatedAt": "2026-07-20T15:43:53.675Z",
+  "corpus": "localmed.core-demo",
+  "queryCount": 30,
+  "measurementRunsPerQuery": 3,
+  "recallAt1": 1,
+  "recallAt5": 1,
+  "mrrAt5": 1,
+  "zeroResultRate": 0,
+  "hybridUsageRate": 1,
+  "semanticUsageRate": 1,
+  "latencyMs": {
+    "min": 3.485239999999976,
+    "p50": 5.463551000000052,
+    "p95": 8.739286000000106,
+    "max": 9.175333000000023
+  },
+  "categories": {
+    "alias": {
+      "queryCount": 4,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "differential": {
+      "queryCount": 2,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "exact": {
+      "queryCount": 4,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "follow-up": {
+      "queryCount": 1,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "investigation": {
+      "queryCount": 6,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "lay": {
+      "queryCount": 3,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "medication": {
+      "queryCount": 1,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "routing": {
+      "queryCount": 2,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "symptoms": {
+      "queryCount": 6,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    },
+    "treatment": {
+      "queryCount": 1,
+      "recallAt1": 1,
+      "recallAt5": 1,
+      "mrrAt5": 1
+    }
+  },
+  "rows": [
+    {
+      "query": "лихорадка кашель тахипноэ",
+      "category": "exact",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 9.175333000000023,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "ребенок часто дышит и температурит",
+      "category": "alias",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 8.739286000000106,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "сатурация одышка кашель",
+      "category": "symptoms",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 7.830506000000014,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "амоксициллин клавулановая кислота",
+      "category": "medication",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 4.002500000000055,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "аугментин пневмония",
+      "category": "alias",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 6.198989000000097,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "общий анализ крови маркеры воспаления",
+      "category": "investigation",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 4.852760999999987,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "затруднение дыхания не может пить",
+      "category": "lay",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.536229999999932,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "частота дыхания температура сатурация",
+      "category": "investigation",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.91700400000002,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "заболевание нижних дыхательных путей",
+      "category": "exact",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.4875070000000505,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "маршрутизация тяжесть дыхательных нарушений",
+      "category": "routing",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 4.394350000000031,
+      "topDocuments": [
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "правая подвздошная область рвота",
+      "category": "exact",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 6.2644370000000436,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "справа внизу живота тошнота",
+      "category": "alias",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 6.707605000000058,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "боль в животе снижение аппетита",
+      "category": "symptoms",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 6.5696570000000065,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "своевременная оценка хирургом",
+      "category": "routing",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 4.014997999999991,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "миграция боли стул мочеиспускание",
+      "category": "investigation",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 3.9051829999999654,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "острая абдоминальная боль мезаденит",
+      "category": "differential",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.873988999999938,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "аппендицит клиническая картина",
+      "category": "exact",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.70724800000005,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "субфебрильная температура рвота",
+      "category": "symptoms",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.463551000000052,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "гастроэнтерит инфекция мочевых путей мезаденит",
+      "category": "differential",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 4.344425000000001,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "локализация и миграция боли",
+      "category": "investigation",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 3.7211260000000266,
+      "topDocuments": [
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "лихорадка без очага дизурия",
+      "category": "symptoms",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 7.047987999999918,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "оам бактериальная культура мочи",
+      "category": "alias",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.176878999999985,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "рези при мочеиспускании",
+      "category": "lay",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 6.345689999999877,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "болезненное мочеиспускание поясница",
+      "category": "symptoms",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 3.6793330000000424,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "бактериальная культура мочи",
+      "category": "investigation",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 3.7558590000001004,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "антибактериальная терапия ответ на лечение",
+      "category": "treatment",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 6.425610000000006,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "маленький ребенок неспецифичные проявления",
+      "category": "lay",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 3.485239999999976,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "образец мочи до терапии",
+      "category": "investigation",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 4.694633000000067,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.pediatrics.pneumonia",
+        "kr.demo.surgery.appendicitis"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "факторы риска повторная оценка",
+      "category": "follow-up",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 4.302481999999827,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    },
+    {
+      "query": "учащенное мочеиспускание боль в пояснице",
+      "category": "symptoms",
+      "hitAt1": true,
+      "hitAt5": true,
+      "reciprocalRank": 1,
+      "elapsedMs": 5.2381010000001424,
+      "topDocuments": [
+        "kr.demo.pediatrics.urinary-tract-infection",
+        "kr.demo.surgery.appendicitis",
+        "kr.demo.pediatrics.pneumonia"
+      ],
+      "candidateCount": 15,
+      "modeUsed": "hybrid",
+      "semanticStatus": "used",
+      "semanticCandidateCount": 15
+    }
+  ]
+}

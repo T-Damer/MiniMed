@@ -4,6 +4,41 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+### Added
+
+- Rights-aware collection manifests for supported HTTPS, local, manual, and licensed vendor drug
+  exports, including checksums, cache provenance, and separate offline-storage, derivative-processing,
+  and redistribution permissions.
+- A manual ChatGPT enrichment handoff that exports exact source chunks, imports evidence-backed
+  proposals as `proposed`, records missing medical fields as review tasks, and requires an identified
+  human reviewer before facts, relations, or document links become searchable.
+- A relational SQLite knowledge layer for entities, medicine profiles, typed clinical facts, weighted
+  relations, exact evidence, document links, editorial tasks, and a reviewed-only structured FTS
+  index.
+- A profile-driven Russian query-intent classifier for diagnostic cases, treatment requests,
+  medication lookup, disease reference, care guidance, administrative reference, mixed requests,
+  and unknown queries.
+- Regression coverage for the thirteen Russian search examples collected during design, preserving
+  their original wording and misspellings.
+
+### Changed
+
+- Reviewed structured knowledge can extend existing chunk FTS and vector projections while original
+  source text, source spans, and stable anchors remain unchanged.
+- Medication identity reconciliation now uses concept level, INN, form, route, strength,
+  registration identifiers, and external IDs instead of merging medicines by display name alone.
+- ChatGPT task export fails closed for non-synthetic sources unless explicit derivative-processing
+  permission and a reviewed licence/terms identifier are present in source metadata.
+
+### Verification boundary
+
+- No licensed medical source data, Allmed content, patient data, model output, or API credentials are
+  committed. The checked-in material implements and tests the ingestion, review, graph, and retrieval
+  contracts only.
+- Dedicated runtime drug-card queries and UI remain a later vertical slice; this change exposes
+  reviewed knowledge through the existing local FTS/vector retrieval path and stores the complete
+  structured graph in the offline SQLite pack.
+
 ## [0.3.0-alpha.1] - 2026-07-18
 
 ### Added
