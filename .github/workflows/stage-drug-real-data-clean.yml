@@ -72,13 +72,34 @@ jobs:
           pnpm check
 
       - name: Normalize Python
+        id: python-normalize
+        continue-on-error: true
         shell: bash
         run: |
-          set -euo pipefail
-          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests || true
-          uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          set +e
+          {
+            uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
+            uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests || true
+            uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+            uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          } 2>&1 | tee python-normalize.log
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload Python normalization diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-drug-python-normalize
+          path: python-normalize.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Enforce Python normalization
+        env:
+          EXIT_CODE: ${{ steps.python-normalize.outputs.exit_code }}
+        run: test "$EXIT_CODE" = "0"
 
       - name: Verify repository and real-data pack
         shell: bash
