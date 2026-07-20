@@ -102,6 +102,26 @@ describe('lexical query planning', () => {
     expect(clinical?.terms.some((term) => term.startsWith('пневмони'))).toBe(true);
   });
 
+  it('extracts age before sex and recognizes an inflected cough verb', () => {
+    const plan = analyzeClinicalQuery('5 лет, мальчик, кашляет', aliases);
+    expect(plan.analysis.facts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'age', normalizedValue: '5 лет' }),
+        expect.objectContaining({ kind: 'sex', normalizedValue: 'мужской' }),
+        expect.objectContaining({ kind: 'symptom', normalizedValue: 'кашель' }),
+      ]),
+    );
+    expect(plan.branches[0]?.terms.some((term) => term.startsWith('кашл'))).toBe(true);
+  });
+
+  it('does not turn a negated cough into a positive symptom fact', () => {
+    const plan = analyzeClinicalQuery('Мальчик 5 лет, кашля нет', aliases);
+    expect(plan.analysis.facts.some((fact) => fact.kind === 'symptom' && fact.normalizedValue === 'кашель')).toBe(false);
+    expect(plan.analysis.facts).toEqual(
+      expect.arrayContaining([expect.objectContaining({ kind: 'negative-finding' })]),
+    );
+  });
+
   it('splits long descriptions into observable search branches', () => {
     const plan = analyzeClinicalQuery(
       'Мальчик 7 лет. Боль справа внизу живота появилась вчера. Однократная рвота. Общий анализ мочи без изменений.',
