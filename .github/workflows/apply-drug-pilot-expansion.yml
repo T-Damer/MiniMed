@@ -1,0 +1,59 @@
+name: Apply expanded real-drug pilot
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: apply-expanded-real-drug-pilot
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Apply expanded real drug pilot'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/drug-real-data-pilot
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Install locked ingestion environment
+        run: uv sync --project tools/ingest --all-groups --locked
+
+      - name: Expand structured pilot knowledge
+        run: uv run --project tools/ingest python tools/ingest/scripts/expand_public_drug_pilot.py
+
+      - name: Validate and build the expanded pack
+        run: |
+          uv run --project tools/ingest medbase lint --input content/pilot-rf
+          uv run --project tools/ingest medbase build \
+            --input content/pilot-rf \
+            --output data/build/rf-public-pilot.db \
+            --report data/build/rf-public-pilot-report.json
+
+      - name: Commit structured expansion
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm tools/ingest/scripts/expand_public_drug_pilot.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add content/pilot-rf/knowledge.yaml tools/ingest/scripts/expand_public_drug_pilot.py
+          git commit -m 'feat(drugs): expand source-backed medication knowledge pilot'
+          git push origin HEAD:agent/drug-real-data-pilot
+
+      - name: Close trigger issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Expanded real-drug pilot applied and pack build validated.'
