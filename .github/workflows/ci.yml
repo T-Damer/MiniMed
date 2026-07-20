@@ -7,21 +7,43 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   javascript:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.16.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
+      - name: Check source formatting and lint
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm check 2>&1 | tee biome-check.log
+      - name: Report alpha 6 check failure
+        if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'agent/mobile-ux-0.3.0-alpha.6'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sed -r 's/\x1B\[[0-9;]*[mK]//g' biome-check.log | tail -n 220 > biome-tail.log
+          {
+            echo '<!-- minimed-alpha6-ci-diagnostic -->'
+            echo 'Current alpha.6 Biome failure:'
+            echo
+            echo '```text'
+            cat biome-tail.log
+            echo '```'
+          } > comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" --body-file comment.md
       - run: pnpm typecheck
       - run: pnpm test:unit
       - run: pnpm native:source:check
@@ -32,7 +54,7 @@ jobs:
   python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.10.0"
