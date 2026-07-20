@@ -1,0 +1,54 @@
+name: Run drug pilot formatter once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/run-drug-pilot-formatter-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/drug-real-data-pilot
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+      - run: |
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+      - name: Apply repository formatters
+        run: |
+          pnpm check --write
+          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
+      - name: Commit and push non-workflow fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --quiet -- .github/workflows || {
+            echo 'Formatter unexpectedly changed workflows.' >&2
+            git diff -- .github/workflows
+            exit 1
+          }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'style(drugs): apply repository formatters'
+          git push origin HEAD:agent/drug-real-data-pilot
