@@ -75,6 +75,17 @@ jobs:
           if generated_text.count(long_line) != 1:
               raise SystemExit('long identity error line was not found exactly once')
           generated.write_text(generated_text.replace(long_line, replacement, 1), encoding='utf-8')
+
+          tests = Path('tools/ingest/tests/test_knowledge.py')
+          tests_text = tests.read_text(encoding='utf-8')
+          old_filter = '        if entity.medication is not None\n'
+          new_filter = (
+              '        if entity.medication is not None\n'
+              '        and entity.medication.strength is not None\n'
+          )
+          if tests_text.count(old_filter) != 1:
+              raise SystemExit('optional medication strength filter was not found exactly once')
+          tests.write_text(tests_text.replace(old_filter, new_filter, 1), encoding='utf-8')
           PY
           status=$?
           set -e
