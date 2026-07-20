@@ -9,6 +9,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await page.getByTestId('search-submit').click();
   await expect(page.getByText('Внебольничная пневмония у детей').first()).toBeVisible();
   await expect(page.getByTestId('search-mode')).toHaveText('FTS5 + VECTOR');
+  await expect(page.getByTestId('reader-context')).toHaveCount(0);
   await page.getByTestId('search-result').first().click();
   await expect(page.getByTestId('reader-context')).toContainText('Клиническая картина');
   await expect(page.getByTestId('reader-context')).toContainText('тахипноэ');
