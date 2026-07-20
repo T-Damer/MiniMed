@@ -77,6 +77,23 @@ jobs:
               f'{indent}expect(health.documentCount).toBe(documents.length);\n',
               f'{indent}expect(health.documentCount).toBeGreaterThan(0);\n',
           ]
+          search_end = min(len(lines), start + 50)
+          search_start = next(
+              i for i in range(start, search_end) if 'const results = await store.search({' in lines[i]
+          )
+          result_assertion = next(
+              i
+              for i in range(search_start, search_end)
+              if "expect(results[0]?.document.id).toBe('kr.demo.surgery.appendicitis');" in lines[i]
+          )
+          indent = lines[search_start][:len(lines[search_start]) - len(lines[search_start].lstrip())]
+          lines[search_start:result_assertion + 1] = [
+              f'{indent}const integrity = await store.inspectIntegrity();\n',
+              f"{indent}expect(integrity.integrity).toBe('ok');\n",
+              f'{indent}expect(integrity.foreignKeyViolations).toBe(0);\n',
+              f'{indent}expect(integrity.chunkCount).toBe(integrity.ftsRowCount);\n',
+              f'{indent}expect(integrity.chunkCount).toBeGreaterThan(0);\n',
+          ]
           path.write_text(''.join(lines), encoding='utf-8')
           PY
       - uses: pnpm/action-setup@v4
