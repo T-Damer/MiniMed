@@ -1,10 +1,10 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
 
 const query = 'Ребёнок часто дышит и температурит второй день';
 
-function pneumoniaResult(page: Page) {
+function pneumoniaResult(page: Page): Locator {
   return page
     .getByTestId('search-results')
     .getByText('Внебольничная пневмония у детей')
