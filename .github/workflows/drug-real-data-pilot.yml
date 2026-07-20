@@ -4,7 +4,7 @@ on:
   push:
     branches: [agent/drug-real-data-pilot]
   pull_request:
-    branches: [agent/drug-knowledge-graph]
+    branches: [agent/drug-knowledge-graph, main]
 
 permissions:
   contents: read
@@ -63,6 +63,7 @@ jobs:
               facts = connection.execute('SELECT COUNT(*) FROM knowledge_facts').fetchone()[0]
               relations = connection.execute('SELECT COUNT(*) FROM knowledge_relations').fetchone()[0]
               evidence = connection.execute('SELECT COUNT(*) FROM knowledge_evidence').fetchone()[0]
+              links = connection.execute('SELECT COUNT(*) FROM knowledge_document_links').fetchone()[0]
               tasks = connection.execute('SELECT COUNT(*) FROM knowledge_review_tasks').fetchone()[0]
               proposed = connection.execute(
                   "SELECT COUNT(*) FROM knowledge_facts WHERE review_status = 'proposed'"
@@ -70,17 +71,20 @@ jobs:
               reviewed = connection.execute(
                   "SELECT COUNT(*) FROM knowledge_facts WHERE review_status = 'reviewed'"
               ).fetchone()[0]
+              structured_search_rows = connection.execute('SELECT COUNT(*) FROM knowledge_fts').fetchone()[0]
 
-              assert documents == report['documents'] == 10
-              assert chunks == report['chunks'] == 48
-              assert entities == 4
-              assert profiles == 3
-              assert facts == 3
+              assert documents == report['documents'] == 15
+              assert chunks == report['chunks'] == 58
+              assert entities == 9
+              assert profiles == 8
+              assert facts == 8
               assert relations == 1
-              assert evidence == 4
-              assert tasks == 2
-              assert proposed == 3
+              assert evidence == 9
+              assert links == 9
+              assert tasks == 3
+              assert proposed == 8
               assert reviewed == 0
+              assert structured_search_rows == 0
 
               ids = {
                   row[0]
@@ -92,16 +96,32 @@ jobs:
                   'medication.paracetamol.suspension.120mg-5ml',
                   'medication.ibuprofen.suspension.100mg-5ml',
                   'medication.amoxicillin.tablet.500mg',
+                  'medication.amoxicillin-clavulanate.suspension.400mg-57mg-5ml',
+                  'medication.azithromycin.suspension.200mg-5ml',
+                  'medication.ceftriaxone.injection.1g',
+                  'medication.oral-rehydration-salts.powder.18-9g',
+                  'medication.oseltamivir.capsule.30mg',
               }
+
+              document_ids = {
+                  row[0]
+                  for row in connection.execute(
+                      "SELECT id FROM documents WHERE source_type = 'official_registry_summary'"
+                  )
+              }
+              assert len(document_ids) == 8
+              assert 'drug.rf.azithromycin.suspension-200mg-5ml' in document_ids
+              assert 'drug.rf.oral-rehydration-salts.powder-18-9g' in document_ids
           finally:
               connection.close()
           PY
 
-      - name: Run drug/knowledge unit tests
+      - name: Run drug and modular-knowledge unit tests
         run: |
           uv run --project tools/ingest pytest \
             tools/ingest/tests/test_drug_sources.py \
-            tools/ingest/tests/test_knowledge.py
+            tools/ingest/tests/test_knowledge.py \
+            tools/ingest/tests/test_knowledge_modules.py
 
       - name: Upload validation evidence
         uses: actions/upload-artifact@v4
