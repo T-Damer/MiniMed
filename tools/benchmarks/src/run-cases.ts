@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import type { QueryBranchKind, QueryFactKind } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
 
 interface ClinicalCaseFixture {
   readonly id: string;
@@ -43,11 +44,8 @@ const root = resolve(import.meta.dirname, '../../..');
 const fixtures = parseCases(
   JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/clinical-cases.json'), 'utf8')),
 );
-const databaseBytes = new Uint8Array(
-  readFileSync(resolve(root, 'apps/app/public/content/core-demo.db')),
-);
-const store = await SqliteMedicalStore.createFromBytes(databaseBytes);
-const core = createMedicalCore({ store, platform: 'test' });
+const store = await SqliteMedicalStore.create();
+const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);
 
@@ -108,6 +106,7 @@ await core.close();
 
 const report = {
   generatedAt: new Date().toISOString(),
+  corpus: DEMO_CONTENT_PACK.manifest.id,
   fixtureCount: rows.length,
   passRate: rows.filter((row) => row.passed).length / rows.length,
   rows,
