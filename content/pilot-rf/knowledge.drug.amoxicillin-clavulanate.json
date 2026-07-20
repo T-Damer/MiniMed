@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "id": "medication.amoxicillin-clavulanate.suspension.400mg-57mg-5ml",
+      "entityType": "medication",
+      "canonicalName": "Амоксициллин + клавулановая кислота 400 мг + 57 мг/5 мл, суспензия",
+      "names": [
+        {"name": "Амоксициллин + клавулановая кислота", "nameType": "inn", "weight": 1.2},
+        {"name": "Аугментин", "nameType": "trade-name", "weight": 1.1},
+        {"name": "ко-амоксиклав", "nameType": "common-name", "weight": 0.9}
+      ],
+      "externalIds": {
+        "grls-price-record": "1000045857",
+        "ru-registration-number": "ЛП-№(003017)-(РГ-RU)"
+      },
+      "medication": {
+        "conceptLevel": "clinical-drug",
+        "inn": "Амоксициллин+[Клавулановая кислота]",
+        "dosageForm": "порошок для приготовления суспензии для приема внутрь",
+        "route": "oral",
+        "strength": "400 мг+57 мг/5 мл",
+        "registrationNumber": "ЛП-№(003017)-(РГ-RU)",
+        "registrationStatus": "present-in-public-price-registry",
+        "pediatricStatus": "formulation-specific-review-required",
+        "metadata": {"sourceReviewedAt": "2026-07-20"}
+      }
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact.registry.amoxicillin-clavulanate-suspension-400-57",
+      "entityId": "medication.amoxicillin-clavulanate.suspension.400mg-57mg-5ml",
+      "factType": "registration-identity",
+      "text": "В государственном реестре зафиксирована суспензия амоксициллина с клавулановой кислотой 400 мг+57 мг/5 мл с регистрационным удостоверением ЛП-№(003017)-(РГ-RU).",
+      "structured": {
+        "inn": "Амоксициллин+[Клавулановая кислота]",
+        "dosageForm": "порошок для приготовления суспензии для приема внутрь",
+        "strength": "400 мг+57 мг/5 мл",
+        "registrationNumber": "ЛП-№(003017)-(РГ-RU)",
+        "registryRecordId": "1000045857"
+      },
+      "population": {},
+      "approvalStatus": "registry-metadata-only",
+      "authorityTier": "official-registry",
+      "reviewStatus": "proposed",
+      "jurisdiction": "RU",
+      "confidence": 1.0,
+      "validFrom": "2025-04-14",
+      "evidence": [
+        {
+          "documentId": "drug.rf.amoxicillin-clavulanate.suspension-400-57",
+          "documentVersionId": "drug.rf.amoxicillin-clavulanate.suspension-400-57@registry-2025-04-14",
+          "sectionId": "section.bf6f7c3f7b38950d",
+          "chunkId": "chunk.5ef6c7113d8f5fdf",
+          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат «Аугментин»: МНН — амоксициллин+[клавулановая кислота], лекарственная форма — порошок для приготовления суспензии для приема внутрь, дозировка 400 мг+57 мг/5 мл, регистрационное удостоверение ЛП-№(003017)-(РГ-RU). Дата вступления решения в силу — 14 апреля 2025 года.",
+          "sourceLocator": {
+            "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=128&per_page=30",
+            "recordId": "1000045857"
+          }
+        }
+      ]
+    }
+  ],
+  "documentLinks": [
+    {
+      "id": "link.amoxicillin-clavulanate-suspension-400-57-registry-card",
+      "entityId": "medication.amoxicillin-clavulanate.suspension.400mg-57mg-5ml",
+      "documentId": "drug.rf.amoxicillin-clavulanate.suspension-400-57",
+      "documentVersionId": "drug.rf.amoxicillin-clavulanate.suspension-400-57@registry-2025-04-14",
+      "sectionId": "section.bf6f7c3f7b38950d",
+      "chunkId": "chunk.5ef6c7113d8f5fdf",
+      "linkType": "registration-record",
+      "weight": 1.0,
+      "reviewStatus": "proposed"
+    }
+  ]
+}
