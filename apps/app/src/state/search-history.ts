@@ -76,7 +76,10 @@ export function appendSearchHistory(
     resultCount: response.groups.length,
     modeUsed: response.modeUsed,
   };
-  const next = [nextEntry, ...current.filter((entry) => entry.query !== trimmed)].slice(0, MAX_HISTORY);
+  const next = [nextEntry, ...current.filter((entry) => entry.query !== trimmed)].slice(
+    0,
+    MAX_HISTORY,
+  );
   localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent(SEARCH_HISTORY_EVENT, { detail: next }));
   return next;
