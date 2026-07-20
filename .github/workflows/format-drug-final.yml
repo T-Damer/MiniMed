@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: format-final-drug-data
+  cancel-in-progress: false
+
 jobs:
   format:
     runs-on: ubuntu-24.04
