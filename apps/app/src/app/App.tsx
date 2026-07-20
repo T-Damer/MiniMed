@@ -95,7 +95,10 @@ export function App(): JSX.Element {
           ))}
         </nav>
 
-        <div class="app-core-indicator" title={ready() ? 'Локальное ядро готово' : error() ?? 'Запуск'}>
+        <div
+          class="app-core-indicator"
+          title={ready() ? 'Локальное ядро готово' : (error() ?? 'Запуск')}
+        >
           <i />
           <span>{ready() ? 'локально' : error() ? 'ошибка' : 'запуск'}</span>
         </div>
@@ -118,7 +121,11 @@ export function App(): JSX.Element {
       >
         {(state) => (
           <main class="app-main">
-            <section class="app-view" hidden={view() !== 'search'} aria-hidden={view() !== 'search'}>
+            <section
+              class="app-view"
+              hidden={view() !== 'search'}
+              aria-hidden={view() !== 'search'}
+            >
               <SearchWorkspace core={state().core} />
             </section>
             <section
@@ -128,7 +135,11 @@ export function App(): JSX.Element {
             >
               <DocumentLibrary core={state().core} />
             </section>
-            <section class="app-view" hidden={view() !== 'history'} aria-hidden={view() !== 'history'}>
+            <section
+              class="app-view"
+              hidden={view() !== 'history'}
+              aria-hidden={view() !== 'history'}
+            >
               <SearchHistoryView
                 onReplay={(query) => {
                   navigate('search');
@@ -136,7 +147,11 @@ export function App(): JSX.Element {
                 }}
               />
             </section>
-            <section class="app-view" hidden={view() !== 'status'} aria-hidden={view() !== 'status'}>
+            <section
+              class="app-view"
+              hidden={view() !== 'status'}
+              aria-hidden={view() !== 'status'}
+            >
               <StatusPanel core={state().core} initialStatus={state().status} />
             </section>
           </main>
