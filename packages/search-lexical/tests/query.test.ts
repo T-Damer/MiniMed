@@ -128,7 +128,9 @@ describe('lexical query planning', () => {
 
   it('does not confuse illness duration before sex with patient age', () => {
     const plan = analyzeClinicalQuery('5 дней, мальчик, кашляет', aliases);
+    const duration = plan.analysis.facts.find((fact) => fact.kind === 'duration');
     expect(plan.analysis.facts.some((fact) => fact.kind === 'age')).toBe(false);
+    expect(duration?.unit).toBe('дней');
     expect(plan.analysis.facts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: 'duration' }),
