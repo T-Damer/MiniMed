@@ -43,7 +43,7 @@ def test_rejects_duplicate_ids_across_modules(tmp_path: Path) -> None:
     write_module(tmp_path / "knowledge.yaml", "medication.same")
     write_module(tmp_path / "knowledge.drugs.yaml", "medication.same")
 
-    with pytest.raises(ValueError, match="Duplicate knowledge id medication.same"):
+    with pytest.raises(ValueError, match=r"Duplicate knowledge id medication\.same"):
         load_knowledge_modules(tmp_path, [])
 
 
