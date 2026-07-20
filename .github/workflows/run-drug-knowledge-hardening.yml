@@ -39,12 +39,27 @@ jobs:
           set +e
           python3 - <<'PY' >"$work/patch.log" 2>&1
           from pathlib import Path
+
           source = Path('.github/workflows/apply-drug-knowledge-hardening.yml').read_text(encoding='utf-8')
           marker = "          python3 - <<'PY'\n"
           start = source.index(marker) + len(marker)
           end = source.index("\n          PY\n", start)
           lines = source[start:end].splitlines()
-          script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
+          script_lines: list[str] = []
+          inside_raw_string = False
+          for line in lines:
+              if inside_raw_string:
+                  if line.strip() == "'''":
+                      script_lines.append(line[10:] if line.startswith("          ") else line)
+                      inside_raw_string = False
+                  else:
+                      script_lines.append(line)
+                  continue
+              normalized = line[10:] if line.startswith("          ") else line
+              script_lines.append(normalized)
+              if "r'''" in normalized:
+                  inside_raw_string = True
+          script = "\n".join(script_lines)
           exec(compile(script, 'apply-drug-knowledge-hardening.py', 'exec'))
           PY
           status=$?
