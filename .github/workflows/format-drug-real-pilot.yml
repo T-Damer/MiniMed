@@ -3,13 +3,16 @@ name: Format real Russian drug pilot
 on:
   pull_request:
     branches: [agent/drug-knowledge-graph, main]
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   format:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/drug-real-data-pilot'
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/drug-real-data-pilot') || (github.event_name == 'issues' && github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Format real Russian drug pilot')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -50,3 +53,8 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'style(drugs): apply repository formatters'
           git push origin HEAD:agent/drug-real-data-pilot
+      - name: Close owner trigger
+        if: github.event_name == 'issues' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Real-drug pilot formatting completed.'
