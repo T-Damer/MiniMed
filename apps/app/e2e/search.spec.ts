@@ -4,6 +4,8 @@ import { mountBuiltApp } from './mount-built-app';
 
 const query = 'Ребёнок часто дышит и температурит второй день';
 
+// Routes stay mounted to preserve search state, so assertions must target the active results container
+// rather than matching an identically titled document in the hidden Archive view.
 function pneumoniaResult(page: Page): Locator {
   return page.getByTestId('search-results').getByText('Внебольничная пневмония у детей').first();
 }
