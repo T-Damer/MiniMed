@@ -45,7 +45,11 @@ const fixtures = parseCases(
   JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/clinical-cases.json'), 'utf8')),
 );
 const store = await SqliteMedicalStore.create();
-const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+const core = createMedicalCore({
+  store,
+  seed: DEMO_CONTENT_PACK,
+  platform: 'test',
+});
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);
 
