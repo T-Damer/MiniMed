@@ -450,14 +450,14 @@ function extractAliasFacts(
   }
 }
 
-
 const SYMPTOM_PATTERNS: readonly {
   readonly pattern: RegExp;
   readonly canonical: string;
   readonly label: string;
 }[] = [
   {
-    pattern: /(?:^|[^а-яёa-z])((?:кашл(?:яет|яют|яю|яешь|ять|ель|я|ем|ете)|покашливает))(?=$|[^а-яёa-z])/giu,
+    pattern:
+      /(?:^|[^а-яёa-z])((?:кашл(?:яет|яют|яю|яешь|ять|ель|я|ем|ете)|покашливает))(?=$|[^а-яёa-z])/giu,
     canonical: 'кашель',
     label: 'Кашель',
   },
@@ -482,7 +482,8 @@ const SYMPTOM_PATTERNS: readonly {
     label: 'Сыпь',
   },
   {
-    pattern: /(?:^|[^а-яёa-z])((?:одышка|одышку|задыхается|тяжело\s+дышит|часто\s+дышит))(?=$|[^а-яёa-z])/giu,
+    pattern:
+      /(?:^|[^а-яёa-z])((?:одышка|одышку|задыхается|тяжело\s+дышит|часто\s+дышит))(?=$|[^а-яёa-z])/giu,
     canonical: 'одышка тахипноэ',
     label: 'Нарушение дыхания',
   },

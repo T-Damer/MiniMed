@@ -302,7 +302,8 @@ body {
   display: none;
   min-height: 100dvh;
   overflow-y: auto;
-  padding: calc(52px + var(--safe-top)) max(12px, var(--safe-right)) calc(30px + var(--safe-bottom)) max(12px, var(--safe-left));
+  padding: calc(52px + var(--safe-top)) max(12px, var(--safe-right)) calc(30px + var(--safe-bottom))
+    max(12px, var(--safe-left));
   background: rgb(45 43 38 / 92%);
   backdrop-filter: blur(12px);
 }
@@ -349,8 +350,14 @@ body {
 }
 
 @keyframes reader-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .keyboard-only {
@@ -526,9 +533,15 @@ body {
   border-radius: 50%;
 }
 
-.graph-dot.root { background: var(--stamp); }
-.graph-dot.specialty { background: var(--folder-dark); }
-.graph-dot.document { background: var(--green-file); }
+.graph-dot.root {
+  background: var(--stamp);
+}
+.graph-dot.specialty {
+  background: var(--folder-dark);
+}
+.graph-dot.document {
+  background: var(--green-file);
+}
 
 .graph-edges path {
   fill: none;
@@ -764,7 +777,6 @@ body {
   }
 }
 
-
 .library-embedded {
   width: min(1280px, 100%);
   min-height: 660px;
@@ -834,7 +846,6 @@ body {
     align-self: flex-start;
   }
 }
-
 
 .sr-only {
   position: absolute;
