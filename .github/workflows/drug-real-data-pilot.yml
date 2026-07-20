@@ -36,11 +36,21 @@ jobs:
           uv sync --project tools/ingest --all-groups --locked
 
       - name: Lint and build the extended public pack
+        id: build
+        shell: bash
         run: |
-          pnpm content:lint:pilot
-          pnpm content:build:pilot
+          set +e
+          mkdir -p data/build
+          {
+            pnpm content:lint:pilot
+            pnpm content:build:pilot
+          } 2>&1 | tee data/build/drug-pilot-build.log
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Verify real drug documents and structured knowledge
+        if: steps.build.outputs.exit_code == '0'
         shell: bash
         run: |
           set -euo pipefail
@@ -117,6 +127,7 @@ jobs:
           PY
 
       - name: Run drug and modular-knowledge unit tests
+        if: steps.build.outputs.exit_code == '0'
         run: |
           uv run --project tools/ingest pytest \
             tools/ingest/tests/test_drug_sources.py \
@@ -124,11 +135,18 @@ jobs:
             tools/ingest/tests/test_knowledge_modules.py
 
       - name: Upload validation evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: drug-real-data-pilot
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
           path: |
             data/build/rf-public-pilot.db
             data/build/rf-public-pilot-report.json
+            data/build/drug-pilot-build.log
+
+      - name: Enforce successful pack build
+        env:
+          BUILD_EXIT_CODE: ${{ steps.build.outputs.exit_code }}
+        run: test "$BUILD_EXIT_CODE" = "0"
