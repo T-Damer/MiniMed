@@ -13,6 +13,7 @@ git checkout HEAD -- \
   packages/storage-sqlite/tests/sqlite-medical-store.test.ts
 
 git rm -f --ignore-unmatch \
+  .github/foundation-staging-marker.txt \
   data/build/clinical-case-benchmark.json \
   data/build/core-demo-report.json \
   data/build/core-demo.db \
