@@ -58,15 +58,17 @@ jobs:
             tools/ingest/tests/test_knowledge_modules.py
           rm -f .github/drug-real-data-staging-marker.txt
 
-      - name: Install and format
+      - name: Install and normalize formatting
         shell: bash
         run: |
           set -euo pipefail
           pnpm install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
-          pnpm check --write
+          pnpm exec biome check --write --unsafe .
+          pnpm check
           uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
           uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
 
       - name: Verify repository and real-data pack
         shell: bash
