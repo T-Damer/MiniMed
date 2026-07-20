@@ -1,2 +1,2 @@
 Temporary marker removed by the clean real-drug staging workflow.
-Retry: retain exact Ruff diagnostics.
+Retry: corrected Ruff duplicate-id regex.
