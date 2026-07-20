@@ -1,6 +1,10 @@
 name: Format and verify MiniMed alpha 6 product branch
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/format-alpha6-product.yml
   issues:
     types: [opened]
 
@@ -14,7 +18,7 @@ concurrency:
 
 jobs:
   format:
-    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Format MiniMed alpha 6 product'
+    if: github.event_name == 'push' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Format MiniMed alpha 6 product')
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     steps:
@@ -24,6 +28,7 @@ jobs:
           fetch-depth: 0
 
       - name: Report run
+        if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh issue comment "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --body "Alpha.6 formatter run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}."
@@ -115,7 +120,7 @@ jobs:
           git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
 
       - name: Close successful trigger
-        if: success()
+        if: github.event_name == 'issues' && success()
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Alpha.6 product branch formatted and fully verified.'
