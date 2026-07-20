@@ -2,7 +2,10 @@ import type { JSX } from 'solid-js';
 
 export type AppGlyphName = 'search' | 'archive' | 'history' | 'system' | 'close' | 'graph' | 'list';
 
-export function AppGlyph(props: { readonly name: AppGlyphName; readonly class?: string }): JSX.Element {
+export function AppGlyph(props: {
+  readonly name: AppGlyphName;
+  readonly class?: string;
+}): JSX.Element {
   return (
     <svg
       class={props.class}
