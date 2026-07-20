@@ -6,17 +6,22 @@ on:
     paths:
       - .agent/payload.part*
       - .github/workflows/apply-drug-knowledge-payload.yml
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
 
 concurrency:
   group: apply-offline-drug-knowledge-payload
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'agent/drug-knowledge-graph'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
