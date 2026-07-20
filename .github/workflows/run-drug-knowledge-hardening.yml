@@ -1,11 +1,8 @@
 name: Run drug knowledge hardening
 
 on:
-  push:
-    branches: [agent/drug-knowledge-graph]
-    paths:
-      - .github/workflows/apply-drug-knowledge-hardening.yml
-      - .github/workflows/run-drug-knowledge-hardening.yml
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
@@ -16,7 +13,7 @@ concurrency:
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.ref == 'agent/drug-knowledge-graph'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -24,11 +21,23 @@ jobs:
         with:
           ref: agent/drug-knowledge-graph
           fetch-depth: 0
+      - name: Record run
+        run: |
+          set -euo pipefail
+          printf '# Drug knowledge hardening\n\nRun: %s\nStatus: running\n' "$GITHUB_RUN_ID" > .agent-hardening-status.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .agent-hardening-status.md
+          git commit -m 'chore(ci): record drug knowledge hardening run'
+          git push origin HEAD:agent/drug-knowledge-graph
       - name: Execute checked-in hardening patch
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
+          work=/tmp/minimed-hardening
+          mkdir -p "$work"
+          set +e
+          python3 - <<'PY' >"$work/patch.log" 2>&1
           from pathlib import Path
           source = Path('.github/workflows/apply-drug-knowledge-hardening.yml').read_text(encoding='utf-8')
           marker = "          python3 - <<'PY'\n"
@@ -38,6 +47,11 @@ jobs:
           script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
           exec(compile(script, 'apply-drug-knowledge-hardening.py', 'exec'))
           PY
+          status=$?
+          set -e
+          printf '%s\n' "$status" >"$work/patch.status"
+          echo "=== patch (exit $status) ==="
+          tail -n 160 "$work/patch.log"
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
@@ -61,8 +75,8 @@ jobs:
         run: |
           set -euo pipefail
           work=/tmp/minimed-hardening
-          mkdir -p "$work"
           failed=0
+          if [ "$(cat "$work/patch.status")" != '0' ]; then failed=1; fi
           run_check() {
             label="$1"; shift
             set +e
@@ -110,13 +124,13 @@ jobs:
                 tail -n 220 "$work/$label.log"
                 echo '```'
               done
-            } > .agent-hardening-report.md
-            git add .agent-hardening-report.md
+            } > .agent-hardening-status.md
+            git add .agent-hardening-status.md
             git commit -m 'chore(ci): record drug knowledge hardening failure'
             git push origin HEAD:agent/drug-knowledge-graph
             exit 1
           fi
-          rm -f .agent-hardening-report.md
+          rm -f .agent-hardening-status.md
           rm -f .github/workflows/apply-drug-knowledge-hardening.yml
           rm -f .github/workflows/run-drug-knowledge-hardening.yml
           git add -A
