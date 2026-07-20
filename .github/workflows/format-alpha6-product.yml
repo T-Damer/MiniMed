@@ -58,7 +58,11 @@ jobs:
           graph_text = graph.read_text(encoding='utf-8')
           graph_text = graph_text.replace(
               '  readonly selectedId?: string;\n',
+              '  readonly selectedId: string | undefined;\n',
+          )
+          graph_text = graph_text.replace(
               '  readonly selectedId?: string | undefined;\n',
+              '  readonly selectedId: string | undefined;\n',
           )
           graph.write_text(graph_text, encoding='utf-8')
 
@@ -66,9 +70,11 @@ jobs:
           analysis_text = analysis.read_text(encoding='utf-8')
           old = r"    /(\d{1,3})\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,"
           new = r"    /(\d{1,3})\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,"
-          if old not in analysis_text:
+          if old in analysis_text:
+              analysis_text = analysis_text.replace(old, new, 1)
+          elif new not in analysis_text:
               raise SystemExit('reverse age pattern not found')
-          analysis.write_text(analysis_text.replace(old, new, 1), encoding='utf-8')
+          analysis.write_text(analysis_text, encoding='utf-8')
 
           tests = Path('packages/search-lexical/tests/query.test.ts')
           test_text = tests.read_text(encoding='utf-8')
@@ -94,16 +100,15 @@ jobs:
               tests.write_text(test_text[:index] + addition + test_text[index:], encoding='utf-8')
           PY
 
-      - name: Install, format and verify
+      - name: Install and format every changed source file
         shell: bash
         run: |
           set -euo pipefail
           pnpm install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
           pnpm check --write
-          pnpm verify
 
-      - name: Commit verified corrections
+      - name: Publish formatter output before the verifier
         shell: bash
         run: |
           set -euo pipefail
@@ -115,9 +120,13 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git diff --cached --quiet && exit 0
-          git commit -m 'fix(app): format alpha 6 and harden clinical parsing'
-          git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix(app): format alpha 6 and harden clinical parsing'
+            git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
+          fi
+
+      - name: Verify the formatted product branch
+        run: pnpm verify
 
       - name: Close successful trigger
         if: github.event_name == 'issues' && success()
