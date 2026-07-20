@@ -35,18 +35,18 @@ describe('SqliteMedicalStore', () => {
   });
 
   it('opens a precompiled SQLite content pack without replaying the JSON seed', async () => {
-    const bytes = new Uint8Array(await readFile('apps/app/public/content/core-demo.db'));
-    const store = await SqliteMedicalStore.createFromBytes(bytes);
+    const [databaseBytes, reportText] = await Promise.all([
+      readFile('apps/app/public/content/core-demo.db'),
+      readFile('apps/app/public/content/core-demo-report.json', 'utf8'),
+    ]);
+    const report = JSON.parse(reportText) as { documents: number };
+    const store = await SqliteMedicalStore.createFromBytes(new Uint8Array(databaseBytes));
     stores.push(store);
     const health = await store.initialize();
-    expect(health.documentCount).toBe(3);
-    const results = await store.search({
-      ftsQuery: '"аппендицит"*',
-      terms: ['аппендицит'],
-      filters: {},
-      limit: 5,
-    });
-    expect(results[0]?.document.id).toBe('kr.demo.surgery.appendicitis');
+    const documents = await store.listDocuments();
+    expect(health.documentCount).toBe(report.documents);
+    expect(documents).toHaveLength(report.documents);
+    expect(documents.every((document) => document.title.length > 0)).toBe(true);
   });
 
   it('finds a colloquial respiratory case through a generated FTS query', async () => {

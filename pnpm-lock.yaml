@@ -34,8 +34,8 @@ importers:
   apps/app:
     dependencies:
       '@capacitor/core':
-        specifier: 8.4.1
-        version: 8.4.1
+        specifier: 8.4.2
+        version: 8.4.2
       '@localmed/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -59,14 +59,14 @@ importers:
         version: 1.9.14
     devDependencies:
       '@capacitor/android':
-        specifier: 8.4.1
-        version: 8.4.1(@capacitor/core@8.4.1)
+        specifier: 8.4.2
+        version: 8.4.2(@capacitor/core@8.4.2)
       '@capacitor/cli':
-        specifier: 8.4.1
-        version: 8.4.1
+        specifier: 8.4.2
+        version: 8.4.2
       '@capacitor/ios':
-        specifier: 8.4.1
-        version: 8.4.1(@capacitor/core@8.4.1)
+        specifier: 8.4.2
+        version: 8.4.2(@capacitor/core@8.4.2)
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -74,8 +74,8 @@ importers:
         specifier: 8.1.4
         version: 8.1.4(@types/node@26.1.1)(esbuild@0.28.1)(tsx@4.23.1)(yaml@2.9.0)
       vite-plugin-solid:
-        specifier: 2.11.12
-        version: 2.11.12(solid-js@1.9.14)(vite@8.1.4(@types/node@26.1.1)(esbuild@0.28.1)(tsx@4.23.1)(yaml@2.9.0))
+        specifier: 2.11.13
+        version: 2.11.13(solid-js@1.9.14)(vite@8.1.4(@types/node@26.1.1)(esbuild@0.28.1)(tsx@4.23.1)(yaml@2.9.0))
 
   apps/landing:
     dependencies:
@@ -84,8 +84,8 @@ importers:
         version: 7.0.9(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.2)(@types/node@26.1.1)(tsx@4.23.1)(yaml@2.9.0)
     devDependencies:
       '@astrojs/check':
-        specifier: 0.9.4
-        version: 0.9.4(prettier@3.9.5)(typescript@5.9.3)
+        specifier: 0.9.9
+        version: 0.9.9(prettier@3.9.5)(typescript@5.9.3)
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -208,11 +208,11 @@ importers:
 
 packages:
 
-  '@astrojs/check@0.9.4':
-    resolution: {integrity: sha512-IOheHwCtpUfvogHHsvu0AbeRZEnjJg3MopdLddkJE70mULItS/Vh37BHcI00mcOJcH1vhD3odbpvWokpxam7xA==}
+  '@astrojs/check@0.9.9':
+    resolution: {integrity: sha512-A5UW8uIuErLWEoRQvzgXpO1gTjUFtK8r7nU2Z7GewAMxUb7bPvpk11qaKKgxqXlHJWlAvaaxy+Xg28A6bmQ1Tg==}
     hasBin: true
     peerDependencies:
-      typescript: ^5.0.0
+      typescript: ^5.0.0 || ^6.0.0
 
   '@astrojs/compiler-binding-darwin-arm64@0.3.1':
     resolution: {integrity: sha512-IEmEF2fUIlTHtpeE/isyEGVOB14cEyh/LZOFYt6wn3jNyVpdC8aR5OZ+RzFUR/f+8ZDM1LaMwZKvoA7eMyJeFw==}
@@ -498,21 +498,24 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@capacitor/android@8.4.1':
-    resolution: {integrity: sha512-igtDCJ7QQn0P2qHFD9p4KXaa6V1b2PRNt+MxjVwtjTm/BJvqmiazOJq6rPjwFSZnfHm6iFoZk8TfzHd44pyBGw==}
+  '@capacitor/android@8.4.2':
+    resolution: {integrity: sha512-bzf8XZ9C+ePgOQ+e+T0fnhHGH4aCNY494vvSQIF5w4AY07RwEmkFqZs1678DDSMH0hLSQpxEwXGFNUVcXO6bBA==}
     peerDependencies:
       '@capacitor/core': ^8.4.0
 
-  '@capacitor/cli@8.4.1':
-    resolution: {integrity: sha512-t7F2s7fFHCq113xgrggrmK6ctV0/8E5YfLNVLfPHp4GCTDO+tly9fZvWPf2/sOI8lMm18dLT43qbXLRTz/OZgw==}
+  '@capacitor/cli@8.4.2':
+    resolution: {integrity: sha512-hE4HmpMdr5T8eQ++kGa1BKkdG2JLEvo1y1cj1kmFK78VB9dBp538oe1EZvzwupNGOl0ZueALotzL5wcXRD9w1Q==}
     engines: {node: '>=22.0.0'}
     hasBin: true
 
   '@capacitor/core@8.4.1':
     resolution: {integrity: sha512-xqhOGLbTAYeOWK+IDUNSjQJAPapQjRHrIcgk9PYp52or9zFTaaMko31uNi16N6W+CRJ8VrRram6fOYILkBG2Hg==}
 
-  '@capacitor/ios@8.4.1':
-    resolution: {integrity: sha512-EgcAk7NYheHMTyP3CUrA65qKs4D2UEAKgw44HI6Uk3dTw6KjLQkdLOQWvbeRncHaZ2gklfOojUoc5DlSw2lhYg==}
+  '@capacitor/core@8.4.2':
+    resolution: {integrity: sha512-fQPRb3JXRaU2pnufDUvqOjhsrYxDQeFRZyaj/sHydIUxD2NxOGHKMpmKUdI+U4OOmKuGZyvRpi7TSJU+7Bjbmg==}
+
+  '@capacitor/ios@8.4.2':
+    resolution: {integrity: sha512-ClVzIjK++yRjsRPOpdEzhsZfbHfoEc0f4M6vD0v7sWh0qcoF6NkxNAeHpWTn4OPJpJfpGGoYsq+IfEHrYyBiWA==}
     peerDependencies:
       '@capacitor/core': ^8.4.0
 
@@ -990,6 +993,7 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rolldown/binding-linux-ppc64-gnu@1.1.5':
     resolution: {integrity: sha512-fsK/sNBnxzBlL4O1JNrZakVQxPspqpED5dLtNsZS9oOKmtSpdNIzxH2kkol5HYTWJN47sE20ztMJPxfZ89qGOg==}
@@ -2342,8 +2346,8 @@ packages:
   vfile@6.0.3:
     resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
 
-  vite-plugin-solid@2.11.12:
-    resolution: {integrity: sha512-FgjPcx2OwX9h6f28jli7A4bG7PP3te8uyakE5iqsmpq3Jqi1TWLgSroC9N6cMfGRU2zXsl4Q6ISvTr2VL0QHpA==}
+  vite-plugin-solid@2.11.13:
+    resolution: {integrity: sha512-YaCNMzwIawUO8K16uj5jaxUJIYCstBEjkUppC5OKElBz/K2+R7Q7MWycHDgqzjBca5WWy/2ZQQ45IHexaabYew==}
     peerDependencies:
       '@testing-library/jest-dom': ^5.16.6 || ^5.17.0 || ^6.*
       solid-js: ^1.7.2
@@ -2630,7 +2634,7 @@ packages:
 
 snapshots:
 
-  '@astrojs/check@0.9.4(prettier@3.9.5)(typescript@5.9.3)':
+  '@astrojs/check@0.9.9(prettier@3.9.5)(typescript@5.9.3)':
     dependencies:
       '@astrojs/language-server': 2.16.12(prettier@3.9.5)(typescript@5.9.3)
       chokidar: 4.0.3
@@ -2933,11 +2937,11 @@ snapshots:
   '@bruits/satteri-win32-x64-msvc@0.9.5':
     optional: true
 
-  '@capacitor/android@8.4.1(@capacitor/core@8.4.1)':
+  '@capacitor/android@8.4.2(@capacitor/core@8.4.2)':
     dependencies:
-      '@capacitor/core': 8.4.1
+      '@capacitor/core': 8.4.2
 
-  '@capacitor/cli@8.4.1':
+  '@capacitor/cli@8.4.2':
     dependencies:
       '@ionic/cli-framework-output': 2.2.8
       '@ionic/utils-subprocess': 3.0.1
@@ -2963,9 +2967,13 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@capacitor/ios@8.4.1(@capacitor/core@8.4.1)':
+  '@capacitor/core@8.4.2':
     dependencies:
-      '@capacitor/core': 8.4.1
+      tslib: 2.8.1
+
+  '@capacitor/ios@8.4.2(@capacitor/core@8.4.2)':
+    dependencies:
+      '@capacitor/core': 8.4.2
 
   '@capsizecss/unpack@4.0.1':
     dependencies:
@@ -4752,7 +4760,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-solid@2.11.12(solid-js@1.9.14)(vite@8.1.4(@types/node@26.1.1)(esbuild@0.28.1)(tsx@4.23.1)(yaml@2.9.0)):
+  vite-plugin-solid@2.11.13(solid-js@1.9.14)(vite@8.1.4(@types/node@26.1.1)(esbuild@0.28.1)(tsx@4.23.1)(yaml@2.9.0)):
     dependencies:
       '@babel/core': 7.29.7
       '@types/babel__core': 7.20.5
