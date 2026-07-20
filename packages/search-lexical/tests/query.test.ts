@@ -116,9 +116,25 @@ describe('lexical query planning', () => {
 
   it('does not turn a negated cough into a positive symptom fact', () => {
     const plan = analyzeClinicalQuery('Мальчик 5 лет, кашля нет', aliases);
-    expect(plan.analysis.facts.some((fact) => fact.kind === 'symptom' && fact.normalizedValue === 'кашель')).toBe(false);
+    expect(
+      plan.analysis.facts.some(
+        (fact) => fact.kind === 'symptom' && fact.normalizedValue === 'кашель',
+      ),
+    ).toBe(false);
     expect(plan.analysis.facts).toEqual(
       expect.arrayContaining([expect.objectContaining({ kind: 'negative-finding' })]),
+    );
+  });
+
+  it('does not confuse illness duration before sex with patient age', () => {
+    const plan = analyzeClinicalQuery('5 дней, мальчик, кашляет', aliases);
+    expect(plan.analysis.facts.some((fact) => fact.kind === 'age')).toBe(false);
+    expect(plan.analysis.facts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'duration' }),
+        expect.objectContaining({ kind: 'sex', normalizedValue: 'мужской' }),
+        expect.objectContaining({ kind: 'symptom', normalizedValue: 'кашель' }),
+      ]),
     );
   });
 
