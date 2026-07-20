@@ -64,19 +64,33 @@ jobs:
           version: '0.10.0'
           enable-cache: true
       - name: Install and format
+        shell: bash
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile
-          uv sync --project tools/ingest --all-groups --locked
-          pnpm check --write
-          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
+          work=/tmp/minimed-hardening
+          run_setup() {
+            label="$1"; shift
+            set +e
+            "$@" >"$work/$label.log" 2>&1
+            status=$?
+            set -e
+            printf '%s\n' "$status" >"$work/$label.status"
+            echo "=== $label (exit $status) ==="
+            tail -n 160 "$work/$label.log"
+          }
+          run_setup pnpm-install pnpm install --frozen-lockfile
+          run_setup uv-sync uv sync --project tools/ingest --all-groups --locked
+          run_setup biome-write pnpm check --write
+          run_setup ruff-write uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
       - name: Run validation gates
         shell: bash
         run: |
           set -euo pipefail
           work=/tmp/minimed-hardening
           failed=0
-          if [ "$(cat "$work/patch.status")" != '0' ]; then failed=1; fi
+          for status_file in "$work"/*.status; do
+            if [ "$(cat "$status_file")" != '0' ]; then failed=1; fi
+          done
           run_check() {
             label="$1"; shift
             set +e
