@@ -25,13 +25,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.16.0
           cache: pnpm
@@ -202,26 +202,13 @@ jobs:
           path: release-output/
 
       - name: Publish GitHub prerelease
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          assets=(
-            "release-output/${APK_NAME}"
-            "release-output/MiniMed-${RELEASE_VERSION}-source.zip"
-            release-output/BUILD-MANIFEST.json
-            release-output/content-pack-report.json
-            release-output/search-benchmark.json
-            release-output/clinical-case-benchmark.json
-            release-output/APK-CONTENTS.txt
-            release-output/APK-BADGING.txt
-            release-output/APK-PERMISSIONS.txt
-            release-output/APK-SIGNATURE.txt
-            release-output/EMBEDDED-DB-PATH.txt
-            release-output/SHA256SUMS.txt
-          )
+          assets=("release-output/${APK_NAME}")
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
             gh release edit "$RELEASE_TAG" --target "$(git rev-parse HEAD)" --title "MiniMed ${RELEASE_VERSION} — full offline Android preview" --notes-file release-output/RELEASE_NOTES.md --prerelease
