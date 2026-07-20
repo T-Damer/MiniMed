@@ -6,8 +6,6 @@ on:
     paths:
       - .agent/payload.part*
       - .github/workflows/apply-drug-knowledge-payload.yml
-  pull_request:
-    branches: [main]
 
 permissions:
   contents: write
@@ -18,10 +16,7 @@ concurrency:
 
 jobs:
   apply:
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'agent/drug-knowledge-graph'
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -82,14 +77,31 @@ jobs:
           run_check pyright uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
           run_check pytest uv run --project tools/ingest pytest tools/ingest/tests
           printf '%s\n' "$failed" >"$report/failed"
-      - name: Upload validation diagnostics
+      - name: Persist validation failure report
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: drug-knowledge-validation
-          path: /tmp/minimed-validation
-          if-no-files-found: error
-          retention-days: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          report=/tmp/minimed-validation
+          if [ "$(cat "$report/failed")" = '0' ]; then exit 0; fi
+          {
+            echo '# Drug knowledge validation failure'
+            echo
+            for status_file in "$report"/*.status; do
+              label="$(basename "$status_file" .status)"
+              status="$(cat "$status_file")"
+              echo "## $label — exit $status"
+              echo '```text'
+              tail -n 160 "$report/$label.log"
+              echo '```'
+              echo
+            done
+          } > .agent-validation-report.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .agent-validation-report.md
+          git commit -m 'chore(ci): record drug knowledge validation failure'
+          git push origin HEAD:agent/drug-knowledge-graph
       - name: Enforce validation result
         run: test "$(cat /tmp/minimed-validation/failed)" = '0'
       - name: Commit tested product changes
