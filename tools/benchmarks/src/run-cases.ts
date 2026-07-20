@@ -44,6 +44,8 @@ const root = resolve(import.meta.dirname, '../../..');
 const fixtures = parseCases(
   JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/clinical-cases.json'), 'utf8')),
 );
+// The fixture expectations use stable kr.demo.* identifiers, so this benchmark must stay isolated
+// from the independently evolving public APK corpus.
 const store = await SqliteMedicalStore.create();
 const core = createMedicalCore({
   store,
