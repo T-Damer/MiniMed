@@ -112,7 +112,7 @@ facts:
       - documentId: drug.rf.paracetamol.pediatric-suspension
         documentVersionId: drug.rf.paracetamol.pediatric-suspension@registry-2026-05-07
         sectionId: section.83a0a0be7aa3a0a0
-        chunkId: chunk.1b7c6bc6503f1e30
+        chunkId: chunk.c6571f9984f6462b
         quote: В государственном реестре предельных отпускных цен присутствует лекарственный препарат «Парацетамол-АКОС»: МНН — парацетамол, лекарственная форма — суспензия для приема внутрь для детей, дозировка 120 мг/5 мл, регистрационное удостоверение ЛП-№(002094)-(РГ-RU). Дата вступления решения в силу — 7 мая 2026 года.
         sourceLocator:
           url: https://pots.minzdrav.gov.ru/public_price_limits?page=2494&per_page=15
@@ -140,7 +140,7 @@ facts:
       - documentId: drug.rf.ibuprofen.pediatric-suspension
         documentVersionId: drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11
         sectionId: section.5319d1d9bbc34c46
-        chunkId: chunk.56928a2c545263d0
+        chunkId: chunk.77115f24d182141d
         quote: В государственном реестре предельных отпускных цен присутствует лекарственный препарат с МНН ибупрофен: суспензия для приема внутрь для детей, дозировка 100 мг/5 мл, регистрационное удостоверение ЛП-№(006579)-(РГ-RU). Дата вступления решения в силу — 11 ноября 2024 года.
         sourceLocator:
           url: https://pots.minzdrav.gov.ru/public_price_limits?page=1188
@@ -167,7 +167,7 @@ facts:
       - documentId: drug.rf.amoxicillin.tablets-500
         documentVersionId: drug.rf.amoxicillin.tablets-500@registry-2026-03-19
         sectionId: section.65ebf591a4642ac2
-        chunkId: chunk.5b1f4270d70732e6
+        chunkId: chunk.35fef50290ecf58f
         quote: В государственном реестре предельных отпускных цен присутствует лекарственный препарат с МНН амоксициллин: таблетки 500 мг, регистрационное удостоверение ЛП-№(013359)-(РГ-RU). Дата вступления решения в силу — 19 марта 2026 года.
         sourceLocator:
           url: https://pots.minzdrav.gov.ru/public_price_limits?page=236
@@ -192,7 +192,7 @@ relations:
       - documentId: kr.rf.714_2.pneumonia
         documentVersionId: kr.rf.714_2.pneumonia@714_2-2025
         sectionId: section.208c2084d4162559
-        chunkId: chunk.bd7cd21a128ea5a7
+        chunkId: chunk.bc6615dcc5de5522
         quote: Для многих амбулаторных детей препаратом выбора является амоксициллин
         sourceLocator:
           url: https://cr.minzdrav.gov.ru/preview-cr/714_2
@@ -206,7 +206,7 @@ documentLinks:
     documentId: drug.rf.paracetamol.pediatric-suspension
     documentVersionId: drug.rf.paracetamol.pediatric-suspension@registry-2026-05-07
     sectionId: section.83a0a0be7aa3a0a0
-    chunkId: chunk.1b7c6bc6503f1e30
+    chunkId: chunk.c6571f9984f6462b
     linkType: registration-record
     weight: 1.0
     reviewStatus: proposed
@@ -216,7 +216,7 @@ documentLinks:
     documentId: drug.rf.ibuprofen.pediatric-suspension
     documentVersionId: drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11
     sectionId: section.5319d1d9bbc34c46
-    chunkId: chunk.56928a2c545263d0
+    chunkId: chunk.77115f24d182141d
     linkType: registration-record
     weight: 1.0
     reviewStatus: proposed
@@ -226,7 +226,7 @@ documentLinks:
     documentId: drug.rf.amoxicillin.tablets-500
     documentVersionId: drug.rf.amoxicillin.tablets-500@registry-2026-03-19
     sectionId: section.65ebf591a4642ac2
-    chunkId: chunk.5b1f4270d70732e6
+    chunkId: chunk.35fef50290ecf58f
     linkType: registration-record
     weight: 1.0
     reviewStatus: proposed
@@ -236,7 +236,7 @@ documentLinks:
     documentId: kr.rf.714_2.pneumonia
     documentVersionId: kr.rf.714_2.pneumonia@714_2-2025
     sectionId: section.208c2084d4162559
-    chunkId: chunk.bd7cd21a128ea5a7
+    chunkId: chunk.bc6615dcc5de5522
     linkType: mentioned-in-guideline
     weight: 0.95
     reviewStatus: proposed
