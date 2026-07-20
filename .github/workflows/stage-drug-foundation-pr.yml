@@ -33,10 +33,26 @@ jobs:
           version: "0.10.0"
           enable-cache: true
       - name: Execute registered integration script
+        id: stage
         shell: bash
         run: |
-          set -euo pipefail
+          set +e
           git fetch origin main
           git show origin/main:.github/scripts/stage-drug-foundation-final.sh > /tmp/stage-drug-foundation-final.sh
           chmod +x /tmp/stage-drug-foundation-final.sh
-          /tmp/stage-drug-foundation-final.sh
+          /tmp/stage-drug-foundation-final.sh 2>&1 | tee foundation-staging.log
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload foundation staging diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-staging-diagnostics
+          if-no-files-found: error
+          retention-days: 7
+          path: foundation-staging.log
+      - name: Enforce successful integration
+        env:
+          STAGE_EXIT_CODE: ${{ steps.stage.outputs.exit_code }}
+        run: test "$STAGE_EXIT_CODE" = "0"
