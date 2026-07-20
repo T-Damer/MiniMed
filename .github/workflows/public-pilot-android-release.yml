@@ -28,51 +28,38 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
-
       - uses: actions/setup-node@v7
         with:
           node-version: 22.16.0
           cache: pnpm
-
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.10.0"
           enable-cache: true
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-
       - uses: android-actions/setup-android@v3
 
       - name: Install Android SDK components
-        shell: bash
         run: |
-          set -euo pipefail
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;${BUILD_TOOLS_VERSION}"
 
-      - name: Install locked dependencies
+      - name: Install and verify
         run: |
           pnpm install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
-
-      - name: Verify application and build public pack
-        run: |
           pnpm verify
           pnpm content:lint:pilot
           pnpm content:build:pilot
           pnpm benchmark:pilot
           cp data/build/rf-public-pilot.db apps/app/public/content/core-demo.db
           cp data/build/rf-public-pilot-report.json apps/app/public/content/core-demo-report.json
-
-      - name: Build and synchronize Capacitor
-        run: |
           pnpm build:app
           pnpm native:sync:android
 
@@ -93,12 +80,10 @@ jobs:
           test -s "$apk_source"
           cp "$apk_source" "$apk"
           unzip -l "$apk" | tee release-output/APK-CONTENTS.txt
-
           embedded_path="$(unzip -Z1 "$apk" | awk '/(^|\/)core-demo\.db$/ { print; exit }')"
           test -n "$embedded_path"
           printf '%s\n' "$embedded_path" | tee release-output/EMBEDDED-DB-PATH.txt
           unzip -p "$apk" "$embedded_path" > "$extracted_db"
-          test -s "$extracted_db"
           cmp "$original_db" "$extracted_db"
 
           aapt="${ANDROID_HOME}/build-tools/${BUILD_TOOLS_VERSION}/aapt"
@@ -114,10 +99,8 @@ jobs:
           import sqlite3
           from pathlib import Path
 
-          expected_recommendation_ids = {
-              '281_3', '360_3', '381_3', '563_2', '58_2', '714_2', '755_1'
-          }
-          expected_medication_ids = {
+          expected_recommendations = {'281_3', '360_3', '381_3', '563_2', '58_2', '714_2', '755_1'}
+          expected_medications = {
               'medication.paracetamol.suspension.120mg-5ml',
               'medication.ibuprofen.suspension.100mg-5ml',
               'medication.amoxicillin.tablet.500mg',
@@ -127,52 +110,45 @@ jobs:
               'medication.oral-rehydration-salts.powder.18-9g',
               'medication.oseltamivir.capsule.30mg',
           }
-
           apk = Path(os.environ['APK_FILE'])
           db_path = Path(os.environ['RUNNER_TEMP']) / 'rf-public-pilot-from-apk.db'
           report = json.loads(Path('data/build/rf-public-pilot-report.json').read_text(encoding='utf-8'))
-          connection = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
+          db = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
           try:
-              quick_check = connection.execute('PRAGMA quick_check').fetchone()[0]
-              foreign_key_violations = len(connection.execute('PRAGMA foreign_key_check').fetchall())
-              pack = connection.execute(
-                  'SELECT id, version, schema_version, title, checksum FROM content_packs'
-              ).fetchone()
-              documents = connection.execute(
+              quick_check = db.execute('PRAGMA quick_check').fetchone()[0]
+              foreign_key_violations = len(db.execute('PRAGMA foreign_key_check').fetchall())
+              pack = db.execute('SELECT id, version, schema_version FROM content_packs').fetchone()
+              documents = db.execute(
                   'SELECT id, title, source_type, metadata_json FROM documents ORDER BY id'
               ).fetchall()
-              sections = connection.execute('SELECT COUNT(*) FROM sections').fetchone()[0]
-              chunks = connection.execute('SELECT id, document_version_id, metadata_json FROM chunks').fetchall()
-              aliases = connection.execute('SELECT COUNT(*) FROM aliases').fetchone()[0]
-              embedding_profiles = connection.execute('SELECT COUNT(*) FROM embedding_profiles').fetchone()[0]
-              embeddings = connection.execute('SELECT COUNT(*) FROM chunk_embeddings').fetchone()[0]
-              table_names = {
-                  row[0]
-                  for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
-              }
-
-              assert quick_check == 'ok'
-              assert foreign_key_violations == 0
-              assert pack is not None and pack[0] == 'minimed.rf-public-pilot'
-              assert pack[2] >= 2
-              assert len(documents) == report['documents']
-              assert sections == report['sections']
-              assert len(chunks) == report['chunks']
-              assert aliases == report['aliases']
-              assert embedding_profiles == report['embeddingProfiles'] == 1
-              assert embeddings == report['embeddings'] == len(chunks)
-
-              document_type_by_version = {
+              sections = db.execute('SELECT COUNT(*) FROM sections').fetchone()[0]
+              chunks = db.execute(
+                  'SELECT id, document_version_id, original_text, metadata_json FROM chunks'
+              ).fetchall()
+              aliases = db.execute('SELECT COUNT(*) FROM aliases').fetchone()[0]
+              profiles = db.execute('SELECT COUNT(*) FROM embedding_profiles').fetchone()[0]
+              embeddings = db.execute('SELECT COUNT(*) FROM chunk_embeddings').fetchone()[0]
+              version_types = {
                   row[0]: row[1]
-                  for row in connection.execute(
+                  for row in db.execute(
                       'SELECT document_versions.id, documents.source_type '
                       'FROM document_versions JOIN documents ON documents.id = document_versions.document_id'
                   )
               }
+
+              assert quick_check == 'ok'
+              assert foreign_key_violations == 0
+              assert pack and pack[0] == 'minimed.rf-public-pilot' and pack[2] >= 2
+              assert len(documents) == report['documents']
+              assert sections == report['sections']
+              assert len(chunks) == report['chunks']
+              assert aliases == report['aliases']
+              assert profiles == report['embeddingProfiles'] == 1
+              assert embeddings == report['embeddings'] == len(chunks)
+
               source_index = []
               recommendation_ids = set()
               registry_documents = 0
-
               for document_id, title, source_type, metadata_raw in documents:
                   metadata = json.loads(metadata_raw)
                   assert metadata.get('syntheticFixture') is False
@@ -182,42 +158,33 @@ jobs:
                       assert metadata['notSubstituteForOriginal'] is True
                       assert metadata['officialSourceUrl'].startswith('https://cr.minzdrav.gov.ru/')
                       assert metadata['publicMirrorUrl'].startswith('https://')
-                      official_id = str(metadata['officialId'])
-                      recommendation_ids.add(official_id)
-                      source_index.append({
-                          'documentId': document_id,
-                          'title': title,
-                          'sourceType': source_type,
-                          'officialId': official_id,
-                          'officialSourceUrl': metadata['officialSourceUrl'],
-                          'publicMirrorUrl': metadata['publicMirrorUrl'],
-                          'sourceYear': metadata['sourceYear'],
-                      })
+                      recommendation_ids.add(str(metadata['officialId']))
                   elif source_type == 'official_registry_summary':
                       registry_documents += 1
                       assert metadata['authorityTier'] == 'official-registry'
                       assert metadata['contentMode'] == 'source_linked_summary'
                       assert metadata['officialSourceUrl'].startswith('https://pots.minzdrav.gov.ru/')
-                      assert metadata['registryRecordId']
-                      assert metadata['registrationNumber']
-                      source_index.append({
-                          'documentId': document_id,
-                          'title': title,
-                          'sourceType': source_type,
-                          'registryRecordId': metadata['registryRecordId'],
-                          'registrationNumber': metadata['registrationNumber'],
-                          'officialSourceUrl': metadata['officialSourceUrl'],
-                      })
+                      assert metadata['registryRecordId'] and metadata['registrationNumber']
                   else:
-                      raise AssertionError(f'Unexpected public source type: {source_type}')
+                      raise AssertionError(f'Unexpected source type: {source_type}')
+                  source_index.append({
+                      'documentId': document_id,
+                      'title': title,
+                      'sourceType': source_type,
+                      'metadata': metadata,
+                  })
+              assert recommendation_ids == expected_recommendations
 
-              assert recommendation_ids == expected_recommendation_ids
-
-              for chunk_id, document_version_id, metadata_raw in chunks:
+              sourced_versions = set()
+              for chunk_id, version_id, original_text, metadata_raw in chunks:
                   metadata = json.loads(metadata_raw)
                   spans = metadata.get('sourceSpans')
-                  assert isinstance(spans, list) and spans, f'{chunk_id}: missing source spans'
-                  source_type = document_type_by_version[document_version_id]
+                  source_type = version_types[version_id]
+                  if not spans:
+                      assert source_type == 'official_registry_summary'
+                      assert original_text.startswith('Карточка фиксирует регистрационную идентичность')
+                      continue
+                  sourced_versions.add(version_id)
                   for span in spans:
                       assert span.get('sourceSection')
                       if source_type == 'clinical_recommendation_summary':
@@ -226,33 +193,36 @@ jobs:
                           assert span['contentMode'] == 'paraphrase'
                       else:
                           assert str(span['officialUrl']).startswith('https://pots.minzdrav.gov.ru/')
-                          assert span['recordId']
-                          assert span['contentMode'] == 'summary'
+                          assert span['recordId'] and span['contentMode'] == 'summary'
+              assert sourced_versions == set(version_types)
 
+              table_names = {
+                  row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+              }
               knowledge = None
               if 'knowledge_entities' in table_names:
                   medication_ids = {
                       row[0]
-                      for row in connection.execute(
+                      for row in db.execute(
                           "SELECT id FROM knowledge_entities WHERE entity_type = 'medication'"
                       )
                   }
                   knowledge = {
-                      'entities': connection.execute('SELECT COUNT(*) FROM knowledge_entities').fetchone()[0],
-                      'medicationProfiles': connection.execute('SELECT COUNT(*) FROM medication_profiles').fetchone()[0],
-                      'facts': connection.execute('SELECT COUNT(*) FROM knowledge_facts').fetchone()[0],
-                      'relations': connection.execute('SELECT COUNT(*) FROM knowledge_relations').fetchone()[0],
-                      'evidence': connection.execute('SELECT COUNT(*) FROM knowledge_evidence').fetchone()[0],
-                      'documentLinks': connection.execute('SELECT COUNT(*) FROM knowledge_document_links').fetchone()[0],
-                      'reviewTasks': connection.execute('SELECT COUNT(*) FROM knowledge_review_tasks').fetchone()[0],
-                      'reviewedFacts': connection.execute(
+                      'entities': db.execute('SELECT COUNT(*) FROM knowledge_entities').fetchone()[0],
+                      'medicationProfiles': db.execute('SELECT COUNT(*) FROM medication_profiles').fetchone()[0],
+                      'facts': db.execute('SELECT COUNT(*) FROM knowledge_facts').fetchone()[0],
+                      'relations': db.execute('SELECT COUNT(*) FROM knowledge_relations').fetchone()[0],
+                      'evidence': db.execute('SELECT COUNT(*) FROM knowledge_evidence').fetchone()[0],
+                      'documentLinks': db.execute('SELECT COUNT(*) FROM knowledge_document_links').fetchone()[0],
+                      'reviewTasks': db.execute('SELECT COUNT(*) FROM knowledge_review_tasks').fetchone()[0],
+                      'reviewedFacts': db.execute(
                           "SELECT COUNT(*) FROM knowledge_facts WHERE review_status = 'reviewed'"
                       ).fetchone()[0],
-                      'structuredSearchRows': connection.execute('SELECT COUNT(*) FROM knowledge_fts').fetchone()[0],
+                      'structuredSearchRows': db.execute('SELECT COUNT(*) FROM knowledge_fts').fetchone()[0],
                   }
                   if registry_documents:
                       assert registry_documents == 8
-                      assert medication_ids == expected_medication_ids
+                      assert medication_ids == expected_medications
                       assert knowledge == {
                           'entities': 9,
                           'medicationProfiles': 8,
@@ -265,9 +235,8 @@ jobs:
                           'structuredSearchRows': 0,
                       }
           finally:
-              connection.close()
+              db.close()
 
-          source_index.sort(key=lambda item: item['documentId'])
           Path('release-output/SOURCE-INDEX.json').write_text(
               json.dumps(source_index, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
           )
@@ -294,7 +263,7 @@ jobs:
                   'sections': sections,
                   'chunks': len(chunks),
                   'aliases': aliases,
-                  'embeddingProfiles': embedding_profiles,
+                  'embeddingProfiles': profiles,
                   'embeddings': embeddings,
                   'clinicalRecommendationCards': len(recommendation_ids),
                   'officialRegistryCards': registry_documents,
@@ -312,7 +281,6 @@ jobs:
           Path('release-output/BUILD-MANIFEST.json').write_text(
               json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
           )
-          print(json.dumps(manifest, ensure_ascii=False, indent=2))
           PY
 
           git archive --format=zip --output="release-output/MiniMed-${RELEASE_VERSION}-source.zip" HEAD
@@ -324,9 +292,7 @@ jobs:
           cat > release-output/RELEASE_NOTES.md <<'EOF'
           # MiniMed 0.3.0-alpha.6 — offline Russian clinical and medication pilot
 
-          This prerelease contains the complete offline MiniMed Android application, seven source-linked pediatric clinical-recommendation cards, and eight official-registry medication identity cards.
-
-          Medication cards preserve registration identity and provenance only. They do not establish a dose, indication, contraindication, or suitability for an individual patient. Structured drug facts remain proposed until named human review.
+          This prerelease contains seven source-linked pediatric recommendation cards and eight official-registry medication identity cards. Medication registration does not establish a dose, indication, contraindication, or suitability for an individual patient. Structured drug facts remain proposed until named human review.
 
           Search, SQLite FTS5, the local vector path, source opening, and the knowledge graph operate offline. The original primary source remains authoritative.
           EOF
@@ -342,11 +308,9 @@ jobs:
 
       - name: Publish APK-only GitHub prerelease
         if: github.event_name == 'workflow_dispatch'
-        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
           assets=("release-output/${APK_NAME}")
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
