@@ -1,26 +1,31 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
-from .knowledge import (
-    KnowledgeWorkspace,
-    _read_yaml_mapping,
-    validate_knowledge_workspace,
-)
+from .knowledge import KnowledgeWorkspace, _read_yaml_mapping, validate_knowledge_workspace
 from .models import PackDocument
 
 _COLLECTION_KEYS = ("entities", "facts", "relations", "documentLinks", "reviewTasks")
 
 
-def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> KnowledgeWorkspace:
-    """Load and validate every knowledge*.yaml module as one relational workspace.
+def _read_module(path: Path) -> dict[str, object]:
+    if path.suffix == ".json":
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError(f"Expected JSON mapping: {path}")
+        return {str(key): value for key, value in payload.items()}
+    return _read_yaml_mapping(path)
 
-    Keeping registry snapshots, guideline relations, and editorial material in separate files avoids
-    rewriting a monolithic reviewed workspace while preserving global duplicate-ID and reference
-    validation after composition.
+
+def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> KnowledgeWorkspace:
+    """Compose every knowledge*.yaml/json file into one validated relational workspace.
+
+    YAML remains convenient for human editorial work. JSON is preferred for imported registry
+    snapshots because exact evidence quotes do not require YAML-specific escaping.
     """
 
-    paths = sorted(input_dir.glob("knowledge*.yaml"))
+    paths = sorted([*input_dir.glob("knowledge*.json"), *input_dir.glob("knowledge*.yaml")])
     if not paths:
         return KnowledgeWorkspace()
 
@@ -29,7 +34,7 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
     origins: dict[str, Path] = {}
 
     for path in paths:
-        payload = _read_yaml_mapping(path)
+        payload = _read_module(path)
         current_schema = payload.get("schemaVersion", payload.get("schema_version", 1))
         if not isinstance(current_schema, int) or current_schema < 1:
             raise ValueError(f"{path}: schemaVersion must be a positive integer.")
