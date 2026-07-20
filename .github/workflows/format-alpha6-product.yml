@@ -1,0 +1,121 @@
+name: Format and verify MiniMed alpha 6 product branch
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: format-alpha6-product
+  cancel-in-progress: false
+
+jobs:
+  format:
+    if: github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Format MiniMed alpha 6 product'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/mobile-ux-0.3.0-alpha.6
+          fetch-depth: 0
+
+      - name: Report run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --body "Alpha.6 formatter run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}."
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Apply final parser and strict-type corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          graph = Path('apps/app/src/features/library/KnowledgeGraph.tsx')
+          graph_text = graph.read_text(encoding='utf-8')
+          graph_text = graph_text.replace(
+              '  readonly selectedId?: string;\n',
+              '  readonly selectedId?: string | undefined;\n',
+          )
+          graph.write_text(graph_text, encoding='utf-8')
+
+          analysis = Path('packages/search-lexical/src/analysis.ts')
+          analysis_text = analysis.read_text(encoding='utf-8')
+          old = r"    /(\d{1,3})\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,"
+          new = r"    /(\d{1,3})\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,"
+          if old not in analysis_text:
+              raise SystemExit('reverse age pattern not found')
+          analysis.write_text(analysis_text.replace(old, new, 1), encoding='utf-8')
+
+          tests = Path('packages/search-lexical/tests/query.test.ts')
+          test_text = tests.read_text(encoding='utf-8')
+          title = 'does not confuse illness duration before sex with patient age'
+          if title not in test_text:
+              addition = '''
+            it('does not confuse illness duration before sex with patient age', () => {
+              const plan = analyzeClinicalQuery('5 дней, мальчик, кашляет', aliases);
+              expect(plan.analysis.facts.some((fact) => fact.kind === 'age')).toBe(false);
+              expect(plan.analysis.facts).toEqual(
+                expect.arrayContaining([
+                  expect.objectContaining({ kind: 'duration' }),
+                  expect.objectContaining({ kind: 'sex', normalizedValue: 'мужской' }),
+                  expect.objectContaining({ kind: 'symptom', normalizedValue: 'кашель' }),
+                ]),
+              );
+            });
+          '''
+              marker = '\n});\n'
+              index = test_text.rfind(marker)
+              if index < 0:
+                  raise SystemExit('test suite closing marker not found')
+              tests.write_text(test_text[:index] + addition + test_text[index:], encoding='utf-8')
+          PY
+
+      - name: Install, format and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+          pnpm check --write
+          pnpm verify
+
+      - name: Commit verified corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --quiet -- .github/workflows || {
+            echo 'Formatter unexpectedly modified workflow files.' >&2
+            git diff -- .github/workflows
+            exit 1
+          }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix(app): format alpha 6 and harden clinical parsing'
+          git push origin HEAD:agent/mobile-ux-0.3.0-alpha.6
+
+      - name: Close successful trigger
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Alpha.6 product branch formatted and fully verified.'
