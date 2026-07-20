@@ -336,6 +336,136 @@ def authority_tier_for_document(document: PackDocument) -> AuthorityTier:
     return "third-party"
 
 
+def require_ai_processing_license(document: PackDocument) -> str:
+    """Fail closed before source text is sent to a third-party model workflow."""
+    if authority_tier_for_document(document) == "synthetic-fixture":
+        return "synthetic-fixture"
+
+    rights = document.metadata.get("rights")
+    if not isinstance(rights, dict):
+        raise ValueError(
+            f"Document {document.id} cannot be exported to ChatGPT without explicit "
+            "derivative-processing rights metadata."
+        )
+    allowed = rights.get("allowsDerivativeProcessing", rights.get("allows_derivative_processing"))
+    if allowed is not True:
+        raise ValueError(
+            f"Document {document.id} cannot be exported to ChatGPT because "
+            "derivative processing is not allowed."
+        )
+    license_id = rights.get("licenseId", rights.get("license_id"))
+    if not isinstance(license_id, str) or not license_id.strip():
+        raise ValueError(
+            f"Document {document.id} cannot be exported to ChatGPT without a licenseId."
+        )
+    return license_id.strip()
+
+
+def _external_id_key(namespace: str, value: str) -> tuple[str, str]:
+    return namespace.strip().casefold(), value.strip().casefold()
+
+
+def _entity_identity_key(
+    entity_type: str,
+    canonical_name: str,
+    medication: MedicationProfile | None,
+) -> tuple[str, ...] | None:
+    normalized_type = normalize_surface_text(entity_type)
+    normalized_name = normalize_surface_text(canonical_name)
+    if medication is None:
+        # Medication names alone are not safe cross-document identifiers: the same display name can
+        # refer to a substance, clinical drug, brand, package, or registration.
+        return (
+            None
+            if normalized_type == "medication"
+            else ("entity", normalized_type, normalized_name)
+        )
+
+    strong_values = (
+        medication.inn,
+        medication.dosage_form,
+        medication.route,
+        medication.strength,
+        medication.registration_number,
+    )
+    if not any(isinstance(value, str) and value.strip() for value in strong_values):
+        return None
+    return (
+        "medication",
+        normalize_surface_text(medication.concept_level),
+        normalized_name,
+        normalize_surface_text(medication.inn or ""),
+        normalize_surface_text(medication.atc_code or ""),
+        normalize_surface_text(medication.dosage_form or ""),
+        normalize_surface_text(medication.route or ""),
+        normalize_surface_text(medication.strength or ""),
+        normalize_surface_text(medication.registration_number or ""),
+    )
+
+
+def _merge_entity(existing: KnowledgeEntity, candidate: KnowledgeEntity) -> None:
+    if normalize_surface_text(existing.entity_type) != normalize_surface_text(
+        candidate.entity_type
+    ):
+        raise ValueError(
+            f"Entity {existing.id} received conflicting types: "
+            f"{existing.entity_type} and {candidate.entity_type}."
+        )
+
+    existing_names = {
+        ("ru", normalize_surface_text(existing.canonical_name)),
+        *((name.language, normalize_surface_text(name.name)) for name in existing.names),
+    }
+    candidate_names = [
+        KnowledgeName(name=candidate.canonical_name, name_type="alternate-canonical"),
+        *candidate.names,
+    ]
+    for name in candidate_names:
+        key = (name.language, normalize_surface_text(name.name))
+        if key in existing_names:
+            continue
+        existing.names.append(name)
+        existing_names.add(key)
+
+    for namespace, value in candidate.external_ids.items():
+        previous = existing.external_ids.get(namespace)
+        if previous is not None and previous.casefold() != value.casefold():
+            raise ValueError(
+                f"Conflicting external id {namespace} for entity {existing.canonical_name}."
+            )
+        existing.external_ids[namespace] = value
+
+    if existing.medication is None:
+        existing.medication = candidate.medication
+        return
+    if candidate.medication is None:
+        return
+
+    for field_name in (
+        "concept_level",
+        "inn",
+        "atc_code",
+        "dosage_form",
+        "route",
+        "strength",
+        "registration_number",
+        "registration_status",
+        "pediatric_status",
+    ):
+        current = getattr(existing.medication, field_name)
+        incoming = getattr(candidate.medication, field_name)
+        if incoming is None or (isinstance(incoming, str) and not incoming.strip()):
+            continue
+        if current is None or (isinstance(current, str) and not current.strip()):
+            setattr(existing.medication, field_name, incoming)
+            continue
+        if normalize_surface_text(current) != normalize_surface_text(incoming):
+            raise ValueError(
+                f"Conflicting medication field {field_name} for entity "
+                f"{existing.canonical_name}: {current!r} versus {incoming!r}."
+            )
+
+
 def _document_maps(
     documents: list[PackDocument],
 ) -> tuple[
@@ -742,6 +872,7 @@ def export_chatgpt_tasks(input_dir: Path, output: Path) -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
     rows: list[str] = []
     for document in documents:
+        processing_license_id = require_ai_processing_license(document)
         for section in document.sections:
             for chunk in section.chunks:
                 payload = {
@@ -753,6 +884,10 @@ def export_chatgpt_tasks(input_dir: Path, output: Path) -> int:
                         "title": document.title,
                         "sourceType": document.source_type,
                         "authorityTier": authority_tier_for_document(document),
+                        "rights": {
+                            "licenseId": processing_license_id,
+                            "allowsDerivativeProcessing": True,
+                        },
                         "status": document.status,
                         "sectionId": section.id,
                         "sectionPath": section.section_path,
@@ -818,10 +953,24 @@ def import_chatgpt_responses(
         validate_knowledge_workspace(base, documents)
 
     entities_by_id = {item.id: item for item in base.entities}
-    entity_id_by_key: dict[tuple[str, str], str] = {
-        (item.entity_type, normalize_surface_text(item.canonical_name)): item.id
-        for item in base.entities
-    }
+    entity_id_by_identity: dict[tuple[str, ...], str] = {}
+    external_entity_id_by_key: dict[tuple[str, str], str] = {}
+    for item in base.entities:
+        identity = _entity_identity_key(item.entity_type, item.canonical_name, item.medication)
+        if identity is not None:
+            previous = entity_id_by_identity.get(identity)
+            if previous is not None and previous != item.id:
+                raise ValueError(f"Duplicate safe entity identity for {item.canonical_name}.")
+            entity_id_by_identity[identity] = item.id
+        for namespace, value in item.external_ids.items():
+            if not namespace.strip() or not value.strip():
+                continue
+            external_key = _external_id_key(namespace, value)
+            previous = external_entity_id_by_key.get(external_key)
+            if previous is not None and previous != item.id:
+                raise ValueError(f"External id {namespace}:{value} maps to multiple entities.")
+            external_entity_id_by_key[external_key] = item.id
+
     facts_by_id = {item.id: item for item in base.facts}
     relations_by_id = {item.id: item for item in base.relations}
     tasks_by_id = {item.id: item for item in base.review_tasks}
@@ -832,12 +981,38 @@ def import_chatgpt_responses(
         local_entities: dict[str, str] = {}
         for proposal in response.entities:
             normalized = normalize_surface_text(proposal.canonical_name)
-            identity_key = (proposal.entity_type, normalized)
-            entity_id = entity_id_by_key.get(identity_key) or _stable_id(
-                "entity", f"{proposal.entity_type}|{normalized}"
+            identity = _entity_identity_key(
+                proposal.entity_type,
+                proposal.canonical_name,
+                proposal.medication,
             )
+            matches: set[str] = set()
+            if identity is not None:
+                identity_match = entity_id_by_identity.get(identity)
+                if identity_match is not None:
+                    matches.add(identity_match)
+            for namespace, value in proposal.external_ids.items():
+                if not namespace.strip() or not value.strip():
+                    continue
+                external_match = external_entity_id_by_key.get(_external_id_key(namespace, value))
+                if external_match is not None:
+                    matches.add(external_match)
+            if len(matches) > 1:
+                raise ValueError(
+                    f"Task {response.task_id} entity {proposal.key} has conflicting "
+                    "identity mappings."
+                )
+            if matches:
+                entity_id = next(iter(matches))
+            elif identity is not None:
+                entity_id = _stable_id("entity", "|".join(identity))
+            else:
+                entity_id = _stable_id(
+                    "entity",
+                    f"unresolved|{proposal.entity_type}|{normalized}|"
+                    f"{response.task_id}|{proposal.key}",
+                )
             local_entities[proposal.key] = entity_id
-            entity_id_by_key[identity_key] = entity_id
             aliases = [KnowledgeName(name=value) for value in proposal.aliases]
             candidate = KnowledgeEntity(
                 id=entity_id,
@@ -856,21 +1031,23 @@ def import_chatgpt_responses(
             if existing is None:
                 entities_by_id[entity_id] = candidate
             else:
-                existing_names = {
-                    (name.language, normalize_surface_text(name.name)) for name in existing.names
-                }
-                existing.names.extend(
-                    name
-                    for name in candidate.names
-                    if (name.language, normalize_surface_text(name.name)) not in existing_names
-                )
-                for key, value in candidate.external_ids.items():
-                    previous = existing.external_ids.get(key)
-                    if previous is not None and previous != value:
-                        raise ValueError(
-                            f"Conflicting external id {key} for entity {existing.canonical_name}."
-                        )
-                    existing.external_ids[key] = value
+                _merge_entity(existing, candidate)
+
+            if identity is not None:
+                previous = entity_id_by_identity.get(identity)
+                if previous is not None and previous != entity_id:
+                    raise ValueError(
+                        f"Task {response.task_id} identity maps to multiple entity ids."
+                    )
+                entity_id_by_identity[identity] = entity_id
+            for namespace, value in proposal.external_ids.items():
+                if not namespace.strip() or not value.strip():
+                    continue
+                external_key = _external_id_key(namespace, value)
+                previous = external_entity_id_by_key.get(external_key)
+                if previous is not None and previous != entity_id:
+                    raise ValueError(f"External id {namespace}:{value} maps to multiple entities.")
+                external_entity_id_by_key[external_key] = entity_id
 
         for proposal in response.facts:
             entity_id = local_entities.get(proposal.entity_key)

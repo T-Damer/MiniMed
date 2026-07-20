@@ -55,6 +55,17 @@ pnpm content:prepare:private
 
 A vendor-specific adapter should convert XML/JSON/CSV records into source-preserving Markdown plus metadata. It must not discard the original export.
 
+Every non-synthetic prepared document must also carry a fail-closed rights declaration in its source metadata:
+
+```yaml
+metadata:
+  rights:
+    licenseId: contract-or-source-terms-id
+    allowsDerivativeProcessing: true
+```
+
+`medbase ai-export` refuses to emit any non-synthetic source without both fields. The resulting task repeats the licence ID and permission flag so the handoff remains auditable. Collection permission alone is not treated as permission to send text through ChatGPT.
+
 ### 4. Export ChatGPT tasks
 
 ```bash

@@ -17,6 +17,7 @@ from localmed_ingest.knowledge import (
     ReviewStatus,
     apply_search_projection,
     approve_knowledge,
+    export_chatgpt_tasks,
     import_chatgpt_responses,
     validate_knowledge_workspace,
     write_knowledge_sqlite,
@@ -300,3 +301,89 @@ def test_human_approval_records_reviewer_and_reweights_relation(tmp_path: Path) 
     assert reviewed.relations[0].review_status == "reviewed"
     assert reviewed.relations[0].weights.editorial_review == 1.0
     assert reviewed.relations[0].final_weight == reviewed.relations[0].weights.total()
+
+
+def test_chatgpt_export_requires_derivative_processing_rights(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_documents = documents()
+    source_documents[0].source_type = "official_label"
+    source_documents[0].metadata = {}
+    monkeypatch.setattr(
+        "localmed_ingest.knowledge.load_workspace_documents", lambda _path: source_documents
+    )
+    output = tmp_path / "tasks.jsonl"
+    with pytest.raises(ValueError, match="derivative-processing rights"):
+        export_chatgpt_tasks(tmp_path, output)
+
+    source_documents[0].metadata = {
+        "rights": {
+            "licenseId": "contract-1",
+            "allowsDerivativeProcessing": True,
+        }
+    }
+    assert export_chatgpt_tasks(tmp_path, output) == 1
+    task = json.loads(output.read_text(encoding="utf-8"))
+    assert task["source"]["rights"] == {
+        "licenseId": "contract-1",
+        "allowsDerivativeProcessing": True,
+    }
+
+
+def test_chatgpt_import_does_not_merge_medications_by_display_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "localmed_ingest.knowledge.load_workspace_documents", lambda _path: documents()
+    )
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(
+        json.dumps(
+            {
+                "schemaVersion": 1,
+                "taskId": "chunk.demo",
+                "entities": [
+                    {
+                        "key": "drug-5",
+                        "entityType": "medication",
+                        "canonicalName": "Препарат А",
+                        "medication": {
+                            "conceptLevel": "clinical-drug",
+                            "inn": "вещество А",
+                            "dosageForm": "таблетка",
+                            "route": "oral",
+                            "strength": "5 мг",
+                        },
+                    },
+                    {
+                        "key": "drug-10",
+                        "entityType": "medication",
+                        "canonicalName": "Препарат А",
+                        "medication": {
+                            "conceptLevel": "clinical-drug",
+                            "inn": "вещество А",
+                            "dosageForm": "таблетка",
+                            "route": "oral",
+                            "strength": "10 мг",
+                        },
+                    },
+                ],
+                "facts": [],
+                "relations": [],
+                "reviewTasks": [],
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "knowledge.yaml"
+    report = import_chatgpt_responses(tmp_path, responses, output)
+    imported = KnowledgeWorkspace.model_validate(yaml.safe_load(output.read_text(encoding="utf-8")))
+    assert report.entities == 2
+    assert len({entity.id for entity in imported.entities}) == 2
+    assert sorted(
+        entity.medication.strength
+        for entity in imported.entities
+        if entity.medication is not None and entity.medication.strength is not None
+    ) == ["10 мг", "5 мг"]
