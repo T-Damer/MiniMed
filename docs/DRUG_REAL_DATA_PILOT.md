@@ -31,3 +31,5 @@ Registry presence establishes an identity snapshot only. It does not establish i
 All registry facts and document links in this pilot remain `proposed`. The only treatment relation is the existing amoxicillin–pediatric-pneumonia proposal grounded in clinical recommendation `714_2`; it also remains proposed pending named clinical review.
 
 Proposed records are persisted with their evidence for review, while only records promoted by an identified human reviewer may enter the structured `knowledge_fts` projection. The registry cards themselves remain discoverable through the ordinary source-chunk index.
+
+The Android release gate extracts the finished SQLite file from the APK and verifies the current build report, recommendation provenance, official-registry provenance, medication graph counts, signature, and byte-for-byte database identity instead of relying on obsolete fixed corpus counts.
