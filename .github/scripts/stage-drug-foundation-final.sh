@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+git config user.name 'github-actions[bot]'
+git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 git fetch origin agent/drug-knowledge-graph main
 cp packages/search-lexical/src/analysis.ts /tmp/mobile-analysis.ts
 
@@ -105,8 +107,11 @@ uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
 uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
 pnpm verify
 
-git config user.name 'github-actions[bot]'
-git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+# `verify` compiles the synthetic test fixture into the app path; never commit it over the real pack.
+git checkout HEAD -- \
+  apps/app/public/content/core-demo.db \
+  apps/app/public/content/core-demo-report.json
+
 git add -A
 git commit -m 'feat(drugs): integrate offline knowledge foundation with alpha 6'
 git push origin HEAD:agent/drug-foundation-final
