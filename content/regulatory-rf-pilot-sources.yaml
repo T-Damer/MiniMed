@@ -16,3 +16,7 @@ sources:
     location: regulatory-rf-pilot/order-211n-preventive-exams.md
     target: order-211n-preventive-exams.md
     content_type: markdown
+  - id: order-302n-superseded
+    location: regulatory-rf-pilot/order-302n-dispensary-observation-superseded.md
+    target: order-302n-dispensary-observation-superseded.md
+    content_type: markdown
