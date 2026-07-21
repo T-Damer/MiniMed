@@ -25,9 +25,9 @@ export interface CoreCapabilities {
   readonly platform: 'web' | 'android' | 'ios' | 'test' | 'unknown';
   readonly sqliteVersion: string;
   readonly fts5Available: boolean;
-  readonly storageBackend: 'in-memory' | 'sqlite-wasm' | 'sqlite-native';
+  readonly storageBackend: 'in-memory' | 'sqlite-wasm' | 'sqlite-native' | 'multi-store';
   readonly persistentStorage: boolean;
-  readonly storageInstallation: 'memory' | 'copied' | 'reused';
+  readonly storageInstallation: 'memory' | 'copied' | 'reused' | 'mixed';
   readonly storageSizeBytes: number | null;
 }
 
