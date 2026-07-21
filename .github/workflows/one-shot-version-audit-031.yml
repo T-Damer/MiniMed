@@ -1,0 +1,35 @@
+name: One-shot version audit 0.3.1
+
+on:
+  push:
+    branches:
+      - release/0.3.1
+    paths:
+      - .github/workflows/one-shot-version-audit-031.yml
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: release/0.3.1
+      - run: |
+          git grep -nE '0\.3\.0-alpha\.[0-9]+|versionCode [0-9]+|RELEASE_VERSION|RELEASE_TAG|APK_NAME' > version-audit.txt || true
+          cat version-audit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: version-audit-0.3.1
+          path: version-audit.txt
+          retention-days: 2
+      - run: rm .github/workflows/one-shot-version-audit-031.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/one-shot-version-audit-031.yml
+          git commit -m "ci: remove version audit workflow"
+          git push origin HEAD:release/0.3.1
