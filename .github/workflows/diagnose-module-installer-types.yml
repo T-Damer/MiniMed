@@ -1,6 +1,12 @@
 name: Diagnose module installer types
 
 on:
+  pull_request:
+    branches: [agent/content-module-catalog]
+    paths:
+      - .github/workflows/diagnose-module-installer-types.yml
+      - packages/core/src/content-module-installer.ts
+      - packages/core/tests/content-module-installer.test.ts
   push:
     branches:
       - agent/content-module-installer
