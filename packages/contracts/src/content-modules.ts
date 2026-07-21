@@ -192,12 +192,44 @@ export const ContentModuleCatalogEntrySchema = z
     }
   });
 
-export const ContentModuleCatalogSchema = z.object({
-  catalogVersion: z.string().min(1),
-  channel: z.enum(['stable', 'preview']),
-  publishedAt: z.string().min(1),
-  modules: z.array(ContentModuleCatalogEntrySchema).min(1),
-});
+export const ContentModuleCatalogSchema = z
+  .object({
+    catalogVersion: z.string().min(1),
+    channel: z.enum(['stable', 'preview']),
+    publishedAt: z.string().min(1),
+    modules: z.array(ContentModuleCatalogEntrySchema).min(1),
+  })
+  .superRefine((catalog, context) => {
+    const moduleIds = new Set<string>();
+    for (const [index, module] of catalog.modules.entries()) {
+      if (moduleIds.has(module.id)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['modules', index, 'id'],
+          message: `Duplicate module ID: ${module.id}`,
+        });
+      }
+      moduleIds.add(module.id);
+    }
+    if (!catalog.modules.some((module) => module.kind === 'core' && module.required)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['modules'],
+        message: 'A catalog requires at least one required core module.',
+      });
+    }
+    for (const [index, module] of catalog.modules.entries()) {
+      for (const dependency of module.dependencies) {
+        if (!moduleIds.has(dependency.moduleId)) {
+          context.addIssue({
+            code: 'custom',
+            path: ['modules', index, 'dependencies'],
+            message: `Unknown module dependency: ${dependency.moduleId}`,
+          });
+        }
+      }
+    }
+  });
 
 export const ContentModuleValidationSchema = z.object({
   checkedAt: z.string().min(1),
