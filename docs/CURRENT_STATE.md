@@ -32,6 +32,10 @@ source text and does not become trusted without an explicit review state.
 - Validated content-module catalog/lifecycle contracts and a read-only module-map page.
 - Module catalogs fail closed on duplicate IDs, missing dependencies, absent required core modules,
   mismatched source sets, or incomplete published artifacts.
+- Multi-store routing composes a required core and enabled read-only module stores without merging their
+  SQLite files; cross-store lexical results use reciprocal-rank fusion.
+- An in-memory installed-module registry preserves full validated rollback records and protects required
+  modules from disable/remove operations.
 
 The semantic profile is an engineering baseline, not a neural Russian medical model.
 
@@ -91,8 +95,10 @@ Regulatory baseline:
 ## Current gaps
 
 - Current clinical documents are concise navigation cards rather than complete extracted sources.
-- No remote module catalog, multi-store search router, atomic install/update/rollback, or background
+- No remote module catalog, persistent installed registry, atomic filesystem installer, or background
   downloader yet; the module page is intentionally read-only.
+- The application composition still mounts the monolithic `0.3.1` pilot rather than the multi-store
+  router.
 - Seven clinical recommendations rather than the target 30–50.
 - Regulatory coverage remains a small pediatric pilot; it needs broader administrative acts and a real
   amendment chain beyond one superseded predecessor.
@@ -111,10 +117,10 @@ Regulatory baseline:
    - Expand coverage and obtain clinician review for consequential cases.
 
 2. **Installable modules and full clinical sources — #78 + #76**
-   - The module map, compatibility/source-set contracts, download states, manager port, and catalog page
-     are implemented.
-   - Next: publish a static GitHub catalog, add a multi-store installed-module registry, and build the
-     first full-text module from the seven already validated recommendations.
+   - Module map/contracts/page, multi-store routing, and rollback-state semantics are implemented.
+   - Next: publish a static GitHub catalog, persist the installed registry, implement foreground atomic
+     install/update/rollback, and wire application composition to enabled stores.
+   - Build the first full-text module from the seven already validated recommendations.
    - Full extracted text and structured tables belong in the index artifact; original PDFs/images are an
      optional matching source-assets artifact.
 
