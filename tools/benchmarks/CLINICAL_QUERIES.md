@@ -68,6 +68,19 @@ The initial taxonomy covers urgency/routing, diagnosis/cause, diagnostic confirm
 result interpretation, treatment selection or adjustment, dosing, medication safety, monitoring and
 follow-up, prevention, prognosis, administrative questions, and educational reference.
 
+## Russian coverage gate
+
+`tools/benchmarks/russian-query-coverage.json` is a committed `synthetic_edge_case`-style baseline for
+the Russian parser and classifier. It currently covers 23 Russian queries across all decision classes,
+including patient descriptions, doses by age and mass, treatment failure, interactions, follow-up,
+vaccination, prognosis, military-fitness and regulatory wording, misspellings, colloquial phrasing, and
+mixed-script laboratory notation such as `Hb`.
+
+The coverage set verifies language detection, primary decision, explicit patient context, and review
+behavior. It is a software regression set, not a source of medical recommendations. Russian
+source-grounded expectations will be added separately as `ru_source_reconstructed` scenarios linked to
+exact current Russian documents and anchors.
+
 This projection is a baseline, not ground truth. Future local Russian classifiers and local model
 adapters must be compared against the same records. Russian translation is a separate derived artifact;
 changing drugs, workflows, regulatory assumptions, or recommended actions creates a distinct
