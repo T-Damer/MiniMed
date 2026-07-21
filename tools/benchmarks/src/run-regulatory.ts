@@ -56,7 +56,9 @@ const root = resolve(import.meta.dirname, '../../..');
 const queries = parseQueries(
   JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/regulatory-rf-queries.json'), 'utf8')),
 );
-const databaseBytes = new Uint8Array(readFileSync(resolve(root, 'data/build/rf-regulatory-pilot.db')));
+const databaseBytes = new Uint8Array(
+  readFileSync(resolve(root, 'data/build/rf-regulatory-pilot.db')),
+);
 const store = await SqliteMedicalStore.createFromBytes(databaseBytes);
 const core = createMedicalCore({
   store,
@@ -95,7 +97,8 @@ for (const fixture of queries) {
     if (!context.ok) throw new Error(`${fixture.id}: ${context.error.message}`);
     const focus = context.value.chunks.find((chunk) => chunk.id === context.value.focusChunkId);
     contextResolved =
-      context.value.section.anchor === fixture.expectedAnchorPrefix && focus?.anchor === matched.anchor;
+      context.value.section.anchor === fixture.expectedAnchorPrefix &&
+      focus?.anchor === matched.anchor;
   }
 
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
