@@ -1,0 +1,32 @@
+name: One-shot rebuild regulatory branch
+
+on:
+  push:
+    branches:
+      - agent/russian-regulatory-pilot-fresh
+    paths:
+      - .github/workflows/one-shot-rebuild-regulatory-branch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/russian-regulatory-pilot-fresh
+          fetch-depth: 0
+      - run: |
+          git fetch origin 9595c63461ddd0849169e2ba31d7cf1ff5abfafe 55f52b49ac9c56ba3a487de3d919d6561d27b885
+          git diff --binary 9595c63461ddd0849169e2ba31d7cf1ff5abfafe..55f52b49ac9c56ba3a487de3d919d6561d27b885 > /tmp/regulatory.patch
+          git apply --index /tmp/regulatory.patch
+          rm .github/workflows/one-shot-rebuild-regulatory-branch.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(regulatory): add Russian pediatric regulatory pilot"
+          git push origin HEAD:agent/russian-regulatory-pilot-fresh
