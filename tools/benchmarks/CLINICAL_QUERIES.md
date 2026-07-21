@@ -12,6 +12,13 @@ ground truth.
 
 ```bash
 pnpm benchmark:queries:import
+
+# Explicit reproducible parameters:
+uv run --project tools/ingest medbase benchmark-import-real-pocqi \
+  --count 120 \
+  --seed minimed-real-pocqi-v1 \
+  --output data/intermediate/clinical-benchmark/real-pocqi.jsonl \
+  --report data/build/real-pocqi-import-report.json
 ```
 
 The command:
@@ -25,7 +32,8 @@ The command:
 - records source ID, record ID, citation, URL, jurisdiction, and CC BY 4.0 licence on every row.
 
 Use `--offline` to rebuild from the cache or `--snapshot path.json` to import a reviewed local JSON
-snapshot in tests and controlled builds.
+snapshot in tests and controlled builds. Changing the count or seed intentionally creates a different
+sample and therefore a different output checksum.
 
 ## Provenance rules
 
