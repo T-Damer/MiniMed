@@ -37,6 +37,8 @@ The semantic profile is an engineering baseline, not a neural Russian medical mo
 - Deterministic preparation, Markdown parsing, chunking, stable IDs, provenance, and SQLite building.
 - Cache-backed automated database rebuild from declared sources.
 - Public and private source registries with rights metadata, checksums, and extraction diagnostics.
+- The direct pilot build and automated cached rebuild now use the same declared 15-document source
+  composition and knowledge modules.
 - Public pilot: 15 source-linked documents and 58 searchable chunks:
   - seven Russian clinical-recommendation navigation cards;
   - eight official Russian medication-registry identity cards.
@@ -115,11 +117,11 @@ reported separately and cannot compensate for a Russian regression.
    - Expose only reviewed claims as trusted structured knowledge.
    - Keep missing fields visible and trace displayed claims to evidence.
 
-5. **Content-pack install/update/rollback hardening**
+5. **Content-pack install/update/rollback hardening — #78**
    - Separate core, specialty, medication, and later regulatory packs.
    - Verify checksums, atomic update, rollback, enabled-pack filtering, and interrupted updates.
 
-6. **One-window continuation and personal overlay**
+6. **One-window continuation and personal overlay — #79**
    - Distinguish continuation from a new local episode.
    - Keep notes and aliases in a separate local trust layer rather than editing source packs.
 
