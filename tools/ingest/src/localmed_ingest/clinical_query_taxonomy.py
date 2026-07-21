@@ -380,9 +380,9 @@ _EN_RULES = _compile_rules(
             (
                 "reference",
                 (
-          r"\b(?:define|definition|what is|overview|mechanism|"
-          r"pathophysiology|epidemiology|guideline)\b"
-      ),
+                    r"\b(?:define|definition|what is|overview|mechanism|"
+                    r"pathophysiology|epidemiology|guideline)\b"
+                ),
                 2,
             ),
         ),
