@@ -41,8 +41,8 @@ The semantic profile is an engineering baseline, not a neural Russian medical mo
   composition and knowledge modules.
 - Public clinical/medication pilot: seven Russian clinical-recommendation cards and eight official
   medication-registry identity cards.
-- Separate regulatory pilot: two active pediatric Minzdrav orders with official publication metadata,
-  effective dates, source-linked clauses, and ten Russian retrieval scenarios.
+- Separate regulatory pilot: two active pediatric Minzdrav orders plus one superseded predecessor,
+  with official publication metadata, effective dates, source-linked clauses, and replacement links.
 
 ### Knowledge foundation
 
@@ -66,7 +66,7 @@ The clinical/query composition is 193 records:
 
 Twelve representative Russian scenarios have validated contract overlays for risk, required
 clarifications, dangerous omissions, evidence classes, blocked calculations, graph trust, and review
-state. The separate regulatory pack adds ten administrative retrieval scenarios.
+state. The separate regulatory pack adds 12 administrative/versioning retrieval scenarios.
 
 Latest green clinical/medication source-grounded baseline on the real 15-document SQLite pack:
 
@@ -77,11 +77,17 @@ Latest green clinical/medication source-grounded baseline on the real 15-documen
 - exact context and source metadata: `1.00`;
 - zero-result rate: `0`.
 
+Regulatory baseline:
+
+- Recall@1: `0.83`; Recall@5: `1.00`; MRR@5: `0.917`;
+- required current/historical top-1: `1.00`;
+- section, exact context, and official metadata: `1.00`.
+
 ## Current gaps
 
 - Seven clinical recommendations rather than the target 30–50.
-- Regulatory coverage is limited to a two-document pediatric pilot; amendment/supersession testing still
-  needs a multi-version fixture.
+- Regulatory coverage remains a small pediatric pilot; it needs broader administrative acts and a real
+  amendment chain beyond one superseded predecessor.
 - No reviewed offline medication-card runtime.
 - Contract overlays cover only a representative subset and are not clinician-reviewed.
 - No neural Russian embedding or local generative model.
@@ -97,8 +103,8 @@ Latest green clinical/medication source-grounded baseline on the real 15-documen
    - Expand coverage and obtain clinician review for consequential cases.
 
 2. **Russian regulatory pack — #75**
-   - The first two-document, ten-query pilot is implemented.
-   - Next: multi-version status/supersession tests and broader administrative coverage.
+   - Three-document, 12-query pilot and current-versus-superseded gate are implemented.
+   - Next: broader administrative coverage and a longer amendment/version chain.
 
 3. **Scale the Russian clinical corpus — #76**
    - Grow to 30–50 current recommendations in a coherent initial specialty scope.
