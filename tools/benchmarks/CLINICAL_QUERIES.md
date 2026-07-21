@@ -29,7 +29,7 @@ The command:
 - creates a deterministic specialty-stratified sample of 120 questions;
 - writes JSONL to the ignored `data/intermediate/clinical-benchmark/` workspace;
 - writes a checksum and coverage report to `data/build/`;
-- records source ID, record ID, citation, URL, jurisdiction, and CC BY 4.0 licence on every row.
+- records source ID, record ID, citation, URL, language, jurisdiction, and CC BY 4.0 licence.
 
 Use `--offline` to rebuild from the cache or `--snapshot path.json` to import a reviewed local JSON
 snapshot in tests and controlled builds. Changing the count or seed intentionally creates a different
@@ -39,9 +39,9 @@ A live integration check should assert 620 source questions, 30 source specialti
 and complete provenance/review/licence fields. It remains separate from normal CI so an external
 service outage cannot block unrelated application changes.
 
-## Decision annotation projection
+## Russian-first decision annotation
 
-Imported wording remains immutable. A separate rebuildable projection classifies each English query:
+Imported wording remains immutable. A separate rebuildable projection classifies clinical queries:
 
 ```bash
 pnpm benchmark:queries:annotate
@@ -50,22 +50,28 @@ pnpm benchmark:queries:annotate
 pnpm benchmark:queries
 ```
 
-`rule-based-en-v1` records:
+`rule-based-ru-first-v1` uses Russian clinical language as the primary profile. It recognises Russian
+patient descriptions, diagnostic and treatment questions, dose calculations, follow-up, routing, and
+Russian administrative or regulatory wording. English rules are an explicit fallback for attributed
+foreign datasets such as Real-POCQi; the original query remains `language: en`, `jurisdiction: US`.
 
+The projection records:
+
+- source and detected language plus source jurisdiction;
 - primary and secondary clinical decision kinds;
-- matched lexical signals and confidence;
+- language-prefixed lexical signals and confidence;
 - whether manual review is required;
 - `brief-reference`, `focused-clinical`, or `long-case` complexity;
 - patient-context signals, word count, and clause count.
 
-The initial decision taxonomy covers urgency/routing, diagnosis/cause, diagnostic confirmation, test
-selection, result interpretation, treatment selection or adjustment, dosing, medication safety,
-monitoring/follow-up, prevention, prognosis, administrative questions, and educational reference.
-The annotation report shows coverage and the number of low-confidence or ambiguous rows.
+The initial taxonomy covers urgency/routing, diagnosis/cause, diagnostic confirmation, test selection,
+result interpretation, treatment selection or adjustment, dosing, medication safety, monitoring and
+follow-up, prevention, prognosis, administrative questions, and educational reference.
 
-This projection is a baseline, not ground truth. Future local classifiers and clinician annotations
-must be compared against the same imported questions without modifying their text. Russian translation
-or adaptation is another derived artifact and must not overwrite the original US query.
+This projection is a baseline, not ground truth. Future local Russian classifiers and local model
+adapters must be compared against the same records. Russian translation is a separate derived artifact;
+changing drugs, workflows, regulatory assumptions, or recommended actions creates a distinct
+`ru_source_reconstructed` scenario and never overwrites the original foreign query.
 
 ## Provenance rules
 
@@ -73,10 +79,10 @@ or adaptation is another derived artifact and must not overwrite the original US
 - `ru_source_reconstructed`: a separate Russian scenario derived from current Russian sources;
 - `synthetic_edge_case`: an explicit workflow or safety test.
 
-Translation does not change provenance, but replacing US drugs, workflows, or regulatory assumptions
-creates a new `ru_source_reconstructed` record. Imported questions start as `candidate`. They become
-`source_validated` only after expected documents, entities, sections, and dangerous omissions are
-fixed. `clinician_reviewed` requires an identified appropriate reviewer.
+Translation does not change provenance, but replacing foreign drugs, workflows, or regulatory
+assumptions creates a new `ru_source_reconstructed` record. Imported questions start as `candidate`.
+They become `source_validated` only after expected Russian documents, entities, sections, and dangerous
+omissions are fixed. `clinician_reviewed` requires an identified appropriate reviewer.
 
 Real-POCQi attribution:
 
