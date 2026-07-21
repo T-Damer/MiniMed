@@ -1,0 +1,53 @@
+E501 Line too long (101 > 100)
+  --> tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:84:101
+   |
+82 |     _rule(
+83 |         "clinical-presentation",
+84 |         r"\b(?:presents?|presented|history of|complains? of|was diagnosed|is taking|currently on)\b",
+   |                                                                                                     ^
+85 |         2,
+86 |     ),
+   |
+
+E501 Line too long (106 > 100)
+   --> tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:254:101
+    |
+252 |         _rule(
+253 |             "abnormal-result",
+254 |             r"\b(?:elevated|decreased|low|high|abnormal|positive|negative) (?:level|result|value|test)\b",
+    |                                                                                                     ^^^^^^
+255 |             2,
+256 |         ),
+    |
+
+E501 Line too long (103 > 100)
+   --> tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:275:101
+    |
+273 |         _rule(
+274 |             "nonresponse",
+275 |             r"\b(?:not respond(?:ing|ed)?|no response|failed|failure|refractory|persistent despite)\b",
+    |                                                                                                     ^^^
+276 |             3,
+277 |         ),
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tools/ingest/tests/test_clinical_query_annotations.py:1:1
+   |
+ 1 | / from __future__ import annotations
+ 2 | |
+ 3 | | import json
+ 4 | | from pathlib import Path
+ 5 | |
+ 6 | | import pytest
+ 7 | | from localmed_ingest.clinical_query_annotations import (
+ 8 | |     annotate_clinical_query_benchmark,
+ 9 | |     load_imported_clinical_queries,
+10 | | )
+11 | | from localmed_ingest.clinical_query_taxonomy import annotate_clinical_query
+   | |___________________________________________________________________________^
+   |
+help: Organize imports
+
+Found 4 errors.
+[*] 1 fixable with the `--fix` option.
