@@ -62,9 +62,23 @@ The current composition is 193 records:
   - 42 tied to exact sections and anchors in seven clinical recommendations;
   - eight tied to exact official medication-registry records.
 
-Russian release checks verify document version, source class, authority metadata, section type, stable
-chunk anchor, and exact context resolution. Foreign-query performance is reported separately and
-cannot compensate for a Russian regression.
+Latest green source-grounded baseline on the real 15-document SQLite pack:
+
+- Recall@1: `0.94`;
+- Recall@5: `1.00`;
+- MRR@5: `0.965`;
+- section recall: `1.00`;
+- top-section accuracy: `0.96`;
+- exact context resolution: `1.00`;
+- source metadata validation: `1.00`;
+- zero-result rate: `0`;
+- hybrid and semantic usage: `1.00`;
+- latency p50: `14.59 ms`; p95: `24.29 ms`.
+
+The eight medication-registry scenarios scored `1.00` on Recall@1, section recall, exact context, and
+source metadata validation. Russian release checks verify document version, source class, authority
+metadata, section type, stable chunk anchor, and exact context resolution. Foreign-query performance is
+reported separately and cannot compensate for a Russian regression.
 
 ## Current gaps
 
