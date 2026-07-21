@@ -113,7 +113,9 @@ for (const fixture of queries) {
   if (matchedResult) {
     const context = await core.getContext(matchedResult.chunkId, 0);
     if (!context.ok) throw new Error(`${fixture.id}: ${context.error.message}`);
-    const focusChunk = context.value.chunks.find((chunk) => chunk.id === context.value.focusChunkId);
+    const focusChunk = context.value.chunks.find(
+      (chunk) => chunk.id === context.value.focusChunkId,
+    );
     contextResolved =
       fixture.expectedAnchorPrefixes.includes(context.value.section.anchor) &&
       focusChunk?.anchor === matchedResult.anchor;
@@ -136,7 +138,8 @@ for (const fixture of queries) {
     hitAt1: rank === 1,
     hitAt5: rank !== undefined,
     sectionHit: matchedResult !== undefined,
-    topSectionHit: bestExpectedResult !== null && matchesExpectedSection(bestExpectedResult, fixture),
+    topSectionHit:
+      bestExpectedResult !== null && matchesExpectedSection(bestExpectedResult, fixture),
     contextResolved,
     sourceMetadataValid,
     reciprocalRank: rank === undefined ? 0 : 1 / rank,

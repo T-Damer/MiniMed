@@ -166,7 +166,9 @@
     "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
     "expectedOfficialId": "360_3",
     "expectedSectionTypes": ["routing"],
-    "expectedAnchorPrefixes": ["kr.rf.360_3.bronchiolitis@360_3-2024/маршрутизация-и-красные-флаги"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.360_3.bronchiolitis@360_3-2024/маршрутизация-и-красные-флаги"
+    ],
     "category": "bronchiolitis"
   },
   {
@@ -176,7 +178,9 @@
     "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
     "expectedOfficialId": "360_3",
     "expectedSectionTypes": ["routing"],
-    "expectedAnchorPrefixes": ["kr.rf.360_3.bronchiolitis@360_3-2024/маршрутизация-и-красные-флаги"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.360_3.bronchiolitis@360_3-2024/маршрутизация-и-красные-флаги"
+    ],
     "category": "bronchiolitis"
   },
   {
@@ -226,7 +230,9 @@
     "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
     "expectedOfficialId": "563_2",
     "expectedSectionTypes": ["routing"],
-    "expectedAnchorPrefixes": ["kr.rf.563_2.measles@563_2-2024/маршрутизация-и-инфекционный-контроль"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.563_2.measles@563_2-2024/маршрутизация-и-инфекционный-контроль"
+    ],
     "category": "measles"
   },
   {
@@ -236,7 +242,9 @@
     "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
     "expectedOfficialId": "563_2",
     "expectedSectionTypes": ["routing"],
-    "expectedAnchorPrefixes": ["kr.rf.563_2.measles@563_2-2024/маршрутизация-и-инфекционный-контроль"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.563_2.measles@563_2-2024/маршрутизация-и-инфекционный-контроль"
+    ],
     "category": "measles"
   },
   {
