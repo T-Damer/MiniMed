@@ -1,0 +1,130 @@
+[
+  {
+    "id": "drug.amoxicillin-clavulanate.registry",
+    "query": "Аугментин суспензия 400 мг + 57 мг/5 мл регистрационная запись",
+    "expectedDocumentIds": ["drug.rf.amoxicillin-clavulanate.suspension-400-57"],
+    "expectedVersionId": "drug.rf.amoxicillin-clavulanate.suspension-400-57@registry-2025-04-14",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000045857",
+    "expectedRegistrationNumber": "ЛП-№(003017)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.amoxicillin-clavulanate.suspension-400-57@registry-2025-04-14/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
+    "id": "drug.azithromycin.registry",
+    "query": "Сумамед форте азитромицин суспензия 200 мг/5 мл регистрационная запись",
+    "expectedDocumentIds": ["drug.rf.azithromycin.suspension-200mg-5ml"],
+    "expectedVersionId": "drug.rf.azithromycin.suspension-200mg-5ml@registry-2026-07-03",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000107564",
+    "expectedRegistrationNumber": "ЛП-№(001367)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.azithromycin.suspension-200mg-5ml@registry-2026-07-03/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
+    "id": "drug.ceftriaxone.registry",
+    "query": "Цефтриаксон порошок для внутривенного и внутримышечного введения 1 г",
+    "expectedDocumentIds": ["drug.rf.ceftriaxone.injection-1g"],
+    "expectedVersionId": "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000135207",
+    "expectedRegistrationNumber": "ЛП-№(005496)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
+    "id": "drug.amoxicillin-tablets.registry",
+    "query": "Амоксициллин таблетки 500 мг регистрационное удостоверение",
+    "expectedDocumentIds": ["drug.rf.amoxicillin.tablets-500"],
+    "expectedVersionId": "drug.rf.amoxicillin.tablets-500@registry-2026-03-19",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000035147",
+    "expectedRegistrationNumber": "ЛП-№(013359)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.amoxicillin.tablets-500@registry-2026-03-19/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
+    "id": "drug.ibuprofen.registry",
+    "query": "Ибупрофен детская суспензия 100 мг/5 мл регистрационная запись",
+    "expectedDocumentIds": ["drug.rf.ibuprofen.pediatric-suspension"],
+    "expectedVersionId": "drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000141345",
+    "expectedRegistrationNumber": "ЛП-№(006579)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
+    "id": "drug.paracetamol.registry",
+    "query": "Парацетамол-АКОС детская суспензия 120 мг/5 мл",
+    "expectedDocumentIds": ["drug.rf.paracetamol.pediatric-suspension"],
+    "expectedVersionId": "drug.rf.paracetamol.pediatric-suspension@registry-2026-05-07",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000114162",
+    "expectedRegistrationNumber": "ЛП-№(002094)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.paracetamol.pediatric-suspension@registry-2026-05-07/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
+    "id": "drug.oral-rehydration-salts.registry",
+    "query": "Регидрон порошок для раствора 18,9 г декстроза натрия калия соли",
+    "expectedDocumentIds": ["drug.rf.oral-rehydration-salts.powder-18-9g"],
+    "expectedVersionId": "drug.rf.oral-rehydration-salts.powder-18-9g@registry-2026-02-25",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000120007",
+    "expectedRegistrationNumber": "ЛП-№(012750)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.oral-rehydration-salts.powder-18-9g@registry-2026-02-25/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
+    "id": "drug.oseltamivir.registry",
+    "query": "Осельтамивир капсулы 30 мг регистрационное удостоверение",
+    "expectedDocumentIds": ["drug.rf.oseltamivir.capsules-30mg"],
+    "expectedVersionId": "drug.rf.oseltamivir.capsules-30mg@registry-2026-07-08",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000165168",
+    "expectedRegistrationNumber": "ЛП-№(002417)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.oseltamivir.capsules-30mg@registry-2026-07-08/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  }
+]
