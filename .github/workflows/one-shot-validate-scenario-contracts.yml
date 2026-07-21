@@ -1,0 +1,55 @@
+name: One-shot validate scenario contracts
+
+on:
+  push:
+    branches:
+      - agent/clinical-query-benchmark
+    paths:
+      - .github/workflows/one-shot-validate-scenario-contracts.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/clinical-query-benchmark
+      - uses: astral-sh/setup-uv@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: |
+          uv sync --project tools/ingest --all-groups --locked
+          pnpm install --frozen-lockfile
+      - run: |
+          uv run --project tools/ingest ruff format --check \
+            tools/ingest/src/localmed_ingest/clinical_query_contracts.py \
+            tools/ingest/tests/test_clinical_query_contracts.py
+          uv run --project tools/ingest ruff check \
+            tools/ingest/src/localmed_ingest/clinical_query_contracts.py \
+            tools/ingest/tests/test_clinical_query_contracts.py
+          uv run --project tools/ingest pyright \
+            tools/ingest/src/localmed_ingest/clinical_query_contracts.py \
+            tools/ingest/tests/test_clinical_query_contracts.py
+          uv run --project tools/ingest pytest \
+            tools/ingest/tests/test_clinical_query_contracts.py -q
+      - run: |
+          pnpm benchmark:queries:contracts
+          pnpm exec biome check \
+            package.json \
+            tools/benchmarks/russian-scenario-contracts.json
+      - run: rm .github/workflows/one-shot-validate-scenario-contracts.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/one-shot-validate-scenario-contracts.yml
+          git commit -m "ci: remove scenario contract validator"
+          git push origin HEAD:agent/clinical-query-benchmark
