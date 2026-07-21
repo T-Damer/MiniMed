@@ -1,11 +1,11 @@
 {
   "manifest": {
     "id": "localmed.core-demo",
-    "version": "0.3.0-alpha.1",
+    "version": "0.3.1",
     "schemaVersion": 2,
     "title": "LocalMed synthetic core demo",
     "builtAt": "1970-01-01T00:00:00Z",
-    "checksum": "sha256:197e55964b22b4f663fe685e0a8a6a121fe82e011e035f8ef77a1eae5fb81ade"
+    "checksum": "sha256:04c5ba4a2f8134c7ec28c7d1135d909878f1662c25c1a4024a1446db6a5f6399"
   },
   "documents": [
     {
