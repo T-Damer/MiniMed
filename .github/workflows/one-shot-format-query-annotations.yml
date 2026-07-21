@@ -1,4 +1,4 @@
-name: One-shot query annotation diagnostics
+name: One-shot query annotation formatter
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  format-and-diagnose:
+  format:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -30,23 +30,10 @@ jobs:
           tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py
           tools/ingest/src/localmed_ingest/clinical_query_annotations.py
           tools/ingest/tests/test_clinical_query_annotations.py
-      - shell: bash
-        run: |
-          set +e
-          {
-            echo '## pyright'
-            uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
-            echo "pyright_exit=$?"
-            echo
-            echo '## pytest'
-            uv run --project tools/ingest pytest tools/ingest/tests/test_clinical_query_annotations.py tools/ingest/tests/test_clinical_queries.py
-            echo "pytest_exit=$?"
-          } > tools/benchmarks/query-annotation-diagnostics.txt 2>&1
-          exit 0
       - run: rm .github/workflows/one-shot-format-query-annotations.yml
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py tools/ingest/src/localmed_ingest/clinical_query_annotations.py tools/ingest/tests/test_clinical_query_annotations.py tools/benchmarks/query-annotation-diagnostics.txt .github/workflows/one-shot-format-query-annotations.yml
-          git commit -m "test(benchmarks): capture query annotation diagnostics"
+          git add tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py tools/ingest/src/localmed_ingest/clinical_query_annotations.py tools/ingest/tests/test_clinical_query_annotations.py .github/workflows/one-shot-format-query-annotations.yml
+          git commit -m "style(benchmarks): format query annotations"
           git push origin HEAD:agent/clinical-query-benchmark
