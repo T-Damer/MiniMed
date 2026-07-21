@@ -1,0 +1,34 @@
+name: One-shot fix Russian query benchmark lint
+
+on:
+  push:
+    branches:
+      - agent/clinical-query-benchmark
+    paths:
+      - .github/workflows/one-shot-fix-russian-query-lint.yml
+
+permissions:
+  contents: write
+
+jobs:
+  lint-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/clinical-query-benchmark
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - run: >-
+          uv run --project tools/ingest ruff check --fix
+          tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py
+          tools/ingest/src/localmed_ingest/clinical_query_annotations.py
+          tools/ingest/tests/test_clinical_query_annotations.py
+      - run: rm .github/workflows/one-shot-fix-russian-query-lint.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py tools/ingest/src/localmed_ingest/clinical_query_annotations.py tools/ingest/tests/test_clinical_query_annotations.py .github/workflows/one-shot-fix-russian-query-lint.yml
+          git commit -m "style(benchmarks): fix Russian query lint"
+          git push origin HEAD:agent/clinical-query-benchmark
