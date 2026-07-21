@@ -8,6 +8,26 @@ sources:
     location: pilot-rf/aliases.yaml
     target: aliases.yaml
     content_type: text
+  - id: knowledge-root
+    location: pilot-rf/knowledge.yaml
+    target: knowledge.yaml
+    content_type: text
+  - id: knowledge-core
+    location: pilot-rf/knowledge.core.json
+    target: knowledge.core.json
+    content_type: text
+  - id: knowledge-drugs
+    location: pilot-rf/knowledge.drugs.yaml
+    target: knowledge.drugs.yaml
+    content_type: text
+  - id: knowledge-drug-amoxicillin-clavulanate
+    location: pilot-rf/knowledge.drug.amoxicillin-clavulanate.json
+    target: knowledge.drug.amoxicillin-clavulanate.json
+    content_type: text
+  - id: knowledge-drugs-additional
+    location: pilot-rf/knowledge.drugs.additional.json
+    target: knowledge.drugs.additional.json
+    content_type: text
   - id: recommendation-uti
     location: pilot-rf/uti.md
     target: uti.md
@@ -35,4 +55,36 @@ sources:
   - id: recommendation-pneumonia
     location: pilot-rf/pneumonia.md
     target: pneumonia.md
+    content_type: markdown
+  - id: drug-amoxicillin-clavulanate
+    location: pilot-rf/amoxicillin-clavulanate.md
+    target: amoxicillin-clavulanate.md
+    content_type: markdown
+  - id: drug-azithromycin
+    location: pilot-rf/azithromycin.md
+    target: azithromycin.md
+    content_type: markdown
+  - id: drug-ceftriaxone
+    location: pilot-rf/ceftriaxone.md
+    target: ceftriaxone.md
+    content_type: markdown
+  - id: drug-amoxicillin-tablets-500
+    location: pilot-rf/drug-amoxicillin-tablets-500.md
+    target: drug-amoxicillin-tablets-500.md
+    content_type: markdown
+  - id: drug-ibuprofen-pediatric-suspension
+    location: pilot-rf/drug-ibuprofen-pediatric-suspension.md
+    target: drug-ibuprofen-pediatric-suspension.md
+    content_type: markdown
+  - id: drug-paracetamol-pediatric-suspension
+    location: pilot-rf/drug-paracetamol-pediatric-suspension.md
+    target: drug-paracetamol-pediatric-suspension.md
+    content_type: markdown
+  - id: drug-oral-rehydration-salts
+    location: pilot-rf/oral-rehydration-salts.md
+    target: oral-rehydration-salts.md
+    content_type: markdown
+  - id: drug-oseltamivir
+    location: pilot-rf/oseltamivir.md
+    target: oseltamivir.md
     content_type: markdown

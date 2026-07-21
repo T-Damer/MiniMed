@@ -1,0 +1,141 @@
+[
+  {
+    "id": "ru.urgency.hospitalization",
+    "query": "Мальчик 5 лет, сатурация 88%. Нужна ли срочная госпитализация?",
+    "expectedPrimary": "urgency-routing",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.urgency.referral",
+    "query": "Куда направить пациента с подозрением на менингококковую инфекцию?",
+    "expectedPrimary": "urgency-routing",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.diagnosis.possible",
+    "query": "Ребёнок 7 лет, лихорадка, сыпь и кашель. Что это может быть?",
+    "expectedPrimary": "diagnosis-cause",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.diagnosis.differential",
+    "query": "Каков дифференциальный диагноз при боли в правой подвздошной области?",
+    "expectedPrimary": "diagnosis-cause",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.diagnosis.confirmation",
+    "query": "Какими диагностическими критериями подтвердить диагноз бронхиальной астмы?",
+    "expectedPrimary": "diagnostic-confirmation",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.test.next",
+    "query": "Пациент с кашлем: какое исследование назначить следующим?",
+    "expectedPrimary": "test-selection",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.result.ecg",
+    "query": "Как интерпретировать этот результат ЭКГ?",
+    "expectedPrimary": "result-interpretation",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.treatment.selection",
+    "query": "Какое лечение назначить при внебольничной пневмонии?",
+    "expectedPrimary": "treatment-selection",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.treatment.adjustment",
+    "query": "Пациент не ответил на терапию первой линии. Следует ли сменить лечение?",
+    "expectedPrimary": "treatment-adjustment",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.dose.weight",
+    "query": "Ребёнок 4 лет, масса 18 кг. Какую дозу амоксициллина назначить?",
+    "expectedPrimary": "dosing-calculation",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.dose.typo",
+    "query": "какую дозировкку амоксицилина дать ребенку 18 кг",
+    "expectedPrimary": "dosing-calculation",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.medication.interaction",
+    "query": "Можно ли сочетать кларитромицин и варфарин?",
+    "expectedPrimary": "medication-safety",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.medication.pregnancy",
+    "query": "Безопасен ли этот препарат при беременности?",
+    "expectedPrimary": "medication-safety",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.followup.repeat",
+    "query": "Когда повторить контроль общего анализа крови после начала терапии?",
+    "expectedPrimary": "monitoring-follow-up",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.prevention.vaccine",
+    "query": "Нужна ли вакцинация после перенесённой менингококковой инфекции?",
+    "expectedPrimary": "prevention",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.prognosis.general",
+    "query": "Каков прогноз при нефротическом синдроме минимальных изменений?",
+    "expectedPrimary": "prognosis",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.administrative.fitness",
+    "query": "Какая категория годности предусмотрена при бронхиальной астме?",
+    "expectedPrimary": "administrative",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.administrative.document",
+    "query": "Какой приказ регулирует оформление медицинского заключения?",
+    "expectedPrimary": "administrative",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.education.definition",
+    "query": "Что такое бронхиальная астма?",
+    "expectedPrimary": "education-reference",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.education.classification",
+    "query": "Классификация бронхиальной астмы по степени тяжести",
+    "expectedPrimary": "education-reference",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.result.mixed-script",
+    "query": "Ребёнок 8 лет, Hb 92 г/л. Что означает этот анализ?",
+    "expectedPrimary": "result-interpretation",
+    "expectedPatientContext": true
+  },
+  {
+    "id": "ru.treatment.colloquial",
+    "query": "Температурит третий день, чем лечить?",
+    "expectedPrimary": "treatment-selection",
+    "expectedPatientContext": false
+  },
+  {
+    "id": "ru.unknown.short",
+    "query": "Что думаете?",
+    "expectedPrimary": "unknown",
+    "expectedPatientContext": false,
+    "expectedNeedsReview": true
+  }
+]

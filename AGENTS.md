@@ -8,6 +8,13 @@ LocalMed Search is an offline-first navigator over medical source material. Retr
 before generation. The current product must remain useful with no network, no LLM, and no hosted
 backend.
 
+## Planning authority
+
+- `docs/TECHNICAL_PLAN.md` defines the target architecture, milestones, and acceptance criteria.
+- `docs/CURRENT_STATE.md` records the implemented state and ordered next tasks.
+- When the two differ, preserve the architecture invariant and update `CURRENT_STATE.md` rather than
+  pretending a planned capability already exists.
+
 ## Dependency direction
 
 ```text
@@ -27,11 +34,13 @@ Forbidden without a dedicated ADR:
 
 ## Before editing
 
-1. Read the relevant issue/milestone and architecture/ADR files.
-2. Find the existing public contract and tests.
-3. Check dependency direction and offline fallback behavior.
-4. Add no library when the current stack can solve the task.
-5. For content work, identify whether the input is raw, prepared, or generated. Never hand-edit a
+1. Read `docs/CURRENT_STATE.md`, the relevant issue/milestone, and architecture/ADR files.
+2. Confirm that the task follows the current execution order or explain the dependency that justifies
+   changing it.
+3. Find the existing public contract and tests.
+4. Check dependency direction and offline fallback behavior.
+5. Add no library when the current stack can solve the task.
+6. For content work, identify whether the input is raw, prepared, or generated. Never hand-edit a
    generated SQLite/JSON pack.
 
 ## Coding rules
@@ -45,6 +54,8 @@ Forbidden without a dedicated ADR:
 - Preserve raw-file checksum and source spans when transforming authoring artifacts.
 - Reject source paths that escape the configured private root.
 - Do not catch and discard errors.
+- Update `docs/CURRENT_STATE.md` when a change affects behavior, corpus coverage, trust boundaries,
+  benchmark composition, or ordered next tasks.
 
 ## Data-agent rules
 
