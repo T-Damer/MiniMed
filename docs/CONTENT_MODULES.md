@@ -64,6 +64,16 @@ Every published module version has an immutable manifest and two possible artifa
 This lets users install a smaller searchable module or additionally keep original documents for visual
 fidelity. Original assets are never required for ordinary search.
 
+## GitHub distribution
+
+Until a dedicated server exists, `catalog.preview.json` on `main` is the mutable preview-channel
+endpoint. The app embeds the same validated JSON as an offline fallback and refreshes it conditionally
+with ETag/Last-Modified. Invalid remote JSON never replaces a valid cache or bundled catalog.
+
+Module binaries and manifests are immutable GitHub Release assets. The channel catalog may point to a
+new version, but every artifact URL is paired with exact size, SHA-256, module version, document-version
+list, and `sourceSetDigest`. Updating the channel catalog does not modify an already installed module.
+
 ## Version coupling
 
 A module version identifies one exact source set. Its manifest records:
@@ -122,9 +132,9 @@ a native reader remains an adapter option if physical-device measurements requir
 ## Implementation order
 
 1. Catalog/contracts and read-only module page.
-2. Static GitHub release catalog plus signed/checksummed module manifests.
+2. Static GitHub channel catalog with validated cache/fallback.
 3. Multi-store router and installed-module registry.
-4. Atomic foreground install/update/rollback.
+4. Immutable module manifests/artifacts and atomic foreground install/update/rollback.
 5. Android background download and notification progress; iOS background adapter later.
 6. First full-text module from the seven currently validated clinical recommendations.
 7. Structured table blocks and optional original-PDF assets.

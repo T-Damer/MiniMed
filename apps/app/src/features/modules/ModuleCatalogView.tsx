@@ -1,10 +1,17 @@
-import type { ContentModuleCatalogEntry, CoreStatus } from '@localmed/contracts';
-import { For, type JSX } from 'solid-js';
+import type {
+  ContentModuleCatalog,
+  ContentModuleCatalogEntry,
+  CoreStatus,
+} from '@localmed/contracts';
+import type { ContentModuleCatalogSource } from '@localmed/core';
+import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
+import { refreshContentModuleCatalog } from './catalog-service';
 import { MODULE_CATALOG } from './module-catalog';
 
 interface ModuleCatalogViewProps {
   readonly status: CoreStatus;
+  readonly active: boolean;
 }
 
 const COLLECTION_TITLES: Readonly<Record<string, string>> = {
@@ -20,10 +27,26 @@ const RELEASE_LABELS: Readonly<Record<ContentModuleCatalogEntry['releaseState'],
   planned: 'Запланировано',
 };
 
+const SOURCE_LABELS: Readonly<Record<ContentModuleCatalogSource, string>> = {
+  remote: 'GitHub',
+  cache: 'локальный cache',
+  bundled: 'встроенный fallback',
+};
+
 function formatBytes(value: number | null): string {
   if (value === null) return 'размер появится при публикации';
   if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} КБ`;
   return `${(value / 1024 / 1024).toFixed(value >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
+}
+
+function formatCheckedAt(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('ru-RU', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      }).format(date);
 }
 
 function moduleDetail(module: ContentModuleCatalogEntry): string {
@@ -45,7 +68,36 @@ function capabilityLabels(module: ContentModuleCatalogEntry): readonly string[] 
 }
 
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
-  const collections = [...new Set(MODULE_CATALOG.modules.map((module) => module.collection))];
+  const [catalog, setCatalog] = createSignal<ContentModuleCatalog>(MODULE_CATALOG);
+  const [source, setSource] = createSignal<ContentModuleCatalogSource>('bundled');
+  const [checkedAt, setCheckedAt] = createSignal(MODULE_CATALOG.publishedAt);
+  const [warning, setWarning] = createSignal<string | null>(null);
+  const [refreshing, setRefreshing] = createSignal(false);
+  let refreshedOnce = false;
+
+  const collections = createMemo(() => [
+    ...new Set(catalog().modules.map((module) => module.collection)),
+  ]);
+
+  const refresh = async (): Promise<void> => {
+    if (refreshing()) return;
+    setRefreshing(true);
+    try {
+      const result = await refreshContentModuleCatalog();
+      setCatalog(result.catalog);
+      setSource(result.source);
+      setCheckedAt(result.checkedAt);
+      setWarning(result.warning);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  createEffect(() => {
+    if (!props.active || refreshedOnce) return;
+    refreshedOnce = true;
+    void refresh();
+  });
 
   return (
     <section class="module-page page-surface">
@@ -60,9 +112,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </div>
         <div class="module-catalog-version">
           <span>КАТАЛОГ</span>
-          <strong>{MODULE_CATALOG.catalogVersion}</strong>
+          <strong>{catalog().catalogVersion}</strong>
         </div>
       </header>
+
+      <div class="module-catalog-status paper-sheet" aria-live="polite">
+        <div>
+          <strong>Источник: {SOURCE_LABELS[source()]}</strong>
+          <span>Проверено {formatCheckedAt(checkedAt())}</span>
+          <Show when={warning()}>{(message) => <small>{message()}</small>}</Show>
+        </div>
+        <button type="button" disabled={refreshing()} onClick={() => void refresh()}>
+          {refreshing() ? 'Проверяем…' : 'Проверить обновления'}
+        </button>
+      </div>
 
       <div class="module-transition-note paper-sheet">
         <div>
@@ -76,19 +139,17 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         <span>{props.status.documentCount} документов</span>
       </div>
 
-      <For each={collections}>
+      <For each={collections()}>
         {(collection) => (
           <section class="module-collection">
             <div class="module-collection-heading">
               <h2>{COLLECTION_TITLES[collection] ?? collection}</h2>
               <span>
-                {MODULE_CATALOG.modules.filter((module) => module.collection === collection).length}
+                {catalog().modules.filter((module) => module.collection === collection).length}
               </span>
             </div>
             <div class="module-grid">
-              <For
-                each={MODULE_CATALOG.modules.filter((module) => module.collection === collection)}
-              >
+              <For each={catalog().modules.filter((module) => module.collection === collection)}>
                 {(module) => (
                   <article class="module-card paper-card">
                     <div class="module-card-topline">

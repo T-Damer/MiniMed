@@ -142,7 +142,7 @@ export function App(): JSX.Element {
               hidden={view() !== 'modules'}
               aria-hidden={view() !== 'modules'}
             >
-              <ModuleCatalogView status={state().status} />
+              <ModuleCatalogView status={state().status} active={view() === 'modules'} />
             </section>
             <section
               class="app-view"

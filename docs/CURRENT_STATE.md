@@ -36,6 +36,8 @@ source text and does not become trusted without an explicit review state.
   SQLite files; cross-store lexical results use reciprocal-rank fusion.
 - An in-memory installed-module registry preserves full validated rollback records and protects required
   modules from disable/remove operations.
+- The canonical module catalog is bundled as JSON and can refresh from GitHub with ETag/Last-Modified,
+  validated local cache, and bundled fallback; invalid remote content never replaces valid local data.
 
 The semantic profile is an engineering baseline, not a neural Russian medical model.
 
@@ -95,8 +97,8 @@ Regulatory baseline:
 ## Current gaps
 
 - Current clinical documents are concise navigation cards rather than complete extracted sources.
-- No remote module catalog, persistent installed registry, atomic filesystem installer, or background
-  downloader yet; the module page is intentionally read-only.
+- No persistent installed registry, immutable published module artifacts, atomic filesystem installer, or
+  background downloader yet; the module page remains read-only.
 - The application composition still mounts the monolithic `0.3.1` pilot rather than the multi-store
   router.
 - Seven clinical recommendations rather than the target 30–50.
@@ -117,9 +119,10 @@ Regulatory baseline:
    - Expand coverage and obtain clinician review for consequential cases.
 
 2. **Installable modules and full clinical sources — #78 + #76**
-   - Module map/contracts/page, multi-store routing, and rollback-state semantics are implemented.
-   - Next: publish a static GitHub catalog, persist the installed registry, implement foreground atomic
-     install/update/rollback, and wire application composition to enabled stores.
+   - Module map/contracts/page, GitHub catalog refresh, multi-store routing, and rollback-state semantics
+     are implemented.
+   - Next: publish immutable module manifests/artifacts, persist the installed registry, implement
+     foreground atomic install/update/rollback, and wire application composition to enabled stores.
    - Build the first full-text module from the seven already validated recommendations.
    - Full extracted text and structured tables belong in the index artifact; original PDFs/images are an
      optional matching source-assets artifact.
@@ -147,9 +150,9 @@ Regulatory baseline:
 
 ## Next useful alpha
 
-The next alpha is defined by a small bundled core, a real downloadable module catalog, atomic module
-installation, and one full-text pediatric module with structured tables and exact source navigation.
-Already installed modules must remain usable during download or a failed update.
+The next alpha is defined by a small bundled core, immutable downloadable module artifacts, atomic
+module installation, and one full-text pediatric module with structured tables and exact source
+navigation. Already installed modules must remain usable during download or a failed update.
 
 Do not prioritize a backend, accounts, sync, Postgres, a Rust rewrite, or a universal local model. The
 current limiting factors are full-source coverage, modular content lifecycle, reviewed evidence, and
