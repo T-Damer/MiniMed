@@ -1,7 +1,6 @@
-import type { ContentModuleValidationSchema, InstalledContentModule } from '@localmed/contracts';
-import type { z } from 'zod';
+import type { InstalledContentModule } from '@localmed/contracts';
 
-type ModuleValidation = z.infer<typeof ContentModuleValidationSchema>;
+type ModuleValidation = NonNullable<InstalledContentModule['lastValidation']>;
 
 export interface ModuleVersionInstallation {
   readonly moduleId: string;
