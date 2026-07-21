@@ -1,0 +1,138 @@
+[
+  {
+    "id": "regulatory.192n.eligibility",
+    "query": "Какие дети подлежат диспансерному наблюдению после заболевания, травмы или отравления",
+    "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+    "expectedDocumentNumber": "192н",
+    "expectedPublicationNumber": "0001202505190026",
+    "expectedSectionType": "rehabilitation",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/круг-диспансерного-наблюдения",
+    "category": "dispensary-observation"
+  },
+  {
+    "id": "regulatory.192n.deadline",
+    "query": "В какой срок ребенка ставят под диспансерное наблюдение после диагноза или выписки",
+    "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+    "expectedDocumentNumber": "192н",
+    "expectedPublicationNumber": "0001202505190026",
+    "expectedSectionType": "rehabilitation",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/срок-постановки-под-наблюдение",
+    "category": "dispensary-observation"
+  },
+  {
+    "id": "regulatory.192n.plan",
+    "query": "Кто формирует сводный план диспансерного наблюдения несовершеннолетнего",
+    "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+    "expectedDocumentNumber": "192н",
+    "expectedPublicationNumber": "0001202505190026",
+    "expectedSectionType": "rehabilitation",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/организация-и-план-наблюдения",
+    "category": "dispensary-observation"
+  },
+  {
+    "id": "regulatory.192n.information",
+    "query": "Кто информирует родителей об объеме и периодичности диспансерного наблюдения ребенка",
+    "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+    "expectedDocumentNumber": "192н",
+    "expectedPublicationNumber": "0001202505190026",
+    "expectedSectionType": "rehabilitation",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/организация-и-план-наблюдения",
+    "category": "dispensary-observation"
+  },
+  {
+    "id": "regulatory.192n.specialist",
+    "query": "Что делать если в поликлинике нет специалиста для диспансерного наблюдения ребенка",
+    "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+    "expectedDocumentNumber": "192н",
+    "expectedPublicationNumber": "0001202505190026",
+    "expectedSectionType": "routing",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/маршрутизация-к-специалисту",
+    "category": "dispensary-observation"
+  },
+  {
+    "id": "regulatory.211n.consent",
+    "query": "Нужно ли информированное согласие перед профилактическим осмотром несовершеннолетнего",
+    "expectedDocumentId": "regulatory.rf.minzdrav.211n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
+    "expectedDocumentNumber": "211н",
+    "expectedPublicationNumber": "0001202505230032",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/цели-и-согласие",
+    "category": "preventive-exam"
+  },
+  {
+    "id": "regulatory.211n.information",
+    "query": "Кому передают информацию о здоровье ребенка после профилактического медицинского осмотра",
+    "expectedDocumentId": "regulatory.rf.minzdrav.211n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
+    "expectedDocumentNumber": "211н",
+    "expectedPublicationNumber": "0001202505230032",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/информирование-и-защита-несовершеннолетнего",
+    "category": "preventive-exam"
+  },
+  {
+    "id": "regulatory.211n.missing-specialist",
+    "query": "Как провести детский профосмотр если в медицинской организации нет нужного специалиста",
+    "expectedDocumentId": "regulatory.rf.minzdrav.211n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
+    "expectedDocumentNumber": "211н",
+    "expectedPublicationNumber": "0001202505230032",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/организация-проведения",
+    "category": "preventive-exam"
+  },
+  {
+    "id": "regulatory.211n.calendar",
+    "query": "Когда утверждается календарный план профилактических осмотров несовершеннолетних",
+    "expectedDocumentId": "regulatory.rf.minzdrav.211n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
+    "expectedDocumentNumber": "211н",
+    "expectedPublicationNumber": "0001202505230032",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/планирование-и-направление",
+    "category": "preventive-exam"
+  },
+  {
+    "id": "regulatory.211n.referral",
+    "query": "За сколько рабочих дней выдают направление на профилактический осмотр ребенка",
+    "expectedDocumentId": "regulatory.rf.minzdrav.211n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
+    "expectedDocumentNumber": "211н",
+    "expectedPublicationNumber": "0001202505230032",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/планирование-и-направление",
+    "category": "preventive-exam"
+  },
+  {
+    "id": "regulatory.versioning.current-dispensary-order",
+    "query": "Что действует вместо приказа 302н по диспансерному наблюдению несовершеннолетних",
+    "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+    "expectedDocumentNumber": "192н",
+    "expectedPublicationNumber": "0001202505190026",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/действующий-порядок-вместо-приказа-302н",
+    "requireTop1": true,
+    "category": "versioning"
+  },
+  {
+    "id": "regulatory.versioning.historical-302n",
+    "query": "Что регулировал утративший силу приказ Минздрава № 302н",
+    "expectedDocumentId": "regulatory.rf.minzdrav.302n-2019",
+    "expectedVersionId": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19",
+    "expectedDocumentNumber": "302н",
+    "expectedPublicationNumber": "0001201906100012",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19/статус-документа",
+    "expectedStatus": "superseded",
+    "expectedSupersededBy": "regulatory.rf.minzdrav.192n-2025",
+    "requireTop1": true,
+    "category": "versioning"
+  }
+]
