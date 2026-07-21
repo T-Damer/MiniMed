@@ -1,12 +1,10 @@
-import type {
-  ContentModuleCatalog,
-  ContentModuleCatalogCacheRecord,
-  ContentModuleCatalogResponse,
+import type { ContentModuleCatalog } from '@localmed/contracts';
+import {
+  type ContentModuleCatalogCacheRecord,
+  type ContentModuleCatalogResponse,
+  loadContentModuleCatalog,
 } from '@localmed/core';
-import { loadContentModuleCatalog } from '@localmed/core';
 import { describe, expect, it, vi } from 'vitest';
-
-const digest = `sha256:${'a'.repeat(64)}`;
 
 function catalog(version: string): ContentModuleCatalog {
   return {
