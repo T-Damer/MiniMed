@@ -65,6 +65,40 @@ def test_taxonomy_distinguishes_common_russian_clinical_decisions() -> None:
     assert administrative.primary_decision == "administrative"
 
 
+def test_russian_coverage_fixture_matches_baseline_contract() -> None:
+    fixture_path = (
+        Path(__file__).resolve().parents[2] / "benchmarks" / "russian-query-coverage.json"
+    )
+    payload: object = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert isinstance(payload, list)
+    assert len(payload) >= 20
+
+    failures: list[str] = []
+    for raw in payload:
+        assert isinstance(raw, dict)
+        identifier = str(raw["id"])
+        annotation = annotate_clinical_query(str(raw["query"]), language="ru")
+        expected_primary = str(raw["expectedPrimary"])
+        expected_patient_context = bool(raw["expectedPatientContext"])
+        expected_needs_review = bool(raw.get("expectedNeedsReview", False))
+
+        if annotation.detected_language != "ru":
+            failures.append(f"{identifier}: language={annotation.detected_language}")
+        if annotation.primary_decision != expected_primary:
+            failures.append(
+                f"{identifier}: primary={annotation.primary_decision}, expected={expected_primary}"
+            )
+        if bool(annotation.patient_context_signals) != expected_patient_context:
+            failures.append(
+                f"{identifier}: patient_context={bool(annotation.patient_context_signals)}, "
+                f"expected={expected_patient_context}"
+            )
+        if expected_needs_review and not annotation.needs_review:
+            failures.append(f"{identifier}: expected needs_review")
+
+    assert not failures, "\n".join(failures)
+
+
 def test_english_dataset_queries_use_explicit_fallback() -> None:
     annotation = annotate_clinical_query(
         "The patient has not responded to first-line therapy. Should treatment be switched?",
