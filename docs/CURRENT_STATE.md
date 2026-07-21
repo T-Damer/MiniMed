@@ -65,6 +65,9 @@ The current composition is 193 records:
   - 42 tied to exact sections and anchors in seven clinical recommendations;
   - eight tied to exact official medication-registry records.
 
+Twelve representative Russian scenarios also have contract overlays for risk, required clarifications,
+dangerous omissions, evidence classes, blocked calculations, graph trust, and review state.
+
 Latest green source-grounded baseline on the real 15-document SQLite pack:
 
 - Recall@1: `0.94`;
@@ -88,7 +91,7 @@ reported separately and cannot compensate for a Russian regression.
 - Seven clinical recommendations rather than the target 30–50.
 - No first-class Russian regulatory-act content pack.
 - No reviewed offline medication-card runtime.
-- Scenario contracts still need clarification, omission, calculation, risk, and review expectations.
+- Contract overlays cover only a representative subset and are not clinician-reviewed.
 - No neural Russian embedding or local generative model.
 - No personal notes, draft overlays, or local protocol modules.
 - Physical-device usability testing remains separate from CI builds.
@@ -98,9 +101,8 @@ reported separately and cannot compensate for a Russian regression.
 ### P0 — Russian evidence and quality foundation
 
 1. **Complete benchmark contracts — #70**
-   - The numerical 160–200 record target is reached.
-   - Add clarification expectations, dangerous omissions, graph expansion, calculations, risk labels,
-     and clinician review states.
+   - The numerical target and first 12 contract overlays are implemented.
+   - Expand coverage, add evidence-assembly checks, and obtain clinician review for consequential cases.
 
 2. **Add a Russian regulatory pack — #75**
    - Preserve authority, version, status, effective dates, source spans, and stable anchors.
