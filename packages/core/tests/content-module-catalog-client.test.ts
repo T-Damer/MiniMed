@@ -94,7 +94,9 @@ const now = () => '2026-07-21T12:00:00Z';
 describe('loadContentModuleCatalog', () => {
   it('uses and caches a valid remote catalog', async () => {
     const storage = cache();
-    const fetcher = vi.fn(async () => response({ status: 200, body: catalog('remote'), etag: 'v1' }));
+    const fetcher = vi.fn(async () =>
+      response({ status: 200, body: catalog('remote'), etag: 'v1' }),
+    );
 
     const result = await loadContentModuleCatalog({
       bundledCatalog: catalog('bundled'),
@@ -116,11 +118,13 @@ describe('loadContentModuleCatalog', () => {
       lastModified: 'Mon, 21 Jul 2026 10:00:00 GMT',
       fetchedAt: '2026-07-21T10:00:00Z',
     });
-    const fetcher = vi.fn(async (_url: string, init: { headers: Readonly<Record<string, string>> }) => {
-      expect(init.headers['If-None-Match']).toBe('etag-1');
-      expect(init.headers['If-Modified-Since']).toContain('21 Jul 2026');
-      return response({ status: 304 });
-    });
+    const fetcher = vi.fn(
+      async (_url: string, init: { headers: Readonly<Record<string, string>> }) => {
+        expect(init.headers['If-None-Match']).toBe('etag-1');
+        expect(init.headers['If-Modified-Since']).toContain('21 Jul 2026');
+        return response({ status: 304 });
+      },
+    );
 
     const result = await loadContentModuleCatalog({
       bundledCatalog: catalog('bundled'),

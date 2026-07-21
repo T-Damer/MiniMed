@@ -1,8 +1,8 @@
 import {
   type ContentModuleCatalogCache,
   type ContentModuleCatalogCacheRecord,
-  loadContentModuleCatalog,
   type LoadedContentModuleCatalog,
+  loadContentModuleCatalog,
 } from '@localmed/core';
 
 import { MODULE_CATALOG, REMOTE_MODULE_CATALOG_URL } from './module-catalog';

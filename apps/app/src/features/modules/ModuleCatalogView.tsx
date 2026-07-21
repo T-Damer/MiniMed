@@ -1,4 +1,8 @@
-import type { ContentModuleCatalog, ContentModuleCatalogEntry, CoreStatus } from '@localmed/contracts';
+import type {
+  ContentModuleCatalog,
+  ContentModuleCatalogEntry,
+  CoreStatus,
+} from '@localmed/contracts';
 import type { ContentModuleCatalogSource } from '@localmed/core';
 import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
