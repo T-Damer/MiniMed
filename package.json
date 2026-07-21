@@ -52,7 +52,7 @@
     "build:landing": "pnpm --filter @localmed/landing build",
     "build": "pnpm schema:check && pnpm build:app && pnpm build:landing",
     "native:add:android": "pnpm --filter @localmed/app cap:add:android",
-    "native:add:ios": "pnpm --filter @localmed/app cap:sync:ios",
+    "native:add:ios": "pnpm --filter @localmed/app cap:add:ios",
     "native:sync": "pnpm --filter @localmed/app cap:sync",
     "native:sync:android": "pnpm --filter @localmed/app cap:sync:android",
     "native:sync:ios": "pnpm --filter @localmed/app cap:sync:ios",
