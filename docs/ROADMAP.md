@@ -1,6 +1,6 @@
 # Roadmap
 
-The detailed product plan is in [`TECHNICAL_PLAN.md`](TECHNICAL_PLAN.md). The one-window clinical flow is defined in [`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md). This file records the intended delivery order and the implemented boundary.
+[`TECHNICAL_PLAN.md`](TECHNICAL_PLAN.md) preserves the original detailed implementation plan. Current product direction is governed by [`PRODUCT.md`](PRODUCT.md), the one-window flow in [`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md), this delivery order, and accepted ADRs when they supersede an earlier plan.
 
 ## 0.0.1–0.0.3 — foundation — complete
 
