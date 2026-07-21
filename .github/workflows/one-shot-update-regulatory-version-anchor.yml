@@ -1,0 +1,50 @@
+name: One-shot update regulatory version anchor
+
+on:
+  push:
+    branches:
+      - agent/russian-regulatory-pilot
+    paths:
+      - .github/workflows/one-shot-update-regulatory-version-anchor.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/russian-regulatory-pilot
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/benchmarks/regulatory-rf-queries.json')
+          text = path.read_text(encoding='utf-8')
+          old = '''    "expectedSectionType": "definition",
+              "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/общая-информация",'''.replace('              ', '    ')
+          new = '''    "expectedSectionType": "other",
+              "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/действующий-порядок-вместо-приказа-302н",'''.replace('              ', '    ')
+          if old not in text:
+              raise SystemExit('current-order anchor block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          pnpm exec biome check --write tools/benchmarks/regulatory-rf-queries.json
+      - run: rm .github/workflows/one-shot-update-regulatory-version-anchor.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/benchmarks/regulatory-rf-queries.json .github/workflows/one-shot-update-regulatory-version-anchor.yml
+          git commit -m "test(regulatory): target active replacement section"
+          git push origin HEAD:agent/russian-regulatory-pilot
