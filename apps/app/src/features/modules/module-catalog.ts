@@ -1,8 +1,7 @@
 import {
   ContentModuleCatalogSchema,
-  type ContentModuleCapabilitiesSchema,
+  type ContentModuleCatalogEntry,
 } from '@localmed/contracts';
-import type { z } from 'zod';
 
 const compatibility = {
   minAppVersion: '0.3.1',
@@ -18,7 +17,7 @@ const unknownSizes = {
   precision: 'unknown' as const,
 };
 
-const clinicalCapabilities: z.infer<typeof ContentModuleCapabilitiesSchema> = {
+const clinicalCapabilities: ContentModuleCatalogEntry['capabilities'] = {
   search: true,
   fullText: true,
   structuredTables: true,
