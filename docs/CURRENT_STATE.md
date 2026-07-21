@@ -65,8 +65,9 @@ The current composition is 193 records:
   - 42 tied to exact sections and anchors in seven clinical recommendations;
   - eight tied to exact official medication-registry records.
 
-Twelve representative Russian scenarios also have contract overlays for risk, required clarifications,
-dangerous omissions, evidence classes, blocked calculations, graph trust, and review state.
+Twelve representative Russian scenarios have validated contract overlays for risk, required
+clarifications, dangerous omissions, evidence classes, blocked calculations, graph trust, and review
+state. The validator is part of strict Python tests and writes a deterministic coverage report.
 
 Latest green source-grounded baseline on the real 15-document SQLite pack:
 
@@ -101,8 +102,8 @@ reported separately and cannot compensate for a Russian regression.
 ### P0 — Russian evidence and quality foundation
 
 1. **Complete benchmark contracts — #70**
-   - The numerical target and first 12 contract overlays are implemented.
-   - Expand coverage, add evidence-assembly checks, and obtain clinician review for consequential cases.
+   - The numerical target and first 12 validated contract overlays are implemented.
+   - Expand coverage and obtain clinician review for consequential cases.
 
 2. **Add a Russian regulatory pack — #75**
    - Preserve authority, version, status, effective dates, source spans, and stable anchors.
