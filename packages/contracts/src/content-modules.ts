@@ -70,7 +70,11 @@ export const ContentModuleArtifactSchema = z.object({
   kind: ContentModuleArtifactKindSchema,
   required: z.boolean(),
   url: z.string().url().nullable().default(null),
-  sha256: z.string().regex(/^sha256:[a-f0-9]{64}$/u).nullable().default(null),
+  sha256: z
+    .string()
+    .regex(/^sha256:[a-f0-9]{64}$/u)
+    .nullable()
+    .default(null),
   sizeBytes: z.number().int().nonnegative().nullable().default(null),
   compression: ContentModuleCompressionSchema,
   sourceSetDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
@@ -115,7 +119,11 @@ export const ContentModuleCatalogEntrySchema = z
     populations: z.array(z.string().min(1)).default([]),
     tags: z.array(z.string().min(1)).default([]),
     compatibility: ContentModuleCompatibilitySchema,
-    sourceSetDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u).nullable().default(null),
+    sourceSetDigest: z
+      .string()
+      .regex(/^sha256:[a-f0-9]{64}$/u)
+      .nullable()
+      .default(null),
     dependencies: z.array(ContentModuleDependencySchema).default([]),
     sizes: ContentModuleSizeSchema,
     capabilities: ContentModuleCapabilitiesSchema,
@@ -177,7 +185,8 @@ export const ContentModuleCatalogEntrySchema = z
         context.addIssue({
           code: 'custom',
           path: ['artifacts'],
-          message: 'Published modules require an exact source set and a downloadable checksummed index.',
+          message:
+            'Published modules require an exact source set and a downloadable checksummed index.',
         });
       }
     }
@@ -206,7 +215,11 @@ export const InstalledContentModuleSchema = z.object({
   enabled: z.boolean(),
   installedAt: z.string().min(1).nullable().default(null),
   installedSizeBytes: z.number().int().nonnegative().nullable().default(null),
-  activeSourceSetDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u).nullable().default(null),
+  activeSourceSetDigest: z
+    .string()
+    .regex(/^sha256:[a-f0-9]{64}$/u)
+    .nullable()
+    .default(null),
   previousVersions: z.array(z.string().min(1)).default([]),
   lastValidation: ContentModuleValidationSchema.nullable().default(null),
 });
@@ -215,7 +228,15 @@ export const ContentModuleDownloadTaskSchema = z.object({
   id: z.string().min(1),
   moduleId: z.string().min(1),
   version: z.string().min(1),
-  state: z.enum(['queued', 'downloading', 'verifying', 'installing', 'completed', 'failed', 'cancelled']),
+  state: z.enum([
+    'queued',
+    'downloading',
+    'verifying',
+    'installing',
+    'completed',
+    'failed',
+    'cancelled',
+  ]),
   downloadedBytes: z.number().int().nonnegative(),
   totalBytes: z.number().int().nonnegative().nullable(),
   includeSourceAssets: z.boolean(),
@@ -233,8 +254,13 @@ export interface ContentModuleManager {
   listCatalog(): Promise<Result<ContentModuleCatalog, LocalMedError>>;
   listInstalled(): Promise<Result<readonly InstalledContentModule[], LocalMedError>>;
   listDownloadTasks(): Promise<Result<readonly ContentModuleDownloadTask[], LocalMedError>>;
-  install(request: InstallContentModuleRequest): Promise<Result<ContentModuleDownloadTask, LocalMedError>>;
-  setEnabled(moduleId: string, enabled: boolean): Promise<Result<InstalledContentModule, LocalMedError>>;
+  install(
+    request: InstallContentModuleRequest,
+  ): Promise<Result<ContentModuleDownloadTask, LocalMedError>>;
+  setEnabled(
+    moduleId: string,
+    enabled: boolean,
+  ): Promise<Result<InstalledContentModule, LocalMedError>>;
   rollback(moduleId: string): Promise<Result<InstalledContentModule, LocalMedError>>;
   remove(moduleId: string): Promise<Result<void, LocalMedError>>;
 }
