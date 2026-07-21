@@ -1,0 +1,15 @@
+/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py
+  /home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:467:21 - error: Type "list[str]" is not assignable to declared type "list[DecisionKind]"
+    "list[str]" is not assignable to "list[DecisionKind]"
+      Type parameter "_T@list" is invariant, but "str" is not the same as "DecisionKind"
+      Consider switching from "list" to "Sequence" which is covariant (reportAssignmentType)
+  /home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:473:26 - error: Argument of type "str" cannot be assigned to parameter "key" of type "DecisionKind" in function "__getitem__"
+    Type "str" is not assignable to type "DecisionKind"
+      "str" is not assignable to type "Literal['urgency-routing']"
+      "str" is not assignable to type "Literal['diagnosis-cause']"
+      "str" is not assignable to type "Literal['diagnostic-confirmation']"
+      "str" is not assignable to type "Literal['test-selection']"
+      "str" is not assignable to type "Literal['result-interpretation']"
+      "str" is not assignable to type "Literal['treatment-selection']"
+      "str" is not assignable to type "Literal['treatment-adjustment']" (reportArgumentType)
+2 errors, 0 warnings, 0 informations
