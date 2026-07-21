@@ -1,0 +1,50 @@
+name: One-shot format scenario contracts
+
+on:
+  push:
+    branches:
+      - agent/clinical-query-benchmark
+    paths:
+      - .github/workflows/one-shot-format-scenario-contracts.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/clinical-query-benchmark
+      - uses: astral-sh/setup-uv@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: |
+          uv sync --project tools/ingest --all-groups --locked
+          pnpm install --frozen-lockfile
+      - run: |
+          uv run --project tools/ingest ruff format \
+            tools/ingest/src/localmed_ingest/clinical_query_contracts.py \
+            tools/ingest/tests/test_clinical_query_contracts.py
+          pnpm exec biome check --write \
+            package.json \
+            tools/benchmarks/russian-scenario-contracts.json
+      - run: rm .github/workflows/one-shot-format-scenario-contracts.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            tools/ingest/src/localmed_ingest/clinical_query_contracts.py \
+            tools/ingest/tests/test_clinical_query_contracts.py \
+            package.json \
+            tools/benchmarks/russian-scenario-contracts.json \
+            .github/workflows/one-shot-format-scenario-contracts.yml
+          git commit -m "style(benchmarks): format scenario contract slice"
+          git push origin HEAD:agent/clinical-query-benchmark
