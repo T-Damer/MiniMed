@@ -35,6 +35,10 @@ Use `--offline` to rebuild from the cache or `--snapshot path.json` to import a 
 snapshot in tests and controlled builds. Changing the count or seed intentionally creates a different
 sample and therefore a different output checksum.
 
+A live integration check should assert 620 source questions, 30 source specialties, 120 selected rows,
+and complete provenance/review/licence fields. It remains separate from normal CI so an external
+service outage cannot block unrelated application changes.
+
 ## Provenance rules
 
 - `real_clinician_query`: observed clinician question from an attributed dataset;
