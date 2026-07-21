@@ -45,7 +45,9 @@ test('shows the honest read-only module catalog', async ({ page }) => {
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
   await expect(page.getByText('Педиатрия: инфекционные болезни')).toBeVisible();
   await expect(page.getByText('Лекарственные препараты РФ')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Установка следующим этапом' }).first()).toBeDisabled();
+  await expect(
+    page.getByRole('button', { name: 'Установка следующим этапом' }).first(),
+  ).toBeDisabled();
   await expect(page.getByText(/Сейчас приложение использует один общий pack/u)).toBeVisible();
 });
 
