@@ -6,7 +6,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
-    "expectedSectionType": "eligibility",
+    "expectedSectionType": "rehabilitation",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/круг-диспансерного-наблюдения",
     "category": "dispensary-observation"
   },
@@ -17,7 +17,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
-    "expectedSectionType": "timeline",
+    "expectedSectionType": "rehabilitation",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/срок-постановки-под-наблюдение",
     "category": "dispensary-observation"
   },
@@ -28,7 +28,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
-    "expectedSectionType": "organization",
+    "expectedSectionType": "rehabilitation",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/организация-и-план-наблюдения",
     "category": "dispensary-observation"
   },
@@ -39,7 +39,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
-    "expectedSectionType": "organization",
+    "expectedSectionType": "rehabilitation",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/организация-и-план-наблюдения",
     "category": "dispensary-observation"
   },
@@ -61,7 +61,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
-    "expectedSectionType": "consent",
+    "expectedSectionType": "other",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/цели-и-согласие",
     "category": "preventive-exam"
   },
@@ -72,7 +72,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
-    "expectedSectionType": "information",
+    "expectedSectionType": "other",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/информирование-и-защита-несовершеннолетнего",
     "category": "preventive-exam"
   },
@@ -83,7 +83,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
-    "expectedSectionType": "organization",
+    "expectedSectionType": "other",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/организация-проведения",
     "category": "preventive-exam"
   },
@@ -94,7 +94,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
-    "expectedSectionType": "planning",
+    "expectedSectionType": "other",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/планирование-и-направление",
     "category": "preventive-exam"
   },
@@ -105,7 +105,7 @@
     "expectedVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
-    "expectedSectionType": "planning",
+    "expectedSectionType": "other",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/планирование-и-направление",
     "category": "preventive-exam"
   }
