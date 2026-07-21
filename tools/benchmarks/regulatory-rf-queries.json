@@ -108,5 +108,31 @@
     "expectedSectionType": "other",
     "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/планирование-и-направление",
     "category": "preventive-exam"
+  },
+  {
+    "id": "regulatory.versioning.current-dispensary-order",
+    "query": "Какой приказ сейчас устанавливает действующий порядок диспансерного наблюдения несовершеннолетних",
+    "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
+    "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+    "expectedDocumentNumber": "192н",
+    "expectedPublicationNumber": "0001202505190026",
+    "expectedSectionType": "definition",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/общая-информация",
+    "requireTop1": true,
+    "category": "versioning"
+  },
+  {
+    "id": "regulatory.versioning.historical-302n",
+    "query": "Что регулировал утративший силу приказ Минздрава № 302н",
+    "expectedDocumentId": "regulatory.rf.minzdrav.302n-2019",
+    "expectedVersionId": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19",
+    "expectedDocumentNumber": "302н",
+    "expectedPublicationNumber": "0001201906100012",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19/статус-документа",
+    "expectedStatus": "superseded",
+    "expectedSupersededBy": "regulatory.rf.minzdrav.192n-2025",
+    "requireTop1": true,
+    "category": "versioning"
   }
 ]
