@@ -78,8 +78,9 @@ mixed-script laboratory notation such as `Hb`.
 
 The coverage set verifies language detection, primary decision, explicit patient context, and review
 behavior. It runs in the normal strict Python test suite, so Russian regressions fail CI even when the
-foreign-query importer and English fallback continue to work. It is a software regression set, not a
-source of medical recommendations. Russian source-grounded expectations will be added separately as
+foreign-query importer and English fallback continue to work. Run `pnpm python:check` to execute its
+Ruff, strict Pyright, and pytest gates locally. It is a software regression set, not a source of medical
+recommendations. Russian source-grounded expectations will be added separately as
 `ru_source_reconstructed` scenarios linked to exact current Russian documents and anchors.
 
 This projection is a baseline, not ground truth. Future local Russian classifiers and local model
