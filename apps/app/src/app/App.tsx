@@ -6,11 +6,12 @@ import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
+import { ModuleCatalogView } from '../features/modules/ModuleCatalogView';
 import { SearchWorkspace } from '../features/search/SearchWorkspace';
 import { StatusPanel } from '../features/status/StatusPanel';
 import { replaySearch } from '../state/search-history';
 
-type View = 'search' | 'documents' | 'history' | 'status';
+type View = 'search' | 'documents' | 'modules' | 'history' | 'status';
 
 interface ReadyState {
   readonly core: MedicalCore;
@@ -24,6 +25,7 @@ const VIEWS: readonly {
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'documents', label: 'Архив и граф', icon: 'archive' },
+  { id: 'modules', label: 'Модули знаний', icon: 'modules' },
   { id: 'history', label: 'История', icon: 'history' },
   { id: 'status', label: 'Система', icon: 'system' },
 ];
@@ -134,6 +136,13 @@ export function App(): JSX.Element {
               aria-hidden={view() !== 'documents'}
             >
               <DocumentLibrary core={state().core} />
+            </section>
+            <section
+              class="app-view"
+              hidden={view() !== 'modules'}
+              aria-hidden={view() !== 'modules'}
+            >
+              <ModuleCatalogView status={state().status} />
             </section>
             <section
               class="app-view"
