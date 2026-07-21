@@ -92,9 +92,7 @@ describe('content module catalog contracts', () => {
       id: 'minimed.clinical.pediatrics.infectious',
       kind: 'clinical' as const,
       required: false,
-      dependencies: [
-        { moduleId: 'minimed.core.missing', versionRange: '^1.0.0', required: true },
-      ],
+      dependencies: [{ moduleId: 'minimed.core.missing', versionRange: '^1.0.0', required: true }],
     };
     const result = ContentModuleCatalogSchema.safeParse(catalog([core, planned]));
 
