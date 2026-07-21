@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from typing import Literal, NamedTuple, TypeAlias
+from typing import Literal, NamedTuple
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -50,9 +50,9 @@ class _SignalRule(NamedTuple):
     weight: int
 
 
-RuleSpec: TypeAlias = tuple[str, str, int]
-RuleMap: TypeAlias = dict[DecisionKind, tuple[_SignalRule, ...]]
-Profile: TypeAlias = tuple[str, RuleMap, tuple[_SignalRule, ...]]
+type RuleSpec = tuple[str, str, int]
+type RuleMap = dict[DecisionKind, tuple[_SignalRule, ...]]
+type Profile = tuple[str, RuleMap, tuple[_SignalRule, ...]]
 
 
 def _compile_rules(specs: dict[DecisionKind, tuple[RuleSpec, ...]]) -> RuleMap:
@@ -379,7 +379,10 @@ _EN_RULES = _compile_rules(
         "education-reference": (
             (
                 "reference",
-                r"\b(?:define|definition|what is|overview|mechanism|pathophysiology|epidemiology|guideline)\b",
+                (
+          r"\b(?:define|definition|what is|overview|mechanism|"
+          r"pathophysiology|epidemiology|guideline)\b"
+      ),
                 2,
             ),
         ),
