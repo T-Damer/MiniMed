@@ -1,7 +1,4 @@
-import {
-  ContentModuleCatalogSchema,
-  type ContentModuleCatalogEntry,
-} from '@localmed/contracts';
+import { type ContentModuleCatalogEntry, ContentModuleCatalogSchema } from '@localmed/contracts';
 
 const compatibility = {
   minAppVersion: '0.3.1',

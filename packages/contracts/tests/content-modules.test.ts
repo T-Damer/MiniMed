@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { ContentModuleCatalogEntrySchema, ContentModuleCatalogSchema } from '../src/content-modules';
+import {
+  ContentModuleCatalogEntrySchema,
+  ContentModuleCatalogSchema,
+} from '../src/content-modules';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 const artifactDigest = `sha256:${'b'.repeat(64)}`;

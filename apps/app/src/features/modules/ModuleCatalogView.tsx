@@ -86,7 +86,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               </span>
             </div>
             <div class="module-grid">
-              <For each={MODULE_CATALOG.modules.filter((module) => module.collection === collection)}>
+              <For
+                each={MODULE_CATALOG.modules.filter((module) => module.collection === collection)}
+              >
                 {(module) => (
                   <article class="module-card paper-card">
                     <div class="module-card-topline">
@@ -100,17 +102,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     <div class="module-facts">
                       <span>{moduleDetail(module)}</span>
                       <span>Индекс: {formatBytes(module.sizes.downloadBytes)}</span>
-                      <span>
-                        Оригиналы: {formatBytes(module.sizes.sourceAssetsDownloadBytes)}
-                      </span>
+                      <span>Оригиналы: {formatBytes(module.sizes.sourceAssetsDownloadBytes)}</span>
                     </div>
                     <div class="module-capabilities">
-                      <For each={capabilityLabels(module)}>
-                        {(label) => <span>{label}</span>}
-                      </For>
+                      <For each={capabilityLabels(module)}>{(label) => <span>{label}</span>}</For>
                     </div>
                     <button type="button" disabled>
-                      {module.releaseState === 'bundled' ? 'Обязательный модуль' : 'Установка следующим этапом'}
+                      {module.releaseState === 'bundled'
+                        ? 'Обязательный модуль'
+                        : 'Установка следующим этапом'}
                     </button>
                   </article>
                 )}
