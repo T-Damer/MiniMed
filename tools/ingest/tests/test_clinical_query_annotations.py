@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 
 import pytest
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+
 from localmed_ingest.clinical_query_annotations import (
     annotate_clinical_query_benchmark,
     load_imported_clinical_queries,
@@ -12,7 +14,6 @@ from localmed_ingest.clinical_query_taxonomy import (
     DecisionKind,
     annotate_clinical_query,
 )
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 
 class _RussianCoverageCase(BaseModel):
