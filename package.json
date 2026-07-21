@@ -44,6 +44,7 @@
     "benchmark:pilot": "pnpm --filter @localmed/benchmarks benchmark:pilot",
     "benchmark:queries:import": "uv run --project tools/ingest medbase benchmark-import-real-pocqi --output data/intermediate/clinical-benchmark/real-pocqi.jsonl --report data/build/real-pocqi-import-report.json",
     "benchmark:queries:annotate": "uv run --project tools/ingest python -m localmed_ingest.clinical_query_annotations --input data/intermediate/clinical-benchmark/real-pocqi.jsonl --output data/intermediate/clinical-benchmark/real-pocqi.annotations.jsonl --report data/build/real-pocqi-annotation-report.json",
+    "benchmark:queries:coverage": "uv run --project tools/ingest pytest tools/ingest/tests/test_clinical_query_annotations.py -q",
     "benchmark:queries": "pnpm benchmark:queries:import && pnpm benchmark:queries:annotate",
     "peers:check": "pnpm peers check",
     "build:app": "pnpm --filter @localmed/app build",
