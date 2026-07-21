@@ -1,0 +1,195 @@
+name: One-shot bump MiniMed 0.3.1
+
+on:
+  push:
+    branches:
+      - release/0.3.1
+    paths:
+      - .github/workflows/one-shot-bump-031.yml
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: release/0.3.1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+      - run: pnpm install --frozen-lockfile
+      - name: Apply version and release metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          version = "0.3.1"
+
+          package_paths = [Path("package.json")]
+          package_paths.extend(sorted(Path("apps").glob("*/package.json")))
+          package_paths.extend(sorted(Path("packages").glob("*/package.json")))
+          package_paths.append(Path("tools/benchmarks/package.json"))
+          for path in package_paths:
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              if "version" in payload:
+                  payload["version"] = version
+                  path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          android = Path("apps/app/android/app/build.gradle")
+          text = android.read_text(encoding="utf-8")
+          text = re.sub(r"versionCode\s+\d+", "versionCode 9", text, count=1)
+          text = re.sub(r'versionName\s+"[^"]+"', 'versionName "0.3.1"', text, count=1)
+          android.write_text(text, encoding="utf-8")
+
+          ios = Path("apps/app/ios/App/App.xcodeproj/project.pbxproj")
+          text = ios.read_text(encoding="utf-8")
+          text = text.replace("CURRENT_PROJECT_VERSION = 5;", "CURRENT_PROJECT_VERSION = 9;")
+          text = text.replace("MARKETING_VERSION = 0.3.0;", "MARKETING_VERSION = 0.3.1;")
+          ios.write_text(text, encoding="utf-8")
+
+          for path in (
+              Path("content/fixtures/manifest.yaml"),
+              Path("content/pilot-rf/manifest.yaml"),
+              Path("content/regulatory-rf-pilot/manifest.yaml"),
+          ):
+              text = path.read_text(encoding="utf-8")
+              text = re.sub(r"(?m)^version:\s*.+$", "version: 0.3.1", text, count=1)
+              path.write_text(text, encoding="utf-8")
+
+          current = Path("docs/CURRENT_STATE.md")
+          text = current.read_text(encoding="utf-8").replace(
+              "Repository version: `0.3.0-alpha.6`", "Repository version: `0.3.1`"
+          )
+          current.write_text(text, encoding="utf-8")
+
+          product = Path("docs/PRODUCT.md")
+          text = product.read_text(encoding="utf-8").replace(
+              "## Version 0.3.0-alpha.6 outcome", "## Version 0.3.1 outcome"
+          )
+          product.write_text(text, encoding="utf-8")
+
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text(encoding="utf-8")
+          text = text.replace(
+              "## [Unreleased]\n\n### Added",
+              "## [Unreleased]\n\n## [0.3.1] - 2026-07-21\n\n### Added",
+              1,
+          )
+          text = text.replace(
+              "### Added\n\n",
+              "### Added\n\n"
+              "- A provenance-labelled 193-record clinical-query benchmark with Russian-first intent, "
+              "source-grounded retrieval, and 12 safety/workflow contract overlays.\n"
+              "- A separate Russian regulatory pilot containing current orders 192н and 211н, "
+              "superseded order 302н, and current-versus-historical retrieval gates.\n",
+              1,
+          )
+          text = text.replace(
+              "### Changed\n\n",
+              "### Changed\n\n"
+              "- Android and iOS application versions, workspace packages, and release content packs "
+              "are aligned to 0.3.1.\n"
+              "- The APK-only public-pilot workflow is the single release path; the obsolete synthetic "
+              "full-release workflow is removed.\n",
+              1,
+          )
+          text = text.replace(
+              "### Verification boundary\n\n",
+              "### Verification boundary\n\n"
+              "- The release APK embeds the 15-document Russian clinical/medication pack. The separate "
+              "regulatory pack is built and benchmarked in release CI but is not installed in the APK "
+              "until multi-pack lifecycle support is implemented.\n",
+              1,
+          )
+          changelog.write_text(text, encoding="utf-8")
+
+          workflow = Path(".github/workflows/public-pilot-android-release.yml")
+          text = workflow.read_text(encoding="utf-8").replace("0.3.0-alpha.6", "0.3.1")
+          text = text.replace(
+              "          pnpm benchmark:pilot\n",
+              "          pnpm benchmark:pilot\n"
+              "          pnpm benchmark:queries:coverage\n"
+              "          pnpm benchmark:queries:contracts\n"
+              "          pnpm content:rebuild:regulatory\n",
+              1,
+          )
+          notes_pattern = re.compile(
+              r"          cat > release-output/RELEASE_NOTES\.md <<'EOF'\n.*?          EOF",
+              re.DOTALL,
+          )
+          notes = """          cat > release-output/RELEASE_NOTES.md <<'EOF'
+          # MiniMed 0.3.1 — Russian-first offline retrieval
+
+          The APK contains seven source-linked pediatric recommendation cards and eight official-registry medication identity cards. Search, SQLite FTS5, local vector retrieval, source opening, and the reviewed/proposed knowledge boundary work offline.
+
+          Version 0.3.1 adds the provenance-labelled clinical-query benchmark, Russian-first intent and safety-contract gates, exact section/version validation, and reproducible regulatory-pack verification. The separate regulatory pack is validated in the repository but is not embedded in this APK until multi-pack installation and rollback are implemented.
+
+          This is an engineering prerelease. It does not replace current original clinical recommendations, official drug instructions, or applicable regulatory acts.
+          EOF"""
+          text, count = notes_pattern.subn(notes, text, count=1)
+          if count != 1:
+              raise SystemExit("release notes block not found")
+          text = text.replace(
+              "        if: github.event_name == 'workflow_dispatch'",
+              "        if: >-\n"
+              "          github.event_name == 'workflow_dispatch' ||\n"
+              "          (github.event_name == 'push' && contains(github.event.head_commit.message, 'release: MiniMed 0.3.1'))",
+              1,
+          )
+          workflow.write_text(text, encoding="utf-8")
+
+          Path(".github/workflows/full-android-release.yml").unlink()
+          Path(".github/version-audit-0.3.1.txt").unlink(missing_ok=True)
+          PY
+      - name: Regenerate deterministic fixture and validate active versions
+        run: |
+          pnpm content:compile
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          assert json.loads(Path('package.json').read_text())['version'] == '0.3.1'
+          assert json.loads(Path('apps/app/package.json').read_text())['version'] == '0.3.1'
+          assert 'versionCode 9' in Path('apps/app/android/app/build.gradle').read_text()
+          assert 'versionName "0.3.1"' in Path('apps/app/android/app/build.gradle').read_text()
+          assert 'CURRENT_PROJECT_VERSION = 9;' in Path('apps/app/ios/App/App.xcodeproj/project.pbxproj').read_text()
+          assert Path('.github/workflows/full-android-release.yml').exists() is False
+          active = [
+              Path('package.json'),
+              Path('apps/app/package.json'),
+              Path('apps/landing/package.json'),
+              Path('tools/benchmarks/package.json'),
+              Path('apps/app/android/app/build.gradle'),
+              Path('.github/workflows/public-pilot-android-release.yml'),
+              Path('docs/CURRENT_STATE.md'),
+              Path('docs/PRODUCT.md'),
+          ]
+          stale = []
+          for path in active:
+              for number, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
+                  if re.search(r'0\.3\.0-alpha\.[0-9]+', line):
+                      stale.append(f'{path}:{number}:{line}')
+          if stale:
+              raise SystemExit('stale active versions:\n' + '\n'.join(stale))
+          PY
+      - run: rm .github/workflows/one-shot-bump-031.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "release: prepare MiniMed 0.3.1"
+          git push origin HEAD:release/0.3.1
