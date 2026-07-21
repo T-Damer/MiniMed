@@ -81,11 +81,15 @@ def load_imported_clinical_queries(path: Path) -> list[ImportedClinicalQuery]:
             payload: Any = json.loads(line)
             record = ImportedClinicalQuery.model_validate(payload)
         except (json.JSONDecodeError, ValueError) as error:
-            raise ValueError(f"Invalid clinical query JSONL at line {line_number}: {error}") from error
+            raise ValueError(
+                f"Invalid clinical query JSONL at line {line_number}: {error}"
+            ) from error
         if record.id in identifiers:
             raise ValueError(f"Duplicate clinical query scenario id: {record.id}")
         if record.provenance != "real_clinician_query":
-            raise ValueError(f"Unsupported provenance for automatic baseline annotation: {record.id}")
+            raise ValueError(
+                f"Unsupported provenance for automatic baseline annotation: {record.id}"
+            )
         if record.review_status != "candidate":
             raise ValueError(f"Imported query must remain candidate during annotation: {record.id}")
         identifiers.add(record.id)
@@ -154,9 +158,9 @@ def annotate_clinical_query_benchmark(
     if report_path is not None:
         _write_atomic(
             report_path,
-            (json.dumps(report.model_dump(mode="json"), ensure_ascii=False, indent=2) + "\n").encode(
-                "utf-8"
-            ),
+            (
+                json.dumps(report.model_dump(mode="json"), ensure_ascii=False, indent=2) + "\n"
+            ).encode("utf-8"),
         )
     return report
 

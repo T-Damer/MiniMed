@@ -95,7 +95,9 @@ _RU_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
     "diagnosis-cause": (
         _rule("differential", r"\b(?:дифференциальн\w*\s+диагноз|этиолог)\w*\b", 3),
         _rule("cause", r"\b(?:причин|чем\s+обусловлен|почему|что\s+вызвал)\w*\b", 2),
-        _rule("possible-diagnosis", r"\b(?:вероятн|возможн|наиболее\s+вероятн)\w*\s+диагноз\w*\b", 3),
+        _rule(
+            "possible-diagnosis", r"\b(?:вероятн|возможн|наиболее\s+вероятн)\w*\s+диагноз\w*\b", 3
+        ),
         _rule("what-could", r"\b(?:что\s+это\s+может\s+быть|что\s+может\s+вызывать)\b", 2),
     ),
     "diagnostic-confirmation": (
@@ -123,13 +125,19 @@ _RU_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
         _rule("workup", r"\b(?:дообследован|обследован|диагностическ\w*\s+поиск)\w*\b", 1),
     ),
     "result-interpretation": (
-        _rule("interpret", r"\b(?:интерпретир|расшифров|значени|значимость|что\s+означает)\w*\b", 3),
+        _rule(
+            "interpret", r"\b(?:интерпретир|расшифров|значени|значимость|что\s+означает)\w*\b", 3
+        ),
         _rule(
             "abnormal-result",
             r"\b(?:повышен|понижен|низк|высок|отрицательн|положительн|измен[её]н)\w*\s+(?:уровень|показатель|результат|анализ|значени)\w*\b",
             2,
         ),
-        _rule("result-artifact", r"\b(?:экг|ээг|мрт|кт|рентген|рентгенограмм|биопси|гистолог|анализ)\w*\b", 1),
+        _rule(
+            "result-artifact",
+            r"\b(?:экг|ээг|мрт|кт|рентген|рентгенограмм|биопси|гистолог|анализ)\w*\b",
+            1,
+        ),
     ),
     "treatment-selection": (
         _rule("treatment", r"\b(?:лечени|терапи|ведение|лечить|тактик)\w*\b", 2),
@@ -156,11 +164,15 @@ _RU_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
     "dosing-calculation": (
         _rule("dose", r"\b(?:доз|дозиров|сколько\s+(?:мг|мл|таблет|капель))\w*\b", 3),
         _rule("weight-dose", r"\b(?:мг|мкг|г)\s*/\s*(?:кг|м2|м²)|по\s+массе\b", 3),
-        _rule("frequency", r"\b(?:кратност|как\s+часто|раз\s+в\s+сутки|каждые\s+\d+\s+час)\w*\b", 2),
+        _rule(
+            "frequency", r"\b(?:кратност|как\s+часто|раз\s+в\s+сутки|каждые\s+\d+\s+час)\w*\b", 2
+        ),
         _rule("dose-adjustment", r"\bкоррекци\w*\s+доз\w*\s+при\s+(?:почечн|печ[её]ночн)\w*\b", 3),
     ),
     "medication-safety": (
-        _rule("interaction", r"\b(?:взаимодейств|совместим|сочетать|комбинац|одновременно)\w*\b", 3),
+        _rule(
+            "interaction", r"\b(?:взаимодейств|совместим|сочетать|комбинац|одновременно)\w*\b", 3
+        ),
         _rule("contraindication", r"\b(?:противопоказ|нельзя|избегать|безопасн)\w*\b", 3),
         _rule("adverse-effect", r"\b(?:побочн|нежелательн|токсичн|аллерги)\w*\b", 2),
         _rule("special-population", r"\b(?:беременн|грудн\w*\s+вскармливан|лактац)\w*\b", 2),
@@ -168,7 +180,11 @@ _RU_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
     "monitoring-follow-up": (
         _rule("monitor", r"\b(?:контрол|монитор|наблюдени|диспансерн\w*\s+наблюдени)\w*\b", 3),
         _rule("follow-up", r"\b(?:повторн\w*\s+осмотр|повторить|переоцен|динамик|явка)\w*\b", 2),
-        _rule("when-repeat", r"\b(?:когда|через\s+сколько)\s+(?:повторить|контролировать|оценить)\w*\b", 3),
+        _rule(
+            "when-repeat",
+            r"\b(?:когда|через\s+сколько)\s+(?:повторить|контролировать|оценить)\w*\b",
+            3,
+        ),
     ),
     "prevention": (
         _rule("prevent", r"\b(?:профилактик|предотврат)\w*\b", 3),
@@ -177,7 +193,11 @@ _RU_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
     ),
     "prognosis": (
         _rule("prognosis", r"\b(?:прогноз|исход|выживаемост|летальност|смертност)\w*\b", 3),
-        _rule("recurrence", r"\b(?:рецидив|повторн\w*\s+эпизод|риск\s+развити|долгосрочн\w*\s+риск)\w*\b", 2),
+        _rule(
+            "recurrence",
+            r"\b(?:рецидив|повторн\w*\s+эпизод|риск\s+развити|долгосрочн\w*\s+риск)\w*\b",
+            2,
+        ),
     ),
     "administrative": (
         _rule(
@@ -216,24 +236,50 @@ _EN_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
         _rule("diagnose", r"\bhow (?:is|do you) diagnos(?:e|ed)\b", 2),
     ),
     "test-selection": (
-        _rule("next-test", r"\b(?:next|best|appropriate|initial|first) (?:test|study|imaging)\b", 3),
+        _rule(
+            "next-test", r"\b(?:next|best|appropriate|initial|first) (?:test|study|imaging)\b", 3
+        ),
         _rule("what-test", r"\bwhat (?:test|tests|study|studies|imaging|workup)\b", 3),
-        _rule("order-test", r"\b(?:order|obtain|perform) (?:a |an )?(?:test|panel|scan|mri|ct|ultrasound)\b", 2),
+        _rule(
+            "order-test",
+            r"\b(?:order|obtain|perform) (?:a |an )?(?:test|panel|scan|mri|ct|ultrasound)\b",
+            2,
+        ),
         _rule("workup", r"\b(?:workup|evaluation|investigation)s?\b", 1),
     ),
     "result-interpretation": (
         _rule("interpret", r"\b(?:interpret|interpretation|meaning|significance)\b", 3),
-        _rule("abnormal-result", r"\b(?:elevated|decreased|low|high|abnormal|positive|negative) (?:level|result|value|test)\b", 2),
-        _rule("result-artifact", r"\b(?:ecg|ekg|eeg|mri|ct|x-ray|radiograph|pathology|biopsy|lab result)s?\b", 1),
+        _rule(
+            "abnormal-result",
+            r"\b(?:elevated|decreased|low|high|abnormal|positive|negative) (?:level|result|value|test)\b",
+            2,
+        ),
+        _rule(
+            "result-artifact",
+            r"\b(?:ecg|ekg|eeg|mri|ct|x-ray|radiograph|pathology|biopsy|lab result)s?\b",
+            1,
+        ),
     ),
     "treatment-selection": (
         _rule("treatment", r"\b(?:treat|treatment|therapy|management|manage)\b", 2),
-        _rule("first-line", r"\b(?:first-line|second-line|preferred|best) (?:drug|medication|therapy|treatment)\b", 3),
+        _rule(
+            "first-line",
+            r"\b(?:first-line|second-line|preferred|best) (?:drug|medication|therapy|treatment)\b",
+            3,
+        ),
         _rule("prescribe", r"\b(?:prescribe|start|initiate)\b", 1),
     ),
     "treatment-adjustment": (
-        _rule("nonresponse", r"\b(?:not respond(?:ing|ed)?|no response|failed|failure|refractory|persistent despite)\b", 3),
-        _rule("change-treatment", r"\b(?:switch(?:ed)?|change(?:d)?|adjust(?:ed)?|escalate(?:d)?|de-escalate(?:d)?|taper(?:ed)?|discontinue(?:d)?|stop(?:ped)?|continue(?:d)?)\b", 2),
+        _rule(
+            "nonresponse",
+            r"\b(?:not respond(?:ing|ed)?|no response|failed|failure|refractory|persistent despite)\b",
+            3,
+        ),
+        _rule(
+            "change-treatment",
+            r"\b(?:switch(?:ed)?|change(?:d)?|adjust(?:ed)?|escalate(?:d)?|de-escalate(?:d)?|taper(?:ed)?|discontinue(?:d)?|stop(?:ped)?|continue(?:d)?)\b",
+            2,
+        ),
         _rule("next-line", r"\b(?:next-line|third-line|salvage therapy)\b", 3),
     ),
     "dosing-calculation": (
@@ -264,8 +310,14 @@ _EN_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
     ),
     "administrative": (
         _rule("coverage", r"\b(?:insurance|coverage|authorization|reimbursement)\b", 3),
-        _rule("disability", r"\b(?:disability|work restriction|fitness for duty|military service)\b", 3),
-        _rule("legal", r"\b(?:legal|regulation|regulatory|reportable|documentation requirement)\b", 2),
+        _rule(
+            "disability",
+            r"\b(?:disability|work restriction|fitness for duty|military service)\b",
+            3,
+        ),
+        _rule(
+            "legal", r"\b(?:legal|regulation|regulatory|reportable|documentation requirement)\b", 2
+        ),
     ),
     "education-reference": (
         _rule("definition", r"\b(?:define|definition|what is|overview of)\b", 2),
@@ -325,7 +377,9 @@ def _resolve_language(text: str, declared_language: str | None) -> QueryLanguage
     return detect_query_language(text)
 
 
-def _active_profiles(language: QueryLanguage) -> tuple[tuple[str, dict[DecisionKind, tuple[_SignalRule, ...]], tuple[_SignalRule, ...]], ...]:
+def _active_profiles(
+    language: QueryLanguage,
+) -> tuple[tuple[str, dict[DecisionKind, tuple[_SignalRule, ...]], tuple[_SignalRule, ...]], ...]:
     if language == "en":
         return (("en", _EN_DECISION_RULES, _EN_PATIENT_RULES),)
     if language == "ru":
@@ -402,9 +456,7 @@ def annotate_clinical_query(
         primary = ranked[0]
         top_score = scores[primary]
         secondary = [
-            decision
-            for decision in ranked[1:]
-            if scores[decision] >= max(2, top_score - 1)
+            decision for decision in ranked[1:] if scores[decision] >= max(2, top_score - 1)
         ][:3]
         matched_signals = [
             f"{decision}:{label}"

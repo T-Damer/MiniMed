@@ -46,9 +46,7 @@ def test_taxonomy_distinguishes_common_russian_clinical_decisions() -> None:
         "Ребёнок 4 лет, масса 18 кг. Какую дозу амоксициллина назначить?"
     )
     result = annotate_clinical_query("Как интерпретировать этот результат ЭКГ?")
-    next_test = annotate_clinical_query(
-        "Пациент с кашлем: какое исследование назначить следующим?"
-    )
+    next_test = annotate_clinical_query("Пациент с кашлем: какое исследование назначить следующим?")
     adjustment = annotate_clinical_query(
         "Пациент не ответил на терапию первой линии. Следует ли сменить лечение?"
     )
@@ -116,9 +114,7 @@ def test_annotation_projection_is_deterministic_and_reported(tmp_path: Path) -> 
     assert first.read_bytes() == second.read_bytes()
     annotations = [json.loads(line) for line in first.read_text(encoding="utf-8").splitlines()]
     assert len(annotations) == 5
-    assert all(
-        row["annotation"]["method"] == "rule-based-ru-first-v1" for row in annotations
-    )
+    assert all(row["annotation"]["method"] == "rule-based-ru-first-v1" for row in annotations)
     assert annotations[0]["source_jurisdiction"] == "RU"
     assert sum(report.primary_decision_counts.values()) == 5
     assert sum(report.complexity_counts.values()) == 5
