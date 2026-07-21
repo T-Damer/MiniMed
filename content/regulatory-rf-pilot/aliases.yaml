@@ -4,6 +4,11 @@ aliases:
     alias: диспансерный учет ребенка
     category: administrative
     weight: 1.0
+  - id: alias.regulatory.current-dispensary-order
+    canonicalTerm: приказ 192н действующий порядок диспансерного наблюдения несовершеннолетних
+    alias: что действует вместо приказа 302н
+    category: administrative
+    weight: 1.3
   - id: alias.regulatory.follow-up-deadline
     canonicalTerm: срок установления диспансерного наблюдения несовершеннолетнего
     alias: когда поставить ребенка на диспансерное наблюдение
