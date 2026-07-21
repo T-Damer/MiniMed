@@ -28,28 +28,35 @@ jobs:
         with:
           version: "0.10.0"
       - run: pnpm install --frozen-lockfile
-      - name: Execute embedded release script
+      - name: Execute non-workflow release changes
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           workflow = Path('.github/workflows/one-shot-bump-031.yml')
           lines = workflow.read_text(encoding='utf-8').splitlines()
           start = lines.index("          python - <<'PY'") + 1
           end = lines.index('          PY', start)
           script = '\n'.join(line[10:] if line.startswith('          ') else line for line in lines[start:end]) + '\n'
+          script = re.sub(
+              r'\nworkflow = Path\("\.github/workflows/public-pilot-android-release\.yml"\).*?'
+              r'(?=\nPath\("\.github/version-audit-0\.3\.1\.txt"\))',
+              '\n',
+              script,
+              flags=re.DOTALL,
+          )
           Path('/tmp/prepare-release-031.py').write_text(script, encoding='utf-8')
           PY
           python /tmp/prepare-release-031.py
           pnpm content:compile
           pnpm check
           pnpm typecheck
-      - name: Commit prepared release
+      - name: Commit prepared version files
         run: |
-          rm .github/workflows/one-shot-bump-031.yml
-          rm .github/workflows/one-shot-run-bump-pr-031.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
+          git status --short
           git commit -m "release: prepare MiniMed 0.3.1"
           git push origin HEAD:release/0.3.1
