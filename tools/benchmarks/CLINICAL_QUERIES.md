@@ -4,6 +4,9 @@ MiniMed keeps benchmark questions outside the medical knowledge pack. A clinicia
 retrieval and workflow behavior, but it is not itself an authoritative medical fact or an approved
 answer.
 
+The current committed benchmark contains 193 records: 120 natural-distribution clinician queries, 23
+Russian synthetic edge cases, and 50 Russian source-grounded retrieval scenarios.
+
 ## Real-POCQi import
 
 Real-POCQi contains 620 deidentified questions submitted by practicing US physicians across 30
