@@ -1,0 +1,39 @@
+name: One-shot format module contracts
+
+on:
+  push:
+    branches:
+      - agent/content-module-foundation
+    paths:
+      - .github/workflows/one-shot-format-module-contracts.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/content-module-foundation
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: >-
+          pnpm exec biome check --write
+          packages/contracts/src/content-modules.ts
+          packages/contracts/tests/content-modules.test.ts
+      - run: rm .github/workflows/one-shot-format-module-contracts.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style(modules): format module contracts"
+          git push origin HEAD:agent/content-module-foundation
