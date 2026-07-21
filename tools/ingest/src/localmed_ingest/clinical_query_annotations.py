@@ -20,6 +20,8 @@ class ImportedClinicalQuery(BaseModel):
     id: str = Field(min_length=1)
     provenance: str
     review_status: str
+    language: str = Field(min_length=1)
+    jurisdiction: str = Field(min_length=1)
     query: str = Field(min_length=1)
     patient_specific: bool
 
@@ -29,6 +31,8 @@ class ScenarioAnnotationRecord(BaseModel):
 
     schema_version: int = 1
     scenario_id: str
+    source_language: str
+    source_jurisdiction: str
     imported_patient_specific: bool
     annotation: ClinicalQueryAnnotation
 
@@ -42,6 +46,9 @@ class ClinicalQueryAnnotationReport(BaseModel):
     source_sha256: str
     output_sha256: str
     method: str
+    source_language_counts: dict[str, int]
+    detected_language_counts: dict[str, int]
+    jurisdiction_counts: dict[str, int]
     primary_decision_counts: dict[str, int]
     complexity_counts: dict[str, int]
     patient_specific_derived: int = Field(ge=0)
@@ -78,7 +85,7 @@ def load_imported_clinical_queries(path: Path) -> list[ImportedClinicalQuery]:
         if record.id in identifiers:
             raise ValueError(f"Duplicate clinical query scenario id: {record.id}")
         if record.provenance != "real_clinician_query":
-            raise ValueError(f"Unsupported provenance for automatic English annotation: {record.id}")
+            raise ValueError(f"Unsupported provenance for automatic baseline annotation: {record.id}")
         if record.review_status != "candidate":
             raise ValueError(f"Imported query must remain candidate during annotation: {record.id}")
         identifiers.add(record.id)
@@ -99,8 +106,10 @@ def annotate_clinical_query_benchmark(
     annotations = [
         ScenarioAnnotationRecord(
             scenario_id=query.id,
+            source_language=query.language,
+            source_jurisdiction=query.jurisdiction,
             imported_patient_specific=query.patient_specific,
-            annotation=annotate_clinical_query(query.query),
+            annotation=annotate_clinical_query(query.query, language=query.language),
         )
         for query in queries
     ]
@@ -112,6 +121,11 @@ def annotate_clinical_query_benchmark(
     )
     _write_atomic(output, output_payload)
 
+    source_language_counts = Counter(query.language for query in queries)
+    detected_language_counts = Counter(
+        record.annotation.detected_language for record in annotations
+    )
+    jurisdiction_counts = Counter(query.jurisdiction for query in queries)
     primary_counts = Counter(record.annotation.primary_decision for record in annotations)
     complexity_counts = Counter(record.annotation.complexity for record in annotations)
     derived_patient_specific = sum(
@@ -127,7 +141,10 @@ def annotate_clinical_query_benchmark(
         annotated_count=len(annotations),
         source_sha256=_sha256(source_payload),
         output_sha256=_sha256(output_payload),
-        method="rule-based-en-v1",
+        method="rule-based-ru-first-v1",
+        source_language_counts=dict(sorted(source_language_counts.items())),
+        detected_language_counts=dict(sorted(detected_language_counts.items())),
+        jurisdiction_counts=dict(sorted(jurisdiction_counts.items())),
         primary_decision_counts=dict(sorted(primary_counts.items())),
         complexity_counts=dict(sorted(complexity_counts.items())),
         patient_specific_derived=derived_patient_specific,
