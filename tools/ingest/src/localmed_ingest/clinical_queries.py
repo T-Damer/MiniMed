@@ -24,9 +24,7 @@ REAL_POCQI_CITATION = (
     "on Real Point-of-Care Clinical Queries. 2026. arXiv:2606.28960."
 )
 
-ProvenanceClass = Literal[
-    "real_clinician_query", "ru_source_reconstructed", "synthetic_edge_case"
-]
+ProvenanceClass = Literal["real_clinician_query", "ru_source_reconstructed", "synthetic_edge_case"]
 ReviewStatus = Literal["candidate", "source_validated", "clinician_reviewed"]
 
 
