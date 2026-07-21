@@ -37,6 +37,18 @@ test('preserves the active search while navigating between mounted routes', asyn
   await expect(pneumoniaResult(page)).toBeVisible();
 });
 
+test('shows the honest read-only module catalog', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.getByRole('button', { name: 'Модули знаний' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Модули знаний' })).toBeVisible();
+  await expect(page.getByText('Ядро MiniMed')).toBeVisible();
+  await expect(page.getByText('Педиатрия: инфекционные болезни')).toBeVisible();
+  await expect(page.getByText('Лекарственные препараты РФ')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Установка следующим этапом' }).first()).toBeDisabled();
+  await expect(page.getByText(/Сейчас приложение использует один общий pack/u)).toBeVisible();
+});
+
 test('replays a saved query from local search history', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
