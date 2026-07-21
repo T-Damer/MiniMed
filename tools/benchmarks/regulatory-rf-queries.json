@@ -116,8 +116,8 @@
     "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
-    "expectedSectionType": "definition",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/общая-информация",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/действующий-порядок-вместо-приказа-302н",
     "requireTop1": true,
     "category": "versioning"
   },
