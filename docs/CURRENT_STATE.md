@@ -30,6 +30,8 @@ source text and does not become trusted without an explicit review state.
 - Exact document, section, chunk, stable-anchor, and neighboring-context navigation.
 - Local history and bookmarks.
 - Validated content-module catalog/lifecycle contracts and a read-only module-map page.
+- Module catalogs fail closed on duplicate IDs, missing dependencies, absent required core modules,
+  mismatched source sets, or incomplete published artifacts.
 
 The semantic profile is an engineering baseline, not a neural Russian medical model.
 
