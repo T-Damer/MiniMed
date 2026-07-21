@@ -1,7 +1,6 @@
 # Roadmap
 
-The detailed product plan is in [`TECHNICAL_PLAN.md`](TECHNICAL_PLAN.md). This file records the
-implemented boundary rather than an aspirational feature list.
+The detailed product plan is in [`TECHNICAL_PLAN.md`](TECHNICAL_PLAN.md). The one-window clinical flow is defined in [`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md). This file records the intended delivery order and the implemented boundary.
 
 ## 0.0.1–0.0.3 — foundation — complete
 
@@ -19,81 +18,106 @@ implemented boundary rather than an aspirational feature list.
 
 ## 0.2.0 — clinical query core and archive UI — complete
 
-- deterministic extraction of age, sex, duration, temperature, measurements, investigations,
-  medications, locations, epidemiology, and explicit negations;
+- deterministic extraction of age, sex, duration, temperature, measurements, investigations, medications, locations, epidemiology, and explicit negations;
 - source ranges, uncertainty warnings, and clickable missing-field suggestions;
 - multiple weighted query branches and explainable diagnostics;
-- rank fusion resistant to duplicated weak branches;
-- direct loading of the compiled SQLite `.db` pack in the browser runtime;
-- local bookmarks and richer source reader;
-- archive/folder/paper visual language for the app and landing;
-- long-case rank-1 regression benchmark.
+- direct loading of the compiled SQLite pack;
+- local bookmarks, search history, source reader, and archive UI;
+- long-case retrieval regression benchmark.
 
-## 0.2.1 — native persistence adapter — implemented; device smoke pending
+## 0.2.1–0.2.2 — native persistence and private ingestion — implemented; real corpus/device validation pending
 
-- `CapacitorMedicalStore` implements `MedicalStore`;
-- local Android/iOS plugins copy/open a bundled `.db` in private storage without rebuilding it;
-- checksum, quick integrity check, real FTS5 probe, and WASM fallback are implemented;
-- source registration and bridge parity checks are automated;
-- physical Android/iOS FTS5, process-death, reboot, recovery, and latency smoke remain open.
+- native Android/iOS read-only SQLite adapters with integrity/FTS5 probing and WASM fallback;
+- private PDF/TXT/Markdown preparation with source spans and diagnostics;
+- cached source synchronization and deterministic pack rebuild;
+- physical device persistence/performance checks and a representative private corpus remain open.
 
-## 0.2.2 — private recommendation ingestion — tooling complete; corpus pending
+## 0.3.0 — hybrid retrieval and structured knowledge foundation — alpha implemented
 
-- ignored private raw-data workspace and validated source registry;
-- text-layer PDF, UTF-8 TXT/OCR, and Markdown importer;
-- repeated header/footer removal, heading/list/table candidates, and low-text diagnostics;
-- page/block or line provenance carried into compiled chunks;
-- build-ready Markdown and atomic preparation output;
-- parser tests with generated multi-page PDF and path traversal rejection.
-
-Still requires the user's 5–10 selected recommendations, spot review, 50–100 physician-authored
-queries, and real-corpus latency/size/memory measurements.
-
-## 0.3.0 — local semantic retrieval — alpha implemented
-
-Implemented in `0.3.0-alpha.1`:
-
-- immutable embedding-profile contract and schema migration;
-- precomputed per-chunk int8 vectors and local query-only embedding;
-- exact filtered cosine scan in in-memory/SQLite adapters and native bridge contracts;
-- lexical, semantic, hybrid, and auto modes;
-- hybrid fusion, per-result scores, profile diagnostics, and explicit lexical fallback;
-- cross-language golden vectors, unit tests, hybrid benchmark assertions, and browser E2E.
+- immutable embedding profiles and per-chunk int8 vectors;
+- lexical, semantic, hybrid, and automatic retrieval modes;
+- Russian query-intent classification and deterministic case extraction;
+- relational entities, medication profiles, facts, weighted relations, exact evidence, document links, and review tasks;
+- AI proposal export/import with exact-evidence validation and reviewed-only search projection;
+- source-linked public clinical and medication pilots.
 
 Still required before stable `0.3.0`:
 
-- compact multilingual neural model spike with Russian medical benchmark;
-- physical-device latency, memory, battery, and package-size measurements;
-- lexical versus neural retrieval comparison on 50–100 physician-authored queries;
-- exact scan versus ANN decision at representative corpus size.
+- a compact multilingual neural embedding spike with a Russian medical benchmark;
+- real-corpus latency, size, memory, and battery measurements;
+- runtime entity/knowledge cards rather than projection-only retrieval;
+- physical Android/iOS validation.
 
-## 0.4.0 — optional BYOK cloud synthesis
+## 0.4.0 — runtime knowledge graph
 
-- provider-neutral answer port;
-- payload preview and selected-chunk-only sending;
-- citations back to local anchors;
-- cancellation, timeout, and rate limits;
-- no-key/no-network path remains fully useful.
+- condition, symptom, investigation, drug, intervention, document, and administrative entities available through the core;
+- aliases, typed facts, outgoing/incoming relations, source links, authority, jurisdiction, validity, and review state;
+- graph expansion during retrieval without replacing direct lexical evidence;
+- runtime cards and exact navigation from entities and relations to evidence;
+- explicit conflict and missing-evidence presentation;
+- Russian-first source ranking with international source lineage.
 
-## 0.5.0 — optional local model assistance
+## 0.5.0 — one-window case workspace
 
-- structured-output adapter for more ambiguous case extraction;
-- deterministic parser remains fallback;
-- source spans, negation, uncertainty, and timeline contract tests;
-- model may propose search branches but never own the local corpus.
+- persistent `WorkspaceThread`, optional `PatientProfile`, and separate `ClinicalEpisode`;
+- automatic distinction between learning queries, new episodes, episode continuations, and mixed requests;
+- explicit separation of possible patient match, episode continuation, and semantically similar case;
+- no automatic patient or episode merging;
+- fact provenance, clinician confirmation, uncertainty, contradictions, and decision-linked clarification questions;
+- layered case output: urgency, known facts, missing data, hypotheses, investigations, treatment, follow-up, regulation, and sources;
+- temporary no-save mode, local encryption design, export/delete, and no clinical logs/telemetry.
 
-## 0.6.0+ — content packs, scale, hardening, closed beta
+## 0.6.0 — portable Rust core
 
-- signed manifests, install/update/rollback, specialty modules;
-- tens/hundreds of recommendations and physician golden set;
-- performance/memory budgets and device matrix;
-- feedback workflow without patient data;
-- closed beta with several physicians.
+- versioned core-v2 DTOs and golden contract tests;
+- Rust domain, case state, query planning, graph traversal, ranking fusion, evidence assembly, and rule interfaces;
+- WASM target for web, native target for desktop/CLI, and thin Android/iOS bindings;
+- parity mode with the TypeScript implementation until the same fixtures and benchmarks pass;
+- UI remains SolidJS/TypeScript; ingestion remains Python; model and platform runtimes remain adapters;
+- TypeScript clinical orchestration is removed only after parity and migration tests.
+
+## 0.7.0 — drug, rule, and calculation engine
+
+- structured indication/population/route/form/strength/dose/duration/maximum rules;
+- deterministic weight, body-surface-area, renal/hepatic, age, and concentration calculations where supported by reviewed sources;
+- contraindication, interaction, duplicate-ingredient, monitoring, and treatment-response checks;
+- missing-input detection instead of guessed values;
+- calculation trace showing inputs, formula, limits, rounding, source version, and applicability;
+- specialty-neutral rule API with high-risk content review policy.
+
+## 0.8.0 — Russian regulatory and source-comparison packs
+
+- regulatory acts, orders, standards, care procedures, drug instructions, and clinical recommendations as distinct document classes;
+- issuing authority, jurisdiction, effective dates, amendments, repeal/supersession, paragraph/table anchors, and target populations;
+- conditional administrative implications linked to the medical criteria and evidence required;
+- `references`, `classification_based_on`, `adapts`, `supplements`, `differs_from`, and `supersedes` relations;
+- comparison of document versions and conflicting clinical/drug/regulatory statements;
+- clinical and administrative conclusions displayed separately.
+
+## 0.9.0 — local assistant and private beta
+
+- local structured-output model for ambiguous case extraction and clarification drafting;
+- local evidence-grounded synthesis over reviewed facts, rules, calculations, and selected source chunks;
+- model applicability, limitations, active retrieval tier, and source coverage visible in layered UI;
+- deterministic fallback at every stage;
+- 100–200 deidentified physician-style scenarios covering common and specialty-specific workflows;
+- closed testing with students and several physicians, local feedback export, and safety/retrieval regression gates.
+
+Optional BYOK cloud synthesis may be added behind the same evidence contract, but it is not on the critical path to 1.0.
 
 ## 1.0.0 — stable personal edition
 
-- reproducible content packs;
-- offline-first mobile UX;
-- measured retrieval quality on representative content;
-- documented update/recovery path;
-- no mandatory backend.
+The release proves a complete offline workflow on a representative, explicitly incomplete corpus:
+
+- reproducible clinical, medication, and regulatory content packs;
+- local one-window search and patient/episode workspace;
+- runtime knowledge graph and exact provenance;
+- hybrid retrieval with lexical fallback;
+- reviewed drug/rule calculations;
+- local structured assistance and evidence-grounded synthesis on supported devices;
+- portable Rust core for web, desktop, Android/iOS, and CLI targets;
+- pack update, integrity, rollback, export/delete, and recovery;
+- measured retrieval and task success on the same golden scenarios;
+- no mandatory account, backend, network, or cloud model.
+
+A complete medical ontology, hospital EMR integration, cross-device synchronization, unrestricted patient record storage, autonomous diagnosis/treatment, and universal specialty coverage remain outside the 1.0 claim.
