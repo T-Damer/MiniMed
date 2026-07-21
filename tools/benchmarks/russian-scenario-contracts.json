@@ -33,21 +33,14 @@
     "reviewStatus": "source_validated",
     "riskLevel": "critical",
     "capabilities": ["retrieval", "clarification", "evidence-assembly"],
-    "retrievalScenarioIds": [
-      "pneumonia.clinical.saturation",
-      "pneumonia.routing.hypoxemia"
-    ],
+    "retrievalScenarioIds": ["pneumonia.clinical.saturation", "pneumonia.routing.hypoxemia"],
     "requiredClarifications": [
       "patient.exact-age",
       "measurement.spo2-quality",
       "vitals.respiratory-distress",
       "intake.feeding"
     ],
-    "dangerousOmissions": [
-      "hypoxemia",
-      "urgent-routing",
-      "measurement-quality"
-    ],
+    "dangerousOmissions": ["hypoxemia", "urgent-routing", "measurement-quality"],
     "requiredEvidenceClasses": ["clinical-recommendation"]
   },
   {
@@ -58,10 +51,7 @@
     "reviewStatus": "source_validated",
     "riskLevel": "critical",
     "capabilities": ["retrieval", "clarification", "evidence-assembly"],
-    "retrievalScenarioIds": [
-      "bronchiolitis.clinical.apnea",
-      "bronchiolitis.routing.admission"
-    ],
+    "retrievalScenarioIds": ["bronchiolitis.clinical.apnea", "bronchiolitis.routing.admission"],
     "requiredClarifications": [
       "patient.gestational-age",
       "episode.apnea-frequency",
@@ -91,11 +81,7 @@
       "output.urine",
       "vitals.consciousness-and-perfusion"
     ],
-    "dangerousOmissions": [
-      "dehydration-severity",
-      "shock-signs",
-      "inability-to-drink"
-    ],
+    "dangerousOmissions": ["dehydration-severity", "shock-signs", "inability-to-drink"],
     "requiredEvidenceClasses": ["clinical-recommendation"]
   },
   {
@@ -114,11 +100,7 @@
       "output.urine",
       "specimen.collection-method"
     ],
-    "dangerousOmissions": [
-      "urine-testing",
-      "dehydration-or-sepsis-risk",
-      "age-dependent-routing"
-    ],
+    "dangerousOmissions": ["urine-testing", "dehydration-or-sepsis-risk", "age-dependent-routing"],
     "requiredEvidenceClasses": ["clinical-recommendation"]
   },
   {

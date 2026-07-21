@@ -72,17 +72,13 @@ class ClinicalScenarioContract(BaseModel):
     risk_level: RiskLevel = Field(alias="riskLevel")
     capabilities: list[Capability] = Field(min_length=1)
     retrieval_scenario_ids: list[str] = Field(min_length=1, alias="retrievalScenarioIds")
-    required_clarifications: list[str] = Field(
-        default_factory=list, alias="requiredClarifications"
-    )
+    required_clarifications: list[str] = Field(default_factory=list, alias="requiredClarifications")
     dangerous_omissions: list[str] = Field(default_factory=list, alias="dangerousOmissions")
     required_evidence_classes: list[EvidenceClass] = Field(
         min_length=1, alias="requiredEvidenceClasses"
     )
     calculation: CalculationExpectation | None = None
-    graph_expansion: GraphExpansionExpectation | None = Field(
-        default=None, alias="graphExpansion"
-    )
+    graph_expansion: GraphExpansionExpectation | None = Field(default=None, alias="graphExpansion")
     reviewed_by: str | None = Field(default=None, alias="reviewedBy")
 
     @model_validator(mode="after")
@@ -190,9 +186,7 @@ def validate_clinical_scenario_contracts(
     )
     review_counts = Counter(contract.review_status for contract in contracts)
     evidence_counts = Counter(
-        evidence
-        for contract in contracts
-        for evidence in contract.required_evidence_classes
+        evidence for contract in contracts for evidence in contract.required_evidence_classes
     )
     calculations = [contract.calculation for contract in contracts if contract.calculation]
     graph_expansions = [
@@ -217,8 +211,7 @@ def validate_clinical_scenario_contracts(
         _write_atomic(
             report_path,
             (
-                json.dumps(report.model_dump(mode="json"), ensure_ascii=False, indent=2)
-                + "\n"
+                json.dumps(report.model_dump(mode="json"), ensure_ascii=False, indent=2) + "\n"
             ).encode("utf-8"),
         )
     return report
