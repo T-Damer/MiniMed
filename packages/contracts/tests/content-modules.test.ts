@@ -50,6 +50,15 @@ function moduleFixture() {
   };
 }
 
+function catalog(modules: readonly ReturnType<typeof moduleFixture>[]) {
+  return {
+    catalogVersion: '1',
+    channel: 'preview' as const,
+    publishedAt: '2026-07-21T00:00:00Z',
+    modules,
+  };
+}
+
 describe('content module catalog contracts', () => {
   it('accepts a core catalog with planned modules', () => {
     const core = moduleFixture();
@@ -64,14 +73,44 @@ describe('content module catalog contracts', () => {
       dependencies: [{ moduleId: core.id, versionRange: '^1.0.0', required: true }],
     };
 
-    const result = ContentModuleCatalogSchema.parse({
-      catalogVersion: '1',
-      channel: 'preview',
-      publishedAt: '2026-07-21T00:00:00Z',
-      modules: [core, planned],
-    });
+    const result = ContentModuleCatalogSchema.parse(catalog([core, planned]));
 
     expect(result.modules).toHaveLength(2);
+  });
+
+  it('rejects duplicate module IDs', () => {
+    const core = moduleFixture();
+    const result = ContentModuleCatalogSchema.safeParse(catalog([core, { ...core }]));
+
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects missing dependency targets', () => {
+    const core = moduleFixture();
+    const planned = {
+      ...moduleFixture(),
+      id: 'minimed.clinical.pediatrics.infectious',
+      kind: 'clinical' as const,
+      required: false,
+      dependencies: [
+        { moduleId: 'minimed.core.missing', versionRange: '^1.0.0', required: true },
+      ],
+    };
+    const result = ContentModuleCatalogSchema.safeParse(catalog([core, planned]));
+
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects catalogs without a required core', () => {
+    const module = {
+      ...moduleFixture(),
+      id: 'minimed.medications.ru',
+      kind: 'medication' as const,
+      required: false,
+    };
+    const result = ContentModuleCatalogSchema.safeParse(catalog([module]));
+
+    expect(result.success).toBe(false);
   });
 
   it('rejects an artifact built from another source set', () => {
