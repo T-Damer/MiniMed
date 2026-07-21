@@ -35,9 +35,9 @@ Use `--offline` to rebuild from the cache or `--snapshot path.json` to import a 
 snapshot in tests and controlled builds. Changing the count or seed intentionally creates a different
 sample and therefore a different output checksum.
 
-A live integration check should assert 620 source questions, 30 source specialties, 120 selected rows,
-and complete provenance/review/licence fields. It remains separate from normal CI so an external
-service outage cannot block unrelated application changes.
+A live integration check asserts 620 source questions, 30 source specialties, 120 selected rows, and
+complete provenance/review/licence fields. It remains separate from normal CI so an external service
+outage cannot block unrelated application changes.
 
 ## Russian-first decision annotation
 
@@ -55,55 +55,64 @@ patient descriptions, diagnostic and treatment questions, dose calculations, fol
 Russian administrative or regulatory wording. English rules are an explicit fallback for attributed
 foreign datasets such as Real-POCQi; the original query remains `language: en`, `jurisdiction: US`.
 
-The projection records:
+The projection records source/detected language, jurisdiction, primary and secondary decision kinds,
+lexical signals, confidence, review requirement, complexity, patient-context signals, word count, and
+clause count.
 
-- source and detected language plus source jurisdiction;
-- primary and secondary clinical decision kinds;
-- language-prefixed lexical signals and confidence;
-- whether manual review is required;
-- `brief-reference`, `focused-clinical`, or `long-case` complexity;
-- patient-context signals, word count, and clause count.
-
-The initial taxonomy covers urgency/routing, diagnosis/cause, diagnostic confirmation, test selection,
-result interpretation, treatment selection or adjustment, dosing, medication safety, monitoring and
-follow-up, prevention, prognosis, administrative questions, and educational reference.
+The taxonomy covers urgency/routing, diagnosis/cause, diagnostic confirmation, test selection, result
+interpretation, treatment selection or adjustment, dosing, medication safety, monitoring and follow-up,
+prevention, prognosis, administrative questions, and educational reference.
 
 ## Russian coverage gate
 
-`tools/benchmarks/russian-query-coverage.json` is a committed `synthetic_edge_case`-style baseline for
-the Russian parser and classifier. It currently covers 23 Russian queries across all decision classes,
-including patient descriptions, doses by age and mass, treatment failure, interactions, follow-up,
-vaccination, prognosis, military-fitness and regulatory wording, misspellings, colloquial phrasing, and
-mixed-script laboratory notation such as `Hb`.
+`tools/benchmarks/russian-query-coverage.json` contains 23 explicit `synthetic_edge_case`-style Russian
+queries across the decision classes. It covers patient descriptions, dose wording, treatment failure,
+interactions, follow-up, vaccination, prognosis, military-fitness and regulatory language, misspellings,
+colloquial phrasing, and mixed-script laboratory notation such as `Hb`.
 
 The coverage set verifies language detection, primary decision, explicit patient context, and review
-behavior. It runs in the normal strict Python test suite, so Russian regressions fail CI even when the
-foreign-query importer and English fallback continue to work. Run `pnpm python:check` to execute its
-Ruff, strict Pyright, and pytest gates locally. It is a software regression set, not a source of medical
-recommendations.
+behavior. It runs in the strict Python test suite. Run `pnpm benchmark:queries:coverage` for the focused
+suite or `pnpm python:check` for all Python gates. It is a software regression set, not a source of
+medical recommendations.
 
 ## Russian source-grounded retrieval gate
 
-`tools/benchmarks/pilot-rf-queries.json` contains 42 scenarios grounded in the seven current Russian
-public-pilot clinical-recommendation cards. Every scenario fixes the expected document, version,
-official recommendation ID, section type, and section-anchor prefix.
+The public-pilot benchmark loads two committed fixture files:
 
-The public-pilot benchmark verifies that retrieval:
+- `tools/benchmarks/pilot-rf-queries.json`: 42 scenarios grounded in exact sections and anchors of the
+  seven current Russian clinical-recommendation cards;
+- `tools/benchmarks/pilot-rf-drug-queries.json`: eight scenarios grounded in exact official Russian
+  medication-registry records.
+
+Every scenario fixes an expected document, version, source class, section type, and section-anchor
+prefix. Clinical scenarios additionally fix the official recommendation ID. Medication scenarios fix
+the registry record ID, registration number, authority tier, and `source_linked_summary` mode.
+
+The benchmark verifies that retrieval:
 
 - keeps the expected document within top five;
-- finds a chunk in the expected clinical, diagnostic, treatment, or routing section;
+- finds a chunk in the expected section;
 - resolves the exact stable chunk anchor through `getContext`;
-- preserves active-version metadata, `officialId`, and `source_linked_paraphrase` provenance;
+- preserves active version and source-authority metadata;
 - continues to use the hybrid and semantic paths.
 
 The enforced gates require at least 0.90 document Recall@5, 0.90 section recall, and 0.70 top-section
-accuracy. Context resolution and source metadata must remain 1.00. These checks validate retrieval and
-source navigation, not the medical correctness of an independently generated answer.
+accuracy. Context resolution and source metadata must remain 1.00.
 
-This projection is a baseline, not ground truth. Future local Russian classifiers and local model
-adapters must be compared against the same records. Russian translation is a separate derived artifact;
-changing drugs, workflows, regulatory assumptions, or recommended actions creates a distinct
-`ru_source_reconstructed` scenario and never overwrites the original foreign query.
+Latest green 50-scenario baseline:
+
+- Recall@1: `0.94`;
+- Recall@5: `1.00`;
+- MRR@5: `0.965`;
+- section recall: `1.00`;
+- top-section accuracy: `0.96`;
+- exact context and source metadata: `1.00`;
+- zero-result rate: `0`;
+- latency p50: `14.59 ms`; p95: `24.29 ms`.
+
+The medication-registry category scored `1.00` for Recall@1, section recall, exact context, and metadata.
+These checks validate retrieval and source navigation. They do not turn registry identity into a dose,
+indication, contraindication, interaction, or patient-specific recommendation.
 
 ## Provenance rules
 
