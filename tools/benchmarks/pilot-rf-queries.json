@@ -1,183 +1,430 @@
 [
   {
-    "query": "Девочка 6 лет, больно писать и часто ходит в туалет",
+    "id": "uti.clinical.dysuria",
+    "query": "Девочка 6 лет, больно писать, часто ходит в туалет и появилось недержание",
     "expectedDocumentIds": ["kr.rf.281_3.uti"],
+    "expectedVersionId": "kr.rf.281_3.uti@281_3-2024",
+    "expectedOfficialId": "281_3",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.281_3.uti@281_3-2024/клиническая-картина"],
     "category": "uti"
   },
   {
-    "query": "Ребенок 8 месяцев, температура без насморка и кашля, нужен анализ мочи",
+    "id": "uti.clinical.pyelonephritis",
+    "query": "Ребенок с лихорадкой, рвотой и болью в боку, возможен пиелонефрит",
     "expectedDocumentIds": ["kr.rf.281_3.uti"],
+    "expectedVersionId": "kr.rf.281_3.uti@281_3-2024",
+    "expectedOfficialId": "281_3",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.281_3.uti@281_3-2024/клиническая-картина"],
     "category": "uti"
   },
   {
-    "query": "Лихорадка, рвота и боль в боку у ребенка, подозрение на пиелонефрит",
+    "id": "uti.diagnostics.urine",
+    "query": "Диагностика: температура без ясного очага у грудничка, нужен общий анализ и посев мочи",
     "expectedDocumentIds": ["kr.rf.281_3.uti"],
+    "expectedVersionId": "kr.rf.281_3.uti@281_3-2024",
+    "expectedOfficialId": "281_3",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.281_3.uti@281_3-2024/диагностика"],
     "category": "uti"
   },
   {
-    "query": "Мутная резко пахнущая моча и новый энурез",
+    "id": "uti.diagnostics.markers",
+    "query": "Помогают ли маркеры воспаления отличить пиелонефрит и заменяют ли они исследование мочи",
     "expectedDocumentIds": ["kr.rf.281_3.uti"],
+    "expectedVersionId": "kr.rf.281_3.uti@281_3-2024",
+    "expectedOfficialId": "281_3",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.281_3.uti@281_3-2024/диагностика"],
     "category": "uti"
   },
   {
-    "query": "Грудничок вялый, плохо ест и температурит без ясного очага",
+    "id": "uti.treatment.empiric",
+    "query": "Лечение фебрильной инфекции мочевых путей: откладывать ли антибиотик до посева",
     "expectedDocumentIds": ["kr.rf.281_3.uti"],
+    "expectedVersionId": "kr.rf.281_3.uti@281_3-2024",
+    "expectedOfficialId": "281_3",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.281_3.uti@281_3-2024/лечение"],
     "category": "uti"
   },
-
   {
-    "query": "Кашель после ОРВИ, рассеянные хрипы, умеренная температура без одышки",
+    "id": "uti.routing.infant",
+    "query": "Маршрутизация: ребенок 4 месяцев с фебрильной ИМП, рвотой и не может пить",
+    "expectedDocumentIds": ["kr.rf.281_3.uti"],
+    "expectedVersionId": "kr.rf.281_3.uti@281_3-2024",
+    "expectedOfficialId": "281_3",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": ["kr.rf.281_3.uti@281_3-2024/маршрутизация-и-красные-флаги"],
+    "category": "uti"
+  },
+  {
+    "id": "bronchitis.clinical.cough",
+    "query": "Клиническая картина бронхита: кашель после ОРВИ, рассеянные хрипы и умеренная температура",
     "expectedDocumentIds": ["kr.rf.381_3.bronchitis"],
+    "expectedVersionId": "kr.rf.381_3.bronchitis@381_3-2024",
+    "expectedOfficialId": "381_3",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.381_3.bronchitis@381_3-2024/клиническая-картина"],
     "category": "bronchitis"
   },
   {
-    "query": "Острый кашель и цветная мокрота, нужны ли антибиотики при бронхите",
+    "id": "bronchitis.clinical.sputum",
+    "query": "Доказывает ли цветная мокрота бактериальную природу острого бронхита",
     "expectedDocumentIds": ["kr.rf.381_3.bronchitis"],
+    "expectedVersionId": "kr.rf.381_3.bronchitis@381_3-2024",
+    "expectedOfficialId": "381_3",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.381_3.bronchitis@381_3-2024/клиническая-картина"],
     "category": "bronchitis"
   },
   {
-    "query": "Вирусный бронхит у ребенка, нужен ли рентген",
+    "id": "bronchitis.diagnostics.xray",
+    "query": "Диагностика типичного бронхита у ребенка: нужны ли анализы и рентгенография",
     "expectedDocumentIds": ["kr.rf.381_3.bronchitis"],
+    "expectedVersionId": "kr.rf.381_3.bronchitis@381_3-2024",
+    "expectedOfficialId": "381_3",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.381_3.bronchitis@381_3-2024/диагностика"],
     "category": "bronchitis"
   },
   {
-    "query": "Длительный кашель без локальных изменений в легких и без дыхательной недостаточности",
+    "id": "bronchitis.treatment.antibiotics",
+    "query": "Лечение неосложненного вирусного бронхита: нужны ли антибиотики",
     "expectedDocumentIds": ["kr.rf.381_3.bronchitis"],
+    "expectedVersionId": "kr.rf.381_3.bronchitis@381_3-2024",
+    "expectedOfficialId": "381_3",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.381_3.bronchitis@381_3-2024/лечение"],
     "category": "bronchitis"
   },
   {
-    "query": "Бронхит: питье, контроль температуры и наблюдение за дыханием",
+    "id": "bronchitis.treatment.supportive",
+    "query": "Ведение бронхита: питье, контроль температуры и наблюдение за дыханием",
     "expectedDocumentIds": ["kr.rf.381_3.bronchitis"],
+    "expectedVersionId": "kr.rf.381_3.bronchitis@381_3-2024",
+    "expectedOfficialId": "381_3",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.381_3.bronchitis@381_3-2024/лечение"],
     "category": "bronchitis"
   },
-
   {
-    "query": "Грудничок свистит при дыхании и втягивает ребра",
+    "id": "bronchitis.routing.redflags",
+    "query": "Маршрутизация при бронхите: нарастает одышка, втяжение грудной клетки и цианоз",
+    "expectedDocumentIds": ["kr.rf.381_3.bronchitis"],
+    "expectedVersionId": "kr.rf.381_3.bronchitis@381_3-2024",
+    "expectedOfficialId": "381_3",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": ["kr.rf.381_3.bronchitis@381_3-2024/маршрутизация-и-красные-флаги"],
+    "category": "bronchitis"
+  },
+  {
+    "id": "bronchiolitis.clinical.wheeze",
+    "query": "Грудничок после насморка кашляет, свистит и втягивает межреберья",
     "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis"],
+    "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
+    "expectedOfficialId": "360_3",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.360_3.bronchiolitis@360_3-2024/клиническая-картина"],
     "category": "bronchiolitis"
   },
   {
-    "query": "Ребенок 5 месяцев, после насморка кашель, тахипноэ и свистящие хрипы",
+    "id": "bronchiolitis.clinical.apnea",
+    "query": "Недоношенный младенец, первым проявлением после ОРВИ стало апноэ",
     "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis"],
+    "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
+    "expectedOfficialId": "360_3",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.360_3.bronchiolitis@360_3-2024/клиническая-картина"],
     "category": "bronchiolitis"
   },
   {
-    "query": "Недоношенный младенец, первым симптомом стало апноэ, подозрение на бронхиолит",
+    "id": "bronchiolitis.diagnostics.first-episode",
+    "query": "Диагностика первого эпизода свистящих хрипов у ребенка до двух лет",
     "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis"],
+    "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
+    "expectedOfficialId": "360_3",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.360_3.bronchiolitis@360_3-2024/диагностика"],
     "category": "bronchiolitis"
   },
   {
-    "query": "Ребенок до года отказывается пить, часто дышит и свистит",
+    "id": "bronchiolitis.treatment.supportive",
+    "query": "Лечение бронхиолита: жидкость, проходимость носа и респираторная поддержка",
     "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis"],
+    "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
+    "expectedOfficialId": "360_3",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.360_3.bronchiolitis@360_3-2024/лечение"],
     "category": "bronchiolitis"
   },
   {
-    "query": "Критерии выписки при бронхиолите: сатурация 95, нет дистресса, пьет",
+    "id": "bronchiolitis.routing.admission",
+    "query": "Госпитализация при бронхиолите: апноэ, обезвоживание и затрудненное кормление",
     "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis"],
+    "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
+    "expectedOfficialId": "360_3",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.360_3.bronchiolitis@360_3-2024/маршрутизация-и-красные-флаги"
+    ],
     "category": "bronchiolitis"
   },
-
   {
-    "query": "Температура, кашель, конъюнктивит, затем сыпь пошла с лица вниз",
+    "id": "bronchiolitis.routing.discharge",
+    "query": "Критерии выписки при бронхиолите: сатурация выше 94, нет дистресса и ребенок пьет",
+    "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis"],
+    "expectedVersionId": "kr.rf.360_3.bronchiolitis@360_3-2024",
+    "expectedOfficialId": "360_3",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.360_3.bronchiolitis@360_3-2024/маршрутизация-и-красные-флаги"
+    ],
+    "category": "bronchiolitis"
+  },
+  {
+    "id": "measles.clinical.rash",
+    "query": "Лихорадка, кашель, насморк и конъюнктивит, затем сыпь пошла с лица вниз",
     "expectedDocumentIds": ["kr.rf.563_2.measles"],
+    "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
+    "expectedOfficialId": "563_2",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.563_2.measles@563_2-2024/клиническая-картина"],
     "category": "measles"
   },
   {
-    "query": "Пятна Коплика на слизистой щек у ребенка",
+    "id": "measles.clinical.koplik",
+    "query": "Пятна Бельского-Филатова-Коплика на слизистой щек у ребенка",
     "expectedDocumentIds": ["kr.rf.563_2.measles"],
+    "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
+    "expectedOfficialId": "563_2",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.563_2.measles@563_2-2024/клиническая-картина"],
     "category": "measles"
   },
   {
-    "query": "Непривитый ребенок контактировал с больным, лихорадка и этапная сыпь",
+    "id": "measles.diagnostics.confirmation",
+    "query": "Диагностика кори: вакцинация, контакт, последовательность сыпи и лабораторное подтверждение",
     "expectedDocumentIds": ["kr.rf.563_2.measles"],
+    "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
+    "expectedOfficialId": "563_2",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.563_2.measles@563_2-2024/диагностика"],
     "category": "measles"
   },
   {
-    "query": "Подозрение на корь: изоляция и эпидемиологические мероприятия",
+    "id": "measles.treatment.supportive",
+    "query": "Лечение кори: поддерживающая помощь и когда нужны антибиотики",
     "expectedDocumentIds": ["kr.rf.563_2.measles"],
+    "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
+    "expectedOfficialId": "563_2",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.563_2.measles@563_2-2024/лечение"],
     "category": "measles"
   },
   {
-    "query": "Сыпь появилась после насморка, кашля и конъюнктивита",
+    "id": "measles.routing.isolation",
+    "query": "Маршрутизация при подозрении на корь: изоляция и эпидемиологические мероприятия",
     "expectedDocumentIds": ["kr.rf.563_2.measles"],
+    "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
+    "expectedOfficialId": "563_2",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.563_2.measles@563_2-2024/маршрутизация-и-инфекционный-контроль"
+    ],
     "category": "measles"
   },
-
   {
-    "query": "Ребенка рвет и понос, не может пить",
+    "id": "measles.routing.severe",
+    "query": "Корь с судорогами, нарушением сознания и дыхательной недостаточностью, нужна интенсивная помощь",
+    "expectedDocumentIds": ["kr.rf.563_2.measles"],
+    "expectedVersionId": "kr.rf.563_2.measles@563_2-2024",
+    "expectedOfficialId": "563_2",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": [
+      "kr.rf.563_2.measles@563_2-2024/маршрутизация-и-инфекционный-контроль"
+    ],
+    "category": "measles"
+  },
+  {
+    "id": "rotavirus.clinical.gastroenteritis",
+    "query": "Рвота, водянистая диарея, лихорадка и снижение аппетита у ребенка",
     "expectedDocumentIds": ["kr.rf.755_1.rotavirus"],
+    "expectedVersionId": "kr.rf.755_1.rotavirus@755_1-2023",
+    "expectedOfficialId": "755_1",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.755_1.rotavirus@755_1-2023/клиническая-картина"],
     "category": "rotavirus"
   },
   {
-    "query": "Водянистый стул, рвота, мало мочится, признаки обезвоживания",
+    "id": "rotavirus.clinical.dehydration",
+    "query": "После рвоты и диареи ребенок вялый, мало пьет и редко мочится",
     "expectedDocumentIds": ["kr.rf.755_1.rotavirus"],
+    "expectedVersionId": "kr.rf.755_1.rotavirus@755_1-2023",
+    "expectedOfficialId": "755_1",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.755_1.rotavirus@755_1-2023/клиническая-картина"],
     "category": "rotavirus"
   },
   {
-    "query": "Гастроэнтерит у ребенка: низкоосмолярный раствор для регидратации",
+    "id": "rotavirus.diagnostics.differential",
+    "query": "Диагностика гастроэнтерита: кровь в стуле и локальная боль требуют другого поиска",
     "expectedDocumentIds": ["kr.rf.755_1.rotavirus"],
+    "expectedVersionId": "kr.rf.755_1.rotavirus@755_1-2023",
+    "expectedOfficialId": "755_1",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.755_1.rotavirus@755_1-2023/диагностика"],
     "category": "rotavirus"
   },
   {
-    "query": "Ротавирус, оральная регидратация маленькими порциями",
+    "id": "rotavirus.treatment.ors",
+    "query": "Лечение ротавируса: низкоосмолярный раствор для регидратации маленькими порциями",
     "expectedDocumentIds": ["kr.rf.755_1.rotavirus"],
+    "expectedVersionId": "kr.rf.755_1.rotavirus@755_1-2023",
+    "expectedOfficialId": "755_1",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.755_1.rotavirus@755_1-2023/лечение"],
     "category": "rotavirus"
   },
   {
-    "query": "После диареи ребенок вялый и редко мочится",
+    "id": "rotavirus.treatment.antibiotics",
+    "query": "Нужны ли антибактериальные препараты при ротавирусном гастроэнтерите",
     "expectedDocumentIds": ["kr.rf.755_1.rotavirus"],
+    "expectedVersionId": "kr.rf.755_1.rotavirus@755_1-2023",
+    "expectedOfficialId": "755_1",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.755_1.rotavirus@755_1-2023/лечение"],
     "category": "rotavirus"
   },
-
   {
-    "query": "Температура и сыпь не исчезает под стаканом",
+    "id": "rotavirus.routing.shock",
+    "query": "Госпитализация: тяжелое обезвоживание, неукротимая рвота, ребенок не может пить и есть признаки шока",
+    "expectedDocumentIds": ["kr.rf.755_1.rotavirus"],
+    "expectedVersionId": "kr.rf.755_1.rotavirus@755_1-2023",
+    "expectedOfficialId": "755_1",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": ["kr.rf.755_1.rotavirus@755_1-2023/маршрутизация-и-красные-флаги"],
+    "category": "rotavirus"
+  },
+  {
+    "id": "meningococcal.clinical.infant",
+    "query": "Младенец вялый, отказывается от еды, монотонно кричит и выбухает родничок",
     "expectedDocumentIds": ["kr.rf.58_2.meningococcal"],
+    "expectedVersionId": "kr.rf.58_2.meningococcal@58_2-2023",
+    "expectedOfficialId": "58_2",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.58_2.meningococcal@58_2-2023/клиническая-картина"],
     "category": "meningococcal"
   },
   {
-    "query": "Геморрагическая сыпь, лихорадка, холодные конечности, возможный шок",
+    "id": "meningococcal.clinical.rash",
+    "query": "Лихорадка и геморрагическая сыпь, которая не бледнеет при надавливании",
     "expectedDocumentIds": ["kr.rf.58_2.meningococcal"],
+    "expectedVersionId": "kr.rf.58_2.meningococcal@58_2-2023",
+    "expectedOfficialId": "58_2",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.58_2.meningococcal@58_2-2023/клиническая-картина"],
     "category": "meningococcal"
   },
   {
-    "query": "Младенец вялый, монотонно кричит и выбухает родничок",
+    "id": "meningococcal.diagnostics.stabilization",
+    "query": "Диагностика менингококковой инфекции: оценка шока и лабораторное подтверждение не должны задерживать помощь",
     "expectedDocumentIds": ["kr.rf.58_2.meningococcal"],
+    "expectedVersionId": "kr.rf.58_2.meningococcal@58_2-2023",
+    "expectedOfficialId": "58_2",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.58_2.meningococcal@58_2-2023/диагностика"],
     "category": "meningococcal"
   },
   {
-    "query": "Подозрение на менингококковую инфекцию, нужна срочная госпитализация",
+    "id": "meningococcal.treatment.immediate",
+    "query": "Лечение генерализованной менингококковой инфекции до полного лабораторного подтверждения",
     "expectedDocumentIds": ["kr.rf.58_2.meningococcal"],
+    "expectedVersionId": "kr.rf.58_2.meningococcal@58_2-2023",
+    "expectedOfficialId": "58_2",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.58_2.meningococcal@58_2-2023/лечение"],
     "category": "meningococcal"
   },
   {
-    "query": "Лихорадка, повторная рвота, судороги и нарушение сознания",
+    "id": "meningococcal.routing.hospitalization",
+    "query": "Подозрение на генерализованную менингококковую инфекцию, нужна экстренная госпитализация",
     "expectedDocumentIds": ["kr.rf.58_2.meningococcal"],
+    "expectedVersionId": "kr.rf.58_2.meningococcal@58_2-2023",
+    "expectedOfficialId": "58_2",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": ["kr.rf.58_2.meningococcal@58_2-2023/маршрутизация-и-красные-флаги"],
     "category": "meningococcal"
   },
-
   {
-    "query": "Температура держится четвертый день, кашель, часто дышит, сатурация 92",
+    "id": "meningococcal.routing.shock",
+    "query": "Менингококковая инфекция: признаки шока, судороги и быстрое ухудшение, требуется интенсивная терапия",
+    "expectedDocumentIds": ["kr.rf.58_2.meningococcal"],
+    "expectedVersionId": "kr.rf.58_2.meningococcal@58_2-2023",
+    "expectedOfficialId": "58_2",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": ["kr.rf.58_2.meningococcal@58_2-2023/маршрутизация-и-красные-флаги"],
+    "category": "meningococcal"
+  },
+  {
+    "id": "pneumonia.clinical.symptoms",
+    "query": "Температура держится четвертый день, кашель, тахипноэ и втяжение грудной клетки",
     "expectedDocumentIds": ["kr.rf.714_2.pneumonia"],
+    "expectedVersionId": "kr.rf.714_2.pneumonia@714_2-2025",
+    "expectedOfficialId": "714_2",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.714_2.pneumonia@714_2-2025/клиническая-картина"],
     "category": "pneumonia"
   },
   {
-    "query": "Локально дыхание ослаблено с одной стороны и болит живот, исключить пневмонию",
+    "id": "pneumonia.clinical.saturation",
+    "query": "Пневмония у ребенка: сатурация ниже 94 а менее 90 означает значимую гипоксемию",
     "expectedDocumentIds": ["kr.rf.714_2.pneumonia"],
+    "expectedVersionId": "kr.rf.714_2.pneumonia@714_2-2025",
+    "expectedOfficialId": "714_2",
+    "expectedSectionTypes": ["clinical-picture"],
+    "expectedAnchorPrefixes": ["kr.rf.714_2.pneumonia@714_2-2025/клиническая-картина"],
     "category": "pneumonia"
   },
   {
-    "query": "Внебольничная пневмония у ребенка, амоксициллин амбулаторно",
+    "id": "pneumonia.diagnostics.imaging",
+    "query": "Диагностика пневмонии: пульсоксиметрия, визуализация по показаниям и нужна ли повторная рентгенография",
     "expectedDocumentIds": ["kr.rf.714_2.pneumonia"],
+    "expectedVersionId": "kr.rf.714_2.pneumonia@714_2-2025",
+    "expectedOfficialId": "714_2",
+    "expectedSectionTypes": ["diagnostics"],
+    "expectedAnchorPrefixes": ["kr.rf.714_2.pneumonia@714_2-2025/диагностика"],
     "category": "pneumonia"
   },
   {
-    "query": "Ребенок 2 месяца, кашель, цианоз и сатурация 88 процентов",
+    "id": "pneumonia.treatment.amoxicillin",
+    "query": "Лечение внебольничной пневмонии у амбулаторного ребенка: амоксициллин как препарат выбора",
     "expectedDocumentIds": ["kr.rf.714_2.pneumonia"],
+    "expectedVersionId": "kr.rf.714_2.pneumonia@714_2-2025",
+    "expectedOfficialId": "714_2",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.714_2.pneumonia@714_2-2025/лечение"],
     "category": "pneumonia"
   },
   {
-    "query": "Нет ответа на стартовый антибиотик через 72 часа при пневмонии",
+    "id": "pneumonia.treatment.nonresponse",
+    "query": "Нет ответа на стартовый антибиотик через 48–72 часа при пневмонии, нужна повторная оценка",
     "expectedDocumentIds": ["kr.rf.714_2.pneumonia"],
+    "expectedVersionId": "kr.rf.714_2.pneumonia@714_2-2025",
+    "expectedOfficialId": "714_2",
+    "expectedSectionTypes": ["treatment"],
+    "expectedAnchorPrefixes": ["kr.rf.714_2.pneumonia@714_2-2025/лечение"],
+    "category": "pneumonia"
+  },
+  {
+    "id": "pneumonia.routing.hypoxemia",
+    "query": "Госпитализация при пневмонии: ребенок 2 месяцев, цианоз и сатурация 88 процентов",
+    "expectedDocumentIds": ["kr.rf.714_2.pneumonia"],
+    "expectedVersionId": "kr.rf.714_2.pneumonia@714_2-2025",
+    "expectedOfficialId": "714_2",
+    "expectedSectionTypes": ["routing"],
+    "expectedAnchorPrefixes": ["kr.rf.714_2.pneumonia@714_2-2025/маршрутизация-и-красные-флаги"],
     "category": "pneumonia"
   }
 ]
