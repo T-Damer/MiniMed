@@ -7,10 +7,7 @@ import {
   type ContentModuleValidationSchema,
   type InstallContentModuleRequest,
 } from '@localmed/contracts';
-import type {
-  InstalledModuleRegistry,
-  ModuleVersionInstallation,
-} from '@localmed/storage';
+import type { InstalledModuleRegistry, ModuleVersionInstallation } from '@localmed/storage';
 import type { z } from 'zod';
 
 type ModuleArtifact = z.infer<typeof ContentModuleArtifactSchema>;
@@ -64,10 +61,7 @@ export interface ContentModuleArtifactBackend {
 }
 
 export interface ContentModuleIndexValidator {
-  validate(
-    module: ContentModuleCatalogEntry,
-    indexBytes: Uint8Array,
-  ): Promise<ModuleValidation>;
+  validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array): Promise<ModuleValidation>;
 }
 
 export type ContentModuleTaskListener = (task: ContentModuleDownloadTask) => void;
@@ -97,7 +91,9 @@ function compareVersion(left: string, right: string): number {
 function satisfiesRange(version: string, range: string): boolean {
   if (range.startsWith('^')) {
     const base = range.slice(1);
-    return parseVersion(version).major === parseVersion(base).major && compareVersion(version, base) >= 0;
+    return (
+      parseVersion(version).major === parseVersion(base).major && compareVersion(version, base) >= 0
+    );
   }
   return version === range;
 }

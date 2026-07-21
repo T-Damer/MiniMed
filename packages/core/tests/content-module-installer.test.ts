@@ -11,12 +11,9 @@ import {
   ForegroundContentModuleInstaller,
   type StagedContentModuleArtifact,
 } from '@localmed/core';
-import {
-  InMemoryInstalledModuleRegistry,
-  type ModuleVersionInstallation,
-} from '@localmed/storage';
-import type { z } from 'zod';
+import { InMemoryInstalledModuleRegistry, type ModuleVersionInstallation } from '@localmed/storage';
 import { describe, expect, it, vi } from 'vitest';
+import type { z } from 'zod';
 
 type Artifact = z.infer<typeof ContentModuleArtifactSchema>;
 
@@ -375,7 +372,7 @@ describe('ForegroundContentModuleInstaller', () => {
     const { catalog, module } = await moduleFixture({ indexBytes });
     const registry = new InMemoryInstalledModuleRegistry();
     registry.activate(validatedInstallation());
-    registry.activate(validatedInstallation(module.id));
+    registry.activate({ ...validatedInstallation(module.id), required: true });
     const backend = new TestBackend();
     const installer = new ForegroundContentModuleInstaller(
       catalog,
