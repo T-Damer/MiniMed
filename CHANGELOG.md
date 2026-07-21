@@ -4,8 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-07-21
+
 ### Added
 
+- A provenance-labelled 193-record clinical-query benchmark with Russian-first intent, source-grounded retrieval, and 12 safety/workflow contract overlays.
+- A separate Russian regulatory pilot containing current orders 192н and 211н, superseded order 302н, and current-versus-historical retrieval gates.
 - Rights-aware collection manifests for supported HTTPS, local, manual, and licensed vendor drug
   exports, including checksums, cache provenance, and separate offline-storage, derivative-processing,
   and redistribution permissions.
@@ -23,6 +27,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ### Changed
 
+- Android and iOS application versions, workspace packages, and release content packs are aligned to 0.3.1.
+- The APK-only public-pilot workflow is the single release path; the obsolete synthetic full-release workflow is removed.
 - Reviewed structured knowledge can extend existing chunk FTS and vector projections while original
   source text, source spans, and stable anchors remain unchanged.
 - Medication identity reconciliation now uses concept level, INN, form, route, strength,
@@ -32,6 +38,7 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ### Verification boundary
 
+- The release APK embeds the 15-document Russian clinical/medication pack. The separate regulatory pack is built and benchmarked in release CI but is not installed in the APK until multi-pack lifecycle support is implemented.
 - No licensed medical source data, Allmed content, patient data, model output, or API credentials are
   committed. The checked-in material implements and tests the ingestion, review, graph, and retrieval
   contracts only.
