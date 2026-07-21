@@ -1,0 +1,43 @@
+{
+  "annotation_sha256": "9f7d2548b39a393b19ca6590a1a6e5dad56b801dc3f3c325f02f1e3f9de547b2",
+  "complexity_counts": {
+    "brief-reference": 54,
+    "focused-clinical": 64,
+    "long-case": 2
+  },
+  "dataset_id": "jjfenglab/Real-POCQi",
+  "detected_language_counts": {
+    "en": 120
+  },
+  "jurisdiction_counts": {
+    "US": 120
+  },
+  "method": "rule-based-ru-first-v1",
+  "patient_specific_derived": 40,
+  "patient_specific_disagreements": 2,
+  "primary_decision_counts": {
+    "diagnosis-cause": 5,
+    "diagnostic-confirmation": 3,
+    "dosing-calculation": 2,
+    "education-reference": 17,
+    "medication-safety": 6,
+    "monitoring-follow-up": 3,
+    "prevention": 2,
+    "prognosis": 1,
+    "result-interpretation": 2,
+    "treatment-adjustment": 3,
+    "treatment-selection": 25,
+    "unknown": 50,
+    "urgency-routing": 1
+  },
+  "review_required": 66,
+  "sample_sha256": "8a5faf148fdb88281b0b8aedff1d8e89df3fe5b0d4df9297bef3a7d33a5821f9",
+  "seed": "minimed-real-pocqi-v1",
+  "selected_count": 120,
+  "source_count": 620,
+  "source_language_counts": {
+    "en": 120
+  },
+  "source_sha256": "da0bfd728025cbbe1cf67eb6b5704bd489f12e07f9915e431a21b8b26bb9e2f2",
+  "source_specialties": 30
+}
