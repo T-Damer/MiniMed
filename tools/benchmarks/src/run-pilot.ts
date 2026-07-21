@@ -10,7 +10,12 @@ interface PilotQuery {
   readonly query: string;
   readonly expectedDocumentIds: readonly string[];
   readonly expectedVersionId: string;
-  readonly expectedOfficialId: string;
+  readonly expectedOfficialId?: string;
+  readonly expectedSourceType?: string;
+  readonly expectedRegistryRecordId?: string;
+  readonly expectedRegistrationNumber?: string;
+  readonly expectedContentMode?: string;
+  readonly expectedAuthorityTier?: string;
   readonly expectedSectionTypes: readonly string[];
   readonly expectedAnchorPrefixes: readonly string[];
   readonly category: string;
@@ -21,6 +26,13 @@ interface SectionCandidate {
   readonly documentId: string;
   readonly sectionType: string | null;
   readonly anchor: string;
+}
+
+interface SourceDocument {
+  readonly versionId: string;
+  readonly sourceType: string;
+  readonly status: string;
+  readonly metadata: Readonly<Record<string, unknown>>;
 }
 
 interface PilotRow {
@@ -43,9 +55,9 @@ interface PilotRow {
   readonly semanticStatus: 'disabled' | 'used' | 'fallback';
 }
 
-function parseQueries(value: unknown): readonly PilotQuery[] {
+function parseQueries(value: unknown, source: string): readonly PilotQuery[] {
   if (!Array.isArray(value) || value.length === 0) {
-    throw new Error('Public-pilot benchmark must be a non-empty array.');
+    throw new Error(`${source} must contain a non-empty query array.`);
   }
   return value as readonly PilotQuery[];
 }
@@ -73,10 +85,45 @@ function matchesExpectedSection(result: SectionCandidate, fixture: PilotQuery): 
   );
 }
 
+function matchesOptionalMetadata(actual: unknown, expected: string | undefined): boolean {
+  return expected === undefined || actual === expected;
+}
+
+function matchesExpectedSource(document: SourceDocument, fixture: PilotQuery): boolean {
+  const expectedSourceType = fixture.expectedSourceType ?? 'clinical_recommendation_summary';
+  const expectedContentMode = fixture.expectedContentMode ?? 'source_linked_paraphrase';
+  return (
+    document.versionId === fixture.expectedVersionId &&
+    document.sourceType === expectedSourceType &&
+    document.status === 'active' &&
+    document.metadata['contentMode'] === expectedContentMode &&
+    document.metadata['publicPilot'] === true &&
+    matchesOptionalMetadata(document.metadata['officialId'], fixture.expectedOfficialId) &&
+    matchesOptionalMetadata(
+      document.metadata['registryRecordId'],
+      fixture.expectedRegistryRecordId,
+    ) &&
+    matchesOptionalMetadata(
+      document.metadata['registrationNumber'],
+      fixture.expectedRegistrationNumber,
+    ) &&
+    matchesOptionalMetadata(document.metadata['authorityTier'], fixture.expectedAuthorityTier)
+  );
+}
+
 const root = resolve(import.meta.dirname, '../../..');
-const queries = parseQueries(
-  JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/pilot-rf-queries.json'), 'utf8')),
+const queryPaths = [
+  'tools/benchmarks/pilot-rf-queries.json',
+  'tools/benchmarks/pilot-rf-drug-queries.json',
+] as const;
+const queries = queryPaths.flatMap((path) =>
+  parseQueries(JSON.parse(readFileSync(resolve(root, path), 'utf8')), path),
 );
+const queryIds = queries.map((query) => query.id);
+if (new Set(queryIds).size !== queryIds.length) {
+  throw new Error('Public-pilot benchmark contains duplicate query IDs.');
+}
+
 const databaseBytes = new Uint8Array(readFileSync(resolve(root, 'data/build/rf-public-pilot.db')));
 const store = await SqliteMedicalStore.createFromBytes(databaseBytes);
 const core = createMedicalCore({
@@ -123,13 +170,7 @@ for (const fixture of queries) {
 
   const documentResult = await core.getDocument(fixture.expectedDocumentIds[0] ?? '');
   if (!documentResult.ok) throw new Error(`${fixture.id}: ${documentResult.error.message}`);
-  const document = documentResult.value;
-  const sourceMetadataValid =
-    document.versionId === fixture.expectedVersionId &&
-    document.status === 'active' &&
-    document.metadata['officialId'] === fixture.expectedOfficialId &&
-    document.metadata['contentMode'] === 'source_linked_paraphrase' &&
-    document.metadata['publicPilot'] === true;
+  const sourceMetadataValid = matchesExpectedSource(documentResult.value, fixture);
 
   rows.push({
     id: fixture.id,
@@ -167,6 +208,8 @@ const categories = Object.fromEntries(
         mrrAt5: mean(categoryRows.map((row) => row.reciprocalRank)),
         sectionRecall: mean(categoryRows.map((row) => Number(row.sectionHit))),
         topSectionAccuracy: mean(categoryRows.map((row) => Number(row.topSectionHit))),
+        contextResolutionRate: mean(categoryRows.map((row) => Number(row.contextResolved))),
+        sourceMetadataRate: mean(categoryRows.map((row) => Number(row.sourceMetadataValid))),
       },
     ];
   }),
