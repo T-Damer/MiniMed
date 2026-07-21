@@ -42,6 +42,7 @@
     "python:check": "uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests && uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests && uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests && uv run --project tools/ingest pytest tools/ingest/tests",
     "benchmark:search": "pnpm --filter @localmed/benchmarks benchmark:search",
     "benchmark:pilot": "pnpm --filter @localmed/benchmarks benchmark:pilot",
+    "benchmark:queries:import": "uv run --project tools/ingest medbase benchmark-import-real-pocqi --output data/intermediate/clinical-benchmark/real-pocqi.jsonl --report data/build/real-pocqi-import-report.json",
     "peers:check": "pnpm peers check",
     "build:app": "pnpm --filter @localmed/app build",
     "build:landing": "pnpm --filter @localmed/landing build",
