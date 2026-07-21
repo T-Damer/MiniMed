@@ -101,7 +101,8 @@ for (const fixture of queries) {
     if (!context.ok) throw new Error(`${fixture.id}: ${context.error.message}`);
     const focus = context.value.chunks.find((chunk) => chunk.id === context.value.focusChunkId);
     contextResolved =
-      context.value.section.anchor === fixture.expectedAnchorPrefix && focus?.anchor === matched.anchor;
+      context.value.section.anchor === fixture.expectedAnchorPrefix &&
+      focus?.anchor === matched.anchor;
   }
 
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
