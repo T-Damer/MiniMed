@@ -117,6 +117,20 @@ The medication-registry category scored `1.00` for Recall@1, section recall, exa
 These checks validate retrieval and source navigation. They do not turn registry identity into a dose,
 indication, contraindication, interaction, or patient-specific recommendation.
 
+## Scenario contract overlay
+
+`tools/benchmarks/russian-scenario-contracts.json` enriches 12 representative Russian cases without
+copying retrieval metadata. It records risk, required clarifications, dangerous omissions, evidence
+classes, calculation boundaries, graph trust, and review state. Run:
+
+```bash
+pnpm benchmark:queries:contracts
+```
+
+The validator rejects unknown retrieval references, high-risk cases without omission checks, blocked
+calculations without a reason, and proposed graph relations that are allowed to drive trusted guidance.
+The contracts are workflow and safety expectations, not independent treatment recommendations.
+
 ## Provenance rules
 
 - `real_clinician_query`: observed clinician question from an attributed dataset;
