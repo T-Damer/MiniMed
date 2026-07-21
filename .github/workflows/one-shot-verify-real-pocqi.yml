@@ -1,0 +1,51 @@
+name: One-shot Real-POCQi integration check
+
+on:
+  push:
+    branches:
+      - agent/clinical-query-benchmark
+    paths:
+      - .github/workflows/one-shot-verify-real-pocqi.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/clinical-query-benchmark
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - run: |
+          uv run --project tools/ingest medbase benchmark-import-real-pocqi \
+            --count 120 \
+            --seed minimed-real-pocqi-v1 \
+            --output /tmp/real-pocqi.jsonl \
+            --report /tmp/real-pocqi-report.json
+      - run: |
+          uv run --project tools/ingest python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path('/tmp/real-pocqi-report.json').read_text())
+          rows = [json.loads(line) for line in Path('/tmp/real-pocqi.jsonl').read_text().splitlines()]
+          assert report['source_count'] == 620, report
+          assert report['selected_count'] == 120, report
+          assert len(report['specialty_counts_source']) == 30, report
+          assert len(rows) == 120
+          assert all(row['provenance'] == 'real_clinician_query' for row in rows)
+          assert all(row['review_status'] == 'candidate' for row in rows)
+          assert all(row['source']['license'] == 'CC-BY-4.0' for row in rows)
+          print(json.dumps(report, indent=2))
+          PY
+      - run: rm .github/workflows/one-shot-verify-real-pocqi.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/one-shot-verify-real-pocqi.yml
+          git commit -m "ci: remove one-shot Real-POCQi verifier"
+          git push origin HEAD:agent/clinical-query-benchmark
