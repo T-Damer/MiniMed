@@ -39,6 +39,34 @@ A live integration check should assert 620 source questions, 30 source specialti
 and complete provenance/review/licence fields. It remains separate from normal CI so an external
 service outage cannot block unrelated application changes.
 
+## Decision annotation projection
+
+Imported wording remains immutable. A separate rebuildable projection classifies each English query:
+
+```bash
+pnpm benchmark:queries:annotate
+
+# Import and annotate in one command:
+pnpm benchmark:queries
+```
+
+`rule-based-en-v1` records:
+
+- primary and secondary clinical decision kinds;
+- matched lexical signals and confidence;
+- whether manual review is required;
+- `brief-reference`, `focused-clinical`, or `long-case` complexity;
+- patient-context signals, word count, and clause count.
+
+The initial decision taxonomy covers urgency/routing, diagnosis/cause, diagnostic confirmation, test
+selection, result interpretation, treatment selection or adjustment, dosing, medication safety,
+monitoring/follow-up, prevention, prognosis, administrative questions, and educational reference.
+The annotation report shows coverage and the number of low-confidence or ambiguous rows.
+
+This projection is a baseline, not ground truth. Future local classifiers and clinician annotations
+must be compared against the same imported questions without modifying their text. Russian translation
+or adaptation is another derived artifact and must not overwrite the original US query.
+
 ## Provenance rules
 
 - `real_clinician_query`: observed clinician question from an attributed dataset;
