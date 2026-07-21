@@ -27,7 +27,7 @@ class BrowserContentModuleCatalogCache implements ContentModuleCatalogCache {
 }
 
 export function refreshContentModuleCatalog(): Promise<LoadedContentModuleCatalog> {
-  const configuredUrl = import.meta.env.VITE_MODULE_CATALOG_URL?.trim();
+  const configuredUrl = import.meta.env['VITE_MODULE_CATALOG_URL']?.trim();
   return loadContentModuleCatalog({
     bundledCatalog: MODULE_CATALOG,
     remoteUrl: configuredUrl || REMOTE_MODULE_CATALOG_URL,
