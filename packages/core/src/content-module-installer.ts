@@ -1,17 +1,15 @@
 import {
-  type ContentModuleArtifactSchema,
   type ContentModuleCatalog,
   type ContentModuleCatalogEntry,
   ContentModuleCatalogSchema,
   type ContentModuleDownloadTask,
-  type ContentModuleValidationSchema,
   type InstallContentModuleRequest,
+  type InstalledContentModule,
 } from '@localmed/contracts';
 import type { InstalledModuleRegistry, ModuleVersionInstallation } from '@localmed/storage';
-import type { z } from 'zod';
 
-type ModuleArtifact = z.infer<typeof ContentModuleArtifactSchema>;
-type ModuleValidation = z.infer<typeof ContentModuleValidationSchema>;
+type ModuleArtifact = ContentModuleCatalogEntry['artifacts'][number];
+type ModuleValidation = NonNullable<InstalledContentModule['lastValidation']>;
 
 export interface ContentModuleRuntimeCompatibility {
   readonly appVersion: string;

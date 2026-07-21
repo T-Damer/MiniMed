@@ -1,8 +1,4 @@
-import type {
-  ContentModuleArtifactSchema,
-  ContentModuleCatalog,
-  ContentModuleCatalogEntry,
-} from '@localmed/contracts';
+import type { ContentModuleCatalog, ContentModuleCatalogEntry } from '@localmed/contracts';
 import {
   type ContentModuleActivationReceipt,
   type ContentModuleArtifactBackend,
@@ -13,9 +9,8 @@ import {
 } from '@localmed/core';
 import { InMemoryInstalledModuleRegistry, type ModuleVersionInstallation } from '@localmed/storage';
 import { describe, expect, it, vi } from 'vitest';
-import type { z } from 'zod';
 
-type Artifact = z.infer<typeof ContentModuleArtifactSchema>;
+type Artifact = ContentModuleCatalogEntry['artifacts'][number];
 
 const sourceSetDigest = `sha256:${'a'.repeat(64)}`;
 
