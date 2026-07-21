@@ -488,9 +488,7 @@ def annotate_clinical_query(
                     f"{profile}:{label}" for label in labels
                 )
         patient_signals.extend(
-            f"{profile}:{rule.label}"
-            for rule in patient_rules
-            if rule.pattern.search(normalized)
+            f"{profile}:{rule.label}" for rule in patient_rules if rule.pattern.search(normalized)
         )
 
     priority = {decision: index for index, decision in enumerate(_DECISION_PRIORITY)}
@@ -514,14 +512,10 @@ def annotate_clinical_query(
         ordered: list[DecisionKind] = [primary]
         ordered.extend(secondary)
         matched_signals = [
-            f"{decision}:{label}"
-            for decision in ordered
-            for label in signals_by_decision[decision]
+            f"{decision}:{label}" for decision in ordered for label in signals_by_decision[decision]
         ]
         second_score = scores[ranked[1]] if len(ranked) > 1 else 0
-        confidence = min(
-            0.96, 0.45 + top_score * 0.08 + (top_score - second_score) * 0.05
-        )
+        confidence = min(0.96, 0.45 + top_score * 0.08 + (top_score - second_score) * 0.05)
 
     word_count = len(_WORD.findall(normalized))
     clause_count = max(1, len(_CLAUSE_BOUNDARY.findall(normalized)) + 1)
