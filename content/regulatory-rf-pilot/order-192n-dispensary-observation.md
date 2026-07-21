@@ -28,6 +28,8 @@ metadata:
   officialPublicationDate: "2025-05-19"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202505190026
   publicMirrorPdfUrl: https://cdnstatic.rg.ru/uploads/attachments/2025/05/23/82218_831.pdf
+  supersedesDocumentIds:
+    - regulatory.rf.minzdrav.302n-2019
   sourceReviewedAt: "2026-07-21"
   publicPilot: true
   contentMode: source_linked_paraphrase
@@ -37,7 +39,12 @@ metadata:
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190026","publicationNumber":"0001202505190026","documentNumber":"192н","sourceSection":"пункт 3 приказа","contentMode":"paraphrase"} -->
-Приказ № 192н устанавливает порядок диспансерного наблюдения несовершеннолетних, включая период обучения и воспитания в образовательных организациях. Он вступил в силу 1 сентября 2025 года и действует до 1 сентября 2031 года; прежний приказ № 302н утратил силу.
+Приказ № 192н устанавливает порядок диспансерного наблюдения несовершеннолетних, включая период обучения и воспитания в образовательных организациях. Он вступил в силу 1 сентября 2025 года и действует до 1 сентября 2031 года.
+
+# Действующий порядок вместо приказа 302н
+
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190026","publicationNumber":"0001202505190026","documentNumber":"192н","sourceSection":"пункты 2–3 приказа","contentMode":"paraphrase"} -->
+С 1 сентября 2025 года приказ № 192н является действующим порядком диспансерного наблюдения несовершеннолетних вместо приказа № 302н. Приказ № 192н признал приказ № 302н утратившим силу и заменил его для текущего применения.
 
 # Круг диспансерного наблюдения
 
