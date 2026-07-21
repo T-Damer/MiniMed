@@ -206,7 +206,7 @@ def fetch_real_pocqi_questions(
                 json.loads(payload.decode("utf-8"))
                 _write_atomic(cache_path, payload)
                 remote_pages_downloaded += 1
-            except (urllib.error.URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+            except (urllib.error.URLError, TimeoutError, OSError, ValueError):
                 if not cache_path.is_file():
                     raise
                 payload = cache_path.read_bytes()
@@ -326,7 +326,10 @@ def import_real_pocqi_benchmark(
     )
     _write_atomic(output, output_payload)
     source_payload = _json_bytes(
-        [question.model_dump(mode="json") for question in sorted(questions, key=lambda row: row.question_id)]
+        [
+            question.model_dump(mode="json")
+            for question in sorted(questions, key=lambda row: row.question_id)
+        ]
     )
     report = ClinicalQueryImportReport(
         generated_at=_utc_now(),
