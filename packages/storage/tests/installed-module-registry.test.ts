@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  InMemoryInstalledModuleRegistry,
-  type ModuleVersionInstallation,
-} from '../src';
+import { InMemoryInstalledModuleRegistry, type ModuleVersionInstallation } from '../src';
 
 const digest = (character: string): string => `sha256:${character.repeat(64)}`;
 

@@ -147,7 +147,8 @@ export class MultiMedicalStore implements MedicalStore {
   public async setEnabled(moduleId: string, enabled: boolean): Promise<void> {
     const mount = this.mounts.get(moduleId);
     if (!mount) throw new Error(`Unknown module mount: ${moduleId}`);
-    if (!enabled && mount.required) throw new Error(`Required module ${moduleId} cannot be disabled.`);
+    if (!enabled && mount.required)
+      throw new Error(`Required module ${moduleId} cannot be disabled.`);
     if (mount.enabled === enabled) return;
 
     const previous = mount.enabled;
@@ -224,7 +225,9 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async listAliases(): Promise<readonly AliasRecord[]> {
     this.assertInitialized();
-    const aliases = (await Promise.all(this.activeMounts().map((mount) => mount.store.listAliases()))).flat();
+    const aliases = (
+      await Promise.all(this.activeMounts().map((mount) => mount.store.listAliases()))
+    ).flat();
     const byId = new Map<string, AliasRecord>();
     for (const alias of aliases) byId.set(alias.id, alias);
     return [...byId.values()].toSorted((left, right) => left.alias.localeCompare(right.alias));
@@ -300,7 +303,8 @@ export class MultiMedicalStore implements MedicalStore {
     return [...this.mounts.values()]
       .filter((mount) => mount.enabled)
       .toSorted(
-        (left, right) => right.searchWeight - left.searchWeight || left.moduleId.localeCompare(right.moduleId),
+        (left, right) =>
+          right.searchWeight - left.searchWeight || left.moduleId.localeCompare(right.moduleId),
       );
   }
 
@@ -326,7 +330,8 @@ export class MultiMedicalStore implements MedicalStore {
     const versionIds = new Set<string>();
     for (const documents of await Promise.all(active.map((mount) => mount.store.listDocuments()))) {
       for (const document of documents) {
-        if (documentIds.has(document.id)) throw new Error(`Duplicate active document ID: ${document.id}`);
+        if (documentIds.has(document.id))
+          throw new Error(`Duplicate active document ID: ${document.id}`);
         if (versionIds.has(document.version.id)) {
           throw new Error(`Duplicate active document-version ID: ${document.version.id}`);
         }
@@ -336,11 +341,14 @@ export class MultiMedicalStore implements MedicalStore {
     }
 
     const aliases = new Map<string, string>();
-    for (const moduleAliases of await Promise.all(active.map((mount) => mount.store.listAliases()))) {
+    for (const moduleAliases of await Promise.all(
+      active.map((mount) => mount.store.listAliases()),
+    )) {
       for (const alias of moduleAliases) {
         const signature = aliasSignature(alias);
         const existing = aliases.get(alias.id);
-        if (existing && existing !== signature) throw new Error(`Conflicting alias ID: ${alias.id}`);
+        if (existing && existing !== signature)
+          throw new Error(`Conflicting alias ID: ${alias.id}`);
         aliases.set(alias.id, signature);
       }
     }
@@ -360,7 +368,9 @@ export class MultiMedicalStore implements MedicalStore {
     }
   }
 
-  private async firstMatch<T>(lookup: (store: MedicalStore) => Promise<T | null>): Promise<T | null> {
+  private async firstMatch<T>(
+    lookup: (store: MedicalStore) => Promise<T | null>,
+  ): Promise<T | null> {
     this.assertInitialized();
     for (const mount of this.activeMounts()) {
       const result = await lookup(mount.store);
@@ -369,7 +379,9 @@ export class MultiMedicalStore implements MedicalStore {
     return null;
   }
 
-  private async findMount<T>(lookup: (store: MedicalStore) => Promise<T | null>): Promise<InternalMount | null> {
+  private async findMount<T>(
+    lookup: (store: MedicalStore) => Promise<T | null>,
+  ): Promise<InternalMount | null> {
     this.assertInitialized();
     for (const mount of this.activeMounts()) {
       if ((await lookup(mount.store)) !== null) return mount;

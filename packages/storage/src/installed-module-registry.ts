@@ -1,7 +1,4 @@
-import type {
-  ContentModuleValidationSchema,
-  InstalledContentModule,
-} from '@localmed/contracts';
+import type { ContentModuleValidationSchema, InstalledContentModule } from '@localmed/contracts';
 import type { z } from 'zod';
 
 type ModuleValidation = z.infer<typeof ContentModuleValidationSchema>;
@@ -42,7 +39,10 @@ function assertDigest(value: string): void {
 
 function assertValidated(installation: ModuleVersionInstallation): void {
   assertDigest(installation.sourceSetDigest);
-  if (installation.installedSizeBytes < 0 || !Number.isSafeInteger(installation.installedSizeBytes)) {
+  if (
+    installation.installedSizeBytes < 0 ||
+    !Number.isSafeInteger(installation.installedSizeBytes)
+  ) {
     throw new Error('Installed module size must be a non-negative safe integer.');
   }
   const validation = installation.validation;
@@ -52,7 +52,9 @@ function assertValidated(installation: ModuleVersionInstallation): void {
     !validation.schemaCompatible ||
     validation.sqliteIntegrity !== 'ok'
   ) {
-    throw new Error(`Module ${installation.moduleId}@${installation.version} is not fully validated.`);
+    throw new Error(
+      `Module ${installation.moduleId}@${installation.version} is not fully validated.`,
+    );
   }
 }
 
@@ -127,7 +129,8 @@ export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry 
 
   public setEnabled(moduleId: string, enabled: boolean): InstalledContentModule {
     const entry = this.requireEntry(moduleId);
-    if (!enabled && entry.required) throw new Error(`Required module ${moduleId} cannot be disabled.`);
+    if (!enabled && entry.required)
+      throw new Error(`Required module ${moduleId} cannot be disabled.`);
     const next = { ...entry, enabled };
     this.entries.set(moduleId, next);
     return toPublic(next);
