@@ -14,6 +14,9 @@ interface RegulatoryQuery {
   readonly expectedPublicationNumber: string;
   readonly expectedSectionType: string;
   readonly expectedAnchorPrefix: string;
+  readonly expectedStatus?: 'active' | 'superseded';
+  readonly expectedSupersededBy?: string;
+  readonly requireTop1?: boolean;
   readonly category: string;
 }
 
@@ -22,6 +25,7 @@ interface RegulatoryRow {
   readonly category: string;
   readonly hitAt1: boolean;
   readonly hitAt5: boolean;
+  readonly requiredTop1Passed: boolean;
   readonly sectionHit: boolean;
   readonly contextResolved: boolean;
   readonly metadataValid: boolean;
@@ -97,28 +101,31 @@ for (const fixture of queries) {
     if (!context.ok) throw new Error(`${fixture.id}: ${context.error.message}`);
     const focus = context.value.chunks.find((chunk) => chunk.id === context.value.focusChunkId);
     contextResolved =
-      context.value.section.anchor === fixture.expectedAnchorPrefix &&
-      focus?.anchor === matched.anchor;
+      context.value.section.anchor === fixture.expectedAnchorPrefix && focus?.anchor === matched.anchor;
   }
 
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
   if (!documentResult.ok) throw new Error(`${fixture.id}: ${documentResult.error.message}`);
   const document = documentResult.value;
+  const expectedStatus = fixture.expectedStatus ?? 'active';
   const metadataValid =
     document.versionId === fixture.expectedVersionId &&
-    document.status === 'active' &&
+    document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
     document.metadata['authorityTier'] === 'official-regulatory-act' &&
     document.metadata['jurisdiction'] === 'RU' &&
     document.metadata['documentNumber'] === fixture.expectedDocumentNumber &&
     document.metadata['officialPublicationNumber'] === fixture.expectedPublicationNumber &&
-    document.metadata['contentMode'] === 'source_linked_paraphrase';
+    document.metadata['contentMode'] === 'source_linked_paraphrase' &&
+    (fixture.expectedSupersededBy === undefined ||
+      document.metadata['supersededByDocumentId'] === fixture.expectedSupersededBy);
 
   rows.push({
     id: fixture.id,
     category: fixture.category,
     hitAt1: rank === 1,
     hitAt5: rank !== undefined,
+    requiredTop1Passed: fixture.requireTop1 !== true || rank === 1,
     sectionHit: matched !== undefined,
     contextResolved,
     metadataValid,
@@ -137,6 +144,7 @@ const report = {
   recallAt1: mean(rows.map((row) => Number(row.hitAt1))),
   recallAt5: mean(rows.map((row) => Number(row.hitAt5))),
   mrrAt5: mean(rows.map((row) => row.reciprocalRank)),
+  requiredTop1Rate: mean(rows.map((row) => Number(row.requiredTop1Passed))),
   sectionRecall: mean(rows.map((row) => Number(row.sectionHit))),
   contextResolutionRate: mean(rows.map((row) => Number(row.contextResolved))),
   metadataRate: mean(rows.map((row) => Number(row.metadataValid))),
@@ -176,6 +184,9 @@ console.log(JSON.stringify(report, null, 2));
 
 const failures: string[] = [];
 if (report.recallAt5 < 1) failures.push(`Recall@5 ${report.recallAt5.toFixed(3)} < 1.000`);
+if (report.requiredTop1Rate < 1) {
+  failures.push(`required top-1 rate ${report.requiredTop1Rate.toFixed(3)} < 1.000`);
+}
 if (report.sectionRecall < 0.9) {
   failures.push(`section recall ${report.sectionRecall.toFixed(3)} < 0.900`);
 }
