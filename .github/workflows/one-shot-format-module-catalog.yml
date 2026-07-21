@@ -1,0 +1,46 @@
+name: One-shot format module catalog
+
+on:
+  push:
+    branches:
+      - agent/content-module-catalog
+    paths:
+      - .github/workflows/one-shot-format-module-catalog.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/content-module-catalog
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: >-
+          pnpm exec biome check --write
+          packages/core/src/content-module-catalog-client.ts
+          packages/core/src/index.ts
+          packages/core/tests/content-module-catalog-client.test.ts
+          apps/app/src/app/App.tsx
+          apps/app/src/features/modules/ModuleCatalogView.tsx
+          apps/app/src/features/modules/catalog-service.ts
+          apps/app/src/features/modules/module-catalog.ts
+          apps/app/src/features/modules/catalog.preview.json
+          apps/app/src/styles/modules.css
+      - run: rm .github/workflows/one-shot-format-module-catalog.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style(modules): format catalog client"
+          git push origin HEAD:agent/content-module-catalog
