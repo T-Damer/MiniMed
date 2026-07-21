@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from localmed_ingest.clinical_query_annotations import (
     annotate_clinical_query_benchmark,
     load_imported_clinical_queries,

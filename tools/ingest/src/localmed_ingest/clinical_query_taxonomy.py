@@ -81,7 +81,10 @@ _EN_PATIENT_RULES: tuple[_SignalRule, ...] = (
     _rule("weight", r"\b(?:weigh(?:s|ing)?|weight|\d+(?:\.\d+)?\s?(?:kg|lb))\b", 2),
     _rule(
         "clinical-presentation",
-        r"\b(?:presents?|presented|history of|complains? of|was diagnosed|is taking|currently on)\b",
+        (
+            r"\b(?:presents?|presented|history of|complains? of|was diagnosed|"
+            r"is taking|currently on)\b"
+        ),
         2,
     ),
 )
@@ -251,7 +254,10 @@ _EN_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
         _rule("interpret", r"\b(?:interpret|interpretation|meaning|significance)\b", 3),
         _rule(
             "abnormal-result",
-            r"\b(?:elevated|decreased|low|high|abnormal|positive|negative) (?:level|result|value|test)\b",
+            (
+                r"\b(?:elevated|decreased|low|high|abnormal|positive|negative) "
+                r"(?:level|result|value|test)\b"
+            ),
             2,
         ),
         _rule(
@@ -272,7 +278,10 @@ _EN_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
     "treatment-adjustment": (
         _rule(
             "nonresponse",
-            r"\b(?:not respond(?:ing|ed)?|no response|failed|failure|refractory|persistent despite)\b",
+            (
+                r"\b(?:not respond(?:ing|ed)?|no response|failed|failure|refractory|"
+                r"persistent despite)\b"
+            ),
             3,
         ),
         _rule(
