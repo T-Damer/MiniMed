@@ -8,8 +8,8 @@
 `docs/TECHNICAL_PLAN.md` describes the target architecture and milestones. This file records the
 implemented state and the order of the next repository tasks. Agents read it after `AGENTS.md` and
 update it when a change affects runtime behavior, content coverage, trust boundaries, benchmark
-composition, or execution priority. Benchmark composition and provenance details live in
-`tools/benchmarks/CLINICAL_QUERIES.md`.
+composition, or execution priority. Benchmark details live in `tools/benchmarks/CLINICAL_QUERIES.md`;
+module boundaries and lifecycle rules live in `docs/CONTENT_MODULES.md`.
 
 ## Product invariant
 
@@ -29,6 +29,9 @@ source text and does not become trusted without an explicit review state.
 - Results grouped by document and section type with ranking diagnostics.
 - Exact document, section, chunk, stable-anchor, and neighboring-context navigation.
 - Local history and bookmarks.
+- Validated content-module catalog/lifecycle contracts and a read-only module-map page.
+- Module catalogs fail closed on duplicate IDs, missing dependencies, absent required core modules,
+  mismatched source sets, or incomplete published artifacts.
 
 The semantic profile is an engineering baseline, not a neural Russian medical model.
 
@@ -43,6 +46,8 @@ The semantic profile is an engineering baseline, not a neural Russian medical mo
   medication-registry identity cards.
 - Separate regulatory pilot: two active pediatric Minzdrav orders plus one superseded predecessor,
   with official publication metadata, effective dates, source-linked clauses, and replacement links.
+- Target module map: required Russian core, seven pediatric clinical domains, medication, regulatory,
+  and pediatric reference modules; every module supports a required index and optional source assets.
 
 ### Knowledge foundation
 
@@ -85,6 +90,9 @@ Regulatory baseline:
 
 ## Current gaps
 
+- Current clinical documents are concise navigation cards rather than complete extracted sources.
+- No remote module catalog, multi-store search router, atomic install/update/rollback, or background
+  downloader yet; the module page is intentionally read-only.
 - Seven clinical recommendations rather than the target 30–50.
 - Regulatory coverage remains a small pediatric pilot; it needs broader administrative acts and a real
   amendment chain beyond one superseded predecessor.
@@ -96,47 +104,47 @@ Regulatory baseline:
 
 ## Execution order
 
-### P0 — Russian evidence and quality foundation
+### P0 — Russian evidence and modular content foundation
 
 1. **Complete benchmark contracts — #70**
    - The numerical target and first 12 validated contract overlays are implemented.
    - Expand coverage and obtain clinician review for consequential cases.
 
-2. **Russian regulatory pack — #75**
+2. **Installable modules and full clinical sources — #78 + #76**
+   - The module map, compatibility/source-set contracts, download states, manager port, and catalog page
+     are implemented.
+   - Next: publish a static GitHub catalog, add a multi-store installed-module registry, and build the
+     first full-text module from the seven already validated recommendations.
+   - Full extracted text and structured tables belong in the index artifact; original PDFs/images are an
+     optional matching source-assets artifact.
+
+3. **Russian regulatory pack — #75**
    - Three-document, 12-query pilot and current-versus-superseded gate are implemented.
-   - Next: broader administrative coverage and a longer amendment/version chain.
+   - Next: publish it as a separately installable module and add broader administrative coverage.
 
-3. **Scale the Russian clinical corpus — #76**
-   - Grow to 30–50 current recommendations in a coherent initial specialty scope.
-   - Add source-grounded section scenarios with every new document.
-
-### P1 — reviewed structured knowledge and content lifecycle
+### P1 — reviewed structured knowledge and local workflow
 
 4. **Reviewed offline medication cards — #77**
    - Define the runtime contract outside the UI.
    - Expose only reviewed claims as trusted structured knowledge.
    - Keep missing fields visible and trace displayed claims to evidence.
 
-5. **Content-pack install/update/rollback hardening — #78**
-   - Separate core, specialty, medication, and regulatory packs.
-   - Verify checksums, atomic update, rollback, enabled-pack filtering, and interrupted updates.
-
-6. **One-window continuation and personal overlay — #79**
+5. **One-window continuation and personal overlay — #79**
    - Distinguish continuation from a new local episode.
    - Keep notes and aliases in a separate local trust layer rather than editing source packs.
 
 ### P2 — models after corpus and evidence depth
 
-7. Benchmark Russian neural embedding candidates against lexical and feature-hash baselines.
-8. Add a local classifier or reranker only when the Russian suite improves within mobile budgets.
-9. Add optional synthesis only after retrieval, provenance, omission, and citation gates are stable.
+6. Benchmark Russian neural embedding candidates against lexical and feature-hash baselines.
+7. Add a local classifier or reranker only when the Russian suite improves within mobile budgets.
+8. Add optional synthesis only after retrieval, provenance, omission, and citation gates are stable.
 
 ## Next useful alpha
 
-The next alpha is defined by a larger current Russian corpus, expanded regulatory coverage, green
-Russian clinical, medication, and regulatory benchmarks, explicit review states, reproducible offline
-pack updates, and unchanged source access with all model adapters disabled.
+The next alpha is defined by a small bundled core, a real downloadable module catalog, atomic module
+installation, and one full-text pediatric module with structured tables and exact source navigation.
+Already installed modules must remain usable during download or a failed update.
 
 Do not prioritize a backend, accounts, sync, Postgres, a Rust rewrite, or a universal local model. The
-current limiting factors are corpus coverage, reviewed evidence, Russian benchmark depth, and content
-lifecycle reliability.
+current limiting factors are full-source coverage, modular content lifecycle, reviewed evidence, and
+Russian benchmark depth.
