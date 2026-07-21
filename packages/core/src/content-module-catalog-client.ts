@@ -1,7 +1,4 @@
-import {
-  type ContentModuleCatalog,
-  ContentModuleCatalogSchema,
-} from '@localmed/contracts';
+import { type ContentModuleCatalog, ContentModuleCatalogSchema } from '@localmed/contracts';
 
 export type ContentModuleCatalogSource = 'remote' | 'cache' | 'bundled';
 
