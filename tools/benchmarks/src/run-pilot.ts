@@ -127,9 +127,9 @@ for (const fixture of queries) {
   const sourceMetadataValid =
     document.versionId === fixture.expectedVersionId &&
     document.status === 'active' &&
-    document.metadata.officialId === fixture.expectedOfficialId &&
-    document.metadata.contentMode === 'source_linked_paraphrase' &&
-    document.metadata.publicPilot === true;
+    document.metadata['officialId'] === fixture.expectedOfficialId &&
+    document.metadata['contentMode'] === 'source_linked_paraphrase' &&
+    document.metadata['publicPilot'] === true;
 
   rows.push({
     id: fixture.id,
