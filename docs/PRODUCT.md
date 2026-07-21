@@ -8,7 +8,7 @@ and exact source-navigation product before it is a chat product.
 The target architecture and milestones live in `docs/TECHNICAL_PLAN.md`. The implemented state and
 ordered next tasks live in `docs/CURRENT_STATE.md`.
 
-## Version 0.3.0-alpha.6 outcome
+## Version 0.3.1 outcome
 
 A user can paste a long Russian-language case description. Without an LLM or network call, the app can:
 

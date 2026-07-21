@@ -1,7 +1,7 @@
 # Current state and execution order
 
 > Updated: 21 July 2026  
-> Repository version: `0.3.0-alpha.6`
+> Repository version: `0.3.1`
 
 ## Document role
 
