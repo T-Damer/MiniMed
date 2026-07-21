@@ -1,0 +1,43 @@
+UP040 Type alias `RuleSpec` uses `TypeAlias` annotation instead of the `type` keyword
+  --> tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:53:1
+   |
+53 | RuleSpec: TypeAlias = tuple[str, str, int]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+54 | RuleMap: TypeAlias = dict[DecisionKind, tuple[_SignalRule, ...]]
+55 | Profile: TypeAlias = tuple[str, RuleMap, tuple[_SignalRule, ...]]
+   |
+help: Use the `type` keyword
+
+UP040 Type alias `RuleMap` uses `TypeAlias` annotation instead of the `type` keyword
+  --> tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:54:1
+   |
+53 | RuleSpec: TypeAlias = tuple[str, str, int]
+54 | RuleMap: TypeAlias = dict[DecisionKind, tuple[_SignalRule, ...]]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+55 | Profile: TypeAlias = tuple[str, RuleMap, tuple[_SignalRule, ...]]
+   |
+help: Use the `type` keyword
+
+UP040 Type alias `Profile` uses `TypeAlias` annotation instead of the `type` keyword
+  --> tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:55:1
+   |
+53 | RuleSpec: TypeAlias = tuple[str, str, int]
+54 | RuleMap: TypeAlias = dict[DecisionKind, tuple[_SignalRule, ...]]
+55 | Profile: TypeAlias = tuple[str, RuleMap, tuple[_SignalRule, ...]]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: Use the `type` keyword
+
+E501 Line too long (111 > 100)
+   --> tools/ingest/src/localmed_ingest/clinical_query_taxonomy.py:382:101
+    |
+380 |             (
+381 |                 "reference",
+382 |                 r"\b(?:define|definition|what is|overview|mechanism|pathophysiology|epidemiology|guideline)\b",
+    |                                                                                                     ^^^^^^^^^^^
+383 |                 2,
+384 |             ),
+    |
+
+Found 4 errors.
+No fixes available (3 hidden fixes can be enabled with the `--unsafe-fixes` option).
