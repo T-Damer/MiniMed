@@ -1,0 +1,36 @@
+name: One-shot capture module installer types
+
+on:
+  push:
+    branches:
+      - agent/content-module-installer
+    paths:
+      - .github/workflows/one-shot-capture-module-installer-types.yml
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/content-module-installer
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck > .github/module-installer-typecheck.txt 2>&1 || true
+      - run: rm .github/workflows/one-shot-capture-module-installer-types.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/module-installer-typecheck.txt .github/workflows/one-shot-capture-module-installer-types.yml
+          git commit -m "ci: record module installer type errors"
+          git push origin HEAD:agent/content-module-installer
