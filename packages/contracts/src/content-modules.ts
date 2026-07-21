@@ -115,7 +115,7 @@ export const ContentModuleCatalogEntrySchema = z
     populations: z.array(z.string().min(1)).default([]),
     tags: z.array(z.string().min(1)).default([]),
     compatibility: ContentModuleCompatibilitySchema,
-    sourceSetDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+    sourceSetDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u).nullable().default(null),
     dependencies: z.array(ContentModuleDependencySchema).default([]),
     sizes: ContentModuleSizeSchema,
     capabilities: ContentModuleCapabilitiesSchema,
@@ -139,13 +139,20 @@ export const ContentModuleCatalogEntrySchema = z
       });
     }
     for (const artifact of module.artifacts) {
-      if (artifact.sourceSetDigest !== module.sourceSetDigest) {
+      if (!module.sourceSetDigest || artifact.sourceSetDigest !== module.sourceSetDigest) {
         context.addIssue({
           code: 'custom',
           path: ['artifacts'],
           message: `Artifact ${artifact.id} does not match the module source set.`,
         });
       }
+    }
+    if (module.documents.length > 0 && !module.sourceSetDigest) {
+      context.addIssue({
+        code: 'custom',
+        path: ['sourceSetDigest'],
+        message: 'Modules with documents require an exact source-set digest.',
+      });
     }
     const artifactIds = new Set(module.artifacts.map((artifact) => artifact.id));
     for (const document of module.documents) {
@@ -166,11 +173,11 @@ export const ContentModuleCatalogEntrySchema = z
     }
     if (module.releaseState === 'published') {
       const indexArtifact = module.artifacts.find((artifact) => artifact.kind === 'index');
-      if (!indexArtifact?.url || !indexArtifact.sha256) {
+      if (!module.sourceSetDigest || !indexArtifact?.url || !indexArtifact.sha256) {
         context.addIssue({
           code: 'custom',
           path: ['artifacts'],
-          message: 'Published modules require a downloadable checksummed index artifact.',
+          message: 'Published modules require an exact source set and a downloadable checksummed index.',
         });
       }
     }
