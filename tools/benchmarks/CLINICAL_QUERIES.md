@@ -80,8 +80,25 @@ The coverage set verifies language detection, primary decision, explicit patient
 behavior. It runs in the normal strict Python test suite, so Russian regressions fail CI even when the
 foreign-query importer and English fallback continue to work. Run `pnpm python:check` to execute its
 Ruff, strict Pyright, and pytest gates locally. It is a software regression set, not a source of medical
-recommendations. Russian source-grounded expectations will be added separately as
-`ru_source_reconstructed` scenarios linked to exact current Russian documents and anchors.
+recommendations.
+
+## Russian source-grounded retrieval gate
+
+`tools/benchmarks/pilot-rf-queries.json` contains 42 scenarios grounded in the seven current Russian
+public-pilot clinical-recommendation cards. Every scenario fixes the expected document, version,
+official recommendation ID, section type, and section-anchor prefix.
+
+The public-pilot benchmark verifies that retrieval:
+
+- keeps the expected document within top five;
+- finds a chunk in the expected clinical, diagnostic, treatment, or routing section;
+- resolves the exact stable chunk anchor through `getContext`;
+- preserves active-version metadata, `officialId`, and `source_linked_paraphrase` provenance;
+- continues to use the hybrid and semantic paths.
+
+The enforced gates require at least 0.90 document Recall@5, 0.90 section recall, and 0.70 top-section
+accuracy. Context resolution and source metadata must remain 1.00. These checks validate retrieval and
+source navigation, not the medical correctness of an independently generated answer.
 
 This projection is a baseline, not ground truth. Future local Russian classifiers and local model
 adapters must be compared against the same records. Russian translation is a separate derived artifact;
