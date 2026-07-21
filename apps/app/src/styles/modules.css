@@ -21,6 +21,7 @@
 .module-state,
 .module-facts,
 .module-card button,
+.module-catalog-status,
 .module-transition-note > span {
   font-family: var(--font-mono);
   letter-spacing: 0.06em;
@@ -37,11 +38,61 @@
   font-size: 16px;
 }
 
+.module-catalog-status,
 .module-transition-note,
 .module-download-plan {
   width: min(1100px, 100%);
   margin: 0 auto 30px;
   padding: 22px 24px;
+}
+
+.module-catalog-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-block: 14px;
+  border-left: 4px solid #65725d;
+}
+
+.module-catalog-status > div {
+  display: grid;
+  gap: 4px;
+}
+
+.module-catalog-status strong {
+  color: #454331;
+  font-size: 9px;
+}
+
+.module-catalog-status span,
+.module-catalog-status small {
+  color: #756b58;
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.module-catalog-status small {
+  max-width: 720px;
+  color: #8b5d45;
+  text-transform: none;
+}
+
+.module-catalog-status button {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border: 1px solid rgb(72 59 34 / 30%);
+  color: #4f5f4f;
+  background: rgb(239 236 217 / 70%);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.module-catalog-status button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .module-transition-note {
@@ -228,6 +279,7 @@
 
 @media (max-width: 780px) {
   .module-heading,
+  .module-catalog-status,
   .module-transition-note {
     align-items: flex-start;
     flex-direction: column;
@@ -236,6 +288,10 @@
   .module-catalog-version {
     width: 100%;
     text-align: left;
+  }
+
+  .module-catalog-status button {
+    width: 100%;
   }
 
   .module-grid {
