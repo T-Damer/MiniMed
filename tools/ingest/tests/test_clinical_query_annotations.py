@@ -4,12 +4,25 @@ import json
 from pathlib import Path
 
 import pytest
-
 from localmed_ingest.clinical_query_annotations import (
     annotate_clinical_query_benchmark,
     load_imported_clinical_queries,
 )
-from localmed_ingest.clinical_query_taxonomy import annotate_clinical_query
+from localmed_ingest.clinical_query_taxonomy import (
+    DecisionKind,
+    annotate_clinical_query,
+)
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+
+
+class _RussianCoverageCase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    query: str
+    expected_primary: DecisionKind = Field(alias="expectedPrimary")
+    expected_patient_context: bool = Field(alias="expectedPatientContext")
+    expected_needs_review: bool = Field(default=False, alias="expectedNeedsReview")
 
 
 def _scenario(
@@ -69,32 +82,27 @@ def test_russian_coverage_fixture_matches_baseline_contract() -> None:
     fixture_path = (
         Path(__file__).resolve().parents[2] / "benchmarks" / "russian-query-coverage.json"
     )
-    payload: object = json.loads(fixture_path.read_text(encoding="utf-8"))
-    assert isinstance(payload, list)
-    assert len(payload) >= 20
+    cases = TypeAdapter(list[_RussianCoverageCase]).validate_json(fixture_path.read_bytes())
+    assert len(cases) >= 20
 
     failures: list[str] = []
-    for raw in payload:
-        assert isinstance(raw, dict)
-        identifier = str(raw["id"])
-        annotation = annotate_clinical_query(str(raw["query"]), language="ru")
-        expected_primary = str(raw["expectedPrimary"])
-        expected_patient_context = bool(raw["expectedPatientContext"])
-        expected_needs_review = bool(raw.get("expectedNeedsReview", False))
+    for case in cases:
+        annotation = annotate_clinical_query(case.query, language="ru")
 
         if annotation.detected_language != "ru":
-            failures.append(f"{identifier}: language={annotation.detected_language}")
-        if annotation.primary_decision != expected_primary:
+            failures.append(f"{case.id}: language={annotation.detected_language}")
+        if annotation.primary_decision != case.expected_primary:
             failures.append(
-                f"{identifier}: primary={annotation.primary_decision}, expected={expected_primary}"
+                f"{case.id}: primary={annotation.primary_decision}, "
+                f"expected={case.expected_primary}"
             )
-        if bool(annotation.patient_context_signals) != expected_patient_context:
+        if bool(annotation.patient_context_signals) != case.expected_patient_context:
             failures.append(
-                f"{identifier}: patient_context={bool(annotation.patient_context_signals)}, "
-                f"expected={expected_patient_context}"
+                f"{case.id}: patient_context={bool(annotation.patient_context_signals)}, "
+                f"expected={case.expected_patient_context}"
             )
-        if expected_needs_review and not annotation.needs_review:
-            failures.append(f"{identifier}: expected needs_review")
+        if case.expected_needs_review and not annotation.needs_review:
+            failures.append(f"{case.id}: expected needs_review")
 
     assert not failures, "\n".join(failures)
 
