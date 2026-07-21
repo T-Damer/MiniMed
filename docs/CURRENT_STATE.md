@@ -8,7 +8,8 @@
 `docs/TECHNICAL_PLAN.md` describes the target architecture and milestones. This file records the
 implemented state and the order of the next repository tasks. Agents read it after `AGENTS.md` and
 update it when a change affects runtime behavior, content coverage, trust boundaries, benchmark
-composition, or execution priority.
+composition, or execution priority. Benchmark composition and provenance details live in
+`tools/benchmarks/CLINICAL_QUERIES.md`.
 
 ## Product invariant
 
