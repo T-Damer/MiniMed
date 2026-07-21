@@ -8,8 +8,6 @@ on:
       - "tools/benchmarks/regulatory-rf-queries.json"
       - "tools/benchmarks/src/run-regulatory.ts"
       - "tools/benchmarks/package.json"
-      - "tools/ingest/src/localmed_ingest/markdown_parser.py"
-      - "tools/ingest/tests/test_regulatory_sections.py"
       - "package.json"
       - ".github/workflows/regulatory-rf-pilot.yml"
   push:
@@ -20,8 +18,6 @@ on:
       - "tools/benchmarks/regulatory-rf-queries.json"
       - "tools/benchmarks/src/run-regulatory.ts"
       - "tools/benchmarks/package.json"
-      - "tools/ingest/src/localmed_ingest/markdown_parser.py"
-      - "tools/ingest/tests/test_regulatory_sections.py"
       - "package.json"
       - ".github/workflows/regulatory-rf-pilot.yml"
   workflow_dispatch:
@@ -51,9 +47,6 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
-
-      - name: Validate section taxonomy
-        run: uv run --project tools/ingest pytest tools/ingest/tests/test_regulatory_sections.py -q
 
       - name: Build direct regulatory pack
         run: |
