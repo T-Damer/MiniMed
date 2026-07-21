@@ -127,6 +127,7 @@ classes, calculation boundaries, graph trust, and review state. Run:
 pnpm benchmark:queries:contracts
 ```
 
+The command writes `data/build/russian-scenario-contract-report.json` with deterministic coverage counts.
 The validator rejects unknown retrieval references, high-risk cases without omission checks, blocked
 calculations without a reason, and proposed graph relations that are allowed to drive trusted guidance.
 The contracts are workflow and safety expectations, not independent treatment recommendations.
