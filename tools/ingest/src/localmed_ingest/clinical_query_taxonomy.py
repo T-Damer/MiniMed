@@ -24,7 +24,8 @@ DecisionKind = Literal[
     "unknown",
 ]
 QueryComplexity = Literal["brief-reference", "focused-clinical", "long-case"]
-AnnotationMethod = Literal["rule-based-en-v1"]
+QueryLanguage = Literal["ru", "en", "mixed", "unknown"]
+AnnotationMethod = Literal["rule-based-ru-first-v1"]
 
 
 class ClinicalQueryAnnotation(BaseModel):
@@ -34,7 +35,8 @@ class ClinicalQueryAnnotation(BaseModel):
     secondary_decisions: list[DecisionKind]
     confidence: float = Field(ge=0, le=1)
     matched_signals: list[str]
-    method: AnnotationMethod = "rule-based-en-v1"
+    method: AnnotationMethod = "rule-based-ru-first-v1"
+    detected_language: QueryLanguage
     needs_review: bool
     complexity: QueryComplexity
     patient_context_signals: list[str]
@@ -52,7 +54,23 @@ def _rule(label: str, pattern: str, weight: int = 1) -> _SignalRule:
     return _SignalRule(label, re.compile(pattern, re.IGNORECASE), weight)
 
 
-_PATIENT_RULES: tuple[_SignalRule, ...] = (
+_RU_PATIENT_RULES: tuple[_SignalRule, ...] = (
+    _rule(
+        "patient-noun",
+        r"\b(?:пациент|пациентка|мужчина|женщина|мальчик|девочка|реб[её]нок|младенец|новорожд[её]нн|подросток)\w*\b",
+        2,
+    ),
+    _rule("patient-reference", r"\b(?:этот|данный|мой|наш)\s+пациент\w*\b", 3),
+    _rule("age", r"\b\d{1,3}\s*(?:лет|года?|месяц(?:а|ев)?|дн(?:я|ей)|недел(?:я|и|ь))\b", 3),
+    _rule("weight", r"\b(?:вес|масса|весит|\d+(?:[.,]\d+)?\s*(?:кг|г))\b", 2),
+    _rule(
+        "clinical-presentation",
+        r"\b(?:жалуется|обратил(?:ся|ась)|поступил[аи]?|болеет|анамнез|диагноз|получает|принимает|назначен[аоы]?)\b",
+        2,
+    ),
+)
+
+_EN_PATIENT_RULES: tuple[_SignalRule, ...] = (
     _rule(
         "patient-noun",
         r"\b(?:patient|man|woman|male|female|boy|girl|child|infant|newborn|adolescent)\b",
@@ -68,7 +86,118 @@ _PATIENT_RULES: tuple[_SignalRule, ...] = (
     ),
 )
 
-_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
+_RU_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
+    "urgency-routing": (
+        _rule("emergency", r"\b(?:срочн|неотложн|экстренн|немедленн|красн\w*\s+флаг)\w*\b", 3),
+        _rule("admission", r"\b(?:госпитал|стационар|при[её]мн\w*\s+отделен)\w*\b", 3),
+        _rule("referral", r"\b(?:направ|маршрутиз|консультац|специалист)\w*\b", 2),
+    ),
+    "diagnosis-cause": (
+        _rule("differential", r"\b(?:дифференциальн\w*\s+диагноз|этиолог)\w*\b", 3),
+        _rule("cause", r"\b(?:причин|чем\s+обусловлен|почему|что\s+вызвал)\w*\b", 2),
+        _rule("possible-diagnosis", r"\b(?:вероятн|возможн|наиболее\s+вероятн)\w*\s+диагноз\w*\b", 3),
+        _rule("what-could", r"\b(?:что\s+это\s+может\s+быть|что\s+может\s+вызывать)\b", 2),
+    ),
+    "diagnostic-confirmation": (
+        _rule("confirm", r"\b(?:подтверд|верифицир)\w*\b", 2),
+        _rule("criteria", r"\b(?:диагностическ\w*\s+критери|критери\w*\s+диагноз)\w*\b", 3),
+        _rule("rule-out", r"\b(?:исключ|отличить|различить|дифференцир)\w*\b", 2),
+        _rule("diagnose", r"\b(?:как\s+установить\s+диагноз|как\s+диагностир)\w*\b", 2),
+    ),
+    "test-selection": (
+        _rule(
+            "next-test",
+            r"\b(?:следующ|перв|начальн|оптимальн|наиболее\s+информативн)\w*\s+(?:исследован|анализ|обследован|тест|визуализац)\w*\b",
+            3,
+        ),
+        _rule(
+            "what-test",
+            r"\b(?:какое|какие|что\s+из)\s+(?:исследован|анализ|обследован|тест|визуализац)\w*\b",
+            3,
+        ),
+        _rule(
+            "order-test",
+            r"\b(?:назначить|выполнить|провести|сделать)\s+(?:анализ|исследован|обследован|мрт|кт|узи|рентген)\w*\b",
+            2,
+        ),
+        _rule("workup", r"\b(?:дообследован|обследован|диагностическ\w*\s+поиск)\w*\b", 1),
+    ),
+    "result-interpretation": (
+        _rule("interpret", r"\b(?:интерпретир|расшифров|значени|значимость|что\s+означает)\w*\b", 3),
+        _rule(
+            "abnormal-result",
+            r"\b(?:повышен|понижен|низк|высок|отрицательн|положительн|измен[её]н)\w*\s+(?:уровень|показатель|результат|анализ|значени)\w*\b",
+            2,
+        ),
+        _rule("result-artifact", r"\b(?:экг|ээг|мрт|кт|рентген|рентгенограмм|биопси|гистолог|анализ)\w*\b", 1),
+    ),
+    "treatment-selection": (
+        _rule("treatment", r"\b(?:лечени|терапи|ведение|лечить|тактик)\w*\b", 2),
+        _rule(
+            "first-line",
+            r"\b(?:перв\w*|втор\w*)\s+лини\w*|препарат\w*\s+выбора|предпочтительн\w*\s+(?:препарат|терапи|лечени)\w*\b",
+            3,
+        ),
+        _rule("prescribe", r"\b(?:назначить|начать|инициировать)\w*\b", 1),
+    ),
+    "treatment-adjustment": (
+        _rule(
+            "nonresponse",
+            r"\b(?:нет\s+эффекта|без\s+эффекта|не\s+ответил|не\s+отвечает|неэффективн|рефрактерн|сохраняется\s+несмотря)\w*\b",
+            3,
+        ),
+        _rule(
+            "change-treatment",
+            r"\b(?:заменить|сменить|скорректировать|увеличить|снизить|отменить|продолжить|перевести|эскалир|деэскалир)\w*\b",
+            2,
+        ),
+        _rule("next-line", r"\b(?:следующ\w*|треть\w*)\s+лини\w*\s+(?:лечени|терапи)\w*\b", 3),
+    ),
+    "dosing-calculation": (
+        _rule("dose", r"\b(?:доз|дозиров|сколько\s+(?:мг|мл|таблет|капель))\w*\b", 3),
+        _rule("weight-dose", r"\b(?:мг|мкг|г)\s*/\s*(?:кг|м2|м²)|по\s+массе\b", 3),
+        _rule("frequency", r"\b(?:кратност|как\s+часто|раз\s+в\s+сутки|каждые\s+\d+\s+час)\w*\b", 2),
+        _rule("dose-adjustment", r"\bкоррекци\w*\s+доз\w*\s+при\s+(?:почечн|печ[её]ночн)\w*\b", 3),
+    ),
+    "medication-safety": (
+        _rule("interaction", r"\b(?:взаимодейств|совместим|сочетать|комбинац|одновременно)\w*\b", 3),
+        _rule("contraindication", r"\b(?:противопоказ|нельзя|избегать|безопасн)\w*\b", 3),
+        _rule("adverse-effect", r"\b(?:побочн|нежелательн|токсичн|аллерги)\w*\b", 2),
+        _rule("special-population", r"\b(?:беременн|грудн\w*\s+вскармливан|лактац)\w*\b", 2),
+    ),
+    "monitoring-follow-up": (
+        _rule("monitor", r"\b(?:контрол|монитор|наблюдени|диспансерн\w*\s+наблюдени)\w*\b", 3),
+        _rule("follow-up", r"\b(?:повторн\w*\s+осмотр|повторить|переоцен|динамик|явка)\w*\b", 2),
+        _rule("when-repeat", r"\b(?:когда|через\s+сколько)\s+(?:повторить|контролировать|оценить)\w*\b", 3),
+    ),
+    "prevention": (
+        _rule("prevent", r"\b(?:профилактик|предотврат)\w*\b", 3),
+        _rule("vaccine", r"\b(?:вакцин|привив|иммунизац)\w*\b", 3),
+        _rule("screening", r"\b(?:скрининг|профилактическ\w*\s+осмотр|диспансеризац)\w*\b", 2),
+    ),
+    "prognosis": (
+        _rule("prognosis", r"\b(?:прогноз|исход|выживаемост|летальност|смертност)\w*\b", 3),
+        _rule("recurrence", r"\b(?:рецидив|повторн\w*\s+эпизод|риск\s+развити|долгосрочн\w*\s+риск)\w*\b", 2),
+    ),
+    "administrative": (
+        _rule(
+            "administrative-status",
+            r"\b(?:военн|призыв|категори\w*\s+годност|инвалидност|ограничени\w*\s+труд|льгот)\w*\b",
+            3,
+        ),
+        _rule("regulation", r"\b(?:приказ|порядок|норматив|закон|постановлен|регламент)\w*\b", 3),
+        _rule("documentation", r"\b(?:оформить|справк|заключени|извещени|документац)\w*\b", 2),
+    ),
+    "education-reference": (
+        _rule("definition", r"\b(?:определени|что\s+такое|обзор)\w*\b", 2),
+        _rule("mechanism", r"\b(?:механизм|патогенез|патофизиолог|физиолог)\w*\b", 2),
+        _rule("epidemiology", r"\b(?:заболеваемост|распростран[её]нност|эпидемиолог)\w*\b", 2),
+        _rule("classification", r"\b(?:классификац|степен|стади)\w*\b", 2),
+        _rule("guideline", r"\b(?:клиническ\w*\s+рекомендац|стандарт\w*\s+помощ)\w*\b", 1),
+    ),
+}
+
+_EN_DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
     "urgency-routing": (
         _rule("emergency", r"\b(?:emergency|emergent|urgent|immediately|red flag)s?\b", 3),
         _rule("admission", r"\b(?:admit|admission|hospitali[sz]e|inpatient|disposition)\b", 3),
@@ -103,8 +232,8 @@ _DECISION_RULES: dict[DecisionKind, tuple[_SignalRule, ...]] = {
         _rule("prescribe", r"\b(?:prescribe|start|initiate)\b", 1),
     ),
     "treatment-adjustment": (
-        _rule("nonresponse", r"\b(?:not responding|no response|failed|failure|refractory|persistent despite)\b", 3),
-        _rule("change-treatment", r"\b(?:switch|change|adjust|escalate|de-escalate|taper|discontinue|stop|continue)\b", 2),
+        _rule("nonresponse", r"\b(?:not respond(?:ing|ed)?|no response|failed|failure|refractory|persistent despite)\b", 3),
+        _rule("change-treatment", r"\b(?:switch(?:ed)?|change(?:d)?|adjust(?:ed)?|escalate(?:d)?|de-escalate(?:d)?|taper(?:ed)?|discontinue(?:d)?|stop(?:ped)?|continue(?:d)?)\b", 2),
         _rule("next-line", r"\b(?:next-line|third-line|salvage therapy)\b", 3),
     ),
     "dosing-calculation": (
@@ -163,8 +292,48 @@ _DECISION_PRIORITY: tuple[DecisionKind, ...] = (
     "education-reference",
 )
 
-_WORD = re.compile(r"[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)?")
-_CLAUSE_BOUNDARY = re.compile(r"[?;:]|\.(?:\s|$)|,(?:\s+(?:and|but|with|while|after|before)\b)", re.IGNORECASE)
+_CYRILLIC = re.compile(r"[А-Яа-яЁё]")
+_LATIN = re.compile(r"[A-Za-z]")
+_WORD = re.compile(r"[A-Za-zА-Яа-яЁё0-9]+(?:[-'][A-Za-zА-Яа-яЁё0-9]+)?")
+_CLAUSE_BOUNDARY = re.compile(
+    r"[?;:]|\.(?:\s|$)|,(?:\s+(?:and|but|with|while|after|before|и|но|при|после|до|если|когда|однако)\b)",
+    re.IGNORECASE,
+)
+
+
+def detect_query_language(text: str) -> QueryLanguage:
+    cyrillic = len(_CYRILLIC.findall(text))
+    latin = len(_LATIN.findall(text))
+    if cyrillic == 0 and latin == 0:
+        return "unknown"
+    if cyrillic > 0 and latin > 0:
+        if cyrillic >= latin * 3:
+            return "ru"
+        if latin >= cyrillic * 3:
+            return "en"
+        return "mixed"
+    return "ru" if cyrillic > 0 else "en"
+
+
+def _resolve_language(text: str, declared_language: str | None) -> QueryLanguage:
+    if declared_language:
+        normalized = declared_language.strip().lower()
+        if normalized.startswith("ru"):
+            return "ru"
+        if normalized.startswith("en"):
+            return "en"
+    return detect_query_language(text)
+
+
+def _active_profiles(language: QueryLanguage) -> tuple[tuple[str, dict[DecisionKind, tuple[_SignalRule, ...]], tuple[_SignalRule, ...]], ...]:
+    if language == "en":
+        return (("en", _EN_DECISION_RULES, _EN_PATIENT_RULES),)
+    if language == "ru":
+        return (("ru", _RU_DECISION_RULES, _RU_PATIENT_RULES),)
+    return (
+        ("ru", _RU_DECISION_RULES, _RU_PATIENT_RULES),
+        ("en", _EN_DECISION_RULES, _EN_PATIENT_RULES),
+    )
 
 
 def _matched_rules(text: str, rules: tuple[_SignalRule, ...]) -> tuple[int, list[str]]:
@@ -175,10 +344,6 @@ def _matched_rules(text: str, rules: tuple[_SignalRule, ...]) -> tuple[int, list
             score += rule.weight
             labels.append(rule.label)
     return score, labels
-
-
-def _patient_signals(text: str) -> list[str]:
-    return [rule.label for rule in _PATIENT_RULES if rule.pattern.search(text)]
 
 
 def _complexity(
@@ -195,18 +360,33 @@ def _complexity(
     return "brief-reference"
 
 
-def annotate_clinical_query(text: str) -> ClinicalQueryAnnotation:
+def annotate_clinical_query(
+    text: str,
+    *,
+    language: str | None = None,
+) -> ClinicalQueryAnnotation:
     normalized = " ".join(text.split())
     if not normalized:
         raise ValueError("Clinical query cannot be blank.")
 
+    detected_language = _resolve_language(normalized, language)
     scores: Counter[DecisionKind] = Counter()
     signals_by_decision: dict[DecisionKind, list[str]] = {}
-    for decision, rules in _DECISION_RULES.items():
-        score, labels = _matched_rules(normalized, rules)
-        if score > 0:
-            scores[decision] = score
-            signals_by_decision[decision] = labels
+    patient_signals: list[str] = []
+
+    for profile, decision_rules, profile_patient_rules in _active_profiles(detected_language):
+        for decision, rules in decision_rules.items():
+            score, labels = _matched_rules(normalized, rules)
+            if score > 0:
+                scores[decision] += score
+                signals_by_decision.setdefault(decision, []).extend(
+                    f"{profile}:{label}" for label in labels
+                )
+        patient_signals.extend(
+            f"{profile}:{rule.label}"
+            for rule in profile_patient_rules
+            if rule.pattern.search(normalized)
+        )
 
     priority_index = {decision: index for index, decision in enumerate(_DECISION_PRIORITY)}
     ranked = sorted(
@@ -235,7 +415,6 @@ def annotate_clinical_query(text: str) -> ClinicalQueryAnnotation:
         margin = top_score - second_score
         confidence = min(0.96, 0.45 + top_score * 0.08 + margin * 0.05)
 
-    patient_signals = _patient_signals(normalized)
     word_count = len(_WORD.findall(normalized))
     clause_count = max(1, len(_CLAUSE_BOUNDARY.findall(normalized)) + 1)
     complexity = _complexity(
@@ -252,6 +431,7 @@ def annotate_clinical_query(text: str) -> ClinicalQueryAnnotation:
         secondary_decisions=secondary,
         confidence=round(confidence, 3),
         matched_signals=matched_signals,
+        detected_language=detected_language,
         needs_review=needs_review,
         complexity=complexity,
         patient_context_signals=patient_signals,
