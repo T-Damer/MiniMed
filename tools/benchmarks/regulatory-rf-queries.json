@@ -111,7 +111,7 @@
   },
   {
     "id": "regulatory.versioning.current-dispensary-order",
-    "query": "Какой приказ сейчас устанавливает действующий порядок диспансерного наблюдения несовершеннолетних",
+    "query": "Что действует вместо приказа 302н по диспансерному наблюдению несовершеннолетних",
     "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
     "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
     "expectedDocumentNumber": "192н",
