@@ -143,7 +143,8 @@ function assertDependencies(
 }
 
 async function sha256(bytes: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const buffer = Uint8Array.from(bytes).buffer;
+  const digest = await crypto.subtle.digest('SHA-256', buffer);
   const hex = [...new Uint8Array(digest)]
     .map((value) => value.toString(16).padStart(2, '0'))
     .join('');
@@ -260,6 +261,8 @@ export class ForegroundContentModuleInstaller {
     indexArtifact: ModuleArtifact,
     signal: AbortSignal,
   ): Promise<ContentModuleDownloadTask> {
+    const sourceSetDigest = module.sourceSetDigest;
+    if (!sourceSetDigest) throw new Error(`Module ${module.id} has no source-set digest.`);
     const staged: StagedContentModuleArtifact[] = [];
     const bytesByArtifact = new Map<string, Uint8Array>();
     const completedBytes = new Map<string, number>();
@@ -318,7 +321,7 @@ export class ForegroundContentModuleInstaller {
           required: module.required,
           installedAt: new Date().toISOString(),
           installedSizeBytes: receipt.installedSizeBytes,
-          sourceSetDigest: module.sourceSetDigest,
+          sourceSetDigest,
           validation,
         };
         this.registry.activate(installation);
