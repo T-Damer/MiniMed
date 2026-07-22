@@ -11,12 +11,19 @@ devices vary substantially in available memory, storage, runtime support, therma
 performance. Asking every user to understand quantization and runtime formats would expose an
 implementation detail instead of a clinical-search feature.
 
-The first candidate set contains four small models:
+The first comparison set contains six small models:
 
-- Qwen3 0.6B;
-- Gemma 3 1B IT;
-- Qwen3 1.7B;
-- Llama 3.2 3B Instruct.
+- Vikhr Qwen 2.5 0.5B, a compact Russian-tuned candidate;
+- Qwen3 0.6B, its generic multilingual compact control;
+- Gemma 3 1B IT, including a declared LiteRT artifact;
+- QVikhr 3 1.7B noreasoning, a Russian-tuned structured-output candidate;
+- Qwen3 1.7B, its generic multilingual control;
+- Llama 3.2 3B Instruct, a native-only experimental quality candidate.
+
+Russian-tuned and generic base-family candidates coexist intentionally. Initial Russian priority helps
+choose a plausible device-fit candidate, but only MiniMed's own clinical query benchmark can establish
+whether the fine-tune improves extraction, valid JSON, negation handling, retrieval, or dangerous
+omission rates.
 
 Some model families have licence terms that require explicit acceptance. Some artifacts are suitable
 for browser WASM/WebGPU, while others require a later native LiteRT-LM or Cactus adapter.
@@ -44,6 +51,9 @@ for browser WASM/WebGPU, while others require a later native LiteRT-LM or Cactus
     or choose a compatible model in Settings.
 12. Do not route model output into clinical answers in this slice. The first runtime benchmark checks
     only load viability and constrained Russian JSON output.
+13. Keep large Russian open-weight models such as current 8B-class Yandex and T-Tech releases outside
+    the mobile automatic tier until a desktop/high-memory runtime class and corresponding benchmarks
+    exist.
 
 ## Startup lifecycle
 
@@ -77,24 +87,28 @@ negation, population, omission, contradiction, and dangerous-advice benchmark co
 - the same logical catalog can carry browser and native artifacts;
 - failed models degrade safely instead of breaking application boot;
 - models can be replaced through a validated catalog rather than an application release;
-- explicit settings preserve user control after automatic setup.
+- explicit settings preserve user control after automatic setup;
+- paired Russian-tuned and generic models make language-specific improvements measurable.
 
 ### Negative
 
-- first launch may download hundreds of megabytes;
+- first launch may download hundreds of megabytes or, on capable devices, roughly one gigabyte;
 - browser memory reporting is approximate and browser storage quotas vary;
 - WebAssembly model initialization can still fail despite the lightweight probe;
 - model artefact SHA-256 verification needs a streaming downloader/native installer before this path
   can be promoted from experimental;
 - licence-gated models cannot participate in first-run automatic selection until their terms have
   been accepted;
-- native acceleration requires follow-up adapters and physical-device benchmarks.
+- native acceleration requires follow-up adapters and physical-device benchmarks;
+- catalog quality scores are provisional ranking priors and must not be mistaken for benchmark data.
 
 ## Rejected alternatives
 
 - **Bundle one model in the APK:** increases every download and prevents independent model updates.
 - **Ask the user to choose on first launch:** exposes parameters and quantization before MiniMed has
   measured the device.
+- **Select only a Russian fine-tune:** removes the generic control needed to detect regressions or
+  overfitting in the Russian adaptation.
 - **Run a full generative benchmark every launch:** wastes time, battery, and heat; cache by device and
   artifact instead.
 - **Let the local model replace deterministic parsing:** violates the offline fallback and makes basic
