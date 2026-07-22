@@ -146,6 +146,15 @@ describe('InMemoryInstalledModuleRegistry', () => {
     expect(registry.list()).toEqual([]);
   });
 
+  it('rejects malformed source-set digests before activation', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+
+    expect(() => registry.activate(installation('1', { sourceSetDigest: 'sha256:invalid' }))).toThrow(
+      'valid SHA-256 source-set digest',
+    );
+    expect(registry.list()).toEqual([]);
+  });
+
   it('does not disable or remove a required core module', () => {
     const registry = new InMemoryInstalledModuleRegistry();
     const core = registry.activate(
@@ -247,6 +256,51 @@ describe('InMemoryInstalledModuleRegistry', () => {
         ],
       }),
     ).toThrow('changes the source-set digest');
+  });
+
+  it('rejects unsafe required or unvalidated persisted entries', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(installation('1'));
+    const entry = registry.snapshot().entries[0];
+    if (!entry) throw new Error('Expected snapshot entry.');
+
+    expect(() =>
+      InMemoryInstalledModuleRegistry.fromSnapshot({
+        schemaVersion: INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION,
+        entries: [
+          {
+            ...entry,
+            moduleId: 'minimed.core.ru',
+            required: true,
+            enabled: false,
+            active: {
+              ...entry.active,
+              moduleId: 'minimed.core.ru',
+              required: true,
+            },
+          },
+        ],
+      }),
+    ).toThrow('cannot be disabled');
+
+    expect(() =>
+      InMemoryInstalledModuleRegistry.fromSnapshot({
+        schemaVersion: INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION,
+        entries: [
+          {
+            ...entry,
+            active: {
+              ...entry.active,
+              validation: {
+                ...entry.active.validation,
+                valid: false,
+                message: 'failed validation',
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow('not fully validated');
   });
 });
 
