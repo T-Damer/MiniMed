@@ -119,7 +119,8 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             таблицы и оригинальные PDF будут загружаться отдельными проверяемыми пакетами.
           </p>
           <p class="update-policy-note">
-            Обновления никогда не перекрывают поиск: о них сообщает только счётчик на иконке модулей.
+            Обновления никогда не перекрывают поиск: о них сообщает только счётчик на иконке
+            модулей.
           </p>
         </div>
         <div class="module-catalog-version">

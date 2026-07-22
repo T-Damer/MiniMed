@@ -77,7 +77,8 @@ export function App(): JSX.Element {
       setReady({ core, status: initialized.value });
       void refreshContentModuleCatalog()
         .then((result) => {
-          if (view() !== 'modules') setModuleUpdateCount(availableModuleCount(result.catalog.modules));
+          if (view() !== 'modules')
+            setModuleUpdateCount(availableModuleCount(result.catalog.modules));
         })
         .catch(() => undefined);
     } catch (cause) {

@@ -29,7 +29,7 @@ test('preserves the active search while navigating between mounted routes', asyn
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
-  await page.getByRole('button', { name: 'Архив и граф' }).click();
+  await page.getByRole('button', { name: 'Архив и карта' }).click();
   await expect(page.getByRole('heading', { name: 'Архив знаний' })).toBeVisible();
   await page.getByRole('button', { name: 'Поиск' }).click();
 
@@ -66,4 +66,40 @@ test('replays a saved query from local search history', async ({ page }) => {
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
   await expect(pneumoniaResult(page)).toBeVisible();
+});
+
+test('runs a debounced clinical search without requiring submit', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.getByTestId('search-input').fill(query);
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
+});
+
+test('filters the archive and opens a document with one click', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.getByRole('button', { name: 'Архив и карта' }).click();
+  await page.getByPlaceholder('Название, специальность, тип источника…').fill('пневмония');
+  await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Внебольничная пневмония у детей' }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Поиск внутри открытого документа')).toBeVisible();
+});
+
+test('opens only the exact fragment first and expands surrounding source context', async ({
+  page,
+}) => {
+  await mountBuiltApp(page);
+  await page.getByTestId('search-input').fill(query);
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
+  await page.getByTestId('search-result').first().click();
+  await expect(page.locator('.source-paragraph')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Показать текст вокруг' }).click();
+  expect(await page.locator('.source-paragraph').count()).toBeGreaterThan(1);
+});
+
+test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
+  await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
+  await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 3_000 });
 });

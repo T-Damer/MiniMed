@@ -354,8 +354,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   <div class="clinical-plan-card paper-card">
                     <strong>{INTENT_LABELS[intent().primary]}</strong>
                     <span>
-                      Уверенность {Math.round(intent().confidence * 100)}% · результаты уже показаны,
-                      уточнения не блокируют поиск.
+                      Уверенность {Math.round(intent().confidence * 100)}% · результаты уже
+                      показаны, уточнения не блокируют поиск.
                     </span>
                   </div>
                 )}
@@ -495,7 +495,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                               <small>ДОКУМЕНТ</small>
                               <strong>{group.title}</strong>
                               <p class="result-minimal-note">
-                                {group.results[0]?.sectionPath.join(' / ') ?? 'Релевантный источник'}
+                                {group.results[0]?.sectionPath.join(' / ') ??
+                                  'Релевантный источник'}
                               </p>
                             </div>
                             <span class="group-count">{group.results.length} совп.</span>
@@ -525,7 +526,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                     <span class={`category-stamp category-${result.category}`}>
                                       {CATEGORY_LABELS[result.category]}
                                     </span>
-                                    <span class="result-path">{result.sectionPath.join(' / ')}</span>
+                                    <span class="result-path">
+                                      {result.sectionPath.join(' / ')}
+                                    </span>
                                   </span>
                                   <p>
                                     <HighlightedText

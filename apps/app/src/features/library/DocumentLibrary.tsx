@@ -1,8 +1,9 @@
 import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, onMount, Show } from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '../../components/AppGlyph';
 import { ClinicalGlyph, documentClinicalSignals } from '../../components/ClinicalGlyph';
+import { OPEN_DOCUMENT_EVENT } from '../../state/document-navigation';
 import { KnowledgeGraph } from './KnowledgeGraph';
 
 interface DocumentLibraryProps {
@@ -40,7 +41,15 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     );
   });
 
+  const handleOpenDocument = (event: Event): void => {
+    const navigation = event as CustomEvent<string>;
+    if (typeof navigation.detail !== 'string' || !navigation.detail) return;
+    setMode('list');
+    void openDocument(navigation.detail);
+  };
+
   onMount(async () => {
+    window.addEventListener(OPEN_DOCUMENT_EVENT, handleOpenDocument);
     const result = await props.core.listDocuments();
     if (!result.ok) {
       setError(result.error.message);
@@ -48,6 +57,8 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     }
     setDocuments(result.value);
   });
+
+  onCleanup(() => window.removeEventListener(OPEN_DOCUMENT_EVENT, handleOpenDocument));
 
   async function openDocument(id: string, scroll = true): Promise<void> {
     const result = await props.core.getDocument(id);
@@ -58,7 +69,9 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     setSelected(result.value);
     setDocumentQuery('');
     if (scroll) {
-      requestAnimationFrame(() => readerRoot?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      requestAnimationFrame(() =>
+        readerRoot?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      );
     }
   }
 
@@ -81,9 +94,11 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     const query = normalize(documentQuery());
     if (!query) return true;
     return normalize(
-      [section.title, section.sectionPath.join(' '), ...section.chunks.map((chunk) => chunk.originalText)].join(
-        ' ',
-      ),
+      [
+        section.title,
+        section.sectionPath.join(' '),
+        ...section.chunks.map((chunk) => chunk.originalText),
+      ].join(' '),
     ).includes(query);
   }
 
@@ -95,7 +110,8 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           <h1>Архив знаний</h1>
           <p>
             {documents().length || '—'} документов связаны со специальностями и источниками. Список
-            предназначен для быстрого открытия; карта показывает клинические области без скрытых узлов.
+            предназначен для быстрого открытия; карта показывает клинические области без скрытых
+            узлов.
           </p>
         </div>
         <fieldset class="library-mode-tabs">
@@ -165,7 +181,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                     </span>
                     <span class="document-folder-main">
                       <strong>{document.title}</strong>
-                      <span class="clinical-signals" aria-label="Клинические области">
+                      <span class="clinical-signals" aria-hidden="true">
                         <For each={documentClinicalSignals(document).slice(0, 3)}>
                           {(signal) => (
                             <span
@@ -282,7 +298,9 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                     <Show when={document().sections.filter(sectionMatches).length === 0}>
                       <div class="reader-empty">
                         <h2>В документе нет такого текста</h2>
-                        <p>Очистите локальный поиск или используйте другое медицинское выражение.</p>
+                        <p>
+                          Очистите локальный поиск или используйте другое медицинское выражение.
+                        </p>
                       </div>
                     </Show>
                   </article>

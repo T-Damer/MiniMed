@@ -19,7 +19,10 @@ interface DomainGroup {
   readonly documents: readonly MedicalDocumentSummary[];
 }
 
-function specialtySignal(specialty: string, documents: readonly MedicalDocumentSummary[]): ClinicalSignal {
+function specialtySignal(
+  specialty: string,
+  documents: readonly MedicalDocumentSummary[],
+): ClinicalSignal {
   const normalized = specialty.toLowerCase();
   if (/(?:пульмон|дыхател|respir)/u.test(normalized)) {
     return { icon: 'lungs', label: specialty, tone: 'blue', strength: 'primary' };
@@ -38,7 +41,8 @@ function specialtySignal(specialty: string, documents: readonly MedicalDocumentS
   }
   return (
     documentClinicalSignals(
-      documents[0] ?? ({ title: specialty, shortTitle: null, specialties: [] } as MedicalDocumentSummary),
+      documents[0] ??
+        ({ title: specialty, shortTitle: null, specialties: [] } as MedicalDocumentSummary),
     )[0] ?? {
       icon: 'overview',
       label: specialty,
@@ -126,7 +130,8 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       </ul>
 
       <p class="knowledge-graph-caption">
-        Нажатие открывает документ сразу. Повторяющиеся документы показываются в каждой связанной области.
+        Нажатие открывает документ сразу. Повторяющиеся документы показываются в каждой связанной
+        области.
       </p>
     </section>
   );

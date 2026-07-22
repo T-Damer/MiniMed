@@ -43,8 +43,11 @@ function includesAny(value: string, terms: readonly string[]): boolean {
   return terms.some((term) => value.includes(term));
 }
 
-export function documentClinicalSignals(document: MedicalDocumentSummary): readonly ClinicalSignal[] {
-  const value = `${document.title} ${document.shortTitle ?? ''} ${document.specialties.join(' ')}`.toLowerCase();
+export function documentClinicalSignals(
+  document: MedicalDocumentSummary,
+): readonly ClinicalSignal[] {
+  const value =
+    `${document.title} ${document.shortTitle ?? ''} ${document.specialties.join(' ')}`.toLowerCase();
   const signals: ClinicalSignal[] = [];
   const add = (signal: ClinicalSignal): void => {
     if (!signals.some((item) => item.icon === signal.icon)) signals.push(signal);
@@ -66,16 +69,31 @@ export function documentClinicalSignals(document: MedicalDocumentSummary): reado
     add({ icon: 'kidney', label: 'Почки и мочевая система', tone: 'cyan', strength: 'primary' });
   }
   if (includesAny(value, ['корь', 'инфекц', 'менингокок', 'вирус', 'бактери'])) {
-    add({ icon: 'infection', label: 'Инфекция и иммунитет', tone: 'red', strength: signals.length ? 'secondary' : 'primary' });
+    add({
+      icon: 'infection',
+      label: 'Инфекция и иммунитет',
+      tone: 'red',
+      strength: signals.length ? 'secondary' : 'primary',
+    });
   }
   if (includesAny(value, ['лекарств', 'препарат', 'регистрац'])) {
     add({ icon: 'pill', label: 'Лекарственный препарат', tone: 'green', strength: 'primary' });
   }
   if (includesAny(value, ['антибиот', 'амокси', 'цефтри', 'азитро'])) {
-    add({ icon: 'antibiotic', label: 'Антибактериальный препарат', tone: 'green', strength: 'primary' });
+    add({
+      icon: 'antibiotic',
+      label: 'Антибактериальный препарат',
+      tone: 'green',
+      strength: 'primary',
+    });
   }
   if (includesAny(value, ['приказ', 'норматив', 'порядок'])) {
-    add({ icon: 'prescription', label: 'Нормативный документ', tone: 'neutral', strength: 'primary' });
+    add({
+      icon: 'prescription',
+      label: 'Нормативный документ',
+      tone: 'neutral',
+      strength: 'primary',
+    });
   }
 
   return signals.length
@@ -174,7 +192,9 @@ export function ClinicalGlyph(props: {
           <path d="M15 4c4 0 6 3.5 6 8 0 4-2 7-5 7-2 0-3-1.5-3-4V8c0-2.5.8-4 2-4Z" />
         </>
       )}
-      {props.name === 'heart' && <path d="M20.8 5.7c-2.1-2.2-5.5-1.8-7.3.4L12 8l-1.5-1.9C8.7 3.9 5.3 3.5 3.2 5.7 1 8 1.4 11.4 3.6 13.5L12 21l8.4-7.5c2.2-2.1 2.6-5.5.4-7.8Z" />}
+      {props.name === 'heart' && (
+        <path d="M20.8 5.7c-2.1-2.2-5.5-1.8-7.3.4L12 8l-1.5-1.9C8.7 3.9 5.3 3.5 3.2 5.7 1 8 1.4 11.4 3.6 13.5L12 21l8.4-7.5c2.2-2.1 2.6-5.5.4-7.8Z" />
+      )}
       {props.name === 'overview' && (
         <>
           <path d="M6 3h9l3 3v15H6z" />
