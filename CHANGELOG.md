@@ -4,6 +4,41 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-07-22
+
+### Added
+
+- A modular-content foundation with a validated GitHub catalog, multi-store routing, rollback records,
+  and a portable atomic installer state machine.
+- A searchable document archive, direct document opening, readable medical-domain map, sticky document
+  reader, and local document filtering.
+- A versioned Russian symptom-expression lexicon covering abdominal distension, respiratory wording,
+  urinary symptoms, and neuroinfection-related signs.
+- Non-blocking clinical clarifications for ambiguous neuroinfection queries, dedicated
+  next-diagnostics and differential branches, and 500 ms debounced search.
+- Local medical glyphs, passive module-update badges, compact progressive search results,
+  exact-fragment source reading, surrounding-context expansion, and scroll-to-top navigation.
+
+### Changed
+
+- Search results show one best fragment per document first; additional matches, surrounding context,
+  and the complete document are opened progressively.
+- Current medication remains visible as patient context but no longer acts as a diagnostic symptom in
+  patient-case retrieval.
+- Workspace packages, Android application version, public-pilot pack, regulatory pack, and APK-only
+  release workflow are aligned to 0.3.2; Android uses build number 10.
+- Module updates never interrupt the clinical search flow; availability is indicated only on the
+  Modules icon and page.
+
+### Verification boundary
+
+- The portable installer is tested with injected downloader, staging, validator, registry, and rollback
+  adapters; real Android/iOS filesystem downloads and WorkManager notifications remain a later slice.
+- The application still embeds the existing 15-document pilot pack. Full extracted recommendations,
+  structured tables, source PDFs, and dedicated medication cards remain planned modular artifacts.
+- The query parser and retrieval are deterministic and source-grounded. A local neural reranker or
+  generative model is not included in this release.
+
 ## [0.3.1] - 2026-07-21
 
 ### Added

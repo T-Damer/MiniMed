@@ -1,7 +1,9 @@
 import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
-import { createSignal, For, type JSX, onMount, Show } from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '../../components/AppGlyph';
+import { ClinicalGlyph, documentClinicalSignals } from '../../components/ClinicalGlyph';
+import { OPEN_DOCUMENT_EVENT } from '../../state/document-navigation';
 import { KnowledgeGraph } from './KnowledgeGraph';
 
 interface DocumentLibraryProps {
@@ -10,13 +12,44 @@ interface DocumentLibraryProps {
 
 type LibraryMode = 'list' | 'graph';
 
+function normalize(value: string): string {
+  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
+}
+
 export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
   const [selected, setSelected] = createSignal<MedicalDocument>();
-  const [mode, setMode] = createSignal<LibraryMode>('graph');
+  const [mode, setMode] = createSignal<LibraryMode>('list');
+  const [filter, setFilter] = createSignal('');
+  const [documentQuery, setDocumentQuery] = createSignal('');
   const [error, setError] = createSignal<string>();
+  let readerRoot: HTMLDivElement | undefined;
+
+  const filteredDocuments = createMemo(() => {
+    const query = normalize(filter());
+    if (!query) return documents();
+    return documents().filter((document) =>
+      normalize(
+        [
+          document.title,
+          document.shortTitle ?? '',
+          document.sourceType,
+          document.versionLabel,
+          ...document.specialties,
+        ].join(' '),
+      ).includes(query),
+    );
+  });
+
+  const handleOpenDocument = (event: Event): void => {
+    const navigation = event as CustomEvent<string>;
+    if (typeof navigation.detail !== 'string' || !navigation.detail) return;
+    setMode('list');
+    void openDocument(navigation.detail);
+  };
 
   onMount(async () => {
+    window.addEventListener(OPEN_DOCUMENT_EVENT, handleOpenDocument);
     const result = await props.core.listDocuments();
     if (!result.ok) {
       setError(result.error.message);
@@ -25,14 +58,48 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     setDocuments(result.value);
   });
 
-  async function openDocument(id: string): Promise<void> {
+  onCleanup(() => window.removeEventListener(OPEN_DOCUMENT_EVENT, handleOpenDocument));
+
+  async function openDocument(id: string, scroll = true): Promise<void> {
     const result = await props.core.getDocument(id);
-    if (result.ok) setSelected(result.value);
-    else setError(result.error.message);
+    if (!result.ok) {
+      setError(result.error.message);
+      return;
+    }
+    setSelected(result.value);
+    setDocumentQuery('');
+    if (scroll) {
+      requestAnimationFrame(() =>
+        readerRoot?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      );
+    }
+  }
+
+  async function openFromGraph(id: string): Promise<void> {
+    await openDocument(id, false);
+    setMode('list');
+    requestAnimationFrame(() => readerRoot?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  function closeDocument(): void {
+    setSelected(undefined);
+    setDocumentQuery('');
   }
 
   function scrollToSection(anchor: string): void {
     document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function sectionMatches(section: MedicalDocument['sections'][number]): boolean {
+    const query = normalize(documentQuery());
+    if (!query) return true;
+    return normalize(
+      [
+        section.title,
+        section.sectionPath.join(' '),
+        ...section.chunks.map((chunk) => chunk.originalText),
+      ].join(' '),
+    ).includes(query);
   }
 
   return (
@@ -42,9 +109,9 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           <p class="archive-kicker">Локальный корпус</p>
           <h1>Архив знаний</h1>
           <p>
-            {documents().length || '—'} документов связаны со специальностями, разделами и
-            стабильными источниками. Граф показывает структуру корпуса, список открывает полный
-            текст карточки.
+            {documents().length || '—'} документов связаны со специальностями и источниками. Список
+            предназначен для быстрого открытия; карта показывает клинические области без скрытых
+            узлов.
           </p>
         </div>
         <fieldset class="library-mode-tabs">
@@ -54,7 +121,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
             type="button"
             onClick={() => setMode('graph')}
           >
-            <AppGlyph name="graph" /> Граф
+            <AppGlyph name="graph" /> Карта
           </button>
           <button
             classList={{ active: mode() === 'list' }}
@@ -66,13 +133,29 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
         </fieldset>
       </header>
 
+      <div class="library-toolbar">
+        <label class="library-search">
+          <AppGlyph name="search" />
+          <span class="sr-only">Поиск по архиву</span>
+          <input
+            value={filter()}
+            onInput={(event) => setFilter(event.currentTarget.value)}
+            placeholder="Название, специальность, тип источника…"
+            autocomplete="off"
+          />
+        </label>
+        <span class="library-search-count">
+          {filteredDocuments().length} из {documents().length}
+        </span>
+      </div>
+
       <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
 
       <Show when={mode() === 'graph'}>
         <KnowledgeGraph
-          documents={documents()}
+          documents={filteredDocuments()}
           selectedId={selected()?.id}
-          onSelect={(id) => void openDocument(id)}
+          onSelect={(id) => void openFromGraph(id)}
         />
       </Show>
 
@@ -80,11 +163,11 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
         <div class="archive-library library-embedded">
           <aside class="library-list archive-cabinet">
             <div class="cabinet-ledger">
-              <span>ЕДИНИЦ ХРАНЕНИЯ</span>
-              <strong>{documents().length.toString().padStart(3, '0')}</strong>
+              <span>НАЙДЕНО</span>
+              <strong>{filteredDocuments().length.toString().padStart(3, '0')}</strong>
             </div>
             <div class="document-folders">
-              <For each={documents()}>
+              <For each={filteredDocuments()}>
                 {(document, index) => (
                   <button
                     class="document-folder"
@@ -96,34 +179,78 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                       {String(index() + 1).padStart(2, '0')} /{' '}
                       {document.sourceType.replaceAll('_', ' ')}
                     </span>
-                    <strong>{document.title}</strong>
+                    <span class="document-folder-main">
+                      <strong>{document.title}</strong>
+                      <span class="clinical-signals" aria-hidden="true">
+                        <For each={documentClinicalSignals(document).slice(0, 3)}>
+                          {(signal) => (
+                            <span
+                              class={`clinical-signal ${signal.strength} tone-${signal.tone}`}
+                              title={signal.label}
+                            >
+                              <ClinicalGlyph name={signal.icon} />
+                            </span>
+                          )}
+                        </For>
+                      </span>
+                    </span>
                     <span class="folder-specialties">{document.specialties.join(' · ')}</span>
                     <small>{document.versionLabel}</small>
                   </button>
                 )}
               </For>
+              <Show when={filteredDocuments().length === 0}>
+                <div class="reader-empty library-empty">
+                  <p class="archive-kicker">Архив</p>
+                  <h2>Ничего не найдено</h2>
+                  <p>Попробуйте название заболевания, специальность или тип документа.</p>
+                </div>
+              </Show>
             </div>
           </aside>
 
-          <div class="library-reader source-folder">
+          <div
+            class="library-reader source-folder"
+            ref={(element) => {
+              readerRoot = element;
+            }}
+          >
             <Show
               when={selected()}
               fallback={
                 <div class="reader-empty library-empty">
                   <span class="empty-file-mark">MM–DOC</span>
                   <p class="archive-kicker">Структура документа</p>
-                  <h2>Выберите папку</h2>
-                  <p>Здесь откроется полный текст карточки с оглавлением и стабильными якорями.</p>
+                  <h2>Выберите документ</h2>
+                  <p>Одно нажатие откроет карточку, оглавление и доступный полный текст.</p>
                 </div>
               }
             >
               {(document) => (
                 <div class="document-workspace">
+                  <div class="reader-toolbar document-reader-toolbar">
+                    <strong>{document().shortTitle ?? document().title}</strong>
+                    <input
+                      value={documentQuery()}
+                      onInput={(event) => setDocumentQuery(event.currentTarget.value)}
+                      placeholder="Поиск внутри документа"
+                      aria-label="Поиск внутри открытого документа"
+                    />
+                    <button
+                      class="reader-close"
+                      type="button"
+                      aria-label="Закрыть документ"
+                      onClick={closeDocument}
+                    >
+                      <AppGlyph name="close" />
+                    </button>
+                  </div>
+
                   <aside class="document-outline">
                     <p class="archive-kicker">Оглавление</p>
                     <strong>{document().shortTitle ?? document().title}</strong>
                     <nav aria-label="Разделы документа">
-                      <For each={document().sections}>
+                      <For each={document().sections.filter(sectionMatches)}>
                         {(section, index) => (
                           <button type="button" onClick={() => scrollToSection(section.anchor)}>
                             <span>{String(index() + 1).padStart(2, '0')}</span>
@@ -154,7 +281,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                         </div>
                       </dl>
                     </header>
-                    <For each={document().sections}>
+                    <For each={document().sections.filter(sectionMatches)}>
                       {(section, index) => (
                         <section class="document-section" id={section.anchor}>
                           <div class="section-number">{String(index() + 1).padStart(2, '0')}</div>
@@ -168,29 +295,20 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                         </section>
                       )}
                     </For>
+                    <Show when={document().sections.filter(sectionMatches).length === 0}>
+                      <div class="reader-empty">
+                        <h2>В документе нет такого текста</h2>
+                        <p>
+                          Очистите локальный поиск или используйте другое медицинское выражение.
+                        </p>
+                      </div>
+                    </Show>
                   </article>
                 </div>
               )}
             </Show>
           </div>
         </div>
-      </Show>
-
-      <Show when={mode() === 'graph' && selected()}>
-        {(document) => (
-          <div class="graph-selection paper-card">
-            <div>
-              <span>ВЫБРАНА ПАПКА</span>
-              <strong>{document().title}</strong>
-              <small>
-                {document().specialties.join(' · ')} · {document().versionLabel}
-              </small>
-            </div>
-            <button type="button" onClick={() => setMode('list')}>
-              Открыть документ →
-            </button>
-          </div>
-        )}
       </Show>
     </section>
   );
