@@ -1,8 +1,10 @@
 name: Sync local model branch with main
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [agent/local-model-auto-selection]
+    paths:
+      - .github/workflows/sync-local-model-main.yml
 
 permissions:
   contents: write
@@ -13,7 +15,7 @@ concurrency:
 
 jobs:
   sync:
-    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.ref == 'agent/local-model-auto-selection'
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -28,7 +30,26 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin main
+          set +e
           git merge --no-ff --no-commit origin/main
+          merge_status=$?
+          set -e
+          if [ "$merge_status" -ne 0 ]; then
+            mapfile -t unresolved < <(git diff --name-only --diff-filter=U)
+            for path in "${unresolved[@]}"; do
+              case "$path" in
+                apps/app/src/app/App.tsx|apps/app/src/main.tsx|docs/CURRENT_STATE.md)
+                  git checkout --ours -- "$path"
+                  git add "$path"
+                  ;;
+                *)
+                  echo "Unexpected merge conflict: $path" >&2
+                  exit 1
+                  ;;
+              esac
+            done
+          fi
+          test -z "$(git diff --name-only --diff-filter=U)"
           rm -f .github/workflows/sync-local-model-main.yml
           git add -A
       - uses: pnpm/action-setup@v4
