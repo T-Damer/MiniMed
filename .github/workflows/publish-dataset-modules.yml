@@ -8,6 +8,8 @@ on:
       - apps/app/src/features/modules/catalog.preview.json
       - content/regulatory-rf-pilot/**
       - content/regulatory-rf-pilot-sources.yaml
+      - content/full-respiratory-rf-sources.yaml
+      - content/full-respiratory-rf-registry.yaml
       - tools/ingest/**
   push:
     branches: [main]
@@ -16,6 +18,8 @@ on:
       - apps/app/src/features/modules/catalog.preview.json
       - content/regulatory-rf-pilot/**
       - content/regulatory-rf-pilot-sources.yaml
+      - content/full-respiratory-rf-sources.yaml
+      - content/full-respiratory-rf-registry.yaml
       - tools/ingest/**
   workflow_dispatch:
 
@@ -28,14 +32,12 @@ concurrency:
 
 env:
   DATASET_TAG: datasets-preview-1
-  MODULE_ID: minimed.regulatory.pediatrics.ru
   MODULE_VERSION: 0.3.4-preview.1
-  MODULE_FILE: minimed-regulatory-pediatrics-0.3.4-preview.1.db
 
 jobs:
   build-and-validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
@@ -49,15 +51,41 @@ jobs:
         with:
           version: '0.10.0'
           enable-cache: true
-      - name: Build verified regulatory SQLite module
+      - name: Install toolchains
         run: |
-          set -euo pipefail
           pnpm install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
-          pnpm content:rebuild:regulatory
+      - name: Build verified regulatory SQLite module
+        run: pnpm content:rebuild:regulatory
+      - name: Download and prepare full respiratory recommendations
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --project tools/ingest medbase sync \
+            --manifest content/full-respiratory-rf-sources.yaml \
+            --input-root content \
+            --output-root data/synced/full-respiratory-rf \
+            --cache-root .cache/localmed/full-respiratory-rf \
+            --report data/build/full-respiratory-source-sync-report.json
+          uv run --project tools/ingest medbase prepare \
+            --registry content/full-respiratory-rf-registry.yaml \
+            --source-root data/synced/full-respiratory-rf \
+            --output data/intermediate/full-respiratory-rf \
+            --force
+          uv run --project tools/ingest medbase lint \
+            --input data/intermediate/full-respiratory-rf
+          uv run --project tools/ingest medbase build \
+            --input data/intermediate/full-respiratory-rf \
+            --output data/build/rf-respiratory-full.db \
+            --report data/build/rf-respiratory-full-report.json
+      - name: Stage module databases
+        run: |
           mkdir -p release-datasets
-          cp data/build/rf-regulatory-pilot.db "release-datasets/${MODULE_FILE}"
-      - name: Generate immutable module manifest and channel catalog
+          cp data/build/rf-regulatory-pilot.db \
+            release-datasets/minimed-regulatory-pediatrics-0.3.4-preview.1.db
+          cp data/build/rf-respiratory-full.db \
+            release-datasets/minimed-respiratory-pediatrics-full-0.3.4-preview.1.db
+      - name: Generate immutable manifests and channel catalog
         shell: bash
         run: |
           set -euo pipefail
@@ -68,38 +96,33 @@ jobs:
           import sqlite3
           from datetime import datetime, timezone
           from pathlib import Path
+          from typing import Any
 
-          module_id = os.environ['MODULE_ID']
-          module_version = os.environ['MODULE_VERSION']
-          module_file = os.environ['MODULE_FILE']
+          version = os.environ['MODULE_VERSION']
           dataset_tag = os.environ['DATASET_TAG']
           output = Path('release-datasets')
-          database_path = output / module_file
-          database_bytes = database_path.read_bytes()
-          database_digest_hex = hashlib.sha256(database_bytes).hexdigest()
-          database_digest = f'sha256:{database_digest_hex}'
-
-          database = sqlite3.connect(f'file:{database_path}?mode=ro', uri=True)
-          try:
-              assert database.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
-              assert not database.execute('PRAGMA foreign_key_check').fetchall()
-              pack = database.execute(
-                  'SELECT id, schema_version FROM content_packs LIMIT 1'
-              ).fetchone()
-              rows = database.execute(
-                  '''SELECT d.id, dv.id, dv.source_checksum, d.status
-                     FROM documents d
-                     JOIN document_versions dv ON dv.id = d.current_version_id
-                     ORDER BY d.id, dv.id'''
-              ).fetchall()
-              chunks = database.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
-              fts_rows = database.execute('SELECT COUNT(*) FROM chunks_fts').fetchone()[0]
-              assert pack and pack[0] == 'minimed.rf-regulatory-pilot'
-              assert pack[1] == 2
-              assert rows
-              assert chunks == fts_rows and chunks > 0
-          finally:
-              database.close()
+          published_at = (
+              datetime.now(timezone.utc)
+              .replace(microsecond=0)
+              .isoformat()
+              .replace('+00:00', 'Z')
+          )
+          module_specs = [
+              {
+                  'moduleId': 'minimed.regulatory.pediatrics.ru',
+                  'database': output / f'minimed-regulatory-pediatrics-{version}.db',
+                  'expectedPackId': 'minimed.rf-regulatory-pilot',
+                  'artifactId': f'minimed.regulatory.pediatrics.ru-index-{version}',
+                  'manifest': output / f'minimed-regulatory-pediatrics-{version}.manifest.json',
+              },
+              {
+                  'moduleId': 'minimed.clinical.pediatrics.respiratory-allergy',
+                  'database': output / f'minimed-respiratory-pediatrics-full-{version}.db',
+                  'expectedPackId': 'minimed.clinical.pediatrics.respiratory-allergy',
+                  'artifactId': f'minimed.clinical.pediatrics.respiratory-allergy-index-{version}',
+                  'manifest': output / f'minimed-respiratory-pediatrics-full-{version}.manifest.json',
+              },
+          ]
 
           def normalize_checksum(value: str) -> str:
               return value if value.startswith('sha256:') else f'sha256:{value}'
@@ -112,105 +135,144 @@ jobs:
                   return 'historical'
               return 'active'
 
-          documents = [
-              {
-                  'documentId': document_id,
-                  'documentVersionId': document_version_id,
-                  'sourceChecksum': normalize_checksum(source_checksum),
-                  'status': normalize_status(status),
-                  'indexArtifactId': f'{module_id}-index-{module_version}',
-                  'sourceAssetArtifactId': None,
+          def build_module(spec: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+              database_path: Path = spec['database']
+              database_bytes = database_path.read_bytes()
+              digest_hex = hashlib.sha256(database_bytes).hexdigest()
+              digest = f'sha256:{digest_hex}'
+              database = sqlite3.connect(f'file:{database_path}?mode=ro', uri=True)
+              try:
+                  assert database.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
+                  assert not database.execute('PRAGMA foreign_key_check').fetchall()
+                  pack = database.execute(
+                      'SELECT id, schema_version FROM content_packs LIMIT 1'
+                  ).fetchone()
+                  rows = database.execute(
+                      '''SELECT d.id, dv.id, dv.source_checksum, d.status
+                         FROM documents d
+                         JOIN document_versions dv ON dv.id = d.current_version_id
+                         ORDER BY d.id, dv.id'''
+                  ).fetchall()
+                  chunks = database.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
+                  fts_rows = database.execute('SELECT COUNT(*) FROM chunks_fts').fetchone()[0]
+                  assert pack and pack[0] == spec['expectedPackId']
+                  assert pack[1] == 2
+                  assert rows
+                  assert chunks == fts_rows and chunks > 0
+              finally:
+                  database.close()
+
+              documents = [
+                  {
+                      'documentId': document_id,
+                      'documentVersionId': document_version_id,
+                      'sourceChecksum': normalize_checksum(source_checksum),
+                      'status': normalize_status(status),
+                      'indexArtifactId': spec['artifactId'],
+                      'sourceAssetArtifactId': None,
+                  }
+                  for document_id, document_version_id, source_checksum, status in rows
+              ]
+              source_set_payload = [
+                  {
+                      'documentId': item['documentId'],
+                      'documentVersionId': item['documentVersionId'],
+                      'sourceChecksum': item['sourceChecksum'],
+                      'status': item['status'],
+                  }
+                  for item in documents
+              ]
+              canonical = json.dumps(
+                  source_set_payload,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(',', ':'),
+              ).encode('utf-8')
+              source_set_digest = f"sha256:{hashlib.sha256(canonical).hexdigest()}"
+              artifact = {
+                  'id': spec['artifactId'],
+                  'kind': 'index',
+                  'required': True,
+                  'url': (
+                      'https://github.com/T-Damer/MiniMed/releases/download/'
+                      f'{dataset_tag}/{database_path.name}'
+                  ),
+                  'sha256': digest,
+                  'sizeBytes': len(database_bytes),
+                  'compression': 'none',
+                  'sourceSetDigest': source_set_digest,
               }
-              for document_id, document_version_id, source_checksum, status in rows
-          ]
-          source_set_payload = [
-              {
-                  'documentId': item['documentId'],
-                  'documentVersionId': item['documentVersionId'],
-                  'sourceChecksum': item['sourceChecksum'],
-                  'status': item['status'],
+              manifest = {
+                  'moduleId': spec['moduleId'],
+                  'version': version,
+                  'schemaVersion': 2,
+                  'appCompatibility': {'min': '0.3.3', 'max': None},
+                  'coreCatalogVersion': '1',
+                  'sourceSetDigest': source_set_digest,
+                  'artifacts': [artifact],
+                  'documents': documents,
+                  'publishedAt': published_at,
               }
-              for item in documents
-          ]
-          canonical = json.dumps(
-              source_set_payload,
-              ensure_ascii=False,
-              sort_keys=True,
-              separators=(',', ':'),
-          ).encode('utf-8')
-          source_set_digest = f"sha256:{hashlib.sha256(canonical).hexdigest()}"
-          artifact_id = f'{module_id}-index-{module_version}'
-          artifact_url = (
-              'https://github.com/T-Damer/MiniMed/releases/download/'
-              f'{dataset_tag}/{module_file}'
-          )
-          artifact = {
-              'id': artifact_id,
-              'kind': 'index',
-              'required': True,
-              'url': artifact_url,
-              'sha256': database_digest,
-              'sizeBytes': len(database_bytes),
-              'compression': 'none',
-              'sourceSetDigest': source_set_digest,
-          }
-          published_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
-          module_manifest = {
-              'moduleId': module_id,
-              'version': module_version,
-              'schemaVersion': 2,
-              'appCompatibility': {'min': '0.3.3', 'max': None},
-              'coreCatalogVersion': '1',
-              'sourceSetDigest': source_set_digest,
-              'artifacts': [artifact],
-              'documents': documents,
-              'publishedAt': published_at,
-          }
-          (output / 'minimed-regulatory-pediatrics-0.3.4-preview.1.manifest.json').write_text(
-              json.dumps(module_manifest, ensure_ascii=False, indent=2) + '\n',
-              encoding='utf-8',
-          )
+              spec['manifest'].write_text(
+                  json.dumps(manifest, ensure_ascii=False, indent=2) + '\n',
+                  encoding='utf-8',
+              )
+              return (
+                  {
+                      'moduleId': spec['moduleId'],
+                      'version': version,
+                      'documents': len(documents),
+                      'chunks': chunks,
+                      'bytes': len(database_bytes),
+                      'sha256': digest,
+                      'sourceSetDigest': source_set_digest,
+                  },
+                  {
+                      'version': version,
+                      'releaseState': 'published',
+                      'sourceSetDigest': source_set_digest,
+                      'sizes': {
+                          'downloadBytes': len(database_bytes),
+                          'installedBytes': len(database_bytes),
+                          'sourceAssetsDownloadBytes': None,
+                          'precision': 'exact',
+                      },
+                      'artifacts': [artifact],
+                      'documents': documents,
+                      'previewDocumentCount': len(documents),
+                  },
+              )
+
+          summaries: list[dict[str, Any]] = []
+          updates: dict[str, dict[str, Any]] = {}
+          checksum_lines: list[str] = []
+          for spec in module_specs:
+              summary, update = build_module(spec)
+              summaries.append(summary)
+              updates[spec['moduleId']] = update
+              checksum_lines.append(
+                  f"{summary['sha256'].removeprefix('sha256:')}  {spec['database'].name}"
+              )
 
           catalog = json.loads(
               Path('apps/app/src/features/modules/catalog.preview.json').read_text(encoding='utf-8')
           )
-          catalog['catalogVersion'] = f'datasets-{module_version}'
+          catalog['catalogVersion'] = f'datasets-{version}'
           catalog['publishedAt'] = published_at
-          target = next(module for module in catalog['modules'] if module['id'] == module_id)
-          target['version'] = module_version
-          target['releaseState'] = 'published'
-          target['compatibility']['minAppVersion'] = '0.3.3'
-          target['sourceSetDigest'] = source_set_digest
-          target['sizes'] = {
-              'downloadBytes': len(database_bytes),
-              'installedBytes': len(database_bytes),
-              'sourceAssetsDownloadBytes': None,
-              'precision': 'exact',
-          }
-          target['artifacts'] = [artifact]
-          target['documents'] = documents
-          target['previewDocumentCount'] = len(documents)
+          for target in catalog['modules']:
+              update = updates.get(target['id'])
+              if not update:
+                  continue
+              target.update(update)
+              target['compatibility']['minAppVersion'] = '0.3.3'
           (output / 'catalog.preview.json').write_text(
-              json.dumps(catalog, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
+              json.dumps(catalog, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
           )
           (output / 'SHA256SUMS.txt').write_text(
-              f'{database_digest_hex}  {module_file}\n', encoding='utf-8'
+              '\n'.join(checksum_lines) + '\n', encoding='utf-8'
           )
-          print(
-              json.dumps(
-                  {
-                      'module': module_id,
-                      'version': module_version,
-                      'documents': len(documents),
-                      'chunks': chunks,
-                      'bytes': len(database_bytes),
-                      'sha256': database_digest,
-                      'sourceSetDigest': source_set_digest,
-                  },
-                  ensure_ascii=False,
-                  indent=2,
-              )
-          )
+          print(json.dumps(summaries, ensure_ascii=False, indent=2))
           PY
       - name: Validate generated channel catalog
         run: |
