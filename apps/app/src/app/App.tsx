@@ -6,6 +6,9 @@ import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
+import { LocalModelController } from '../features/models/controller';
+import { ModelSettings } from '../features/models/ModelSettings';
+import { ModelToast } from '../features/models/ModelToast';
 import { refreshContentModuleCatalog } from '../features/modules/catalog-service';
 import { ModuleCatalogView } from '../features/modules/ModuleCatalogView';
 import { SearchWorkspace } from '../features/search/SearchWorkspace';
@@ -31,6 +34,9 @@ const VIEWS: readonly {
   { id: 'status', label: 'Система', icon: 'system' },
 ];
 
+const DEFAULT_MODEL_CATALOG_URL =
+  'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
+
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
@@ -40,12 +46,34 @@ function availableModuleCount(modules: readonly { releaseState: string }[]): num
   return modules.filter((module) => module.releaseState === 'published').length;
 }
 
+function environmentFlag(name: string, fallback: boolean): boolean {
+  const value = import.meta.env[name]?.trim().toLowerCase();
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return fallback;
+}
+
+function createLocalModelController(): LocalModelController {
+  const configuredCatalogUrl = import.meta.env['VITE_LOCAL_MODEL_CATALOG_URL']?.trim();
+  const remoteCatalogUrl =
+    configuredCatalogUrl === 'bundled' ? '' : configuredCatalogUrl || DEFAULT_MODEL_CATALOG_URL;
+  const mirrorBaseUrl = import.meta.env['VITE_LOCAL_MODEL_ASSET_BASE_URL']?.trim() ?? '';
+  return new LocalModelController({
+    remoteCatalogUrl,
+    mirrorBaseUrl,
+    allowUpstreamFallback: environmentFlag('VITE_LOCAL_MODEL_ALLOW_UPSTREAM', true),
+    allowAutomationDownloads: environmentFlag('VITE_LOCAL_MODEL_ALLOW_AUTOMATION_DOWNLOADS', false),
+    defaultAutoLoad: environmentFlag('VITE_LOCAL_MODEL_AUTOLOAD', true),
+  });
+}
+
 export function App(): JSX.Element {
   const [view, setView] = createSignal<View>(viewFromLocation());
   const [ready, setReady] = createSignal<ReadyState>();
   const [error, setError] = createSignal<string>();
   const [moduleUpdateCount, setModuleUpdateCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
+  const modelController = createLocalModelController();
   let coreToClose: MedicalCore | undefined;
 
   const navigate = (next: View): void => {
@@ -77,6 +105,7 @@ export function App(): JSX.Element {
         return;
       }
       setReady({ core, status: initialized.value });
+      void modelController.start();
       void refreshContentModuleCatalog()
         .then((result) => {
           if (view() !== 'modules')
@@ -92,6 +121,7 @@ export function App(): JSX.Element {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
     if (coreToClose) void coreToClose.close();
+    void modelController.dispose();
   });
 
   return (
@@ -197,15 +227,18 @@ export function App(): JSX.Element {
               />
             </section>
             <section
-              class="app-view"
+              class="app-view model-status-view"
               hidden={view() !== 'status'}
               aria-hidden={view() !== 'status'}
             >
+              <ModelSettings controller={modelController} />
               <StatusPanel core={state().core} initialStatus={state().status} />
             </section>
           </main>
         )}
       </Show>
+
+      <ModelToast controller={modelController} />
 
       <Show when={showScrollTop()}>
         <button

@@ -42,13 +42,17 @@ async function serveBuiltAsset(route: Route): Promise<void> {
   }
 }
 
-export async function mountBuiltApp(page: Page): Promise<void> {
+export interface MountBuiltAppOptions {
+  readonly localStorage?: Readonly<Record<string, string>>;
+}
+
+export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   await page.route(`${ASSET_ORIGIN}/**`, serveBuiltAsset);
 
   // The execution environment blocks loopback navigation. We therefore mount the built
   // artifact in about:blank and serve its assets through Playwright routing. Opaque origins
   // deny Web Storage, so a standards-shaped in-memory implementation is installed for E2E.
-  await page.evaluate(() => {
+  await page.evaluate((initialValues) => {
     const createStorage = (): Storage => {
       const values = new Map<string, string>();
       return {
@@ -73,15 +77,19 @@ export async function mountBuiltApp(page: Page): Promise<void> {
       };
     };
 
+    const localStorageValue = createStorage();
+    for (const [key, value] of Object.entries(initialValues)) {
+      localStorageValue.setItem(key, value);
+    }
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
-      value: createStorage(),
+      value: localStorageValue,
     });
     Object.defineProperty(window, 'sessionStorage', {
       configurable: true,
       value: createStorage(),
     });
-  });
+  }, options.localStorage ?? {});
 
   const source = await readFile(join(DIST_ROOT, 'index.html'), 'utf8');
   const html = source.replace('<head>', `<head><base href="${ASSET_ORIGIN}/">`);
