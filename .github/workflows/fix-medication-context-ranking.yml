@@ -1,0 +1,108 @@
+name: Fix medication context ranking
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/fix-medication-context-ranking.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'agent/content-module-installer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/content-module-installer
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('packages/search-lexical/src/analysis.ts')
+          text = path.read_text(encoding='utf-8')
+          old = """  const negativeTerms = termsInsideNegativeFacts(facts);
+  const originalTerms = termsWithStems([normalizedQuery]);
+  const positiveTerms = originalTerms.filter((term) => !negativeTerms.has(term));
+  const negativeRanges = facts
+"""
+          new = """  const negativeTerms = termsInsideNegativeFacts(facts);
+  const medicationTerms = new Set(
+    facts
+      .filter((fact) => fact.kind === 'medication')
+      .flatMap((fact) => termsWithStems([fact.value, fact.normalizedValue])),
+  );
+  const originalTerms = termsWithStems([normalizedQuery]);
+  const positiveTerms = originalTerms.filter(
+    (term) => !negativeTerms.has(term) && !medicationTerms.has(term),
+  );
+  const negativeRanges = facts
+"""
+          if old not in text:
+              raise SystemExit('missing medication-term branch target')
+          text = text.replace(old, new, 1)
+          old = """    expansion.matchedAliases
+      .filter((alias) => {
+        const index = normalizedQuery.indexOf(normalizeSurfaceText(alias.alias));
+"""
+          new = """    expansion.matchedAliases
+      .filter((alias) => {
+        if (alias.category === 'medication') return false;
+        const index = normalizedQuery.indexOf(normalizeSurfaceText(alias.alias));
+"""
+          if old not in text:
+              raise SystemExit('missing medication-alias branch target')
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+
+          path = Path('packages/search-lexical/tests/query.test.ts')
+          text = path.read_text(encoding='utf-8')
+          test = r"""
+
+  it('keeps current medication out of the diagnostic clinical branch', () => {
+    const plan = analyzeClinicalQuery(
+      'Мальчик 5 лет, температура 39,2, часто дышит, кашля нет, принимает аугментин',
+      aliases,
+    );
+    const clinical = plan.branches.find((branch) => branch.id === 'clinical');
+    const medication = plan.branches.find((branch) => branch.id === 'medications');
+    expect(clinical?.terms).not.toContain('аугментин');
+    expect(clinical?.terms).not.toContain('амоксициллин');
+    expect(medication?.terms).toEqual(
+      expect.arrayContaining(['аугментин', 'амоксициллин']),
+    );
+    expect(clinical?.terms).toContain('тахипноэ');
+  });
+"""
+          if not text.rstrip().endswith('});'):
+              raise SystemExit('unexpected query test ending')
+          text = text.rstrip()[:-3] + test + '\n});\n'
+          path.write_text(text, encoding='utf-8')
+          PY
+      - run: pnpm exec biome check --write packages/search-lexical/src/analysis.ts packages/search-lexical/tests/query.test.ts
+      - run: pnpm --filter @localmed/search-lexical test
+      - run: pnpm benchmark:cases
+      - run: |
+          rm -f \
+            .github/workflows/diagnose-032-benchmarks.yml \
+            .github/workflows/fix-medication-context-ranking.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(search): separate current therapy from diagnosis"
+          git push origin HEAD:agent/content-module-installer
