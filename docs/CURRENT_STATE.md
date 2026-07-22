@@ -1,7 +1,7 @@
 # Current state and execution order
 
-> Updated: 21 July 2026  
-> Repository version: `0.3.1`
+> Updated: 22 July 2026  
+> Repository version: `0.3.2`
 
 ## Document role
 
@@ -9,13 +9,16 @@
 implemented state and the order of the next repository tasks. Agents read it after `AGENTS.md` and
 update it when a change affects runtime behavior, content coverage, trust boundaries, benchmark
 composition, or execution priority. Benchmark details live in `tools/benchmarks/CLINICAL_QUERIES.md`;
-module boundaries and lifecycle rules live in `docs/CONTENT_MODULES.md`.
+module boundaries and lifecycle rules live in `docs/CONTENT_MODULES.md`; clinical interaction rules
+live in `docs/CLINICAL_UX.md`.
 
 ## Product invariant
 
 MiniMed is an offline-first navigator over Russian medical source material. Retrieval and exact source
 navigation remain useful without a network, model, or hosted backend. Derived data never replaces the
-source text and does not become trusted without an explicit review state.
+source text and does not become trusted without an explicit review state. Search is the primary
+clinical workflow and must never be interrupted by update dialogs; module availability is shown only
+through a passive counter and the Modules page.
 
 ## Implemented
 
@@ -26,7 +29,18 @@ source text and does not become trusted without an explicit review state.
 - Local SQLite/FTS5 retrieval, native read-only SQLite where supported, and SQLite WASM fallback.
 - Deterministic feature-hash embeddings and hybrid retrieval.
 - Russian long-query parsing, negative findings, weighted query branches, and missing-field hints.
-- Results grouped by document and section type with ranking diagnostics.
+- A versioned Russian symptom-expression lexicon for colloquial abdominal, respiratory, urinary, and
+  neuroinfection wording.
+- Dedicated diagnostic-next-step and differential branches plus non-blocking clarifications for
+  ambiguous neuroinfection queries; results remain visible while the clinician refines the case.
+- Current medication remains an observable patient fact but is excluded from diagnostic retrieval
+  evidence unless the query explicitly asks about treatment or a medicine.
+- Search starts after 500 ms of inactivity, cancels stale responses, and preserves explicit history.
+- Results are grouped by document and section type with ranking diagnostics and progressive disclosure:
+  one best fragment first, additional matches on expansion, exact source fragment next, then surrounding
+  context or the complete document.
+- Searchable document archive with direct opening, readable medical-domain map, sticky reader header,
+  in-document search, medical glyphs, and scroll-to-top navigation.
 - Exact document, section, chunk, stable-anchor, and neighboring-context navigation.
 - Local history and bookmarks.
 - Validated content-module catalog/lifecycle contracts and a read-only module-map page.
@@ -80,7 +94,9 @@ The clinical/query composition is 193 records:
 
 Twelve representative Russian scenarios have validated contract overlays for risk, required
 clarifications, dangerous omissions, evidence classes, blocked calculations, graph trust, and review
-state. The separate regulatory pack adds 12 administrative/versioning retrieval scenarios.
+state. The separate regulatory pack adds 12 administrative/versioning retrieval scenarios. The
+clinical-case suite also verifies patient facts, negative findings, observable branches, warnings, and
+top-ranked documents for respiratory, abdominal, urinary, uncertain-history, and therapy contexts.
 
 Latest green clinical/medication source-grounded baseline on the real 15-document SQLite pack:
 
@@ -102,7 +118,7 @@ Regulatory baseline:
 - Current clinical documents are concise navigation cards rather than complete extracted sources.
 - No persistent installed registry, immutable published module artifacts, platform filesystem backend, or
   background native downloader yet; the module page remains read-only.
-- The application composition still mounts the monolithic `0.3.1` pilot rather than the multi-store
+- The application composition still mounts the monolithic `0.3.2` pilot rather than the multi-store
   router and foreground installer.
 - Seven clinical recommendations rather than the target 30–50.
 - Regulatory coverage remains a small pediatric pilot; it needs broader administrative acts and a real
