@@ -27,7 +27,7 @@
 }
 
 .result-link::after {
-  content: 'Показать найденный фрагмент →';
+  content: "Показать найденный фрагмент →";
   font-size: 9px;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .index-label small::after {
-  content: 'можно добавить к запросу';
+  content: "можно добавить к запросу";
   font-size: 8px;
 }
 
