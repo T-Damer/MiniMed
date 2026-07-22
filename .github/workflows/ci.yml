@@ -12,38 +12,21 @@ permissions:
 
 jobs:
   alpha6-format:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/mobile-ux-alpha6-final'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/persistent-module-registry'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: agent/mobile-ux-alpha6-final
-          fetch-depth: 0
+          ref: agent/persistent-module-registry
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.1
       - uses: actions/setup-node@v7
         with:
           node-version: 22.16.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Apply pinned Biome formatting
-        run: pnpm check --write
-      - name: Publish non-workflow formatting fixes
-        shell: bash
-        run: |
-          set -euo pipefail
-          git diff --quiet -- .github/workflows || {
-            echo 'Formatting unexpectedly changed workflow files.' >&2
-            git diff -- .github/workflows
-            exit 1
-          }
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git diff --cached --quiet && exit 0
-          git commit -m 'style(app): apply repository formatting'
-          git push origin HEAD:agent/mobile-ux-alpha6-final
+      - run: pnpm install --frozen-lockfile --reporter=silent
+      - name: Isolate storage typecheck
+        run: pnpm --filter @localmed/storage typecheck
 
   javascript:
     runs-on: ubuntu-latest
