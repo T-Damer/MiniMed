@@ -47,6 +47,38 @@ describe('local model catalog', () => {
     expect(() => parseLocalModelCatalog(invalid)).toThrow(/неизвестный runtime/u);
   });
 
+  it('rejects executable runtime URLs outside the pinned host', () => {
+    const invalid = structuredClone(rawCatalog);
+    invalid.runtime.wllamaModuleUrl = 'https://example.com/runtime.js';
+    expect(() => parseLocalModelCatalog(invalid)).toThrow(/неподдерживаемый host/u);
+  });
+
+  it('rejects unsafe mirror paths and mutable non-HTTPS artifacts', () => {
+    const unsafePath = structuredClone(rawCatalog);
+    const firstModel = unsafePath.models.at(0);
+    const firstArtifact = firstModel?.artifacts.at(0);
+    expect(firstArtifact).toBeDefined();
+    if (!firstArtifact) throw new Error('Catalog test requires one artifact fixture.');
+    firstArtifact.mirrorPath = '../model.gguf';
+    expect(() => parseLocalModelCatalog(unsafePath)).toThrow(/безопасным относительным путём/u);
+
+    const insecureUrl = structuredClone(rawCatalog);
+    const insecureArtifact = insecureUrl.models.at(0)?.artifacts.at(0);
+    expect(insecureArtifact).toBeDefined();
+    if (!insecureArtifact) throw new Error('Catalog test requires one artifact fixture.');
+    insecureArtifact.upstreamUrl = 'http://huggingface.co/model.gguf';
+    expect(() => parseLocalModelCatalog(insecureUrl)).toThrow(/использовать HTTPS/u);
+  });
+
+  it('requires a valid hash for published GGUF artifacts', () => {
+    const invalid = structuredClone(rawCatalog);
+    const firstArtifact = invalid.models.at(0)?.artifacts.at(0);
+    expect(firstArtifact).toBeDefined();
+    if (!firstArtifact) throw new Error('Catalog test requires one artifact fixture.');
+    firstArtifact.sha256 = 'not-a-hash';
+    expect(() => parseLocalModelCatalog(invalid)).toThrow(/SHA-256/u);
+  });
+
   it('keeps license acceptance explicit for gated families', () => {
     const catalog = parseLocalModelCatalog(rawCatalog);
     const gated = catalog.models.filter((model) => model.license.requiresAcceptance);
