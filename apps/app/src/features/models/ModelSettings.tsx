@@ -242,9 +242,11 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       <OverlayDialog
         open={showError() && Boolean(state().error)}
         title="Почему модель не запустилась"
-        subtitle={props.controller.modelById(state().selectedModelId)?.name ?? undefined}
+        subtitle={props.controller.modelById(state().selectedModelId)?.name ?? 'Выбранная модель'}
         class="model-error-dialog"
-        onClose={() => setShowError(false)}
+        onClose={() => {
+          setShowError(false);
+        }}
       >
         <div class="model-error-details">
           <p>{state().error}</p>
