@@ -1,7 +1,4 @@
-import {
-  ContentModuleValidationSchema,
-  type InstalledContentModule,
-} from '@localmed/contracts';
+import { ContentModuleValidationSchema, type InstalledContentModule } from '@localmed/contracts';
 
 type ModuleValidation = NonNullable<InstalledContentModule['lastValidation']>;
 
@@ -132,7 +129,10 @@ function assertDigest(value: string): void {
   }
 }
 
-function normalizeInstallation(value: unknown, label = 'Installed module version'): ModuleVersionInstallation {
+function normalizeInstallation(
+  value: unknown,
+  label = 'Installed module version',
+): ModuleVersionInstallation {
   const installation = requireRecord(value, label);
   const normalized: ModuleVersionInstallation = {
     moduleId: requireString(installation.moduleId, `${label} moduleId`),
@@ -208,7 +208,9 @@ export function parseInstalledModuleRegistrySnapshot(
 ): InstalledModuleRegistrySnapshot {
   const snapshot = requireRecord(value, 'Installed-module registry snapshot');
   if (snapshot.schemaVersion !== INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION) {
-    throw new Error(`Unsupported installed-module registry schema: ${String(snapshot.schemaVersion)}.`);
+    throw new Error(
+      `Unsupported installed-module registry schema: ${String(snapshot.schemaVersion)}.`,
+    );
   }
   if (!Array.isArray(snapshot.entries)) {
     throw new Error('Installed-module registry entries must be an array.');
