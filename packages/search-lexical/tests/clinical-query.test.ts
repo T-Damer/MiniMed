@@ -20,13 +20,13 @@ const aliases = [
 ];
 
 describe('clinical query retrieval sanitation', () => {
-  it('keeps current therapy as a fact but removes it from diagnosis retrieval', () => {
+  it('keeps current therapy visible but removes it from diagnosis retrieval', () => {
     const plan = analyzeClinicalQuery(
       'Мальчик 5 лет, температура 39,2, часто дышит, кашля нет, принимает аугментин',
       aliases,
     );
 
-    expect(plan.analysis.intent.primary).toBe('diagnosis');
+    expect(plan.analysis.intent?.primary).toBe('diagnosis');
     expect(plan.analysis.facts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -35,10 +35,14 @@ describe('clinical query retrieval sanitation', () => {
         }),
       ]),
     );
+    expect(plan.analysis.branches.some((branch) => branch.kind === 'medication')).toBe(true);
     expect(plan.branches.some((branch) => branch.kind === 'medication')).toBe(false);
     expect(plan.terms).not.toContain('аугментин');
     expect(plan.terms).not.toContain('амоксициллин');
     expect(plan.terms).toContain('тахипноэ');
+    expect(plan.branches[0]).toEqual(
+      expect.objectContaining({ id: 'canonical-symptoms', weight: 1.58 }),
+    );
   });
 
   it('retains medication retrieval for an explicit treatment question', () => {
@@ -47,7 +51,7 @@ describe('clinical query retrieval sanitation', () => {
       aliases,
     );
 
-    expect(plan.analysis.intent.primary).toBe('treatment');
+    expect(plan.analysis.intent?.primary).toBe('treatment');
     expect(plan.branches.some((branch) => branch.kind === 'medication')).toBe(true);
     expect(plan.terms).toEqual(expect.arrayContaining(['аугментин', 'амоксициллин']));
   });
