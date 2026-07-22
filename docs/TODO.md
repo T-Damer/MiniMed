@@ -10,6 +10,7 @@ This list records product work that directly affects clinicians. Technical imple
 - [ ] Mount enabled downloaded modules through the existing multi-store search router.
 - [ ] Show clear download progress, checksum verification, failure, installed version and storage size.
 - [ ] Keep the previous validated module active when an update fails.
+- [x] Keep persistent registry metadata and stored SQLite artifacts consistent when rollback or removal fails.
 - [ ] Build the first full-text pediatric clinical module from the already validated recommendations.
 - [x] Add deterministic HTML extraction for complete recommendation text and tables from declared public mirrors.
 - [ ] Scale to 30–50 current Russian clinical recommendations after the first module lifecycle works end to end.
