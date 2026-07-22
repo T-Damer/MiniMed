@@ -61,6 +61,7 @@ jobs:
           if old not in text:
               raise SystemExit('missing medication-term branch target')
           text = text.replace(old, new, 1)
+
           old = """    expansion.matchedAliases
       .filter((alias) => {
         const index = normalizedQuery.indexOf(normalizeSurfaceText(alias.alias));
@@ -73,25 +74,81 @@ jobs:
           if old not in text:
               raise SystemExit('missing medication-alias branch target')
           text = text.replace(old, new, 1)
+
+          old = """  const intentSpec = INTENT_BRANCH[intent.primary];
+  if (intent.primary !== 'unknown') {
+    const branch = makeBranch(
+      'intent',
+      'intent',
+      intentSpec.label,
+      query,
+      [normalizedQuery, intentSpec.terms],
+      intentSpec.weight,
+    );
+"""
+          new = """  const intentSpec = INTENT_BRANCH[intent.primary];
+  if (intent.primary !== 'unknown') {
+    const intentQuery =
+      intent.primary === 'medication' ? normalizedQuery : positiveTerms.join(' ');
+    const branch = makeBranch(
+      'intent',
+      'intent',
+      intentSpec.label,
+      query,
+      [intentQuery, intentSpec.terms],
+      intentSpec.weight,
+    );
+"""
+          if old not in text:
+              raise SystemExit('missing sanitized intent branch target')
+          text = text.replace(old, new, 1)
+
+          old = """      if (/^(?:без|нет|отрицает|не\s+)/u.test(clauseNormalized)) continue;
+      const branch = makeBranch(
+"""
+          new = """      if (
+        /^(?:без|нет|отрицает|не\s+)/u.test(clauseNormalized) ||
+        /(?:принимает|получает|назначен[а-я]*|терапия)/u.test(clauseNormalized)
+      ) {
+        continue;
+      }
+      const branch = makeBranch(
+"""
+          if old not in text:
+              raise SystemExit('missing medication clause target')
+          text = text.replace(old, new, 1)
+
+          text = text.replace(
+              "[normalizedQuery, 'дифференциальная диагностика отличия критерии']",
+              "[positiveTerms.join(' '), 'дифференциальная диагностика отличия критерии']",
+              1,
+          )
+          text = text.replace(
+              "[normalizedQuery, 'диагностика обследование лабораторная инструментальная']",
+              "[positiveTerms.join(' '), 'диагностика обследование лабораторная инструментальная']",
+              1,
+          )
           path.write_text(text, encoding='utf-8')
 
           path = Path('packages/search-lexical/tests/query.test.ts')
           text = path.read_text(encoding='utf-8')
           test = r"""
 
-  it('keeps current medication out of the diagnostic clinical branch', () => {
+  it('keeps current medication out of diagnostic branches', () => {
     const plan = analyzeClinicalQuery(
       'Мальчик 5 лет, температура 39,2, часто дышит, кашля нет, принимает аугментин',
       aliases,
     );
-    const clinical = plan.branches.find((branch) => branch.id === 'clinical');
+    const diagnosticBranches = plan.branches.filter(
+      (branch) => branch.id !== 'medications' && branch.kind !== 'medication',
+    );
     const medication = plan.branches.find((branch) => branch.id === 'medications');
-    expect(clinical?.terms).not.toContain('аугментин');
-    expect(clinical?.terms).not.toContain('амоксициллин');
+    expect(diagnosticBranches.flatMap((branch) => branch.terms)).not.toContain('аугментин');
+    expect(diagnosticBranches.flatMap((branch) => branch.terms)).not.toContain('амоксициллин');
     expect(medication?.terms).toEqual(
       expect.arrayContaining(['аугментин', 'амоксициллин']),
     );
-    expect(clinical?.terms).toContain('тахипноэ');
+    expect(plan.branches.find((branch) => branch.id === 'clinical')?.terms).toContain('тахипноэ');
   });
 """
           if not text.rstrip().endswith('});'):
