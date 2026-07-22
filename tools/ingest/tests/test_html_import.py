@@ -77,7 +77,9 @@ def test_html_extraction_keeps_clinical_sections_and_tables(tmp_path: Path) -> N
     assert extracted.diagnostics.requires_review is False
     assert blocks[0].text == "1.1 Определение заболевания или состояния"
     assert all("Новости" not in block.text for block in blocks)
-    assert any(block.kind == "table_candidate" and "Возраст | Показатель" in block.text for block in blocks)
+    assert any(
+        block.kind == "table_candidate" and "Возраст | Показатель" in block.text for block in blocks
+    )
 
 
 def test_html_preparation_renders_source_markers_and_raw_checksum(tmp_path: Path) -> None:
