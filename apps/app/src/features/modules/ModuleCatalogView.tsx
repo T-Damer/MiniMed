@@ -16,9 +16,8 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-
-import { refreshContentModuleCatalog } from './catalog-service';
 import { BrowserContentModuleRuntime } from './browser-module-runtime';
+import { refreshContentModuleCatalog } from './catalog-service';
 import { MODULE_CATALOG } from './module-catalog';
 
 interface ModuleCatalogViewProps {
@@ -207,11 +206,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 {(module) => {
                   const installedValue = () => installedModule(module.id);
                   const task = () => moduleTask(module.id);
-                  const progress = () => (task() ? taskProgress(task() as ContentModuleDownloadTask) : null);
+                  const progress = () =>
+                    task() ? taskProgress(task() as ContentModuleDownloadTask) : null;
                   const working = () =>
                     task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
                   return (
-                    <article class="module-card paper-card" classList={{ installed: Boolean(installedValue()) }}>
+                    <article
+                      class="module-card paper-card"
+                      classList={{ installed: Boolean(installedValue()) }}
+                    >
                       <div class="module-card-topline">
                         <span class={`module-state state-${module.releaseState}`}>
                           {installedValue() ? 'Установлено' : RELEASE_LABELS[module.releaseState]}
@@ -220,7 +223,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       <h3>{module.title}</h3>
                       <p>{module.description}</p>
                       <div class="module-facts doctor-module-facts">
-                        <span>{module.previewDocumentCount || module.documents.length || '—'} документов</span>
+                        <span>
+                          {module.previewDocumentCount || module.documents.length || '—'} документов
+                        </span>
                         <span>{formatBytes(module.sizes.downloadBytes)}</span>
                       </div>
                       <div class="module-capabilities">
@@ -245,7 +250,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
                       <Show
                         when={!module.required}
-                        fallback={<button type="button" disabled>Всегда доступно</button>}
+                        fallback={
+                          <button type="button" disabled>
+                            Всегда доступно
+                          </button>
+                        }
                       >
                         <Show
                           when={!installedValue()}
@@ -272,8 +281,8 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       <details class="doctor-technical-details module-technical-details">
                         <summary>Сведения о наборе</summary>
                         <p>
-                          Версия {module.version}. После загрузки MiniMed проверяет размер, SHA-256 и
-                          целостность SQLite перед подключением.
+                          Версия {module.version}. После загрузки MiniMed проверяет размер, SHA-256
+                          и целостность SQLite перед подключением.
                         </p>
                       </details>
                     </article>
