@@ -63,6 +63,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          rm -f .github/workflows/local-model-cpu-smoke.yml
           rm -f .github/workflows/apply-local-model-acceleration-tests.yml
           rm -f .github/workflows/run-local-model-acceleration-tests.yml
           git config user.name 'github-actions[bot]'
