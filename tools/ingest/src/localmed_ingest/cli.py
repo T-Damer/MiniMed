@@ -131,7 +131,7 @@ def benchmark_import_real_pocqi_command(
     count: Annotated[int, typer.Option("--count", min=1)] = 120,
     seed: Annotated[str, typer.Option("--seed")] = "minimed-real-pocqi-v1",
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Import an attributed, deterministic sample of real point-of-care clinician queries."""
     import_report = import_real_pocqi_benchmark(
