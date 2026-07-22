@@ -66,6 +66,20 @@ function capabilityLabels(module: ContentModuleCatalogEntry): readonly string[] 
   return labels;
 }
 
+function installedValidationLabel(installed: InstalledContentModule): string {
+  const validation = installed.lastValidation;
+  if (!validation) return 'Проверка установки не записана';
+  if (
+    validation.valid &&
+    validation.checksumValid &&
+    validation.schemaCompatible &&
+    validation.sqliteIntegrity === 'ok'
+  ) {
+    return 'SHA-256 и SQLite проверены';
+  }
+  return validation.message;
+}
+
 function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter((module) => module.releaseState === 'published').length;
 }
@@ -204,14 +218,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       <Show when={contentChangePending() || connecting()}>
         <div class="module-reload-banner paper-card" aria-live="polite">
           <div>
-            <strong>{connecting() ? 'Подключаем базу к поиску…' : 'Нужно повторить подключение'}</strong>
+            <strong>
+              {connecting() ? 'Подключаем базу к поиску…' : 'Нужно повторить подключение'}
+            </strong>
             <span>
               {connecting()
                 ? 'Текущий поиск продолжает работать до готовности нового состава базы.'
                 : 'Документы сохранены на устройстве, но поиск пока использует прежний состав.'}
             </span>
           </div>
-          <button type="button" disabled={connecting()} onClick={() => void connectContentChanges()}>
+          <button
+            type="button"
+            disabled={connecting()}
+            onClick={() => void connectContentChanges()}
+          >
             {connecting() ? 'Подключаем…' : 'Повторить'}
           </button>
         </div>
@@ -255,7 +275,21 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <span>
                           {module.previewDocumentCount || module.documents.length || '—'} документов
                         </span>
-                        <span>{formatBytes(module.sizes.downloadBytes)}</span>
+                        <Show
+                          when={installedValue()}
+                          fallback={<span>{formatBytes(module.sizes.downloadBytes)}</span>}
+                        >
+                          {(installedModuleValue) => (
+                            <>
+                              <span>Версия {installedModuleValue().version}</span>
+                              <span>
+                                На устройстве{' '}
+                                {formatBytes(installedModuleValue().installedSizeBytes)}
+                              </span>
+                              <span>{installedValidationLabel(installedModuleValue())}</span>
+                            </>
+                          )}
+                        </Show>
                       </div>
                       <div class="module-capabilities">
                         <For each={capabilityLabels(module)}>{(label) => <span>{label}</span>}</For>

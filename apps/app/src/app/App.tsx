@@ -5,8 +5,8 @@ import { AppGlyph, type AppGlyphName } from '../components/AppGlyph';
 import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
 import {
-  initializeMedicalCore,
   type InitializedMedicalCore,
+  initializeMedicalCore,
   replaceMedicalCore,
 } from '../composition/medical-core-lifecycle';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
