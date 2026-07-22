@@ -11,7 +11,7 @@ jobs:
   fix-and-validate:
     if: github.event.pull_request.head.ref == 'agent/doctor-datasets-model-diagnostics'
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
         with:
@@ -38,7 +38,7 @@ jobs:
       - run: uv sync --project tools/ingest --all-groups --locked
       - name: Format Python ingestion
         run: uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
-      - name: Capture validation diagnostics
+      - name: Capture Python validation diagnostics
         shell: bash
         run: |
           set +e
@@ -56,12 +56,62 @@ jobs:
             echo "PYTEST_EXIT=$?"
           } > docs/.html-ingest-diagnostics.txt 2>&1
           set -e
+      - name: Capture live dataset diagnostics
+        shell: bash
+        run: |
+          set +e
+          rm -rf data/synced/full-respiratory-rf data/intermediate/full-respiratory-rf
+          {
+            echo '=== SOURCE SYNC ==='
+            uv run --project tools/ingest medbase sync \
+              --manifest content/full-respiratory-rf-sources.yaml \
+              --input-root content \
+              --output-root data/synced/full-respiratory-rf \
+              --cache-root .cache/localmed/full-respiratory-rf \
+              --report data/build/full-respiratory-source-sync-report.json
+            sync_exit=$?
+            echo "SYNC_EXIT=$sync_exit"
+            if [ "$sync_exit" -eq 0 ]; then
+              echo
+              echo '=== PREPARE ==='
+              uv run --project tools/ingest medbase prepare \
+                --registry content/full-respiratory-rf-registry.yaml \
+                --source-root data/synced/full-respiratory-rf \
+                --output data/intermediate/full-respiratory-rf \
+                --force
+              prepare_exit=$?
+              echo "PREPARE_EXIT=$prepare_exit"
+            else
+              prepare_exit=99
+            fi
+            if [ "$prepare_exit" -eq 0 ]; then
+              echo
+              echo '=== LINT ==='
+              uv run --project tools/ingest medbase lint \
+                --input data/intermediate/full-respiratory-rf
+              lint_exit=$?
+              echo "LINT_EXIT=$lint_exit"
+            else
+              lint_exit=99
+            fi
+            if [ "$lint_exit" -eq 0 ]; then
+              echo
+              echo '=== BUILD ==='
+              uv run --project tools/ingest medbase build \
+                --input data/intermediate/full-respiratory-rf \
+                --output data/build/rf-respiratory-full.db \
+                --report data/build/rf-respiratory-full-report.json
+              echo "BUILD_EXIT=$?"
+            fi
+          } > docs/.full-dataset-diagnostics.txt 2>&1
+          set -e
       - name: Publish formatting, downloader fix and diagnostics
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tools/ingest/src tools/ingest/tests docs/.html-ingest-diagnostics.txt
+          git add tools/ingest/src tools/ingest/tests \
+            docs/.html-ingest-diagnostics.txt docs/.full-dataset-diagnostics.txt
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'chore: capture full recommendation ingestion diagnostics'
           git push origin HEAD:agent/doctor-datasets-model-diagnostics
