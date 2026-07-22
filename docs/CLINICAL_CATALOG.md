@@ -89,4 +89,5 @@ foundation. A full inventory run requires either:
 
 The URL must use HTTPS. The workflow uploads the ledger, declared source URL and source format as
 build artifacts; it does not publish medical modules by itself. Full coverage reports must retain the
-exact source export or an immutable reference to it so later count changes are reproducible.
+exact source export or an immutable reference to it so later count changes are reproducible. Normal
+CI must pass formatting, strict typing, parser tests and deterministic fixture-ledger generation.
