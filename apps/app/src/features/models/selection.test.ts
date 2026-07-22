@@ -80,10 +80,10 @@ describe('local model selection', () => {
       }),
       availableRuntimes: runtimes,
     });
-    expect(selected?.model.id).not.toBe('gemma3-1b-it-q4');
+    expect(selected).toBeNull();
   });
 
-  it('loads a manual override first instead of the automatic winner', () => {
+  it('tests only the manually selected model without a silent fallback', () => {
     const plan = buildLocalModelLoadPlan({
       models: catalog.models,
       profile: profile(12),
@@ -93,8 +93,7 @@ describe('local model selection', () => {
       }),
       availableRuntimes: runtimes,
     });
-    expect(plan[0]?.model.id).toBe('qwen3-1.7b-q8');
-    expect(plan[1]?.artifact.downloadBytes).toBeLessThan(plan[0]?.artifact.downloadBytes ?? 0);
+    expect(plan.map((candidate) => candidate.model.id)).toEqual(['qwen3-1.7b-q8']);
   });
 
   it('honors a compact manual model override when the artifact is compatible', () => {
