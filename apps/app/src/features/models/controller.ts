@@ -251,7 +251,8 @@ export async function probeLocalModelDevice(): Promise<LocalModelDeviceProfile> 
   const capacitor = (window as WindowWithCapacitor).Capacitor;
   const nativeContainer = capacitor?.isNativePlatform?.() === true;
   const capacitorPlatform = capacitor?.getPlatform?.();
-  const android = capacitorPlatform === 'android' || /android/u.test(navigator.userAgent.toLowerCase());
+  const android =
+    capacitorPlatform === 'android' || /android/u.test(navigator.userAgent.toLowerCase());
   const platform = android ? 'android' : 'browser';
   const estimate = await navigator.storage?.estimate?.().catch(() => undefined);
   const freeStorageBytes =
@@ -446,7 +447,11 @@ export class LocalModelController {
           return;
         }
         const loadMs = performance.now() - loadStartedAt;
-        const cached = cachedBenchmark(candidate.model.id, candidate.artifact.id, profile.fingerprint);
+        const cached = cachedBenchmark(
+          candidate.model.id,
+          candidate.artifact.id,
+          profile.fingerprint,
+        );
         let benchmark: LocalModelBenchmark;
         if (cached?.validStructuredOutput) {
           benchmark = { ...cached, loadMs };
@@ -484,7 +489,8 @@ export class LocalModelController {
         });
         return;
       } catch (cause) {
-        finalError = cause instanceof Error ? cause.message : `Не удалось загрузить ${candidate.model.name}.`;
+        finalError =
+          cause instanceof Error ? cause.message : `Не удалось загрузить ${candidate.model.name}.`;
         recordFailure(candidate.model.id, finalError);
       }
     }

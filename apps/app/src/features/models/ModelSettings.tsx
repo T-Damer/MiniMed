@@ -14,7 +14,10 @@ function formatBytes(value: number): string {
 
 function modelDownloadSize(model: LocalModelDescriptor, platform: string | null): number | null {
   const artifact = model.artifacts
-    .filter((item) => platform === null || item.platforms.includes(platform as 'browser' | 'android' | 'ios'))
+    .filter(
+      (item) =>
+        platform === null || item.platforms.includes(platform as 'browser' | 'android' | 'ios'),
+    )
     .toSorted((left, right) => left.downloadBytes - right.downloadBytes)[0];
   return artifact?.downloadBytes ?? null;
 }
@@ -33,8 +36,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
     props.controller.getPreference();
   const catalog = () => props.controller.getCatalog();
   const models = createMemo(() => catalog()?.models ?? []);
-  const acceptedLicenses = (): ReadonlySet<string> =>
-    new Set(preference().acceptedLicenseIds);
+  const acceptedLicenses = (): ReadonlySet<string> => new Set(preference().acceptedLicenseIds);
 
   const runtimeAvailable = (model: LocalModelDescriptor): boolean => {
     const platform = state().device?.platform;
@@ -202,9 +204,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
           </div>
         )}
       </Show>
-      <Show when={state().error}>
-        {(error) => <p class="model-settings-warning">{error()}</p>}
-      </Show>
+      <Show when={state().error}>{(error) => <p class="model-settings-warning">{error()}</p>}</Show>
     </section>
   );
 }

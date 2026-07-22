@@ -11,11 +11,7 @@ import type {
 } from './types';
 
 const CACHE_KEY = 'minimed.local-model-catalog.preview.v1';
-const RUNTIMES = new Set<LocalModelRuntimeKind>([
-  'wllama-web',
-  'litert-native',
-  'cactus-native',
-]);
+const RUNTIMES = new Set<LocalModelRuntimeKind>(['wllama-web', 'litert-native', 'cactus-native']);
 const PLATFORMS = new Set<LocalModelPlatform>(['browser', 'android', 'ios']);
 const TIERS = new Set<LocalModelTier>(['compact', 'balanced', 'quality']);
 
@@ -111,10 +107,7 @@ function parseModel(value: unknown): LocalModelDescriptor {
     qualityScore: requiredNumber(value['qualityScore'], `${id}.qualityScore`),
     russianPriority: requiredNumber(value['russianPriority'], `${id}.russianPriority`),
     minimumMemoryGb: requiredNumber(value['minimumMemoryGb'], `${id}.minimumMemoryGb`),
-    recommendedMemoryGb: requiredNumber(
-      value['recommendedMemoryGb'],
-      `${id}.recommendedMemoryGb`,
-    ),
+    recommendedMemoryGb: requiredNumber(value['recommendedMemoryGb'], `${id}.recommendedMemoryGb`),
     license: parseLicense(value['license'], id),
     artifacts,
   };

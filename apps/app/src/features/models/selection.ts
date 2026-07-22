@@ -124,7 +124,9 @@ export function rankLocalModels(input: LocalModelSelectionInput): readonly Local
     if (!artifact) continue;
     ranked.push(candidateScore(model, artifact, input.profile, input.preference.automatic));
   }
-  return ranked.toSorted((left, right) => right.score - left.score || left.model.id.localeCompare(right.model.id));
+  return ranked.toSorted(
+    (left, right) => right.score - left.score || left.model.id.localeCompare(right.model.id),
+  );
 }
 
 export function selectLocalModel(input: LocalModelSelectionInput): LocalModelSelection | null {

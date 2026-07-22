@@ -194,8 +194,6 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
       }
     }
     await instance.exit?.();
-    throw lastError instanceof Error
-      ? lastError
-      : new Error(`Не удалось загрузить ${model.name}.`);
+    throw lastError instanceof Error ? lastError : new Error(`Не удалось загрузить ${model.name}.`);
   }
 }

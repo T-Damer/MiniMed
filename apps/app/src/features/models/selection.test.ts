@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-
-import rawCatalog from './catalog.preview.json';
 import { parseLocalModelCatalog } from './catalog';
+import rawCatalog from './catalog.preview.json';
 import { rankLocalModels, selectLocalModel } from './selection';
 import type { LocalModelDeviceProfile, LocalModelPreference } from './types';
 

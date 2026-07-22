@@ -31,7 +31,8 @@ export function ModelToast(props: ModelToastProps): JSX.Element {
 
   onCleanup(() => unsubscribe?.());
 
-  const signature = (): string => `${state().phase}:${state().activeModelId ?? ''}:${state().error ?? ''}`;
+  const signature = (): string =>
+    `${state().phase}:${state().activeModelId ?? ''}:${state().error ?? ''}`;
   const visible = (): boolean =>
     VISIBLE_PHASES.has(state().phase) && dismissedSignature() !== signature();
 

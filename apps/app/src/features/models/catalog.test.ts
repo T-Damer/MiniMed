@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-
-import rawCatalog from './catalog.preview.json';
 import { parseLocalModelCatalog } from './catalog';
+import rawCatalog from './catalog.preview.json';
 
 describe('local model catalog', () => {
   it('loads the four curated startup candidates', () => {
@@ -32,9 +31,6 @@ describe('local model catalog', () => {
   it('keeps license acceptance explicit for gated families', () => {
     const catalog = parseLocalModelCatalog(rawCatalog);
     const gated = catalog.models.filter((model) => model.license.requiresAcceptance);
-    expect(gated.map((model) => model.id)).toEqual([
-      'gemma3-1b-it-q4',
-      'llama-3.2-3b-instruct-q4',
-    ]);
+    expect(gated.map((model) => model.id)).toEqual(['gemma3-1b-it-q4', 'llama-3.2-3b-instruct-q4']);
   });
 });
