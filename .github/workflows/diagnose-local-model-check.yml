@@ -33,28 +33,42 @@ jobs:
         shell: bash
         run: |
           set +e
-          pnpm check --write >/tmp/local-model-check.log 2>&1
-          status=$?
+          pnpm check:write >/tmp/local-model-write.log 2>&1
+          write_status=$?
+          pnpm check >/tmp/local-model-check.log 2>&1
+          check_status=$?
           set -e
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if [ "$status" -eq 0 ]; then
-            rm -f .local-model-check.log
+          if [ "$check_status" -eq 0 ]; then
+            rm -f .agent-model-check.md
             rm -f .github/workflows/apply-local-model-format.yml
             rm -f .github/workflows/diagnose-local-model-check.yml
             git add -A
+            git diff --cached --quiet && exit 0
             git commit -m 'style(models): format local model harness'
             git push origin HEAD:agent/local-model-auto-selection
             exit 0
           fi
           {
-            echo '# Local model check failure'
+            echo '# Local model Biome failure'
             echo
+            echo "Run: $GITHUB_RUN_ID"
+            echo
+            echo "check:write exit: $write_status"
+            echo "check exit: $check_status"
+            echo
+            echo '## check output'
             echo '```text'
-            tail -n 300 /tmp/local-model-check.log
+            tail -n 400 /tmp/local-model-check.log
             echo '```'
-          } >.local-model-check.log
+            echo
+            echo '## check:write output'
+            echo '```text'
+            tail -n 200 /tmp/local-model-write.log
+            echo '```'
+          } >.agent-model-check.md
           git add -A
-          git commit -m 'chore(ci): record local model check failure'
+          git commit -m 'chore(ci): record local model Biome failure'
           git push origin HEAD:agent/local-model-auto-selection
           exit 1
