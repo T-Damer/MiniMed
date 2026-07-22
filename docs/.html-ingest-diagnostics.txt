@@ -8,5 +8,5 @@ PYRIGHT_EXIT=0
 
 === PYTEST ===
 .............................................                            [100%]
-45 passed in 1.68s
+45 passed in 3.54s
 PYTEST_EXIT=0

@@ -100,7 +100,7 @@ def collect_drugs_command(
     report: Annotated[Path | None, typer.Option("--report")] = None,
     force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Collect explicitly licensed drug sources without crawling or scraping public interfaces."""
     result = collect_drug_sources(
