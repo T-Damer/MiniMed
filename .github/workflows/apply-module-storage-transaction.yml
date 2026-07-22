@@ -1,4 +1,4 @@
-# Rerun after concurrent content commit moved the branch head.
+# Rerun after concurrent content commits moved the branch head.
 name: Apply transactional module storage fix
 
 on:
@@ -122,4 +122,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git commit -m 'fix(modules): keep registry and artifacts transactional'
+          git pull --rebase origin agent/doctor-datasets-model-diagnostics
           git push origin HEAD:agent/doctor-datasets-model-diagnostics
