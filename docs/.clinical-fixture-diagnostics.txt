@@ -1,0 +1,42 @@
+{
+  "output": "data/build/clinical-coverage-sample.json",
+  "records": 6,
+  "coverage": {
+    "metadata-only": 2,
+    "historical": 1,
+    "needs-review": 3
+  },
+  "modules": {
+    "minimed.clinical.infectious.ru": 1,
+    "minimed.clinical.respiratory-allergy.ru": 3,
+    "minimed.clinical.psychiatry-addiction.ru": 1,
+    "minimed.clinical.endocrinology-metabolic.ru": 1,
+    "minimed.clinical.neonatology.ru": 1,
+    "minimed.clinical.pediatrics-general.ru": 3,
+    "minimed.clinical.other.ru": 1
+  },
+  "warnings": []
+}
+BUILD_EXIT=0
+{
+  "totalRecords": 6,
+  "coverageCounts": {
+    "metadata-only": 2,
+    "historical": 1,
+    "needs-review": 3
+  },
+  "statusCounts": {
+    "active": 5,
+    "historical": 1
+  },
+  "moduleCounts": {
+    "minimed.clinical.infectious.ru": 1,
+    "minimed.clinical.respiratory-allergy.ru": 3,
+    "minimed.clinical.psychiatry-addiction.ru": 1,
+    "minimed.clinical.endocrinology-metabolic.ru": 1,
+    "minimed.clinical.neonatology.ru": 1,
+    "minimed.clinical.pediatrics-general.ru": 3,
+    "minimed.clinical.other.ru": 1
+  }
+}
+MODULE_COUNT= 7
