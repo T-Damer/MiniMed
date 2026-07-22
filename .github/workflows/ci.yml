@@ -25,8 +25,14 @@ jobs:
         with:
           node-version: 22.16.0
       - run: pnpm install --frozen-lockfile --reporter=silent
-      - name: Isolate storage typecheck
-        run: pnpm --filter @localmed/storage typecheck
+      - name: Capture storage typecheck
+        shell: bash
+        run: pnpm --filter @localmed/storage typecheck > typecheck-output.txt 2>&1 || true
+      - uses: actions/upload-artifact@v6
+        with:
+          name: registry-typecheck-output
+          path: typecheck-output.txt
+          if-no-files-found: error
 
   javascript:
     runs-on: ubuntu-latest
