@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: apply-clinical-search-patch
+  group: apply-final-clinical-search-patch
   cancel-in-progress: true
 
 jobs:
