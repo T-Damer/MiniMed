@@ -1,6 +1,11 @@
 name: Fix medication context ranking
 
 on:
+  push:
+    branches:
+      - agent/content-module-installer
+    paths:
+      - .github/workflows/fix-medication-context-ranking.yml
   pull_request:
     branches:
       - main
@@ -12,7 +17,7 @@ permissions:
 
 jobs:
   fix:
-    if: github.head_ref == 'agent/content-module-installer'
+    if: github.ref_name == 'agent/content-module-installer' || github.head_ref == 'agent/content-module-installer'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
