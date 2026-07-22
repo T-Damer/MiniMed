@@ -1,0 +1,51 @@
+.search-home-heading .offline-stamp {
+  display: none;
+}
+
+.clinical-plan-card > span {
+  display: none;
+}
+
+.result-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.result-summary > div:nth-child(n + 3) {
+  display: none;
+}
+
+.result-group-header .group-count {
+  display: none;
+}
+
+.source-reader-actions > small {
+  display: none;
+}
+
+.result-link {
+  font-size: 0;
+}
+
+.result-link::after {
+  content: 'Показать найденный фрагмент →';
+  font-size: 9px;
+}
+
+.index-label small {
+  font-size: 0;
+}
+
+.index-label small::after {
+  content: 'можно добавить к запросу';
+  font-size: 8px;
+}
+
+.analysis-details .branch-ledger {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .result-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
