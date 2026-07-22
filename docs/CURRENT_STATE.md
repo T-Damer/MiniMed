@@ -113,6 +113,33 @@ Regulatory baseline:
 - required current/historical top-1: `1.00`;
 - section, exact context, and official metadata: `1.00`.
 
+## Planned 0.3.3 — working local LLM
+
+`0.3.3` must ship a real offline model path rather than a UI mock or remote-only chat. The release is
+accepted only when at least one supported downloadable model can be selected, loaded and used on the
+Android target, with automatic first-run selection based on runtime availability, memory and storage;
+the user may change the model later in Settings.
+
+The model is a secondary reasoning layer over MiniMed retrieval, not a medical source of truth:
+
+1. deterministic parsing and mandatory safety checks run first;
+2. MiniMed retrieves exact local chunks and document metadata;
+3. the model may structure the case, propose clarifying questions, plan further retrieval and summarise
+   only the supplied evidence;
+4. every consequential statement must retain links to exact source fragments;
+5. unsupported doses, contraindications, diagnoses or routing claims are omitted or explicitly marked as
+   unsupported;
+6. red-flag, source-coverage, applicability, contradiction and uncertainty checks always run outside the
+   model and cannot be disabled by it;
+7. model failure, insufficient memory or an absent model falls back to the deterministic search workflow
+   without blocking the clinician.
+
+The first model UI must remain search-first: no startup popup, no automatic generated answer covering the
+results, and no interruption of document navigation. Model download/status belongs to the Modules or
+Settings surfaces and passive counters. The 0.3.3 test gate must include structured-output validation,
+source-citation completeness, unsupported-claim rejection, red-flag preservation, deterministic fallback
+and a small reviewed Russian clinical scenario suite executed against the real local runtime.
+
 ## Current gaps
 
 - Current clinical documents are concise navigation cards rather than complete extracted sources.
@@ -125,7 +152,7 @@ Regulatory baseline:
   amendment chain beyond one superseded predecessor.
 - No reviewed offline medication-card runtime.
 - Contract overlays cover only a representative subset and are not clinician-reviewed.
-- No neural Russian embedding or local generative model.
+- No neural Russian embedding or local generative model in 0.3.2.
 - No personal notes, draft overlays, or local protocol modules.
 - Physical-device usability testing remains separate from CI builds.
 
@@ -150,29 +177,40 @@ Regulatory baseline:
    - Three-document, 12-query pilot and current-versus-superseded gate are implemented.
    - Next: publish it as a separately installable module and add broader administrative coverage.
 
-### P1 — reviewed structured knowledge and local workflow
+### P1 — 0.3.3 local LLM and reviewed workflow
 
-4. **Reviewed offline medication cards — #77**
+4. **Working local LLM vertical slice**
+   - Add model catalog, automatic device-compatible selection, download/load lifecycle and manual model
+     override.
+   - Implement a typed local inference adapter and constrained structured output for case decomposition,
+     clarifications, retrieval planning and evidence summaries.
+   - Keep deterministic safety checks outside the model and require exact source citations.
+   - Benchmark at least the selected default model and fallback candidate on Russian clinical contracts,
+     memory, storage, latency and unsupported-claim rates.
+
+5. **Reviewed offline medication cards — #77**
    - Define the runtime contract outside the UI.
    - Expose only reviewed claims as trusted structured knowledge.
    - Keep missing fields visible and trace displayed claims to evidence.
 
-5. **One-window continuation and personal overlay — #79**
+6. **One-window continuation and personal overlay — #79**
    - Distinguish continuation from a new local episode.
    - Keep notes and aliases in a separate local trust layer rather than editing source packs.
 
-### P2 — models after corpus and evidence depth
+### P2 — model and corpus quality after the first working runtime
 
-6. Benchmark Russian neural embedding candidates against lexical and feature-hash baselines.
-7. Add a local classifier or reranker only when the Russian suite improves within mobile budgets.
-8. Add optional synthesis only after retrieval, provenance, omission, and citation gates are stable.
+7. Benchmark Russian neural embedding and reranker candidates against lexical and feature-hash baselines.
+8. Expand the supported local-model set only when a candidate passes the same evidence and safety gates.
+9. Add broader synthesis only after full-source coverage, reviewed medication knowledge and citation gates
+   are stable.
 
 ## Next useful alpha
 
-The next alpha is defined by immutable downloadable module artifacts, persistent atomic activation,
-visible task progress, and one full-text pediatric module with structured tables and exact source
-navigation. Already installed modules must remain usable during download or a failed update.
+The next release is `0.3.3`: a working local LLM path integrated with source-grounded retrieval, automatic
+model selection, deterministic safety gates and graceful no-model fallback. It should ship alongside
+continued module persistence work and at least one deeper full-text clinical source slice so the model is
+not evaluated only on short navigation cards.
 
-Do not prioritize a backend, accounts, sync, Postgres, a Rust rewrite, or a universal local model. The
-current limiting factors are full-source coverage, modular content lifecycle, reviewed evidence, and
-Russian benchmark depth.
+Do not prioritize a backend, accounts, sync, Postgres, a Rust rewrite, or an unconstrained universal
+medical chatbot. The limiting factors remain full-source coverage, modular content lifecycle, reviewed
+evidence, Russian benchmark depth and a safe local inference runtime.
