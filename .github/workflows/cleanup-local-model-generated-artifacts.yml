@@ -37,4 +37,6 @@ jobs:
           git add -A
           git diff --cached --quiet && exit 0
           git commit -m 'chore(models): restore generated artifacts from main'
+          git fetch origin agent/local-model-auto-selection
+          git rebase origin/agent/local-model-auto-selection
           git push origin HEAD:agent/local-model-auto-selection
