@@ -1,6 +1,0 @@
-[1;33mUsage: [0m[1mmedbase-clinical-catalog [OPTIONS][0m
-[2mTry [0m[2;34m'medbase-clinical-catalog [0m[1;2;34m-[0m[1;2;34m-help[0m[2;34m'[0m[2m for help.[0m
-[31m╭─[0m[31m Error [0m[31m─────────────────────────────────────────────────────────────────────[0m[31m─╮[0m
-[31m│[0m Got unexpected extra argument(s) (build)                                     [31m│[0m
-[31m╰──────────────────────────────────────────────────────────────────────────────╯[0m
-BUILD_EXIT=2
