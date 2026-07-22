@@ -1,0 +1,30 @@
+name: Registry typecheck diagnostic
+
+on:
+  push:
+    branches: [agent/persistent-module-registry]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+      - run: pnpm install --frozen-lockfile --reporter=silent
+      - name: Capture storage typecheck
+        shell: bash
+        run: |
+          pnpm --filter @localmed/storage typecheck > typecheck-output.txt 2>&1 || true
+      - uses: actions/upload-artifact@v6
+        with:
+          name: registry-typecheck-output
+          path: typecheck-output.txt
+          if-no-files-found: error
