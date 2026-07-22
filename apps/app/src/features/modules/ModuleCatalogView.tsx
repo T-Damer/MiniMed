@@ -12,6 +12,7 @@ import { MODULE_CATALOG } from './module-catalog';
 interface ModuleCatalogViewProps {
   readonly status: CoreStatus;
   readonly active: boolean;
+  readonly onAvailableUpdates?: (count: number) => void;
 }
 
 const COLLECTION_TITLES: Readonly<Record<string, string>> = {
@@ -67,6 +68,10 @@ function capabilityLabels(module: ContentModuleCatalogEntry): readonly string[] 
   return labels;
 }
 
+function availableCount(catalog: ContentModuleCatalog): number {
+  return catalog.modules.filter((module) => module.releaseState === 'published').length;
+}
+
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [catalog, setCatalog] = createSignal<ContentModuleCatalog>(MODULE_CATALOG);
   const [source, setSource] = createSignal<ContentModuleCatalogSource>('bundled');
@@ -94,6 +99,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   };
 
   createEffect(() => {
+    props.onAvailableUpdates?.(availableCount(catalog()));
+  });
+
+  createEffect(() => {
     if (!props.active || refreshedOnce) return;
     refreshedOnce = true;
     void refresh();
@@ -108,6 +117,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <p>
             Ядро остаётся маленьким и знает, какие темы и связи существуют. Полные документы,
             таблицы и оригинальные PDF будут загружаться отдельными проверяемыми пакетами.
+          </p>
+          <p class="update-policy-note">
+            Обновления никогда не перекрывают поиск: о них сообщает только счётчик на иконке модулей.
           </p>
         </div>
         <div class="module-catalog-version">
@@ -129,11 +141,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
       <div class="module-transition-note paper-sheet">
         <div>
-          <strong>Текущее состояние 0.3.1</strong>
+          <strong>Текущее состояние 0.3.2</strong>
           <p>
             Сейчас приложение использует один общий pack: {props.status.contentPackIds.join(', ')}.
-            Эта страница фиксирует целевое разбиение; кнопки загрузки появятся после атомарной
-            установки, проверки checksum и rollback.
+            Каталог и безопасная установка уже имеют проверяемые контракты; платформенное хранение и
+            включение скачанных SQLite-модулей подключаются следующими небольшими обновлениями.
           </p>
         </div>
         <span>{props.status.documentCount} документов</span>
