@@ -9,6 +9,7 @@ import { DocumentLibrary } from '../features/library/DocumentLibrary';
 import { LocalModelController } from '../features/models/controller';
 import { ModelSettings } from '../features/models/ModelSettings';
 import { ModelToast } from '../features/models/ModelToast';
+import { refreshContentModuleCatalog } from '../features/modules/catalog-service';
 import { ModuleCatalogView } from '../features/modules/ModuleCatalogView';
 import { SearchWorkspace } from '../features/search/SearchWorkspace';
 import { StatusPanel } from '../features/status/StatusPanel';
@@ -27,7 +28,7 @@ const VIEWS: readonly {
   readonly icon: AppGlyphName;
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
-  { id: 'documents', label: 'Архив и граф', icon: 'archive' },
+  { id: 'documents', label: 'Архив и карта', icon: 'archive' },
   { id: 'modules', label: 'Модули знаний', icon: 'modules' },
   { id: 'history', label: 'История', icon: 'history' },
   { id: 'status', label: 'Система', icon: 'system' },
@@ -39,6 +40,10 @@ const DEFAULT_MODEL_CATALOG_URL =
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
+}
+
+function availableModuleCount(modules: readonly { releaseState: string }[]): number {
+  return modules.filter((module) => module.releaseState === 'published').length;
 }
 
 function environmentFlag(name: string, fallback: boolean): boolean {
@@ -65,20 +70,31 @@ export function App(): JSX.Element {
   const [view, setView] = createSignal<View>(viewFromLocation());
   const [ready, setReady] = createSignal<ReadyState>();
   const [error, setError] = createSignal<string>();
+  const [moduleUpdateCount, setModuleUpdateCount] = createSignal(0);
+  const [showScrollTop, setShowScrollTop] = createSignal(false);
   const modelController = createLocalModelController();
   let coreToClose: MedicalCore | undefined;
 
   const navigate = (next: View): void => {
     setView(next);
+    if (next === 'modules') setModuleUpdateCount(0);
     window.history.replaceState({ view: next }, '', `#/${next}`);
   };
 
   const handleHashChange = (): void => {
-    setView(viewFromLocation());
+    const next = viewFromLocation();
+    setView(next);
+    if (next === 'modules') setModuleUpdateCount(0);
+  };
+
+  const handleScroll = (): void => {
+    setShowScrollTop(window.scrollY > 560);
   };
 
   onMount(async () => {
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     try {
       const core = await createBrowserCore();
       coreToClose = core;
@@ -89,6 +105,12 @@ export function App(): JSX.Element {
       }
       setReady({ core, status: initialized.value });
       void modelController.start();
+      void refreshContentModuleCatalog()
+        .then((result) => {
+          if (view() !== 'modules')
+            setModuleUpdateCount(availableModuleCount(result.catalog.modules));
+        })
+        .catch(() => undefined);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось запустить локальное ядро.');
     }
@@ -96,6 +118,7 @@ export function App(): JSX.Element {
 
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
+    window.removeEventListener('scroll', handleScroll);
     if (coreToClose) void coreToClose.close();
     void modelController.dispose();
   });
@@ -112,18 +135,29 @@ export function App(): JSX.Element {
         </button>
 
         <nav class="app-nav-icons" aria-label="Разделы приложения">
-          {VIEWS.map((item) => (
-            <button
-              class="app-nav-button"
-              classList={{ active: view() === item.id }}
-              type="button"
-              aria-label={item.label}
-              title={item.label}
-              onClick={() => navigate(item.id)}
-            >
-              <AppGlyph name={item.icon} />
-            </button>
-          ))}
+          {VIEWS.map((item) => {
+            const label = () =>
+              item.id === 'modules' && moduleUpdateCount() > 0
+                ? `${item.label}, обновлений: ${moduleUpdateCount()}`
+                : item.label;
+            return (
+              <button
+                class="app-nav-button"
+                classList={{ active: view() === item.id }}
+                type="button"
+                aria-label={label()}
+                title={label()}
+                onClick={() => navigate(item.id)}
+              >
+                <AppGlyph name={item.icon} />
+                <Show when={item.id === 'modules' && moduleUpdateCount() > 0}>
+                  <span class="app-nav-badge" aria-hidden="true">
+                    {moduleUpdateCount() > 9 ? '9+' : moduleUpdateCount()}
+                  </span>
+                </Show>
+              </button>
+            );
+          })}
         </nav>
 
         <div
@@ -171,7 +205,13 @@ export function App(): JSX.Element {
               hidden={view() !== 'modules'}
               aria-hidden={view() !== 'modules'}
             >
-              <ModuleCatalogView status={state().status} active={view() === 'modules'} />
+              <ModuleCatalogView
+                status={state().status}
+                active={view() === 'modules'}
+                onAvailableUpdates={(count) => {
+                  if (view() !== 'modules') setModuleUpdateCount(count);
+                }}
+              />
             </section>
             <section
               class="app-view"
@@ -196,7 +236,19 @@ export function App(): JSX.Element {
           </main>
         )}
       </Show>
+
       <ModelToast controller={modelController} />
+
+      <Show when={showScrollTop()}>
+        <button
+          class="scroll-top-button"
+          type="button"
+          aria-label="Вернуться наверх"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          <AppGlyph name="arrow-up" />
+        </button>
+      </Show>
     </div>
   );
 }
