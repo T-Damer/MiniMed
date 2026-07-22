@@ -1,0 +1,17 @@
+version: 1
+sources:
+  - id: full-pneumonia-714-2
+    location: https://medvestnik.ru/cr/714_2.html
+    target: pneumonia-714_2.html
+    content_type: text
+    max_bytes: 20000000
+  - id: full-bronchitis-381-3
+    location: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/bronxit-kr-2024/
+    target: bronchitis-381_3.html
+    content_type: text
+    max_bytes: 20000000
+  - id: full-bronchiolitis-360-3
+    location: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/ostryij-bronxiolit-kr-2024/
+    target: bronchiolitis-360_3.html
+    content_type: text
+    max_bytes: 20000000
