@@ -1,0 +1,68 @@
+name: Run MiniMed 0.3.3 release preparation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/run-prepare-release-0.3.3.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: run-prepare-release-0.3.3
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: release/0.3.3
+          fetch-depth: 0
+      - name: Apply checked-in release metadata script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path('.github/workflows/prepare-release-0.3.3.yml').read_text(encoding='utf-8')
+          marker = "          python3 - <<'PY'\n"
+          start = source.index(marker) + len(marker)
+          end = source.index("\n          PY\n", start)
+          lines = source[start:end].splitlines()
+          script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
+          exec(compile(script, 'prepare-release-0.3.3.py', 'exec'))
+          PY
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - name: Verify release tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --lockfile-only
+          pnpm check --write
+          uv sync --project tools/ingest --all-groups --locked
+          pnpm verify
+      - name: Publish prepared release branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'chore(release): prepare MiniMed 0.3.3'
+          git push origin HEAD:release/0.3.3
