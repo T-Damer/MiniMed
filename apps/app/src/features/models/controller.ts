@@ -1,6 +1,6 @@
 import { BrowserWllamaRuntime } from './browser-runtime';
 import { loadLocalModelCatalog } from './catalog';
-import { rankLocalModels, selectLocalModel } from './selection';
+import { buildLocalModelLoadPlan, selectLocalModel } from './selection';
 import type {
   LocalModelBenchmark,
   LocalModelCatalog,
@@ -405,8 +405,8 @@ export class LocalModelController {
       });
       return;
     }
-    const ranked = rankLocalModels(selectionInput);
-    await this.loadFirstWorking(ranked.slice(0, 2), runtimes, profile, generation);
+    const loadPlan = buildLocalModelLoadPlan(selectionInput);
+    await this.loadFirstWorking(loadPlan, runtimes, profile, generation);
   }
 
   private async loadFirstWorking(
