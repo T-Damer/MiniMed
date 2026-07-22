@@ -1,3 +1,4 @@
+# Rerun after concurrent content commit moved the branch head.
 name: Apply transactional module storage fix
 
 on:
