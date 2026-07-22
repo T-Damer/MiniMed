@@ -1,0 +1,126 @@
+name: Publish local model mirror
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-model-mirror.yml
+      - apps/app/src/features/models/catalog.preview.json
+      - apps/app/src/features/models/catalog.ts
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-model-mirror.yml
+      - apps/app/src/features/models/catalog.preview.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-model-mirror-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MODEL_TAG: models-preview-1
+
+jobs:
+  validate-catalog:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run apps/app/src/features/models/catalog.test.ts apps/app/src/features/models/selection.test.ts
+
+  mirror-apache-models:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: validate-catalog
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prepare immutable mirror plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p model-mirror
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          catalog = json.loads(
+              Path('apps/app/src/features/models/catalog.preview.json').read_text(encoding='utf-8')
+          )
+          selected = {}
+          for model in catalog['models']:
+              if model['license']['id'] != 'apache-2.0':
+                  continue
+              for artifact in model['artifacts']:
+                  if artifact['runtime'] != 'wllama-web' or not artifact['published']:
+                      continue
+                  path = artifact.get('mirrorPath')
+                  digest = artifact.get('sha256')
+                  if not path or not digest:
+                      raise SystemExit(f"Published artifact lacks mirror metadata: {artifact['id']}")
+                  existing = selected.get(path)
+                  record = {
+                      'modelId': model['id'],
+                      'artifactId': artifact['id'],
+                      'url': artifact['upstreamUrl'],
+                      'path': path,
+                      'sha256': digest,
+                      'bytes': artifact['downloadBytes'],
+                  }
+                  if existing and existing != record:
+                      raise SystemExit(f'Conflicting mirror path: {path}')
+                  selected[path] = record
+          if not selected:
+              raise SystemExit('No Apache model artifacts selected for mirroring.')
+          plan = list(selected.values())
+          Path('model-mirror/manifest.json').write_text(
+              json.dumps({'tag': 'models-preview-1', 'artifacts': plan}, ensure_ascii=False, indent=2)
+              + '\n',
+              encoding='utf-8',
+          )
+          with Path('model-mirror/plan.tsv').open('w', encoding='utf-8') as output:
+              for item in plan:
+                  output.write(
+                      f"{item['url']}\t{item['path']}\t{item['sha256']}\t{item['bytes']}\n"
+                  )
+          print(json.dumps(plan, ensure_ascii=False, indent=2))
+          PY
+      - name: Download and verify model artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS=$'\t' read -r url path digest bytes; do
+            echo "Downloading ${path} (${bytes} bytes)"
+            curl --fail --location --retry 4 --retry-all-errors \
+              --output "model-mirror/${path}.partial" "$url"
+            actual_bytes="$(stat -c '%s' "model-mirror/${path}.partial")"
+            test "$actual_bytes" = "$bytes"
+            echo "${digest}  model-mirror/${path}.partial" | sha256sum --check -
+            mv "model-mirror/${path}.partial" "model-mirror/${path}"
+          done < model-mirror/plan.tsv
+          rm model-mirror/plan.tsv
+      - name: Publish MiniMed GitHub mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$MODEL_TAG" >/dev/null 2>&1; then
+            gh release upload "$MODEL_TAG" model-mirror/* --clobber
+          else
+            gh release create "$MODEL_TAG" model-mirror/* \
+              --title 'MiniMed local model mirror' \
+              --notes 'Checksum-verified Apache-2.0 local model artifacts used by MiniMed. Model weights are optional downloads and are not part of the APK.' \
+              --prerelease \
+              --target "$GITHUB_SHA"
+          fi
