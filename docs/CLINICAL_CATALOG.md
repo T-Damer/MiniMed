@@ -87,5 +87,6 @@ foundation. A full inventory run requires either:
 - a manual `catalog_url` and format through `workflow_dispatch`; or
 - repository variables `CLINICAL_CATALOG_URL` and `CLINICAL_CATALOG_FORMAT` for scheduled runs.
 
-The URL must use HTTPS. The workflow uploads the ledger and the declared source metadata as build
-artifacts; it does not publish medical modules by itself.
+The URL must use HTTPS. The workflow uploads the ledger, declared source URL and source format as
+build artifacts; it does not publish medical modules by itself. Full coverage reports must retain the
+exact source export or an immutable reference to it so later count changes are reproducible.
