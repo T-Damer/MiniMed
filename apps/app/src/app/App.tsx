@@ -1,9 +1,14 @@
-import type { CoreStatus, MedicalCore } from '@localmed/contracts';
+import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '../components/AppGlyph';
 import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
+import {
+  initializeMedicalCore,
+  type InitializedMedicalCore,
+  replaceMedicalCore,
+} from '../composition/medical-core-lifecycle';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
 import { DocumentOverlayHost } from '../features/library/DocumentOverlayHost';
@@ -17,11 +22,6 @@ import { StatusPanel } from '../features/status/StatusPanel';
 import { replaySearch } from '../state/search-history';
 
 type View = 'search' | 'documents' | 'modules' | 'history' | 'status';
-
-interface ReadyState {
-  readonly core: MedicalCore;
-  readonly status: CoreStatus;
-}
 
 const VIEWS: readonly {
   readonly id: View;
@@ -73,7 +73,7 @@ function createLocalModelController(): LocalModelController {
 
 export function App(): JSX.Element {
   const [view, setView] = createSignal<View>(viewFromLocation());
-  const [ready, setReady] = createSignal<ReadyState>();
+  const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
   const [moduleUpdateCount, setModuleUpdateCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
@@ -96,19 +96,22 @@ export function App(): JSX.Element {
     setShowScrollTop(window.scrollY > 560);
   };
 
+  const connectInstalledModules = async (): Promise<void> => {
+    const current = ready();
+    if (!current) throw new Error('Локальный поиск ещё не готов.');
+    const next = await replaceMedicalCore(current, createBrowserCore);
+    coreToClose = next.core;
+    setReady(next);
+  };
+
   onMount(async () => {
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     try {
-      const core = await createBrowserCore();
-      coreToClose = core;
-      const initialized = await core.initialize();
-      if (!initialized.ok) {
-        setError(initialized.error.message);
-        return;
-      }
-      setReady({ core, status: initialized.value });
+      const initialized = await initializeMedicalCore(createBrowserCore);
+      coreToClose = initialized.core;
+      setReady(initialized);
       void modelController.start();
       void refreshContentModuleCatalog()
         .then((result) => {
@@ -214,6 +217,7 @@ export function App(): JSX.Element {
                 <ModuleCatalogView
                   status={state().status}
                   active={view() === 'modules'}
+                  onContentChanged={connectInstalledModules}
                   onAvailableUpdates={(count) => {
                     if (view() !== 'modules') setModuleUpdateCount(count);
                   }}
