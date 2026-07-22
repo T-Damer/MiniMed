@@ -1,0 +1,186 @@
+name: Medication and law catalog inventory
+
+on:
+  pull_request:
+    branches: [main, agent/doctor-datasets-model-diagnostics, agent/bulk-clinical-catalog]
+    paths:
+      - .github/workflows/regulated-catalog-inventory.yml
+      - content/medication-module-taxonomy.yaml
+      - content/legal-module-taxonomy.yaml
+      - content/official-health-law-queries.yaml
+      - tools/ingest/src/localmed_ingest/medication_catalog.py
+      - tools/ingest/src/localmed_ingest/legal_catalog.py
+      - tools/ingest/src/localmed_ingest/regulated_catalog_cli.py
+      - tools/ingest/tests/test_regulated_catalogs.py
+      - tools/ingest/pyproject.toml
+      - tools/ingest/uv.lock
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/regulated-catalog-inventory.yml
+      - content/medication-module-taxonomy.yaml
+      - content/legal-module-taxonomy.yaml
+      - content/official-health-law-queries.yaml
+      - tools/ingest/src/localmed_ingest/medication_catalog.py
+      - tools/ingest/src/localmed_ingest/legal_catalog.py
+      - tools/ingest/src/localmed_ingest/regulated_catalog_cli.py
+      - tools/ingest/tests/test_regulated_catalogs.py
+      - tools/ingest/pyproject.toml
+      - tools/ingest/uv.lock
+  schedule:
+    - cron: '47 3 * * 2'
+  workflow_dispatch:
+    inputs:
+      medication_catalog_url:
+        description: Optional HTTPS medication catalog export
+        required: false
+        type: string
+      medication_catalog_format:
+        description: Medication export format
+        required: false
+        default: json
+        type: choice
+        options: [json, jsonl, csv, tsv]
+      collect_laws:
+        description: Collect the declared official health-law queries
+        required: false
+        default: false
+        type: boolean
+      include_law_details:
+        description: Request the detail endpoint for each legal record
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: regulated-catalog-inventory-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-ledgers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Validate regulated catalog code and fixtures
+        run: |
+          uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests/test_regulated_catalogs.py
+
+  inventory-medications:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.medication_catalog_url != '') ||
+      (github.event_name == 'schedule' && vars.MEDICATION_CATALOG_URL != '')
+    needs: validate-ledgers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      INPUT_URL: ${{ inputs.medication_catalog_url }}
+      INPUT_FORMAT: ${{ inputs.medication_catalog_format }}
+      CONFIGURED_URL: ${{ vars.MEDICATION_CATALOG_URL }}
+      CONFIGURED_FORMAT: ${{ vars.MEDICATION_CATALOG_FORMAT }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Download declared medication export
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${INPUT_URL:-${CONFIGURED_URL:-}}"
+          format="${INPUT_FORMAT:-${CONFIGURED_FORMAT:-json}}"
+          case "$format" in json|jsonl|csv|tsv) ;; *) echo "Unsupported format: $format" >&2; exit 1 ;; esac
+          case "$url" in https://*) ;; *) echo 'Medication URL must use HTTPS.' >&2; exit 1 ;; esac
+          mkdir -p data/raw/medication-catalog data/build
+          printf '%s' "$url" > data/raw/medication-catalog/source-url.txt
+          printf '%s' "$format" > data/raw/medication-catalog/source-format.txt
+          curl --fail --location --retry 4 --retry-all-errors \
+            --max-time 600 \
+            --output "data/raw/medication-catalog/catalog.${format}" \
+            "$url"
+      - name: Build medication coverage ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          format="$(cat data/raw/medication-catalog/source-format.txt)"
+          uv run --project tools/ingest medbase-regulated-catalog medications \
+            --source "data/raw/medication-catalog/catalog.${format}" \
+            --taxonomy content/medication-module-taxonomy.yaml \
+            --output data/build/medication-coverage-ledger.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          ledger = json.loads(Path('data/build/medication-coverage-ledger.json').read_text())
+          if ledger['summary']['totalRecords'] == 0:
+              raise SystemExit('Medication export produced zero normalized records.')
+          print(json.dumps(ledger['summary'], ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: medication-coverage-ledger
+          path: |
+            data/build/medication-coverage-ledger.json
+            data/raw/medication-catalog/source-url.txt
+            data/raw/medication-catalog/source-format.txt
+          if-no-files-found: error
+
+  inventory-health-laws:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.collect_laws) ||
+      (github.event_name == 'schedule' && vars.ENABLE_LEGAL_CATALOG_SYNC == 'true')
+    needs: validate-ledgers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      INCLUDE_DETAILS: ${{ inputs.include_law_details }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Collect official health-law metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/build data/raw/legal-catalog
+          details_flag='--list-only'
+          if [ "${INCLUDE_DETAILS:-false}" = 'true' ]; then details_flag='--include-details'; fi
+          uv run --project tools/ingest medbase-regulated-catalog laws \
+            --config content/official-health-law-queries.yaml \
+            --taxonomy content/legal-module-taxonomy.yaml \
+            --output data/build/health-law-coverage-ledger.json \
+            --raw-output data/raw/legal-catalog/api-pages.json \
+            --timeout-seconds 180 \
+            $details_flag
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          ledger = json.loads(Path('data/build/health-law-coverage-ledger.json').read_text())
+          if ledger['summary']['totalRecords'] == 0:
+              raise SystemExit('Official law queries produced zero normalized records.')
+          print(json.dumps(ledger['summary'], ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: health-law-coverage-ledger
+          path: |
+            data/build/health-law-coverage-ledger.json
+            data/raw/legal-catalog/api-pages.json
+          if-no-files-found: error
