@@ -35,44 +35,60 @@ function preference(overrides: Partial<LocalModelPreference> = {}): LocalModelPr
 const runtimes = new Set(['wllama-web'] as const);
 
 describe('local model selection', () => {
-  it('chooses the compact Qwen model on a 4 GB browser device', () => {
+  it('chooses the 398 MB Russian Vikhr model on a 4 GB browser device', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: profile(4),
       preference: preference(),
       availableRuntimes: runtimes,
     });
-    expect(selected?.model.id).toBe('qwen3-0.6b-q8');
+    expect(selected?.model.id).toBe('vikhr-qwen2.5-0.5b-q4');
   });
 
-  it('chooses Gemma on an 8 GB device after its terms were accepted', () => {
+  it('chooses QVikhr 1.7B on an 8 GB device', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: profile(8),
-      preference: preference({ acceptedLicenseIds: ['gemma-terms'] }),
+      preference: preference(),
+      availableRuntimes: runtimes,
+    });
+    expect(selected?.model.id).toBe('qvikhr-3-1.7b-q4');
+  });
+
+  it('keeps Gemma available after its terms were accepted', () => {
+    const selected = selectLocalModel({
+      models: catalog.models,
+      profile: profile(8),
+      preference: preference({
+        automatic: false,
+        selectedModelId: 'gemma3-1b-it-q4',
+        acceptedLicenseIds: ['gemma-terms'],
+      }),
       availableRuntimes: runtimes,
     });
     expect(selected?.model.id).toBe('gemma3-1b-it-q4');
   });
 
-  it('chooses Qwen 1.7B on a strong browser device', () => {
+  it('keeps generic Qwen as a manual comparison model', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: profile(12),
-      preference: preference({ acceptedLicenseIds: ['gemma-terms'] }),
+      preference: preference({
+        automatic: false,
+        selectedModelId: 'qwen3-1.7b-q8',
+      }),
       availableRuntimes: runtimes,
     });
     expect(selected?.model.id).toBe('qwen3-1.7b-q8');
   });
 
-  it('honors a manual model override when the artifact is compatible', () => {
+  it('honors a compact manual model override when the artifact is compatible', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: profile(12),
       preference: preference({
         automatic: false,
         selectedModelId: 'qwen3-0.6b-q8',
-        acceptedLicenseIds: ['gemma-terms'],
       }),
       availableRuntimes: runtimes,
     });
@@ -95,7 +111,7 @@ describe('local model selection', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: lowStorage,
-      preference: preference({ acceptedLicenseIds: ['gemma-terms'] }),
+      preference: preference(),
       availableRuntimes: runtimes,
     });
     expect(selected).toBeNull();
