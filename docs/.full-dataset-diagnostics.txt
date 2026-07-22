@@ -1,7 +1,7 @@
 === SOURCE SYNC ===
 {
   "manifest_version": 1,
-  "generated_at": "2026-07-22T21:56:08Z",
+  "generated_at": "2026-07-22T21:57:37Z",
   "force_refresh": false,
   "offline": false,
   "downloaded": 3,
