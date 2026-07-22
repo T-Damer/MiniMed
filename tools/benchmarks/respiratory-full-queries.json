@@ -1,0 +1,56 @@
+[
+  {
+    "id": "respiratory-full.pneumonia.definition",
+    "query": "Определение внебольничной пневмонии у ребенка",
+    "expectedDocumentIds": ["kr.rf.714_2.pneumonia.full"],
+    "category": "pneumonia"
+  },
+  {
+    "id": "respiratory-full.pneumonia.diagnostics",
+    "query": "Диагностика пневмонии у детей, пульсоксиметрия и показания к обследованию",
+    "expectedDocumentIds": ["kr.rf.714_2.pneumonia.full"],
+    "category": "pneumonia"
+  },
+  {
+    "id": "respiratory-full.pneumonia.treatment",
+    "query": "Лечение внебольничной пневмонии у ребенка по клиническим рекомендациям",
+    "expectedDocumentIds": ["kr.rf.714_2.pneumonia.full"],
+    "category": "pneumonia"
+  },
+  {
+    "id": "respiratory-full.bronchitis.definition",
+    "query": "Определение острого бронхита у детей",
+    "expectedDocumentIds": ["kr.rf.381_3.bronchitis.full"],
+    "category": "bronchitis"
+  },
+  {
+    "id": "respiratory-full.bronchitis.diagnostics",
+    "query": "Диагностика бронхита у ребенка и отличие от пневмонии",
+    "expectedDocumentIds": ["kr.rf.381_3.bronchitis.full"],
+    "category": "bronchitis"
+  },
+  {
+    "id": "respiratory-full.bronchitis.treatment",
+    "query": "Лечение острого бронхита у детей",
+    "expectedDocumentIds": ["kr.rf.381_3.bronchitis.full"],
+    "category": "bronchitis"
+  },
+  {
+    "id": "respiratory-full.bronchiolitis.definition",
+    "query": "Определение острого бронхиолита у младенца",
+    "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis.full"],
+    "category": "bronchiolitis"
+  },
+  {
+    "id": "respiratory-full.bronchiolitis.oxygen",
+    "query": "Показания к кислородотерапии при остром бронхиолите у ребенка",
+    "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis.full"],
+    "category": "bronchiolitis"
+  },
+  {
+    "id": "respiratory-full.bronchiolitis.routing",
+    "query": "Госпитализация и оценка тяжести бронхиолита у грудного ребенка",
+    "expectedDocumentIds": ["kr.rf.360_3.bronchiolitis.full"],
+    "category": "bronchiolitis"
+  }
+]
