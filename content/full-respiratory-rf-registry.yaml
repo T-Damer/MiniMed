@@ -20,7 +20,7 @@ sources:
     metadata:
       officialId: "714_2"
       officialSourceUrl: https://cr.minzdrav.gov.ru/preview-cr/714_2
-      publicMirrorUrl: https://medvestnik.ru/cr/714_2.html
+      publicMirrorUrl: https://meganorm.ru/mega_doc/dop_norm/56/mr_4_2_0339-23_4_2_metody_kontrolya_biologicheskie_i/0/klinicheskie_rekomendatsii_pnevmoniya_vnebolnichnaya.html
       sourceYear: 2025
       reviewNoLaterThan: 2027
       contentMode: full-source-text
@@ -40,8 +40,9 @@ sources:
     metadata:
       officialId: "381_3"
       officialSourceUrl: https://cr.minzdrav.gov.ru/view-cr/381_3
-      publicMirrorUrl: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/bronxit-kr-2024/
+      publicMirrorUrl: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_bronkhit_odobreny_minzdravom.html
       sourceYear: 2024
+      reviewNoLaterThan: 2026
       contentMode: full-source-text
       sourceAuthority: official-recommendation-public-mirror
       retrievedBy: automated-source-sync
@@ -59,8 +60,9 @@ sources:
     metadata:
       officialId: "360_3"
       officialSourceUrl: https://cr.minzdrav.gov.ru/preview-cr/360_3
-      publicMirrorUrl: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/ostryij-bronxiolit-kr-2024/
+      publicMirrorUrl: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_ostryy_bronkhiolit_odobreny.html
       sourceYear: 2024
+      reviewNoLaterThan: 2026
       contentMode: full-source-text
       sourceAuthority: official-recommendation-public-mirror
       retrievedBy: automated-source-sync
