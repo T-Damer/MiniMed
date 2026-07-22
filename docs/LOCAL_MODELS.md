@@ -8,7 +8,7 @@ remain available when the model is absent, downloading, unloaded, unsupported, o
 The experimental slice implements:
 
 - a validated remote/cache/bundled model catalog;
-- four curated logical candidates;
+- six curated logical candidates, including two Russian-specific Vikhr models;
 - a lightweight startup device probe;
 - deterministic automatic recommendation;
 - browser/Android-WebView GGUF loading through a dynamically imported wllama runtime;
@@ -34,13 +34,40 @@ The bundled preview catalog contains:
 
 | Model | Initial tier | Smallest current artifact | Current runtime path |
 | --- | --- | ---: | --- |
-| Qwen3 0.6B Q8 | compact | about 639 MB | browser/Android WebView GGUF |
+| Vikhr Qwen 2.5 0.5B Q4 | compact/Russian | about 398 MB | browser/Android WebView GGUF |
+| Qwen3 0.6B Q8 | compact/control | about 639 MB | browser/Android WebView GGUF |
 | Gemma 3 1B IT | balanced | about 584 MB LiteRT; 806 MB GGUF | GGUF now; LiteRT declared for follow-up |
-| Qwen3 1.7B Q8 | balanced | about 1.83 GB | browser/Android WebView GGUF |
+| QVikhr 3 1.7B Q4 | balanced/Russian | about 1.11 GB | browser/Android WebView GGUF |
+| Qwen3 1.7B Q8 | balanced/control | about 1.83 GB | browser/Android WebView GGUF |
 | Llama 3.2 3B Instruct Q4 | quality/experimental | about 2.02 GB | native Cactus declared for follow-up |
 
-The displayed tier is not a clinical-quality claim. In particular, the Llama candidate has a lower
-Russian priority until it proves better on MiniMed's Russian suite.
+The displayed tier is not a clinical-quality claim. The Russian-tuned models receive a higher initial
+Russian priority because they are instruction-tuned specifically for Russian, but they still have to
+pass MiniMed's own extraction, structured-output, negation, omission, and retrieval benchmarks.
+
+The generic Qwen models remain in the catalog as controls. This lets the benchmark determine whether
+Russian fine-tuning helps our actual physician queries instead of assuming that it does.
+
+## Russian model survey
+
+The initial survey found several useful Russian open-weight families:
+
+- **Vikhr Qwen 2.5 0.5B**: Apache-2.0, GGUF, approximately 398 MB at Q4_K_M, intended for
+  low-end/mobile Russian instruction following;
+- **QVikhr 3 1.7B noreasoning**: Apache-2.0, GGUF, approximately 1.11 GB at Q4_K_M, based on
+  Qwen3 and tuned for Russian instruction following without a reasoning preamble;
+- **Vikhr Llama 3.2 1B** and **Vikhr Qwen 2.5 1.5B**: viable additional benchmark candidates,
+  but omitted from the first expanded catalog to avoid adding near-duplicate tiers before the harness
+  produces measurements;
+- **YandexGPT 5 Lite 8B**, **T-Tech T-lite 8B**, and Russian Saiga 8B/12B variants: useful
+  desktop or high-memory candidates, but their Q4 artifacts are several gigabytes and are not suitable
+  as default mobile downloads;
+- older Sber/AI-Forever ruGPT and ruT5 models are valuable Russian research models, but the small
+  variants are not modern chat/instruction models and therefore are poor fits for MiniMed's startup
+  query-planning role.
+
+Large Russian models may later be offered under a separate `desktop` or `high-memory` compatibility
+class. They must not displace the mobile candidates merely because they have more parameters.
 
 ## Automatic selection
 
@@ -64,6 +91,11 @@ The remaining candidates are ranked by:
 - model download size;
 - CPU probe result;
 - data-saver and connection conditions.
+
+Artifacts up to 1.25 GB can be selected automatically when the model otherwise fits. Larger automatic
+downloads receive a strong penalty unless the device has at least 12 GB RAM and meets the model's
+recommended memory. This permits QVikhr 1.7B on suitable 8 GB devices while keeping Qwen 1.7B Q8 and
+larger candidates conservative.
 
 This recommendation is a device-fit estimate. The loaded model then has to return valid compact JSON
 for a fixed Russian query. A failure records a seven-day cooldown and tries one smaller candidate.
@@ -116,9 +148,11 @@ repository main branch
   apps/app/src/features/models/catalog.preview.json
 
 GitHub Release: local-models-preview
+  vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf
   qwen3-0.6b-q8_0.gguf
   gemma3-1b-it-q4_k_m.gguf
   gemma3-1b-it-int4.litertlm
+  qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf
   qwen3-1.7b-q8_0.gguf
   llama-3.2-3b-instruct-q4_k_m.gguf
 ```
@@ -139,9 +173,9 @@ must be verified, and the catalog version must be frozen.
 
 ## Licence handling
 
-Apache-licensed Qwen candidates are eligible immediately. Gemma and Llama catalog entries require an
-explicit Settings action that links to and records acceptance of the corresponding terms. MiniMed
-never infers acceptance from application installation.
+Apache-licensed Qwen and Vikhr candidates are eligible immediately. Gemma and Llama catalog entries
+require an explicit Settings action that links to and records acceptance of the corresponding terms.
+MiniMed never infers acceptance from application installation.
 
 ## Medical safety boundary
 
