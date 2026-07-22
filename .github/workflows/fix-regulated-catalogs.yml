@@ -34,7 +34,6 @@ jobs:
         run: |
           pnpm check --write
           uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
       - name: Publish formatting
         shell: bash
         run: |
