@@ -73,7 +73,8 @@ The query configuration and raw API pages are uploaded alongside the normalized 
 changes can be audited. Fixture validation proves parser behavior only; real coverage totals always
 refer to the exact configured export or official API pages preserved with that run. Normal CI must
 pass formatting, strict typing and the offline regulated-catalog fixture suite, and every live run
-must retain its declared source URL or raw official API pages.
+must retain its declared source URL or raw official API pages. The permanent workflow is read-only;
+formatting changes must be committed before validation.
 
 ## Publication boundary
 
