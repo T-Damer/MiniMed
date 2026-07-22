@@ -128,7 +128,7 @@ Clinical quality metrics remain in the repository benchmark suite rather than th
 ## Browser and Android behavior
 
 The first adapter uses wllama loaded at runtime from a catalog-controlled ESM and WASM URL. It runs
-GGUF through WebAssembly workers, with a conservative context limit and optional WebGPU layers.
+GGUF through WebAssembly workers with a conservative context limit. wllama 3.5 is CPU-only; it does not provide WebGPU acceleration.
 
 In a Capacitor Android WebView, the same adapter is the current fallback. The catalog already carries
 `litert-native` and `cactus-native` artifact entries so a later Capacitor plugin can take precedence
@@ -190,3 +190,28 @@ medical content. Future query-planning integration must:
 - fall back on invalid output or timeout;
 - beat deterministic baselines on the Russian clinical benchmark;
 - pass dangerous-omission, population-applicability, contradiction, and unsupported-claim gates.
+
+
+## Acceleration reality
+
+The current `wllama-web` adapter is a CPU/WebAssembly path in both browsers and the Capacitor Android
+WebView. Device WebGPU capability is retained in the device profile for future runtimes, but it does
+not increase the score of a wllama artifact and `n_gpu_layers` is fixed to zero.
+
+GPU and NPU execution require a native LiteRT-LM adapter and a compatible `.litertlm` artifact. Backend
+availability must be measured per model and device; an accelerator being present does not imply that it
+is faster than CPU for a particular prompt or decoder workload. Gemma 3 1B is the first declared model
+for that native comparison.
+
+## CI and physical-device benchmarks
+
+The normal pull-request suite validates catalog trust, selection, fallback, strict output contracts and
+application packaging without downloading model weights. A weekly/manual `Local model CPU smoke`
+workflow downloads the two compact Apache-licensed GGUF candidates, verifies SHA-256, loads each in real
+Chromium/wllama, and requires the fixed Russian probe to produce a valid structured result.
+
+Hosted GitHub runners do not establish Android GPU/NPU support or useful mobile performance numbers.
+After the native LiteRT-LM adapter lands, hardware benchmarks must run on labelled self-hosted Android
+runners (or an equivalent physical-device lab) and compare CPU, GPU and NPU with the same model, prompt,
+thermal state and prefill/decode sizes. The report must include backend actually selected, load time,
+TTFT, prefill/decode throughput, peak memory, battery/thermal state, validity and fallback reason.

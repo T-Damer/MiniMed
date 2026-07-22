@@ -69,10 +69,6 @@ function candidateScore(
     score -= Math.max(0, model.minimumMemoryGb - 4) * 9;
     reasons.push('объём памяти браузер не сообщил');
   }
-  if (artifact.runtime === 'wllama-web' && profile.webgpu) {
-    score += 12;
-    reasons.push('доступен WebGPU');
-  }
   if (artifact.runtime !== 'wllama-web') {
     score += 18;
     reasons.push('доступен нативный runtime');

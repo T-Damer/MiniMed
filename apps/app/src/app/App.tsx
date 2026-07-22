@@ -54,14 +54,15 @@ function environmentFlag(name: string, fallback: boolean): boolean {
 }
 
 function createLocalModelController(): LocalModelController {
+  const configuredCatalogUrl = import.meta.env['VITE_LOCAL_MODEL_CATALOG_URL']?.trim();
   const remoteCatalogUrl =
-    import.meta.env['VITE_LOCAL_MODEL_CATALOG_URL']?.trim() || DEFAULT_MODEL_CATALOG_URL;
+    configuredCatalogUrl === 'bundled' ? '' : configuredCatalogUrl || DEFAULT_MODEL_CATALOG_URL;
   const mirrorBaseUrl = import.meta.env['VITE_LOCAL_MODEL_ASSET_BASE_URL']?.trim() ?? '';
   return new LocalModelController({
     remoteCatalogUrl,
     mirrorBaseUrl,
     allowUpstreamFallback: environmentFlag('VITE_LOCAL_MODEL_ALLOW_UPSTREAM', true),
-    enableWebgpu: environmentFlag('VITE_LOCAL_MODEL_WEBGPU', true),
+    allowAutomationDownloads: environmentFlag('VITE_LOCAL_MODEL_ALLOW_AUTOMATION_DOWNLOADS', false),
     defaultAutoLoad: environmentFlag('VITE_LOCAL_MODEL_AUTOLOAD', true),
   });
 }

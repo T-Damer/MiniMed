@@ -61,7 +61,6 @@ export interface BrowserWllamaRuntimeOptions {
   readonly wasmUrl: string;
   readonly mirrorBaseUrl: string;
   readonly allowUpstreamFallback: boolean;
-  readonly enableWebgpu: boolean;
 }
 
 function asWllamaModule(value: unknown): WllamaModule {
@@ -185,7 +184,8 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
         await instance.loadModelFromUrl(url, {
           n_ctx: Math.min(artifact.maxContextTokens, 2048),
           n_threads: Math.max(1, Math.min(6, profile.hardwareConcurrency - 1)),
-          n_gpu_layers: this.options.enableWebgpu && profile.webgpu ? 8 : 0,
+          // wllama 3.5 is a WebAssembly CPU runtime and does not implement WebGPU.
+          n_gpu_layers: 0,
           progressCallback: ({ loaded, total }) => callbacks.onProgress(loaded, total),
         });
         return new BrowserWllamaSession(model.id, artifact.id, instance);

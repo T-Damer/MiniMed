@@ -114,3 +114,15 @@ negation, population, omission, contradiction, and dangerous-advice benchmark co
 - **Let the local model replace deterministic parsing:** violates the offline fallback and makes basic
   safety behavior depend on a probabilistic component.
 - **Commit weights to the repository:** bloats Git history and violates repository policy.
+
+
+## Acceleration and verification amendment
+
+The first implementation incorrectly treated WebGPU availability as an acceleration signal for
+`wllama-web`. The upstream wllama runtime is WebAssembly/CPU-only, so the selection bonus and GPU-layer
+request are removed. Native GPU/NPU backends must identify themselves explicitly and are benchmarked as
+separate runtime artifacts rather than inferred from browser capability.
+
+Real compact-model CPU loading is covered by a non-blocking weekly/manual CI workflow. GPU/NPU claims
+cannot be merge-gated on generic hosted runners; they require a physical-device lane after the native
+adapter is implemented.

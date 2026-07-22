@@ -62,7 +62,7 @@ export interface LocalModelControllerOptions {
   readonly remoteCatalogUrl: string;
   readonly mirrorBaseUrl: string;
   readonly allowUpstreamFallback: boolean;
-  readonly enableWebgpu: boolean;
+  readonly allowAutomationDownloads: boolean;
   readonly defaultAutoLoad: boolean;
 }
 
@@ -333,7 +333,6 @@ export class LocalModelController {
         wasmUrl: catalog.runtime.wllamaWasmUrl,
         mirrorBaseUrl: this.options.mirrorBaseUrl,
         allowUpstreamFallback: this.options.allowUpstreamFallback,
-        enableWebgpu: this.options.enableWebgpu,
       }),
     ];
   }
@@ -389,10 +388,11 @@ export class LocalModelController {
       error: catalogLoad.warning,
     });
     if (!recommended) return;
-    if (!this.preference.autoLoad || profile.automation) {
+    const automationBlocked = profile.automation && !this.options.allowAutomationDownloads;
+    if (!this.preference.autoLoad || automationBlocked) {
       this.update({
         phase: 'deferred',
-        message: profile.automation
+        message: automationBlocked
           ? `Автозагрузка ${recommended.model.name} отключена в автоматизированном тесте.`
           : `${recommended.model.name} рекомендована; автозагрузка отключена в настройках.`,
       });

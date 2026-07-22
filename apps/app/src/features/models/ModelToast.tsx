@@ -41,6 +41,7 @@ export function ModelToast(props: ModelToastProps): JSX.Element {
     <Show when={visible()}>
       <aside
         class="local-model-toast"
+        data-testid="local-model-toast"
         classList={{
           ready: state().phase === 'ready',
           error: state().phase === 'error',
