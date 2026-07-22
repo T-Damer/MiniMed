@@ -9,7 +9,7 @@ This list records product work that directly affects clinicians. Technical imple
 - [x] Add browser and Android-WebView storage for downloaded module databases.
 - [x] Mount enabled downloaded modules through the existing multi-store search router without blocking the active search or reloading the page.
 - [ ] Add a browser E2E scenario for install → live search → remove using a published SQLite fixture.
-- [x] Show download progress, SHA-256/SQLite verification, installed version and storage size.
+- [x] Show download progress, installed version, storage size and SHA-256/SQLite verification directly on the dataset card.
 - [ ] Preserve and display the exact installation failure stage after a failed task.
 - [ ] Keep the previous validated module active when an update fails.
 - [x] Keep persistent registry metadata and stored SQLite artifacts consistent when rollback or removal fails.
