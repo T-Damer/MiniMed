@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { InMemoryInstalledModuleRegistry, type ModuleVersionInstallation } from '../src';
+import {
+  InMemoryInstalledModuleRegistry,
+  INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION,
+  type InstalledModuleRegistrySnapshot,
+  type ModuleVersionInstallation,
+  PersistentInstalledModuleRegistry,
+  type StringKeyValueStorage,
+  WebStorageInstalledModuleRegistryPersistence,
+} from '../src';
 
 const digest = (character: string): string => `sha256:${character.repeat(64)}`;
 
@@ -25,6 +33,34 @@ function installation(
     },
     ...options,
   };
+}
+
+class MemoryStringStorage implements StringKeyValueStorage {
+  private readonly values = new Map<string, string>();
+  public failWrites = false;
+  public writeCount = 0;
+
+  public getItem(key: string): string | null {
+    return this.values.get(key) ?? null;
+  }
+
+  public setItem(key: string, value: string): void {
+    if (this.failWrites) throw new Error('storage unavailable');
+    this.writeCount += 1;
+    this.values.set(key, value);
+  }
+
+  public seed(key: string, value: string): void {
+    this.values.set(key, value);
+  }
+}
+
+const STORAGE_KEY = 'test.installed-modules';
+
+function persistentRegistry(storage: MemoryStringStorage): PersistentInstalledModuleRegistry {
+  return new PersistentInstalledModuleRegistry(
+    new WebStorageInstalledModuleRegistryPersistence(storage, STORAGE_KEY),
+  );
 }
 
 describe('InMemoryInstalledModuleRegistry', () => {
@@ -95,5 +131,147 @@ describe('InMemoryInstalledModuleRegistry', () => {
 
     expect(() => registry.setEnabled(core.moduleId, false)).toThrow('cannot be disabled');
     expect(() => registry.remove(core.moduleId)).toThrow('cannot be removed');
+  });
+
+  it('defensively copies installation and validation data', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+    const mutableValidation = {
+      checkedAt: '2026-07-21T00:00:00Z',
+      valid: true,
+      checksumValid: true,
+      schemaCompatible: true,
+      sqliteIntegrity: 'ok' as const,
+      message: 'validated',
+    };
+    const source = installation('1', { validation: mutableValidation });
+
+    registry.activate(source);
+    mutableValidation.valid = false;
+    const firstRead = registry.get(source.moduleId);
+    if (firstRead?.lastValidation) firstRead.lastValidation.valid = false;
+
+    expect(registry.get(source.moduleId)?.lastValidation?.valid).toBe(true);
+  });
+
+  it('round-trips the complete active and rollback state through a deterministic snapshot', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(installation('1'));
+    registry.activate(installation('2', { installedSizeBytes: 2_000 }));
+    registry.setEnabled('minimed.clinical.pediatrics.infectious', false);
+    registry.markUpdateAvailable('minimed.clinical.pediatrics.infectious');
+
+    const snapshot = registry.snapshot();
+    const restored = InMemoryInstalledModuleRegistry.fromSnapshot(snapshot);
+
+    expect(snapshot.schemaVersion).toBe(INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION);
+    expect(restored.list()).toEqual(registry.list());
+    expect(restored.rollback('minimed.clinical.pediatrics.infectious').version).toBe('1');
+  });
+
+  it('rejects corrupt, duplicate, and cross-module snapshot entries', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(installation('1'));
+    const snapshot = registry.snapshot();
+    const entry = snapshot.entries[0];
+    if (!entry) throw new Error('Expected snapshot entry.');
+
+    expect(() =>
+      InMemoryInstalledModuleRegistry.fromSnapshot({ ...snapshot, schemaVersion: 2 }),
+    ).toThrow('Unsupported installed-module registry schema');
+
+    expect(() =>
+      InMemoryInstalledModuleRegistry.fromSnapshot({
+        ...snapshot,
+        entries: [entry, entry],
+      }),
+    ).toThrow('Duplicate installed-module registry entry');
+
+    expect(() =>
+      InMemoryInstalledModuleRegistry.fromSnapshot({
+        ...snapshot,
+        entries: [
+          {
+            ...entry,
+            active: { ...entry.active, moduleId: 'minimed.other' },
+          },
+        ],
+      }),
+    ).toThrow('belongs to another module');
+
+    expect(() =>
+      InMemoryInstalledModuleRegistry.fromSnapshot({
+        ...snapshot,
+        entries: [
+          {
+            ...entry,
+            history: [entry.active],
+          },
+        ],
+      }),
+    ).toThrow('duplicate module version');
+  });
+});
+
+describe('PersistentInstalledModuleRegistry', () => {
+  it('persists every successful mutation and rehydrates after restart', () => {
+    const storage = new MemoryStringStorage();
+    const registry = persistentRegistry(storage);
+
+    registry.activate(installation('1'));
+    registry.activate(installation('2', { installedSizeBytes: 2_000 }));
+    registry.setEnabled('minimed.clinical.pediatrics.infectious', false);
+    registry.markUpdateAvailable('minimed.clinical.pediatrics.infectious');
+
+    const reopened = persistentRegistry(storage);
+    const active = reopened.get('minimed.clinical.pediatrics.infectious');
+
+    expect(storage.writeCount).toBe(4);
+    expect(active?.version).toBe('2');
+    expect(active?.state).toBe('update-available');
+    expect(active?.enabled).toBe(false);
+    expect(active?.previousVersions).toEqual(['1']);
+    expect(reopened.rollback('minimed.clinical.pediatrics.infectious').version).toBe('1');
+  });
+
+  it('restores the prior in-memory state when a persistence write fails', () => {
+    const storage = new MemoryStringStorage();
+    const registry = persistentRegistry(storage);
+    const active = registry.activate(installation('1'));
+    storage.failWrites = true;
+
+    expect(() => registry.setEnabled(active.moduleId, false)).toThrow(
+      'Unable to persist installed-module registry mutation',
+    );
+    expect(registry.get(active.moduleId)?.enabled).toBe(true);
+
+    storage.failWrites = false;
+    expect(persistentRegistry(storage).get(active.moduleId)?.enabled).toBe(true);
+  });
+
+  it('fails closed on malformed JSON and structurally invalid stored snapshots', () => {
+    const malformed = new MemoryStringStorage();
+    malformed.seed(STORAGE_KEY, '{invalid');
+    expect(() => persistentRegistry(malformed)).toThrow('does not contain valid JSON');
+
+    const invalid = new MemoryStringStorage();
+    const badSnapshot: InstalledModuleRegistrySnapshot = {
+      schemaVersion: INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION,
+      entries: [],
+    };
+    invalid.seed(
+      STORAGE_KEY,
+      JSON.stringify({ ...badSnapshot, schemaVersion: 999, entries: 'not-an-array' }),
+    );
+    expect(() => persistentRegistry(invalid)).toThrow('Unsupported installed-module registry schema');
+  });
+
+  it('persists removals without leaving stale versions on restart', () => {
+    const storage = new MemoryStringStorage();
+    const registry = persistentRegistry(storage);
+    const active = registry.activate(installation('1'));
+
+    registry.remove(active.moduleId);
+
+    expect(persistentRegistry(storage).list()).toEqual([]);
   });
 });
