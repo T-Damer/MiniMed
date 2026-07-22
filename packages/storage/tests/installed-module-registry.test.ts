@@ -262,7 +262,9 @@ describe('PersistentInstalledModuleRegistry', () => {
       STORAGE_KEY,
       JSON.stringify({ ...badSnapshot, schemaVersion: 999, entries: 'not-an-array' }),
     );
-    expect(() => persistentRegistry(invalid)).toThrow('Unsupported installed-module registry schema');
+    expect(() => persistentRegistry(invalid)).toThrow(
+      'Unsupported installed-module registry schema',
+    );
   });
 
   it('persists removals without leaving stale versions on restart', () => {
