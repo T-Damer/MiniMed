@@ -81,7 +81,8 @@ retrieval benchmarks.
 
 `.github/workflows/clinical-catalog-inventory.yml` always validates the parser and taxonomy against a
 fixture. The fixture proves deterministic normalization and classification, not real-world catalog
-completeness. A full inventory run requires either:
+completeness. The workflow is validated against the synchronized 0.3.4 application and ingestion
+foundation. A full inventory run requires either:
 
 - a manual `catalog_url` and format through `workflow_dispatch`; or
 - repository variables `CLINICAL_CATALOG_URL` and `CLINICAL_CATALOG_FORMAT` for scheduled runs.
