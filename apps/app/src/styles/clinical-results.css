@@ -1,0 +1,162 @@
+.knowledge-map {
+  padding: 0;
+  list-style: none;
+}
+
+.clinical-plan-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 14px 0 0;
+  padding: 13px 15px;
+  transform: none;
+}
+
+.clinical-plan-card strong {
+  max-width: 680px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.clinical-plan-card span {
+  max-width: 330px;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  line-height: 1.45;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.query-warning-list {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.query-warning-list p {
+  margin: 0;
+  padding: 9px 12px;
+  border-left: 3px solid #9c6a3d;
+  color: #634a34;
+  background: rgb(181 132 73 / 9%);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.result-group-header {
+  display: block;
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+.result-group-header-button > div {
+  min-width: 0;
+}
+
+.result-group-header-button strong,
+.result-minimal-note,
+.result-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-group-header-button strong,
+.result-minimal-note {
+  display: block;
+  white-space: nowrap;
+}
+
+.result-category-line {
+  min-width: 0;
+}
+
+.result-category-line .result-path {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.source-reader-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgb(79 65 37 / 20%);
+}
+
+.source-reader-actions button {
+  padding: 10px 13px;
+  border: 0;
+  color: #f6eedb;
+  background: var(--green-file);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.source-reader-actions small {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  line-height: 1.4;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.document-reader-toolbar {
+  grid-column: 1 / -1;
+  top: calc(60px + var(--safe-top));
+}
+
+.document-workspace {
+  align-items: start;
+}
+
+.document-outline,
+.document-reader {
+  min-width: 0;
+}
+
+.document-section {
+  scroll-margin-top: calc(128px + var(--safe-top));
+}
+
+@media (max-width: 760px) {
+  .clinical-plan-card,
+  .source-reader-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clinical-plan-card span,
+  .source-reader-actions small {
+    max-width: none;
+    text-align: left;
+  }
+
+  .result-group-header-button {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .result-group-header-button .group-count {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .result-category-line {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .result-category-line .result-path {
+    width: 100%;
+    padding-left: 36px;
+  }
+}

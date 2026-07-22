@@ -15,6 +15,7 @@ import type { AliasRecord } from '@localmed/domain';
 import { expandAliases } from './aliases';
 import { classifyMedicalQueryIntent } from './intent';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from './normalize';
+import symptomExpressions from './symptom-expressions.ru.json';
 
 export interface LexicalQueryBranchPlan extends QueryBranch {
   readonly ftsQuery: string;
@@ -63,6 +64,10 @@ const STRUCTURAL_TERMS = new Set([
   'недель',
   'сегодня',
   'вчера',
+  'часто',
+  'быстро',
+  'дышит',
+  'дышать',
   'позавчера',
   'жалоба',
   'жалобы',
@@ -517,6 +522,49 @@ function extractAliasFacts(
   }
 }
 
+interface SymptomExpressionEntry {
+  readonly id: string;
+  readonly canonical: string;
+  readonly label: string;
+  readonly system: string;
+  readonly phrases: readonly string[];
+}
+
+const SYMPTOM_EXPRESSION_ENTRIES = symptomExpressions.entries as readonly SymptomExpressionEntry[];
+
+function escapeExpression(value: string): string {
+  return value
+    .replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')
+    .replace(/[её]/gu, '[её]')
+    .replace(/\s+/gu, '\\s+');
+}
+
+function extractSymptomExpressions(query: string, facts: QueryFact[]): void {
+  const negativeRanges = facts
+    .filter((fact) => fact.kind === 'negative-finding')
+    .map((fact) => fact.range);
+  for (const entry of SYMPTOM_EXPRESSION_ENTRIES) {
+    for (const phrase of entry.phrases) {
+      const pattern = new RegExp(
+        `(?:^|[^а-яёa-z])(${escapeExpression(phrase)})(?=$|[^а-яёa-z])`,
+        'giu',
+      );
+      for (const match of query.matchAll(pattern)) {
+        const symptomRange = groupRange(match, 1);
+        if (negativeRanges.some((negativeRange) => overlaps(negativeRange, symptomRange))) continue;
+        addFact(facts, {
+          kind: 'symptom',
+          label: entry.label,
+          value: match[1] ?? match[0],
+          normalizedValue: entry.canonical,
+          start: symptomRange.start,
+          end: symptomRange.end,
+        });
+      }
+    }
+  }
+}
+
 const SYMPTOM_PATTERNS: readonly {
   readonly pattern: RegExp;
   readonly canonical: string;
@@ -642,6 +690,11 @@ function buildWarnings(normalizedQuery: string, facts: readonly QueryFact[]): re
   if (normalizedQuery.length > 4_000) {
     warnings.push('Описание длинное: поиск выполнен по нескольким независимым веткам.');
   }
+  if (/(?:менингит.*энцефалит|энцефалит.*менингит|менингоэнцефалит)/u.test(normalizedQuery)) {
+    warnings.push(
+      'Менингит и энцефалит могут перекрываться по симптомам: уточнения показаны, но поиск по диагнозам уже выполнен.',
+    );
+  }
   return warnings;
 }
 
@@ -676,6 +729,27 @@ function buildSuggestions(
   const hasTarget = /(?:лечени[ея]|терапи[яию]|при|для)\s+[а-яa-z][а-яa-z-]{3,}/u.test(
     normalizedQuery,
   );
+  const neuroinfectionAmbiguity = /(?:менингит|энцефалит|менингоэнцефалит|нейроинфекц)/u.test(
+    normalizedQuery,
+  );
+
+  if (neuroinfectionAmbiguity) {
+    add(
+      suggestion('severity', 'Сознание и судороги', 'Сознание/судороги: ', 118, 'query-refinement'),
+    );
+    add(
+      suggestion(
+        'investigations',
+        'Менингеальные и очаговые признаки',
+        'Менингеальные/очаговые признаки: ',
+        116,
+        'query-refinement',
+      ),
+    );
+    add(
+      suggestion('context', 'Сыпь и гемодинамика', 'Сыпь/гемодинамика: ', 108, 'query-refinement'),
+    );
+  }
 
   if (intent.primary === 'diagnosis' || intent.primary === 'mixed') {
     if (!hasFact(facts, 'age')) add(suggestion('age', 'Возраст', 'Возраст: ', 100));
@@ -897,6 +971,32 @@ function buildBranches(
         branches.push(branch);
     }
   }
+  if (/(?:как\s+отличить|чем\s+отличается|дифференциальн[а-я]*\s+диагноз)/u.test(normalizedQuery)) {
+    const differential = makeBranch(
+      'differential',
+      'intent',
+      'Критерии дифференциальной диагностики',
+      query,
+      [normalizedQuery, 'дифференциальная диагностика отличия критерии'],
+      1.38,
+    );
+    if (differential) branches.unshift(differential);
+  }
+  if (
+    /(?:как\s+диагностировать\s+дальше|что\s+(?:обследовать|проверить)|какие\s+(?:анализы|обследования))/u.test(
+      normalizedQuery,
+    )
+  ) {
+    const nextDiagnostics = makeBranch(
+      'next-diagnostics',
+      'intent',
+      'Следующий этап диагностики',
+      query,
+      [normalizedQuery, 'диагностика обследование лабораторная инструментальная'],
+      1.4,
+    );
+    if (nextDiagnostics) branches.unshift(nextDiagnostics);
+  }
   return branches.slice(0, MAX_BRANCHES);
 }
 
@@ -914,6 +1014,7 @@ export function analyzeClinicalQuery(
   extractDuration(query, facts);
   extractMeasurements(query, facts);
   extractNegations(query, aliases, facts);
+  extractSymptomExpressions(query, facts);
   extractSymptoms(query, facts);
   extractAliasFacts(query, aliases, facts);
   extractKnownTerms(query, facts);

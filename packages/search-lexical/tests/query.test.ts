@@ -111,7 +111,9 @@ describe('lexical query planning', () => {
         expect.objectContaining({ kind: 'symptom', normalizedValue: 'кашель' }),
       ]),
     );
-    expect(plan.branches[0]?.terms.some((term) => term.startsWith('кашл'))).toBe(true);
+    expect(
+      plan.branches[0]?.terms.some((term) => term === 'кашель' || term.startsWith('кашл')),
+    ).toBe(true);
   });
 
   it('does not turn a negated cough into a positive symptom fact', () => {
@@ -148,5 +150,53 @@ describe('lexical query planning', () => {
     expect(plan.branches.some((branch) => branch.kind === 'clause')).toBe(true);
     expect(plan.branches.some((branch) => branch.kind === 'investigation')).toBe(true);
     expect(plan.analysis.branches.map((branch) => branch.label)).toContain('Клинические признаки');
+  });
+
+  it('recognizes abdominal distension from the versioned Russian expression lexicon', () => {
+    const plan = analyzeClinicalQuery('Вздутие живота 2 недели', aliases);
+    expect(plan.analysis.facts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'symptom',
+          normalizedValue: 'вздутие живота метеоризм',
+        }),
+        expect.objectContaining({ kind: 'duration', normalizedValue: '2 недели' }),
+      ]),
+    );
+  });
+
+  it('keeps neuroinfection results searchable while proposing discriminating clarifications', () => {
+    const plan = analyzeClinicalQuery('Менингит или энцефалит у ребёнка', aliases);
+    expect(plan.analysis.intent?.needsClarification).toBe(true);
+    expect(plan.analysis.suggestions.map((item) => item.label)).toEqual(
+      expect.arrayContaining([
+        'Сознание и судороги',
+        'Менингеальные и очаговые признаки',
+        'Сыпь и гемодинамика',
+      ]),
+    );
+    expect(plan.analysis.warnings.join(' ')).toContain('поиск по диагнозам уже выполнен');
+    expect(plan.branches.length).toBeGreaterThan(0);
+  });
+
+  it('builds a dedicated next-diagnostics branch for a clinical question', () => {
+    const plan = analyzeClinicalQuery(
+      'Мальчик 5 лет, лихорадка и кашель. Как диагностировать дальше?',
+      aliases,
+    );
+    expect(plan.analysis.intent?.primary).toBe('diagnosis');
+    expect(plan.branches.map((branch) => branch.id)).toContain('next-diagnostics');
+  });
+
+  it('builds a differential branch for an explicit comparison request', () => {
+    const plan = analyzeClinicalQuery('Как отличить пневмонию от бронхита?', aliases);
+    expect(plan.branches.map((branch) => branch.id)).toContain('differential');
+    expect(plan.analysis.intent?.matchedSignals).toContain('дифференциальный вопрос');
+  });
+
+  it('does not search the isolated word often when a tachypnea phrase is recognized', () => {
+    const plan = analyzeClinicalQuery('Ребёнок часто дышит второй день', aliases);
+    expect(plan.terms).not.toContain('часто');
+    expect(plan.terms).toContain('тахипноэ');
   });
 });
