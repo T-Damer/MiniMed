@@ -57,11 +57,11 @@ function environmentFlag(name: string, fallback: boolean): boolean {
 }
 
 function createLocalModelController(): LocalModelController {
-  const configuredCatalogUrl = import.meta.env.VITE_LOCAL_MODEL_CATALOG_URL?.trim();
+  const configuredCatalogUrl = import.meta.env['VITE_LOCAL_MODEL_CATALOG_URL']?.trim();
   const remoteCatalogUrl =
     configuredCatalogUrl === 'bundled' ? '' : configuredCatalogUrl || DEFAULT_MODEL_CATALOG_URL;
   const mirrorBaseUrl =
-    import.meta.env.VITE_LOCAL_MODEL_ASSET_BASE_URL?.trim() || DEFAULT_MODEL_ASSET_BASE_URL;
+    import.meta.env['VITE_LOCAL_MODEL_ASSET_BASE_URL']?.trim() || DEFAULT_MODEL_ASSET_BASE_URL;
   return new LocalModelController({
     remoteCatalogUrl,
     mirrorBaseUrl,
