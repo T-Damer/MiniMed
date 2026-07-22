@@ -35,7 +35,8 @@ function modelDownloadSize(model: LocalModelDescriptor, platform: string | null)
   const artifact = model.artifacts
     .filter(
       (item) =>
-        platform === null || item.platforms.includes(platform as 'browser' | 'android' | 'ios'),
+        item.published &&
+        (platform === null || item.platforms.includes(platform as 'browser' | 'android' | 'ios')),
     )
     .toSorted((left, right) => left.downloadBytes - right.downloadBytes)[0];
   return artifact?.downloadBytes ?? null;
@@ -65,7 +66,10 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
     const platform = state().device?.platform;
     if (!platform) return false;
     return model.artifacts.some(
-      (artifact) => artifact.runtime === 'wllama-web' && artifact.platforms.includes(platform),
+      (artifact) =>
+        artifact.published &&
+        artifact.runtime === 'wllama-web' &&
+        artifact.platforms.includes(platform),
     );
   };
 
@@ -168,11 +172,11 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                   <p>{model.description}</p>
                   <div class="model-friendly-facts">
                     <span>
-                      {size() === null ? 'Нет подходящей сборки' : formatBytes(size() ?? 0)}
+                      {size() === null ? 'Загрузка пока не опубликована' : formatBytes(size() ?? 0)}
                     </span>
                     <span>Нужно от {model.minimumMemoryGb} ГБ памяти</span>
                   </div>
-                  <Show when={model.license.requiresAcceptance && !accepted()}>
+                  <Show when={model.license.requiresAcceptance && !accepted() && available()}>
                     <p class="model-license-note">
                       При запуске будут приняты{' '}
                       <a href={model.license.url} target="_blank" rel="noreferrer">
@@ -192,7 +196,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                         ? 'Проверить ещё раз'
                         : available()
                           ? 'Скачать и проверить'
-                          : 'Пока не поддерживается'}
+                          : 'Пока недоступно'}
                   </button>
                 </article>
               );
