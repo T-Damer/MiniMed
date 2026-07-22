@@ -137,3 +137,17 @@ export function selectLocalModel(input: LocalModelSelectionInput): LocalModelSel
   }
   return ranked[0] ?? null;
 }
+
+export function buildLocalModelLoadPlan(
+  input: LocalModelSelectionInput,
+): readonly LocalModelSelection[] {
+  const primary = selectLocalModel(input);
+  if (!primary) return [];
+  const fallback = rankLocalModels(input).find(
+    (candidate) =>
+      candidate.model.id !== primary.model.id &&
+      candidate.artifact.downloadBytes < primary.artifact.downloadBytes &&
+      candidate.model.minimumMemoryGb <= primary.model.minimumMemoryGb,
+  );
+  return fallback ? [primary, fallback] : [primary];
+}
