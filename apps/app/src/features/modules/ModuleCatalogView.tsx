@@ -1,12 +1,24 @@
 import type {
   ContentModuleCatalog,
   ContentModuleCatalogEntry,
+  ContentModuleDownloadTask,
   CoreStatus,
+  InstalledContentModule,
 } from '@localmed/contracts';
 import type { ContentModuleCatalogSource } from '@localmed/core';
-import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 
 import { refreshContentModuleCatalog } from './catalog-service';
+import { BrowserContentModuleRuntime } from './browser-module-runtime';
 import { MODULE_CATALOG } from './module-catalog';
 
 interface ModuleCatalogViewProps {
@@ -16,46 +28,32 @@ interface ModuleCatalogViewProps {
 }
 
 const COLLECTION_TITLES: Readonly<Record<string, string>> = {
-  core: 'Обязательное ядро',
+  core: 'Всегда доступно',
   pediatrics: 'Клиническая педиатрия',
-  shared: 'Общие медицинские данные',
+  shared: 'Лекарства, документы и нормы',
 };
 
 const RELEASE_LABELS: Readonly<Record<ContentModuleCatalogEntry['releaseState'], string>> = {
-  bundled: 'Встроено',
-  published: 'Можно загрузить',
-  preview: 'Пилотные данные',
+  bundled: 'Уже в приложении',
+  published: 'Можно скачать',
+  preview: 'Готовится',
   planned: 'Запланировано',
 };
 
-const SOURCE_LABELS: Readonly<Record<ContentModuleCatalogSource, string>> = {
-  remote: 'GitHub',
-  cache: 'локальный cache',
-  bundled: 'встроенный fallback',
+const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> = {
+  queued: 'Ожидает загрузки',
+  downloading: 'Скачивается',
+  verifying: 'Проверяется',
+  installing: 'Устанавливается',
+  completed: 'Установлено',
+  failed: 'Ошибка установки',
+  cancelled: 'Загрузка отменена',
 };
 
 function formatBytes(value: number | null): string {
-  if (value === null) return 'размер появится при публикации';
+  if (value === null) return 'размер пока не указан';
   if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} КБ`;
   return `${(value / 1024 / 1024).toFixed(value >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
-}
-
-function formatCheckedAt(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value
-    : new Intl.DateTimeFormat('ru-RU', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      }).format(date);
-}
-
-function moduleDetail(module: ContentModuleCatalogEntry): string {
-  if (module.releaseState === 'bundled') return 'Обязательный минимальный каталог';
-  if (module.previewDocumentCount > 0) {
-    return `${module.previewDocumentCount} док. сейчас входят в общий pilot-pack`;
-  }
-  return 'Отдельный пакет ещё не опубликован';
 }
 
 function capabilityLabels(module: ContentModuleCatalogEntry): readonly string[] {
@@ -63,7 +61,7 @@ function capabilityLabels(module: ContentModuleCatalogEntry): readonly string[] 
   if (module.capabilities.fullText) labels.push('полный текст');
   if (module.capabilities.structuredTables) labels.push('таблицы');
   if (module.capabilities.originalPdf) labels.push('PDF отдельно');
-  if (module.capabilities.structuredKnowledge) labels.push('связи');
+  if (module.capabilities.structuredKnowledge) labels.push('связи и карточки');
   if (module.capabilities.calculations) labels.push('расчёты');
   return labels;
 }
@@ -72,13 +70,39 @@ function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter((module) => module.releaseState === 'published').length;
 }
 
+function taskProgress(task: ContentModuleDownloadTask): number | null {
+  if (!task.totalBytes || task.totalBytes <= 0) return null;
+  return Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));
+}
+
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [catalog, setCatalog] = createSignal<ContentModuleCatalog>(MODULE_CATALOG);
   const [source, setSource] = createSignal<ContentModuleCatalogSource>('bundled');
-  const [checkedAt, setCheckedAt] = createSignal(MODULE_CATALOG.publishedAt);
   const [warning, setWarning] = createSignal<string | null>(null);
   const [refreshing, setRefreshing] = createSignal(false);
+  const [runtime, setRuntime] = createSignal(new BrowserContentModuleRuntime(MODULE_CATALOG));
+  const [installed, setInstalled] = createSignal<readonly InstalledContentModule[]>(
+    runtime().listInstalled(),
+  );
+  const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
+  const [reloadReady, setReloadReady] = createSignal(false);
   let refreshedOnce = false;
+  let unsubscribeTask: (() => void) | undefined;
+
+  const bindRuntime = (nextCatalog: ContentModuleCatalog): void => {
+    unsubscribeTask?.();
+    const nextRuntime = new BrowserContentModuleRuntime(nextCatalog);
+    setRuntime(nextRuntime);
+    setInstalled(nextRuntime.listInstalled());
+    setTasks(nextRuntime.listTasks());
+    unsubscribeTask = nextRuntime.subscribe(() => {
+      setTasks(nextRuntime.listTasks());
+      setInstalled(nextRuntime.listInstalled());
+    });
+  };
+
+  onMount(() => bindRuntime(MODULE_CATALOG));
+  onCleanup(() => unsubscribeTask?.());
 
   const collections = createMemo(() => [
     ...new Set(catalog().modules.map((module) => module.collection)),
@@ -91,10 +115,42 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       const result = await refreshContentModuleCatalog();
       setCatalog(result.catalog);
       setSource(result.source);
-      setCheckedAt(result.checkedAt);
       setWarning(result.warning);
+      bindRuntime(result.catalog);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const installedModule = (moduleId: string): InstalledContentModule | undefined =>
+    installed().find((item) => item.moduleId === moduleId);
+  const moduleTask = (moduleId: string): ContentModuleDownloadTask | undefined =>
+    tasks()
+      .filter((task) => task.moduleId === moduleId)
+      .toSorted((left, right) => right.id.localeCompare(left.id))[0];
+
+  const install = async (module: ContentModuleCatalogEntry): Promise<void> => {
+    setWarning(null);
+    try {
+      const task = runtime().install(module);
+      setTasks(runtime().listTasks());
+      const completed = await runtime().wait(task.id);
+      setTasks(runtime().listTasks());
+      setInstalled(runtime().listInstalled());
+      if (completed.state === 'completed') setReloadReady(true);
+      if (completed.state === 'failed') setWarning(completed.errorMessage);
+    } catch (cause) {
+      setWarning(cause instanceof Error ? cause.message : 'Не удалось установить набор.');
+    }
+  };
+
+  const remove = async (moduleId: string): Promise<void> => {
+    try {
+      await runtime().remove(moduleId);
+      setInstalled(runtime().listInstalled());
+      setReloadReady(true);
+    } catch (cause) {
+      setWarning(cause instanceof Error ? cause.message : 'Не удалось удалить набор.');
     }
   };
 
@@ -112,45 +168,30 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     <section class="module-page page-surface">
       <header class="subpage-heading module-heading">
         <div>
-          <p class="archive-kicker">CONTENT PACKS / OFFLINE</p>
-          <h1>Модули знаний</h1>
+          <p class="archive-kicker">Документы на устройстве</p>
+          <h1>База знаний</h1>
           <p>
-            Ядро остаётся маленьким и знает, какие темы и связи существуют. Полные документы,
-            таблицы и оригинальные PDF будут загружаться отдельными проверяемыми пакетами.
+            Скачивайте нужные разделы. После проверки они работают без интернета и участвуют в общем
+            поиске MiniMed.
           </p>
-          <p class="update-policy-note">
-            Обновления никогда не перекрывают поиск: о них сообщает только счётчик на иконке
-            модулей.
-          </p>
-        </div>
-        <div class="module-catalog-version">
-          <span>КАТАЛОГ</span>
-          <strong>{catalog().catalogVersion}</strong>
         </div>
       </header>
 
-      <div class="module-catalog-status paper-sheet" aria-live="polite">
-        <div>
-          <strong>Источник: {SOURCE_LABELS[source()]}</strong>
-          <span>Проверено {formatCheckedAt(checkedAt())}</span>
-          <Show when={warning()}>{(message) => <small>{message()}</small>}</Show>
+      <Show when={reloadReady()}>
+        <div class="module-reload-banner paper-card">
+          <div>
+            <strong>Состав базы изменился</strong>
+            <span>Перезапустите локальный поиск, чтобы подключить установленные документы.</span>
+          </div>
+          <button type="button" onClick={() => window.location.reload()}>
+            Подключить к поиску
+          </button>
         </div>
-        <button type="button" disabled={refreshing()} onClick={() => void refresh()}>
-          {refreshing() ? 'Проверяем…' : 'Проверить обновления'}
-        </button>
-      </div>
+      </Show>
 
-      <div class="module-transition-note paper-sheet">
-        <div>
-          <strong>Текущее состояние 0.3.3</strong>
-          <p>
-            Сейчас приложение использует один общий pack: {props.status.contentPackIds.join(', ')}.
-            Каталог и безопасная установка уже имеют проверяемые контракты; платформенное хранение и
-            включение скачанных SQLite-модулей подключаются следующими небольшими обновлениями.
-          </p>
-        </div>
-        <span>{props.status.documentCount} документов</span>
-      </div>
+      <Show when={warning()}>
+        {(message) => <div class="module-doctor-warning">{message()}</div>}
+      </Show>
 
       <For each={collections()}>
         {(collection) => (
@@ -163,46 +204,96 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             </div>
             <div class="module-grid">
               <For each={catalog().modules.filter((module) => module.collection === collection)}>
-                {(module) => (
-                  <article class="module-card paper-card">
-                    <div class="module-card-topline">
-                      <span class={`module-state state-${module.releaseState}`}>
-                        {RELEASE_LABELS[module.releaseState]}
-                      </span>
-                      <code>{module.id}</code>
-                    </div>
-                    <h3>{module.title}</h3>
-                    <p>{module.description}</p>
-                    <div class="module-facts">
-                      <span>{moduleDetail(module)}</span>
-                      <span>Индекс: {formatBytes(module.sizes.downloadBytes)}</span>
-                      <span>Оригиналы: {formatBytes(module.sizes.sourceAssetsDownloadBytes)}</span>
-                    </div>
-                    <div class="module-capabilities">
-                      <For each={capabilityLabels(module)}>{(label) => <span>{label}</span>}</For>
-                    </div>
-                    <button type="button" disabled>
-                      {module.releaseState === 'bundled'
-                        ? 'Обязательный модуль'
-                        : 'Установка следующим этапом'}
-                    </button>
-                  </article>
-                )}
+                {(module) => {
+                  const installedValue = () => installedModule(module.id);
+                  const task = () => moduleTask(module.id);
+                  const progress = () => (task() ? taskProgress(task() as ContentModuleDownloadTask) : null);
+                  const working = () =>
+                    task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
+                  return (
+                    <article class="module-card paper-card" classList={{ installed: Boolean(installedValue()) }}>
+                      <div class="module-card-topline">
+                        <span class={`module-state state-${module.releaseState}`}>
+                          {installedValue() ? 'Установлено' : RELEASE_LABELS[module.releaseState]}
+                        </span>
+                      </div>
+                      <h3>{module.title}</h3>
+                      <p>{module.description}</p>
+                      <div class="module-facts doctor-module-facts">
+                        <span>{module.previewDocumentCount || module.documents.length || '—'} документов</span>
+                        <span>{formatBytes(module.sizes.downloadBytes)}</span>
+                      </div>
+                      <div class="module-capabilities">
+                        <For each={capabilityLabels(module)}>{(label) => <span>{label}</span>}</For>
+                      </div>
+
+                      <Show when={task()}>
+                        {(currentTask) => (
+                          <div class="module-task-status">
+                            <strong>{TASK_LABELS[currentTask().state]}</strong>
+                            <Show when={progress() !== null}>
+                              <div class="module-task-progress">
+                                <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
+                              </div>
+                            </Show>
+                            <Show when={currentTask().errorMessage}>
+                              {(message) => <small>{message()}</small>}
+                            </Show>
+                          </div>
+                        )}
+                      </Show>
+
+                      <Show
+                        when={!module.required}
+                        fallback={<button type="button" disabled>Всегда доступно</button>}
+                      >
+                        <Show
+                          when={!installedValue()}
+                          fallback={
+                            <button type="button" onClick={() => void remove(module.id)}>
+                              Удалить с устройства
+                            </button>
+                          }
+                        >
+                          <button
+                            type="button"
+                            disabled={module.releaseState !== 'published' || Boolean(working())}
+                            onClick={() => void install(module)}
+                          >
+                            {working()
+                              ? TASK_LABELS[task()?.state ?? 'queued']
+                              : module.releaseState === 'published'
+                                ? 'Скачать документы'
+                                : 'Пока недоступно'}
+                          </button>
+                        </Show>
+                      </Show>
+
+                      <details class="doctor-technical-details module-technical-details">
+                        <summary>Сведения о наборе</summary>
+                        <p>
+                          Версия {module.version}. После загрузки MiniMed проверяет размер, SHA-256 и
+                          целостность SQLite перед подключением.
+                        </p>
+                      </details>
+                    </article>
+                  );
+                }}
               </For>
             </div>
           </section>
         )}
       </For>
 
-      <section class="module-download-plan paper-sheet">
-        <h2>Как будет происходить установка</h2>
-        <ol>
-          <li>скачивание в staging без остановки поиска;</li>
-          <li>проверка версии приложения, schema, SHA-256 и SQLite integrity;</li>
-          <li>атомарное переключение активной версии с сохранением предыдущей;</li>
-          <li>фоновые уведомления Android/iOS и возможность отката.</li>
-        </ol>
-      </section>
+      <details class="module-catalog-status doctor-technical-details">
+        <summary>Обновление списка наборов</summary>
+        <p>
+          Источник: {source()}. Текущий встроенный пакет: {props.status.contentPackIds.join(', ')}.
+        </p>
+        <button type="button" disabled={refreshing()} onClick={() => void refresh()}>
+          {refreshing() ? 'Проверяем…' : 'Проверить обновления'}
+        </button>
+      </details>
     </section>
   );
 }
