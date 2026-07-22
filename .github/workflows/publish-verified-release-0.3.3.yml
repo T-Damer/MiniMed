@@ -1,5 +1,6 @@
 name: Publish verified MiniMed 0.3.3 artifact
 
+# One-shot trigger after the publisher workflow was installed on main.
 on:
   pull_request:
     branches: [main]
