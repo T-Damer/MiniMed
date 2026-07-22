@@ -6,6 +6,9 @@ import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
+import { LocalModelController } from '../features/models/controller';
+import { ModelSettings } from '../features/models/ModelSettings';
+import { ModelToast } from '../features/models/ModelToast';
 import { ModuleCatalogView } from '../features/modules/ModuleCatalogView';
 import { SearchWorkspace } from '../features/search/SearchWorkspace';
 import { StatusPanel } from '../features/status/StatusPanel';
@@ -30,15 +33,39 @@ const VIEWS: readonly {
   { id: 'status', label: 'Система', icon: 'system' },
 ];
 
+const DEFAULT_MODEL_CATALOG_URL =
+  'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
+
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
+}
+
+function environmentFlag(name: string, fallback: boolean): boolean {
+  const value = import.meta.env[name]?.trim().toLowerCase();
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return fallback;
+}
+
+function createLocalModelController(): LocalModelController {
+  const remoteCatalogUrl =
+    import.meta.env['VITE_LOCAL_MODEL_CATALOG_URL']?.trim() || DEFAULT_MODEL_CATALOG_URL;
+  const mirrorBaseUrl = import.meta.env['VITE_LOCAL_MODEL_ASSET_BASE_URL']?.trim() ?? '';
+  return new LocalModelController({
+    remoteCatalogUrl,
+    mirrorBaseUrl,
+    allowUpstreamFallback: environmentFlag('VITE_LOCAL_MODEL_ALLOW_UPSTREAM', true),
+    enableWebgpu: environmentFlag('VITE_LOCAL_MODEL_WEBGPU', true),
+    defaultAutoLoad: environmentFlag('VITE_LOCAL_MODEL_AUTOLOAD', true),
+  });
 }
 
 export function App(): JSX.Element {
   const [view, setView] = createSignal<View>(viewFromLocation());
   const [ready, setReady] = createSignal<ReadyState>();
   const [error, setError] = createSignal<string>();
+  const modelController = createLocalModelController();
   let coreToClose: MedicalCore | undefined;
 
   const navigate = (next: View): void => {
@@ -61,6 +88,7 @@ export function App(): JSX.Element {
         return;
       }
       setReady({ core, status: initialized.value });
+      void modelController.start();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось запустить локальное ядро.');
     }
@@ -69,6 +97,7 @@ export function App(): JSX.Element {
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     if (coreToClose) void coreToClose.close();
+    void modelController.dispose();
   });
 
   return (
@@ -157,15 +186,17 @@ export function App(): JSX.Element {
               />
             </section>
             <section
-              class="app-view"
+              class="app-view model-status-view"
               hidden={view() !== 'status'}
               aria-hidden={view() !== 'status'}
             >
+              <ModelSettings controller={modelController} />
               <StatusPanel core={state().core} initialStatus={state().status} />
             </section>
           </main>
         )}
       </Show>
+      <ModelToast controller={modelController} />
     </div>
   );
 }
