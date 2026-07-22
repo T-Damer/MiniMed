@@ -26,6 +26,8 @@ declared public mirror
 
 The HTML extractor keeps headings, paragraphs, lists and table candidates. Navigation, scripts, forms and page chrome are excluded. The original downloaded HTML checksum becomes the document-version checksum. Extraction warnings stay visible in the preparation report and are not silently repaired.
 
+Remote synchronization uses a bounded three-minute request timeout and a persistent cache. A transiently slow mirror cannot cause an unbounded build, while an already validated cached source remains usable for reproducible offline rebuilds.
+
 A module advertised as full text must pass all of these gates:
 
 - every declared document was downloaded from its recorded mirror;
