@@ -3,8 +3,10 @@ from __future__ import annotations
 import re
 from html.parser import HTMLParser
 from pathlib import Path
+from typing import cast
 
 from .models import (
+    BlockKind,
     ExtractedBlock,
     ExtractedPage,
     ExtractedSource,
@@ -184,7 +186,7 @@ def extract_html(source: Path) -> ExtractedSource:
             id=f"html-b{index + 1}",
             page=None,
             order_index=index,
-            kind=kind,  # type: ignore[arg-type]
+            kind=cast(BlockKind, kind),
             text=text,
             heading_level=level,
             line_count=max(1, text.count("\n") + 1),
