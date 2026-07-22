@@ -5,9 +5,10 @@ import hashlib
 import json
 import re
 from collections import Counter, defaultdict
+from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Literal, cast
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -30,13 +31,13 @@ _SPLIT_PATTERN = re.compile(r"[;,|\n]+")
 _SAFE_ID_PATTERN = re.compile(r"[^0-9A-Za-zА-Яа-я._-]+")
 
 
-class CatalogModel(BaseModel):
-    model_config = ConfigDict(alias_generator=lambda value: _to_camel(value), populate_by_name=True)
-
-
 def _to_camel(value: str) -> str:
     head, *tail = value.split("_")
     return head + "".join(part.capitalize() for part in tail)
+
+
+class CatalogModel(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True, extra="forbid")
 
 
 def _normalized(value: object) -> str:
@@ -50,21 +51,7 @@ def _clean(value: object | None) -> str | None:
     return cleaned or None
 
 
-def _split_values(value: object | None) -> list[str]:
-    if value is None:
-        return []
-    if isinstance(value, list):
-        result: list[str] = []
-        for item in value:
-            result.extend(_split_values(item))
-        return _deduplicate(result)
-    cleaned = _clean(value)
-    if cleaned is None:
-        return []
-    return _deduplicate(part.strip() for part in _SPLIT_PATTERN.split(cleaned) if part.strip())
-
-
-def _deduplicate(values: Any) -> list[str]:
+def _deduplicate(values: Iterable[object]) -> list[str]:
     result: list[str] = []
     seen: set[str] = set()
     for raw in values:
@@ -75,6 +62,20 @@ def _deduplicate(values: Any) -> list[str]:
         seen.add(key)
         result.append(value)
     return result
+
+
+def _split_values(value: object | None) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        flattened: list[str] = []
+        for item in value:
+            flattened.extend(_split_values(item))
+        return _deduplicate(flattened)
+    cleaned = _clean(value)
+    if cleaned is None:
+        return []
+    return _deduplicate(part.strip() for part in _SPLIT_PATTERN.split(cleaned) if part.strip())
 
 
 def _sha256_file(path: Path) -> str:
@@ -194,23 +195,9 @@ class ClinicalCoverageLedger(CatalogModel):
 
 
 _FIELD_ALIASES: dict[str, tuple[str, ...]] = {
-    "official_id": (
-        "id",
-        "officialid",
-        "official_id",
-        "idкр",
-        "ид",
-        "код",
-        "номер",
-    ),
+    "official_id": ("id", "officialid", "official_id", "idкр", "ид", "код", "номер"),
     "title": ("name", "title", "наименование", "название", "наименование кр"),
-    "version_label": (
-        "version",
-        "versionlabel",
-        "version_label",
-        "редакция",
-        "версия",
-    ),
+    "version_label": ("version", "versionlabel", "version_label", "редакция", "версия"),
     "icd10_codes": ("mkb10", "icd10", "icd-10", "мкб-10", "мкб10", "коды мкб-10"),
     "age_categories": (
         "age",
@@ -243,7 +230,7 @@ def _normalized_key(value: str) -> str:
     return re.sub(r"[^0-9a-zа-я]+", "", _normalized(value))
 
 
-def _row_value(row: dict[str, object], field: str) -> object | None:
+def _row_value(row: Mapping[str, object], field: str) -> object | None:
     normalized = {_normalized_key(key): value for key, value in row.items()}
     for alias in _FIELD_ALIASES[field]:
         candidate = normalized.get(_normalized_key(alias))
@@ -252,8 +239,15 @@ def _row_value(row: dict[str, object], field: str) -> object | None:
     return None
 
 
+def _dict_row(value: object, *, location: str) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise ValueError(f"Clinical catalog {location} is not an object.")
+    return {str(key): cast(object, item) for key, item in value.items()}
+
+
 def _load_json_rows(path: Path) -> list[dict[str, object]]:
     payload: object = json.loads(path.read_text(encoding="utf-8-sig"))
+    rows: object
     if isinstance(payload, list):
         rows = payload
     elif isinstance(payload, dict):
@@ -269,23 +263,18 @@ def _load_json_rows(path: Path) -> list[dict[str, object]]:
             raise ValueError("Clinical catalog JSON must contain an array or a known array field.")
     else:
         raise ValueError("Clinical catalog JSON must contain an array or object.")
-    result: list[dict[str, object]] = []
-    for index, row in enumerate(rows):
-        if not isinstance(row, dict):
-            raise ValueError(f"Clinical catalog row {index + 1} is not an object.")
-        result.append({str(key): cast(object, value) for key, value in row.items()})
-    return result
+    return [_dict_row(row, location=f"row {index + 1}") for index, row in enumerate(rows)]
 
 
 def _load_delimited_rows(path: Path) -> list[dict[str, object]]:
     text = path.read_text(encoding="utf-8-sig")
     sample = text[:8192]
+    delimiter = "\t" if path.suffix.lower() == ".tsv" else ";"
     try:
-        dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
+        delimiter = csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
     except csv.Error:
-        dialect = csv.excel
-        dialect.delimiter = ";"
-    reader = csv.DictReader(text.splitlines(), dialect=dialect)
+        pass
+    reader = csv.DictReader(text.splitlines(), delimiter=delimiter)
     if not reader.fieldnames:
         raise ValueError("Clinical catalog table has no header row.")
     return [
@@ -296,18 +285,15 @@ def _load_delimited_rows(path: Path) -> list[dict[str, object]]:
 
 def load_catalog_rows(path: Path) -> list[dict[str, object]]:
     suffix = path.suffix.lower()
-    if suffix in {".json", ".jsonl"}:
-        if suffix == ".jsonl":
-            rows: list[dict[str, object]] = []
-            for line_number, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
-                if not line.strip():
-                    continue
-                payload: object = json.loads(line)
-                if not isinstance(payload, dict):
-                    raise ValueError(f"Clinical catalog JSONL line {line_number} is not an object.")
-                rows.append({str(key): cast(object, value) for key, value in payload.items()})
-            return rows
+    if suffix == ".json":
         return _load_json_rows(path)
+    if suffix == ".jsonl":
+        rows: list[dict[str, object]] = []
+        for line_number, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
+            if not line.strip():
+                continue
+            rows.append(_dict_row(json.loads(line), location=f"JSONL line {line_number}"))
+        return rows
     if suffix in {".csv", ".tsv", ".txt"}:
         return _load_delimited_rows(path)
     raise ValueError(f"Unsupported clinical catalog format: {path.suffix or '<none>'}")
@@ -359,8 +345,7 @@ def _rule_score(
     title_value = _normalized(title)
     developer_value = _normalized(developer or "")
     age_value = " ".join(_normalized(value) for value in age_categories)
-    score = 0
-    score += 20 * sum(_normalized(keyword) in title_value for keyword in rule.title_keywords)
+    score = 20 * sum(_normalized(keyword) in title_value for keyword in rule.title_keywords)
     score += 8 * sum(_normalized(keyword) in developer_value for keyword in rule.developer_keywords)
     score += 30 * sum(
         _icd_prefix_matches(code, prefix)
@@ -394,23 +379,12 @@ def _assign_modules(
         for module in taxonomy.modules
         if not module.fallback
     ]
-    matches = [module for score, module in scored if score > 0]
-    matches.sort(
-        key=lambda module: (
-            -_rule_score(
-                module,
-                title=title,
-                developer=developer,
-                icd10_codes=icd10_codes,
-                age_categories=age_categories,
-            ),
-            -module.priority,
-            module.id,
-        )
-    )
+    matches = [pair for pair in scored if pair[0] > 0]
+    matches.sort(key=lambda pair: (-pair[0], -pair[1].priority, pair[1].id))
     if not matches:
         return [fallback], fallback
-    return matches, matches[0]
+    modules = [module for _score, module in matches]
+    return modules, modules[0]
 
 
 def _safe_record_id(official_id: str) -> str:
@@ -446,7 +420,7 @@ def _normalize_row(
         age_categories=age_categories,
     )
     override = overrides.records.get(official_id)
-    if override?.module_ids:
+    if override is not None and override.module_ids:
         by_id = {module.id: module for module in taxonomy.modules}
         unknown = [module_id for module_id in override.module_ids if module_id not in by_id]
         if unknown:
@@ -462,7 +436,7 @@ def _normalize_row(
         coverage_state = "historical"
     rights: RightsState = "unknown"
     notes: list[str] = []
-    if override:
+    if override is not None:
         coverage_state = override.coverage_state or coverage_state
         rights = override.rights or rights
         source_url = override.source_url or source_url
@@ -527,11 +501,10 @@ def build_clinical_coverage_ledger(
 ) -> ClinicalCoverageLedger:
     taxonomy = load_taxonomy(taxonomy_path)
     overrides = load_overrides(overrides_path)
-    rows = load_catalog_rows(source)
     records: list[ClinicalCatalogRecord] = []
     warnings: list[str] = []
     by_official_id: dict[str, ClinicalCatalogRecord] = {}
-    for index, row in enumerate(rows):
+    for index, row in enumerate(load_catalog_rows(source)):
         try:
             record = _normalize_row(row, taxonomy, overrides)
         except ValueError as error:
