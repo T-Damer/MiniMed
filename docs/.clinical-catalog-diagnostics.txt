@@ -1,0 +1,65 @@
+=== RUFF FORMAT ===
+Would reformat: tools/ingest/src/localmed_ingest/clinical_catalog.py
+Would reformat: tools/ingest/tests/test_clinical_catalog.py
+2 files would be reformatted, 32 files already formatted
+RUFF_FORMAT_EXIT=1
+
+=== RUFF CHECK ===
+SIM105 Use `contextlib.suppress(csv.Error)` instead of `try`-`except`-`pass`
+   --> tools/ingest/src/localmed_ingest/clinical_catalog.py:273:5
+    |
+271 |       sample = text[:8192]
+272 |       delimiter = "\t" if path.suffix.lower() == ".tsv" else ";"
+273 | /     try:
+274 | |         delimiter = csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
+275 | |     except csv.Error:
+276 | |         pass
+    | |____________^
+277 |       reader = csv.DictReader(text.splitlines(), delimiter=delimiter)
+278 |       if not reader.fieldnames:
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(csv.Error): ...`
+
+E501 Line too long (103 > 100)
+   --> tools/ingest/src/localmed_ingest/clinical_catalog.py:428:101
+    |
+426 |         if unknown:
+427 |             raise ValueError(
+428 |                 f"Coverage override for {official_id} references unknown modules: {', '.join(unknown)}"
+    |                                                                                                     ^^^
+429 |             )
+430 |         modules = [by_id[module_id] for module_id in override.module_ids]
+    |
+
+E501 Line too long (101 > 100)
+   --> tools/ingest/src/localmed_ingest/clinical_catalog.py:479:101
+    |
+477 |     result: list[ClinicalModulePlanEntry] = []
+478 |     for rule in sorted(taxonomy.modules, key=lambda item: (-item.priority, item.id)):
+479 |         members = sorted(by_module.get(rule.id, []), key=lambda item: (item.title, item.official_id))
+    |                                                                                                     ^
+480 |         if not members:
+481 |             continue
+    |
+
+E501 Line too long (102 > 100)
+   --> tools/ingest/tests/test_clinical_catalog.py:186:101
+    |
+184 |     assert len(taxonomy.modules) >= 15
+185 |     assert sum(module.fallback for module in taxonomy.modules) == 1
+186 |     assert any(module.id == "minimed.clinical.psychiatry-addiction.ru" for module in taxonomy.modules)
+    |                                                                                                     ^^
+    |
+
+Found 4 errors.
+No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
+RUFF_CHECK_EXIT=1
+
+=== PYRIGHT ===
+0 errors, 0 warnings, 0 informations
+PYRIGHT_EXIT=0
+
+=== PYTEST ===
+....                                                                     [100%]
+4 passed in 0.90s
+PYTEST_EXIT=0
