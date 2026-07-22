@@ -84,7 +84,7 @@ test('filters the document library and opens a document with one click', async (
   await expect(
     page.getByRole('heading', { name: 'Внебольничная пневмония у детей' }),
   ).toBeVisible();
-  await expect(page.getByLabel('Поиск внутри открытого документа')).toBeVisible();
+  await expect(page.getByLabel('Поиск в документе')).toBeVisible();
 });
 
 test('opens only the exact fragment first and expands surrounding source context', async ({
