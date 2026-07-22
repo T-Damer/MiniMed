@@ -12,12 +12,13 @@ import {
   type StagedContentModuleArtifact,
 } from '@localmed/core';
 import {
-  type InstalledModuleRegistry,
   type MedicalStoreMount,
   PersistentInstalledModuleRegistry,
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+
+import { commitRegistryAndArtifactMutation } from './module-registry-transaction';
 
 const DATABASE_NAME = 'minimed-content-modules-v1';
 const DATABASE_VERSION = 1;
@@ -239,16 +240,14 @@ class BrowserModuleBackend implements ContentModuleArtifactBackend {
   public async remove(moduleId: string): Promise<void> {
     const database = await openDatabase();
     try {
-      const pointers = database.transaction(ACTIVE_STORE, 'readwrite');
-      pointers.objectStore(ACTIVE_STORE).delete(moduleId);
-      await transactionDone(pointers);
-      const versions = database.transaction(VERSIONS_STORE, 'readwrite');
-      const store = versions.objectStore(VERSIONS_STORE);
+      const transaction = database.transaction([VERSIONS_STORE, ACTIVE_STORE], 'readwrite');
+      transaction.objectStore(ACTIVE_STORE).delete(moduleId);
+      const store = transaction.objectStore(VERSIONS_STORE);
       const keys = await requestResult(store.getAllKeys());
       for (const key of keys) {
         if (String(key).startsWith(`${moduleId}@`)) store.delete(key);
       }
-      await transactionDone(versions);
+      await transactionDone(transaction);
     } finally {
       database.close();
     }
@@ -332,7 +331,7 @@ function createRegistry(): PersistentInstalledModuleRegistry {
 }
 
 export class BrowserContentModuleRuntime {
-  private readonly registry: InstalledModuleRegistry;
+  private readonly registry: PersistentInstalledModuleRegistry;
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
 
@@ -373,14 +372,19 @@ export class BrowserContentModuleRuntime {
   }
 
   public async remove(moduleId: string): Promise<void> {
-    this.registry.remove(moduleId);
-    await this.backend.remove(moduleId);
+    await commitRegistryAndArtifactMutation(
+      this.registry,
+      () => this.registry.remove(moduleId),
+      () => this.backend.remove(moduleId),
+    );
   }
 
   public async rollback(moduleId: string): Promise<InstalledContentModule> {
-    const installed = this.registry.rollback(moduleId);
-    await this.backend.setActive(moduleId, installed.version);
-    return installed;
+    return commitRegistryAndArtifactMutation(
+      this.registry,
+      () => this.registry.rollback(moduleId),
+      (installed) => this.backend.setActive(moduleId, installed.version),
+    );
   }
 }
 

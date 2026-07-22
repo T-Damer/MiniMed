@@ -432,6 +432,19 @@ export class PersistentInstalledModuleRegistry implements InstalledModuleRegistr
     return this.registry.snapshot();
   }
 
+  public restoreSnapshot(snapshot: InstalledModuleRegistrySnapshot): void {
+    const previous = this.registry;
+    this.registry = InMemoryInstalledModuleRegistry.fromSnapshot(snapshot);
+    try {
+      this.persistence.save(this.registry.snapshot());
+    } catch (cause) {
+      this.registry = previous;
+      throw new Error('Unable to persist installed-module registry snapshot restoration.', {
+        cause,
+      });
+    }
+  }
+
   private commit<T>(mutation: () => T): T {
     const previous = this.registry.snapshot();
     const result = mutation();

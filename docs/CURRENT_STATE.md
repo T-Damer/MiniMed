@@ -51,6 +51,9 @@ module availability is shown only through a passive counter and the Modules page
   SQLite files; cross-store lexical results use reciprocal-rank fusion.
 - A persistent installed-module registry stores validated active versions, rollback history, enabled and
   update state, immutable source-set identity, and transactional recovery across application restarts.
+- Browser/Android-WebView module storage removes active pointers and version bytes atomically; failed
+  physical rollback or removal restores the previous persistent registry snapshot instead of leaving
+  metadata and SQLite artifacts inconsistent.
 - The canonical module catalog is bundled as JSON and can refresh from GitHub with ETag/Last-Modified,
   validated local cache, and bundled fallback; invalid remote content never replaces valid local data.
 - A portable foreground installer returns an asynchronous task immediately, verifies compatibility,
