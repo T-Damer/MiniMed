@@ -283,7 +283,8 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                             <>
                               <span>Версия {installedModuleValue().version}</span>
                               <span>
-                                На устройстве {formatBytes(installedModuleValue().installedSizeBytes)}
+                                На устройстве{' '}
+                                {formatBytes(installedModuleValue().installedSizeBytes)}
                               </span>
                               <span>{installedValidationLabel(installedModuleValue())}</span>
                             </>
