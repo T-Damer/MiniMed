@@ -31,9 +31,7 @@ function publicBranch(branch: LexicalQueryBranchPlan): QueryBranch {
   return value;
 }
 
-function sanitizeDiagnosticBranches(
-  plan: ClinicalQueryPlan,
-): readonly LexicalQueryBranchPlan[] {
+function sanitizeDiagnosticBranches(plan: ClinicalQueryPlan): readonly LexicalQueryBranchPlan[] {
   const excluded = medicationTerms(plan);
   if (excluded.size === 0) return plan.branches;
 
