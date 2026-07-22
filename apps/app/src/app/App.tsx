@@ -5,8 +5,8 @@ import { AppGlyph, type AppGlyphName } from '../components/AppGlyph';
 import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
 import {
-  initializeMedicalCore,
   type InitializedMedicalCore,
+  initializeMedicalCore,
   replaceMedicalCore,
 } from '../composition/medical-core-lifecycle';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
@@ -57,11 +57,11 @@ function environmentFlag(name: string, fallback: boolean): boolean {
 }
 
 function createLocalModelController(): LocalModelController {
-  const configuredCatalogUrl = import.meta.env['VITE_LOCAL_MODEL_CATALOG_URL']?.trim();
+  const configuredCatalogUrl = import.meta.env.VITE_LOCAL_MODEL_CATALOG_URL?.trim();
   const remoteCatalogUrl =
     configuredCatalogUrl === 'bundled' ? '' : configuredCatalogUrl || DEFAULT_MODEL_CATALOG_URL;
   const mirrorBaseUrl =
-    import.meta.env['VITE_LOCAL_MODEL_ASSET_BASE_URL']?.trim() || DEFAULT_MODEL_ASSET_BASE_URL;
+    import.meta.env.VITE_LOCAL_MODEL_ASSET_BASE_URL?.trim() || DEFAULT_MODEL_ASSET_BASE_URL;
   return new LocalModelController({
     remoteCatalogUrl,
     mirrorBaseUrl,
