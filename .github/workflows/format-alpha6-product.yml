@@ -2,7 +2,9 @@ name: Format and verify MiniMed alpha 6 product branch
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - agent/content-module-installer
     paths:
       - .github/workflows/format-alpha6-product.yml
   issues:
@@ -13,12 +15,12 @@ permissions:
   issues: write
 
 concurrency:
-  group: format-alpha6-product
+  group: format-alpha6-product-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   format:
-    if: github.event_name == 'push' || (github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Format MiniMed alpha 6 product')
+    if: (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'issues' && github.event.issue.user.login == 'T-Damer' && github.event.issue.title == '[ci] Format MiniMed alpha 6 product')
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     steps:
@@ -133,3 +135,178 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment 'Alpha.6 product branch formatted and fully verified.'
+
+  finish-032:
+    if: github.event_name == 'push' && github.ref_name == 'agent/content-module-installer'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/content-module-installer
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Isolate current therapy from diagnostic branches
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              if old not in text:
+                  raise SystemExit(f'missing target: {label}')
+              return text.replace(old, new, 1)
+
+          path = Path('packages/search-lexical/src/analysis.ts')
+          text = path.read_text(encoding='utf-8')
+          text = replace_once(
+              text,
+              """  const negativeTerms = termsInsideNegativeFacts(facts);
+          const originalTerms = termsWithStems([normalizedQuery]);
+          const positiveTerms = originalTerms.filter((term) => !negativeTerms.has(term));
+          const negativeRanges = facts
+          """,
+              """  const negativeTerms = termsInsideNegativeFacts(facts);
+          const medicationTerms = new Set(
+            facts
+              .filter((fact) => fact.kind === 'medication')
+              .flatMap((fact) => termsWithStems([fact.value, fact.normalizedValue])),
+          );
+          const originalTerms = termsWithStems([normalizedQuery]);
+          const positiveTerms = originalTerms.filter(
+            (term) => !negativeTerms.has(term) && !medicationTerms.has(term),
+          );
+          const negativeRanges = facts
+          """,
+              'medication term set',
+          )
+          text = replace_once(
+              text,
+              """    expansion.matchedAliases
+                .filter((alias) => {
+                  const index = normalizedQuery.indexOf(normalizeSurfaceText(alias.alias));
+          """,
+              """    expansion.matchedAliases
+                .filter((alias) => {
+                  if (alias.category === 'medication') return false;
+                  const index = normalizedQuery.indexOf(normalizeSurfaceText(alias.alias));
+          """,
+              'medication aliases',
+          )
+          text = replace_once(
+              text,
+              """  const intentSpec = INTENT_BRANCH[intent.primary];
+            if (intent.primary !== 'unknown') {
+              const branch = makeBranch(
+                'intent',
+                'intent',
+                intentSpec.label,
+                query,
+                [normalizedQuery, intentSpec.terms],
+                intentSpec.weight,
+              );
+          """,
+              """  const intentSpec = INTENT_BRANCH[intent.primary];
+            if (intent.primary !== 'unknown') {
+              const intentQuery =
+                intent.primary === 'medication' ? normalizedQuery : positiveTerms.join(' ');
+              const branch = makeBranch(
+                'intent',
+                'intent',
+                intentSpec.label,
+                query,
+                [intentQuery, intentSpec.terms],
+                intentSpec.weight,
+              );
+          """,
+              'intent sanitization',
+          )
+          text = replace_once(
+              text,
+              """      if (/^(?:без|нет|отрицает|не\s+)/u.test(clauseNormalized)) continue;
+                const branch = makeBranch(
+          """,
+              """      if (
+                  /^(?:без|нет|отрицает|не\s+)/u.test(clauseNormalized) ||
+                  /(?:принимает|получает|назначен[а-я]*|терапия)/u.test(clauseNormalized)
+                ) {
+                  continue;
+                }
+                const branch = makeBranch(
+          """,
+              'therapy clauses',
+          )
+          text = text.replace(
+              "[normalizedQuery, 'дифференциальная диагностика отличия критерии']",
+              "[positiveTerms.join(' '), 'дифференциальная диагностика отличия критерии']",
+              1,
+          )
+          text = text.replace(
+              "[normalizedQuery, 'диагностика обследование лабораторная инструментальная']",
+              "[positiveTerms.join(' '), 'диагностика обследование лабораторная инструментальная']",
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
+
+          path = Path('packages/search-lexical/tests/query.test.ts')
+          text = path.read_text(encoding='utf-8')
+          title = 'keeps current medication out of diagnostic branches'
+          if title not in text:
+              test = r"""
+
+            it('keeps current medication out of diagnostic branches', () => {
+              const plan = analyzeClinicalQuery(
+                'Мальчик 5 лет, температура 39,2, часто дышит, кашля нет, принимает аугментин',
+                aliases,
+              );
+              const diagnosticBranches = plan.branches.filter(
+                (branch) => branch.id !== 'medications' && branch.kind !== 'medication',
+              );
+              const medication = plan.branches.find((branch) => branch.id === 'medications');
+              expect(diagnosticBranches.flatMap((branch) => branch.terms)).not.toContain('аугментин');
+              expect(diagnosticBranches.flatMap((branch) => branch.terms)).not.toContain('амоксициллин');
+              expect(medication?.terms).toEqual(
+                expect.arrayContaining(['аугментин', 'амоксициллин']),
+              );
+              expect(plan.branches.find((branch) => branch.id === 'clinical')?.terms).toContain('тахипноэ');
+            });
+          """
+              text = text.rstrip()
+              if not text.endswith('});'):
+                  raise SystemExit('unexpected query test ending')
+              text = text[:-3] + test + '\n});\n'
+              path.write_text(text, encoding='utf-8')
+
+          path = Path('apps/app/e2e/search.spec.ts')
+          text = path.read_text(encoding='utf-8').replace(
+              "toContainText('Диагностика')",
+              "toContainText('Клиническая картина')",
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+      - run: pnpm exec biome check --write packages/search-lexical/src/analysis.ts packages/search-lexical/tests/query.test.ts apps/app/e2e/search.spec.ts
+      - run: pnpm --filter @localmed/search-lexical test
+      - run: pnpm benchmark:cases
+      - run: pnpm build:app && pnpm exec playwright test
+      - name: Restore workflow and remove temporary diagnostics
+        run: |
+          git show origin/main:.github/workflows/format-alpha6-product.yml > .github/workflows/format-alpha6-product.yml
+          rm -f \
+            .github/workflows/diagnose-032-benchmarks.yml \
+            .github/workflows/fix-medication-context-ranking.yml
+      - name: Commit verified fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(search): separate current therapy from diagnosis'
+          git push origin HEAD:agent/content-module-installer
