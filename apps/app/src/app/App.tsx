@@ -6,6 +6,7 @@ import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
+import { refreshContentModuleCatalog } from '../features/modules/catalog-service';
 import { ModuleCatalogView } from '../features/modules/ModuleCatalogView';
 import { SearchWorkspace } from '../features/search/SearchWorkspace';
 import { StatusPanel } from '../features/status/StatusPanel';
@@ -24,7 +25,7 @@ const VIEWS: readonly {
   readonly icon: AppGlyphName;
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
-  { id: 'documents', label: 'Архив и граф', icon: 'archive' },
+  { id: 'documents', label: 'Архив и карта', icon: 'archive' },
   { id: 'modules', label: 'Модули знаний', icon: 'modules' },
   { id: 'history', label: 'История', icon: 'history' },
   { id: 'status', label: 'Система', icon: 'system' },
@@ -35,23 +36,36 @@ function viewFromLocation(): View {
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
 }
 
+function availableModuleCount(modules: readonly { releaseState: string }[]): number {
+  return modules.filter((module) => module.releaseState === 'published').length;
+}
+
 export function App(): JSX.Element {
   const [view, setView] = createSignal<View>(viewFromLocation());
   const [ready, setReady] = createSignal<ReadyState>();
   const [error, setError] = createSignal<string>();
+  const [moduleUpdateCount, setModuleUpdateCount] = createSignal(0);
+  const [showScrollTop, setShowScrollTop] = createSignal(false);
   let coreToClose: MedicalCore | undefined;
 
   const navigate = (next: View): void => {
     setView(next);
+    if (next === 'modules') setModuleUpdateCount(0);
     window.history.replaceState({ view: next }, '', `#/${next}`);
   };
 
   const handleHashChange = (): void => {
-    setView(viewFromLocation());
+    const next = viewFromLocation();
+    setView(next);
+    if (next === 'modules') setModuleUpdateCount(0);
   };
+
+  const handleScroll = (): void => setShowScrollTop(window.scrollY > 560);
 
   onMount(async () => {
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     try {
       const core = await createBrowserCore();
       coreToClose = core;
@@ -61,6 +75,11 @@ export function App(): JSX.Element {
         return;
       }
       setReady({ core, status: initialized.value });
+      void refreshContentModuleCatalog()
+        .then((result) => {
+          if (view() !== 'modules') setModuleUpdateCount(availableModuleCount(result.catalog.modules));
+        })
+        .catch(() => undefined);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось запустить локальное ядро.');
     }
@@ -68,6 +87,7 @@ export function App(): JSX.Element {
 
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
+    window.removeEventListener('scroll', handleScroll);
     if (coreToClose) void coreToClose.close();
   });
 
@@ -93,6 +113,11 @@ export function App(): JSX.Element {
               onClick={() => navigate(item.id)}
             >
               <AppGlyph name={item.icon} />
+              <Show when={item.id === 'modules' && moduleUpdateCount() > 0}>
+                <span class="app-nav-badge" aria-label={`Обновлений модулей: ${moduleUpdateCount()}`}>
+                  {moduleUpdateCount() > 9 ? '9+' : moduleUpdateCount()}
+                </span>
+              </Show>
             </button>
           ))}
         </nav>
@@ -142,7 +167,13 @@ export function App(): JSX.Element {
               hidden={view() !== 'modules'}
               aria-hidden={view() !== 'modules'}
             >
-              <ModuleCatalogView status={state().status} active={view() === 'modules'} />
+              <ModuleCatalogView
+                status={state().status}
+                active={view() === 'modules'}
+                onAvailableUpdates={(count) => {
+                  if (view() !== 'modules') setModuleUpdateCount(count);
+                }}
+              />
             </section>
             <section
               class="app-view"
@@ -165,6 +196,17 @@ export function App(): JSX.Element {
             </section>
           </main>
         )}
+      </Show>
+
+      <Show when={showScrollTop()}>
+        <button
+          class="scroll-top-button"
+          type="button"
+          aria-label="Вернуться наверх"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          <AppGlyph name="arrow-up" />
+        </button>
       </Show>
     </div>
   );
