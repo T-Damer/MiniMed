@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseLocalModelCatalog } from './catalog';
 import rawCatalog from './catalog.preview.json';
-import { rankLocalModels, selectLocalModel } from './selection';
+import { buildLocalModelLoadPlan, rankLocalModels, selectLocalModel } from './selection';
 import type { LocalModelDeviceProfile, LocalModelPreference } from './types';
 
 const catalog = parseLocalModelCatalog(rawCatalog);
@@ -55,6 +55,20 @@ describe('local model selection', () => {
     expect(selected?.model.id).toBe('qvikhr-3-1.7b-q4');
   });
 
+  it('builds an automatic plan with a genuinely smaller fallback', () => {
+    const plan = buildLocalModelLoadPlan({
+      models: catalog.models,
+      profile: profile(8),
+      preference: preference(),
+      availableRuntimes: runtimes,
+    });
+    expect(plan.map((candidate) => candidate.model.id)).toEqual([
+      'qvikhr-3-1.7b-q4',
+      'vikhr-qwen2.5-0.5b-q4',
+    ]);
+    expect(plan[1]?.artifact.downloadBytes).toBeLessThan(plan[0]?.artifact.downloadBytes ?? 0);
+  });
+
   it('keeps Gemma available after its terms were accepted', () => {
     const selected = selectLocalModel({
       models: catalog.models,
@@ -69,8 +83,8 @@ describe('local model selection', () => {
     expect(selected?.model.id).toBe('gemma3-1b-it-q4');
   });
 
-  it('keeps generic Qwen as a manual comparison model', () => {
-    const selected = selectLocalModel({
+  it('loads a manual override first instead of the automatic winner', () => {
+    const plan = buildLocalModelLoadPlan({
       models: catalog.models,
       profile: profile(12),
       preference: preference({
@@ -79,7 +93,8 @@ describe('local model selection', () => {
       }),
       availableRuntimes: runtimes,
     });
-    expect(selected?.model.id).toBe('qwen3-1.7b-q8');
+    expect(plan[0]?.model.id).toBe('qwen3-1.7b-q8');
+    expect(plan[1]?.artifact.downloadBytes).toBeLessThan(plan[0]?.artifact.downloadBytes ?? 0);
   });
 
   it('honors a compact manual model override when the artifact is compatible', () => {
