@@ -48,6 +48,8 @@
 }
 
 .result-group-header {
+  display: block;
+  min-height: 0;
   padding: 12px 14px;
 }
 
