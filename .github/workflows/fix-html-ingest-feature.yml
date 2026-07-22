@@ -37,9 +37,7 @@ jobs:
           enable-cache: true
       - run: uv sync --project tools/ingest --all-groups --locked
       - name: Format Python ingestion
-        run: |
-          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
+        run: uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
       - name: Publish formatting and downloader fix
         shell: bash
         run: |
@@ -47,7 +45,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add tools/ingest/src tools/ingest/tests
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'fix(ingest): validate full recommendation HTML'
+          git commit -m 'fix(ingest): format full recommendation HTML'
           git push origin HEAD:agent/doctor-datasets-model-diagnostics
       - name: Validate Python ingestion
         run: |
