@@ -66,6 +66,20 @@ function capabilityLabels(module: ContentModuleCatalogEntry): readonly string[] 
   return labels;
 }
 
+function installedValidationLabel(installed: InstalledContentModule): string {
+  const validation = installed.lastValidation;
+  if (!validation) return 'Проверка установки не записана';
+  if (
+    validation.valid &&
+    validation.checksumValid &&
+    validation.schemaCompatible &&
+    validation.sqliteIntegrity === 'ok'
+  ) {
+    return 'SHA-256 и SQLite проверены';
+  }
+  return validation.message;
+}
+
 function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter((module) => module.releaseState === 'published').length;
 }
@@ -261,7 +275,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <span>
                           {module.previewDocumentCount || module.documents.length || '—'} документов
                         </span>
-                        <span>{formatBytes(module.sizes.downloadBytes)}</span>
+                        <Show
+                          when={installedValue()}
+                          fallback={<span>{formatBytes(module.sizes.downloadBytes)}</span>}
+                        >
+                          {(installedModuleValue) => (
+                            <>
+                              <span>Версия {installedModuleValue().version}</span>
+                              <span>
+                                На устройстве {formatBytes(installedModuleValue().installedSizeBytes)}
+                              </span>
+                              <span>{installedValidationLabel(installedModuleValue())}</span>
+                            </>
+                          )}
+                        </Show>
                       </div>
                       <div class="module-capabilities">
                         <For each={capabilityLabels(module)}>{(label) => <span>{label}</span>}</For>
