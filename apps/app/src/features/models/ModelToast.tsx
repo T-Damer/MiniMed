@@ -35,6 +35,7 @@ export function ModelToast(props: ModelToastProps): JSX.Element {
     `${state().phase}:${state().activeModelId ?? ''}:${state().error ?? ''}`;
   const visible = (): boolean =>
     VISIBLE_PHASES.has(state().phase) && dismissedSignature() !== signature();
+  const progressPercent = (): number => Math.round((state().progress ?? 0) * 100);
 
   return (
     <Show when={visible()}>
@@ -60,8 +61,15 @@ export function ModelToast(props: ModelToastProps): JSX.Element {
           </strong>
           <span>{state().message}</span>
           <Show when={state().progress !== null}>
-            <div class="local-model-progress" aria-label="Прогресс загрузки">
-              <i style={{ width: `${Math.round((state().progress ?? 0) * 100)}%` }} />
+            <div
+              class="local-model-progress"
+              role="progressbar"
+              aria-label="Прогресс загрузки"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={progressPercent()}
+            >
+              <i style={{ width: `${progressPercent()}%` }} />
             </div>
           </Show>
           <Show when={state().error && state().phase !== 'error'}>
