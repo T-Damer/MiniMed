@@ -19,10 +19,7 @@ describe('local model catalog', () => {
   it('includes Russian-first Apache-licensed candidates', () => {
     const catalog = parseLocalModelCatalog(rawCatalog);
     const russian = catalog.models.filter((model) => model.family.includes('vikhr'));
-    expect(russian.map((model) => model.id)).toEqual([
-      'vikhr-qwen2.5-0.5b-q4',
-      'qvikhr-3-1.7b-q4',
-    ]);
+    expect(russian.map((model) => model.id)).toEqual(['vikhr-qwen2.5-0.5b-q4', 'qvikhr-3-1.7b-q4']);
     expect(russian.every((model) => model.license.id === 'apache-2.0')).toBe(true);
     expect(russian.every((model) => model.russianPriority >= 99)).toBe(true);
   });
@@ -44,9 +41,6 @@ describe('local model catalog', () => {
   it('keeps license acceptance explicit for gated families', () => {
     const catalog = parseLocalModelCatalog(rawCatalog);
     const gated = catalog.models.filter((model) => model.license.requiresAcceptance);
-    expect(gated.map((model) => model.id)).toEqual([
-      'gemma3-1b-it-q4',
-      'llama-3.2-3b-instruct-q4',
-    ]);
+    expect(gated.map((model) => model.id)).toEqual(['gemma3-1b-it-q4', 'llama-3.2-3b-instruct-q4']);
   });
 });
