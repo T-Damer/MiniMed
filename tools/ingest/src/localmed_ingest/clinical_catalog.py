@@ -422,7 +422,8 @@ def _normalize_row(
         unknown = [module_id for module_id in override.module_ids if module_id not in by_id]
         if unknown:
             raise ValueError(
-                f"Coverage override for {official_id} references unknown modules: {', '.join(unknown)}"
+                f"Coverage override for {official_id} references unknown modules: "
+                f"{', '.join(unknown)}"
             )
         modules = [by_id[module_id] for module_id in override.module_ids]
         primary = modules[0]
