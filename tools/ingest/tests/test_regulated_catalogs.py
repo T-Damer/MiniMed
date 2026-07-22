@@ -64,7 +64,9 @@ def test_medication_ledger_preserves_registration_identity_and_atc_modules(
     )
 
     assert ledger.summary.total_records == 3
-    antibiotic = next(record for record in ledger.records if record.registration_number == "ЛП-000001")
+    antibiotic = next(
+        record for record in ledger.records if record.registration_number == "ЛП-000001"
+    )
     assert antibiotic.primary_module_id == "minimed.medications.antiinfectives.ru"
     assert antibiotic.inn == ["амоксициллин"]
     assert antibiotic.strengths == ["500 мг"]
@@ -179,7 +181,9 @@ def test_official_legal_collector_paginates_deduplicates_and_categorizes(
         pages = 2 if query_id == "medical-care" else 1
         return {
             "items": rows,
-            "itemsTotalCount": sum(len(value) for key, value in items.items() if key[0] == query_id),
+            "itemsTotalCount": sum(
+                len(value) for key, value in items.items() if key[0] == query_id
+            ),
             "itemsPerPage": 200,
             "currentPage": page,
             "pagesTotalCount": pages,
@@ -205,8 +209,6 @@ def test_official_legal_collector_paginates_deduplicates_and_categorizes(
     medicines = next(record for record in ledger.records if record.eo_number == "0001202601030003")
     assert medicines.primary_module_id == "minimed.regulatory.medicines-pharmacy.ru"
     assert medicines.document_type == "Приказ"
-    assert medicines.signatory_authorities == [
-        "Министерство здравоохранения Российской Федерации"
-    ]
+    assert medicines.signatory_authorities == ["Министерство здравоохранения Российской Федерации"]
     assert output.is_file()
     assert raw_output.is_file()

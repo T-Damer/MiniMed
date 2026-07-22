@@ -335,7 +335,9 @@ def collect_legal_catalog(
                 document_id = _clean(item.get("id"))
                 title = _clean(item.get("title")) or _clean(item.get("complexName"))
                 if eo_number is None or document_id is None or title is None:
-                    warnings.append(f"{query.id} page {page}: skipped item without id, eoNumber or title")
+                    warnings.append(
+                        f"{query.id} page {page}: skipped item without id, eoNumber or title"
+                    )
                     continue
                 query_counts[query.id] += 1
                 existing = records_by_eo.get(eo_number)
@@ -347,7 +349,9 @@ def collect_legal_catalog(
                 if include_details:
                     detail_payload = transport(_detail_api_url(config, eo_number), timeout_seconds)
                     if isinstance(detail_payload, dict):
-                        detail = {str(key): cast(object, value) for key, value in detail_payload.items()}
+                        detail = {
+                            str(key): cast(object, value) for key, value in detail_payload.items()
+                        }
                     else:
                         warnings.append(f"{eo_number}: detail response was not an object")
                 authorities = _authorities(detail)
@@ -374,7 +378,9 @@ def collect_legal_catalog(
                     publish_date=_clean(item.get("publishDateShort")),
                     justice_registration_number=_clean(item.get("jdRegNumber")),
                     justice_registration_date=_clean(item.get("jdRegDate")),
-                    pages_count=item.get("pagesCount") if isinstance(item.get("pagesCount"), int) else None,
+                    pages_count=item.get("pagesCount")
+                    if isinstance(item.get("pagesCount"), int)
+                    else None,
                     pdf_bytes=item.get("pdfFileLength")
                     if isinstance(item.get("pdfFileLength"), int)
                     else None,
