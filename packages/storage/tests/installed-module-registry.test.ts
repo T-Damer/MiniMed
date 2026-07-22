@@ -149,9 +149,9 @@ describe('InMemoryInstalledModuleRegistry', () => {
   it('rejects malformed source-set digests before activation', () => {
     const registry = new InMemoryInstalledModuleRegistry();
 
-    expect(() => registry.activate(installation('1', { sourceSetDigest: 'sha256:invalid' }))).toThrow(
-      'valid SHA-256 source-set digest',
-    );
+    expect(() =>
+      registry.activate(installation('1', { sourceSetDigest: 'sha256:invalid' })),
+    ).toThrow('valid SHA-256 source-set digest');
     expect(registry.list()).toEqual([]);
   });
 
