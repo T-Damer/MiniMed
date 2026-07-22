@@ -1,0 +1,82 @@
+name: Local model CPU smoke
+
+on:
+  schedule:
+    - cron: '23 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-model-cpu-smoke
+  cancel-in-progress: false
+
+jobs:
+  compact-models:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: vikhr-qwen2.5-0.5b-q4
+            name: Vikhr Qwen 2.5 0.5B
+            file: vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf
+            url: https://huggingface.co/Vikhrmodels/Vikhr-Qwen-2.5-0.5B-instruct-GGUF/resolve/a2bc2797ec4dd39dd99f20a92f7a05a71c8122bf/Vikhr-Qwen-2.5-0.5B-instruct-Q4_K_M.gguf
+            sha256: 8f45f00da2bcd70205461639e978db7c8245e205c8604cfe2ab7f5430506bf32
+          - id: qwen3-0.6b-q8
+            name: Qwen3 0.6B
+            file: qwen3-0.6b-q8_0.gguf
+            url: https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf
+            sha256: 9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .cache/local-model-smoke
+          key: local-model-smoke-${{ matrix.sha256 }}
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Download and verify model artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .cache/local-model-smoke apps/app/public/models
+          target=.cache/local-model-smoke/${{ matrix.file }}
+          if [ ! -f "$target" ]; then
+            curl --fail --location --retry 4 --retry-all-errors '${{ matrix.url }}' --output "$target"
+          fi
+          echo '${{ matrix.sha256 }}  '"$target" | sha256sum --check
+          cp "$target" apps/app/public/models/${{ matrix.file }}
+      - name: Build model-smoke application
+        env:
+          VITE_LOCAL_MODEL_CATALOG_URL: bundled
+          VITE_LOCAL_MODEL_ASSET_BASE_URL: https://localmed-assets.example.com/models
+          VITE_LOCAL_MODEL_ALLOW_UPSTREAM: 'false'
+          VITE_LOCAL_MODEL_AUTOLOAD: 'true'
+          VITE_LOCAL_MODEL_ALLOW_AUTOMATION_DOWNLOADS: 'true'
+        run: pnpm build:app
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium --with-deps
+      - name: Run real model load and structured-output probe
+        env:
+          LOCAL_MODEL_SMOKE: '1'
+          LOCAL_MODEL_ID: ${{ matrix.id }}
+          LOCAL_MODEL_NAME: ${{ matrix.name }}
+        run: pnpm exec playwright test apps/app/e2e/local-model-smoke.spec.ts --project=chromium --workers=1
+      - name: Upload Playwright evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-model-smoke-${{ matrix.id }}
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
