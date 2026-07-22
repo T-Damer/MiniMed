@@ -1,0 +1,53 @@
+name: Fix HTML ingestion feature
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-validate:
+    if: github.event.pull_request.head.ref == 'agent/doctor-datasets-model-diagnostics'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/doctor-datasets-model-diagnostics
+          fetch-depth: 0
+      - name: Accept full HTML recommendation sources
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/ingest/src/localmed_ingest/source_sync.py')
+          text = path.read_text(encoding='utf-8')
+          before = '"Accept": "application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",'
+          after = '"Accept": "text/html,application/xhtml+xml,application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",'
+          if before not in text and after not in text:
+              raise SystemExit('Expected source-sync Accept header was not found.')
+          path.write_text(text.replace(before, after), encoding='utf-8')
+          PY
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Format and validate Python ingestion
+        run: |
+          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests
+      - name: Publish fixes
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ingest/src tools/ingest/tests
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'fix(ingest): validate full recommendation HTML'
+          git push origin HEAD:agent/doctor-datasets-model-diagnostics
