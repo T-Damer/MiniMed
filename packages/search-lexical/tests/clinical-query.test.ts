@@ -29,7 +29,10 @@ describe('clinical query retrieval sanitation', () => {
     expect(plan.analysis.intent.primary).toBe('diagnosis');
     expect(plan.analysis.facts).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: 'medication', normalizedValue: 'амоксициллин клавулановая кислота' }),
+        expect.objectContaining({
+          kind: 'medication',
+          normalizedValue: 'амоксициллин клавулановая кислота',
+        }),
       ]),
     );
     expect(plan.branches.some((branch) => branch.kind === 'medication')).toBe(false);
