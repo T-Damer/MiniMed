@@ -10,8 +10,6 @@ from typing import Literal
 import yaml
 
 from .html_import import extract_html
-from .html_import import extract_html
-from .html_import import extract_html
 from .models import (
     ExtractedBlock,
     ExtractedSource,
@@ -43,7 +41,9 @@ def _resolve_source_path(source_root: Path, relative_path: str) -> Path:
     return candidate
 
 
-def _source_format(source: RegistrySource, path: Path) -> Literal["pdf", "text", "markdown", "html"]:
+def _source_format(
+    source: RegistrySource, path: Path
+) -> Literal["pdf", "text", "markdown", "html"]:
     if source.format != "auto":
         return source.format
     suffix = path.suffix.lower()
@@ -51,10 +51,6 @@ def _source_format(source: RegistrySource, path: Path) -> Literal["pdf", "text",
         return "pdf"
     if suffix in {".md", ".markdown"}:
         return "markdown"
-    if suffix in {".html", ".htm"}:
-        return "html"
-    if suffix in {".html", ".htm"}:
-        return "html"
     if suffix in {".html", ".htm"}:
         return "html"
     if suffix in {".txt", ".text"}:
