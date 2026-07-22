@@ -23,17 +23,19 @@ function parseRequest(value: unknown): OpenDocumentRequest | null {
 }
 
 export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Element {
-  const [document, setDocument] = createSignal<MedicalDocument>();
+  const [selectedDocument, setSelectedDocument] = createSignal<MedicalDocument>();
   const [anchor, setAnchor] = createSignal<string | null>(null);
 
   const open = async (request: OpenDocumentRequest): Promise<void> => {
     const result = await props.core.getDocument(request.documentId);
     if (!result.ok) return;
     setAnchor(request.anchor ?? null);
-    setDocument(result.value);
+    setSelectedDocument(result.value);
     if (request.anchor) {
       requestAnimationFrame(() => {
-        document.getElementById(request.anchor ?? '')?.scrollIntoView({ block: 'center' });
+        window.document
+          .getElementById(request.anchor ?? '')
+          ?.scrollIntoView({ block: 'center' });
       });
     }
   };
@@ -48,10 +50,10 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
 
   return (
     <DocumentReaderDialog
-      document={document()}
+      document={selectedDocument()}
       initialAnchor={anchor()}
       onClose={() => {
-        setDocument(undefined);
+        setSelectedDocument(undefined);
         setAnchor(null);
       }}
     />
