@@ -17,19 +17,45 @@ jobs:
         with:
           ref: agent/doctor-datasets-model-diagnostics
           fetch-depth: 0
-      - name: Accept full HTML recommendation sources
+      - name: Harden full HTML recommendation synchronization
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
-          path = Path('tools/ingest/src/localmed_ingest/source_sync.py')
-          text = path.read_text(encoding='utf-8')
-          before = '"Accept": "application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",'
-          after = '"Accept": "text/html,application/xhtml+xml,application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",'
-          if before not in text and after not in text:
+          sync_path = Path('tools/ingest/src/localmed_ingest/source_sync.py')
+          text = sync_path.read_text(encoding='utf-8')
+          original = '"Accept": "application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",'
+          long_html = '"Accept": "text/html,application/xhtml+xml,application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",'
+          formatted_html = '''"Accept": (
+                          "text/html,application/xhtml+xml,application/pdf,"
+                          "text/plain,text/markdown,application/octet-stream;q=0.8"
+                      ),'''
+          if original in text:
+              text = text.replace(original, formatted_html)
+          elif long_html in text:
+              text = text.replace(long_html, formatted_html)
+          elif formatted_html not in text:
               raise SystemExit('Expected source-sync Accept header was not found.')
-          path.write_text(text.replace(before, after), encoding='utf-8')
+          sync_path.write_text(text, encoding='utf-8')
+
+          cli_path = Path('tools/ingest/src/localmed_ingest/cli.py')
+          cli = cli_path.read_text(encoding='utf-8')
+          old_timeout = 'timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,'
+          new_timeout = 'timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,'
+          if old_timeout in cli:
+              cli = cli.replace(old_timeout, new_timeout, 1)
+          elif new_timeout not in cli:
+              raise SystemExit('Expected sync timeout declaration was not found.')
+          cli_path.write_text(cli, encoding='utf-8')
+
+          test_path = Path('tools/ingest/tests/test_html_import.py')
+          test = test_path.read_text(encoding='utf-8')
+          long_text = '"Рекомендовано проводить клиническую оценку пациента, учитывать возраст, тяжесть состояния, "'
+          split_text = '"Рекомендовано проводить клиническую оценку пациента, учитывать возраст, "\n            "тяжесть состояния, "'
+          if long_text in test:
+              test = test.replace(long_text, split_text)
+          test_path.write_text(test, encoding='utf-8')
           PY
       - uses: astral-sh/setup-uv@v6
         with:
