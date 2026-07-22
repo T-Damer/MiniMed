@@ -1,0 +1,347 @@
+schemaVersion: 1
+modules:
+  - id: minimed.clinical.emergency-critical.ru
+    title: Неотложная помощь и интенсивная терапия
+    priority: 120
+    titleKeywords:
+      - неотлож
+      - экстрен
+      - интенсивн
+      - реанимац
+      - шок
+      - сепсис
+      - остановка сердца
+      - отравлен
+    icd10Prefixes: [R57, R65, T36, T37, T38, T39, T40, T41, T42, T43, T44, T45, T46, T47, T48, T49, T50, T51, T52, T53, T54, T55, T56, T57, T58, T59, T60, T61, T62, T63, T64, T65, T66, T67, T68, T69, T70, T71, T75, T78]
+    specialties: [emergency-medicine, intensive-care, toxicology]
+
+  - id: minimed.clinical.infectious.ru
+    title: Инфекционные болезни и эпидемиология
+    priority: 110
+    titleKeywords:
+      - инфекц
+      - грипп
+      - covid
+      - коронавирус
+      - менингокок
+      - корь
+      - краснух
+      - ветрян
+      - коклюш
+      - дифтер
+      - туберкул
+      - гепатит
+      - вич
+      - паразит
+      - маляр
+      - лихорадк
+      - боррелиоз
+    icd10Prefixes: [A, B, U07, U08, U09, U10]
+    specialties: [infectious-diseases, epidemiology]
+
+  - id: minimed.clinical.respiratory-allergy.ru
+    title: Пульмонология и аллергология
+    priority: 108
+    titleKeywords:
+      - пневмони
+      - бронхит
+      - бронхиолит
+      - бронхиальн астм
+      - дыхательн недостаточ
+      - муковисцид
+      - интерстициальн заболеван легк
+      - аллерг
+      - анафилак
+      - ринит
+      - крапивниц
+    icd10Prefixes: [J, D80, D81, D82, D83, D84, T78]
+    specialties: [pulmonology, allergology-immunology]
+
+  - id: minimed.clinical.cardiology-vascular.ru
+    title: Кардиология и сосудистая медицина
+    priority: 106
+    titleKeywords:
+      - сердеч
+      - карди
+      - артериальн гипертенз
+      - гипертони
+      - аритми
+      - фибрилляц
+      - ишемическ болезн
+      - инфаркт
+      - миокардит
+      - эндокардит
+      - тромбоз
+      - тромбоэмбол
+      - сосудист
+    icd10Prefixes: [I]
+    specialties: [cardiology, cardiovascular-surgery]
+
+  - id: minimed.clinical.gastro-hepatology.ru
+    title: Гастроэнтерология и гепатология
+    priority: 104
+    titleKeywords:
+      - гастр
+      - кишеч
+      - пищевод
+      - желуд
+      - язвенн колит
+      - крон
+      - панкреат
+      - печен
+      - цирроз
+      - желчн
+      - диаре
+      - целиак
+      - питание
+    icd10Prefixes: [K]
+    specialties: [gastroenterology, hepatology, nutrition]
+
+  - id: minimed.clinical.nephrology-urology.ru
+    title: Нефрология и урология
+    priority: 104
+    titleKeywords:
+      - почеч
+      - нефр
+      - мочев
+      - уролог
+      - цистит
+      - пиелонефрит
+      - гломерул
+      - диализ
+      - протеинур
+      - нефротическ
+      - мочекамен
+    icd10Prefixes: [N00, N01, N02, N03, N04, N05, N06, N07, N08, N10, N11, N12, N13, N14, N15, N16, N17, N18, N19, N20, N21, N22, N23, N24, N25, N26, N27, N28, N29, N30, N31, N32, N33, N34, N35, N36, N37, N39, Q60, Q61, Q62, Q63, Q64]
+    specialties: [nephrology, urology]
+
+  - id: minimed.clinical.neurology-neurosurgery.ru
+    title: Неврология и нейрохирургия
+    priority: 104
+    titleKeywords:
+      - невролог
+      - эпилеп
+      - судорож
+      - инсульт
+      - мигрен
+      - головн бол
+      - рассеянн склероз
+      - паркинсон
+      - деменц
+      - нейропат
+      - мышечн дистроф
+      - нейрохирург
+    icd10Prefixes: [G, I60, I61, I62, I63, I64, I65, I66, I67, I68, I69]
+    specialties: [neurology, neurosurgery]
+
+  - id: minimed.clinical.psychiatry-addiction.ru
+    title: Психиатрия и наркология
+    priority: 104
+    titleKeywords:
+      - психиатр
+      - депресс
+      - тревож
+      - шизофрен
+      - биполяр
+      - аутизм
+      - сдвг
+      - деменц
+      - суицид
+      - зависимост
+      - алкогол
+      - наркот
+      - нарколог
+    icd10Prefixes: [F]
+    specialties: [psychiatry, addiction-medicine, child-psychiatry]
+
+  - id: minimed.clinical.endocrinology-metabolic.ru
+    title: Эндокринология и обмен веществ
+    priority: 102
+    titleKeywords:
+      - диабет
+      - щитовид
+      - тирео
+      - гипофиз
+      - надпочеч
+      - ожирен
+      - метабол
+      - рахит
+      - остеопороз
+      - эндокрин
+      - нарушение роста
+    icd10Prefixes: [E]
+    specialties: [endocrinology, metabolism]
+
+  - id: minimed.clinical.hematology-oncology.ru
+    title: Гематология и онкология
+    priority: 102
+    titleKeywords:
+      - анеми
+      - гемофил
+      - тромбоцит
+      - лейкоз
+      - лимфом
+      - опухол
+      - рак
+      - онколог
+      - химиотерап
+      - трансплантац костн мозга
+      - миелом
+    icd10Prefixes: [C, D00, D01, D02, D03, D04, D05, D06, D07, D09, D10, D11, D12, D13, D14, D15, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25, D26, D27, D28, D29, D30, D31, D32, D33, D34, D35, D36, D37, D38, D39, D40, D41, D42, D43, D44, D45, D46, D47, D48, D49, D50, D51, D52, D53, D55, D56, D57, D58, D59, D60, D61, D62, D63, D64, D65, D66, D67, D68, D69, D70, D71, D72, D73, D74, D75, D76, D77]
+    specialties: [hematology, oncology]
+
+  - id: minimed.clinical.rheumatology-immunology.ru
+    title: Ревматология и клиническая иммунология
+    priority: 100
+    titleKeywords:
+      - ревмат
+      - артрит
+      - васкулит
+      - красн волчан
+      - склеродерм
+      - иммунодефиц
+      - аутоиммун
+      - саркоид
+    icd10Prefixes: [M05, M06, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M17, M18, M19, M30, M31, M32, M33, M34, M35, M36, D80, D81, D82, D83, D84, D89]
+    specialties: [rheumatology, allergology-immunology]
+
+  - id: minimed.clinical.dermatology.ru
+    title: Дерматология
+    priority: 98
+    titleKeywords:
+      - дермат
+      - псориаз
+      - экзем
+      - атопическ
+      - акне
+      - меланом
+      - кож
+      - алопец
+    icd10Prefixes: [L]
+    specialties: [dermatology]
+
+  - id: minimed.clinical.ophthalmology.ru
+    title: Офтальмология
+    priority: 98
+    titleKeywords:
+      - глаз
+      - офтальм
+      - глауком
+      - катаракт
+      - сетчат
+      - зрени
+      - роговиц
+    icd10Prefixes: [H00, H01, H02, H03, H04, H05, H06, H10, H11, H13, H15, H16, H17, H18, H19, H20, H21, H22, H25, H26, H27, H28, H30, H31, H32, H33, H34, H35, H36, H40, H42, H43, H44, H45, H46, H47, H48, H49, H50, H51, H52, H53, H54, H55, H57, H58, H59]
+    specialties: [ophthalmology]
+
+  - id: minimed.clinical.ent.ru
+    title: Оториноларингология
+    priority: 98
+    titleKeywords:
+      - отит
+      - синусит
+      - тонзил
+      - фаринг
+      - гортан
+      - ларинг
+      - слух
+      - носов
+      - оториноларинг
+      - лор
+    icd10Prefixes: [H60, H61, H62, H65, H66, H67, H68, H69, H70, H71, H72, H73, H74, H75, H80, H81, H82, H83, H90, H91, H92, H93, H94, H95, J00, J01, J02, J03, J04, J05, J06, J30, J31, J32, J33, J34, J35, J36, J37, J38, J39]
+    specialties: [otorhinolaryngology]
+
+  - id: minimed.clinical.dentistry-maxillofacial.ru
+    title: Стоматология и челюстно-лицевая хирургия
+    priority: 96
+    titleKeywords:
+      - стоматолог
+      - зуб
+      - кариес
+      - пародонт
+      - челюст
+      - полост рта
+      - слюнн
+    icd10Prefixes: [K00, K01, K02, K03, K04, K05, K06, K07, K08, K09, K10, K11, K12, K13, K14]
+    specialties: [dentistry, maxillofacial-surgery]
+
+  - id: minimed.clinical.surgery-trauma.ru
+    title: Хирургия, травматология и ортопедия
+    priority: 96
+    titleKeywords:
+      - хирург
+      - травм
+      - перелом
+      - вывих
+      - ожог
+      - рана
+      - аппендиц
+      - грыж
+      - ортопед
+      - ампутац
+    icd10Prefixes: [S, T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32]
+    specialties: [surgery, traumatology-orthopedics]
+
+  - id: minimed.clinical.obstetrics-gynecology.ru
+    title: Акушерство и гинекология
+    priority: 96
+    titleKeywords:
+      - беременн
+      - роды
+      - послеродов
+      - акушер
+      - гинеколог
+      - эндометри
+      - матк
+      - яичник
+      - контрацеп
+      - бесплоди
+    icd10Prefixes: [O, N60, N61, N62, N63, N64, N70, N71, N72, N73, N74, N75, N76, N77, N80, N81, N82, N83, N84, N85, N86, N87, N88, N89, N90, N91, N92, N93, N94, N95, N96, N97, N98, N99]
+    specialties: [obstetrics, gynecology]
+
+  - id: minimed.clinical.neonatology.ru
+    title: Неонатология
+    priority: 94
+    titleKeywords:
+      - новорожден
+      - недоношен
+      - неонат
+      - перинат
+      - родов травм
+    ageKeywords: [новорожден, неонат, до 28 дней]
+    icd10Prefixes: [P]
+    specialties: [neonatology, pediatrics]
+
+  - id: minimed.clinical.pediatrics-general.ru
+    title: Общая педиатрия и детское здоровье
+    priority: 30
+    titleKeywords:
+      - у детей
+      - ребенок
+      - детск
+      - подрост
+      - педиатр
+      - вакцинац
+      - профилактическ осмотр
+      - развитие ребенка
+    ageKeywords: [дети, ребенок, новорожден, подросток, 0-17]
+    specialties: [pediatrics]
+
+  - id: minimed.clinical.rehabilitation-palliative.ru
+    title: Реабилитация, паллиативная помощь и длительное наблюдение
+    priority: 90
+    titleKeywords:
+      - реабилитац
+      - паллиатив
+      - длительн наблюден
+      - уход
+      - протезирован
+      - абилитац
+    icd10Prefixes: [Z50, Z51]
+    specialties: [rehabilitation, palliative-care]
+
+  - id: minimed.clinical.other.ru
+    title: Другие клинические рекомендации
+    priority: 0
+    specialties: [general-medicine]
+    fallback: true
