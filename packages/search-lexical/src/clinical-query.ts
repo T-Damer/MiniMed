@@ -6,7 +6,7 @@ import {
   type ClinicalQueryPlan,
   type LexicalQueryBranchPlan,
 } from './analysis';
-import { lightStemRussian, tokenize } from './normalize';
+import { lightStemRussian, normalizeSurfaceText, tokenize } from './normalize';
 
 function medicationTerms(plan: ClinicalQueryPlan): ReadonlySet<string> {
   const terms = new Set<string>();
@@ -29,6 +29,33 @@ function ftsToken(term: string): string {
 function publicBranch(branch: LexicalQueryBranchPlan): QueryBranch {
   const { ftsQuery: _ftsQuery, ...value } = branch;
   return value;
+}
+
+function symptomBranch(plan: ClinicalQueryPlan): LexicalQueryBranchPlan | null {
+  const values = plan.analysis.facts
+    .filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive')
+    .map((fact) => fact.normalizedValue);
+  const terms = new Set<string>();
+  for (const value of values) {
+    for (const token of tokenize(value)) {
+      if (token.length < 2) continue;
+      terms.add(token);
+      terms.add(lightStemRussian(token));
+    }
+  }
+  if (terms.size === 0) return null;
+  const orderedTerms = [...terms];
+  const query = values.join(' ');
+  return {
+    id: 'canonical-symptoms',
+    kind: 'clinical',
+    label: 'Распознанные симптомы',
+    query,
+    normalizedQuery: normalizeSurfaceText(query),
+    terms: orderedTerms,
+    weight: 1.58,
+    ftsQuery: orderedTerms.map(ftsToken).join(' OR '),
+  };
 }
 
 function sanitizeDiagnosticBranches(plan: ClinicalQueryPlan): readonly LexicalQueryBranchPlan[] {
@@ -63,15 +90,19 @@ export function analyzeClinicalQuery(
   const plan = analyzeClinicalQueryRaw(query, aliases, includeSuggestions);
   if (plan.analysis.intent?.primary !== 'diagnosis') return plan;
 
-  const branches = sanitizeDiagnosticBranches(plan);
-  if (branches.length === 0 || branches === plan.branches) return plan;
+  const sanitized = sanitizeDiagnosticBranches(plan);
+  const canonicalSymptoms = symptomBranch(plan);
+  const branches = canonicalSymptoms
+    ? [
+        canonicalSymptoms,
+        ...sanitized.filter((branch) => branch.ftsQuery !== canonicalSymptoms.ftsQuery),
+      ]
+    : sanitized;
+  if (branches.length === 0) return plan;
   const terms = [...new Set(branches.flatMap((branch) => branch.terms))];
   return {
     ...plan,
-    analysis: {
-      ...plan.analysis,
-      branches: branches.map(publicBranch),
-    },
+    analysis: plan.analysis,
     branches,
     terms,
     ftsQuery: branches[0]?.ftsQuery ?? '',
