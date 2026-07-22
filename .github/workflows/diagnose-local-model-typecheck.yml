@@ -1,0 +1,62 @@
+name: Diagnose local model typecheck
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: diagnose-local-model-typecheck
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.ref == 'agent/local-model-auto-selection'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/local-model-auto-selection
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run strict typecheck
+        shell: bash
+        run: |
+          set +e
+          pnpm typecheck >/tmp/local-model-typecheck.log 2>&1
+          status=$?
+          set -e
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ "$status" -eq 0 ]; then
+            rm -f .agent-model-typecheck.md
+            rm -f .github/workflows/diagnose-local-model-typecheck.yml
+            git add -A
+            git diff --cached --quiet && exit 0
+            git commit -m 'ci(models): remove resolved typecheck diagnostic'
+            git push origin HEAD:agent/local-model-auto-selection
+            exit 0
+          fi
+          {
+            echo '# Local model strict typecheck failure'
+            echo
+            echo "Run: $GITHUB_RUN_ID"
+            echo
+            echo '```text'
+            tail -n 500 /tmp/local-model-typecheck.log
+            echo '```'
+          } >.agent-model-typecheck.md
+          git add .agent-model-typecheck.md
+          git commit -m 'chore(ci): record local model typecheck failure'
+          git push origin HEAD:agent/local-model-auto-selection
+          exit 1
