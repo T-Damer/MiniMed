@@ -104,14 +104,14 @@ jobs:
 
           expected_recommendations = {'281_3', '360_3', '381_3', '563_2', '58_2', '714_2', '755_1'}
           expected_medications = {
-              'medication.paracetamol.suspension.120mg-5ml',
-              'medication.ibuprofen.suspension.100mg-5ml',
-              'medication.amoxicillin.tablet.500mg',
-              'medication.amoxicillin-clavulanate.suspension.400mg-57mg-5ml',
-              'medication.azithromycin.suspension.200mg-5ml',
-              'medication.ceftriaxone.injection.1g',
-              'medication.oral-rehydration-salts.powder.18-9g',
-              'medication.oseltamivir.capsule.30mg',
+              'drug.rf.paracetamol.pediatric-suspension',
+              'drug.rf.ibuprofen.pediatric-suspension',
+              'drug.rf.amoxicillin.tablets-500',
+              'drug.rf.amoxicillin-clavulanate.suspension-400-57',
+              'drug.rf.azithromycin.suspension-200mg-5ml',
+              'drug.rf.ceftriaxone.injection-1g',
+              'drug.rf.oral-rehydration-salts.powder-18-9g',
+              'drug.rf.oseltamivir.capsules-30mg',
           }
           apk = Path(os.environ['APK_FILE'])
           db_path = Path(os.environ['RUNNER_TEMP']) / 'rf-public-pilot-from-apk.db'
@@ -179,7 +179,7 @@ jobs:
                   })
               assert recommendation_ids == expected_recommendations
               assert registry_documents == len(expected_medications)
-              assert expected_medications.issubset({row[0] for row in documents})
+              assert {row[0] for row in documents if row[2] == 'official_registry_summary'} == expected_medications
 
               for chunk_id, document_version_id, original_text, metadata_raw in chunks:
                   assert original_text.strip()
