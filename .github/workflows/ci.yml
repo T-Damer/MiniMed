@@ -12,12 +12,12 @@ permissions:
 
 jobs:
   alpha6-format:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/persistent-module-registry'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/mobile-ux-alpha6-final'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: agent/persistent-module-registry
+          ref: agent/mobile-ux-alpha6-final
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
@@ -42,8 +42,8 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git diff --cached --quiet && exit 0
-          git commit -m 'style(storage): apply repository formatting'
-          git push origin HEAD:agent/persistent-module-registry
+          git commit -m 'style(app): apply repository formatting'
+          git push origin HEAD:agent/mobile-ux-alpha6-final
 
   javascript:
     runs-on: ubuntu-latest
