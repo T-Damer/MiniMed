@@ -1,4 +1,5 @@
 name: Fix medication context ranking
+run-name: Verify current therapy stays out of diagnosis ranking
 
 on:
   push:
