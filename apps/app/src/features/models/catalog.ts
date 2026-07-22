@@ -48,7 +48,11 @@ function requiredPositiveInteger(value: unknown, label: string): number {
   return result;
 }
 
-function requiredHttpsUrl(value: unknown, label: string, allowedHosts?: ReadonlySet<string>): string {
+function requiredHttpsUrl(
+  value: unknown,
+  label: string,
+  allowedHosts?: ReadonlySet<string>,
+): string {
   const raw = requiredString(value, label);
   let parsed: URL;
   try {
@@ -57,7 +61,8 @@ function requiredHttpsUrl(value: unknown, label: string, allowedHosts?: Readonly
     throw new Error(`${label} должен быть корректным URL.`);
   }
   if (parsed.protocol !== 'https:') throw new Error(`${label} должен использовать HTTPS.`);
-  if (parsed.username || parsed.password) throw new Error(`${label} не должен содержать credentials.`);
+  if (parsed.username || parsed.password)
+    throw new Error(`${label} не должен содержать credentials.`);
   if (allowedHosts && !allowedHosts.has(parsed.hostname)) {
     throw new Error(`${label} использует неподдерживаемый host ${parsed.hostname}.`);
   }
