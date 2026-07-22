@@ -204,14 +204,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       <Show when={contentChangePending() || connecting()}>
         <div class="module-reload-banner paper-card" aria-live="polite">
           <div>
-            <strong>{connecting() ? 'Подключаем базу к поиску…' : 'Нужно повторить подключение'}</strong>
+            <strong>
+              {connecting() ? 'Подключаем базу к поиску…' : 'Нужно повторить подключение'}
+            </strong>
             <span>
               {connecting()
                 ? 'Текущий поиск продолжает работать до готовности нового состава базы.'
                 : 'Документы сохранены на устройстве, но поиск пока использует прежний состав.'}
             </span>
           </div>
-          <button type="button" disabled={connecting()} onClick={() => void connectContentChanges()}>
+          <button
+            type="button"
+            disabled={connecting()}
+            onClick={() => void connectContentChanges()}
+          >
             {connecting() ? 'Подключаем…' : 'Повторить'}
           </button>
         </div>

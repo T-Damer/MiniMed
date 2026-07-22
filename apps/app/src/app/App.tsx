@@ -5,14 +5,16 @@ import { AppGlyph, type AppGlyphName } from '../components/AppGlyph';
 import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
 import {
-  initializeMedicalCore,
   type InitializedMedicalCore,
+  initializeMedicalCore,
   replaceMedicalCore,
 } from '../composition/medical-core-lifecycle';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
 import { DocumentOverlayHost } from '../features/library/DocumentOverlayHost';
 import { LocalModelController } from '../features/models/controller';
+import { GroundedAssistantStatus } from '../features/models/GroundedAssistantStatus';
+import { GroundedMedicalCore } from '../features/models/GroundedMedicalCore';
 import { ModelSettings } from '../features/models/ModelSettings';
 import { ModelToast } from '../features/models/ModelToast';
 import { refreshContentModuleCatalog } from '../features/modules/catalog-service';
@@ -78,6 +80,7 @@ export function App(): JSX.Element {
   const [moduleUpdateCount, setModuleUpdateCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
   const modelController = createLocalModelController();
+  const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
   let coreToClose: MedicalCore | undefined;
 
   const navigate = (next: View): void => {
@@ -101,6 +104,9 @@ export function App(): JSX.Element {
     if (!current) throw new Error('Локальный поиск ещё не готов.');
     const next = await replaceMedicalCore(current, createBrowserCore);
     coreToClose = next.core;
+    const assistant = assistantCore();
+    if (assistant) assistant.setBase(next.core);
+    else setAssistantCore(new GroundedMedicalCore(next.core, modelController));
     setReady(next);
   };
 
@@ -111,6 +117,7 @@ export function App(): JSX.Element {
     try {
       const initialized = await initializeMedicalCore(createBrowserCore);
       coreToClose = initialized.core;
+      setAssistantCore(new GroundedMedicalCore(initialized.core, modelController));
       setReady(initialized);
       void modelController.start();
       void refreshContentModuleCatalog()
@@ -200,7 +207,10 @@ export function App(): JSX.Element {
                 hidden={view() !== 'search'}
                 aria-hidden={view() !== 'search'}
               >
-                <SearchWorkspace core={state().core} />
+                <Show when={assistantCore()}>
+                  {(assistant) => <GroundedAssistantStatus assistant={assistant()} />}
+                </Show>
+                <SearchWorkspace core={assistantCore() ?? state().core} />
               </section>
               <section
                 class="app-view"

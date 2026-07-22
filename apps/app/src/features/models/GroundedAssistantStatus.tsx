@@ -7,7 +7,9 @@ interface GroundedAssistantStatusProps {
 }
 
 export function GroundedAssistantStatus(props: GroundedAssistantStatusProps): JSX.Element {
-  const [state, setState] = createSignal<GroundedAssistantState>(props.assistant.getAssistantState());
+  const [state, setState] = createSignal<GroundedAssistantState>(
+    props.assistant.getAssistantState(),
+  );
   let unsubscribe: (() => void) | undefined;
 
   onMount(() => {

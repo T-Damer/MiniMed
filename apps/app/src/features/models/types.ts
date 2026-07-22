@@ -143,9 +143,7 @@ export interface LocalModelSession {
   readonly modelId: string;
   readonly artifactId: string;
   benchmark(): Promise<Omit<LocalModelBenchmark, 'loadMs' | 'measuredAt' | 'deviceFingerprint'>>;
-  completeStructured(
-    request: LocalModelStructuredRequest,
-  ): Promise<LocalModelStructuredResponse>;
+  completeStructured(request: LocalModelStructuredRequest): Promise<LocalModelStructuredResponse>;
   unload(): Promise<void>;
 }
 

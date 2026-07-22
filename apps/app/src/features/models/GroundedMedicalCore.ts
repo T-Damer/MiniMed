@@ -159,7 +159,10 @@ function flattenCandidates(response: SearchResponse): readonly CandidatePayload[
   return result;
 }
 
-function completeOrder(ranking: CandidateRanking, originalIds: readonly string[]): readonly string[] {
+function completeOrder(
+  ranking: CandidateRanking,
+  originalIds: readonly string[],
+): readonly string[] {
   const result: string[] = [];
   for (const id of [...ranking.orderedIds, ...originalIds]) {
     if (originalIds.includes(id) && !result.includes(id)) result.push(id);
@@ -179,7 +182,9 @@ function reorderResponse(response: SearchResponse, orderedIds: readonly string[]
     ),
   }));
   groups.sort((left, right) => {
-    const leftRank = Math.min(...left.results.map((result) => rank.get(result.chunkId) ?? missingRank));
+    const leftRank = Math.min(
+      ...left.results.map((result) => rank.get(result.chunkId) ?? missingRank),
+    );
     const rightRank = Math.min(
       ...right.results.map((result) => rank.get(result.chunkId) ?? missingRank),
     );
