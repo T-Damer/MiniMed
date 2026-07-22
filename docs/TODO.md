@@ -11,6 +11,7 @@ This list records product work that directly affects clinicians. Technical imple
 - [ ] Show clear download progress, checksum verification, failure, installed version and storage size.
 - [ ] Keep the previous validated module active when an update fails.
 - [ ] Build the first full-text pediatric clinical module from the already validated recommendations.
+- [x] Add deterministic HTML extraction for complete recommendation text and tables from declared public mirrors.
 - [ ] Scale to 30–50 current Russian clinical recommendations after the first module lifecycle works end to end.
 - [ ] Store complete extracted text, headings, anchors, page references, tables and provenance in the index artifact.
 - [ ] Keep original PDFs as optional source-assets downloads when redistribution permits.
