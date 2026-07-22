@@ -1,4 +1,7 @@
-import type { InstalledContentModule } from '@localmed/contracts';
+import {
+  ContentModuleValidationSchema,
+  type InstalledContentModule,
+} from '@localmed/contracts';
 
 type ModuleValidation = NonNullable<InstalledContentModule['lastValidation']>;
 
@@ -30,31 +33,198 @@ interface RegistryEntry {
   readonly history: readonly ModuleVersionInstallation[];
 }
 
+export const INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION = 1 as const;
+export const DEFAULT_INSTALLED_MODULE_REGISTRY_STORAGE_KEY = 'localmed.installed-modules.v1';
+
+export interface InstalledModuleRegistrySnapshotEntry {
+  readonly moduleId: string;
+  readonly required: boolean;
+  readonly enabled: boolean;
+  readonly updateAvailable: boolean;
+  readonly active: ModuleVersionInstallation;
+  readonly history: readonly ModuleVersionInstallation[];
+}
+
+export interface InstalledModuleRegistrySnapshot {
+  readonly schemaVersion: typeof INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION;
+  readonly entries: readonly InstalledModuleRegistrySnapshotEntry[];
+}
+
+export interface InstalledModuleRegistryPersistence {
+  load(): unknown | null;
+  save(snapshot: InstalledModuleRegistrySnapshot): void;
+}
+
+export interface StringKeyValueStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
+export class WebStorageInstalledModuleRegistryPersistence
+  implements InstalledModuleRegistryPersistence
+{
+  public constructor(
+    private readonly storage: StringKeyValueStorage,
+    private readonly key = DEFAULT_INSTALLED_MODULE_REGISTRY_STORAGE_KEY,
+  ) {}
+
+  public load(): unknown | null {
+    const serialized = this.storage.getItem(this.key);
+    if (serialized === null) return null;
+    try {
+      return JSON.parse(serialized) as unknown;
+    } catch (cause) {
+      throw new Error('Installed-module registry storage does not contain valid JSON.', { cause });
+    }
+  }
+
+  public save(snapshot: InstalledModuleRegistrySnapshot): void {
+    this.storage.setItem(this.key, JSON.stringify(snapshot));
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function requireRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!isRecord(value)) throw new Error(`${label} must be an object.`);
+  return value;
+}
+
+function requireString(value: unknown, label: string): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return value;
+}
+
+function requireBoolean(value: unknown, label: string): boolean {
+  if (typeof value !== 'boolean') throw new Error(`${label} must be a boolean.`);
+  return value;
+}
+
+function requireSafeSize(value: unknown, label: string): number {
+  if (typeof value !== 'number' || value < 0 || !Number.isSafeInteger(value)) {
+    throw new Error(`${label} must be a non-negative safe integer.`);
+  }
+  return value;
+}
+
+function cloneValidation(validation: ModuleValidation): ModuleValidation {
+  return { ...validation };
+}
+
+function cloneInstallation(installation: ModuleVersionInstallation): ModuleVersionInstallation {
+  return {
+    ...installation,
+    validation: cloneValidation(installation.validation),
+  };
+}
+
+function installationIdentity(installation: ModuleVersionInstallation): string {
+  return `${installation.version}\u0000${installation.sourceSetDigest}`;
+}
+
 function assertDigest(value: string): void {
   if (!/^sha256:[a-f0-9]{64}$/u.test(value)) {
     throw new Error('Installed module requires a valid SHA-256 source-set digest.');
   }
 }
 
-function assertValidated(installation: ModuleVersionInstallation): void {
-  assertDigest(installation.sourceSetDigest);
-  if (
-    installation.installedSizeBytes < 0 ||
-    !Number.isSafeInteger(installation.installedSizeBytes)
-  ) {
-    throw new Error('Installed module size must be a non-negative safe integer.');
-  }
-  const validation = installation.validation;
+function normalizeInstallation(value: unknown, label = 'Installed module version'): ModuleVersionInstallation {
+  const installation = requireRecord(value, label);
+  const normalized: ModuleVersionInstallation = {
+    moduleId: requireString(installation.moduleId, `${label} moduleId`),
+    version: requireString(installation.version, `${label} version`),
+    required: requireBoolean(installation.required, `${label} required`),
+    installedAt: requireString(installation.installedAt, `${label} installedAt`),
+    installedSizeBytes: requireSafeSize(
+      installation.installedSizeBytes,
+      `${label} installedSizeBytes`,
+    ),
+    sourceSetDigest: requireString(installation.sourceSetDigest, `${label} sourceSetDigest`),
+    validation: ContentModuleValidationSchema.parse(installation.validation),
+  };
+  assertDigest(normalized.sourceSetDigest);
+  const validation = normalized.validation;
   if (
     !validation.valid ||
     !validation.checksumValid ||
     !validation.schemaCompatible ||
     validation.sqliteIntegrity !== 'ok'
   ) {
-    throw new Error(
-      `Module ${installation.moduleId}@${installation.version} is not fully validated.`,
-    );
+    throw new Error(`Module ${normalized.moduleId}@${normalized.version} is not fully validated.`);
   }
+  return cloneInstallation(normalized);
+}
+
+function parseSnapshotEntry(value: unknown, index: number): InstalledModuleRegistrySnapshotEntry {
+  const label = `Installed-module registry entry ${index}`;
+  const entry = requireRecord(value, label);
+  const moduleId = requireString(entry.moduleId, `${label} moduleId`);
+  const required = requireBoolean(entry.required, `${label} required`);
+  const enabled = requireBoolean(entry.enabled, `${label} enabled`);
+  const updateAvailable = requireBoolean(entry.updateAvailable, `${label} updateAvailable`);
+  if (required && !enabled) throw new Error(`Required module ${moduleId} cannot be disabled.`);
+
+  const active = normalizeInstallation(entry.active, `${label} active version`);
+  if (active.moduleId !== moduleId) {
+    throw new Error(`${label} active version belongs to another module.`);
+  }
+  if (active.required !== required) {
+    throw new Error(`${label} active version has a mismatched required flag.`);
+  }
+  if (!Array.isArray(entry.history)) throw new Error(`${label} history must be an array.`);
+  const history = entry.history.map((version, historyIndex) =>
+    normalizeInstallation(version, `${label} history version ${historyIndex}`),
+  );
+  const identities = new Set([installationIdentity(active)]);
+  for (const version of history) {
+    if (version.moduleId !== moduleId) {
+      throw new Error(`${label} history contains another module.`);
+    }
+    if (version.required !== required) {
+      throw new Error(`${label} history has a mismatched required flag.`);
+    }
+    const identity = installationIdentity(version);
+    if (identities.has(identity)) {
+      throw new Error(`${label} contains a duplicate module version.`);
+    }
+    identities.add(identity);
+  }
+  return {
+    moduleId,
+    required,
+    enabled,
+    updateAvailable,
+    active,
+    history,
+  };
+}
+
+export function parseInstalledModuleRegistrySnapshot(
+  value: unknown,
+): InstalledModuleRegistrySnapshot {
+  const snapshot = requireRecord(value, 'Installed-module registry snapshot');
+  if (snapshot.schemaVersion !== INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION) {
+    throw new Error(`Unsupported installed-module registry schema: ${String(snapshot.schemaVersion)}.`);
+  }
+  if (!Array.isArray(snapshot.entries)) {
+    throw new Error('Installed-module registry entries must be an array.');
+  }
+  const entries = snapshot.entries.map(parseSnapshotEntry);
+  const moduleIds = new Set<string>();
+  for (const entry of entries) {
+    if (moduleIds.has(entry.moduleId)) {
+      throw new Error(`Duplicate installed-module registry entry: ${entry.moduleId}.`);
+    }
+    moduleIds.add(entry.moduleId);
+  }
+  return {
+    schemaVersion: INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION,
+    entries: entries.toSorted((left, right) => left.moduleId.localeCompare(right.moduleId)),
+  };
 }
 
 function toPublic(entry: RegistryEntry): InstalledContentModule {
@@ -67,12 +237,42 @@ function toPublic(entry: RegistryEntry): InstalledContentModule {
     installedSizeBytes: entry.active.installedSizeBytes,
     activeSourceSetDigest: entry.active.sourceSetDigest,
     previousVersions: entry.history.map((version) => version.version),
-    lastValidation: entry.active.validation,
+    lastValidation: cloneValidation(entry.active.validation),
   };
 }
 
 export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry {
   private readonly entries = new Map<string, RegistryEntry>();
+
+  public static fromSnapshot(value: unknown): InMemoryInstalledModuleRegistry {
+    const registry = new InMemoryInstalledModuleRegistry();
+    for (const entry of parseInstalledModuleRegistrySnapshot(value).entries) {
+      registry.entries.set(entry.moduleId, {
+        required: entry.required,
+        enabled: entry.enabled,
+        updateAvailable: entry.updateAvailable,
+        active: cloneInstallation(entry.active),
+        history: entry.history.map(cloneInstallation),
+      });
+    }
+    return registry;
+  }
+
+  public snapshot(): InstalledModuleRegistrySnapshot {
+    return {
+      schemaVersion: INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION,
+      entries: [...this.entries.entries()]
+        .map(([moduleId, entry]) => ({
+          moduleId,
+          required: entry.required,
+          enabled: entry.enabled,
+          updateAvailable: entry.updateAvailable,
+          active: cloneInstallation(entry.active),
+          history: entry.history.map(cloneInstallation),
+        }))
+        .toSorted((left, right) => left.moduleId.localeCompare(right.moduleId)),
+    };
+  }
 
   public list(): readonly InstalledContentModule[] {
     return [...this.entries.values()]
@@ -86,22 +286,22 @@ export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry 
   }
 
   public activate(installation: ModuleVersionInstallation): InstalledContentModule {
-    assertValidated(installation);
-    const existing = this.entries.get(installation.moduleId);
-    if (existing?.required !== undefined && existing.required !== installation.required) {
-      throw new Error(`Required flag changed for installed module ${installation.moduleId}.`);
+    const normalized = normalizeInstallation(installation);
+    const existing = this.entries.get(normalized.moduleId);
+    if (existing?.required !== undefined && existing.required !== normalized.required) {
+      throw new Error(`Required flag changed for installed module ${normalized.moduleId}.`);
     }
 
     if (
-      existing?.active.version === installation.version &&
-      existing.active.sourceSetDigest === installation.sourceSetDigest
+      existing?.active.version === normalized.version &&
+      existing.active.sourceSetDigest === normalized.sourceSetDigest
     ) {
       const refreshed: RegistryEntry = {
         ...existing,
-        active: installation,
+        active: normalized,
         updateAvailable: false,
       };
-      this.entries.set(installation.moduleId, refreshed);
+      this.entries.set(normalized.moduleId, refreshed);
       return toPublic(refreshed);
     }
 
@@ -109,20 +309,18 @@ export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry 
       ? [
           existing.active,
           ...existing.history.filter(
-            (candidate) =>
-              candidate.version !== installation.version ||
-              candidate.sourceSetDigest !== installation.sourceSetDigest,
+            (candidate) => installationIdentity(candidate) !== installationIdentity(normalized),
           ),
         ]
       : [];
     const next: RegistryEntry = {
-      required: installation.required,
+      required: normalized.required,
       enabled: existing?.enabled ?? true,
       updateAvailable: false,
-      active: installation,
+      active: normalized,
       history,
     };
-    this.entries.set(installation.moduleId, next);
+    this.entries.set(normalized.moduleId, next);
     return toPublic(next);
   }
 
@@ -166,5 +364,61 @@ export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry 
     const entry = this.entries.get(moduleId);
     if (!entry) throw new Error(`Module ${moduleId} is not installed.`);
     return entry;
+  }
+}
+
+export class PersistentInstalledModuleRegistry implements InstalledModuleRegistry {
+  private registry: InMemoryInstalledModuleRegistry;
+
+  public constructor(private readonly persistence: InstalledModuleRegistryPersistence) {
+    const snapshot = persistence.load();
+    this.registry =
+      snapshot === null
+        ? new InMemoryInstalledModuleRegistry()
+        : InMemoryInstalledModuleRegistry.fromSnapshot(snapshot);
+  }
+
+  public list(): readonly InstalledContentModule[] {
+    return this.registry.list();
+  }
+
+  public get(moduleId: string): InstalledContentModule | null {
+    return this.registry.get(moduleId);
+  }
+
+  public activate(installation: ModuleVersionInstallation): InstalledContentModule {
+    return this.commit(() => this.registry.activate(installation));
+  }
+
+  public setEnabled(moduleId: string, enabled: boolean): InstalledContentModule {
+    return this.commit(() => this.registry.setEnabled(moduleId, enabled));
+  }
+
+  public markUpdateAvailable(moduleId: string): InstalledContentModule {
+    return this.commit(() => this.registry.markUpdateAvailable(moduleId));
+  }
+
+  public rollback(moduleId: string): InstalledContentModule {
+    return this.commit(() => this.registry.rollback(moduleId));
+  }
+
+  public remove(moduleId: string): void {
+    this.commit(() => this.registry.remove(moduleId));
+  }
+
+  public snapshot(): InstalledModuleRegistrySnapshot {
+    return this.registry.snapshot();
+  }
+
+  private commit<T>(mutation: () => T): T {
+    const previous = this.registry.snapshot();
+    const result = mutation();
+    try {
+      this.persistence.save(this.registry.snapshot());
+      return result;
+    } catch (cause) {
+      this.registry = InMemoryInstalledModuleRegistry.fromSnapshot(previous);
+      throw new Error('Unable to persist installed-module registry mutation.', { cause });
+    }
   }
 }
