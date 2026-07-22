@@ -4,6 +4,39 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-07-22
+
+### Added
+
+- An optional local-model startup layer with a validated six-model catalog, automatic device-fit
+  selection, cached viability benchmarks, failure cooldown, one smaller-model fallback, and manual
+  controls on the System page.
+- Russian-first Vikhr and QVikhr candidates alongside Qwen, Gemma, and Llama comparison models, with
+  explicit licence handling, immutable artifact metadata, and configurable mirror/upstream endpoints.
+- Browser and Android-WebView GGUF loading through a CPU/WebAssembly wllama adapter, plus a passive
+  bottom status toast that never blocks deterministic SQLite search.
+- A scheduled/manual real-model CI smoke lane that verifies the compact Vikhr and Qwen artifacts by
+  SHA-256 and requires valid structured Russian output.
+- Persistent installed-module registry metadata with deterministic snapshots, restart rehydration,
+  immutable version/source-set validation, rollback history, and transactional recovery after failed
+  storage writes.
+
+### Changed
+
+- Workspace packages, Android application version, public-pilot pack, regulatory pack, and APK-only
+  release workflow are aligned to 0.3.3; Android uses build number 11.
+- Local-model selection no longer awards a WebGPU bonus to wllama: the implemented browser/WebView path
+  is explicitly CPU-only. GPU and NPU acceleration remain a native LiteRT-LM follow-up.
+
+### Verification boundary
+
+- Model output is not used for diagnosis, treatment, retrieval ranking, or generated clinical answers in
+  this release. Deterministic retrieval and safety behavior remain authoritative.
+- The APK does not bundle model weights. Models are resolved after startup through the validated catalog
+  and configured immutable or upstream artifact endpoints.
+- Native Android GPU/NPU execution, streaming artifact installation, physical-device model qualification,
+  and source-grounded clinical orchestration remain follow-up work.
+
 ## [0.3.2] - 2026-07-22
 
 ### Added

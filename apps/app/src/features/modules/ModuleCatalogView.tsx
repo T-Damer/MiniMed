@@ -142,7 +142,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
       <div class="module-transition-note paper-sheet">
         <div>
-          <strong>Текущее состояние 0.3.2</strong>
+          <strong>Текущее состояние 0.3.3</strong>
           <p>
             Сейчас приложение использует один общий pack: {props.status.contentPackIds.join(', ')}.
             Каталог и безопасная установка уже имеют проверяемые контракты; платформенное хранение и

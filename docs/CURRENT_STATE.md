@@ -1,7 +1,7 @@
 # Current state and execution order
 
 > Updated: 22 July 2026  
-> Repository version: `0.3.2`
+> Repository version: `0.3.3`
 
 ## Document role
 
@@ -10,16 +10,16 @@ implemented state and the order of the next repository tasks. Agents read it aft
 update it when a change affects runtime behavior, content coverage, trust boundaries, benchmark
 composition, or execution priority. Benchmark details live in `tools/benchmarks/CLINICAL_QUERIES.md`;
 module boundaries and lifecycle rules live in `docs/CONTENT_MODULES.md`; clinical interaction rules
-live in `docs/CLINICAL_UX.md`. Local-model runtime and selection details are developed in PR #91 and
-its `docs/LOCAL_MODELS.md` plus ADR-0011; do not create a parallel model catalog or controller.
+live in `docs/CLINICAL_UX.md`. Local-model runtime and selection details live in
+`docs/LOCAL_MODELS.md` and ADR-0011; do not create a parallel model catalog or controller.
 
 ## Product invariant
 
 MiniMed is an offline-first navigator over Russian medical source material. Retrieval and exact source
 navigation remain useful without a network, model, or hosted backend. Derived data never replaces the
 source text and does not become trusted without an explicit review state. Search is the primary
-clinical workflow and must never be interrupted by update dialogs; module availability is shown only
-through a passive counter and the Modules page.
+clinical workflow and must never be interrupted by update dialogs or local-model initialization;
+module availability is shown only through a passive counter and the Modules page.
 
 ## Implemented
 
@@ -49,15 +49,25 @@ through a passive counter and the Modules page.
   mismatched source sets, or incomplete published artifacts.
 - Multi-store routing composes a required core and enabled read-only module stores without merging their
   SQLite files; cross-store lexical results use reciprocal-rank fusion.
-- An in-memory installed-module registry preserves full validated rollback records and protects required
-  modules from disable/remove operations.
+- A persistent installed-module registry stores validated active versions, rollback history, enabled and
+  update state, immutable source-set identity, and transactional recovery across application restarts.
 - The canonical module catalog is bundled as JSON and can refresh from GitHub with ETag/Last-Modified,
   validated local cache, and bundled fallback; invalid remote content never replaces valid local data.
 - A portable foreground installer returns an asynchronous task immediately, verifies compatibility,
   dependencies, size, SHA-256 and index validation, activates only after staging, and restores the file
   pointer when registry activation fails.
+- An optional local-model controller starts only after deterministic search is ready, loads a validated
+  remote/cache/bundled catalog, probes the device, selects a compatible model, reports progress through a
+  passive bottom toast, runs a short Russian structured-output viability check, caches success/failure,
+  and falls back once to a genuinely smaller model.
+- The initial model catalog contains Russian-tuned Vikhr/QVikhr candidates and Qwen, Gemma, and Llama
+  comparison candidates. Manual override, unload, automatic-loading, and licence controls live on the
+  System page.
+- Browser and current Android WebView inference use a CPU/WebAssembly wllama adapter. Native GPU/NPU
+  execution is not implemented and requires a later LiteRT-LM adapter and physical-device qualification.
 
-The semantic profile is an engineering baseline, not a neural Russian medical model.
+The semantic profile is an engineering baseline. The optional local model is an experimental query-
+planning runtime and is not a source of trusted medical facts or clinical advice.
 
 ### Content pipeline
 
@@ -114,50 +124,39 @@ Regulatory baseline:
 - required current/historical top-1: `1.00`;
 - section, exact context, and official metadata: `1.00`.
 
-## Planned 0.3.3 — complete the working local LLM path
+A scheduled/manual hosted smoke workflow downloads and verifies the compact Vikhr and Qwen GGUF files
+and requires valid structured Russian output through the CPU/WebAssembly runtime. It checks artifact and
+runtime viability, not clinical quality or mobile GPU/NPU performance.
 
-The implementation baseline already exists in draft PR #91. It provides a validated model catalog,
-device probing, deterministic automatic selection, manual override, model status UI, a wllama GGUF
-runtime for browser and Android WebView, a structured Russian warm-up probe, failure cooldown and one
-smaller-model fallback. After `0.3.2` is released, #91 should be rebased onto `main`; its catalog,
-controller, selection logic and `docs/LOCAL_MODELS.md` remain authoritative.
+## Released 0.3.3 — local-model runtime foundation
 
-`0.3.3` is complete only when that existing runtime is connected to MiniMed's clinical retrieval rather
-than merely loading a model. The model remains a secondary reasoning layer over local evidence:
+Version 0.3.3 ships the model catalog, device probe, automatic and manual selection, status UI,
+CPU/WebAssembly GGUF runtime, structured Russian warm-up probe, cached viability results, failure
+cooldown, and a genuinely smaller fallback. It also persists installed-module registry metadata across
+restarts.
 
-1. deterministic parsing and mandatory safety checks run first;
-2. MiniMed retrieves exact local chunks and document metadata;
-3. the model may structure the case, propose clarifying questions, plan further retrieval and summarise
-   only the supplied evidence;
-4. every consequential statement retains links to exact source fragments;
-5. unsupported doses, contraindications, diagnoses or routing claims are omitted or explicitly marked as
-   unsupported;
-6. red-flag, source-coverage, applicability, contradiction and uncertainty checks run outside the model;
-7. model failure, insufficient memory or no installed model falls back to deterministic search without
-   blocking the clinician.
-
-The search-first UX remains mandatory: no startup modal and no generated answer covering search results.
-Model download/status stays in the existing #91 Settings/System surfaces and passive status UI. The
-`0.3.3` gate must extend #91's runtime tests with source-citation completeness, unsupported-claim
-rejection, red-flag preservation, structured-output validation and reviewed Russian clinical scenarios.
+This release establishes runtime viability only. Model output is not connected to clinical retrieval,
+ranking, diagnosis, treatment, or generated answers. Before model output can influence the
+physician-facing flow, it must use typed source-linked output, preserve deterministic red-flag and
+negation handling, reject unsupported claims, and improve the reviewed Russian clinical benchmark.
 
 ## Current gaps
 
 - Current clinical documents are concise navigation cards rather than complete extracted sources.
-- No persistent installed registry, immutable published module artifacts, platform filesystem backend, or
-  background native downloader yet; the module page remains read-only.
-- The application composition still mounts the monolithic `0.3.2` pilot rather than the multi-store
+- Registry metadata is persistent, but immutable published module artifacts, a platform filesystem
+  backend, and a background native downloader remain unimplemented; the module page remains read-only.
+- The application composition still mounts the monolithic `0.3.3` pilot rather than the multi-store
   router and foreground installer.
 - Seven clinical recommendations rather than the target 30–50.
 - Regulatory coverage remains a small pediatric pilot; it needs broader administrative acts and a real
   amendment chain beyond one superseded predecessor.
 - No reviewed offline medication-card runtime.
 - Contract overlays cover only a representative subset and are not clinician-reviewed.
-- PR #91 loads and probes local models but does not yet use generated output in clinical retrieval or
-  answers, prove clinical improvement, stream-verify model SHA-256, publish mirrored assets or support
+- The local-model runtime does not yet use generated output in clinical retrieval or answers, prove
+  clinical improvement, stream-install artifacts with SHA-256, publish mirrored assets, or support
   native LiteRT-LM/Cactus and iOS inference.
 - No personal notes, draft overlays, or local protocol modules.
-- Physical-device usability testing remains separate from CI builds.
+- Physical-device usability and model-performance testing remain separate from hosted CI builds.
 
 ## Execution order
 
@@ -168,9 +167,9 @@ rejection, red-flag preservation, structured-output validation and reviewed Russ
    - Expand coverage and obtain clinician review for consequential cases.
 
 2. **Installable modules and full clinical sources — #78 + #76**
-   - Module map/contracts/page, GitHub catalog refresh, multi-store routing, rollback semantics, and the
-     portable foreground installation state machine are implemented.
-   - Next: publish immutable module manifests/artifacts, persist registry/files on each platform, and wire
+   - Module map/contracts/page, GitHub catalog refresh, multi-store routing, rollback semantics, the
+     portable foreground installer, and persistent registry metadata are implemented.
+   - Next: publish immutable module manifests/artifacts, persist artifact files on each platform, and wire
      application composition to enabled stores and task progress.
    - Build the first full-text module from the seven already validated recommendations.
    - Full extracted text and structured tables belong in the index artifact; original PDFs/images are an
@@ -180,16 +179,15 @@ rejection, red-flag preservation, structured-output validation and reviewed Russ
    - Three-document, 12-query pilot and current-versus-superseded gate are implemented.
    - Next: publish it as a separately installable module and add broader administrative coverage.
 
-### P1 — 0.3.3 local LLM and reviewed workflow
+### P1 — 0.3.4 grounded local model and reviewed workflow
 
-4. **Rebase and complete PR #91**
-   - Preserve its catalog, device probe, selection algorithm, wllama adapter, UI and license handling.
+4. **Connect the local-model runtime to grounded retrieval**
    - Publish or freeze verified model assets/checksums without committing weights to Git.
    - Add a typed clinical orchestrator that can ask for another local retrieval pass and emit constrained
      source-linked structured output.
    - Keep deterministic safety checks outside the model and require exact source citations.
-   - Benchmark the selected default and fallback candidates on Russian clinical contracts, memory,
-     storage, latency and unsupported-claim rates before exposing generated clinical text.
+   - Benchmark default and fallback candidates on Russian clinical contracts, memory, storage, latency,
+     and unsupported-claim rates before exposing generated clinical text.
 
 5. **Reviewed offline medication cards — #77**
    - Define the runtime contract outside the UI.
@@ -203,18 +201,16 @@ rejection, red-flag preservation, structured-output validation and reviewed Russ
 ### P2 — model and corpus quality after the first working runtime
 
 7. Benchmark Russian neural embedding and reranker candidates against lexical and feature-hash baselines.
-8. Add native LiteRT-LM/Cactus adapters only through #91's existing runtime/selection contracts.
+8. Add native LiteRT-LM/Cactus adapters only through the existing runtime/selection contracts.
 9. Add broader synthesis only after full-source coverage, reviewed medication knowledge and citation gates
    are stable.
 
 ## Next useful alpha
 
-The next release is `0.3.3`: rebase and complete PR #91 so its already working model catalog, automatic
-selection and wllama loading become a source-grounded clinical assistant with deterministic safety gates
-and graceful no-model fallback. It should ship alongside continued module persistence work and at least
-one deeper full-text clinical source slice so model quality is not evaluated only on short navigation
-cards.
+The next release is `0.3.4`: connect the 0.3.3 model runtime to exact retrieved evidence through typed
+structured output and deterministic safety gates, while continuing module persistence and deeper
+full-text clinical source work. The no-model path must remain complete and immediately usable.
 
 Do not prioritize a backend, accounts, sync, Postgres, a Rust rewrite, or a second local-model harness.
 The limiting factors remain full-source coverage, modular content lifecycle, reviewed evidence, Russian
-benchmark depth and safe clinical integration of the runtime already implemented in #91.
+benchmark depth and safe clinical integration of the existing runtime.
