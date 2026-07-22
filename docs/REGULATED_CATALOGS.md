@@ -71,7 +71,8 @@ commercial interfaces without a supported export and documented rights.
 Official law collection is also opt-in for scheduled runs through `ENABLE_LEGAL_CATALOG_SYNC=true`.
 The query configuration and raw API pages are uploaded alongside the normalized ledger so coverage
 changes can be audited. Fixture validation proves parser behavior only; real coverage totals always
-refer to the exact configured export or official API pages preserved with that run.
+refer to the exact configured export or official API pages preserved with that run. Normal CI must
+pass formatting, strict typing and the offline regulated-catalog fixture suite.
 
 ## Publication boundary
 
