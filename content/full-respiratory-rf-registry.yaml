@@ -1,0 +1,83 @@
+pack:
+  id: minimed.clinical.pediatrics.respiratory-allergy
+  version: 0.3.4-preview.1
+  schemaVersion: 2
+  title: Педиатрия — дыхание и аллергология: полный текст
+  builtAt: "2026-07-22T00:00:00Z"
+
+sources:
+  - id: kr.rf.714_2.pneumonia.full
+    path: pneumonia-714_2.html
+    title: Внебольничная пневмония у детей
+    shortTitle: Пневмония у детей
+    versionLabel: 714_2-2025-full
+    sourceType: clinical_recommendation
+    status: active
+    specialties: [pediatrics, pulmonology, infectious-diseases]
+    ageGroups: [children]
+    effectiveFrom: "2025-01-01"
+    format: html
+    metadata:
+      officialId: "714_2"
+      officialSourceUrl: https://cr.minzdrav.gov.ru/preview-cr/714_2
+      publicMirrorUrl: https://medvestnik.ru/cr/714_2.html
+      sourceYear: 2025
+      reviewNoLaterThan: 2027
+      contentMode: full-source-text
+      sourceAuthority: official-recommendation-public-mirror
+      retrievedBy: automated-source-sync
+  - id: kr.rf.381_3.bronchitis.full
+    path: bronchitis-381_3.html
+    title: Бронхит у детей
+    shortTitle: Бронхит
+    versionLabel: 381_3-2024-full
+    sourceType: clinical_recommendation
+    status: active
+    specialties: [pediatrics, pulmonology]
+    ageGroups: [children]
+    effectiveFrom: "2024-01-01"
+    format: html
+    metadata:
+      officialId: "381_3"
+      officialSourceUrl: https://cr.minzdrav.gov.ru/view-cr/381_3
+      publicMirrorUrl: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/bronxit-kr-2024/
+      sourceYear: 2024
+      contentMode: full-source-text
+      sourceAuthority: official-recommendation-public-mirror
+      retrievedBy: automated-source-sync
+  - id: kr.rf.360_3.bronchiolitis.full
+    path: bronchiolitis-360_3.html
+    title: Острый бронхиолит у детей
+    shortTitle: Острый бронхиолит
+    versionLabel: 360_3-2024-full
+    sourceType: clinical_recommendation
+    status: active
+    specialties: [pediatrics, pulmonology, neonatology]
+    ageGroups: [children]
+    effectiveFrom: "2024-01-01"
+    format: html
+    metadata:
+      officialId: "360_3"
+      officialSourceUrl: https://cr.minzdrav.gov.ru/preview-cr/360_3
+      publicMirrorUrl: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/ostryij-bronxiolit-kr-2024/
+      sourceYear: 2024
+      contentMode: full-source-text
+      sourceAuthority: official-recommendation-public-mirror
+      retrievedBy: automated-source-sync
+
+aliases:
+  - id: alias.full.pneumonia.community-acquired
+    canonicalTerm: внебольничная пневмония у детей
+    alias: пневмония у ребенка
+    category: disease
+    weight: 1.0
+  - id: alias.full.bronchitis.acute
+    canonicalTerm: бронхит у детей
+    alias: острый бронхит
+    category: disease
+    weight: 1.0
+  - id: alias.full.bronchiolitis.acute
+    canonicalTerm: острый бронхиолит у детей
+    alias: бронхиолит у грудничка
+    category: disease
+    weight: 1.0
