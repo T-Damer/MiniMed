@@ -11,7 +11,7 @@ const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
 const REGULATORY_TITLE = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
 
 function navigationButton(page: Page, name: string): Locator {
-  return page.locator('.app-nav-icons').getByRole('button', { name, exact: true });
+  return page.locator('.app-nav-icons').getByRole('button', { name });
 }
 
 function regulatoryCard(page: Page): Locator {
