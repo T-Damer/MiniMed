@@ -60,7 +60,9 @@ export function App(): JSX.Element {
     if (next === 'modules') setModuleUpdateCount(0);
   };
 
-  const handleScroll = (): void => setShowScrollTop(window.scrollY > 560);
+  const handleScroll = (): void => {
+    setShowScrollTop(window.scrollY > 560);
+  };
 
   onMount(async () => {
     window.addEventListener('hashchange', handleHashChange);
