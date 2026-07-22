@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  InMemoryInstalledModuleRegistry,
   INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION,
+  InMemoryInstalledModuleRegistry,
   type InstalledModuleRegistrySnapshot,
   type ModuleVersionInstallation,
   PersistentInstalledModuleRegistry,
@@ -111,9 +111,9 @@ describe('InMemoryInstalledModuleRegistry', () => {
     const registry = new InMemoryInstalledModuleRegistry();
     const active = registry.activate(installation('1'));
 
-    expect(() =>
-      registry.activate(installation('1', { sourceSetDigest: digest('a') })),
-    ).toThrow('conflicting source-set digest');
+    expect(() => registry.activate(installation('1', { sourceSetDigest: digest('a') }))).toThrow(
+      'conflicting source-set digest',
+    );
     expect(registry.get(active.moduleId)?.activeSourceSetDigest).toBe(digest('1'));
   });
 
