@@ -2,7 +2,7 @@ pack:
   id: minimed.clinical.pediatrics.respiratory-allergy
   version: 0.3.4-preview.1
   schemaVersion: 2
-  title: Педиатрия — дыхание и аллергология: полный текст
+  title: "Педиатрия — дыхание и аллергология: полный текст"
   builtAt: "2026-07-22T00:00:00Z"
 
 sources:
