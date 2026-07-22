@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026.07-preview.1",
+  "catalogVersion": "2026.07-preview.2",
   "publishedAt": "2026-07-22T00:00:00Z",
   "runtime": {
     "wllamaModuleUrl": "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/index.js",
@@ -8,6 +8,48 @@
     "version": "wllama-3.5.1"
   },
   "models": [
+    {
+      "id": "vikhr-qwen2.5-0.5b-q4",
+      "name": "Vikhr Qwen 2.5 0.5B",
+      "family": "vikhr-qwen2.5",
+      "tier": "compact",
+      "description": "Русскоязычный компактный кандидат для слабых устройств и короткого структурного разбора.",
+      "parameterCount": 500000000,
+      "qualityScore": 60,
+      "russianPriority": 99,
+      "minimumMemoryGb": 3,
+      "recommendedMemoryGb": 4,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "vikhr-qwen2.5-0.5b-q4-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/Vikhr-Qwen-2.5-0.5B-instruct-GGUF/resolve/main/Vikhr-Qwen-2.5-0.5B-instruct-Q4_K_M.gguf",
+          "mirrorPath": "vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf",
+          "downloadBytes": 397543680,
+          "sha256": "8f45f00da2bcd70205461639e978db7c8245e205c8604cfe2ab7f5430506bf32",
+          "published": true,
+          "maxContextTokens": 2048
+        },
+        {
+          "id": "vikhr-qwen2.5-0.5b-q4-cactus",
+          "runtime": "cactus-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/Vikhr-Qwen-2.5-0.5B-instruct-GGUF/resolve/main/Vikhr-Qwen-2.5-0.5B-instruct-Q4_K_M.gguf",
+          "mirrorPath": "vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf",
+          "downloadBytes": 397543680,
+          "sha256": "8f45f00da2bcd70205461639e978db7c8245e205c8604cfe2ab7f5430506bf32",
+          "published": true,
+          "maxContextTokens": 2048
+        }
+      ]
+    },
     {
       "id": "qwen3-0.6b-q8",
       "name": "Qwen3 0.6B",
@@ -93,11 +135,53 @@
       ]
     },
     {
+      "id": "qvikhr-3-1.7b-q4",
+      "name": "QVikhr 3 1.7B",
+      "family": "qvikhr3",
+      "tier": "balanced",
+      "description": "Русскоязычная Qwen3-модель без reasoning-режима, оптимальная для JSON, классификации и переранжирования.",
+      "parameterCount": 1700000000,
+      "qualityScore": 89,
+      "russianPriority": 100,
+      "minimumMemoryGb": 6,
+      "recommendedMemoryGb": 8,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qvikhr-3-1.7b-q4-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/QVikhr-3-1.7B-Instruction-noreasoning-GGUF/resolve/f110f16bba76d25148374ca017e659343defe583/QVikhr-3-1.7B-Instruction-noreasoning-Q4_K_M.gguf",
+          "mirrorPath": "qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf",
+          "downloadBytes": 1107408608,
+          "sha256": "425495de8462e63c98aae4e18561fa1fc7e153fa218e3067a5b39753258b48f2",
+          "published": true,
+          "maxContextTokens": 2048
+        },
+        {
+          "id": "qvikhr-3-1.7b-q4-cactus",
+          "runtime": "cactus-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/QVikhr-3-1.7B-Instruction-noreasoning-GGUF/resolve/f110f16bba76d25148374ca017e659343defe583/QVikhr-3-1.7B-Instruction-noreasoning-Q4_K_M.gguf",
+          "mirrorPath": "qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf",
+          "downloadBytes": 1107408608,
+          "sha256": "425495de8462e63c98aae4e18561fa1fc7e153fa218e3067a5b39753258b48f2",
+          "published": true,
+          "maxContextTokens": 2048
+        }
+      ]
+    },
+    {
       "id": "qwen3-1.7b-q8",
       "name": "Qwen3 1.7B",
       "family": "qwen3",
       "tier": "balanced",
-      "description": "Более качественное разложение русских клинических запросов и переранжирование.",
+      "description": "Многоязычный контрольный кандидат для сравнения с русскоязычными дообучениями.",
       "parameterCount": 1700000000,
       "qualityScore": 84,
       "russianPriority": 95,
