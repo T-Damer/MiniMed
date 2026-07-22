@@ -26,6 +26,15 @@ declared public mirror
 
 The HTML extractor keeps headings, paragraphs, lists and table candidates. Navigation, scripts, forms and page chrome are excluded. The original downloaded HTML checksum becomes the document-version checksum. Extraction warnings stay visible in the preparation report and are not silently repaired.
 
+A module advertised as full text must pass all of these gates:
+
+- every declared document was downloaded from its recorded mirror;
+- each document contains substantial clinical text and several section headings;
+- the SQLite document count matches the immutable manifest;
+- chunk count equals FTS row count;
+- `PRAGMA quick_check` succeeds and foreign-key validation returns no violations;
+- source checksums and the source-set digest are included in the release catalog.
+
 ## Application behavior
 
 Downloaded databases are stored separately from the bundled core. MiniMed opens enabled modules through the multi-store router and fuses their search results without merging or modifying the source databases.
