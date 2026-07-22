@@ -184,13 +184,22 @@ jobs:
               for chunk_id, document_version_id, original_text, metadata_raw in chunks:
                   assert original_text.strip()
                   metadata = json.loads(metadata_raw)
+                  assert isinstance(metadata.get('localOrder'), int)
                   source_type = version_types[document_version_id]
+                  source_spans = metadata.get('sourceSpans', [])
+                  assert isinstance(source_spans, list)
                   if source_type == 'clinical_recommendation_summary':
-                      assert metadata['contentMode'] == 'source_linked_paraphrase'
-                      assert metadata['officialSourceUrl'].startswith('https://cr.minzdrav.gov.ru/')
+                      assert source_spans
+                      for span in source_spans:
+                          assert span['contentMode'] == 'paraphrase'
+                          assert span['officialUrl'].startswith('https://cr.minzdrav.gov.ru/')
+                          assert span['publicUrl'].startswith('https://')
+                          assert span['sourceSection']
                   else:
-                      assert metadata['contentMode'] == 'source_linked_summary'
-                      assert metadata['officialSourceUrl'].startswith('https://pots.minzdrav.gov.ru/')
+                      for span in source_spans:
+                          assert span['contentMode'] == 'summary'
+                          assert span['officialUrl'].startswith('https://pots.minzdrav.gov.ru/')
+                          assert span['sourceSection']
           finally:
               db.close()
 
