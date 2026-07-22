@@ -23,6 +23,7 @@ import { MODULE_CATALOG } from './module-catalog';
 interface ModuleCatalogViewProps {
   readonly status: CoreStatus;
   readonly active: boolean;
+  readonly onContentChanged?: () => Promise<void>;
   readonly onAvailableUpdates?: (count: number) => void;
 }
 
@@ -84,7 +85,8 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     runtime().listInstalled(),
   );
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
-  const [reloadReady, setReloadReady] = createSignal(false);
+  const [contentChangePending, setContentChangePending] = createSignal(false);
+  const [connecting, setConnecting] = createSignal(false);
   let refreshedOnce = false;
   let unsubscribeTask: (() => void) | undefined;
 
@@ -121,6 +123,29 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     }
   };
 
+  const connectContentChanges = async (): Promise<void> => {
+    if (connecting()) return;
+    if (!props.onContentChanged) {
+      setContentChangePending(true);
+      return;
+    }
+    setConnecting(true);
+    setWarning(null);
+    try {
+      await props.onContentChanged();
+      setContentChangePending(false);
+    } catch (cause) {
+      setContentChangePending(true);
+      setWarning(
+        cause instanceof Error
+          ? cause.message
+          : 'Новые документы сохранены, но пока не подключены к поиску.',
+      );
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   const installedModule = (moduleId: string): InstalledContentModule | undefined =>
     installed().find((item) => item.moduleId === moduleId);
   const moduleTask = (moduleId: string): ContentModuleDownloadTask | undefined =>
@@ -136,7 +161,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       const completed = await runtime().wait(task.id);
       setTasks(runtime().listTasks());
       setInstalled(runtime().listInstalled());
-      if (completed.state === 'completed') setReloadReady(true);
+      if (completed.state === 'completed') await connectContentChanges();
       if (completed.state === 'failed') setWarning(completed.errorMessage);
     } catch (cause) {
       setWarning(cause instanceof Error ? cause.message : 'Не удалось установить набор.');
@@ -147,7 +172,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     try {
       await runtime().remove(moduleId);
       setInstalled(runtime().listInstalled());
-      setReloadReady(true);
+      await connectContentChanges();
     } catch (cause) {
       setWarning(cause instanceof Error ? cause.message : 'Не удалось удалить набор.');
     }
@@ -176,14 +201,18 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </div>
       </header>
 
-      <Show when={reloadReady()}>
-        <div class="module-reload-banner paper-card">
+      <Show when={contentChangePending() || connecting()}>
+        <div class="module-reload-banner paper-card" aria-live="polite">
           <div>
-            <strong>Состав базы изменился</strong>
-            <span>Перезапустите локальный поиск, чтобы подключить установленные документы.</span>
+            <strong>{connecting() ? 'Подключаем базу к поиску…' : 'Нужно повторить подключение'}</strong>
+            <span>
+              {connecting()
+                ? 'Текущий поиск продолжает работать до готовности нового состава базы.'
+                : 'Документы сохранены на устройстве, но поиск пока использует прежний состав.'}
+            </span>
           </div>
-          <button type="button" onClick={() => window.location.reload()}>
-            Подключить к поиску
+          <button type="button" disabled={connecting()} onClick={() => void connectContentChanges()}>
+            {connecting() ? 'Подключаем…' : 'Повторить'}
           </button>
         </div>
       </Show>
