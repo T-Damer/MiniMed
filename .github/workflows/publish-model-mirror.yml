@@ -37,7 +37,11 @@ jobs:
           node-version: 22.16.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run apps/app/src/features/models/catalog.test.ts apps/app/src/features/models/selection.test.ts
+      - name: Validate trusted catalog and mirror plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec tsx -e "import raw from './apps/app/src/features/models/catalog.preview.json'; import { parseLocalModelCatalog } from './apps/app/src/features/models/catalog.ts'; const catalog=parseLocalModelCatalog(raw); const mirrored=catalog.models.flatMap(model => model.license.id === 'apache-2.0' ? model.artifacts.filter(a => a.runtime === 'wllama-web' && a.published) : []); if (mirrored.length !== 4) throw new Error('Expected four mirrored Apache artifacts'); console.log(mirrored.map(a => a.mirrorPath));"
 
   mirror-apache-models:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
@@ -69,7 +73,6 @@ jobs:
                   digest = artifact.get('sha256')
                   if not path or not digest:
                       raise SystemExit(f"Published artifact lacks mirror metadata: {artifact['id']}")
-                  existing = selected.get(path)
                   record = {
                       'modelId': model['id'],
                       'artifactId': artifact['id'],
@@ -78,6 +81,7 @@ jobs:
                       'sha256': digest,
                       'bytes': artifact['downloadBytes'],
                   }
+                  existing = selected.get(path)
                   if existing and existing != record:
                       raise SystemExit(f'Conflicting mirror path: {path}')
                   selected[path] = record
