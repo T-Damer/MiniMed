@@ -11,6 +11,7 @@ import yaml
 
 from .html_import import extract_html
 from .html_import import extract_html
+from .html_import import extract_html
 from .models import (
     ExtractedBlock,
     ExtractedSource,
@@ -50,6 +51,8 @@ def _source_format(source: RegistrySource, path: Path) -> Literal["pdf", "text",
         return "pdf"
     if suffix in {".md", ".markdown"}:
         return "markdown"
+    if suffix in {".html", ".htm"}:
+        return "html"
     if suffix in {".html", ".htm"}:
         return "html"
     if suffix in {".html", ".htm"}:
