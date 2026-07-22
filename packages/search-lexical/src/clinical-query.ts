@@ -61,7 +61,7 @@ export function analyzeClinicalQuery(
   includeSuggestions = true,
 ): ClinicalQueryPlan {
   const plan = analyzeClinicalQueryRaw(query, aliases, includeSuggestions);
-  if (plan.analysis.intent.primary !== 'diagnosis') return plan;
+  if (plan.analysis.intent?.primary !== 'diagnosis') return plan;
 
   const branches = sanitizeDiagnosticBranches(plan);
   if (branches.length === 0 || branches === plan.branches) return plan;
