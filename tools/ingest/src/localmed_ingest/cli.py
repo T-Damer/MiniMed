@@ -67,7 +67,7 @@ def sync_command(
     report: Annotated[Path | None, typer.Option("--report")] = None,
     force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Synchronize URL or local-file inputs into a validated, cache-backed source workspace."""
     sync_report = sync_source_manifest(

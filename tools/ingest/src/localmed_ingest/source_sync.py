@@ -316,7 +316,10 @@ def _sync_remote(
         status = "cache-fallback"
     else:
         headers = {
-            "Accept": "text/html,application/xhtml+xml,application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",
+            "Accept": (
+                "text/html,application/xhtml+xml,application/pdf,"
+                "text/plain,text/markdown,application/octet-stream;q=0.8"
+            ),
             "User-Agent": "MiniMed-Medbase/1.0 (+https://github.com/T-Damer/MiniMed)",
         }
         if cached_valid and metadata is not None and not force_refresh:

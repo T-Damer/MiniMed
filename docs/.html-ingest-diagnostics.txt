@@ -1,28 +1,6 @@
 === RUFF CHECK ===
-E501 Line too long (128 > 100)
-   --> tools/ingest/src/localmed_ingest/source_sync.py:319:101
-    |
-317 |     else:
-318 |         headers = {
-319 |             "Accept": "text/html,application/xhtml+xml,application/pdf,text/plain,text/markdown,application/octet-stream;q=0.8",
-    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-320 |             "User-Agent": "MiniMed-Medbase/1.0 (+https://github.com/T-Damer/MiniMed)",
-321 |         }
-    |
-
-E501 Line too long (105 > 100)
-  --> tools/ingest/tests/test_html_import.py:14:101
-   |
-12 |     paragraphs = " ".join(
-13 |         [
-14 |             "Рекомендовано проводить клиническую оценку пациента, учитывать возраст, тяжесть состояния, "
-   |                                                                                                     ^^^^^
-15 |             "результаты обследования и сведения из действующей редакции клинических рекомендаций."
-16 |         ]
-   |
-
-Found 2 errors.
-RUFF_EXIT=1
+All checks passed!
+RUFF_EXIT=0
 
 === PYRIGHT ===
 0 errors, 0 warnings, 0 informations
@@ -30,5 +8,5 @@ PYRIGHT_EXIT=0
 
 === PYTEST ===
 .............................................                            [100%]
-45 passed in 2.17s
+45 passed in 1.68s
 PYTEST_EXIT=0

@@ -107,7 +107,7 @@
 [31m│[0m   [2m839 [0m[2m│   │   │   [0mexceptions.clear()                                         [31m│[0m
 [31m│[0m   [2m840 [0m[2m│   │   │   [0m[94mreturn[0m sock                                                [31m│[0m
 [31m╰──────────────────────────────────────────────────────────────────────────────╯[0m
-[1;91mTimeoutError: [0mtimed out
+[1;91mTimeoutError: [0m[1m[[0mErrno [1;36m110[0m[1m][0m Connection timed out
 
 [3mDuring handling of the above exception, another exception occurred:[0m
 
@@ -116,7 +116,7 @@
 [31m│[0m in sync_command                                                              [31m│[0m
 [31m│[0m                                                                              [31m│[0m
 [31m│[0m   [2m 70 [0m[2m│   [0mtimeout_seconds: Annotated[[96mfloat[0m,                                  [31m│[0m
-[31m│[0m       typer.Option([33m"[0m[33m--timeout-seconds[0m[33m"[0m, [96mmin[0m=[94m1[0m)] = [94m60.0[0m,                      [31m│[0m
+[31m│[0m       typer.Option([33m"[0m[33m--timeout-seconds[0m[33m"[0m, [96mmin[0m=[94m1[0m)] = [94m180.0[0m,                     [31m│[0m
 [31m│[0m   [2m 71 [0m) -> [94mNone[0m:                                                             [31m│[0m
 [31m│[0m   [2m 72 [0m[2;90m│   [0m[33m"""Synchronize URL or local-file inputs into a validated, [0m         [31m│[0m
 [31m│[0m       [33mcache-backed source workspace."""[0m                                      [31m│[0m
@@ -126,28 +126,28 @@
 [31m│[0m   [2m 76 [0m[2m│   │   [0m[1;4mcache_root,[0m                                                    [31m│[0m
 [31m│[0m                                                                              [31m│[0m
 [31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1msource_sy[0m [31m│[0m
-[31m│[0m [1mnc.py[0m:405 in sync_source_manifest                                            [31m│[0m
+[31m│[0m [1mnc.py[0m:408 in sync_source_manifest                                            [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m402 [0m[2m│   [0msynced: [96mlist[0m[SyncedSource] = []                                    [31m│[0m
-[31m│[0m   [2m403 [0m[2m│   [0m[94mfor[0m source [95min[0m manifest.sources:                                    [31m│[0m
-[31m│[0m   [2m404 [0m[2m│   │   [0m[94mif[0m _is_remote(source.location):                                [31m│[0m
-[31m│[0m [31m❱ [0m405 [2m│   │   │   [0mresult = [1;4m_sync_remote([0m                                     [31m│[0m
-[31m│[0m   [2m406 [0m[2m│   │   │   │   [0m[1;4msource,[0m                                                [31m│[0m
-[31m│[0m   [2m407 [0m[2m│   │   │   │   [0m[1;4moutput_root,[0m                                           [31m│[0m
-[31m│[0m   [2m408 [0m[2m│   │   │   │   [0m[1;4mcache_root,[0m                                            [31m│[0m
+[31m│[0m   [2m405 [0m[2m│   [0msynced: [96mlist[0m[SyncedSource] = []                                    [31m│[0m
+[31m│[0m   [2m406 [0m[2m│   [0m[94mfor[0m source [95min[0m manifest.sources:                                    [31m│[0m
+[31m│[0m   [2m407 [0m[2m│   │   [0m[94mif[0m _is_remote(source.location):                                [31m│[0m
+[31m│[0m [31m❱ [0m408 [2m│   │   │   [0mresult = [1;4m_sync_remote([0m                                     [31m│[0m
+[31m│[0m   [2m409 [0m[2m│   │   │   │   [0m[1;4msource,[0m                                                [31m│[0m
+[31m│[0m   [2m410 [0m[2m│   │   │   │   [0m[1;4moutput_root,[0m                                           [31m│[0m
+[31m│[0m   [2m411 [0m[2m│   │   │   │   [0m[1;4mcache_root,[0m                                            [31m│[0m
 [31m│[0m                                                                              [31m│[0m
 [31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1msource_sy[0m [31m│[0m
-[31m│[0m [1mnc.py[0m:329 in _sync_remote                                                    [31m│[0m
+[31m│[0m [1mnc.py[0m:332 in _sync_remote                                                    [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m326 [0m[2m│   │   │   │   [0mheaders[[33m"[0m[33mIf-Modified-Since[0m[33m"[0m] = metadata.last_modified  [31m│[0m
-[31m│[0m   [2m327 [0m[2m│   │   [0mrequest = urllib.request.Request(source.location,              [31m│[0m
+[31m│[0m   [2m329 [0m[2m│   │   │   │   [0mheaders[[33m"[0m[33mIf-Modified-Since[0m[33m"[0m] = metadata.last_modified  [31m│[0m
+[31m│[0m   [2m330 [0m[2m│   │   [0mrequest = urllib.request.Request(source.location,              [31m│[0m
 [31m│[0m       headers=headers)                                                       [31m│[0m
-[31m│[0m   [2m328 [0m[2m│   │   [0m[94mtry[0m:                                                           [31m│[0m
-[31m│[0m [31m❱ [0m329 [2m│   │   │   [0m[94mwith[0m urllib.request.urlopen(request,                       [31m│[0m
+[31m│[0m   [2m331 [0m[2m│   │   [0m[94mtry[0m:                                                           [31m│[0m
+[31m│[0m [31m❱ [0m332 [2m│   │   │   [0m[94mwith[0m urllib.request.urlopen(request,                       [31m│[0m
 [31m│[0m       timeout=timeout_seconds) [94mas[0m response:                                  [31m│[0m
-[31m│[0m   [2m330 [0m[2m│   │   │   │   [0mpayload = _read_limited(response, source.max_bytes)    [31m│[0m
-[31m│[0m   [2m331 [0m[2m│   │   │   │   [0m_validate_payload(payload, content_type, source.id)    [31m│[0m
-[31m│[0m   [2m332 [0m[2m│   │   │   │   [0mchecksum = _sha256_bytes(payload)                      [31m│[0m
+[31m│[0m   [2m333 [0m[2m│   │   │   │   [0mpayload = _read_limited(response, source.max_bytes)    [31m│[0m
+[31m│[0m   [2m334 [0m[2m│   │   │   │   [0m_validate_payload(payload, content_type, source.id)    [31m│[0m
+[31m│[0m   [2m335 [0m[2m│   │   │   │   [0mchecksum = _sha256_bytes(payload)                      [31m│[0m
 [31m│[0m                                                                              [31m│[0m
 [31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:215 in urlopen                         [31m│[0m
 [31m│[0m                                                                              [31m│[0m
@@ -213,5 +213,5 @@
 [31m│[0m   [2m1349 [0m[2m│   │   [0m[94mexcept[0m:                                                       [31m│[0m
 [31m│[0m   [2m1350 [0m[2m│   │   │   [0mh.close()                                                 [31m│[0m
 [31m╰──────────────────────────────────────────────────────────────────────────────╯[0m
-[1;91mURLError: [0m[1m<[0m[1;95murlopen[0m[39m error timed out[0m[1m>[0m
+[1;91mURLError: [0m[1m<[0m[1;95murlopen[0m[39m error [0m[1;39m[[0m[39mErrno [0m[1;36m110[0m[1;39m][0m[39m Connection timed out[0m[1m>[0m
 SYNC_EXIT=1
