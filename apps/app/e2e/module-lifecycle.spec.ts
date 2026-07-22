@@ -15,9 +15,7 @@ function navigationButton(page: Page, name: string): Locator {
 }
 
 function regulatoryCard(page: Page): Locator {
-  return page
-    .locator('.module-card')
-    .filter({ hasText: 'Нормативные документы РФ: педиатрия' });
+  return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
 }
 
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
