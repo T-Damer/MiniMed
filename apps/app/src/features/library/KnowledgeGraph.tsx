@@ -39,17 +39,17 @@ function specialtySignal(
   if (/(?:гастро|питан|gastro|nutrition)/u.test(normalized)) {
     return { icon: 'stomach', label: specialty, tone: 'amber', strength: 'primary' };
   }
-  return (
-    documentClinicalSignals(
-      documents[0] ??
-        ({ title: specialty, shortTitle: null, specialties: [] } as MedicalDocumentSummary),
-    )[0] ?? {
-      icon: 'overview',
-      label: specialty,
-      tone: 'neutral',
-      strength: 'primary',
-    }
-  );
+  const firstDocument = documents[0];
+  if (firstDocument) {
+    const signal = documentClinicalSignals(firstDocument)[0];
+    if (signal) return signal;
+  }
+  return {
+    icon: 'overview',
+    label: specialty,
+    tone: 'neutral',
+    strength: 'primary',
+  };
 }
 
 export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
