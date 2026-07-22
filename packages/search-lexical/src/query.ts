@@ -1,7 +1,8 @@
 import type { SearchSuggestion } from '@localmed/contracts';
 import type { AliasRecord } from '@localmed/domain';
 
-import { analyzeClinicalQuery, type LexicalQueryBranchPlan } from './analysis';
+import { type LexicalQueryBranchPlan } from './analysis';
+import { analyzeClinicalQuery } from './clinical-query';
 
 export interface LexicalQueryPlan {
   readonly originalQuery: string;
