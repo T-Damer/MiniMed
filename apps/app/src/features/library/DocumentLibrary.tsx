@@ -121,9 +121,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                 type="button"
                 onClick={() => openDocumentOverlay(document.id)}
               >
-                <span class="document-library-index">
-                  {String(index() + 1).padStart(2, '0')}
-                </span>
+                <span class="document-library-index">{String(index() + 1).padStart(2, '0')}</span>
                 <span class="document-library-copy">
                   <small>{sourceTypeLabel(document.sourceType)}</small>
                   <strong>{document.title}</strong>

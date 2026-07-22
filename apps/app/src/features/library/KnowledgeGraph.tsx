@@ -63,7 +63,8 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
     specialties.forEach((specialty, specialtyIndex) => {
       let domain = domains.get(specialty);
       if (!domain) {
-        const domainAngle = ((domains.size + specialtyIndex) / Math.max(1, count / 2)) * Math.PI * 2;
+        const domainAngle =
+          ((domains.size + specialtyIndex) / Math.max(1, count / 2)) * Math.PI * 2;
         domain = {
           id: `domain:${specialty}`,
           kind: 'domain',
@@ -233,7 +234,11 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       context.textBaseline = 'top';
       context.font = `${node.kind === 'domain' ? 600 : 500} ${node.kind === 'domain' ? 12 : 11}px Arial`;
       context.fillStyle = '#292720';
-      context.fillText(shortLabel(node.label, node.kind === 'domain' ? 26 : 32), node.x, node.y + 29);
+      context.fillText(
+        shortLabel(node.label, node.kind === 'domain' ? 26 : 32),
+        node.x,
+        node.y + 29,
+      );
     }
 
     context.restore();
@@ -305,7 +310,12 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           const point = pointFromEvent(event);
           const dx = point.x - pointerLast.x;
           const dy = point.y - pointerLast.y;
-          if (Math.hypot(point.x - (pointerStart?.x ?? point.x), point.y - (pointerStart?.y ?? point.y)) > 4) {
+          if (
+            Math.hypot(
+              point.x - (pointerStart?.x ?? point.x),
+              point.y - (pointerStart?.y ?? point.y),
+            ) > 4
+          ) {
             moved = true;
           }
           if (draggedNode) {
@@ -342,8 +352,12 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       />
 
       <div class="knowledge-graph-legend" aria-hidden="true">
-        <span><i class="domain" /> медицинская область</span>
-        <span><i class="document" /> документ</span>
+        <span>
+          <i class="domain" /> медицинская область
+        </span>
+        <span>
+          <i class="document" /> документ
+        </span>
       </div>
     </section>
   );

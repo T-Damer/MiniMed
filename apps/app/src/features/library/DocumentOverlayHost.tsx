@@ -1,10 +1,7 @@
 import type { MedicalCore, MedicalDocument } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount } from 'solid-js';
 
-import {
-  type OpenDocumentRequest,
-  OPEN_DOCUMENT_EVENT,
-} from '../../state/document-navigation';
+import { OPEN_DOCUMENT_EVENT, type OpenDocumentRequest } from '../../state/document-navigation';
 import { DocumentReaderDialog } from './DocumentReaderDialog';
 
 interface DocumentOverlayHostProps {
@@ -33,9 +30,7 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
     setSelectedDocument(result.value);
     if (request.anchor) {
       requestAnimationFrame(() => {
-        window.document
-          .getElementById(request.anchor ?? '')
-          ?.scrollIntoView({ block: 'center' });
+        window.document.getElementById(request.anchor ?? '')?.scrollIntoView({ block: 'center' });
       });
     }
   };

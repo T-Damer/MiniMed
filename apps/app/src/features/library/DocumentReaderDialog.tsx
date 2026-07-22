@@ -120,7 +120,9 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                       {(chunk) => (
                         <p
                           id={chunk.anchor}
-                          classList={{ 'document-initial-anchor': props.initialAnchor === chunk.anchor }}
+                          classList={{
+                            'document-initial-anchor': props.initialAnchor === chunk.anchor,
+                          }}
                         >
                           {chunk.originalText}
                         </p>

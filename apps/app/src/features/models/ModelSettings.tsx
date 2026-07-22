@@ -89,8 +89,8 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
           <p class="archive-kicker">Помощник на устройстве</p>
           <h2 id="local-model-heading">Локальная модель</h2>
           <p>
-            Модель работает без отправки медицинского запроса на сервер. Выберите вариант и запустите
-            короткую проверку. Основной поиск работает и без модели.
+            Модель работает без отправки медицинского запроса на сервер. Выберите вариант и
+            запустите короткую проверку. Основной поиск работает и без модели.
           </p>
         </div>
         <span class={`model-state-badge ${state().phase}`}>{PHASE_LABELS[state().phase]}</span>
@@ -99,7 +99,9 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       <div class="model-doctor-summary">
         <div>
           <span>Сейчас используется</span>
-          <strong>{props.controller.modelById(state().activeModelId)?.name ?? 'Только обычный поиск'}</strong>
+          <strong>
+            {props.controller.modelById(state().activeModelId)?.name ?? 'Только обычный поиск'}
+          </strong>
         </div>
         <Show when={state().recommendedModelId}>
           <div>
@@ -165,7 +167,9 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                   <h3>{model.name}</h3>
                   <p>{model.description}</p>
                   <div class="model-friendly-facts">
-                    <span>{size() === null ? 'Нет подходящей сборки' : formatBytes(size() ?? 0)}</span>
+                    <span>
+                      {size() === null ? 'Нет подходящей сборки' : formatBytes(size() ?? 0)}
+                    </span>
                     <span>Нужно от {model.minimumMemoryGb} ГБ памяти</span>
                   </div>
                   <Show when={model.license.requiresAcceptance && !accepted()}>
@@ -245,8 +249,8 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         <div class="model-error-details">
           <p>{state().error}</p>
           <p>
-            Обычный поиск MiniMed продолжает работать. Можно повторить проверку этой модели или выбрать
-            более лёгкую.
+            Обычный поиск MiniMed продолжает работать. Можно повторить проверку этой модели или
+            выбрать более лёгкую.
           </p>
           <div class="model-error-actions">
             <Show when={state().selectedModelId}>

@@ -339,9 +339,7 @@
   width: 100%;
   height: clamp(440px, 64vh, 700px);
   border: 1px solid rgb(79 65 37 / 24%);
-  background:
-    radial-gradient(circle at 50% 45%, rgb(255 255 255 / 68%), transparent 60%),
-    #eee6d2;
+  background: radial-gradient(circle at 50% 45%, rgb(255 255 255 / 68%), transparent 60%), #eee6d2;
   cursor: grab;
   touch-action: none;
 }

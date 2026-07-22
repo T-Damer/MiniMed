@@ -117,7 +117,9 @@ export function App(): JSX.Element {
         })
         .catch(() => undefined);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось открыть локальную базу знаний.');
+      setError(
+        cause instanceof Error ? cause.message : 'Не удалось открыть локальную базу знаний.',
+      );
     }
   });
 
@@ -165,7 +167,10 @@ export function App(): JSX.Element {
           })}
         </nav>
 
-        <div class="app-core-indicator" title={ready() ? 'База готова' : (error() ?? 'Открываем базу')}>
+        <div
+          class="app-core-indicator"
+          title={ready() ? 'База готова' : (error() ?? 'Открываем базу')}
+        >
           <i />
           <span>{ready() ? 'готово' : error() ? 'ошибка' : 'запуск'}</span>
         </div>

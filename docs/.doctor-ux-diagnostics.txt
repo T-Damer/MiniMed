@@ -1,0 +1,43 @@
+$ pnpm -r --if-present typecheck
+Scope: 12 of 13 workspace projects
+apps/landing typecheck$ astro check
+packages/contracts typecheck$ tsc -p tsconfig.json
+packages/domain typecheck$ tsc -p tsconfig.json
+packages/domain typecheck: Done
+packages/contracts typecheck: Done
+apps/landing typecheck: [2m20:02:09[22m [34m[types][39m Generated [2m135ms[22m
+apps/landing typecheck: [2m20:02:09[22m [34m[check][39m Getting diagnostics for Astro files in /home/runner/work/MiniMed/MiniMed/apps/landing...
+apps/landing typecheck: Result (3 files): 
+apps/landing typecheck: - 0 errors
+apps/landing typecheck: - 0 warnings
+apps/landing typecheck: - 0 hints
+apps/landing typecheck: Done
+packages/search-lexical typecheck$ tsc -p tsconfig.json
+packages/search-semantic typecheck$ tsc -p tsconfig.json
+packages/storage typecheck$ tsc -p tsconfig.json
+packages/test-fixtures typecheck$ tsc -p tsconfig.json
+packages/search-semantic typecheck: Done
+packages/test-fixtures typecheck: Done
+packages/storage typecheck: Done
+packages/search-lexical typecheck: Done
+packages/core typecheck$ tsc -p tsconfig.json
+packages/storage-capacitor typecheck$ tsc -p tsconfig.json
+packages/storage-sqlite typecheck$ tsc -p tsconfig.json
+packages/storage-sqlite typecheck: Done
+packages/storage-capacitor typecheck: Done
+packages/core typecheck: Done
+apps/app typecheck$ tsc -p tsconfig.json
+tools/benchmarks typecheck$ tsc -p tsconfig.json
+tools/benchmarks typecheck: Done
+apps/app typecheck: src/features/models/ModelSettings.tsx(242,8): error TS2375: Type '{ children: Element; open: boolean; title: string; subtitle: string | undefined; class: string; onClose: () => false; }' is not assignable to type 'IntrinsicAttributes & OverlayDialogProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+apps/app typecheck:   Type '{ children: Element; open: boolean; title: string; subtitle: string | undefined; class: string; onClose: () => false; }' is not assignable to type 'OverlayDialogProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+apps/app typecheck:     Types of property 'subtitle' are incompatible.
+apps/app typecheck:       Type 'string | undefined' is not assignable to type 'string'.
+apps/app typecheck:         Type 'undefined' is not assignable to type 'string'.
+apps/app typecheck: Failed
+/home/runner/work/MiniMed/MiniMed/apps/app:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @localmed/app@0.3.3 typecheck: `tsc -p tsconfig.json`
+Exit status 2
+[ELIFECYCLE] Command failed with exit code 2.
+
+TYPECHECK_EXIT=2
