@@ -4,9 +4,9 @@ apps/landing typecheck$ astro check
 packages/contracts typecheck$ tsc -p tsconfig.json
 packages/domain typecheck$ tsc -p tsconfig.json
 packages/domain typecheck: Done
-apps/landing typecheck: [2m20:11:21[22m [34m[types][39m Generated [2m227ms[22m
-apps/landing typecheck: [2m20:11:21[22m [34m[check][39m Getting diagnostics for Astro files in /home/runner/work/MiniMed/MiniMed/apps/landing...
 packages/contracts typecheck: Done
+apps/landing typecheck: [2m20:13:00[22m [34m[types][39m Generated [2m186ms[22m
+apps/landing typecheck: [2m20:13:00[22m [34m[check][39m Getting diagnostics for Astro files in /home/runner/work/MiniMed/MiniMed/apps/landing...
 apps/landing typecheck: Result (3 files): 
 apps/landing typecheck: - 0 errors
 apps/landing typecheck: - 0 warnings
@@ -18,8 +18,8 @@ packages/storage typecheck$ tsc -p tsconfig.json
 packages/test-fixtures typecheck$ tsc -p tsconfig.json
 packages/search-semantic typecheck: Done
 packages/test-fixtures typecheck: Done
-packages/storage typecheck: Done
 packages/search-lexical typecheck: Done
+packages/storage typecheck: Done
 packages/core typecheck$ tsc -p tsconfig.json
 packages/storage-capacitor typecheck$ tsc -p tsconfig.json
 packages/storage-sqlite typecheck$ tsc -p tsconfig.json
