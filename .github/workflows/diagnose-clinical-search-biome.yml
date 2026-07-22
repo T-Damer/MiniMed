@@ -1,0 +1,55 @@
+name: Diagnose clinical search Biome
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-clinical-search-biome.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.head_ref == 'agent/content-module-installer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/content-module-installer
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: python tools/one_shot_finish_clinical_search.py
+      - run: |
+          set +e
+          pnpm exec biome check --write \
+            apps/app/src/app/App.tsx \
+            apps/app/src/components/AppGlyph.tsx \
+            apps/app/src/components/ClinicalGlyph.tsx \
+            apps/app/src/features/library/DocumentLibrary.tsx \
+            apps/app/src/features/library/KnowledgeGraph.tsx \
+            apps/app/src/features/modules/ModuleCatalogView.tsx \
+            apps/app/src/features/search/SearchWorkspace.tsx \
+            apps/app/src/main.tsx \
+            apps/app/src/state/document-navigation.ts \
+            apps/app/src/styles/clinical-ux.css \
+            apps/app/e2e/search.spec.ts \
+            packages/search-lexical/src/analysis.ts \
+            packages/search-lexical/src/intent.ts \
+            packages/search-lexical/src/symptom-expressions.ru.json \
+            packages/search-lexical/tests/query.test.ts > clinical-search-biome.txt 2>&1
+          printf '\nexit=%s\n' "$?" >> clinical-search-biome.txt
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clinical-search-biome
+          path: clinical-search-biome.txt
+          retention-days: 1
