@@ -1,0 +1,56 @@
+name: Diagnose clinical fixture
+
+on:
+  pull_request:
+    branches: [agent/doctor-datasets-model-diagnostics]
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.head.ref == 'agent/bulk-clinical-catalog'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/bulk-clinical-catalog
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Capture fixture command output
+        shell: bash
+        run: |
+          set +e
+          mkdir -p docs data/build
+          {
+            uv run --project tools/ingest medbase-clinical-catalog build \
+              --source tools/ingest/tests/fixtures/clinical-catalog-sample.json \
+              --taxonomy content/clinical-module-taxonomy.yaml \
+              --overrides content/clinical-coverage-overrides.yaml \
+              --generated-at 2026-07-23T00:00:00Z \
+              --output data/build/clinical-coverage-sample.json
+            echo "BUILD_EXIT=$?"
+            if [ -f data/build/clinical-coverage-sample.json ]; then
+              python3 - <<'PY'
+          import json
+          from pathlib import Path
+          ledger = json.loads(Path('data/build/clinical-coverage-sample.json').read_text())
+          print(json.dumps(ledger.get('summary'), ensure_ascii=False, indent=2))
+          print('MODULE_COUNT=', len(ledger.get('modules', [])))
+          PY
+            fi
+          } > docs/.clinical-fixture-diagnostics.txt 2>&1
+          set -e
+      - name: Publish diagnostics
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/.clinical-fixture-diagnostics.txt
+          git commit -m 'chore: capture clinical fixture diagnostics'
+          git push origin HEAD:agent/bulk-clinical-catalog
