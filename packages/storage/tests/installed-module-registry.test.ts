@@ -91,6 +91,32 @@ describe('InMemoryInstalledModuleRegistry', () => {
     expect(rolledBack.previousVersions).toEqual(['2']);
   });
 
+  it('refreshes one immutable version without creating rollback duplicates', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(installation('1'));
+
+    const refreshed = registry.activate(
+      installation('1', {
+        installedAt: '2026-07-22T00:00:00Z',
+        installedSizeBytes: 1_500,
+      }),
+    );
+
+    expect(refreshed.installedAt).toBe('2026-07-22T00:00:00Z');
+    expect(refreshed.installedSizeBytes).toBe(1_500);
+    expect(refreshed.previousVersions).toEqual([]);
+  });
+
+  it('rejects a changed source set for an immutable module version', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+    const active = registry.activate(installation('1'));
+
+    expect(() =>
+      registry.activate(installation('1', { sourceSetDigest: digest('a') })),
+    ).toThrow('conflicting source-set digest');
+    expect(registry.get(active.moduleId)?.activeSourceSetDigest).toBe(digest('1'));
+  });
+
   it('tracks update and enabled state independently', () => {
     const registry = new InMemoryInstalledModuleRegistry();
     const active = registry.activate(installation('1'));
@@ -209,6 +235,18 @@ describe('InMemoryInstalledModuleRegistry', () => {
         ],
       }),
     ).toThrow('duplicate module version');
+
+    expect(() =>
+      InMemoryInstalledModuleRegistry.fromSnapshot({
+        ...snapshot,
+        entries: [
+          {
+            ...entry,
+            history: [{ ...entry.active, sourceSetDigest: digest('a') }],
+          },
+        ],
+      }),
+    ).toThrow('changes the source-set digest');
   });
 });
 
