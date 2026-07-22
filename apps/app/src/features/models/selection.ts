@@ -8,7 +8,7 @@ import type {
 } from './types';
 
 const STORAGE_HEADROOM_BYTES = 256 * 1024 * 1024;
-const AUTOMATIC_LARGE_DOWNLOAD_BYTES = 1_000_000_000;
+const AUTOMATIC_LARGE_DOWNLOAD_BYTES = 1_250_000_000;
 const BROWSER_MAX_SINGLE_ARTIFACT_BYTES = 2_000_000_000;
 
 export interface LocalModelSelectionInput {
