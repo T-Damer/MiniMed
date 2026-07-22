@@ -14,6 +14,11 @@ app = typer.Typer(
 )
 
 
+@app.callback()
+def main() -> None:
+    """Generate loadable metadata module workspaces from a coverage ledger."""
+
+
 @app.command("build")
 def build_command(
     ledger: Annotated[Path, typer.Option("--ledger", exists=True, dir_okay=False)],
