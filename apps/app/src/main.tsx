@@ -4,6 +4,8 @@ import { App } from './app/App';
 import './styles/global.css';
 import './styles/mobile-shell.css';
 import './styles/modules.css';
+import './styles/clinical-ux.css';
+import './styles/clinical-results.css';
 import './styles/models.css';
 
 const root = document.getElementById('root');
