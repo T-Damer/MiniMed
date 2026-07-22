@@ -6,8 +6,8 @@ This list records product work that directly affects clinicians. Technical imple
 
 - [ ] Publish immutable GitHub Release assets for the first real SQLite modules.
 - [ ] Make the Russian pediatric regulatory pack installable, searchable, removable and persistent across restarts.
-- [ ] Add browser and Android-WebView storage for downloaded module databases.
-- [ ] Mount enabled downloaded modules through the existing multi-store search router without blocking the active search.
+- [x] Add browser and Android-WebView storage for downloaded module databases.
+- [x] Mount enabled downloaded modules through the existing multi-store search router without blocking the active search or reloading the page.
 - [ ] Show clear download progress, checksum verification, failure stage, installed version and storage size.
 - [ ] Keep the previous validated module active when an update fails.
 - [x] Keep persistent registry metadata and stored SQLite artifacts consistent when rollback or removal fails.
