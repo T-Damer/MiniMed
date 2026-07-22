@@ -44,12 +44,6 @@ jobs:
             tools/ingest/src/localmed_ingest/clinical_catalog.py \
             tools/ingest/src/localmed_ingest/clinical_catalog_cli.py \
             tools/ingest/tests/test_clinical_catalog.py
-          uv run --project tools/ingest ruff check \
-            tools/ingest/src/localmed_ingest/clinical_catalog.py \
-            tools/ingest/src/localmed_ingest/clinical_catalog_cli.py \
-            tools/ingest/tests/test_clinical_catalog.py
-          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest pytest tools/ingest/tests/test_clinical_catalog.py
       - name: Publish formatted files
         shell: bash
         run: |
@@ -61,3 +55,15 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'chore: format clinical catalog inventory'
           git push origin HEAD:agent/bulk-clinical-catalog
+      - name: Validate formatted files
+        run: |
+          uv run --project tools/ingest ruff format --check \
+            tools/ingest/src/localmed_ingest/clinical_catalog.py \
+            tools/ingest/src/localmed_ingest/clinical_catalog_cli.py \
+            tools/ingest/tests/test_clinical_catalog.py
+          uv run --project tools/ingest ruff check \
+            tools/ingest/src/localmed_ingest/clinical_catalog.py \
+            tools/ingest/src/localmed_ingest/clinical_catalog_cli.py \
+            tools/ingest/tests/test_clinical_catalog.py
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests/test_clinical_catalog.py
