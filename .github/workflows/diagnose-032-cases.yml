@@ -27,6 +27,7 @@ jobs:
           node-version: 22.16.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: mkdir -p data/build
       - run: |
           set +e
           pnpm benchmark:cases > case-errors.txt 2>&1
