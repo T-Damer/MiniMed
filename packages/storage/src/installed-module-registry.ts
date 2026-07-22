@@ -131,16 +131,16 @@ function normalizeInstallation(
 ): ModuleVersionInstallation {
   const installation = requireRecord(value, label);
   const normalized: ModuleVersionInstallation = {
-    moduleId: requireString(installation.moduleId, `${label} moduleId`),
-    version: requireString(installation.version, `${label} version`),
-    required: requireBoolean(installation.required, `${label} required`),
-    installedAt: requireString(installation.installedAt, `${label} installedAt`),
+    moduleId: requireString(installation['moduleId'], `${label} moduleId`),
+    version: requireString(installation['version'], `${label} version`),
+    required: requireBoolean(installation['required'], `${label} required`),
+    installedAt: requireString(installation['installedAt'], `${label} installedAt`),
     installedSizeBytes: requireSafeSize(
-      installation.installedSizeBytes,
+      installation['installedSizeBytes'],
       `${label} installedSizeBytes`,
     ),
-    sourceSetDigest: requireString(installation.sourceSetDigest, `${label} sourceSetDigest`),
-    validation: ContentModuleValidationSchema.parse(installation.validation),
+    sourceSetDigest: requireString(installation['sourceSetDigest'], `${label} sourceSetDigest`),
+    validation: ContentModuleValidationSchema.parse(installation['validation']),
   };
   assertDigest(normalized.sourceSetDigest);
   const validation = normalized.validation;
@@ -176,21 +176,22 @@ function assertUniqueImmutableVersion(
 function parseSnapshotEntry(value: unknown, index: number): InstalledModuleRegistrySnapshotEntry {
   const label = `Installed-module registry entry ${index}`;
   const entry = requireRecord(value, label);
-  const moduleId = requireString(entry.moduleId, `${label} moduleId`);
-  const required = requireBoolean(entry.required, `${label} required`);
-  const enabled = requireBoolean(entry.enabled, `${label} enabled`);
-  const updateAvailable = requireBoolean(entry.updateAvailable, `${label} updateAvailable`);
+  const moduleId = requireString(entry['moduleId'], `${label} moduleId`);
+  const required = requireBoolean(entry['required'], `${label} required`);
+  const enabled = requireBoolean(entry['enabled'], `${label} enabled`);
+  const updateAvailable = requireBoolean(entry['updateAvailable'], `${label} updateAvailable`);
   if (required && !enabled) throw new Error(`Required module ${moduleId} cannot be disabled.`);
 
-  const active = normalizeInstallation(entry.active, `${label} active version`);
+  const active = normalizeInstallation(entry['active'], `${label} active version`);
   if (active.moduleId !== moduleId) {
     throw new Error(`${label} active version belongs to another module.`);
   }
   if (active.required !== required) {
     throw new Error(`${label} active version has a mismatched required flag.`);
   }
-  if (!Array.isArray(entry.history)) throw new Error(`${label} history must be an array.`);
-  const history = entry.history.map((version, historyIndex) =>
+  const historyValue = entry['history'];
+  if (!Array.isArray(historyValue)) throw new Error(`${label} history must be an array.`);
+  const history = historyValue.map((version, historyIndex) =>
     normalizeInstallation(version, `${label} history version ${historyIndex}`),
   );
   const versionDigests = new Map([[active.version, active.sourceSetDigest]]);
@@ -217,15 +218,15 @@ export function parseInstalledModuleRegistrySnapshot(
   value: unknown,
 ): InstalledModuleRegistrySnapshot {
   const snapshot = requireRecord(value, 'Installed-module registry snapshot');
-  if (snapshot.schemaVersion !== INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION) {
-    throw new Error(
-      `Unsupported installed-module registry schema: ${String(snapshot.schemaVersion)}.`,
-    );
+  const schemaVersion = snapshot['schemaVersion'];
+  if (schemaVersion !== INSTALLED_MODULE_REGISTRY_SNAPSHOT_VERSION) {
+    throw new Error(`Unsupported installed-module registry schema: ${String(schemaVersion)}.`);
   }
-  if (!Array.isArray(snapshot.entries)) {
+  const entriesValue = snapshot['entries'];
+  if (!Array.isArray(entriesValue)) {
     throw new Error('Installed-module registry entries must be an array.');
   }
-  const entries = snapshot.entries.map(parseSnapshotEntry);
+  const entries = entriesValue.map(parseSnapshotEntry);
   const moduleIds = new Set<string>();
   for (const entry of entries) {
     if (moduleIds.has(entry.moduleId)) {
