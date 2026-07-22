@@ -27,6 +27,28 @@ EvidenceClass = Literal[
     "regulatory-act",
 ]
 GraphTrust = Literal["proposed", "reviewed"]
+AutomaticCheck = Literal[
+    "red-flag-screen",
+    "source-coverage-check",
+    "applicability-check",
+    "contradiction-check",
+    "uncertainty-check",
+    "medication-safety",
+    "calculation-safety",
+    "graph-trust",
+    "temporal-validity-check",
+]
+
+BASELINE_AUTOMATIC_CHECKS: tuple[AutomaticCheck, ...] = (
+    "red-flag-screen",
+    "source-coverage-check",
+    "applicability-check",
+    "contradiction-check",
+    "uncertainty-check",
+)
+DRUG_EVIDENCE_CLASSES: frozenset[EvidenceClass] = frozenset(
+    {"official-drug-instruction", "official-registry"}
+)
 
 
 class CalculationExpectation(BaseModel):
@@ -81,6 +103,22 @@ class ClinicalScenarioContract(BaseModel):
     graph_expansion: GraphExpansionExpectation | None = Field(default=None, alias="graphExpansion")
     reviewed_by: str | None = Field(default=None, alias="reviewedBy")
 
+    @property
+    def automatic_checks(self) -> tuple[AutomaticCheck, ...]:
+        checks: list[AutomaticCheck] = list(BASELINE_AUTOMATIC_CHECKS)
+        if any(
+            evidence_class in DRUG_EVIDENCE_CLASSES
+            for evidence_class in self.required_evidence_classes
+        ):
+            checks.append("medication-safety")
+        if self.calculation is not None:
+            checks.append("calculation-safety")
+        if self.graph_expansion is not None:
+            checks.append("graph-trust")
+        if "regulatory-act" in self.required_evidence_classes:
+            checks.append("temporal-validity-check")
+        return tuple(checks)
+
     @model_validator(mode="after")
     def validate_contract(self) -> ClinicalScenarioContract:
         if self.risk_level in {"high-risk", "critical"} and not self.dangerous_omissions:
@@ -106,6 +144,7 @@ class ClinicalScenarioContractReport(BaseModel):
     source_sha256: str
     risk_counts: dict[str, int]
     capability_counts: dict[str, int]
+    automatic_check_counts: dict[str, int]
     review_status_counts: dict[str, int]
     evidence_class_counts: dict[str, int]
     retrieval_reference_count: int = Field(ge=1)
@@ -184,6 +223,9 @@ def validate_clinical_scenario_contracts(
     capability_counts = Counter(
         capability for contract in contracts for capability in contract.capabilities
     )
+    automatic_check_counts = Counter(
+        check for contract in contracts for check in contract.automatic_checks
+    )
     review_counts = Counter(contract.review_status for contract in contracts)
     evidence_counts = Counter(
         evidence for contract in contracts for evidence in contract.required_evidence_classes
@@ -197,6 +239,7 @@ def validate_clinical_scenario_contracts(
         source_sha256=_sha256(source_payload),
         risk_counts=dict(sorted(risk_counts.items())),
         capability_counts=dict(sorted(capability_counts.items())),
+        automatic_check_counts=dict(sorted(automatic_check_counts.items())),
         review_status_counts=dict(sorted(review_counts.items())),
         evidence_class_counts=dict(sorted(evidence_counts.items())),
         retrieval_reference_count=len(referenced_ids),

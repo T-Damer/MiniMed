@@ -132,6 +132,13 @@ The validator rejects unknown retrieval references, high-risk cases without omis
 calculations without a reason, and proposed graph relations that are allowed to drive trusted guidance.
 The contracts are workflow and safety expectations, not independent treatment recommendations.
 
+Every scenario also resolves an automatic check profile without requiring authors to enumerate model
+"wake-up" rules. Red-flag screening, source-coverage, applicability, contradiction, and uncertainty
+checks apply to every contract. Medication safety, calculation safety, graph trust, and regulatory
+temporal validity are added from the scenario evidence classes and capabilities. The report publishes
+these inferred check counts so future runtime planners can be measured against the same always-on
+contract.
+
 ## Provenance rules
 
 - `real_clinician_query`: observed clinician question from an attributed dataset;
