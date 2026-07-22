@@ -1,17 +1,17 @@
 version: 1
 sources:
   - id: full-pneumonia-714-2
-    location: https://medvestnik.ru/cr/714_2.html
+    location: https://meganorm.ru/mega_doc/dop_norm/56/mr_4_2_0339-23_4_2_metody_kontrolya_biologicheskie_i/0/klinicheskie_rekomendatsii_pnevmoniya_vnebolnichnaya.html
     target: pneumonia-714_2.html
     content_type: text
     max_bytes: 20000000
   - id: full-bronchitis-381-3
-    location: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/bronxit-kr-2024/
+    location: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_bronkhit_odobreny_minzdravom.html
     target: bronchitis-381_3.html
     content_type: text
     max_bytes: 20000000
   - id: full-bronchiolitis-360-3
-    location: https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/ostryij-bronxiolit-kr-2024/
+    location: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_ostryy_bronkhiolit_odobreny.html
     target: bronchiolitis-360_3.html
     content_type: text
     max_bytes: 20000000
