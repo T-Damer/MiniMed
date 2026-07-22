@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import csv
 import hashlib
 import json
@@ -270,10 +271,8 @@ def _load_delimited_rows(path: Path) -> list[dict[str, object]]:
     text = path.read_text(encoding="utf-8-sig")
     sample = text[:8192]
     delimiter = "\t" if path.suffix.lower() == ".tsv" else ";"
-    try:
+    with contextlib.suppress(csv.Error):
         delimiter = csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
-    except csv.Error:
-        pass
     reader = csv.DictReader(text.splitlines(), delimiter=delimiter)
     if not reader.fieldnames:
         raise ValueError("Clinical catalog table has no header row.")
@@ -348,9 +347,7 @@ def _rule_score(
     score = 20 * sum(_normalized(keyword) in title_value for keyword in rule.title_keywords)
     score += 8 * sum(_normalized(keyword) in developer_value for keyword in rule.developer_keywords)
     score += 30 * sum(
-        _icd_prefix_matches(code, prefix)
-        for code in icd10_codes
-        for prefix in rule.icd10_prefixes
+        _icd_prefix_matches(code, prefix) for code in icd10_codes for prefix in rule.icd10_prefixes
     )
     score += 5 * sum(_normalized(keyword) in age_value for keyword in rule.age_keywords)
     return score
@@ -441,9 +438,7 @@ def _normalize_row(
         rights = override.rights or rights
         source_url = override.source_url or source_url
         notes.extend(override.notes)
-    specialties = _deduplicate(
-        specialty for module in modules for specialty in module.specialties
-    )
+    specialties = _deduplicate(specialty for module in modules for specialty in module.specialties)
     return ClinicalCatalogRecord(
         record_id=_safe_record_id(official_id),
         official_id=official_id,
@@ -476,7 +471,9 @@ def _module_plan(
             by_module[module_id].append(record)
     result: list[ClinicalModulePlanEntry] = []
     for rule in sorted(taxonomy.modules, key=lambda item: (-item.priority, item.id)):
-        members = sorted(by_module.get(rule.id, []), key=lambda item: (item.title, item.official_id))
+        members = sorted(
+            by_module.get(rule.id, []), key=lambda item: (item.title, item.official_id)
+        )
         if not members:
             continue
         result.append(

@@ -183,4 +183,6 @@ def test_repository_taxonomy_is_valid_and_has_one_fallback() -> None:
 
     assert len(taxonomy.modules) >= 15
     assert sum(module.fallback for module in taxonomy.modules) == 1
-    assert any(module.id == "minimed.clinical.psychiatry-addiction.ru" for module in taxonomy.modules)
+    assert any(
+        module.id == "minimed.clinical.psychiatry-addiction.ru" for module in taxonomy.modules
+    )
