@@ -60,7 +60,9 @@ separate applicability pass and remain explicit review work.
 ## Automation
 
 `.github/workflows/regulated-catalog-inventory.yml` runs parser and classification tests without
-network access on every relevant pull request.
+network access on every relevant pull request. The fixture suite validates pagination, duplicate acts,
+detail metadata, legal categories, medication registration identity and ATC packaging before a live
+source is queried.
 
 A complete medication inventory requires an explicitly configured HTTPS export through
 `MEDICATION_CATALOG_URL` or manual workflow input. The repository does not scrape GRLS, ESKLP or
