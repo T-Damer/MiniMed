@@ -11,13 +11,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: public-pilot-0.3.2-${{ github.ref }}
+  group: public-pilot-0.3.3-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  RELEASE_VERSION: 0.3.2
-  RELEASE_TAG: v0.3.2
-  APK_NAME: MiniMed-0.3.2-rf-public-pilot-debug.apk
+  RELEASE_VERSION: 0.3.3
+  RELEASE_TAG: v0.3.3
+  APK_NAME: MiniMed-0.3.3-rf-public-pilot-debug.apk
   BUILD_TOOLS_VERSION: 36.0.0
 
 jobs:
@@ -142,7 +142,7 @@ jobs:
               assert quick_check == 'ok'
               assert foreign_key_violations == 0
               assert pack and pack[0] == 'minimed.rf-public-pilot' and pack[2] >= 2
-              assert pack[1] == '0.3.2'
+              assert pack[1] == '0.3.3'
               assert len(documents) == report['documents']
               assert sections == report['sections']
               assert len(chunks) == report['chunks']
@@ -207,7 +207,7 @@ jobs:
           db_sha = hashlib.sha256(db_path.read_bytes()).hexdigest()
           source_sha = os.environ['SOURCE_SHA']
           evidence = {
-              'releaseVersion': os.environ.get('RELEASE_VERSION', '0.3.2'),
+              'releaseVersion': os.environ.get('RELEASE_VERSION', '0.3.3'),
               'sourceCommit': source_sha,
               'apk': {'path': str(apk), 'sha256': apk_sha, 'bytes': apk.stat().st_size},
               'embeddedDatabase': {
@@ -247,25 +247,25 @@ jobs:
       - name: Publish APK-only GitHub prerelease
         if: >-
           github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'release: MiniMed 0.3.2'))
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'release: MiniMed 0.3.3'))
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           apk="release-output/${APK_NAME}"
           notes=$(cat <<'EOF'
-          MiniMed 0.3.2 is a debug-signed engineering prerelease of the modular offline-first medical reference.
+          MiniMed 0.3.3 is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
-          - the same 15-document Russian clinical/medication starter pack;
-          - modular catalog and lifecycle contracts;
-          - improved archive, document reader, 500 ms debounced search, and Russian clinical-query parsing.
+          - the same verified 15-document Russian clinical/medication starter pack;
+          - persistent installed-module registry metadata with rollback-state preservation;
+          - an optional six-model local AI catalog with automatic device-fit selection, settings, status toast, startup viability benchmark, and deterministic fallback;
+          - CPU/WebAssembly GGUF loading in browsers and the current Android WebView path.
 
-          Not included yet:
-          - downloadable full-text clinical modules and original PDFs;
-          - Android WorkManager installation notifications;
-          - a production signing key;
-          - a local neural medical model.
+          Important boundaries:
+          - model weights are downloaded separately and are not bundled in the APK;
+          - the local model is not used for diagnosis, treatment, retrieval ranking, or generated clinical answers;
+          - native Android GPU/NPU acceleration, production signing, full-text downloadable modules, and physical-device model qualification remain follow-up work.
           EOF
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
