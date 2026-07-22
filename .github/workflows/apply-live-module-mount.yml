@@ -1,0 +1,420 @@
+name: Apply live module mount
+
+on:
+  push:
+    branches: [agent/doctor-datasets-model-diagnostics]
+    paths:
+      - .github/workflows/apply-live-module-mount.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/doctor-datasets-model-diagnostics
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - name: Apply focused patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              text = file.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'Expected patch anchor not found in {path}: {old[:100]!r}')
+              file.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          lifecycle = Path('apps/app/src/composition/medical-core-lifecycle.ts')
+          lifecycle.write_text(
+              """import type { CoreStatus, MedicalCore } from '@localmed/contracts';
+
+export interface InitializedMedicalCore {
+  readonly core: MedicalCore;
+  readonly status: CoreStatus;
+}
+
+async function closeQuietly(core: MedicalCore): Promise<void> {
+  try {
+    await core.close();
+  } catch (cause) {
+    console.warn('Unable to close the previous MedicalCore instance.', cause);
+  }
+}
+
+export async function initializeMedicalCore(
+  factory: () => Promise<MedicalCore>,
+): Promise<InitializedMedicalCore> {
+  const core = await factory();
+  const initialized = await core.initialize();
+  if (!initialized.ok) {
+    await closeQuietly(core);
+    throw new Error(initialized.error.message);
+  }
+  return { core, status: initialized.value };
+}
+
+export async function replaceMedicalCore(
+  current: InitializedMedicalCore,
+  factory: () => Promise<MedicalCore>,
+): Promise<InitializedMedicalCore> {
+  const next = await initializeMedicalCore(factory);
+  await closeQuietly(current.core);
+  return next;
+}
+""",
+              encoding='utf-8',
+          )
+
+          lifecycle_test = Path('apps/app/src/composition/medical-core-lifecycle.test.ts')
+          lifecycle_test.write_text(
+              """import type { CoreStatus, MedicalCore } from '@localmed/contracts';
+import { describe, expect, it, vi } from 'vitest';
+
+import { initializeMedicalCore, replaceMedicalCore } from './medical-core-lifecycle';
+
+const STATUS = {
+  state: 'ready',
+  schemaVersion: 2,
+  documentCount: 1,
+  contentPackIds: ['test.pack'],
+} as CoreStatus;
+
+type InitializationResult = Awaited<ReturnType<MedicalCore['initialize']>>;
+
+function fakeCore(
+  result: InitializationResult,
+  events: string[],
+  options: { readonly closeError?: Error; readonly label: string },
+): MedicalCore {
+  return {
+    initialize: async () => {
+      events.push(`initialize:${options.label}`);
+      return result;
+    },
+    close: async () => {
+      events.push(`close:${options.label}`);
+      if (options.closeError) throw options.closeError;
+    },
+  } as unknown as MedicalCore;
+}
+
+describe('medical core lifecycle', () => {
+  it('initializes a new core and returns its status', async () => {
+    const events: string[] = [];
+    const core = fakeCore({ ok: true, value: STATUS }, events, { label: 'initial' });
+
+    const ready = await initializeMedicalCore(async () => core);
+
+    expect(ready).toEqual({ core, status: STATUS });
+    expect(events).toEqual(['initialize:initial']);
+  });
+
+  it('closes a failed candidate and keeps the current core untouched', async () => {
+    const events: string[] = [];
+    const currentCore = fakeCore({ ok: true, value: STATUS }, events, { label: 'current' });
+    const candidate = fakeCore(
+      { ok: false, error: { message: 'candidate failed' } } as InitializationResult,
+      events,
+      { label: 'candidate' },
+    );
+
+    await expect(
+      replaceMedicalCore({ core: currentCore, status: STATUS }, async () => candidate),
+    ).rejects.toThrow('candidate failed');
+
+    expect(events).toEqual(['initialize:candidate', 'close:candidate']);
+  });
+
+  it('switches only after the candidate initializes and then closes the previous core', async () => {
+    const events: string[] = [];
+    const currentCore = fakeCore({ ok: true, value: STATUS }, events, { label: 'current' });
+    const nextStatus = { ...STATUS, documentCount: 4 };
+    const candidate = fakeCore({ ok: true, value: nextStatus }, events, { label: 'candidate' });
+
+    const ready = await replaceMedicalCore(
+      { core: currentCore, status: STATUS },
+      async () => candidate,
+    );
+
+    expect(ready).toEqual({ core: candidate, status: nextStatus });
+    expect(events).toEqual(['initialize:candidate', 'close:current']);
+  });
+
+  it('keeps the initialized replacement when closing the previous core fails', async () => {
+    const events: string[] = [];
+    const currentCore = fakeCore({ ok: true, value: STATUS }, events, {
+      label: 'current',
+      closeError: new Error('close failed'),
+    });
+    const candidate = fakeCore({ ok: true, value: STATUS }, events, { label: 'candidate' });
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const ready = await replaceMedicalCore(
+      { core: currentCore, status: STATUS },
+      async () => candidate,
+    );
+
+    expect(ready.core).toBe(candidate);
+    expect(warning).toHaveBeenCalledOnce();
+    warning.mockRestore();
+  });
+});
+""",
+              encoding='utf-8',
+          )
+
+          app = 'apps/app/src/app/App.tsx'
+          replace_exact(
+              app,
+              """import { createBrowserCore } from '../composition/create-browser-core';
+""",
+              """import { createBrowserCore } from '../composition/create-browser-core';
+import {
+  initializeMedicalCore,
+  type InitializedMedicalCore,
+  replaceMedicalCore,
+} from '../composition/medical-core-lifecycle';
+""",
+          )
+          replace_exact(
+              app,
+              """interface ReadyState {
+  readonly core: MedicalCore;
+  readonly status: CoreStatus;
+}
+
+""",
+              """,
+          )
+          replace_exact(
+              app,
+              """  const [ready, setReady] = createSignal<ReadyState>();
+""",
+              """  const [ready, setReady] = createSignal<InitializedMedicalCore>();
+""",
+          )
+          replace_exact(
+              app,
+              """  const handleScroll = (): void => {
+    setShowScrollTop(window.scrollY > 560);
+  };
+
+  onMount(async () => {
+""",
+              """  const handleScroll = (): void => {
+    setShowScrollTop(window.scrollY > 560);
+  };
+
+  const connectInstalledModules = async (): Promise<void> => {
+    const current = ready();
+    if (!current) throw new Error('Локальный поиск ещё не готов.');
+    const next = await replaceMedicalCore(current, createBrowserCore);
+    coreToClose = next.core;
+    setReady(next);
+  };
+
+  onMount(async () => {
+""",
+          )
+          replace_exact(
+              app,
+              """      const core = await createBrowserCore();
+      coreToClose = core;
+      const initialized = await core.initialize();
+      if (!initialized.ok) {
+        setError(initialized.error.message);
+        return;
+      }
+      setReady({ core, status: initialized.value });
+""",
+              """      const initialized = await initializeMedicalCore(createBrowserCore);
+      coreToClose = initialized.core;
+      setReady(initialized);
+""",
+          )
+          replace_exact(
+              app,
+              """                  active={view() === 'modules'}
+                  onAvailableUpdates={(count) => {
+""",
+              """                  active={view() === 'modules'}
+                  onContentChanged={connectInstalledModules}
+                  onAvailableUpdates={(count) => {
+""",
+          )
+
+          modules = 'apps/app/src/features/modules/ModuleCatalogView.tsx'
+          replace_exact(
+              modules,
+              """  readonly active: boolean;
+  readonly onAvailableUpdates?: (count: number) => void;
+""",
+              """  readonly active: boolean;
+  readonly onContentChanged?: () => Promise<void>;
+  readonly onAvailableUpdates?: (count: number) => void;
+""",
+          )
+          replace_exact(
+              modules,
+              """  const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
+  const [reloadReady, setReloadReady] = createSignal(false);
+""",
+              """  const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
+  const [contentChangePending, setContentChangePending] = createSignal(false);
+  const [connecting, setConnecting] = createSignal(false);
+""",
+          )
+          replace_exact(
+              modules,
+              """  const installedModule = (moduleId: string): InstalledContentModule | undefined =>
+""",
+              """  const connectContentChanges = async (): Promise<void> => {
+    if (connecting()) return;
+    if (!props.onContentChanged) {
+      setContentChangePending(true);
+      return;
+    }
+    setConnecting(true);
+    setWarning(null);
+    try {
+      await props.onContentChanged();
+      setContentChangePending(false);
+    } catch (cause) {
+      setContentChangePending(true);
+      setWarning(
+        cause instanceof Error
+          ? cause.message
+          : 'Новые документы сохранены, но пока не подключены к поиску.',
+      );
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const installedModule = (moduleId: string): InstalledContentModule | undefined =>
+""",
+          )
+          replace_exact(
+              modules,
+              """      if (completed.state === 'completed') setReloadReady(true);
+      if (completed.state === 'failed') setWarning(completed.errorMessage);
+""",
+              """      if (completed.state === 'completed') await connectContentChanges();
+      if (completed.state === 'failed') setWarning(completed.errorMessage);
+""",
+          )
+          replace_exact(
+              modules,
+              """      setInstalled(runtime().listInstalled());
+      setReloadReady(true);
+""",
+              """      setInstalled(runtime().listInstalled());
+      await connectContentChanges();
+""",
+          )
+          replace_exact(
+              modules,
+              """      <Show when={reloadReady()}>
+        <div class="module-reload-banner paper-card">
+          <div>
+            <strong>Состав базы изменился</strong>
+            <span>Перезапустите локальный поиск, чтобы подключить установленные документы.</span>
+          </div>
+          <button type="button" onClick={() => window.location.reload()}>
+            Подключить к поиску
+          </button>
+        </div>
+      </Show>
+""",
+              """      <Show when={contentChangePending() || connecting()}>
+        <div class="module-reload-banner paper-card" aria-live="polite">
+          <div>
+            <strong>{connecting() ? 'Подключаем базу к поиску…' : 'Нужно повторить подключение'}</strong>
+            <span>
+              {connecting()
+                ? 'Текущий поиск продолжает работать до готовности нового состава базы.'
+                : 'Документы сохранены на устройстве, но поиск пока использует прежний состав.'}
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled={connecting()}
+            onClick={() => void connectContentChanges()}
+          >
+            {connecting() ? 'Подключаем…' : 'Повторить'}
+          </button>
+        </div>
+      </Show>
+""",
+          )
+
+          todo = 'docs/TODO.md'
+          replace_exact(
+              todo,
+              """- [ ] Add browser and Android-WebView storage for downloaded module databases.
+- [ ] Mount enabled downloaded modules through the existing multi-store search router.
+""",
+              """- [x] Add browser and Android-WebView storage for downloaded module databases.
+- [x] Mount enabled downloaded modules through the existing multi-store search router without a full page reload.
+""",
+          )
+
+          state = 'docs/CURRENT_STATE.md'
+          replace_exact(
+              state,
+              """- Browser/Android-WebView module storage removes active pointers and version bytes atomically; failed
+  physical rollback or removal restores the previous persistent registry snapshot instead of leaving
+  metadata and SQLite artifacts inconsistent.
+""",
+              """- Browser/Android-WebView module storage removes active pointers and version bytes atomically; failed
+  physical rollback or removal restores the previous persistent registry snapshot instead of leaving
+  metadata and SQLite artifacts inconsistent.
+- After install, removal, or rollback, MiniMed initializes a replacement multi-store `MedicalCore` in
+  process and switches only after it is ready; the previous search core remains active on failure.
+""",
+          )
+          replace_exact(
+              state,
+              """- Registry metadata is persistent, but immutable published module artifacts, a platform filesystem
+  backend, and a background native downloader remain unimplemented; the module page remains read-only.
+- The application composition still mounts the monolithic `0.3.3` pilot rather than the multi-store
+  router and foreground installer.
+""",
+              """- Browser/Android-WebView artifact persistence and live multi-store recomposition are implemented, but
+  native platform filesystem storage, a background downloader, source-assets, and physical-device
+  lifecycle validation remain incomplete.
+- Preview publishing workflows exist, but immutable release promotion and broader full-text module
+  coverage still need end-to-end validation on installed devices.
+""",
+          )
+          PY
+      - run: pnpm install --frozen-lockfile
+      - name: Validate focused change
+        run: |
+          pnpm check --write
+          pnpm typecheck
+          pnpm test:unit
+          pnpm build:app
+          pnpm secrets:check
+      - name: Commit product changes
+        run: |
+          rm -f .github/workflows/apply-live-module-mount.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(modules): connect installed datasets without reload'
+          git pull --rebase origin agent/doctor-datasets-model-diagnostics
+          git push origin HEAD:agent/doctor-datasets-model-diagnostics
