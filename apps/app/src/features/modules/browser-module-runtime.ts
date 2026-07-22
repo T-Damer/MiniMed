@@ -61,8 +61,10 @@ function requestResult<T>(request: IDBRequest<T>): Promise<T> {
 function transactionDone(transaction: IDBTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error('Ошибка локального хранилища.'));
-    transaction.onabort = () => reject(transaction.error ?? new Error('Операция с хранилищем отменена.'));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error('Ошибка локального хранилища.'));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error('Операция с хранилищем отменена.'));
   });
 }
 
@@ -79,7 +81,8 @@ async function openDatabase(): Promise<IDBDatabase> {
       }
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('Не удалось открыть хранилище модулей.'));
+    request.onerror = () =>
+      reject(request.error ?? new Error('Не удалось открыть хранилище модулей.'));
   });
 }
 
@@ -124,7 +127,8 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     const response = await fetch(artifact.url, { signal, cache: 'no-store' });
     if (!response.ok) throw new Error(`Сервер базы знаний ответил HTTP ${response.status}.`);
     const totalHeader = Number(response.headers.get('content-length'));
-    const totalBytes = Number.isFinite(totalHeader) && totalHeader > 0 ? totalHeader : artifact.sizeBytes;
+    const totalBytes =
+      Number.isFinite(totalHeader) && totalHeader > 0 ? totalHeader : artifact.sizeBytes;
     if (!response.body) {
       const bytes = new Uint8Array(await response.arrayBuffer());
       onProgress({ downloadedBytes: bytes.byteLength, totalBytes });
@@ -390,7 +394,9 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
       const stored = await readVersion(database, pointer.moduleId, pointer.version);
       if (!stored) continue;
       try {
-        const store = await SqliteMedicalStore.createFromBytes(new Uint8Array(stored.bytes.slice(0)));
+        const store = await SqliteMedicalStore.createFromBytes(
+          new Uint8Array(stored.bytes.slice(0)),
+        );
         mounts.push({ moduleId: pointer.moduleId, store, enabled: true, searchWeight: 1 });
       } catch (cause) {
         console.warn(`Unable to mount content module ${pointer.moduleId}.`, cause);
