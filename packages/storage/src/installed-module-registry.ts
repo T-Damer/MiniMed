@@ -119,10 +119,6 @@ function cloneInstallation(installation: ModuleVersionInstallation): ModuleVersi
   };
 }
 
-function installationIdentity(installation: ModuleVersionInstallation): string {
-  return `${installation.version}\u0000${installation.sourceSetDigest}`;
-}
-
 function assertDigest(value: string): void {
   if (!/^sha256:[a-f0-9]{64}$/u.test(value)) {
     throw new Error('Installed module requires a valid SHA-256 source-set digest.');
@@ -159,6 +155,24 @@ function normalizeInstallation(
   return cloneInstallation(normalized);
 }
 
+function assertUniqueImmutableVersion(
+  moduleId: string,
+  versionDigests: Map<string, string>,
+  installation: ModuleVersionInstallation,
+  label: string,
+): void {
+  const existingDigest = versionDigests.get(installation.version);
+  if (existingDigest === installation.sourceSetDigest) {
+    throw new Error(`${label} contains a duplicate module version.`);
+  }
+  if (existingDigest !== undefined) {
+    throw new Error(
+      `${label} changes the source-set digest for immutable module version ${moduleId}@${installation.version}.`,
+    );
+  }
+  versionDigests.set(installation.version, installation.sourceSetDigest);
+}
+
 function parseSnapshotEntry(value: unknown, index: number): InstalledModuleRegistrySnapshotEntry {
   const label = `Installed-module registry entry ${index}`;
   const entry = requireRecord(value, label);
@@ -179,7 +193,7 @@ function parseSnapshotEntry(value: unknown, index: number): InstalledModuleRegis
   const history = entry.history.map((version, historyIndex) =>
     normalizeInstallation(version, `${label} history version ${historyIndex}`),
   );
-  const identities = new Set([installationIdentity(active)]);
+  const versionDigests = new Map([[active.version, active.sourceSetDigest]]);
   for (const version of history) {
     if (version.moduleId !== moduleId) {
       throw new Error(`${label} history contains another module.`);
@@ -187,11 +201,7 @@ function parseSnapshotEntry(value: unknown, index: number): InstalledModuleRegis
     if (version.required !== required) {
       throw new Error(`${label} history has a mismatched required flag.`);
     }
-    const identity = installationIdentity(version);
-    if (identities.has(identity)) {
-      throw new Error(`${label} contains a duplicate module version.`);
-    }
-    identities.add(identity);
+    assertUniqueImmutableVersion(moduleId, versionDigests, version, label);
   }
   return {
     moduleId,
@@ -294,10 +304,21 @@ export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry 
       throw new Error(`Required flag changed for installed module ${normalized.moduleId}.`);
     }
 
+    const installedVersion = existing
+      ? [existing.active, ...existing.history].find(
+          (candidate) => candidate.version === normalized.version,
+        )
+      : undefined;
     if (
-      existing?.active.version === normalized.version &&
-      existing.active.sourceSetDigest === normalized.sourceSetDigest
+      installedVersion !== undefined &&
+      installedVersion.sourceSetDigest !== normalized.sourceSetDigest
     ) {
+      throw new Error(
+        `Immutable module version ${normalized.moduleId}@${normalized.version} has a conflicting source-set digest.`,
+      );
+    }
+
+    if (existing?.active.version === normalized.version) {
       const refreshed: RegistryEntry = {
         ...existing,
         active: normalized,
@@ -310,9 +331,7 @@ export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry 
     const history = existing
       ? [
           existing.active,
-          ...existing.history.filter(
-            (candidate) => installationIdentity(candidate) !== installationIdentity(normalized),
-          ),
+          ...existing.history.filter((candidate) => candidate.version !== normalized.version),
         ]
       : [];
     const next: RegistryEntry = {
