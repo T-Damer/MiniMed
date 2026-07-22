@@ -14,6 +14,8 @@ const CACHE_KEY = 'minimed.local-model-catalog.preview.v1';
 const RUNTIMES = new Set<LocalModelRuntimeKind>(['wllama-web', 'litert-native', 'cactus-native']);
 const PLATFORMS = new Set<LocalModelPlatform>(['browser', 'android', 'ios']);
 const TIERS = new Set<LocalModelTier>(['compact', 'balanced', 'quality']);
+const MODEL_HOSTS = new Set(['huggingface.co', 'github.com']);
+const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 
 interface CachedCatalog {
   readonly catalog: LocalModelCatalog;
@@ -28,7 +30,7 @@ function requiredString(value: unknown, label: string): string {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new Error(`${label} должен быть непустой строкой.`);
   }
-  return value;
+  return value.trim();
 }
 
 function requiredNumber(value: unknown, label: string): number {
@@ -38,12 +40,57 @@ function requiredNumber(value: unknown, label: string): number {
   return value;
 }
 
+function requiredPositiveInteger(value: unknown, label: string): number {
+  const result = requiredNumber(value, label);
+  if (!Number.isSafeInteger(result) || result <= 0) {
+    throw new Error(`${label} должен быть положительным целым числом.`);
+  }
+  return result;
+}
+
+function requiredHttpsUrl(value: unknown, label: string, allowedHosts?: ReadonlySet<string>): string {
+  const raw = requiredString(value, label);
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new Error(`${label} должен быть корректным URL.`);
+  }
+  if (parsed.protocol !== 'https:') throw new Error(`${label} должен использовать HTTPS.`);
+  if (parsed.username || parsed.password) throw new Error(`${label} не должен содержать credentials.`);
+  if (allowedHosts && !allowedHosts.has(parsed.hostname)) {
+    throw new Error(`${label} использует неподдерживаемый host ${parsed.hostname}.`);
+  }
+  return parsed.toString();
+}
+
+function optionalMirrorPath(value: unknown, label: string): string | null {
+  if (value === null) return null;
+  const path = requiredString(value, label);
+  if (
+    path.startsWith('/') ||
+    path.includes('\\') ||
+    path.split('/').some((segment) => segment === '..' || segment === '.') ||
+    path.includes('://')
+  ) {
+    throw new Error(`${label} должен быть безопасным относительным путём.`);
+  }
+  return path;
+}
+
+function optionalSha256(value: unknown, label: string): string | null {
+  if (value === null) return null;
+  const digest = requiredString(value, label).toLowerCase();
+  if (!SHA256_PATTERN.test(digest)) throw new Error(`${label} должен быть SHA-256 в hex.`);
+  return digest;
+}
+
 function parseLicense(value: unknown, modelId: string): LocalModelLicense {
   if (!isRecord(value)) throw new Error(`${modelId}: license должен быть объектом.`);
   return {
     id: requiredString(value['id'], `${modelId}.license.id`),
     name: requiredString(value['name'], `${modelId}.license.name`),
-    url: requiredString(value['url'], `${modelId}.license.url`),
+    url: requiredHttpsUrl(value['url'], `${modelId}.license.url`),
     requiresAcceptance: value['requiresAcceptance'] === true,
   };
 }
@@ -65,23 +112,44 @@ function parseArtifact(value: unknown, modelId: string): LocalModelArtifact {
     }
     return platform as LocalModelPlatform;
   });
-  const mirrorPath = value['mirrorPath'];
-  const sha256 = value['sha256'];
+  if (new Set(platforms).size !== platforms.length) {
+    throw new Error(`${modelId}: artifact.platforms содержит повторы.`);
+  }
+
+  const typedRuntime = runtime as LocalModelRuntimeKind;
+  const published = value['published'] === true;
+  const sha256 = optionalSha256(value['sha256'], `${modelId}.artifact.sha256`);
+  if (published && typedRuntime !== 'litert-native' && sha256 === null) {
+    throw new Error(`${modelId}: опубликованный ${typedRuntime} artifact требует SHA-256.`);
+  }
+
   return {
     id: requiredString(value['id'], `${modelId}.artifact.id`),
-    runtime: runtime as LocalModelRuntimeKind,
+    runtime: typedRuntime,
     platforms,
-    upstreamUrl: requiredString(value['upstreamUrl'], `${modelId}.artifact.upstreamUrl`),
-    mirrorPath:
-      mirrorPath === null ? null : requiredString(mirrorPath, `${modelId}.artifact.mirrorPath`),
-    downloadBytes: requiredNumber(value['downloadBytes'], `${modelId}.artifact.downloadBytes`),
-    sha256: sha256 === null ? null : requiredString(sha256, `${modelId}.artifact.sha256`),
-    published: value['published'] === true,
-    maxContextTokens: requiredNumber(
+    upstreamUrl: requiredHttpsUrl(
+      value['upstreamUrl'],
+      `${modelId}.artifact.upstreamUrl`,
+      MODEL_HOSTS,
+    ),
+    mirrorPath: optionalMirrorPath(value['mirrorPath'], `${modelId}.artifact.mirrorPath`),
+    downloadBytes: requiredPositiveInteger(
+      value['downloadBytes'],
+      `${modelId}.artifact.downloadBytes`,
+    ),
+    sha256,
+    published,
+    maxContextTokens: requiredPositiveInteger(
       value['maxContextTokens'],
       `${modelId}.artifact.maxContextTokens`,
     ),
   };
+}
+
+function boundedScore(value: unknown, label: string): number {
+  const score = requiredNumber(value, label);
+  if (score > 100) throw new Error(`${label} должен быть в диапазоне 0..100.`);
+  return score;
 }
 
 function parseModel(value: unknown): LocalModelDescriptor {
@@ -97,17 +165,25 @@ function parseModel(value: unknown): LocalModelDescriptor {
   if (new Set(artifacts.map((artifact) => artifact.id)).size !== artifacts.length) {
     throw new Error(`${id}: повторяющийся artifact id.`);
   }
+  const minimumMemoryGb = requiredNumber(value['minimumMemoryGb'], `${id}.minimumMemoryGb`);
+  const recommendedMemoryGb = requiredNumber(
+    value['recommendedMemoryGb'],
+    `${id}.recommendedMemoryGb`,
+  );
+  if (recommendedMemoryGb < minimumMemoryGb) {
+    throw new Error(`${id}: recommendedMemoryGb не может быть меньше minimumMemoryGb.`);
+  }
   return {
     id,
     name: requiredString(value['name'], `${id}.name`),
     family: requiredString(value['family'], `${id}.family`),
     tier: tier as LocalModelTier,
     description: requiredString(value['description'], `${id}.description`),
-    parameterCount: requiredNumber(value['parameterCount'], `${id}.parameterCount`),
-    qualityScore: requiredNumber(value['qualityScore'], `${id}.qualityScore`),
-    russianPriority: requiredNumber(value['russianPriority'], `${id}.russianPriority`),
-    minimumMemoryGb: requiredNumber(value['minimumMemoryGb'], `${id}.minimumMemoryGb`),
-    recommendedMemoryGb: requiredNumber(value['recommendedMemoryGb'], `${id}.recommendedMemoryGb`),
+    parameterCount: requiredPositiveInteger(value['parameterCount'], `${id}.parameterCount`),
+    qualityScore: boundedScore(value['qualityScore'], `${id}.qualityScore`),
+    russianPriority: boundedScore(value['russianPriority'], `${id}.russianPriority`),
+    minimumMemoryGb,
+    recommendedMemoryGb,
     license: parseLicense(value['license'], id),
     artifacts,
   };
@@ -131,21 +207,39 @@ export function parseLocalModelCatalog(value: unknown): LocalModelCatalog {
     catalogVersion: requiredString(value['catalogVersion'], 'catalogVersion'),
     publishedAt: requiredString(value['publishedAt'], 'publishedAt'),
     runtime: {
-      wllamaModuleUrl: requiredString(runtime['wllamaModuleUrl'], 'runtime.wllamaModuleUrl'),
-      wllamaWasmUrl: requiredString(runtime['wllamaWasmUrl'], 'runtime.wllamaWasmUrl'),
+      wllamaModuleUrl: requiredHttpsUrl(
+        runtime['wllamaModuleUrl'],
+        'runtime.wllamaModuleUrl',
+        new Set(['cdn.jsdelivr.net']),
+      ),
+      wllamaWasmUrl: requiredHttpsUrl(
+        runtime['wllamaWasmUrl'],
+        'runtime.wllamaWasmUrl',
+        new Set(['cdn.jsdelivr.net']),
+      ),
       version: requiredString(runtime['version'], 'runtime.version'),
     },
     models,
   };
 }
 
-function readCache(): LocalModelCatalog | null {
+function runtimeMatches(candidate: LocalModelCatalog, trusted: LocalModelCatalog): boolean {
+  return (
+    candidate.runtime.version === trusted.runtime.version &&
+    candidate.runtime.wllamaModuleUrl === trusted.runtime.wllamaModuleUrl &&
+    candidate.runtime.wllamaWasmUrl === trusted.runtime.wllamaWasmUrl
+  );
+}
+
+function readCache(trusted: LocalModelCatalog): LocalModelCatalog | null {
   try {
     const raw = window.localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed)) throw new Error('invalid cache record');
-    return parseLocalModelCatalog(parsed['catalog']);
+    const catalog = parseLocalModelCatalog(parsed['catalog']);
+    if (!runtimeMatches(catalog, trusted)) throw new Error('untrusted runtime metadata');
+    return catalog;
   } catch {
     window.localStorage.removeItem(CACHE_KEY);
     return null;
@@ -166,10 +260,13 @@ export async function loadLocalModelCatalog(remoteUrl: string): Promise<LocalMod
     const response = await fetch(remoteUrl, { cache: 'no-cache' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const remote = parseLocalModelCatalog(await response.json());
+    if (!runtimeMatches(remote, bundled)) {
+      throw new Error('remote catalog attempted to replace executable runtime metadata');
+    }
     writeCache(remote);
     return { catalog: remote, source: 'remote', warning: null };
   } catch (cause) {
-    const cached = readCache();
+    const cached = readCache(bundled);
     const detail = cause instanceof Error ? cause.message : 'неизвестная ошибка';
     if (cached) {
       return {
