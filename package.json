@@ -1,6 +1,6 @@
 {
   "name": "localmed-search",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.13.1",
@@ -37,7 +37,7 @@
     "content:build:pilot": "uv run --project tools/ingest medbase build --input content/pilot-rf --output data/build/rf-public-pilot.db --report data/build/rf-public-pilot-report.json",
     "content:lint:regulatory": "uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot",
     "content:build:regulatory": "uv run --project tools/ingest medbase build --input content/regulatory-rf-pilot --output data/build/rf-regulatory-pilot.db --report data/build/rf-regulatory-pilot-report.json",
-    "content:build:regulatory:synced": "uv run --project tools/ingest medbase build --input data/synced/rf-regulatory-pilot --output data/build/rf-regulatory-pilot.db --report data/build/rf-regulatory-pilot-report.json",
+    "content:build:regulatory:synced": "uv run --project tools/ingest medbase build --input data/synced/rf-regulatory-pilot --output data/build/rf-regulatory-pilot.db --report data/build/regulatory-source-sync-report.json",
     "content:rebuild:regulatory": "pnpm content:sync:regulatory && uv run --project tools/ingest medbase lint --input data/synced/rf-regulatory-pilot && pnpm content:build:regulatory:synced && pnpm benchmark:regulatory",
     "content:build:synced": "uv run --project tools/ingest medbase build --input data/synced/rf-public-pilot --output data/build/rf-public-pilot.db --report data/build/rf-public-pilot-report.json",
     "content:rebuild:auto": "pnpm content:sync:inputs && uv run --project tools/ingest medbase lint --input data/synced/rf-public-pilot && pnpm content:build:synced && pnpm benchmark:pilot",
