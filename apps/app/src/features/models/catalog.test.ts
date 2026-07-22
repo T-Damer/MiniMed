@@ -26,7 +26,12 @@ describe('local model catalog', () => {
 
   it('rejects duplicate model identifiers', () => {
     const duplicate = structuredClone(rawCatalog);
-    duplicate.models[1].id = duplicate.models[0].id;
+    const firstModel = duplicate.models.at(0);
+    const secondModel = duplicate.models.at(1);
+    expect(firstModel).toBeDefined();
+    expect(secondModel).toBeDefined();
+    if (!firstModel || !secondModel) throw new Error('Catalog test requires two model fixtures.');
+    secondModel.id = firstModel.id;
     expect(() => parseLocalModelCatalog(duplicate)).toThrow(/повторяющиеся model id/u);
   });
 
@@ -34,7 +39,11 @@ describe('local model catalog', () => {
     const invalid = structuredClone(rawCatalog) as unknown as {
       models: { artifacts: { runtime: string }[] }[];
     };
-    invalid.models[0].artifacts[0].runtime = 'mystery-runtime';
+    const firstModel = invalid.models.at(0);
+    const firstArtifact = firstModel?.artifacts.at(0);
+    expect(firstArtifact).toBeDefined();
+    if (!firstArtifact) throw new Error('Catalog test requires one artifact fixture.');
+    firstArtifact.runtime = 'mystery-runtime';
     expect(() => parseLocalModelCatalog(invalid)).toThrow(/неизвестный runtime/u);
   });
 
