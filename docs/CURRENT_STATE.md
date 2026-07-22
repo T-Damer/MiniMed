@@ -10,7 +10,8 @@ implemented state and the order of the next repository tasks. Agents read it aft
 update it when a change affects runtime behavior, content coverage, trust boundaries, benchmark
 composition, or execution priority. Benchmark details live in `tools/benchmarks/CLINICAL_QUERIES.md`;
 module boundaries and lifecycle rules live in `docs/CONTENT_MODULES.md`; clinical interaction rules
-live in `docs/CLINICAL_UX.md`.
+live in `docs/CLINICAL_UX.md`. Local-model runtime and selection details are developed in PR #91 and
+its `docs/LOCAL_MODELS.md` plus ADR-0011; do not create a parallel model catalog or controller.
 
 ## Product invariant
 
@@ -113,32 +114,32 @@ Regulatory baseline:
 - required current/historical top-1: `1.00`;
 - section, exact context, and official metadata: `1.00`.
 
-## Planned 0.3.3 — working local LLM
+## Planned 0.3.3 — complete the working local LLM path
 
-`0.3.3` must ship a real offline model path rather than a UI mock or remote-only chat. The release is
-accepted only when at least one supported downloadable model can be selected, loaded and used on the
-Android target, with automatic first-run selection based on runtime availability, memory and storage;
-the user may change the model later in Settings.
+The implementation baseline already exists in draft PR #91. It provides a validated model catalog,
+device probing, deterministic automatic selection, manual override, model status UI, a wllama GGUF
+runtime for browser and Android WebView, a structured Russian warm-up probe, failure cooldown and one
+smaller-model fallback. After `0.3.2` is released, #91 should be rebased onto `main`; its catalog,
+controller, selection logic and `docs/LOCAL_MODELS.md` remain authoritative.
 
-The model is a secondary reasoning layer over MiniMed retrieval, not a medical source of truth:
+`0.3.3` is complete only when that existing runtime is connected to MiniMed's clinical retrieval rather
+than merely loading a model. The model remains a secondary reasoning layer over local evidence:
 
 1. deterministic parsing and mandatory safety checks run first;
 2. MiniMed retrieves exact local chunks and document metadata;
 3. the model may structure the case, propose clarifying questions, plan further retrieval and summarise
    only the supplied evidence;
-4. every consequential statement must retain links to exact source fragments;
+4. every consequential statement retains links to exact source fragments;
 5. unsupported doses, contraindications, diagnoses or routing claims are omitted or explicitly marked as
    unsupported;
-6. red-flag, source-coverage, applicability, contradiction and uncertainty checks always run outside the
-   model and cannot be disabled by it;
-7. model failure, insufficient memory or an absent model falls back to the deterministic search workflow
-   without blocking the clinician.
+6. red-flag, source-coverage, applicability, contradiction and uncertainty checks run outside the model;
+7. model failure, insufficient memory or no installed model falls back to deterministic search without
+   blocking the clinician.
 
-The first model UI must remain search-first: no startup popup, no automatic generated answer covering the
-results, and no interruption of document navigation. Model download/status belongs to the Modules or
-Settings surfaces and passive counters. The 0.3.3 test gate must include structured-output validation,
-source-citation completeness, unsupported-claim rejection, red-flag preservation, deterministic fallback
-and a small reviewed Russian clinical scenario suite executed against the real local runtime.
+The search-first UX remains mandatory: no startup modal and no generated answer covering search results.
+Model download/status stays in the existing #91 Settings/System surfaces and passive status UI. The
+`0.3.3` gate must extend #91's runtime tests with source-citation completeness, unsupported-claim
+rejection, red-flag preservation, structured-output validation and reviewed Russian clinical scenarios.
 
 ## Current gaps
 
@@ -152,7 +153,9 @@ and a small reviewed Russian clinical scenario suite executed against the real l
   amendment chain beyond one superseded predecessor.
 - No reviewed offline medication-card runtime.
 - Contract overlays cover only a representative subset and are not clinician-reviewed.
-- No neural Russian embedding or local generative model in 0.3.2.
+- PR #91 loads and probes local models but does not yet use generated output in clinical retrieval or
+  answers, prove clinical improvement, stream-verify model SHA-256, publish mirrored assets or support
+  native LiteRT-LM/Cactus and iOS inference.
 - No personal notes, draft overlays, or local protocol modules.
 - Physical-device usability testing remains separate from CI builds.
 
@@ -179,14 +182,14 @@ and a small reviewed Russian clinical scenario suite executed against the real l
 
 ### P1 — 0.3.3 local LLM and reviewed workflow
 
-4. **Working local LLM vertical slice**
-   - Add model catalog, automatic device-compatible selection, download/load lifecycle and manual model
-     override.
-   - Implement a typed local inference adapter and constrained structured output for case decomposition,
-     clarifications, retrieval planning and evidence summaries.
+4. **Rebase and complete PR #91**
+   - Preserve its catalog, device probe, selection algorithm, wllama adapter, UI and license handling.
+   - Publish or freeze verified model assets/checksums without committing weights to Git.
+   - Add a typed clinical orchestrator that can ask for another local retrieval pass and emit constrained
+     source-linked structured output.
    - Keep deterministic safety checks outside the model and require exact source citations.
-   - Benchmark at least the selected default model and fallback candidate on Russian clinical contracts,
-     memory, storage, latency and unsupported-claim rates.
+   - Benchmark the selected default and fallback candidates on Russian clinical contracts, memory,
+     storage, latency and unsupported-claim rates before exposing generated clinical text.
 
 5. **Reviewed offline medication cards — #77**
    - Define the runtime contract outside the UI.
@@ -200,17 +203,18 @@ and a small reviewed Russian clinical scenario suite executed against the real l
 ### P2 — model and corpus quality after the first working runtime
 
 7. Benchmark Russian neural embedding and reranker candidates against lexical and feature-hash baselines.
-8. Expand the supported local-model set only when a candidate passes the same evidence and safety gates.
+8. Add native LiteRT-LM/Cactus adapters only through #91's existing runtime/selection contracts.
 9. Add broader synthesis only after full-source coverage, reviewed medication knowledge and citation gates
    are stable.
 
 ## Next useful alpha
 
-The next release is `0.3.3`: a working local LLM path integrated with source-grounded retrieval, automatic
-model selection, deterministic safety gates and graceful no-model fallback. It should ship alongside
-continued module persistence work and at least one deeper full-text clinical source slice so the model is
-not evaluated only on short navigation cards.
+The next release is `0.3.3`: rebase and complete PR #91 so its already working model catalog, automatic
+selection and wllama loading become a source-grounded clinical assistant with deterministic safety gates
+and graceful no-model fallback. It should ship alongside continued module persistence work and at least
+one deeper full-text clinical source slice so model quality is not evaluated only on short navigation
+cards.
 
-Do not prioritize a backend, accounts, sync, Postgres, a Rust rewrite, or an unconstrained universal
-medical chatbot. The limiting factors remain full-source coverage, modular content lifecycle, reviewed
-evidence, Russian benchmark depth and a safe local inference runtime.
+Do not prioritize a backend, accounts, sync, Postgres, a Rust rewrite, or a second local-model harness.
+The limiting factors remain full-source coverage, modular content lifecycle, reviewed evidence, Russian
+benchmark depth and safe clinical integration of the runtime already implemented in #91.
