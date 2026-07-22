@@ -1,0 +1,34 @@
+schemaVersion: 1
+records:
+  "714_2":
+    coverageState: needs-review
+    rights: unknown
+    sourceUrl: https://meganorm.ru/mega_doc/dop_norm/56/mr_4_2_0339-23_4_2_metody_kontrolya_biologicheskie_i/0/klinicheskie_rekomendatsii_pnevmoniya_vnebolnichnaya.html
+    moduleIds:
+      - minimed.clinical.respiratory-allergy.ru
+      - minimed.clinical.infectious.ru
+      - minimed.clinical.pediatrics-general.ru
+    notes:
+      - Full-text extraction is implemented in the 0.3.4 respiratory preview pipeline.
+      - Promotion to published requires immutable artifact validation and a documented redistribution decision.
+  "381_3":
+    coverageState: needs-review
+    rights: unknown
+    sourceUrl: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_bronkhit_odobreny_minzdravom.html
+    moduleIds:
+      - minimed.clinical.respiratory-allergy.ru
+      - minimed.clinical.pediatrics-general.ru
+    notes:
+      - Full-text extraction is implemented in the 0.3.4 respiratory preview pipeline.
+      - Promotion to published requires immutable artifact validation and a documented redistribution decision.
+  "360_3":
+    coverageState: needs-review
+    rights: unknown
+    sourceUrl: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_ostryy_bronkhiolit_odobreny.html
+    moduleIds:
+      - minimed.clinical.respiratory-allergy.ru
+      - minimed.clinical.neonatology.ru
+      - minimed.clinical.pediatrics-general.ru
+    notes:
+      - Full-text extraction is implemented in the 0.3.4 respiratory preview pipeline.
+      - Promotion to published requires immutable artifact validation and a documented redistribution decision.
