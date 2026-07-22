@@ -36,12 +36,16 @@ function specialtySignal(specialty: string, documents: readonly MedicalDocumentS
   if (/(?:гастро|питан|gastro|nutrition)/u.test(normalized)) {
     return { icon: 'stomach', label: specialty, tone: 'amber', strength: 'primary' };
   }
-  return documentClinicalSignals(documents[0] ?? ({ title: specialty, shortTitle: null, specialties: [] } as MedicalDocumentSummary))[0] ?? {
-    icon: 'overview',
-    label: specialty,
-    tone: 'neutral',
-    strength: 'primary',
-  };
+  return (
+    documentClinicalSignals(
+      documents[0] ?? ({ title: specialty, shortTitle: null, specialties: [] } as MedicalDocumentSummary),
+    )[0] ?? {
+      icon: 'overview',
+      label: specialty,
+      tone: 'neutral',
+      strength: 'primary',
+    }
+  );
 }
 
 export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
@@ -76,12 +80,12 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
         </span>
       </header>
 
-      <div class="knowledge-map" role="list" aria-label="Связи медицинских областей и документов">
+      <ul class="knowledge-map" aria-label="Связи медицинских областей и документов">
         <For each={groups()}>
           {(group) => (
-            <section class="knowledge-map-group" role="listitem">
+            <li class="knowledge-map-group">
               <div class={`knowledge-map-domain tone-${group.signal.tone}`}>
-                <span class="clinical-signal primary" title={group.signal.label}>
+                <span class="clinical-signal primary" title={group.signal.label} aria-hidden="true">
                   <ClinicalGlyph name={group.signal.icon} />
                 </span>
                 <strong>{group.specialty}</strong>
@@ -100,7 +104,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
                         <strong>{document.shortTitle ?? document.title}</strong>
                         <small>{document.sourceType.replaceAll('_', ' ')}</small>
                       </span>
-                      <span class="clinical-signals" aria-label="Клинические области">
+                      <span class="clinical-signals" aria-hidden="true">
                         <For each={documentClinicalSignals(document).slice(0, 3)}>
                           {(signal) => (
                             <span
@@ -116,10 +120,10 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
                   )}
                 </For>
               </div>
-            </section>
+            </li>
           )}
         </For>
-      </div>
+      </ul>
 
       <p class="knowledge-graph-caption">
         Нажатие открывает документ сразу. Повторяющиеся документы показываются в каждой связанной области.
