@@ -1,9 +1,9 @@
-import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
+import { createMemo, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '../../components/AppGlyph';
 import { ClinicalGlyph, documentClinicalSignals } from '../../components/ClinicalGlyph';
-import { OPEN_DOCUMENT_EVENT } from '../../state/document-navigation';
+import { openDocumentOverlay } from '../../state/document-navigation';
 import { KnowledgeGraph } from './KnowledgeGraph';
 
 interface DocumentLibraryProps {
@@ -16,14 +16,20 @@ function normalize(value: string): string {
   return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
 }
 
+function sourceTypeLabel(value: string): string {
+  const labels: Readonly<Record<string, string>> = {
+    clinical_recommendation_summary: 'Клинические рекомендации',
+    official_registry_summary: 'Официальный реестр лекарств',
+    regulatory_act: 'Нормативный документ',
+  };
+  return labels[value] ?? value.replaceAll('_', ' ');
+}
+
 export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
-  const [selected, setSelected] = createSignal<MedicalDocument>();
   const [mode, setMode] = createSignal<LibraryMode>('list');
   const [filter, setFilter] = createSignal('');
-  const [documentQuery, setDocumentQuery] = createSignal('');
   const [error, setError] = createSignal<string>();
-  let readerRoot: HTMLDivElement | undefined;
 
   const filteredDocuments = createMemo(() => {
     const query = normalize(filter());
@@ -33,7 +39,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
         [
           document.title,
           document.shortTitle ?? '',
-          document.sourceType,
+          sourceTypeLabel(document.sourceType),
           document.versionLabel,
           ...document.specialties,
         ].join(' '),
@@ -41,15 +47,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     );
   });
 
-  const handleOpenDocument = (event: Event): void => {
-    const navigation = event as CustomEvent<string>;
-    if (typeof navigation.detail !== 'string' || !navigation.detail) return;
-    setMode('list');
-    void openDocument(navigation.detail);
-  };
-
   onMount(async () => {
-    window.addEventListener(OPEN_DOCUMENT_EVENT, handleOpenDocument);
     const result = await props.core.listDocuments();
     if (!result.ok) {
       setError(result.error.message);
@@ -58,71 +56,19 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     setDocuments(result.value);
   });
 
-  onCleanup(() => window.removeEventListener(OPEN_DOCUMENT_EVENT, handleOpenDocument));
-
-  async function openDocument(id: string, scroll = true): Promise<void> {
-    const result = await props.core.getDocument(id);
-    if (!result.ok) {
-      setError(result.error.message);
-      return;
-    }
-    setSelected(result.value);
-    setDocumentQuery('');
-    if (scroll) {
-      requestAnimationFrame(() =>
-        readerRoot?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-      );
-    }
-  }
-
-  async function openFromGraph(id: string): Promise<void> {
-    await openDocument(id, false);
-    setMode('list');
-    requestAnimationFrame(() => readerRoot?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  }
-
-  function closeDocument(): void {
-    setSelected(undefined);
-    setDocumentQuery('');
-  }
-
-  function scrollToSection(anchor: string): void {
-    document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function sectionMatches(section: MedicalDocument['sections'][number]): boolean {
-    const query = normalize(documentQuery());
-    if (!query) return true;
-    return normalize(
-      [
-        section.title,
-        section.sectionPath.join(' '),
-        ...section.chunks.map((chunk) => chunk.originalText),
-      ].join(' '),
-    ).includes(query);
-  }
-
   return (
     <section class="archive-page page-surface" aria-label="Архив документов">
-      <header class="subpage-heading">
+      <header class="subpage-heading archive-library-heading">
         <div>
-          <p class="archive-kicker">Локальный корпус</p>
-          <h1>Архив знаний</h1>
+          <p class="archive-kicker">Локальная медицинская библиотека</p>
+          <h1>Документы</h1>
           <p>
-            {documents().length || '—'} документов связаны со специальностями и источниками. Список
-            предназначен для быстрого открытия; карта показывает клинические области без скрытых
-            узлов.
+            Откройте рекомендации, лекарственные сведения и нормативные документы. Чтение происходит
+            в отдельном окне поверх текущего раздела.
           </p>
         </div>
         <fieldset class="library-mode-tabs">
-          <legend class="sr-only">Представление архива</legend>
-          <button
-            classList={{ active: mode() === 'graph' }}
-            type="button"
-            onClick={() => setMode('graph')}
-          >
-            <AppGlyph name="graph" /> Карта
-          </button>
+          <legend class="sr-only">Представление библиотеки</legend>
           <button
             classList={{ active: mode() === 'list' }}
             type="button"
@@ -130,17 +76,24 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           >
             <AppGlyph name="list" /> Список
           </button>
+          <button
+            classList={{ active: mode() === 'graph' }}
+            type="button"
+            onClick={() => setMode('graph')}
+          >
+            <AppGlyph name="graph" /> Карта связей
+          </button>
         </fieldset>
       </header>
 
       <div class="library-toolbar">
         <label class="library-search">
           <AppGlyph name="search" />
-          <span class="sr-only">Поиск по архиву</span>
+          <span class="sr-only">Поиск по документам</span>
           <input
             value={filter()}
             onInput={(event) => setFilter(event.currentTarget.value)}
-            placeholder="Название, специальность, тип источника…"
+            placeholder="Название, специальность или источник"
             autocomplete="off"
           />
         </label>
@@ -154,160 +107,51 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       <Show when={mode() === 'graph'}>
         <KnowledgeGraph
           documents={filteredDocuments()}
-          selectedId={selected()?.id}
-          onSelect={(id) => void openFromGraph(id)}
+          selectedId={undefined}
+          onSelect={(id) => openDocumentOverlay(id)}
         />
       </Show>
 
       <Show when={mode() === 'list'}>
-        <div class="archive-library library-embedded">
-          <aside class="library-list archive-cabinet">
-            <div class="cabinet-ledger">
-              <span>НАЙДЕНО</span>
-              <strong>{filteredDocuments().length.toString().padStart(3, '0')}</strong>
-            </div>
-            <div class="document-folders">
-              <For each={filteredDocuments()}>
-                {(document, index) => (
-                  <button
-                    class="document-folder"
-                    classList={{ selected: selected()?.id === document.id }}
-                    type="button"
-                    onClick={() => void openDocument(document.id)}
-                  >
-                    <span class="document-folder-tab">
-                      {String(index() + 1).padStart(2, '0')} /{' '}
-                      {document.sourceType.replaceAll('_', ' ')}
-                    </span>
-                    <span class="document-folder-main">
-                      <strong>{document.title}</strong>
-                      <span class="clinical-signals" aria-hidden="true">
-                        <For each={documentClinicalSignals(document).slice(0, 3)}>
-                          {(signal) => (
-                            <span
-                              class={`clinical-signal ${signal.strength} tone-${signal.tone}`}
-                              title={signal.label}
-                            >
-                              <ClinicalGlyph name={signal.icon} />
-                            </span>
-                          )}
-                        </For>
+        <div class="document-library-grid">
+          <For each={filteredDocuments()}>
+            {(document, index) => (
+              <button
+                class="document-library-card paper-card"
+                type="button"
+                onClick={() => openDocumentOverlay(document.id)}
+              >
+                <span class="document-library-index">
+                  {String(index() + 1).padStart(2, '0')}
+                </span>
+                <span class="document-library-copy">
+                  <small>{sourceTypeLabel(document.sourceType)}</small>
+                  <strong>{document.title}</strong>
+                  <span>{document.specialties.join(' · ') || 'Общая медицина'}</span>
+                  <em>Редакция {document.versionLabel}</em>
+                </span>
+                <span class="clinical-signals" aria-hidden="true">
+                  <For each={documentClinicalSignals(document).slice(0, 3)}>
+                    {(signal) => (
+                      <span
+                        class={`clinical-signal ${signal.strength} tone-${signal.tone}`}
+                        title={signal.label}
+                      >
+                        <ClinicalGlyph name={signal.icon} />
                       </span>
-                    </span>
-                    <span class="folder-specialties">{document.specialties.join(' · ')}</span>
-                    <small>{document.versionLabel}</small>
-                  </button>
-                )}
-              </For>
-              <Show when={filteredDocuments().length === 0}>
-                <div class="reader-empty library-empty">
-                  <p class="archive-kicker">Архив</p>
-                  <h2>Ничего не найдено</h2>
-                  <p>Попробуйте название заболевания, специальность или тип документа.</p>
-                </div>
-              </Show>
+                    )}
+                  </For>
+                </span>
+                <span class="document-library-open">Открыть</span>
+              </button>
+            )}
+          </For>
+          <Show when={filteredDocuments().length === 0}>
+            <div class="reader-empty library-empty paper-card">
+              <h2>Документы не найдены</h2>
+              <p>Попробуйте название заболевания, специальность или тип источника.</p>
             </div>
-          </aside>
-
-          <div
-            class="library-reader source-folder"
-            ref={(element) => {
-              readerRoot = element;
-            }}
-          >
-            <Show
-              when={selected()}
-              fallback={
-                <div class="reader-empty library-empty">
-                  <span class="empty-file-mark">MM–DOC</span>
-                  <p class="archive-kicker">Структура документа</p>
-                  <h2>Выберите документ</h2>
-                  <p>Одно нажатие откроет карточку, оглавление и доступный полный текст.</p>
-                </div>
-              }
-            >
-              {(document) => (
-                <div class="document-workspace">
-                  <div class="reader-toolbar document-reader-toolbar">
-                    <strong>{document().shortTitle ?? document().title}</strong>
-                    <input
-                      value={documentQuery()}
-                      onInput={(event) => setDocumentQuery(event.currentTarget.value)}
-                      placeholder="Поиск внутри документа"
-                      aria-label="Поиск внутри открытого документа"
-                    />
-                    <button
-                      class="reader-close"
-                      type="button"
-                      aria-label="Закрыть документ"
-                      onClick={closeDocument}
-                    >
-                      <AppGlyph name="close" />
-                    </button>
-                  </div>
-
-                  <aside class="document-outline">
-                    <p class="archive-kicker">Оглавление</p>
-                    <strong>{document().shortTitle ?? document().title}</strong>
-                    <nav aria-label="Разделы документа">
-                      <For each={document().sections.filter(sectionMatches)}>
-                        {(section, index) => (
-                          <button type="button" onClick={() => scrollToSection(section.anchor)}>
-                            <span>{String(index() + 1).padStart(2, '0')}</span>
-                            {section.title}
-                          </button>
-                        )}
-                      </For>
-                    </nav>
-                  </aside>
-
-                  <article class="document-reader paper-sheet">
-                    <span class="paper-clip" aria-hidden="true" />
-                    <header class="document-cover">
-                      <p class="archive-kicker">{document().sourceType.replaceAll('_', ' ')}</p>
-                      <h2>{document().title}</h2>
-                      <dl>
-                        <div>
-                          <dt>Редакция</dt>
-                          <dd>{document().versionLabel}</dd>
-                        </div>
-                        <div>
-                          <dt>Статус</dt>
-                          <dd>{document().status}</dd>
-                        </div>
-                        <div>
-                          <dt>Разделов</dt>
-                          <dd>{document().sections.length}</dd>
-                        </div>
-                      </dl>
-                    </header>
-                    <For each={document().sections.filter(sectionMatches)}>
-                      {(section, index) => (
-                        <section class="document-section" id={section.anchor}>
-                          <div class="section-number">{String(index() + 1).padStart(2, '0')}</div>
-                          <div class="section-copy">
-                            <span class="section-type">{section.sectionType ?? 'section'}</span>
-                            <h3>{section.sectionPath.join(' / ')}</h3>
-                            <For each={section.chunks}>
-                              {(chunk) => <p id={chunk.anchor}>{chunk.originalText}</p>}
-                            </For>
-                          </div>
-                        </section>
-                      )}
-                    </For>
-                    <Show when={document().sections.filter(sectionMatches).length === 0}>
-                      <div class="reader-empty">
-                        <h2>В документе нет такого текста</h2>
-                        <p>
-                          Очистите локальный поиск или используйте другое медицинское выражение.
-                        </p>
-                      </div>
-                    </Show>
-                  </article>
-                </div>
-              )}
-            </Show>
-          </div>
+          </Show>
         </div>
       </Show>
     </section>
