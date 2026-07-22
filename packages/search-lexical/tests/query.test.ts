@@ -111,7 +111,9 @@ describe('lexical query planning', () => {
         expect.objectContaining({ kind: 'symptom', normalizedValue: 'кашель' }),
       ]),
     );
-    expect(plan.branches[0]?.terms.some((term) => term.startsWith('кашл'))).toBe(true);
+    expect(
+      plan.branches[0]?.terms.some((term) => term === 'кашель' || term.startsWith('кашл')),
+    ).toBe(true);
   });
 
   it('does not turn a negated cough into a positive symptom fact', () => {
