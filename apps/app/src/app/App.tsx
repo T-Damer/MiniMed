@@ -103,23 +103,29 @@ export function App(): JSX.Element {
         </button>
 
         <nav class="app-nav-icons" aria-label="Разделы приложения">
-          {VIEWS.map((item) => (
-            <button
-              class="app-nav-button"
-              classList={{ active: view() === item.id }}
-              type="button"
-              aria-label={item.label}
-              title={item.label}
-              onClick={() => navigate(item.id)}
-            >
-              <AppGlyph name={item.icon} />
-              <Show when={item.id === 'modules' && moduleUpdateCount() > 0}>
-                <span class="app-nav-badge" aria-label={`Обновлений модулей: ${moduleUpdateCount()}`}>
-                  {moduleUpdateCount() > 9 ? '9+' : moduleUpdateCount()}
-                </span>
-              </Show>
-            </button>
-          ))}
+          {VIEWS.map((item) => {
+            const label = () =>
+              item.id === 'modules' && moduleUpdateCount() > 0
+                ? `${item.label}, обновлений: ${moduleUpdateCount()}`
+                : item.label;
+            return (
+              <button
+                class="app-nav-button"
+                classList={{ active: view() === item.id }}
+                type="button"
+                aria-label={label()}
+                title={label()}
+                onClick={() => navigate(item.id)}
+              >
+                <AppGlyph name={item.icon} />
+                <Show when={item.id === 'modules' && moduleUpdateCount() > 0}>
+                  <span class="app-nav-badge" aria-hidden="true">
+                    {moduleUpdateCount() > 9 ? '9+' : moduleUpdateCount()}
+                  </span>
+                </Show>
+              </button>
+            );
+          })}
         </nav>
 
         <div
