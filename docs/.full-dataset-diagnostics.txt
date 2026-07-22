@@ -1,259 +1,217 @@
 === SOURCE SYNC ===
-{
-  "manifest_version": 1,
-  "generated_at": "2026-07-22T20:57:26Z",
-  "force_refresh": false,
-  "offline": false,
-  "downloaded": 3,
-  "cache_hits": 0,
-  "unchanged": 0,
-  "materialized": 3,
-  "sources": [
-    {
-      "id": "full-pneumonia-714-2",
-      "location": "https://medvestnik.ru/cr/714_2.html",
-      "target": "pneumonia-714_2.html",
-      "status": "downloaded",
-      "sha256": "8f78b1ddb48207bee9048b5724bf14ad342e370a3c04b8aaf82bf23cb68acc80",
-      "bytes": 331316,
-      "cache_hit": false,
-      "materialized": true,
-      "etag": null,
-      "last_modified": null,
-      "final_url": "https://medvestnik.ru/cr/714_2.html",
-      "warning": null
-    },
-    {
-      "id": "full-bronchitis-381-3",
-      "location": "https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/bronxit-kr-2024/",
-      "target": "bronchitis-381_3.html",
-      "status": "downloaded",
-      "sha256": "517da50d333a994b5d829061400057909e8cb81cf8ba3993f965483a21bbfa4b",
-      "bytes": 274796,
-      "cache_hit": false,
-      "materialized": true,
-      "etag": null,
-      "last_modified": null,
-      "final_url": "https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/bronxit-kr-2024/",
-      "warning": null
-    },
-    {
-      "id": "full-bronchiolitis-360-3",
-      "location": "https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/ostryij-bronxiolit-kr-2024/",
-      "target": "bronchiolitis-360_3.html",
-      "status": "downloaded",
-      "sha256": "27e2b103d2f9a26d173c854dd74b607b532ae6a1a13ed9355aab841783717cc5",
-      "bytes": 228210,
-      "cache_hit": false,
-      "materialized": true,
-      "etag": null,
-      "last_modified": null,
-      "final_url": "https://pediatrhelp.ru/klinicheskie-rekomendaczii/pulmonologiya/ostryij-bronxiolit-kr-2024/",
-      "warning": null
-    }
-  ]
-}
-SYNC_EXIT=0
-
-=== PREPARE ===
 [31m╭─[0m[31m────────────────────[0m[31m [0m[1;31mTraceback [0m[1;2;31m(most recent call last)[0m[31m [0m[31m─────────────────────[0m[31m─╮[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1mcli.py[0m:15 [31m│[0m
-[31m│[0m 8 in prepare_command                                                         [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:1344 in do_open                        [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m155 [0m[2m│   [0mforce: Annotated[[96mbool[0m, typer.Option([33m"[0m[33m--force[0m[33m"[0m)] = [94mFalse[0m,           [31m│[0m
-[31m│[0m   [2m156 [0m) -> [94mNone[0m:                                                             [31m│[0m
-[31m│[0m   [2m157 [0m[2;90m│   [0m[33m"""Prepare private PDF/TXT sources as a build-ready Markdown [0m      [31m│[0m
-[31m│[0m       [33mworkspace."""[0m                                                          [31m│[0m
-[31m│[0m [31m❱ [0m158 [2m│   [0mprepare_report = [1;4mprepare_registry(registry, source_root, output, [0m  [31m│[0m
-[31m│[0m       [1;4mforce=force)[0m                                                           [31m│[0m
-[31m│[0m   [2m159 [0m[2m│   [0mtyper.echo(json.dumps(prepare_report.model_dump(by_alias=[94mTrue[0m),    [31m│[0m
-[31m│[0m       ensure_ascii=[94mFalse[0m, indent=[94m2[0m))                                         [31m│[0m
-[31m│[0m   [2m160 [0m                                                                       [31m│[0m
-[31m│[0m   [2m161 [0m                                                                       [31m│[0m
+[31m│[0m   [2m1341 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m1342 [0m[2m│   │   [0m[94mtry[0m:                                                          [31m│[0m
+[31m│[0m   [2m1343 [0m[2m│   │   │   [0m[94mtry[0m:                                                      [31m│[0m
+[31m│[0m [31m❱ [0m1344 [2m│   │   │   │   [0mh.request(req.get_method(), req.selector, req.data,   [31m│[0m
+[31m│[0m        headers,                                                              [31m│[0m
+[31m│[0m   [2m1345 [0m[2m│   │   │   │   │   │     [0m                                            [31m│[0m
+[31m│[0m        encode_chunked=req.has_header([33m'[0m[33mTransfer-encoding[0m[33m'[0m))                   [31m│[0m
+[31m│[0m   [2m1346 [0m[2m│   │   │   [0m[94mexcept[0m [96mOSError[0m [94mas[0m err: [2m# timeout error[0m                    [31m│[0m
+[31m│[0m   [2m1347 [0m[2m│   │   │   │   [0m[94mraise[0m URLError(err)                                   [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1msource_re[0m [31m│[0m
-[31m│[0m [1mgistry.py[0m:257 in prepare_registry                                            [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/http/[0m[1mclient.py[0m:1365 in request                           [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m254 [0m[2m│   [0m*,                                                                 [31m│[0m
-[31m│[0m   [2m255 [0m[2m│   [0mforce: [96mbool[0m = [94mFalse[0m,                                               [31m│[0m
-[31m│[0m   [2m256 [0m) -> PrepareReport:                                                    [31m│[0m
-[31m│[0m [31m❱ [0m257 [2m│   [0mregistry = [1;4mload_source_registry(registry_path)[0m                     [31m│[0m
-[31m│[0m   [2m258 [0m[2m│   [0msource_root_resolved = source_root.resolve()                       [31m│[0m
-[31m│[0m   [2m259 [0m[2m│   [0mtarget = output_dir.resolve()                                      [31m│[0m
-[31m│[0m   [2m260 [0m[2m│   [0m[94mif[0m target == source_root_resolved [95mor[0m                               [31m│[0m
-[31m│[0m       source_root_resolved.is_relative_to(target):                           [31m│[0m
+[31m│[0m   [2m1362 [0m[2m│   [0m[94mdef[0m[90m [0m[92mrequest[0m([96mself[0m, method, url, body=[94mNone[0m, headers={}, *,          [31m│[0m
+[31m│[0m   [2m1363 [0m[2m│   │   │   │   [0mencode_chunked=[94mFalse[0m):                                [31m│[0m
+[31m│[0m   [2m1364 [0m[2;90m│   │   [0m[33m"""Send a complete request to the server."""[0m                  [31m│[0m
+[31m│[0m [31m❱ [0m1365 [2m│   │   [0m[1;4;96mself[0m[1;4m._send_request(method, url, body, headers, [0m               [31m│[0m
+[31m│[0m        [1;4mencode_chunked)[0m                                                       [31m│[0m
+[31m│[0m   [2m1366 [0m[2m│   [0m                                                                  [31m│[0m
+[31m│[0m   [2m1367 [0m[2m│   [0m[94mdef[0m[90m [0m[92m_send_request[0m([96mself[0m, method, url, body, headers,               [31m│[0m
+[31m│[0m        encode_chunked):                                                      [31m│[0m
+[31m│[0m   [2m1368 [0m[2m│   │   [0m[2m# Honor explicitly requested Host: and Accept-Encoding: [0m      [31m│[0m
+[31m│[0m        [2mheaders.[0m                                                              [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1msource_re[0m [31m│[0m
-[31m│[0m [1mgistry.py[0m:26 in load_source_registry                                         [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/http/[0m[1mclient.py[0m:1411 in _send_request                     [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 23 [0m                                                                       [31m│[0m
-[31m│[0m   [2m 24 [0m                                                                       [31m│[0m
-[31m│[0m   [2m 25 [0m[94mdef[0m[90m [0m[92mload_source_registry[0m(path: Path) -> SourceRegistry:                [31m│[0m
-[31m│[0m [31m❱ [0m 26 [2m│   [0mpayload = [1;4myaml.safe_load(path.read_text(encoding=[0m[1;4;33m"[0m[1;4;33mutf-8[0m[1;4;33m"[0m[1;4m))[0m         [31m│[0m
-[31m│[0m   [2m 27 [0m[2m│   [0m[94mif[0m [95mnot[0m [96misinstance[0m(payload, [96mdict[0m):                                  [31m│[0m
-[31m│[0m   [2m 28 [0m[2m│   │   [0m[94mraise[0m [96mValueError[0m([33m"[0m[33mSource registry must be a YAML mapping.[0m[33m"[0m)    [31m│[0m
-[31m│[0m   [2m 29 [0m[2m│   [0m[94mreturn[0m SourceRegistry.model_validate(payload)                      [31m│[0m
+[31m│[0m   [2m1408 [0m[2m│   │   │   [0m[2m# RFC 2616 Section 3.7.1 says that text default has a[0m     [31m│[0m
+[31m│[0m   [2m1409 [0m[2m│   │   │   [0m[2m# default charset of iso-8859-1.[0m                          [31m│[0m
+[31m│[0m   [2m1410 [0m[2m│   │   │   [0mbody = _encode(body, [33m'[0m[33mbody[0m[33m'[0m)                              [31m│[0m
+[31m│[0m [31m❱ [0m1411 [2m│   │   [0m[1;4;96mself[0m[1;4m.endheaders(body, encode_chunked=encode_chunked)[0m          [31m│[0m
+[31m│[0m   [2m1412 [0m[2m│   [0m                                                                  [31m│[0m
+[31m│[0m   [2m1413 [0m[2m│   [0m[94mdef[0m[90m [0m[92mgetresponse[0m([96mself[0m):                                            [31m│[0m
+[31m│[0m   [2m1414 [0m[2;90m│   │   [0m[33m"""Get the response from the server.[0m                          [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1m__init__.py[0m:125 in safe_load                                      [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/http/[0m[1mclient.py[0m:1360 in endheaders                        [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m122 [0m[2;33m│   [0m[33mResolve only basic YAML tags. This is known[0m                        [31m│[0m
-[31m│[0m   [2m123 [0m[2;33m│   [0m[33mto be safe for untrusted input.[0m                                    [31m│[0m
-[31m│[0m   [2m124 [0m[2;33m│   [0m[33m"""[0m                                                                [31m│[0m
-[31m│[0m [31m❱ [0m125 [2m│   [0m[94mreturn[0m [1;4mload(stream, SafeLoader)[0m                                    [31m│[0m
-[31m│[0m   [2m126 [0m                                                                       [31m│[0m
-[31m│[0m   [2m127 [0m[94mdef[0m[90m [0m[92msafe_load_all[0m(stream):                                             [31m│[0m
-[31m│[0m   [2m128 [0m[2;90m│   [0m[33m"""[0m                                                                [31m│[0m
+[31m│[0m   [2m1357 [0m[2m│   │   │   [0m[96mself[0m.__state = _CS_REQ_SENT                               [31m│[0m
+[31m│[0m   [2m1358 [0m[2m│   │   [0m[94melse[0m:                                                         [31m│[0m
+[31m│[0m   [2m1359 [0m[2m│   │   │   [0m[94mraise[0m CannotSendHeader()                                  [31m│[0m
+[31m│[0m [31m❱ [0m1360 [2m│   │   [0m[1;4;96mself[0m[1;4m._send_output(message_body, [0m                              [31m│[0m
+[31m│[0m        [1;4mencode_chunked=encode_chunked)[0m                                        [31m│[0m
+[31m│[0m   [2m1361 [0m[2m│   [0m                                                                  [31m│[0m
+[31m│[0m   [2m1362 [0m[2m│   [0m[94mdef[0m[90m [0m[92mrequest[0m([96mself[0m, method, url, body=[94mNone[0m, headers={}, *,          [31m│[0m
+[31m│[0m   [2m1363 [0m[2m│   │   │   │   [0mencode_chunked=[94mFalse[0m):                                [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1m__init__.py[0m:81 in load                                            [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/http/[0m[1mclient.py[0m:1120 in _send_output                      [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 78 [0m[2;33m│   [0m[33m"""[0m                                                                [31m│[0m
-[31m│[0m   [2m 79 [0m[2m│   [0mloader = Loader(stream)                                            [31m│[0m
-[31m│[0m   [2m 80 [0m[2m│   [0m[94mtry[0m:                                                               [31m│[0m
-[31m│[0m [31m❱ [0m 81 [2m│   │   [0m[94mreturn[0m loader.get_single_data()                                [31m│[0m
-[31m│[0m   [2m 82 [0m[2m│   [0m[94mfinally[0m:                                                           [31m│[0m
-[31m│[0m   [2m 83 [0m[2m│   │   [0m[1;4mloader.dispose()[0m                                               [31m│[0m
-[31m│[0m   [2m 84 [0m                                                                       [31m│[0m
+[31m│[0m   [2m1117 [0m[2m│   │   [0m[96mself[0m._buffer.extend(([33mb[0m[33m"[0m[33m"[0m, [33mb[0m[33m"[0m[33m"[0m))                               [31m│[0m
+[31m│[0m   [2m1118 [0m[2m│   │   [0mmsg = [33mb[0m[33m"[0m[33m\r[0m[33m\n[0m[33m"[0m.join([96mself[0m._buffer)                              [31m│[0m
+[31m│[0m   [2m1119 [0m[2m│   │   [0m[94mdel[0m [96mself[0m._buffer[:]                                           [31m│[0m
+[31m│[0m [31m❱ [0m1120 [2m│   │   [0m[1;4;96mself[0m[1;4m.send(msg)[0m                                                [31m│[0m
+[31m│[0m   [2m1121 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m1122 [0m[2m│   │   [0m[94mif[0m message_body [95mis[0m [95mnot[0m [94mNone[0m:                                  [31m│[0m
+[31m│[0m   [2m1123 [0m                                                                      [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mconstructor.py[0m:49 in get_single_data                              [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/http/[0m[1mclient.py[0m:1064 in send                              [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 46 [0m[2m│   [0m                                                                   [31m│[0m
-[31m│[0m   [2m 47 [0m[2m│   [0m[94mdef[0m[90m [0m[92mget_single_data[0m([96mself[0m):                                         [31m│[0m
-[31m│[0m   [2m 48 [0m[2m│   │   [0m[2m# Ensure that the stream contains a single document and [0m       [31m│[0m
-[31m│[0m       [2mconstruct it.[0m                                                          [31m│[0m
-[31m│[0m [31m❱ [0m 49 [2m│   │   [0mnode = [1;4;96mself[0m[1;4m.get_single_node()[0m                                  [31m│[0m
-[31m│[0m   [2m 50 [0m[2m│   │   [0m[94mif[0m node [95mis[0m [95mnot[0m [94mNone[0m:                                           [31m│[0m
-[31m│[0m   [2m 51 [0m[2m│   │   │   [0m[94mreturn[0m [96mself[0m.construct_document(node)                       [31m│[0m
-[31m│[0m   [2m 52 [0m[2m│   │   [0m[94mreturn[0m [94mNone[0m                                                    [31m│[0m
+[31m│[0m   [2m1061 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m1062 [0m[2m│   │   [0m[94mif[0m [96mself[0m.sock [95mis[0m [94mNone[0m:                                         [31m│[0m
+[31m│[0m   [2m1063 [0m[2m│   │   │   [0m[94mif[0m [96mself[0m.auto_open:                                        [31m│[0m
+[31m│[0m [31m❱ [0m1064 [2m│   │   │   │   [0m[1;4;96mself[0m[1;4m.connect()[0m                                        [31m│[0m
+[31m│[0m   [2m1065 [0m[2m│   │   │   [0m[94melse[0m:                                                     [31m│[0m
+[31m│[0m   [2m1066 [0m[2m│   │   │   │   [0m[94mraise[0m NotConnected()                                  [31m│[0m
+[31m│[0m   [2m1067 [0m                                                                      [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mcomposer.py[0m:36 in get_single_node                                 [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/http/[0m[1mclient.py[0m:1499 in connect                           [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 33 [0m[2m│   │   [0m[2m# Compose a document if the stream is not empty.[0m               [31m│[0m
-[31m│[0m   [2m 34 [0m[2m│   │   [0mdocument = [94mNone[0m                                                [31m│[0m
-[31m│[0m   [2m 35 [0m[2m│   │   [0m[94mif[0m [95mnot[0m [96mself[0m.check_event(StreamEndEvent):                       [31m│[0m
-[31m│[0m [31m❱ [0m 36 [2m│   │   │   [0mdocument = [1;4;96mself[0m[1;4m.compose_document()[0m                         [31m│[0m
-[31m│[0m   [2m 37 [0m[2m│   │   [0m                                                               [31m│[0m
-[31m│[0m   [2m 38 [0m[2m│   │   [0m[2m# Ensure that the stream contains no more documents.[0m           [31m│[0m
-[31m│[0m   [2m 39 [0m[2m│   │   [0m[94mif[0m [95mnot[0m [96mself[0m.check_event(StreamEndEvent):                       [31m│[0m
+[31m│[0m   [2m1496 [0m[2m│   │   [0m[94mdef[0m[90m [0m[92mconnect[0m([96mself[0m):                                            [31m│[0m
+[31m│[0m   [2m1497 [0m[2m│   │   │   [0m[33m"[0m[33mConnect to a host on a given (SSL) port.[0m[33m"[0m                [31m│[0m
+[31m│[0m   [2m1498 [0m[2m│   │   │   [0m                                                          [31m│[0m
+[31m│[0m [31m❱ [0m1499 [2m│   │   │   [0m[1;4;96msuper[0m[1;4m().connect()[0m                                         [31m│[0m
+[31m│[0m   [2m1500 [0m[2m│   │   │   [0m                                                          [31m│[0m
+[31m│[0m   [2m1501 [0m[2m│   │   │   [0m[94mif[0m [96mself[0m._tunnel_host:                                     [31m│[0m
+[31m│[0m   [2m1502 [0m[2m│   │   │   │   [0mserver_hostname = [96mself[0m._tunnel_host                   [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mcomposer.py[0m:55 in compose_document                                [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/http/[0m[1mclient.py[0m:1030 in connect                           [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 52 [0m[2m│   │   [0m[96mself[0m.get_event()                                               [31m│[0m
-[31m│[0m   [2m 53 [0m[2m│   │   [0m                                                               [31m│[0m
-[31m│[0m   [2m 54 [0m[2m│   │   [0m[2m# Compose the root node.[0m                                       [31m│[0m
-[31m│[0m [31m❱ [0m 55 [2m│   │   [0mnode = [1;4;96mself[0m[1;4m.compose_node([0m[1;4;94mNone[0m[1;4m, [0m[1;4;94mNone[0m[1;4m)[0m                           [31m│[0m
-[31m│[0m   [2m 56 [0m[2m│   │   [0m                                                               [31m│[0m
-[31m│[0m   [2m 57 [0m[2m│   │   [0m[2m# Drop the DOCUMENT-END event.[0m                                 [31m│[0m
-[31m│[0m   [2m 58 [0m[2m│   │   [0m[96mself[0m.get_event()                                               [31m│[0m
+[31m│[0m   [2m1027 [0m[2m│   [0m[94mdef[0m[90m [0m[92mconnect[0m([96mself[0m):                                                [31m│[0m
+[31m│[0m   [2m1028 [0m[2;90m│   │   [0m[33m"""Connect to the host and port specified in __init__."""[0m     [31m│[0m
+[31m│[0m   [2m1029 [0m[2m│   │   [0msys.audit([33m"[0m[33mhttp.client.connect[0m[33m"[0m, [96mself[0m, [96mself[0m.host, [96mself[0m.port)  [31m│[0m
+[31m│[0m [31m❱ [0m1030 [2m│   │   [0m[96mself[0m.sock = [1;4;96mself[0m[1;4m._create_connection([0m                          [31m│[0m
+[31m│[0m   [2m1031 [0m[2m│   │   │   [0m[1;4m([0m[1;4;96mself[0m[1;4m.host,[0m[1;4;96mself[0m[1;4m.port), [0m[1;4;96mself[0m[1;4m.timeout, [0m[1;4;96mself[0m[1;4m.source_address)[0m [31m│[0m
+[31m│[0m   [2m1032 [0m[2m│   │   [0m[2m# Might fail in OSs that don't implement TCP_NODELAY[0m          [31m│[0m
+[31m│[0m   [2m1033 [0m[2m│   │   [0m[94mtry[0m:                                                          [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mcomposer.py[0m:84 in compose_node                                    [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/[0m[1msocket.py[0m:852 in create_connection                       [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 81 [0m[2m│   │   [0m[94melif[0m [96mself[0m.check_event(SequenceStartEvent):                     [31m│[0m
-[31m│[0m   [2m 82 [0m[2m│   │   │   [0mnode = [96mself[0m.compose_sequence_node(anchor)                  [31m│[0m
-[31m│[0m   [2m 83 [0m[2m│   │   [0m[94melif[0m [96mself[0m.check_event(MappingStartEvent):                      [31m│[0m
-[31m│[0m [31m❱ [0m 84 [2m│   │   │   [0mnode = [1;4;96mself[0m[1;4m.compose_mapping_node(anchor)[0m                   [31m│[0m
-[31m│[0m   [2m 85 [0m[2m│   │   [0m[96mself[0m.ascend_resolver()                                         [31m│[0m
-[31m│[0m   [2m 86 [0m[2m│   │   [0m[94mreturn[0m node                                                    [31m│[0m
-[31m│[0m   [2m 87 [0m                                                                       [31m│[0m
+[31m│[0m   [2m849 [0m[2m│   [0m[94mif[0m [96mlen[0m(exceptions):                                                [31m│[0m
+[31m│[0m   [2m850 [0m[2m│   │   [0m[94mtry[0m:                                                           [31m│[0m
+[31m│[0m   [2m851 [0m[2m│   │   │   [0m[94mif[0m [95mnot[0m all_errors:                                         [31m│[0m
+[31m│[0m [31m❱ [0m852 [2m│   │   │   │   [0m[94mraise[0m exceptions[[94m0[0m]                                    [31m│[0m
+[31m│[0m   [2m853 [0m[2m│   │   │   [0m[94mraise[0m ExceptionGroup([33m"[0m[33mcreate_connection failed[0m[33m"[0m,           [31m│[0m
+[31m│[0m       exceptions)                                                            [31m│[0m
+[31m│[0m   [2m854 [0m[2m│   │   [0m[94mfinally[0m:                                                       [31m│[0m
+[31m│[0m   [2m855 [0m[2m│   │   │   [0m[2m# Break explicitly a reference cycle[0m                       [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mcomposer.py[0m:133 in compose_mapping_node                           [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/[0m[1msocket.py[0m:837 in create_connection                       [31m│[0m
 [31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m130 [0m[2m│   │   │   [0m[2m#if item_key in node.value:[0m                                [31m│[0m
-[31m│[0m   [2m131 [0m[2m│   │   │   [0m[2m#    raise ComposerError("while composing a mapping", [0m     [31m│[0m
-[31m│[0m       [2mstart_event.start_mark,[0m                                                [31m│[0m
-[31m│[0m   [2m132 [0m[2m│   │   │   [0m[2m#            "found duplicate key", key_event.start_mark)[0m  [31m│[0m
-[31m│[0m [31m❱ [0m133 [2m│   │   │   [0mitem_value = [1;4;96mself[0m[1;4m.compose_node(node, item_key)[0m             [31m│[0m
-[31m│[0m   [2m134 [0m[2m│   │   │   [0m[2m#node.value[item_key] = item_value[0m                         [31m│[0m
-[31m│[0m   [2m135 [0m[2m│   │   │   [0mnode.value.append((item_key, item_value))                  [31m│[0m
-[31m│[0m   [2m136 [0m[2m│   │   [0mend_event = [96mself[0m.get_event()                                   [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mcomposer.py[0m:84 in compose_node                                    [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 81 [0m[2m│   │   [0m[94melif[0m [96mself[0m.check_event(SequenceStartEvent):                     [31m│[0m
-[31m│[0m   [2m 82 [0m[2m│   │   │   [0mnode = [96mself[0m.compose_sequence_node(anchor)                  [31m│[0m
-[31m│[0m   [2m 83 [0m[2m│   │   [0m[94melif[0m [96mself[0m.check_event(MappingStartEvent):                      [31m│[0m
-[31m│[0m [31m❱ [0m 84 [2m│   │   │   [0mnode = [1;4;96mself[0m[1;4m.compose_mapping_node(anchor)[0m                   [31m│[0m
-[31m│[0m   [2m 85 [0m[2m│   │   [0m[96mself[0m.ascend_resolver()                                         [31m│[0m
-[31m│[0m   [2m 86 [0m[2m│   │   [0m[94mreturn[0m node                                                    [31m│[0m
-[31m│[0m   [2m 87 [0m                                                                       [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mcomposer.py[0m:127 in compose_mapping_node                           [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m124 [0m[2m│   │   │   │   [0mflow_style=start_event.flow_style)                     [31m│[0m
-[31m│[0m   [2m125 [0m[2m│   │   [0m[94mif[0m anchor [95mis[0m [95mnot[0m [94mNone[0m:                                         [31m│[0m
-[31m│[0m   [2m126 [0m[2m│   │   │   [0m[96mself[0m.anchors[anchor] = node                                [31m│[0m
-[31m│[0m [31m❱ [0m127 [2m│   │   [0m[94mwhile[0m [95mnot[0m [1;4;96mself[0m[1;4m.check_event(MappingEndEvent)[0m:                   [31m│[0m
-[31m│[0m   [2m128 [0m[2m│   │   │   [0m[2m#key_event = self.peek_event()[0m                             [31m│[0m
-[31m│[0m   [2m129 [0m[2m│   │   │   [0mitem_key = [96mself[0m.compose_node(node, [94mNone[0m)                   [31m│[0m
-[31m│[0m   [2m130 [0m[2m│   │   │   [0m[2m#if item_key in node.value:[0m                                [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mparser.py[0m:98 in check_event                                       [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 95 [0m[2m│   │   [0m[2m# Check the type of the next event.[0m                            [31m│[0m
-[31m│[0m   [2m 96 [0m[2m│   │   [0m[94mif[0m [96mself[0m.current_event [95mis[0m [94mNone[0m:                                 [31m│[0m
-[31m│[0m   [2m 97 [0m[2m│   │   │   [0m[94mif[0m [96mself[0m.state:                                             [31m│[0m
-[31m│[0m [31m❱ [0m 98 [2m│   │   │   │   [0m[96mself[0m.current_event = [1;4;96mself[0m[1;4m.state()[0m                      [31m│[0m
-[31m│[0m   [2m 99 [0m[2m│   │   [0m[94mif[0m [96mself[0m.current_event [95mis[0m [95mnot[0m [94mNone[0m:                             [31m│[0m
-[31m│[0m   [2m100 [0m[2m│   │   │   [0m[94mif[0m [95mnot[0m choices:                                            [31m│[0m
-[31m│[0m   [2m101 [0m[2m│   │   │   │   [0m[94mreturn[0m [94mTrue[0m                                            [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mparser.py[0m:428 in parse_block_mapping_key                          [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m425 [0m[2m│   │   [0m[94mreturn[0m [96mself[0m.parse_block_mapping_key()                          [31m│[0m
-[31m│[0m   [2m426 [0m[2m│   [0m                                                                   [31m│[0m
-[31m│[0m   [2m427 [0m[2m│   [0m[94mdef[0m[90m [0m[92mparse_block_mapping_key[0m([96mself[0m):                                 [31m│[0m
-[31m│[0m [31m❱ [0m428 [2m│   │   [0m[94mif[0m [1;4;96mself[0m[1;4m.check_token(KeyToken)[0m:                                 [31m│[0m
-[31m│[0m   [2m429 [0m[2m│   │   │   [0mtoken = [96mself[0m.get_token()                                   [31m│[0m
-[31m│[0m   [2m430 [0m[2m│   │   │   [0m[94mif[0m [95mnot[0m [96mself[0m.check_token(KeyToken, ValueToken,              [31m│[0m
-[31m│[0m       BlockEndToken):                                                        [31m│[0m
-[31m│[0m   [2m431 [0m[2m│   │   │   │   [0m[96mself[0m.states.append([96mself[0m.parse_block_mapping_value)     [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mscanner.py[0m:116 in check_token                                     [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 113 [0m[2m│   [0m[94mdef[0m[90m [0m[92mcheck_token[0m([96mself[0m, *choices):                                  [31m│[0m
-[31m│[0m   [2m 114 [0m[2m│   │   [0m[2m# Check if the next token is one of the given types.[0m          [31m│[0m
-[31m│[0m   [2m 115 [0m[2m│   │   [0m[94mwhile[0m [96mself[0m.need_more_tokens():                                [31m│[0m
-[31m│[0m [31m❱ [0m 116 [2m│   │   │   [0m[1;4;96mself[0m[1;4m.fetch_more_tokens()[0m                                  [31m│[0m
-[31m│[0m   [2m 117 [0m[2m│   │   [0m[94mif[0m [96mself[0m.tokens:                                               [31m│[0m
-[31m│[0m   [2m 118 [0m[2m│   │   │   [0m[94mif[0m [95mnot[0m choices:                                           [31m│[0m
-[31m│[0m   [2m 119 [0m[2m│   │   │   │   [0m[94mreturn[0m [94mTrue[0m                                           [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mscanner.py[0m:223 in fetch_more_tokens                               [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 220 [0m[2m│   │   [0m                                                              [31m│[0m
-[31m│[0m   [2m 221 [0m[2m│   │   [0m[2m# Is it the value indicator?[0m                                  [31m│[0m
-[31m│[0m   [2m 222 [0m[2m│   │   [0m[94mif[0m ch == [33m'[0m[33m:[0m[33m'[0m [95mand[0m [96mself[0m.check_value():                          [31m│[0m
-[31m│[0m [31m❱ [0m 223 [2m│   │   │   [0m[94mreturn[0m [1;4;96mself[0m[1;4m.fetch_value()[0m                                 [31m│[0m
-[31m│[0m   [2m 224 [0m[2m│   │   [0m                                                              [31m│[0m
-[31m│[0m   [2m 225 [0m[2m│   │   [0m[2m# Is it an alias?[0m                                             [31m│[0m
-[31m│[0m   [2m 226 [0m[2m│   │   [0m[94mif[0m ch == [33m'[0m[33m*[0m[33m'[0m:                                                 [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/.venv/lib/python3.12/site-pac[0m [31m│[0m
-[31m│[0m [2mkages/yaml/[0m[1mscanner.py[0m:577 in fetch_value                                     [31m│[0m
-[31m│[0m                                                                              [31m│[0m
-[31m│[0m   [2m 574 [0m[2m│   │   │   │   [0m[2m# We are allowed to start a complex value if and only[0m [31m│[0m
-[31m│[0m        [2mif[0m                                                                    [31m│[0m
-[31m│[0m   [2m 575 [0m[2m│   │   │   │   [0m[2m# we can start a simple key.[0m                          [31m│[0m
-[31m│[0m   [2m 576 [0m[2m│   │   │   │   [0m[94mif[0m [95mnot[0m [96mself[0m.allow_simple_key:                         [31m│[0m
-[31m│[0m [31m❱ [0m 577 [2m│   │   │   │   │   [0m[1;4;94mraise[0m[1;4m ScannerError([0m[1;4;94mNone[0m[1;4m, [0m[1;4;94mNone[0m[1;4m,[0m                    [31m│[0m
-[31m│[0m   [2m 578 [0m[2m│   │   │   │   │   │   │   [0m[1;4;33m"[0m[1;4;33mmapping values are not allowed here[0m[1;4;33m"[0m[1;4m,[0m    [31m│[0m
-[31m│[0m   [2m 579 [0m[2m│   │   │   │   │   │   │   [0m[1;4;96mself[0m[1;4m.get_mark())[0m                          [31m│[0m
-[31m│[0m   [2m 580 [0m                                                                      [31m│[0m
+[31m│[0m   [2m834 [0m[2m│   │   │   │   [0msock.settimeout(timeout)                               [31m│[0m
+[31m│[0m   [2m835 [0m[2m│   │   │   [0m[94mif[0m source_address:                                         [31m│[0m
+[31m│[0m   [2m836 [0m[2m│   │   │   │   [0msock.bind(source_address)                              [31m│[0m
+[31m│[0m [31m❱ [0m837 [2m│   │   │   [0msock.connect(sa)                                           [31m│[0m
+[31m│[0m   [2m838 [0m[2m│   │   │   [0m[2m# Break explicitly a reference cycle[0m                       [31m│[0m
+[31m│[0m   [2m839 [0m[2m│   │   │   [0mexceptions.clear()                                         [31m│[0m
+[31m│[0m   [2m840 [0m[2m│   │   │   [0m[94mreturn[0m sock                                                [31m│[0m
 [31m╰──────────────────────────────────────────────────────────────────────────────╯[0m
-[1;91mScannerError: [0mmapping values are not allowed here
-  in [32m"[0m[32m<[0m[32municode[0m[32m string[0m[32m>[0m[32m"[0m, line [1;36m5[0m, column [1;36m44[0m:
-     [33m...[0m диатрия — дыхание и аллергология: полный текст
-                                         ^
-PREPARE_EXIT=1
+[1;91mTimeoutError: [0mtimed out
+
+[3mDuring handling of the above exception, another exception occurred:[0m
+
+[31m╭─[0m[31m────────────────────[0m[31m [0m[1;31mTraceback [0m[1;2;31m(most recent call last)[0m[31m [0m[31m─────────────────────[0m[31m─╮[0m
+[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1mcli.py[0m:73 [31m│[0m
+[31m│[0m in sync_command                                                              [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m 70 [0m[2m│   [0mtimeout_seconds: Annotated[[96mfloat[0m,                                  [31m│[0m
+[31m│[0m       typer.Option([33m"[0m[33m--timeout-seconds[0m[33m"[0m, [96mmin[0m=[94m1[0m)] = [94m60.0[0m,                      [31m│[0m
+[31m│[0m   [2m 71 [0m) -> [94mNone[0m:                                                             [31m│[0m
+[31m│[0m   [2m 72 [0m[2;90m│   [0m[33m"""Synchronize URL or local-file inputs into a validated, [0m         [31m│[0m
+[31m│[0m       [33mcache-backed source workspace."""[0m                                      [31m│[0m
+[31m│[0m [31m❱ [0m 73 [2m│   [0msync_report = [1;4msync_source_manifest([0m                                [31m│[0m
+[31m│[0m   [2m 74 [0m[2m│   │   [0m[1;4mmanifest,[0m                                                      [31m│[0m
+[31m│[0m   [2m 75 [0m[2m│   │   [0m[1;4moutput_root,[0m                                                   [31m│[0m
+[31m│[0m   [2m 76 [0m[2m│   │   [0m[1;4mcache_root,[0m                                                    [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1msource_sy[0m [31m│[0m
+[31m│[0m [1mnc.py[0m:405 in sync_source_manifest                                            [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m402 [0m[2m│   [0msynced: [96mlist[0m[SyncedSource] = []                                    [31m│[0m
+[31m│[0m   [2m403 [0m[2m│   [0m[94mfor[0m source [95min[0m manifest.sources:                                    [31m│[0m
+[31m│[0m   [2m404 [0m[2m│   │   [0m[94mif[0m _is_remote(source.location):                                [31m│[0m
+[31m│[0m [31m❱ [0m405 [2m│   │   │   [0mresult = [1;4m_sync_remote([0m                                     [31m│[0m
+[31m│[0m   [2m406 [0m[2m│   │   │   │   [0m[1;4msource,[0m                                                [31m│[0m
+[31m│[0m   [2m407 [0m[2m│   │   │   │   [0m[1;4moutput_root,[0m                                           [31m│[0m
+[31m│[0m   [2m408 [0m[2m│   │   │   │   [0m[1;4mcache_root,[0m                                            [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/[0m[1msource_sy[0m [31m│[0m
+[31m│[0m [1mnc.py[0m:329 in _sync_remote                                                    [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m326 [0m[2m│   │   │   │   [0mheaders[[33m"[0m[33mIf-Modified-Since[0m[33m"[0m] = metadata.last_modified  [31m│[0m
+[31m│[0m   [2m327 [0m[2m│   │   [0mrequest = urllib.request.Request(source.location,              [31m│[0m
+[31m│[0m       headers=headers)                                                       [31m│[0m
+[31m│[0m   [2m328 [0m[2m│   │   [0m[94mtry[0m:                                                           [31m│[0m
+[31m│[0m [31m❱ [0m329 [2m│   │   │   [0m[94mwith[0m urllib.request.urlopen(request,                       [31m│[0m
+[31m│[0m       timeout=timeout_seconds) [94mas[0m response:                                  [31m│[0m
+[31m│[0m   [2m330 [0m[2m│   │   │   │   [0mpayload = _read_limited(response, source.max_bytes)    [31m│[0m
+[31m│[0m   [2m331 [0m[2m│   │   │   │   [0m_validate_payload(payload, content_type, source.id)    [31m│[0m
+[31m│[0m   [2m332 [0m[2m│   │   │   │   [0mchecksum = _sha256_bytes(payload)                      [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:215 in urlopen                         [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m 212 [0m[2m│   │   [0m_opener = opener = build_opener()                             [31m│[0m
+[31m│[0m   [2m 213 [0m[2m│   [0m[94melse[0m:                                                             [31m│[0m
+[31m│[0m   [2m 214 [0m[2m│   │   [0mopener = _opener                                              [31m│[0m
+[31m│[0m [31m❱ [0m 215 [2m│   [0m[94mreturn[0m [1;4mopener.open(url, data, timeout)[0m                            [31m│[0m
+[31m│[0m   [2m 216 [0m                                                                      [31m│[0m
+[31m│[0m   [2m 217 [0m[94mdef[0m[90m [0m[92minstall_opener[0m(opener):                                           [31m│[0m
+[31m│[0m   [2m 218 [0m[2m│   [0m[94mglobal[0m _opener                                                    [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:515 in open                            [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m 512 [0m[2m│   │   │   [0mreq = meth(req)                                           [31m│[0m
+[31m│[0m   [2m 513 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m 514 [0m[2m│   │   [0msys.audit([33m'[0m[33murllib.Request[0m[33m'[0m, req.full_url, req.data,           [31m│[0m
+[31m│[0m        req.headers, req.get_method())                                        [31m│[0m
+[31m│[0m [31m❱ [0m 515 [2m│   │   [0mresponse = [1;4;96mself[0m[1;4m._open(req, data)[0m                              [31m│[0m
+[31m│[0m   [2m 516 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m 517 [0m[2m│   │   [0m[2m# post-process response[0m                                       [31m│[0m
+[31m│[0m   [2m 518 [0m[2m│   │   [0mmeth_name = protocol+[33m"[0m[33m_response[0m[33m"[0m                              [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:532 in _open                           [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m 529 [0m[2m│   │   │   [0m[94mreturn[0m result                                             [31m│[0m
+[31m│[0m   [2m 530 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m 531 [0m[2m│   │   [0mprotocol = req.type                                           [31m│[0m
+[31m│[0m [31m❱ [0m 532 [2m│   │   [0mresult = [1;4;96mself[0m[1;4m._call_chain([0m[1;4;96mself[0m[1;4m.handle_open, protocol, [0m        [31m│[0m
+[31m│[0m        [1;4mprotocol +[0m                                                            [31m│[0m
+[31m│[0m   [2m 533 [0m[2m│   │   │   │   │   │   │   │     [0m[1;4;33m'[0m[1;4;33m_open[0m[1;4;33m'[0m[1;4m, req)[0m                       [31m│[0m
+[31m│[0m   [2m 534 [0m[2m│   │   [0m[94mif[0m result:                                                    [31m│[0m
+[31m│[0m   [2m 535 [0m[2m│   │   │   [0m[94mreturn[0m result                                             [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:492 in _call_chain                     [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m 489 [0m[2m│   │   [0mhandlers = chain.get(kind, ())                                [31m│[0m
+[31m│[0m   [2m 490 [0m[2m│   │   [0m[94mfor[0m handler [95min[0m handlers:                                      [31m│[0m
+[31m│[0m   [2m 491 [0m[2m│   │   │   [0mfunc = [96mgetattr[0m(handler, meth_name)                        [31m│[0m
+[31m│[0m [31m❱ [0m 492 [2m│   │   │   [0mresult = [1;4mfunc(*args)[0m                                      [31m│[0m
+[31m│[0m   [2m 493 [0m[2m│   │   │   [0m[94mif[0m result [95mis[0m [95mnot[0m [94mNone[0m:                                    [31m│[0m
+[31m│[0m   [2m 494 [0m[2m│   │   │   │   [0m[94mreturn[0m result                                         [31m│[0m
+[31m│[0m   [2m 495 [0m                                                                      [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:1392 in https_open                     [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m1389 [0m[2m│   │   │   [0m[96mself[0m._context = context                                   [31m│[0m
+[31m│[0m   [2m1390 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m1391 [0m[2m│   │   [0m[94mdef[0m[90m [0m[92mhttps_open[0m([96mself[0m, req):                                    [31m│[0m
+[31m│[0m [31m❱ [0m1392 [2m│   │   │   [0m[94mreturn[0m [1;4;96mself[0m[1;4m.do_open(http.client.HTTPSConnection, req,[0m     [31m│[0m
+[31m│[0m   [2m1393 [0m[2m│   │   │   │   │   │   │   │   [0m[1;4mcontext=[0m[1;4;96mself[0m[1;4m._context)[0m                [31m│[0m
+[31m│[0m   [2m1394 [0m[2m│   │   [0m                                                              [31m│[0m
+[31m│[0m   [2m1395 [0m[2m│   │   [0mhttps_request = AbstractHTTPHandler.do_request_               [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/usr/lib/python3.12/urllib/[0m[1mrequest.py[0m:1347 in do_open                        [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m1344 [0m[2m│   │   │   │   [0mh.request(req.get_method(), req.selector, req.data,   [31m│[0m
+[31m│[0m        headers,                                                              [31m│[0m
+[31m│[0m   [2m1345 [0m[2m│   │   │   │   │   │     [0m                                            [31m│[0m
+[31m│[0m        encode_chunked=req.has_header([33m'[0m[33mTransfer-encoding[0m[33m'[0m))                   [31m│[0m
+[31m│[0m   [2m1346 [0m[2m│   │   │   [0m[94mexcept[0m [96mOSError[0m [94mas[0m err: [2m# timeout error[0m                    [31m│[0m
+[31m│[0m [31m❱ [0m1347 [2m│   │   │   │   [0m[94mraise[0m URLError(err)                                   [31m│[0m
+[31m│[0m   [2m1348 [0m[2m│   │   │   [0mr = h.getresponse()                                       [31m│[0m
+[31m│[0m   [2m1349 [0m[2m│   │   [0m[94mexcept[0m:                                                       [31m│[0m
+[31m│[0m   [2m1350 [0m[2m│   │   │   [0mh.close()                                                 [31m│[0m
+[31m╰──────────────────────────────────────────────────────────────────────────────╯[0m
+[1;91mURLError: [0m[1m<[0m[1;95murlopen[0m[39m error timed out[0m[1m>[0m
+SYNC_EXIT=1
