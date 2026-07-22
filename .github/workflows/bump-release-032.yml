@@ -1,6 +1,10 @@
 name: Prepare MiniMed 0.3.2 release bump
 
 on:
+  push:
+    branches: [agent/content-module-installer]
+    paths:
+      - .github/workflows/bump-release-032.yml
   pull_request:
     branches: [main]
     paths:
@@ -11,7 +15,7 @@ permissions:
 
 jobs:
   bump:
-    if: github.head_ref == 'agent/content-module-installer'
+    if: github.ref_name == 'agent/content-module-installer' || github.head_ref == 'agent/content-module-installer'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
