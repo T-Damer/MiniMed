@@ -1,5 +1,6 @@
 name: Run MiniMed 0.3.3 release preparation
 
+# One-shot release branch preparation; remove after v0.3.3 is published.
 on:
   push:
     branches: [main]
