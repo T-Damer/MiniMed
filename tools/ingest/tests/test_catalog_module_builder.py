@@ -14,8 +14,18 @@ def write_ledger(
         json.dumps(
             {
                 "schemaVersion": 1,
+                "generatedAt": "2026-07-23T00:00:00Z",
+                "sourceChecksum": "sha256:" + "0" * 64,
+                "summary": {"totalRecords": len(records)},
                 "records": records,
-                "modules": modules,
+                "modules": [
+                    {
+                        **module,
+                        "priority": 100,
+                        "specialties": ["fixture"],
+                    }
+                    for module in modules
+                ],
             },
             ensure_ascii=False,
             indent=2,

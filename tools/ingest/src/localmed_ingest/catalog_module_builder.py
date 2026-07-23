@@ -47,6 +47,11 @@ class CatalogModuleBuildReport(CamelModel):
 
 
 class LedgerModule(CamelModel):
+    model_config = ConfigDict(
+        alias_generator=_to_camel,
+        populate_by_name=True,
+        extra="allow",
+    )
     module_id: str
     title: str
     record_ids: list[str]
@@ -54,6 +59,11 @@ class LedgerModule(CamelModel):
 
 
 class CoverageLedgerEnvelope(CamelModel):
+    model_config = ConfigDict(
+        alias_generator=_to_camel,
+        populate_by_name=True,
+        extra="allow",
+    )
     schema_version: int = Field(ge=1)
     records: list[dict[str, object]]
     modules: list[LedgerModule]
