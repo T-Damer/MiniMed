@@ -340,6 +340,40 @@ describe('PersistentInstalledModuleRegistry', () => {
     expect(persistentRegistry(storage).get(active.moduleId)?.enabled).toBe(true);
   });
 
+  it('restores and persists an explicit registry snapshot', () => {
+    const storage = new MemoryStringStorage();
+    const registry = persistentRegistry(storage);
+    registry.activate(installation('1'));
+    const snapshot = registry.snapshot();
+    registry.activate(installation('2'));
+
+    registry.restoreSnapshot(snapshot);
+
+    expect(registry.get('minimed.clinical.pediatrics.infectious')?.version).toBe('1');
+    expect(persistentRegistry(storage).get('minimed.clinical.pediatrics.infectious')?.version).toBe(
+      '1',
+    );
+  });
+
+  it('keeps the current registry when explicit snapshot persistence fails', () => {
+    const storage = new MemoryStringStorage();
+    const registry = persistentRegistry(storage);
+    registry.activate(installation('1'));
+    const snapshot = registry.snapshot();
+    registry.activate(installation('2'));
+    storage.failWrites = true;
+
+    expect(() => registry.restoreSnapshot(snapshot)).toThrow(
+      'Unable to persist installed-module registry snapshot restoration',
+    );
+    expect(registry.get('minimed.clinical.pediatrics.infectious')?.version).toBe('2');
+
+    storage.failWrites = false;
+    expect(persistentRegistry(storage).get('minimed.clinical.pediatrics.infectious')?.version).toBe(
+      '2',
+    );
+  });
+
   it('fails closed on malformed JSON and structurally invalid stored snapshots', () => {
     const malformed = new MemoryStringStorage();
     malformed.seed(STORAGE_KEY, '{invalid');

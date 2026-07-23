@@ -1,9 +1,12 @@
 import { Capacitor } from '@capacitor/core';
 import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
+import { type MedicalStore, MultiMedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
+
+import { loadInstalledModuleMounts } from '../features/modules/browser-module-runtime';
 
 interface PackBuildReport {
   readonly outputChecksum: string;
@@ -52,6 +55,30 @@ async function createPackagedWasmStore(): Promise<SqliteMedicalStore> {
   return SqliteMedicalStore.createFromBytes(new Uint8Array(await response.arrayBuffer()));
 }
 
+async function withInstalledModules(
+  coreStore: MedicalStore,
+  acceptsSeed = false,
+): Promise<MedicalStore> {
+  try {
+    const modules = await loadInstalledModuleMounts();
+    if (modules.length === 0) return coreStore;
+    return new MultiMedicalStore([
+      {
+        moduleId: 'minimed.core.ru',
+        store: coreStore,
+        required: true,
+        enabled: true,
+        searchWeight: 1.1,
+        acceptsSeed,
+      },
+      ...modules,
+    ]);
+  } catch (cause) {
+    console.warn('Downloaded content modules could not be opened; using the built-in base.', cause);
+    return coreStore;
+  }
+}
+
 export async function createBrowserCore() {
   const nativePlatform = Capacitor.getPlatform();
   const platform =
@@ -59,7 +86,7 @@ export async function createBrowserCore() {
 
   if (platform === 'android' || platform === 'ios') {
     try {
-      const store = await createNativeStore();
+      const store = await withInstalledModules(await createNativeStore());
       return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
     } catch (error) {
       console.warn('Native SQLite unavailable; falling back to the packaged WASM database.', error);
@@ -67,13 +94,14 @@ export async function createBrowserCore() {
   }
 
   try {
-    const store = await createPackagedWasmStore();
+    const store = await withInstalledModules(await createPackagedWasmStore());
     return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Compiled content pack unavailable; falling back to the embedded seed.', error);
     const store = await SqliteMedicalStore.create();
+    const composed = await withInstalledModules(store, true);
     return createMedicalCore({
-      store,
+      store: composed,
       seed: DEMO_CONTENT_PACK,
       platform,
       embedder: QUERY_EMBEDDER,

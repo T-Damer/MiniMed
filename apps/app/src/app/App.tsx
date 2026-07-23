@@ -1,11 +1,17 @@
-import type { CoreStatus, MedicalCore } from '@localmed/contracts';
+import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '../components/AppGlyph';
 import { BrandMark } from '../components/BrandMark';
 import { createBrowserCore } from '../composition/create-browser-core';
+import {
+  type InitializedMedicalCore,
+  initializeMedicalCore,
+  replaceMedicalCore,
+} from '../composition/medical-core-lifecycle';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
 import { DocumentLibrary } from '../features/library/DocumentLibrary';
+import { DocumentOverlayHost } from '../features/library/DocumentOverlayHost';
 import { LocalModelController } from '../features/models/controller';
 import { ModelSettings } from '../features/models/ModelSettings';
 import { ModelToast } from '../features/models/ModelToast';
@@ -17,25 +23,22 @@ import { replaySearch } from '../state/search-history';
 
 type View = 'search' | 'documents' | 'modules' | 'history' | 'status';
 
-interface ReadyState {
-  readonly core: MedicalCore;
-  readonly status: CoreStatus;
-}
-
 const VIEWS: readonly {
   readonly id: View;
   readonly label: string;
   readonly icon: AppGlyphName;
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
-  { id: 'documents', label: 'Архив и карта', icon: 'archive' },
-  { id: 'modules', label: 'Модули знаний', icon: 'modules' },
+  { id: 'documents', label: 'Документы', icon: 'archive' },
+  { id: 'modules', label: 'База знаний', icon: 'modules' },
   { id: 'history', label: 'История', icon: 'history' },
-  { id: 'status', label: 'Система', icon: 'system' },
+  { id: 'status', label: 'Настройки', icon: 'system' },
 ];
 
 const DEFAULT_MODEL_CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
+const DEFAULT_MODEL_ASSET_BASE_URL =
+  'https://github.com/T-Damer/MiniMed/releases/download/models-preview-1';
 
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
@@ -57,11 +60,12 @@ function createLocalModelController(): LocalModelController {
   const configuredCatalogUrl = import.meta.env['VITE_LOCAL_MODEL_CATALOG_URL']?.trim();
   const remoteCatalogUrl =
     configuredCatalogUrl === 'bundled' ? '' : configuredCatalogUrl || DEFAULT_MODEL_CATALOG_URL;
-  const mirrorBaseUrl = import.meta.env['VITE_LOCAL_MODEL_ASSET_BASE_URL']?.trim() ?? '';
+  const mirrorBaseUrl =
+    import.meta.env['VITE_LOCAL_MODEL_ASSET_BASE_URL']?.trim() || DEFAULT_MODEL_ASSET_BASE_URL;
   return new LocalModelController({
     remoteCatalogUrl,
     mirrorBaseUrl,
-    allowUpstreamFallback: environmentFlag('VITE_LOCAL_MODEL_ALLOW_UPSTREAM', true),
+    allowUpstreamFallback: environmentFlag('VITE_LOCAL_MODEL_ALLOW_UPSTREAM', false),
     allowAutomationDownloads: environmentFlag('VITE_LOCAL_MODEL_ALLOW_AUTOMATION_DOWNLOADS', false),
     defaultAutoLoad: environmentFlag('VITE_LOCAL_MODEL_AUTOLOAD', true),
   });
@@ -69,7 +73,7 @@ function createLocalModelController(): LocalModelController {
 
 export function App(): JSX.Element {
   const [view, setView] = createSignal<View>(viewFromLocation());
-  const [ready, setReady] = createSignal<ReadyState>();
+  const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
   const [moduleUpdateCount, setModuleUpdateCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
@@ -92,19 +96,22 @@ export function App(): JSX.Element {
     setShowScrollTop(window.scrollY > 560);
   };
 
+  const connectInstalledModules = async (): Promise<void> => {
+    const current = ready();
+    if (!current) throw new Error('Локальный поиск ещё не готов.');
+    const next = await replaceMedicalCore(current, createBrowserCore);
+    coreToClose = next.core;
+    setReady(next);
+  };
+
   onMount(async () => {
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     try {
-      const core = await createBrowserCore();
-      coreToClose = core;
-      const initialized = await core.initialize();
-      if (!initialized.ok) {
-        setError(initialized.error.message);
-        return;
-      }
-      setReady({ core, status: initialized.value });
+      const initialized = await initializeMedicalCore(createBrowserCore);
+      coreToClose = initialized.core;
+      setReady(initialized);
       void modelController.start();
       void refreshContentModuleCatalog()
         .then((result) => {
@@ -113,7 +120,9 @@ export function App(): JSX.Element {
         })
         .catch(() => undefined);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось запустить локальное ядро.');
+      setError(
+        cause instanceof Error ? cause.message : 'Не удалось открыть локальную базу знаний.',
+      );
     }
   });
 
@@ -131,7 +140,7 @@ export function App(): JSX.Element {
           <BrandMark class="app-brand-mark" />
           <span class="app-brand-copy">
             <strong>MiniMed</strong>
-            <small>локальная медицинская картотека</small>
+            <small>медицинская база на устройстве</small>
           </span>
         </button>
 
@@ -139,7 +148,7 @@ export function App(): JSX.Element {
           {VIEWS.map((item) => {
             const label = () =>
               item.id === 'modules' && moduleUpdateCount() > 0
-                ? `${item.label}, обновлений: ${moduleUpdateCount()}`
+                ? `${item.label}, доступно: ${moduleUpdateCount()}`
                 : item.label;
             return (
               <button
@@ -163,10 +172,10 @@ export function App(): JSX.Element {
 
         <div
           class="app-core-indicator"
-          title={ready() ? 'Локальное ядро готово' : (error() ?? 'Запуск')}
+          title={ready() ? 'База готова' : (error() ?? 'Открываем базу')}
         >
           <i />
-          <span>{ready() ? 'локально' : error() ? 'ошибка' : 'запуск'}</span>
+          <span>{ready() ? 'готово' : error() ? 'ошибка' : 'запуск'}</span>
         </div>
       </header>
 
@@ -176,65 +185,70 @@ export function App(): JSX.Element {
           <main class="boot-screen archive-boot">
             <div class="boot-card paper-sheet">
               <span class="boot-spinner" />
-              <p class="archive-kicker">SQLITE / FTS5 / PUBLIC PILOT</p>
-              <h1>{error() ? 'Архив не открылся' : 'Открываем локальный фонд…'}</h1>
-              <p>
-                {error() ?? 'Загружаем скомпилированную базу и проверяем полнотекстовый индекс.'}
-              </p>
+              <p class="archive-kicker">Локальная медицинская база</p>
+              <h1>{error() ? 'База не открылась' : 'Открываем документы…'}</h1>
+              <p>{error() ?? 'Подготавливаем локальный поиск. Интернет для работы не нужен.'}</p>
             </div>
           </main>
         }
       >
         {(state) => (
-          <main class="app-main">
-            <section
-              class="app-view"
-              hidden={view() !== 'search'}
-              aria-hidden={view() !== 'search'}
-            >
-              <SearchWorkspace core={state().core} />
-            </section>
-            <section
-              class="app-view"
-              hidden={view() !== 'documents'}
-              aria-hidden={view() !== 'documents'}
-            >
-              <DocumentLibrary core={state().core} />
-            </section>
-            <section
-              class="app-view"
-              hidden={view() !== 'modules'}
-              aria-hidden={view() !== 'modules'}
-            >
-              <ModuleCatalogView
-                status={state().status}
-                active={view() === 'modules'}
-                onAvailableUpdates={(count) => {
-                  if (view() !== 'modules') setModuleUpdateCount(count);
-                }}
-              />
-            </section>
-            <section
-              class="app-view"
-              hidden={view() !== 'history'}
-              aria-hidden={view() !== 'history'}
-            >
-              <SearchHistoryView
-                onReplay={(query) => {
-                  navigate('search');
-                  requestAnimationFrame(() => replaySearch(query));
-                }}
-              />
-            </section>
-            <section
-              class="app-view model-status-view"
-              hidden={view() !== 'status'}
-              aria-hidden={view() !== 'status'}
-            >
-              <ModelSettings controller={modelController} />
-              <StatusPanel core={state().core} initialStatus={state().status} />
-            </section>
-          </main>
+          <>
+            <main class="app-main">
+              <section
+                class="app-view"
+                hidden={view() !== 'search'}
+                aria-hidden={view() !== 'search'}
+              >
+                <SearchWorkspace core={state().core} />
+              </section>
+              <section
+                class="app-view"
+                hidden={view() !== 'documents'}
+                aria-hidden={view() !== 'documents'}
+              >
+                <DocumentLibrary core={state().core} />
+              </section>
+              <section
+                class="app-view"
+                hidden={view() !== 'modules'}
+                aria-hidden={view() !== 'modules'}
+              >
+                <ModuleCatalogView
+                  status={state().status}
+                  active={view() === 'modules'}
+                  onContentChanged={connectInstalledModules}
+                  onAvailableUpdates={(count) => {
+                    if (view() !== 'modules') setModuleUpdateCount(count);
+                  }}
+                />
+              </section>
+              <section
+                class="app-view"
+                hidden={view() !== 'history'}
+                aria-hidden={view() !== 'history'}
+              >
+                <SearchHistoryView
+                  onReplay={(query) => {
+                    navigate('search');
+                    requestAnimationFrame(() => replaySearch(query));
+                  }}
+                />
+              </section>
+              <section
+                class="app-view model-status-view"
+                hidden={view() !== 'status'}
+                aria-hidden={view() !== 'status'}
+              >
+                <ModelSettings controller={modelController} />
+                <details class="system-technical-panel">
+                  <summary>Техническая информация о приложении</summary>
+                  <StatusPanel core={state().core} initialStatus={state().status} />
+                </details>
+              </section>
+            </main>
+            <DocumentOverlayHost core={state().core} />
+          </>
         )}
       </Show>
 

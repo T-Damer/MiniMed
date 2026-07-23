@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026.07-preview.2",
+  "catalogVersion": "2026.07-preview.3",
   "publishedAt": "2026-07-22T00:00:00Z",
   "runtime": {
     "wllamaModuleUrl": "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/index.js",
@@ -13,7 +13,7 @@
       "name": "Vikhr Qwen 2.5 0.5B",
       "family": "vikhr-qwen2.5",
       "tier": "compact",
-      "description": "Русскоязычный компактный кандидат для слабых устройств и короткого структурного разбора.",
+      "description": "Самая лёгкая русскоязычная модель для слабых устройств и короткого разбора запроса.",
       "parameterCount": 500000000,
       "qualityScore": 60,
       "russianPriority": 99,
@@ -55,7 +55,7 @@
       "name": "Qwen3 0.6B",
       "family": "qwen3",
       "tier": "compact",
-      "description": "Быстрый разбор запроса, извлечение признаков и короткое переранжирование.",
+      "description": "Лёгкая многоязычная модель. Подходит для проверки работы локального помощника.",
       "parameterCount": 600000000,
       "qualityScore": 58,
       "russianPriority": 92,
@@ -97,7 +97,7 @@
       "name": "Gemma 3 1B IT",
       "family": "gemma3",
       "tier": "balanced",
-      "description": "Компактная многоязычная модель; на Android предусмотрен официальный LiteRT-вариант.",
+      "description": "Кандидат для будущего нативного Android-ускорения. Загрузка появится после подготовки собственного лицензированного зеркала.",
       "parameterCount": 1000000000,
       "qualityScore": 72,
       "russianPriority": 88,
@@ -118,7 +118,7 @@
           "mirrorPath": "gemma3-1b-it-q4_k_m.gguf",
           "downloadBytes": 806000000,
           "sha256": "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135",
-          "published": true,
+          "published": false,
           "maxContextTokens": 2048
         },
         {
@@ -129,7 +129,7 @@
           "mirrorPath": "gemma3-1b-it-int4.litertlm",
           "downloadBytes": 584000000,
           "sha256": null,
-          "published": true,
+          "published": false,
           "maxContextTokens": 4096
         }
       ]
@@ -139,7 +139,7 @@
       "name": "QVikhr 3 1.7B",
       "family": "qvikhr3",
       "tier": "balanced",
-      "description": "Русскоязычная Qwen3-модель без reasoning-режима, оптимальная для JSON, классификации и переранжирования.",
+      "description": "Более сильная русскоязычная модель для устройств с достаточным объёмом памяти.",
       "parameterCount": 1700000000,
       "qualityScore": 89,
       "russianPriority": 100,
@@ -181,7 +181,7 @@
       "name": "Qwen3 1.7B",
       "family": "qwen3",
       "tier": "balanced",
-      "description": "Многоязычный контрольный кандидат для сравнения с русскоязычными дообучениями.",
+      "description": "Многоязычная модель для сравнения с русскоязычным QVikhr на мощных устройствах.",
       "parameterCount": 1700000000,
       "qualityScore": 84,
       "russianPriority": 95,
@@ -223,7 +223,7 @@
       "name": "Llama 3.2 3B Instruct",
       "family": "llama3.2",
       "tier": "quality",
-      "description": "Тяжёлый экспериментальный кандидат; не считается русским эталоном без MiniMed-бенчмарка.",
+      "description": "Тяжёлый экспериментальный кандидат. Пока не предлагается для загрузки в русскоязычной версии MiniMed.",
       "parameterCount": 3000000000,
       "qualityScore": 89,
       "russianPriority": 58,
@@ -244,7 +244,7 @@
           "mirrorPath": "llama-3.2-3b-instruct-q4_k_m.gguf",
           "downloadBytes": 2020000000,
           "sha256": "07fad0aa1e8b70bbaa67e0ba4202aeb82c993df41c9228ddd6ac7a39b0bdfca1",
-          "published": true,
+          "published": false,
           "maxContextTokens": 2048
         }
       ]

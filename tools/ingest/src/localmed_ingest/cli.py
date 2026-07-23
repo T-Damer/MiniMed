@@ -67,7 +67,7 @@ def sync_command(
     report: Annotated[Path | None, typer.Option("--report")] = None,
     force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Synchronize URL or local-file inputs into a validated, cache-backed source workspace."""
     sync_report = sync_source_manifest(
@@ -100,7 +100,7 @@ def collect_drugs_command(
     report: Annotated[Path | None, typer.Option("--report")] = None,
     force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Collect explicitly licensed drug sources without crawling or scraping public interfaces."""
     result = collect_drug_sources(
@@ -131,7 +131,7 @@ def benchmark_import_real_pocqi_command(
     count: Annotated[int, typer.Option("--count", min=1)] = 120,
     seed: Annotated[str, typer.Option("--seed")] = "minimed-real-pocqi-v1",
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Import an attributed, deterministic sample of real point-of-care clinician queries."""
     import_report = import_real_pocqi_benchmark(

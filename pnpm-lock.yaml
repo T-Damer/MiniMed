@@ -45,6 +45,9 @@ importers:
       '@localmed/search-semantic':
         specifier: workspace:*
         version: link:../../packages/search-semantic
+      '@localmed/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       '@localmed/storage-capacitor':
         specifier: workspace:*
         version: link:../../packages/storage-capacitor

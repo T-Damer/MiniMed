@@ -7,9 +7,8 @@ import type {
   LocalModelSelection,
 } from './types';
 
-const STORAGE_HEADROOM_BYTES = 256 * 1024 * 1024;
-const AUTOMATIC_LARGE_DOWNLOAD_BYTES = 1_250_000_000;
-const BROWSER_MAX_SINGLE_ARTIFACT_BYTES = 2_000_000_000;
+const STORAGE_MARGIN_BYTES = 256_000_000;
+const METERED_LARGE_DOWNLOAD_BYTES = 750_000_000;
 
 export interface LocalModelSelectionInput {
   readonly models: readonly LocalModelDescriptor[];
@@ -25,27 +24,42 @@ function licenseAccepted(model: LocalModelDescriptor, preference: LocalModelPref
   );
 }
 
-function artifactFits(
-  artifact: LocalModelArtifact,
+function artifactFor(
+  model: LocalModelDescriptor,
   profile: LocalModelDeviceProfile,
   availableRuntimes: ReadonlySet<LocalModelRuntimeKind>,
-): boolean {
-  if (!artifact.published) return false;
-  if (!artifact.platforms.includes(profile.platform)) return false;
-  if (!availableRuntimes.has(artifact.runtime)) return false;
-  if (
-    artifact.runtime === 'wllama-web' &&
-    artifact.downloadBytes >= BROWSER_MAX_SINGLE_ARTIFACT_BYTES
-  ) {
-    return false;
-  }
-  if (
-    profile.freeStorageBytes !== null &&
-    profile.freeStorageBytes < artifact.downloadBytes * 1.35 + STORAGE_HEADROOM_BYTES
-  ) {
-    return false;
-  }
-  return true;
+): LocalModelArtifact | null {
+  const candidates = model.artifacts
+    .filter(
+      (artifact) =>
+        artifact.published &&
+        artifact.platforms.includes(profile.platform) &&
+        availableRuntimes.has(artifact.runtime),
+    )
+    .toSorted((left, right) => {
+      const runtimePreference = (artifact: LocalModelArtifact): number => {
+        if (profile.nativeContainer && artifact.runtime === 'litert-native') return 30;
+        if (profile.nativeContainer && artifact.runtime === 'cactus-native') return 20;
+        if (artifact.runtime === 'wllama-web') return 10;
+        return 0;
+      };
+      return (
+        runtimePreference(right) - runtimePreference(left) ||
+        left.downloadBytes - right.downloadBytes
+      );
+    });
+  return candidates[0] ?? null;
+}
+
+function memoryFits(model: LocalModelDescriptor, profile: LocalModelDeviceProfile): boolean {
+  return profile.deviceMemoryGb === null || profile.deviceMemoryGb >= model.minimumMemoryGb;
+}
+
+function storageFits(artifact: LocalModelArtifact, profile: LocalModelDeviceProfile): boolean {
+  return (
+    profile.freeStorageBytes === null ||
+    profile.freeStorageBytes >= artifact.downloadBytes + STORAGE_MARGIN_BYTES
+  );
 }
 
 function candidateScore(
@@ -54,70 +68,46 @@ function candidateScore(
   profile: LocalModelDeviceProfile,
   automatic: boolean,
 ): LocalModelSelection {
+  let score = model.qualityScore * 0.42 + model.russianPriority * 0.48;
   const reasons: string[] = [];
-  let score = model.qualityScore * 1.6 + model.russianPriority * 1.2;
-  const memory = profile.deviceMemoryGb;
-  if (memory !== null) {
-    if (memory >= model.recommendedMemoryGb) {
-      score += 30;
-      reasons.push('достаточный запас памяти');
-    } else if (memory >= model.minimumMemoryGb) {
-      score += 8;
-      reasons.push('минимальный запас памяти');
-    }
+  if (profile.deviceMemoryGb !== null) {
+    const memoryHeadroom = profile.deviceMemoryGb - model.recommendedMemoryGb;
+    score += Math.max(-12, Math.min(12, memoryHeadroom * 3));
+    reasons.push(
+      memoryHeadroom >= 0
+        ? `достаточный запас памяти (${profile.deviceMemoryGb} ГБ)`
+        : `память ниже рекомендованных ${model.recommendedMemoryGb} ГБ`,
+    );
   } else {
-    score -= Math.max(0, model.minimumMemoryGb - 4) * 9;
-    reasons.push('объём памяти браузер не сообщил');
+    score -= model.minimumMemoryGb * 1.4;
+    reasons.push('объём памяти браузером не сообщается');
   }
-  if (artifact.runtime !== 'wllama-web') {
-    score += 18;
-    reasons.push('доступен нативный runtime');
+  score -= artifact.downloadBytes / 250_000_000;
+  if (profile.saveData || profile.effectiveConnectionType?.includes('2g')) {
+    score -= artifact.downloadBytes >= METERED_LARGE_DOWNLOAD_BYTES ? 18 : 4;
+    reasons.push('учтён режим экономии трафика');
   }
-  const sizeGb = artifact.downloadBytes / 1_000_000_000;
-  score -= sizeGb * 18;
-  if (automatic && artifact.downloadBytes > AUTOMATIC_LARGE_DOWNLOAD_BYTES) {
-    const strongDevice = (memory ?? 0) >= Math.max(12, model.recommendedMemoryGb);
-    if (!strongDevice) {
-      score -= 85;
-      reasons.push('большая автоматическая загрузка');
-    }
+  if (artifact.runtime === 'litert-native') {
+    score += 9;
+    reasons.push('нативный LiteRT runtime');
+  } else if (artifact.runtime === 'cactus-native') {
+    score += 5;
+    reasons.push('нативный GGUF runtime');
+  } else {
+    reasons.push('CPU/WebAssembly runtime доступен на этой платформе');
   }
-  if (profile.saveData) {
-    score -= artifact.downloadBytes / 5_000_000;
-    reasons.push('включена экономия трафика');
-  }
-  if (profile.effectiveConnectionType?.includes('2g')) {
-    score -= 120;
-    reasons.push('медленное соединение');
-  }
-  if (profile.cpuProbeScore < 1500 && artifact.runtime === 'wllama-web') {
-    score -= model.parameterCount / 40_000_000;
-    reasons.push('слабый CPU-профиль');
-  }
+  if (!automatic) score += 2;
   return { model, artifact, score, reasons };
 }
 
 export function rankLocalModels(input: LocalModelSelectionInput): readonly LocalModelSelection[] {
-  const failed = input.failedModelIds ?? new Set<string>();
   const ranked: LocalModelSelection[] = [];
   for (const model of input.models) {
-    if (failed.has(model.id)) continue;
+    if (input.failedModelIds?.has(model.id)) continue;
     if (!licenseAccepted(model, input.preference)) continue;
-    if (
-      input.profile.deviceMemoryGb !== null &&
-      input.profile.deviceMemoryGb < model.minimumMemoryGb
-    ) {
-      continue;
-    }
-    const artifacts = model.artifacts
-      .filter((artifact) => artifactFits(artifact, input.profile, input.availableRuntimes))
-      .toSorted((left, right) => {
-        const leftNative = left.runtime === 'wllama-web' ? 0 : 1;
-        const rightNative = right.runtime === 'wllama-web' ? 0 : 1;
-        return rightNative - leftNative || left.downloadBytes - right.downloadBytes;
-      });
-    const artifact = artifacts[0];
-    if (!artifact) continue;
+    if (!memoryFits(model, input.profile)) continue;
+    const artifact = artifactFor(model, input.profile, input.availableRuntimes);
+    if (!artifact || !storageFits(artifact, input.profile)) continue;
     ranked.push(candidateScore(model, artifact, input.profile, input.preference.automatic));
   }
   return ranked.toSorted(
@@ -129,7 +119,7 @@ export function selectLocalModel(input: LocalModelSelectionInput): LocalModelSel
   const ranked = rankLocalModels(input);
   const override = input.preference.selectedModelId;
   if (!input.preference.automatic && override) {
-    return ranked.find((candidate) => candidate.model.id === override) ?? ranked[0] ?? null;
+    return ranked.find((candidate) => candidate.model.id === override) ?? null;
   }
   return ranked[0] ?? null;
 }
@@ -139,6 +129,7 @@ export function buildLocalModelLoadPlan(
 ): readonly LocalModelSelection[] {
   const primary = selectLocalModel(input);
   if (!primary) return [];
+  if (!input.preference.automatic) return [primary];
   const fallback = rankLocalModels(input).find(
     (candidate) =>
       candidate.model.id !== primary.model.id &&
