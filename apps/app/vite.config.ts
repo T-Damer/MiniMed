@@ -19,6 +19,7 @@ export default defineConfig({
     sourcemap: true,
   },
   server: {
+    host: '127.0.0.1',
     port: 5173,
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',
@@ -26,6 +27,7 @@ export default defineConfig({
     },
   },
   preview: {
+    host: '127.0.0.1',
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin',
