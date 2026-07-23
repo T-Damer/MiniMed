@@ -80,10 +80,15 @@ retrieval benchmarks.
 ## Automation
 
 `.github/workflows/clinical-catalog-inventory.yml` always validates the parser and taxonomy against a
-fixture. A full inventory run requires either:
+fixture. The fixture proves deterministic normalization and classification, not real-world catalog
+completeness. The workflow is validated against the synchronized 0.3.4 application and ingestion
+foundation. A full inventory run requires either:
 
 - a manual `catalog_url` and format through `workflow_dispatch`; or
 - repository variables `CLINICAL_CATALOG_URL` and `CLINICAL_CATALOG_FORMAT` for scheduled runs.
 
-The URL must use HTTPS. The workflow uploads the ledger and the declared source metadata as build
-artifacts; it does not publish medical modules by itself.
+The URL must use HTTPS. The workflow uploads the ledger, declared source URL and source format as
+build artifacts; it does not publish medical modules by itself. Full coverage reports must retain the
+exact source export or an immutable reference to it so later count changes are reproducible. Normal
+CI must pass formatting, strict typing, parser tests and deterministic fixture-ledger generation; the
+fixture summary is checked separately from live-catalog coverage totals.

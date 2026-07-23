@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import csv
 import hashlib
 import json
@@ -270,10 +271,8 @@ def _load_delimited_rows(path: Path) -> list[dict[str, object]]:
     text = path.read_text(encoding="utf-8-sig")
     sample = text[:8192]
     delimiter = "\t" if path.suffix.lower() == ".tsv" else ";"
-    try:
+    with contextlib.suppress(csv.Error):
         delimiter = csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
-    except csv.Error:
-        pass
     reader = csv.DictReader(text.splitlines(), delimiter=delimiter)
     if not reader.fieldnames:
         raise ValueError("Clinical catalog table has no header row.")
@@ -423,7 +422,8 @@ def _normalize_row(
         unknown = [module_id for module_id in override.module_ids if module_id not in by_id]
         if unknown:
             raise ValueError(
-                f"Coverage override for {official_id} references unknown modules: {', '.join(unknown)}"
+                f"Coverage override for {official_id} references unknown modules: "
+                f"{', '.join(unknown)}"
             )
         modules = [by_id[module_id] for module_id in override.module_ids]
         primary = modules[0]

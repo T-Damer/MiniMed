@@ -14,6 +14,11 @@ app = typer.Typer(
 )
 
 
+@app.callback()
+def main() -> None:
+    """Inventory and categorize declared clinical-recommendation catalog exports."""
+
+
 @app.command("build")
 def build_command(
     source: Annotated[Path, typer.Option("--source", exists=True, dir_okay=False)],

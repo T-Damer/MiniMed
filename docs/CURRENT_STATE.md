@@ -44,7 +44,7 @@ module availability is shown only through a passive counter and the Modules page
   in-document search, medical glyphs, and scroll-to-top navigation.
 - Exact document, section, chunk, stable-anchor, and neighboring-context navigation.
 - Local history and bookmarks.
-- Validated content-module catalog/lifecycle contracts and a read-only module-map page.
+- Validated content-module catalog/lifecycle contracts and a functional knowledge-base page.
 - Module catalogs fail closed on duplicate IDs, missing dependencies, absent required core modules,
   mismatched source sets, or incomplete published artifacts.
 - Multi-store routing composes a required core and enabled read-only module stores without merging their
@@ -54,6 +54,9 @@ module availability is shown only through a passive counter and the Modules page
 - Browser/Android-WebView module storage removes active pointers and version bytes atomically; failed
   physical rollback or removal restores the previous persistent registry snapshot instead of leaving
   metadata and SQLite artifacts inconsistent.
+- After installation, removal, or rollback, MiniMed initializes a replacement multi-store `MedicalCore`
+  in process and switches the UI only after it is ready; the previous search core remains active if the
+  replacement cannot be initialized.
 - The canonical module catalog is bundled as JSON and can refresh from GitHub with ETag/Last-Modified,
   validated local cache, and bundled fallback; invalid remote content never replaces valid local data.
 - A portable foreground installer returns an asynchronous task immediately, verifies compatibility,
@@ -146,10 +149,11 @@ negation handling, reject unsupported claims, and improve the reviewed Russian c
 ## Current gaps
 
 - Current clinical documents are concise navigation cards rather than complete extracted sources.
-- Registry metadata is persistent, but immutable published module artifacts, a platform filesystem
-  backend, and a background native downloader remain unimplemented; the module page remains read-only.
-- The application composition still mounts the monolithic `0.3.3` pilot rather than the multi-store
-  router and foreground installer.
+- Browser/Android-WebView artifact persistence and live multi-store recomposition are implemented, but
+  native platform filesystem storage, a background downloader, source-assets, and physical-device
+  lifecycle validation remain incomplete.
+- Preview publishing workflows exist, but immutable release promotion and broader full-text module
+  coverage still need end-to-end validation on installed devices.
 - Seven clinical recommendations rather than the target 30–50.
 - Regulatory coverage remains a small pediatric pilot; it needs broader administrative acts and a real
   amendment chain beyond one superseded predecessor.
@@ -171,10 +175,11 @@ negation handling, reject unsupported claims, and improve the reviewed Russian c
 
 2. **Installable modules and full clinical sources — #78 + #76**
    - Module map/contracts/page, GitHub catalog refresh, multi-store routing, rollback semantics, the
-     portable foreground installer, and persistent registry metadata are implemented.
-   - Next: publish immutable module manifests/artifacts, persist artifact files on each platform, and wire
-     application composition to enabled stores and task progress.
-   - Build the first full-text module from the seven already validated recommendations.
+     portable foreground installer, persistent registry metadata, browser artifact storage, and live
+     in-process core recomposition are implemented.
+   - Next: promote immutable module manifests/artifacts, add native filesystem/background download
+     adapters, and validate install/update/remove/rollback on physical devices.
+   - Build the first full-text module from the already validated recommendations.
    - Full extracted text and structured tables belong in the index artifact; original PDFs/images are an
      optional matching source-assets artifact.
 
