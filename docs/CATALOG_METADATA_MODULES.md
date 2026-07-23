@@ -34,7 +34,8 @@ module plans and references to records that are absent from the ledger.
 
 The shared envelope validates stable module IDs, titles, record references and coverage counts. It also
 accepts family-specific categorization and provenance fields, which remain protected by the checksum of
-the complete source ledger rather than being mistaken for the shared runtime contract.
+the complete source ledger rather than being mistaken for the shared runtime contract. Fixture tests
+exercise those extra fields so clinical, medication and legal ledgers cannot silently drift apart.
 
 Each workspace contains:
 
