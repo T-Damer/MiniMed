@@ -64,10 +64,11 @@ export interface BrowserWllamaRuntimeOptions {
 }
 
 function asWllamaModule(value: unknown): WllamaModule {
-  if (typeof value !== 'object' || value === null) throw new Error('Модуль wllama не загрузился.');
+  if (typeof value !== 'object' || value === null)
+    throw new Error('Компонент локальной модели не загрузился.');
   const candidate = value as Readonly<Record<string, unknown>>;
   if (typeof candidate['Wllama'] !== 'function') {
-    throw new Error('Загруженный модуль не экспортирует Wllama.');
+    throw new Error('Компонент локальной модели имеет неподдерживаемый формат.');
   }
   return candidate as unknown as WllamaModule;
 }
@@ -77,14 +78,31 @@ function joinUrl(base: string, path: string): string {
 }
 
 function extractJson(value: string): unknown | null {
-  const start = value.indexOf('{');
-  const end = value.lastIndexOf('}');
+  const withoutThinking = value.replace(/<think>[\s\S]*?<\/think>/giu, '').trim();
+  const start = withoutThinking.indexOf('{');
+  const end = withoutThinking.lastIndexOf('}');
   if (start < 0 || end <= start) return null;
   try {
-    return JSON.parse(value.slice(start, end + 1)) as unknown;
+    return JSON.parse(withoutThinking.slice(start, end + 1)) as unknown;
   } catch {
     return null;
   }
+}
+
+function isValidProbe(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const record = value as Readonly<Record<string, unknown>>;
+  return (
+    typeof record['intent'] === 'string' &&
+    typeof record['ageYears'] === 'number' &&
+    Array.isArray(record['concepts']) &&
+    record['concepts'].every((item) => typeof item === 'string')
+  );
+}
+
+function outputPreview(value: string): string {
+  const compact = value.replace(/\s+/gu, ' ').trim();
+  return compact.length > 900 ? `${compact.slice(0, 900)}…` : compact;
 }
 
 class BrowserWllamaSession implements LocalModelSession {
@@ -92,38 +110,43 @@ class BrowserWllamaSession implements LocalModelSession {
   public readonly artifactId: string;
 
   public constructor(
-    modelId: string,
+    private readonly model: LocalModelDescriptor,
     artifactId: string,
     private readonly instance: WllamaInstance,
   ) {
-    this.modelId = modelId;
+    this.modelId = model.id;
     this.artifactId = artifactId;
   }
 
   public async benchmark() {
     const startedAt = performance.now();
+    const noThinking = this.model.family.includes('qwen3') ? '/no_think\n' : '';
     const result = await this.instance.createChatCompletion({
       messages: [
         {
           role: 'system',
           content:
-            'Ты локальный классификатор медицинского поиска. Верни только компактный JSON без пояснений.',
+            'Ты проверяешь работу локальной модели. Не рассуждай вслух. Верни только один JSON-объект с полями intent, ageYears и concepts.',
         },
         {
           role: 'user',
-          content:
-            'Запрос: девочка 3 лет, лечение бронхиальной астмы при потере контроля. Поля: intent, ageYears, concepts.',
+          content: `${noThinking}Девочка 3 лет. Запрос: лечение бронхиальной астмы при потере контроля. Верни intent строкой, ageYears числом и concepts массивом строк.`,
         },
       ],
-      max_tokens: 48,
+      max_tokens: 160,
       temperature: 0,
       top_p: 1,
     });
     const generationMs = performance.now() - startedAt;
     const output = result.choices?.[0]?.message?.content?.trim() ?? '';
     const parsed = extractJson(output);
-    const validStructuredOutput =
-      typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed);
+    const validStructuredOutput = isValidProbe(parsed);
+    if (!validStructuredOutput) {
+      const preview = outputPreview(output) || 'Модель не вернула текст.';
+      throw new Error(
+        `Модель загрузилась, но не прошла проверку ответа. Получено: «${preview}». Попробуйте повторить тест или выбрать другую модель.`,
+      );
+    }
     return {
       modelId: this.modelId,
       artifactId: this.artifactId,
@@ -188,12 +211,13 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
           n_gpu_layers: 0,
           progressCallback: ({ loaded, total }) => callbacks.onProgress(loaded, total),
         });
-        return new BrowserWllamaSession(model.id, artifact.id, instance);
+        return new BrowserWllamaSession(model, artifact.id, instance);
       } catch (cause) {
         lastError = cause;
       }
     }
     await instance.exit?.();
-    throw lastError instanceof Error ? lastError : new Error(`Не удалось загрузить ${model.name}.`);
+    const detail = lastError instanceof Error ? lastError.message : 'неизвестная ошибка';
+    throw new Error(`Не удалось скачать или открыть ${model.name}: ${detail}`);
   }
 }

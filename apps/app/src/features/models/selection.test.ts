@@ -69,7 +69,7 @@ describe('local model selection', () => {
     expect(plan[1]?.artifact.downloadBytes).toBeLessThan(plan[0]?.artifact.downloadBytes ?? 0);
   });
 
-  it('keeps Gemma available after its terms were accepted', () => {
+  it('does not offer Gemma merely because its terms were accepted before a mirror is published', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: profile(8),
@@ -80,10 +80,10 @@ describe('local model selection', () => {
       }),
       availableRuntimes: runtimes,
     });
-    expect(selected?.model.id).toBe('gemma3-1b-it-q4');
+    expect(selected).toBeNull();
   });
 
-  it('loads a manual override first instead of the automatic winner', () => {
+  it('tests only the manually selected model without a silent fallback', () => {
     const plan = buildLocalModelLoadPlan({
       models: catalog.models,
       profile: profile(12),
@@ -93,8 +93,7 @@ describe('local model selection', () => {
       }),
       availableRuntimes: runtimes,
     });
-    expect(plan[0]?.model.id).toBe('qwen3-1.7b-q8');
-    expect(plan[1]?.artifact.downloadBytes).toBeLessThan(plan[0]?.artifact.downloadBytes ?? 0);
+    expect(plan.map((candidate) => candidate.model.id)).toEqual(['qwen3-1.7b-q8']);
   });
 
   it('honors a compact manual model override when the artifact is compatible', () => {
