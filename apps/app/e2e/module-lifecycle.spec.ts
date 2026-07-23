@@ -9,6 +9,7 @@ const CATALOG_URL =
   'https://github.com/T-Damer/MiniMed/releases/download/datasets-preview-1/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
 const REGULATORY_TITLE = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
+const REGULATORY_VERSION = '0.4.0-alpha.1';
 
 function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-nav-icons').getByRole('button', { name });
@@ -57,7 +58,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await card.getByRole('button', { name: 'Скачать документы' }).click();
   await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
-  await expect(card.getByText('Версия 0.3.3', { exact: true })).toBeVisible();
+  await expect(card.getByText(`Версия ${REGULATORY_VERSION}`, { exact: true })).toBeVisible();
 
   await navigationButton(page, 'Поиск').click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
