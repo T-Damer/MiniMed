@@ -1,0 +1,234 @@
+=== RUFF FORMAT ===
+38 files already formatted
+RUFF_FORMAT_EXIT=0
+
+=== RUFF CHECK ===
+SIM105 Use `contextlib.suppress(csv.Error)` instead of `try`-`except`-`pass`
+   --> tools/ingest/src/localmed_ingest/clinical_catalog.py:273:5
+    |
+271 |       sample = text[:8192]
+272 |       delimiter = "\t" if path.suffix.lower() == ".tsv" else ";"
+273 | /     try:
+274 | |         delimiter = csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
+275 | |     except csv.Error:
+276 | |         pass
+    | |____________^
+277 |       reader = csv.DictReader(text.splitlines(), delimiter=delimiter)
+278 |       if not reader.fieldnames:
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(csv.Error): ...`
+
+E501 Line too long (103 > 100)
+   --> tools/ingest/src/localmed_ingest/clinical_catalog.py:426:101
+    |
+424 |         if unknown:
+425 |             raise ValueError(
+426 |                 f"Coverage override for {official_id} references unknown modules: {', '.join(unknown)}"
+    |                                                                                                     ^^^
+427 |             )
+428 |         modules = [by_id[module_id] for module_id in override.module_ids]
+    |
+
+E501 Line too long (107 > 100)
+   --> tools/ingest/src/localmed_ingest/legal_catalog.py:397:101
+    |
+395 |                     notes=[
+396 |                         "Metadata collected from the read-only official publication API.",
+397 |                         "Full-text/PDF packaging requires a separate source-asset and applicability pass.",
+    |                                                                                                     ^^^^^^^
+398 |                     ],
+399 |                     raw_metadata={**item, **({"detail": detail} if detail else {})},
+    |
+
+Found 3 errors.
+No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
+RUFF_CHECK_EXIT=1
+
+=== PYRIGHT ===
+/home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/legal_catalog.py
+  /home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/legal_catalog.py:364:36 - error: Type "list[LegalModuleRule]" is not assignable to declared type "list[LegalModulePlanEntry]"
+    "list[LegalModuleRule]" is not assignable to "list[LegalModulePlanEntry]"
+      Type parameter "_T@list" is invariant, but "LegalModuleRule" is not the same as "LegalModulePlanEntry"
+      Consider switching from "list" to "Sequence" which is covariant (reportAssignmentType)
+  /home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/legal_catalog.py:381:33 - error: Argument of type "object | None" cannot be assigned to parameter "pages_count" of type "int | None" in function "__init__"
+    Type "object | None" is not assignable to type "int | None"
+      Type "object" is not assignable to type "int | None"
+        "object" is not assignable to "int"
+        "object" is not assignable to "None" (reportArgumentType)
+  /home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/legal_catalog.py:384:31 - error: Argument of type "object | None" cannot be assigned to parameter "pdf_bytes" of type "int | None" in function "__init__"
+    Type "object | None" is not assignable to type "int | None"
+      Type "object" is not assignable to type "int | None"
+        "object" is not assignable to "int"
+        "object" is not assignable to "None" (reportArgumentType)
+  /home/runner/work/MiniMed/MiniMed/tools/ingest/src/localmed_ingest/legal_catalog.py:392:40 - error: Cannot access attribute "id" for class "LegalModulePlanEntry"
+    Attribute "id" is unknown (reportAttributeAccessIssue)
+4 errors, 0 warnings, 0 informations
+PYRIGHT_EXIT=1
+
+=== PYTEST ===
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+_____ test_official_legal_collector_paginates_deduplicates_and_categorizes _____
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_official_legal_collector_0')
+
+    def test_official_legal_collector_paginates_deduplicates_and_categorizes(
+        tmp_path: Path,
+    ) -> None:
+        config = tmp_path / "queries.yaml"
+        write_yaml(
+            config,
+            {
+                "schemaVersion": 1,
+                "baseUrl": "https://publication.pravo.gov.ru",
+                "pageSize": 200,
+                "queries": [
+                    {
+                        "id": "medical-care",
+                        "title": "Медицинская помощь",
+                        "documentText": "медицинской помощи",
+                        "maxPages": 2,
+                    },
+                    {
+                        "id": "medicines",
+                        "title": "Лекарственные средства",
+                        "documentText": "лекарственных средств",
+                        "maxPages": 1,
+                    },
+                ],
+            },
+        )
+        repository_root = Path(__file__).resolve().parents[3]
+        taxonomy = repository_root / "content" / "legal-module-taxonomy.yaml"
+    
+        items = {
+            ("medical-care", 1): [
+                {
+                    "id": "doc-1",
+                    "eoNumber": "0001202601010001",
+                    "title": "Приказ об организации оказания медицинской помощи детям",
+                    "name": "Об организации оказания медицинской помощи детям",
+                    "publishDateShort": "2026-01-01T00:00:00",
+                    "number": "1н",
+                    "documentTypeId": "type-order",
+                    "signatoryAuthorityId": "minzdrav",
+                    "pagesCount": 5,
+                    "pdfFileLength": 120000,
+                }
+            ],
+            ("medical-care", 2): [
+                {
+                    "id": "doc-2",
+                    "eoNumber": "0001202601020002",
+                    "title": "Приказ об утверждении формы медицинской документации",
+                    "name": "Об утверждении формы медицинской документации",
+                    "publishDateShort": "2026-01-02T00:00:00",
+                    "number": "2н",
+                    "documentTypeId": "type-order",
+                    "signatoryAuthorityId": "minzdrav",
+                }
+            ],
+            ("medicines", 1): [
+                {
+                    "id": "doc-1",
+                    "eoNumber": "0001202601010001",
+                    "title": "Приказ об организации оказания медицинской помощи детям",
+                    "name": "Об организации оказания медицинской помощи детям",
+                    "publishDateShort": "2026-01-01T00:00:00",
+                    "number": "1н",
+                    "documentTypeId": "type-order",
+                    "signatoryAuthorityId": "minzdrav",
+                },
+                {
+                    "id": "doc-3",
+                    "eoNumber": "0001202601030003",
+                    "title": "Приказ о правилах отпуска лекарственных препаратов",
+                    "name": "О правилах отпуска лекарственных препаратов",
+                    "publishDateShort": "2026-01-03T00:00:00",
+                    "number": "3н",
+                    "documentTypeId": "type-order",
+                    "signatoryAuthorityId": "minzdrav",
+                },
+            ],
+        }
+    
+        def transport(url: str, _timeout: float) -> object:
+            parsed = urllib.parse.urlparse(url)
+            query = urllib.parse.parse_qs(parsed.query)
+            if parsed.path == "/api/Document":
+                return {
+                    "documentType": {"id": "type-order", "name": "Приказ"},
+                    "signatoryAuthorities": [
+                        {
+                            "id": "minzdrav",
+                            "name": "Министерство здравоохранения Российской Федерации",
+                            "isMain": True,
+                        }
+                    ],
+                }
+            document_text = query.get("DocumentText", [""])[0]
+            query_id = "medicines" if "лекарствен" in document_text else "medical-care"
+            page = int(query.get("Index", ["1"])[0])
+            rows = items[(query_id, page)]
+            pages = 2 if query_id == "medical-care" else 1
+            return {
+                "items": rows,
+                "itemsTotalCount": sum(
+                    len(value) for key, value in items.items() if key[0] == query_id
+                ),
+                "itemsPerPage": 200,
+                "currentPage": page,
+                "pagesTotalCount": pages,
+            }
+    
+        output = tmp_path / "laws.json"
+        raw_output = tmp_path / "raw-pages.json"
+        ledger = collect_legal_catalog(
+            config,
+            taxonomy,
+            output,
+            raw_output=raw_output,
+            transport=transport,
+            generated_at="2026-07-23T00:00:00Z",
+        )
+    
+        assert ledger.summary.total_records == 3
+        care = next(record for record in ledger.records if record.eo_number == "0001202601010001")
+        assert set(care.matched_query_ids) == {"medical-care", "medicines"}
+        assert care.primary_module_id == "minimed.regulatory.healthcare-organization.ru"
+        records = next(record for record in ledger.records if record.eo_number == "0001202601020002")
+>       assert records.primary_module_id == "minimed.regulatory.records-consent-privacy.ru"
+E       AssertionError: assert 'minimed.regu...ganization.ru' == 'minimed.regu...nt-privacy.ru'
+E         
+E         - minimed.regulatory.records-consent-privacy.ru
+E         + minimed.regulatory.healthcare-organization.ru
+
+tools/ingest/tests/test_regulated_catalogs.py:208: AssertionError
+=========================== short test summary info ============================
+FAILED tools/ingest/tests/test_regulated_catalogs.py::test_official_legal_collector_paginates_deduplicates_and_categorizes - AssertionError: assert 'minimed.regu...ganization.ru' == 'minimed.regu...nt-privacy.ru'
+  
+  - minimed.regulatory.records-consent-privacy.ru
+  + minimed.regulatory.healthcare-organization.ru
+1 failed, 1 passed in 1.16s
+PYTEST_EXIT=1
+
+=== CLI HELP ===
+[1m                                                                                [0m
+[1m [0m[1;33mUsage: [0m[1mmedbase-regulated-catalog [OPTIONS] COMMAND [ARGS]...[0m[1m                  [0m[1m [0m
+[1m                                                                                [0m
+ Build medication and regulatory coverage ledgers for loadable MiniMed modules. 
+                                                                                
+[2m╭─[0m[2m Options [0m[2m───────────────────────────────────────────────────────────────────[0m[2m─╮[0m
+[2m│[0m [1;36m-[0m[1;36m-install[0m[1;36m-completion[0m          Install completion for the current shell.      [2m│[0m
+[2m│[0m [1;36m-[0m[1;36m-show[0m[1;36m-completion[0m             Show completion for the current shell, to copy [2m│[0m
+[2m│[0m                               it or customize the installation.              [2m│[0m
+[2m│[0m [1;36m-[0m[1;36m-help[0m                        Show this message and exit.                    [2m│[0m
+[2m╰──────────────────────────────────────────────────────────────────────────────╯[0m
+[2m╭─[0m[2m Commands [0m[2m──────────────────────────────────────────────────────────────────[0m[2m─╮[0m
+[2m│[0m [1;36mmedications[0m[1;36m [0m Normalize a declared medication export and create ATC module    [2m│[0m
+[2m│[0m [1;36m            [0m plans.                                                          [2m│[0m
+[2m│[0m [1;36mlaws       [0m[1;36m [0m Collect health-related acts from the official read-only         [2m│[0m
+[2m│[0m [1;36m            [0m publication API.                                                [2m│[0m
+[2m╰──────────────────────────────────────────────────────────────────────────────╯[0m
+
+CLI_HELP_EXIT=0
