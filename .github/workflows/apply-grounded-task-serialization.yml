@@ -28,16 +28,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: python3 tools/apply-grounded-task-serialization.py
-      - name: Validate grounded model task serialization
+      - name: Check grounded serialization formatting
         run: |
           pnpm exec biome check \
             apps/app/src/features/models/serial-async-queue.ts \
             apps/app/src/features/models/serial-async-queue.test.ts \
             apps/app/src/features/models/browser-runtime.ts \
             apps/app/src/features/models/GroundedMedicalCore.ts
-          pnpm typecheck
-          pnpm test:unit
-          pnpm build
+      - name: Check grounded serialization types
+        run: pnpm typecheck
+      - name: Test serial task queue
+        run: pnpm --filter @localmed/app exec vitest run src/features/models/serial-async-queue.test.ts
+      - name: Run all unit tests
+        run: pnpm test:unit
+      - name: Build application
+        run: pnpm build
       - name: Publish source changes
         shell: bash
         run: |
