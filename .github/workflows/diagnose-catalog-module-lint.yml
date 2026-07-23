@@ -1,0 +1,44 @@
+name: Diagnose catalog module lint
+
+on:
+  pull_request:
+    branches: [agent/drug-law-catalogs]
+    paths:
+      - tools/ingest/src/localmed_ingest/catalog_module_builder.py
+      - tools/ingest/src/localmed_ingest/catalog_module_cli.py
+      - tools/ingest/tests/test_catalog_module_builder.py
+      - docs/CATALOG_METADATA_MODULES.md
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    if: github.event.pull_request.head.ref == 'agent/catalog-module-builder'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Capture focused Ruff output
+        shell: bash
+        run: |
+          mkdir -p diagnostics
+          set +e
+          uv run --project tools/ingest ruff check \
+            tools/ingest/src/localmed_ingest/catalog_module_builder.py \
+            tools/ingest/src/localmed_ingest/catalog_module_cli.py \
+            tools/ingest/tests/test_catalog_module_builder.py \
+            > diagnostics/ruff.txt 2>&1
+          status=$?
+          printf '%s\n' "$status" > diagnostics/exit-code.txt
+          set -e
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-module-lint-diagnostic
+          path: diagnostics
+          if-no-files-found: error
