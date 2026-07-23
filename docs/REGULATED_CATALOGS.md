@@ -62,8 +62,8 @@ separate applicability pass and remain explicit review work.
 
 `.github/workflows/regulated-catalog-inventory.yml` runs parser and classification tests without
 network access on every relevant pull request. The fixture suite validates pagination, duplicate acts,
-detail metadata, legal categories, medication registration identity and ATC packaging before a live
-source is queried.
+detail metadata, legal categories, Russian title inflections, medication registration identity and
+ATC packaging before a live source is queried.
 
 The compatibility module and typed implementation are validated together, so callers keep one stable
 import path while malformed API fields remain fail-closed.
