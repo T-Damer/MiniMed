@@ -14,9 +14,9 @@ The mutable channel catalog is published as `catalog.preview.json`. Every refere
 ## Full clinical document pipeline
 
 ```text
-declared public mirror
+declared official Ministry PDF endpoint
   → cache-backed HTTPS synchronization
-  → deterministic HTML extraction
+  → deterministic PDF text-layer extraction
   → source-preserving Markdown and diagnostics
   → lint and SQLite build
   → integrity, foreign-key and FTS checks
@@ -24,13 +24,20 @@ declared public mirror
   → in-app staging, checksum verification and activation
 ```
 
-The HTML extractor keeps headings, paragraphs, lists and table candidates. Navigation, scripts, forms and page chrome are excluded. The original downloaded HTML checksum becomes the document-version checksum. Extraction warnings stay visible in the preparation report and are not silently repaired.
+The PDF extractor keeps page/block coordinates, headings, paragraphs, lists and table candidates. The
+downloaded PDF checksum becomes the document-version checksum. Extraction warnings stay visible and
+are not silently repaired.
 
-Remote synchronization uses a bounded three-minute request timeout and a persistent cache. A transiently slow mirror cannot cause an unbounded build, while an already validated cached source remains usable for reproducible offline rebuilds.
+Run `bun run content:rebuild:clinical` to refresh the catalog, reject superseded selected versions,
+synchronize PDFs, prepare them, lint them, and rebuild the local SQLite pack.
+
+Remote synchronization uses a bounded three-minute request timeout and a persistent cache. A
+transiently slow endpoint cannot cause an unbounded build, while an already validated cached source
+remains usable for reproducible offline rebuilds.
 
 A module advertised as full text must pass all of these gates:
 
-- every declared document was downloaded from its recorded mirror;
+- every declared document was downloaded from its recorded official endpoint;
 - each document contains substantial clinical text and several section headings;
 - the SQLite document count matches the immutable manifest;
 - chunk count equals FTS row count;

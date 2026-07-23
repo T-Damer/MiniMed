@@ -1,13 +1,13 @@
 pack:
   id: minimed.clinical.pediatrics.respiratory-allergy
-  version: 0.3.4-preview.1
+  version: 0.5.0-alpha.1
   schemaVersion: 2
   title: "Педиатрия — дыхание и аллергология: полный текст"
-  builtAt: "2026-07-22T00:00:00Z"
+  builtAt: "2026-07-24T00:00:00Z"
 
 sources:
   - id: kr.rf.714_2.pneumonia.full
-    path: pneumonia-714_2.html
+    path: pneumonia-714_2.pdf
     title: Внебольничная пневмония у детей
     shortTitle: Пневмония у детей
     versionLabel: 714_2-2025-full
@@ -15,19 +15,18 @@ sources:
     status: active
     specialties: [pediatrics, pulmonology, infectious-diseases]
     ageGroups: [children]
-    effectiveFrom: "2025-01-01"
-    format: html
+    effectiveFrom: "2025-09-08"
+    format: pdf
     metadata:
       officialId: "714_2"
       officialSourceUrl: https://cr.minzdrav.gov.ru/preview-cr/714_2
-      publicMirrorUrl: https://meganorm.ru/mega_doc/dop_norm/56/mr_4_2_0339-23_4_2_metody_kontrolya_biologicheskie_i/0/klinicheskie_rekomendatsii_pnevmoniya_vnebolnichnaya.html
       sourceYear: 2025
       reviewNoLaterThan: 2027
       contentMode: full-source-text
-      sourceAuthority: official-recommendation-public-mirror
+      sourceAuthority: official-minzdrav-clinical-recommendation-api
       retrievedBy: automated-source-sync
   - id: kr.rf.381_3.bronchitis.full
-    path: bronchitis-381_3.html
+    path: bronchitis-381_3.pdf
     title: Бронхит у детей
     shortTitle: Бронхит
     versionLabel: 381_3-2024-full
@@ -35,36 +34,34 @@ sources:
     status: active
     specialties: [pediatrics, pulmonology]
     ageGroups: [children]
-    effectiveFrom: "2024-01-01"
-    format: html
+    effectiveFrom: "2024-12-19"
+    format: pdf
     metadata:
       officialId: "381_3"
       officialSourceUrl: https://cr.minzdrav.gov.ru/view-cr/381_3
-      publicMirrorUrl: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_bronkhit_odobreny_minzdravom.html
       sourceYear: 2024
       reviewNoLaterThan: 2026
       contentMode: full-source-text
-      sourceAuthority: official-recommendation-public-mirror
+      sourceAuthority: official-minzdrav-clinical-recommendation-api
       retrievedBy: automated-source-sync
   - id: kr.rf.360_3.bronchiolitis.full
-    path: bronchiolitis-360_3.html
+    path: bronchiolitis-360_3.pdf
     title: Острый бронхиолит у детей
     shortTitle: Острый бронхиолит
-    versionLabel: 360_3-2024-full
+    versionLabel: 360_3-2025-full
     sourceType: clinical_recommendation
     status: active
     specialties: [pediatrics, pulmonology, neonatology]
     ageGroups: [children]
-    effectiveFrom: "2024-01-01"
-    format: html
+    effectiveFrom: "2025-01-14"
+    format: pdf
     metadata:
       officialId: "360_3"
       officialSourceUrl: https://cr.minzdrav.gov.ru/preview-cr/360_3
-      publicMirrorUrl: https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_ostryy_bronkhiolit_odobreny.html
-      sourceYear: 2024
+      sourceYear: 2025
       reviewNoLaterThan: 2026
       contentMode: full-source-text
-      sourceAuthority: official-recommendation-public-mirror
+      sourceAuthority: official-minzdrav-clinical-recommendation-api
       retrievedBy: automated-source-sync
 
 aliases:

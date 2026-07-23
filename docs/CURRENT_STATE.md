@@ -40,6 +40,10 @@ ordinary search response when validation fails.
 
 - Deterministic preparation, Markdown validation, stable IDs, provenance, and SQLite building.
 - Public/private source registries with rights metadata and extraction diagnostics.
+- Official Ministry API inventory for 744 recommendations and checksum-aware PDF synchronization for
+  the first three full respiratory recommendations.
+- Selected recommendation versions are checked against the active official catalog before rebuild;
+  a replacement blocks the rebuild until explicitly reviewed.
 - Public Russian pilot: seven clinical navigation cards and eight medication-registry identity cards.
 - Structured knowledge tables with proposed facts, evidence links, and review tasks.
 - Installable content-module catalog, registry, rollback metadata, and multi-store search routing.
@@ -81,12 +85,14 @@ checkout until those artifacts are built.
 
 ## Ordered next work
 
-1. Ingest complete owner-provided clinical documents with page/block provenance.
+1. Spot-review the pneumonia title page and six bronchitis table candidates, then promote the
+   locally built respiratory pack.
 2. Add benchmark cases for the supplied corpus, including unsupported-answer and dosing abstention
    checks.
 3. Evaluate the bundled small models on exact citation, extraction, unsupported-claim, latency, and
    memory metrics.
 4. Refine the browser clinical-answer layout using real source excerpts.
-5. Add a selected-source update tracker only after local ingestion and versioning are stable.
+5. Compare official catalog snapshots and stage changed selected sources after local ingestion and
+   versioning are stable.
 
 No database update can safely add dose guidance until a supplied source actually contains the regimen.
