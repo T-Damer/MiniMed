@@ -1,0 +1,74 @@
+name: Repair catalog metadata module builder
+
+on:
+  pull_request:
+    branches: [agent/drug-law-catalogs]
+    paths:
+      - tools/ingest/src/localmed_ingest/catalog_module_builder.py
+      - docs/CATALOG_METADATA_MODULES.md
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.pull_request.head.ref == 'agent/catalog-module-builder'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/catalog-module-builder
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Apply focused lint repairs
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/ingest/src/localmed_ingest/catalog_module_builder.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('from collections import defaultdict\n', '', 1)
+
+          replacements = {
+              '''        f"Клиническая рекомендация «{title}» зарегистрирована в каталоге под идентификатором {official_id}. Редакция: {version}. Статус применения: {application_status or status}.",\n''': '''        (\n            f"Клиническая рекомендация «{title}» зарегистрирована в каталоге "\n            f"под идентификатором {official_id}. Редакция: {version}. "\n            f"Статус применения: {application_status or status}."\n        ),\n''',
+              '''        f"Коды МКБ-10: {_format_values(icd_codes)}. Возрастные категории: {_format_values(age_categories)}. Разработчик: {developer or 'не указан в каталоге'}.",\n''': '''        (\n            f"Коды МКБ-10: {_format_values(icd_codes)}. "\n            f"Возрастные категории: {_format_values(age_categories)}. "\n            f"Разработчик: {developer or 'не указан в каталоге'}."\n        ),\n''',
+              '''        f"Состояние покрытия MiniMed: {coverage}. Права на распространение: {rights}. Полный текст не считается установленным, пока запись не имеет состояния published и не прошла проверку модуля.",\n''': '''        (\n            f"Состояние покрытия MiniMed: {coverage}. "\n            f"Права на распространение: {rights}. Полный текст не считается "\n            "установленным, пока запись не имеет состояния published и не прошла "\n            "проверку модуля."\n        ),\n''',
+              '''        f"Лекарственный препарат «{trade_name}». Регистрационный номер: {registration}. МНН: {_format_values(inn)}. Статус регистрации: {status}.",\n''': '''        (\n            f"Лекарственный препарат «{trade_name}». "\n            f"Регистрационный номер: {registration}. "\n            f"МНН: {_format_values(inn)}. Статус регистрации: {status}."\n        ),\n''',
+              '''        f"АТХ: {_format_values(atc)}. Лекарственная форма: {dosage_form or 'не указана в каталоге'}. Дозировки/концентрации: {_format_values(strengths)}. Пути введения: {_format_values(routes)}.",\n''': '''        (\n            f"АТХ: {_format_values(atc)}. "\n            f"Лекарственная форма: {dosage_form or 'не указана в каталоге'}. "\n            f"Дозировки/концентрации: {_format_values(strengths)}. "\n            f"Пути введения: {_format_values(routes)}."\n        ),\n''',
+              '''        f"Состояние покрытия MiniMed: {coverage}. Эта карточка не подтверждает дозы, показания, противопоказания или взаимодействия. Такие сведения становятся доверенными только из проверенной редакции инструкции с точной ссылкой на источник.",\n''': '''        (\n            f"Состояние покрытия MiniMed: {coverage}. Эта карточка не подтверждает "\n            "дозы, показания, противопоказания или взаимодействия. Такие сведения "\n            "становятся доверенными только из проверенной редакции инструкции с "\n            "точной ссылкой на источник."\n        ),\n''',
+              '''        f"{document_type}: «{title}». Номер документа: {number or 'не указан'}. Электронный номер опубликования: {eo_number}.",\n''': '''        (\n            f"{document_type}: «{title}». "\n            f"Номер документа: {number or 'не указан'}. "\n            f"Электронный номер опубликования: {eo_number}."\n        ),\n''',
+              '''        f"Дата документа: {document_date or 'не указана'}. Дата официального опубликования: {publish_date or 'не указана'}. Орган(ы): {_format_values(authorities)}.",\n''': '''        (\n            f"Дата документа: {document_date or 'не указана'}. "\n            f"Дата официального опубликования: {publish_date or 'не указана'}. "\n            f"Орган(ы): {_format_values(authorities)}."\n        ),\n''',
+              '''        f"Состояние покрытия MiniMed: {coverage}. Наличие записи об опубликовании не доказывает текущую применимость, отсутствие изменений или связь с заменяющим актом. Эти отношения требуют отдельной проверки.",\n''': '''        (\n            f"Состояние покрытия MiniMed: {coverage}. Наличие записи об "\n            "опубликовании не доказывает текущую применимость, отсутствие изменений "\n            "или связь с заменяющим актом. Эти отношения требуют отдельной проверки."\n        ),\n''',
+          }
+          for old, new in replacements.items():
+              if old in text:
+                  text = text.replace(old, new, 1)
+              elif new not in text:
+                  raise SystemExit(f'Catalog module patch anchor not found: {old[:100]!r}')
+          path.write_text(text, encoding='utf-8')
+          PY
+          uv run --project tools/ingest ruff format \
+            tools/ingest/src/localmed_ingest/catalog_module_builder.py
+          uv run --project tools/ingest ruff check \
+            tools/ingest/src/localmed_ingest/catalog_module_builder.py \
+            tools/ingest/src/localmed_ingest/catalog_module_cli.py \
+            tools/ingest/tests/test_catalog_module_builder.py
+      - name: Publish repaired builder
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ingest/src/localmed_ingest/catalog_module_builder.py
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'fix: satisfy catalog metadata module lint contract'
+          git push origin HEAD:agent/catalog-module-builder
+      - name: Validate repaired builder
+        run: |
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests/test_catalog_module_builder.py
