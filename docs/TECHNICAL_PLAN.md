@@ -76,6 +76,7 @@ Deterministic code validates:
 - schema and length bounds;
 - allowed candidate IDs;
 - exact excerpt membership;
+- same-chunk support for each clinical label, excerpt, and applicable section type;
 - diagnosis-label presence;
 - treatment category for dose evidence;
 - numeric dose plus regimen cue;
