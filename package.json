@@ -60,5 +60,14 @@
     "tsx": "4.23.1",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tools/benchmarks"
+  ],
+  "overrides": {
+    "vite": "8.1.4",
+    "astro": "7.0.9"
   }
 }
