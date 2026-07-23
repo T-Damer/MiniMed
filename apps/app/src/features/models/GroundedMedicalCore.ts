@@ -69,14 +69,8 @@ interface QueryPlan {
   readonly exclusions: readonly string[];
 }
 
-interface RankingReason {
-  readonly id: string;
-  readonly reason: string;
-}
-
 interface CandidateRanking {
   readonly orderedIds: readonly string[];
-  readonly reasons: readonly RankingReason[];
   readonly diagnosisCandidates: readonly GroundedDiagnosisCandidate[];
   readonly doseEvidence: readonly GroundedDoseEvidence[];
   readonly missingInformation: readonly string[];
@@ -107,11 +101,12 @@ const INITIAL_STATE: GroundedAssistantState = {
   error: null,
 };
 
-const MAX_CANDIDATES = 14;
+// ponytail: fits current 2K-token browser sessions; add tokenizer-aware packing for larger contexts.
+const MAX_CANDIDATES = 6;
 const MAX_TERMS = 12;
 const MAX_QUESTIONS = 5;
 const MAX_TEXT_LENGTH = 180;
-const MAX_SOURCE_EXCERPT_LENGTH = 520;
+const MAX_SOURCE_EXCERPT_LENGTH = 280;
 const MAX_CLINICAL_SUGGESTIONS = 5;
 const MAX_CITATIONS = 4;
 
@@ -284,17 +279,6 @@ function parseRanking(value: unknown, candidates: readonly CandidatePayload[]): 
   if (orderedIds.some((id) => !allowed.has(id))) {
     throw new Error('Модель сослалась на источник, которого не было среди кандидатов.');
   }
-  const reasonsValue = value['reasons'];
-  if (!Array.isArray(reasonsValue)) throw new Error('Объяснения порядка имеют неверный формат.');
-  const reasons: RankingReason[] = [];
-  for (const item of reasonsValue) {
-    if (!isRecord(item)) continue;
-    const id = item['id'];
-    const reason = item['reason'];
-    if (typeof id !== 'string' || typeof reason !== 'string' || !allowed.has(id)) continue;
-    const cleaned = reason.replace(/\s+/gu, ' ').trim().slice(0, MAX_TEXT_LENGTH);
-    if (cleaned && !reasons.some((entry) => entry.id === id)) reasons.push({ id, reason: cleaned });
-  }
   const candidateById = new Map(candidates.map((candidate) => [candidate.id, candidate] as const));
   const diagnosisCandidates = parseDiagnosisCandidates(value['diagnosisCandidates'], candidateById);
   const doseEvidence = parseDoseEvidence(value['doseEvidence'], candidateById);
@@ -302,7 +286,6 @@ function parseRanking(value: unknown, candidates: readonly CandidatePayload[]): 
   if (!missingInformation) throw new Error('Недостающие сведения имеют неверный формат.');
   return {
     orderedIds,
-    reasons,
     diagnosisCandidates,
     doseEvidence,
     missingInformation,
@@ -317,7 +300,7 @@ function candidatePayload(result: SearchResult): CandidatePayload {
     title: result.title,
     sectionPath: result.sectionPath,
     category: result.category,
-    snippet: result.snippet.replace(/\s+/gu, ' ').trim().slice(0, 520),
+    snippet: result.snippet.replace(/\s+/gu, ' ').trim().slice(0, MAX_SOURCE_EXCERPT_LENGTH),
   };
 }
 
@@ -370,70 +353,66 @@ function reorderResponse(response: SearchResponse, orderedIds: readonly string[]
 }
 
 function planPrompt(query: string, analysis: QueryAnalysis): string {
-  return JSON.stringify(
-    {
-      task: 'query-plan',
-      query,
-      deterministicAnalysis: {
-        intent: analysis.intent?.primary ?? 'unknown',
-        facts: analysis.facts.map((fact) => ({
-          kind: fact.kind,
-          value: fact.normalizedValue,
-          polarity: fact.polarity,
-        })),
-        branches: analysis.branches.map((branch) => ({ label: branch.label, terms: branch.terms })),
-      },
-      outputSchema: {
-        intent: 'short string describing search intent, not a diagnosis',
-        terms: ['search term already supported by the query'],
-        clarifyingQuestions: ['question that could improve source search'],
-        exclusions: ['negated or explicitly excluded concept'],
-      },
+  return JSON.stringify({
+    task: 'query-plan',
+    query,
+    deterministicAnalysis: {
+      intent: analysis.intent?.primary ?? 'unknown',
+      facts: analysis.facts.map((fact) => ({
+        kind: fact.kind,
+        value: fact.normalizedValue,
+        polarity: fact.polarity,
+      })),
+      branches: analysis.branches.map((branch) => ({ label: branch.label, terms: branch.terms })),
     },
-    null,
-    2,
-  );
+    outputSchema: {
+      intent: 'short string describing search intent, not a diagnosis',
+      terms: ['search term already supported by the query'],
+      clarifyingQuestions: ['question that could improve source search'],
+      exclusions: ['negated or explicitly excluded concept'],
+    },
+  });
 }
 
 function rankingPrompt(query: string, candidates: readonly CandidatePayload[]): string {
-  return JSON.stringify(
-    {
-      task: 'rerank-source-candidates',
-      query,
-      candidates,
-      rules: [
-        'Use only candidate ids from this list.',
-        'Prefer direct source relevance, age/applicability and the requested section.',
-        'A diagnosis candidate label must be copied from a cited candidate title or snippet.',
-        'sourceExcerpt must be an exact contiguous quote copied from one cited candidate snippet.',
-        'Dose evidence is allowed only when the exact quote contains both a numeric dose and a regimen.',
-        'Never calculate, personalize or complete a dose. List missing patient inputs instead.',
-        'Return empty clinical arrays when retrieved candidates do not contain the required evidence.',
+  return JSON.stringify({
+    task: 'rerank-source-candidates',
+    query,
+    candidates: candidates.map(({ id, title, category, snippet }) => ({
+      id,
+      title,
+      category,
+      snippet,
+    })),
+    rules: [
+      'Use only candidate ids from this list.',
+      'Prefer direct source relevance, age/applicability and the requested section.',
+      'A diagnosis candidate label must be copied from a cited candidate title or snippet.',
+      'sourceExcerpt must be an exact contiguous quote copied from one cited candidate snippet.',
+      'Dose evidence is allowed only when the exact quote contains both a numeric dose and a regimen.',
+      'Never calculate, personalize or complete a dose. List missing patient inputs instead.',
+      'Return empty clinical arrays when retrieved candidates do not contain the required evidence.',
+    ],
+    outputSchema: {
+      orderedIds: ['candidate id in preferred order'],
+      diagnosisCandidates: [
+        {
+          label: 'diagnosis name copied from cited source',
+          sourceExcerpt: 'exact quote copied from cited candidate snippet',
+          citationIds: ['candidate id'],
+        },
       ],
-      outputSchema: {
-        orderedIds: ['candidate id in preferred order'],
-        reasons: [{ id: 'candidate id', reason: 'short relevance explanation' }],
-        diagnosisCandidates: [
-          {
-            label: 'diagnosis name copied from cited source',
-            sourceExcerpt: 'exact quote copied from cited candidate snippet',
-            citationIds: ['candidate id'],
-          },
-        ],
-        doseEvidence: [
-          {
-            label: 'medicine name copied from cited source',
-            sourceExcerpt: 'exact quote with numeric dose and regimen',
-            citationIds: ['candidate id'],
-            missingInputs: ['patient input required before applying the source regimen'],
-          },
-        ],
-        missingInformation: ['patient detail needed to narrow the evidence'],
-      },
+      doseEvidence: [
+        {
+          label: 'medicine name copied from cited source',
+          sourceExcerpt: 'exact quote with numeric dose and regimen',
+          citationIds: ['candidate id'],
+          missingInputs: ['patient input required before applying the source regimen'],
+        },
+      ],
+      missingInformation: ['patient detail needed to narrow the evidence'],
     },
-    null,
-    2,
-  );
+  });
 }
 
 export class GroundedMedicalCore implements MedicalCore {

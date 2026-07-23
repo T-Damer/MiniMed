@@ -15,8 +15,9 @@ query
   → applied result or untouched search fallback
 ```
 
-Each candidate contains a stable chunk ID, document ID, anchor, title, section path, category, and
-bounded snippet. The model receives no arbitrary database or network access.
+Each candidate contains a stable chunk ID, title, category, and bounded snippet. Internal retrieval
+metadata remains outside the prompt and is restored only after candidate-ID validation. The model
+receives at most six candidates and has no arbitrary database or network access.
 
 ## Allowed output
 
@@ -35,9 +36,9 @@ anchors.
 A dose item is accepted only when:
 
 1. every cited ID belongs to the retrieved candidate set;
-2. at least one cited candidate is categorized as treatment;
-3. the label occurs in the cited source;
-4. the excerpt is an exact substring of the cited snippet;
+2. one cited candidate is categorized as treatment;
+3. the label occurs in that same candidate;
+4. the excerpt is an exact substring of that same candidate's snippet;
 5. the excerpt contains a numeric dose unit and a regimen cue.
 
 Strength-only registry text such as `120 mg/5 ml` is not a dosing regimen. The model never calculates or

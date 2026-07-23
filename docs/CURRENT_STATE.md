@@ -25,7 +25,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 - Validated remote/cache/bundled model catalog and device selection.
 - Browser CPU/WebAssembly GGUF runtime with a structured-output viability probe.
-- Optional query planning and reranking over at most 14 retrieved chunks.
+- Optional compact query planning and reranking over at most six retrieved chunks.
 - Exact-source diagnostic candidate extraction.
 - Exact-source dose extraction only from a treatment chunk containing both a numeric dose and regimen.
 - Candidate-ID, text-length, exact-substring, category, and dose-pattern validation.
