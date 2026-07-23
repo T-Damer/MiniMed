@@ -192,7 +192,8 @@ report.completedAt = new Date().toISOString();
 report.completeRegistry = {
   pages: registryPages.length,
   records: registryPages.reduce(
-    (count, entry) => count + (Array.isArray(entry.response?.Data) ? entry.response.Data.length : 0),
+    (count, entry) =>
+      count + (Array.isArray(entry.response?.Data) ? entry.response.Data.length : 0),
     0,
   ),
 };
