@@ -143,16 +143,24 @@ function requestId(): string {
 }
 
 function branchSectionBoost(branch: LexicalQueryBranchPlan, hit: LexicalHit): number {
+  const titleTokens = normalizeSurfaceText(hit.document.title).split(' ');
+  const titleBoost = branch.terms.some(
+    (term) =>
+      term.length >= 4 &&
+      titleTokens.some((titleToken) => titleToken.startsWith(normalizeSurfaceText(term))),
+  )
+    ? 0.3
+    : 0;
   const sectionType = hit.section.sectionType;
-  if (branch.kind === 'investigation' && sectionType === 'diagnostics') return 0.03;
-  if (branch.kind === 'medication' && sectionType === 'treatment') return 0.03;
+  if (branch.kind === 'investigation' && sectionType === 'diagnostics') return titleBoost + 0.03;
+  if (branch.kind === 'medication' && sectionType === 'treatment') return titleBoost + 0.03;
   if (
     branch.kind === 'clinical' &&
     (sectionType === 'clinical-picture' || sectionType === 'differential-diagnosis')
   ) {
-    return 0.025;
+    return titleBoost + 0.025;
   }
-  return 0;
+  return titleBoost;
 }
 
 function fuseBranchHits(

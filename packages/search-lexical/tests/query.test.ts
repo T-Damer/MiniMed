@@ -93,7 +93,7 @@ describe('lexical query planning', () => {
 
   it('keeps diagnosis context searchable after a negated treatment-response phrase', () => {
     const plan = analyzeClinicalQuery(
-      'Нет ответа на стартовый антибиотик через 72 часа при пневмонии',
+      'Нет ответа на стартовый антибиотик через 48–72 часа при пневмонии',
       aliases,
     );
     const negative = plan.analysis.facts.find((fact) => fact.kind === 'negative-finding');
