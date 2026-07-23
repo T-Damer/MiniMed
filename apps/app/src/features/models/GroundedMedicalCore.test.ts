@@ -37,7 +37,12 @@ const analysis: QueryAnalysis = {
   warnings: [],
 };
 
-function searchResult(chunkId: string, documentId: string, title: string): SearchResult {
+function searchResult(
+  chunkId: string,
+  documentId: string,
+  title: string,
+  overrides: Partial<SearchResult> = {},
+): SearchResult {
   return {
     chunkId,
     documentId,
@@ -55,6 +60,7 @@ function searchResult(chunkId: string, documentId: string, title: string): Searc
     matchedBranches: ['original'],
     sectionType: 'diagnostics',
     category: 'diagnostics',
+    ...overrides,
   };
 }
 
@@ -106,13 +112,13 @@ const request: SearchRequest = {
   includeSuggestions: true,
 };
 
-function baseCore(): MedicalCore {
+function baseCore(response: SearchResponse = deterministicResponse): MedicalCore {
   return {
     initialize: vi.fn(),
     getCapabilities: vi.fn(),
     listDocuments: vi.fn(),
     analyzeQuery: vi.fn(),
-    search: vi.fn().mockResolvedValue({ ok: true, value: deterministicResponse }),
+    search: vi.fn().mockResolvedValue({ ok: true, value: response }),
     getDocument: vi.fn(),
     getSection: vi.fn(),
     getContext: vi.fn(),
@@ -138,7 +144,7 @@ function modelController(
   } as unknown as LocalModelController;
 }
 
-function validResponse(task: LocalModelStructuredRequest): unknown {
+function validResponse(task: LocalModelStructuredRequest): Readonly<Record<string, unknown>> {
   if (task.task === 'query-plan') {
     return {
       intent: 'поиск источников о причине кашля и лихорадки',
@@ -153,6 +159,9 @@ function validResponse(task: LocalModelStructuredRequest): unknown {
       { id: 'chunk-b', reason: 'Раздел точнее соответствует формулировке запроса.' },
       { id: 'chunk-a', reason: 'Дополнительный релевантный источник.' },
     ],
+    diagnosisCandidates: [],
+    doseEvidence: [],
+    missingInformation: ['Возраст пациента'],
   };
 }
 
@@ -169,8 +178,125 @@ describe('GroundedMedicalCore', () => {
       phase: 'applied',
       modelId: 'model-a',
       terms: ['кашель', 'лихорадка'],
+      missingInformation: ['Возраст пациента'],
       rerankedCandidates: 2,
     });
+  });
+
+  it('accepts a diagnosis candidate only with an exact retrieved excerpt and citation', async () => {
+    const core = new GroundedMedicalCore(
+      baseCore(),
+      modelController((task) => {
+        if (task.task === 'query-plan') return validResponse(task);
+        return {
+          ...validResponse(task),
+          diagnosisCandidates: [
+            {
+              label: 'Документ B',
+              sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
+              citationIds: ['chunk-b'],
+            },
+          ],
+        };
+      }),
+    );
+
+    const result = await core.search(request);
+
+    expect(result.ok).toBe(true);
+    expect(core.getAssistantState().diagnosisCandidates).toEqual([
+      {
+        label: 'Документ B',
+        sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
+        citations: [
+          {
+            chunkId: 'chunk-b',
+            documentId: 'doc-b',
+            anchor: 'doc-b/section#chunk-b',
+            title: 'Документ B',
+            sectionPath: ['Диагностика'],
+          },
+        ],
+      },
+    ]);
+  });
+
+  it('rejects a dose claim without an exact regimen in a treatment fragment', async () => {
+    const core = new GroundedMedicalCore(
+      baseCore(),
+      modelController((task) => {
+        if (task.task === 'query-plan') return validResponse(task);
+        return {
+          ...validResponse(task),
+          doseEvidence: [
+            {
+              label: 'Документ B',
+              sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
+              citationIds: ['chunk-b'],
+              missingInputs: ['Масса тела'],
+            },
+          ],
+        };
+      }),
+    );
+
+    const result = await core.search(request);
+
+    expect(result.ok).toBe(true);
+    expect(core.getAssistantState().phase).toBe('fallback');
+    expect(core.getAssistantState().doseEvidence).toEqual([]);
+    expect(core.getAssistantState().error).toMatch(/не подтверждена точным режимом/u);
+  });
+
+  it('accepts only a verbatim dose regimen from a treatment fragment', async () => {
+    const doseSnippet = 'Препарат X: 10 мг/кг/сут в 2 приёма.';
+    const treatmentResponse: SearchResponse = {
+      ...deterministicResponse,
+      groups: deterministicResponse.groups.map((group) =>
+        group.documentId === 'doc-b'
+          ? {
+              ...group,
+              categories: ['treatment'],
+              results: [
+                searchResult('chunk-b', 'doc-b', 'Препарат X', {
+                  snippet: doseSnippet,
+                  sectionType: 'treatment',
+                  category: 'treatment',
+                }),
+              ],
+            }
+          : group,
+      ),
+    };
+    const core = new GroundedMedicalCore(
+      baseCore(treatmentResponse),
+      modelController((task) => {
+        if (task.task === 'query-plan') return validResponse(task);
+        return {
+          ...validResponse(task),
+          doseEvidence: [
+            {
+              label: 'Препарат X',
+              sourceExcerpt: doseSnippet,
+              citationIds: ['chunk-b'],
+              missingInputs: ['Масса тела'],
+            },
+          ],
+        };
+      }),
+    );
+
+    const result = await core.search(request);
+
+    expect(result.ok).toBe(true);
+    expect(core.getAssistantState().phase).toBe('applied');
+    expect(core.getAssistantState().doseEvidence).toMatchObject([
+      {
+        label: 'Препарат X',
+        sourceExcerpt: doseSnippet,
+        missingInputs: ['Масса тела'],
+      },
+    ]);
   });
 
   it('returns the untouched deterministic order when the model invents a candidate id', async () => {
