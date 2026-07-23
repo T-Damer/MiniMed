@@ -57,7 +57,8 @@ Metadata modules preserve source links and checksums but do not copy unavailable
 
 Each record is physically packaged only in its declared `primaryModuleId`. Additional `moduleIds` stay
 on the card as search and specialty facets; they never create a second copy of the same document in a
-different downloadable database.
+different downloadable database. Generation fails if the primary module is missing, does not contain
+the record, or if the final set of packaged IDs differs from the ledger.
 
 ## Clinical metadata cards
 
