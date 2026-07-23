@@ -65,6 +65,9 @@ network access on every relevant pull request. The fixture suite validates pagin
 detail metadata, legal categories, medication registration identity and ATC packaging before a live
 source is queried.
 
+The compatibility module and typed implementation are validated together, so callers keep one stable
+import path while malformed API fields remain fail-closed.
+
 A complete medication inventory requires an explicitly configured HTTPS export through
 `MEDICATION_CATALOG_URL` or manual workflow input. The repository does not scrape GRLS, ESKLP or
 commercial interfaces without a supported export and documented rights.
