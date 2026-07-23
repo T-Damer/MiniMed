@@ -16,6 +16,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Russian patient-case parsing, negative findings, query branches, aliases, and missing-field prompts.
 - Search after 500 ms of inactivity with stale-response cancellation.
 - Results grouped by document with exact fragment, surrounding context, and full-document navigation.
+- Initial results limited to five documents with an accessible control to reveal the rest.
 - Document library, history, bookmarks, knowledge-base catalog, and mounted-route state preservation.
 - App-local `@/` import alias for source modules.
 
@@ -59,7 +60,7 @@ The 50-query public-pilot benchmark after the current ranking fixes:
 - context and source-metadata resolution: `1.00`;
 - zero-result rate: `0`.
 
-The browser suite passes the eight search, document, history, and navigation scenarios. The separate
+The browser suite passes the nine search, document, history, and navigation scenarios. The separate
 module-lifecycle scenario requires generated regulatory E2E artifacts and does not run from a bare
 checkout until those artifacts are built.
 

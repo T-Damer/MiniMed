@@ -27,6 +27,23 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(page.getByTestId('reader-context')).toContainText('тахипноэ');
 });
 
+test('limits the initial document list and reveals remaining sources', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.getByTestId('search-input').fill(query);
+  await page.getByTestId('search-submit').click();
+
+  const groups = page.locator('.result-group');
+  await expect(groups).toHaveCount(5);
+  const showMore = page.getByRole('button', { name: /Показать ещё/u });
+  await expect(showMore).toHaveAttribute('aria-expanded', 'false');
+  await showMore.click();
+  expect(await groups.count()).toBeGreaterThan(5);
+  await expect(page.getByRole('button', { name: 'Скрыть остальные документы' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+});
+
 test('preserves the active search while navigating between mounted routes', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);

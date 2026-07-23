@@ -10,11 +10,11 @@ import type {
 } from '@localmed/contracts';
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { AppGlyph } from '../../components/AppGlyph';
-import { CATEGORY_VISUALS, ClinicalGlyph } from '../../components/ClinicalGlyph';
-import { HighlightedText } from '../../components/HighlightedText';
-import { openDocumentInArchive } from '../../state/document-navigation';
-import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '../../state/search-history';
+import { AppGlyph } from '@/components/AppGlyph';
+import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
+import { HighlightedText } from '@/components/HighlightedText';
+import { openDocumentInArchive } from '@/state/document-navigation';
+import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '@/state/search-history';
 
 interface SearchWorkspaceProps {
   readonly core: MedicalCore;
@@ -25,6 +25,8 @@ const EXAMPLES = [
   'Боль справа внизу живота, тошнота и рвота',
   'Лихорадка без очага и рези при мочеиспускании',
 ] as const;
+
+const INITIAL_DOCUMENT_LIMIT = 5;
 
 const CATEGORY_LABELS: Readonly<Record<SearchResultCategory, string>> = {
   overview: 'Обзор',
@@ -90,6 +92,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [response, setResponse] = createSignal<SearchResponse>();
   const [context, setContext] = createSignal<ChunkContext>();
   const [expandedGroups, setExpandedGroups] = createSignal<readonly string[]>([]);
+  const [showAllGroups, setShowAllGroups] = createSignal(false);
   const [contextExpanded, setContextExpanded] = createSignal(false);
   const [readerQuery, setReaderQuery] = createSignal('');
   const [loading, setLoading] = createSignal(false);
@@ -165,6 +168,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (trimmed.length < 2) {
       searchGeneration += 1;
       setResponse(undefined);
+      setShowAllGroups(false);
       setLoading(false);
       return;
     }
@@ -188,6 +192,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setError(undefined);
     setContext(undefined);
     setContextExpanded(false);
+    setShowAllGroups(false);
     setReaderQuery('');
 
     const result = await props.core.search({
@@ -246,6 +251,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setResponse(undefined);
     setContext(undefined);
     setExpandedGroups([]);
+    setShowAllGroups(false);
     setError(undefined);
     setLoading(false);
     requestAnimationFrame(() => {
@@ -474,7 +480,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               </div>
 
               <div class="results-list" data-testid="search-results">
-                <For each={searchResponse().groups}>
+                <For
+                  each={
+                    showAllGroups()
+                      ? searchResponse().groups
+                      : searchResponse().groups.slice(0, INITIAL_DOCUMENT_LIMIT)
+                  }
+                >
                   {(group, groupIndex) => {
                     const expanded = () => expandedGroups().includes(group.documentId);
                     const visibleResults = () =>
@@ -547,6 +559,20 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   }}
                 </For>
               </div>
+              <Show when={searchResponse().groups.length > INITIAL_DOCUMENT_LIMIT}>
+                <button
+                  class="results-more"
+                  type="button"
+                  aria-expanded={showAllGroups()}
+                  onClick={() => setShowAllGroups((current) => !current)}
+                >
+                  {showAllGroups()
+                    ? 'Скрыть остальные документы'
+                    : `Показать ещё ${
+                        searchResponse().groups.length - INITIAL_DOCUMENT_LIMIT
+                      } документов`}
+                </button>
+              </Show>
             </>
           )}
         </Show>
