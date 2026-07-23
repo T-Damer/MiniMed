@@ -1,17 +1,17 @@
+import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { join } from 'node:path';
 
 import { chromium } from '@playwright/test';
 
 const SOURCE_URL = 'https://cr.minzdrav.gov.ru/clin-rec/';
+const TARGET_OPERATION = 'GetJsonClinrecsFilterV2';
 const outputRoot = process.argv[2] ?? 'data/build/official-clinical-registry-probe';
 const responseRoot = join(outputRoot, 'responses');
-const downloadRoot = join(outputRoot, 'download');
 
 await Promise.all([
   mkdir(outputRoot, { recursive: true }),
   mkdir(responseRoot, { recursive: true }),
-  mkdir(downloadRoot, { recursive: true }),
 ]);
 
 function safeName(value) {
@@ -22,67 +22,48 @@ function safeName(value) {
     .slice(0, 180);
 }
 
-function objectKeys(value) {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return [];
-  return Object.keys(value);
+function sha256(value) {
+  return `sha256:${createHash('sha256').update(value).digest('hex')}`;
 }
 
-function collectObjectArrays(value, path = '$', result = []) {
-  if (Array.isArray(value)) {
-    const objects = value.filter(
-      (item) => typeof item === 'object' && item !== null && !Array.isArray(item),
-    );
-    if (objects.length > 0) {
-      const keys = [...new Set(objects.slice(0, 20).flatMap((item) => objectKeys(item)))].sort();
-      result.push({ path, rows: value.length, keys });
-    }
-    for (let index = 0; index < Math.min(value.length, 10); index += 1) {
-      collectObjectArrays(value[index], `${path}[${index}]`, result);
-    }
-    return result;
-  }
-  if (typeof value === 'object' && value !== null) {
-    for (const [key, child] of Object.entries(value)) {
-      collectObjectArrays(child, `${path}.${key}`, result);
-    }
-  }
-  return result;
-}
-
-function clinicalArrayScore(candidate) {
-  const normalized = candidate.keys.map((key) => key.toLowerCase());
-  const matches = (patterns) =>
-    patterns.some((pattern) => normalized.some((key) => key.includes(pattern)));
-  let score = Math.min(candidate.rows, 1000) / 100;
-  if (matches(['id', 'identifier', 'code'])) score += 8;
-  if (matches(['name', 'title', 'наимен'])) score += 8;
-  if (matches(['mkb', 'icd', 'мкб'])) score += 6;
-  if (matches(['age', 'возраст'])) score += 5;
-  if (matches(['developer', 'organization', 'разработ'])) score += 5;
-  if (matches(['status', 'статус'])) score += 4;
-  if (matches(['date', 'дата'])) score += 3;
-  return score;
+function selectedHeaders(headers) {
+  const allowed = new Set(['accept', 'content-type', 'origin', 'referer', 'x-requested-with']);
+  return Object.fromEntries(
+    Object.entries(headers).filter(([key]) => allowed.has(key.toLowerCase())),
+  );
 }
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
-  acceptDownloads: true,
   locale: 'ru-RU',
   userAgent:
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36 MiniMedCatalogProbe/1.0',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36 MiniMedCatalogProbe/2.0',
 });
 const page = await context.newPage();
 
-const responseTasks = [];
-const responseReport = [];
 const consoleMessages = [];
 const pageErrors = [];
+const responseTasks = [];
+const responseReport = [];
+let targetRequest = null;
+let targetPayload = null;
 
 page.on('console', (message) => {
   consoleMessages.push({ type: message.type(), text: message.text().slice(0, 4000) });
 });
 page.on('pageerror', (error) => {
   pageErrors.push(String(error).slice(0, 4000));
+});
+page.on('request', (request) => {
+  if (!request.url().includes(TARGET_OPERATION)) return;
+  const postData = request.postData();
+  targetRequest = {
+    url: request.url(),
+    method: request.method(),
+    headers: selectedHeaders(request.headers()),
+    postData,
+    postDataSha256: postData === null ? null : sha256(postData),
+  };
 });
 page.on('response', (response) => {
   const task = (async () => {
@@ -94,30 +75,28 @@ page.on('response', (response) => {
       return;
     }
     if (!parsed.hostname.endsWith('minzdrav.gov.ru')) return;
+
     const contentType = response.headers()['content-type'] ?? '';
     const entry = {
       url,
       status: response.status(),
       contentType,
-      requestMethod: response.request().method(),
+      method: response.request().method(),
       savedAs: null,
       bytes: null,
-      arrays: [],
+      sha256: null,
     };
     if (/json/iu.test(contentType)) {
       try {
         const body = await response.body();
         entry.bytes = body.byteLength;
+        entry.sha256 = sha256(body);
         if (body.byteLength <= 32 * 1024 * 1024) {
-          const text = body.toString('utf8');
-          const payload = JSON.parse(text);
-          const arrays = collectObjectArrays(payload)
-            .map((candidate) => ({ ...candidate, score: clinicalArrayScore(candidate) }))
-            .sort((left, right) => right.score - left.score || right.rows - left.rows);
-          entry.arrays = arrays.slice(0, 20);
+          const payload = JSON.parse(body.toString('utf8'));
           const fileName = `${String(responseReport.length + 1).padStart(3, '0')}-${safeName(url)}.json`;
           await writeFile(join(responseRoot, fileName), `${JSON.stringify(payload, null, 2)}\n`);
           entry.savedAs = `responses/${fileName}`;
+          if (url.includes(TARGET_OPERATION)) targetPayload = payload;
         }
       } catch (error) {
         entry.error = String(error).slice(0, 2000);
@@ -128,49 +107,27 @@ page.on('response', (response) => {
   responseTasks.push(task);
 });
 
-const navigation = {
+const report = {
   sourceUrl: SOURCE_URL,
   startedAt: new Date().toISOString(),
   finalUrl: null,
   title: null,
-  download: null,
-  downloadError: null,
+  targetRequest: null,
+  targetSummary: null,
+  responses: [],
+  consoleMessages,
+  pageErrors,
 };
 
 try {
   await page.goto(SOURCE_URL, { waitUntil: 'domcontentloaded', timeout: 120_000 });
-  await page.waitForLoadState('networkidle', { timeout: 90_000 }).catch(() => undefined);
-  await page.waitForTimeout(5_000);
-  navigation.finalUrl = page.url();
-  navigation.title = await page.title();
-
-  const downloadLocators = [
-    page.getByRole('button', { name: /^Скачать$/iu }),
-    page.getByRole('link', { name: /^Скачать$/iu }),
-    page.getByText(/^Скачать$/iu),
-  ];
-  for (const locator of downloadLocators) {
-    if ((await locator.count()) === 0) continue;
-    try {
-      const downloadPromise = page.waitForEvent('download', { timeout: 45_000 });
-      await locator.first().click({ timeout: 20_000 });
-      const download = await downloadPromise;
-      const suggested = download.suggestedFilename() || 'clinical-registry-export.bin';
-      const targetName = safeName(basename(suggested)) || 'clinical-registry-export.bin';
-      const target = join(downloadRoot, targetName);
-      await download.saveAs(target);
-      navigation.download = {
-        suggestedFilename: suggested,
-        savedAs: `download/${targetName}`,
-        sourceUrl: download.url(),
-        failure: await download.failure(),
-      };
-      break;
-    } catch (error) {
-      navigation.downloadError = String(error).slice(0, 3000);
-    }
-  }
-
+  await page.waitForResponse(
+    (response) => response.url().includes(TARGET_OPERATION) && response.ok(),
+    { timeout: 120_000 },
+  );
+  await page.waitForTimeout(2_000);
+  report.finalUrl = page.url();
+  report.title = await page.title();
   await writeFile(join(outputRoot, 'page.html'), await page.content());
   await page.screenshot({ path: join(outputRoot, 'page.png'), fullPage: true });
 } finally {
@@ -179,41 +136,36 @@ try {
   await browser.close();
 }
 
-const rankedArrays = responseReport
-  .flatMap((response) =>
-    response.arrays.map((array) => ({
-      responseUrl: response.url,
-      savedAs: response.savedAs,
-      ...array,
-    })),
-  )
-  .sort((left, right) => right.score - left.score || right.rows - left.rows);
+report.targetRequest = targetRequest;
+report.responses = responseReport.sort((left, right) => left.url.localeCompare(right.url));
+if (targetPayload && typeof targetPayload === 'object' && !Array.isArray(targetPayload)) {
+  report.targetSummary = {
+    currentPage: targetPayload.CurrentPage ?? null,
+    pageSize: targetPayload.PageSize ?? null,
+    totalRecords: targetPayload.TotalRecords ?? null,
+    rows: Array.isArray(targetPayload.Data) ? targetPayload.Data.length : null,
+    rowKeys:
+      Array.isArray(targetPayload.Data) && targetPayload.Data.length > 0
+        ? Object.keys(targetPayload.Data[0]).sort()
+        : [],
+  };
+}
+report.completedAt = new Date().toISOString();
 
-await writeFile(
-  join(outputRoot, 'probe-report.json'),
-  `${JSON.stringify(
-    {
-      ...navigation,
-      completedAt: new Date().toISOString(),
-      responses: responseReport.sort((left, right) => left.url.localeCompare(right.url)),
-      rankedClinicalArrays: rankedArrays.slice(0, 50),
-      consoleMessages,
-      pageErrors,
-    },
-    null,
-    2,
-  )}\n`,
-);
+await writeFile(join(outputRoot, 'probe-report.json'), `${JSON.stringify(report, null, 2)}\n`);
+
+if (!targetRequest) throw new Error('Official clinical registry request was not observed.');
+if (!report.targetSummary || Number(report.targetSummary.totalRecords) <= 0) {
+  throw new Error('Official clinical registry returned no records.');
+}
 
 console.log(
   JSON.stringify(
     {
-      finalUrl: navigation.finalUrl,
-      title: navigation.title,
-      download: navigation.download,
-      downloadError: navigation.downloadError,
-      jsonResponses: responseReport.filter((entry) => entry.savedAs).length,
-      topArray: rankedArrays[0] ?? null,
+      finalUrl: report.finalUrl,
+      targetRequest: report.targetRequest,
+      targetSummary: report.targetSummary,
+      jsonResponses: report.responses.filter((entry) => entry.savedAs).length,
     },
     null,
     2,
