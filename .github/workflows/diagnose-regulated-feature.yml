@@ -1,10 +1,9 @@
 name: Diagnose regulated catalog feature
 
 on:
-  pull_request:
+  push:
     branches: [main]
     paths:
-      - .github/workflows/diagnose-regulated-feature.yml
       - .github/trigger-regulated-diagnostics
 
 permissions:
@@ -12,7 +11,6 @@ permissions:
 
 jobs:
   diagnose:
-    if: github.event.pull_request.head.ref == 'ops/run-regulated-diagnostics'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
