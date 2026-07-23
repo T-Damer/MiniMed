@@ -155,10 +155,6 @@ function validResponse(task: LocalModelStructuredRequest): Readonly<Record<strin
   }
   return {
     orderedIds: ['chunk-b', 'chunk-a'],
-    reasons: [
-      { id: 'chunk-b', reason: 'Раздел точнее соответствует формулировке запроса.' },
-      { id: 'chunk-a', reason: 'Дополнительный релевантный источник.' },
-    ],
     diagnosisCandidates: [],
     doseEvidence: [],
     missingInformation: ['Возраст пациента'],
@@ -181,6 +177,47 @@ describe('GroundedMedicalCore', () => {
       missingInformation: ['Возраст пациента'],
       rerankedCandidates: 2,
     });
+  });
+
+  it('keeps the ranking prompt inside the compact-model candidate budget', async () => {
+    const group = deterministicResponse.groups[0];
+    if (!group) throw new Error('Test requires one result group.');
+    const manyResults = Array.from({ length: 10 }, (_, index) =>
+      searchResult(`chunk-${index}`, 'doc-a', 'Документ A', {
+        snippet: `Документ A: ${'длинный клинический фрагмент '.repeat(30)}`,
+      }),
+    );
+    const response: SearchResponse = {
+      ...deterministicResponse,
+      groups: [{ ...group, results: manyResults }],
+    };
+    let candidates: readonly { readonly snippet: string }[] = [];
+    let rankingPromptText = '';
+    const core = new GroundedMedicalCore(
+      baseCore(response),
+      modelController((task) => {
+        if (task.task === 'query-plan') return validResponse(task);
+        rankingPromptText = task.userPrompt;
+        candidates = (
+          JSON.parse(task.userPrompt) as {
+            readonly candidates: readonly { readonly snippet: string }[];
+          }
+        ).candidates;
+        return {
+          orderedIds: [],
+          diagnosisCandidates: [],
+          doseEvidence: [],
+          missingInformation: [],
+        };
+      }),
+    );
+
+    await core.search(request);
+
+    expect(candidates).toHaveLength(6);
+    expect(candidates.every((candidate) => candidate.snippet.length <= 280)).toBe(true);
+    expect(rankingPromptText.length).toBeLessThanOrEqual(5_000);
+    expect(rankingPromptText).not.toContain('\n');
   });
 
   it('accepts a diagnosis candidate only with an exact retrieved excerpt and citation', async () => {
@@ -379,7 +416,7 @@ describe('GroundedMedicalCore', () => {
       baseCore(),
       modelController((task) => {
         if (task.task === 'query-plan') return validResponse(task);
-        return { orderedIds: ['invented-id'], reasons: [] };
+        return { orderedIds: ['invented-id'] };
       }),
     );
 
