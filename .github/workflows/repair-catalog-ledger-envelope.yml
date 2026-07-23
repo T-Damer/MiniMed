@@ -1,0 +1,142 @@
+name: Repair catalog ledger envelope
+
+on:
+  pull_request:
+    branches: [agent/drug-law-catalogs]
+    paths:
+      - docs/CATALOG_METADATA_MODULES.md
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.pull_request.head.ref == 'agent/catalog-module-builder'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/catalog-module-builder
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Accept family-specific ledger metadata
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/ingest/src/localmed_ingest/catalog_module_builder.py')
+          text = path.read_text(encoding='utf-8')
+          ledger_before = '''class LedgerModule(CamelModel):
+              module_id: str
+          '''.replace('              ', '    ')
+          ledger_after = '''class LedgerModule(CamelModel):
+              model_config = ConfigDict(
+                  alias_generator=_to_camel,
+                  populate_by_name=True,
+                  extra="allow",
+              )
+              module_id: str
+          '''.replace('              ', '    ')
+          envelope_before = '''class CoverageLedgerEnvelope(CamelModel):
+              schema_version: int = Field(ge=1)
+          '''.replace('              ', '    ')
+          envelope_after = '''class CoverageLedgerEnvelope(CamelModel):
+              model_config = ConfigDict(
+                  alias_generator=_to_camel,
+                  populate_by_name=True,
+                  extra="allow",
+              )
+              schema_version: int = Field(ge=1)
+          '''.replace('              ', '    ')
+          if ledger_before in text:
+              text = text.replace(ledger_before, ledger_after, 1)
+          elif ledger_after not in text:
+              raise SystemExit('LedgerModule declaration not found.')
+          if envelope_before in text:
+              text = text.replace(envelope_before, envelope_after, 1)
+          elif envelope_after not in text:
+              raise SystemExit('CoverageLedgerEnvelope declaration not found.')
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('tools/ingest/tests/test_catalog_module_builder.py')
+          test = test_path.read_text(encoding='utf-8')
+          before = '''            {
+                          "schemaVersion": 1,
+                          "records": records,
+                          "modules": modules,
+                      },
+          '''.replace('                          ', '                ')
+          after = '''            {
+                          "schemaVersion": 1,
+                          "generatedAt": "2026-07-23T00:00:00Z",
+                          "sourceChecksum": "sha256:" + "0" * 64,
+                          "summary": {"totalRecords": len(records)},
+                          "records": records,
+                          "modules": [
+                              {
+                                  **module,
+                                  "priority": 100,
+                                  "specialties": ["fixture"],
+                              }
+                              for module in modules
+                          ],
+                      },
+          '''.replace('                          ', '                ')
+          if before in test:
+              test = test.replace(before, after, 1)
+          elif '"generatedAt": "2026-07-23T00:00:00Z"' not in test:
+              raise SystemExit('write_ledger fixture payload not found.')
+          test_path.write_text(test, encoding='utf-8')
+          PY
+          uv run --project tools/ingest ruff format \
+            tools/ingest/src/localmed_ingest/catalog_module_builder.py \
+            tools/ingest/tests/test_catalog_module_builder.py
+      - name: Validate and compile fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests/test_catalog_module_builder.py
+          rm -rf data/build/fixture-clinical-ledger.json \
+            data/build/fixture-clinical-modules \
+            data/build/fixture-clinical-databases
+          uv run --project tools/ingest medbase-clinical-catalog build \
+            --source tools/ingest/tests/fixtures/clinical-catalog-sample.json \
+            --taxonomy content/clinical-module-taxonomy.yaml \
+            --overrides content/clinical-coverage-overrides.yaml \
+            --generated-at 2026-07-23T00:00:00Z \
+            --output data/build/fixture-clinical-ledger.json
+          uv run --project tools/ingest medbase-catalog-modules build \
+            --ledger data/build/fixture-clinical-ledger.json \
+            --output-root data/build/fixture-clinical-modules \
+            --family clinical \
+            --version 2026.07.fixture.1 \
+            --built-at 2026-07-23T00:00:00Z
+          mkdir -p data/build/fixture-clinical-databases
+          while IFS= read -r manifest; do
+            workspace="$(dirname "$manifest")"
+            stem="$(basename "$workspace")"
+            uv run --project tools/ingest medbase lint --input "$workspace"
+            uv run --project tools/ingest medbase build \
+              --input "$workspace" \
+              --output "data/build/fixture-clinical-databases/${stem}.db" \
+              --report "data/build/fixture-clinical-databases/${stem}.report.json"
+          done < <(find data/build/fixture-clinical-modules -mindepth 2 -maxdepth 2 \
+            -name manifest.yaml -print | sort)
+      - name: Publish repaired contract
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ingest/src/localmed_ingest/catalog_module_builder.py \
+            tools/ingest/tests/test_catalog_module_builder.py
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'fix: accept family-specific catalog ledger metadata'
+          git push origin HEAD:agent/catalog-module-builder
