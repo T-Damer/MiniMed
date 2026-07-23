@@ -27,6 +27,46 @@ def test_markdown_parser_builds_stable_anchors() -> None:
     assert all(chunk.anchor for section in first.sections for chunk in section.chunks)
 
 
+def test_markdown_parser_disambiguates_repeated_heading_paths(tmp_path: Path) -> None:
+    source = tmp_path / "repeated.md"
+    source.write_text(
+        """---
+id: kr.test.repeated
+title: Repeated headings
+version_label: "1"
+source_type: clinical_recommendation
+status: current
+---
+
+# Treatment
+
+## Evidence level 5
+
+First recommendation.
+
+## Evidence level 5
+
+First recommendation.
+
+## Evidence level 5
+
+Second recommendation.
+""",
+        encoding="utf-8",
+    )
+
+    document = parse_markdown_document(source, "2026-07-24T00:00:00Z")
+    anchors = [
+        anchor
+        for section in document.sections
+        for anchor in [section.anchor, *(chunk.anchor for chunk in section.chunks)]
+    ]
+    chunk_ids = [chunk.id for section in document.sections for chunk in section.chunks]
+
+    assert len(anchors) == len(set(anchors))
+    assert len(chunk_ids) == len(set(chunk_ids))
+
+
 def test_build_is_deterministic_and_searchable(tmp_path: Path) -> None:
     first_db = tmp_path / "first.db"
     second_db = tmp_path / "second.db"
