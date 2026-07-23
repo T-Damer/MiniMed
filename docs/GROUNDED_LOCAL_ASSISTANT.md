@@ -58,11 +58,18 @@ MiniMed returns the original deterministic response when:
 The UI states whether the source order was changed or whether the ordinary deterministic order was
 used. Model failure never blocks source search or document reading.
 
+## Release integration
+
+The Android release candidate is validated on top of the categorized catalog-module stack. Catalog
+records remain metadata-only unless separately promoted through source, rights, extraction, integrity
+and review gates. The assistant can reorder only fragments returned by the active validated SQLite
+stores; it cannot turn catalog metadata into diagnosis, treatment or dosing content.
+
 ## Current limits
 
 This feature uses the current CPU/WebAssembly model runtime in browsers and Android WebView. It does
 not yet prove acceptable speed, memory use or thermal behavior on physical Android devices. The
-0.3.6/0.4.0 gates additionally require:
+0.4.0 gates additionally require:
 
 - a checksum-verified MiniMed-hosted model artifact;
 - physical-device qualification;
