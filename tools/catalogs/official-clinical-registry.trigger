@@ -1,1 +1,1 @@
-probe-1
+validate-complete-registry-2
