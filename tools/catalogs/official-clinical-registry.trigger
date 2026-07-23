@@ -1,1 +1,1 @@
-validate-complete-registry-2
+validate-complete-registry-3
