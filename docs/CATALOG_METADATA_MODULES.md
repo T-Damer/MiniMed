@@ -46,6 +46,7 @@ normal SQLite/FTS5 module. No new runtime format is introduced.
 A record keeps the stable catalog identity chosen by its owning ledger. Secondary category labels may
 make the same source discoverable from several specialties, but publication tooling must preserve one
 canonical identity and report duplicate aliases rather than silently merging unrelated records.
+Canonical JSON checksums preserve the exact normalized catalog record used to generate each card.
 
 ## Clinical metadata cards
 
