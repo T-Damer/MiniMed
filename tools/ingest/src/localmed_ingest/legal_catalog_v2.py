@@ -263,9 +263,7 @@ def _module_score(rule: LegalModuleRule, text: str, authorities: str) -> int:
     if rule.fallback:
         return 0
     score = 20 * sum(_normalized(keyword) in text for keyword in rule.keywords)
-    score += 8 * sum(
-        _normalized(keyword) in authorities for keyword in rule.authority_keywords
-    )
+    score += 8 * sum(_normalized(keyword) in authorities for keyword in rule.authority_keywords)
     return score
 
 
@@ -372,10 +370,7 @@ def _build_record(
         matched_query_ids=[query.id],
         notes=[
             "Metadata collected from the read-only official publication API.",
-            (
-                "Full-text/PDF packaging requires a separate source-asset "
-                "and applicability pass."
-            ),
+            ("Full-text/PDF packaging requires a separate source-asset and applicability pass."),
         ],
         raw_metadata=raw_metadata,
     )
