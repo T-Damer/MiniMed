@@ -8,6 +8,7 @@ import typer
 
 from .clinical_catalog import build_clinical_coverage_ledger, write_clinical_coverage_ledger
 from .official_clinical_registry import (
+    check_selected_clinical_sources,
     collect_official_clinical_registry,
     import_official_clinical_registry_pages,
 )
@@ -56,6 +57,24 @@ def official_sync_command(
             generated_at=generated_at,
         )
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("check-selected")
+def check_selected_command(
+    catalog: Annotated[Path, typer.Option("--catalog", exists=True, dir_okay=False)],
+    registry: Annotated[Path, typer.Option("--registry", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Fail when a selected recommendation is no longer in the active official catalog."""
+    report = check_selected_clinical_sources(catalog, registry)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    if report["updates"]:
+        raise typer.Exit(code=1)
 
 
 @app.command("build")

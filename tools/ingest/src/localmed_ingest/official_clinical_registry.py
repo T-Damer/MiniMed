@@ -10,6 +10,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
+from .source_registry import load_source_registry
+
 OFFICIAL_REGISTRY_PAGE = "https://cr.minzdrav.gov.ru/clin-rec/"
 OFFICIAL_REGISTRY_API = "https://apicr.minzdrav.gov.ru/api.ashx?op=GetJsonClinrecsFilterV2"
 _ALLOWED_API_HOST = "apicr.minzdrav.gov.ru"
@@ -194,6 +196,45 @@ def normalize_official_registry_row(row: dict[str, object]) -> dict[str, object]
     }
 
 
+def check_selected_clinical_sources(catalog_path: Path, registry_path: Path) -> dict[str, object]:
+    catalog: object = json.loads(catalog_path.read_text(encoding="utf-8"))
+    if not isinstance(catalog, dict) or not isinstance(catalog.get("records"), list):
+        raise ValueError("Official registry catalog must contain a records array.")
+    records = [record for record in catalog["records"] if isinstance(record, dict)]
+    active_by_id = {str(record.get("id")): record for record in records if record.get("id")}
+    active_by_code = {str(record.get("code")): record for record in records if record.get("code")}
+    selected: list[dict[str, object]] = []
+
+    for source in load_source_registry(registry_path).sources:
+        official_id = source.metadata.get("officialId")
+        if not isinstance(official_id, str) or not official_id:
+            raise ValueError(f"{source.id}: metadata.officialId is required for update tracking.")
+        active = active_by_id.get(official_id)
+        replacement = active_by_code.get(official_id.split("_", 1)[0]) if active is None else None
+        selected.append(
+            {
+                "sourceId": source.id,
+                "officialId": official_id,
+                "status": (
+                    "current"
+                    if active is not None
+                    else "update-available"
+                    if replacement is not None
+                    else "missing"
+                ),
+                "replacementId": replacement.get("id") if replacement is not None else None,
+            }
+        )
+
+    updates = [item for item in selected if item["status"] != "current"]
+    return {
+        "selected": len(selected),
+        "current": len(selected) - len(updates),
+        "updates": len(updates),
+        "sources": selected,
+    }
+
+
 def collect_official_clinical_registry(
     output: Path,
     *,
@@ -213,7 +254,7 @@ def collect_official_clinical_registry(
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json",
         "Referer": "https://cr.minzdrav.gov.ru/",
-        "User-Agent": "MiniMed-Medbase/1.0 (+https://github.com/T-Damer/MiniMed)",
+        "User-Agent": "MiniMed/0.5",
     }
     raw_pages: list[dict[str, object]] = []
     normalized_records: list[dict[str, object]] = []

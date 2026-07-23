@@ -7,6 +7,7 @@ import pytest
 
 from localmed_ingest.official_clinical_registry import (
     OFFICIAL_REGISTRY_API,
+    check_selected_clinical_sources,
     collect_official_clinical_registry,
     import_official_clinical_registry_pages,
     normalize_official_registry_row,
@@ -86,6 +87,7 @@ def test_collects_every_page_and_preserves_raw_responses(tmp_path: Path) -> None
     ) -> object:
         assert url == OFFICIAL_REGISTRY_API
         assert headers["Content-Type"] == "application/json"
+        assert headers["User-Agent"] == "MiniMed/0.5"
         request = json.loads(body)
         requests.append(request)
         page = int(request["currentPage"])
@@ -212,3 +214,41 @@ def test_imports_browser_captured_pages(tmp_path: Path) -> None:
 
     assert report["totalRecords"] == 2
     assert report["uniqueOfficialIds"] == 2
+
+
+def test_reports_replacement_for_selected_inactive_edition(tmp_path: Path) -> None:
+    catalog = tmp_path / "catalog.json"
+    catalog.write_text(
+        json.dumps({"records": [{"id": "714_3", "code": 714}]}),
+        encoding="utf-8",
+    )
+    registry = tmp_path / "sources.yaml"
+    registry.write_text(
+        """pack:
+  id: test
+  version: "1"
+  schemaVersion: 2
+  title: Test
+  builtAt: "2026-07-24T00:00:00Z"
+sources:
+  - id: kr.test.pneumonia
+    path: pneumonia.pdf
+    title: Pneumonia
+    versionLabel: "714_2"
+    metadata:
+      officialId: "714_2"
+""",
+        encoding="utf-8",
+    )
+
+    report = check_selected_clinical_sources(catalog, registry)
+
+    assert report["updates"] == 1
+    assert report["sources"] == [
+        {
+            "sourceId": "kr.test.pneumonia",
+            "officialId": "714_2",
+            "status": "update-available",
+            "replacementId": "714_3",
+        }
+    ]

@@ -15,9 +15,11 @@ class _SourceHandler(BaseHTTPRequestHandler):
     payload: ClassVar[bytes] = b"# Updated recommendation\n\nSource text.\n"
     etag: ClassVar[str] = '"pilot-v1"'
     request_count: ClassVar[int] = 0
+    user_agent: ClassVar[str | None] = None
 
     def do_GET(self) -> None:
         type(self).request_count += 1
+        type(self).user_agent = self.headers.get("User-Agent")
         if self.headers.get("If-None-Match") == self.etag:
             self.send_response(304)
             self.end_headers()
@@ -114,6 +116,7 @@ def test_remote_sync_uses_conditional_request_and_stale_cache(tmp_path: Path) ->
     assert fallback.sources[0].warning is not None
     assert (output / "recommendation.md").read_bytes() == _SourceHandler.payload
     assert _SourceHandler.request_count == 2
+    assert _SourceHandler.user_agent == "MiniMed/0.5"
 
 
 def test_offline_mode_requires_and_reuses_validated_cache(tmp_path: Path) -> None:

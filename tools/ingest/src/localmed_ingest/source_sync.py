@@ -320,7 +320,7 @@ def _sync_remote(
                 "text/html,application/xhtml+xml,application/pdf,"
                 "text/plain,text/markdown,application/octet-stream;q=0.8"
             ),
-            "User-Agent": "MiniMed-Medbase/1.0 (+https://github.com/T-Damer/MiniMed)",
+            "User-Agent": "MiniMed/0.5",
         }
         if cached_valid and metadata is not None and not force_refresh:
             if metadata.etag:

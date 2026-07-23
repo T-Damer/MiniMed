@@ -115,7 +115,8 @@ matching source assets.
 
 ## Data updates
 
-The owner supplies the trusted documents. Initial ingestion is local and manual:
+The owner selects the trusted documents, either supplied manually or gathered from a declared
+official API. Initial ingestion remains local and explicit:
 
 ```text
 declare source → prepare → inspect diagnostics → lint → build → benchmark → install
