@@ -14,6 +14,7 @@ dependencies = [
 medbase = "localmed_ingest.cli:app"
 medbase-clinical-catalog = "localmed_ingest.clinical_catalog_cli:app"
 medbase-regulated-catalog = "localmed_ingest.regulated_catalog_cli:app"
+medbase-catalog-modules = "localmed_ingest.catalog_module_cli:app"
 
 [dependency-groups]
 dev = [
