@@ -1,0 +1,146 @@
+.grounded-assistant-status {
+  width: min(1100px, calc(100% - 32px));
+  margin: 14px auto -8px;
+  padding: 12px 14px;
+  border: 1px solid rgb(79 65 37 / 24%);
+  color: var(--ink);
+  background: rgb(251 247 234 / 82%);
+  box-shadow: 0 10px 26px rgb(36 32 24 / 12%);
+}
+
+.grounded-assistant-status.applied {
+  border-color: rgb(64 91 78 / 40%);
+  background: rgb(231 239 224 / 82%);
+}
+
+.grounded-assistant-status.fallback {
+  border-color: rgb(135 69 60 / 36%);
+  background: rgb(246 232 225 / 84%);
+}
+
+.grounded-assistant-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.grounded-assistant-heading > span {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--folder-dark);
+  box-shadow: 0 0 0 5px rgb(143 120 73 / 11%);
+}
+
+.grounded-assistant-status.running .grounded-assistant-heading > span {
+  animation: grounded-assistant-pulse 1.1s ease-in-out infinite;
+}
+
+.grounded-assistant-status.applied .grounded-assistant-heading > span {
+  background: var(--green-file);
+}
+
+.grounded-assistant-status.fallback .grounded-assistant-heading > span {
+  background: var(--stamp);
+}
+
+.grounded-assistant-heading strong {
+  font-size: 13px;
+}
+
+.grounded-assistant-heading p {
+  margin: 3px 0 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.grounded-assistant-status details {
+  margin: 10px 0 0 19px;
+  border-top: 1px dashed rgb(79 65 37 / 22%);
+  padding-top: 8px;
+}
+
+.grounded-assistant-status summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.grounded-assistant-details {
+  display: grid;
+  gap: 10px;
+  padding: 10px 0 2px;
+}
+
+.grounded-assistant-details > div {
+  display: grid;
+  gap: 6px;
+}
+
+.grounded-assistant-details span {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.grounded-assistant-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.grounded-assistant-tags b {
+  padding: 4px 7px;
+  border: 1px solid rgb(64 91 78 / 25%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 42%);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.grounded-assistant-details ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.grounded-assistant-details small {
+  color: var(--ink-faint);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.grounded-assistant-error {
+  margin: 8px 0 0;
+  color: var(--stamp);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@keyframes grounded-assistant-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@media (max-width: 760px) {
+  .grounded-assistant-status {
+    width: calc(100% - 16px);
+    margin-top: 8px;
+    padding: 11px 12px;
+  }
+}

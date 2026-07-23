@@ -1,3 +1,4 @@
+import { SerialAsyncQueue } from './serial-async-queue';
 import type {
   LocalModelArtifact,
   LocalModelDescriptor,
@@ -5,6 +6,8 @@ import type {
   LocalModelLoadCallbacks,
   LocalModelRuntime,
   LocalModelSession,
+  LocalModelStructuredRequest,
+  LocalModelStructuredResponse,
 } from './types';
 
 interface WllamaProgress {
@@ -77,13 +80,17 @@ function joinUrl(base: string, path: string): string {
   return `${base.replace(/\/$/u, '')}/${path.replace(/^\//u, '')}`;
 }
 
+function withoutThinking(value: string): string {
+  return value.replace(/<think>[\s\S]*?<\/think>/giu, '').trim();
+}
+
 function extractJson(value: string): unknown | null {
-  const withoutThinking = value.replace(/<think>[\s\S]*?<\/think>/giu, '').trim();
-  const start = withoutThinking.indexOf('{');
-  const end = withoutThinking.lastIndexOf('}');
+  const cleaned = withoutThinking(value);
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
   if (start < 0 || end <= start) return null;
   try {
-    return JSON.parse(withoutThinking.slice(start, end + 1)) as unknown;
+    return JSON.parse(cleaned.slice(start, end + 1)) as unknown;
   } catch {
     return null;
   }
@@ -106,6 +113,8 @@ function outputPreview(value: string): string {
 }
 
 class BrowserWllamaSession implements LocalModelSession {
+  private readonly structuredTasks = new SerialAsyncQueue();
+
   public readonly modelId: string;
   public readonly artifactId: string;
 
@@ -118,31 +127,47 @@ class BrowserWllamaSession implements LocalModelSession {
     this.artifactId = artifactId;
   }
 
-  public async benchmark() {
+  private async runStructured(
+    request: LocalModelStructuredRequest,
+  ): Promise<LocalModelStructuredResponse> {
     const startedAt = performance.now();
     const noThinking = this.model.family.includes('qwen3') ? '/no_think\n' : '';
     const result = await this.instance.createChatCompletion({
       messages: [
-        {
-          role: 'system',
-          content:
-            'Ты проверяешь работу локальной модели. Не рассуждай вслух. Верни только один JSON-объект с полями intent, ageYears и concepts.',
-        },
-        {
-          role: 'user',
-          content: `${noThinking}Девочка 3 лет. Запрос: лечение бронхиальной астмы при потере контроля. Верни intent строкой, ageYears числом и concepts массивом строк.`,
-        },
+        { role: 'system', content: request.systemPrompt },
+        { role: 'user', content: `${noThinking}${request.userPrompt}` },
       ],
-      max_tokens: 160,
-      temperature: 0,
+      max_tokens: Math.max(32, Math.min(512, Math.round(request.maxTokens))),
+      temperature: Math.max(0, Math.min(0.4, request.temperature ?? 0)),
       top_p: 1,
     });
-    const generationMs = performance.now() - startedAt;
-    const output = result.choices?.[0]?.message?.content?.trim() ?? '';
-    const parsed = extractJson(output);
-    const validStructuredOutput = isValidProbe(parsed);
+    const rawText = result.choices?.[0]?.message?.content?.trim() ?? '';
+    return {
+      task: request.task,
+      rawText,
+      parsedJson: extractJson(rawText),
+      generationMs: performance.now() - startedAt,
+    };
+  }
+
+  public completeStructured(
+    request: LocalModelStructuredRequest,
+  ): Promise<LocalModelStructuredResponse> {
+    return this.structuredTasks.run(() => this.runStructured(request));
+  }
+
+  public async benchmark() {
+    const response = await this.completeStructured({
+      task: 'query-plan',
+      systemPrompt:
+        'Ты проверяешь работу локальной модели. Не рассуждай вслух. Верни только один JSON-объект с полями intent, ageYears и concepts.',
+      userPrompt:
+        'Девочка 3 лет. Запрос: лечение бронхиальной астмы при потере контроля. Верни intent строкой, ageYears числом и concepts массивом строк.',
+      maxTokens: 160,
+    });
+    const validStructuredOutput = isValidProbe(response.parsedJson);
     if (!validStructuredOutput) {
-      const preview = outputPreview(output) || 'Модель не вернула текст.';
+      const preview = outputPreview(response.rawText) || 'Модель не вернула текст.';
       throw new Error(
         `Модель загрузилась, но не прошла проверку ответа. Получено: «${preview}». Попробуйте повторить тест или выбрать другую модель.`,
       );
@@ -151,13 +176,14 @@ class BrowserWllamaSession implements LocalModelSession {
       modelId: this.modelId,
       artifactId: this.artifactId,
       runtime: 'wllama-web' as const,
-      generationMs,
-      outputCharacters: output.length,
+      generationMs: response.generationMs,
+      outputCharacters: response.rawText.length,
       validStructuredOutput,
     };
   }
 
   public async unload(): Promise<void> {
+    await this.structuredTasks.close();
     if (this.instance.unloadModel) {
       await this.instance.unloadModel();
       return;
