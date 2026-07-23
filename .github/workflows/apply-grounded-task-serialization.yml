@@ -8,7 +8,7 @@ on:
       - tools/grounded-task-serialization.trigger
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   apply:
@@ -36,51 +36,32 @@ jobs:
             apps/app/src/features/models/serial-async-queue.test.ts \
             apps/app/src/features/models/browser-runtime.ts \
             apps/app/src/features/models/GroundedMedicalCore.ts
-      - name: Check grounded serialization formatting and lint
+      - name: Validate grounded serialization
         run: |
           pnpm exec biome check \
             apps/app/src/features/models/serial-async-queue.ts \
             apps/app/src/features/models/serial-async-queue.test.ts \
             apps/app/src/features/models/browser-runtime.ts \
             apps/app/src/features/models/GroundedMedicalCore.ts
-      - name: Check grounded serialization types
-        run: pnpm typecheck
-      - name: Test serial task queue
-        run: pnpm exec vitest run apps/app/src/features/models/serial-async-queue.test.ts
-      - name: Run all unit tests
-        id: unit-tests
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          pnpm test:unit > app-unit-tests.txt 2>&1
-          status=$?
-          cat app-unit-tests.txt
-          exit "$status"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: application-unit-test-diagnostic
-          path: app-unit-tests.txt
-          if-no-files-found: error
-      - name: Require all unit tests
-        if: steps.unit-tests.outcome != 'success'
-        run: exit 1
-      - name: Build application
-        run: pnpm build
-      - name: Publish source changes
+          pnpm typecheck
+          pnpm exec vitest run apps/app/src/features/models/serial-async-queue.test.ts
+          pnpm test:unit
+          pnpm build
+      - name: Stage validated patch files
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            apps/app/src/features/models/serial-async-queue.ts \
-            apps/app/src/features/models/serial-async-queue.test.ts \
-            apps/app/src/features/models/browser-runtime.ts \
-            apps/app/src/features/models/GroundedMedicalCore.ts
-          git add -u -- tools/apply-grounded-task-serialization.py
-          git add -u -- tools/grounded-task-serialization.trigger || true
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'fix: serialize local model structured tasks'
-          git push origin HEAD:agent/grounded-local-assistant
+          mkdir -p validated-patch/apps/app/src/features/models
+          cp apps/app/src/features/models/serial-async-queue.ts \
+            validated-patch/apps/app/src/features/models/serial-async-queue.ts
+          cp apps/app/src/features/models/serial-async-queue.test.ts \
+            validated-patch/apps/app/src/features/models/serial-async-queue.test.ts
+          cp apps/app/src/features/models/browser-runtime.ts \
+            validated-patch/apps/app/src/features/models/browser-runtime.ts
+          cp apps/app/src/features/models/GroundedMedicalCore.ts \
+            validated-patch/apps/app/src/features/models/GroundedMedicalCore.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: grounded-task-serialization-patch
+          path: validated-patch
+          if-no-files-found: error
