@@ -8,7 +8,13 @@ and exact source-navigation product before it is a chat product.
 The target architecture and milestones live in `docs/TECHNICAL_PLAN.md`. The implemented state and
 ordered next tasks live in `docs/CURRENT_STATE.md`.
 
-## Version 0.3.1 outcome
+The target one-window clinical flow is defined in
+[`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md). General learning queries remain independent
+workspace threads. Patient-specific work may be attached to an explicit patient and episode, but
+patient matching, episode continuation, and semantically similar cases remain separate user-confirmed
+actions.
+
+## Current implemented boundary
 
 A user can paste a long Russian-language case description. Without an LLM or network call, the app can:
 
@@ -57,6 +63,24 @@ The committed benchmark suite contains:
 Russian release metrics are reported separately from foreign-dataset metrics. Strong foreign results
 cannot compensate for regression on Russian source applicability or provenance.
 
+## Required capabilities before 1.0
+
+The stable personal edition must prove the complete architecture on a representative, explicitly
+incomplete corpus:
+
+- runtime medical and administrative entities, reviewed relations, and exact evidence navigation;
+- a local patient/episode workspace with provenance and no automatic case merging;
+- deterministic medication rules and patient-specific calculations where reviewed sources support
+  them;
+- versioned Russian clinical, medication, and regulatory source packs;
+- local embeddings, reranking, structured extraction, and evidence-grounded synthesis with
+  deterministic fallback;
+- a portable Rust clinical core shared by web, desktop, Android/iOS, and CLI through the parity
+  migration in ADR-0010;
+- reproducible retrieval benchmarks plus content-pack integrity, update, and rollback.
+
+Cloud synthesis may use the same evidence contract, but is not required for the primary workflow.
+
 ## Product invariants
 
 - Offline retrieval remains useful with every model adapter disabled.
@@ -66,6 +90,7 @@ cannot compensate for regression on Russian source applicability or provenance.
 - Optional cloud/model failures cannot break source navigation.
 - Real patient data is absent from fixtures, tests, logs, analytics, and release artifacts.
 - Every trusted structured claim must resolve to evidence and an explicit review state.
+- Similar symptoms may suggest a related case but cannot establish patient identity.
 
 ## Initial user and non-goals
 
