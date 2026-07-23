@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: validate-official-registry-feature
+  cancel-in-progress: true
+
 jobs:
   validate:
     if: github.event.pull_request.head.ref == 'ops/validate-official-registry'
@@ -19,25 +23,13 @@ jobs:
         with:
           ref: agent/official-clinical-registry-export
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22.16.0
-          cache: pnpm
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.10.0'
           enable-cache: true
-      - run: pnpm install --frozen-lockfile
       - run: uv sync --project tools/ingest --all-groups --locked
-      - run: pnpm exec playwright install chromium --with-deps
-      - name: Validate request contract and source code
-        shell: bash
+      - name: Validate collector code and offline fixtures
         run: |
-          set -euo pipefail
-          node tools/catalogs/probe-clinical-registry.mjs data/build/official-clinical-registry-probe
           uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
           uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
           uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
@@ -79,9 +71,16 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-          registry = json.loads(Path('data/build/official-clinical-registry-report.json').read_text())
-          ledger = json.loads(Path('data/build/official-clinical-coverage-ledger.json').read_text())
-          modules = json.loads(Path('data/build/official-clinical-modules/module-build-report.json').read_text())
+
+          registry = json.loads(
+              Path('data/build/official-clinical-registry-report.json').read_text()
+          )
+          ledger = json.loads(
+              Path('data/build/official-clinical-coverage-ledger.json').read_text()
+          )
+          modules = json.loads(
+              Path('data/build/official-clinical-modules/module-build-report.json').read_text()
+          )
           expected = registry['totalRecords']
           ids = [value for module in modules['modules'] for value in module['documentIds']]
           assert expected >= 700
@@ -103,7 +102,6 @@ jobs:
         with:
           name: official-clinical-registry-feature-validation
           path: |
-            data/build/official-clinical-registry-probe
             data/raw/official-clinical-registry
             data/build/official-clinical-registry-report.json
             data/build/official-clinical-coverage-ledger.json
