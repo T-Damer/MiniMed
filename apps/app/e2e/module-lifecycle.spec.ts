@@ -18,13 +18,21 @@ function regulatoryCard(page: Page): Locator {
   return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
 }
 
+function manifestVersion(manifest: string): string {
+  const match = /^version:\s*["']?([^\s"']+)["']?\s*$/m.exec(manifest);
+  if (!match?.[1]) throw new Error('Regulatory E2E manifest requires a version.');
+  return match[1];
+}
+
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
   page,
 }) => {
-  const [catalog, database] = await Promise.all([
+  const [catalog, database, manifest] = await Promise.all([
     readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
     readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
+    readFile(resolve(ROOT, 'content/regulatory-rf-pilot/manifest.yaml'), 'utf8'),
   ]);
+  const regulatoryVersion = manifestVersion(manifest);
 
   await page.route(
     (url) => url.href.startsWith(CATALOG_URL),
@@ -57,7 +65,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await card.getByRole('button', { name: 'Скачать документы' }).click();
   await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
-  await expect(card.getByText('Версия 0.3.3', { exact: true })).toBeVisible();
+  await expect(card.getByText(`Версия ${regulatoryVersion}`, { exact: true })).toBeVisible();
 
   await navigationButton(page, 'Поиск').click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
