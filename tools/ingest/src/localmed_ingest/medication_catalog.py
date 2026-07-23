@@ -245,7 +245,11 @@ def _assign_modules(
 ) -> tuple[list[MedicationModuleRule], MedicationModuleRule]:
     fallback = next(module for module in taxonomy.modules if module.fallback)
     names = _normalized(" ".join([trade_name, *inn]))
-    scored = [(_score(module, names, atc_codes), module) for module in taxonomy.modules if not module.fallback]
+    scored = [
+        (_score(module, names, atc_codes), module)
+        for module in taxonomy.modules
+        if not module.fallback
+    ]
     matches = [pair for pair in scored if pair[0] > 0]
     matches.sort(key=lambda pair: (-pair[0], -pair[1].priority, pair[1].id))
     if not matches:

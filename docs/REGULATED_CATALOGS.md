@@ -37,11 +37,12 @@ https://publication.pravo.gov.ru/api/Documents
 https://publication.pravo.gov.ru/api/Document?eoNumber=...
 ```
 
-`content/official-health-law-queries.yaml` declares the health-related searches. The collector:
+`content/official-health-law-queries.yaml` declares the health-related searches. The typed collector:
 
 - uses HTTPS and only the official publication host;
 - requests supported page sizes and follows the reported page count;
 - records every request URL and raw page in the source checksum;
+- validates object and integer fields before storing them;
 - deduplicates acts by electronic publication number;
 - optionally requests document-type and authority details;
 - preserves publication, signature and Ministry of Justice registration metadata;
@@ -60,7 +61,12 @@ separate applicability pass and remain explicit review work.
 ## Automation
 
 `.github/workflows/regulated-catalog-inventory.yml` runs parser and classification tests without
-network access on every relevant pull request.
+network access on every relevant pull request. The fixture suite validates pagination, duplicate acts,
+detail metadata, legal categories, Russian title inflections, medication registration identity and
+ATC packaging before a live source is queried.
+
+The compatibility module and typed implementation are validated together, so callers keep one stable
+import path while malformed API fields remain fail-closed.
 
 A complete medication inventory requires an explicitly configured HTTPS export through
 `MEDICATION_CATALOG_URL` or manual workflow input. The repository does not scrape GRLS, ESKLP or
@@ -68,7 +74,15 @@ commercial interfaces without a supported export and documented rights.
 
 Official law collection is also opt-in for scheduled runs through `ENABLE_LEGAL_CATALOG_SYNC=true`.
 The query configuration and raw API pages are uploaded alongside the normalized ledger so coverage
-changes can be audited.
+changes can be audited. Fixture validation proves parser behavior only; real coverage totals always
+refer to the exact configured export or official API pages preserved with that run. Normal CI must
+pass formatting, strict typing and the offline regulated-catalog fixture suite, and every live run
+must retain its declared source URL or raw official API pages. The permanent workflow is read-only;
+formatting changes must be committed before validation.
+
+Temporary diagnostic workflows may capture exact tool output while a branch is being repaired, but
+they and their generated reports must be removed before the PR is merged. Diagnostics must contain
+only repository fixtures, tool output and public-source metadata—never patient or user query data.
 
 ## Publication boundary
 
