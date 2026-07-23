@@ -77,7 +77,8 @@ must retain its declared source URL or raw official API pages. The permanent wor
 formatting changes must be committed before validation.
 
 Temporary diagnostic workflows may capture exact tool output while a branch is being repaired, but
-they and their generated reports must be removed before the PR is merged.
+they and their generated reports must be removed before the PR is merged. Diagnostics must contain
+only repository fixtures, tool output and public-source metadata—never patient or user query data.
 
 ## Publication boundary
 
