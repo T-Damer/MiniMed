@@ -1,6 +1,9 @@
 # Roadmap
 
-[`TECHNICAL_PLAN.md`](TECHNICAL_PLAN.md) preserves the original detailed implementation plan. Current product direction is governed by [`PRODUCT.md`](PRODUCT.md), the one-window flow in [`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md), this delivery order, and accepted ADRs when they supersede an earlier plan.
+[`TECHNICAL_PLAN.md`](TECHNICAL_PLAN.md) remains the baseline architecture and milestone plan.
+Accepted ADRs may supersede specific decisions; [`CURRENT_STATE.md`](CURRENT_STATE.md) remains the
+authority for implemented behavior and ordered next work. This roadmap records the resulting
+pre-1.0 product sequence.
 
 ## 0.0.1–0.0.3 — foundation — complete
 
