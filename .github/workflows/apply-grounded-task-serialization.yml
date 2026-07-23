@@ -46,7 +46,25 @@ jobs:
       - name: Check grounded serialization types
         run: pnpm typecheck
       - name: Test serial task queue
-        run: pnpm exec vitest run apps/app/src/features/models/serial-async-queue.test.ts
+        id: queue-test
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          pnpm exec vitest run apps/app/src/features/models/serial-async-queue.test.ts \
+            > serial-queue-test.txt 2>&1
+          status=$?
+          cat serial-queue-test.txt
+          exit "$status"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: serial-queue-test-diagnostic
+          path: serial-queue-test.txt
+          if-no-files-found: error
+      - name: Require serial task queue tests
+        if: steps.queue-test.outcome != 'success'
+        run: exit 1
       - name: Run all unit tests
         run: pnpm test:unit
       - name: Build application
