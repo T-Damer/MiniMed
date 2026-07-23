@@ -55,7 +55,9 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   const card = regulatoryCard(page);
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible();
   await card.getByRole('button', { name: 'Скачать документы' }).click();
-  await expect(card.getByText('Установлено', { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(card.locator('.module-state').getByText('Установлено', { exact: true })).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
   await expect(card.getByText(/Версия 0\.3\.3/u)).toBeVisible();
 
