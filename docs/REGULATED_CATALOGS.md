@@ -76,6 +76,9 @@ pass formatting, strict typing and the offline regulated-catalog fixture suite, 
 must retain its declared source URL or raw official API pages. The permanent workflow is read-only;
 formatting changes must be committed before validation.
 
+Temporary diagnostic workflows may capture exact tool output while a branch is being repaired, but
+they and their generated reports must be removed before the PR is merged.
+
 ## Publication boundary
 
 These ledgers are inputs to later module builders. A record becomes `published` only after:
