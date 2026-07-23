@@ -235,14 +235,26 @@ def parse_markdown_document(path: Path, extracted_at: str) -> PackDocument:
     draft_sections = parse_sections(body)
     pack_sections: list[PackSection] = []
     section_id_by_path: dict[tuple[str, ...], str] = {}
+    section_path_occurrences: dict[tuple[str, ...], int] = {}
+    section_anchor_occurrences: dict[str, int] = {}
     chunk_order = 0
 
     for section_order, draft in enumerate(draft_sections):
         path_key = tuple(draft.path)
-        section_id = stable_id("section", f"{version_id}|{'/'.join(draft.path)}")
+        occurrence = section_path_occurrences.get(path_key, 0) + 1
+        section_path_occurrences[path_key] = occurrence
+        path_identity = "/".join(draft.path)
+        if occurrence > 1:
+            path_identity = f"{path_identity}|{occurrence}"
+        section_id = stable_id("section", f"{version_id}|{path_identity}")
         section_id_by_path[path_key] = section_id
         parent_id = section_id_by_path.get(tuple(draft.path[:-1]))
-        section_anchor = f"{version_id}/{'/'.join(slugify(part) for part in draft.path)}"
+        section_anchor_base = f"{version_id}/{'/'.join(slugify(part) for part in draft.path)}"
+        anchor_occurrence = section_anchor_occurrences.get(section_anchor_base, 0) + 1
+        section_anchor_occurrences[section_anchor_base] = anchor_occurrence
+        section_anchor = section_anchor_base
+        if anchor_occurrence > 1:
+            section_anchor = f"{section_anchor_base}--{anchor_occurrence}"
         chunks: list[PackChunk] = []
         for local_index, text_chunk in enumerate(chunk_paragraphs(draft.paragraphs)):
             chunk_id = stable_id(
