@@ -1,0 +1,163 @@
+name: Clinical catalog inventory
+
+on:
+  pull_request:
+    branches: [main, agent/doctor-datasets-model-diagnostics]
+    paths:
+      - .github/workflows/clinical-catalog-inventory.yml
+      - content/clinical-module-taxonomy.yaml
+      - content/clinical-coverage-overrides.yaml
+      - tools/ingest/src/localmed_ingest/clinical_catalog.py
+      - tools/ingest/src/localmed_ingest/clinical_catalog_cli.py
+      - tools/ingest/tests/test_clinical_catalog.py
+      - tools/ingest/tests/fixtures/clinical-catalog-sample.json
+      - tools/ingest/pyproject.toml
+      - tools/ingest/uv.lock
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/clinical-catalog-inventory.yml
+      - content/clinical-module-taxonomy.yaml
+      - content/clinical-coverage-overrides.yaml
+      - tools/ingest/src/localmed_ingest/clinical_catalog.py
+      - tools/ingest/src/localmed_ingest/clinical_catalog_cli.py
+      - tools/ingest/tests/test_clinical_catalog.py
+      - tools/ingest/tests/fixtures/clinical-catalog-sample.json
+      - tools/ingest/pyproject.toml
+      - tools/ingest/uv.lock
+  schedule:
+    - cron: '24 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      catalog_url:
+        description: HTTPS URL of a JSON/JSONL/CSV/TSV catalog export
+        required: false
+        type: string
+      catalog_format:
+        description: Catalog export format
+        required: false
+        default: json
+        type: choice
+        options: [json, jsonl, csv, tsv]
+      fail_on_warning:
+        description: Fail when rows cannot be normalized
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clinical-catalog-inventory-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-planner:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Validate Python and taxonomy
+        run: |
+          uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests/test_clinical_catalog.py
+      - name: Build deterministic fixture ledger
+        run: |
+          uv run --project tools/ingest medbase-clinical-catalog build \
+            --source tools/ingest/tests/fixtures/clinical-catalog-sample.json \
+            --taxonomy content/clinical-module-taxonomy.yaml \
+            --overrides content/clinical-coverage-overrides.yaml \
+            --generated-at 2026-07-23T00:00:00Z \
+            --output data/build/clinical-coverage-sample.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          ledger = json.loads(Path('data/build/clinical-coverage-sample.json').read_text())
+          assert ledger['summary']['totalRecords'] == 6
+          assert ledger['summary']['coverageCounts']['needs-review'] == 3
+          assert ledger['summary']['coverageCounts']['metadata-only'] == 2
+          assert ledger['summary']['coverageCounts']['historical'] == 1
+          assert len(ledger['modules']) >= 4
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clinical-catalog-fixture-ledger
+          path: data/build/clinical-coverage-sample.json
+          if-no-files-found: error
+
+  inventory-configured-catalog:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && vars.CLINICAL_CATALOG_URL != '')
+    needs: validate-planner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      INPUT_URL: ${{ inputs.catalog_url }}
+      INPUT_FORMAT: ${{ inputs.catalog_format }}
+      CONFIGURED_URL: ${{ vars.CLINICAL_CATALOG_URL }}
+      CONFIGURED_FORMAT: ${{ vars.CLINICAL_CATALOG_FORMAT }}
+      FAIL_ON_WARNING: ${{ inputs.fail_on_warning }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Resolve declared catalog source
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${INPUT_URL:-${CONFIGURED_URL:-}}"
+          format="${INPUT_FORMAT:-${CONFIGURED_FORMAT:-json}}"
+          case "$format" in json|jsonl|csv|tsv) ;; *) echo "Unsupported format: $format" >&2; exit 1 ;; esac
+          case "$url" in https://*) ;; *) echo 'Catalog URL must use HTTPS.' >&2; exit 1 ;; esac
+          mkdir -p data/raw/clinical-catalog data/build
+          printf '%s' "$url" > data/raw/clinical-catalog/source-url.txt
+          printf '%s' "$format" > data/raw/clinical-catalog/source-format.txt
+          curl --fail --location --retry 4 --retry-all-errors \
+            --max-time 300 \
+            --output "data/raw/clinical-catalog/catalog.${format}" \
+            "$url"
+      - name: Build complete coverage ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          format="$(cat data/raw/clinical-catalog/source-format.txt)"
+          warning_flag=''
+          if [ "${FAIL_ON_WARNING:-false}" = 'true' ]; then warning_flag='--fail-on-warning'; fi
+          uv run --project tools/ingest medbase-clinical-catalog build \
+            --source "data/raw/clinical-catalog/catalog.${format}" \
+            --taxonomy content/clinical-module-taxonomy.yaml \
+            --overrides content/clinical-coverage-overrides.yaml \
+            --output data/build/clinical-coverage-ledger.json \
+            $warning_flag
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('data/build/clinical-coverage-ledger.json')
+          ledger = json.loads(path.read_text(encoding='utf-8'))
+          summary = ledger['summary']
+          if summary['totalRecords'] == 0:
+              raise SystemExit('Configured catalog produced zero normalized records.')
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clinical-catalog-coverage-ledger
+          path: |
+            data/build/clinical-coverage-ledger.json
+            data/raw/clinical-catalog/source-url.txt
+            data/raw/clinical-catalog/source-format.txt
+          if-no-files-found: error
