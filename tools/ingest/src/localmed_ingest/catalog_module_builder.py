@@ -4,7 +4,6 @@ import hashlib
 import json
 import re
 import shutil
-from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal, cast
@@ -226,17 +225,30 @@ def _clinical_document(record: dict[str, object]) -> tuple[str, str, str, list[d
         "# Сведения о рекомендации",
         "",
         _source_marker(record_id, "identity"),
-        f"Клиническая рекомендация «{title}» зарегистрирована в каталоге под идентификатором {official_id}. Редакция: {version}. Статус применения: {application_status or status}.",
+        (
+            f"Клиническая рекомендация «{title}» зарегистрирована в каталоге "
+            f"под идентификатором {official_id}. Редакция: {version}. "
+            f"Статус применения: {application_status or status}."
+        ),
         "",
         "# Применимость и классификация",
         "",
         _source_marker(record_id, "classification"),
-        f"Коды МКБ-10: {_format_values(icd_codes)}. Возрастные категории: {_format_values(age_categories)}. Разработчик: {developer or 'не указан в каталоге'}.",
+        (
+            f"Коды МКБ-10: {_format_values(icd_codes)}. "
+            f"Возрастные категории: {_format_values(age_categories)}. "
+            f"Разработчик: {developer or 'не указан в каталоге'}."
+        ),
         "",
         "# Доступность источника",
         "",
         _source_marker(record_id, "coverage"),
-        f"Состояние покрытия MiniMed: {coverage}. Права на распространение: {rights}. Полный текст не считается установленным, пока запись не имеет состояния published и не прошла проверку модуля.",
+        (
+            f"Состояние покрытия MiniMed: {coverage}. "
+            f"Права на распространение: {rights}. Полный текст не считается "
+            "установленным, пока запись не имеет состояния published и не прошла "
+            "проверку модуля."
+        ),
     ]
     if source_url:
         body.extend(["", f"Первоисточник или объявленный источник: {source_url}"])
@@ -308,17 +320,31 @@ def _medication_document(
         "# Регистрационные сведения",
         "",
         _source_marker(record_id, "identity"),
-        f"Лекарственный препарат «{trade_name}». Регистрационный номер: {registration}. МНН: {_format_values(inn)}. Статус регистрации: {status}.",
+        (
+            f"Лекарственный препарат «{trade_name}». "
+            f"Регистрационный номер: {registration}. "
+            f"МНН: {_format_values(inn)}. Статус регистрации: {status}."
+        ),
         "",
         "# Форма и классификация",
         "",
         _source_marker(record_id, "classification"),
-        f"АТХ: {_format_values(atc)}. Лекарственная форма: {dosage_form or 'не указана в каталоге'}. Дозировки/концентрации: {_format_values(strengths)}. Пути введения: {_format_values(routes)}.",
+        (
+            f"АТХ: {_format_values(atc)}. "
+            f"Лекарственная форма: {dosage_form or 'не указана в каталоге'}. "
+            f"Дозировки/концентрации: {_format_values(strengths)}. "
+            f"Пути введения: {_format_values(routes)}."
+        ),
         "",
         "# Ограничения данных",
         "",
         _source_marker(record_id, "coverage"),
-        f"Состояние покрытия MiniMed: {coverage}. Эта карточка не подтверждает дозы, показания, противопоказания или взаимодействия. Такие сведения становятся доверенными только из проверенной редакции инструкции с точной ссылкой на источник.",
+        (
+            f"Состояние покрытия MiniMed: {coverage}. Эта карточка не подтверждает "
+            "дозы, показания, противопоказания или взаимодействия. Такие сведения "
+            "становятся доверенными только из проверенной редакции инструкции с "
+            "точной ссылкой на источник."
+        ),
     ]
     if source_url:
         body.extend(["", f"Официальная или объявленная инструкция: {source_url}"])
@@ -389,17 +415,29 @@ def _legal_document(record: dict[str, object]) -> tuple[str, str, str, list[dict
         "# Сведения об официальном опубликовании",
         "",
         _source_marker(record_id, "identity"),
-        f"{document_type}: «{title}». Номер документа: {number or 'не указан'}. Электронный номер опубликования: {eo_number}.",
+        (
+            f"{document_type}: «{title}». "
+            f"Номер документа: {number or 'не указан'}. "
+            f"Электронный номер опубликования: {eo_number}."
+        ),
         "",
         "# Даты и орган",
         "",
         _source_marker(record_id, "publication"),
-        f"Дата документа: {document_date or 'не указана'}. Дата официального опубликования: {publish_date or 'не указана'}. Орган(ы): {_format_values(authorities)}.",
+        (
+            f"Дата документа: {document_date or 'не указана'}. "
+            f"Дата официального опубликования: {publish_date or 'не указана'}. "
+            f"Орган(ы): {_format_values(authorities)}."
+        ),
         "",
         "# Применимость и ограничения",
         "",
         _source_marker(record_id, "coverage"),
-        f"Состояние покрытия MiniMed: {coverage}. Наличие записи об опубликовании не доказывает текущую применимость, отсутствие изменений или связь с заменяющим актом. Эти отношения требуют отдельной проверки.",
+        (
+            f"Состояние покрытия MiniMed: {coverage}. Наличие записи об "
+            "опубликовании не доказывает текущую применимость, отсутствие изменений "
+            "или связь с заменяющим актом. Эти отношения требуют отдельной проверки."
+        ),
     ]
     if source_url:
         body.extend(["", f"Карточка официального опубликования: {source_url}"])
