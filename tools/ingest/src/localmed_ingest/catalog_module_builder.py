@@ -266,7 +266,9 @@ def _clinical_document(record: dict[str, object]) -> tuple[str, str, str, list[d
     return record_id, front, "\n".join(body).rstrip() + "\n", aliases
 
 
-def _medication_document(record: dict[str, object]) -> tuple[str, str, str, list[dict[str, object]]]:
+def _medication_document(
+    record: dict[str, object],
+) -> tuple[str, str, str, list[dict[str, object]]]:
     record_id = cast(str, record["recordId"])
     registration = _clean(record.get("registrationNumber")) or record_id
     trade_name = _clean(record.get("tradeName")) or registration

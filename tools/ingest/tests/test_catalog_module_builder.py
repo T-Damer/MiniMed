@@ -7,7 +7,9 @@ from localmed_ingest.builder import build_content_pack
 from localmed_ingest.catalog_module_builder import build_catalog_metadata_modules
 
 
-def write_ledger(path: Path, records: list[dict[str, object]], modules: list[dict[str, object]]) -> None:
+def write_ledger(
+    path: Path, records: list[dict[str, object]], modules: list[dict[str, object]]
+) -> None:
     path.write_text(
         json.dumps(
             {
@@ -77,9 +79,7 @@ def test_builds_loadable_clinical_metadata_module(tmp_path: Path) -> None:
     )
 
     assert report.total_documents == 1
-    markdown = next((output / report.modules[0].directory).glob("*.md")).read_text(
-        encoding="utf-8"
-    )
+    markdown = next((output / report.modules[0].directory).glob("*.md")).read_text(encoding="utf-8")
     assert "Полный текст не считается установленным" in markdown
     assert "clinical_recommendation_catalog_record" in markdown
     build_first_workspace(output, tmp_path / "clinical.db")
@@ -132,9 +132,7 @@ def test_builds_medication_metadata_without_trusting_doses(tmp_path: Path) -> No
         built_at="2026-07-23T00:00:00Z",
     )
 
-    markdown = next((output / report.modules[0].directory).glob("*.md")).read_text(
-        encoding="utf-8"
-    )
+    markdown = next((output / report.modules[0].directory).glob("*.md")).read_text(encoding="utf-8")
     assert "не подтверждает дозы" in markdown
     assert "trustedDoseData: false" in markdown
     build_first_workspace(output, tmp_path / "medications.db")
@@ -153,9 +151,7 @@ def test_builds_legal_metadata_with_applicability_warning(tmp_path: Path) -> Non
                 "number": "1н",
                 "documentDate": "2025-12-31",
                 "publishDate": "2026-01-01",
-                "signatoryAuthorities": [
-                    "Министерство здравоохранения Российской Федерации"
-                ],
+                "signatoryAuthorities": ["Министерство здравоохранения Российской Федерации"],
                 "documentType": "Приказ",
                 "apiUrl": "https://publication.pravo.gov.ru/api/Document?eoNumber=0001202601010001",
                 "status": "published",
@@ -187,9 +183,7 @@ def test_builds_legal_metadata_with_applicability_warning(tmp_path: Path) -> Non
         built_at="2026-07-23T00:00:00Z",
     )
 
-    markdown = next((output / report.modules[0].directory).glob("*.md")).read_text(
-        encoding="utf-8"
-    )
+    markdown = next((output / report.modules[0].directory).glob("*.md")).read_text(encoding="utf-8")
     assert "не доказывает текущую применимость" in markdown
     assert "official_legal_publication_record" in markdown
     build_first_workspace(output, tmp_path / "laws.db")
