@@ -7,7 +7,7 @@ pre-1.0 product sequence.
 
 ## 0.0.1–0.0.3 — foundation — complete
 
-- pnpm monorepo, SolidJS/Vite, Capacitor shells, Astro landing;
+- Bun workspace monorepo, SolidJS/Vite, Capacitor shells, Astro landing;
 - strict TypeScript, Biome, Vitest, Ruff, Pyright, GitHub Actions;
 - runtime-validated contracts, `MedicalCore`, storage ports and adapters;
 - deterministic Markdown corpus builder, stable IDs/anchors, SQLite/FTS5 and integrity reports.

@@ -14,7 +14,7 @@ specialties. MiniMed imports only the `questions` split; model answers and ratin
 ground truth.
 
 ```bash
-pnpm benchmark:queries:import
+bun run benchmark:queries:import
 
 # Explicit reproducible parameters:
 uv run --project tools/ingest medbase benchmark-import-real-pocqi \
@@ -47,10 +47,10 @@ outage cannot block unrelated application changes.
 Imported wording remains immutable. A separate rebuildable projection classifies clinical queries:
 
 ```bash
-pnpm benchmark:queries:annotate
+bun run benchmark:queries:annotate
 
 # Import and annotate in one command:
-pnpm benchmark:queries
+bun run benchmark:queries
 ```
 
 `rule-based-ru-first-v1` uses Russian clinical language as the primary profile. It recognises Russian
@@ -74,8 +74,8 @@ interactions, follow-up, vaccination, prognosis, military-fitness and regulatory
 colloquial phrasing, and mixed-script laboratory notation such as `Hb`.
 
 The coverage set verifies language detection, primary decision, explicit patient context, and review
-behavior. It runs in the strict Python test suite. Run `pnpm benchmark:queries:coverage` for the focused
-suite or `pnpm python:check` for all Python gates. It is a software regression set, not a source of
+behavior. It runs in the strict Python test suite. Run `bun run benchmark:queries:coverage` for the focused
+suite or `bun run python:check` for all Python gates. It is a software regression set, not a source of
 medical recommendations.
 
 ## Russian source-grounded retrieval gate
@@ -124,7 +124,7 @@ copying retrieval metadata. It records risk, required clarifications, dangerous 
 classes, calculation boundaries, graph trust, and review state. Run:
 
 ```bash
-pnpm benchmark:queries:contracts
+bun run benchmark:queries:contracts
 ```
 
 The command writes `data/build/russian-scenario-contract-report.json` with deterministic coverage counts.

@@ -3,7 +3,7 @@
 ## Required tools
 
 - Node.js 22.12 or later;
-- Corepack and pnpm 11.13.1;
+- Bun 1.2.3;
 - Python 3.12 or later;
 - uv;
 - Git.
@@ -26,17 +26,17 @@ Manual equivalent:
 
 ```bash
 corepack enable
-pnpm install --frozen-lockfile
+bun install --frozen-lockfile
 uv sync --project tools/ingest --all-groups --locked
-pnpm content:build
-pnpm verify
+bun run content:build
+bun run verify
 ```
 
 ## Development
 
 ```bash
-pnpm dev
-pnpm dev:landing
+bun run dev
+bun run dev:landing
 ```
 
 ## Common problems
@@ -48,13 +48,13 @@ a SQLite build compiled with FTS5. Open the app status page to inspect the runti
 
 ### Generated content differs
 
-Run `pnpm content:build`, inspect the builder report, and commit generated JSON only when the source
+Run `bun run content:build`, inspect the builder report, and commit generated JSON only when the source
 fixture changed intentionally. Do not edit generated JSON by hand.
 
 ### Playwright browser missing
 
 ```bash
-pnpm exec playwright install chromium --with-deps
+bunx playwright install chromium --with-deps
 ```
 
 ### iOS commands on Linux/Windows

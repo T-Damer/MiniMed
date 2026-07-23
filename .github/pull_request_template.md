@@ -14,12 +14,12 @@
 
 ## Проверки
 
-- [ ] `pnpm check`
-- [ ] `pnpm typecheck`
-- [ ] `pnpm test`
-- [ ] `pnpm build`
-- [ ] `pnpm python:check` при изменениях pipeline
-- [ ] `pnpm benchmark:search` при изменениях поиска
+- [ ] `bun run check`
+- [ ] `bun run typecheck`
+- [ ] `bun run test`
+- [ ] `bun run build`
+- [ ] `bun run python:check` при изменениях pipeline
+- [ ] `bun run benchmark:search` при изменениях поиска
 
 ## Данные и приватность
 

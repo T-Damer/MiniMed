@@ -18,32 +18,26 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.16.0
-          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.10.0"
           enable-cache: true
       - name: Install locked dependencies
         run: |
-          pnpm install --frozen-lockfile
+          bun install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
       - name: Build pilot pack
         run: |
-          pnpm content:lint:pilot
-          pnpm content:build:pilot
+          bun run content:lint:pilot
+          bun run content:build:pilot
       - name: Run pilot benchmark and retain report
         id: benchmark
         shell: bash
         run: |
           set +e
           mkdir -p data/build
-          pnpm benchmark:pilot 2>&1 | tee data/build/rf-public-pilot-benchmark.log
+          bun run benchmark:pilot 2>&1 | tee data/build/rf-public-pilot-benchmark.log
           status=${PIPESTATUS[0]}
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit 0

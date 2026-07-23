@@ -182,29 +182,29 @@ A native Android private-file and background-download adapter is planned for 0.3
 
 ## Quick start
 
-Requirements: Node.js 22.12+, pnpm 11, Python 3.12+ and `uv`.
+Requirements: Bun 1.2.3, Node.js 22.12+, Python 3.12+ and `uv`.
 
 ```bash
 corepack enable
-pnpm install --frozen-lockfile
-pnpm content:sync
-pnpm content:build
-pnpm dev
+bun install --frozen-lockfile
+bun run content:sync
+bun run content:build
+bun run dev
 ```
 
 Run the verification suite:
 
 ```bash
-pnpm verify
-CHROMIUM_PATH=/usr/bin/chromium pnpm test:e2e
+bun run verify
+CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
 ```
 
 Prepare mobile projects:
 
 ```bash
-pnpm build:app
-pnpm native:sync
-pnpm native:source:check
+bun run build:app
+bun run native:sync
+bun run native:source:check
 ```
 
 Physical-device checks are documented in [`docs/NATIVE_SMOKE.md`](docs/NATIVE_SMOKE.md).
@@ -217,9 +217,9 @@ Raw recommendations remain under the ignored `data/raw/` workspace:
 cp docs/examples/private-sources.yaml data/raw/sources.yaml
 # Put referenced PDF/TXT files in data/raw and edit the registry.
 
-pnpm content:prepare:private
-pnpm content:lint:private
-pnpm content:build:private
+bun run content:prepare:private
+bun run content:lint:private
+bun run content:build:private
 ```
 
 The preparer does not summarize medical content. It removes repeated marginalia, detects probable

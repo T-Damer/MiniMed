@@ -4,7 +4,7 @@
 
 1. Update `CHANGELOG.md` and package versions.
 2. Rebuild generated content artifacts.
-3. Run `pnpm verify`.
+3. Run `bun run verify`.
 4. Run browser E2E.
 5. Run the relevant native smoke checklist.
 6. Review the generated benchmark and integrity reports.
@@ -13,8 +13,8 @@
 
 ```bash
 git status --short
-pnpm verify
-pnpm test:e2e
+bun run verify
+bun run test:e2e
 git tag -s v0.2.2 -m "LocalMed Search v0.2.2"
 git push origin main --tags
 ```

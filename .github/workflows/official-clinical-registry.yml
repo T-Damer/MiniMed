@@ -27,22 +27,16 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22.16.0
-          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.10.0'
           enable-cache: true
-      - run: pnpm install --frozen-lockfile
+      - run: bun install --frozen-lockfile
       - run: uv sync --project tools/ingest --all-groups --locked
-      - run: pnpm exec playwright install chromium --with-deps
+      - run: bunx playwright install chromium --with-deps
       - name: Verify the public registry request contract
-        run: node tools/catalogs/probe-clinical-registry.mjs data/build/official-clinical-registry-probe
+        run: bun tools/catalogs/probe-clinical-registry.mjs data/build/official-clinical-registry-probe
       - name: Validate collector code and offline fixtures
         run: |
           uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
