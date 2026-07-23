@@ -3,6 +3,9 @@
   "compilerOptions": {
     "types": ["vite/client"],
     "allowImportingTsExtensions": true,
+    "paths": {
+      "@/*": ["apps/app/src/*"]
+    },
     "noEmit": true
   },
   "include": ["src", "vite.config.ts", "capacitor.config.ts"]

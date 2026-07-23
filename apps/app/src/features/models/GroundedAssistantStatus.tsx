@@ -1,6 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { openDocumentInArchive } from '../../state/document-navigation';
+import { openDocumentInArchive } from '@/state/document-navigation';
 import type { GroundedAssistantState, GroundedMedicalCore } from './GroundedMedicalCore';
 
 interface GroundedAssistantStatusProps {
