@@ -1,0 +1,112 @@
+name: Validate official registry feature branch
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/trigger-official-registry-validation
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-official-registry-feature
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: github.event.pull_request.head.ref == 'ops/validate-official-registry'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/official-clinical-registry-export
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Check Python formatting
+        run: uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+      - name: Check Python lint
+        run: uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+      - name: Check Python types
+        run: uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+      - name: Run official registry fixture tests
+        run: uv run --project tools/ingest pytest tools/ingest/tests/test_official_clinical_registry.py
+      - name: Collect and categorize the complete official registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/raw/official-clinical-registry data/build
+          uv run --project tools/ingest medbase-clinical-catalog official-sync \
+            --output data/raw/official-clinical-registry/catalog.json \
+            --raw-output data/raw/official-clinical-registry/api-pages.json \
+            --report data/build/official-clinical-registry-report.json \
+            --page-size 200 --max-pages 20 --timeout-seconds 180
+          uv run --project tools/ingest medbase-clinical-catalog build \
+            --source data/raw/official-clinical-registry/catalog.json \
+            --taxonomy content/clinical-module-taxonomy.yaml \
+            --overrides content/clinical-coverage-overrides.yaml \
+            --output data/build/official-clinical-coverage-ledger.json
+          uv run --project tools/ingest medbase-catalog-modules build \
+            --ledger data/build/official-clinical-coverage-ledger.json \
+            --output-root data/build/official-clinical-modules \
+            --family clinical --version 2026.07.official-preview.1
+      - name: Compile every primary module and verify parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/build/official-clinical-databases
+          while IFS= read -r manifest; do
+            workspace="$(dirname "$manifest")"
+            stem="$(basename "$workspace")"
+            uv run --project tools/ingest medbase lint --input "$workspace"
+            uv run --project tools/ingest medbase build \
+              --input "$workspace" \
+              --output "data/build/official-clinical-databases/${stem}.db" \
+              --report "data/build/official-clinical-databases/${stem}.report.json"
+          done < <(find data/build/official-clinical-modules -mindepth 2 -maxdepth 2 \
+            -name manifest.yaml -print | sort)
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          registry = json.loads(
+              Path('data/build/official-clinical-registry-report.json').read_text()
+          )
+          ledger = json.loads(
+              Path('data/build/official-clinical-coverage-ledger.json').read_text()
+          )
+          modules = json.loads(
+              Path('data/build/official-clinical-modules/module-build-report.json').read_text()
+          )
+          expected = registry['totalRecords']
+          ids = [value for module in modules['modules'] for value in module['documentIds']]
+          assert expected >= 700
+          assert ledger['summary']['totalRecords'] == expected
+          assert modules['totalDocuments'] == expected
+          assert len(ids) == len(set(ids)) == expected
+          assert len(list(Path('data/build/official-clinical-databases').glob('*.db'))) == len(modules['modules'])
+          print(json.dumps({
+              'officialRecords': expected,
+              'activeRecords': registry['activeRecords'],
+              'pediatricRecords': registry['pediatricRecords'],
+              'modules': len(modules['modules']),
+              'coverage': ledger['summary']['coverageCounts'],
+              'status': ledger['summary']['statusCounts'],
+          }, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: official-clinical-registry-feature-validation
+          path: |
+            data/raw/official-clinical-registry
+            data/build/official-clinical-registry-report.json
+            data/build/official-clinical-coverage-ledger.json
+            data/build/official-clinical-modules/module-build-report.json
+            data/build/official-clinical-databases/*.report.json
+          if-no-files-found: ignore
