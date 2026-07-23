@@ -115,7 +115,18 @@ function toSearchResult(aggregate: AggregatedHit): SearchResult {
   };
 }
 
-function groupResults(results: readonly SearchResult[]): readonly SearchResultGroup[] {
+function requestedSectionType(query: string): 'diagnostics' | 'routing' | null {
+  if (/(?:^|\s)диагностик/u.test(query)) return 'diagnostics';
+  if (/(?:маршрутизац|госпитализац|экстренн|интенсивн[а-я]*\s+помощ)/u.test(query)) {
+    return 'routing';
+  }
+  return null;
+}
+
+function groupResults(
+  results: readonly SearchResult[],
+  preferredSectionType: 'diagnostics' | 'routing' | null,
+): readonly SearchResultGroup[] {
   const byDocument = new Map<string, SearchResult[]>();
   for (const result of results) {
     const group = byDocument.get(result.documentId) ?? [];
@@ -124,13 +135,19 @@ function groupResults(results: readonly SearchResult[]): readonly SearchResultGr
   }
   return [...byDocument.entries()]
     .map(([documentId, documentResults]) => {
-      const sorted = documentResults.toSorted((left, right) => right.finalScore - left.finalScore);
+      const sorted = documentResults.toSorted((left, right) => {
+        const preferredDifference = preferredSectionType
+          ? Number(right.sectionType === preferredSectionType) -
+            Number(left.sectionType === preferredSectionType)
+          : 0;
+        return preferredDifference || right.finalScore - left.finalScore;
+      });
       const first = sorted[0];
       if (!first) throw new Error('Search group cannot be empty.');
       return {
         documentId,
         title: first.title,
-        bestScore: first.finalScore,
+        bestScore: Math.max(...documentResults.map((result) => result.finalScore)),
         categories: [...new Set(sorted.map((result) => result.category))],
         results: sorted,
       };
@@ -557,7 +574,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           modeUsed,
           analysis: plan.analysis,
           suggestions: plan.analysis.suggestions,
-          groups: groupResults(results),
+          groups: groupResults(results, requestedSectionType(plan.analysis.normalizedQuery)),
           diagnostics: {
             ftsQuery: plan.branches.map((branch) => branch.ftsQuery).join(' || '),
             candidateCount: candidateIds.size,

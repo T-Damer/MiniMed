@@ -101,6 +101,38 @@ describe('MedicalCore', () => {
     expect(response.value.groups[0]?.results[0]?.matchedBranches.length).toBeGreaterThan(0);
   });
 
+  it('prefers the explicitly requested diagnostics section', async () => {
+    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    cores.push(core);
+    const response = await core.search({
+      query: 'Диагностика аппендицита: локальная боль и рвота требуют другого поиска',
+      mode: 'lexical',
+      filters: {},
+      limit: 10,
+      includeSuggestions: true,
+    });
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.groups[0]?.documentId).toBe('kr.demo.surgery.appendicitis');
+    expect(response.value.groups[0]?.results[0]?.sectionType).toBe('diagnostics');
+  });
+
+  it('prefers the routing section for an explicit hospitalization request', async () => {
+    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    cores.push(core);
+    const response = await core.search({
+      query: 'Пневмония с дыхательной недостаточностью: нужна экстренная госпитализация',
+      mode: 'lexical',
+      filters: {},
+      limit: 10,
+      includeSuggestions: true,
+    });
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.groups[0]?.documentId).toBe('kr.demo.pediatrics.pneumonia');
+    expect(response.value.groups[0]?.results[0]?.sectionType).toBe('routing');
+  });
+
   it('returns a stable context window around a search result', async () => {
     const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
     cores.push(core);
