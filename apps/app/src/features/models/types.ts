@@ -11,6 +11,7 @@ export type LocalModelPhase =
   | 'benchmarking'
   | 'ready'
   | 'error';
+export type LocalModelStructuredTaskKind = 'query-plan' | 'rerank';
 
 export interface LocalModelLicense {
   readonly id: string;
@@ -123,10 +124,26 @@ export interface LocalModelLoadCallbacks {
   readonly onProgress: (loaded: number, total: number) => void;
 }
 
+export interface LocalModelStructuredRequest {
+  readonly task: LocalModelStructuredTaskKind;
+  readonly systemPrompt: string;
+  readonly userPrompt: string;
+  readonly maxTokens: number;
+  readonly temperature?: number;
+}
+
+export interface LocalModelStructuredResponse {
+  readonly task: LocalModelStructuredTaskKind;
+  readonly rawText: string;
+  readonly parsedJson: unknown | null;
+  readonly generationMs: number;
+}
+
 export interface LocalModelSession {
   readonly modelId: string;
   readonly artifactId: string;
   benchmark(): Promise<Omit<LocalModelBenchmark, 'loadMs' | 'measuredAt' | 'deviceFingerprint'>>;
+  completeStructured(request: LocalModelStructuredRequest): Promise<LocalModelStructuredResponse>;
   unload(): Promise<void>;
 }
 

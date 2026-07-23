@@ -12,6 +12,8 @@ import type {
   LocalModelSelection,
   LocalModelSession,
   LocalModelState,
+  LocalModelStructuredRequest,
+  LocalModelStructuredResponse,
 } from './types';
 
 const PREFERENCE_KEY = 'minimed.local-model-preference.v1';
@@ -552,6 +554,20 @@ export class LocalModelController {
     await this.session?.unload().catch(() => undefined);
     this.session = null;
     this.listeners.clear();
+  }
+
+  public canRunStructuredTasks(): boolean {
+    return this.state.phase === 'ready' && this.session !== null;
+  }
+
+  public async completeStructuredTask(
+    request: LocalModelStructuredRequest,
+  ): Promise<LocalModelStructuredResponse> {
+    const session = this.session;
+    if (!session || this.state.phase !== 'ready') {
+      throw new Error('Локальная модель не готова к обработке поиска.');
+    }
+    return session.completeStructured(request);
   }
 
   public modelById(modelId: string | null): LocalModelDescriptor | null {
