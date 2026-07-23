@@ -1,4 +1,4 @@
-name: Diagnose regulated catalog feature
+name: Repair regulated catalog feature
 
 on:
   push:
@@ -10,9 +10,9 @@ permissions:
   contents: write
 
 jobs:
-  diagnose:
+  repair:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -23,39 +23,105 @@ jobs:
           version: '0.10.0'
           enable-cache: true
       - run: uv sync --project tools/ingest --all-groups --locked
-      - name: Capture exact validation output
+      - name: Apply focused repairs
         shell: bash
         run: |
-          set +e
-          mkdir -p docs
-          {
-            echo '=== RUFF FORMAT ==='
-            uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
-            echo "RUFF_FORMAT_EXIT=$?"
-            echo
-            echo '=== RUFF CHECK ==='
-            uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
-            echo "RUFF_CHECK_EXIT=$?"
-            echo
-            echo '=== PYRIGHT ==='
-            uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
-            echo "PYRIGHT_EXIT=$?"
-            echo
-            echo '=== PYTEST ==='
-            uv run --project tools/ingest pytest tools/ingest/tests/test_regulated_catalogs.py
-            echo "PYTEST_EXIT=$?"
-            echo
-            echo '=== CLI HELP ==='
-            uv run --project tools/ingest medbase-regulated-catalog --help
-            echo "CLI_HELP_EXIT=$?"
-          } > docs/.regulated-catalog-diagnostics.txt 2>&1
-          set -e
-      - name: Publish diagnostics to feature branch
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text(encoding='utf-8')
+              if old in text:
+                  path.write_text(text.replace(old, new, 1), encoding='utf-8')
+                  return
+              if new not in text:
+                  raise SystemExit(f'Patch anchor not found in {path}: {old[:120]!r}')
+
+          clinical = Path('tools/ingest/src/localmed_ingest/clinical_catalog.py')
+          text = clinical.read_text(encoding='utf-8')
+          if 'import contextlib\n' not in text:
+              text = text.replace('import csv\n', 'import contextlib\nimport csv\n', 1)
+          text = text.replace(
+              '''    try:\n        delimiter = csv.Sniffer().sniff(sample, delimiters=",;\\t|").delimiter\n    except csv.Error:\n        pass\n''',
+              '''    with contextlib.suppress(csv.Error):\n        delimiter = csv.Sniffer().sniff(sample, delimiters=",;\\t|").delimiter\n''',
+              1,
+          )
+          text = text.replace(
+              '''                f"Coverage override for {official_id} references unknown modules: {', '.join(unknown)}"\n''',
+              '''                f"Coverage override for {official_id} references unknown modules: "\n                f"{', '.join(unknown)}"\n''',
+              1,
+          )
+          clinical.write_text(text, encoding='utf-8')
+
+          legal = Path('tools/ingest/src/localmed_ingest/legal_catalog.py')
+          replace_once(
+              legal,
+              '''def _utc_now() -> str:\n    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")\n''',
+              '''def _optional_int(value: object | None) -> int | None:\n    return value if isinstance(value, int) and not isinstance(value, bool) else None\n\n\ndef _utc_now() -> str:\n    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")\n''',
+          )
+          replace_once(
+              legal,
+              '''                modules, primary = _assign_modules(\n                    taxonomy,\n                    text=classification_text,\n                    authorities=authorities,\n                )\n''',
+              '''                module_rules, primary_rule = _assign_modules(\n                    taxonomy,\n                    text=classification_text,\n                    authorities=authorities,\n                )\n''',
+          )
+          replace_once(
+              legal,
+              '''                    pages_count=item.get("pagesCount")\n                    if isinstance(item.get("pagesCount"), int)\n                    else None,\n                    pdf_bytes=item.get("pdfFileLength")\n                    if isinstance(item.get("pdfFileLength"), int)\n                    else None,\n''',
+              '''                    pages_count=_optional_int(item.get("pagesCount")),\n                    pdf_bytes=_optional_int(item.get("pdfFileLength")),\n''',
+          )
+          replace_once(
+              legal,
+              '''                    module_ids=[module.id for module in modules],\n                    primary_module_id=primary.id,\n''',
+              '''                    module_ids=[module.id for module in module_rules],\n                    primary_module_id=primary_rule.id,\n''',
+          )
+          replace_once(
+              legal,
+              '''                        "Full-text/PDF packaging requires a separate source-asset and applicability pass.",\n''',
+              '''                        "Full-text/PDF packaging requires a separate source-asset "\n                        "and applicability pass.",\n''',
+          )
+          replace_once(
+              legal,
+              '''    modules: list[LegalModulePlanEntry] = []\n''',
+              '''    module_plan: list[LegalModulePlanEntry] = []\n''',
+          )
+          replace_once(legal, '        modules.append(\n', '        module_plan.append(\n')
+          replace_once(
+              legal,
+              '''        modules=modules,\n        summary=LegalCatalogSummary(\n            total_records=len(records),\n            module_counts={module.module_id: len(module.record_ids) for module in modules},\n''',
+              '''        modules=module_plan,\n        summary=LegalCatalogSummary(\n            total_records=len(records),\n            module_counts={module.module_id: len(module.record_ids) for module in module_plan},\n''',
+          )
+
+          taxonomy = Path('content/legal-module-taxonomy.yaml')
+          tax = taxonomy.read_text(encoding='utf-8')
+          anchor = '''      - форма медицинской документации\n'''
+          additions = '''      - форма медицинской документации\n      - формы медицинской документации\n      - медицинской документации\n'''
+          if additions not in tax:
+              if anchor not in tax:
+                  raise SystemExit('Legal taxonomy records anchor not found.')
+              tax = tax.replace(anchor, additions, 1)
+          taxonomy.write_text(tax, encoding='utf-8')
+
+          Path('docs/.regulated-catalog-diagnostics.txt').unlink(missing_ok=True)
+          PY
+      - name: Format and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests/test_regulated_catalogs.py
+          uv run --project tools/ingest medbase-regulated-catalog --help >/dev/null
+      - name: Publish repaired feature branch
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/.regulated-catalog-diagnostics.txt
+          git add tools/ingest/src/localmed_ingest/clinical_catalog.py \
+            tools/ingest/src/localmed_ingest/legal_catalog.py \
+            tools/ingest/tests/test_regulated_catalogs.py \
+            content/legal-module-taxonomy.yaml \
+            docs/.regulated-catalog-diagnostics.txt
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'chore: capture regulated catalog diagnostics'
+          git commit -m 'fix: validate medication and legal catalog inventories'
           git push origin HEAD:agent/drug-law-catalogs
