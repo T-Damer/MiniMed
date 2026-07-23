@@ -1,0 +1,43 @@
+name: Diagnose legal catalog test
+
+on:
+  pull_request:
+    branches: [agent/bulk-clinical-catalog]
+    paths:
+      - tools/ingest/src/localmed_ingest/legal_catalog.py
+      - tools/ingest/src/localmed_ingest/legal_catalog_v2.py
+      - tools/ingest/tests/test_regulated_catalogs.py
+      - content/legal-module-taxonomy.yaml
+      - docs/REGULATED_CATALOGS.md
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event.pull_request.head.ref == 'agent/drug-law-catalogs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Capture focused pytest output
+        shell: bash
+        run: |
+          mkdir -p diagnostics
+          set +e
+          uv run --project tools/ingest pytest \
+            tools/ingest/tests/test_regulated_catalogs.py \
+            -x -vv --tb=short > diagnostics/legal-test.txt 2>&1
+          status=$?
+          printf '%s\n' "$status" > diagnostics/exit-code.txt
+          set -e
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legal-catalog-test-diagnostic
+          path: diagnostics
+          if-no-files-found: error
