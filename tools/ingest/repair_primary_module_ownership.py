@@ -24,7 +24,7 @@ validator = indented(
     """
     known = set(record_ids)
     module_ids = [module.module_id for module in self.modules]
-    if len(module_ids) != len(set(module_ids))):
+    if len(module_ids) != len(set(module_ids)):
         raise ValueError("Coverage ledger contains duplicate moduleId values.")
     module_records = {
         module.module_id: set(module.record_ids) for module in self.modules
