@@ -416,7 +416,7 @@ function trimPrefixNegation(captured: string, aliases: readonly AliasRecord[]): 
   );
   if (explicitBoundary >= 0) boundary = Math.min(boundary, explicitBoundary);
   const temporalBoundary = normalizedCaptured.search(
-    /\s+(?:через|спустя)\s+\d+(?:[.,]\d+)?\s*(?:минут[а-я]*|час[а-я]*|дн(?:я|ей|и)|сут(?:ок|ки)?|недел[а-я]*|месяц[а-я]*)(?=\s|$)/u,
+    /\s+(?:через|спустя)\s+\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?\s*(?:минут[а-я]*|час[а-я]*|дн(?:я|ей|и)|сут(?:ок|ки)?|недел[а-я]*|месяц[а-я]*)(?=\s|$)/u,
   );
   if (temporalBoundary >= 0) boundary = Math.min(boundary, temporalBoundary);
   return (
