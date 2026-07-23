@@ -37,11 +37,12 @@ https://publication.pravo.gov.ru/api/Documents
 https://publication.pravo.gov.ru/api/Document?eoNumber=...
 ```
 
-`content/official-health-law-queries.yaml` declares the health-related searches. The collector:
+`content/official-health-law-queries.yaml` declares the health-related searches. The typed collector:
 
 - uses HTTPS and only the official publication host;
 - requests supported page sizes and follows the reported page count;
 - records every request URL and raw page in the source checksum;
+- validates object and integer fields before storing them;
 - deduplicates acts by electronic publication number;
 - optionally requests document-type and authority details;
 - preserves publication, signature and Ministry of Justice registration metadata;
