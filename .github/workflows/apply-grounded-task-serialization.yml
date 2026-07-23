@@ -46,7 +46,7 @@ jobs:
       - name: Check grounded serialization types
         run: pnpm typecheck
       - name: Test serial task queue
-        run: pnpm --filter @localmed/app exec vitest run src/features/models/serial-async-queue.test.ts
+        run: pnpm exec vitest run apps/app/src/features/models/serial-async-queue.test.ts
       - name: Run all unit tests
         run: pnpm test:unit
       - name: Build application
