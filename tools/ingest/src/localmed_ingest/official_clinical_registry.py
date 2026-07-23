@@ -11,9 +11,7 @@ from pathlib import Path
 from typing import cast
 
 OFFICIAL_REGISTRY_PAGE = "https://cr.minzdrav.gov.ru/clin-rec/"
-OFFICIAL_REGISTRY_API = (
-    "https://apicr.minzdrav.gov.ru/api.ashx?op=GetJsonClinrecsFilterV2"
-)
+OFFICIAL_REGISTRY_API = "https://apicr.minzdrav.gov.ru/api.ashx?op=GetJsonClinrecsFilterV2"
 _ALLOWED_API_HOST = "apicr.minzdrav.gov.ru"
 _MAX_RESPONSE_BYTES = 64 * 1024 * 1024
 
@@ -85,7 +83,8 @@ def _response_page(
     total_records = _int_field(response, "TotalRecords")
     if current_page != expected_page:
         raise ValueError(
-            f"Official registry returned page {current_page} while page {expected_page} was requested."
+            f"Official registry returned page {current_page} "
+            f"while page {expected_page} was requested."
         )
     if page_size < 1 or total_records < 0:
         raise ValueError("Official registry returned an invalid page size or total record count.")
@@ -263,7 +262,9 @@ def collect_official_clinical_registry(
             normalized = normalize_official_registry_row(row)
             official_id = cast(str, normalized["id"])
             if official_id in seen_ids:
-                raise ValueError(f"Official registry returned duplicate recommendation {official_id}.")
+                raise ValueError(
+                    f"Official registry returned duplicate recommendation {official_id}."
+                )
             seen_ids.add(official_id)
             normalized_records.append(normalized)
         page += 1
@@ -287,9 +288,7 @@ def collect_official_clinical_registry(
         "pages": total_pages,
         "records": normalized_records,
     }
-    encoded_catalog = (
-        json.dumps(catalog, ensure_ascii=False, indent=2) + "\n"
-    ).encode("utf-8")
+    encoded_catalog = (json.dumps(catalog, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes(encoded_catalog)
 
@@ -318,12 +317,10 @@ def collect_official_clinical_registry(
         "pageSize": actual_page_size,
         "pages": total_pages,
         "activeRecords": sum(
-            record.get("applicationStatus") == "Применяется"
-            for record in normalized_records
+            record.get("applicationStatus") == "Применяется" for record in normalized_records
         ),
         "pediatricRecords": sum(
-            "дет" in str(record.get("ageCategory", "")).casefold()
-            for record in normalized_records
+            "дет" in str(record.get("ageCategory", "")).casefold() for record in normalized_records
         ),
     }
     if report_output is not None:

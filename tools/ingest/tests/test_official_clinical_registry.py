@@ -111,7 +111,11 @@ def test_collects_every_page_and_preserves_raw_responses(tmp_path: Path) -> None
     )
 
     assert [request["currentPage"] for request in requests] == [1, 2]
-    assert all(request["filters"][0]["fieldName"] == "status" for request in requests)
+    for request in requests:
+        filters = request["filters"]
+        assert isinstance(filters, list)
+        assert filters and isinstance(filters[0], dict)
+        assert filters[0]["fieldName"] == "status"
     assert report["totalRecords"] == 3
     assert report["uniqueOfficialIds"] == 3
     assert report["pediatricRecords"] == 3
