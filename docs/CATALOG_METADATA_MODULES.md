@@ -103,7 +103,8 @@ SQLite databases for every generated category. A manual run may consume a declar
 ledger and generate all category workspaces/databases as an auditable artifact.
 
 Validation requires one compiled SQLite database for every generated module and rejects a build that
-loses catalog records between the ledger, workspace report and final databases.
+loses catalog records between the ledger, workspace report and final databases. The uploaded artifact
+retains the ledger-derived report beside the generated workspaces and databases.
 
 This workflow does not publish the generated modules to a release automatically. Release publication
 still requires coverage review and immutable channel-manifest generation.
