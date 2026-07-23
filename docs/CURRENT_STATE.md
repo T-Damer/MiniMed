@@ -45,16 +45,16 @@ ordinary search response when validation fails.
 
 On 24 July 2026 the public pilot rebuilt successfully:
 
-- 15 documents, 58 sections, and 58 chunks;
+- 15 documents, 58 sections, 58 chunks, and 18 clinical aliases;
 - SQLite integrity `ok`;
 - zero foreign-key violations;
 - 58 deterministic embeddings.
 
 The 50-query public-pilot benchmark after the current ranking fixes:
 
-- Recall@1: `0.90`;
+- Recall@1: `1.00`;
 - Recall@5: `1.00`;
-- MRR@5: `0.95`;
+- MRR@5: `1.00`;
 - section recall: `1.00`;
 - top-section accuracy: `0.94`;
 - context and source-metadata resolution: `1.00`;
@@ -72,8 +72,8 @@ checkout until those artifacts are built.
   dose output.
 - Model prompts and structural validation are implemented; clinical quality has not been qualified on
   real local-model outputs or reviewed by clinicians.
-- Five public-pilot queries still rank the expected document second, mainly shared symptom/red-flag
-  cases and incomplete terminology.
+- Three public-pilot queries rank the correct document first but select a neighboring section before
+  the expected routing or diagnostics section.
 - Proposed medication knowledge is not reviewed guidance.
 - Browser inference is CPU/WASM; model download size and latency remain substantial.
 - Native mobile lifecycle and inference are not current priorities.
@@ -85,7 +85,7 @@ checkout until those artifacts are built.
    checks.
 3. Evaluate the bundled small models on exact citation, extraction, unsupported-claim, latency, and
    memory metrics.
-4. Improve the five remaining retrieval misses through terminology or source coverage, not
+4. Improve the three remaining top-section misses through terminology or source coverage, not
    disease-specific ranking rules.
 5. Refine the browser clinical-answer layout using real source excerpts.
 6. Add a selected-source update tracker only after local ingestion and versioning are stable.

@@ -14,6 +14,11 @@ aliases:
     alias: больно писать
     category: symptom
     weight: 1.0
+  - id: alias.pilot.uti-abbreviation
+    canonicalTerm: инфекция мочевых путей
+    alias: ИМП
+    category: diagnosis
+    weight: 1.0
   - id: alias.pilot.flank-pain
     canonicalTerm: боль в боку боль в пояснице пиелонефрит
     alias: болит сбоку спины
@@ -34,15 +39,30 @@ aliases:
     alias: грудничок свистит при дыхании
     category: symptom
     weight: 1.0
+  - id: alias.pilot.intercostal-retractions
+    canonicalTerm: втяжение межреберий бронхиолит
+    alias: втягивает межреберья
+    category: symptom
+    weight: 1.0
   - id: alias.pilot.nonblanching-rash
     canonicalTerm: геморрагическая сыпь не бледнеет при надавливании менингококковая инфекция
     alias: сыпь не исчезает под стаканом
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.nonblanching-pressure
+    canonicalTerm: геморрагическая сыпь менингококковая инфекция
+    alias: не бледнеет при надавливании
     category: symptom
     weight: 1.0
   - id: alias.pilot.rash-from-face
     canonicalTerm: корь этапная сыпь начинается с лица
     alias: сыпь пошла с лица вниз
     category: symptom
+    weight: 1.0
+  - id: alias.pilot.measles-inflected
+    canonicalTerm: корь
+    alias: кори
+    category: diagnosis
     weight: 1.0
   - id: alias.pilot.vomiting-diarrhea
     canonicalTerm: рвота водянистая диарея обезвоживание ротавирусный гастроэнтерит

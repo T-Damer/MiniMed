@@ -1,6 +1,7 @@
 # Public Russian clinical-recommendation pilot
 
-MiniMed `0.3.0-alpha.5` contains a small source-linked pilot corpus derived from seven Russian pediatric clinical recommendations.
+MiniMed `0.4.0-alpha.1` contains a small source-linked pilot corpus derived from seven Russian
+pediatric clinical recommendations plus eight medication-registry identity cards.
 
 Source metadata and public links were reviewed on 19 July 2026. The official Minzdrav document remains authoritative if a linked mirror or this pilot card differs from it.
 
@@ -35,12 +36,12 @@ The original recommendation remains authoritative. The cards omit dosage tables 
 The deterministic builder should produce:
 
 ```text
-7 documents
-42 sections
-42 chunks
-14 aliases
+15 documents
+58 sections
+58 chunks
+18 aliases
 1 embedding profile
-42 embeddings
+58 embeddings
 ```
 
 The pack is built with:
@@ -53,11 +54,14 @@ bun run benchmark:pilot
 
 ## Retrieval benchmark
 
-`tools/benchmarks/pilot-rf-queries.json` contains 35 physician-style engineering queries, five per recommendation. It measures Recall@1, Recall@5, MRR@5, zero-result rate, hybrid-path use, semantic-path use and latency.
+`tools/benchmarks/pilot-rf-queries.json` contains 50 engineering queries: six per recommendation and
+one registry query per medication card. The current deterministic build scores Recall@1 `1.00`,
+Recall@5 `1.00`, MRR@5 `1.00`, and top-section accuracy `0.94`.
 
 The query suite includes a regression for a negated treatment-response phrase such as “нет ответа на стартовый антибиотик через 72 часа при пневмонии”; the negative span must stop at the temporal reassessment boundary so the diagnosis remains searchable.
 
-This is a small engineering benchmark, not a clinical validation study. Before a physician beta, it must be extended with at least 50–100 independently authored queries and reviewed expected sections.
+This is a small engineering benchmark, not a clinical validation study. Before a physician beta, it
+still needs independently authored cases and clinician-reviewed expected sections.
 
 ## Public repository boundary
 
