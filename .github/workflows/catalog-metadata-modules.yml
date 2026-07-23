@@ -1,0 +1,175 @@
+name: Catalog metadata modules
+
+on:
+  pull_request:
+    branches: [main, agent/drug-law-catalogs]
+    paths:
+      - .github/workflows/catalog-metadata-modules.yml
+      - tools/ingest/src/localmed_ingest/catalog_module_builder.py
+      - tools/ingest/src/localmed_ingest/catalog_module_cli.py
+      - tools/ingest/tests/test_catalog_module_builder.py
+      - tools/ingest/pyproject.toml
+      - tools/ingest/uv.lock
+      - tools/ingest/tests/fixtures/clinical-catalog-sample.json
+      - content/clinical-module-taxonomy.yaml
+      - content/clinical-coverage-overrides.yaml
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/catalog-metadata-modules.yml
+      - tools/ingest/src/localmed_ingest/catalog_module_builder.py
+      - tools/ingest/src/localmed_ingest/catalog_module_cli.py
+      - tools/ingest/tests/test_catalog_module_builder.py
+      - tools/ingest/pyproject.toml
+      - tools/ingest/uv.lock
+  workflow_dispatch:
+    inputs:
+      ledger_url:
+        description: Optional HTTPS coverage-ledger JSON URL
+        required: false
+        type: string
+      family:
+        description: Ledger family
+        required: false
+        default: clinical
+        type: choice
+        options: [clinical, medication, legal]
+      module_version:
+        description: Generated module version
+        required: false
+        default: 2026.07.preview.1
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalog-metadata-modules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-builder:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Validate metadata module builder
+        run: |
+          uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+          uv run --project tools/ingest pytest tools/ingest/tests/test_catalog_module_builder.py
+      - name: Build fixture clinical metadata modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf data/build/fixture-clinical-ledger.json data/build/fixture-clinical-modules
+          uv run --project tools/ingest medbase-clinical-catalog build \
+            --source tools/ingest/tests/fixtures/clinical-catalog-sample.json \
+            --taxonomy content/clinical-module-taxonomy.yaml \
+            --overrides content/clinical-coverage-overrides.yaml \
+            --generated-at 2026-07-23T00:00:00Z \
+            --output data/build/fixture-clinical-ledger.json
+          uv run --project tools/ingest medbase-catalog-modules build \
+            --ledger data/build/fixture-clinical-ledger.json \
+            --output-root data/build/fixture-clinical-modules \
+            --family clinical \
+            --version 2026.07.fixture.1 \
+            --built-at 2026-07-23T00:00:00Z
+          mkdir -p data/build/fixture-clinical-databases
+          while IFS= read -r manifest; do
+            workspace="$(dirname "$manifest")"
+            stem="$(basename "$workspace")"
+            uv run --project tools/ingest medbase lint --input "$workspace"
+            uv run --project tools/ingest medbase build \
+              --input "$workspace" \
+              --output "data/build/fixture-clinical-databases/${stem}.db" \
+              --report "data/build/fixture-clinical-databases/${stem}.report.json"
+          done < <(find data/build/fixture-clinical-modules -mindepth 2 -maxdepth 2 -name manifest.yaml -print | sort)
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(
+              Path('data/build/fixture-clinical-modules/module-build-report.json').read_text()
+          )
+          document_ids = [
+              document_id
+              for module in report['modules']
+              for document_id in module['documentIds']
+          ]
+          if report['totalDocuments'] != 6 or len(document_ids) != 6:
+              raise SystemExit('Fixture metadata modules lost catalog records.')
+          if len(document_ids) != len(set(document_ids)):
+              raise SystemExit('Fixture metadata modules duplicated catalog records.')
+          databases = list(Path('data/build/fixture-clinical-databases').glob('*.db'))
+          if len(databases) != len(report['modules']):
+              raise SystemExit('Not every fixture module produced a SQLite database.')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fixture-catalog-metadata-modules
+          path: |
+            data/build/fixture-clinical-ledger.json
+            data/build/fixture-clinical-modules
+            data/build/fixture-clinical-databases
+          if-no-files-found: error
+
+  build-configured-ledger:
+    if: github.event_name == 'workflow_dispatch' && inputs.ledger_url != ''
+    needs: validate-builder
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      LEDGER_URL: ${{ inputs.ledger_url }}
+      FAMILY: ${{ inputs.family }}
+      MODULE_VERSION: ${{ inputs.module_version }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Download declared ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$LEDGER_URL" in https://*) ;; *) echo 'Ledger URL must use HTTPS.' >&2; exit 1 ;; esac
+          mkdir -p data/raw/catalog-module-ledger data/build/catalog-metadata-modules
+          printf '%s' "$LEDGER_URL" > data/raw/catalog-module-ledger/source-url.txt
+          curl --fail --location --retry 4 --retry-all-errors --max-time 600 \
+            --output data/raw/catalog-module-ledger/ledger.json \
+            "$LEDGER_URL"
+      - name: Generate and compile every module
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --project tools/ingest medbase-catalog-modules build \
+            --ledger data/raw/catalog-module-ledger/ledger.json \
+            --output-root data/build/catalog-metadata-modules/workspaces \
+            --family "$FAMILY" \
+            --version "$MODULE_VERSION"
+          mkdir -p data/build/catalog-metadata-modules/databases
+          while IFS= read -r manifest; do
+            workspace="$(dirname "$manifest")"
+            stem="$(basename "$workspace")"
+            uv run --project tools/ingest medbase lint --input "$workspace"
+            uv run --project tools/ingest medbase build \
+              --input "$workspace" \
+              --output "data/build/catalog-metadata-modules/databases/${stem}.db" \
+              --report "data/build/catalog-metadata-modules/databases/${stem}.report.json"
+          done < <(find data/build/catalog-metadata-modules/workspaces -mindepth 2 -maxdepth 2 -name manifest.yaml -print | sort)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.family }}-catalog-metadata-modules
+          path: |
+            data/raw/catalog-module-ledger/source-url.txt
+            data/raw/catalog-module-ledger/ledger.json
+            data/build/catalog-metadata-modules
+          if-no-files-found: error
