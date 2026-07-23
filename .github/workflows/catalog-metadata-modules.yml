@@ -98,8 +98,15 @@ jobs:
           report = json.loads(
               Path('data/build/fixture-clinical-modules/module-build-report.json').read_text()
           )
-          if report['totalDocuments'] < 6:
+          document_ids = [
+              document_id
+              for module in report['modules']
+              for document_id in module['documentIds']
+          ]
+          if report['totalDocuments'] != 6 or len(document_ids) != 6:
               raise SystemExit('Fixture metadata modules lost catalog records.')
+          if len(document_ids) != len(set(document_ids)):
+              raise SystemExit('Fixture metadata modules duplicated catalog records.')
           databases = list(Path('data/build/fixture-clinical-databases').glob('*.db'))
           if len(databases) != len(report['modules']):
               raise SystemExit('Not every fixture module produced a SQLite database.')
