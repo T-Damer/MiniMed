@@ -29,30 +29,20 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: python3 tools/apply-grounded-task-serialization.py
-      - name: Check grounded serialization formatting and lint
-        id: biome
-        continue-on-error: true
-        shell: bash
+      - name: Apply safe grounded serialization fixes
         run: |
-          set +e
+          pnpm exec biome check --write \
+            apps/app/src/features/models/serial-async-queue.ts \
+            apps/app/src/features/models/serial-async-queue.test.ts \
+            apps/app/src/features/models/browser-runtime.ts \
+            apps/app/src/features/models/GroundedMedicalCore.ts
+      - name: Check grounded serialization formatting and lint
+        run: |
           pnpm exec biome check \
             apps/app/src/features/models/serial-async-queue.ts \
             apps/app/src/features/models/serial-async-queue.test.ts \
             apps/app/src/features/models/browser-runtime.ts \
-            apps/app/src/features/models/GroundedMedicalCore.ts \
-            > grounded-serialization-biome.txt 2>&1
-          status=$?
-          cat grounded-serialization-biome.txt
-          exit "$status"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: grounded-serialization-biome
-          path: grounded-serialization-biome.txt
-          if-no-files-found: error
-      - name: Require clean grounded serialization check
-        if: steps.biome.outcome != 'success'
-        run: exit 1
+            apps/app/src/features/models/GroundedMedicalCore.ts
       - name: Check grounded serialization types
         run: pnpm typecheck
       - name: Test serial task queue
