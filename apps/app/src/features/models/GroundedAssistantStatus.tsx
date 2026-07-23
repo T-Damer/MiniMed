@@ -1,5 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { openDocumentInArchive } from '../../state/document-navigation';
 import type { GroundedAssistantState, GroundedMedicalCore } from './GroundedMedicalCore';
 
 interface GroundedAssistantStatusProps {
@@ -31,7 +32,7 @@ export function GroundedAssistantStatus(props: GroundedAssistantStatusProps): JS
               {state().phase === 'running'
                 ? 'Локальная модель проверяет найденные источники'
                 : state().phase === 'applied'
-                  ? 'Порядок источников уточнён локально'
+                  ? 'Найденные источники проверены локально'
                   : 'Использован обычный порядок источников'}
             </strong>
             <p>{state().message}</p>
@@ -39,6 +40,75 @@ export function GroundedAssistantStatus(props: GroundedAssistantStatusProps): JS
         </div>
 
         <Show when={state().phase === 'applied'}>
+          <div class="grounded-clinical-output">
+            <Show when={state().diagnosisCandidates.length > 0}>
+              <section>
+                <h3>Диагностические кандидаты для проверки</h3>
+                <For each={state().diagnosisCandidates}>
+                  {(candidate) => (
+                    <article>
+                      <strong>{candidate.label}</strong>
+                      <p>«{candidate.sourceExcerpt}»</p>
+                      <div class="grounded-citations">
+                        <For each={candidate.citations}>
+                          {(citation) => (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openDocumentInArchive(citation.documentId, citation.anchor)
+                              }
+                            >
+                              {citation.title} · {citation.sectionPath.join(' → ')}
+                            </button>
+                          )}
+                        </For>
+                      </div>
+                    </article>
+                  )}
+                </For>
+              </section>
+            </Show>
+
+            <section>
+              <h3>Дозировки из установленных источников</h3>
+              <Show
+                when={state().doseEvidence.length > 0}
+                fallback={
+                  <p class="grounded-empty-evidence">
+                    Точный режим дозирования не найден. Модель не подставляет дозу из памяти и не
+                    рассчитывает её без источника.
+                  </p>
+                }
+              >
+                <For each={state().doseEvidence}>
+                  {(dose) => (
+                    <article>
+                      <strong>{dose.label}</strong>
+                      <p>«{dose.sourceExcerpt}»</p>
+                      <Show when={dose.missingInputs.length > 0}>
+                        <small>Нужно уточнить: {dose.missingInputs.join(', ')}.</small>
+                      </Show>
+                      <div class="grounded-citations">
+                        <For each={dose.citations}>
+                          {(citation) => (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openDocumentInArchive(citation.documentId, citation.anchor)
+                              }
+                            >
+                              {citation.title} · {citation.sectionPath.join(' → ')}
+                            </button>
+                          )}
+                        </For>
+                      </div>
+                    </article>
+                  )}
+                </For>
+              </Show>
+            </section>
+          </div>
+
           <details>
             <summary>Что учла локальная модель</summary>
             <div class="grounded-assistant-details">
@@ -60,9 +130,17 @@ export function GroundedAssistantStatus(props: GroundedAssistantStatusProps): JS
                   </ul>
                 </div>
               </Show>
+              <Show when={state().missingInformation.length > 0}>
+                <div>
+                  <span>Недостающие сведения</span>
+                  <ul>
+                    <For each={state().missingInformation}>{(item) => <li>{item}</li>}</For>
+                  </ul>
+                </div>
+              </Show>
               <small>
-                Модель могла только изменить порядок уже найденных фрагментов. Она не добавляла
-                диагнозы, назначения, дозы или новые источники.
+                Диагностические кандидаты и дозировочные фрагменты показываются только как точные
+                выдержки из найденных источников. Это не итоговый диагноз и не назначение.
               </small>
             </div>
           </details>
