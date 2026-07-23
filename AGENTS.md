@@ -92,6 +92,9 @@ bun run benchmark:all
 bun run native:source:check
 ```
 
+For the current browser-first milestone, use CLI checks by default. Run browser automation only for
+UI/UX changes, and run mobile/native validation only when the change directly touches native code.
+
 For private corpus tooling also run:
 
 ```bash

@@ -221,6 +221,31 @@ describe('GroundedMedicalCore', () => {
     ]);
   });
 
+  it('rejects a diagnosis assembled from different cited chunks', async () => {
+    const core = new GroundedMedicalCore(
+      baseCore(),
+      modelController((task) => {
+        if (task.task === 'query-plan') return validResponse(task);
+        return {
+          ...validResponse(task),
+          diagnosisCandidates: [
+            {
+              label: 'Документ A',
+              sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
+              citationIds: ['chunk-a', 'chunk-b'],
+            },
+          ],
+        };
+      }),
+    );
+
+    const result = await core.search(request);
+
+    expect(result.ok).toBe(true);
+    expect(core.getAssistantState().phase).toBe('fallback');
+    expect(core.getAssistantState().diagnosisCandidates).toEqual([]);
+  });
+
   it('rejects a dose claim without an exact regimen in a treatment fragment', async () => {
     const core = new GroundedMedicalCore(
       baseCore(),
@@ -297,6 +322,56 @@ describe('GroundedMedicalCore', () => {
         missingInputs: ['Масса тела'],
       },
     ]);
+  });
+
+  it('rejects dose evidence assembled from different cited chunks', async () => {
+    const doseSnippet = '10 мг/кг/сут в 2 приёма.';
+    const firstGroup = deterministicResponse.groups[0];
+    const secondGroup = deterministicResponse.groups[1];
+    if (!firstGroup || !secondGroup) throw new Error('Test requires two result groups.');
+    const treatmentResponse: SearchResponse = {
+      ...deterministicResponse,
+      groups: [
+        {
+          ...firstGroup,
+          results: [searchResult('chunk-a', 'doc-a', 'Препарат X')],
+        },
+        {
+          ...secondGroup,
+          categories: ['treatment'],
+          results: [
+            searchResult('chunk-b', 'doc-b', 'Документ B', {
+              snippet: doseSnippet,
+              sectionType: 'treatment',
+              category: 'treatment',
+            }),
+          ],
+        },
+      ],
+    };
+    const core = new GroundedMedicalCore(
+      baseCore(treatmentResponse),
+      modelController((task) => {
+        if (task.task === 'query-plan') return validResponse(task);
+        return {
+          ...validResponse(task),
+          doseEvidence: [
+            {
+              label: 'Препарат X',
+              sourceExcerpt: doseSnippet,
+              citationIds: ['chunk-a', 'chunk-b'],
+              missingInputs: ['Масса тела'],
+            },
+          ],
+        };
+      }),
+    );
+
+    const result = await core.search(request);
+
+    expect(result.ok).toBe(true);
+    expect(core.getAssistantState().phase).toBe('fallback');
+    expect(core.getAssistantState().doseEvidence).toEqual([]);
   });
 
   it('returns the untouched deterministic order when the model invents a candidate id', async () => {

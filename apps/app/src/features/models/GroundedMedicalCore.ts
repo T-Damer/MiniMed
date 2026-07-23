@@ -194,6 +194,16 @@ function labelAppearsInSource(label: string, candidates: readonly CandidatePaylo
   );
 }
 
+function candidateSupportsClaim(
+  candidate: CandidatePayload,
+  label: string,
+  sourceExcerpt: string,
+): boolean {
+  return (
+    labelAppearsInSource(label, [candidate]) && isExactSourceExcerpt(sourceExcerpt, [candidate])
+  );
+}
+
 function containsDoseRegimen(excerpt: string): boolean {
   const dose =
     /(?:^|[^\p{L}\p{N}])\d+(?:[.,]\d+)?\s*(?:мкг|мг|г|мл|ед\.?|ме)(?:\s*\/\s*(?:кг|сут(?:ки)?))?/iu;
@@ -218,10 +228,7 @@ function parseDiagnosisCandidates(
       throw new Error('Диагностический кандидат не прошёл проверку текста.');
     }
     const candidates = citedCandidates(item['citationIds'], candidateById);
-    if (
-      !labelAppearsInSource(label, candidates) ||
-      !isExactSourceExcerpt(sourceExcerpt, candidates)
-    ) {
+    if (!candidates.some((candidate) => candidateSupportsClaim(candidate, label, sourceExcerpt))) {
       throw new Error('Диагностический кандидат не подтверждён процитированным фрагментом.');
     }
     result.push({
@@ -248,12 +255,13 @@ function parseDoseEvidence(
       throw new Error('Дозировочный фрагмент не прошёл проверку текста.');
     }
     const candidates = citedCandidates(item['citationIds'], candidateById);
-    const hasTreatmentSource = candidates.some((candidate) => candidate.category === 'treatment');
     if (
-      !hasTreatmentSource ||
-      !labelAppearsInSource(label, candidates) ||
-      !isExactSourceExcerpt(sourceExcerpt, candidates) ||
-      !containsDoseRegimen(sourceExcerpt)
+      !containsDoseRegimen(sourceExcerpt) ||
+      !candidates.some(
+        (candidate) =>
+          candidate.category === 'treatment' &&
+          candidateSupportsClaim(candidate, label, sourceExcerpt),
+      )
     ) {
       throw new Error('Дозировка не подтверждена точным режимом из лечебного раздела.');
     }

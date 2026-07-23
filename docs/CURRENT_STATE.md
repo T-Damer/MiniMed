@@ -2,6 +2,7 @@
 
 > Updated: 24 July 2026
 > Repository version: `0.4.0-alpha.1`
+> Active target: `0.5.0-alpha.1`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -28,6 +29,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Exact-source diagnostic candidate extraction.
 - Exact-source dose extraction only from a treatment chunk containing both a numeric dose and regimen.
 - Candidate-ID, text-length, exact-substring, category, and dose-pattern validation.
+- One cited chunk must independently support the label, exact excerpt, and treatment classification;
+  evidence cannot be assembled across unrelated citations.
 - Clickable citations, missing-information display, and deterministic fallback.
 
 The model cannot open the network, change the corpus, create a citation, calculate a dose, or hide the
