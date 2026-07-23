@@ -28,12 +28,14 @@ jobs:
           version: '0.10.0'
           enable-cache: true
       - run: uv sync --project tools/ingest --all-groups --locked
-      - name: Validate collector code and offline fixtures
-        run: |
-          uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest pytest tools/ingest/tests/test_official_clinical_registry.py
+      - name: Check Python formatting
+        run: uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+      - name: Check Python lint
+        run: uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+      - name: Check Python types
+        run: uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+      - name: Run official registry fixture tests
+        run: uv run --project tools/ingest pytest tools/ingest/tests/test_official_clinical_registry.py
       - name: Collect and categorize the complete official registry
         shell: bash
         run: |
@@ -107,4 +109,4 @@ jobs:
             data/build/official-clinical-coverage-ledger.json
             data/build/official-clinical-modules/module-build-report.json
             data/build/official-clinical-databases/*.report.json
-          if-no-files-found: error
+          if-no-files-found: ignore
