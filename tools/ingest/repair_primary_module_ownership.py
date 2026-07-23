@@ -1,4 +1,4 @@
-# One-shot validated repair; exported as an artifact after validation.
+# One-shot validated repair; publish source files only, then delete this script.
 from __future__ import annotations
 
 import subprocess
