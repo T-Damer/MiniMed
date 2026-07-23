@@ -6,10 +6,10 @@ a milestone or issue.
 ## Local checks
 
 ```bash
-pnpm install
-pnpm content:sync
-pnpm content:build
-pnpm verify
+bun install
+bun run content:sync
+bun run content:build
+bun run verify
 ```
 
 ## Branches and commits

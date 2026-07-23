@@ -90,9 +90,9 @@ neighbors and can open the whole section.
 ## Regression benchmarks
 
 ```bash
-pnpm benchmark:search  # 30 compact lexical queries
-pnpm benchmark:cases   # 5 long clinical descriptions
-pnpm benchmark:all
+bun run benchmark:search  # 30 compact lexical queries
+bun run benchmark:cases   # 5 long clinical descriptions
+bun run benchmark:all
 ```
 
 The long-case benchmark requires the expected synthetic document at rank 1, expected extracted

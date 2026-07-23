@@ -34,7 +34,7 @@ Do not set `enabled: true` until `location`, `target`, and the rights fields are
 ### 2. Collect snapshots
 
 ```bash
-pnpm content:collect:drugs
+bun run content:collect:drugs
 ```
 
 The command delegates downloads and local-file copies to the existing checksum/ETag/cache-backed sync layer. It writes:
@@ -50,7 +50,7 @@ Raw/licensed datasets remain gitignored.
 Use the existing source registry and preparer. Each prepared Markdown chunk retains source spans, pages, checksums, and stable anchors:
 
 ```bash
-pnpm content:prepare:private
+bun run content:prepare:private
 ```
 
 A vendor-specific adapter should convert XML/JSON/CSV records into source-preserving Markdown plus metadata. It must not discard the original export.
@@ -69,7 +69,7 @@ metadata:
 ### 4. Export ChatGPT tasks
 
 ```bash
-pnpm content:ai:export
+bun run content:ai:export
 ```
 
 This creates `data/intermediate/chatgpt-tasks.jsonl`, one record per source chunk. Each task contains the exact source text, document/version/section/chunk IDs, page/span metadata, and non-negotiable extraction rules.
@@ -79,7 +79,7 @@ Paste `docs/prompts/drug-enrichment-chatgpt.md` into ChatGPT, then process manag
 ### 5. Validate and import proposals
 
 ```bash
-pnpm content:ai:import -- \
+bun run content:ai:import -- \
   --input data/intermediate/private-pilot \
   --responses data/intermediate/chatgpt-responses.jsonl \
   --output data/intermediate/private-pilot/knowledge.proposed.yaml
@@ -102,7 +102,7 @@ Missing pediatric doses, maximum doses, indication-specific regimens, contraindi
 A reviewer compares each proposal with the opened source and approves selected IDs:
 
 ```bash
-pnpm content:knowledge:approve -- \
+bun run content:knowledge:approve -- \
   --source data/intermediate/private-pilot/knowledge.proposed.yaml \
   --output data/intermediate/private-pilot/knowledge.yaml \
   --reviewer "clinical-pharmacist@example.org" \
@@ -117,8 +117,8 @@ This command records an attestation; it does not replace the clinical review pro
 ### 7. Lint and compile the offline pack
 
 ```bash
-pnpm content:knowledge:lint -- --input data/intermediate/private-pilot
-pnpm content:build:private
+bun run content:knowledge:lint -- --input data/intermediate/private-pilot
+bun run content:build:private
 ```
 
 `medbase build` now loads optional `knowledge.yaml`, validates every evidence pointer, adds reviewed terms to the linked chunk’s FTS/vector projection, and writes the complete graph into SQLite. Proposed/rejected facts stay in the relational audit layer but do not enter search projections.

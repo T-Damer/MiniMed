@@ -1,6 +1,6 @@
 # Current state and execution order
 
-> Updated: 22 July 2026  
+> Updated: 24 July 2026
 > Repository version: `0.3.3`
 
 ## Document role
@@ -25,6 +25,8 @@ module availability is shown only through a passive counter and the Modules page
 
 ### Runtime
 
+- JavaScript workspaces, bootstrap scripts, and GitHub Actions use the repository-pinned Bun 1.2.3
+  runtime and frozen `bun.lock` installs.
 - SolidJS application with Capacitor mobile shells and web development mode.
 - `MedicalCore` boundary with UI-independent search and document contracts.
 - Local SQLite/FTS5 retrieval, native read-only SQLite where supported, and SQLite WASM fallback.

@@ -84,10 +84,10 @@ limits a single command to roughly 100 seconds, so the later phases were also ru
 
 ```bash
 corepack enable
-pnpm install --frozen-lockfile
-pnpm content:sync
-pnpm verify
-pnpm test:e2e
+bun install --frozen-lockfile
+bun run content:sync
+bun run verify
+bun run test:e2e
 ```
 
 `playwright.config.ts` uses `CHROMIUM_PATH` when provided and automatically recognizes

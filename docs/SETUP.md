@@ -4,7 +4,7 @@
 
 - Git;
 - Node.js `22.16.x` или совместимый `>=22.12`;
-- Corepack/pnpm `11.13.1`;
+- Bun `1.2.3`;
 - Python `3.12+`;
 - `uv`;
 - Chromium только для E2E;
@@ -47,9 +47,9 @@ Windows PowerShell:
 
 ```bash
 corepack enable
-pnpm install --frozen-lockfile
+bun install --frozen-lockfile
 uv sync --project tools/ingest --all-groups --locked
-pnpm verify
+bun run verify
 ```
 
 ## Запуск
@@ -57,19 +57,19 @@ pnpm verify
 Приложение:
 
 ```bash
-pnpm dev
+bun run dev
 ```
 
 Лендинг:
 
 ```bash
-pnpm dev:landing
+bun run dev:landing
 ```
 
 Production builds:
 
 ```bash
-pnpm build
+bun run build
 ```
 
 ## Частный пилотный корпус
@@ -78,9 +78,9 @@ pnpm build
 cp docs/examples/private-sources.yaml data/raw/sources.yaml
 # Добавить PDF/TXT в data/raw и исправить registry.
 
-pnpm content:prepare:private
-pnpm content:lint:private
-pnpm content:build:private
+bun run content:prepare:private
+bun run content:lint:private
+bun run content:build:private
 ```
 
 `data/raw`, `data/intermediate` и частные build-артефакты игнорируются Git по умолчанию.
@@ -89,10 +89,10 @@ pnpm content:build:private
 ## Android
 
 ```bash
-pnpm build:app
-pnpm native:sync:android
-pnpm native:source:check
-pnpm --filter @localmed/app cap:open:android
+bun run build:app
+bun run native:sync:android
+bun run native:source:check
+bun run --filter @localmed/app cap:open:android
 ```
 
 Либо CLI build после настройки `ANDROID_HOME`:
@@ -107,10 +107,10 @@ cd apps/app/android
 Только на macOS:
 
 ```bash
-pnpm build:app
-pnpm native:sync:ios
-pnpm native:source:check
-pnpm --filter @localmed/app cap:open:ios
+bun run build:app
+bun run native:sync:ios
+bun run native:source:check
+bun run --filter @localmed/app cap:open:ios
 ```
 
 ## GitHub

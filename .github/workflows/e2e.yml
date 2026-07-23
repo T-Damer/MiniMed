@@ -9,7 +9,7 @@ on:
       - "packages/**"
       - "tools/ingest/**"
       - "playwright.config.ts"
-      - "pnpm-lock.yaml"
+      - "bun.lock"
 
 permissions:
   contents: read
@@ -19,22 +19,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.16.0
-          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.10.0"
           enable-cache: true
-      - run: pnpm install --frozen-lockfile
+      - run: bun install --frozen-lockfile
       - run: uv sync --project tools/ingest --all-groups --locked
       - name: Build regulatory E2E module
         run: |
-          pnpm content:build:regulatory
+          bun run content:build:regulatory
           python3 - <<'PY'
           import hashlib
           import json
@@ -154,12 +148,12 @@ jobs:
               encoding='utf-8',
           )
           PY
-      - run: pnpm exec playwright install chromium --with-deps
+      - run: bunx playwright install chromium --with-deps
       - name: Run Chromium E2E
         shell: bash
         run: |
           set -o pipefail
-          pnpm test:e2e 2>&1 | tee playwright-e2e.log
+          bun run test:e2e 2>&1 | tee playwright-e2e.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:

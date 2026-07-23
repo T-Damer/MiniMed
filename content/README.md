@@ -7,9 +7,9 @@ Real source PDFs/TXT exports belong in `data/raw/` and are ignored by Git. A pri
 copied from `docs/examples/private-sources.yaml`, then prepared with:
 
 ```bash
-pnpm content:prepare:private
-pnpm content:lint:private
-pnpm content:build:private
+bun run content:prepare:private
+bun run content:lint:private
+bun run content:build:private
 ```
 
 The preparer writes source-preserving Markdown and extraction diagnostics under

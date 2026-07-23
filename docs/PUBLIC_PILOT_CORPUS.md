@@ -46,9 +46,9 @@ The deterministic builder should produce:
 The pack is built with:
 
 ```bash
-pnpm content:lint:pilot
-pnpm content:build:pilot
-pnpm benchmark:pilot
+bun run content:lint:pilot
+bun run content:build:pilot
+bun run benchmark:pilot
 ```
 
 ## Retrieval benchmark

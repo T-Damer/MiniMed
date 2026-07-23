@@ -32,19 +32,13 @@ jobs:
             sha256: 9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22.16.0
-          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
       - uses: actions/cache@v4
         with:
           path: .cache/local-model-smoke
           key: local-model-smoke-${{ matrix.sha256 }}
       - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Download and verify model artifact
         shell: bash
         run: |
@@ -63,15 +57,15 @@ jobs:
           VITE_LOCAL_MODEL_ALLOW_UPSTREAM: 'false'
           VITE_LOCAL_MODEL_AUTOLOAD: 'true'
           VITE_LOCAL_MODEL_ALLOW_AUTOMATION_DOWNLOADS: 'true'
-        run: pnpm build:app
+        run: bun run build:app
       - name: Install Chromium
-        run: pnpm exec playwright install chromium --with-deps
+        run: bunx playwright install chromium --with-deps
       - name: Run real model load and structured-output probe
         env:
           LOCAL_MODEL_SMOKE: '1'
           LOCAL_MODEL_ID: ${{ matrix.id }}
           LOCAL_MODEL_NAME: ${{ matrix.name }}
-        run: pnpm exec playwright test apps/app/e2e/local-model-smoke.spec.ts --project=chromium --workers=1
+        run: bunx playwright test apps/app/e2e/local-model-smoke.spec.ts --project=chromium --workers=1
       - name: Upload Playwright evidence
         if: always()
         uses: actions/upload-artifact@v4

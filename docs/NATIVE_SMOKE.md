@@ -10,16 +10,16 @@ Requirements:
 - JDK 21;
 - Android Studio and SDK Platform 36 / Build Tools 36.0.0;
 - an attached physical device with USB debugging;
-- Node and pnpm versions declared in the repository.
+- Bun and Node versions declared in the repository.
 
 ```bash
 corepack enable
-pnpm install --frozen-lockfile
-pnpm content:sync
-pnpm content:build
-pnpm build:app
-pnpm native:sync:android
-pnpm native:source:check
+bun install --frozen-lockfile
+bun run content:sync
+bun run content:build
+bun run build:app
+bun run native:sync:android
+bun run native:source:check
 
 cd apps/app/android
 ./gradlew assembleDebug
@@ -53,13 +53,13 @@ Run on macOS with current Xcode:
 
 ```bash
 corepack enable
-pnpm install --frozen-lockfile
-pnpm content:sync
-pnpm content:build
-pnpm build:app
-pnpm native:sync:ios
-pnpm native:source:check
-pnpm --filter @localmed/app cap:open:ios
+bun install --frozen-lockfile
+bun run content:sync
+bun run content:build
+bun run build:app
+bun run native:sync:ios
+bun run native:source:check
+bun run --filter @localmed/app cap:open:ios
 ```
 
 Build and install on a physical iPhone/iPad, then repeat the Android checks using the Xcode console

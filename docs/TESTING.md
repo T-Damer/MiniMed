@@ -3,15 +3,15 @@
 ## Commands
 
 ```bash
-pnpm check             # Biome format + lint
-pnpm typecheck         # TypeScript and Astro
-pnpm test:unit         # Vitest
-pnpm python:check      # Ruff, strict Pyright, pytest
-pnpm build             # schemas + app + landing
-pnpm benchmark:all     # compact hybrid + long lexical cases
-pnpm secrets:check
-pnpm verify
-CHROMIUM_PATH=/usr/bin/chromium pnpm test:e2e
+bun run check             # Biome format + lint
+bun run typecheck         # TypeScript and Astro
+bun run test:unit         # Vitest
+bun run python:check      # Ruff, strict Pyright, pytest
+bun run build             # schemas + app + landing
+bun run benchmark:all     # compact hybrid + long lexical cases
+bun run secrets:check
+bun run verify
+CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
 ```
 
 ## Unit and contract coverage
@@ -69,7 +69,7 @@ Playwright builds the production bundle and verifies the main offline path in Ch
 
 ## Native source checks
 
-`pnpm native:source:check` validates plugin method parity, Android/iOS registration, read-only open
+`bun run native:source:check` validates plugin method parity, Android/iOS registration, read-only open
 flags, integrity/FTS5 probes, backup/recovery markers, Xcode SQLite linkage, and the SHA-256 of the
 packaged database.
 

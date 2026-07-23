@@ -45,9 +45,8 @@ Forbidden without a dedicated ADR:
 
 ## Local execution
 
-- Prefer Bun for local JavaScript commands when it is compatible with the existing script. Do not
-  rewrite repository scripts or CI solely to replace the declared pnpm/Node workflow; fall back to the
-  repository runner when Bun is incompatible.
+- Use the repository-pinned Bun version for JavaScript commands and CI. Keep explicit Node commands
+  only where a tool is incompatible with Bun, and document that fallback.
 - Before running project code, use a sanitized environment containing only required, documented
   non-secret values. Do not inherit provider credentials, release tokens, private-corpus paths, or
   upload destinations into local app, test, build, or browser processes.
@@ -84,21 +83,21 @@ TypeScript uses Biome and strict TypeScript. Python uses Ruff formatting/lint, s
 pytest. Before reporting completion run the applicable commands:
 
 ```bash
-pnpm check
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm python:check
-pnpm benchmark:all
-pnpm native:source:check
+bun run check
+bun run typecheck
+bun run test
+bun run build
+bun run python:check
+bun run benchmark:all
+bun run native:source:check
 ```
 
 For private corpus tooling also run:
 
 ```bash
-pnpm content:prepare:private
-pnpm content:lint:private
-pnpm content:build:private
+bun run content:prepare:private
+bun run content:lint:private
+bun run content:build:private
 ```
 
 State honestly which dependency suites, native SDKs, physical devices, and real source documents

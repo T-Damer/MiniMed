@@ -19,16 +19,10 @@ jobs:
         with:
           ref: agent/mobile-ux-alpha6-final
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22.16.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
       - name: Apply pinned Biome formatting
-        run: pnpm check --write
+        run: bun run check --write
       - name: Publish non-workflow formatting fixes
         shell: bash
         run: |
@@ -49,21 +43,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22.16.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm check
-      - run: pnpm typecheck
-      - run: pnpm test:unit
-      - run: pnpm native:source:check
-      - run: pnpm build
-      - run: pnpm benchmark:all
-      - run: pnpm secrets:check
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run typecheck
+      - run: bun run test:unit
+      - run: bun run native:source:check
+      - run: bun run build
+      - run: bun run benchmark:all
+      - run: bun run secrets:check
 
   python:
     runs-on: ubuntu-latest
