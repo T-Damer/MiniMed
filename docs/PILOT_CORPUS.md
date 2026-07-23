@@ -56,9 +56,9 @@ uv run --project tools/ingest medbase build \
 The root package exposes equivalent shortcuts:
 
 ```bash
-pnpm content:prepare:private
-pnpm content:lint:private
-pnpm content:build:private
+bun run content:prepare:private
+bun run content:lint:private
+bun run content:build:private
 ```
 
 ## Supported input

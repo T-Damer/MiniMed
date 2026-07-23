@@ -26,15 +26,9 @@ jobs:
       PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22.16.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build:landing
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build:landing
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/landing/dist

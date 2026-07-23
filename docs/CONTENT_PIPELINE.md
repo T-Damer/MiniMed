@@ -79,15 +79,15 @@ default.
 Demo pack:
 
 ```bash
-pnpm content:build
+bun run content:build
 ```
 
 Private pilot:
 
 ```bash
-pnpm content:prepare:private
-pnpm content:lint:private
-pnpm content:build:private
+bun run content:prepare:private
+bun run content:lint:private
+bun run content:build:private
 ```
 
 Direct CLI:

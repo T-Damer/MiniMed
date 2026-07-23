@@ -29,19 +29,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22.16.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
       - name: Validate trusted catalog and mirror plan
         shell: bash
         run: |
           set -euo pipefail
-          pnpm exec tsx -e "import raw from './apps/app/src/features/models/catalog.preview.json'; import { parseLocalModelCatalog } from './apps/app/src/features/models/catalog.ts'; const catalog=parseLocalModelCatalog(raw); const mirrored=catalog.models.flatMap(model => model.license.id === 'apache-2.0' ? model.artifacts.filter(a => a.runtime === 'wllama-web' && a.published) : []); if (mirrored.length !== 4) throw new Error('Expected four mirrored Apache artifacts'); console.log(mirrored.map(a => a.mirrorPath));"
+          bunx tsx -e "import raw from './apps/app/src/features/models/catalog.preview.json'; import { parseLocalModelCatalog } from './apps/app/src/features/models/catalog.ts'; const catalog=parseLocalModelCatalog(raw); const mirrored=catalog.models.flatMap(model => model.license.id === 'apache-2.0' ? model.artifacts.filter(a => a.runtime === 'wllama-web' && a.published) : []); if (mirrored.length !== 4) throw new Error('Expected four mirrored Apache artifacts'); console.log(mirrored.map(a => a.mirrorPath));"
 
   mirror-apache-models:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')

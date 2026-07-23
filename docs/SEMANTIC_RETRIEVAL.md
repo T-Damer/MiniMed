@@ -98,10 +98,10 @@ ANN should be introduced only after benchmarking representative pack sizes. Comp
 ## Verification
 
 ```bash
-pnpm content:build
-pnpm test:unit
-pnpm benchmark:search
-CHROMIUM_PATH=/usr/bin/chromium pnpm test:e2e
+bun run content:build
+bun run test:unit
+bun run benchmark:search
+CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
 ```
 
 Current synthetic checks require:

@@ -11,17 +11,11 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.13.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.16.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm native:source:check
-      - run: pnpm build:app
-      - run: pnpm native:sync:ios
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run native:source:check
+      - run: bun run build:app
+      - run: bun run native:sync:ios
       - name: Build unsigned simulator app
         working-directory: apps/app/ios/App
         run: >-

@@ -18,8 +18,8 @@ the current full act when those details are required.
 ## Validation
 
 ```bash
-pnpm content:rebuild:regulatory
-pnpm benchmark:regulatory
+bun run content:rebuild:regulatory
+bun run benchmark:regulatory
 ```
 
 Direct and declared-source builds must produce identical SQLite checksums. The 12-query baseline is:
