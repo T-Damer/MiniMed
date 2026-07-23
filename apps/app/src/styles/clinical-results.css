@@ -79,6 +79,24 @@
   white-space: nowrap;
 }
 
+.results-more {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgb(64 91 78 / 35%);
+  color: var(--green-file);
+  background: rgb(246 238 219 / 72%);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.results-more:hover {
+  background: rgb(64 91 78 / 9%);
+}
+
 .source-reader-actions {
   display: flex;
   align-items: center;
