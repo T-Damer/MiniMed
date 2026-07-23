@@ -13,8 +13,25 @@ from localmed_ingest.models import RegistrySource
 from localmed_ingest.pdf_import import extract_pdf
 from localmed_ingest.source_registry import prepare_registry, render_prepared_markdown
 
-FONT_REGULAR = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
-FONT_BOLD = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+
+def installed_font(*candidates: str) -> Path:
+    for candidate in candidates:
+        path = Path(candidate)
+        if path.is_file():
+            return path
+    raise RuntimeError(f"Test font is unavailable: {', '.join(candidates)}")
+
+
+FONT_REGULAR = installed_font(
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "C:/Windows/Fonts/arial.ttf",
+)
+FONT_BOLD = installed_font(
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    "C:/Windows/Fonts/arialbd.ttf",
+)
 
 
 def create_text_pdf(path: Path) -> None:
@@ -102,7 +119,7 @@ def test_rendered_markdown_keeps_source_markers(tmp_path: Path) -> None:
     assert "<!-- localmed:source" in markdown
     assert "source_checksum:" in markdown
     assert "synthetic_fixture: false" in markdown
-    assert "# 1. Раздел диагностики" in markdown
+    assert "# 1. Раздел диагностики" in markdown.replace("\u00a0", " ")
 
 
 def test_prepare_registry_builds_searchable_pack_with_page_provenance(tmp_path: Path) -> None:
