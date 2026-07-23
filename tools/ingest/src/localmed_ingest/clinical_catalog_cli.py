@@ -7,16 +7,40 @@ from typing import Annotated
 import typer
 
 from .clinical_catalog import build_clinical_coverage_ledger, write_clinical_coverage_ledger
+from .official_clinical_registry import collect_official_clinical_registry
 
 app = typer.Typer(
     no_args_is_help=True,
-    help="Inventory and categorize a Russian clinical-recommendation catalog export.",
+    help="Inventory and categorize the Russian clinical-recommendation catalog.",
 )
 
 
 @app.callback()
 def main() -> None:
-    """Inventory and categorize declared clinical-recommendation catalog exports."""
+    """Collect, inventory and categorize clinical-recommendation catalog records."""
+
+
+@app.command("official-sync")
+def official_sync_command(
+    output: Annotated[Path, typer.Option("--output")],
+    raw_output: Annotated[Path | None, typer.Option("--raw-output")] = None,
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+    page_size: Annotated[int, typer.Option("--page-size", min=1, max=1000)] = 200,
+    max_pages: Annotated[int, typer.Option("--max-pages", min=1)] = 100,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
+    generated_at: Annotated[str | None, typer.Option("--generated-at")] = None,
+) -> None:
+    """Collect the complete official Minzdrav registry through its public API."""
+    summary = collect_official_clinical_registry(
+        output,
+        raw_output=raw_output,
+        report_output=report,
+        page_size=page_size,
+        max_pages=max_pages,
+        timeout_seconds=timeout_seconds,
+        generated_at=generated_at,
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
 
 
 @app.command("build")
