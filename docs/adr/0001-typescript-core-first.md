@@ -1,20 +1,21 @@
 # ADR-0001: TypeScript core first
 
-- Status: accepted
+- Status: superseded for new clinical orchestration by [ADR-0010](0010-portable-rust-clinical-core.md)
 - Date: 2026-07-16
 
 ## Context
 
-The main pre-1.0 risks are source ingestion, search quality, exact navigation, and mobile integration—not JavaScript execution speed. SQLite and model runtimes already execute in native/WASM code.
+The main early risks were source ingestion, search quality, exact navigation, and mobile integration—not JavaScript execution speed. SQLite and model runtimes already executed in native/WASM code.
 
 ## Decision
 
-Keep orchestration and public contracts in strict TypeScript for the MVP. UI depends on `MedicalCore`; concrete storage and future model adapters are injected at the composition root.
+Keep orchestration and public contracts in strict TypeScript for the initial retrieval MVP. UI depends on `MedicalCore`; concrete storage and future model adapters are injected at the composition root.
 
-Rust is introduced only after profiling demonstrates a real bottleneck or when one portable native core is clearly cheaper than maintaining TypeScript plus platform adapters.
+Rust was initially deferred until profiling demonstrated a bottleneck or one portable native core became clearly cheaper than maintaining TypeScript plus platform adapters.
 
 ## Consequences
 
-- Faster iteration and one language across UI/contracts.
-- Rust remains possible behind the same contracts.
-- Native SQLite, NPU and secure-storage access still require platform-specific adapters later.
+- The decision enabled faster iteration and one language across the initial UI/contracts/retrieval slice.
+- The current TypeScript core remains the reference implementation during the Rust parity migration.
+- The expanded cross-platform case, graph, rule, and calculation scope now satisfies the portability trigger; ADR-0010 governs new clinical orchestration.
+- Native SQLite, model/NPU, filesystem, and secure-storage access still require platform-specific adapters.
