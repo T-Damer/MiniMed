@@ -2,6 +2,11 @@
 
 - Status: accepted for experimental implementation
 - Date: 2026-07-22
+- Amended: 2026-07-24
+
+The runtime and selection decision remains active. Decision 12 described the original runtime-only
+slice; model output is now connected to bounded reranking and exact-source diagnostic/dose extraction
+under the validation rules in `docs/GROUNDED_LOCAL_ASSISTANT.md`.
 
 ## Context
 
