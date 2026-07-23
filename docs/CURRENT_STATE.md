@@ -56,7 +56,7 @@ The 50-query public-pilot benchmark after the current ranking fixes:
 - Recall@5: `1.00`;
 - MRR@5: `1.00`;
 - section recall: `1.00`;
-- top-section accuracy: `0.94`;
+- top-section accuracy: `1.00`;
 - context and source-metadata resolution: `1.00`;
 - zero-result rate: `0`.
 
@@ -72,8 +72,6 @@ checkout until those artifacts are built.
   dose output.
 - Model prompts and structural validation are implemented; clinical quality has not been qualified on
   real local-model outputs or reviewed by clinicians.
-- Three public-pilot queries rank the correct document first but select a neighboring section before
-  the expected routing or diagnostics section.
 - Proposed medication knowledge is not reviewed guidance.
 - Browser inference is CPU/WASM; model download size and latency remain substantial.
 - Native mobile lifecycle and inference are not current priorities.
@@ -85,9 +83,7 @@ checkout until those artifacts are built.
    checks.
 3. Evaluate the bundled small models on exact citation, extraction, unsupported-claim, latency, and
    memory metrics.
-4. Improve the three remaining top-section misses through terminology or source coverage, not
-   disease-specific ranking rules.
-5. Refine the browser clinical-answer layout using real source excerpts.
-6. Add a selected-source update tracker only after local ingestion and versioning are stable.
+4. Refine the browser clinical-answer layout using real source excerpts.
+5. Add a selected-source update tracker only after local ingestion and versioning are stable.
 
 No database update can safely add dose guidance until a supplied source actually contains the regimen.

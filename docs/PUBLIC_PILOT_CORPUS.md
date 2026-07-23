@@ -56,7 +56,7 @@ bun run benchmark:pilot
 
 `tools/benchmarks/pilot-rf-queries.json` contains 50 engineering queries: six per recommendation and
 one registry query per medication card. The current deterministic build scores Recall@1 `1.00`,
-Recall@5 `1.00`, MRR@5 `1.00`, and top-section accuracy `0.94`.
+Recall@5 `1.00`, MRR@5 `1.00`, and top-section accuracy `1.00`.
 
 The query suite includes a regression for a negated treatment-response phrase such as “нет ответа на стартовый антибиотик через 72 часа при пневмонии”; the negative span must stop at the temporal reassessment boundary so the diagnosis remains searchable.
 
