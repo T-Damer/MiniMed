@@ -71,7 +71,7 @@ build_end = builder.index(
     build_start,
 )
 build = indented(
-    """
+    r"""
     builds: list[CatalogModuleBuild] = []
     warnings: list[str] = []
     packaged_ids: list[str] = []
