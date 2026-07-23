@@ -32,6 +32,10 @@ Supported families are `clinical`, `medication` and `legal`. One build-ready wor
 for every module in the input coverage ledger. The generator rejects unsupported families, empty
 module plans and references to records that are absent from the ledger.
 
+The shared envelope validates stable module IDs, titles, record references and coverage counts. It also
+accepts family-specific categorization and provenance fields, which remain protected by the checksum of
+the complete source ledger rather than being mistaken for the shared runtime contract.
+
 Each workspace contains:
 
 ```text
