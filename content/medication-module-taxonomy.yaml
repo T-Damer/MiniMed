@@ -1,0 +1,78 @@
+schemaVersion: 1
+modules:
+  - id: minimed.medications.alimentary-metabolism.ru
+    title: Пищеварительный тракт и обмен веществ
+    priority: 100
+    atcPrefixes: [A]
+
+  - id: minimed.medications.blood.ru
+    title: Кровь и кроветворение
+    priority: 100
+    atcPrefixes: [B]
+
+  - id: minimed.medications.cardiovascular.ru
+    title: Сердечно-сосудистая система
+    priority: 100
+    atcPrefixes: [C]
+
+  - id: minimed.medications.dermatological.ru
+    title: Дерматологические препараты
+    priority: 100
+    atcPrefixes: [D]
+
+  - id: minimed.medications.genitourinary-hormones.ru
+    title: Мочеполовая система и половые гормоны
+    priority: 100
+    atcPrefixes: [G]
+
+  - id: minimed.medications.systemic-hormones.ru
+    title: Системные гормональные препараты
+    priority: 100
+    atcPrefixes: [H]
+
+  - id: minimed.medications.antiinfectives.ru
+    title: Противоинфекционные препараты системного действия
+    priority: 110
+    atcPrefixes: [J]
+    nameKeywords: [антибиотик, противовирус, вакцина, иммуноглобулин]
+
+  - id: minimed.medications.antineoplastic-immunomodulating.ru
+    title: Противоопухолевые и иммуномодулирующие препараты
+    priority: 105
+    atcPrefixes: [L]
+
+  - id: minimed.medications.musculoskeletal.ru
+    title: Костно-мышечная система
+    priority: 100
+    atcPrefixes: [M]
+
+  - id: minimed.medications.nervous-system.ru
+    title: Нервная система
+    priority: 105
+    atcPrefixes: [N]
+    nameKeywords: [антидепрессант, антипсихотик, противосудорож, анестетик, опиоид]
+
+  - id: minimed.medications.antiparasitic.ru
+    title: Противопаразитарные препараты и репелленты
+    priority: 100
+    atcPrefixes: [P]
+
+  - id: minimed.medications.respiratory.ru
+    title: Дыхательная система
+    priority: 100
+    atcPrefixes: [R]
+
+  - id: minimed.medications.sensory-organs.ru
+    title: Органы чувств
+    priority: 100
+    atcPrefixes: [S]
+
+  - id: minimed.medications.various.ru
+    title: Прочие препараты и диагностические средства
+    priority: 90
+    atcPrefixes: [V]
+
+  - id: minimed.medications.unclassified.ru
+    title: Препараты без подтвержденной ATC-классификации
+    priority: 0
+    fallback: true
