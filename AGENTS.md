@@ -43,6 +43,17 @@ Forbidden without a dedicated ADR:
 6. For content work, identify whether the input is raw, prepared, or generated. Never hand-edit a
    generated SQLite/JSON pack.
 
+## Local execution
+
+- Prefer Bun for local JavaScript commands when it is compatible with the existing script. Do not
+  rewrite repository scripts or CI solely to replace the declared pnpm/Node workflow; fall back to the
+  repository runner when Bun is incompatible.
+- Before running project code, use a sanitized environment containing only required, documented
+  non-secret values. Do not inherit provider credentials, release tokens, private-corpus paths, or
+  upload destinations into local app, test, build, or browser processes.
+- Bind local browser development servers to `127.0.0.1`; do not expose them on the LAN unless the user
+  explicitly requests it.
+
 ## Coding rules
 
 - Implement the smallest complete vertical slice.
