@@ -1,3 +1,5 @@
+import { SerialAsyncQueue } from './serial-async-queue';
+import { extractStructuredJson, normalizeLocalModelProbe } from './structured-output';
 import type {
   LocalModelArtifact,
   LocalModelDescriptor,
@@ -5,6 +7,8 @@ import type {
   LocalModelLoadCallbacks,
   LocalModelRuntime,
   LocalModelSession,
+  LocalModelStructuredRequest,
+  LocalModelStructuredResponse,
 } from './types';
 
 interface WllamaProgress {
@@ -77,35 +81,14 @@ function joinUrl(base: string, path: string): string {
   return `${base.replace(/\/$/u, '')}/${path.replace(/^\//u, '')}`;
 }
 
-function extractJson(value: string): unknown | null {
-  const withoutThinking = value.replace(/<think>[\s\S]*?<\/think>/giu, '').trim();
-  const start = withoutThinking.indexOf('{');
-  const end = withoutThinking.lastIndexOf('}');
-  if (start < 0 || end <= start) return null;
-  try {
-    return JSON.parse(withoutThinking.slice(start, end + 1)) as unknown;
-  } catch {
-    return null;
-  }
-}
-
-function isValidProbe(value: unknown): boolean {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
-  const record = value as Readonly<Record<string, unknown>>;
-  return (
-    typeof record['intent'] === 'string' &&
-    typeof record['ageYears'] === 'number' &&
-    Array.isArray(record['concepts']) &&
-    record['concepts'].every((item) => typeof item === 'string')
-  );
-}
-
 function outputPreview(value: string): string {
   const compact = value.replace(/\s+/gu, ' ').trim();
   return compact.length > 900 ? `${compact.slice(0, 900)}…` : compact;
 }
 
 class BrowserWllamaSession implements LocalModelSession {
+  private readonly structuredTasks = new SerialAsyncQueue();
+
   public readonly modelId: string;
   public readonly artifactId: string;
 
@@ -118,46 +101,82 @@ class BrowserWllamaSession implements LocalModelSession {
     this.artifactId = artifactId;
   }
 
-  public async benchmark() {
+  private async runStructured(
+    request: LocalModelStructuredRequest,
+  ): Promise<LocalModelStructuredResponse> {
     const startedAt = performance.now();
     const noThinking = this.model.family.includes('qwen3') ? '/no_think\n' : '';
     const result = await this.instance.createChatCompletion({
       messages: [
-        {
-          role: 'system',
-          content:
-            'Ты проверяешь работу локальной модели. Не рассуждай вслух. Верни только один JSON-объект с полями intent, ageYears и concepts.',
-        },
-        {
-          role: 'user',
-          content: `${noThinking}Девочка 3 лет. Запрос: лечение бронхиальной астмы при потере контроля. Верни intent строкой, ageYears числом и concepts массивом строк.`,
-        },
+        { role: 'system', content: request.systemPrompt },
+        { role: 'user', content: `${noThinking}${request.userPrompt}` },
       ],
-      max_tokens: 160,
-      temperature: 0,
+      max_tokens: Math.max(32, Math.min(512, Math.round(request.maxTokens))),
+      temperature: Math.max(0, Math.min(0.4, request.temperature ?? 0)),
       top_p: 1,
     });
-    const generationMs = performance.now() - startedAt;
-    const output = result.choices?.[0]?.message?.content?.trim() ?? '';
-    const parsed = extractJson(output);
-    const validStructuredOutput = isValidProbe(parsed);
-    if (!validStructuredOutput) {
-      const preview = outputPreview(output) || 'Модель не вернула текст.';
-      throw new Error(
-        `Модель загрузилась, но не прошла проверку ответа. Получено: «${preview}». Попробуйте повторить тест или выбрать другую модель.`,
-      );
-    }
+    const rawText = result.choices?.[0]?.message?.content?.trim() ?? '';
     return {
-      modelId: this.modelId,
-      artifactId: this.artifactId,
-      runtime: 'wllama-web' as const,
-      generationMs,
-      outputCharacters: output.length,
-      validStructuredOutput,
+      task: request.task,
+      rawText,
+      parsedJson: extractStructuredJson(rawText),
+      generationMs: performance.now() - startedAt,
     };
   }
 
+  public completeStructured(
+    request: LocalModelStructuredRequest,
+  ): Promise<LocalModelStructuredResponse> {
+    return this.structuredTasks.run(() => this.runStructured(request));
+  }
+
+  public async benchmark() {
+    const probes: readonly LocalModelStructuredRequest[] = [
+      {
+        task: 'query-plan',
+        systemPrompt:
+          'Проверка локальной модели. Не рассуждай и не добавляй пояснений. Верни только один JSON-объект.',
+        userPrompt:
+          'Повтори структуру с теми же ключами: {"intent":"search","ageYears":3,"concepts":["астма"]}',
+        maxTokens: 120,
+      },
+      {
+        task: 'query-plan',
+        systemPrompt: 'Верни только JSON без Markdown и текста до или после объекта.',
+        userPrompt:
+          'Ответ должен содержать intent строкой, ageYears числом 3 и concepts непустым массивом строк. Запрос: астма у ребёнка.',
+        maxTokens: 160,
+      },
+    ];
+    const previews: string[] = [];
+    let totalGenerationMs = 0;
+    let totalOutputCharacters = 0;
+
+    for (const probe of probes) {
+      const response = await this.completeStructured(probe);
+      totalGenerationMs += response.generationMs;
+      totalOutputCharacters += response.rawText.length;
+      if (normalizeLocalModelProbe(response.parsedJson)) {
+        return {
+          modelId: this.modelId,
+          artifactId: this.artifactId,
+          runtime: 'wllama-web' as const,
+          generationMs: totalGenerationMs,
+          outputCharacters: totalOutputCharacters,
+          validStructuredOutput: true,
+        };
+      }
+      previews.push(outputPreview(response.rawText) || 'Модель не вернула текст.');
+    }
+
+    throw new Error(
+      `Модель загрузилась и ответила, но не смогла вернуть требуемый JSON после двух попыток. ` +
+        `Ответы: ${previews.map((preview, index) => `${index + 1}) «${preview}»`).join(' ')}`,
+    );
+  }
+
   public async unload(): Promise<void> {
+    await this.structuredTasks.close();
     if (this.instance.unloadModel) {
       await this.instance.unloadModel();
       return;
@@ -207,7 +226,7 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
         await instance.loadModelFromUrl(url, {
           n_ctx: Math.min(artifact.maxContextTokens, 2048),
           n_threads: Math.max(1, Math.min(6, profile.hardwareConcurrency - 1)),
-          // wllama 3.5 is a WebAssembly CPU runtime and does not implement WebGPU.
+          // wllama is a WebAssembly CPU runtime and does not implement WebGPU.
           n_gpu_layers: 0,
           progressCallback: ({ loaded, total }) => callbacks.onProgress(loaded, total),
         });
