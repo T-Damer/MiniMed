@@ -120,11 +120,12 @@ const report = {
 };
 
 try {
-  await page.goto(SOURCE_URL, { waitUntil: 'domcontentloaded', timeout: 120_000 });
-  await page.waitForResponse(
+  const targetResponsePromise = page.waitForResponse(
     (response) => response.url().includes(TARGET_OPERATION) && response.ok(),
     { timeout: 120_000 },
   );
+  await page.goto(SOURCE_URL, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+  await targetResponsePromise;
   await page.waitForTimeout(2_000);
   report.finalUrl = page.url();
   report.title = await page.title();
