@@ -2,97 +2,108 @@
 
 ## Purpose
 
-MiniMed is an offline-first medical knowledge workspace for Russian clinical practice and medical learning. It accepts a free-form question or detailed patient description, preserves the original text, finds exact source fragments, expands the request through reviewed entities and relations, asks decision-changing clarifications, and can use a small local model to assemble an evidence-grounded result.
+LocalMed Search is an offline-first navigator over a curated Russian medical corpus. It is a retrieval
+and exact source-navigation product before it is a chat product.
 
-It is a retrieval, knowledge-navigation, and clinical-workspace product before it is a chat product. Network access, a hosted backend, and a generative model are optional rather than prerequisites.
+The target architecture and milestones live in `docs/TECHNICAL_PLAN.md`. The implemented state and
+ordered next tasks live in `docs/CURRENT_STATE.md`.
 
-The detailed one-window flow is defined in [`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md).
+The target one-window clinical flow is defined in
+[`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md). General learning queries remain independent
+workspace threads. Patient-specific work may be attached to an explicit patient and episode, but
+patient matching, episode continuation, and semantically similar cases remain separate user-confirmed
+actions.
 
-## One-window product loop
+## Current implemented boundary
 
-A user works in one continuing search surface:
+A user can paste a long Russian-language case description. Without an LLM or network call, the app can:
 
-```text
-free text
-→ search history and intent
-→ optional patient / episode context
-→ source and knowledge retrieval
-→ clarifying questions
-→ deterministic rules and calculations
-→ local evidence-grounded synthesis
-→ exact source navigation
-```
-
-A general learning query remains a normal thread. A patient-specific query can create or continue a local clinical episode. Possible patient matches, episode continuations, and semantically similar cases are separate suggestions and are never merged automatically.
-
-## Current implemented boundary — 0.3.0-alpha.6
-
-Without an LLM or network call, the application can:
-
-- preserve a long Russian-language narrative;
-- extract a transparent case card with source-linked facts, negation, and uncertainty;
-- classify diagnostic, treatment, medication, disease-reference, care, and administrative intent;
-- build several weighted lexical branches;
-- search a precompiled local SQLite/FTS5 pack and compatible local vector projection;
-- reuse the pack through native Android/iOS SQLite or SQLite WASM fallback;
-- explain retrieval mode, branches, and lexical/semantic scores;
+- preserve the full original narrative;
+- extract a transparent case card and keep the raw text in every search path;
+- distinguish common explicit negative findings from positive search concepts;
+- suggest missing fields without forcing a form;
+- build several weighted lexical query branches;
+- search a precompiled local SQLite/FTS5 pack and a compatible local vector index;
+- reuse that pack as a persistent read-only native SQLite file on compatible mobile builds;
+- fall back to SQLite WASM when native SQLite/FTS5 probing fails;
+- explain matched branches, active retrieval mode, profile, and lexical/semantic scores;
 - group candidates by document and clinical section category;
-- open the exact source chunk, neighbors, and full section;
-- save local search history and bookmarks.
+- open the exact source chunk, neighbors, and full section through stable anchors;
+- save local history and bookmarks.
 
-The ingestion toolchain preserves page/block or line provenance and can create proposed entities, medication profiles, facts, relations, document links, and review tasks. Only reviewed structured knowledge enters the searchable projection.
+For authoring, source registries can prepare text-layer PDF, OCR TXT, or Markdown inputs without LLM
+rewriting. The pipeline retains page/block or line provenance, emits extraction diagnostics, validates
+rights metadata, and feeds the same deterministic pack builder.
 
-The committed public corpus remains a small source-linked pilot. The current portable vector profile validates the retrieval mechanics and is not a neural medical model.
+## Current corpus and knowledge boundary
+
+The public pilot is no longer purely synthetic. It contains:
+
+- seven source-linked Russian clinical-recommendation navigation cards;
+- eight official Russian medication-registry identity cards;
+- synthetic fixtures retained separately for software contract tests.
+
+The knowledge layer stores entities, medication profiles, proposed facts and relations, evidence,
+document links, and review tasks. Proposed medication knowledge is not reviewed guidance. A registry
+record establishes identity, form, strength, and registration metadata only; absent clinical fields are
+kept absent rather than completed from model memory.
+
+The current portable vector profile is deterministic feature hashing and is not a neural medical model.
+
+## Quality foundation
+
+The committed benchmark suite contains:
+
+- a deterministic natural-distribution sample of real clinician queries with original language and
+  jurisdiction preserved;
+- Russian parser, morphology, workflow, and safety edge cases;
+- Russian source-grounded clinical and medication queries tied to exact versions, sections, chunks, and
+  anchors.
+
+Russian release metrics are reported separately from foreign-dataset metrics. Strong foreign results
+cannot compensate for regression on Russian source applicability or provenance.
 
 ## Required capabilities before 1.0
 
-The personal stable edition should prove the complete architecture on representative specialties rather than claim complete coverage of medicine:
+The stable personal edition must prove the complete architecture on a representative, explicitly
+incomplete corpus:
 
-- diseases, symptoms, investigations, drugs, interventions, administrative concepts, and explicit relations available at runtime;
-- a local patient/episode workspace with provenance, clarifications, and no automatic case merging;
-- layered case output covering urgency, uncertainty, diagnosis, investigations, treatment, follow-up, and administrative implications;
-- structured medication rules, interaction checks, and deterministic patient-specific calculations;
-- Russian clinical, drug, and regulatory source packs with versions, validity, authority, and cross-source conflicts;
-- local embeddings, reranking, structured case extraction, and evidence-grounded synthesis with deterministic fallback;
-- a portable Rust core shared by web, desktop, Android/iOS, and CLI targets while UI and ingestion remain replaceable adapters;
-- exact navigation from every material assertion to a reviewed fact, calculation, or source fragment;
-- content-pack update, integrity, rollback, and reproducible retrieval benchmarks.
+- runtime medical and administrative entities, reviewed relations, and exact evidence navigation;
+- a local patient/episode workspace with provenance and no automatic case merging;
+- deterministic medication rules and patient-specific calculations where reviewed sources support
+  them;
+- versioned Russian clinical, medication, and regulatory source packs;
+- local embeddings, reranking, structured extraction, and evidence-grounded synthesis with
+  deterministic fallback;
+- a portable Rust clinical core shared by web, desktop, Android/iOS, and CLI through the parity
+  migration in ADR-0010;
+- reproducible retrieval benchmarks plus content-pack integrity, update, and rollback.
 
-Optional cloud synthesis may exist, but it is not a prerequisite for the primary workflow or release sequence.
+Cloud synthesis may use the same evidence contract, but is not required for the primary workflow.
 
 ## Product invariants
 
-- Offline retrieval and source navigation remain useful with every model adapter disabled.
+- Offline retrieval remains useful with every model adapter disabled.
 - Original source and user text are not silently rewritten.
-- Source statements, clinician assertions, calculations, and model proposals have visibly different provenance.
-- A model cannot create a trusted medical fact, silently choose a dosing rule, or determine legal validity.
-- Russian source authority and jurisdiction are explicit; WHO and other international material can be referenced, adapted, supplemented, or contrasted without automatically replacing Russian rules.
-- UI never owns SQL, clinical rules, or provider-specific model logic.
-- Optional model, pack, or platform failures cannot block source access.
-- Patient text is absent from fixtures, logs, analytics, and release artifacts.
+- Source text, proposed structure, reviewed knowledge, and generated output remain distinguishable.
+- UI never owns SQL or provider-specific model logic.
+- Optional cloud/model failures cannot break source navigation.
+- Real patient data is absent from fixtures, tests, logs, analytics, and release artifacts.
+- Every trusted structured claim must resolve to evidence and an explicit review state.
 - Similar symptoms may suggest a related case but cannot establish patient identity.
 
-## Initial users and non-goals
+## Initial user and non-goals
 
-Initial users are the owner, medical students, and a small invited group of physicians. Before 1.0 MiniMed is not:
-
-- an autonomous diagnostic or prescribing system;
-- a replacement for clinical judgment or the current original source;
-- a certified medical device;
-- a hospital EMR or account/synchronization service;
-- a mandatory backend;
-- a promise of complete medical or regulatory coverage;
-- a universal local-LLM runtime.
-
-The patient workspace is a private local clinical notebook until encryption, export/delete, identity handling, and real-world validation meet a separately documented release gate.
+The initial user is the owner and a small invited group of physicians. Before 1.0 the product is not an
+EMR, autonomous decision system, account/sync service, mandatory backend, complete medical ontology,
+or universal local model runtime.
 
 ## Success metrics
 
-- every displayed claim resolves to reviewed evidence, a deterministic calculation, or an explicitly labelled user/model assertion;
-- every result resolves to an existing version, section, chunk, and anchor;
-- no clinical query leaves the device in the default path;
-- the system identifies critical missing data and asks fewer, more decision-relevant questions than a generic form;
-- time from query to a useful action or source paragraph beats manual PDF/web navigation;
-- lexical-only, hybrid, and local-assistant paths are measured on the same physician-authored golden set;
-- physicians can distinguish source text, Russian applicability, international context, calculations, and generated synthesis;
-- a failed optional feature never blocks source access or corrupts a patient episode.
+- Russian rank, section, anchor, provenance, and zero-result thresholds remain green;
+- every result resolves to an existing document version, section, chunk, and anchor;
+- no search query leaves the device in the default path;
+- time from opening the app to a useful source paragraph beats manual document navigation;
+- physicians can find the needed source without repeated reformulation in a growing share of cases;
+- a failed optional feature never blocks source access;
+- corpus growth and structured knowledge never bypass rights, evidence, and review gates.

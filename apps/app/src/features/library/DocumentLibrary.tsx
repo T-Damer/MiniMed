@@ -1,7 +1,9 @@
-import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
-import { createSignal, For, type JSX, onMount, Show } from 'solid-js';
+import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
+import { createMemo, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '../../components/AppGlyph';
+import { ClinicalGlyph, documentClinicalSignals } from '../../components/ClinicalGlyph';
+import { openDocumentOverlay } from '../../state/document-navigation';
 import { KnowledgeGraph } from './KnowledgeGraph';
 
 interface DocumentLibraryProps {
@@ -10,11 +12,40 @@ interface DocumentLibraryProps {
 
 type LibraryMode = 'list' | 'graph';
 
+function normalize(value: string): string {
+  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
+}
+
+function sourceTypeLabel(value: string): string {
+  const labels: Readonly<Record<string, string>> = {
+    clinical_recommendation_summary: 'Клинические рекомендации',
+    official_registry_summary: 'Официальный реестр лекарств',
+    regulatory_act: 'Нормативный документ',
+  };
+  return labels[value] ?? value.replaceAll('_', ' ');
+}
+
 export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
-  const [selected, setSelected] = createSignal<MedicalDocument>();
-  const [mode, setMode] = createSignal<LibraryMode>('graph');
+  const [mode, setMode] = createSignal<LibraryMode>('list');
+  const [filter, setFilter] = createSignal('');
   const [error, setError] = createSignal<string>();
+
+  const filteredDocuments = createMemo(() => {
+    const query = normalize(filter());
+    if (!query) return documents();
+    return documents().filter((document) =>
+      normalize(
+        [
+          document.title,
+          document.shortTitle ?? '',
+          sourceTypeLabel(document.sourceType),
+          document.versionLabel,
+          ...document.specialties,
+        ].join(' '),
+      ).includes(query),
+    );
+  });
 
   onMount(async () => {
     const result = await props.core.listDocuments();
@@ -25,37 +56,19 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     setDocuments(result.value);
   });
 
-  async function openDocument(id: string): Promise<void> {
-    const result = await props.core.getDocument(id);
-    if (result.ok) setSelected(result.value);
-    else setError(result.error.message);
-  }
-
-  function scrollToSection(anchor: string): void {
-    document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   return (
     <section class="archive-page page-surface" aria-label="Архив документов">
-      <header class="subpage-heading">
+      <header class="subpage-heading archive-library-heading">
         <div>
-          <p class="archive-kicker">Локальный корпус</p>
-          <h1>Архив знаний</h1>
+          <p class="archive-kicker">Локальная медицинская библиотека</p>
+          <h1>Документы</h1>
           <p>
-            {documents().length || '—'} документов связаны со специальностями, разделами и
-            стабильными источниками. Граф показывает структуру корпуса, список открывает полный
-            текст карточки.
+            Откройте рекомендации, лекарственные сведения и нормативные документы. Чтение происходит
+            в отдельном окне поверх текущего раздела.
           </p>
         </div>
         <fieldset class="library-mode-tabs">
-          <legend class="sr-only">Представление архива</legend>
-          <button
-            classList={{ active: mode() === 'graph' }}
-            type="button"
-            onClick={() => setMode('graph')}
-          >
-            <AppGlyph name="graph" /> Граф
-          </button>
+          <legend class="sr-only">Представление библиотеки</legend>
           <button
             classList={{ active: mode() === 'list' }}
             type="button"
@@ -63,134 +76,81 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           >
             <AppGlyph name="list" /> Список
           </button>
+          <button
+            classList={{ active: mode() === 'graph' }}
+            type="button"
+            onClick={() => setMode('graph')}
+          >
+            <AppGlyph name="graph" /> Карта связей
+          </button>
         </fieldset>
       </header>
+
+      <div class="library-toolbar">
+        <label class="library-search">
+          <AppGlyph name="search" />
+          <span class="sr-only">Поиск по документам</span>
+          <input
+            value={filter()}
+            onInput={(event) => setFilter(event.currentTarget.value)}
+            placeholder="Название, специальность или источник"
+            autocomplete="off"
+          />
+        </label>
+        <span class="library-search-count">
+          {filteredDocuments().length} из {documents().length}
+        </span>
+      </div>
 
       <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
 
       <Show when={mode() === 'graph'}>
         <KnowledgeGraph
-          documents={documents()}
-          selectedId={selected()?.id}
-          onSelect={(id) => void openDocument(id)}
+          documents={filteredDocuments()}
+          selectedId={undefined}
+          onSelect={(id) => openDocumentOverlay(id)}
         />
       </Show>
 
       <Show when={mode() === 'list'}>
-        <div class="archive-library library-embedded">
-          <aside class="library-list archive-cabinet">
-            <div class="cabinet-ledger">
-              <span>ЕДИНИЦ ХРАНЕНИЯ</span>
-              <strong>{documents().length.toString().padStart(3, '0')}</strong>
+        <div class="document-library-grid">
+          <For each={filteredDocuments()}>
+            {(document, index) => (
+              <button
+                class="document-library-card paper-card"
+                type="button"
+                onClick={() => openDocumentOverlay(document.id)}
+              >
+                <span class="document-library-index">{String(index() + 1).padStart(2, '0')}</span>
+                <span class="document-library-copy">
+                  <small>{sourceTypeLabel(document.sourceType)}</small>
+                  <strong>{document.title}</strong>
+                  <span>{document.specialties.join(' · ') || 'Общая медицина'}</span>
+                  <em>Редакция {document.versionLabel}</em>
+                </span>
+                <span class="clinical-signals" aria-hidden="true">
+                  <For each={documentClinicalSignals(document).slice(0, 3)}>
+                    {(signal) => (
+                      <span
+                        class={`clinical-signal ${signal.strength} tone-${signal.tone}`}
+                        title={signal.label}
+                      >
+                        <ClinicalGlyph name={signal.icon} />
+                      </span>
+                    )}
+                  </For>
+                </span>
+                <span class="document-library-open">Открыть</span>
+              </button>
+            )}
+          </For>
+          <Show when={filteredDocuments().length === 0}>
+            <div class="reader-empty library-empty paper-card">
+              <h2>Документы не найдены</h2>
+              <p>Попробуйте название заболевания, специальность или тип источника.</p>
             </div>
-            <div class="document-folders">
-              <For each={documents()}>
-                {(document, index) => (
-                  <button
-                    class="document-folder"
-                    classList={{ selected: selected()?.id === document.id }}
-                    type="button"
-                    onClick={() => void openDocument(document.id)}
-                  >
-                    <span class="document-folder-tab">
-                      {String(index() + 1).padStart(2, '0')} /{' '}
-                      {document.sourceType.replaceAll('_', ' ')}
-                    </span>
-                    <strong>{document.title}</strong>
-                    <span class="folder-specialties">{document.specialties.join(' · ')}</span>
-                    <small>{document.versionLabel}</small>
-                  </button>
-                )}
-              </For>
-            </div>
-          </aside>
-
-          <div class="library-reader source-folder">
-            <Show
-              when={selected()}
-              fallback={
-                <div class="reader-empty library-empty">
-                  <span class="empty-file-mark">MM–DOC</span>
-                  <p class="archive-kicker">Структура документа</p>
-                  <h2>Выберите папку</h2>
-                  <p>Здесь откроется полный текст карточки с оглавлением и стабильными якорями.</p>
-                </div>
-              }
-            >
-              {(document) => (
-                <div class="document-workspace">
-                  <aside class="document-outline">
-                    <p class="archive-kicker">Оглавление</p>
-                    <strong>{document().shortTitle ?? document().title}</strong>
-                    <nav aria-label="Разделы документа">
-                      <For each={document().sections}>
-                        {(section, index) => (
-                          <button type="button" onClick={() => scrollToSection(section.anchor)}>
-                            <span>{String(index() + 1).padStart(2, '0')}</span>
-                            {section.title}
-                          </button>
-                        )}
-                      </For>
-                    </nav>
-                  </aside>
-
-                  <article class="document-reader paper-sheet">
-                    <span class="paper-clip" aria-hidden="true" />
-                    <header class="document-cover">
-                      <p class="archive-kicker">{document().sourceType.replaceAll('_', ' ')}</p>
-                      <h2>{document().title}</h2>
-                      <dl>
-                        <div>
-                          <dt>Редакция</dt>
-                          <dd>{document().versionLabel}</dd>
-                        </div>
-                        <div>
-                          <dt>Статус</dt>
-                          <dd>{document().status}</dd>
-                        </div>
-                        <div>
-                          <dt>Разделов</dt>
-                          <dd>{document().sections.length}</dd>
-                        </div>
-                      </dl>
-                    </header>
-                    <For each={document().sections}>
-                      {(section, index) => (
-                        <section class="document-section" id={section.anchor}>
-                          <div class="section-number">{String(index() + 1).padStart(2, '0')}</div>
-                          <div class="section-copy">
-                            <span class="section-type">{section.sectionType ?? 'section'}</span>
-                            <h3>{section.sectionPath.join(' / ')}</h3>
-                            <For each={section.chunks}>
-                              {(chunk) => <p id={chunk.anchor}>{chunk.originalText}</p>}
-                            </For>
-                          </div>
-                        </section>
-                      )}
-                    </For>
-                  </article>
-                </div>
-              )}
-            </Show>
-          </div>
+          </Show>
         </div>
-      </Show>
-
-      <Show when={mode() === 'graph' && selected()}>
-        {(document) => (
-          <div class="graph-selection paper-card">
-            <div>
-              <span>ВЫБРАНА ПАПКА</span>
-              <strong>{document().title}</strong>
-              <small>
-                {document().specialties.join(' · ')} · {document().versionLabel}
-              </small>
-            </div>
-            <button type="button" onClick={() => setMode('list')}>
-              Открыть документ →
-            </button>
-          </div>
-        )}
       </Show>
     </section>
   );

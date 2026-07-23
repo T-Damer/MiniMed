@@ -4,8 +4,80 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-07-22
+
 ### Added
 
+- An optional local-model startup layer with a validated six-model catalog, automatic device-fit
+  selection, cached viability benchmarks, failure cooldown, one smaller-model fallback, and manual
+  controls on the System page.
+- Russian-first Vikhr and QVikhr candidates alongside Qwen, Gemma, and Llama comparison models, with
+  explicit licence handling, immutable artifact metadata, and configurable mirror/upstream endpoints.
+- Browser and Android-WebView GGUF loading through a CPU/WebAssembly wllama adapter, plus a passive
+  bottom status toast that never blocks deterministic SQLite search.
+- A scheduled/manual real-model CI smoke lane that verifies the compact Vikhr and Qwen artifacts by
+  SHA-256 and requires valid structured Russian output.
+- Persistent installed-module registry metadata with deterministic snapshots, restart rehydration,
+  immutable version/source-set validation, rollback history, and transactional recovery after failed
+  storage writes.
+
+### Changed
+
+- Workspace packages, Android application version, public-pilot pack, regulatory pack, and APK-only
+  release workflow are aligned to 0.3.3; Android uses build number 11.
+- Local-model selection no longer awards a WebGPU bonus to wllama: the implemented browser/WebView path
+  is explicitly CPU-only. GPU and NPU acceleration remain a native LiteRT-LM follow-up.
+
+### Verification boundary
+
+- Model output is not used for diagnosis, treatment, retrieval ranking, or generated clinical answers in
+  this release. Deterministic retrieval and safety behavior remain authoritative.
+- The APK does not bundle model weights. Models are resolved after startup through the validated catalog
+  and configured immutable or upstream artifact endpoints.
+- Native Android GPU/NPU execution, streaming artifact installation, physical-device model qualification,
+  and source-grounded clinical orchestration remain follow-up work.
+
+## [0.3.2] - 2026-07-22
+
+### Added
+
+- A modular-content foundation with a validated GitHub catalog, multi-store routing, rollback records,
+  and a portable atomic installer state machine.
+- A searchable document archive, direct document opening, readable medical-domain map, sticky document
+  reader, and local document filtering.
+- A versioned Russian symptom-expression lexicon covering abdominal distension, respiratory wording,
+  urinary symptoms, and neuroinfection-related signs.
+- Non-blocking clinical clarifications for ambiguous neuroinfection queries, dedicated
+  next-diagnostics and differential branches, and 500 ms debounced search.
+- Local medical glyphs, passive module-update badges, compact progressive search results,
+  exact-fragment source reading, surrounding-context expansion, and scroll-to-top navigation.
+
+### Changed
+
+- Search results show one best fragment per document first; additional matches, surrounding context,
+  and the complete document are opened progressively.
+- Current medication remains visible as patient context but no longer acts as a diagnostic symptom in
+  patient-case retrieval.
+- Workspace packages, Android application version, public-pilot pack, regulatory pack, and APK-only
+  release workflow are aligned to 0.3.2; Android uses build number 10.
+- Module updates never interrupt the clinical search flow; availability is indicated only on the
+  Modules icon and page.
+
+### Verification boundary
+
+- The portable installer is tested with injected downloader, staging, validator, registry, and rollback
+  adapters; real Android/iOS filesystem downloads and WorkManager notifications remain a later slice.
+- The application still embeds the existing 15-document pilot pack. Full extracted recommendations,
+  structured tables, source PDFs, and dedicated medication cards remain planned modular artifacts.
+- The query parser and retrieval are deterministic and source-grounded. A local neural reranker or
+  generative model is not included in this release.
+
+## [0.3.1] - 2026-07-21
+
+### Added
+
+- A provenance-labelled 193-record clinical-query benchmark with Russian-first intent, source-grounded retrieval, and 12 safety/workflow contract overlays.
+- A separate Russian regulatory pilot containing current orders 192н and 211н, superseded order 302н, and current-versus-historical retrieval gates.
 - Rights-aware collection manifests for supported HTTPS, local, manual, and licensed vendor drug
   exports, including checksums, cache provenance, and separate offline-storage, derivative-processing,
   and redistribution permissions.
@@ -23,6 +95,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ### Changed
 
+- Android and iOS application versions, workspace packages, and release content packs are aligned to 0.3.1.
+- The APK-only public-pilot workflow is the single release path; the obsolete synthetic full-release workflow is removed.
 - Reviewed structured knowledge can extend existing chunk FTS and vector projections while original
   source text, source spans, and stable anchors remain unchanged.
 - Medication identity reconciliation now uses concept level, INN, form, route, strength,
@@ -32,6 +106,7 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ### Verification boundary
 
+- The release APK embeds the 15-document Russian clinical/medication pack. The separate regulatory pack is built and benchmarked in release CI but is not installed in the APK until multi-pack lifecycle support is implemented.
 - No licensed medical source data, Allmed content, patient data, model output, or API credentials are
   committed. The checked-in material implements and tests the ingestion, review, graph, and retrieval
   contracts only.

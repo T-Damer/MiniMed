@@ -1,3 +1,4 @@
+export * from './content-modules';
 export * from './content-pack';
 export * from './core';
 export * from './documents';

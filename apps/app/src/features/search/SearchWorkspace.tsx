@@ -11,7 +11,9 @@ import type {
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '../../components/AppGlyph';
+import { CATEGORY_VISUALS, ClinicalGlyph } from '../../components/ClinicalGlyph';
 import { HighlightedText } from '../../components/HighlightedText';
+import { openDocumentInArchive } from '../../state/document-navigation';
 import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '../../state/search-history';
 
 interface SearchWorkspaceProps {
@@ -55,6 +57,17 @@ const FACT_LABELS: Readonly<Record<QueryFact['kind'], string>> = {
   'negative-finding': 'отрицается',
 };
 
+const INTENT_LABELS: Readonly<Record<NonNullable<QueryAnalysis['intent']>['primary'], string>> = {
+  diagnosis: 'Клинический случай: ищем возможные диагнозы и источники',
+  treatment: 'Тактика лечения: сначала учитываем диагноз, тяжесть и ограничения',
+  medication: 'Запрос о препарате: показываем лекарственные источники и контекст применения',
+  'disease-reference': 'Справочный запрос о заболевании',
+  'care-guidance': 'Уход, профилактика или практические рекомендации',
+  'administrative-reference': 'Нормативный и организационный запрос',
+  mixed: 'Смешанный клинический запрос: разбираем его на несколько задач',
+  unknown: 'Свободный медицинский запрос',
+};
+
 function resizeTextarea(element: HTMLTextAreaElement): void {
   element.style.height = 'auto';
   element.style.height = `${Math.min(Math.max(element.scrollHeight, 128), 300)}px`;
@@ -67,17 +80,26 @@ function factDisplayValue(fact: QueryFact): string {
   return fact.value;
 }
 
+function normalized(value: string): string {
+  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
+}
+
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [query, setQuery] = createSignal('');
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
   const [response, setResponse] = createSignal<SearchResponse>();
   const [context, setContext] = createSignal<ChunkContext>();
+  const [expandedGroups, setExpandedGroups] = createSignal<readonly string[]>([]);
+  const [contextExpanded, setContextExpanded] = createSignal(false);
+  const [readerQuery, setReaderQuery] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
   const [contextLoading, setContextLoading] = createSignal(false);
   const [error, setError] = createSignal<string>();
   let textarea: HTMLTextAreaElement | undefined;
   let analysisTimer: ReturnType<typeof setTimeout> | undefined;
+  let searchTimer: ReturnType<typeof setTimeout> | undefined;
+  let searchGeneration = 0;
 
   const activeAnalysis = createMemo(() => {
     const searched = response();
@@ -89,13 +111,24 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     () => response()?.groups.reduce((total, group) => total + group.results.length, 0) ?? 0,
   );
 
+  const visibleContextChunks = createMemo(() => {
+    const resolved = context();
+    if (!resolved) return [];
+    const localQuery = normalized(readerQuery());
+    if (localQuery) {
+      return resolved.chunks.filter((chunk) => normalized(chunk.originalText).includes(localQuery));
+    }
+    if (contextExpanded()) return resolved.chunks;
+    return resolved.chunks.filter((chunk) => chunk.id === resolved.focusChunkId);
+  });
+
   const handleReplaySearch = (event: Event): void => {
     const replay = event as CustomEvent<string>;
     if (typeof replay.detail !== 'string' || !replay.detail.trim()) return;
-    updateQuery(replay.detail);
+    updateQuery(replay.detail, false);
     requestAnimationFrame(() => {
       if (textarea) resizeTextarea(textarea);
-      void runSearch(replay.detail);
+      void runSearch(replay.detail, true);
     });
   };
 
@@ -104,6 +137,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   onCleanup(() => {
     window.removeEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
     if (analysisTimer) clearTimeout(analysisTimer);
+    if (searchTimer) clearTimeout(searchTimer);
+    searchGeneration += 1;
   });
 
   function scheduleAnalysis(value: string): void {
@@ -124,19 +159,36 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }, 180);
   }
 
-  function updateQuery(value: string): void {
-    setQuery(value);
-    scheduleAnalysis(value);
+  function scheduleSearch(value: string): void {
+    if (searchTimer) clearTimeout(searchTimer);
+    const trimmed = value.trim();
+    if (trimmed.length < 2) {
+      searchGeneration += 1;
+      setResponse(undefined);
+      setLoading(false);
+      return;
+    }
+    searchTimer = setTimeout(() => void runSearch(trimmed, false), 500);
   }
 
-  async function runSearch(nextQuery = query()): Promise<void> {
+  function updateQuery(value: string, debounce = true): void {
+    setQuery(value);
+    scheduleAnalysis(value);
+    if (debounce) scheduleSearch(value);
+  }
+
+  async function runSearch(nextQuery = query(), recordHistory = true): Promise<void> {
     const trimmed = nextQuery.trim();
     if (!trimmed) return;
+    if (searchTimer) clearTimeout(searchTimer);
 
+    const generation = ++searchGeneration;
     setQuery(trimmed);
     setLoading(true);
     setError(undefined);
     setContext(undefined);
+    setContextExpanded(false);
+    setReaderQuery('');
 
     const result = await props.core.search({
       query: trimmed,
@@ -146,6 +198,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       includeSuggestions: true,
     });
 
+    if (generation !== searchGeneration || query().trim() !== trimmed) return;
     setLoading(false);
     if (!result.ok) {
       setError(result.error.message);
@@ -154,13 +207,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
-    appendSearchHistory(trimmed, result.value);
+    setExpandedGroups([]);
+    if (recordHistory) appendSearchHistory(trimmed, result.value);
   }
 
   async function openResult(result: SearchResult): Promise<void> {
     setContextLoading(true);
     setError(undefined);
-    const resolved = await props.core.getContext(result.chunkId, 1);
+    setContextExpanded(false);
+    setReaderQuery('');
+    const resolved = await props.core.getContext(result.chunkId, 3);
     setContextLoading(false);
     if (!resolved.ok) {
       setError(resolved.error.message);
@@ -182,11 +238,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   function clearQuery(): void {
+    searchGeneration += 1;
+    if (analysisTimer) clearTimeout(analysisTimer);
+    if (searchTimer) clearTimeout(searchTimer);
     setQuery('');
     setDraftAnalysis(undefined);
     setResponse(undefined);
     setContext(undefined);
+    setExpandedGroups([]);
     setError(undefined);
+    setLoading(false);
     requestAnimationFrame(() => {
       if (!textarea) return;
       resizeTextarea(textarea);
@@ -197,8 +258,22 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   function handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
-      void runSearch();
+      void runSearch(query(), true);
     }
+  }
+
+  function toggleGroup(documentId: string): void {
+    setExpandedGroups((current) =>
+      current.includes(documentId)
+        ? current.filter((id) => id !== documentId)
+        : [...current, documentId],
+    );
+  }
+
+  function closeContext(): void {
+    setContext(undefined);
+    setContextExpanded(false);
+    setReaderQuery('');
   }
 
   return (
@@ -220,7 +295,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           class="query-sheet"
           onSubmit={(event) => {
             event.preventDefault();
-            void runSearch();
+            void runSearch(query(), true);
           }}
         >
           <label class="sr-only" for="clinical-query">
@@ -247,7 +322,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           />
           <div class="query-actions">
             <div class="query-shortcuts">
-              <span class="keyboard-only">Ctrl / ⌘ + Enter — поиск</span>
+              <span class="keyboard-only">Автопоиск через 500 мс · Ctrl / ⌘ + Enter — сразу</span>
               <Show when={query().length > 16_000}>
                 <strong>{query().length.toLocaleString('ru-RU')} / 20 000</strong>
               </Show>
@@ -264,7 +339,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 type="submit"
                 disabled={loading()}
               >
-                <span>{loading() ? 'Ищем…' : 'Найти в архиве'}</span>
+                <span>{loading() ? 'Ищем…' : 'Найти сейчас'}</span>
                 <b aria-hidden="true">↵</b>
               </button>
             </div>
@@ -274,11 +349,23 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         <Show when={activeAnalysis()}>
           {(analysis) => (
             <section class="query-index" aria-label="Разбор запроса">
+              <Show when={analysis().intent}>
+                {(intent) => (
+                  <div class="clinical-plan-card paper-card">
+                    <strong>{INTENT_LABELS[intent().primary]}</strong>
+                    <span>
+                      Уверенность {Math.round(intent().confidence * 100)}% · результаты уже
+                      показаны, уточнения не блокируют поиск.
+                    </span>
+                  </div>
+                )}
+              </Show>
+
               <Show when={analysis().suggestions.length > 0}>
                 <div class="index-row suggestions-row">
                   <div class="index-label">
-                    <span>Можно добавить</span>
-                    <small>необязательно</small>
+                    <span>Полезно уточнить</span>
+                    <small>не блокирует диагнозы</small>
                   </div>
                   <div class="suggestion-strip">
                     <For each={analysis().suggestions}>
@@ -293,6 +380,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       )}
                     </For>
                   </div>
+                </div>
+              </Show>
+
+              <Show when={analysis().warnings.length > 0}>
+                <div class="query-warning-list">
+                  <For each={analysis().warnings}>{(warning) => <p>{warning}</p>}</For>
                 </div>
               </Show>
 
@@ -339,7 +432,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             <legend>Примеры поиска</legend>
             <For each={EXAMPLES}>
               {(example, index) => (
-                <button type="button" onClick={() => void runSearch(example)}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateQuery(example, false);
+                    void runSearch(example, true);
+                  }}
+                >
                   <span>{String(index() + 1).padStart(2, '0')}</span>
                   {example}
                 </button>
@@ -376,45 +475,76 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
               <div class="results-list" data-testid="search-results">
                 <For each={searchResponse().groups}>
-                  {(group, groupIndex) => (
-                    <section class="result-group">
-                      <div class="result-group-header">
-                        <span class="file-number">{String(groupIndex() + 1).padStart(2, '0')}</span>
-                        <div>
-                          <small>ДОКУМЕНТ</small>
-                          <strong>{group.title}</strong>
-                        </div>
-                        <span class="group-count">{group.results.length} совп.</span>
-                      </div>
-                      <For each={group.results.slice(0, 5)}>
-                        {(result) => (
-                          <article
-                            class="result-card"
-                            classList={{ selected: context()?.focusChunkId === result.chunkId }}
+                  {(group, groupIndex) => {
+                    const expanded = () => expandedGroups().includes(group.documentId);
+                    const visibleResults = () =>
+                      expanded() ? group.results.slice(0, 5) : group.results.slice(0, 1);
+                    return (
+                      <section class="result-group" classList={{ expanded: expanded() }}>
+                        <div class="result-group-header">
+                          <button
+                            class="result-group-header-button"
+                            type="button"
+                            aria-expanded={expanded()}
+                            onClick={() => toggleGroup(group.documentId)}
                           >
-                            <button
-                              class="result-open"
-                              type="button"
-                              data-testid="search-result"
-                              onClick={() => void openResult(result)}
-                            >
-                              <span class={`category-stamp category-${result.category}`}>
-                                {CATEGORY_LABELS[result.category]}
-                              </span>
-                              <span class="result-path">{result.sectionPath.join(' / ')}</span>
-                              <p>
-                                <HighlightedText
-                                  text={result.snippet}
-                                  ranges={result.highlightedRanges}
-                                />
+                            <span class="file-number">
+                              {String(groupIndex() + 1).padStart(2, '0')}
+                            </span>
+                            <div>
+                              <small>ДОКУМЕНТ</small>
+                              <strong>{group.title}</strong>
+                              <p class="result-minimal-note">
+                                {group.results[0]?.sectionPath.join(' / ') ??
+                                  'Релевантный источник'}
                               </p>
-                              <span class="result-link">Открыть источник →</span>
-                            </button>
-                          </article>
-                        )}
-                      </For>
-                    </section>
-                  )}
+                            </div>
+                            <span class="group-count">{group.results.length} совп.</span>
+                          </button>
+                        </div>
+                        <For each={visibleResults()}>
+                          {(result) => {
+                            const visual = CATEGORY_VISUALS[result.category];
+                            return (
+                              <article
+                                class="result-card"
+                                classList={{ selected: context()?.focusChunkId === result.chunkId }}
+                              >
+                                <button
+                                  class="result-open"
+                                  type="button"
+                                  data-testid="search-result"
+                                  onClick={() => void openResult(result)}
+                                >
+                                  <span class="result-category-line">
+                                    <span
+                                      class={`result-category-icon tone-${visual.tone}`}
+                                      aria-hidden="true"
+                                    >
+                                      <ClinicalGlyph name={visual.icon} />
+                                    </span>
+                                    <span class={`category-stamp category-${result.category}`}>
+                                      {CATEGORY_LABELS[result.category]}
+                                    </span>
+                                    <span class="result-path">
+                                      {result.sectionPath.join(' / ')}
+                                    </span>
+                                  </span>
+                                  <p>
+                                    <HighlightedText
+                                      text={result.snippet}
+                                      ranges={result.highlightedRanges}
+                                    />
+                                  </p>
+                                  <span class="result-link">Открыть точный источник →</span>
+                                </button>
+                              </article>
+                            );
+                          }}
+                        </For>
+                      </section>
+                    );
+                  }}
                 </For>
               </div>
             </>
@@ -428,57 +558,90 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         aria-live="polite"
         aria-hidden={!context()}
       >
-        <button
-          class="reader-close"
-          type="button"
-          aria-label="Закрыть источник"
-          onClick={() => setContext(undefined)}
-        >
-          <AppGlyph name="close" />
-        </button>
-        <Show
-          when={context()}
-          fallback={
-            <div class="reader-empty">
-              <p class="archive-kicker">Контекст источника</p>
-              <h2>{contextLoading() ? 'Открываем источник…' : 'Выберите результат'}</h2>
-            </div>
-          }
-        >
+        <Show when={context()}>
           {(resolved) => (
-            <article class="reader-card paper-sheet" data-testid="reader-context">
-              <header class="reader-header">
-                <div>
-                  <p class="archive-kicker">
-                    {resolved().document.shortTitle ?? resolved().document.title}
-                  </p>
-                  <h2>{resolved().section.sectionPath.join(' / ')}</h2>
-                </div>
-                <span class="source-stamp">
-                  ИСТОЧНИК
-                  <br />
-                  ЛОКАЛЬНЫЙ
-                </span>
-              </header>
-
-              <div class="document-text">
-                <For each={resolved().chunks}>
-                  {(chunk) => (
-                    <div
-                      id={chunk.anchor}
-                      class="source-paragraph"
-                      classList={{ 'focus-chunk': chunk.id === resolved().focusChunkId }}
-                    >
-                      <Show when={chunk.id === resolved().focusChunkId}>
-                        <span class="margin-note">НАЙДЕНО</span>
-                      </Show>
-                      <p>{chunk.originalText}</p>
-                    </div>
-                  )}
-                </For>
+            <>
+              <div class="reader-toolbar">
+                <strong>{resolved().document.shortTitle ?? resolved().document.title}</strong>
+                <input
+                  value={readerQuery()}
+                  onInput={(event) => setReaderQuery(event.currentTarget.value)}
+                  placeholder="Поиск в открытом фрагменте"
+                  aria-label="Поиск в открытом источнике"
+                />
+                <button
+                  class="reader-close"
+                  type="button"
+                  aria-label="Закрыть источник"
+                  onClick={closeContext}
+                >
+                  <AppGlyph name="close" />
+                </button>
               </div>
-            </article>
+
+              <article class="reader-card paper-sheet" data-testid="reader-context">
+                <header class="reader-header">
+                  <div>
+                    <p class="archive-kicker">В клинических рекомендациях</p>
+                    <h2>{resolved().section.sectionPath.join(' / ')}</h2>
+                  </div>
+                  <span class="source-stamp">
+                    ИСТОЧНИК
+                    <br />
+                    ЛОКАЛЬНЫЙ
+                  </span>
+                </header>
+
+                <div class="document-text">
+                  <For each={visibleContextChunks()}>
+                    {(chunk) => (
+                      <div
+                        id={chunk.anchor}
+                        class="source-paragraph"
+                        classList={{ 'focus-chunk': chunk.id === resolved().focusChunkId }}
+                      >
+                        <Show when={chunk.id === resolved().focusChunkId}>
+                          <span class="margin-note">НАЙДЕНО</span>
+                        </Show>
+                        <p>{chunk.originalText}</p>
+                      </div>
+                    )}
+                  </For>
+                  <Show when={readerQuery().trim() && visibleContextChunks().length === 0}>
+                    <div class="reader-empty">
+                      <p>В загруженном контексте совпадений нет.</p>
+                    </div>
+                  </Show>
+                </div>
+
+                <Show when={resolved().chunks.length > 1 && !readerQuery().trim()}>
+                  <div class="source-context-toggle">
+                    <button type="button" onClick={() => setContextExpanded((value) => !value)}>
+                      {contextExpanded() ? 'Скрыть окружающий контекст' : 'Показать текст вокруг'}
+                    </button>
+                  </div>
+                </Show>
+
+                <div class="source-reader-actions">
+                  <button
+                    type="button"
+                    onClick={() => openDocumentInArchive(resolved().document.id)}
+                  >
+                    Открыть полный документ
+                  </button>
+                  <small>
+                    Редакция {resolved().document.versionLabel} · {resolved().document.status}
+                  </small>
+                </div>
+              </article>
+            </>
           )}
+        </Show>
+        <Show when={!context()}>
+          <div class="reader-empty">
+            <p class="archive-kicker">Контекст источника</p>
+            <h2>{contextLoading() ? 'Открываем источник…' : 'Выберите результат'}</h2>
+          </div>
         </Show>
       </aside>
     </section>

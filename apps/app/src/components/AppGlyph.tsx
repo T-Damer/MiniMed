@@ -1,6 +1,15 @@
 import type { JSX } from 'solid-js';
 
-export type AppGlyphName = 'search' | 'archive' | 'history' | 'system' | 'close' | 'graph' | 'list';
+export type AppGlyphName =
+  | 'search'
+  | 'archive'
+  | 'modules'
+  | 'history'
+  | 'system'
+  | 'close'
+  | 'graph'
+  | 'list'
+  | 'arrow-up';
 
 export function AppGlyph(props: {
   readonly name: AppGlyphName;
@@ -27,6 +36,12 @@ export function AppGlyph(props: {
         <>
           <path d="M4 7.5h16v11H4z" />
           <path d="M6 4.5h12l2 3H4zM9 11h6" />
+        </>
+      )}
+      {props.name === 'modules' && (
+        <>
+          <path d="m12 3 8 4-8 4-8-4 8-4Z" />
+          <path d="m4 12 8 4 8-4M4 17l8 4 8-4" />
         </>
       )}
       {props.name === 'history' && (
@@ -58,6 +73,7 @@ export function AppGlyph(props: {
           <circle cx="4" cy="18" r=".8" fill="currentColor" stroke="none" />
         </>
       )}
+      {props.name === 'arrow-up' && <path d="m5 14 7-7 7 7M12 7v13" />}
     </svg>
   );
 }

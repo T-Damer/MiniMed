@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, relative, resolve } from 'node:path';
 import type { Page, Route } from '@playwright/test';
 
-const ASSET_ORIGIN = 'https://localmed-assets.example.com';
+export const E2E_ASSET_ORIGIN = 'https://localmed-assets.example.com';
 const DIST_ROOT = resolve(import.meta.dirname, '../dist');
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
@@ -42,13 +42,28 @@ async function serveBuiltAsset(route: Route): Promise<void> {
   }
 }
 
-export async function mountBuiltApp(page: Page): Promise<void> {
-  await page.route(`${ASSET_ORIGIN}/**`, serveBuiltAsset);
+export interface MountBuiltAppOptions {
+  readonly localStorage?: Readonly<Record<string, string>>;
+  readonly persistentOrigin?: boolean;
+}
 
-  // The execution environment blocks loopback navigation. We therefore mount the built
-  // artifact in about:blank and serve its assets through Playwright routing. Opaque origins
-  // deny Web Storage, so a standards-shaped in-memory implementation is installed for E2E.
-  await page.evaluate(() => {
+export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
+  await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
+
+  if (options.persistentOrigin) {
+    await page.addInitScript((initialValues) => {
+      for (const [key, value] of Object.entries(initialValues)) {
+        window.localStorage.setItem(key, value);
+      }
+    }, options.localStorage ?? {});
+    await page.goto(`${E2E_ASSET_ORIGIN}/`, { waitUntil: 'domcontentloaded' });
+    await page.getByTestId('search-input').waitFor();
+    return;
+  }
+
+  // Fast UI tests use about:blank because no persistent browser storage is needed. Opaque origins deny
+  // Web Storage, so a standards-shaped in-memory implementation is installed for those tests.
+  await page.evaluate((initialValues) => {
     const createStorage = (): Storage => {
       const values = new Map<string, string>();
       return {
@@ -73,18 +88,22 @@ export async function mountBuiltApp(page: Page): Promise<void> {
       };
     };
 
+    const localStorageValue = createStorage();
+    for (const [key, value] of Object.entries(initialValues)) {
+      localStorageValue.setItem(key, value);
+    }
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
-      value: createStorage(),
+      value: localStorageValue,
     });
     Object.defineProperty(window, 'sessionStorage', {
       configurable: true,
       value: createStorage(),
     });
-  });
+  }, options.localStorage ?? {});
 
   const source = await readFile(join(DIST_ROOT, 'index.html'), 'utf8');
-  const html = source.replace('<head>', `<head><base href="${ASSET_ORIGIN}/">`);
+  const html = source.replace('<head>', `<head><base href="${E2E_ASSET_ORIGIN}/">`);
   await page.setContent(html, { waitUntil: 'domcontentloaded' });
   await page.getByTestId('search-input').waitFor();
 }

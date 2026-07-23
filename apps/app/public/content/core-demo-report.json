@@ -1,13 +1,15 @@
 {
-  "documents": 7,
-  "sections": 42,
-  "chunks": 42,
+  "documents": 15,
+  "sections": 58,
+  "chunks": 58,
   "aliases": 14,
   "embeddingProfiles": 1,
-  "embeddings": 42,
-  "warnings": [],
+  "embeddings": 58,
+  "warnings": [
+    "knowledge: 9 entities, 8 facts (0 reviewed), 1 relations (0 reviewed), 3 review tasks"
+  ],
   "errors": [],
-  "outputChecksum": "sha256:9051b2640b96a356d3e5077b8eedf80659f15570f40c2e2495f07ec80d0ab124",
+  "outputChecksum": "sha256:fcac0b16305904ceaebfcca77e51b821b68a5504fd7707580a250f202d09d790",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0
 }

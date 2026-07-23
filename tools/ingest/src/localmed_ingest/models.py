@@ -183,7 +183,7 @@ class RegistrySource(CamelModel):
     age_groups: list[str] = Field(default_factory=list)
     effective_from: str | None = None
     effective_to: str | None = None
-    format: Literal["auto", "pdf", "text", "markdown"] = "auto"
+    format: Literal["auto", "pdf", "text", "markdown", "html"] = "auto"
     extraction: ExtractionOptions = Field(default_factory=ExtractionOptions)
     metadata: dict[str, object] = Field(default_factory=dict)
 
@@ -243,7 +243,7 @@ class ExtractedPage(CamelModel):
 
 class ExtractionDiagnostics(CamelModel):
     source_checksum: str
-    source_format: Literal["pdf", "text", "markdown"]
+    source_format: Literal["pdf", "text", "markdown", "html"]
     page_count: int = Field(ge=0)
     block_count: int = Field(ge=0)
     included_block_count: int = Field(ge=0)
@@ -263,7 +263,7 @@ class ExtractedSource(CamelModel):
     schema_version: int = Field(default=2, ge=1)
     source_file: str
     source_checksum: str
-    source_format: Literal["pdf", "text", "markdown"]
+    source_format: Literal["pdf", "text", "markdown", "html"]
     pages: list[ExtractedPage]
     diagnostics: ExtractionDiagnostics
 

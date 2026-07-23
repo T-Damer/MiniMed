@@ -5,7 +5,9 @@ on:
   pull_request:
     paths:
       - "apps/app/**"
+      - "content/regulatory-rf-pilot/**"
       - "packages/**"
+      - "tools/ingest/**"
       - "playwright.config.ts"
       - "pnpm-lock.yaml"
 
@@ -24,7 +26,134 @@ jobs:
         with:
           node-version: 22.16.0
           cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
       - run: pnpm install --frozen-lockfile
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Build regulatory E2E module
+        run: |
+          pnpm content:build:regulatory
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import sqlite3
+          from pathlib import Path
+
+          database_path = Path('data/build/rf-regulatory-pilot.db')
+          database_bytes = database_path.read_bytes()
+          artifact_digest = f"sha256:{hashlib.sha256(database_bytes).hexdigest()}"
+          artifact_id = 'minimed.regulatory.pediatrics.ru-index-e2e'
+          artifact_url = 'https://localmed-datasets.example.com/regulatory-e2e.db'
+
+          database = sqlite3.connect(f'file:{database_path}?mode=ro', uri=True)
+          try:
+              assert database.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
+              assert not database.execute('PRAGMA foreign_key_check').fetchall()
+              pack = database.execute(
+                  'SELECT id, version, schema_version FROM content_packs LIMIT 1'
+              ).fetchone()
+              rows = database.execute(
+                  '''SELECT d.id, dv.id, dv.source_checksum, d.status
+                     FROM documents d
+                     JOIN document_versions dv ON dv.id = d.current_version_id
+                     ORDER BY d.id, dv.id'''
+              ).fetchall()
+              chunks = database.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
+              fts_rows = database.execute('SELECT COUNT(*) FROM chunks_fts').fetchone()[0]
+          finally:
+              database.close()
+
+          assert pack and pack[0] == 'minimed.rf-regulatory-pilot'
+          assert pack[2] == 2
+          assert rows and chunks == fts_rows and chunks > 0
+
+          def checksum(value: str) -> str:
+              return value if value.startswith('sha256:') else f'sha256:{value}'
+
+          def status(value: str) -> str:
+              lowered = value.lower()
+              if lowered in {'superseded', 'replaced'}:
+                  return 'superseded'
+              if lowered in {'historical', 'expired', 'inactive'}:
+                  return 'historical'
+              return 'active'
+
+          documents = [
+              {
+                  'documentId': document_id,
+                  'documentVersionId': document_version_id,
+                  'sourceChecksum': checksum(source_checksum),
+                  'status': status(document_status),
+                  'indexArtifactId': artifact_id,
+                  'sourceAssetArtifactId': None,
+              }
+              for document_id, document_version_id, source_checksum, document_status in rows
+          ]
+          canonical = json.dumps(
+              [
+                  {
+                      'documentId': item['documentId'],
+                      'documentVersionId': item['documentVersionId'],
+                      'sourceChecksum': item['sourceChecksum'],
+                      'status': item['status'],
+                  }
+                  for item in documents
+              ],
+              ensure_ascii=False,
+              sort_keys=True,
+              separators=(',', ':'),
+          ).encode('utf-8')
+          source_set_digest = f"sha256:{hashlib.sha256(canonical).hexdigest()}"
+
+          catalog_path = Path('apps/app/src/features/modules/catalog.preview.json')
+          catalog = json.loads(catalog_path.read_text(encoding='utf-8'))
+          module = next(
+              item
+              for item in catalog['modules']
+              if item['id'] == 'minimed.regulatory.pediatrics.ru'
+          )
+          module.update(
+              {
+                  'version': pack[1],
+                  'releaseState': 'published',
+                  'sourceSetDigest': source_set_digest,
+                  'compatibility': {
+                      'minAppVersion': '0.3.3',
+                      'maxAppVersion': None,
+                      'schemaVersion': 2,
+                      'coreCatalogVersion': '1',
+                  },
+                  'sizes': {
+                      'downloadBytes': len(database_bytes),
+                      'installedBytes': len(database_bytes),
+                      'sourceAssetsDownloadBytes': None,
+                      'precision': 'exact',
+                  },
+                  'artifacts': [
+                      {
+                          'id': artifact_id,
+                          'kind': 'index',
+                          'required': True,
+                          'url': artifact_url,
+                          'sha256': artifact_digest,
+                          'sizeBytes': len(database_bytes),
+                          'compression': 'none',
+                          'sourceSetDigest': source_set_digest,
+                      }
+                  ],
+                  'documents': documents,
+                  'previewDocumentCount': len(documents),
+              }
+          )
+          catalog['catalogVersion'] = 'e2e-regulatory-module'
+          catalog['publishedAt'] = '2026-07-22T00:00:00Z'
+          Path('data/build/e2e-regulatory-catalog.json').write_text(
+              json.dumps(catalog, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
+          )
+          PY
       - run: pnpm exec playwright install chromium --with-deps
       - name: Run Chromium E2E
         shell: bash

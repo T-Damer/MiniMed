@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "2026.07-preview.3",
+  "publishedAt": "2026-07-22T00:00:00Z",
+  "runtime": {
+    "wllamaModuleUrl": "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/index.js",
+    "wllamaWasmUrl": "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/wasm/wllama.wasm",
+    "version": "wllama-3.5.1"
+  },
+  "models": [
+    {
+      "id": "vikhr-qwen2.5-0.5b-q4",
+      "name": "Vikhr Qwen 2.5 0.5B",
+      "family": "vikhr-qwen2.5",
+      "tier": "compact",
+      "description": "Самая лёгкая русскоязычная модель для слабых устройств и короткого разбора запроса.",
+      "parameterCount": 500000000,
+      "qualityScore": 60,
+      "russianPriority": 99,
+      "minimumMemoryGb": 3,
+      "recommendedMemoryGb": 4,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "vikhr-qwen2.5-0.5b-q4-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/Vikhr-Qwen-2.5-0.5B-instruct-GGUF/resolve/a2bc2797ec4dd39dd99f20a92f7a05a71c8122bf/Vikhr-Qwen-2.5-0.5B-instruct-Q4_K_M.gguf",
+          "mirrorPath": "vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf",
+          "downloadBytes": 397543680,
+          "sha256": "8f45f00da2bcd70205461639e978db7c8245e205c8604cfe2ab7f5430506bf32",
+          "published": true,
+          "maxContextTokens": 2048
+        },
+        {
+          "id": "vikhr-qwen2.5-0.5b-q4-cactus",
+          "runtime": "cactus-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/Vikhr-Qwen-2.5-0.5B-instruct-GGUF/resolve/a2bc2797ec4dd39dd99f20a92f7a05a71c8122bf/Vikhr-Qwen-2.5-0.5B-instruct-Q4_K_M.gguf",
+          "mirrorPath": "vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf",
+          "downloadBytes": 397543680,
+          "sha256": "8f45f00da2bcd70205461639e978db7c8245e205c8604cfe2ab7f5430506bf32",
+          "published": true,
+          "maxContextTokens": 2048
+        }
+      ]
+    },
+    {
+      "id": "qwen3-0.6b-q8",
+      "name": "Qwen3 0.6B",
+      "family": "qwen3",
+      "tier": "compact",
+      "description": "Лёгкая многоязычная модель. Подходит для проверки работы локального помощника.",
+      "parameterCount": 600000000,
+      "qualityScore": 58,
+      "russianPriority": 92,
+      "minimumMemoryGb": 4,
+      "recommendedMemoryGb": 6,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qwen3-0.6b-q8-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf",
+          "mirrorPath": "qwen3-0.6b-q8_0.gguf",
+          "downloadBytes": 639000000,
+          "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+          "published": true,
+          "maxContextTokens": 2048
+        },
+        {
+          "id": "qwen3-0.6b-q8-cactus",
+          "runtime": "cactus-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf",
+          "mirrorPath": "qwen3-0.6b-q8_0.gguf",
+          "downloadBytes": 639000000,
+          "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+          "published": true,
+          "maxContextTokens": 2048
+        }
+      ]
+    },
+    {
+      "id": "gemma3-1b-it-q4",
+      "name": "Gemma 3 1B IT",
+      "family": "gemma3",
+      "tier": "balanced",
+      "description": "Кандидат для будущего нативного Android-ускорения. Загрузка появится после подготовки собственного лицензированного зеркала.",
+      "parameterCount": 1000000000,
+      "qualityScore": 72,
+      "russianPriority": 88,
+      "minimumMemoryGb": 6,
+      "recommendedMemoryGb": 8,
+      "license": {
+        "id": "gemma-terms",
+        "name": "Gemma Terms of Use",
+        "url": "https://ai.google.dev/gemma/terms",
+        "requiresAcceptance": true
+      },
+      "artifacts": [
+        {
+          "id": "gemma3-1b-it-q4-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf",
+          "mirrorPath": "gemma3-1b-it-q4_k_m.gguf",
+          "downloadBytes": 806000000,
+          "sha256": "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135",
+          "published": false,
+          "maxContextTokens": 2048
+        },
+        {
+          "id": "gemma3-1b-it-q4-litert",
+          "runtime": "litert-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4.litertlm",
+          "mirrorPath": "gemma3-1b-it-int4.litertlm",
+          "downloadBytes": 584000000,
+          "sha256": null,
+          "published": false,
+          "maxContextTokens": 4096
+        }
+      ]
+    },
+    {
+      "id": "qvikhr-3-1.7b-q4",
+      "name": "QVikhr 3 1.7B",
+      "family": "qvikhr3",
+      "tier": "balanced",
+      "description": "Более сильная русскоязычная модель для устройств с достаточным объёмом памяти.",
+      "parameterCount": 1700000000,
+      "qualityScore": 89,
+      "russianPriority": 100,
+      "minimumMemoryGb": 6,
+      "recommendedMemoryGb": 8,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qvikhr-3-1.7b-q4-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/QVikhr-3-1.7B-Instruction-noreasoning-GGUF/resolve/f110f16bba76d25148374ca017e659343defe583/QVikhr-3-1.7B-Instruction-noreasoning-Q4_K_M.gguf",
+          "mirrorPath": "qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf",
+          "downloadBytes": 1107408608,
+          "sha256": "425495de8462e63c98aae4e18561fa1fc7e153fa218e3067a5b39753258b48f2",
+          "published": true,
+          "maxContextTokens": 2048
+        },
+        {
+          "id": "qvikhr-3-1.7b-q4-cactus",
+          "runtime": "cactus-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/Vikhrmodels/QVikhr-3-1.7B-Instruction-noreasoning-GGUF/resolve/f110f16bba76d25148374ca017e659343defe583/QVikhr-3-1.7B-Instruction-noreasoning-Q4_K_M.gguf",
+          "mirrorPath": "qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf",
+          "downloadBytes": 1107408608,
+          "sha256": "425495de8462e63c98aae4e18561fa1fc7e153fa218e3067a5b39753258b48f2",
+          "published": true,
+          "maxContextTokens": 2048
+        }
+      ]
+    },
+    {
+      "id": "qwen3-1.7b-q8",
+      "name": "Qwen3 1.7B",
+      "family": "qwen3",
+      "tier": "balanced",
+      "description": "Многоязычная модель для сравнения с русскоязычным QVikhr на мощных устройствах.",
+      "parameterCount": 1700000000,
+      "qualityScore": 84,
+      "russianPriority": 95,
+      "minimumMemoryGb": 8,
+      "recommendedMemoryGb": 12,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qwen3-1.7b-q8-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q8_0.gguf",
+          "mirrorPath": "qwen3-1.7b-q8_0.gguf",
+          "downloadBytes": 1830000000,
+          "sha256": "0becaa825564295d82e9af4d008bca5f8b7f5f73bf1c6a0b58f7c53ef26b47fd",
+          "published": true,
+          "maxContextTokens": 2048
+        },
+        {
+          "id": "qwen3-1.7b-q8-cactus",
+          "runtime": "cactus-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q8_0.gguf",
+          "mirrorPath": "qwen3-1.7b-q8_0.gguf",
+          "downloadBytes": 1830000000,
+          "sha256": "0becaa825564295d82e9af4d008bca5f8b7f5f73bf1c6a0b58f7c53ef26b47fd",
+          "published": true,
+          "maxContextTokens": 2048
+        }
+      ]
+    },
+    {
+      "id": "llama-3.2-3b-instruct-q4",
+      "name": "Llama 3.2 3B Instruct",
+      "family": "llama3.2",
+      "tier": "quality",
+      "description": "Тяжёлый экспериментальный кандидат. Пока не предлагается для загрузки в русскоязычной версии MiniMed.",
+      "parameterCount": 3000000000,
+      "qualityScore": 89,
+      "russianPriority": 58,
+      "minimumMemoryGb": 10,
+      "recommendedMemoryGb": 16,
+      "license": {
+        "id": "llama-3.2-community",
+        "name": "Llama 3.2 Community License",
+        "url": "https://www.llama.com/llama3_2/license/",
+        "requiresAcceptance": true
+      },
+      "artifacts": [
+        {
+          "id": "llama-3.2-3b-q4-cactus",
+          "runtime": "cactus-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/unsloth/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+          "mirrorPath": "llama-3.2-3b-instruct-q4_k_m.gguf",
+          "downloadBytes": 2020000000,
+          "sha256": "07fad0aa1e8b70bbaa67e0ba4202aeb82c993df41c9228ddd6ac7a39b0bdfca1",
+          "published": false,
+          "maxContextTokens": 2048
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 import type { ContentPackSeed, EmbeddingProfile, SearchFilters } from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 
-export type StorageBackend = 'in-memory' | 'sqlite-wasm' | 'sqlite-native';
-export type StorageInstallation = 'memory' | 'copied' | 'reused';
+export type StorageBackend = 'in-memory' | 'sqlite-wasm' | 'sqlite-native' | 'multi-store';
+export type StorageInstallation = 'memory' | 'copied' | 'reused' | 'mixed';
 
 export interface StorageHealth {
   readonly schemaVersion: number;

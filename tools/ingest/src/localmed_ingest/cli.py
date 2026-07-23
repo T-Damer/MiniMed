@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from .builder import build_content_pack, lint_content_pack, load_content_pack
+from .clinical_queries import import_real_pocqi_benchmark
 from .drug_sources import collect_drug_sources
 from .knowledge import (
     approve_knowledge,
@@ -66,7 +67,7 @@ def sync_command(
     report: Annotated[Path | None, typer.Option("--report")] = None,
     force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Synchronize URL or local-file inputs into a validated, cache-backed source workspace."""
     sync_report = sync_source_manifest(
@@ -99,7 +100,7 @@ def collect_drugs_command(
     report: Annotated[Path | None, typer.Option("--report")] = None,
     force_refresh: Annotated[bool, typer.Option("--force-refresh")] = False,
     offline: Annotated[bool, typer.Option("--offline")] = False,
-    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
 ) -> None:
     """Collect explicitly licensed drug sources without crawling or scraping public interfaces."""
     result = collect_drug_sources(
@@ -115,6 +116,35 @@ def collect_drugs_command(
     typer.echo(
         json.dumps(result.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
     )
+
+
+@app.command("benchmark-import-real-pocqi")
+def benchmark_import_real_pocqi_command(
+    output: Annotated[Path, typer.Option("--output")],
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+    snapshot: Annotated[
+        Path | None, typer.Option("--snapshot", exists=True, dir_okay=False)
+    ] = None,
+    cache_root: Annotated[Path, typer.Option("--cache-root")] = Path(
+        ".cache/localmed/clinical-queries"
+    ),
+    count: Annotated[int, typer.Option("--count", min=1)] = 120,
+    seed: Annotated[str, typer.Option("--seed")] = "minimed-real-pocqi-v1",
+    offline: Annotated[bool, typer.Option("--offline")] = False,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
+) -> None:
+    """Import an attributed, deterministic sample of real point-of-care clinician queries."""
+    import_report = import_real_pocqi_benchmark(
+        output,
+        report_path=report,
+        snapshot=snapshot,
+        cache_root=cache_root,
+        count=count,
+        seed=seed,
+        offline=offline,
+        timeout_seconds=timeout_seconds,
+    )
+    typer.echo(json.dumps(import_report.model_dump(mode="json"), ensure_ascii=False, indent=2))
 
 
 @app.command("prepare")

@@ -1,6 +1,6 @@
 {
   "name": "@localmed/app",
-  "version": "0.3.0-alpha.6",
+  "version": "0.3.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,11 +20,12 @@
     "@capacitor/core": "8.4.2",
     "@localmed/contracts": "workspace:*",
     "@localmed/core": "workspace:*",
+    "@localmed/search-semantic": "workspace:*",
+    "@localmed/storage": "workspace:*",
     "@localmed/storage-capacitor": "workspace:*",
     "@localmed/storage-sqlite": "workspace:*",
     "@localmed/test-fixtures": "workspace:*",
-    "solid-js": "1.9.14",
-    "@localmed/search-semantic": "workspace:*"
+    "solid-js": "1.9.14"
   },
   "devDependencies": {
     "@capacitor/android": "8.4.2",

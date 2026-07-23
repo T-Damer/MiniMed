@@ -132,6 +132,19 @@ const MEDICAL_SIGNALS: readonly IntentSignal<MedicalBaseIntent>[] = [
   },
   {
     intent: 'diagnosis',
+    pattern:
+      /(?:как\s+диагностировать\s+дальше|что\s+(?:обследовать|проверить)|какие\s+(?:анализы|обследования)|диагностическ[а-я]*\s+тактик)/u,
+    weight: 5,
+    label: 'следующий этап диагностики',
+  },
+  {
+    intent: 'diagnosis',
+    pattern: /(?:как\s+отличить|чем\s+отличается|дифференциальн[а-я]*\s+диагноз\s+с)/u,
+    weight: 5,
+    label: 'дифференциальный вопрос',
+  },
+  {
+    intent: 'diagnosis',
     pattern: /(?:диагноз|дифференциальн|что\s+это|на\s+что\s+похож|причин[а-я]*\s+симптом)/u,
     weight: 4.5,
     label: 'прямой диагностический вопрос',
@@ -145,7 +158,7 @@ const MEDICAL_SIGNALS: readonly IntentSignal<MedicalBaseIntent>[] = [
   {
     intent: 'diagnosis',
     pattern:
-      /(?:сып[а-я]*|каш[а-я]*|лихорад[а-я]*|боль|рвот[а-я]*|диаре[а-я]*|одышк[а-я]*|зуд[а-я]*)/u,
+      /(?:сып[а-я]*|каш[а-я]*|лихорад[а-я]*|боль|рвот[а-я]*|диаре[а-я]*|одышк[а-я]*|зуд[а-я]*|вздут[а-я]*|метеоризм|судорог[а-я]*|ригидн[а-я]*|сознани[а-я]*)/u,
     weight: 1.6,
     label: 'симптомы',
   },
@@ -227,7 +240,8 @@ export function classifyMedicalQueryIntent(query: string): QueryIntent {
     (primary === 'treatment' && !hasNamedClinicalTarget(normalized)) ||
     (primary === 'administrative-reference' &&
       !/(?:тяжест|осложнен|ремисс|обострен)/u.test(normalized)) ||
-    (primary === 'diagnosis' && normalized.length < 12);
+    (primary === 'diagnosis' && normalized.length < 12) ||
+    /(?:менингит.*энцефалит|энцефалит.*менингит|менингоэнцефалит)/u.test(normalized);
 
   return {
     primary,
