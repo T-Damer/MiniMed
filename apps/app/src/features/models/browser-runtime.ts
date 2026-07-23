@@ -1,3 +1,4 @@
+import { SerialAsyncQueue } from './serial-async-queue';
 import type {
   LocalModelArtifact,
   LocalModelDescriptor,
@@ -112,6 +113,8 @@ function outputPreview(value: string): string {
 }
 
 class BrowserWllamaSession implements LocalModelSession {
+  private readonly structuredTasks = new SerialAsyncQueue();
+
   public readonly modelId: string;
   public readonly artifactId: string;
 
@@ -124,7 +127,7 @@ class BrowserWllamaSession implements LocalModelSession {
     this.artifactId = artifactId;
   }
 
-  public async completeStructured(
+  private async runStructured(
     request: LocalModelStructuredRequest,
   ): Promise<LocalModelStructuredResponse> {
     const startedAt = performance.now();
@@ -145,6 +148,12 @@ class BrowserWllamaSession implements LocalModelSession {
       parsedJson: extractJson(rawText),
       generationMs: performance.now() - startedAt,
     };
+  }
+
+  public completeStructured(
+    request: LocalModelStructuredRequest,
+  ): Promise<LocalModelStructuredResponse> {
+    return this.structuredTasks.run(() => this.runStructured(request));
   }
 
   public async benchmark() {
@@ -174,6 +183,7 @@ class BrowserWllamaSession implements LocalModelSession {
   }
 
   public async unload(): Promise<void> {
+    await this.structuredTasks.close();
     if (this.instance.unloadModel) {
       await this.instance.unloadModel();
       return;

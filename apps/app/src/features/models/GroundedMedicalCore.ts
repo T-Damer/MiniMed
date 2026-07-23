@@ -306,22 +306,21 @@ export class GroundedMedicalCore implements MedicalCore {
     });
 
     try {
-      const [planResponse, rankingResponse] = await Promise.all([
-        this.controller.completeStructuredTask({
-          task: 'query-plan',
-          systemPrompt:
-            'Ты модуль планирования медицинского поиска. Не ставь диагноз, не назначай лечение и не добавляй медицинские факты. Верни только JSON по заданной схеме.',
-          userPrompt: planPrompt(request.query, deterministic.value.analysis),
-          maxTokens: 240,
-        }),
-        this.controller.completeStructuredTask({
-          task: 'rerank',
-          systemPrompt:
-            'Ты ранжируешь только уже найденные фрагменты медицинских источников. Не создавай новые источники, диагнозы, назначения или дозы. Верни только JSON по заданной схеме.',
-          userPrompt: rankingPrompt(request.query, candidates),
-          maxTokens: 360,
-        }),
-      ]);
+      const planResponse = await this.controller.completeStructuredTask({
+        task: 'query-plan',
+        systemPrompt:
+          'Ты модуль планирования медицинского поиска. Не ставь диагноз, не назначай лечение и не добавляй медицинские факты. Верни только JSON по заданной схеме.',
+        userPrompt: planPrompt(request.query, deterministic.value.analysis),
+        maxTokens: 240,
+      });
+      if (generation !== this.searchGeneration) return deterministic;
+      const rankingResponse = await this.controller.completeStructuredTask({
+        task: 'rerank',
+        systemPrompt:
+          'Ты ранжируешь только уже найденные фрагменты медицинских источников. Не создавай новые источники, диагнозы, назначения или дозы. Верни только JSON по заданной схеме.',
+        userPrompt: rankingPrompt(request.query, candidates),
+        maxTokens: 360,
+      });
       if (generation !== this.searchGeneration) return deterministic;
       const plan = parseQueryPlan(planResponse.parsedJson);
       const ranking = parseRanking(
