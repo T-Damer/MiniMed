@@ -55,6 +55,10 @@ canonical identity and report duplicate aliases rather than silently merging unr
 Canonical JSON checksums preserve the exact normalized catalog record used to generate each card.
 Metadata modules preserve source links and checksums but do not copy unavailable full source payloads.
 
+Each record is physically packaged only in its declared `primaryModuleId`. Additional `moduleIds` stay
+on the card as search and specialty facets; they never create a second copy of the same document in a
+different downloadable database.
+
 ## Clinical metadata cards
 
 A clinical catalog card preserves:
