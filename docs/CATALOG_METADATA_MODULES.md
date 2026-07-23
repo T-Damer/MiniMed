@@ -29,7 +29,8 @@ uv run --project tools/ingest medbase-catalog-modules build \
 ```
 
 Supported families are `clinical`, `medication` and `legal`. One build-ready workspace is generated
-for every module in the input coverage ledger.
+for every module in the input coverage ledger. The generator rejects unsupported families, empty
+module plans and references to records that are absent from the ledger.
 
 Each workspace contains:
 
