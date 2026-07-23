@@ -209,7 +209,7 @@ FAILED tools/ingest/tests/test_regulated_catalogs.py::test_official_legal_collec
   
   - minimed.regulatory.records-consent-privacy.ru
   + minimed.regulatory.healthcare-organization.ru
-1 failed, 1 passed in 1.16s
+1 failed, 1 passed in 1.23s
 PYTEST_EXIT=1
 
 === CLI HELP ===
