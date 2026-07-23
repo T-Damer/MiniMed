@@ -55,12 +55,10 @@ jobs:
           set -euo pipefail
           mkdir -p data/raw/official-clinical-registry data/build
           uv run --project tools/ingest medbase-clinical-catalog official-sync \
+            --raw-input data/build/official-clinical-registry-probe/api-pages.json \
             --output data/raw/official-clinical-registry/catalog.json \
             --raw-output data/raw/official-clinical-registry/api-pages.json \
-            --report data/build/official-clinical-registry-report.json \
-            --page-size 200 \
-            --max-pages 20 \
-            --timeout-seconds 180
+            --report data/build/official-clinical-registry-report.json
       - name: Build the complete categorized coverage ledger
         shell: bash
         run: |

@@ -8,6 +8,7 @@ import pytest
 from localmed_ingest.official_clinical_registry import (
     OFFICIAL_REGISTRY_API,
     collect_official_clinical_registry,
+    import_official_clinical_registry_pages,
     normalize_official_registry_row,
 )
 
@@ -175,3 +176,39 @@ def test_rejects_record_count_drift(tmp_path: Path) -> None:
             page_size=1,
             transport=transport,
         )
+
+
+def test_imports_browser_captured_pages(tmp_path: Path) -> None:
+    rows = [
+        official_row("714_2", title="Пневмония"),
+        official_row("381_3", title="Бронхит"),
+    ]
+    capture = tmp_path / "api-pages.json"
+    capture.write_text(
+        json.dumps(
+            {
+                "pages": [
+                    {
+                        "page": index,
+                        "response": {
+                            "Data": [row],
+                            "CurrentPage": index,
+                            "PageSize": 1,
+                            "TotalRecords": len(rows),
+                        },
+                    }
+                    for index, row in enumerate(rows, start=1)
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = import_official_clinical_registry_pages(
+        capture,
+        tmp_path / "catalog.json",
+        generated_at="2026-07-24T00:00:00Z",
+    )
+
+    assert report["totalRecords"] == 2
+    assert report["uniqueOfficialIds"] == 2

@@ -7,7 +7,10 @@ from typing import Annotated
 import typer
 
 from .clinical_catalog import build_clinical_coverage_ledger, write_clinical_coverage_ledger
-from .official_clinical_registry import collect_official_clinical_registry
+from .official_clinical_registry import (
+    collect_official_clinical_registry,
+    import_official_clinical_registry_pages,
+)
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -23,6 +26,9 @@ def main() -> None:
 @app.command("official-sync")
 def official_sync_command(
     output: Annotated[Path, typer.Option("--output")],
+    raw_input: Annotated[
+        Path | None, typer.Option("--raw-input", exists=True, dir_okay=False)
+    ] = None,
     raw_output: Annotated[Path | None, typer.Option("--raw-output")] = None,
     report: Annotated[Path | None, typer.Option("--report")] = None,
     page_size: Annotated[int, typer.Option("--page-size", min=1, max=1000)] = 200,
@@ -30,16 +36,25 @@ def official_sync_command(
     timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
     generated_at: Annotated[str | None, typer.Option("--generated-at")] = None,
 ) -> None:
-    """Collect the complete official Minzdrav registry through its public API."""
-    summary = collect_official_clinical_registry(
-        output,
-        raw_output=raw_output,
-        report_output=report,
-        page_size=page_size,
-        max_pages=max_pages,
-        timeout_seconds=timeout_seconds,
-        generated_at=generated_at,
-    )
+    """Collect or import the complete official Minzdrav registry."""
+    if raw_input is None:
+        summary = collect_official_clinical_registry(
+            output,
+            raw_output=raw_output,
+            report_output=report,
+            page_size=page_size,
+            max_pages=max_pages,
+            timeout_seconds=timeout_seconds,
+            generated_at=generated_at,
+        )
+    else:
+        summary = import_official_clinical_registry_pages(
+            raw_input,
+            output,
+            raw_output=raw_output,
+            report_output=report,
+            generated_at=generated_at,
+        )
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
 
 

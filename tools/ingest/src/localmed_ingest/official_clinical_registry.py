@@ -330,3 +330,60 @@ def collect_official_clinical_registry(
             encoding="utf-8",
         )
     return report
+
+
+def import_official_clinical_registry_pages(
+    source: Path,
+    output: Path,
+    *,
+    raw_output: Path | None = None,
+    report_output: Path | None = None,
+    generated_at: str | None = None,
+) -> dict[str, object]:
+    payload: object = json.loads(source.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("Official registry browser capture must be an object.")
+    pages_value = payload.get("pages")
+    if not isinstance(pages_value, list) or not pages_value:
+        raise ValueError("Official registry browser capture must contain response pages.")
+
+    responses: list[object] = []
+    for expected_page, page_value in enumerate(pages_value, start=1):
+        if not isinstance(page_value, dict) or page_value.get("page") != expected_page:
+            raise ValueError("Official registry browser capture pages must be ordered.")
+        if "response" not in page_value:
+            raise ValueError(
+                f"Official registry browser capture page {expected_page} has no response."
+            )
+        responses.append(page_value["response"])
+
+    first_response = responses[0]
+    if not isinstance(first_response, dict):
+        raise ValueError("Official registry browser capture response must be an object.")
+    normalized_first = {str(key): cast(object, value) for key, value in first_response.items()}
+    page_size = _int_field(normalized_first, "PageSize")
+
+    def captured_transport(
+        _url: str,
+        body: bytes,
+        _headers: dict[str, str],
+        _timeout_seconds: float,
+    ) -> object:
+        request: object = json.loads(body)
+        if not isinstance(request, dict):
+            raise ValueError("Official registry request must be an object.")
+        normalized_request = {str(key): cast(object, value) for key, value in request.items()}
+        current_page = _int_field(normalized_request, "currentPage")
+        if current_page < 1 or current_page > len(responses):
+            raise ValueError(f"Official registry browser capture has no page {current_page}.")
+        return responses[current_page - 1]
+
+    return collect_official_clinical_registry(
+        output,
+        raw_output=raw_output,
+        report_output=report_output,
+        page_size=page_size,
+        max_pages=len(responses),
+        generated_at=generated_at,
+        transport=captured_transport,
+    )

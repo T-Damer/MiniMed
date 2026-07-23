@@ -118,6 +118,7 @@ const report = {
   consoleMessages,
   pageErrors,
 };
+const registryPages = [];
 
 try {
   const targetResponsePromise = page.waitForResponse(
@@ -127,6 +128,42 @@ try {
   await page.goto(SOURCE_URL, { waitUntil: 'domcontentloaded', timeout: 120_000 });
   await targetResponsePromise;
   await page.waitForTimeout(2_000);
+  if (!targetRequest?.postData || !targetPayload) {
+    throw new Error('Official clinical registry request payload was not captured.');
+  }
+  const requestTemplate = JSON.parse(targetRequest.postData);
+  const pageSize = 200;
+  const totalPages = Math.ceil(Number(targetPayload.TotalRecords) / pageSize);
+  for (let currentPage = 1; currentPage <= totalPages; currentPage += 1) {
+    const requestPayload = { ...requestTemplate, pageSize, currentPage };
+    const response = await context.request.post(targetRequest.url, {
+      headers: targetRequest.headers,
+      data: requestPayload,
+      timeout: 120_000,
+    });
+    if (!response.ok()) {
+      throw new Error(`Official registry returned HTTP ${response.status()}.`);
+    }
+    const responsePayload = await response.json();
+    registryPages.push({
+      page: currentPage,
+      request: requestPayload,
+      response: responsePayload,
+    });
+  }
+  await writeFile(
+    join(outputRoot, 'api-pages.json'),
+    `${JSON.stringify(
+      {
+        schemaVersion: 1,
+        source: SOURCE_URL,
+        apiUrl: targetRequest.url,
+        pages: registryPages,
+      },
+      null,
+      2,
+    )}\n`,
+  );
   report.finalUrl = page.url();
   report.title = await page.title();
   await writeFile(join(outputRoot, 'page.html'), await page.content());
@@ -152,6 +189,13 @@ if (targetPayload && typeof targetPayload === 'object' && !Array.isArray(targetP
   };
 }
 report.completedAt = new Date().toISOString();
+report.completeRegistry = {
+  pages: registryPages.length,
+  records: registryPages.reduce(
+    (count, entry) => count + (Array.isArray(entry.response?.Data) ? entry.response.Data.length : 0),
+    0,
+  ),
+};
 
 await writeFile(join(outputRoot, 'probe-report.json'), `${JSON.stringify(report, null, 2)}\n`);
 
@@ -166,6 +210,7 @@ console.log(
       finalUrl: report.finalUrl,
       targetRequest: report.targetRequest,
       targetSummary: report.targetSummary,
+      completeRegistry: report.completeRegistry,
       jsonResponses: report.responses.filter((entry) => entry.savedAs).length,
     },
     null,
