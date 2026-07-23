@@ -11,13 +11,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: public-pilot-0.3.3-${{ github.ref }}
+  group: public-pilot-0.4.0-alpha.1-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  RELEASE_VERSION: 0.3.3
-  RELEASE_TAG: v0.3.3
-  APK_NAME: MiniMed-0.3.3-rf-public-pilot-debug.apk
+  RELEASE_VERSION: 0.4.0-alpha.1
+  RELEASE_TAG: v0.4.0-alpha.1
+  APK_NAME: MiniMed-0.4.0-alpha.1-rf-public-pilot-debug.apk
   BUILD_TOOLS_VERSION: 36.0.0
 
 jobs:
@@ -50,7 +50,7 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;${BUILD_TOOLS_VERSION}"
 
-      - name: Install and verify
+      - name: Install and verify release tree
         run: |
           pnpm install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
@@ -70,7 +70,7 @@ jobs:
         working-directory: apps/app/android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
 
-      - name: Verify final APK and embedded source-linked corpus
+      - name: Verify APK, signature and embedded source-linked corpus
         shell: bash
         run: |
           set -euo pipefail
@@ -142,7 +142,7 @@ jobs:
               assert quick_check == 'ok'
               assert foreign_key_violations == 0
               assert pack and pack[0] == 'minimed.rf-public-pilot' and pack[2] >= 2
-              assert pack[1] == '0.3.3'
+              assert pack[1] == os.environ['RELEASE_VERSION']
               assert len(documents) == report['documents']
               assert sections == report['sections']
               assert len(chunks) == report['chunks']
@@ -181,7 +181,7 @@ jobs:
               assert registry_documents == len(expected_medications)
               assert {row[0] for row in documents if row[2] == 'official_registry_summary'} == expected_medications
 
-              for chunk_id, document_version_id, original_text, metadata_raw in chunks:
+              for _, document_version_id, original_text, metadata_raw in chunks:
                   assert original_text.strip()
                   metadata = json.loads(metadata_raw)
                   assert isinstance(metadata.get('localOrder'), int)
@@ -205,10 +205,9 @@ jobs:
 
           apk_sha = hashlib.sha256(apk.read_bytes()).hexdigest()
           db_sha = hashlib.sha256(db_path.read_bytes()).hexdigest()
-          source_sha = os.environ['SOURCE_SHA']
           evidence = {
-              'releaseVersion': os.environ.get('RELEASE_VERSION', '0.3.3'),
-              'sourceCommit': source_sha,
+              'releaseVersion': os.environ['RELEASE_VERSION'],
+              'sourceCommit': os.environ['SOURCE_SHA'],
               'apk': {'path': str(apk), 'sha256': apk_sha, 'bytes': apk.stat().st_size},
               'embeddedDatabase': {
                   'archivePath': os.environ['EMBEDDED_PATH'],
@@ -227,7 +226,9 @@ jobs:
               'sourceIndex': source_index,
           }
           Path('release-output/APK-SHA256.txt').write_text(f'{apk_sha}  {apk.name}\n', encoding='utf-8')
-          Path('release-output/DB-SHA256.txt').write_text(f'{db_sha}  {os.environ["EMBEDDED_PATH"]}\n', encoding='utf-8')
+          Path('release-output/DB-SHA256.txt').write_text(
+              f'{db_sha}  {os.environ["EMBEDDED_PATH"]}\n', encoding='utf-8'
+          )
           Path('release-output/VERIFICATION.json').write_text(
               json.dumps(evidence, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
           )
@@ -236,7 +237,7 @@ jobs:
           )
           PY
 
-      - name: Upload complete verification evidence
+      - name: Upload APK and complete verification evidence
         uses: actions/upload-artifact@v4
         with:
           name: MiniMed-${{ env.RELEASE_VERSION }}-rf-public-pilot
@@ -246,26 +247,34 @@ jobs:
 
       - name: Publish APK-only GitHub prerelease
         if: >-
-          github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'release: MiniMed 0.3.3'))
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, 'release: MiniMed 0.4.0-alpha.1')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           apk="release-output/${APK_NAME}"
           notes=$(cat <<'EOF'
-          MiniMed 0.3.3 is a debug-signed engineering prerelease of the offline-first medical reference.
+          MiniMed 0.4.0-alpha.1 is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
-          - the same verified 15-document Russian clinical/medication starter pack;
-          - persistent installed-module registry metadata with rollback-state preservation;
-          - an optional six-model local AI catalog with automatic device-fit selection, settings, status toast, startup viability benchmark, and deterministic fallback;
-          - CPU/WebAssembly GGUF loading in browsers and the current Android WebView path.
+          - the verified 15-document Russian clinical/medication starter pack;
+          - persistent install, update, removal and rollback support for validated SQLite content modules;
+          - doctor-facing source reading, exact anchors, archive search and knowledge-graph navigation;
+          - optional local-model query planning and candidate-only reranking over already retrieved sources;
+          - deterministic fallback when the model is absent, invalid, stale or fails.
+
+          Included in the source tree but not automatically installed in this APK:
+          - clinical, medication and health-law coverage ledgers;
+          - canonical primary-module packaging for metadata-only catalog records;
+          - official-source acquisition and review tooling.
 
           Important boundaries:
           - model weights are downloaded separately and are not bundled in the APK;
-          - the local model is not used for diagnosis, treatment, retrieval ranking, or generated clinical answers;
-          - native Android GPU/NPU acceleration, production signing, full-text downloadable modules, and physical-device model qualification remain follow-up work.
+          - model output cannot add diagnosis, treatment, dosing, routing advice or new source identifiers;
+          - metadata-only catalog records are not treated as validated full text;
+          - native Android GPU/NPU acceleration, production signing and physical-device qualification remain follow-up gates.
           EOF
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
