@@ -62,6 +62,14 @@ function storageFits(artifact: LocalModelArtifact, profile: LocalModelDeviceProf
   );
 }
 
+function memoryScore(memoryHeadroom: number): number {
+  // Missing memory should disqualify or strongly penalize a model. Extra memory merely removes risk;
+  // it must not make the weakest model beat a materially better model on a capable device.
+  return memoryHeadroom >= 0
+    ? Math.min(6, memoryHeadroom * 1.5)
+    : Math.max(-12, memoryHeadroom * 3);
+}
+
 function candidateScore(
   model: LocalModelDescriptor,
   artifact: LocalModelArtifact,
@@ -72,7 +80,7 @@ function candidateScore(
   const reasons: string[] = [];
   if (profile.deviceMemoryGb !== null) {
     const memoryHeadroom = profile.deviceMemoryGb - model.recommendedMemoryGb;
-    score += Math.max(-12, Math.min(12, memoryHeadroom * 3));
+    score += memoryScore(memoryHeadroom);
     reasons.push(
       memoryHeadroom >= 0
         ? `достаточный запас памяти (${profile.deviceMemoryGb} ГБ)`
