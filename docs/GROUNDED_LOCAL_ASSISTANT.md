@@ -1,79 +1,65 @@
-# Source-grounded local assistant
+# Grounded local assistant
 
-MiniMed's local model is an optional search assistant, not an autonomous clinical decision system.
-The deterministic `MedicalCore` remains authoritative and fully usable when no model is installed.
+The local model is an optional extractor and reranker over deterministic search results. It is not the
+source of medical facts.
 
-## Runtime sequence
+## Runtime
 
 ```text
-free-text query
-  → deterministic query analysis
-  → deterministic SQLite retrieval
-  → bounded candidate fragment list
+query
+  → deterministic analysis and SQLite retrieval
+  → bounded candidate chunks
   → optional local query plan and reranking
-  → schema and candidate-ID validation
-  → reordered existing sources or untouched deterministic fallback
+  → exact-source clinical extraction
+  → deterministic validation
+  → applied result or untouched search fallback
 ```
 
-The model receives at most a small set of already retrieved source fragments. Every candidate has a
-stable chunk ID, document ID, section path and bounded snippet. The model cannot request another
-source, open the network, change the corpus or install content.
+Each candidate contains a stable chunk ID, document ID, anchor, title, section path, category, and
+bounded snippet. The model receives no arbitrary database or network access.
 
-## Allowed model outputs
+## Allowed output
 
-The first grounded feature permits only:
+- Search terms and clarifying questions.
+- A preferred order of retrieved candidate IDs.
+- Diagnostic candidates whose label appears in a cited title or snippet.
+- A contiguous source excerpt copied from a cited snippet.
+- Dose evidence copied from a cited treatment snippet.
+- Missing patient inputs needed before interpreting a dose passage.
 
-- a short search-intent description that is not presented as a diagnosis;
-- search terms grounded in the user's query and deterministic analysis;
-- clarifying questions that could improve a later source search;
-- a preferred order for exact candidate chunk IDs;
-- short explanations of source relevance.
+The UI labels diagnostic items as candidates for verification and opens citations at their exact
+anchors.
 
-These values are parsed from bounded JSON. They do not enter the medical corpus or become reviewed
-knowledge.
+## Dose gate
 
-## Prohibited outputs
+A dose item is accepted only when:
 
-The model is not allowed to add:
+1. every cited ID belongs to the retrieved candidate set;
+2. at least one cited candidate is categorized as treatment;
+3. the label occurs in the cited source;
+4. the excerpt is an exact substring of the cited snippet;
+5. the excerpt contains a numeric dose unit and a regimen cue.
 
-- a diagnosis or differential diagnosis;
-- treatment or routing advice;
-- drug doses, schedules or calculations;
-- facts absent from the retrieved source candidates;
-- citations or identifiers not included in the deterministic candidate list;
-- changes to source text, document metadata or review state.
+Strength-only registry text such as `120 mg/5 ml` is not a dosing regimen. The model never calculates or
+personalizes a dose.
 
-## Fail-closed behavior
+## Fail closed
 
-MiniMed returns the original deterministic response when:
+The original deterministic results remain visible when:
 
-- no validated local model session is ready;
-- model initialization or generation fails;
-- the response is not valid JSON;
-- required fields have the wrong type;
-- an output string exceeds the configured bounds;
-- the model invents or changes a candidate ID;
-- a newer search supersedes the running model request.
+- no validated model session is ready;
+- generation fails or a newer query supersedes it;
+- JSON or required fields are invalid;
+- text exceeds configured bounds;
+- a citation ID is invented;
+- a diagnosis label or excerpt is absent from the cited source;
+- dose evidence fails the treatment, exact-text, or regimen checks.
 
-The UI states whether the source order was changed or whether the ordinary deterministic order was
-used. Model failure never blocks source search or document reading.
+## Current evidence limit
 
-## Release integration
+The public pilot contains source-linked clinical summaries and drug-registry identity cards. It does
+not contain complete verified dosing regimens, so dose extraction should usually return an explicit
+“not found in installed sources” result.
 
-The Android release candidate is validated on top of the categorized catalog-module stack. Catalog
-records remain metadata-only unless separately promoted through source, rights, extraction, integrity
-and review gates. The assistant can reorder only fragments returned by the active validated SQLite
-stores; it cannot turn catalog metadata into diagnosis, treatment or dosing content.
-
-## Current limits
-
-This feature uses the current CPU/WebAssembly model runtime in browsers and Android WebView. It does
-not yet prove acceptable speed, memory use or thermal behavior on physical Android devices. The
-0.4.0 gates additionally require:
-
-- a checksum-verified MiniMed-hosted model artifact;
-- physical-device qualification;
-- Russian negation, age, pregnancy, allergy, renal, route, unit and dose-boundary tests;
-- a native LiteRT-LM path with CPU/GPU/NPU measurements where supported;
-- evidence-linked answer formatting and unsupported-claim rejection before any generated clinical
-  statement is exposed.
+Clinical usefulness still requires evaluation with real local-model outputs and owner-supplied full
+documents. Structural validity alone does not prove that a model selected the best supported passage.

@@ -1,109 +1,78 @@
-# Product brief
+# Product contract
 
 ## Purpose
 
-LocalMed Search is an offline-first navigator over a curated Russian medical corpus. It is a retrieval
-and exact source-navigation product before it is a chat product.
+MiniMed helps a clinician navigate a trusted local medical corpus while reviewing a patient case. It is
+retrieval-first: the source remains primary, and generated text is always optional and subordinate.
 
-The target architecture and milestones live in `docs/TECHNICAL_PLAN.md`. The implemented state and
-ordered next tasks live in `docs/CURRENT_STATE.md`.
+The target workflow is:
 
-The target one-window clinical flow is defined in
-[`CLINICAL_WORKSPACE.md`](CLINICAL_WORKSPACE.md). General learning queries remain independent
-workspace threads. Patient-specific work may be attached to an explicit patient and episode, but
-patient matching, episode continuation, and semantically similar cases remain separate user-confirmed
-actions.
+```text
+patient case
+  → deterministic query analysis
+  → local retrieval
+  → relevant documents and exact fragments
+  → optional source-constrained model extraction
+  → clinician verification in the original source
+```
 
-## Current implemented boundary
+## Useful outcomes
 
-A user can paste a long Russian-language case description. Without an LLM or network call, the app can:
+For a patient case, MiniMed should:
 
-- preserve the full original narrative;
-- extract a transparent case card and keep the raw text in every search path;
-- distinguish common explicit negative findings from positive search concepts;
-- suggest missing fields without forcing a form;
-- build several weighted lexical query branches;
-- search a precompiled local SQLite/FTS5 pack and a compatible local vector index;
-- reuse that pack as a persistent read-only native SQLite file on compatible mobile builds;
-- fall back to SQLite WASM when native SQLite/FTS5 probing fails;
-- explain matched branches, active retrieval mode, profile, and lexical/semantic scores;
-- group candidates by document and clinical section category;
-- open the exact source chunk, neighbors, and full section through stable anchors;
-- save local history and bookmarks.
+- surface plausible diagnostic candidates to verify;
+- show the evidence fragment and document behind every candidate;
+- find treatment and dosing passages when they exist in the installed sources;
+- state clearly when dosing evidence or required patient inputs are missing;
+- open the exact cited location in one action;
+- keep working when the local model is absent or fails.
 
-For authoring, source registries can prepare text-layer PDF, OCR TXT, or Markdown inputs without LLM
-rewriting. The pipeline retains page/block or line provenance, emits extraction diagnostics, validates
-rights metadata, and feeds the same deterministic pack builder.
+A diagnostic candidate is not a final diagnosis. A quoted dose passage is not a patient-specific
+calculation or prescription.
 
-## Current corpus and knowledge boundary
+## Data model
 
-The public pilot is no longer purely synthetic. It contains:
+The owner supplies good source documents. The deterministic pipeline extracts text and provenance,
+normalizes it into authored Markdown, validates it, and builds searchable SQLite packs. Generated model
+text never replaces an original paragraph.
 
-- seven source-linked Russian clinical-recommendation navigation cards;
-- eight official Russian medication-registry identity cards;
-- synthetic fixtures retained separately for software contract tests.
-
-The knowledge layer stores entities, medication profiles, proposed facts and relations, evidence,
-document links, and review tasks. Proposed medication knowledge is not reviewed guidance. A registry
-record establishes identity, form, strength, and registration metadata only; absent clinical fields are
-kept absent rather than completed from model memory.
-
-The current portable vector profile is deterministic feature hashing and is not a neural medical model.
-
-## Quality foundation
-
-The committed benchmark suite contains:
-
-- a deterministic natural-distribution sample of real clinician queries with original language and
-  jurisdiction preserved;
-- Russian parser, morphology, workflow, and safety edge cases;
-- Russian source-grounded clinical and medication queries tied to exact versions, sections, chunks, and
-  anchors.
-
-Russian release metrics are reported separately from foreign-dataset metrics. Strong foreign results
-cannot compensate for regression on Russian source applicability or provenance.
-
-## Required capabilities before 1.0
-
-The stable personal edition must prove the complete architecture on a representative, explicitly
-incomplete corpus:
-
-- runtime medical and administrative entities, reviewed relations, and exact evidence navigation;
-- a local patient/episode workspace with provenance and no automatic case merging;
-- deterministic medication rules and patient-specific calculations where reviewed sources support
-  them;
-- versioned Russian clinical, medication, and regulatory source packs;
-- local embeddings, reranking, structured extraction, and evidence-grounded synthesis with
-  deterministic fallback;
-- a portable Rust clinical core shared by web, desktop, Android/iOS, and CLI through the parity
-  migration in ADR-0010;
-- reproducible retrieval benchmarks plus content-pack integrity, update, and rollback.
-
-Cloud synthesis may use the same evidence contract, but is not required for the primary workflow.
+Most sources can remain locally versioned. A later update tracker may monitor selected online catalogs
+for newer editions, but network access is not part of the primary query path.
 
 ## Product invariants
 
-- Offline retrieval remains useful with every model adapter disabled.
-- Original source and user text are not silently rewritten.
+- Search and exact source reading work fully offline.
+- Retrieval happens before generation.
+- Every displayed model-derived clinical item resolves to retrieved chunk IDs.
+- Dose text must be an exact retrieved excerpt containing a numeric dose and regimen.
+- The model never silently completes missing facts or calculates a patient dose.
+- Deterministic handling owns negation, red flags, validation, and fallback.
 - Source text, proposed structure, reviewed knowledge, and generated output remain distinguishable.
-- UI never owns SQL or provider-specific model logic.
-- Optional cloud/model failures cannot break source navigation.
-- Real patient data is absent from fixtures, tests, logs, analytics, and release artifacts.
-- Every trusted structured claim must resolve to evidence and an explicit review state.
-- Similar symptoms may suggest a related case but cannot establish patient identity.
+- Patient queries and source contents are not logged.
+- Private documents, patient data, credentials, and model weights are not committed.
 
-## Initial user and non-goals
+## Scope
 
-The initial user is the owner and a small invited group of physicians. Before 1.0 the product is not an
-EMR, autonomous decision system, account/sync service, mandatory backend, complete medical ontology,
-or universal local model runtime.
+Current priority:
 
-## Success metrics
+- browser experience;
+- high-quality Russian retrieval;
+- deterministic document preparation and local packs;
+- small local models for structured extraction and reranking;
+- evidence-linked diagnostic, dose, and document suggestions.
 
-- Russian rank, section, anchor, provenance, and zero-result thresholds remain green;
-- every result resolves to an existing document version, section, chunk, and anchor;
-- no search query leaves the device in the default path;
-- time from opening the app to a useful source paragraph beats manual document navigation;
-- physicians can find the needed source without repeated reformulation in a growing share of cases;
-- a failed optional feature never blocks source access;
-- corpus growth and structured knowledge never bypass rights, evidence, and review gates.
+Not current priorities:
+
+- Android/iOS parity;
+- a Rust rewrite;
+- accounts, sync, telemetry, or a hosted backend;
+- autonomous diagnosis or prescribing;
+- automatic corpus maintenance without owner-selected sources.
+
+## Success
+
+- Recall@5, exact-anchor resolution, provenance, and zero-result gates stay green as the corpus grows.
+- Explicitly named diagnoses and medicines rank their matching source highly.
+- Unsupported model output is rejected without hiding deterministic results.
+- Physicians reach the relevant source passage faster than by opening documents manually.
+- Corpus updates are reproducible from declared inputs and checksums.

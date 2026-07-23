@@ -1,8 +1,16 @@
 # ADR-0010: Portable Rust clinical core
 
-- Status: accepted
+- Status: superseded
 - Date: 2026-07-21
 - Supersedes: ADR-0001 for new clinical orchestration
+- Superseded by: browser-first TypeScript plan, 2026-07-24
+
+## Supersession note
+
+The product no longer targets cross-platform parity or a Rust migration before 1.0. The existing
+TypeScript `MedicalCore` remains the portable contract while browser retrieval, local document
+ingestion, and grounded model extraction are the active priorities. This ADR is retained as historical
+context; its migration plan is not scheduled.
 
 ## Context
 
