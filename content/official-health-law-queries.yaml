@@ -1,0 +1,83 @@
+schemaVersion: 1
+baseUrl: https://publication.pravo.gov.ru
+pageSize: 200
+queries:
+  - id: clinical-recommendations
+    title: Клинические рекомендации и стандарты
+    documentText: клинические рекомендации
+    maxPages: 1000
+
+  - id: medical-care
+    title: Организация и оказание медицинской помощи
+    documentText: медицинской помощи
+    maxPages: 1000
+
+  - id: healthcare
+    title: Здравоохранение
+    documentText: здравоохранения
+    maxPages: 1000
+
+  - id: medicines
+    title: Лекарственные средства
+    documentText: лекарственных средств
+    maxPages: 1000
+
+  - id: pharmaceutical
+    title: Фармацевтическая деятельность
+    documentText: фармацевтической деятельности
+    maxPages: 1000
+
+  - id: sanitary
+    title: Санитарно-эпидемиологическое благополучие
+    documentText: санитарно-эпидемиолог
+    maxPages: 1000
+
+  - id: medical-workers
+    title: Медицинские работники и квалификация
+    documentText: медицинских работников
+    maxPages: 1000
+
+  - id: medical-licensing
+    title: Лицензирование медицинской деятельности
+    documentText: лицензирование медицинской деятельности
+    maxPages: 1000
+
+  - id: accreditation
+    title: Аккредитация специалистов
+    documentText: аккредитации специалистов
+    maxPages: 1000
+
+  - id: medical-records
+    title: Медицинская документация
+    documentText: медицинской документации
+    maxPages: 1000
+
+  - id: informed-consent
+    title: Информированное добровольное согласие
+    documentText: информированного добровольного согласия
+    maxPages: 1000
+
+  - id: insurance
+    title: Обязательное медицинское страхование
+    documentText: обязательного медицинского страхования
+    maxPages: 1000
+
+  - id: maternal-child
+    title: Охрана здоровья детей и материнства
+    documentText: охраны здоровья детей
+    maxPages: 1000
+
+  - id: disability
+    title: Медико-социальная экспертиза и инвалидность
+    documentText: медико-социальной экспертизы
+    maxPages: 1000
+
+  - id: palliative
+    title: Паллиативная медицинская помощь
+    documentText: паллиативной медицинской помощи
+    maxPages: 1000
+
+  - id: military-medical
+    title: Военно-врачебная и военная медицина
+    documentText: военно-врачебн
+    maxPages: 1000
