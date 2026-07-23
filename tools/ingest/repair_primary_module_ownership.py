@@ -1,4 +1,4 @@
-# One-shot validated repair; this file deletes itself after applying the patch.
+# One-shot validated repair; exported as an artifact after validation.
 from __future__ import annotations
 
 import subprocess
