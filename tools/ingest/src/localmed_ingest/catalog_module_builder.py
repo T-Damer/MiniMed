@@ -76,12 +76,27 @@ class CoverageLedgerEnvelope(CamelModel):
         if len(record_ids) != len(set(record_ids)):
             raise ValueError("Coverage ledger contains duplicate recordId values.")
         known = set(record_ids)
+        module_ids = [module.module_id for module in self.modules]
+        if len(module_ids) != len(set(module_ids)):
+            raise ValueError("Coverage ledger contains duplicate moduleId values.")
+        module_records = {module.module_id: set(module.record_ids) for module in self.modules}
         for module in self.modules:
+            if len(module.record_ids) != len(set(module.record_ids)):
+                raise ValueError(f"Module {module.module_id} contains duplicate record references.")
             missing = [record_id for record_id in module.record_ids if record_id not in known]
             if missing:
                 raise ValueError(
                     f"Module {module.module_id} references unknown records: {', '.join(missing)}"
                 )
+        for record, record_id in zip(self.records, record_ids, strict=True):
+            primary_value = record.get("primaryModuleId")
+            primary = primary_value.strip() if isinstance(primary_value, str) else ""
+            if not primary:
+                raise ValueError(f"Coverage-ledger record {record_id} requires primaryModuleId.")
+            if primary not in module_records:
+                raise ValueError(f"Record {record_id} references unknown primary module {primary}.")
+            if record_id not in module_records[primary]:
+                raise ValueError(f"Primary module {primary} does not include record {record_id}.")
         return self
 
 
@@ -506,7 +521,16 @@ def build_catalog_metadata_modules(
     records = {cast(str, record["recordId"]): record for record in ledger.records}
     builds: list[CatalogModuleBuild] = []
     warnings: list[str] = []
+    packaged_ids: list[str] = []
     for module in ledger.modules:
+        primary_record_ids = [
+            record_id
+            for record_id in module.record_ids
+            if _clean(records[record_id].get("primaryModuleId")) == module.module_id
+        ]
+        if not primary_record_ids:
+            warnings.append(f"module skipped without primary records: {module.module_id}")
+            continue
         module_dir = target / _safe_stem(module.module_id)
         module_dir.mkdir(parents=True)
         (module_dir / "manifest.yaml").write_text(
@@ -519,13 +543,20 @@ def build_catalog_metadata_modules(
         )
         aliases: list[dict[str, object]] = []
         document_ids: list[str] = []
-        for record_id in module.record_ids:
+        coverage_counts: dict[str, int] = {}
+        for record_id in primary_record_ids:
             record = records[record_id]
             document_id, front, body, record_aliases = _render_record(family, record)
             document_ids.append(document_id)
+            packaged_ids.append(document_id)
             aliases.extend(record_aliases)
-            path = module_dir / f"{_safe_stem(document_id)}.md"
-            path.write_text(f"---\n{front}\n---\n\n{body}", encoding="utf-8")
+            coverage = _clean(record.get("coverageState")) or "metadata-only"
+            coverage_counts[coverage] = coverage_counts.get(coverage, 0) + 1
+            document_path = module_dir / f"{_safe_stem(document_id)}.md"
+            document_path.write_text(
+                f"---\n{front}\n---\n\n{body}",
+                encoding="utf-8",
+            )
         unique_aliases: dict[str, dict[str, object]] = {}
         for alias in aliases:
             alias_id = cast(str, alias["id"])
@@ -548,8 +579,17 @@ def build_catalog_metadata_modules(
                 directory=str(module_dir.relative_to(target)),
                 record_count=len(document_ids),
                 document_ids=document_ids,
-                coverage_counts=module.coverage_counts,
+                coverage_counts=coverage_counts,
             )
+        )
+    if len(packaged_ids) != len(set(packaged_ids)):
+        raise ValueError("Catalog module generation produced duplicate document IDs.")
+    if set(packaged_ids) != set(records):
+        missing = sorted(set(records) - set(packaged_ids))
+        unexpected = sorted(set(packaged_ids) - set(records))
+        raise ValueError(
+            "Catalog module generation did not preserve canonical ownership: "
+            f"missing={missing}, unexpected={unexpected}."
         )
     report = CatalogModuleBuildReport(
         family=family,
@@ -557,7 +597,7 @@ def build_catalog_metadata_modules(
         built_at=timestamp,
         source_ledger_checksum=_sha256_file(ledger_path),
         modules=builds,
-        total_documents=sum(module.record_count for module in builds),
+        total_documents=len(packaged_ids),
         warnings=warnings,
     )
     (target / "module-build-report.json").write_text(

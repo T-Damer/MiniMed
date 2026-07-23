@@ -197,3 +197,56 @@ def test_builds_legal_metadata_with_applicability_warning(tmp_path: Path) -> Non
     assert "не доказывает текущую применимость" in markdown
     assert "official_legal_publication_record" in markdown
     build_first_workspace(output, tmp_path / "laws.db")
+
+
+def test_secondary_categories_do_not_duplicate_documents(tmp_path: Path) -> None:
+    ledger = tmp_path / "secondary.json"
+    record_id = "kr.rf.secondary"
+    primary = "minimed.clinical.respiratory.ru"
+    secondary = "minimed.clinical.pediatrics.ru"
+    write_ledger(
+        ledger,
+        [
+            {
+                "recordId": record_id,
+                "officialId": "secondary",
+                "title": "Тестовая рекомендация",
+                "versionLabel": "2026",
+                "status": "active",
+                "coverageState": "metadata-only",
+                "rights": "unknown",
+                "moduleIds": [primary, secondary],
+                "primaryModuleId": primary,
+                "specialties": ["pediatrics", "pulmonology"],
+            }
+        ],
+        [
+            {
+                "moduleId": primary,
+                "title": "Пульмонология",
+                "recordIds": [record_id],
+                "coverageCounts": {"metadata-only": 1},
+            },
+            {
+                "moduleId": secondary,
+                "title": "Общая педиатрия",
+                "recordIds": [record_id],
+                "coverageCounts": {"metadata-only": 1},
+            },
+        ],
+    )
+    output = tmp_path / "secondary-modules"
+
+    report = build_catalog_metadata_modules(
+        ledger,
+        output,
+        family="clinical",
+        version="2026.07.1",
+        built_at="2026-07-23T00:00:00Z",
+    )
+
+    assert report.total_documents == 1
+    assert [module.module_id for module in report.modules] == [primary]
+    assert report.modules[0].document_ids == [record_id]
+    assert not (output / secondary).exists()
+    assert any(secondary in warning for warning in report.warnings)
