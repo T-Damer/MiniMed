@@ -43,6 +43,10 @@ aliases.yaml
 The existing deterministic `medbase lint` and `medbase build` commands compile each workspace into a
 normal SQLite/FTS5 module. No new runtime format is introduced.
 
+A record keeps the stable catalog identity chosen by its owning ledger. Secondary category labels may
+make the same source discoverable from several specialties, but publication tooling must preserve one
+canonical identity and report duplicate aliases rather than silently merging unrelated records.
+
 ## Clinical metadata cards
 
 A clinical catalog card preserves:
