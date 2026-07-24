@@ -53,7 +53,7 @@ ordinary search response when validation fails.
 
 On 24 July 2026 the public pilot rebuilt successfully:
 
-- 15 documents, 58 sections, 58 chunks, and 27 clinical aliases;
+- 15 documents, 58 sections, 58 chunks, and 28 clinical aliases;
 - SQLite integrity `ok`;
 - zero foreign-key violations;
 - 58 deterministic embeddings.
