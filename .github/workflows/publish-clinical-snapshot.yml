@@ -34,8 +34,8 @@ jobs:
         run: |
           bun run content:catalog:clinical
           bun run content:sync:clinical:all
-      - name: Build one verified database per recommendation
-        run: bun run content:build:clinical:documents -- --all --force
+      - name: Build verified databases for text-layer recommendations
+        run: bun run content:build:clinical:documents -- --all --allow-partial --force
       - name: Name and package immutable snapshot
         shell: bash
         run: |
@@ -52,6 +52,7 @@ jobs:
             --snapshot-id "$SNAPSHOT_TAG" \
             --release-base-url \
               "https://github.com/${GITHUB_REPOSITORY}/releases/download/${SNAPSHOT_TAG}" \
+            --allow-partial \
             --force
           bun -e "
             const files = [...new Bun.Glob('*').scanSync('release-clinical')];

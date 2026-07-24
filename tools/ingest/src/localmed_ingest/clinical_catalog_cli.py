@@ -145,6 +145,7 @@ def build_documents_command(
     official_ids: Annotated[list[str] | None, typer.Option("--official-id")] = None,
     category_id: Annotated[str | None, typer.Option("--category-id")] = None,
     all_documents: Annotated[bool, typer.Option("--all")] = False,
+    allow_partial: Annotated[bool, typer.Option("--allow-partial")] = False,
     force: Annotated[bool, typer.Option("--force")] = False,
 ) -> None:
     """Build immutable one-recommendation SQLite modules."""
@@ -155,9 +156,16 @@ def build_documents_command(
         official_ids=official_ids,
         category_id=category_id,
         all_documents=all_documents,
+        allow_partial=allow_partial,
         force=force,
     )
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    typer.echo(
+        json.dumps(
+            {key: value for key, value in report.items() if key != "artifacts"},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 @app.command("package-snapshot")
@@ -168,6 +176,7 @@ def package_snapshot_command(
     output_root: Annotated[Path, typer.Option("--output-root")],
     snapshot_id: Annotated[str, typer.Option("--snapshot-id")],
     release_base_url: Annotated[str, typer.Option("--release-base-url")],
+    allow_partial: Annotated[bool, typer.Option("--allow-partial")] = False,
     force: Annotated[bool, typer.Option("--force")] = False,
 ) -> None:
     """Package immutable databases, source archives and the catalog fragment."""
@@ -178,6 +187,7 @@ def package_snapshot_command(
         output_root,
         snapshot_id=snapshot_id,
         release_base_url=release_base_url,
+        allow_partial=allow_partial,
         force=force,
     )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2))

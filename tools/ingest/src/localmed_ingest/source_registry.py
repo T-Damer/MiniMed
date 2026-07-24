@@ -22,6 +22,10 @@ from .pdf_import import extract_pdf
 from .text_import import extract_text
 
 
+class NoSearchableTextError(ValueError):
+    pass
+
+
 def load_source_registry(path: Path) -> SourceRegistry:
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
@@ -114,7 +118,7 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
         if not block.removed
     ]
     if not included:
-        raise ValueError(f"Source {source.id} produced no searchable text blocks.")
+        raise NoSearchableTextError(f"Source {source.id} produced no searchable text blocks.")
 
     metadata = dict(source.metadata)
     metadata["sourcePath"] = source.path

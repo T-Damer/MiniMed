@@ -29,11 +29,12 @@ official Ministry catalog and PDF endpoint
 ```bash
 bun run content:catalog:clinical
 bun run content:sync:clinical:all
-bun run content:build:clinical:documents -- --all --force
+bun run content:build:clinical:documents -- --all --allow-partial --force
 bun run content:package:clinical:snapshot -- \
   --output-root release-clinical \
   --snapshot-id clinical-YYYY.MM.DD-CHECKSUM \
-  --release-base-url https://github.com/OWNER/REPO/releases/download/SNAPSHOT
+  --release-base-url https://github.com/OWNER/REPO/releases/download/SNAPSHOT \
+  --allow-partial
 ```
 
 The sync is resumable through `.cache/localmed/official-clinical-documents`. The manual
@@ -41,6 +42,8 @@ The sync is resumable through `.cache/localmed/official-clinical-documents`. The
 rejects an existing snapshot tag, checks GitHub's asset limits, publishes the release, then updates
 only the channel catalog. Prototype manifests retain each record's rights status even when it is
 `unknown`; confirming redistribution terms is deferred to the production release gate.
+PDFs without a searchable text layer remain in the source archives and are listed under
+`unavailableRecommendations`; they are not advertised as searchable modules until OCR succeeds.
 
 A module advertised as full text must pass all of these gates:
 
@@ -64,4 +67,5 @@ A failed download or validation never replaces an active dataset. The doctor can
 - PDF archives are release backups, not in-app source attachments.
 - The local medication-instruction pack has seven text-layer PDFs; the selected oseltamivir PDF
   requires OCR before ingestion.
-- The first 744-document clinical snapshot has not been published yet.
+- The local prototype snapshot contains 723 searchable modules and records 21 scan-only
+  recommendations for OCR; it has not been published yet.
