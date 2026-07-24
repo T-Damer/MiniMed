@@ -92,6 +92,32 @@ function cache(initial: ContentModuleCatalogCacheRecord | null = null) {
 const now = () => '2026-07-21T12:00:00Z';
 
 describe('loadContentModuleCatalog', () => {
+  it('keeps bundled catalog without warning when remote metadata matches bundled', async () => {
+    const storage = cache();
+    const fetcher = vi.fn(async () =>
+      response({
+        status: 200,
+        body: {
+          ...catalog('remote'),
+          publishedAt: '2026-07-21T00:00:00Z',
+        },
+        etag: 'v1',
+      }),
+    );
+
+    const result = await loadContentModuleCatalog({
+      bundledCatalog: { ...catalog('bundled'), publishedAt: '2026-07-21T00:00:00Z' },
+      remoteUrl: 'https://example.test/catalog.json',
+      cache: storage,
+      fetcher,
+      now,
+    });
+
+    expect(result.source).toBe('bundled');
+    expect(result.catalog.catalogVersion).toBe('bundled');
+    expect(result.warning).toBeNull();
+  });
+
   it('keeps bundled catalog when remote metadata is older', async () => {
     const storage = cache();
     const fetcher = vi.fn(async () =>

@@ -109,8 +109,9 @@ export async function loadContentModuleCatalog(
     if (!response.ok) throw new Error(`Каталог модулей недоступен: HTTP ${response.status}.`);
 
     const catalog = ContentModuleCatalogSchema.parse(await response.json());
-    const resolvedCatalog = catalogIsNewer(catalog, bundled) ? catalog : bundled;
-    const staleRemote = resolvedCatalog === bundled;
+    const remoteIsNewer = catalogIsNewer(catalog, bundled);
+    const resolvedCatalog = remoteIsNewer ? catalog : bundled;
+    const remoteIsOlder = Date.parse(catalog.publishedAt) < Date.parse(bundled.publishedAt);
     const checkedAt = now();
     const record: ContentModuleCatalogCacheRecord = {
       catalog: resolvedCatalog,
@@ -125,9 +126,9 @@ export async function loadContentModuleCatalog(
     }
     return {
       catalog: resolvedCatalog,
-      source: staleRemote ? 'bundled' : 'remote',
+      source: remoteIsNewer ? 'remote' : 'bundled',
       checkedAt,
-      warning: staleRemote ? 'Удалённый каталог устарел; используется встроенный.' : null,
+      warning: remoteIsOlder ? 'Удалённый каталог устарел; используется встроенный.' : null,
     };
   } catch (cause) {
     const warning = messageFromCause(cause);

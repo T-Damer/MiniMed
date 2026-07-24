@@ -1,5 +1,6 @@
 import { BrowserWllamaRuntime } from './browser-runtime';
-import { loadLocalModelCatalog } from './catalog';
+import bundledCatalog from './catalog.preview.json';
+import { loadLocalModelCatalog, parseLocalModelCatalog } from './catalog';
 import { buildLocalModelLoadPlan, selectLocalModel } from './selection';
 import type {
   LocalModelBenchmark,
@@ -303,6 +304,7 @@ export class LocalModelController {
 
   public constructor(private readonly options: LocalModelControllerOptions) {
     this.preference = loadPreference(options.defaultAutoLoad);
+    this.catalog = parseLocalModelCatalog(bundledCatalog);
   }
 
   public getState(): LocalModelState {

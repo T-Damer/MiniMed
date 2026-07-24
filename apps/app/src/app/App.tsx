@@ -10,20 +10,20 @@ import {
   replaceMedicalCore,
 } from '../composition/medical-core-lifecycle';
 import { SearchHistoryView } from '../features/history/SearchHistoryView';
-import { DocumentLibrary } from '../features/library/DocumentLibrary';
+import { KnowledgeBaseView } from '../features/knowledge/KnowledgeBaseView';
 import { DocumentOverlayHost } from '../features/library/DocumentOverlayHost';
 import { LocalModelController } from '../features/models/controller';
 import { GroundedAssistantStatus } from '../features/models/GroundedAssistantStatus';
 import { GroundedMedicalCore } from '../features/models/GroundedMedicalCore';
+import { ModelNavIndicator } from '../features/models/ModelNavIndicator';
 import { ModelSettings } from '../features/models/ModelSettings';
-import { ModelToast } from '../features/models/ModelToast';
+import { ContentDownloadStatus } from '../features/modules/ContentDownloadStatus';
 import { refreshContentModuleCatalog } from '../features/modules/catalog-service';
-import { ModuleCatalogView } from '../features/modules/ModuleCatalogView';
 import { SearchWorkspace } from '../features/search/SearchWorkspace';
 import { StatusPanel } from '../features/status/StatusPanel';
 import { replaySearch } from '../state/search-history';
 
-type View = 'search' | 'documents' | 'modules' | 'history' | 'status';
+type View = 'search' | 'modules' | 'history' | 'status';
 
 const VIEWS: readonly {
   readonly id: View;
@@ -31,7 +31,6 @@ const VIEWS: readonly {
   readonly icon: AppGlyphName;
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
-  { id: 'documents', label: 'Документы', icon: 'archive' },
   { id: 'modules', label: 'База знаний', icon: 'modules' },
   { id: 'history', label: 'История', icon: 'history' },
   { id: 'status', label: 'Настройки', icon: 'system' },
@@ -44,6 +43,7 @@ const DEFAULT_MODEL_ASSET_BASE_URL =
 
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
+  if (value === 'documents') return 'modules';
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
 }
 
@@ -163,21 +163,26 @@ export function App(): JSX.Element {
                 ? `${item.label}, доступно: ${moduleUpdateCount()}`
                 : item.label;
             return (
-              <button
-                class="app-nav-button"
-                classList={{ active: view() === item.id }}
-                type="button"
-                aria-label={label()}
-                title={label()}
-                onClick={() => navigate(item.id)}
-              >
-                <AppGlyph name={item.icon} />
-                <Show when={item.id === 'modules' && moduleUpdateCount() > 0}>
-                  <span class="app-nav-badge" aria-hidden="true">
-                    {moduleUpdateCount() > 9 ? '9+' : moduleUpdateCount()}
-                  </span>
+              <div class="app-nav-item" classList={{ 'has-indicator': item.id === 'status' }}>
+                <Show when={item.id === 'status'}>
+                  <ModelNavIndicator controller={modelController} />
                 </Show>
-              </button>
+                <button
+                  class="app-nav-button"
+                  classList={{ active: view() === item.id }}
+                  type="button"
+                  aria-label={label()}
+                  title={label()}
+                  onClick={() => navigate(item.id)}
+                >
+                  <AppGlyph name={item.icon} />
+                  <Show when={item.id === 'modules' && moduleUpdateCount() > 0}>
+                    <span class="app-nav-badge" aria-hidden="true">
+                      {moduleUpdateCount() > 9 ? '9+' : moduleUpdateCount()}
+                    </span>
+                  </Show>
+                </button>
+              </div>
             );
           })}
         </nav>
@@ -219,17 +224,11 @@ export function App(): JSX.Element {
               </section>
               <section
                 class="app-view"
-                hidden={view() !== 'documents'}
-                aria-hidden={view() !== 'documents'}
-              >
-                <DocumentLibrary core={state().core} />
-              </section>
-              <section
-                class="app-view"
                 hidden={view() !== 'modules'}
                 aria-hidden={view() !== 'modules'}
               >
-                <ModuleCatalogView
+                <KnowledgeBaseView
+                  core={state().core}
                   status={state().status}
                   active={view() === 'modules'}
                   onContentChanged={connectInstalledModules}
@@ -256,6 +255,7 @@ export function App(): JSX.Element {
                 aria-hidden={view() !== 'status'}
               >
                 <ModelSettings controller={modelController} />
+                <ContentDownloadStatus />
                 <details class="system-technical-panel">
                   <summary>Техническая информация о приложении</summary>
                   <StatusPanel core={state().core} initialStatus={state().status} />
@@ -266,8 +266,6 @@ export function App(): JSX.Element {
           </>
         )}
       </Show>
-
-      <ModelToast controller={modelController} />
 
       <Show when={showScrollTop()}>
         <button

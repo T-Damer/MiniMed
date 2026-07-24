@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-07-24
+
+### Changed
+
+- Unified knowledge base and document library into one screen with installed/download tabs.
+- Model download indicator moved above settings; toast removed; dismissible progress badge.
+- Settings show model and module download status; search clear button is red with trash icon.
+- Document overlay respects mobile status-bar safe area; registry drug cards show INN first.
+- Module catalog stale-remote warning only when remote is strictly older than bundled.
+
 ## [0.5.0-alpha.1] - 2026-07-24
 
 ### Added

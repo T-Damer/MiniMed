@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 24 July 2026
-> Repository version: `0.5.0-alpha.1`
-> Active target: `0.5.0-alpha.1`
+> Repository version: `0.5.1`
+> Active target: `0.5.1`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -20,6 +20,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Results grouped by document with exact fragment, surrounding context, and full-document navigation.
 - Initial results limited to five documents with an accessible control to reveal the rest.
 - Document library, history, bookmarks, knowledge-base catalog, and mounted-route state preservation.
+- The knowledge-base screen combines installed documents and downloadable module packs in one place.
 - App-local `@/` import alias for source modules.
 
 ### Local model

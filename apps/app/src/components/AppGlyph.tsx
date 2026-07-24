@@ -9,7 +9,8 @@ export type AppGlyphName =
   | 'close'
   | 'graph'
   | 'list'
-  | 'arrow-up';
+  | 'arrow-up'
+  | 'trash';
 
 export function AppGlyph(props: {
   readonly name: AppGlyphName;
@@ -74,6 +75,14 @@ export function AppGlyph(props: {
         </>
       )}
       {props.name === 'arrow-up' && <path d="m5 14 7-7 7 7M12 7v13" />}
+      {props.name === 'trash' && (
+        <>
+          <path d="M4.5 6h15" />
+          <path d="M8 6V4.5h8V6" />
+          <path d="M7 6l.8 13h8.4L17 6" />
+          <path d="M10 9.5v6.5M14 9.5v6.5" />
+        </>
+      )}
     </svg>
   );
 }

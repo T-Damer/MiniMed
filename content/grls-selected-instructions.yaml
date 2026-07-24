@@ -1,6 +1,6 @@
 pack:
   id: minimed.medications.selected-instructions.ru
-  version: 0.5.0-alpha.1
+  version: 0.5.1
   schemaVersion: 2
   title: "Выбранные официальные инструкции ГРЛС"
   builtAt: "2026-07-24T00:00:00Z"
