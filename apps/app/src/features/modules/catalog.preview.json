@@ -13,14 +13,8 @@
       "required": true,
       "releaseState": "bundled",
       "specialties": [],
-      "populations": [
-        "all"
-      ],
-      "tags": [
-        "catalog",
-        "routing",
-        "global-graph"
-      ],
+      "populations": ["all"],
+      "tags": ["catalog", "routing", "global-graph"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -57,17 +51,9 @@
       "description": "Частые амбулаторные состояния, рост и развитие, синдромный поиск, профилактика и маршрутизация к профильным разделам.",
       "required": false,
       "releaseState": "planned",
-      "specialties": [
-        "pediatrics",
-        "general-practice"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "primary-care",
-        "common-conditions"
-      ],
+      "specialties": ["pediatrics", "general-practice"],
+      "populations": ["children"],
+      "tags": ["primary-care", "common-conditions"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -110,17 +96,9 @@
       "description": "Инфекционные заболевания детского возраста, эпидемиология, диагностика, лечение, изоляция и красные флаги.",
       "required": false,
       "releaseState": "preview",
-      "specialties": [
-        "pediatrics",
-        "infectious-diseases"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "infection",
-        "isolation"
-      ],
+      "specialties": ["pediatrics", "infectious-diseases"],
+      "populations": ["children"],
+      "tags": ["infection", "isolation"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -163,18 +141,9 @@
       "description": "Болезни дыхательных путей, пульмонология, обструктивные состояния и аллергические заболевания.",
       "required": false,
       "releaseState": "published",
-      "specialties": [
-        "pediatrics",
-        "pulmonology",
-        "allergy-immunology"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "respiratory",
-        "allergy"
-      ],
+      "specialties": ["pediatrics", "pulmonology", "allergy-immunology"],
+      "populations": ["children"],
+      "tags": ["respiratory", "allergy"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -253,18 +222,9 @@
       "description": "Заболевания ЖКТ и печени, питание, нарушения вскармливания, обезвоживание и нутритивная поддержка.",
       "required": false,
       "releaseState": "planned",
-      "specialties": [
-        "pediatrics",
-        "gastroenterology",
-        "nutrition"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "gastroenterology",
-        "nutrition"
-      ],
+      "specialties": ["pediatrics", "gastroenterology", "nutrition"],
+      "populations": ["children"],
+      "tags": ["gastroenterology", "nutrition"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -307,18 +267,9 @@
       "description": "Инфекции мочевой системы, заболевания почек, водно-электролитные нарушения и урологическая маршрутизация.",
       "required": false,
       "releaseState": "preview",
-      "specialties": [
-        "pediatrics",
-        "nephrology",
-        "urology"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "kidney",
-        "urinary"
-      ],
+      "specialties": ["pediatrics", "nephrology", "urology"],
+      "populations": ["children"],
+      "tags": ["kidney", "urinary"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -361,18 +312,9 @@
       "description": "Неврологические состояния, судороги, нарушения сознания, неотложные алгоритмы и интенсивная помощь.",
       "required": false,
       "releaseState": "planned",
-      "specialties": [
-        "pediatrics",
-        "neurology",
-        "emergency-medicine"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "neurology",
-        "emergency"
-      ],
+      "specialties": ["pediatrics", "neurology", "emergency-medicine"],
+      "populations": ["children"],
+      "tags": ["neurology", "emergency"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -415,17 +357,9 @@
       "description": "Острые хирургические состояния, врождённые пороки, травма, послеоперационное ведение и маршрутизация.",
       "required": false,
       "releaseState": "planned",
-      "specialties": [
-        "pediatric-surgery",
-        "traumatology"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "surgery",
-        "trauma"
-      ],
+      "specialties": ["pediatric-surgery", "traumatology"],
+      "populations": ["children"],
+      "tags": ["surgery", "trauma"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -469,14 +403,8 @@
       "required": false,
       "releaseState": "preview",
       "specialties": [],
-      "populations": [
-        "all"
-      ],
-      "tags": [
-        "drugs",
-        "instructions",
-        "registry"
-      ],
+      "populations": ["all"],
+      "tags": ["drugs", "instructions", "registry"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -519,17 +447,9 @@
       "description": "Действующие и исторические приказы, сроки, формы, маршрутизация и явные связи между редакциями.",
       "required": false,
       "releaseState": "published",
-      "specialties": [
-        "pediatrics",
-        "health-administration"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "regulation",
-        "administration"
-      ],
+      "specialties": ["pediatrics", "health-administration"],
+      "populations": ["children"],
+      "tags": ["regulation", "administration"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -608,18 +528,9 @@
       "description": "Возрастные нормы, лабораторные диапазоны, шкалы, формулы и детерминированные клинические калькуляторы.",
       "required": false,
       "releaseState": "planned",
-      "specialties": [
-        "pediatrics",
-        "laboratory-medicine"
-      ],
-      "populations": [
-        "children"
-      ],
-      "tags": [
-        "laboratory",
-        "reference",
-        "calculators"
-      ],
+      "specialties": ["pediatrics", "laboratory-medicine"],
+      "populations": ["children"],
+      "tags": ["laboratory", "reference", "calculators"],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
