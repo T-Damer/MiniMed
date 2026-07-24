@@ -6,7 +6,7 @@ import { mountBuiltApp } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
-  'https://github.com/T-Damer/MiniMed/releases/download/datasets-preview-1/catalog.preview.json';
+  'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
 const REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
 const REGULATORY_TITLE = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
