@@ -132,3 +132,41 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
         )
         for module in fragment["modules"]
     )
+
+    (build_root / "artifacts.json").write_text(
+        json.dumps(
+            {
+                "artifacts": artifacts[:1],
+                "failures": [
+                    {
+                        "officialId": artifacts[1]["officialId"],
+                        "errorType": "ValueError",
+                        "error": "no searchable text",
+                    }
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    partial_report = package_clinical_snapshot(
+        output,
+        build_root,
+        source_root,
+        tmp_path / "partial-snapshot",
+        snapshot_id="clinical-test-partial",
+        release_base_url="https://example.test/releases/download/clinical-test-partial",
+        allow_partial=True,
+    )
+    partial_manifest = json.loads(
+        (tmp_path / "partial-snapshot" / "snapshot-manifest.json").read_text(encoding="utf-8")
+    )
+
+    assert partial_report["recommendations"] == 1
+    assert partial_report["unavailableRecommendations"] == 1
+    assert [item["officialId"] for item in partial_manifest["unavailableRecommendations"]] == [
+        artifacts[1]["officialId"]
+    ]
+    assert partial_manifest["unavailableRecommendations"][0]["buildFailure"]["errorType"] == (
+        "ValueError"
+    )

@@ -15,7 +15,7 @@ import yaml
 from .builder import build_content_pack
 from .clinical_catalog import ClinicalCoverageLedger
 from .models import RegistryPack, RegistrySource, SourceRegistry
-from .source_registry import prepare_registry
+from .source_registry import NoSearchableTextError, prepare_registry
 from .source_sync import SourceSyncManifest, SyncSource
 
 OFFICIAL_CLINICAL_PDF_API = (
@@ -207,6 +207,7 @@ def build_individual_clinical_documents(
     official_ids: list[str] | None = None,
     category_id: str | None = None,
     all_documents: bool = False,
+    allow_partial: bool = False,
     force: bool = False,
 ) -> dict[str, object]:
     discovery_payload: object = json.loads(
@@ -239,6 +240,7 @@ def build_individual_clinical_documents(
         raise ValueError(f"No recommendations matched category {category_id}.")
 
     artifacts: list[dict[str, object]] = []
+    failures: list[dict[str, str]] = []
     for item in selected:
         official_id = cast(str, item["officialId"])
         registry_path = plan_root / "registries" / f"{official_id}.yaml"
@@ -247,8 +249,22 @@ def build_individual_clinical_documents(
         report_path = output_root / "reports" / f"{official_id}.json"
         if database.exists() and not force:
             raise FileExistsError(f"Clinical document database already exists: {database}")
-        prepare_registry(registry_path, source_root, workspace, force=force)
-        pack, report = build_content_pack(workspace, database, report_path=report_path)
+        try:
+            prepare_registry(registry_path, source_root, workspace, force=force)
+            pack, report = build_content_pack(workspace, database, report_path=report_path)
+        except NoSearchableTextError as error:
+            database.unlink(missing_ok=True)
+            report_path.unlink(missing_ok=True)
+            if not allow_partial:
+                raise
+            failures.append(
+                {
+                    "officialId": official_id,
+                    "errorType": type(error).__name__,
+                    "error": str(error),
+                }
+            )
+            continue
         if len(pack.documents) != 1:
             raise ValueError(f"{official_id}: individual module must contain exactly one document.")
         document = pack.documents[0]
@@ -270,10 +286,14 @@ def build_individual_clinical_documents(
         "schemaVersion": 1,
         "planVersion": discovery_payload.get("version"),
         "builtAt": _utc_now(),
+        "selected": len(selected),
         "documents": len(artifacts),
+        "failures": failures,
         "artifacts": artifacts,
     }
     _write_json(output_root / "artifacts.json", result)
+    if not artifacts:
+        raise ValueError("No searchable clinical documents were built.")
     return result
 
 
@@ -285,6 +305,7 @@ def package_clinical_snapshot(
     *,
     snapshot_id: str,
     release_base_url: str,
+    allow_partial: bool = False,
     force: bool = False,
 ) -> dict[str, object]:
     if not _SNAPSHOT_ID.fullmatch(snapshot_id):
@@ -305,13 +326,22 @@ def package_clinical_snapshot(
         for item in build["artifacts"]
         if isinstance(item, dict) and isinstance(item.get("officialId"), str)
     }
-    if recommendations.keys() != built.keys():
-        missing = sorted(recommendations.keys() - built.keys())
-        extra = sorted(built.keys() - recommendations.keys())
+    failures = {
+        cast(str, item["officialId"]): cast(dict[str, object], item)
+        for item in cast(list[object], build.get("failures", []))
+        if isinstance(item, dict) and isinstance(item.get("officialId"), str)
+    }
+    missing = sorted(recommendations.keys() - built.keys())
+    extra = sorted(built.keys() - recommendations.keys())
+    if extra or (missing and not allow_partial):
         raise ValueError(
             "Snapshot requires one database per recommendation; "
             f"missing={missing[:10]}, extra={extra[:10]}."
         )
+    if set(missing) != failures.keys():
+        raise ValueError("Every unavailable recommendation must have an explicit build failure.")
+    if not built:
+        raise ValueError("Snapshot requires at least one built recommendation database.")
     target = output_root.resolve()
     if target.exists() and not force:
         raise FileExistsError(f"Clinical snapshot output already exists: {target}")
@@ -323,8 +353,8 @@ def package_clinical_snapshot(
     try:
         modules: list[dict[str, object]] = []
         snapshot_records: list[dict[str, object]] = []
-        for official_id, recommendation in recommendations.items():
-            artifact = built[official_id]
+        for official_id, artifact in built.items():
+            recommendation = recommendations[official_id]
             source_database = Path(cast(str, artifact["database"]))
             if not source_database.is_file():
                 raise FileNotFoundError(f"Built database is missing: {source_database}")
@@ -469,6 +499,10 @@ def package_clinical_snapshot(
             "taxonomyChecksum": discovery["taxonomyChecksum"],
             "discoveryChecksum": _checksum(discovery),
             "recommendations": snapshot_records,
+            "unavailableRecommendations": [
+                {**recommendations[official_id], "buildFailure": failures[official_id]}
+                for official_id in missing
+            ],
             "categories": categories,
             "sourceArchives": source_archives,
         }
@@ -489,6 +523,7 @@ def package_clinical_snapshot(
             "outputRoot": str(target),
             "snapshotId": snapshot_id,
             "recommendations": len(modules),
+            "unavailableRecommendations": len(missing),
             "sourceArchives": len(source_archives),
             "assets": len(modules) + len(source_archives) + 2,
             "manifestChecksum": _checksum(manifest),
