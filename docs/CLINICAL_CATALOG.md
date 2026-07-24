@@ -84,6 +84,8 @@ checks selected documents, and generates the 744-document source plan.
 
 `publish-clinical-snapshot.yml` is the publication path. It mirrors all declared PDFs, builds one
 SQLite module per recommendation, packages source archives by primary category, creates an immutable
-release, and finally updates the mutable preview catalog. A failed or partial build publishes
-nothing. Prototype packages preserve unknown rights metadata; production publication will require a
-separate redistribution review.
+release, and finally updates the mutable preview catalog. Transient upstream HTTP failures (for example
+Ministry API `503`) are retried with exponential backoff in the ingest layer and again at the workflow
+step level through `scripts/retry-step.sh`. A failed or partial build publishes nothing. Prototype
+packages preserve unknown rights metadata; production publication will require a separate
+redistribution review.
