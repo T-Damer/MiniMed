@@ -40,8 +40,10 @@ export function resolveContentModuleArtifactUrl(url: string): string {
 
   const releaseMatch = GITHUB_RELEASE_PATTERN.exec(trimmed);
   if (releaseMatch) {
-    const [, owner, repo, fileName] = releaseMatch;
-    if (owner === 'T-Damer' && repo === 'MiniMed') {
+    const owner = releaseMatch[1];
+    const repo = releaseMatch[2];
+    const fileName = releaseMatch[3];
+    if (owner === 'T-Damer' && repo === 'MiniMed' && fileName) {
       if (import.meta.env.DEV) {
         const localUrl = localModuleArtifactUrl(fileName);
         if (localUrl) return localUrl;
