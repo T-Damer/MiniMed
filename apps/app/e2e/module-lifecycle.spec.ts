@@ -8,6 +8,7 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
   'https://github.com/T-Damer/MiniMed/releases/download/datasets-preview-1/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
+const REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
 const REGULATORY_TITLE = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
 
 function navigationButton(page: Page, name: string): Locator {
@@ -18,21 +19,23 @@ function regulatoryCard(page: Page): Locator {
   return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
 }
 
-function manifestVersion(manifest: string): string {
-  const match = /^version:\s*["']?([^\s"']+)["']?\s*$/m.exec(manifest);
-  if (!match?.[1]) throw new Error('Regulatory E2E manifest requires a version.');
-  return match[1];
+function regulatoryVersion(catalog: string): string {
+  const parsed = JSON.parse(catalog) as {
+    modules?: Array<{ id?: string; version?: string }>;
+  };
+  const version = parsed.modules?.find((module) => module.id === REGULATORY_MODULE_ID)?.version;
+  if (!version) throw new Error('Regulatory E2E catalog requires a module version.');
+  return version;
 }
 
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
   page,
 }) => {
-  const [catalog, database, manifest] = await Promise.all([
+  const [catalog, database] = await Promise.all([
     readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
     readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
-    readFile(resolve(ROOT, 'content/regulatory-rf-pilot/manifest.yaml'), 'utf8'),
   ]);
-  const regulatoryVersion = manifestVersion(manifest);
+  const expectedVersion = regulatoryVersion(catalog);
 
   await page.route(
     (url) => url.href.startsWith(CATALOG_URL),
@@ -65,7 +68,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await card.getByRole('button', { name: 'Скачать документы' }).click();
   await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
-  await expect(card.getByText(`Версия ${regulatoryVersion}`, { exact: true })).toBeVisible();
+  await expect(card.getByText(`Версия ${expectedVersion}`, { exact: true })).toBeVisible();
 
   await navigationButton(page, 'Поиск').click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
