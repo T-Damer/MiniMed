@@ -8,6 +8,7 @@ import { KnowledgeGraph } from './KnowledgeGraph';
 
 interface DocumentLibraryProps {
   readonly core: MedicalCore;
+  readonly embedded?: boolean;
 }
 
 type LibraryMode = 'list' | 'graph';
@@ -57,34 +58,62 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   });
 
   return (
-    <section class="archive-page page-surface" aria-label="Архив документов">
-      <header class="subpage-heading archive-library-heading">
-        <div>
-          <p class="archive-kicker">Локальная медицинская библиотека</p>
-          <h1>Документы</h1>
-          <p>
-            Откройте рекомендации, лекарственные сведения и нормативные документы. Чтение происходит
-            в отдельном окне поверх текущего раздела.
-          </p>
+    <section
+      class="archive-page"
+      classList={{ 'page-surface': !props.embedded }}
+      aria-label="Архив документов"
+    >
+      <Show when={!props.embedded}>
+        <header class="subpage-heading archive-library-heading">
+          <div>
+            <p class="archive-kicker">Локальная медицинская библиотека</p>
+            <h1>Документы</h1>
+            <p>
+              Откройте рекомендации, лекарственные сведения и нормативные документы. Чтение
+              происходит в отдельном окне поверх текущего раздела.
+            </p>
+          </div>
+          <fieldset class="library-mode-tabs">
+            <legend class="sr-only">Представление библиотеки</legend>
+            <button
+              classList={{ active: mode() === 'list' }}
+              type="button"
+              onClick={() => setMode('list')}
+            >
+              <AppGlyph name="list" /> Список
+            </button>
+            <button
+              classList={{ active: mode() === 'graph' }}
+              type="button"
+              onClick={() => setMode('graph')}
+            >
+              <AppGlyph name="graph" /> Карта связей
+            </button>
+          </fieldset>
+        </header>
+      </Show>
+
+      <Show when={props.embedded}>
+        <div class="library-embedded-toolbar">
+          <fieldset class="library-mode-tabs">
+            <legend class="sr-only">Представление библиотеки</legend>
+            <button
+              classList={{ active: mode() === 'list' }}
+              type="button"
+              onClick={() => setMode('list')}
+            >
+              <AppGlyph name="list" /> Список
+            </button>
+            <button
+              classList={{ active: mode() === 'graph' }}
+              type="button"
+              onClick={() => setMode('graph')}
+            >
+              <AppGlyph name="graph" /> Карта связей
+            </button>
+          </fieldset>
         </div>
-        <fieldset class="library-mode-tabs">
-          <legend class="sr-only">Представление библиотеки</legend>
-          <button
-            classList={{ active: mode() === 'list' }}
-            type="button"
-            onClick={() => setMode('list')}
-          >
-            <AppGlyph name="list" /> Список
-          </button>
-          <button
-            classList={{ active: mode() === 'graph' }}
-            type="button"
-            onClick={() => setMode('graph')}
-          >
-            <AppGlyph name="graph" /> Карта связей
-          </button>
-        </fieldset>
-      </header>
+      </Show>
 
       <div class="library-toolbar">
         <label class="library-search">

@@ -24,6 +24,7 @@ import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 interface ModuleCatalogViewProps {
   readonly status: CoreStatus;
   readonly active: boolean;
+  readonly embedded?: boolean;
   readonly onContentChanged?: () => Promise<void>;
   readonly onAvailableUpdates?: (count: number) => void;
 }
@@ -256,17 +257,19 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   });
 
   return (
-    <section class="module-page page-surface">
-      <header class="subpage-heading module-heading">
-        <div>
-          <p class="archive-kicker">Документы на устройстве</p>
-          <h1>База знаний</h1>
-          <p>
-            Скачивайте нужные разделы. После проверки они работают без интернета и участвуют в общем
-            поиске MiniMed.
-          </p>
-        </div>
-      </header>
+    <section class="module-page" classList={{ 'page-surface': !props.embedded }}>
+      <Show when={!props.embedded}>
+        <header class="subpage-heading module-heading">
+          <div>
+            <p class="archive-kicker">Документы на устройстве</p>
+            <h1>База знаний</h1>
+            <p>
+              Скачивайте нужные разделы. После проверки они работают без интернета и участвуют в
+              общем поиске MiniMed.
+            </p>
+          </div>
+        </header>
+      </Show>
 
       <Show when={contentChangePending() || connecting()}>
         <div class="module-reload-banner paper-card" aria-live="polite">
@@ -292,6 +295,19 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
       <Show when={warning()}>
         {(message) => <div class="module-doctor-warning">{message()}</div>}
+      </Show>
+
+      <Show when={recommendationModules().length === 0}>
+        <section class="module-collection recommendation-browser">
+          <div class="module-collection-heading">
+            <h2>Клинические рекомендации</h2>
+          </div>
+          <p class="recommendation-result-note">
+            Отдельные клинические рекомендации (около 700) появятся здесь после публикации снимка
+            канала preview. Сейчас для скачивания доступны только тематические наборы ниже — у них
+            статус «Можно скачать».
+          </p>
+        </section>
       </Show>
 
       <For each={collections()}>

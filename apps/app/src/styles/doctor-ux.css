@@ -172,6 +172,16 @@
   text-transform: uppercase;
 }
 
+.document-overlay-lead {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .document-overlay-paper h1 {
   max-width: 24ch;
   margin: 0;
@@ -522,13 +532,19 @@
 
 @media (max-width: 760px) {
   .overlay-backdrop {
-    padding: var(--safe-top, 0px) 0 var(--safe-bottom, 0px);
+    padding: 0;
+    place-items: stretch;
   }
 
   .overlay-dialog {
     width: 100%;
-    max-height: 100vh;
+    max-height: 100dvh;
+    min-height: 100dvh;
     border-radius: 0;
+  }
+
+  .overlay-dialog-header {
+    padding-top: calc(14px + var(--safe-top, 0px));
   }
 
   .document-overlay-layout {

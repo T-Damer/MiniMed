@@ -2,6 +2,12 @@ import type { MedicalDocument } from '@localmed/contracts';
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { OverlayDialog } from '../../components/OverlayDialog';
+import {
+  displayDocumentSubtitle,
+  displayDocumentTitle,
+  orderDocumentSections,
+  sourceTypeReaderLabel,
+} from './document-display';
 
 interface DocumentReaderDialogProps {
   readonly document: MedicalDocument | undefined;
@@ -27,8 +33,9 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
     const document = props.document;
     if (!document) return [];
     const value = normalize(query());
-    if (!value) return document.sections;
-    return document.sections.filter((section) =>
+    const ordered = orderDocumentSections(document.sections, document.sourceType);
+    if (!value) return ordered;
+    return ordered.filter((section) =>
       normalize(
         [
           section.title,
@@ -53,8 +60,12 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
   return (
     <OverlayDialog
       open={Boolean(props.document)}
-      title={props.document?.shortTitle ?? props.document?.title ?? 'Документ'}
-      subtitle="Полный текст открывается поверх текущего рабочего экрана"
+      title={props.document ? displayDocumentTitle(props.document) : 'Документ'}
+      {...(props.document && displayDocumentSubtitle(props.document)
+        ? { subtitle: displayDocumentSubtitle(props.document) as string }
+        : {
+            subtitle: 'Полный текст открывается поверх текущего рабочего экрана',
+          })}
       class="document-overlay"
       onClose={close}
     >
@@ -107,8 +118,13 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
 
             <article class="document-overlay-paper">
               <header>
-                <p>{documentValue().sourceType.replaceAll('_', ' ')}</p>
-                <h1>{documentValue().title}</h1>
+                <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
+                  {(label) => <p>{label()}</p>}
+                </Show>
+                <h1>{displayDocumentTitle(documentValue())}</h1>
+                <Show when={displayDocumentSubtitle(documentValue())}>
+                  {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
+                </Show>
               </header>
 
               <For each={matchingSections()}>

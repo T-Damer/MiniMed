@@ -335,8 +335,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             </div>
             <div class="query-buttons">
               <Show when={query().length > 0}>
-                <button class="text-button" type="button" onClick={clearQuery}>
-                  Очистить
+                <button class="text-button clear-query-button" type="button" onClick={clearQuery}>
+                  <AppGlyph name="trash" />
+                  <span>Очистить</span>
                 </button>
               </Show>
               <button

@@ -11,13 +11,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: public-pilot-0.5.0-alpha.1-${{ github.ref }}
+  group: public-pilot-0.5.1-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  RELEASE_VERSION: 0.5.0-alpha.1
-  RELEASE_TAG: v0.5.0-alpha.1
-  APK_NAME: MiniMed-0.5.0-alpha.1-rf-public-pilot-debug.apk
+  RELEASE_VERSION: 0.5.1
+  RELEASE_TAG: v0.5.1
+  APK_NAME: MiniMed-0.5.1-rf-public-pilot-debug.apk
   BUILD_TOOLS_VERSION: 36.0.0
 
 jobs:
@@ -245,14 +245,14 @@ jobs:
         if: >-
           github.event_name == 'push' &&
           github.ref == 'refs/heads/main' &&
-          contains(github.event.head_commit.message, 'release: MiniMed 0.5.0-alpha.1')
+          contains(github.event.head_commit.message, 'release: MiniMed 0.5.1')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           apk="release-output/${APK_NAME}"
           notes=$(cat <<'EOF'
-          MiniMed 0.5.0-alpha.1 is a debug-signed engineering prerelease of the offline-first medical reference.
+          MiniMed 0.5.1 is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
           - the verified 15-document Russian clinical/medication starter pack for immediate offline search;

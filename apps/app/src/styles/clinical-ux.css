@@ -367,3 +367,53 @@
     flex-direction: column;
   }
 }
+
+.knowledge-base-page {
+  width: min(1180px, calc(100% - 24px));
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+.knowledge-base-heading {
+  margin-bottom: 12px;
+}
+
+.knowledge-base-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 auto 18px;
+  width: min(1180px, calc(100% - 24px));
+}
+
+.knowledge-base-tabs button {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid rgb(79 65 37 / 18%);
+  border-radius: 8px;
+  color: var(--ink-soft);
+  background: rgb(255 255 255 / 42%);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.knowledge-base-tabs button.active {
+  color: var(--ink);
+  border-color: rgb(79 65 37 / 34%);
+  background: var(--paper-light);
+  box-shadow: 0 8px 24px rgb(35 33 29 / 8%);
+}
+
+.library-embedded-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 auto 12px;
+  width: min(1180px, calc(100% - 24px));
+}
+
+.module-page:not(.page-surface) {
+  width: min(1180px, calc(100% - 24px));
+  margin: 0 auto;
+}

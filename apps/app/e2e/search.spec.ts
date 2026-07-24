@@ -50,8 +50,9 @@ test('preserves the active search while navigating between mounted routes', asyn
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
-  await navigationButton(page, 'Документы').click();
-  await expect(page.getByRole('heading', { name: 'Документы' })).toBeVisible();
+  await navigationButton(page, 'База знаний').click();
+  await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'На устройстве' })).toBeVisible();
   await navigationButton(page, 'Поиск').click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
@@ -63,6 +64,7 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await navigationButton(page, 'База знаний').click();
 
   await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Скачать наборы' }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
   await expect(page.getByText('Педиатрия: инфекционные болезни')).toBeVisible();
   await expect(page.getByText('Лекарственные препараты РФ')).toBeVisible();
@@ -95,7 +97,8 @@ test('runs a debounced clinical search without requiring submit', async ({ page 
 
 test('filters the document library and opens a document with one click', async ({ page }) => {
   await mountBuiltApp(page);
-  await navigationButton(page, 'Документы').click();
+  await navigationButton(page, 'База знаний').click();
+  await page.getByRole('tab', { name: 'На устройстве' }).click();
   await page.getByPlaceholder('Название, специальность или источник').fill('пневмония');
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
   await expect(

@@ -115,6 +115,32 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         </Show>
       </div>
 
+      <Show
+        when={
+          state().phase === 'downloading' ||
+          state().phase === 'loading' ||
+          state().phase === 'benchmarking' ||
+          state().phase === 'probing' ||
+          state().phase === 'selecting'
+        }
+      >
+        <div class="model-download-status paper-card" aria-live="polite">
+          <strong>{PHASE_LABELS[state().phase]}</strong>
+          <span>{state().message}</span>
+          <Show when={state().progress !== null}>
+            <div
+              class="model-download-status-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round((state().progress ?? 0) * 100)}
+            >
+              <i style={{ width: `${Math.round((state().progress ?? 0) * 100)}%` }} />
+            </div>
+          </Show>
+        </div>
+      </Show>
+
       <div class="model-settings-controls doctor-controls">
         <label>
           <input

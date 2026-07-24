@@ -631,6 +631,19 @@ main {
   text-transform: uppercase;
 }
 
+.clear-query-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #9f3f34;
+}
+
+.clear-query-button svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.4;
+}
+
 .search-button {
   display: inline-flex;
   align-items: center;
