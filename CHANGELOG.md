@@ -4,6 +4,33 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.5.0-alpha.1] - 2026-07-24
+
+### Added
+
+- Searchable individual clinical-recommendation modules with category filtering, one-document
+  installation, category installation, checksummed snapshots, and offline rollback.
+- A mirrored 744-document Ministry catalog: 723 text-layer recommendations build into searchable
+  SQLite modules and 21 scan-only documents remain explicitly blocked for OCR.
+- Source-bounded local-model query planning, reranking, diagnostic candidates, dose extraction,
+  citations, and deterministic fallback.
+- Full official medication and clinical inventories, Russian abbreviation expansion, and
+  source-preserving ingestion/update tooling.
+
+### Changed
+
+- Android and workspace packages are aligned to `0.5.0-alpha.1`; Android uses build number 13.
+- The knowledge-base UI supports recommendation search and category/individual module downloads.
+- GitHub dataset snapshots retain unavailable source documents without presenting them as
+  searchable content.
+
+### Verification boundary
+
+- The APK remains debug-signed and embeds the verified 15-document starter pack; large clinical
+  modules are downloaded separately and remain local after installation.
+- Twenty-one scanned recommendations require OCR, and local-model clinical quality still requires
+  clinician review and physical-device evaluation.
+
 ## [0.3.3] - 2026-07-22
 
 ### Added

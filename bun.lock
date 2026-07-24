@@ -14,7 +14,7 @@
     },
     "apps/app": {
       "name": "@localmed/app",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@capacitor/core": "8.4.2",
         "@localmed/contracts": "workspace:*",
@@ -37,7 +37,7 @@
     },
     "apps/landing": {
       "name": "@localmed/landing",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "astro": "7.1.2",
       },
@@ -48,14 +48,14 @@
     },
     "packages/contracts": {
       "name": "@localmed/contracts",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "zod": "4.4.3",
       },
     },
     "packages/core": {
       "name": "@localmed/core",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@localmed/contracts": "workspace:*",
         "@localmed/domain": "workspace:*",
@@ -69,11 +69,11 @@
     },
     "packages/domain": {
       "name": "@localmed/domain",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
     },
     "packages/search-lexical": {
       "name": "@localmed/search-lexical",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@localmed/contracts": "workspace:*",
         "@localmed/domain": "workspace:*",
@@ -81,14 +81,14 @@
     },
     "packages/search-semantic": {
       "name": "@localmed/search-semantic",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@localmed/contracts": "workspace:*",
       },
     },
     "packages/storage": {
       "name": "@localmed/storage",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@localmed/contracts": "workspace:*",
         "@localmed/domain": "workspace:*",
@@ -96,7 +96,7 @@
     },
     "packages/storage-capacitor": {
       "name": "@localmed/storage-capacitor",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@capacitor/core": "8.4.2",
         "@localmed/contracts": "workspace:*",
@@ -109,7 +109,7 @@
     },
     "packages/storage-sqlite": {
       "name": "@localmed/storage-sqlite",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@localmed/contracts": "workspace:*",
         "@localmed/domain": "workspace:*",
@@ -123,14 +123,14 @@
     },
     "packages/test-fixtures": {
       "name": "@localmed/test-fixtures",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@localmed/contracts": "workspace:*",
       },
     },
     "tools/benchmarks": {
       "name": "@localmed/benchmarks",
-      "version": "0.4.0-alpha.1",
+      "version": "0.5.0-alpha.1",
       "dependencies": {
         "@localmed/core": "workspace:*",
         "@localmed/search-semantic": "workspace:*",
