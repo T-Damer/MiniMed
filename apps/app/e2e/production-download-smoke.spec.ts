@@ -10,7 +10,9 @@ const REGULATORY_TITLE = 'Порядок диспансерного наблюд
 test.skip(!enabled, 'Production download smoke runs only in its dedicated workflow.');
 test.setTimeout(20 * 60 * 1000);
 
-test('the built app downloads a real database and reaches the real model source', async ({ page }) => {
+test('the built app downloads a real database and reaches the real model source', async ({
+  page,
+}) => {
   await mountBuiltApp(page, { persistentOrigin: true });
 
   await page.locator('.app-nav-icons').getByRole('button', { name: 'База знаний' }).click();
