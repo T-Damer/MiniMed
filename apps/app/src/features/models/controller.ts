@@ -1,6 +1,6 @@
 import { BrowserWllamaRuntime } from './browser-runtime';
-import bundledCatalog from './catalog.preview.json';
 import { loadLocalModelCatalog, parseLocalModelCatalog } from './catalog';
+import bundledCatalog from './catalog.preview.json';
 import { buildLocalModelLoadPlan, selectLocalModel } from './selection';
 import type {
   LocalModelBenchmark,
