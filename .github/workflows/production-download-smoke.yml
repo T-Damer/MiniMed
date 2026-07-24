@@ -30,6 +30,24 @@ jobs:
           bun-version: 1.2.3
       - name: Install locked dependencies
         run: bun install --frozen-lockfile
+      - name: Export repository-formatted changed sources
+        run: |
+          bunx biome format --write \
+            apps/app/src/app/App.tsx \
+            apps/app/e2e/module-lifecycle.spec.ts \
+            apps/app/e2e/search.spec.ts \
+            apps/app/e2e/production-download-smoke.spec.ts
+      - name: Upload formatted sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-runtime-download-sources
+          path: |
+            apps/app/src/app/App.tsx
+            apps/app/e2e/module-lifecycle.spec.ts
+            apps/app/e2e/search.spec.ts
+            apps/app/e2e/production-download-smoke.spec.ts
+          if-no-files-found: error
+          retention-days: 7
       - name: Build the production application
         env:
           VITE_LOCAL_MODEL_AUTOLOAD: 'false'
