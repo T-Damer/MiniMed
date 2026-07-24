@@ -16,9 +16,10 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-import { BrowserContentModuleRuntime } from './browser-module-runtime';
-import { refreshContentModuleCatalog } from './catalog-service';
-import { MODULE_CATALOG } from './module-catalog';
+
+import { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
+import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 
 interface ModuleCatalogViewProps {
   readonly status: CoreStatus;
@@ -49,6 +50,8 @@ const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> 
   failed: 'Ошибка установки',
   cancelled: 'Загрузка отменена',
 };
+
+const INDIVIDUAL_RECOMMENDATION_TAG = 'individual-recommendation';
 
 function formatBytes(value: number | null): string {
   if (value === null) return 'размер пока не указан';
@@ -81,7 +84,10 @@ function installedValidationLabel(installed: InstalledContentModule): string {
 }
 
 function availableCount(catalog: ContentModuleCatalog): number {
-  return catalog.modules.filter((module) => module.releaseState === 'published').length;
+  return catalog.modules.filter(
+    (module) =>
+      module.releaseState === 'published' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
+  ).length;
 }
 
 function taskProgress(task: ContentModuleDownloadTask): number | null {
@@ -101,6 +107,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
   const [contentChangePending, setContentChangePending] = createSignal(false);
   const [connecting, setConnecting] = createSignal(false);
+  const [recommendationQuery, setRecommendationQuery] = createSignal('');
+  const [recommendationCategory, setRecommendationCategory] = createSignal('');
+  const [bulkInstalling, setBulkInstalling] = createSignal(false);
   let refreshedOnce = false;
   let unsubscribeTask: (() => void) | undefined;
 
@@ -119,9 +128,30 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   onMount(() => bindRuntime(MODULE_CATALOG));
   onCleanup(() => unsubscribeTask?.());
 
+  const recommendationModules = createMemo(() =>
+    catalog().modules.filter((module) => module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
+  );
+  const regularModules = createMemo(() =>
+    catalog().modules.filter((module) => !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
+  );
   const collections = createMemo(() => [
-    ...new Set(catalog().modules.map((module) => module.collection)),
+    ...new Set(regularModules().map((module) => module.collection)),
   ]);
+  const filteredRecommendations = createMemo(() => {
+    const query = recommendationQuery().trim().toLocaleLowerCase('ru-RU');
+    const category = recommendationCategory();
+    return recommendationModules()
+      .filter(
+        (module) =>
+          (!category || module.collection === category || module.tags.includes(category)) &&
+          (!query ||
+            [module.title, module.description, ...module.specialties, ...module.tags]
+              .join(' ')
+              .toLocaleLowerCase('ru-RU')
+              .includes(query)),
+      )
+      .slice(0, 50);
+  });
 
   const refresh = async (): Promise<void> => {
     if (refreshing()) return;
@@ -167,7 +197,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       .filter((task) => task.moduleId === moduleId)
       .toSorted((left, right) => right.id.localeCompare(left.id))[0];
 
-  const install = async (module: ContentModuleCatalogEntry): Promise<void> => {
+  const install = async (module: ContentModuleCatalogEntry, reconnect = true): Promise<boolean> => {
     setWarning(null);
     try {
       const task = runtime().install(module);
@@ -175,10 +205,33 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       const completed = await runtime().wait(task.id);
       setTasks(runtime().listTasks());
       setInstalled(runtime().listInstalled());
-      if (completed.state === 'completed') await connectContentChanges();
+      if (completed.state === 'completed' && reconnect) await connectContentChanges();
       if (completed.state === 'failed') setWarning(completed.errorMessage);
+      return completed.state === 'completed';
     } catch (cause) {
       setWarning(cause instanceof Error ? cause.message : 'Не удалось установить набор.');
+      return false;
+    }
+  };
+
+  const installCategory = async (): Promise<void> => {
+    const category = recommendationCategory();
+    if (!category || bulkInstalling()) return;
+    const modules = recommendationModules().filter(
+      (module) =>
+        (module.collection === category || module.tags.includes(category)) &&
+        module.releaseState === 'published' &&
+        !installedModule(module.id),
+    );
+    setBulkInstalling(true);
+    let changed = false;
+    try {
+      for (const module of modules) {
+        if (await install(module, false)) changed = true;
+      }
+      if (changed) await connectContentChanges();
+    } finally {
+      setBulkInstalling(false);
     }
   };
 
@@ -247,11 +300,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             <div class="module-collection-heading">
               <h2>{COLLECTION_TITLES[collection] ?? collection}</h2>
               <span>
-                {catalog().modules.filter((module) => module.collection === collection).length}
+                {regularModules().filter((module) => module.collection === collection).length}
               </span>
             </div>
             <div class="module-grid">
-              <For each={catalog().modules.filter((module) => module.collection === collection)}>
+              <For each={regularModules().filter((module) => module.collection === collection)}>
                 {(module) => {
                   const installedValue = () => installedModule(module.id);
                   const task = () => moduleTask(module.id);
@@ -356,6 +409,96 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           </section>
         )}
       </For>
+
+      <Show when={recommendationModules().length > 0}>
+        <section class="module-collection recommendation-browser">
+          <div class="module-collection-heading">
+            <h2>Клинические рекомендации</h2>
+            <span>{recommendationModules().length}</span>
+          </div>
+          <div class="recommendation-controls paper-card">
+            <label>
+              <span>Поиск по названию, коду или специальности</span>
+              <input
+                type="search"
+                value={recommendationQuery()}
+                onInput={(event) => setRecommendationQuery(event.currentTarget.value)}
+                placeholder="Например: пневмония, J18, кардиология"
+              />
+            </label>
+            <label>
+              <span>Категория</span>
+              <select
+                value={recommendationCategory()}
+                onChange={(event) => setRecommendationCategory(event.currentTarget.value)}
+              >
+                <option value="">Все категории</option>
+                <For each={catalog().categories}>
+                  {(category) => (
+                    <option value={category.id}>
+                      {category.title} · {category.recommendationCount}
+                    </option>
+                  )}
+                </For>
+              </select>
+            </label>
+            <Show when={recommendationCategory()}>
+              <button
+                type="button"
+                disabled={bulkInstalling()}
+                onClick={() => void installCategory()}
+              >
+                {bulkInstalling() ? 'Загружаем категорию…' : 'Скачать всю категорию'}
+              </button>
+            </Show>
+          </div>
+          <p class="recommendation-result-note">
+            Показано {filteredRecommendations().length}
+            {filteredRecommendations().length === 50 ? ' первых результатов' : ''}
+          </p>
+          <div class="recommendation-list">
+            <For each={filteredRecommendations()}>
+              {(module) => {
+                const installedValue = () => installedModule(module.id);
+                const task = () => moduleTask(module.id);
+                const working = () =>
+                  task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
+                return (
+                  <article class="recommendation-row paper-card">
+                    <div>
+                      <strong>{module.title}</strong>
+                      <span>
+                        {module.tags.find((tag) => /^\d+_\d+$/u.test(tag))} ·{' '}
+                        {formatBytes(module.sizes.downloadBytes)}
+                      </span>
+                    </div>
+                    <Show
+                      when={!installedValue()}
+                      fallback={
+                        <button type="button" onClick={() => void remove(module.id)}>
+                          Удалить
+                        </button>
+                      }
+                    >
+                      <button
+                        type="button"
+                        disabled={
+                          module.releaseState !== 'published' ||
+                          Boolean(working()) ||
+                          bulkInstalling()
+                        }
+                        onClick={() => void install(module)}
+                      >
+                        {working() ? TASK_LABELS[task()?.state ?? 'queued'] : 'Скачать'}
+                      </button>
+                    </Show>
+                  </article>
+                );
+              }}
+            </For>
+          </div>
+        </section>
+      </Show>
 
       <details class="module-catalog-status doctor-technical-details">
         <summary>Обновление списка наборов</summary>

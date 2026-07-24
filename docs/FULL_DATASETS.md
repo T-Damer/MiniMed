@@ -1,57 +1,59 @@
 # Full-text datasets
 
-MiniMed keeps the APK small and distributes complete medical documents as independently verified SQLite modules.
+MiniMed keeps large medical documents out of Git and the application bundle.
 
-## First preview channel
+## Source of truth
 
-The `datasets-preview-1` GitHub prerelease contains:
+- Official medical systems are the upstream sources.
+- An immutable GitHub Release is the reproducible MiniMed snapshot.
+- `datasets-preview-1/catalog.preview.json` is only a mutable channel pointer to snapshot assets.
+- Existing snapshot tags and assets must never be overwritten.
 
-- `minimed.regulatory.pediatrics.ru` — the Russian pediatric regulatory pilot;
-- `minimed.clinical.pediatrics.respiratory-allergy` — complete source text for the declared pneumonia, bronchitis and bronchiolitis recommendations.
+Each clinical recommendation is an independently installable SQLite asset. Categories are catalog
+metadata and bulk-install selections, not duplicate databases. Source PDFs are retained in
+category ZIP archives for recovery when an official endpoint is unavailable; the application does
+not download those archives during normal installation.
 
-The mutable channel catalog is published as `catalog.preview.json`. Every referenced database remains an immutable release asset with an exact byte count, SHA-256 digest and source-set digest.
-
-## Full clinical document pipeline
+## Pipeline
 
 ```text
-declared official Ministry PDF endpoint
+official Ministry catalog and PDF endpoint
   → cache-backed HTTPS synchronization
-  → deterministic PDF text-layer extraction
-  → source-preserving Markdown and diagnostics
-  → lint and SQLite build
-  → integrity, foreign-key and FTS checks
-  → immutable GitHub Release asset
-  → in-app staging, checksum verification and activation
+  → source-preserving extraction and diagnostics
+  → one verified SQLite database per recommendation
+  → immutable snapshot release
+  → mutable channel catalog
+  → in-app checksum verification and activation
 ```
 
-The PDF extractor keeps page/block coordinates, headings, paragraphs, lists and table candidates. The
-downloaded PDF checksum becomes the document-version checksum. Extraction warnings stay visible and
-are not silently repaired.
+```bash
+bun run content:catalog:clinical
+bun run content:sync:clinical:all
+bun run content:build:clinical:documents -- --all --force
+bun run content:package:clinical:snapshot -- \
+  --output-root release-clinical \
+  --snapshot-id clinical-YYYY.MM.DD-CHECKSUM \
+  --release-base-url https://github.com/OWNER/REPO/releases/download/SNAPSHOT
+```
 
-Run `bun run content:rebuild:clinical` to refresh the catalog, reject superseded selected versions,
-synchronize PDFs, prepare them, lint them, and rebuild the local SQLite pack.
-
-Run `bun run content:catalog:all` to refresh the complete medication and
-clinical-recommendation lists and create build-ready metadata workspaces. Run
-`bun run content:rebuild:drug-instructions` to refresh and build the selected text-layer GRLS
-instructions.
-
-Remote synchronization uses a bounded three-minute request timeout and a persistent cache. A
-transiently slow endpoint cannot cause an unbounded build, while an already validated cached source
-remains usable for reproducible offline rebuilds.
+The sync is resumable through `.cache/localmed/official-clinical-documents`. The manual
+`publish-clinical-snapshot.yml` workflow runs the same commands with pinned Bun and uv versions,
+rejects an existing snapshot tag, checks GitHub's asset limits, publishes the release, then updates
+only the channel catalog. Prototype manifests retain each record's rights status even when it is
+`unknown`; confirming redistribution terms is deferred to the production release gate.
 
 A module advertised as full text must pass all of these gates:
 
-- every declared document was downloaded from its recorded official endpoint;
-- each document contains substantial clinical text and several section headings;
-- the SQLite document count matches the immutable manifest;
+- every declared document was downloaded from its recorded endpoint;
+- each one-document database matches its manifest;
 - chunk count equals FTS row count;
 - `PRAGMA quick_check` succeeds and foreign-key validation returns no violations;
-- source checksums and the source-set digest are included in the release catalog.
+- source, database, and source-set checksums are recorded.
 
 ## Application behavior
 
-Downloaded databases are stored separately from the bundled core. MiniMed opens enabled modules through the multi-store router and fuses their search results without merging or modifying the source databases.
+Downloaded databases are stored separately from the bundled core. MiniMed opens enabled modules
+through the multi-store router without modifying them.
 
 A failed download or validation never replaces an active dataset. The doctor can continue searching the bundled core while another module downloads or fails.
 
@@ -59,7 +61,7 @@ A failed download or validation never replaces an active dataset. The doctor can
 
 - Browser and the current Android WebView use IndexedDB-backed module storage; a native private-file/WorkManager backend remains a later adapter.
 - New modules become searchable after the user chooses `Подключить к поиску`, which reloads the local composition.
-- Original PDFs are not included yet; they remain optional source-assets artifacts where redistribution permits.
+- PDF archives are release backups, not in-app source attachments.
 - The local medication-instruction pack has seven text-layer PDFs; the selected oseltamivir PDF
   requires OCR before ingestion.
-- A public mirror can change or disappear. CI therefore rebuilds and validates the complete module before publishing a new immutable version; an existing installed version remains unchanged.
+- The first 744-document clinical snapshot has not been published yet.

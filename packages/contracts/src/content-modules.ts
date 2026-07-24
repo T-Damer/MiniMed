@@ -192,11 +192,19 @@ export const ContentModuleCatalogEntrySchema = z
     }
   });
 
+export const ContentModuleCategorySchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  recommendationCount: z.number().int().nonnegative(),
+  specialties: z.array(z.string().min(1)).default([]),
+});
+
 export const ContentModuleCatalogSchema = z
   .object({
     catalogVersion: z.string().min(1),
     channel: z.enum(['stable', 'preview']),
     publishedAt: z.string().min(1),
+    categories: z.array(ContentModuleCategorySchema).default([]),
     modules: z.array(ContentModuleCatalogEntrySchema).min(1),
   })
   .superRefine((catalog, context) => {
@@ -301,6 +309,7 @@ export type ContentModuleKind = z.infer<typeof ContentModuleKindSchema>;
 export type ContentModuleReleaseState = z.infer<typeof ContentModuleReleaseStateSchema>;
 export type ContentModuleInstallState = z.infer<typeof ContentModuleInstallStateSchema>;
 export type ContentModuleCatalogEntry = z.infer<typeof ContentModuleCatalogEntrySchema>;
+export type ContentModuleCategory = z.infer<typeof ContentModuleCategorySchema>;
 export type ContentModuleCatalog = z.infer<typeof ContentModuleCatalogSchema>;
 export type CoreCatalogTopicStub = z.infer<typeof CoreCatalogTopicStubSchema>;
 export type InstalledContentModule = z.infer<typeof InstalledContentModuleSchema>;

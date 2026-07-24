@@ -277,7 +277,7 @@ jobs:
           path: release-datasets
           if-no-files-found: error
           retention-days: 30
-      - name: Publish immutable GitHub Release assets
+      - name: Publish preview channel assets
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         env:
           GH_TOKEN: ${{ github.token }}
@@ -288,7 +288,7 @@ jobs:
           else
             gh release create "$DATASET_TAG" release-datasets/* \
               --title 'MiniMed dataset preview channel' \
-              --notes 'Immutable preview SQLite modules and their validated channel catalog.' \
+              --notes 'Mutable preview channel for validated dataset modules and its catalog.' \
               --prerelease \
               --target "$GITHUB_SHA"
           fi
