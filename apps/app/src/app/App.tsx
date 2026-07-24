@@ -39,8 +39,7 @@ const VIEWS: readonly {
 
 const DEFAULT_MODEL_CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
-const DEFAULT_MODEL_ASSET_BASE_URL =
-  'https://github.com/T-Damer/MiniMed/releases/download/models-preview-1';
+const DEFAULT_MODEL_ASSET_BASE_URL = '';
 
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
