@@ -7,6 +7,11 @@ from typing import Annotated
 import typer
 
 from .clinical_catalog import build_clinical_coverage_ledger, write_clinical_coverage_ledger
+from .clinical_source_plan import (
+    build_clinical_source_plan,
+    build_individual_clinical_documents,
+    package_clinical_snapshot,
+)
 from .official_clinical_registry import (
     check_selected_clinical_sources,
     collect_official_clinical_registry,
@@ -111,3 +116,68 @@ def build_command(
     )
     if fail_on_warning and ledger.warnings:
         raise typer.Exit(code=1)
+
+
+@app.command("plan-sources")
+def plan_sources_command(
+    ledger: Annotated[Path, typer.Option("--ledger", exists=True, dir_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    version: Annotated[str, typer.Option("--version")],
+    generated_at: Annotated[str | None, typer.Option("--generated-at")] = None,
+    force: Annotated[bool, typer.Option("--force")] = False,
+) -> None:
+    """Generate the complete PDF mirror plan and one-document registries."""
+    report = build_clinical_source_plan(
+        ledger,
+        output_root,
+        version=version,
+        generated_at=generated_at,
+        force=force,
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("build-documents")
+def build_documents_command(
+    plan_root: Annotated[Path, typer.Option("--plan-root", exists=True, file_okay=False)],
+    source_root: Annotated[Path, typer.Option("--source-root", exists=True, file_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    official_ids: Annotated[list[str] | None, typer.Option("--official-id")] = None,
+    category_id: Annotated[str | None, typer.Option("--category-id")] = None,
+    all_documents: Annotated[bool, typer.Option("--all")] = False,
+    force: Annotated[bool, typer.Option("--force")] = False,
+) -> None:
+    """Build immutable one-recommendation SQLite modules."""
+    report = build_individual_clinical_documents(
+        plan_root,
+        source_root,
+        output_root,
+        official_ids=official_ids,
+        category_id=category_id,
+        all_documents=all_documents,
+        force=force,
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("package-snapshot")
+def package_snapshot_command(
+    plan_root: Annotated[Path, typer.Option("--plan-root", exists=True, file_okay=False)],
+    build_root: Annotated[Path, typer.Option("--build-root", exists=True, file_okay=False)],
+    source_root: Annotated[Path, typer.Option("--source-root", exists=True, file_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    snapshot_id: Annotated[str, typer.Option("--snapshot-id")],
+    release_base_url: Annotated[str, typer.Option("--release-base-url")],
+    force: Annotated[bool, typer.Option("--force")] = False,
+) -> None:
+    """Package immutable databases, source archives and the catalog fragment."""
+    report = package_clinical_snapshot(
+        plan_root,
+        build_root,
+        source_root,
+        output_root,
+        snapshot_id=snapshot_id,
+        release_base_url=release_base_url,
+        force=force,
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))

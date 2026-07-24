@@ -41,8 +41,12 @@ ordinary search response when validation fails.
 
 - Deterministic preparation, Markdown validation, stable IDs, provenance, and SQLite building.
 - Public/private source registries with rights metadata and extraction diagnostics.
-- Official Ministry API inventory for 744 recommendations and checksum-aware PDF synchronization for
-  the first three full respiratory recommendations.
+- Official Ministry API inventory for 744 recommendations, a resumable PDF mirror plan, and one
+  deterministic source registry per recommendation.
+- Immutable clinical-snapshot packaging: one SQLite module per recommendation, source-PDF archives
+  by category, checksums, and a channel-catalog fragment.
+- The knowledge-base screen can search individual recommendations, filter them by the 21 clinical
+  categories, install one recommendation, or install the selected category.
 - Official GRLS inventory for 38,815 unique registration records from 140,274 status/version rows,
   with the source ZIP, edition, and checksums retained locally.
 - Current official instruction synchronization for the eight pilot medications; seven text-layer
@@ -79,6 +83,8 @@ checkout until those artifacts are built.
 ## Known limits
 
 - Clinical documents are concise source-linked cards, not complete extracted recommendations.
+- The 744-recommendation snapshot has not been published yet; the preview channel still exposes only
+  the existing pilot modules until the full mirror and extraction pass.
 - Medication cards contain identity, form, and strength, not verified dosing regimens.
 - The full GRLS export has no confirmed ATC field, so most medication catalog records remain in the
   visible unclassified module.
@@ -93,13 +99,12 @@ checkout until those artifacts are built.
 
 ## Ordered next work
 
-1. Spot-review the three Augmentin table candidates and existing respiratory extraction warnings.
-2. Add benchmark cases for the full instruction corpus, including unsupported-answer and dosing abstention
-   checks.
-3. Evaluate the bundled small models on exact citation, extraction, unsupported-claim, latency, and
-   memory metrics.
-4. Refine the browser clinical-answer layout using real source excerpts.
-5. Compare official catalog snapshots and stage changed selected sources after local ingestion and
-   versioning are stable.
+1. Finish the resumable 744-PDF mirror and build every text-layer recommendation.
+2. Review extraction failures and add OCR only for explicitly blocked documents.
+3. Publish the first immutable prototype snapshot and update the preview channel.
+4. Add full-corpus retrieval and unsupported-answer benchmark cases.
+5. Evaluate the bundled small models on citation, extraction, latency, and memory.
 
 No database update can safely add dose guidance until a supplied source actually contains the regimen.
+Redistribution review remains a production gate; prototype manifests preserve the current rights
+state without blocking local or preview builds.

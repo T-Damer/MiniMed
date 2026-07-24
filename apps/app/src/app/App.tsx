@@ -47,8 +47,13 @@ function viewFromLocation(): View {
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
 }
 
-function availableModuleCount(modules: readonly { releaseState: string }[]): number {
-  return modules.filter((module) => module.releaseState === 'published').length;
+function availableModuleCount(
+  modules: readonly { releaseState: string; tags: readonly string[] }[],
+): number {
+  return modules.filter(
+    (module) =>
+      module.releaseState === 'published' && !module.tags.includes('individual-recommendation'),
+  ).length;
 }
 
 function environmentFlag(name: string, fallback: boolean): boolean {

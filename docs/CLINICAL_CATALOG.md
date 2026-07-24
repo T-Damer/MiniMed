@@ -73,22 +73,17 @@ The JSON ledger contains:
 - warnings for skipped or duplicate rows;
 - a deterministic module plan.
 
-The ledger is the input to later source synchronization and module-generation PRs. Publication still
-requires source-specific rights decisions, deterministic extraction, SQLite integrity checks and
-retrieval benchmarks.
+The ledger feeds `plan-sources`, which writes the complete PDF sync manifest, the discovery index,
+and one source registry per recommendation. Publication still requires deterministic extraction and
+SQLite validation.
 
 ## Automation
 
-`.github/workflows/clinical-catalog-inventory.yml` always validates the parser and taxonomy against a
-fixture. The fixture proves deterministic normalization and classification, not real-world catalog
-completeness. The workflow is validated against the synchronized 0.3.4 application and ingestion
-foundation. A full inventory run requires either:
+`bun run content:catalog:clinical` refreshes the official Ministry API export, rebuilds the ledger,
+checks selected documents, and generates the 744-document source plan.
 
-- a manual `catalog_url` and format through `workflow_dispatch`; or
-- repository variables `CLINICAL_CATALOG_URL` and `CLINICAL_CATALOG_FORMAT` for scheduled runs.
-
-The URL must use HTTPS. The workflow uploads the ledger, declared source URL and source format as
-build artifacts; it does not publish medical modules by itself. Full coverage reports must retain the
-exact source export or an immutable reference to it so later count changes are reproducible. Normal
-CI must pass formatting, strict typing, parser tests and deterministic fixture-ledger generation; the
-fixture summary is checked separately from live-catalog coverage totals.
+`publish-clinical-snapshot.yml` is the publication path. It mirrors all declared PDFs, builds one
+SQLite module per recommendation, packages source archives by primary category, creates an immutable
+release, and finally updates the mutable preview catalog. A failed or partial build publishes
+nothing. Prototype packages preserve unknown rights metadata; production publication will require a
+separate redistribution review.

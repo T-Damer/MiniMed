@@ -76,6 +76,7 @@ describe('content module catalog contracts', () => {
     const result = ContentModuleCatalogSchema.parse(catalog([core, planned]));
 
     expect(result.modules).toHaveLength(2);
+    expect(result.categories).toEqual([]);
   });
 
   it('rejects duplicate module IDs', () => {
