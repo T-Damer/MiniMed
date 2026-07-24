@@ -1,0 +1,20 @@
+pack:
+  id: minimed.medications.ocr-required.ru
+  version: 0.5.0-alpha.1
+  schemaVersion: 2
+  title: "Официальные инструкции ГРЛС, требующие OCR"
+  builtAt: "2026-07-24T00:00:00Z"
+
+sources:
+  - id: drug.rf.oseltamivir.instruction
+    path: oseltamivir-30.pdf
+    title: "Осельтамивир 30 мг: инструкция по медицинскому применению"
+    shortTitle: Осельтамивир 30 мг
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: needs-ocr
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(002417)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+      ingestionState: blocked-no-text-layer

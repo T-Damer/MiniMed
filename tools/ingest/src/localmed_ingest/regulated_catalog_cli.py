@@ -11,11 +11,53 @@ from .medication_catalog import (
     build_medication_coverage_ledger,
     write_medication_coverage_ledger,
 )
+from .official_grls_registry import (
+    collect_official_grls_registry,
+    sync_selected_grls_instructions,
+)
 
 app = typer.Typer(
     no_args_is_help=True,
     help="Build medication and regulatory coverage ledgers for loadable MiniMed modules.",
 )
+
+
+@app.command("grls-sync")
+def grls_sync_command(
+    output: Annotated[Path, typer.Option("--output")],
+    archive_output: Annotated[Path | None, typer.Option("--archive-output")] = None,
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
+    generated_at: Annotated[str | None, typer.Option("--generated-at")] = None,
+) -> None:
+    """Download and normalize the complete official GRLS export."""
+    summary = collect_official_grls_registry(
+        output,
+        archive_output=archive_output,
+        report_output=report,
+        timeout_seconds=timeout_seconds,
+        generated_at=generated_at,
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-instructions")
+def grls_instructions_command(
+    registry: Annotated[Path, typer.Option("--registry", exists=True, dir_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    report: Annotated[Path, typer.Option("--report")],
+    resolved_registry: Annotated[Path | None, typer.Option("--resolved-registry")] = None,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
+) -> None:
+    """Refresh selected official instruction PDFs from GRLS."""
+    summary = sync_selected_grls_instructions(
+        registry,
+        output_root,
+        report,
+        resolved_registry_output=resolved_registry,
+        timeout_seconds=timeout_seconds,
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
 
 
 @app.command("medications")

@@ -199,11 +199,13 @@ def _status(value: str | None) -> MedicationStatus:
     normalized = _normalized(value or "")
     if any(marker in normalized for marker in ("приостанов", "suspend")):
         return "suspended"
-    if any(marker in normalized for marker in ("отмен", "аннулир", "withdraw")):
+    if any(marker in normalized for marker in ("отмен", "аннулир", "исключ", "withdraw")):
         return "withdrawn"
-    if any(marker in normalized for marker in ("архив", "истор", "histor")):
+    if any(marker in normalized for marker in ("архив", "истор", "истек", "измен", "histor")):
         return "historical"
-    if any(marker in normalized for marker in ("действ", "active", "зарегистр")):
+    if any(
+        marker in normalized for marker in ("действ", "выдано по правилам", "active", "зарегистр")
+    ):
         return "active"
     return "unknown"
 
