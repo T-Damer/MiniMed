@@ -69,6 +69,7 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
     assert {source.target for source in sync_manifest.sources} == {"714_2.pdf", "53_2.pdf"}
     pneumonia = next(source for source in sync_manifest.sources if source.target == "714_2.pdf")
     assert pneumonia.location.endswith("GetClinrecPdf&id=714_2")
+    assert pneumonia.max_bytes == 256 * 1024 * 1024
 
     registry = load_source_registry(output / "registries" / "714_2.yaml")
     assert registry.pack.id == "minimed.clinical.recommendation.714_2"

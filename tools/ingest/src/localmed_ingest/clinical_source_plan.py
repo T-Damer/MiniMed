@@ -23,6 +23,7 @@ OFFICIAL_CLINICAL_PDF_API = (
 )
 _OFFICIAL_ID = re.compile(r"^\d+_\d+$")
 _SNAPSHOT_ID = re.compile(r"^[a-z0-9][a-z0-9.-]+$")
+_MAX_CLINICAL_PDF_BYTES = 256 * 1024 * 1024
 
 
 def _utc_now() -> str:
@@ -92,7 +93,7 @@ def build_clinical_source_plan(
                     location=pdf_url,
                     target=filename,
                     content_type="pdf",
-                    max_bytes=64 * 1024 * 1024,
+                    max_bytes=_MAX_CLINICAL_PDF_BYTES,
                 )
             )
             registry = SourceRegistry(
