@@ -105,6 +105,9 @@ checkout until those artifacts are built.
 ## Ordered next work
 
 1. Publish the first immutable 723-module prototype snapshot and update the preview channel.
+   GitHub Actions run `Publish clinical snapshot` was in progress on 24 July 2026; the `0.5.1` tag
+   release and Android APK were blocked by a Biome import-order check (fixed on `main` after
+   `release/0.5.1-hotfix`).
 2. Add OCR only for the 21 explicitly blocked documents.
 3. Add full-corpus retrieval and unsupported-answer benchmark cases.
 4. Evaluate the bundled small models on citation, extraction, latency, and memory.
