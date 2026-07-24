@@ -14,6 +14,8 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .http_retry import retry_on_transient_http
+
 SyncStatus = Literal[
     "downloaded",
     "not-modified",
@@ -329,27 +331,39 @@ def _sync_remote(
                 headers["If-Modified-Since"] = metadata.last_modified
         request = urllib.request.Request(source.location, headers=headers)
         try:
-            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-                payload = _read_limited(response, source.max_bytes)
-                _validate_payload(payload, content_type, source.id)
-                checksum = _sha256_bytes(payload)
-                if source.sha256 is not None and checksum.lower() != source.sha256.lower():
-                    raise ValueError(f"Checksum mismatch for remote source {source.id}.")
-                final_url = str(response.geturl())
-                _validate_remote_url(final_url)
-                _write_atomic(cache_path, payload)
-                metadata = CachedRemoteMetadata(
-                    location=source.location,
-                    final_url=final_url,
-                    sha256=checksum,
-                    bytes=len(payload),
-                    etag=response.headers.get("ETag"),
-                    last_modified=response.headers.get("Last-Modified"),
-                    fetched_at=_utc_now(),
-                    content_type=content_type,
-                )
-                _write_json_atomic(metadata_path, metadata.model_dump(mode="json"))
-                status = "downloaded"
+
+            def download_remote() -> tuple[bytes, str, str | None, str | None]:
+                with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+                    payload = _read_limited(response, source.max_bytes)
+                    return (
+                        payload,
+                        str(response.geturl()),
+                        response.headers.get("ETag"),
+                        response.headers.get("Last-Modified"),
+                    )
+
+            payload, final_url, etag, last_modified = retry_on_transient_http(
+                download_remote,
+                operation_name=f"Remote source sync for {source.id}",
+            )
+            _validate_payload(payload, content_type, source.id)
+            checksum = _sha256_bytes(payload)
+            if source.sha256 is not None and checksum.lower() != source.sha256.lower():
+                raise ValueError(f"Checksum mismatch for remote source {source.id}.")
+            _validate_remote_url(final_url)
+            _write_atomic(cache_path, payload)
+            metadata = CachedRemoteMetadata(
+                location=source.location,
+                final_url=final_url,
+                sha256=checksum,
+                bytes=len(payload),
+                etag=etag,
+                last_modified=last_modified,
+                fetched_at=_utc_now(),
+                content_type=content_type,
+            )
+            _write_json_atomic(metadata_path, metadata.model_dump(mode="json"))
+            status = "downloaded"
         except urllib.error.HTTPError as error:
             if error.code == 304 and cached_valid and metadata is not None:
                 status = "not-modified"

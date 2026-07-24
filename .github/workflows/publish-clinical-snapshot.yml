@@ -12,6 +12,14 @@ concurrency:
 
 env:
   CHANNEL_TAG: datasets-preview-1
+  RETRY_MAX_ATTEMPTS: 8
+  RETRY_INITIAL_DELAY_SECONDS: 90
+  RETRY_MAX_DELAY_SECONDS: 900
+  RETRY_BACKOFF_FACTOR: 2
+  MINIMED_HTTP_RETRY_MAX_ATTEMPTS: 8
+  MINIMED_HTTP_RETRY_INITIAL_DELAY_SECONDS: 30
+  MINIMED_HTTP_RETRY_MAX_DELAY_SECONDS: 600
+  MINIMED_HTTP_RETRY_BACKOFF_FACTOR: 2
 
 jobs:
   publish:
@@ -32,10 +40,11 @@ jobs:
           uv sync --project tools/ingest --all-groups --locked
       - name: Discover and mirror official recommendations
         run: |
-          bun run content:catalog:clinical
-          bun run content:sync:clinical:all
+          chmod +x scripts/retry-step.sh
+          scripts/retry-step.sh bun run content:catalog:clinical
+          scripts/retry-step.sh bun run content:sync:clinical:all
       - name: Build verified databases for text-layer recommendations
-        run: bun run content:build:clinical:documents -- --all --allow-partial --force
+        run: scripts/retry-step.sh bun run content:build:clinical:documents -- --all --allow-partial --force
       - name: Name and package immutable snapshot
         shell: bash
         run: |

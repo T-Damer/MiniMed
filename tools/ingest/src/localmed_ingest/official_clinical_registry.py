@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
+from .http_retry import retry_on_transient_http
 from .source_registry import load_source_registry
 
 OFFICIAL_REGISTRY_PAGE = "https://cr.minzdrav.gov.ru/clin-rec/"
@@ -58,8 +59,15 @@ def _default_transport(
     if parsed.scheme != "https" or parsed.hostname != _ALLOWED_API_HOST:
         raise ValueError(f"Official registry URL must use https://{_ALLOWED_API_HOST}.")
     request = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-        payload = response.read(_MAX_RESPONSE_BYTES + 1)
+
+    def fetch_page() -> bytes:
+        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+            return response.read(_MAX_RESPONSE_BYTES + 1)
+
+    payload = retry_on_transient_http(
+        fetch_page,
+        operation_name=f"Official registry page request to {url}",
+    )
     if len(payload) > _MAX_RESPONSE_BYTES:
         raise ValueError("Official registry response exceeds the 64 MiB safety limit.")
     return json.loads(payload.decode("utf-8-sig"))
