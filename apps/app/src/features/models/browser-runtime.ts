@@ -218,7 +218,11 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
     if (this.options.mirrorBaseUrl.trim() && artifact.mirrorPath) {
       urls.push(joinUrl(this.options.mirrorBaseUrl, artifact.mirrorPath));
     }
-    if (this.options.allowUpstreamFallback || urls.length === 0) urls.push(artifact.upstreamUrl);
+    if (this.options.allowUpstreamFallback) {
+      if (!urls.includes(artifact.upstreamUrl)) urls.push(artifact.upstreamUrl);
+    } else if (urls.length === 0) {
+      urls.push(artifact.upstreamUrl);
+    }
 
     let lastError: unknown;
     for (const url of urls) {

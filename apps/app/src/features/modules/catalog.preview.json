@@ -1,7 +1,7 @@
 {
-  "catalogVersion": "1-preview",
+  "catalogVersion": "datasets-0.3.4-preview.1",
   "channel": "preview",
-  "publishedAt": "2026-07-21T00:00:00Z",
+  "publishedAt": "2026-07-24T12:30:02Z",
   "modules": [
     {
       "id": "minimed.core.ru",
@@ -13,8 +13,14 @@
       "required": true,
       "releaseState": "bundled",
       "specialties": [],
-      "populations": ["all"],
-      "tags": ["catalog", "routing", "global-graph"],
+      "populations": [
+        "all"
+      ],
+      "tags": [
+        "catalog",
+        "routing",
+        "global-graph"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -51,9 +57,17 @@
       "description": "Частые амбулаторные состояния, рост и развитие, синдромный поиск, профилактика и маршрутизация к профильным разделам.",
       "required": false,
       "releaseState": "planned",
-      "specialties": ["pediatrics", "general-practice"],
-      "populations": ["children"],
-      "tags": ["primary-care", "common-conditions"],
+      "specialties": [
+        "pediatrics",
+        "general-practice"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "primary-care",
+        "common-conditions"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -62,7 +76,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,
@@ -92,9 +110,17 @@
       "description": "Инфекционные заболевания детского возраста, эпидемиология, диагностика, лечение, изоляция и красные флаги.",
       "required": false,
       "releaseState": "preview",
-      "specialties": ["pediatrics", "infectious-diseases"],
-      "populations": ["children"],
-      "tags": ["infection", "isolation"],
+      "specialties": [
+        "pediatrics",
+        "infectious-diseases"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "infection",
+        "isolation"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -103,7 +129,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,
@@ -126,31 +156,44 @@
     },
     {
       "id": "minimed.clinical.pediatrics.respiratory-allergy",
-      "version": "0.3.1-preview",
+      "version": "0.3.4-preview.1",
       "kind": "clinical",
       "collection": "pediatrics",
       "title": "Педиатрия: дыхание и аллергология",
       "description": "Болезни дыхательных путей, пульмонология, обструктивные состояния и аллергические заболевания.",
       "required": false,
-      "releaseState": "preview",
-      "specialties": ["pediatrics", "pulmonology", "allergy-immunology"],
-      "populations": ["children"],
-      "tags": ["respiratory", "allergy"],
+      "releaseState": "published",
+      "specialties": [
+        "pediatrics",
+        "pulmonology",
+        "allergy-immunology"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "respiratory",
+        "allergy"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": null,
+      "sourceSetDigest": "sha256:7db915167a927d900dde33439f71880df4a0ff4b4f6604ff5c74f2708cbe2efe",
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
-        "downloadBytes": null,
-        "installedBytes": null,
+        "downloadBytes": 6049792,
+        "installedBytes": 6049792,
         "sourceAssetsDownloadBytes": null,
-        "precision": "unknown"
+        "precision": "exact"
       },
       "capabilities": {
         "search": true,
@@ -161,8 +204,44 @@
         "structuredKnowledge": true,
         "calculations": false
       },
-      "artifacts": [],
-      "documents": [],
+      "artifacts": [
+        {
+          "id": "minimed.clinical.pediatrics.respiratory-allergy-index-0.3.4-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-respiratory-pediatrics-full-0.3.4-preview.1.db",
+          "sha256": "sha256:f51b7abfbf7e71ec5cb18d703bb122e27eaae03587af09ff699ff7d8a4fb1bed",
+          "sizeBytes": 6049792,
+          "compression": "none",
+          "sourceSetDigest": "sha256:7db915167a927d900dde33439f71880df4a0ff4b4f6604ff5c74f2708cbe2efe"
+        }
+      ],
+      "documents": [
+        {
+          "documentId": "kr.rf.360_3.bronchiolitis.full",
+          "documentVersionId": "kr.rf.360_3.bronchiolitis.full@360_3-2025-full",
+          "sourceChecksum": "sha256:4c2975bd8c391e0a8948b7b4e3796138dda264c8ae116c3519ef9ad48d59c9d9",
+          "status": "active",
+          "indexArtifactId": "minimed.clinical.pediatrics.respiratory-allergy-index-0.3.4-preview.1",
+          "sourceAssetArtifactId": null
+        },
+        {
+          "documentId": "kr.rf.381_3.bronchitis.full",
+          "documentVersionId": "kr.rf.381_3.bronchitis.full@381_3-2024-full",
+          "sourceChecksum": "sha256:881dd5dcd3510558e29cab91cf0694021e06e69ce5536749b349aba04923a2c4",
+          "status": "active",
+          "indexArtifactId": "minimed.clinical.pediatrics.respiratory-allergy-index-0.3.4-preview.1",
+          "sourceAssetArtifactId": null
+        },
+        {
+          "documentId": "kr.rf.714_2.pneumonia.full",
+          "documentVersionId": "kr.rf.714_2.pneumonia.full@714_2-2025-full",
+          "sourceChecksum": "sha256:37e6a9d7d76ecf039a752b6b14321cac0cc28a936ced297de1877b5c8df36552",
+          "status": "active",
+          "indexArtifactId": "minimed.clinical.pediatrics.respiratory-allergy-index-0.3.4-preview.1",
+          "sourceAssetArtifactId": null
+        }
+      ],
       "previewDocumentCount": 3
     },
     {
@@ -174,9 +253,18 @@
       "description": "Заболевания ЖКТ и печени, питание, нарушения вскармливания, обезвоживание и нутритивная поддержка.",
       "required": false,
       "releaseState": "planned",
-      "specialties": ["pediatrics", "gastroenterology", "nutrition"],
-      "populations": ["children"],
-      "tags": ["gastroenterology", "nutrition"],
+      "specialties": [
+        "pediatrics",
+        "gastroenterology",
+        "nutrition"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "gastroenterology",
+        "nutrition"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -185,7 +273,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,
@@ -215,9 +307,18 @@
       "description": "Инфекции мочевой системы, заболевания почек, водно-электролитные нарушения и урологическая маршрутизация.",
       "required": false,
       "releaseState": "preview",
-      "specialties": ["pediatrics", "nephrology", "urology"],
-      "populations": ["children"],
-      "tags": ["kidney", "urinary"],
+      "specialties": [
+        "pediatrics",
+        "nephrology",
+        "urology"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "kidney",
+        "urinary"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -226,7 +327,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,
@@ -256,9 +361,18 @@
       "description": "Неврологические состояния, судороги, нарушения сознания, неотложные алгоритмы и интенсивная помощь.",
       "required": false,
       "releaseState": "planned",
-      "specialties": ["pediatrics", "neurology", "emergency-medicine"],
-      "populations": ["children"],
-      "tags": ["neurology", "emergency"],
+      "specialties": [
+        "pediatrics",
+        "neurology",
+        "emergency-medicine"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "neurology",
+        "emergency"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -267,7 +381,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,
@@ -297,9 +415,17 @@
       "description": "Острые хирургические состояния, врождённые пороки, травма, послеоперационное ведение и маршрутизация.",
       "required": false,
       "releaseState": "planned",
-      "specialties": ["pediatric-surgery", "traumatology"],
-      "populations": ["children"],
-      "tags": ["surgery", "trauma"],
+      "specialties": [
+        "pediatric-surgery",
+        "traumatology"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "surgery",
+        "trauma"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -308,7 +434,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,
@@ -339,8 +469,14 @@
       "required": false,
       "releaseState": "preview",
       "specialties": [],
-      "populations": ["all"],
-      "tags": ["drugs", "instructions", "registry"],
+      "populations": [
+        "all"
+      ],
+      "tags": [
+        "drugs",
+        "instructions",
+        "registry"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -349,7 +485,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,
@@ -372,31 +512,43 @@
     },
     {
       "id": "minimed.regulatory.pediatrics.ru",
-      "version": "0.3.1-preview",
+      "version": "0.3.4-preview.1",
       "kind": "regulatory",
       "collection": "shared",
       "title": "Нормативные документы РФ: педиатрия",
       "description": "Действующие и исторические приказы, сроки, формы, маршрутизация и явные связи между редакциями.",
       "required": false,
-      "releaseState": "preview",
-      "specialties": ["pediatrics", "health-administration"],
-      "populations": ["children"],
-      "tags": ["regulation", "administration"],
+      "releaseState": "published",
+      "specialties": [
+        "pediatrics",
+        "health-administration"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "regulation",
+        "administration"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": null,
+      "sourceSetDigest": "sha256:119e4b8a7767314a8cec9e84b30f6e8308b90479eb0a8bba0b625289c914e13c",
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
-        "downloadBytes": null,
-        "installedBytes": null,
+        "downloadBytes": 401408,
+        "installedBytes": 401408,
         "sourceAssetsDownloadBytes": null,
-        "precision": "unknown"
+        "precision": "exact"
       },
       "capabilities": {
         "search": true,
@@ -407,8 +559,44 @@
         "structuredKnowledge": true,
         "calculations": false
       },
-      "artifacts": [],
-      "documents": [],
+      "artifacts": [
+        {
+          "id": "minimed.regulatory.pediatrics.ru-index-0.3.4-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-regulatory-pediatrics-0.3.4-preview.1.db",
+          "sha256": "sha256:61b82c9cc8a6899b24e7b6208642a35ef1a448e15c08990df3c79c7b911ca040",
+          "sizeBytes": 401408,
+          "compression": "none",
+          "sourceSetDigest": "sha256:119e4b8a7767314a8cec9e84b30f6e8308b90479eb0a8bba0b625289c914e13c"
+        }
+      ],
+      "documents": [
+        {
+          "documentId": "regulatory.rf.minzdrav.192n-2025",
+          "documentVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+          "sourceChecksum": "sha256:8e1457dc8097588decf630b3f719271e0503f1a39c0837eac52d448ddf3a4dd6",
+          "status": "active",
+          "indexArtifactId": "minimed.regulatory.pediatrics.ru-index-0.3.4-preview.1",
+          "sourceAssetArtifactId": null
+        },
+        {
+          "documentId": "regulatory.rf.minzdrav.211n-2025",
+          "documentVersionId": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14",
+          "sourceChecksum": "sha256:0c89f31d2c1d3310780c5764e8bd0ab7f6c3bd9de8644675fda3091c74475806",
+          "status": "active",
+          "indexArtifactId": "minimed.regulatory.pediatrics.ru-index-0.3.4-preview.1",
+          "sourceAssetArtifactId": null
+        },
+        {
+          "documentId": "regulatory.rf.minzdrav.302n-2019",
+          "documentVersionId": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19",
+          "sourceChecksum": "sha256:77fb1510c84a3bc954bd4933ddab59974dc8491569977d7650ee78ea38e808ca",
+          "status": "superseded",
+          "indexArtifactId": "minimed.regulatory.pediatrics.ru-index-0.3.4-preview.1",
+          "sourceAssetArtifactId": null
+        }
+      ],
       "previewDocumentCount": 3
     },
     {
@@ -420,9 +608,18 @@
       "description": "Возрастные нормы, лабораторные диапазоны, шкалы, формулы и детерминированные клинические калькуляторы.",
       "required": false,
       "releaseState": "planned",
-      "specialties": ["pediatrics", "laboratory-medicine"],
-      "populations": ["children"],
-      "tags": ["laboratory", "reference", "calculators"],
+      "specialties": [
+        "pediatrics",
+        "laboratory-medicine"
+      ],
+      "populations": [
+        "children"
+      ],
+      "tags": [
+        "laboratory",
+        "reference",
+        "calculators"
+      ],
       "compatibility": {
         "minAppVersion": "0.3.1",
         "maxAppVersion": null,
@@ -431,7 +628,11 @@
       },
       "sourceSetDigest": null,
       "dependencies": [
-        { "moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": true }
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
       ],
       "sizes": {
         "downloadBytes": null,

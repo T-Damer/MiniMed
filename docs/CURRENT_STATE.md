@@ -97,6 +97,8 @@ checkout until those artifacts are built.
   real local-model outputs or reviewed by clinicians.
 - Proposed medication knowledge is not reviewed guidance.
 - Browser inference is CPU/WASM; model download size and latency remain substantial.
+- Browser module and model downloads now require CORS/CORP-compatible hosts; GitHub Release asset
+  URLs are rewritten to `raw.githubusercontent.com` or Hugging Face upstream fallback.
 - Native mobile lifecycle and inference are not current priorities.
 
 ## Ordered next work

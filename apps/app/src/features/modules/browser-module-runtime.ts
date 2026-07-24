@@ -18,6 +18,7 @@ import {
 } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
+import { resolveContentModuleArtifactUrl } from './artifact-url';
 import { commitRegistryAndArtifactMutation } from './module-registry-transaction';
 
 const DATABASE_NAME = 'minimed-content-modules-v1';
@@ -125,7 +126,10 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     if (artifact.compression !== 'none') {
       throw new Error('Сжатые наборы пока не поддерживаются этим установщиком.');
     }
-    const response = await fetch(artifact.url, { signal, cache: 'no-store' });
+    const response = await fetch(resolveContentModuleArtifactUrl(artifact.url), {
+      signal,
+      cache: 'no-store',
+    });
     if (!response.ok) throw new Error(`Сервер базы знаний ответил HTTP ${response.status}.`);
     const totalHeader = Number(response.headers.get('content-length'));
     const totalBytes =

@@ -73,6 +73,10 @@ function messageFromCause(cause: unknown): string {
   return cause instanceof Error ? cause.message : 'Не удалось обновить каталог модулей.';
 }
 
+function catalogIsNewer(candidate: ContentModuleCatalog, baseline: ContentModuleCatalog): boolean {
+  return Date.parse(candidate.publishedAt) > Date.parse(baseline.publishedAt);
+}
+
 export async function loadContentModuleCatalog(
   options: LoadContentModuleCatalogOptions,
 ): Promise<LoadedContentModuleCatalog> {
@@ -105,9 +109,11 @@ export async function loadContentModuleCatalog(
     if (!response.ok) throw new Error(`Каталог модулей недоступен: HTTP ${response.status}.`);
 
     const catalog = ContentModuleCatalogSchema.parse(await response.json());
+    const resolvedCatalog = catalogIsNewer(catalog, bundled) ? catalog : bundled;
+    const staleRemote = resolvedCatalog === bundled;
     const checkedAt = now();
     const record: ContentModuleCatalogCacheRecord = {
-      catalog,
+      catalog: resolvedCatalog,
       etag: response.headers.get('etag'),
       lastModified: response.headers.get('last-modified'),
       fetchedAt: checkedAt,
@@ -117,7 +123,12 @@ export async function loadContentModuleCatalog(
     } catch {
       // A valid remote catalog remains usable even when cache persistence fails.
     }
-    return { catalog, source: 'remote', checkedAt, warning: null };
+    return {
+      catalog: resolvedCatalog,
+      source: staleRemote ? 'bundled' : 'remote',
+      checkedAt,
+      warning: staleRemote ? 'Удалённый каталог устарел; используется встроенный.' : null,
+    };
   } catch (cause) {
     const warning = messageFromCause(cause);
     if (cached) {

@@ -92,14 +92,44 @@ function cache(initial: ContentModuleCatalogCacheRecord | null = null) {
 const now = () => '2026-07-21T12:00:00Z';
 
 describe('loadContentModuleCatalog', () => {
-  it('uses and caches a valid remote catalog', async () => {
+  it('keeps bundled catalog when remote metadata is older', async () => {
     const storage = cache();
     const fetcher = vi.fn(async () =>
-      response({ status: 200, body: catalog('remote'), etag: 'v1' }),
+      response({
+        status: 200,
+        body: {
+          ...catalog('remote'),
+          publishedAt: '2026-07-20T00:00:00Z',
+        },
+        etag: 'v1',
+      }),
     );
 
     const result = await loadContentModuleCatalog({
-      bundledCatalog: catalog('bundled'),
+      bundledCatalog: { ...catalog('bundled'), publishedAt: '2026-07-21T00:00:00Z' },
+      remoteUrl: 'https://example.test/catalog.json',
+      cache: storage,
+      fetcher,
+      now,
+    });
+
+    expect(result.source).toBe('bundled');
+    expect(result.catalog.catalogVersion).toBe('bundled');
+    expect(result.warning).toContain('устарел');
+  });
+
+  it('uses and caches a valid remote catalog', async () => {
+    const storage = cache();
+    const fetcher = vi.fn(async () =>
+      response({
+        status: 200,
+        body: { ...catalog('remote'), publishedAt: '2026-07-22T00:00:00Z' },
+        etag: 'v1',
+      }),
+    );
+
+    const result = await loadContentModuleCatalog({
+      bundledCatalog: { ...catalog('bundled'), publishedAt: '2026-07-21T00:00:00Z' },
       remoteUrl: 'https://example.test/catalog.json',
       cache: storage,
       fetcher,
