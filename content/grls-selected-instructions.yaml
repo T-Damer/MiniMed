@@ -1,0 +1,85 @@
+pack:
+  id: minimed.medications.selected-instructions.ru
+  version: 0.5.0-alpha.1
+  schemaVersion: 2
+  title: "Выбранные официальные инструкции ГРЛС"
+  builtAt: "2026-07-24T00:00:00Z"
+
+sources:
+  - id: drug.rf.augmentin.instruction
+    path: augmentin.pdf
+    title: "Аугментин: инструкция по медицинскому применению"
+    shortTitle: Аугментин
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(003017)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.sumamed-forte.instruction
+    path: sumamed-forte.pdf
+    title: "Сумамед форте: инструкция по медицинскому применению"
+    shortTitle: Сумамед форте
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(001367)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.ceftriaxone.instruction
+    path: ceftriaxone.pdf
+    title: "Цефтриаксон: инструкция по медицинскому применению"
+    shortTitle: Цефтриаксон
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(005496)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.amoxicillin.instruction
+    path: amoxicillin-500.pdf
+    title: "Амоксициллин 500 мг: инструкция по медицинскому применению"
+    shortTitle: Амоксициллин 500 мг
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(013359)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.ibuprofen.instruction
+    path: ibuprofen-pediatric.pdf
+    title: "Ибупрофен детский: инструкция по медицинскому применению"
+    shortTitle: Ибупрофен детский
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(006579)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.paracetamol.instruction
+    path: paracetamol-pediatric.pdf
+    title: "Парацетамол-АКОС: инструкция по медицинскому применению"
+    shortTitle: Парацетамол-АКОС
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(002094)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.regidron.instruction
+    path: regidron.pdf
+    title: "Регидрон: инструкция по медицинскому применению"
+    shortTitle: Регидрон
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(012750)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx

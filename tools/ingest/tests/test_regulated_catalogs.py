@@ -49,6 +49,11 @@ def test_medication_ledger_preserves_registration_identity_and_atc_modules(
                     "Торговое наименование": "Исторический препарат",
                     "Статус": "Аннулировано",
                 },
+                {
+                    "Регистрационный номер": "ЕАЭС-000001",
+                    "Торговое наименование": "Препарат ЕАЭС",
+                    "Статус": "Выдано по правилам ЕАЭС",
+                },
             ],
             ensure_ascii=False,
         ),
@@ -63,7 +68,7 @@ def test_medication_ledger_preserves_registration_identity_and_atc_modules(
         generated_at="2026-07-23T00:00:00Z",
     )
 
-    assert ledger.summary.total_records == 3
+    assert ledger.summary.total_records == 4
     antibiotic = next(
         record for record in ledger.records if record.registration_number == "ЛП-000001"
     )
@@ -78,6 +83,8 @@ def test_medication_ledger_preserves_registration_identity_and_atc_modules(
     historical = next(record for record in ledger.records if record.registration_number == "ЛП-OLD")
     assert historical.coverage_state == "historical"
     assert historical.primary_module_id == "minimed.medications.unclassified.ru"
+    eaeu = next(record for record in ledger.records if record.registration_number == "ЕАЭС-000001")
+    assert eaeu.status == "active"
 
 
 def test_official_legal_collector_paginates_deduplicates_and_categorizes(

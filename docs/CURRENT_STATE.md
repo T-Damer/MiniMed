@@ -43,6 +43,10 @@ ordinary search response when validation fails.
 - Public/private source registries with rights metadata and extraction diagnostics.
 - Official Ministry API inventory for 744 recommendations and checksum-aware PDF synchronization for
   the first three full respiratory recommendations.
+- Official GRLS inventory for 38,815 unique registration records from 140,274 status/version rows,
+  with the source ZIP, edition, and checksums retained locally.
+- Current official instruction synchronization for the eight pilot medications; seven text-layer
+  PDFs build into a 130-chunk SQLite pack and the oseltamivir scan is explicitly blocked on OCR.
 - Selected recommendation versions are checked against the active official catalog before rebuild;
   a replacement blocks the rebuild until explicitly reviewed.
 - Public Russian pilot: seven clinical navigation cards and eight medication-registry identity cards.
@@ -76,6 +80,9 @@ checkout until those artifacts are built.
 
 - Clinical documents are concise source-linked cards, not complete extracted recommendations.
 - Medication cards contain identity, form, and strength, not verified dosing regimens.
+- The full GRLS export has no confirmed ATC field, so most medication catalog records remain in the
+  visible unclassified module.
+- One selected current drug instruction (oseltamivir) has no text layer and requires OCR.
 - Therefore the current installed corpus can suggest diagnostic sources but normally must abstain from
   dose output.
 - Model prompts and structural validation are implemented; clinical quality has not been qualified on
@@ -86,9 +93,8 @@ checkout until those artifacts are built.
 
 ## Ordered next work
 
-1. Spot-review the pneumonia title page and six bronchitis table candidates, then promote the
-   locally built respiratory pack.
-2. Add benchmark cases for the supplied corpus, including unsupported-answer and dosing abstention
+1. Spot-review the three Augmentin table candidates and existing respiratory extraction warnings.
+2. Add benchmark cases for the full instruction corpus, including unsupported-answer and dosing abstention
    checks.
 3. Evaluate the bundled small models on exact citation, extraction, unsupported-claim, latency, and
    memory metrics.

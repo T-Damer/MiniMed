@@ -6,8 +6,14 @@ field.
 
 ## Medication inventory
 
-`medbase-regulated-catalog medications` accepts a declared JSON, JSONL, CSV or TSV export and keeps
-registration identity separate from display names:
+`bun run content:catalog:drugs` downloads the complete ZIP export linked from the official
+[GRLS](https://grls.rosminzdrav.ru/GRLS.aspx) page, parses its XLSX files without a spreadsheet
+runtime, prefers a current row when the same registration number occurs in historical workbooks, and
+builds the normalized medication ledger. Raw downloads, checksums and outputs stay in ignored
+`data/` directories.
+
+`medbase-regulated-catalog medications` also accepts a declared JSON, JSONL, CSV or TSV export and
+keeps registration identity separate from display names:
 
 - registration number;
 - trade name and INN list;
@@ -23,9 +29,16 @@ The ATC-based taxonomy in `content/medication-module-taxonomy.yaml` produces ind
 module plans for the major ATC groups. Products without a confirmed ATC code remain visible in the
 unclassified module rather than being guessed into a therapeutic group.
 
+The public GRLS ZIP has no confirmed ATC field. Its pharmacotherapeutic description is preserved as
+source metadata, but most records therefore remain in the visible unclassified module.
+
 A medication record begins as `metadata-only`. Instruction text, contraindications, interactions and
 doses require source-specific rights, exact evidence and review. Registration identity and an
 instruction edition must not be merged solely by trade name.
+
+`bun run content:rebuild:drug-instructions` refreshes selected current GRLS instructions and builds a
+local SQLite pack. A PDF without a text layer remains an explicit OCR task instead of becoming an
+empty document.
 
 ## Official legal-publication inventory
 
@@ -68,9 +81,9 @@ ATC packaging before a live source is queried.
 The compatibility module and typed implementation are validated together, so callers keep one stable
 import path while malformed API fields remain fail-closed.
 
-A complete medication inventory requires an explicitly configured HTTPS export through
-`MEDICATION_CATALOG_URL` or manual workflow input. The repository does not scrape GRLS, ESKLP or
-commercial interfaces without a supported export and documented rights.
+GRLS collection is read-only and uses its official complete export and instruction endpoints. It
+does not use commercial interfaces. Raw PDFs and generated local packs are not committed or
+published automatically; redistribution still requires an explicit rights decision.
 
 Official law collection is also opt-in for scheduled runs through `ENABLE_LEGAL_CATALOG_SYNC=true`.
 The query configuration and raw API pages are uploaded alongside the normalized ledger so coverage

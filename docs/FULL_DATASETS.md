@@ -31,6 +31,11 @@ are not silently repaired.
 Run `bun run content:rebuild:clinical` to refresh the catalog, reject superseded selected versions,
 synchronize PDFs, prepare them, lint them, and rebuild the local SQLite pack.
 
+Run `bun run content:catalog:all` to refresh the complete medication and
+clinical-recommendation lists and create build-ready metadata workspaces. Run
+`bun run content:rebuild:drug-instructions` to refresh and build the selected text-layer GRLS
+instructions.
+
 Remote synchronization uses a bounded three-minute request timeout and a persistent cache. A
 transiently slow endpoint cannot cause an unbounded build, while an already validated cached source
 remains usable for reproducible offline rebuilds.
@@ -55,4 +60,6 @@ A failed download or validation never replaces an active dataset. The doctor can
 - Browser and the current Android WebView use IndexedDB-backed module storage; a native private-file/WorkManager backend remains a later adapter.
 - New modules become searchable after the user chooses `Подключить к поиску`, which reloads the local composition.
 - Original PDFs are not included yet; they remain optional source-assets artifacts where redistribution permits.
+- The local medication-instruction pack has seven text-layer PDFs; the selected oseltamivir PDF
+  requires OCR before ingestion.
 - A public mirror can change or disappear. CI therefore rebuilds and validates the complete module before publishing a new immutable version; an existing installed version remains unchanged.
