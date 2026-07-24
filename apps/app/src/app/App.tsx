@@ -72,7 +72,7 @@ function createLocalModelController(): LocalModelController {
   return new LocalModelController({
     remoteCatalogUrl,
     mirrorBaseUrl,
-    allowUpstreamFallback: environmentFlag('VITE_LOCAL_MODEL_ALLOW_UPSTREAM', false),
+    allowUpstreamFallback: environmentFlag('VITE_LOCAL_MODEL_ALLOW_UPSTREAM', true),
     allowAutomationDownloads: environmentFlag('VITE_LOCAL_MODEL_ALLOW_AUTOMATION_DOWNLOADS', false),
     defaultAutoLoad: environmentFlag('VITE_LOCAL_MODEL_AUTOLOAD', true),
   });

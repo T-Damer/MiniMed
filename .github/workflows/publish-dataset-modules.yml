@@ -188,8 +188,8 @@ jobs:
                   'kind': 'index',
                   'required': True,
                   'url': (
-                      'https://github.com/T-Damer/MiniMed/releases/download/'
-                      f'{dataset_tag}/{database_path.name}'
+                      'https://raw.githubusercontent.com/T-Damer/MiniMed/main/'
+                      f'apps/app/public/content/modules/{database_path.name}'
                   ),
                   'sha256': digest,
                   'sizeBytes': len(database_bytes),
