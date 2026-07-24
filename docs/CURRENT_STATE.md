@@ -14,7 +14,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - SolidJS browser app behind the UI-independent `MedicalCore` contract.
 - SQLite/FTS5 retrieval with SQLite WASM fallback and compatible native read-only storage adapters.
 - Deterministic portable embeddings and hybrid lexical/vector fusion.
-- Russian patient-case parsing, negative findings, query branches, aliases, and missing-field prompts.
+- Russian patient-case parsing, negative findings, query branches, word-boundary-safe medical
+  abbreviations, and missing-field prompts.
 - Search after 500 ms of inactivity with stale-response cancellation.
 - Results grouped by document with exact fragment, surrounding context, and full-document navigation.
 - Initial results limited to five documents with an accessible control to reveal the rest.
@@ -52,7 +53,7 @@ ordinary search response when validation fails.
 
 On 24 July 2026 the public pilot rebuilt successfully:
 
-- 15 documents, 58 sections, 58 chunks, and 18 clinical aliases;
+- 15 documents, 58 sections, 58 chunks, and 27 clinical aliases;
 - SQLite integrity `ok`;
 - zero foreign-key violations;
 - 58 deterministic embeddings.

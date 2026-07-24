@@ -65,6 +65,51 @@ sources:
       retrievedBy: automated-source-sync
 
 aliases:
+  - id: alias.full.oak
+    canonicalTerm: общий клинический анализ крови
+    alias: ОАК
+    category: investigation
+    weight: 1.0
+  - id: alias.full.oam
+    canonicalTerm: общий анализ мочи
+    alias: ОАМ
+    category: investigation
+    weight: 1.0
+  - id: alias.full.ultrasound
+    canonicalTerm: ультразвуковое исследование
+    alias: УЗИ
+    category: investigation
+    weight: 1.0
+  - id: alias.full.pcr
+    canonicalTerm: полимеразная цепная реакция
+    alias: ПЦР
+    category: investigation
+    weight: 1.0
+  - id: alias.full.crp-ru
+    canonicalTerm: С-реактивный белок
+    alias: СРБ
+    category: investigation
+    weight: 1.0
+  - id: alias.full.crp-en
+    canonicalTerm: С-реактивный белок
+    alias: CRP
+    category: investigation
+    weight: 1.0
+  - id: alias.full.respiratory-rate
+    canonicalTerm: частота дыхательных движений
+    alias: ЧДД
+    category: measurement
+    weight: 1.0
+  - id: alias.full.heart-rate
+    canonicalTerm: частота сердечных сокращений
+    alias: ЧСС
+    category: measurement
+    weight: 1.0
+  - id: alias.full.oxygen-saturation
+    canonicalTerm: периферическая капиллярная сатурация кислорода пульсоксиметрия
+    alias: SpO2
+    category: measurement
+    weight: 1.0
   - id: alias.full.pneumonia.community-acquired
     canonicalTerm: внебольничная пневмония у детей
     alias: пневмония у ребенка
