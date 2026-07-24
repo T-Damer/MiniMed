@@ -1,0 +1,50 @@
+name: Production download smoke
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/production-download-smoke.yml
+      - apps/app/e2e/production-download-smoke.spec.ts
+      - apps/app/public/content/**
+      - apps/app/src/app/App.tsx
+      - apps/app/src/features/models/**
+      - apps/app/src/features/modules/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-download-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Build the production application
+        env:
+          VITE_LOCAL_MODEL_AUTOLOAD: 'false'
+        run: bun run build:app
+      - name: Install Chromium
+        run: bunx playwright install chromium --with-deps
+      - name: Exercise real database and model delivery
+        env:
+          PRODUCTION_DOWNLOAD_SMOKE: '1'
+        run: bunx playwright test apps/app/e2e/production-download-smoke.spec.ts --project=chromium --workers=1
+      - name: Upload failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-download-smoke
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
