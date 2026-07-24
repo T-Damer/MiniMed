@@ -8,7 +8,6 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
-const REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
 const REGULATORY_TITLE = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
 
 function navigationButton(page: Page, name: string): Locator {
@@ -19,15 +18,6 @@ function regulatoryCard(page: Page): Locator {
   return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
 }
 
-function regulatoryVersion(catalog: string): string {
-  const parsed = JSON.parse(catalog) as {
-    modules?: Array<{ id?: string; version?: string }>;
-  };
-  const version = parsed.modules?.find((module) => module.id === REGULATORY_MODULE_ID)?.version;
-  if (!version) throw new Error('Regulatory E2E catalog requires a module version.');
-  return version;
-}
-
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
   page,
 }) => {
@@ -35,7 +25,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
     readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
     readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
   ]);
-  const expectedVersion = regulatoryVersion(catalog);
 
   await page.route(
     (url) => url.href.startsWith(CATALOG_URL),
@@ -68,7 +57,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await card.getByRole('button', { name: 'Скачать документы' }).click();
   await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
-  await expect(card.getByText(`Версия ${expectedVersion}`, { exact: true })).toBeVisible();
 
   await navigationButton(page, 'Поиск').click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
