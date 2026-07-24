@@ -35,7 +35,7 @@ export function StatusPanel(props: StatusPanelProps): JSX.Element {
         <span class="offline-stamp">
           CORE
           <br />
-          0.4.0-alpha.1
+          0.5.0-alpha.1
         </span>
       </header>
 

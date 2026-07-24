@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 24 July 2026
-> Repository version: `0.4.0-alpha.1`
+> Repository version: `0.5.0-alpha.1`
 > Active target: `0.5.0-alpha.1`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance

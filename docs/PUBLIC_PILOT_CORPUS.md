@@ -1,6 +1,6 @@
 # Public Russian clinical-recommendation pilot
 
-MiniMed `0.4.0-alpha.1` contains a small source-linked pilot corpus derived from seven Russian
+MiniMed `0.5.0-alpha.1` contains a small source-linked pilot corpus derived from seven Russian
 pediatric clinical recommendations plus eight medication-registry identity cards.
 
 Source metadata and public links were reviewed on 19 July 2026. The official Minzdrav document remains authoritative if a linked mirror or this pilot card differs from it.
