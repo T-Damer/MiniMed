@@ -11,7 +11,7 @@ function pneumoniaResult(page: Page): Locator {
 }
 
 function navigationButton(page: Page, name: string): Locator {
-  return page.locator('.app-nav-icons').getByRole('button', { name, exact: true });
+  return page.locator('.app-nav-icons').getByRole('button', { name });
 }
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
