@@ -110,6 +110,11 @@ aliases:
     alias: SpO2
     category: measurement
     weight: 1.0
+  - id: alias.full.body-mass-index
+    canonicalTerm: индекс массы тела
+    alias: ИМТ
+    category: measurement
+    weight: 1.0
   - id: alias.full.pneumonia.community-acquired
     canonicalTerm: внебольничная пневмония у детей
     alias: пневмония у ребенка
