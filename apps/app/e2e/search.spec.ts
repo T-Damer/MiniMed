@@ -101,9 +101,7 @@ test('filters the document library and opens a document with one click', async (
   await page.getByRole('tab', { name: 'На устройстве' }).click();
   await page.getByPlaceholder('Название, специальность или источник').fill('пневмония');
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Внебольничная пневмония у детей' }),
-  ).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Пневмония у детей' })).toBeVisible();
   await expect(page.getByLabel('Поиск в документе')).toBeVisible();
 });
 
