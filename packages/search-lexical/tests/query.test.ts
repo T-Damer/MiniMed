@@ -29,6 +29,20 @@ const aliases = [
     category: 'symptom',
     weight: 1,
   },
+  {
+    id: 'alias.cbc',
+    canonicalTerm: 'общий анализ крови',
+    alias: 'ОАК',
+    category: 'investigation',
+    weight: 1,
+  },
+  {
+    id: 'alias.blood-pressure',
+    canonicalTerm: 'артериальное давление',
+    alias: 'АД',
+    category: 'measurement',
+    weight: 1,
+  },
 ];
 
 describe('lexical query planning', () => {
@@ -42,6 +56,18 @@ describe('lexical query planning', () => {
     expect(plan.terms).toContain('тахипноэ');
     expect(plan.aliasMatches).toContain('часто дышит → тахипноэ');
     expect(plan.ftsQuery).toContain('"тахипноэ"*');
+  });
+
+  it('expands an uppercase abbreviation only at a word boundary', () => {
+    const expanded = analyzeClinicalQuery('ОАК без изменений', aliases);
+    const unrelated = buildLexicalQueryPlan('адаптация к нагрузке', aliases);
+
+    expect(expanded.aliasMatches).toContain('ОАК → общий анализ крови');
+    expect(expanded.terms).toEqual(expect.arrayContaining(['общий', 'анализ', 'крови']));
+    expect(expanded.analysis.facts).toContainEqual(
+      expect.objectContaining({ kind: 'investigation', normalizedValue: 'общий анализ крови' }),
+    );
+    expect(unrelated.aliasMatches).not.toContain('АД → артериальное давление');
   });
 
   it('offers non-blocking missing-field suggestions', () => {

@@ -1,4 +1,49 @@
 aliases:
+  - id: alias.pilot.oak
+    canonicalTerm: общий анализ крови
+    alias: ОАК
+    category: investigation
+    weight: 1.0
+  - id: alias.pilot.oam
+    canonicalTerm: общий анализ мочи
+    alias: ОАМ
+    category: investigation
+    weight: 1.0
+  - id: alias.pilot.ultrasound
+    canonicalTerm: ультразвуковое исследование
+    alias: УЗИ
+    category: investigation
+    weight: 1.0
+  - id: alias.pilot.pcr
+    canonicalTerm: полимеразная цепная реакция
+    alias: ПЦР
+    category: investigation
+    weight: 1.0
+  - id: alias.pilot.crp-ru
+    canonicalTerm: С-реактивный белок
+    alias: СРБ
+    category: investigation
+    weight: 1.0
+  - id: alias.pilot.crp-en
+    canonicalTerm: С-реактивный белок
+    alias: CRP
+    category: investigation
+    weight: 1.0
+  - id: alias.pilot.respiratory-rate
+    canonicalTerm: частота дыхательных движений
+    alias: ЧДД
+    category: measurement
+    weight: 1.0
+  - id: alias.pilot.heart-rate
+    canonicalTerm: частота сердечных сокращений
+    alias: ЧСС
+    category: measurement
+    weight: 1.0
+  - id: alias.pilot.oxygen-saturation
+    canonicalTerm: периферическая сатурация кислорода пульсоксиметрия
+    alias: SpO2
+    category: measurement
+    weight: 1.0
   - id: alias.pilot.fever-no-focus
     canonicalTerm: лихорадка без очага инфекции
     alias: температура без других симптомов

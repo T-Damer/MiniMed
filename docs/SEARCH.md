@@ -52,12 +52,16 @@ block the others.
 ## Normalization and aliases
 
 The lexical layer applies Unicode normalization, lowercase, `ё → е`, safe punctuation handling,
-light transparent Russian suffix normalization, and additive aliases. Example fixture aliases:
+light transparent Russian suffix normalization, and additive aliases. Abbreviations match only at
+word boundaries, so a short form such as `АД` cannot expand from the middle of an unrelated word.
+Example fixture aliases:
 
 ```text
 часто дышит -> тахипноэ
 температурит -> лихорадка
 оам -> общий анализ мочи
+оак -> общий анализ крови
+срб / CRP -> С-реактивный белок
 рези при мочеиспускании -> дизурия болезненное мочеиспускание
 аугментин -> амоксициллин клавулановая кислота
 справа внизу живота -> правая подвздошная область

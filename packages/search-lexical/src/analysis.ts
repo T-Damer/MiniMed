@@ -12,7 +12,7 @@ import type {
 } from '@localmed/contracts';
 import type { AliasRecord } from '@localmed/domain';
 
-import { expandAliases } from './aliases';
+import { expandAliases, findNormalizedPhraseIndex } from './aliases';
 import { classifyMedicalQueryIntent } from './intent';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from './normalize';
 import symptomExpressions from './symptom-expressions.ru.json';
@@ -405,7 +405,7 @@ function trimPrefixNegation(captured: string, aliases: readonly AliasRecord[]): 
   let boundary = captured.length;
   for (const alias of aliases) {
     const normalizedAlias = normalizeSurfaceText(alias.alias);
-    const index = normalizedCaptured.indexOf(normalizedAlias);
+    const index = findNormalizedPhraseIndex(normalizedCaptured, normalizedAlias);
     if (index <= 0) continue;
     const before = normalizedCaptured.slice(0, index).trimEnd();
     if (/(?:^|\s)(?:и|или|либо)$/u.test(before) || before.endsWith(',')) continue;
@@ -495,11 +495,12 @@ function extractAliasFacts(
   const normalizedQuery = normalizeSurfaceText(query);
   for (const alias of aliases) {
     const normalizedAlias = normalizeSurfaceText(alias.alias);
-    const index = normalizedQuery.indexOf(normalizedAlias);
+    const index = findNormalizedPhraseIndex(normalizedQuery, normalizedAlias);
     if (index < 0) continue;
     const kindByCategory: Readonly<Record<string, QueryFactKind>> = {
       symptom: 'symptom',
       investigation: 'investigation',
+      measurement: 'measurement',
       medication: 'medication',
       location: 'location',
       epidemiology: 'epidemiology',
@@ -879,7 +880,7 @@ function buildBranches(
   const canonicalTerms = termsWithStems(
     expansion.matchedAliases
       .filter((alias) => {
-        const index = normalizedQuery.indexOf(normalizeSurfaceText(alias.alias));
+        const index = findNormalizedPhraseIndex(normalizedQuery, normalizeSurfaceText(alias.alias));
         if (index < 0) return false;
         const aliasRange = range(index, index + normalizeSurfaceText(alias.alias).length);
         return !negativeRanges.some((negativeRange) => overlaps(negativeRange, aliasRange));
