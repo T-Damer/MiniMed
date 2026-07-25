@@ -1,9 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
-
 import { MultiMedicalStore } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
+import { describe, expect, it } from 'vitest';
 
 import { createMedicalCore } from '../src/create-medical-core';
 import { createInMemoryMedicalCore } from '../src/in-memory';

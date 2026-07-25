@@ -12,7 +12,9 @@ describe('browser-i18n', () => {
   it('loads Russian specialty messages by default', () => {
     expect(browserI18n.getMessage('specialty_pediatrics')).toBe('Педиатрия');
     expect(browserI18n.getMessage('specialty_pulmonology')).toBe('Пульмонология');
-    expect(browserI18n.getMessage('specialty_clinical_pharmacology')).toBe('Клиническая фармакология');
+    expect(browserI18n.getMessage('specialty_clinical_pharmacology')).toBe(
+      'Клиническая фармакология',
+    );
   });
 
   it('applies numeric substitutions in WebExtensions style', () => {

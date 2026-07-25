@@ -34,8 +34,7 @@
 .page-surface,
 .model-status-view {
   min-height: calc(100dvh - 52px - var(--safe-top) - var(--safe-bottom));
-  padding: clamp(14px, 2vw, 24px) clamp(10px, 2vw, 24px)
-    calc(24px + var(--safe-bottom));
+  padding: clamp(14px, 2vw, 24px) clamp(10px, 2vw, 24px) calc(24px + var(--safe-bottom));
 }
 
 .subpage-heading {

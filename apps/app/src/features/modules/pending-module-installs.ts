@@ -106,7 +106,10 @@ export function recoverPendingModuleInstalls(
   installedModuleIds: ReadonlySet<string>,
 ): void {
   for (const pending of listPendingModuleInstalls()) {
-    if (installedModuleIds.has(pending.moduleId) && isInstalledVersionActive(pending.moduleId, pending.version)) {
+    if (
+      installedModuleIds.has(pending.moduleId) &&
+      isInstalledVersionActive(pending.moduleId, pending.version)
+    ) {
       dequeuePendingModuleInstall(pending.moduleId, pending.version);
       continue;
     }
