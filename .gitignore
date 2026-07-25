@@ -26,6 +26,7 @@ data/synced/*
 !data/synced/.gitkeep
 data/build/*
 !data/build/.gitkeep
+release-clinical/
 !data/build/core-demo.db
 !data/build/core-demo-report.json
 !data/build/search-benchmark.json
