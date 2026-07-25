@@ -28,11 +28,14 @@ jobs:
           enable-cache: true
       - run: bun install --frozen-lockfile
       - run: uv sync --project tools/ingest --all-groups --locked
-      - name: Apply pinned Biome and Ruff formatting
+      - name: Apply pinned safe formatter fixes
+        shell: bash
         run: |
+          set +e
           bun run check --write
           uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
           uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
+          exit 0
       - name: Publish non-workflow formatting fixes
         shell: bash
         run: |
