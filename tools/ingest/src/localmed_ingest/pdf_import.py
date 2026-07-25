@@ -5,6 +5,7 @@ import json
 import math
 import re
 from collections import defaultdict
+from contextlib import suppress
 from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
@@ -215,7 +216,9 @@ def _extract_raw_blocks(page: Any, page_index: int, options: ExtractionOptions) 
     return _extract_raw_blocks_from_payload(payload, page_index, options)
 
 
-def _extract_raw_blocks_ocr(page: Any, page_index: int, options: ExtractionOptions) -> list[RawBlock]:
+def _extract_raw_blocks_ocr(
+    page: Any, page_index: int, options: ExtractionOptions
+) -> list[RawBlock]:
     textpage = page.get_textpage_ocr(
         language=options.ocr_language,
         dpi=options.ocr_dpi,
@@ -444,13 +447,14 @@ def _build_diagnostics(
     if removed_repeated:
         warnings.append(f"Removed or marked {removed_repeated} repeated header/footer blocks.")
     if text_extraction_mode == "ocr":
-        warnings.append("Used OCR fallback because the PDF text layer had broken Cyrillic encoding.")
+        warnings.append(
+            "Used OCR fallback because the PDF text layer had broken Cyrillic encoding."
+        )
     elif is_likely_garbled_russian_pdf_text(included_text):
         reasons.append(
             "PDF text layer appears to use broken Cyrillic font encoding; "
             "install Tesseract with rus+eng data or provide OCR text input."
         )
-        score -= 0.45
 
     page_count = len(pages)
     low_ratio = len(low_text_pages) / page_count if page_count else 1.0
@@ -462,6 +466,8 @@ def _build_diagnostics(
         score -= 0.15
     if character_count < 500:
         score -= 0.25
+    if text_extraction_mode != "ocr" and is_likely_garbled_russian_pdf_text(included_text):
+        score -= 0.45
     score = max(0.0, min(1.0, score))
 
     return ExtractionDiagnostics(
@@ -515,12 +521,10 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             page = document.load_page(page_index)
             page_dimensions[page_index + 1] = (float(page.rect.width), float(page.rect.height))
             raw_blocks.extend(_extract_raw_blocks(page, page_index, configured))
-        try:
+        with suppress(RuntimeError):
             raw_blocks, text_extraction_mode = _maybe_extract_with_ocr(
                 document, raw_blocks, configured
             )
-        except RuntimeError:
-            pass
         body_font_size = _weighted_body_font(raw_blocks, configured)
         pages, removed_repeated = _classify_blocks(raw_blocks, body_font_size, configured)
         existing_pages = {page.page for page in pages}
