@@ -1,4 +1,4 @@
-name: Deploy landing to GitHub Pages
+name: Deploy landing and browser app to GitHub Pages
 
 on:
   workflow_dispatch:
@@ -6,6 +6,10 @@ on:
     branches: [main]
     paths:
       - "apps/landing/**"
+      - "apps/app/**"
+      - "packages/**"
+      - "package.json"
+      - "bun.lock"
       - ".github/workflows/landing-pages.yml"
 
 permissions:
@@ -27,8 +31,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
       - run: bun install --frozen-lockfile
-      - run: bun run build:landing
+      - name: Build landing and browser application
+        run: |
+          bun run build:landing
+          bun run build:app
+          mkdir -p apps/landing/dist/app
+          cp -R apps/app/dist/. apps/landing/dist/app/
+          touch apps/landing/dist/.nojekyll
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/landing/dist
