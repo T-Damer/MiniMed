@@ -111,15 +111,13 @@ def lint_content_pack(pack: ContentPack) -> list[str]:
                     errors.append(f"{chunk.id}: empty normalized text")
                 if expects_russian:
                     document_text.append(chunk.original_text)
-                    garbled = lint_garbled_russian_text(
-                        chunk.original_text,
-                        context=f"{document.id}/{chunk.id}",
-                    )
-                    if garbled:
-                        errors.append(garbled)
         if expects_russian:
+            combined_text = "\n".join(document_text)
+            garbled = lint_garbled_russian_text(combined_text, context=document.id)
+            if garbled:
+                errors.append(garbled)
             english_dominant = lint_english_dominant_russian_text(
-                "\n".join(document_text),
+                combined_text,
                 context=document.id,
             )
             if english_dominant:
@@ -141,6 +139,26 @@ def collect_content_warnings(pack: ContentPack) -> list[str]:
         extraction = document.metadata.get("extraction")
         if isinstance(extraction, dict) and extraction.get("requiresReview") is True:
             warnings.append(f"{document.id}: extraction diagnostics require spot review")
+        if expects_russian_clinical_text(
+            document.title,
+            source_type=document.source_type,
+        ):
+            suspicious_chunk_ids = [
+                chunk.id
+                for chunk in chunks
+                if lint_garbled_russian_text(
+                    chunk.original_text,
+                    context=f"{document.id}/{chunk.id}",
+                )
+                is not None
+            ]
+            if suspicious_chunk_ids:
+                visible_ids = ", ".join(suspicious_chunk_ids[:8])
+                suffix = "" if len(suspicious_chunk_ids) <= 8 else ", …"
+                warnings.append(
+                    f"{document.id}: {len(suspicious_chunk_ids)} isolated chunks look garbled and "
+                    f"require spot review ({visible_ids}{suffix})"
+                )
     return warnings
 
 
