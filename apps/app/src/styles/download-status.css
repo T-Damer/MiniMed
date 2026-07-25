@@ -1,0 +1,126 @@
+.content-download-status {
+  padding: 12px 14px;
+  transform: none;
+}
+
+.content-download-status-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.content-download-status-heading h3 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.content-download-status-heading p {
+  margin: 3px 0 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.content-download-status-heading > span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #f7efdc;
+  background: #555d4c;
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.content-download-status ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.content-download-status li {
+  display: grid;
+  gap: 6px;
+  padding: 9px 10px;
+  border: 1px solid rgb(70 58 35 / 18%);
+  background: rgb(255 251 239 / 42%);
+}
+
+.content-download-status li.failed {
+  border-left: 4px solid #985443;
+  background: rgb(249 231 219 / 45%);
+}
+
+.content-download-status-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.content-download-status-row > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.content-download-status-row strong {
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content-download-status-row small,
+.content-download-status-row > span {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.content-download-status-row > span {
+  flex: 0 0 auto;
+}
+
+.content-download-status-progress {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(70 58 35 / 12%);
+}
+
+.content-download-status-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #53715d, #3f594a);
+}
+
+.content-download-status li > small {
+  color: #7e4c3d;
+  line-height: 1.35;
+}
+
+.content-download-status li > button {
+  justify-self: start;
+  padding: 6px 9px;
+  border: 1px solid #5e4938;
+  color: #f8efdc;
+  background: #5e4938;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
