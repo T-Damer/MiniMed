@@ -48,6 +48,22 @@
     "category": "drug-registry"
   },
   {
+    "id": "drug.ceftriaxone.pediatric-pneumonia-workflow",
+    "query": "Цефтриаксон ребенку 3 лет вес 20 кг при пневмонии как второй антибиотик",
+    "expectedDocumentIds": ["drug.rf.ceftriaxone.injection-1g"],
+    "expectedVersionId": "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07",
+    "expectedSourceType": "official_registry_summary",
+    "expectedRegistryRecordId": "1000135207",
+    "expectedRegistrationNumber": "ЛП-№(005496)-(РГ-RU)",
+    "expectedContentMode": "source_linked_summary",
+    "expectedAuthorityTier": "official-registry",
+    "expectedSectionTypes": ["other"],
+    "expectedAnchorPrefixes": [
+      "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07/регистрационная-запись"
+    ],
+    "category": "drug-registry"
+  },
+  {
     "id": "drug.amoxicillin-tablets.registry",
     "query": "Амоксициллин таблетки 500 мг регистрационное удостоверение",
     "expectedDocumentIds": ["drug.rf.amoxicillin.tablets-500"],
