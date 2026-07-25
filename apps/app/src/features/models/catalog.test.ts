@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseLocalModelCatalog } from './catalog';
-import rawCatalog from './catalog.preview.json';
+import { parseLocalModelCatalog } from '@/features/models/catalog';
+import rawCatalog from '@/features/models/catalog.preview.json';
 
 describe('local model catalog', () => {
   it('loads the six curated startup candidates', () => {

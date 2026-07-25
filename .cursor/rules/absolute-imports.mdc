@@ -1,0 +1,51 @@
+---
+description: Use @/ absolute import paths in apps/app TypeScript
+globs: apps/app/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Absolute imports via `@/`
+
+In `apps/app`, every local import MUST use the `@/` alias (mapped to `src/` in `tsconfig.json` and `vite.config.ts`).
+
+## Required
+
+- Use `@/components/...`, `@/features/...`, `@/state/...`, `@/composition/...`, etc.
+- Convert parent-relative paths (`../`, `../../`) to `@/` paths.
+- Convert same-directory paths (`./`) to `@/` paths as well — no `./` imports.
+
+## Forbidden
+
+```typescript
+// ❌ BAD — parent-relative
+import { App } from '../app/App';
+import { downloadCoordinator } from '../network/download-coordinator';
+
+// ❌ BAD — same-directory relative
+import { LocalModelController } from './controller';
+export * from './types';
+```
+
+## Allowed
+
+```typescript
+// ✅ GOOD — always @/ from src root
+import { App } from '@/app/App';
+import { downloadCoordinator } from '@/features/network/download-coordinator';
+import { LocalModelController } from '@/features/models/controller';
+export * from '@/features/models/types';
+```
+
+## External packages
+
+Package imports (`@localmed/*`, `solid-js`, etc.) are unchanged. Only paths under `apps/app/src` use `@/`.
+
+## Alias configuration
+
+- `apps/app/tsconfig.json` — `"@/*": ["apps/app/src/*"]`
+- `apps/app/vite.config.ts` — `resolve.alias['@']` → `./src`
+- `vitest.config.ts` — same `@` → `apps/app/src` alias for unit tests
+
+## When editing
+
+After changing imports, run `bunx biome check --write` on touched files to normalize import order.

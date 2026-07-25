@@ -53,6 +53,18 @@ export function toMedicalSection(
   };
 }
 
+export function groupChunksBySection(
+  chunks: readonly ChunkRecord[],
+): ReadonlyMap<string, readonly ChunkRecord[]> {
+  const grouped = new Map<string, ChunkRecord[]>();
+  for (const chunk of chunks) {
+    const sectionChunks = grouped.get(chunk.sectionId);
+    if (sectionChunks) sectionChunks.push(chunk);
+    else grouped.set(chunk.sectionId, [chunk]);
+  }
+  return grouped;
+}
+
 export function toMedicalDocument(
   record: DocumentRecord,
   sections: readonly MedicalSection[],

@@ -13,6 +13,9 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 import { AppGlyph } from '@/components/AppGlyph';
 import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
 import { HighlightedText } from '@/components/HighlightedText';
+import { SearchField } from '@/components/SearchField';
+import { resolveReadableDocumentId } from '@/features/library/document-display';
+import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '@/state/search-history';
 
@@ -38,6 +41,40 @@ const CATEGORY_LABELS: Readonly<Record<SearchResultCategory, string>> = {
   'follow-up': 'Наблюдение',
   other: 'Прочее',
 };
+
+const CATEGORY_PATH_ALIASES: Readonly<Record<SearchResultCategory, readonly string[]>> = {
+  overview: ['обзор', 'определение', 'классификация', 'введение'],
+  'clinical-picture': ['клиника', 'клиническая картина', 'клинические проявления'],
+  'differential-diagnosis': ['дифференциальный', 'дифференциальная диагностика'],
+  diagnostics: ['диагностика', 'обследование'],
+  treatment: ['лечение', 'терапия'],
+  routing: ['маршрутизация', 'госпитализация', 'направление'],
+  'follow-up': ['наблюдение', 'реабилитация', 'профилактика', 'диспансеризация'],
+  other: [],
+};
+
+function normalizePathSegment(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function isCategoryPathSegment(category: SearchResultCategory, segment: string): boolean {
+  const normalized = normalizePathSegment(segment);
+  const label = normalizePathSegment(CATEGORY_LABELS[category]);
+  if (normalized === label || normalized.includes(label) || label.includes(normalized)) {
+    return true;
+  }
+  return CATEGORY_PATH_ALIASES[category].some(
+    (alias) => normalized === alias || normalized.includes(alias) || alias.includes(normalized),
+  );
+}
+
+function supplementalSectionPath(
+  category: SearchResultCategory,
+  sectionPath: readonly string[],
+): string | null {
+  const extra = sectionPath.filter((segment) => !isCategoryPathSegment(category, segment));
+  return extra.length > 0 ? extra.join(' / ') : null;
+}
 
 const SEARCH_MODE_LABELS: Readonly<Record<SearchResponse['modeUsed'], string>> = {
   lexical: 'FTS5',
@@ -135,10 +172,23 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     });
   };
 
-  onMount(() => window.addEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch));
+  const handleContentChanged = (): void => {
+    setContext(undefined);
+    setContextExpanded(false);
+    setReaderQuery('');
+    setError(undefined);
+    const trimmed = query().trim();
+    if (trimmed) void runSearch(trimmed, false);
+  };
+
+  onMount(() => {
+    window.addEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
+    window.addEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
+  });
 
   onCleanup(() => {
     window.removeEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
+    window.removeEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
     if (analysisTimer) clearTimeout(analysisTimer);
     if (searchTimer) clearTimeout(searchTimer);
     searchGeneration += 1;
@@ -221,9 +271,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setError(undefined);
     setContextExpanded(false);
     setReaderQuery('');
-    const resolved = await props.core.getContext(result.chunkId, 3);
+    const resolved = await props.core.getSearchResultContext(result, 3);
     setContextLoading(false);
     if (!resolved.ok) {
+      const documents = await props.core.listDocuments();
+      const documentId =
+        documents.ok && documents.value.length > 0
+          ? resolveReadableDocumentId(
+              result.documentId,
+              new Set(documents.value.map((document) => document.id)),
+            )
+          : result.documentId;
+      openDocumentInArchive(documentId, result.anchor);
       setError(resolved.error.message);
       return;
     }
@@ -518,6 +577,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         <For each={visibleResults()}>
                           {(result) => {
                             const visual = CATEGORY_VISUALS[result.category];
+                            const pathSuffix = supplementalSectionPath(
+                              result.category,
+                              result.sectionPath,
+                            );
                             return (
                               <article
                                 class="result-card"
@@ -536,12 +599,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                     >
                                       <ClinicalGlyph name={visual.icon} />
                                     </span>
-                                    <span class={`category-stamp category-${result.category}`}>
+                                    <span class={`category-stamp tone-${visual.tone}`}>
                                       {CATEGORY_LABELS[result.category]}
                                     </span>
-                                    <span class="result-path">
-                                      {result.sectionPath.join(' / ')}
-                                    </span>
+                                    <Show when={pathSuffix}>
+                                      <span class="result-path">{pathSuffix}</span>
+                                    </Show>
                                   </span>
                                   <p>
                                     <HighlightedText
@@ -590,11 +653,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             <>
               <div class="reader-toolbar">
                 <strong>{resolved().document.shortTitle ?? resolved().document.title}</strong>
-                <input
+                <SearchField
+                  tone="inverse"
+                  hideLabel
+                  label="Поиск в открытом фрагменте"
                   value={readerQuery()}
-                  onInput={(event) => setReaderQuery(event.currentTarget.value)}
+                  onInput={setReaderQuery}
                   placeholder="Поиск в открытом фрагменте"
-                  aria-label="Поиск в открытом источнике"
                 />
                 <button
                   class="reader-close"

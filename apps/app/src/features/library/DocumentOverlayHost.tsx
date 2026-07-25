@@ -1,11 +1,13 @@
-import type { MedicalCore, MedicalDocument } from '@localmed/contracts';
-import { createSignal, type JSX, onCleanup, onMount } from 'solid-js';
-
-import { OPEN_DOCUMENT_EVENT, type OpenDocumentRequest } from '../../state/document-navigation';
-import { DocumentReaderDialog } from './DocumentReaderDialog';
+import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
+import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { OverlayDialog } from '@/components/OverlayDialog';
+import { DocumentReaderDialog } from '@/features/library/DocumentReaderDialog';
+import { resolveReadableDocumentId } from '@/features/library/document-display';
+import { OPEN_DOCUMENT_EVENT, type OpenDocumentRequest } from '@/state/document-navigation';
 
 interface DocumentOverlayHostProps {
-  readonly core: MedicalCore;
+  readonly getCore: () => MedicalCore | undefined;
+  readonly reconnectContent?: () => Promise<void>;
 }
 
 function parseRequest(value: unknown): OpenDocumentRequest | null {
@@ -16,22 +18,99 @@ function parseRequest(value: unknown): OpenDocumentRequest | null {
   return {
     documentId: candidate['documentId'],
     anchor: typeof candidate['anchor'] === 'string' ? candidate['anchor'] : null,
+    preferSummary: candidate['preferSummary'] === true,
   };
+}
+
+function userFacingOpenError(message: string): string {
+  if (message.includes('Document not found')) {
+    return 'Документ пока не подключён к поиску. Подождите завершения установки или нажмите «Повторить» в разделе скачивания.';
+  }
+  return message;
 }
 
 export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Element {
   const [selectedDocument, setSelectedDocument] = createSignal<MedicalDocument>();
+  const [availableDocuments, setAvailableDocuments] = createSignal<
+    readonly MedicalDocumentSummary[]
+  >([]);
   const [anchor, setAnchor] = createSignal<string | null>(null);
+  const [loading, setLoading] = createSignal(false);
+  const [openError, setOpenError] = createSignal<string | null>(null);
+
+  const listDocuments = async (core: MedicalCore): Promise<readonly MedicalDocumentSummary[]> => {
+    const list = await core.listDocuments();
+    return list.ok ? list.value : [];
+  };
+
+  const resolveDocumentId = async (
+    core: MedicalCore,
+    documentId: string,
+    preferSummary: boolean,
+  ): Promise<string> => {
+    const documents = await listDocuments(core);
+    setAvailableDocuments(documents);
+    const availableIds = new Set(documents.map((document) => document.id));
+    if (preferSummary) return documentId;
+    return resolveReadableDocumentId(documentId, availableIds);
+  };
+
+  const loadDocument = async (
+    core: MedicalCore,
+    request: OpenDocumentRequest,
+  ): Promise<MedicalDocument | null> => {
+    const documentId = await resolveDocumentId(
+      core,
+      request.documentId,
+      request.preferSummary === true,
+    );
+    const result = await core.getDocument(documentId);
+    if (result.ok) return result.value;
+    if (!props.reconnectContent) return null;
+    await props.reconnectContent();
+    const refreshedCore = props.getCore();
+    if (!refreshedCore) return null;
+    const refreshedId = await resolveDocumentId(
+      refreshedCore,
+      request.documentId,
+      request.preferSummary === true,
+    );
+    const retry = await refreshedCore.getDocument(refreshedId);
+    return retry.ok ? retry.value : null;
+  };
 
   const open = async (request: OpenDocumentRequest): Promise<void> => {
-    const result = await props.core.getDocument(request.documentId);
-    if (!result.ok) return;
-    setAnchor(request.anchor ?? null);
-    setSelectedDocument(result.value);
-    if (request.anchor) {
-      requestAnimationFrame(() => {
-        window.document.getElementById(request.anchor ?? '')?.scrollIntoView({ block: 'center' });
-      });
+    const core = props.getCore();
+    if (!core) {
+      setOpenError('Локальный поиск ещё не готов.');
+      return;
+    }
+    setOpenError(null);
+    setLoading(true);
+    setSelectedDocument(undefined);
+    try {
+      const document = await loadDocument(core, request);
+      if (!document) {
+        const latestCore = props.getCore();
+        const failure = latestCore
+          ? await latestCore.getDocument(request.documentId)
+          : { ok: false as const, error: { message: 'Локальный поиск ещё не готов.' } };
+        setOpenError(
+          userFacingOpenError(failure.ok ? 'Не удалось открыть документ.' : failure.error.message),
+        );
+        return;
+      }
+      setAnchor(request.anchor ?? null);
+      setSelectedDocument(document);
+      if (request.anchor) {
+        requestAnimationFrame(() => {
+          window.document.getElementById(request.anchor ?? '')?.scrollIntoView({ block: 'center' });
+        });
+      }
+    } catch (cause) {
+      setOpenError(cause instanceof Error ? cause.message : 'Не удалось открыть документ.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,13 +123,46 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
   onCleanup(() => window.removeEventListener(OPEN_DOCUMENT_EVENT, handleOpen));
 
   return (
-    <DocumentReaderDialog
-      document={selectedDocument()}
-      initialAnchor={anchor()}
-      onClose={() => {
-        setSelectedDocument(undefined);
-        setAnchor(null);
-      }}
-    />
+    <>
+      <Show when={loading()}>
+        <OverlayDialog
+          open
+          title="Открываем документ"
+          subtitle="Загружаем полный текст из локальной базы"
+          class="document-overlay-loading"
+          onClose={() => {
+            setLoading(false);
+            setOpenError('Открытие документа отменено.');
+          }}
+        >
+          <p class="document-overlay-loading-note">
+            Это может занять несколько секунд для больших КР.
+          </p>
+        </OverlayDialog>
+      </Show>
+
+      <Show when={openError()}>
+        {(message) => (
+          <OverlayDialog
+            open
+            title="Не удалось открыть документ"
+            class="document-overlay-error"
+            onClose={() => setOpenError(null)}
+          >
+            <p>{message()}</p>
+          </OverlayDialog>
+        )}
+      </Show>
+
+      <DocumentReaderDialog
+        document={selectedDocument()}
+        availableDocuments={availableDocuments()}
+        initialAnchor={anchor()}
+        onClose={() => {
+          setSelectedDocument(undefined);
+          setAnchor(null);
+        }}
+      />
+    </>
   );
 }

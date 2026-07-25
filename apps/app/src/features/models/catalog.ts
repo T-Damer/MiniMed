@@ -1,4 +1,4 @@
-import bundledCatalog from './catalog.preview.json';
+import bundledCatalog from '@/features/models/catalog.preview.json';
 import type {
   LocalModelArtifact,
   LocalModelCatalog,
@@ -8,7 +8,7 @@ import type {
   LocalModelPlatform,
   LocalModelRuntimeKind,
   LocalModelTier,
-} from './types';
+} from '@/features/models/types';
 
 const CACHE_KEY = 'minimed.local-model-catalog.preview.v1';
 const RUNTIMES = new Set<LocalModelRuntimeKind>(['wllama-web', 'litert-native', 'cactus-native']);

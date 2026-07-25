@@ -1,7 +1,7 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import type { LocalModelController } from './controller';
-import type { LocalModelState } from './types';
+import type { LocalModelController } from '@/features/models/controller';
+import type { LocalModelState } from '@/features/models/types';
 
 interface ModelToastProps {
   readonly controller: LocalModelController;

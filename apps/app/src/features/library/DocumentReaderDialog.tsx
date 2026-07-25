@@ -1,16 +1,23 @@
-import type { MedicalDocument } from '@localmed/contracts';
+import type { MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
-
-import { OverlayDialog } from '../../components/OverlayDialog';
+import { OverlayDialog } from '@/components/OverlayDialog';
+import { SearchField } from '@/components/SearchField';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
+  isFullTextDocumentId,
   orderDocumentSections,
   sourceTypeReaderLabel,
-} from './document-display';
+} from '@/features/library/document-display';
+import {
+  buildMedicationLinkPhrases,
+  segmentTextWithMedicationLinks,
+} from '@/features/library/document-medication-links';
+import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface DocumentReaderDialogProps {
   readonly document: MedicalDocument | undefined;
+  readonly availableDocuments?: readonly MedicalDocumentSummary[];
   readonly initialAnchor?: string | null;
   readonly onClose: () => void;
 }
@@ -29,11 +36,29 @@ function statusLabel(status: string): string {
 export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Element {
   const [query, setQuery] = createSignal('');
 
+  const availableIds = createMemo(
+    () => new Set((props.availableDocuments ?? []).map((document) => document.id)),
+  );
+  const medicationLinks = createMemo(() =>
+    buildMedicationLinkPhrases(props.availableDocuments ?? []),
+  );
+  const fullTextDocumentId = createMemo(() => {
+    const document = props.document;
+    if (!document || isFullTextDocumentId(document.id)) return null;
+    const fullId = `${document.id}.full`;
+    return availableIds().has(fullId) ? fullId : null;
+  });
+  const showMedicationLinks = createMemo(() =>
+    Boolean(props.document && isFullTextDocumentId(props.document.id)),
+  );
+
   const matchingSections = createMemo(() => {
     const document = props.document;
     if (!document) return [];
     const value = normalize(query());
-    const ordered = orderDocumentSections(document.sections, document.sourceType);
+    const ordered = orderDocumentSections(document.sections, document.sourceType).filter(
+      (section) => section.chunks.length > 0,
+    );
     if (!value) return ordered;
     return ordered.filter((section) =>
       normalize(
@@ -57,6 +82,15 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
     props.onClose();
   };
 
+  const openFullText = (): void => {
+    const document = props.document;
+    if (!document) return;
+    const fullId = fullTextDocumentId();
+    if (!fullId) return;
+    props.onClose();
+    openDocumentOverlay(fullId);
+  };
+
   return (
     <OverlayDialog
       open={Boolean(props.document)}
@@ -64,7 +98,9 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
       {...(props.document && displayDocumentSubtitle(props.document)
         ? { subtitle: displayDocumentSubtitle(props.document) as string }
         : {
-            subtitle: 'Полный текст открывается поверх текущего рабочего экрана',
+            subtitle: isFullTextDocumentId(props.document?.id ?? '')
+              ? 'Полный текст клинической рекомендации'
+              : 'Краткая выжимка по источнику',
           })}
       class="document-overlay"
       onClose={close}
@@ -73,15 +109,13 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
         {(documentValue) => (
           <div class="document-overlay-layout">
             <aside class="document-overlay-outline">
-              <label class="document-overlay-search">
-                <span>Поиск в документе</span>
-                <input
-                  value={query()}
-                  onInput={(event) => setQuery(event.currentTarget.value)}
-                  placeholder="Слово или фраза"
-                  autocomplete="off"
-                />
-              </label>
+              <SearchField
+                class="document-overlay-search-slot"
+                label="Поиск в документе"
+                value={query()}
+                onInput={setQuery}
+                placeholder="Слово или фраза"
+              />
 
               <details open>
                 <summary>Оглавление</summary>
@@ -96,6 +130,12 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                   </For>
                 </nav>
               </details>
+
+              <Show when={fullTextDocumentId()}>
+                <button type="button" class="document-overlay-full-text" onClick={openFullText}>
+                  Открыть полный текст
+                </button>
+              </Show>
 
               <details class="doctor-technical-details">
                 <summary>Сведения об источнике</summary>
@@ -125,6 +165,15 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                 <Show when={displayDocumentSubtitle(documentValue())}>
                   {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
                 </Show>
+                <Show when={fullTextDocumentId()}>
+                  <button
+                    type="button"
+                    class="document-overlay-full-text-inline"
+                    onClick={openFullText}
+                  >
+                    Полный текст рекомендации
+                  </button>
+                </Show>
               </header>
 
               <For each={matchingSections()}>
@@ -140,7 +189,33 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                             'document-initial-anchor': props.initialAnchor === chunk.anchor,
                           }}
                         >
-                          {chunk.originalText}
+                          <Show when={showMedicationLinks()} fallback={chunk.originalText}>
+                            <For
+                              each={segmentTextWithMedicationLinks(
+                                chunk.originalText,
+                                medicationLinks(),
+                              )}
+                            >
+                              {(segment) =>
+                                segment.kind === 'text' ? (
+                                  segment.value
+                                ) : (
+                                  <button
+                                    type="button"
+                                    class="document-inline-link"
+                                    onClick={() => {
+                                      props.onClose();
+                                      openDocumentOverlay(segment.documentId, null, {
+                                        preferSummary: true,
+                                      });
+                                    }}
+                                  >
+                                    {segment.value}
+                                  </button>
+                                )
+                              }
+                            </For>
+                          </Show>
                         </p>
                       )}
                     </For>

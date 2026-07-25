@@ -155,6 +155,9 @@ class ExtractionOptions(CamelModel):
     max_heading_characters: int = Field(default=180, ge=20)
     remove_repeated_marginalia: bool = True
     join_hyphenated_lines: bool = True
+    ocr_fallback: bool = True
+    ocr_language: str = "rus+eng"
+    ocr_dpi: int = Field(default=200, ge=72, le=600)
 
     @model_validator(mode="after")
     def validate_margins(self) -> ExtractionOptions:
@@ -253,6 +256,7 @@ class ExtractionDiagnostics(CamelModel):
     heading_candidates: int = Field(ge=0)
     table_candidates: int = Field(ge=0)
     body_font_size: float | None = None
+    text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer"
     quality_score: float = Field(ge=0, le=1)
     requires_review: bool
     review_reasons: list[str] = Field(default_factory=list)

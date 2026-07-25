@@ -1,7 +1,7 @@
-import { BrowserWllamaRuntime } from './browser-runtime';
-import { loadLocalModelCatalog, parseLocalModelCatalog } from './catalog';
-import bundledCatalog from './catalog.preview.json';
-import { buildLocalModelLoadPlan, selectLocalModel } from './selection';
+import { BrowserWllamaRuntime } from '@/features/models/browser-runtime';
+import { loadLocalModelCatalog, parseLocalModelCatalog } from '@/features/models/catalog';
+import bundledCatalog from '@/features/models/catalog.preview.json';
+import { buildLocalModelLoadPlan, selectLocalModel } from '@/features/models/selection';
 import type {
   LocalModelBenchmark,
   LocalModelCatalog,
@@ -15,7 +15,8 @@ import type {
   LocalModelState,
   LocalModelStructuredRequest,
   LocalModelStructuredResponse,
-} from './types';
+} from '@/features/models/types';
+import { downloadCoordinator } from '@/features/network/download-coordinator';
 
 const PREFERENCE_KEY = 'minimed.local-model-preference.v1';
 const BENCHMARK_KEY = 'minimed.local-model-benchmarks.v1';
@@ -300,6 +301,7 @@ export class LocalModelController {
   private catalog: LocalModelCatalog | null = null;
   private preference: LocalModelPreference;
   private session: LocalModelSession | null = null;
+  private activeRuntime: LocalModelRuntime | null = null;
   private runGeneration = 0;
 
   public constructor(private readonly options: LocalModelControllerOptions) {
@@ -410,6 +412,8 @@ export class LocalModelController {
       return;
     }
     const loadPlan = buildLocalModelLoadPlan(selectionInput);
+    await downloadCoordinator.waitForContentIdleWhile(() => generation === this.runGeneration);
+    if (generation !== this.runGeneration) return;
     await this.loadFirstWorking(loadPlan, runtimes, profile, generation);
   }
 
@@ -422,9 +426,12 @@ export class LocalModelController {
     let finalError: string | null = null;
     for (const candidate of candidates) {
       if (generation !== this.runGeneration) return;
+      await downloadCoordinator.waitForContentIdleWhile(() => generation === this.runGeneration);
+      if (generation !== this.runGeneration) return;
       const runtime = runtimes.find((item) => item.kind === candidate.artifact.runtime);
       if (!runtime) continue;
       const loadStartedAt = performance.now();
+      this.activeRuntime = runtime;
       this.update({
         phase: 'downloading',
         message: `Загружаем ${candidate.model.name}…`,
@@ -466,6 +473,10 @@ export class LocalModelController {
             progress: null,
           });
           const measured = await session.benchmark();
+          if (generation !== this.runGeneration) {
+            await session.unload();
+            return;
+          }
           benchmark = {
             ...measured,
             loadMs,
@@ -493,11 +504,15 @@ export class LocalModelController {
         });
         return;
       } catch (cause) {
+        if (generation !== this.runGeneration) return;
         finalError =
           cause instanceof Error ? cause.message : `Не удалось загрузить ${candidate.model.name}.`;
         recordFailure(candidate.model.id, finalError);
+      } finally {
+        if (this.activeRuntime === runtime) this.activeRuntime = null;
       }
     }
+    if (generation !== this.runGeneration) return;
     this.update({
       phase: 'error',
       message: 'Локальная модель не запущена; SQLite-поиск остаётся доступным.',
@@ -537,8 +552,26 @@ export class LocalModelController {
     await this.start();
   }
 
+  public cancelLoad(): void {
+    ++this.runGeneration;
+    this.activeRuntime?.cancelActiveLoad?.();
+    this.activeRuntime = null;
+    void this.session?.unload().catch(() => undefined);
+    this.session = null;
+    this.update({
+      phase: 'deferred',
+      message: 'Загрузка отменена. Обычный поиск продолжает работать.',
+      progress: null,
+      activeModelId: null,
+      benchmark: null,
+      error: null,
+    });
+  }
+
   public async unload(): Promise<void> {
     ++this.runGeneration;
+    this.activeRuntime?.cancelActiveLoad?.();
+    this.activeRuntime = null;
     await this.session?.unload().catch(() => undefined);
     this.session = null;
     this.update({

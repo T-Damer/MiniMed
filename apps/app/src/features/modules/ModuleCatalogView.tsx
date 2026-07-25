@@ -1,6 +1,7 @@
 import type {
   ContentModuleCatalog,
   ContentModuleCatalogEntry,
+  ContentModuleCategory,
   ContentModuleDownloadTask,
   CoreStatus,
   InstalledContentModule,
@@ -16,10 +17,22 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-
-import { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
+import { OverlayDialog } from '@/components/OverlayDialog';
+import { SearchField } from '@/components/SearchField';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import {
+  modulesInCategory,
+  recommendationCategoryDownloadProgress,
+  recommendationCategoryStats,
+} from '@/features/modules/recommendation-categories';
+import { buildRecommendationCategoryHelp } from '@/features/modules/recommendation-category-help';
+import {
+  installPublishedCategoryModules,
+  removeInstalledCategoryModules,
+} from '@/features/modules/recommendation-category-operations';
+import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface ModuleCatalogViewProps {
   readonly status: CoreStatus;
@@ -96,12 +109,38 @@ function taskProgress(task: ContentModuleDownloadTask): number | null {
   return Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));
 }
 
+function primaryDocumentId(module: ContentModuleCatalogEntry): string | null {
+  const activeDocument = module.documents.find((document) => document.status === 'active');
+  return activeDocument?.documentId ?? module.documents[0]?.documentId ?? null;
+}
+
+function openModuleDocument(module: ContentModuleCatalogEntry): void {
+  const documentId = primaryDocumentId(module);
+  if (!documentId) return;
+  openDocumentOverlay(documentId, null, { preferSummary: true });
+}
+
+function categoryInstallLabel(
+  categoryBusy: boolean,
+  downloadProgress: ReturnType<typeof recommendationCategoryDownloadProgress>,
+): string {
+  if (categoryBusy && downloadProgress.activeTaskCount === 0) return 'Подготовка…';
+  if (downloadProgress.activeTaskCount > 0 && downloadProgress.byteProgress !== null) {
+    return `Загрузка ${Math.round(downloadProgress.byteProgress * 100)}%`;
+  }
+  if (downloadProgress.activeTaskCount > 0) {
+    return `Загружаем ${downloadProgress.activeTaskCount}…`;
+  }
+  if (categoryBusy) return 'Скачиваем…';
+  return 'Скачать раздел';
+}
+
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [catalog, setCatalog] = createSignal<ContentModuleCatalog>(MODULE_CATALOG);
   const [source, setSource] = createSignal<ContentModuleCatalogSource>('bundled');
   const [warning, setWarning] = createSignal<string | null>(null);
   const [refreshing, setRefreshing] = createSignal(false);
-  const [runtime, setRuntime] = createSignal(new BrowserContentModuleRuntime(MODULE_CATALOG));
+  const [runtime, setRuntime] = createSignal(getContentModuleRuntime(MODULE_CATALOG));
   const [installed, setInstalled] = createSignal<readonly InstalledContentModule[]>(
     runtime().listInstalled(),
   );
@@ -110,13 +149,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [connecting, setConnecting] = createSignal(false);
   const [recommendationQuery, setRecommendationQuery] = createSignal('');
   const [recommendationCategory, setRecommendationCategory] = createSignal('');
-  const [bulkInstalling, setBulkInstalling] = createSignal(false);
+  const [busyCategories, setBusyCategories] = createSignal<ReadonlySet<string>>(new Set());
+  const [helpCategory, setHelpCategory] = createSignal<ContentModuleCategory | null>(null);
   let refreshedOnce = false;
   let unsubscribeTask: (() => void) | undefined;
+  let reconnectPending = false;
 
   const bindRuntime = (nextCatalog: ContentModuleCatalog): void => {
     unsubscribeTask?.();
-    const nextRuntime = new BrowserContentModuleRuntime(nextCatalog);
+    const nextRuntime = getContentModuleRuntime(nextCatalog);
     setRuntime(nextRuntime);
     setInstalled(nextRuntime.listInstalled());
     setTasks(nextRuntime.listTasks());
@@ -138,21 +179,46 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const collections = createMemo(() => [
     ...new Set(regularModules().map((module) => module.collection)),
   ]);
+  const installedModuleIds = createMemo(
+    () => new Set(installed().map((module) => module.moduleId)),
+  );
+  const categoryModules = (categoryId: string): readonly ContentModuleCatalogEntry[] =>
+    modulesInCategory(recommendationModules(), categoryId);
   const filteredRecommendations = createMemo(() => {
     const query = recommendationQuery().trim().toLocaleLowerCase('ru-RU');
     const category = recommendationCategory();
-    return recommendationModules()
-      .filter(
-        (module) =>
-          (!category || module.collection === category || module.tags.includes(category)) &&
-          (!query ||
-            [module.title, module.description, ...module.specialties, ...module.tags]
-              .join(' ')
-              .toLocaleLowerCase('ru-RU')
-              .includes(query)),
-      )
-      .slice(0, 50);
+    const queryTokens = query ? query.split(/\s+/u).filter((token) => token.length > 0) : [];
+    const matchesQuery = (module: ContentModuleCatalogEntry): boolean =>
+      queryTokens.length === 0 ||
+      queryTokens.every((token) =>
+        [module.title, module.description, ...module.specialties, ...module.tags]
+          .join(' ')
+          .toLocaleLowerCase('ru-RU')
+          .includes(token),
+      );
+
+    if (queryTokens.length > 0) {
+      return recommendationModules().filter(matchesQuery).slice(0, 50);
+    }
+    if (!category) return [];
+    return categoryModules(category).filter(matchesQuery);
   });
+  const activeCategory = createMemo(() =>
+    catalog().categories.find((category) => category.id === recommendationCategory()),
+  );
+  const browsingSection = createMemo(
+    () => Boolean(recommendationCategory()) && !recommendationQuery().trim(),
+  );
+  const activeCategoryHelp = createMemo(() => {
+    const category = helpCategory();
+    if (!category) return null;
+    return buildRecommendationCategoryHelp(
+      category,
+      recommendationCategoryStats(recommendationModules(), category, installedModuleIds()),
+      formatBytes,
+    );
+  });
+  const browsingSearch = createMemo(() => Boolean(recommendationQuery().trim()));
 
   const refresh = async (): Promise<void> => {
     if (refreshing()) return;
@@ -169,16 +235,22 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   };
 
   const connectContentChanges = async (): Promise<void> => {
-    if (connecting()) return;
     if (!props.onContentChanged) {
       setContentChangePending(true);
+      return;
+    }
+    if (connecting()) {
+      reconnectPending = true;
       return;
     }
     setConnecting(true);
     setWarning(null);
     try {
-      await props.onContentChanged();
-      setContentChangePending(false);
+      do {
+        reconnectPending = false;
+        await props.onContentChanged();
+        setContentChangePending(false);
+      } while (reconnectPending);
     } catch (cause) {
       setContentChangePending(true);
       setWarning(
@@ -188,6 +260,25 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       );
     } finally {
       setConnecting(false);
+    }
+  };
+
+  const isCategoryBusy = (categoryId: string): boolean => busyCategories().has(categoryId);
+
+  const withCategoryBusy = async (
+    categoryId: string,
+    operation: () => Promise<void>,
+  ): Promise<void> => {
+    if (isCategoryBusy(categoryId)) return;
+    setBusyCategories((current) => new Set([...current, categoryId]));
+    try {
+      await operation();
+    } finally {
+      setBusyCategories((current) => {
+        const next = new Set(current);
+        next.delete(categoryId);
+        return next;
+      });
     }
   };
 
@@ -215,32 +306,50 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     }
   };
 
-  const installCategory = async (): Promise<void> => {
-    const category = recommendationCategory();
-    if (!category || bulkInstalling()) return;
-    const modules = recommendationModules().filter(
-      (module) =>
-        (module.collection === category || module.tags.includes(category)) &&
-        module.releaseState === 'published' &&
-        !installedModule(module.id),
-    );
-    setBulkInstalling(true);
-    let changed = false;
-    try {
-      for (const module of modules) {
-        if (await install(module, false)) changed = true;
+  const installCategory = async (categoryId = recommendationCategory()): Promise<void> => {
+    if (!categoryId) return;
+    await withCategoryBusy(categoryId, async () => {
+      const modules = categoryModules(categoryId);
+      if (modules.length === 0) return;
+
+      setWarning(null);
+      try {
+        const result = await installPublishedCategoryModules(
+          runtime(),
+          modules,
+          installedModuleIds(),
+        );
+        setTasks(runtime().listTasks());
+        setInstalled(runtime().listInstalled());
+        if (result.errorMessage) setWarning(result.errorMessage);
+        if (result.changed) await connectContentChanges();
+      } catch (cause) {
+        setWarning(cause instanceof Error ? cause.message : 'Не удалось скачать раздел целиком.');
       }
-      if (changed) await connectContentChanges();
-    } finally {
-      setBulkInstalling(false);
-    }
+    });
   };
 
-  const remove = async (moduleId: string): Promise<void> => {
+  const removeCategory = async (categoryId = recommendationCategory()): Promise<void> => {
+    if (!categoryId) return;
+    await withCategoryBusy(categoryId, async () => {
+      const modules = categoryModules(categoryId);
+      if (modules.length === 0) return;
+
+      try {
+        await removeInstalledCategoryModules(runtime(), modules, installedModuleIds());
+        setInstalled(runtime().listInstalled());
+        await connectContentChanges();
+      } catch (cause) {
+        setWarning(cause instanceof Error ? cause.message : 'Не удалось удалить раздел.');
+      }
+    });
+  };
+
+  const remove = async (moduleId: string, reconnect = true): Promise<void> => {
     try {
       await runtime().remove(moduleId);
       setInstalled(runtime().listInstalled());
-      await connectContentChanges();
+      if (reconnect) await connectContentChanges();
     } catch (cause) {
       setWarning(cause instanceof Error ? cause.message : 'Не удалось удалить набор.');
     }
@@ -391,7 +500,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <Show
                           when={!installedValue()}
                           fallback={
-                            <button type="button" onClick={() => void remove(module.id)}>
+                            <button
+                              type="button"
+                              class="module-remove-button"
+                              onClick={() => void remove(module.id)}
+                            >
                               Удалить с устройства
                             </button>
                           }
@@ -427,94 +540,289 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       </For>
 
       <Show when={recommendationModules().length > 0}>
-        <section class="module-collection recommendation-browser">
-          <div class="module-collection-heading">
-            <h2>Клинические рекомендации</h2>
-            <span>{recommendationModules().length}</span>
-          </div>
-          <div class="recommendation-controls paper-card">
-            <label>
-              <span>Поиск по названию, коду или специальности</span>
-              <input
-                type="search"
-                value={recommendationQuery()}
-                onInput={(event) => setRecommendationQuery(event.currentTarget.value)}
-                placeholder="Например: пневмония, J18, кардиология"
-              />
-            </label>
-            <label>
-              <span>Категория</span>
-              <select
-                value={recommendationCategory()}
-                onChange={(event) => setRecommendationCategory(event.currentTarget.value)}
-              >
-                <option value="">Все категории</option>
-                <For each={catalog().categories}>
-                  {(category) => (
-                    <option value={category.id}>
-                      {category.title} · {category.recommendationCount}
-                    </option>
-                  )}
-                </For>
-              </select>
-            </label>
-            <Show when={recommendationCategory()}>
+        <section class="module-collection recommendation-browser recommendation-browser-nested">
+          <Show when={!browsingSection() && !browsingSearch()}>
+            <div class="module-collection-heading recommendation-browser-heading">
+              <h2>Клинические рекомендации</h2>
+              <span>{catalog().categories.length}</span>
+            </div>
+
+            <SearchField
+              class="recommendation-search recommendation-search-compact"
+              value={recommendationQuery()}
+              onInput={setRecommendationQuery}
+              label="Поиск по названию или коду"
+              placeholder="Например: пневмония, J18"
+            />
+
+            <div class="recommendation-section-grid recommendation-section-grid-compact">
+              <For each={catalog().categories}>
+                {(category) => {
+                  const stats = () =>
+                    recommendationCategoryStats(
+                      recommendationModules(),
+                      category,
+                      installedModuleIds(),
+                    );
+                  const categoryBusy = () => isCategoryBusy(category.id);
+                  const downloadProgress = () =>
+                    recommendationCategoryDownloadProgress(
+                      recommendationModules(),
+                      category.id,
+                      installedModuleIds(),
+                      tasks(),
+                    );
+                  const showByteProgress = () => downloadProgress().byteProgress;
+                  return (
+                    <article class="recommendation-section-card paper-card recommendation-section-card-compact">
+                      <div class="recommendation-section-card-header">
+                        <button
+                          type="button"
+                          class="recommendation-section-select"
+                          onClick={() => setRecommendationCategory(category.id)}
+                        >
+                          <strong>{category.title}</strong>
+                          <span>
+                            {stats().installedCount}/{stats().publishedCount} ·{' '}
+                            {formatBytes(stats().downloadBytes)}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          class="recommendation-section-help"
+                          aria-label={`Что входит в раздел «${category.title}»`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setHelpCategory(category);
+                          }}
+                        >
+                          ?
+                        </button>
+                      </div>
+                      <Show
+                        when={
+                          stats().installedCount > 0 ||
+                          downloadProgress().activeTaskCount > 0 ||
+                          categoryBusy()
+                        }
+                      >
+                        <div
+                          class="recommendation-section-progress"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round(
+                            (showByteProgress() ?? downloadProgress().installedFraction) * 100,
+                          )}
+                        >
+                          <i
+                            style={{
+                              width: `${Math.round(
+                                (showByteProgress() ?? downloadProgress().installedFraction) * 100,
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </Show>
+                      <div class="recommendation-section-actions">
+                        <Show
+                          when={stats().pendingCount > 0}
+                          fallback={
+                            <button
+                              type="button"
+                              disabled={stats().installedCount === 0 || categoryBusy()}
+                              onClick={() => void removeCategory(category.id)}
+                            >
+                              {categoryBusy() ? 'Удаляем…' : 'Удалить'}
+                            </button>
+                          }
+                        >
+                          <button
+                            type="button"
+                            disabled={categoryBusy()}
+                            onClick={() => void installCategory(category.id)}
+                          >
+                            {categoryInstallLabel(categoryBusy(), downloadProgress())}
+                          </button>
+                        </Show>
+                      </div>
+                    </article>
+                  );
+                }}
+              </For>
+            </div>
+          </Show>
+
+          <Show when={browsingSection() || browsingSearch()}>
+            <div class="recommendation-breadcrumb">
               <button
                 type="button"
-                disabled={bulkInstalling()}
-                onClick={() => void installCategory()}
+                onClick={() => {
+                  setRecommendationCategory('');
+                  setRecommendationQuery('');
+                }}
               >
-                {bulkInstalling() ? 'Загружаем категорию…' : 'Скачать всю категорию'}
+                ← Разделы
               </button>
+              <Show when={browsingSection()}>
+                <span>{activeCategory()?.title}</span>
+              </Show>
+              <Show when={browsingSearch()}>
+                <span>Поиск</span>
+              </Show>
+            </div>
+
+            <SearchField
+              class="recommendation-search recommendation-search-compact"
+              value={recommendationQuery()}
+              onInput={setRecommendationQuery}
+              label="Поиск по названию или коду"
+              placeholder="Например: пневмония, J18"
+            />
+
+            <Show when={browsingSection()}>
+              <div class="recommendation-list-heading recommendation-list-heading-compact">
+                <h3>{activeCategory()?.title}</h3>
+                <div class="recommendation-list-actions">
+                  <button
+                    type="button"
+                    disabled={isCategoryBusy(recommendationCategory())}
+                    onClick={() => void installCategory()}
+                  >
+                    {categoryInstallLabel(
+                      isCategoryBusy(recommendationCategory()),
+                      recommendationCategoryDownloadProgress(
+                        recommendationModules(),
+                        recommendationCategory(),
+                        installedModuleIds(),
+                        tasks(),
+                      ),
+                    )}
+                  </button>
+                </div>
+              </div>
             </Show>
-          </div>
-          <p class="recommendation-result-note">
-            Показано {filteredRecommendations().length}
-            {filteredRecommendations().length === 50 ? ' первых результатов' : ''}
-          </p>
-          <div class="recommendation-list">
-            <For each={filteredRecommendations()}>
-              {(module) => {
-                const installedValue = () => installedModule(module.id);
-                const task = () => moduleTask(module.id);
-                const working = () =>
-                  task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
-                return (
-                  <article class="recommendation-row paper-card">
-                    <div>
-                      <strong>{module.title}</strong>
-                      <span>
-                        {module.tags.find((tag) => /^\d+_\d+$/u.test(tag))} ·{' '}
-                        {formatBytes(module.sizes.downloadBytes)}
-                      </span>
-                    </div>
-                    <Show
-                      when={!installedValue()}
-                      fallback={
-                        <button type="button" onClick={() => void remove(module.id)}>
-                          Удалить
-                        </button>
-                      }
-                    >
-                      <button
-                        type="button"
-                        disabled={
-                          module.releaseState !== 'published' ||
-                          Boolean(working()) ||
-                          bulkInstalling()
+
+            <Show when={browsingSearch()}>
+              <div class="recommendation-list-heading recommendation-list-heading-compact">
+                <h3>Результаты поиска</h3>
+              </div>
+            </Show>
+
+            <p class="recommendation-result-note">
+              {filteredRecommendations().length}
+              {browsingSearch() && filteredRecommendations().length === 50 ? ' первых' : ''}{' '}
+              рекомендаций
+            </p>
+
+            <div class="recommendation-list recommendation-list-compact">
+              <For each={filteredRecommendations()}>
+                {(module) => {
+                  const installedValue = () => installedModule(module.id);
+                  const task = () => moduleTask(module.id);
+                  const progress = () =>
+                    task() ? taskProgress(task() as ContentModuleDownloadTask) : null;
+                  const working = () =>
+                    task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
+                  return (
+                    <article class="recommendation-row paper-card recommendation-row-compact">
+                      <div>
+                        <Show
+                          when={installedValue() && primaryDocumentId(module)}
+                          fallback={<strong>{module.title}</strong>}
+                        >
+                          <button
+                            type="button"
+                            class="recommendation-title-button"
+                            onClick={() => openModuleDocument(module)}
+                          >
+                            {module.title}
+                          </button>
+                        </Show>
+                        <span>
+                          {module.tags.find((tag) => /^\d+_\d+$/u.test(tag))}
+                          {installedValue()
+                            ? ' · установлено'
+                            : ` · ${formatBytes(module.sizes.downloadBytes)}`}
+                        </span>
+                        <Show when={working() && progress() !== null}>
+                          <div class="recommendation-row-progress" role="progressbar">
+                            <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
+                          </div>
+                        </Show>
+                      </div>
+                      <Show
+                        when={!installedValue()}
+                        fallback={
+                          <div class="recommendation-row-actions">
+                            <Show when={primaryDocumentId(module)}>
+                              <button
+                                type="button"
+                                class="recommendation-open-button"
+                                onClick={() => openModuleDocument(module)}
+                              >
+                                Выжимка
+                              </button>
+                            </Show>
+                            <button
+                              type="button"
+                              class="module-remove-button"
+                              onClick={() => void remove(module.id)}
+                            >
+                              Удалить
+                            </button>
+                          </div>
                         }
-                        onClick={() => void install(module)}
                       >
-                        {working() ? TASK_LABELS[task()?.state ?? 'queued'] : 'Скачать'}
-                      </button>
-                    </Show>
-                  </article>
-                );
-              }}
-            </For>
-          </div>
+                        <button
+                          type="button"
+                          disabled={module.releaseState !== 'published' || Boolean(working())}
+                          onClick={() => void install(module)}
+                        >
+                          {working()
+                            ? progress() !== null
+                              ? `${Math.round((progress() ?? 0) * 100)}%`
+                              : TASK_LABELS[task()?.state ?? 'queued']
+                            : 'Скачать'}
+                        </button>
+                      </Show>
+                    </article>
+                  );
+                }}
+              </For>
+            </div>
+          </Show>
         </section>
       </Show>
+
+      <OverlayDialog
+        open={helpCategory() !== null}
+        title={helpCategory()?.title ?? 'Раздел'}
+        class="recommendation-section-help-dialog"
+        onClose={() => setHelpCategory(null)}
+      >
+        <Show when={activeCategoryHelp()}>
+          {(help) => (
+            <div class="recommendation-section-help-body">
+              <p>{help().lead}</p>
+              <ul class="recommendation-section-help-facts">
+                <li>{help().recommendationLabel}</li>
+                <li>{help().installedLabel}</li>
+                <li>{help().sizeLabel}</li>
+              </ul>
+              <Show when={help().specialtyLabels.length > 0}>
+                <div class="recommendation-section-help-specialties">
+                  <strong>Направления</strong>
+                  <div>
+                    <For each={help().specialtyLabels}>{(label) => <span>{label}</span>}</For>
+                  </div>
+                </div>
+              </Show>
+              <p class="recommendation-section-help-note">{help().offlineNote}</p>
+            </div>
+          )}
+        </Show>
+      </OverlayDialog>
 
       <details class="module-catalog-status doctor-technical-details">
         <summary>Обновление списка наборов</summary>

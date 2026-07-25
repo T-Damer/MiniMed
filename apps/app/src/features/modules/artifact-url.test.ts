@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveContentModuleArtifactUrl } from './artifact-url';
+import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 
 describe('resolveContentModuleArtifactUrl', () => {
   it('rewrites MiniMed specialty release assets to raw.githubusercontent.com on main', () => {

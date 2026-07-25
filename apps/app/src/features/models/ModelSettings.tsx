@@ -1,8 +1,8 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { OverlayDialog } from '../../components/OverlayDialog';
-import type { LocalModelController } from './controller';
-import type { LocalModelDescriptor, LocalModelState } from './types';
+import { OverlayDialog } from '@/components/OverlayDialog';
+import type { LocalModelController } from '@/features/models/controller';
+import type { LocalModelDescriptor, LocalModelState } from '@/features/models/types';
 
 interface ModelSettingsProps {
   readonly controller: LocalModelController;
@@ -25,6 +25,63 @@ const TIER_LABELS: Readonly<Record<LocalModelDescriptor['tier'], string>> = {
   balanced: 'Сбалансированная',
   quality: 'Повышенное качество',
 };
+
+const ACTIVE_LOAD_PHASES = new Set<LocalModelState['phase']>([
+  'probing',
+  'selecting',
+  'downloading',
+  'loading',
+  'benchmarking',
+]);
+
+const DOWNLOAD_PHASES = new Set<LocalModelState['phase']>(['downloading', 'loading']);
+
+function isActiveLoadPhase(phase: LocalModelState['phase']): boolean {
+  return ACTIVE_LOAD_PHASES.has(phase);
+}
+
+function isDownloadPhase(phase: LocalModelState['phase']): boolean {
+  return DOWNLOAD_PHASES.has(phase);
+}
+
+function deviceFitsModel(
+  model: LocalModelDescriptor,
+  deviceMemoryGb: number | null | undefined,
+): boolean | null {
+  if (deviceMemoryGb === null || deviceMemoryGb === undefined) return null;
+  return deviceMemoryGb >= model.minimumMemoryGb;
+}
+
+function modelDeviceLabel(
+  model: LocalModelDescriptor,
+  deviceMemoryGb: number | null | undefined,
+  available: boolean,
+): string {
+  if (!available) return 'Нет в браузере';
+  const fits = deviceFitsModel(model, deviceMemoryGb);
+  if (fits === true) return 'Подходит';
+  if (fits === false) return 'Мало памяти';
+  return 'Не проверено';
+}
+
+function modelStatusLabel(
+  model: LocalModelDescriptor,
+  options: {
+    readonly active: boolean;
+    readonly recommended: boolean;
+    readonly available: boolean;
+    readonly loading: boolean;
+    readonly deviceMemoryGb: number | null | undefined;
+  },
+): string {
+  if (options.loading) return 'Загрузка';
+  if (options.active) return 'Запущена';
+  if (!options.available) return 'Недоступна';
+  if (options.recommended) return 'Рекомендуется';
+  const fits = deviceFitsModel(model, options.deviceMemoryGb);
+  if (fits === false) return 'Мало памяти';
+  return 'Доступна';
+}
 
 function formatBytes(value: number): string {
   if (value < 1_000_000_000) return `${Math.round(value / 1_000_000)} МБ`;
@@ -52,6 +109,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
     unsubscribe = props.controller.subscribe((next) => {
       setState(next);
       if (next.phase === 'error') setShowError(true);
+      if (!isActiveLoadPhase(next.phase)) setBusyModelId(null);
     });
   });
   onCleanup(() => unsubscribe?.());
@@ -86,6 +144,11 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
     }
   };
 
+  const cancelLoad = (): void => {
+    props.controller.cancelLoad();
+    setBusyModelId(null);
+  };
+
   return (
     <section class="model-settings paper-sheet" aria-labelledby="local-model-heading">
       <header class="model-settings-heading">
@@ -93,8 +156,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
           <p class="archive-kicker">Помощник на устройстве</p>
           <h2 id="local-model-heading">Локальная модель</h2>
           <p>
-            Модель работает без отправки медицинского запроса на сервер. Выберите вариант и
-            запустите короткую проверку. Основной поиск работает и без модели.
+            Модель работает на устройстве без отправки запроса на сервер. Поиск доступен и без неё.
           </p>
         </div>
         <span class={`model-state-badge ${state().phase}`}>{PHASE_LABELS[state().phase]}</span>
@@ -115,17 +177,14 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         </Show>
       </div>
 
-      <Show
-        when={
-          state().phase === 'downloading' ||
-          state().phase === 'loading' ||
-          state().phase === 'benchmarking' ||
-          state().phase === 'probing' ||
-          state().phase === 'selecting'
-        }
-      >
+      <Show when={isActiveLoadPhase(state().phase)}>
         <div class="model-download-status paper-card" aria-live="polite">
-          <strong>{PHASE_LABELS[state().phase]}</strong>
+          <div class="model-download-status-header">
+            <strong>{PHASE_LABELS[state().phase]}</strong>
+            <button type="button" class="model-download-cancel" onClick={cancelLoad}>
+              Отменить
+            </button>
+          </div>
           <span>{state().message}</span>
           <Show when={state().progress !== null}>
             <div
@@ -156,9 +215,10 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         <button
           type="button"
           classList={{ active: preference().automatic }}
+          disabled={isDownloadPhase(state().phase)}
           onClick={() => void props.controller.useAutomaticSelection()}
         >
-          Подбирать автоматически
+          Подобрать автоматически
         </button>
         <Show when={state().activeModelId}>
           <button type="button" onClick={() => void props.controller.unload()}>
@@ -179,51 +239,101 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                 !model.license.requiresAcceptance || acceptedLicenses().has(model.license.id);
               const available = () => runtimeAvailable(model);
               const active = () => state().activeModelId === model.id;
+              const recommended = () => state().recommendedModelId === model.id;
+              const loading = () =>
+                busyModelId() === model.id && isActiveLoadPhase(state().phase);
+              const deviceMemoryGb = () => state().device?.deviceMemoryGb;
+              const statusLabel = () =>
+                modelStatusLabel(model, {
+                  active: active(),
+                  recommended: recommended(),
+                  available: available(),
+                  loading: loading(),
+                  deviceMemoryGb: deviceMemoryGb(),
+                });
+              const deviceLabel = () =>
+                modelDeviceLabel(model, deviceMemoryGb(), available());
               return (
                 <article
                   class="model-option-card"
                   classList={{
-                    recommended: state().recommendedModelId === model.id,
+                    recommended: recommended(),
                     active: active(),
                     selected: !preference().automatic && preference().selectedModelId === model.id,
+                    loading: loading(),
+                    unavailable: !available(),
                   }}
+                  title={model.description}
                 >
-                  <div class="model-option-topline">
-                    <span>{TIER_LABELS[model.tier]}</span>
-                    <Show when={state().recommendedModelId === model.id}>
-                      <b>Рекомендуется</b>
-                    </Show>
-                  </div>
-                  <h3>{model.name}</h3>
-                  <p>{model.description}</p>
-                  <div class="model-friendly-facts">
-                    <span>
-                      {size() === null ? 'Загрузка пока не опубликована' : formatBytes(size() ?? 0)}
+                  <div class="model-option-header">
+                    <div class="model-option-title">
+                      <h3>{model.name}</h3>
+                      <span class="model-tier-chip">{TIER_LABELS[model.tier]}</span>
+                    </div>
+                    <span
+                      class="model-option-status"
+                      classList={{
+                        active: active(),
+                        recommended: recommended(),
+                        warning:
+                          available() && deviceFitsModel(model, deviceMemoryGb()) === false,
+                        loading: loading(),
+                      }}
+                    >
+                      {statusLabel()}
                     </span>
-                    <span>Нужно от {model.minimumMemoryGb} ГБ памяти</span>
+                  </div>
+                  <div class="model-option-row">
+                    <dl class="model-option-specs">
+                      <div>
+                        <dt>Размер</dt>
+                        <dd>
+                          {size() === null ? '—' : formatBytes(size() ?? 0)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>ОЗУ</dt>
+                        <dd>от {model.minimumMemoryGb} ГБ</dd>
+                      </div>
+                      <div>
+                        <dt>Устройство</dt>
+                        <dd>{deviceLabel()}</dd>
+                      </div>
+                    </dl>
+                    <button
+                      type="button"
+                      class="model-option-action"
+                      disabled={
+                        !available() || (busyModelId() !== null && busyModelId() !== model.id)
+                      }
+                      onClick={() => {
+                        if (loading()) {
+                          cancelLoad();
+                          return;
+                        }
+                        void testModel(model);
+                      }}
+                    >
+                      {loading()
+                        ? 'Отменить'
+                        : busyModelId() === model.id
+                          ? 'Проверяем…'
+                          : active()
+                            ? 'Перепроверить'
+                            : available()
+                              ? 'Скачать'
+                              : 'Недоступно'}
+                    </button>
                   </div>
                   <Show when={model.license.requiresAcceptance && !accepted() && available()}>
                     <p class="model-license-note">
-                      При запуске будут приняты{' '}
+                      Лицензия{' '}
                       <a href={model.license.url} target="_blank" rel="noreferrer">
-                        условия использования {model.license.name}
-                      </a>
-                      .
+                        {model.license.name}
+                      </a>{' '}
+                      — при запуске.
                     </p>
                   </Show>
-                  <button
-                    type="button"
-                    disabled={!available() || busyModelId() !== null}
-                    onClick={() => void testModel(model)}
-                  >
-                    {busyModelId() === model.id
-                      ? 'Скачиваем и проверяем…'
-                      : active()
-                        ? 'Проверить ещё раз'
-                        : available()
-                          ? 'Скачать и проверить'
-                          : 'Пока недоступно'}
-                  </button>
                 </article>
               );
             }}

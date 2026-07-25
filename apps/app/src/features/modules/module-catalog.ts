@@ -1,6 +1,6 @@
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 
-import rawCatalog from './catalog.preview.json';
+import rawCatalog from '@/features/modules/catalog.preview.json';
 
 export const MODULE_CATALOG = ContentModuleCatalogSchema.parse(rawCatalog);
 

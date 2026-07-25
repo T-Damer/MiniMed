@@ -1,5 +1,8 @@
-import { SerialAsyncQueue } from './serial-async-queue';
-import { extractStructuredJson, normalizeLocalModelProbe } from './structured-output';
+import { SerialAsyncQueue } from '@/features/models/serial-async-queue';
+import {
+  extractStructuredJson,
+  normalizeLocalModelProbe,
+} from '@/features/models/structured-output';
 import type {
   LocalModelArtifact,
   LocalModelDescriptor,
@@ -9,7 +12,9 @@ import type {
   LocalModelSession,
   LocalModelStructuredRequest,
   LocalModelStructuredResponse,
-} from './types';
+} from '@/features/models/types';
+import { downloadCoordinator } from '@/features/network/download-coordinator';
+import { downloadWithResume } from '@/features/network/resumable-download';
 
 interface WllamaProgress {
   readonly loaded: number;
@@ -79,6 +84,37 @@ function asWllamaModule(value: unknown): WllamaModule {
 
 function joinUrl(base: string, path: string): string {
   return `${base.replace(/\/$/u, '')}/${path.replace(/^\//u, '')}`;
+}
+
+async function loadModelFromResumableUrl(
+  instance: WllamaInstance,
+  url: string,
+  cacheKey: string,
+  expectedBytes: number | null,
+  profile: LocalModelDeviceProfile,
+  artifact: LocalModelArtifact,
+  callbacks: LocalModelLoadCallbacks,
+  signal: AbortSignal,
+): Promise<void> {
+  const bytes = await downloadWithResume({
+    url,
+    cacheKey,
+    expectedBytes,
+    signal,
+    onProgress: ({ downloadedBytes, totalBytes }) =>
+      callbacks.onProgress(downloadedBytes, totalBytes ?? expectedBytes ?? downloadedBytes),
+  });
+  const blobUrl = URL.createObjectURL(new Blob([Uint8Array.from(bytes)]));
+  try {
+    await instance.loadModelFromUrl(blobUrl, {
+      n_ctx: Math.min(artifact.maxContextTokens, 2048),
+      n_threads: Math.max(1, Math.min(6, profile.hardwareConcurrency - 1)),
+      n_gpu_layers: 0,
+      progressCallback: ({ loaded, total }) => callbacks.onProgress(loaded, total),
+    });
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
 }
 
 function outputPreview(value: string): string {
@@ -187,8 +223,18 @@ class BrowserWllamaSession implements LocalModelSession {
 
 export class BrowserWllamaRuntime implements LocalModelRuntime {
   public readonly kind = 'wllama-web' as const;
+  private activeInstance: WllamaInstance | null = null;
+  private activeLoadController: AbortController | null = null;
 
   public constructor(private readonly options: BrowserWllamaRuntimeOptions) {}
+
+  public cancelActiveLoad(): void {
+    this.activeLoadController?.abort();
+    this.activeLoadController = null;
+    const instance = this.activeInstance;
+    this.activeInstance = null;
+    void instance?.exit?.();
+  }
 
   public async isAvailable(_profile: LocalModelDeviceProfile): Promise<boolean> {
     return typeof WebAssembly === 'object' && typeof Worker === 'function';
@@ -200,6 +246,7 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
     profile: LocalModelDeviceProfile,
     callbacks: LocalModelLoadCallbacks,
   ): Promise<LocalModelSession> {
+    await downloadCoordinator.waitForContentIdle();
     const imported: unknown = await import(/* @vite-ignore */ this.options.moduleUrl);
     const module = asWllamaModule(imported);
     const instance = new module.Wllama(
@@ -214,6 +261,9 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
         },
       },
     );
+    this.activeInstance = instance;
+    const loadController = new AbortController();
+    this.activeLoadController = loadController;
     const urls: string[] = [];
     if (this.options.mirrorBaseUrl.trim() && artifact.mirrorPath) {
       urls.push(joinUrl(this.options.mirrorBaseUrl, artifact.mirrorPath));
@@ -226,19 +276,27 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
 
     let lastError: unknown;
     for (const url of urls) {
+      const cacheKey = `${artifact.id}:${url}`;
       try {
-        await instance.loadModelFromUrl(url, {
-          n_ctx: Math.min(artifact.maxContextTokens, 2048),
-          n_threads: Math.max(1, Math.min(6, profile.hardwareConcurrency - 1)),
-          // wllama is a WebAssembly CPU runtime and does not implement WebGPU.
-          n_gpu_layers: 0,
-          progressCallback: ({ loaded, total }) => callbacks.onProgress(loaded, total),
-        });
+        await loadModelFromResumableUrl(
+          instance,
+          url,
+          cacheKey,
+          artifact.downloadBytes,
+          profile,
+          artifact,
+          callbacks,
+          loadController.signal,
+        );
+        this.activeInstance = null;
+        this.activeLoadController = null;
         return new BrowserWllamaSession(model, artifact.id, instance);
       } catch (cause) {
         lastError = cause;
       }
     }
+    this.activeInstance = null;
+    this.activeLoadController = null;
     await instance.exit?.();
     const detail = lastError instanceof Error ? lastError.message : 'неизвестная ошибка';
     throw new Error(`Не удалось скачать или открыть ${model.name}: ${detail}`);

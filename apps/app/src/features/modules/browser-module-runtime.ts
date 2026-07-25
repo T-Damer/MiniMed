@@ -17,9 +17,15 @@ import {
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
-
-import { resolveContentModuleArtifactUrl } from './artifact-url';
-import { commitRegistryAndArtifactMutation } from './module-registry-transaction';
+import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
+import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
+import {
+  dequeuePendingModuleInstall,
+  enqueuePendingModuleInstall,
+  recoverPendingModuleInstalls,
+} from '@/features/modules/pending-module-installs';
+import { downloadCoordinator } from '@/features/network/download-coordinator';
+import { downloadWithResume } from '@/features/network/resumable-download';
 
 const DATABASE_NAME = 'minimed-content-modules-v1';
 const DATABASE_VERSION = 1;
@@ -126,36 +132,21 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     if (artifact.compression !== 'none') {
       throw new Error('Сжатые наборы пока не поддерживаются этим установщиком.');
     }
-    const response = await fetch(resolveContentModuleArtifactUrl(artifact.url), {
-      signal,
-      cache: 'no-store',
-    });
-    if (!response.ok) throw new Error(`Сервер базы знаний ответил HTTP ${response.status}.`);
-    const totalHeader = Number(response.headers.get('content-length'));
-    const totalBytes =
-      Number.isFinite(totalHeader) && totalHeader > 0 ? totalHeader : artifact.sizeBytes;
-    if (!response.body) {
-      const bytes = new Uint8Array(await response.arrayBuffer());
-      onProgress({ downloadedBytes: bytes.byteLength, totalBytes });
-      return bytes;
+    const releaseContentLane = downloadCoordinator.beginContentDownload();
+    try {
+      const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
+      const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
+      return await downloadWithResume({
+        url: resolvedUrl,
+        cacheKey,
+        expectedBytes: artifact.sizeBytes,
+        signal,
+        onProgress: ({ downloadedBytes, totalBytes }) =>
+          onProgress({ downloadedBytes, totalBytes }),
+      });
+    } finally {
+      releaseContentLane();
     }
-    const reader = response.body.getReader();
-    const chunks: Uint8Array[] = [];
-    let downloadedBytes = 0;
-    while (true) {
-      const result = await reader.read();
-      if (result.done) break;
-      chunks.push(result.value);
-      downloadedBytes += result.value.byteLength;
-      onProgress({ downloadedBytes, totalBytes });
-    }
-    const bytes = new Uint8Array(downloadedBytes);
-    let offset = 0;
-    for (const chunk of chunks) {
-      bytes.set(chunk, offset);
-      offset += chunk.byteLength;
-    }
-    return bytes;
   }
 }
 
@@ -334,12 +325,16 @@ function createRegistry(): PersistentInstalledModuleRegistry {
   return registry;
 }
 
+let recoveryStarted = false;
+
 export class BrowserContentModuleRuntime {
+  private readonly catalog: ContentModuleCatalog;
   private readonly registry: PersistentInstalledModuleRegistry;
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
 
   public constructor(catalog: ContentModuleCatalog) {
+    this.catalog = catalog;
     this.registry = createRegistry();
     this.installer = new ForegroundContentModuleInstaller(
       catalog,
@@ -349,6 +344,19 @@ export class BrowserContentModuleRuntime {
       new BrowserModuleValidator(),
       this.registry,
     );
+    this.installer.subscribe((task) => {
+      if (['completed', 'failed', 'cancelled'].includes(task.state)) {
+        dequeuePendingModuleInstall(task.moduleId, task.version);
+      }
+    });
+    if (!recoveryStarted) {
+      recoveryStarted = true;
+      recoverPendingModuleInstalls(
+        this,
+        catalog,
+        new Set(this.listInstalled().map((module) => module.moduleId)),
+      );
+    }
   }
 
   public listInstalled(): readonly InstalledContentModule[] {
@@ -364,11 +372,16 @@ export class BrowserContentModuleRuntime {
   }
 
   public install(module: ContentModuleCatalogEntry): ContentModuleDownloadTask {
+    enqueuePendingModuleInstall(module.id, module.version, false);
     return this.installer.install({
       moduleId: module.id,
       version: module.version,
       includeSourceAssets: false,
     });
+  }
+
+  public getCatalog(): ContentModuleCatalog {
+    return this.catalog;
   }
 
   public wait(taskId: string): Promise<ContentModuleDownloadTask> {

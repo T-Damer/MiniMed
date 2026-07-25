@@ -1,7 +1,9 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-
+import type {
+  GroundedAssistantState,
+  GroundedMedicalCore,
+} from '@/features/models/GroundedMedicalCore';
 import { openDocumentInArchive } from '@/state/document-navigation';
-import type { GroundedAssistantState, GroundedMedicalCore } from './GroundedMedicalCore';
 
 interface GroundedAssistantStatusProps {
   readonly assistant: GroundedMedicalCore;

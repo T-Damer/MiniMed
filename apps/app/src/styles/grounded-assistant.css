@@ -1,6 +1,6 @@
 .grounded-assistant-status {
-  width: min(1100px, calc(100% - 32px));
-  margin: 14px auto -8px;
+  width: 100%;
+  margin: 14px 0 -8px;
   padding: 12px 14px;
   border: 1px solid rgb(79 65 37 / 24%);
   color: var(--ink);

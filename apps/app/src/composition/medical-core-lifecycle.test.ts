@@ -1,7 +1,11 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
-import { initializeMedicalCore, replaceMedicalCore } from './medical-core-lifecycle';
+import {
+  initializeMedicalCore,
+  replaceMedicalCore,
+  swapMedicalCore,
+} from '@/composition/medical-core-lifecycle';
 
 const STATUS = {
   state: 'ready',
@@ -88,5 +92,25 @@ describe('medical core lifecycle', () => {
     expect(ready.core).toBe(candidate);
     expect(warning).toHaveBeenCalledOnce();
     warning.mockRestore();
+  });
+
+  it('swaps the active core before closing the previous instance', async () => {
+    const events: string[] = [];
+    const currentCore = fakeCore({ ok: true, value: STATUS }, events, { label: 'current' });
+    const candidate = fakeCore({ ok: true, value: STATUS }, events, { label: 'candidate' });
+    const swapped: MedicalCore[] = [];
+
+    const ready = await swapMedicalCore(
+      { core: currentCore, status: STATUS },
+      async () => candidate,
+      (core) => {
+        swapped.push(core);
+        events.push('swap');
+      },
+    );
+
+    expect(ready.core).toBe(candidate);
+    expect(swapped).toEqual([candidate]);
+    expect(events).toEqual(['initialize:candidate', 'swap', 'close:current']);
   });
 });

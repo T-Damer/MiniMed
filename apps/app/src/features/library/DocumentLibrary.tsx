@@ -1,10 +1,12 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, onMount, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
-import { AppGlyph } from '../../components/AppGlyph';
-import { ClinicalGlyph, documentClinicalSignals } from '../../components/ClinicalGlyph';
-import { openDocumentOverlay } from '../../state/document-navigation';
-import { KnowledgeGraph } from './KnowledgeGraph';
+import { AppGlyph } from '@/components/AppGlyph';
+import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGlyph';
+import { SearchField } from '@/components/SearchField';
+import { preferReadableDocuments } from '@/features/library/document-display';
+import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
+import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface DocumentLibraryProps {
   readonly core: MedicalCore;
@@ -48,13 +50,18 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     );
   });
 
-  onMount(async () => {
-    const result = await props.core.listDocuments();
-    if (!result.ok) {
-      setError(result.error.message);
-      return;
-    }
-    setDocuments(result.value);
+  createEffect(() => {
+    const core = props.core;
+    void (async () => {
+      setError(undefined);
+      const result = await core.listDocuments();
+      if (!result.ok) {
+        setError(result.error.message);
+        setDocuments([]);
+        return;
+      }
+      setDocuments(preferReadableDocuments(result.value));
+    })();
   });
 
   return (
@@ -115,18 +122,15 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
         </div>
       </Show>
 
-      <div class="library-toolbar">
-        <label class="library-search">
-          <AppGlyph name="search" />
-          <span class="sr-only">Поиск по документам</span>
-          <input
-            value={filter()}
-            onInput={(event) => setFilter(event.currentTarget.value)}
-            placeholder="Название, специальность или источник"
-            autocomplete="off"
-          />
-        </label>
-        <span class="library-search-count">
+      <div class="archive-search-row">
+        <SearchField
+          value={filter()}
+          onInput={setFilter}
+          label="Поиск по документам"
+          hideLabel
+          placeholder="Название, специальность или источник"
+        />
+        <span class="archive-search-meta">
           {filteredDocuments().length} из {documents().length}
         </span>
       </div>

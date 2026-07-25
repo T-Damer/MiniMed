@@ -156,4 +156,5 @@ export interface LocalModelRuntime {
     profile: LocalModelDeviceProfile,
     callbacks: LocalModelLoadCallbacks,
   ): Promise<LocalModelSession>;
+  cancelActiveLoad?(): void;
 }

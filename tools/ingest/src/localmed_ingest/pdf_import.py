@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 from statistics import median
-from typing import Any
+from typing import Any, Literal
 
 import pymupdf
 
@@ -21,6 +21,7 @@ from .models import (
     ExtractionOptions,
 )
 from .normalization import normalize_surface_text
+from .text_encoding import cyrillic_letter_ratio, is_likely_garbled_russian_pdf_text
 
 NUMBERED_HEADING_PATTERN = re.compile(r"^(?P<number>\d+(?:\.\d+){0,5})[.)]?\s+\S")
 LIST_PATTERN = re.compile(r"^(?:[•▪◦●○*+–—-]|\d+[.)])\s+")
@@ -139,10 +140,13 @@ def _join_lines(lines: list[str], *, dehyphenate: bool) -> str:
     return re.sub(r"[ \t]+", " ", result).strip()
 
 
-def _extract_raw_blocks(page: Any, page_index: int, options: ExtractionOptions) -> list[RawBlock]:
-    payload = page.get_text("dict", sort=True)
-    width = float(payload.get("width", page.rect.width))
-    height = float(payload.get("height", page.rect.height))
+def _extract_raw_blocks_from_payload(
+    payload: dict[str, Any],
+    page_index: int,
+    options: ExtractionOptions,
+) -> list[RawBlock]:
+    width = float(payload.get("width", 0.0))
+    height = float(payload.get("height", 0.0))
     raw_blocks = payload.get("blocks", [])
     blocks: list[RawBlock] = []
     if not isinstance(raw_blocks, list):
@@ -202,6 +206,29 @@ def _extract_raw_blocks(page: Any, page_index: int, options: ExtractionOptions) 
             )
         )
     return blocks
+
+
+def _extract_raw_blocks(page: Any, page_index: int, options: ExtractionOptions) -> list[RawBlock]:
+    payload = page.get_text("dict", sort=True)
+    if not isinstance(payload, dict):
+        return []
+    return _extract_raw_blocks_from_payload(payload, page_index, options)
+
+
+def _extract_raw_blocks_ocr(page: Any, page_index: int, options: ExtractionOptions) -> list[RawBlock]:
+    textpage = page.get_textpage_ocr(
+        language=options.ocr_language,
+        dpi=options.ocr_dpi,
+        full=True,
+    )
+    payload = page.get_text("dict", sort=True, textpage=textpage)
+    if not isinstance(payload, dict):
+        return []
+    return _extract_raw_blocks_from_payload(payload, page_index, options)
+
+
+def _raw_blocks_text(blocks: list[RawBlock]) -> str:
+    return "\n".join(block.text for block in blocks if block.text.strip())
 
 
 def _canonical_marginalia(text: str) -> str:
@@ -392,6 +419,9 @@ def _build_diagnostics(
     pages: list[ExtractedPage],
     body_font_size: float | None,
     removed_repeated: int,
+    *,
+    text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer",
+    included_text: str = "",
 ) -> ExtractionDiagnostics:
     blocks = [block for page in pages for block in page.blocks]
     included = [block for block in blocks if not block.removed]
@@ -413,6 +443,14 @@ def _build_diagnostics(
         reasons.append(f"Detected {table_count} table-like blocks that require spot checking.")
     if removed_repeated:
         warnings.append(f"Removed or marked {removed_repeated} repeated header/footer blocks.")
+    if text_extraction_mode == "ocr":
+        warnings.append("Used OCR fallback because the PDF text layer had broken Cyrillic encoding.")
+    elif is_likely_garbled_russian_pdf_text(included_text):
+        reasons.append(
+            "PDF text layer appears to use broken Cyrillic font encoding; "
+            "install Tesseract with rus+eng data or provide OCR text input."
+        )
+        score -= 0.45
 
     page_count = len(pages)
     low_ratio = len(low_text_pages) / page_count if page_count else 1.0
@@ -438,6 +476,7 @@ def _build_diagnostics(
         heading_candidates=heading_count,
         table_candidates=table_count,
         body_font_size=round(body_font_size, 3) if body_font_size is not None else None,
+        text_extraction_mode=text_extraction_mode,
         quality_score=round(score, 4),
         requires_review=bool(reasons),
         review_reasons=reasons,
@@ -445,9 +484,30 @@ def _build_diagnostics(
     )
 
 
+def _maybe_extract_with_ocr(
+    document: Any,
+    raw_blocks: list[RawBlock],
+    configured: ExtractionOptions,
+) -> tuple[list[RawBlock], Literal["pdf_text_layer", "ocr"]]:
+    included_text = _raw_blocks_text(raw_blocks)
+    if not configured.ocr_fallback or not is_likely_garbled_russian_pdf_text(included_text):
+        return raw_blocks, "pdf_text_layer"
+
+    baseline_ratio = cyrillic_letter_ratio(included_text)
+    ocr_blocks: list[RawBlock] = []
+    for page_index in range(document.page_count):
+        page = document.load_page(page_index)
+        ocr_blocks.extend(_extract_raw_blocks_ocr(page, page_index, configured))
+    ocr_text = _raw_blocks_text(ocr_blocks)
+    if cyrillic_letter_ratio(ocr_text) > baseline_ratio + 0.05:
+        return ocr_blocks, "ocr"
+    return raw_blocks, "pdf_text_layer"
+
+
 def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> ExtractedSource:
     configured = options or ExtractionOptions()
     document = pymupdf.open(source)
+    text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer"
     try:
         raw_blocks: list[RawBlock] = []
         page_dimensions: dict[int, tuple[float, float]] = {}
@@ -455,6 +515,12 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             page = document.load_page(page_index)
             page_dimensions[page_index + 1] = (float(page.rect.width), float(page.rect.height))
             raw_blocks.extend(_extract_raw_blocks(page, page_index, configured))
+        try:
+            raw_blocks, text_extraction_mode = _maybe_extract_with_ocr(
+                document, raw_blocks, configured
+            )
+        except RuntimeError:
+            pass
         body_font_size = _weighted_body_font(raw_blocks, configured)
         pages, removed_repeated = _classify_blocks(raw_blocks, body_font_size, configured)
         existing_pages = {page.page for page in pages}
@@ -471,11 +537,24 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
                     )
                 )
         pages.sort(key=lambda page: page.page)
+        included_text = " ".join(
+            block.text
+            for page in pages
+            for block in page.blocks
+            if not block.removed and block.text.strip()
+        )
     finally:
         document.close()
 
     checksum = sha256_file(source)
-    diagnostics = _build_diagnostics(checksum, pages, body_font_size, removed_repeated)
+    diagnostics = _build_diagnostics(
+        checksum,
+        pages,
+        body_font_size,
+        removed_repeated,
+        text_extraction_mode=text_extraction_mode,
+        included_text=included_text,
+    )
     return ExtractedSource(
         source_file=source.name,
         source_checksum=checksum,

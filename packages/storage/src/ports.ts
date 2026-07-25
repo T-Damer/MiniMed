@@ -53,6 +53,7 @@ export interface MedicalStore {
   getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null>;
   getSectionsByDocument(documentId: string): Promise<readonly SectionRecord[]>;
   getSection(id: string): Promise<SectionRecord | null>;
+  getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]>;
   getChunksBySection(sectionId: string): Promise<readonly ChunkRecord[]>;
   getChunk(id: string): Promise<ChunkRecord | null>;
   getChunkWindow(chunkId: string, radius: number): Promise<readonly ChunkRecord[]>;

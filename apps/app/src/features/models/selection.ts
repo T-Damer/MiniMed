@@ -5,7 +5,7 @@ import type {
   LocalModelPreference,
   LocalModelRuntimeKind,
   LocalModelSelection,
-} from './types';
+} from '@/features/models/types';
 
 const STORAGE_MARGIN_BYTES = 256_000_000;
 const METERED_LARGE_DOWNLOAD_BYTES = 750_000_000;

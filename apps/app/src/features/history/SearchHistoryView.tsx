@@ -1,13 +1,13 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { AppGlyph } from '../../components/AppGlyph';
+import { AppGlyph } from '@/components/AppGlyph';
 import {
   clearSearchHistory,
   loadSearchHistory,
   removeSearchHistoryEntry,
   SEARCH_HISTORY_EVENT,
   type SearchHistoryEntry,
-} from '../../state/search-history';
+} from '@/state/search-history';
 
 interface SearchHistoryViewProps {
   readonly onReplay: (query: string) => void;

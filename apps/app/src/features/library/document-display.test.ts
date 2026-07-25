@@ -4,8 +4,13 @@ import { describe, expect, it } from 'vitest';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
+  hasFullTextSibling,
+  isFullTextDocumentId,
   orderDocumentSections,
-} from './document-display';
+  preferReadableDocuments,
+  resolveReadableDocumentId,
+  summaryDocumentId,
+} from '@/features/library/document-display';
 
 const section = (title: string): MedicalSection => ({
   id: title,
@@ -73,5 +78,50 @@ describe('document-display', () => {
         sourceType: 'official_registry_summary',
       }),
     ).toBe('порошок для инъекций 1 г');
+  });
+
+  it('prefers installed full-text siblings when opening documents', () => {
+    const available = new Set(['kr.rf.714_2.pneumonia', 'kr.rf.714_2.pneumonia.full']);
+    expect(resolveReadableDocumentId('kr.rf.714_2.pneumonia', available)).toBe(
+      'kr.rf.714_2.pneumonia.full',
+    );
+    expect(resolveReadableDocumentId('kr.rf.714_2.pneumonia.full', available)).toBe(
+      'kr.rf.714_2.pneumonia.full',
+    );
+  });
+
+  it('hides pilot summaries when full-text packs are installed', () => {
+    const visible = preferReadableDocuments([
+      {
+        id: 'kr.rf.714_2.pneumonia',
+        title: 'Внебольничная пневмония у детей',
+        shortTitle: null,
+        sourceType: 'clinical_recommendation_summary',
+        status: 'active',
+        specialties: [],
+        versionId: 'v1',
+        versionLabel: '714_2-2025',
+        effectiveFrom: null,
+      },
+      {
+        id: 'kr.rf.714_2.pneumonia.full',
+        title: 'Внебольничная пневмония у детей',
+        shortTitle: null,
+        sourceType: 'clinical_recommendation',
+        status: 'active',
+        specialties: [],
+        versionId: 'v2',
+        versionLabel: '714_2-2025-full',
+        effectiveFrom: null,
+      },
+    ]);
+    expect(visible.map((document) => document.id)).toEqual(['kr.rf.714_2.pneumonia.full']);
+  });
+
+  it('detects full-text siblings for summary cards', () => {
+    const available = new Set(['kr.rf.714_2.pneumonia', 'kr.rf.714_2.pneumonia.full']);
+    expect(hasFullTextSibling('kr.rf.714_2.pneumonia', available)).toBe(true);
+    expect(isFullTextDocumentId('kr.rf.714_2.pneumonia.full')).toBe(true);
+    expect(summaryDocumentId('kr.rf.714_2.pneumonia.full')).toBe('kr.rf.714_2.pneumonia');
   });
 });

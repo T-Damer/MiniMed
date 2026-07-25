@@ -12,6 +12,7 @@ from .knowledge_modules import load_knowledge_modules
 from .markdown_parser import parse_markdown_document
 from .models import Alias, BuildReport, ContentPack, PackManifest
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
+from .text_encoding import expects_russian_clinical_text, lint_garbled_russian_text
 
 
 def read_yaml_mapping(path: Path) -> dict[str, object]:
@@ -99,6 +100,16 @@ def lint_content_pack(pack: ContentPack) -> list[str]:
                 chunk_ids.add(chunk.id)
                 if not chunk.normalized_text:
                     errors.append(f"{chunk.id}: empty normalized text")
+                if expects_russian_clinical_text(
+                    document.title,
+                    source_type=document.source_type,
+                ):
+                    garbled = lint_garbled_russian_text(
+                        chunk.original_text,
+                        context=f"{document.id}/{chunk.id}",
+                    )
+                    if garbled:
+                        errors.append(garbled)
     return errors
 
 

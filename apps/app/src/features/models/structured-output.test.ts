@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { extractStructuredJson, normalizeLocalModelProbe } from './structured-output';
+import {
+  extractStructuredJson,
+  normalizeLocalModelProbe,
+} from '@/features/models/structured-output';
 
 describe('extractStructuredJson', () => {
   it('reads a plain JSON object', () => {

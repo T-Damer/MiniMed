@@ -20,7 +20,7 @@ import type {
   SearchResultGroup,
 } from '@localmed/contracts';
 
-import type { LocalModelController } from './controller';
+import type { LocalModelController } from '@/features/models/controller';
 
 export type GroundedAssistantPhase = 'idle' | 'running' | 'applied' | 'fallback';
 
@@ -556,6 +556,13 @@ export class GroundedMedicalCore implements MedicalCore {
     radius?: number,
   ): Promise<Result<ChunkContext, LocalMedError>> {
     return this.base.getContext(chunkId, radius);
+  }
+
+  public getSearchResultContext(
+    result: Parameters<MedicalCore['getSearchResultContext']>[0],
+    radius?: number,
+  ): Promise<Result<ChunkContext, LocalMedError>> {
+    return this.base.getSearchResultContext(result, radius);
   }
 
   public ask(request: AskRequest): Promise<Result<AskResponse, LocalMedError>> {

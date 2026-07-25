@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { SerialAsyncQueue } from './serial-async-queue';
+import { SerialAsyncQueue } from '@/features/models/serial-async-queue';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;

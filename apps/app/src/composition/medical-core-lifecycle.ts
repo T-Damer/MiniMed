@@ -33,3 +33,14 @@ export async function replaceMedicalCore(
   await closeQuietly(current.core);
   return next;
 }
+
+export async function swapMedicalCore(
+  current: InitializedMedicalCore,
+  factory: () => Promise<MedicalCore>,
+  onSwapped: (core: MedicalCore) => void,
+): Promise<InitializedMedicalCore> {
+  const next = await initializeMedicalCore(factory);
+  onSwapped(next.core);
+  await closeQuietly(current.core);
+  return next;
+}

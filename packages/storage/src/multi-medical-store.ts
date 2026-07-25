@@ -209,6 +209,11 @@ export class MultiMedicalStore implements MedicalStore {
     return this.firstMatch((store) => store.getSection(id));
   }
 
+  public async getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]> {
+    const mount = await this.findMount((store) => store.getDocument(documentId));
+    return mount ? mount.store.getChunksByDocument(documentId) : [];
+  }
+
   public async getChunksBySection(sectionId: string): Promise<readonly ChunkRecord[]> {
     const mount = await this.findMount((store) => store.getSection(sectionId));
     return mount ? mount.store.getChunksBySection(sectionId) : [];
