@@ -153,25 +153,31 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         </Show>
       </header>
 
-      <div class="search-mode-picker" role="radiogroup" aria-label="Режим поиска">
+      <fieldset class="search-mode-picker">
+        <legend class="visually-hidden">Режим поиска</legend>
         <For each={SEARCH_SCOPES}>
           {(option) => (
-            <button
-              type="button"
-              role="radio"
-              aria-checked={scope() === option.id}
+            <label
               classList={{ active: scope() === option.id }}
               title={option.description}
-              onClick={() => selectScope(option.id)}
             >
-              <strong>{option.label}</strong>
-              <small>
-                {documentCounts()[option.id]} {option.id === 'diagnosis' ? 'источников' : 'док.'}
-              </small>
-            </button>
+              <input
+                type="radio"
+                name="minimed-search-scope"
+                value={option.id}
+                checked={scope() === option.id}
+                onChange={() => selectScope(option.id)}
+              />
+              <span class="search-mode-option-copy">
+                <strong>{option.label}</strong>
+                <small>
+                  {documentCounts()[option.id]} {option.id === 'diagnosis' ? 'источников' : 'док.'}
+                </small>
+              </span>
+            </label>
           )}
         </For>
-      </div>
+      </fieldset>
 
       <Show
         when={scopedCore()}
