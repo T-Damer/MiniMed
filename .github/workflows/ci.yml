@@ -6,75 +6,9 @@ on:
   pull_request:
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  release-format:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/portable-rust-core-cli-roadmap'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: agent/portable-rust-core-cli-roadmap
-          fetch-depth: 0
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.3
-      - uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.10.0"
-          enable-cache: true
-      - run: bun install --frozen-lockfile
-      - run: uv sync --project tools/ingest --all-groups --locked
-      - name: Apply pinned safe formatter fixes
-        shell: bash
-        run: |
-          set +e
-          bun run check --write
-          uv run --project tools/ingest ruff check --fix tools/ingest/src tools/ingest/tests
-          uv run --project tools/ingest ruff format tools/ingest/src tools/ingest/tests
-          exit 0
-      - name: Publish non-workflow formatting fixes
-        shell: bash
-        run: |
-          set -euo pipefail
-          git diff --quiet -- .github/workflows || {
-            echo 'Formatting unexpectedly changed workflow files.' >&2
-            git diff -- .github/workflows
-            exit 1
-          }
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git diff --cached --quiet || {
-            git commit -m 'style: apply pinned repository formatters'
-            git push origin HEAD:agent/portable-rust-core-cli-roadmap
-          }
-      - name: Collect unresolved diagnostics
-        if: always()
-        shell: bash
-        run: |
-          set +e
-          mkdir -p release-diagnostics
-          {
-            echo '=== Biome errors ==='
-            bunx biome check . --diagnostic-level=error --max-diagnostics=50
-            echo
-            echo '=== Ruff ==='
-            uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
-          } > release-diagnostics/checks.log 2>&1
-          exit 0
-      - name: Upload unresolved diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-check-diagnostics
-          path: release-diagnostics/checks.log
-          if-no-files-found: error
-          retention-days: 7
-
   javascript:
     runs-on: ubuntu-latest
     steps:
