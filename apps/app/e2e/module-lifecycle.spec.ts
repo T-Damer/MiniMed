@@ -51,6 +51,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
+  await page.getByRole('tab', { name: 'Скачать наборы' }).click();
 
   const card = regulatoryCard(page);
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible();
