@@ -11,11 +11,12 @@ function pneumoniaResult(page: Page): Locator {
 }
 
 function navigationButton(page: Page, name: string): Locator {
-  return page.locator('.app-nav-icons').getByRole('button', { name, exact: true });
+  return page.locator('.app-nav-icons').getByRole('button', { name });
 }
 
-test('asks for the search task before unlocking first-run input', async ({ page }) => {
-  await mountBuiltApp(page, { skipDefaultSearchScope: true });
+test('asks for the search task before unlocking input', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.getByRole('button', { name: 'Сменить' }).click();
 
   await expect(page.getByText('Поле поиска откроется после выбора режима')).toBeVisible();
   await expect(page.getByTestId('search-input')).toHaveCount(0);
