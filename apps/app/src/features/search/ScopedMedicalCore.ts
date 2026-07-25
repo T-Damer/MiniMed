@@ -23,9 +23,7 @@ export type SearchScope = 'diagnosis' | 'guidelines' | 'medications' | 'legal' |
 
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 
-const SOURCE_TYPES_BY_SCOPE: Readonly<
-  Partial<Record<SearchScope, ReadonlySet<string>>>
-> = {
+const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<string>>>> = {
   guidelines: new Set(['clinical_recommendation', 'clinical_recommendation_summary']),
   medications: new Set(['official_drug_instruction', 'official_registry_summary']),
   legal: new Set(['regulatory_act']),
@@ -78,9 +76,7 @@ export class ScopedMedicalCore implements MedicalCore {
     return this.base.listDocuments();
   }
 
-  public analyzeQuery(
-    request: AnalyzeQueryRequest,
-  ): Promise<Result<QueryAnalysis, LocalMedError>> {
+  public analyzeQuery(request: AnalyzeQueryRequest): Promise<Result<QueryAnalysis, LocalMedError>> {
     return this.target().analyzeQuery(request);
   }
 
@@ -129,13 +125,7 @@ export class ScopedMedicalCore implements MedicalCore {
   public getSearchResultContext(
     result: Pick<
       SearchResult,
-      | 'chunkId'
-      | 'documentId'
-      | 'sectionId'
-      | 'anchor'
-      | 'title'
-      | 'sectionPath'
-      | 'sectionType'
+      'chunkId' | 'documentId' | 'sectionId' | 'anchor' | 'title' | 'sectionPath' | 'sectionType'
     >,
     radius?: number,
   ): Promise<Result<ChunkContext, LocalMedError>> {

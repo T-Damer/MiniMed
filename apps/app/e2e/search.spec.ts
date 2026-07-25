@@ -22,7 +22,9 @@ test('asks for the search task before unlocking first-run input', async ({ page 
   await page.getByRole('radio', { name: /В клин\. рекомендациях/u }).click();
 
   await expect(page.getByTestId('search-input')).toBeVisible();
-  await expect(page.getByText(/Искать только в установленных клинических рекомендациях/u)).toBeVisible();
+  await expect(
+    page.getByText(/Искать только в установленных клинических рекомендациях/u),
+  ).toBeVisible();
 });
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
@@ -104,7 +106,10 @@ test('replays a saved query from the history panel beside search', async ({ page
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
-  const historyEntry = page.locator('.search-history-panel-replay').filter({ hasText: query }).first();
+  const historyEntry = page
+    .locator('.search-history-panel-replay')
+    .filter({ hasText: query })
+    .first();
   await expect(historyEntry).toBeVisible();
   await page.getByTestId('search-input').fill('другой запрос');
   await historyEntry.click();

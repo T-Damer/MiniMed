@@ -23,9 +23,6 @@ export function summaryDocumentId(documentId: string): string {
   return documentId.replace(/\.full$/, '');
 }
 
-export function hasFullTextSibling(
-  documentId: string,
-  availableIds: ReadonlySet<string>,
-): boolean {
+export function hasFullTextSibling(documentId: string, availableIds: ReadonlySet<string>): boolean {
   return isSupersededSummaryDocument(documentId, availableIds);
 }

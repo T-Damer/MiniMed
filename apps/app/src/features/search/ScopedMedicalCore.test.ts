@@ -67,7 +67,10 @@ function request(documentIds?: readonly string[]): SearchRequest {
 }
 
 function coreWithDocuments(documents: readonly MedicalDocumentSummary[]) {
-  const search = vi.fn(async (_request: SearchRequest) => ({ ok: true as const, value: response() }));
+  const search = vi.fn(async (_request: SearchRequest) => ({
+    ok: true as const,
+    value: response(),
+  }));
   const listDocuments = vi.fn(async () => ({ ok: true as const, value: documents }));
   const analyzeQuery = vi.fn(async () => ({
     ok: true as const,
@@ -114,7 +117,9 @@ describe('ScopedMedicalCore', () => {
   });
 
   it('uses an impossible document id when the selected family is not installed', async () => {
-    const base = coreWithDocuments(documents.filter((item) => item.sourceType !== 'regulatory_act'));
+    const base = coreWithDocuments(
+      documents.filter((item) => item.sourceType !== 'regulatory_act'),
+    );
     const scoped = new ScopedMedicalCore(base.core, undefined, 'legal');
 
     await scoped.search(request());

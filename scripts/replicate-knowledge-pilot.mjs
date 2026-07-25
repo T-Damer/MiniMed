@@ -98,7 +98,12 @@ function extractJson(text) {
 function validateResponse(task, value) {
   const failures = [];
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return { valid: false, quoteChecks: 0, exactQuotes: 0, failures: ['response is not an object'] };
+    return {
+      valid: false,
+      quoteChecks: 0,
+      exactQuotes: 0,
+      failures: ['response is not an object'],
+    };
   }
   if (value.task_id !== task.taskId) failures.push('task_id mismatch');
   if (value.schema_version !== 1) failures.push('schema_version mismatch');
@@ -176,10 +181,8 @@ async function runPrediction(token, task) {
   const output = Array.isArray(prediction.output)
     ? prediction.output.join('')
     : String(prediction.output ?? '');
-  const inputTokens =
-    Number(prediction.metrics?.input_token_count) || estimateTokens(prompt);
-  const outputTokens =
-    Number(prediction.metrics?.output_token_count) || estimateTokens(output);
+  const inputTokens = Number(prediction.metrics?.input_token_count) || estimateTokens(prompt);
+  const outputTokens = Number(prediction.metrics?.output_token_count) || estimateTokens(output);
   const parsed = extractJson(output);
   return {
     predictionId: prediction.id,
@@ -206,7 +209,9 @@ async function main() {
     tasks.length * MAX_OUTPUT_TOKENS,
   );
   if (maximumEstimatedCost > HARD_COST_CAP_USD) {
-    throw new Error(`Configured pilot can cost $${maximumEstimatedCost.toFixed(4)}, above the cap.`);
+    throw new Error(
+      `Configured pilot can cost $${maximumEstimatedCost.toFixed(4)}, above the cap.`,
+    );
   }
 
   if (dryRun) {

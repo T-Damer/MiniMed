@@ -82,7 +82,9 @@ export function SearchHistoryPanel(): JSX.Element {
                       class="search-history-panel-remove"
                       type="button"
                       aria-label={`Удалить запрос: ${entry.query}`}
-                      onClick={() => setEntries(removeSearchHistoryEntry(entry.id).slice(0, HISTORY_LIMIT))}
+                      onClick={() =>
+                        setEntries(removeSearchHistoryEntry(entry.id).slice(0, HISTORY_LIMIT))
+                      }
                     >
                       <AppGlyph name="close" />
                     </button>

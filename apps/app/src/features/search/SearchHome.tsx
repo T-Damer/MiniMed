@@ -98,14 +98,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         medications: result.value.filter((document) =>
           documentMatchesSearchScope(document, 'medications'),
         ).length,
-        legal: result.value.filter((document) => documentMatchesSearchScope(document, 'legal')).length,
+        legal: result.value.filter((document) => documentMatchesSearchScope(document, 'legal'))
+          .length,
       });
     });
   });
 
-  const selectedOption = createMemo(() =>
-    SEARCH_SCOPES.find((option) => option.id === scope()),
-  );
+  const selectedOption = createMemo(() => SEARCH_SCOPES.find((option) => option.id === scope()));
   const scopedCore = createMemo(() => {
     const selected = scope();
     return selected
@@ -200,7 +199,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               <div class="search-scope-unavailable paper-card">
                 <div>
                   <strong>Такие документы ещё не установлены</strong>
-                  <p>Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.</p>
+                  <p>
+                    Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.
+                  </p>
                 </div>
                 <button type="button" onClick={props.onOpenKnowledgeBase}>
                   Открыть базу знаний
