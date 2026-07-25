@@ -29,7 +29,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - App-local `@/` import alias for source modules.
 - WebExtensions-style UI localization: `_locales/<lang>/messages.json` catalogs with a bundled
   `browser.i18n.getMessage` shim; corpus specialty slugs and module collection ids localize at the
-  UI boundary (default locale `ru`).
+  UI boundary (default locale `ru`, including pilot-only slugs such as `clinical-pharmacology`).
 
 ### Local model
 
@@ -94,9 +94,10 @@ The 50-query public-pilot benchmark after the current ranking fixes:
 - context and source-metadata resolution: `1.00`;
 - zero-result rate: `0`.
 
-The browser suite passes the nine search, document, history, and navigation scenarios. The separate
-module-lifecycle scenario requires generated regulatory E2E artifacts and does not run from a bare
-checkout until those artifacts are built.
+The browser suite passes the nine search, document, history, and navigation scenarios, plus i18n
+label regression and an optional dev-server smoke check when `127.0.0.1:5173` is running. The
+separate module-lifecycle scenario requires generated regulatory E2E artifacts and does not run from
+a bare checkout until those artifacts are built.
 
 ## Known limits
 

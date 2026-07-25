@@ -11,6 +11,10 @@
     "message": "Аллергология и иммунология",
     "description": "Medical specialty slug: allergology-immunology"
   },
+  "specialty_allergy_immunology": {
+    "message": "Аллергология и иммунология",
+    "description": "Medical specialty slug: allergy-immunology"
+  },
   "specialty_anesthesiology": {
     "message": "Анестезиология",
     "description": "Medical specialty slug: anesthesiology"
@@ -22,6 +26,10 @@
   "specialty_cardiovascular_surgery": {
     "message": "Сердечно-сосудистая хирургия",
     "description": "Medical specialty slug: cardiovascular-surgery"
+  },
+  "specialty_clinical_pharmacology": {
+    "message": "Клиническая фармакология",
+    "description": "Medical specialty slug: clinical-pharmacology"
   },
   "specialty_child_psychiatry": {
     "message": "Детская психиатрия",
@@ -55,6 +63,10 @@
     "message": "Генетика",
     "description": "Medical specialty slug: genetics"
   },
+  "specialty_general_practice": {
+    "message": "Общая врачебная практика",
+    "description": "Medical specialty slug: general-practice"
+  },
   "specialty_geriatrics": {
     "message": "Гериатрия",
     "description": "Medical specialty slug: geriatrics"
@@ -71,6 +83,10 @@
     "message": "Гепатология",
     "description": "Medical specialty slug: hepatology"
   },
+  "specialty_health_administration": {
+    "message": "Организация здравоохранения",
+    "description": "Medical specialty slug: health-administration"
+  },
   "specialty_infectious_diseases": {
     "message": "Инфекционные болезни",
     "description": "Medical specialty slug: infectious-diseases"
@@ -78,6 +94,18 @@
   "specialty_intensive_care": {
     "message": "Реанимация и интенсивная терапия",
     "description": "Medical specialty slug: intensive-care"
+  },
+  "specialty_laboratory_medicine": {
+    "message": "Лабораторная диагностика",
+    "description": "Medical specialty slug: laboratory-medicine"
+  },
+  "specialty_maxillofacial_surgery": {
+    "message": "Челюстно-лицевая хирургия",
+    "description": "Medical specialty slug: maxillofacial-surgery"
+  },
+  "specialty_metabolism": {
+    "message": "Метаболические нарушения",
+    "description": "Medical specialty slug: metabolism"
   },
   "specialty_nephrology": {
     "message": "Нефрология",
@@ -95,6 +123,10 @@
     "message": "Клиническое питание",
     "description": "Medical specialty slug: nutrition"
   },
+  "specialty_neonatology": {
+    "message": "Неонатология",
+    "description": "Medical specialty slug: neonatology"
+  },
   "specialty_obstetrics": {
     "message": "Акушерство",
     "description": "Medical specialty slug: obstetrics"
@@ -102,6 +134,10 @@
   "specialty_oncology": {
     "message": "Онкология",
     "description": "Medical specialty slug: oncology"
+  },
+  "specialty_palliative_care": {
+    "message": "Паллиативная помощь",
+    "description": "Medical specialty slug: palliative-care"
   },
   "specialty_ophthalmology": {
     "message": "Офтальмология",
@@ -119,6 +155,10 @@
     "message": "Педиатрия",
     "description": "Medical specialty slug: pediatrics"
   },
+  "specialty_pediatric_surgery": {
+    "message": "Детская хирургия",
+    "description": "Medical specialty slug: pediatric-surgery"
+  },
   "specialty_psychiatry": {
     "message": "Психиатрия",
     "description": "Medical specialty slug: psychiatry"
@@ -135,6 +175,10 @@
     "message": "Ревматология",
     "description": "Medical specialty slug: rheumatology"
   },
+  "specialty_rehabilitation": {
+    "message": "Медицинская реабилитация",
+    "description": "Medical specialty slug: rehabilitation"
+  },
   "specialty_surgery": {
     "message": "Хирургия",
     "description": "Medical specialty slug: surgery"
@@ -146,6 +190,10 @@
   "specialty_traumatology": {
     "message": "Травматология",
     "description": "Medical specialty slug: traumatology"
+  },
+  "specialty_traumatology_orthopedics": {
+    "message": "Травматология и ортопедия",
+    "description": "Medical specialty slug: traumatology-orthopedics"
   },
   "specialty_urology": {
     "message": "Урология",
