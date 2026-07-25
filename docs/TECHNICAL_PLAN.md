@@ -41,6 +41,10 @@ The browser is the primary target. It uses:
 - optional wllama CPU/WASM inference;
 - local storage only for preferences, history, bookmarks, and installed-module metadata.
 
+The primary navigation remains deliberately small: search, knowledge base/documents, and settings.
+Search history belongs beside the active search rather than in a separate top-level page. The search
+screen asks for an explicit source/task scope before accepting a query.
+
 Development and preview servers bind to `127.0.0.1`. Browser automation must not auto-download model
 weights unless explicitly enabled.
 
@@ -126,7 +130,7 @@ A later tracker may poll selected official catalogs for version metadata and dow
 staging area. It must never replace an active local source without checksum validation and an explicit
 promotion step.
 
-## Milestones
+## Milestones toward 1.0
 
 ### 1. Full local corpus
 
@@ -158,19 +162,32 @@ cases show a useful improvement over deterministic ordering alone.
 Done when every displayed dose resolves to a verified source span and strength-only records reliably
 abstain.
 
-### 4. Selected-source updates
+### 4. Selected-source updates and personal overlay
 
 - track owner-selected official source versions;
 - stage and checksum new documents;
 - show diffs and extraction diagnostics;
-- promote only validated packs with rollback metadata.
+- promote only validated packs with rollback metadata;
+- add local-only patient notes as a separate trust layer, with explicit export/delete controls;
+- evaluate optional on-device Russian transcription without sending recordings to a service.
 
-Done when an update cannot silently change the active corpus and the previous version remains
-recoverable.
+Done when an update cannot silently change the active corpus, the previous version remains recoverable,
+and personal material cannot be confused with an official source.
+
+## 1.1 idea: portable Rust core and terminal client
+
+After the browser-first 1.0 gates are met, evaluate a portable Rust implementation of the stable
+`MedicalCore` contracts. The first deliverable is a non-interactive JSON CLI for deterministic search,
+pack verification, benchmarks, and automation; an optional terminal UI may follow.
+
+This is not a 1.0 release gate and must not become a big-bang rewrite. The current TypeScript core stays
+the reference until shared golden fixtures and differential tests demonstrate equivalent search,
+source navigation, provenance, errors, offline fallback, and rollback behavior.
 
 ## Non-goals
 
-- Rust, Tauri, Postgres, Docker, telemetry, accounts, sync, or a backend;
+- a Rust runtime migration before the 1.1 evaluation;
+- Tauri, Postgres, Docker, telemetry, accounts, cloud sync, or a hosted backend;
 - Android/iOS parity during the browser-first phase;
 - autonomous diagnosis or prescribing;
 - generated prose replacing original medical sources;
