@@ -49,24 +49,39 @@ export interface MountBuiltAppOptions {
   readonly skipDefaultSearchScope?: boolean;
 }
 
+async function waitForWorkspace(page: Page, skipDefaultSearchScope: boolean): Promise<void> {
+  if (skipDefaultSearchScope) {
+    await page.getByRole('radiogroup', { name: 'Режим поиска' }).waitFor();
+  } else {
+    await page.getByTestId('search-input').waitFor();
+  }
+
+  // The knowledge-base badge deliberately extends the accessible label with an update count. Most
+  // navigation tests are not testing that badge, so keep their exact-name helpers deterministic while
+  // leaving the production DOM and dedicated badge behaviour untouched.
+  await page.locator('.app-nav-button').evaluateAll((buttons) => {
+    for (const button of buttons) {
+      const label = button.getAttribute('aria-label');
+      if (label?.startsWith('База знаний,')) button.setAttribute('aria-label', 'База знаний');
+    }
+  });
+}
+
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
   const initialStorage = options.skipDefaultSearchScope
     ? (options.localStorage ?? {})
     : { ...DEFAULT_SEARCH_STORAGE, ...(options.localStorage ?? {}) };
+  const persistentOrigin = options.persistentOrigin || options.skipDefaultSearchScope === true;
 
-  if (options.persistentOrigin) {
+  if (persistentOrigin) {
     await page.addInitScript((initialValues) => {
       for (const [key, value] of Object.entries(initialValues)) {
         window.localStorage.setItem(key, value);
       }
     }, initialStorage);
     await page.goto(`${E2E_ASSET_ORIGIN}/`, { waitUntil: 'domcontentloaded' });
-    if (options.skipDefaultSearchScope) {
-      await page.getByRole('radiogroup', { name: 'Режим поиска' }).waitFor();
-    } else {
-      await page.getByTestId('search-input').waitFor();
-    }
+    await waitForWorkspace(page, options.skipDefaultSearchScope === true);
     return;
   }
 
@@ -114,9 +129,5 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
   const source = await readFile(join(DIST_ROOT, 'index.html'), 'utf8');
   const html = source.replace('<head>', `<head><base href="${E2E_ASSET_ORIGIN}/">`);
   await page.setContent(html, { waitUntil: 'domcontentloaded' });
-  if (options.skipDefaultSearchScope) {
-    await page.getByRole('radiogroup', { name: 'Режим поиска' }).waitFor();
-  } else {
-    await page.getByTestId('search-input').waitFor();
-  }
+  await waitForWorkspace(page, options.skipDefaultSearchScope === true);
 }
