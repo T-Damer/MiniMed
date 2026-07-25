@@ -9,7 +9,7 @@
     "knowledge: 9 entities, 8 facts (0 reviewed), 1 relations (0 reviewed), 3 review tasks"
   ],
   "errors": [],
-  "outputChecksum": "sha256:56124a8c86be747bbf66b6fa576db31b1de3bf9a1d37ff4318b28e99895d2633",
+  "outputChecksum": "sha256:42f6663a77a97dd7bdec78ab3ab71825dd36ec7f10f9d3e2db68ccc04a26c8ff",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0
 }
