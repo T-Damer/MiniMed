@@ -58,8 +58,8 @@ def is_likely_english_dominant_russian_source(
 ) -> bool:
     """Detect OCR/model output that replaced a Russian document with English prose.
 
-    This check runs on a whole document rather than one reference/table chunk so Latin drug names and
-    bibliography entries do not fail an otherwise Russian source.
+    This check runs on a whole document rather than one reference/table chunk so Latin drug
+    names and bibliography entries do not fail an otherwise Russian source.
     """
 
     letters = [character for character in text if character.isalpha()]
