@@ -1,9 +1,24 @@
-import type { MedicalDocument, MedicalSection } from '@localmed/contracts';
+import type { MedicalDocumentSummary, MedicalSection } from '@localmed/contracts';
+import {
+  fullDocumentCandidateId,
+  hasFullTextSibling,
+  isSupersededSummaryDocument,
+  resolveReadableDocumentId,
+  summaryDocumentId,
+} from '@localmed/core';
 
 const REGISTRY_SECTION_PATTERN = /регистрационн|ограничен/i;
 
+export {
+  fullDocumentCandidateId,
+  hasFullTextSibling,
+  isSupersededSummaryDocument,
+  resolveReadableDocumentId,
+  summaryDocumentId,
+};
+
 export function displayDocumentTitle(
-  document: Pick<MedicalDocument, 'title' | 'shortTitle' | 'sourceType'>,
+  document: Pick<MedicalDocumentSummary, 'title' | 'shortTitle' | 'sourceType'>,
 ): string {
   if (document.sourceType === 'official_registry_summary') {
     const inn = document.title.split('—')[0]?.trim();
@@ -13,7 +28,7 @@ export function displayDocumentTitle(
 }
 
 export function displayDocumentSubtitle(
-  document: Pick<MedicalDocument, 'title' | 'sourceType'>,
+  document: Pick<MedicalDocumentSummary, 'title' | 'sourceType'>,
 ): string | null {
   if (document.sourceType === 'official_registry_summary') {
     const form = document.title.split('—').slice(1).join('—').trim();
@@ -39,4 +54,21 @@ export function orderDocumentSections(
   const primary = sections.filter((section) => !REGISTRY_SECTION_PATTERN.test(section.title));
   const administrative = sections.filter((section) => REGISTRY_SECTION_PATTERN.test(section.title));
   return [...primary, ...administrative];
+}
+
+export function isFullTextDocumentId(documentId: string): boolean {
+  return documentId.endsWith('.full');
+}
+
+export function preferReadableDocuments(
+  documents: readonly MedicalDocumentSummary[],
+): readonly MedicalDocumentSummary[] {
+  const availableIds = new Set(documents.map((document) => document.id));
+  const hiddenSummaryIds = new Set(
+    documents
+      .filter((document) => document.id.endsWith('.full'))
+      .map((document) => document.id.replace(/\.full$/, ''))
+      .filter((summaryId) => availableIds.has(summaryId)),
+  );
+  return documents.filter((document) => !hiddenSummaryIds.has(document.id));
 }

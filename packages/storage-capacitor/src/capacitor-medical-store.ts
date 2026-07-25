@@ -291,6 +291,19 @@ export class CapacitorMedicalStore implements MedicalStore {
     return row ? toSection(row) : null;
   }
 
+  public async getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]> {
+    return (
+      await this.query(
+        `${CHUNK_SELECT}
+         JOIN sections s ON s.id = c.section_id
+         JOIN document_versions dv ON dv.id = s.document_version_id
+         WHERE dv.document_id = ?
+         ORDER BY s.order_index, c.order_index`,
+        [documentId],
+      )
+    ).map(toChunk);
+  }
+
   public async getChunksBySection(sectionId: string): Promise<readonly ChunkRecord[]> {
     return (
       await this.query(`${CHUNK_SELECT} WHERE c.section_id = ? ORDER BY c.order_index`, [sectionId])

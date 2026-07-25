@@ -6,7 +6,7 @@ import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
 
-import { loadInstalledModuleMounts } from '../features/modules/browser-module-runtime';
+import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
 
 interface PackBuildReport {
   readonly outputChecksum: string;

@@ -89,6 +89,12 @@ joined, but source paragraphs are otherwise not rewritten.
 A scan with no text layer is not OCRed automatically. It is reported as low-text and should first be
 processed by the user's OCR workflow.
 
+Some official Russian PDFs ship a text layer with broken Cyrillic font encoding (Latin look-alike
+glyph codes). The importer detects that mojibake signature, retries extraction with Tesseract
+`rus+eng` OCR when available, and blocks pack compilation when searchable text still lacks Cyrillic.
+GitHub Actions installs `tesseract-ocr`, `tesseract-ocr-rus`, and `tesseract-ocr-eng` for clinical
+snapshot builds.
+
 ## TXT and Markdown extraction
 
 UTF-8 TXT is useful for existing OCR output. Markdown preserves explicit `#` headings. For plain

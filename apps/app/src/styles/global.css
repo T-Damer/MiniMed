@@ -25,6 +25,7 @@
   --shadow-folder: 0 26px 65px rgb(36 32 24 / 24%);
   --font-serif: Georgia, "Times New Roman", Times, serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --page-content-width: 65ch;
 }
 
 * {
@@ -36,6 +37,7 @@ html {
   min-height: 100%;
   background: var(--desk);
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -562,9 +564,9 @@ main {
 .query-sheet textarea {
   display: block;
   width: 100%;
-  min-height: 156px;
+  min-height: 132px;
   resize: none;
-  padding: 24px 30px 18px 67px;
+  padding: 20px 28px 16px 67px;
   border: 0;
   outline: 0;
   color: var(--ink);
@@ -1030,22 +1032,11 @@ main {
   display: inline-block;
   padding: 3px 6px;
   border: 1px solid currentColor;
-  color: var(--green-file);
   font-family: var(--font-mono);
   font-size: 7px;
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-}
-
-.category-treatment,
-.category-routing {
-  color: var(--stamp);
-}
-
-.category-diagnostics,
-.category-differential-diagnosis {
-  color: var(--blue-pencil);
 }
 
 .bookmark-button {

@@ -224,6 +224,14 @@ export class InMemoryMedicalStore implements MedicalStore {
     return this.state.sections.find((section) => section.id === id) ?? null;
   }
 
+  public async getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]> {
+    const document = await this.getDocument(documentId);
+    if (!document) return [];
+    return this.state.chunks
+      .filter((chunk) => chunk.documentVersionId === document.version.id)
+      .toSorted((left, right) => left.orderIndex - right.orderIndex);
+  }
+
   public async getChunksBySection(sectionId: string): Promise<readonly ChunkRecord[]> {
     this.assertInitialized();
     return this.state.chunks

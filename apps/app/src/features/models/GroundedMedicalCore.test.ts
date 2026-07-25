@@ -7,9 +7,9 @@ import type {
 } from '@localmed/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { LocalModelController } from './controller';
-import { GroundedMedicalCore } from './GroundedMedicalCore';
-import type { LocalModelStructuredRequest } from './types';
+import type { LocalModelController } from '@/features/models/controller';
+import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
+import type { LocalModelStructuredRequest } from '@/features/models/types';
 
 const analysis: QueryAnalysis = {
   originalQuery: 'кашель и лихорадка',
@@ -122,6 +122,7 @@ function baseCore(response: SearchResponse = deterministicResponse): MedicalCore
     getDocument: vi.fn(),
     getSection: vi.fn(),
     getContext: vi.fn(),
+    getSearchResultContext: vi.fn(),
     ask: vi.fn(),
     installContentPack: vi.fn(),
     close: vi.fn(),

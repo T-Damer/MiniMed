@@ -5,7 +5,7 @@ import {
   loadContentModuleCatalog,
 } from '@localmed/core';
 
-import { MODULE_CATALOG, REMOTE_MODULE_CATALOG_URL } from './module-catalog';
+import { MODULE_CATALOG, REMOTE_MODULE_CATALOG_URL } from '@/features/modules/module-catalog';
 
 const CACHE_KEY = 'minimed.content-module-catalog.preview.v1';
 

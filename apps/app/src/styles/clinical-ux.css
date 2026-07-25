@@ -20,7 +20,7 @@
 
 .clinical-signal svg,
 .result-category-icon svg,
-.library-search svg,
+.archive-search__icon,
 .scroll-top-button svg {
   width: 18px;
   height: 18px;
@@ -54,44 +54,6 @@
   color: #655e51;
 }
 
-.library-toolbar {
-  display: flex;
-  width: min(1100px, 100%);
-  align-items: center;
-  gap: 12px;
-  margin: 0 auto 16px;
-}
-
-.library-search {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 13px;
-  border: 1px solid rgb(79 65 37 / 30%);
-  color: var(--ink-soft);
-  background: rgb(251 247 234 / 78%);
-}
-
-.library-search input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  color: var(--ink);
-  background: transparent;
-}
-
-.library-search-count {
-  flex: 0 0 auto;
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
 .document-folder-main {
   display: flex;
   align-items: flex-start;
@@ -105,9 +67,8 @@
 
 .knowledge-map {
   display: grid;
-  width: min(1100px, 100%);
+  width: 100%;
   gap: 16px;
-  margin: 0 auto;
 }
 
 .knowledge-map-group {
@@ -237,15 +198,19 @@
   z-index: 5;
   top: calc(4px + var(--safe-top));
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(160px, 260px) 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px) 40px;
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
-  padding: 9px 10px;
+  padding: 8px 10px;
   border: 1px solid rgb(246 238 219 / 24%);
   color: #f6eedb;
   background: rgb(71 69 63 / 96%);
   box-shadow: 0 8px 24px rgb(24 22 19 / 28%);
+}
+
+.reader-toolbar .archive-search {
+  gap: 0;
 }
 
 .reader-toolbar strong {
@@ -253,14 +218,6 @@
   font-family: var(--font-serif);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.reader-toolbar input {
-  min-width: 0;
-  padding: 8px 10px;
-  border: 1px solid rgb(246 238 219 / 22%);
-  color: #f6eedb;
-  background: rgb(255 255 255 / 7%);
 }
 
 .reader-toolbar .reader-close {
@@ -357,20 +314,20 @@
     grid-template-columns: minmax(0, 1fr) 40px;
   }
 
-  .reader-toolbar input {
+  .reader-toolbar .archive-search {
     grid-column: 1 / -1;
     grid-row: 2;
   }
 
-  .library-toolbar {
+  .archive-search-row {
     align-items: stretch;
     flex-direction: column;
+    gap: 6px;
   }
 }
 
 .knowledge-base-page {
-  width: min(1180px, calc(100% - 24px));
-  margin: 0 auto;
+  width: 100%;
   padding-bottom: 48px;
 }
 
@@ -381,8 +338,8 @@
 .knowledge-base-tabs {
   display: flex;
   gap: 8px;
-  margin: 0 auto 18px;
-  width: min(1180px, calc(100% - 24px));
+  width: 100%;
+  margin: 0 0 18px;
 }
 
 .knowledge-base-tabs button {
@@ -408,12 +365,11 @@
 
 .library-embedded-toolbar {
   display: flex;
+  width: 100%;
   justify-content: flex-end;
-  margin: 0 auto 12px;
-  width: min(1180px, calc(100% - 24px));
+  margin: 0 0 12px;
 }
 
 .module-page:not(.page-surface) {
-  width: min(1180px, calc(100% - 24px));
-  margin: 0 auto;
+  width: 100%;
 }

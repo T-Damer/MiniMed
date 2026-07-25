@@ -1,6 +1,8 @@
 import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
+import { lockBodyScroll } from '@/components/body-scroll-lock';
+
 interface OverlayDialogProps {
   readonly open: boolean;
   readonly title: string;
@@ -16,15 +18,14 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
 
   createEffect(() => {
     if (!props.open) return;
-    const previousOverflow = document.body.style.overflow;
+    const releaseScroll = lockBodyScroll();
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') props.onClose();
     };
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
     queueMicrotask(() => panel?.focus());
     onCleanup(() => {
-      document.body.style.overflow = previousOverflow;
+      releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
     });
   });

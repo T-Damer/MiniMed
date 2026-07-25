@@ -1,8 +1,8 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, Show } from 'solid-js';
 
-import { DocumentLibrary } from '../library/DocumentLibrary';
-import { ModuleCatalogView } from '../modules/ModuleCatalogView';
+import { DocumentLibrary } from '@/features/library/DocumentLibrary';
+import { ModuleCatalogView } from '@/features/modules/ModuleCatalogView';
 
 type KnowledgeTab = 'installed' | 'download';
 

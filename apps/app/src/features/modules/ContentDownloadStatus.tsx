@@ -1,8 +1,7 @@
 import type { ContentModuleDownloadTask } from '@localmed/contracts';
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-
-import { BrowserContentModuleRuntime } from './browser-module-runtime';
-import { MODULE_CATALOG } from './module-catalog';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 
 const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> = {
   queued: 'Ожидает загрузки',
@@ -24,7 +23,7 @@ export function ContentDownloadStatus(): JSX.Element {
   let unsubscribe: (() => void) | undefined;
 
   onMount(() => {
-    const runtime = new BrowserContentModuleRuntime(MODULE_CATALOG);
+    const runtime = getContentModuleRuntime(MODULE_CATALOG);
     const refresh = (): void => {
       setTasks(runtime.listTasks());
     };
@@ -38,7 +37,11 @@ export function ContentDownloadStatus(): JSX.Element {
 
   return (
     <Show when={activeTasks().length > 0}>
-      <section class="content-download-status paper-card" aria-label="Загрузка наборов документов">
+      <section
+        class="content-download-status paper-card"
+        aria-label="Загрузка наборов документов"
+        data-testid="content-download-status"
+      >
         <h3>Загрузка наборов</h3>
         <ul>
           <For each={activeTasks()}>

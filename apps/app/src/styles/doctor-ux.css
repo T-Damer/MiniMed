@@ -70,38 +70,28 @@
   overscroll-behavior: contain;
 }
 
+.document-overlay .overlay-dialog-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .document-overlay-layout {
   display: grid;
   min-height: 0;
+  flex: 1;
   grid-template-columns: minmax(190px, 250px) minmax(0, 1fr);
+  align-items: stretch;
 }
 
 .document-overlay-outline {
-  position: sticky;
-  top: 0;
-  align-self: start;
-  max-height: calc(100vh - 110px);
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
   overflow: auto;
   padding: 18px 14px;
   border-right: 1px solid var(--paper-line);
   background: #eee4cc;
-}
-
-.document-overlay-search {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-  color: var(--ink-faint);
-  font-size: 10px;
-}
-
-.document-overlay-search input {
-  width: 100%;
-  padding: 9px 10px;
-  border: 1px solid var(--paper-line);
-  color: var(--ink);
-  background: var(--paper-light);
 }
 
 .document-overlay-outline details {
@@ -148,8 +138,10 @@
 
 .document-overlay-paper {
   width: min(880px, 100%);
+  min-height: 0;
   margin: 0 auto;
   padding: clamp(24px, 5vw, 58px) clamp(22px, 6vw, 72px) 70px;
+  overflow: auto;
   color: var(--ink);
   background:
     repeating-linear-gradient(0deg, transparent 0, transparent 31px, rgb(74 83 82 / 6%) 32px),
@@ -217,6 +209,39 @@
   background: var(--stamp-faded);
 }
 
+.document-overlay-full-text,
+.document-overlay-full-text-inline {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgb(53 91 105 / 28%);
+  color: #355b69;
+  background: rgb(255 251 239 / 72%);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.document-overlay-full-text-inline {
+  width: auto;
+  margin-top: 8px;
+}
+
+.document-inline-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  color: #355b69;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.document-inline-link:hover {
+  color: #244652;
+}
+
 .doctor-technical-details {
   padding: 9px 10px;
   border: 1px solid rgb(79 65 37 / 18%);
@@ -243,9 +268,7 @@
 .archive-library-heading,
 .knowledge-graph-card,
 .document-library-grid {
-  width: min(1160px, calc(100% - 32px));
-  margin-right: auto;
-  margin-left: auto;
+  width: 100%;
 }
 
 .document-library-grid {
@@ -434,35 +457,24 @@
 .model-doctor-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
-.model-doctor-summary > div,
-.model-friendly-facts span {
+.model-doctor-summary > div {
   display: flex;
+  min-width: min(100%, 200px);
+  flex: 1;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
+  gap: 3px;
+  padding: 8px 10px;
   border: 1px solid var(--paper-line);
   background: rgb(255 255 255 / 24%);
 }
 
-.model-doctor-summary span,
-.model-friendly-facts span {
+.model-doctor-summary span {
   color: var(--ink-faint);
-  font-size: 9px;
-}
-
-.model-friendly-facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 14px;
-}
-
-.model-friendly-facts span {
-  padding: 6px 8px;
+  font-size: 8px;
 }
 
 .model-error-button {
@@ -513,8 +525,8 @@
 }
 
 .system-technical-panel {
-  width: min(1100px, calc(100% - 32px));
-  margin: 16px auto 40px;
+  width: 100%;
+  margin: 16px 0 40px;
   padding: 12px;
   border: 1px solid rgb(246 238 219 / 24%);
   color: #eee7d5;
@@ -551,11 +563,22 @@
     grid-template-columns: 1fr;
   }
 
+  .document-overlay .overlay-dialog-body {
+    overflow: auto;
+  }
+
+  .document-overlay-layout {
+    min-height: auto;
+  }
+
   .document-overlay-outline {
-    position: static;
-    max-height: none;
+    min-height: auto;
     border-right: 0;
     border-bottom: 1px solid var(--paper-line);
+  }
+
+  .document-overlay-paper {
+    overflow: visible;
   }
 
   .document-overlay-outline details:not(.doctor-technical-details) {
@@ -586,7 +609,7 @@
   .knowledge-graph-card,
   .document-library-grid,
   .archive-library-heading {
-    width: calc(100% - 20px);
+    width: 100%;
   }
 
   .knowledge-graph-canvas {

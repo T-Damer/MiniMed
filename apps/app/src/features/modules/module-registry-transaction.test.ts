@@ -6,7 +6,7 @@ import {
 } from '@localmed/storage';
 import { describe, expect, it } from 'vitest';
 
-import { commitRegistryAndArtifactMutation } from './module-registry-transaction';
+import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 
 const MODULE_ID = 'minimed.clinical.pediatrics.infectious';
 const digest = (character: string): string => `sha256:${character.repeat(64)}`;

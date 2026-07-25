@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 24 July 2026
+> Updated: 25 July 2026
 > Repository version: `0.5.1`
 > Active target: `0.5.1`
 
@@ -18,8 +18,13 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   abbreviations, and missing-field prompts.
 - Search after 500 ms of inactivity with stale-response cancellation.
 - Results grouped by document with exact fragment, surrounding context, and full-document navigation.
+- Search-result context opening remaps stale or superseded pilot-summary chunk IDs to installed
+  full-text siblings, filters duplicate summary hits when `.full` packs are mounted, and falls back
+  to opening the readable document when a chunk cannot be resolved.
 - Initial results limited to five documents with an accessible control to reveal the rest.
 - Document library, history, bookmarks, knowledge-base catalog, and mounted-route state preservation.
+- Unified archive-style search fields across search, library, module catalog, and document reader
+  surfaces: shared icon, stamp-accent border, mono label, and compact spacing.
 - The knowledge-base screen combines installed documents and downloadable module packs in one place.
 - App-local `@/` import alias for source modules.
 
@@ -46,10 +51,17 @@ ordinary search response when validation fails.
   deterministic source registry per recommendation.
 - All 744 source PDFs are mirrored locally; 723 text-layer documents build into verified individual
   search modules and 21 scan-only documents are explicitly recorded for OCR.
+- PDF import detects broken Cyrillic font encodings in the text layer (not OCR language mismatch),
+  retries with Tesseract `rus+eng` when available, and lint rejects packs whose chunk text still
+  looks garbled.
 - Immutable clinical-snapshot packaging: one SQLite module per recommendation, source-PDF archives
   by category, checksums, and a channel-catalog fragment.
-- The knowledge-base screen can search individual recommendations, filter them by the 21 clinical
-  categories, install one recommendation, or install the selected category.
+- The knowledge-base screen lists 723 individual recommendations as 21 visible medical sections;
+  each section can be downloaded or removed as a block, or browsed recommendation-by-recommendation.
+- Nested catalog navigation: section grid → recommendation list → summary overlay → optional full
+  text; section and row download progress bars reflect active module tasks; several sections can
+  download at the same time, each with its own progress and a help button that explains the section
+  contents.
 - Official GRLS inventory for 38,815 unique registration records from 140,274 status/version rows,
   with the source ZIP, edition, and checksums retained locally.
 - Current official instruction synchronization for the eight pilot medications; seven text-layer
@@ -87,7 +99,9 @@ checkout until those artifacts are built.
 
 - Clinical documents are concise source-linked cards, not complete extracted recommendations.
 - The 744-recommendation snapshot has not been published. Its local build contains 723 searchable
-  modules; 21 scan-only recommendations remain explicitly unavailable until OCR.
+  modules; 21 scan-only recommendations remain explicitly unavailable until OCR. Two published
+  modules (`898_1` sepsis, `627_3`) shipped with broken PDF text-layer encoding before the OCR
+  fallback landed and must be rebuilt into a new clinical snapshot.
 - Medication cards contain identity, form, and strength, not verified dosing regimens.
 - The full GRLS export has no confirmed ATC field, so most medication catalog records remain in the
   visible unclassified module.
@@ -100,6 +114,9 @@ checkout until those artifacts are built.
 - Browser inference is CPU/WASM; model download size and latency remain substantial.
 - Browser module and model downloads now require CORS/CORP-compatible hosts; GitHub Release asset
   URLs are rewritten to `raw.githubusercontent.com` or Hugging Face upstream fallback.
+- Interrupted content-module and GGUF downloads persist partial bytes in IndexedDB and resume with
+  HTTP Range on the next attempt or page reload; pending module installs are queued in localStorage
+  and restarted automatically when the app opens.
 - Native mobile lifecycle and inference are not current priorities.
 
 ## Ordered next work
@@ -107,8 +124,8 @@ checkout until those artifacts are built.
 1. Publish the first immutable 723-module prototype snapshot and update the preview channel.
    GitHub Actions run `Publish clinical snapshot` was in progress on 24 July 2026; the `0.5.1` tag
    release and Android APK were blocked by a Biome import-order check (fixed on `main` after
-   `release/0.5.1-hotfix`).
-2. Add OCR only for the 21 explicitly blocked documents.
+   `release/0.5.1-hotfix`). Re-run the snapshot after rebuilding the two garbled-encoding modules.
+2. Add OCR for the 21 explicitly blocked scan-only documents.
 3. Add full-corpus retrieval and unsupported-answer benchmark cases.
 4. Evaluate the bundled small models on citation, extraction, latency, and memory.
 

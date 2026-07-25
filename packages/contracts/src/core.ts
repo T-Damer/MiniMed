@@ -6,7 +6,7 @@ import type {
 } from './documents';
 import type { LocalMedError } from './errors';
 import type { Result } from './result';
-import type { AnalyzeQueryRequest, QueryAnalysis, SearchRequest, SearchResponse } from './search';
+import type { AnalyzeQueryRequest, QueryAnalysis, SearchRequest, SearchResponse, SearchResult } from './search';
 
 export interface CoreStatus {
   readonly state: 'ready';
@@ -57,6 +57,19 @@ export interface MedicalCore {
   getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>>;
   getSection(sectionId: string): Promise<Result<MedicalSection, LocalMedError>>;
   getContext(chunkId: string, radius?: number): Promise<Result<ChunkContext, LocalMedError>>;
+  getSearchResultContext(
+    result: Pick<
+      SearchResult,
+      | 'chunkId'
+      | 'documentId'
+      | 'sectionId'
+      | 'anchor'
+      | 'title'
+      | 'sectionPath'
+      | 'sectionType'
+    >,
+    radius?: number,
+  ): Promise<Result<ChunkContext, LocalMedError>>;
   ask(request: AskRequest): Promise<Result<AskResponse, LocalMedError>>;
   installContentPack(
     request: InstallContentPackRequest,

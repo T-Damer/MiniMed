@@ -1,27 +1,28 @@
 import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { AppGlyph, type AppGlyphName } from '../components/AppGlyph';
-import { BrandMark } from '../components/BrandMark';
-import { createBrowserCore } from '../composition/create-browser-core';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { BrandMark } from '@/components/BrandMark';
+import { createBrowserCore } from '@/composition/create-browser-core';
 import {
   type InitializedMedicalCore,
   initializeMedicalCore,
-  replaceMedicalCore,
-} from '../composition/medical-core-lifecycle';
-import { SearchHistoryView } from '../features/history/SearchHistoryView';
-import { KnowledgeBaseView } from '../features/knowledge/KnowledgeBaseView';
-import { DocumentOverlayHost } from '../features/library/DocumentOverlayHost';
-import { LocalModelController } from '../features/models/controller';
-import { GroundedAssistantStatus } from '../features/models/GroundedAssistantStatus';
-import { GroundedMedicalCore } from '../features/models/GroundedMedicalCore';
-import { ModelNavIndicator } from '../features/models/ModelNavIndicator';
-import { ModelSettings } from '../features/models/ModelSettings';
-import { ContentDownloadStatus } from '../features/modules/ContentDownloadStatus';
-import { refreshContentModuleCatalog } from '../features/modules/catalog-service';
-import { SearchWorkspace } from '../features/search/SearchWorkspace';
-import { StatusPanel } from '../features/status/StatusPanel';
-import { replaySearch } from '../state/search-history';
+  swapMedicalCore,
+} from '@/composition/medical-core-lifecycle';
+import { SearchHistoryView } from '@/features/history/SearchHistoryView';
+import { KnowledgeBaseView } from '@/features/knowledge/KnowledgeBaseView';
+import { DocumentOverlayHost } from '@/features/library/DocumentOverlayHost';
+import { LocalModelController } from '@/features/models/controller';
+import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
+import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
+import { ModelNavIndicator } from '@/features/models/ModelNavIndicator';
+import { ModelSettings } from '@/features/models/ModelSettings';
+import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
+import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
+import { SearchWorkspace } from '@/features/search/SearchWorkspace';
+import { StatusPanel } from '@/features/status/StatusPanel';
+import { notifyContentChanged } from '@/state/content-events';
+import { replaySearch } from '@/state/search-history';
 
 type View = 'search' | 'modules' | 'history' | 'status';
 
@@ -107,12 +108,14 @@ export function App(): JSX.Element {
   const connectInstalledModules = async (): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
-    const next = await replaceMedicalCore(current, createBrowserCore);
+    const next = await swapMedicalCore(current, createBrowserCore, (core) => {
+      const assistant = assistantCore();
+      if (assistant) assistant.setBase(core);
+      else setAssistantCore(new GroundedMedicalCore(core, modelController));
+    });
     coreToClose = next.core;
-    const assistant = assistantCore();
-    if (assistant) assistant.setBase(next.core);
-    else setAssistantCore(new GroundedMedicalCore(next.core, modelController));
     setReady(next);
+    notifyContentChanged();
   };
 
   onMount(async () => {
@@ -163,7 +166,7 @@ export function App(): JSX.Element {
                 ? `${item.label}, доступно: ${moduleUpdateCount()}`
                 : item.label;
             return (
-              <div class="app-nav-item" classList={{ 'has-indicator': item.id === 'status' }}>
+              <div class="app-nav-item">
                 <Show when={item.id === 'status'}>
                   <ModelNavIndicator controller={modelController} />
                 </Show>
@@ -262,7 +265,10 @@ export function App(): JSX.Element {
                 </details>
               </section>
             </main>
-            <DocumentOverlayHost core={state().core} />
+            <DocumentOverlayHost
+              getCore={() => state().core}
+              reconnectContent={connectInstalledModules}
+            />
           </>
         )}
       </Show>

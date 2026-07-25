@@ -53,7 +53,12 @@ export function resolveContentModuleArtifactUrl(url: string): string {
         if (localUrl) return localUrl;
       }
       if (fileName.startsWith('clinical-') && fileName.endsWith('.db')) {
-        return rawGithubContentUrl(owner, repo, releaseTag, `${RAW_GITHUB_CLINICAL_PATH}/${fileName}`);
+        return rawGithubContentUrl(
+          owner,
+          repo,
+          releaseTag,
+          `${RAW_GITHUB_CLINICAL_PATH}/${fileName}`,
+        );
       }
       return `${RAW_GITHUB_MODULE_BASE}/${fileName}`;
     }

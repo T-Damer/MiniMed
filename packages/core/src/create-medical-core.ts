@@ -29,7 +29,13 @@ import {
 import { profilesCompatible, type QueryEmbedder } from '@localmed/search-semantic';
 import type { LexicalHit, MedicalStore, VectorHit } from '@localmed/storage';
 
-import { toDocumentSummary, toMedicalDocument, toMedicalSection } from './mappers';
+import { isSupersededSummaryDocument } from './document-siblings';
+import { toDocumentSummary, groupChunksBySection, toMedicalDocument, toMedicalSection } from './mappers';
+import {
+  resolveSearchResultContext,
+  type SearchResultContextHint,
+  searchResultContextFallbackMessage,
+} from './search-context';
 
 export interface CreateMedicalCoreOptions {
   readonly store: MedicalStore;
@@ -153,6 +159,15 @@ function groupResults(
       };
     })
     .toSorted((left, right) => right.bestScore - left.bestScore);
+}
+
+function filterSupersededSummaryResults(
+  results: readonly SearchResult[],
+  availableDocumentIds: ReadonlySet<string>,
+): readonly SearchResult[] {
+  return results.filter(
+    (result) => !isSupersededSummaryDocument(result.documentId, availableDocumentIds),
+  );
 }
 
 function requestId(): string {
@@ -391,6 +406,38 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     }
   };
 
+  const buildChunkContext = async (
+    chunkId: string,
+    radius: number,
+  ): Promise<ChunkContext | null> => {
+    const chunk = await options.store.getChunk(chunkId);
+    if (!chunk) return null;
+    const section = await options.store.getSection(chunk.sectionId);
+    const document = await options.store.getDocumentByVersionId(chunk.documentVersionId);
+    if (!section || !document) return null;
+    const window = await options.store.getChunkWindow(
+      chunkId,
+      Math.max(0, Math.min(radius, 8)),
+    );
+    return {
+      document: toDocumentSummary(document),
+      section: toMedicalSection(section, await options.store.getChunksBySection(section.id)),
+      focusChunkId: chunkId,
+      chunks: window.map((item) => ({
+        id: item.id,
+        sectionId: item.sectionId,
+        documentVersionId: item.documentVersionId,
+        orderIndex: item.orderIndex,
+        originalText: item.originalText,
+        pageStart: item.pageStart,
+        pageEnd: item.pageEnd,
+        anchor: item.anchor,
+      })),
+      previousChunkId: chunk.previousChunkId,
+      nextChunkId: chunk.nextChunkId,
+    };
+  };
+
   return {
     initialize,
 
@@ -553,7 +600,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           }
         }
 
-        const results =
+        const rankedResults =
           modeUsed === 'lexical'
             ? lexicalResults.slice(0, parsed.data.limit)
             : fuseSemanticResults(
@@ -563,6 +610,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 modeUsed,
                 parsed.data.limit,
               );
+        const documents = await options.store.listDocuments();
+        const availableDocumentIds = new Set(documents.map((document) => document.id));
+        const results = filterSupersededSummaryResults(rankedResults, availableDocumentIds);
         const candidateIds = new Set([
           ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
           ...vectorHits.map((hit) => hit.chunk.id),
@@ -605,10 +655,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           return err(localMedError('CONTENT_NOT_FOUND', `Document not found: ${documentId}`));
         }
         const sectionRecords = await options.store.getSectionsByDocument(documentId);
-        const sections = await Promise.all(
-          sectionRecords.map(async (section) =>
-            toMedicalSection(section, await options.store.getChunksBySection(section.id)),
-          ),
+        const chunkRecords = await options.store.getChunksByDocument(documentId);
+        const chunksBySection = groupChunksBySection(chunkRecords);
+        const sections = sectionRecords.map((section) =>
+          toMedicalSection(section, chunksBySection.get(section.id) ?? []),
         );
         return ok(toMedicalDocument(document, sections));
       } catch (error) {
@@ -622,36 +672,41 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       try {
         const ready = await ensureInitialized();
         if (!ready.ok) return err(ready.error);
-        const chunk = await options.store.getChunk(chunkId);
-        if (!chunk) return err(localMedError('CONTENT_NOT_FOUND', `Chunk not found: ${chunkId}`));
-        const section = await options.store.getSection(chunk.sectionId);
-        const document = await options.store.getDocumentByVersionId(chunk.documentVersionId);
-        if (!section || !document) {
+        const context = await buildChunkContext(chunkId, radius);
+        if (!context) {
+          return err(localMedError('CONTENT_NOT_FOUND', `Chunk not found: ${chunkId}`));
+        }
+        return ok(context);
+      } catch (error) {
+        return err(asLocalMedError(error));
+      }
+    },
+
+    async getSearchResultContext(
+      result: SearchResultContextHint,
+      radius = 1,
+    ): Promise<Result<ChunkContext, LocalMedError>> {
+      try {
+        const ready = await ensureInitialized();
+        if (!ready.ok) return err(ready.error);
+        const context = await resolveSearchResultContext(
+          options.store,
+          result,
+          radius,
+          async (chunkId, resolvedRadius) => buildChunkContext(chunkId, resolvedRadius),
+        );
+        if (!context) {
           return err(
-            localMedError('CONTENT_NOT_FOUND', `Context is incomplete for chunk: ${chunkId}`),
+            localMedError(
+              'CONTENT_NOT_FOUND',
+              searchResultContextFallbackMessage(result, {
+                code: 'CONTENT_NOT_FOUND',
+                message: `Chunk not found: ${result.chunkId}`,
+              }),
+            ),
           );
         }
-        const window = await options.store.getChunkWindow(
-          chunkId,
-          Math.max(0, Math.min(radius, 8)),
-        );
-        return ok({
-          document: toDocumentSummary(document),
-          section: toMedicalSection(section, await options.store.getChunksBySection(section.id)),
-          focusChunkId: chunkId,
-          chunks: window.map((item) => ({
-            id: item.id,
-            sectionId: item.sectionId,
-            documentVersionId: item.documentVersionId,
-            orderIndex: item.orderIndex,
-            originalText: item.originalText,
-            pageStart: item.pageStart,
-            pageEnd: item.pageEnd,
-            anchor: item.anchor,
-          })),
-          previousChunkId: chunk.previousChunkId,
-          nextChunkId: chunk.nextChunkId,
-        });
+        return ok(context);
       } catch (error) {
         return err(asLocalMedError(error));
       }
