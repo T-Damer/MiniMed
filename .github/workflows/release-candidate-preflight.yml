@@ -55,9 +55,13 @@ jobs:
           --output data/intermediate/full-respiratory-rf
           --force
       - name: Lint respiratory source text
-        run: >-
-          uv run --project tools/ingest medbase lint
-          --input data/intermediate/full-respiratory-rf
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p data/build
+          uv run --project tools/ingest medbase lint \
+            --input data/intermediate/full-respiratory-rf \
+            2>&1 | tee data/build/full-respiratory-lint.log
       - name: Build respiratory SQLite module
         run: >-
           uv run --project tools/ingest medbase build
@@ -71,8 +75,8 @@ jobs:
           name: release-candidate-respiratory-diagnostics
           path: |
             data/build/full-respiratory-source-sync-report.json
+            data/build/full-respiratory-lint.log
             data/build/rf-respiratory-full-report.json
-            data/intermediate/full-respiratory-rf/**/extraction-diagnostics.json
           if-no-files-found: warn
           retention-days: 7
 
@@ -81,6 +85,7 @@ jobs:
     timeout-minutes: 75
     env:
       BUILD_TOOLS_VERSION: 36.0.0
+      LOCALMED_VERIFY_PHASE_TIMEOUT_MS: 900000
     steps:
       - uses: actions/checkout@v7
         with:
@@ -106,7 +111,11 @@ jobs:
           bun install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
       - name: Verify repository
-        run: bun run verify
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p data/build
+          bun run verify 2>&1 | tee data/build/release-verify.log
       - name: Lint public pilot
         run: bun run content:lint:pilot
       - name: Build public pilot
@@ -136,6 +145,7 @@ jobs:
         with:
           name: release-candidate-android-diagnostics
           path: |
+            data/build/release-verify.log
             data/build/*.json
             apps/app/android/app/build/reports/**
             apps/app/android/app/build/outputs/apk/debug/*.apk
