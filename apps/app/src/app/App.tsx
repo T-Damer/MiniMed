@@ -9,22 +9,19 @@ import {
   initializeMedicalCore,
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
-import { SearchHistoryView } from '@/features/history/SearchHistoryView';
 import { KnowledgeBaseView } from '@/features/knowledge/KnowledgeBaseView';
 import { DocumentOverlayHost } from '@/features/library/DocumentOverlayHost';
 import { LocalModelController } from '@/features/models/controller';
-import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
 import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
 import { ModelNavIndicator } from '@/features/models/ModelNavIndicator';
 import { ModelSettings } from '@/features/models/ModelSettings';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
-import { SearchWorkspace } from '@/features/search/SearchWorkspace';
+import { SearchHome } from '@/features/search/SearchHome';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import { notifyContentChanged } from '@/state/content-events';
-import { replaySearch } from '@/state/search-history';
 
-type View = 'search' | 'modules' | 'history' | 'status';
+type View = 'search' | 'modules' | 'status';
 
 const VIEWS: readonly {
   readonly id: View;
@@ -33,7 +30,6 @@ const VIEWS: readonly {
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'modules', label: 'База знаний', icon: 'modules' },
-  { id: 'history', label: 'История', icon: 'history' },
   { id: 'status', label: 'Настройки', icon: 'system' },
 ];
 
@@ -45,6 +41,7 @@ const DEFAULT_MODEL_ASSET_BASE_URL =
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
   if (value === 'documents') return 'modules';
+  if (value === 'history') return 'search';
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
 }
 
@@ -220,10 +217,11 @@ export function App(): JSX.Element {
                 hidden={view() !== 'search'}
                 aria-hidden={view() !== 'search'}
               >
-                <Show when={assistantCore()}>
-                  {(assistant) => <GroundedAssistantStatus assistant={assistant()} />}
-                </Show>
-                <SearchWorkspace core={assistantCore() ?? state().core} />
+                <SearchHome
+                  baseCore={state().core}
+                  assistantCore={assistantCore()}
+                  onOpenKnowledgeBase={() => navigate('modules')}
+                />
               </section>
               <section
                 class="app-view"
@@ -241,22 +239,20 @@ export function App(): JSX.Element {
                 />
               </section>
               <section
-                class="app-view"
-                hidden={view() !== 'history'}
-                aria-hidden={view() !== 'history'}
-              >
-                <SearchHistoryView
-                  onReplay={(query) => {
-                    navigate('search');
-                    requestAnimationFrame(() => replaySearch(query));
-                  }}
-                />
-              </section>
-              <section
                 class="app-view model-status-view"
                 hidden={view() !== 'status'}
                 aria-hidden={view() !== 'status'}
               >
+                <section class="settings-intro paper-card">
+                  <div>
+                    <p class="archive-kicker">Поиск остаётся доступным всегда</p>
+                    <h1>Настройки</h1>
+                  </div>
+                  <p>
+                    Обычный FTS5/vector-поиск полностью локален и не требует модели. Модель нужна
+                    только для диагностического разбора найденных источников и может быть отключена.
+                  </p>
+                </section>
                 <ModelSettings controller={modelController} />
                 <ContentDownloadStatus />
                 <details class="system-technical-panel">
