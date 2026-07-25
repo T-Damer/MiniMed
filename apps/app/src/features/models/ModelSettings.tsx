@@ -240,8 +240,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
               const available = () => runtimeAvailable(model);
               const active = () => state().activeModelId === model.id;
               const recommended = () => state().recommendedModelId === model.id;
-              const loading = () =>
-                busyModelId() === model.id && isActiveLoadPhase(state().phase);
+              const loading = () => busyModelId() === model.id && isActiveLoadPhase(state().phase);
               const deviceMemoryGb = () => state().device?.deviceMemoryGb;
               const statusLabel = () =>
                 modelStatusLabel(model, {
@@ -251,8 +250,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                   loading: loading(),
                   deviceMemoryGb: deviceMemoryGb(),
                 });
-              const deviceLabel = () =>
-                modelDeviceLabel(model, deviceMemoryGb(), available());
+              const deviceLabel = () => modelDeviceLabel(model, deviceMemoryGb(), available());
               return (
                 <article
                   class="model-option-card"
@@ -275,8 +273,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                       classList={{
                         active: active(),
                         recommended: recommended(),
-                        warning:
-                          available() && deviceFitsModel(model, deviceMemoryGb()) === false,
+                        warning: available() && deviceFitsModel(model, deviceMemoryGb()) === false,
                         loading: loading(),
                       }}
                     >
@@ -287,9 +284,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                     <dl class="model-option-specs">
                       <div>
                         <dt>Размер</dt>
-                        <dd>
-                          {size() === null ? '—' : formatBytes(size() ?? 0)}
-                        </dd>
+                        <dd>{size() === null ? '—' : formatBytes(size() ?? 0)}</dd>
                       </div>
                       <div>
                         <dt>ОЗУ</dt>
