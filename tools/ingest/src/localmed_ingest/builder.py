@@ -12,7 +12,11 @@ from .knowledge_modules import load_knowledge_modules
 from .markdown_parser import parse_markdown_document
 from .models import Alias, BuildReport, ContentPack, PackManifest
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
-from .text_encoding import expects_russian_clinical_text, lint_garbled_russian_text
+from .text_encoding import (
+    expects_russian_clinical_text,
+    lint_english_dominant_russian_text,
+    lint_garbled_russian_text,
+)
 
 
 def read_yaml_mapping(path: Path) -> dict[str, object]:
@@ -87,6 +91,11 @@ def lint_content_pack(pack: ContentPack) -> list[str]:
     for document in pack.documents:
         if not document.sections:
             errors.append(f"{document.id}: no sections")
+        expects_russian = expects_russian_clinical_text(
+            document.title,
+            source_type=document.source_type,
+        )
+        document_text: list[str] = []
         for section in document.sections:
             if section.anchor in anchors:
                 errors.append(f"duplicate anchor: {section.anchor}")
@@ -100,16 +109,21 @@ def lint_content_pack(pack: ContentPack) -> list[str]:
                 chunk_ids.add(chunk.id)
                 if not chunk.normalized_text:
                     errors.append(f"{chunk.id}: empty normalized text")
-                if expects_russian_clinical_text(
-                    document.title,
-                    source_type=document.source_type,
-                ):
+                if expects_russian:
+                    document_text.append(chunk.original_text)
                     garbled = lint_garbled_russian_text(
                         chunk.original_text,
                         context=f"{document.id}/{chunk.id}",
                     )
                     if garbled:
                         errors.append(garbled)
+        if expects_russian:
+            english_dominant = lint_english_dominant_russian_text(
+                "\n".join(document_text),
+                context=document.id,
+            )
+            if english_dominant:
+                errors.append(english_dominant)
     return errors
 
 
