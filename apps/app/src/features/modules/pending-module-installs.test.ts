@@ -6,7 +6,11 @@ import {
   listPendingModuleInstalls,
 } from '@/features/modules/pending-module-installs';
 
-function installLocalStorageMock(): void {
+interface LocalStorageHarness {
+  readonly store: Map<string, string>;
+}
+
+function installLocalStorageMock(): LocalStorageHarness {
   const store = new Map<string, string>();
   const localStorage = {
     getItem: (key: string) => store.get(key) ?? null,
@@ -21,31 +25,58 @@ function installLocalStorageMock(): void {
     },
   };
   vi.stubGlobal('window', { localStorage });
+  return { store };
 }
 
 describe('pending-module-installs', () => {
+  let harness: LocalStorageHarness;
+
   beforeEach(() => {
-    installLocalStorageMock();
+    harness = installLocalStorageMock();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('queues and removes pending installs by module version', () => {
+  it('keeps the durable queue entry after a failed or interrupted task', () => {
     enqueuePendingModuleInstall('clinical.100', '1.0.0', false);
-    enqueuePendingModuleInstall('clinical.101', '1.0.0', true);
-
-    expect(listPendingModuleInstalls()).toHaveLength(2);
 
     dequeuePendingModuleInstall('clinical.100', '1.0.0');
+
     expect(listPendingModuleInstalls()).toEqual([
-      expect.objectContaining({
-        moduleId: 'clinical.101',
-        version: '1.0.0',
-        includeSourceAssets: true,
-      }),
+      expect.objectContaining({ moduleId: 'clinical.100', version: '1.0.0' }),
     ]);
+  });
+
+  it('removes a pending install only after the exact version is active', () => {
+    enqueuePendingModuleInstall('clinical.100', '1.0.0', false);
+    harness.store.set(
+      'localmed.installed-modules.v1',
+      JSON.stringify({
+        schemaVersion: 1,
+        entries: [{ moduleId: 'clinical.100', active: { version: '1.0.0' } }],
+      }),
+    );
+
+    dequeuePendingModuleInstall('clinical.100', '1.0.0');
+
+    expect(listPendingModuleInstalls()).toEqual([]);
+  });
+
+  it('keeps a queued update when an older version is installed', () => {
+    enqueuePendingModuleInstall('clinical.100', '1.1.0', false);
+    harness.store.set(
+      'localmed.installed-modules.v1',
+      JSON.stringify({
+        schemaVersion: 1,
+        entries: [{ moduleId: 'clinical.100', active: { version: '1.0.0' } }],
+      }),
+    );
+
+    dequeuePendingModuleInstall('clinical.100', '1.1.0');
+
+    expect(listPendingModuleInstalls()).toHaveLength(1);
   });
 
   it('replaces duplicate queue entries for the same module version', () => {
