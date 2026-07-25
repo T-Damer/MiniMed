@@ -1,0 +1,48 @@
+name: Replicate knowledge pilot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/portable-rust-core-cli-roadmap]
+    paths:
+      - "scripts/replicate-knowledge-pilot.mjs"
+      - ".github/workflows/replicate-knowledge-pilot.yml"
+      - "content/pilot-rf/*.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: replicate-knowledge-pilot
+  cancel-in-progress: true
+
+jobs:
+  pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - name: Verify bounded pilot inputs and maximum cost
+        run: bun scripts/replicate-knowledge-pilot.mjs --dry-run
+      - name: Run cents-scale live pilot
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API }}
+        run: |
+          if [[ -z "${REPLICATE_API_TOKEN}" ]]; then
+            echo "REPLICATE_API secret is not configured; live pilot skipped." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          bun scripts/replicate-knowledge-pilot.mjs
+      - name: Upload pilot report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: replicate-knowledge-pilot
+          path: |
+            data/build/replicate-knowledge-pilot-report.json
+            data/build/replicate-knowledge-pilot-summary.md
+          if-no-files-found: warn
+          retention-days: 14
