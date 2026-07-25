@@ -7,12 +7,14 @@ import { describe, expect, it } from 'vitest';
 import { createMedicalCore } from '../src/create-medical-core';
 import { createInMemoryMedicalCore } from '../src/in-memory';
 
+const PUBLIC_PILOT_DATABASE = 'packages/test-fixtures/data/rf-public-pilot.db';
+const RESPIRATORY_DATABASE =
+  'apps/app/public/content/modules/minimed-respiratory-pediatrics-full-0.3.4-preview.1.db';
+
 describe('search-context', () => {
   it('remaps a stale full-text hit to the pilot summary when only the summary pack is mounted', async () => {
-    const coreBytes = readFileSync('apps/app/public/content/core-demo.db');
-    const fullBytes = readFileSync(
-      'apps/app/public/content/modules/minimed-respiratory-pediatrics-full-0.3.4-preview.1.db',
-    );
+    const coreBytes = readFileSync(PUBLIC_PILOT_DATABASE);
+    const fullBytes = readFileSync(RESPIRATORY_DATABASE);
     const coreStore = await SqliteMedicalStore.createFromBytes(new Uint8Array(coreBytes));
     const fullStore = await SqliteMedicalStore.createFromBytes(new Uint8Array(fullBytes));
     const multi = new MultiMedicalStore([
@@ -58,7 +60,7 @@ describe('search-context', () => {
   });
 
   it('returns a user-facing message when the chunk cannot be remapped', async () => {
-    const coreBytes = readFileSync('apps/app/public/content/core-demo.db');
+    const coreBytes = readFileSync(PUBLIC_PILOT_DATABASE);
     const demoStore = await SqliteMedicalStore.createFromBytes(new Uint8Array(coreBytes));
     const demoCore = createMedicalCore({ store: demoStore, platform: 'test' });
     await demoCore.initialize();
@@ -85,10 +87,8 @@ describe('search-context', () => {
   });
 
   it('hides superseded pilot summaries from search when full packs are installed', async () => {
-    const coreBytes = readFileSync('apps/app/public/content/core-demo.db');
-    const fullBytes = readFileSync(
-      'apps/app/public/content/modules/minimed-respiratory-pediatrics-full-0.3.4-preview.1.db',
-    );
+    const coreBytes = readFileSync(PUBLIC_PILOT_DATABASE);
+    const fullBytes = readFileSync(RESPIRATORY_DATABASE);
     const multi = new MultiMedicalStore([
       {
         moduleId: 'minimed.core.ru',
