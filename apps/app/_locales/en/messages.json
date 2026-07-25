@@ -1,0 +1,26 @@
+{
+  "specialty_pediatrics": {
+    "message": "Pediatrics",
+    "description": "Medical specialty slug: pediatrics"
+  },
+  "specialty_pulmonology": {
+    "message": "Pulmonology",
+    "description": "Medical specialty slug: pulmonology"
+  },
+  "specialty_allergology_immunology": {
+    "message": "Allergology and immunology",
+    "description": "Medical specialty slug: allergology-immunology"
+  },
+  "specialty_other_documents": {
+    "message": "Other documents",
+    "description": "Fallback graph domain when a document has no specialty tags"
+  },
+  "specialty_general_medicine": {
+    "message": "General medicine",
+    "description": "Fallback label when a document has no specialty tags"
+  },
+  "collection_pediatrics": {
+    "message": "Clinical pediatrics",
+    "description": "Module catalog collection id: pediatrics"
+  }
+}

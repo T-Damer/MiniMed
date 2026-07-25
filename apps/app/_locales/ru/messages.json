@@ -1,0 +1,300 @@
+{
+  "specialty_addiction_medicine": {
+    "message": "Наркология",
+    "description": "Medical specialty slug: addiction-medicine"
+  },
+  "specialty_allergology": {
+    "message": "Аллергология",
+    "description": "Medical specialty slug: allergology"
+  },
+  "specialty_allergology_immunology": {
+    "message": "Аллергология и иммунология",
+    "description": "Medical specialty slug: allergology-immunology"
+  },
+  "specialty_anesthesiology": {
+    "message": "Анестезиология",
+    "description": "Medical specialty slug: anesthesiology"
+  },
+  "specialty_cardiology": {
+    "message": "Кардиология",
+    "description": "Medical specialty slug: cardiology"
+  },
+  "specialty_cardiovascular_surgery": {
+    "message": "Сердечно-сосудистая хирургия",
+    "description": "Medical specialty slug: cardiovascular-surgery"
+  },
+  "specialty_child_psychiatry": {
+    "message": "Детская психиатрия",
+    "description": "Medical specialty slug: child-psychiatry"
+  },
+  "specialty_dentistry": {
+    "message": "Стоматология",
+    "description": "Medical specialty slug: dentistry"
+  },
+  "specialty_dermatology": {
+    "message": "Дерматология",
+    "description": "Medical specialty slug: dermatology"
+  },
+  "specialty_emergency_medicine": {
+    "message": "Неотложная помощь",
+    "description": "Medical specialty slug: emergency-medicine"
+  },
+  "specialty_endocrinology": {
+    "message": "Эндокринология",
+    "description": "Medical specialty slug: endocrinology"
+  },
+  "specialty_epidemiology": {
+    "message": "Эпидемиология",
+    "description": "Medical specialty slug: epidemiology"
+  },
+  "specialty_gastroenterology": {
+    "message": "Гастроэнтерология",
+    "description": "Medical specialty slug: gastroenterology"
+  },
+  "specialty_genetics": {
+    "message": "Генетика",
+    "description": "Medical specialty slug: genetics"
+  },
+  "specialty_geriatrics": {
+    "message": "Гериатрия",
+    "description": "Medical specialty slug: geriatrics"
+  },
+  "specialty_gynecology": {
+    "message": "Акушерство и гинекология",
+    "description": "Medical specialty slug: gynecology"
+  },
+  "specialty_hematology": {
+    "message": "Гематология",
+    "description": "Medical specialty slug: hematology"
+  },
+  "specialty_hepatology": {
+    "message": "Гепатология",
+    "description": "Medical specialty slug: hepatology"
+  },
+  "specialty_infectious_diseases": {
+    "message": "Инфекционные болезни",
+    "description": "Medical specialty slug: infectious-diseases"
+  },
+  "specialty_intensive_care": {
+    "message": "Реанимация и интенсивная терапия",
+    "description": "Medical specialty slug: intensive-care"
+  },
+  "specialty_nephrology": {
+    "message": "Нефрология",
+    "description": "Medical specialty slug: nephrology"
+  },
+  "specialty_neurology": {
+    "message": "Неврология",
+    "description": "Medical specialty slug: neurology"
+  },
+  "specialty_neurosurgery": {
+    "message": "Нейрохирургия",
+    "description": "Medical specialty slug: neurosurgery"
+  },
+  "specialty_nutrition": {
+    "message": "Клиническое питание",
+    "description": "Medical specialty slug: nutrition"
+  },
+  "specialty_obstetrics": {
+    "message": "Акушерство",
+    "description": "Medical specialty slug: obstetrics"
+  },
+  "specialty_oncology": {
+    "message": "Онкология",
+    "description": "Medical specialty slug: oncology"
+  },
+  "specialty_ophthalmology": {
+    "message": "Офтальмология",
+    "description": "Medical specialty slug: ophthalmology"
+  },
+  "specialty_orthopedics": {
+    "message": "Ортопедия",
+    "description": "Medical specialty slug: orthopedics"
+  },
+  "specialty_otorhinolaryngology": {
+    "message": "Оториноларингология",
+    "description": "Medical specialty slug: otorhinolaryngology"
+  },
+  "specialty_pediatrics": {
+    "message": "Педиатрия",
+    "description": "Medical specialty slug: pediatrics"
+  },
+  "specialty_psychiatry": {
+    "message": "Психиатрия",
+    "description": "Medical specialty slug: psychiatry"
+  },
+  "specialty_pulmonology": {
+    "message": "Пульмонология",
+    "description": "Medical specialty slug: pulmonology"
+  },
+  "specialty_radiology": {
+    "message": "Лучевая диагностика",
+    "description": "Medical specialty slug: radiology"
+  },
+  "specialty_rheumatology": {
+    "message": "Ревматология",
+    "description": "Medical specialty slug: rheumatology"
+  },
+  "specialty_surgery": {
+    "message": "Хирургия",
+    "description": "Medical specialty slug: surgery"
+  },
+  "specialty_toxicology": {
+    "message": "Токсикология",
+    "description": "Medical specialty slug: toxicology"
+  },
+  "specialty_traumatology": {
+    "message": "Травматология",
+    "description": "Medical specialty slug: traumatology"
+  },
+  "specialty_urology": {
+    "message": "Урология",
+    "description": "Medical specialty slug: urology"
+  },
+  "specialty_other_documents": {
+    "message": "Другие документы",
+    "description": "Fallback graph domain when a document has no specialty tags"
+  },
+  "specialty_general_medicine": {
+    "message": "Общая медицина",
+    "description": "Fallback label when a document has no specialty tags"
+  },
+  "collection_core": {
+    "message": "Всегда доступно",
+    "description": "Module catalog collection id: core"
+  },
+  "collection_pediatrics": {
+    "message": "Клиническая педиатрия",
+    "description": "Module catalog collection id: pediatrics"
+  },
+  "collection_shared": {
+    "message": "Лекарства, документы и нормы",
+    "description": "Module catalog collection id: shared"
+  },
+  "source_clinical_recommendation_summary_library": {
+    "message": "Клинические рекомендации",
+    "description": "Document source type label in the library list"
+  },
+  "source_clinical_recommendation_summary_reader": {
+    "message": "Клиническая рекомендация",
+    "description": "Document source type label in the reader chrome"
+  },
+  "source_official_registry_summary": {
+    "message": "Официальный реестр лекарств",
+    "description": "Document source type label for GRLS registry summaries"
+  },
+  "source_regulatory_act": {
+    "message": "Нормативный документ",
+    "description": "Document source type label for regulatory acts"
+  },
+  "source_registry_reader_subtitle": {
+    "message": "Сведения из официального реестра",
+    "description": "Reader subtitle fallback for registry documents"
+  },
+  "graph_kicker": {
+    "message": "Карта связей",
+    "description": "Knowledge graph section kicker"
+  },
+  "graph_title": {
+    "message": "Области и документы",
+    "description": "Knowledge graph section title"
+  },
+  "graph_hint": {
+    "message": "Перетаскивайте узлы, двигайте поле и используйте колесо для масштаба.",
+    "description": "Knowledge graph interaction hint"
+  },
+  "graph_document_count": {
+    "message": "$1 документов",
+    "description": "Knowledge graph document count badge",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "graph_legend_domain": {
+    "message": "медицинская область",
+    "description": "Knowledge graph legend label for domain nodes"
+  },
+  "graph_legend_document": {
+    "message": "документ",
+    "description": "Knowledge graph legend label for document nodes"
+  },
+  "graph_aria_label": {
+    "message": "Интерактивная карта медицинских областей и документов",
+    "description": "Knowledge graph canvas aria-label"
+  },
+  "recommendation_count_one": {
+    "message": "$1 клиническая рекомендация",
+    "description": "Recommendation count with Russian singular form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "recommendation_count_few": {
+    "message": "$1 клинические рекомендации",
+    "description": "Recommendation count with Russian paucal form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "recommendation_count_many": {
+    "message": "$1 клинических рекомендаций",
+    "description": "Recommendation count with Russian plural form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "37"
+      }
+    }
+  },
+  "recommendation_installed_partial": {
+    "message": "На устройстве: $1 из $2",
+    "description": "Installed recommendation count within a section",
+    "placeholders": {
+      "installed": {
+        "content": "$1",
+        "example": "5"
+      },
+      "total": {
+        "content": "$2",
+        "example": "37"
+      }
+    }
+  },
+  "recommendation_installed_none": {
+    "message": "Пока ничего не скачано из этого раздела",
+    "description": "No recommendations installed in a section"
+  },
+  "recommendation_help_lead": {
+    "message": "Раздел «$1» объединяет официальные клинические рекомендации Минздрава по смежным направлениям. После загрузки документы доступны офлайн и участвуют в общем поиске MiniMed.",
+    "description": "Recommendation section help dialog lead paragraph",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "Пульмонология и аллергология"
+      }
+    }
+  },
+  "recommendation_help_size": {
+    "message": "Общий объём загрузки: $1",
+    "description": "Recommendation section help dialog download size",
+    "placeholders": {
+      "size": {
+        "content": "$1",
+        "example": "12 МБ"
+      }
+    }
+  },
+  "recommendation_help_offline_note": {
+    "message": "Каждая рекомендация скачивается отдельно и проверяется перед подключением к поиску. Можно загрузить весь раздел целиком или выбрать отдельные документы внутри.",
+    "description": "Recommendation section help dialog offline note"
+  }
+}

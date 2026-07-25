@@ -32,6 +32,7 @@ import {
   installPublishedCategoryModules,
   removeInstalledCategoryModules,
 } from '@/features/modules/recommendation-category-operations';
+import { collectionLabel } from '@/i18n/labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface ModuleCatalogViewProps {
@@ -41,12 +42,6 @@ interface ModuleCatalogViewProps {
   readonly onContentChanged?: () => Promise<void>;
   readonly onAvailableUpdates?: (count: number) => void;
 }
-
-const COLLECTION_TITLES: Readonly<Record<string, string>> = {
-  core: 'Всегда доступно',
-  pediatrics: 'Клиническая педиатрия',
-  shared: 'Лекарства, документы и нормы',
-};
 
 const RELEASE_LABELS: Readonly<Record<ContentModuleCatalogEntry['releaseState'], string>> = {
   bundled: 'Уже в приложении',
@@ -423,7 +418,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         {(collection) => (
           <section class="module-collection">
             <div class="module-collection-heading">
-              <h2>{COLLECTION_TITLES[collection] ?? collection}</h2>
+              <h2>{collectionLabel(collection)}</h2>
               <span>
                 {regularModules().filter((module) => module.collection === collection).length}
               </span>

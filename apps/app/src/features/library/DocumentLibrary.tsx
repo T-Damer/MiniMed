@@ -6,6 +6,8 @@ import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGly
 import { SearchField } from '@/components/SearchField';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
+import { browserI18n } from '@/i18n/browser-i18n';
+import { sourceTypeLibraryLabel, specialtyLabels } from '@/i18n/labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface DocumentLibraryProps {
@@ -17,15 +19,6 @@ type LibraryMode = 'list' | 'graph';
 
 function normalize(value: string): string {
   return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
-}
-
-function sourceTypeLabel(value: string): string {
-  const labels: Readonly<Record<string, string>> = {
-    clinical_recommendation_summary: 'Клинические рекомендации',
-    official_registry_summary: 'Официальный реестр лекарств',
-    regulatory_act: 'Нормативный документ',
-  };
-  return labels[value] ?? value.replaceAll('_', ' ');
 }
 
 export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
@@ -42,9 +35,10 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
         [
           document.title,
           document.shortTitle ?? '',
-          sourceTypeLabel(document.sourceType),
+          sourceTypeLibraryLabel(document.sourceType),
           document.versionLabel,
           ...document.specialties,
+          ...specialtyLabels(document.specialties),
         ].join(' '),
       ).includes(query),
     );
@@ -156,9 +150,12 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
               >
                 <span class="document-library-index">{String(index() + 1).padStart(2, '0')}</span>
                 <span class="document-library-copy">
-                  <small>{sourceTypeLabel(document.sourceType)}</small>
+                  <small>{sourceTypeLibraryLabel(document.sourceType)}</small>
                   <strong>{document.title}</strong>
-                  <span>{document.specialties.join(' · ') || 'Общая медицина'}</span>
+                  <span>
+                    {specialtyLabels(document.specialties).join(' · ') ||
+                      browserI18n.getMessage('specialty_general_medicine')}
+                  </span>
                   <em>Редакция {document.versionLabel}</em>
                 </span>
                 <span class="clinical-signals" aria-hidden="true">

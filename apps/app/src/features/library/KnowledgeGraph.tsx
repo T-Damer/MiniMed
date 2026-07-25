@@ -1,6 +1,9 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
+import { browserI18n } from '@/i18n/browser-i18n';
+import { specialtyLabel } from '@/i18n/labels';
+
 interface KnowledgeGraphProps {
   readonly documents: readonly MedicalDocumentSummary[];
   readonly selectedId: string | undefined;
@@ -35,6 +38,8 @@ function shortLabel(value: string, limit: number): string {
   return value.length <= limit ? value : `${value.slice(0, limit - 1)}…`;
 }
 
+const OTHER_DOCUMENTS_DOMAIN = '__other_documents__';
+
 function buildGraph(documents: readonly MedicalDocumentSummary[]): {
   readonly nodes: GraphNode[];
   readonly edges: GraphEdge[];
@@ -59,7 +64,9 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
     };
     nodes.push(documentNode);
 
-    const specialties = document.specialties.length ? document.specialties : ['Другие документы'];
+    const specialties = document.specialties.length
+      ? document.specialties
+      : [OTHER_DOCUMENTS_DOMAIN];
     specialties.forEach((specialty, specialtyIndex) => {
       let domain = domains.get(specialty);
       if (!domain) {
@@ -68,7 +75,10 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
         domain = {
           id: `domain:${specialty}`,
           kind: 'domain',
-          label: specialty,
+          label:
+            specialty === OTHER_DOCUMENTS_DOMAIN
+              ? browserI18n.getMessage('specialty_other_documents')
+              : specialtyLabel(specialty),
           documentId: null,
           x: Math.cos(domainAngle) * 80,
           y: Math.sin(domainAngle) * 70,
@@ -282,11 +292,13 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     <section class="knowledge-graph-card paper-card" aria-labelledby="knowledge-graph-title">
       <header>
         <div>
-          <p class="archive-kicker">Карта связей</p>
-          <h2 id="knowledge-graph-title">Области и документы</h2>
-          <p>Перетаскивайте узлы, двигайте поле и используйте колесо для масштаба.</p>
+          <p class="archive-kicker">{browserI18n.getMessage('graph_kicker')}</p>
+          <h2 id="knowledge-graph-title">{browserI18n.getMessage('graph_title')}</h2>
+          <p>{browserI18n.getMessage('graph_hint')}</p>
         </div>
-        <span>{props.documents.length} документов</span>
+        <span>
+          {browserI18n.getMessage('graph_document_count', String(props.documents.length))}
+        </span>
       </header>
 
       <canvas
@@ -294,7 +306,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           canvas = element;
         }}
         class="knowledge-graph-canvas"
-        aria-label="Интерактивная карта медицинских областей и документов"
+        aria-label={browserI18n.getMessage('graph_aria_label')}
         onPointerDown={(event) => {
           if (!canvas) return;
           canvas.setPointerCapture(event.pointerId);
@@ -353,10 +365,10 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
 
       <div class="knowledge-graph-legend" aria-hidden="true">
         <span>
-          <i class="domain" /> медицинская область
+          <i class="domain" /> {browserI18n.getMessage('graph_legend_domain')}
         </span>
         <span>
-          <i class="document" /> документ
+          <i class="document" /> {browserI18n.getMessage('graph_legend_document')}
         </span>
       </div>
     </section>
