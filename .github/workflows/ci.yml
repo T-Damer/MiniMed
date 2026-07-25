@@ -59,8 +59,8 @@ jobs:
           set +e
           mkdir -p release-diagnostics
           {
-            echo '=== Biome ==='
-            bun run check
+            echo '=== Biome errors ==='
+            bunx biome check . --diagnostic-level=error --max-diagnostics=50
             echo
             echo '=== Ruff ==='
             uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
