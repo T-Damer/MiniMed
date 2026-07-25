@@ -23,10 +23,7 @@ def _env_float(name: str, default: float) -> float:
 
 
 def is_transient_http_error(error: BaseException) -> bool:
-    return (
-        isinstance(error, urllib.error.HTTPError)
-        and error.code in TRANSIENT_HTTP_STATUS_CODES
-    )
+    return isinstance(error, urllib.error.HTTPError) and error.code in TRANSIENT_HTTP_STATUS_CODES
 
 
 def retry_on_transient_http[T](
@@ -39,9 +36,7 @@ def retry_on_transient_http[T](
     backoff_factor: float | None = None,
 ) -> T:
     attempts = (
-        max_attempts
-        if max_attempts is not None
-        else _env_int("MINIMED_HTTP_RETRY_MAX_ATTEMPTS", 8)
+        max_attempts if max_attempts is not None else _env_int("MINIMED_HTTP_RETRY_MAX_ATTEMPTS", 8)
     )
     delay_seconds = (
         initial_delay_seconds
