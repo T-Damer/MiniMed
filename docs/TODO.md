@@ -30,3 +30,8 @@ Short-term 1.0 follow-up work that remains after the 0.6.0 release.
 
 ## Platform roadmap
 - 1.1 idea: portable Rust `MedicalCore` with a versioned JSON CLI, differential tests against the current core, and an optional terminal UI.
+
+## 1.0 release checklist
+- Finish the UI/navigation and download reliability items above.
+- Add regression coverage for page transitions, document opening, download retry/resume, and model-loading states.
+- Verify the public `/app/` browser build and Android release candidate after the 1.0 changes.
