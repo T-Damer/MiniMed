@@ -17,6 +17,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: replicate-knowledge-pilot-${{ github.event.pull_request.number || github.ref }}
@@ -35,13 +37,36 @@ jobs:
         run: bun scripts/replicate-knowledge-pilot.mjs --dry-run
       - name: Run cents-scale live pilot
         env:
-          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API || secrets.REPLICATE_API_TOKEN || secrets.REPLICATE_API_KEY }}
+        shell: bash
         run: |
+          set -euo pipefail
+          mkdir -p data/build
           if [[ -z "${REPLICATE_API_TOKEN}" ]]; then
-            echo "REPLICATE_API secret is not configured; live pilot skipped." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            generated_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            cat > data/build/replicate-knowledge-pilot-report.json <<EOF
+          {
+            "generatedAt": "${generated_at}",
+            "status": "skipped",
+            "reason": "No supported Replicate Actions secret was available.",
+            "acceptedSecretNames": ["REPLICATE_API", "REPLICATE_API_TOKEN", "REPLICATE_API_KEY"],
+            "estimatedCostUsd": 0,
+            "recommendedToContinue": false
+          }
+          EOF
+            cat > data/build/replicate-knowledge-pilot-summary.md <<'EOF'
+          # Replicate knowledge pilot
+
+          - Status: **skipped**
+          - Cost: **$0.00**
+          - Reason: no supported Replicate Actions secret was available to this workflow.
+          - Accepted secret names: `REPLICATE_API`, `REPLICATE_API_TOKEN`, or `REPLICATE_API_KEY`.
+          - Decision: no model-quality conclusion can be drawn; do not scale the pipeline yet.
+          EOF
+          else
+            bun scripts/replicate-knowledge-pilot.mjs
           fi
-          bun scripts/replicate-knowledge-pilot.mjs
+          cat data/build/replicate-knowledge-pilot-summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload pilot report
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,5 +75,32 @@ jobs:
           path: |
             data/build/replicate-knowledge-pilot-report.json
             data/build/replicate-knowledge-pilot-summary.md
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
+      - name: Publish pilot result on pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        env:
+          SUMMARY_PATH: data/build/replicate-knowledge-pilot-summary.md
+        with:
+          script: |
+            const fs = require('node:fs');
+            const marker = '<!-- replicate-knowledge-pilot -->';
+            const summary = fs.existsSync(process.env.SUMMARY_PATH)
+              ? fs.readFileSync(process.env.SUMMARY_PATH, 'utf8')
+              : '# Replicate knowledge pilot\n\nNo report file was produced.';
+            const body = `${marker}\n${summary}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
