@@ -7,8 +7,14 @@ function navigationButton(page: import('@playwright/test').Page, name: string) {
 }
 
 test('dev server smoke: search, knowledge base, settings', async ({ page, request }) => {
-  const health = await request.get('http://127.0.0.1:5173/');
-  test.skip(!health.ok(), 'dev server is not running on 127.0.0.1:5173');
+  let running = false;
+  try {
+    const health = await request.get('http://127.0.0.1:5173/', { timeout: 1_000 });
+    running = health.ok();
+  } catch {
+    running = false;
+  }
+  test.skip(!running, 'dev server is not running on 127.0.0.1:5173');
 
   await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('Что нужно найти?')).toBeVisible({ timeout: 15_000 });
