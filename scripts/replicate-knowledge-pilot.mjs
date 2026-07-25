@@ -363,10 +363,7 @@ async function main() {
     : 'Не масштабировать: сначала исправить prompt/schema или выбрать другую модель.';
   const failures = results
     .filter((item) => !item.validation.valid)
-    .map(
-      (item) =>
-        `  - \`${basename(item.sourceFile)}\`: ${item.validation.failures.join('; ')}`,
-    );
+    .map((item) => `  - \`${basename(item.sourceFile)}\`: ${item.validation.failures.join('; ')}`);
   const summary = `# Replicate knowledge pilot\n\n- Model: \`${MODEL}\`\n- Sources: ${results.map((item) => `\`${basename(item.sourceFile)}\``).join(', ')}\n- Tasks: ${results.length}\n- Valid JSON/schema responses: ${(report.quality.validResponseRate * 100).toFixed(0)}%\n- Exact evidence quotes: ${(report.quality.exactEvidenceQuoteRate * 100).toFixed(0)}%\n- Estimated cost: $${runningCost.toFixed(4)}\n- Configured maximum: $${maximumEstimatedCost.toFixed(4)}\n- Decision: **${recommendation}**${failures.length > 0 ? `\n- Failures:\n${failures.join('\n')}` : ''}\n`;
   await writeFile(SUMMARY_PATH, summary, 'utf8');
   if (process.env.GITHUB_STEP_SUMMARY) {
