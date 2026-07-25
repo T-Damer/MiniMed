@@ -102,9 +102,7 @@ export class ScopedMedicalCore implements MedicalCore {
         // An empty documentIds array means “no filter” in storage adapters, so use an impossible
         // sentinel when the requested source family is not installed.
         documentIds:
-          selectedDocumentIds.length > 0
-            ? [...selectedDocumentIds]
-            : [EMPTY_SCOPE_DOCUMENT_ID],
+          selectedDocumentIds.length > 0 ? [...selectedDocumentIds] : [EMPTY_SCOPE_DOCUMENT_ID],
       },
     });
   }
