@@ -7,6 +7,9 @@ import {
   summaryDocumentId,
 } from '@localmed/core';
 
+import { browserI18n } from '@/i18n/browser-i18n';
+import { sourceTypeReaderLabel as localizedSourceTypeReaderLabel } from '@/i18n/labels';
+
 const REGISTRY_SECTION_PATTERN = /регистрационн|ограничен/i;
 
 export {
@@ -32,18 +35,13 @@ export function displayDocumentSubtitle(
 ): string | null {
   if (document.sourceType === 'official_registry_summary') {
     const form = document.title.split('—').slice(1).join('—').trim();
-    return form.length > 0 ? form : 'Сведения из официального реестра';
+    return form.length > 0 ? form : browserI18n.getMessage('source_registry_reader_subtitle');
   }
   return null;
 }
 
 export function sourceTypeReaderLabel(sourceType: string): string | null {
-  if (sourceType === 'official_registry_summary') return null;
-  const labels: Readonly<Record<string, string>> = {
-    clinical_recommendation_summary: 'Клиническая рекомендация',
-    regulatory_act: 'Нормативный документ',
-  };
-  return labels[sourceType] ?? null;
+  return localizedSourceTypeReaderLabel(sourceType);
 }
 
 export function orderDocumentSections(

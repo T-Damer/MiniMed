@@ -27,6 +27,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   surfaces: shared icon, stamp-accent border, mono label, and compact spacing.
 - The knowledge-base screen combines installed documents and downloadable module packs in one place.
 - App-local `@/` import alias for source modules.
+- WebExtensions-style UI localization: `_locales/<lang>/messages.json` catalogs with a bundled
+  `browser.i18n.getMessage` shim; corpus specialty slugs and module collection ids localize at the
+  UI boundary (default locale `ru`).
 
 ### Local model
 
