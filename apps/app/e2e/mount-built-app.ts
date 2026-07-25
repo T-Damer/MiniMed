@@ -4,6 +4,7 @@ import type { Page, Route } from '@playwright/test';
 
 export const E2E_ASSET_ORIGIN = 'https://localmed-assets.example.com';
 const DIST_ROOT = resolve(import.meta.dirname, '../dist');
+const DEFAULT_SEARCH_STORAGE = { 'minimed.search-scope.v1': 'all' } as const;
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.css': 'text/css; charset=utf-8',
@@ -45,19 +46,27 @@ async function serveBuiltAsset(route: Route): Promise<void> {
 export interface MountBuiltAppOptions {
   readonly localStorage?: Readonly<Record<string, string>>;
   readonly persistentOrigin?: boolean;
+  readonly skipDefaultSearchScope?: boolean;
 }
 
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
+  const initialStorage = options.skipDefaultSearchScope
+    ? (options.localStorage ?? {})
+    : { ...DEFAULT_SEARCH_STORAGE, ...(options.localStorage ?? {}) };
 
   if (options.persistentOrigin) {
     await page.addInitScript((initialValues) => {
       for (const [key, value] of Object.entries(initialValues)) {
         window.localStorage.setItem(key, value);
       }
-    }, options.localStorage ?? {});
+    }, initialStorage);
     await page.goto(`${E2E_ASSET_ORIGIN}/`, { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('search-input').waitFor();
+    if (options.skipDefaultSearchScope) {
+      await page.getByRole('radiogroup', { name: 'Режим поиска' }).waitFor();
+    } else {
+      await page.getByTestId('search-input').waitFor();
+    }
     return;
   }
 
@@ -100,10 +109,14 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
       configurable: true,
       value: createStorage(),
     });
-  }, options.localStorage ?? {});
+  }, initialStorage);
 
   const source = await readFile(join(DIST_ROOT, 'index.html'), 'utf8');
   const html = source.replace('<head>', `<head><base href="${E2E_ASSET_ORIGIN}/">`);
   await page.setContent(html, { waitUntil: 'domcontentloaded' });
-  await page.getByTestId('search-input').waitFor();
+  if (options.skipDefaultSearchScope) {
+    await page.getByRole('radiogroup', { name: 'Режим поиска' }).waitFor();
+  } else {
+    await page.getByTestId('search-input').waitFor();
+  }
 }
