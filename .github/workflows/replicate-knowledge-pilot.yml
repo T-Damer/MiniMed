@@ -2,6 +2,12 @@ name: Replicate knowledge pilot
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/replicate-knowledge-pilot.mjs"
+      - ".github/workflows/replicate-knowledge-pilot.yml"
+      - "content/pilot-rf/*.md"
   push:
     branches: [agent/portable-rust-core-cli-roadmap]
     paths:
@@ -13,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: replicate-knowledge-pilot
+  group: replicate-knowledge-pilot-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
