@@ -157,10 +157,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         <legend class="visually-hidden">Режим поиска</legend>
         <For each={SEARCH_SCOPES}>
           {(option) => (
-            <label
-              classList={{ active: scope() === option.id }}
-              title={option.description}
-            >
+            <label classList={{ active: scope() === option.id }} title={option.description}>
               <input
                 type="radio"
                 name="minimed-search-scope"
