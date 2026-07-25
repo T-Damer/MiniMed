@@ -13,6 +13,7 @@ import '@/styles/dataset-ux.css';
 import '@/styles/search-doctor-ux.css';
 import '@/styles/grounded-assistant.css';
 import '@/styles/compact-release.css';
+import '@/styles/search-scope-radio.css';
 import '@/styles/download-status.css';
 
 const root = document.getElementById('root');
