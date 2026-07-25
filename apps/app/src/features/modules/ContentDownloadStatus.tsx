@@ -1,7 +1,12 @@
 import type { ContentModuleDownloadTask } from '@localmed/contracts';
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+
+import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
-import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import {
+  getContentModuleRuntime,
+  subscribeContentModuleRuntime,
+} from '@/features/modules/module-runtime-service';
 
 const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> = {
   queued: 'Ожидает загрузки',
@@ -9,7 +14,7 @@ const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> 
   verifying: 'Проверяется',
   installing: 'Устанавливается',
   completed: 'Установлено',
-  failed: 'Ошибка установки',
+  failed: 'Загрузка прервана',
   cancelled: 'Загрузка отменена',
 };
 
@@ -18,47 +23,115 @@ function taskProgress(task: ContentModuleDownloadTask): number | null {
   return Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));
 }
 
+function latestVisibleTasks(
+  tasks: readonly ContentModuleDownloadTask[],
+): readonly ContentModuleDownloadTask[] {
+  const seen = new Set<string>();
+  const latest: ContentModuleDownloadTask[] = [];
+  for (const task of [...tasks].reverse()) {
+    if (['completed', 'cancelled'].includes(task.state)) continue;
+    const key = `${task.moduleId}@${task.version}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    latest.push(task);
+  }
+  return latest.reverse();
+}
+
 export function ContentDownloadStatus(): JSX.Element {
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
-  let unsubscribe: (() => void) | undefined;
+  let currentRuntime: BrowserContentModuleRuntime | undefined;
+  let unsubscribeTasks: (() => void) | undefined;
+  let unsubscribeRuntime: (() => void) | undefined;
+
+  const bindRuntime = (runtime: BrowserContentModuleRuntime): void => {
+    if (runtime === currentRuntime) return;
+    unsubscribeTasks?.();
+    currentRuntime = runtime;
+    setTasks(runtime.listTasks());
+    unsubscribeTasks = runtime.subscribe(() => setTasks(runtime.listTasks()));
+  };
 
   onMount(() => {
-    const runtime = getContentModuleRuntime(MODULE_CATALOG);
-    const refresh = (): void => {
-      setTasks(runtime.listTasks());
-    };
-    refresh();
-    unsubscribe = runtime.subscribe(() => refresh());
+    bindRuntime(getContentModuleRuntime(MODULE_CATALOG));
+    unsubscribeRuntime = subscribeContentModuleRuntime(bindRuntime);
   });
-  onCleanup(() => unsubscribe?.());
+  onCleanup(() => {
+    unsubscribeTasks?.();
+    unsubscribeRuntime?.();
+  });
 
-  const activeTasks = () =>
-    tasks().filter((task) => !['completed', 'failed', 'cancelled'].includes(task.state));
+  const visibleTasks = () => latestVisibleTasks(tasks());
+
+  const retry = (task: ContentModuleDownloadTask): void => {
+    const runtime = currentRuntime;
+    if (!runtime) return;
+    const module = runtime
+      .getCatalog()
+      .modules.find(
+        (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
+      );
+    if (!module || module.releaseState !== 'published') return;
+    runtime.install(module);
+    setTasks(runtime.listTasks());
+  };
 
   return (
-    <Show when={activeTasks().length > 0}>
+    <Show when={visibleTasks().length > 0}>
       <section
         class="content-download-status paper-card"
         aria-label="Загрузка наборов документов"
         data-testid="content-download-status"
       >
-        <h3>Загрузка наборов</h3>
+        <header class="content-download-status-heading">
+          <div>
+            <h3>Загрузка наборов</h3>
+            <p>Частичные данные сохраняются. После перезапуска загрузка продолжится автоматически.</p>
+          </div>
+          <span>{visibleTasks().length}</span>
+        </header>
         <ul>
-          <For each={activeTasks()}>
+          <For each={visibleTasks()}>
             {(task) => {
               const progress = () => taskProgress(task);
+              const retryAvailable = () =>
+                task.state === 'failed' &&
+                Boolean(
+                  currentRuntime
+                    ?.getCatalog()
+                    .modules.some(
+                      (module) =>
+                        module.id === task.moduleId &&
+                        module.version === task.version &&
+                        module.releaseState === 'published',
+                    ),
+                );
               return (
-                <li>
+                <li classList={{ failed: task.state === 'failed' }}>
                   <div class="content-download-status-row">
-                    <strong>{task.moduleId}</strong>
+                    <div>
+                      <strong>{task.moduleId}</strong>
+                      <small>Версия {task.version}</small>
+                    </div>
                     <span>{TASK_LABELS[task.state]}</span>
                   </div>
                   <Show when={progress() !== null}>
-                    <div class="content-download-status-progress" role="progressbar">
+                    <div
+                      class="content-download-status-progress"
+                      role="progressbar"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-valuenow={Math.round((progress() ?? 0) * 100)}
+                    >
                       <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
                     </div>
                   </Show>
                   <Show when={task.errorMessage}>{(message) => <small>{message()}</small>}</Show>
+                  <Show when={retryAvailable()}>
+                    <button type="button" onClick={() => retry(task)}>
+                      Продолжить сейчас
+                    </button>
+                  </Show>
                 </li>
               );
             }}
