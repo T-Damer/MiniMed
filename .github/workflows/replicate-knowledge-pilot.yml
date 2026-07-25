@@ -8,17 +8,9 @@ on:
       - "scripts/replicate-knowledge-pilot.mjs"
       - ".github/workflows/replicate-knowledge-pilot.yml"
       - "content/pilot-rf/*.md"
-  push:
-    branches: [agent/portable-rust-core-cli-roadmap]
-    paths:
-      - "scripts/replicate-knowledge-pilot.mjs"
-      - ".github/workflows/replicate-knowledge-pilot.yml"
-      - "content/pilot-rf/*.md"
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
 
 concurrency:
   group: replicate-knowledge-pilot-${{ github.event.pull_request.number || github.ref }}
@@ -36,39 +28,19 @@ jobs:
       - name: Verify bounded pilot inputs and maximum cost
         run: bun scripts/replicate-knowledge-pilot.mjs --dry-run
       - name: Run cents-scale live pilot
+        if: github.event_name == 'workflow_dispatch'
         env:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API || secrets.REPLICATE_API_TOKEN || secrets.REPLICATE_API_KEY }}
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p data/build
           if [[ -z "${REPLICATE_API_TOKEN}" ]]; then
-            generated_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            cat > data/build/replicate-knowledge-pilot-report.json <<EOF
-          {
-            "generatedAt": "${generated_at}",
-            "status": "skipped",
-            "reason": "No supported Replicate Actions secret was available.",
-            "acceptedSecretNames": ["REPLICATE_API", "REPLICATE_API_TOKEN", "REPLICATE_API_KEY"],
-            "estimatedCostUsd": 0,
-            "recommendedToContinue": false
-          }
-          EOF
-            cat > data/build/replicate-knowledge-pilot-summary.md <<'EOF'
-          # Replicate knowledge pilot
-
-          - Status: **skipped**
-          - Cost: **$0.00**
-          - Reason: no supported Replicate Actions secret was available to this workflow.
-          - Accepted secret names: `REPLICATE_API`, `REPLICATE_API_TOKEN`, or `REPLICATE_API_KEY`.
-          - Decision: no model-quality conclusion can be drawn; do not scale the pipeline yet.
-          EOF
-          else
-            bun scripts/replicate-knowledge-pilot.mjs
+            echo 'No supported Replicate Actions secret is configured.' >&2
+            exit 1
           fi
-          cat data/build/replicate-knowledge-pilot-summary.md >> "$GITHUB_STEP_SUMMARY"
+          bun scripts/replicate-knowledge-pilot.mjs
       - name: Upload pilot report
-        if: always()
+        if: github.event_name == 'workflow_dispatch' && always() && !cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: replicate-knowledge-pilot
@@ -77,30 +49,3 @@ jobs:
             data/build/replicate-knowledge-pilot-summary.md
           if-no-files-found: error
           retention-days: 14
-      - name: Publish pilot result on pull request
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
-        env:
-          SUMMARY_PATH: data/build/replicate-knowledge-pilot-summary.md
-        with:
-          script: |
-            const fs = require('node:fs');
-            const marker = '<!-- replicate-knowledge-pilot -->';
-            const summary = fs.existsSync(process.env.SUMMARY_PATH)
-              ? fs.readFileSync(process.env.SUMMARY_PATH, 'utf8')
-              : '# Replicate knowledge pilot\n\nNo report file was produced.';
-            const body = `${marker}\n${summary}`;
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number,
-              per_page: 100,
-            });
-            const existing = comments.find((comment) => comment.body?.includes(marker));
-            if (existing) {
-              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
-            } else {
-              await github.rest.issues.createComment({ owner, repo, issue_number, body });
-            }
