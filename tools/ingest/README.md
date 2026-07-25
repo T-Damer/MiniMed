@@ -32,7 +32,11 @@ The registry describes IDs and metadata. The preparer:
 - extracts text-layer PDF blocks with page/bounding-box provenance;
 - supports UTF-8 TXT/OCR exports and Markdown;
 - detects repeated headers, footers, page numbers, headings, lists, and table candidates;
+- retries broken Cyrillic PDF text layers with Tesseract `rus+eng` OCR when available;
 - writes build-ready Markdown plus extraction/diagnostic JSON;
 - never summarizes or medically rewrites source text.
+
+Clinical snapshot builds require `tesseract-ocr`, `tesseract-ocr-rus`, and `tesseract-ocr-eng`
+(see `.github/workflows/publish-clinical-snapshot.yml`).
 
 Then lint and build the prepared directory with the same `medbase build` command.
