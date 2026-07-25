@@ -30,7 +30,12 @@ import { profilesCompatible, type QueryEmbedder } from '@localmed/search-semanti
 import type { LexicalHit, MedicalStore, VectorHit } from '@localmed/storage';
 
 import { isSupersededSummaryDocument } from './document-siblings';
-import { toDocumentSummary, groupChunksBySection, toMedicalDocument, toMedicalSection } from './mappers';
+import {
+  groupChunksBySection,
+  toDocumentSummary,
+  toMedicalDocument,
+  toMedicalSection,
+} from './mappers';
 import {
   resolveSearchResultContext,
   type SearchResultContextHint,
@@ -415,10 +420,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     const section = await options.store.getSection(chunk.sectionId);
     const document = await options.store.getDocumentByVersionId(chunk.documentVersionId);
     if (!section || !document) return null;
-    const window = await options.store.getChunkWindow(
-      chunkId,
-      Math.max(0, Math.min(radius, 8)),
-    );
+    const window = await options.store.getChunkWindow(chunkId, Math.max(0, Math.min(radius, 8)));
     return {
       document: toDocumentSummary(document),
       section: toMedicalSection(section, await options.store.getChunksBySection(section.id)),

@@ -86,7 +86,9 @@ export function ContentDownloadStatus(): JSX.Element {
         <header class="content-download-status-heading">
           <div>
             <h3>Загрузка наборов</h3>
-            <p>Частичные данные сохраняются. После перезапуска загрузка продолжится автоматически.</p>
+            <p>
+              Частичные данные сохраняются. После перезапуска загрузка продолжится автоматически.
+            </p>
           </div>
           <span>{visibleTasks().length}</span>
         </header>

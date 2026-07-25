@@ -43,7 +43,10 @@ function chunkMatchesHint(chunk: ChunkRecord, hint: SearchResultContextHint): bo
   const normalizedSnippet = normalizeMatchText(hint.anchor);
   const anchorPath = normalizedSnippet.split('#')[0] ?? normalizedSnippet;
   const chunkAnchor = normalizeMatchText(chunk.anchor);
-  if (anchorPath.length > 12 && chunkAnchor.includes(anchorPath.slice(anchorPath.lastIndexOf('/')))) {
+  if (
+    anchorPath.length > 12 &&
+    chunkAnchor.includes(anchorPath.slice(anchorPath.lastIndexOf('/')))
+  ) {
     return true;
   }
   return false;
@@ -92,7 +95,10 @@ export async function resolveSearchResultChunkId(
     resolveReadableDocumentId(hint.documentId, availableIds),
     hint.documentId,
     summaryDocumentId(hint.documentId),
-  ].filter((documentId, index, values) => values.indexOf(documentId) === index && availableIds.has(documentId));
+  ].filter(
+    (documentId, index, values) =>
+      values.indexOf(documentId) === index && availableIds.has(documentId),
+  );
 
   for (const documentId of candidateDocumentIds) {
     const chunk = await findChunkInDocument(store, documentId, hint);
@@ -116,10 +122,7 @@ export function searchResultContextFallbackMessage(
   return `Источник «${hint.sectionPath.at(-1) ?? hint.title}» пока недоступен в локальной базе. Откройте полный документ или обновите поиск.`;
 }
 
-export type BuildChunkContext = (
-  chunkId: string,
-  radius: number,
-) => Promise<ChunkContext | null>;
+export type BuildChunkContext = (chunkId: string, radius: number) => Promise<ChunkContext | null>;
 
 export async function resolveSearchResultContext(
   store: MedicalStore,
