@@ -97,11 +97,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
       title={props.document ? displayDocumentTitle(props.document) : 'Документ'}
       {...(props.document && displayDocumentSubtitle(props.document)
         ? { subtitle: displayDocumentSubtitle(props.document) as string }
-        : {
-            subtitle: isFullTextDocumentId(props.document?.id ?? '')
-              ? 'Полный текст клинической рекомендации'
-              : 'Краткая выжимка по источнику',
-          })}
+        : {})}
       class="document-overlay"
       onClose={close}
     >
