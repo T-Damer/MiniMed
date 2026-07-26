@@ -65,7 +65,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: '0.10.0'
           enable-cache: true
@@ -91,7 +91,7 @@ jobs:
       CONFIGURED_FORMAT: ${{ vars.MEDICATION_CATALOG_FORMAT }}
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: '0.10.0'
           enable-cache: true
@@ -129,7 +129,7 @@ jobs:
               raise SystemExit('Medication export produced zero normalized records.')
           print(json.dumps(ledger['summary'], ensure_ascii=False, indent=2))
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: medication-coverage-ledger
           path: |
@@ -149,7 +149,7 @@ jobs:
       INCLUDE_DETAILS: ${{ inputs.include_law_details }}
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: '0.10.0'
           enable-cache: true
@@ -177,7 +177,7 @@ jobs:
               raise SystemExit('Official law queries produced zero normalized records.')
           print(json.dumps(ledger['summary'], ensure_ascii=False, indent=2))
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: health-law-coverage-ledger
           path: |

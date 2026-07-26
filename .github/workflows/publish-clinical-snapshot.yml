@@ -30,7 +30,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.3
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: '0.10.0'
           enable-cache: true

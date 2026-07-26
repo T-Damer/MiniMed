@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .cache/local-model-smoke
           key: local-model-smoke-${{ matrix.sha256 }}
@@ -68,7 +68,7 @@ jobs:
         run: bunx playwright test apps/app/e2e/local-model-smoke.spec.ts --project=chromium --workers=1
       - name: Upload Playwright evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: local-model-smoke-${{ matrix.id }}
           path: test-results
