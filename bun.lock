@@ -19,6 +19,7 @@
         "@capacitor/core": "8.4.2",
         "@localmed/contracts": "workspace:*",
         "@localmed/core": "workspace:*",
+        "@localmed/search-lexical": "workspace:*",
         "@localmed/search-semantic": "workspace:*",
         "@localmed/storage": "workspace:*",
         "@localmed/storage-capacitor": "workspace:*",
