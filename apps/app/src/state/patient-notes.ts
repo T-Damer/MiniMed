@@ -1,0 +1,274 @@
+import { lightStemRussian, tokenize } from '@localmed/search-lexical';
+
+/**
+ * Local patient cards and their nested notes.
+ *
+ * This is a personal trust layer: it never mixes with installed official content, it is never
+ * published, and every surface that shows a match must label it as a personal record rather than an
+ * official source.
+ */
+export interface PatientCard {
+  readonly id: string;
+  readonly title: string;
+  /** Free-form context a doctor keeps at hand: age, weight, allergies, ward. */
+  readonly summary: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface PatientNote {
+  readonly id: string;
+  readonly cardId: string;
+  /** Notes nest inside notes, so a visit can hold its own follow-ups. */
+  readonly parentNoteId: string | null;
+  readonly text: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface PatientNotesSnapshot {
+  readonly cards: readonly PatientCard[];
+  readonly notes: readonly PatientNote[];
+}
+
+export interface PatientNoteMatch {
+  readonly card: PatientCard;
+  /** Absent when the card itself matched rather than one of its notes. */
+  readonly note: PatientNote | null;
+  readonly score: number;
+  readonly snippet: string;
+}
+
+export const PATIENT_NOTES_KEY = 'minimed.patient-notes.v1';
+export const PATIENT_NOTES_EVENT = 'minimed:patient-notes-changed';
+
+const MAX_SNIPPET_LENGTH = 180;
+const EMPTY: PatientNotesSnapshot = { cards: [], notes: [] };
+
+function isCard(value: unknown): value is PatientCard {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<PatientCard>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.title === 'string' &&
+    typeof candidate.summary === 'string' &&
+    typeof candidate.createdAt === 'string' &&
+    typeof candidate.updatedAt === 'string'
+  );
+}
+
+function isNote(value: unknown): value is PatientNote {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<PatientNote>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.cardId === 'string' &&
+    (candidate.parentNoteId === null || typeof candidate.parentNoteId === 'string') &&
+    typeof candidate.text === 'string' &&
+    typeof candidate.createdAt === 'string' &&
+    typeof candidate.updatedAt === 'string'
+  );
+}
+
+function createId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function loadPatientNotes(): PatientNotesSnapshot {
+  try {
+    const raw = window.localStorage.getItem(PATIENT_NOTES_KEY);
+    if (!raw) return EMPTY;
+    const value: unknown = JSON.parse(raw);
+    if (!value || typeof value !== 'object') return EMPTY;
+    const candidate = value as { readonly cards?: unknown; readonly notes?: unknown };
+    const cards = Array.isArray(candidate.cards) ? candidate.cards.filter(isCard) : [];
+    const notes = Array.isArray(candidate.notes) ? candidate.notes.filter(isNote) : [];
+    // Drop orphans so a partially corrupted record cannot hide notes under a missing card.
+    const cardIds = new Set(cards.map((card) => card.id));
+    return { cards, notes: notes.filter((note) => cardIds.has(note.cardId)) };
+  } catch {
+    return EMPTY;
+  }
+}
+
+function persist(snapshot: PatientNotesSnapshot): PatientNotesSnapshot {
+  window.localStorage.setItem(PATIENT_NOTES_KEY, JSON.stringify(snapshot));
+  window.dispatchEvent(new CustomEvent(PATIENT_NOTES_EVENT, { detail: snapshot }));
+  return snapshot;
+}
+
+export function createPatientCard(title: string, summary = ''): PatientNotesSnapshot {
+  const trimmed = title.trim();
+  if (!trimmed) return loadPatientNotes();
+  const now = new Date().toISOString();
+  const current = loadPatientNotes();
+  const card: PatientCard = {
+    id: createId('card'),
+    title: trimmed,
+    summary: summary.trim(),
+    createdAt: now,
+    updatedAt: now,
+  };
+  return persist({ cards: [card, ...current.cards], notes: current.notes });
+}
+
+export function updatePatientCard(
+  cardId: string,
+  changes: { readonly title?: string; readonly summary?: string },
+): PatientNotesSnapshot {
+  const current = loadPatientNotes();
+  const now = new Date().toISOString();
+  return persist({
+    cards: current.cards.map((card) =>
+      card.id === cardId
+        ? {
+            ...card,
+            title: changes.title?.trim() ? changes.title.trim() : card.title,
+            summary: changes.summary === undefined ? card.summary : changes.summary.trim(),
+            updatedAt: now,
+          }
+        : card,
+    ),
+    notes: current.notes,
+  });
+}
+
+/** Removes a card together with every note beneath it: a card is the retention boundary. */
+export function removePatientCard(cardId: string): PatientNotesSnapshot {
+  const current = loadPatientNotes();
+  return persist({
+    cards: current.cards.filter((card) => card.id !== cardId),
+    notes: current.notes.filter((note) => note.cardId !== cardId),
+  });
+}
+
+export function addPatientNote(
+  cardId: string,
+  text: string,
+  parentNoteId: string | null = null,
+): PatientNotesSnapshot {
+  const trimmed = text.trim();
+  const current = loadPatientNotes();
+  if (!trimmed || !current.cards.some((card) => card.id === cardId)) return current;
+  if (parentNoteId && !current.notes.some((note) => note.id === parentNoteId)) return current;
+  const now = new Date().toISOString();
+  const note: PatientNote = {
+    id: createId('note'),
+    cardId,
+    parentNoteId,
+    text: trimmed,
+    createdAt: now,
+    updatedAt: now,
+  };
+  return persist({ cards: current.cards, notes: [...current.notes, note] });
+}
+
+export function updatePatientNote(noteId: string, text: string): PatientNotesSnapshot {
+  const trimmed = text.trim();
+  const current = loadPatientNotes();
+  if (!trimmed) return current;
+  const now = new Date().toISOString();
+  return persist({
+    cards: current.cards,
+    notes: current.notes.map((note) =>
+      note.id === noteId ? { ...note, text: trimmed, updatedAt: now } : note,
+    ),
+  });
+}
+
+/** Removes a note and its descendants, so deleting a visit cannot leave dangling follow-ups. */
+export function removePatientNote(noteId: string): PatientNotesSnapshot {
+  const current = loadPatientNotes();
+  const doomed = new Set<string>([noteId]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const note of current.notes) {
+      if (note.parentNoteId && doomed.has(note.parentNoteId) && !doomed.has(note.id)) {
+        doomed.add(note.id);
+        grew = true;
+      }
+    }
+  }
+  return persist({
+    cards: current.cards,
+    notes: current.notes.filter((note) => !doomed.has(note.id)),
+  });
+}
+
+export function childNotes(
+  snapshot: PatientNotesSnapshot,
+  cardId: string,
+  parentNoteId: string | null,
+): readonly PatientNote[] {
+  return snapshot.notes
+    .filter((note) => note.cardId === cardId && note.parentNoteId === parentNoteId)
+    .toSorted((left, right) => left.createdAt.localeCompare(right.createdAt));
+}
+
+function stems(value: string): readonly string[] {
+  return tokenize(value).map(lightStemRussian);
+}
+
+function snippetFor(text: string, queryStems: readonly string[]): string {
+  const words = text.split(/\s+/u);
+  const hitIndex = words.findIndex((word) => {
+    const stem = lightStemRussian(tokenize(word)[0] ?? '');
+    return stem.length > 0 && queryStems.includes(stem);
+  });
+  if (hitIndex < 0) {
+    return text.length <= MAX_SNIPPET_LENGTH ? text : `${text.slice(0, MAX_SNIPPET_LENGTH - 1)}…`;
+  }
+  const start = Math.max(0, hitIndex - 6);
+  const snippet = words.slice(start, start + 18).join(' ');
+  const prefix = start > 0 ? '…' : '';
+  const suffix = start + 18 < words.length ? '…' : '';
+  return `${prefix}${snippet}${suffix}`;
+}
+
+/**
+ * Matches personal records for a query. Deliberately simple stem overlap: personal collections are
+ * small, and a doctor needs predictable recall of their own wording rather than ranking subtleties.
+ */
+export function searchPatientNotes(query: string, limit = 8): readonly PatientNoteMatch[] {
+  const queryStems = [...new Set(stems(query))];
+  if (queryStems.length === 0) return [];
+  const snapshot = loadPatientNotes();
+  const cardsById = new Map(snapshot.cards.map((card) => [card.id, card]));
+  const matches: PatientNoteMatch[] = [];
+
+  const scoreOf = (text: string): number => {
+    const textStems = new Set(stems(text));
+    return queryStems.filter((stem) => textStems.has(stem)).length;
+  };
+
+  for (const card of snapshot.cards) {
+    const score = scoreOf(`${card.title} ${card.summary}`);
+    if (score > 0) {
+      matches.push({
+        card,
+        note: null,
+        score,
+        snippet: snippetFor(card.summary || card.title, queryStems),
+      });
+    }
+  }
+
+  for (const note of snapshot.notes) {
+    const card = cardsById.get(note.cardId);
+    if (!card) continue;
+    const score = scoreOf(note.text);
+    if (score > 0) {
+      matches.push({ card, note, score, snippet: snippetFor(note.text, queryStems) });
+    }
+  }
+
+  return matches
+    .toSorted((left, right) => {
+      if (right.score !== left.score) return right.score - left.score;
+      const leftAt = left.note?.updatedAt ?? left.card.updatedAt;
+      const rightAt = right.note?.updatedAt ?? right.card.updatedAt;
+      return rightAt.localeCompare(leftAt);
+    })
+    .slice(0, limit);
+}
