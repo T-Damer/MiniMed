@@ -13,7 +13,7 @@ const INDETERMINATE_PROGRESS = 0.18;
 function pieBackground(progress: number): string {
   const clamped = Math.max(0, Math.min(1, progress));
   const degrees = clamped * 360;
-  return `conic-gradient(#cbb37c ${degrees}deg, rgb(255 255 255 / 16%) ${degrees}deg)`;
+  return `conic-gradient(#e8c654 ${degrees}deg, rgb(255 255 255 / 22%) ${degrees}deg)`;
 }
 
 function indicatorLabel(state: LocalModelState): string {
