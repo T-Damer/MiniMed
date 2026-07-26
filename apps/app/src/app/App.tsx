@@ -25,6 +25,7 @@ import { NotesView } from '@/features/notes/NotesView';
 import { SearchHome } from '@/features/search/SearchHome';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import { notifyContentChanged } from '@/state/content-events';
+import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 
 type View = 'search' | 'modules' | 'notes' | 'status';
 
@@ -87,6 +88,7 @@ export function App(): JSX.Element {
   const [error, setError] = createSignal<string>();
   const [availableModuleCount, setAvailableModuleCount] = createSignal(0);
   const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
+  const [dueReminderCount, setDueReminderCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
@@ -125,9 +127,18 @@ export function App(): JSX.Element {
     notifyContentChanged();
   };
 
+  const refreshDueReminders = (): void => {
+    setDueReminderCount(dueReminderNotes(loadPatientNotes()).length);
+  };
+  let reminderTimer: ReturnType<typeof setInterval> | undefined;
+
   onMount(async () => {
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
+    refreshDueReminders();
+    // Due-ness changes with the clock, not only with edits.
+    reminderTimer = setInterval(refreshDueReminders, 30_000);
     handleScroll();
     const bindModuleRuntime = (runtime: ReturnType<typeof getContentModuleRuntime>): void => {
       unsubscribeInstalledModules?.();
@@ -160,6 +171,8 @@ export function App(): JSX.Element {
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
+    if (reminderTimer) clearInterval(reminderTimer);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     if (coreToClose) void coreToClose.close();
@@ -248,10 +261,15 @@ export function App(): JSX.Element {
             />
             <nav class="app-bottom-nav" aria-label="Разделы приложения">
               {VIEWS.map((item) => {
-                const label = () =>
-                  item.id === 'modules'
-                    ? `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`
-                    : item.label;
+                const label = () => {
+                  if (item.id === 'modules') {
+                    return `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`;
+                  }
+                  if (item.id === 'notes' && dueReminderCount() > 0) {
+                    return `${item.label}, напоминаний: ${dueReminderCount()}`;
+                  }
+                  return item.label;
+                };
                 return (
                   <div class="app-nav-item">
                     <Show when={item.id === 'status'}>
@@ -274,6 +292,11 @@ export function App(): JSX.Element {
                       <Show when={item.id === 'modules' && downloadedModuleCount() > 0}>
                         <span class="app-nav-badge downloaded" aria-hidden="true">
                           {downloadedModuleCount() > 99 ? '99+' : downloadedModuleCount()}
+                        </span>
+                      </Show>
+                      <Show when={item.id === 'notes' && dueReminderCount() > 0}>
+                        <span class="app-nav-badge reminder" aria-hidden="true">
+                          {dueReminderCount() > 9 ? '9+' : dueReminderCount()}
                         </span>
                       </Show>
                     </button>
