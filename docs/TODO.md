@@ -22,12 +22,14 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
   results block in search that stays outside the official results container.
 - Dependency hygiene: ruff, biome, playwright and astro bumps, and the Dependabot uv ecosystem fix
   that stopped every tools/ingest update from failing `uv sync --locked`.
+- Compact pass on the knowledge base: tabs now connect to the panel they switch and seven document
+  cards fit where two did, verified against the running app at 375px.
 
 ## UX and navigation
 
-- Knowledge-base tab content still does not read as a sibling of its tabs; the panels need a visual
-  pass, not just the renamed labels.
 - Optional: open the history drawer by swipe as well as by button.
+- The search page still spends a lot of height before the first result: five scope cards and a tall
+  query box. Worth a pass once the scope picker's real usage is known.
 
 ## Search and knowledge graph
 
@@ -65,6 +67,6 @@ Cards, nested notes, and search integration have landed. Voice is the remaining 
 
 ## 1.0 release checklist
 
-- Finish the knowledge-base panel pass and search-driven installation.
+- Finish search-driven installation of a missing area.
 - Improve section ranking for messy queries, or record an accepted threshold with rationale.
 - Verify the public `/app/` browser build and the Android release candidate after the 1.0 changes.
