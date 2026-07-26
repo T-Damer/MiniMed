@@ -115,6 +115,9 @@ const root = resolve(import.meta.dirname, '../../..');
 const queryPaths = [
   'tools/benchmarks/pilot-rf-queries.json',
   'tools/benchmarks/pilot-rf-drug-queries.json',
+  // Messy real-world phrasing: typos, abbreviations, brand names, and questions that mix a drug with
+  // a condition. These are how doctors actually type, so they gate the same thresholds.
+  'tools/benchmarks/doctor-workflow-queries.json',
 ] as const;
 const queries = queryPaths.flatMap((path) =>
   parseQueries(JSON.parse(readFileSync(resolve(root, path), 'utf8')), path),

@@ -69,6 +69,11 @@ aliases:
     alias: ИМП
     category: diagnosis
     weight: 1.0
+  - id: alias.pilot.uti-abbreviation-alt
+    canonicalTerm: инфекция мочевых путей
+    alias: ИМВП
+    category: diagnosis
+    weight: 1.0
   - id: alias.pilot.flank-pain
     canonicalTerm: боль в боку боль в пояснице пиелонефрит
     alias: болит сбоку спины
@@ -123,6 +128,16 @@ aliases:
     canonicalTerm: невозможность пить отказ от жидкости дегидратация
     alias: не может пить
     category: symptom
+    weight: 1.0
+  - id: alias.pilot.oral-rehydration-colloquial
+    canonicalTerm: оральная регидратация восполнение жидкости
+    alias: отпаивать
+    category: treatment
+    weight: 1.0
+  - id: alias.pilot.oral-rehydration-drink
+    canonicalTerm: оральная регидратация восполнение жидкости
+    alias: чем поить
+    category: treatment
     weight: 1.0
   - id: alias.pilot.low-saturation
     canonicalTerm: гипоксемия низкая сатурация дыхательная недостаточность
