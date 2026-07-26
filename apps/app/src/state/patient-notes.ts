@@ -16,6 +16,19 @@ export interface PatientCard {
   readonly updatedAt: string;
 }
 
+/**
+ * A reminder attached to a note. Completion keeps the record instead of deleting it: what condition
+ * closed a clinical follow-up is itself part of the patient's history.
+ */
+export interface NoteReminder {
+  readonly dueAt: string;
+  /** Date-only reminders are due at the start of that day. */
+  readonly allDay: boolean;
+  readonly completedAt: string | null;
+  /** The condition/observation the doctor recorded when closing the reminder. */
+  readonly completionNote: string;
+}
+
 export interface PatientNote {
   readonly id: string;
   readonly cardId: string;
@@ -24,6 +37,7 @@ export interface PatientNote {
   readonly text: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  readonly reminder?: NoteReminder;
 }
 
 export interface PatientNotesSnapshot {
@@ -57,6 +71,17 @@ function isCard(value: unknown): value is PatientCard {
   );
 }
 
+function isReminder(value: unknown): value is NoteReminder {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<NoteReminder>;
+  return (
+    typeof candidate.dueAt === 'string' &&
+    typeof candidate.allDay === 'boolean' &&
+    (candidate.completedAt === null || typeof candidate.completedAt === 'string') &&
+    typeof candidate.completionNote === 'string'
+  );
+}
+
 function isNote(value: unknown): value is PatientNote {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<PatientNote>;
@@ -66,7 +91,8 @@ function isNote(value: unknown): value is PatientNote {
     (candidate.parentNoteId === null || typeof candidate.parentNoteId === 'string') &&
     typeof candidate.text === 'string' &&
     typeof candidate.createdAt === 'string' &&
-    typeof candidate.updatedAt === 'string'
+    typeof candidate.updatedAt === 'string' &&
+    (candidate.reminder === undefined || isReminder(candidate.reminder))
   );
 }
 
@@ -194,6 +220,76 @@ export function removePatientNote(noteId: string): PatientNotesSnapshot {
     cards: current.cards,
     notes: current.notes.filter((note) => !doomed.has(note.id)),
   });
+}
+
+/**
+ * Attaches or reschedules a reminder. A new reminder may point at any future moment; an existing
+ * pending reminder can only move forward — a follow-up is postponed, never quietly moved earlier.
+ */
+export function setNoteReminder(
+  noteId: string,
+  dueAt: string,
+  allDay: boolean,
+): PatientNotesSnapshot {
+  const current = loadPatientNotes();
+  const note = current.notes.find((item) => item.id === noteId);
+  if (!note) return current;
+  const due = new Date(dueAt);
+  if (Number.isNaN(due.getTime()) || due.getTime() <= Date.now()) return current;
+  const existing = note.reminder;
+  if (
+    existing &&
+    existing.completedAt === null &&
+    due.getTime() < new Date(existing.dueAt).getTime()
+  ) {
+    return current;
+  }
+  const reminder: NoteReminder = {
+    dueAt: due.toISOString(),
+    allDay,
+    completedAt: null,
+    completionNote: existing?.completionNote ?? '',
+  };
+  return persist({
+    cards: current.cards,
+    notes: current.notes.map((item) =>
+      item.id === noteId ? { ...item, reminder, updatedAt: new Date().toISOString() } : item,
+    ),
+  });
+}
+
+export function completeNoteReminder(noteId: string, completionNote: string): PatientNotesSnapshot {
+  const current = loadPatientNotes();
+  const note = current.notes.find((item) => item.id === noteId);
+  if (!note?.reminder || note.reminder.completedAt !== null) return current;
+  const now = new Date().toISOString();
+  const reminder: NoteReminder = {
+    ...note.reminder,
+    completedAt: now,
+    completionNote: completionNote.trim(),
+  };
+  return persist({
+    cards: current.cards,
+    notes: current.notes.map((item) =>
+      item.id === noteId ? { ...item, reminder, updatedAt: now } : item,
+    ),
+  });
+}
+
+export function isReminderDue(reminder: NoteReminder, at = Date.now()): boolean {
+  return reminder.completedAt === null && new Date(reminder.dueAt).getTime() <= at;
+}
+
+/** Notes whose pending reminder has come due, most overdue first. */
+export function dueReminderNotes(
+  snapshot: PatientNotesSnapshot,
+  at = Date.now(),
+): readonly PatientNote[] {
+  return snapshot.notes
+    .filter((note) => note.reminder && isReminderDue(note.reminder, at))
+    .toSorted((left, right) =>
+      (left.reminder?.dueAt ?? '').localeCompare(right.reminder?.dueAt ?? ''),
+    );
 }
 
 export function childNotes(

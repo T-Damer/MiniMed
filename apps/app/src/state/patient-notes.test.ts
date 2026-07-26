@@ -3,12 +3,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   addPatientNote,
   childNotes,
+  completeNoteReminder,
   createPatientCard,
+  dueReminderNotes,
   loadPatientNotes,
   PATIENT_NOTES_KEY,
   removePatientCard,
   removePatientNote,
   searchPatientNotes,
+  setNoteReminder,
   updatePatientNote,
 } from '@/state/patient-notes';
 
@@ -165,5 +168,91 @@ describe('patient notes store', () => {
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
     updatePatientNote(noteId, '   ');
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
+  });
+});
+
+describe('note reminders', () => {
+  let store: Map<string, string>;
+
+  beforeEach(() => {
+    store = installLocalStorageMock();
+    void store;
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  function noteIdWith(text: string): string {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, text);
+    const note = loadPatientNotes().notes.find((item) => item.text === text);
+    if (!note) throw new Error('note missing');
+    return note.id;
+  }
+
+  it('attaches a future reminder and rejects one in the past', () => {
+    const noteId = noteIdWith('контроль анализа мочи');
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    setNoteReminder(noteId, future, false);
+    expect(loadPatientNotes().notes[0]?.reminder?.completedAt).toBeNull();
+
+    const past = new Date(Date.now() - 3_600_000).toISOString();
+    const before = loadPatientNotes().notes[0]?.reminder?.dueAt;
+    setNoteReminder(noteId, past, false);
+    expect(loadPatientNotes().notes[0]?.reminder?.dueAt).toBe(before);
+  });
+
+  it('lets a pending reminder move only forward', () => {
+    const noteId = noteIdWith('повторный осмотр');
+    const dayAhead = Date.now() + 86_400_000;
+    setNoteReminder(noteId, new Date(dayAhead).toISOString(), false);
+
+    setNoteReminder(noteId, new Date(dayAhead - 3_600_000).toISOString(), false);
+    expect(loadPatientNotes().notes[0]?.reminder?.dueAt).toBe(new Date(dayAhead).toISOString());
+
+    setNoteReminder(noteId, new Date(dayAhead + 3_600_000).toISOString(), false);
+    expect(loadPatientNotes().notes[0]?.reminder?.dueAt).toBe(
+      new Date(dayAhead + 3_600_000).toISOString(),
+    );
+  });
+
+  it('completes with the condition preserved and stops being due', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-26T10:00:00Z'));
+    const noteId = noteIdWith('контроль сатурации');
+    setNoteReminder(noteId, '2026-07-27T10:00:00.000Z', false);
+
+    vi.setSystemTime(new Date('2026-07-28T10:00:00Z'));
+    expect(dueReminderNotes(loadPatientNotes())).toHaveLength(1);
+
+    completeNoteReminder(noteId, 'сатурация 97, жалоб нет');
+    const reminder = loadPatientNotes().notes[0]?.reminder;
+    expect(reminder?.completedAt).not.toBeNull();
+    expect(reminder?.completionNote).toBe('сатурация 97, жалоб нет');
+    expect(dueReminderNotes(loadPatientNotes())).toHaveLength(0);
+
+    // Completing twice must not overwrite the recorded condition.
+    completeNoteReminder(noteId, 'другой текст');
+    expect(loadPatientNotes().notes[0]?.reminder?.completionNote).toBe('сатурация 97, жалоб нет');
+  });
+
+  it('orders due reminders most overdue first', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-26T10:00:00Z'));
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'первый контроль');
+    addPatientNote(cardId, 'второй контроль');
+    const [first, second] = loadPatientNotes().notes;
+    if (!first || !second) throw new Error('notes missing');
+    setNoteReminder(first.id, '2026-07-27T09:00:00.000Z', false);
+    setNoteReminder(second.id, '2026-07-26T12:00:00.000Z', false);
+
+    vi.setSystemTime(new Date('2026-07-28T10:00:00Z'));
+    const due = dueReminderNotes(loadPatientNotes());
+    expect(due.map((note) => note.text)).toEqual(['второй контроль', 'первый контроль']);
   });
 });
