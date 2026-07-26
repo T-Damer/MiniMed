@@ -2,7 +2,6 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import type { LocalModelController } from '@/features/models/controller';
 import type { LocalModelState } from '@/features/models/types';
-import { downloadCoordinator } from '@/features/network/download-coordinator';
 
 interface ModelNavIndicatorProps {
   readonly controller: LocalModelController;
@@ -30,28 +29,20 @@ function indicatorLabel(state: LocalModelState): string {
 
 export function ModelNavIndicator(props: ModelNavIndicatorProps): JSX.Element {
   const [state, setState] = createSignal<LocalModelState>(props.controller.getState());
-  const [contentDownloadsActive, setContentDownloadsActive] = createSignal(
-    downloadCoordinator.hasActiveContentDownloads(),
-  );
   const [dismissed, setDismissed] = createSignal(false);
   let unsubscribe: (() => void) | undefined;
-  let unsubscribeDownloads: (() => void) | undefined;
 
   onMount(() => {
     unsubscribe = props.controller.subscribe((next) => {
       setState(next);
       if (ACTIVE_PHASES.has(next.phase)) setDismissed(false);
     });
-    unsubscribeDownloads = downloadCoordinator.subscribe(() => {
-      setContentDownloadsActive(downloadCoordinator.hasActiveContentDownloads());
-    });
   });
   onCleanup(() => {
     unsubscribe?.();
-    unsubscribeDownloads?.();
   });
 
-  const active = (): boolean => ACTIVE_PHASES.has(state().phase) && !contentDownloadsActive();
+  const active = (): boolean => ACTIVE_PHASES.has(state().phase);
   const progress = (): number | null => state().progress;
 
   return (
