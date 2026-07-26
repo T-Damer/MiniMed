@@ -121,7 +121,10 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
 
 test('a reminder can be attached while writing a note', async ({ page }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
-  await page.locator('.app-bottom-nav').getByRole('button', { name: 'Заметки', exact: true }).click();
+  await page
+    .locator('.app-bottom-nav')
+    .getByRole('button', { name: 'Заметки', exact: true })
+    .click();
 
   await page.getByRole('button', { name: 'Новая карточка' }).click();
   await page.getByLabel('Название карточки').fill('Сидорова А.');
