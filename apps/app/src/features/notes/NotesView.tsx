@@ -143,7 +143,7 @@ function CardPanel(props: {
     // Every store change hands down fresh objects, so this element is rebuilt. Open state therefore
     // has to live above it, otherwise adding a note would collapse the card the doctor is writing in.
     <details
-      class="patient-card"
+      class="patient-card paper-card"
       open={props.open}
       onToggle={(event) => props.onToggle(event.currentTarget.open)}
     >

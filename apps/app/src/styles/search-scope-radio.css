@@ -10,20 +10,26 @@
   border: 0 !important;
 }
 
+/* Scope selection is a chip row attached to the composer, not a grid of cards: the five options
+   must not cost more screen than the query they configure. */
 fieldset.search-mode-picker {
+  display: flex;
   min-inline-size: 0;
+  flex-wrap: wrap;
+  gap: 5px;
   border: 0;
 }
 
 .search-mode-picker label {
   position: relative;
-  display: flex;
+  display: inline-flex;
   min-width: 0;
-  min-height: 48px;
+  min-height: 30px;
+  flex: none;
   align-items: center;
   padding: 0;
-  border: 1px solid rgb(70 58 35 / 28%);
-  border-radius: 6px;
+  border: 1px solid rgb(70 58 35 / 30%);
+  border-radius: 999px;
   color: #4e432e;
   background: rgb(250 242 221 / 58%);
   cursor: pointer;
@@ -57,22 +63,39 @@ fieldset.search-mode-picker {
 }
 
 .search-mode-option-copy {
-  display: flex;
+  display: inline-flex;
   width: 100%;
   min-width: 0;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  padding: 9px 10px;
+  gap: 6px;
+  padding: 4px 12px;
   pointer-events: none;
+}
+
+.search-mode-option-copy strong {
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-mode-option-copy small {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  opacity: 0.72;
+  text-transform: uppercase;
 }
 
 @media (max-width: 640px) {
   .search-mode-picker label {
-    min-height: 42px;
+    min-height: 32px;
   }
 
   .search-mode-option-copy {
-    padding: 7px 8px;
+    padding: 4px 10px;
   }
 }

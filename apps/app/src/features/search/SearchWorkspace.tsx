@@ -110,7 +110,8 @@ const INTENT_LABELS: Readonly<Record<NonNullable<QueryAnalysis['intent']>['prima
 
 function resizeTextarea(element: HTMLTextAreaElement): void {
   element.style.height = 'auto';
-  element.style.height = `${Math.min(Math.max(element.scrollHeight, 128), 300)}px`;
+  // Grows with content; the floor stays low so an empty composer is a line, not a page.
+  element.style.height = `${Math.min(Math.max(element.scrollHeight, 56), 300)}px`;
 }
 
 function factDisplayValue(fact: QueryFact): string {
@@ -345,18 +346,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   return (
     <section class="workspace archive-desk" aria-label="Локальный медицинский поиск">
       <div class="search-column case-folder">
-        <header class="case-heading search-home-heading">
-          <div>
-            <p class="archive-kicker">Локально · быстро · с переходом к источнику</p>
-            <h1>Что нужно найти?</h1>
-          </div>
-          <span class="offline-stamp">
-            OFFLINE
-            <br />
-            READY
-          </span>
-        </header>
-
+        {/* The page heading lives in SearchHome; repeating a second hero here doubled the height
+            a doctor scrolls past before the first result. */}
         <form
           class="query-sheet"
           onSubmit={(event) => {
