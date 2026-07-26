@@ -24,6 +24,9 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
   that stopped every tools/ingest update from failing `uv sync --locked`.
 - Compact pass on the knowledge base: tabs now connect to the panel they switch and seven document
   cards fit where two did, verified against the running app at 375px.
+- Section ranking on realistic phrasing: the within-group preference now reads the question
+  (diagnostics/routing/treatment vocabulary) and disclaimers no longer lead registry cards.
+  Top-section accuracy 0.885 -> 1.000, doctor-workflow 0.4 -> 1.0.
 
 ## UX and navigation
 
@@ -33,9 +36,6 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 
 ## Search and knowledge graph
 
-- Section ranking on realistic phrasing: for the `doctor-workflow` cases the correct section is
-  top-ranked only 40% of the time versus 88.5% corpus-wide. The section is always retrieved, just not
-  first, so this is a scoring problem inside a matched document.
 - Offer to install a missing area directly from search when a query targets content that is not
   installed. The core already knows which areas exist.
 - Keep adding real Russian retrieval cases as they surface from use.
@@ -68,5 +68,4 @@ Cards, nested notes, and search integration have landed. Voice is the remaining 
 ## 1.0 release checklist
 
 - Finish search-driven installation of a missing area.
-- Improve section ranking for messy queries, or record an accepted threshold with rationale.
 - Verify the public `/app/` browser build and the Android release candidate after the 1.0 changes.
