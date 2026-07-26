@@ -142,6 +142,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   let analysisTimer: ReturnType<typeof setTimeout> | undefined;
   let searchTimer: ReturnType<typeof setTimeout> | undefined;
   let searchGeneration = 0;
+  // Last trimmed queries that completed, so whitespace-only edits skip the heavy work entirely.
+  let lastSearchedQuery = '';
+  let lastAnalyzedQuery = '';
 
   const activeAnalysis = createMemo(() => {
     const searched = response();
@@ -200,17 +203,23 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (analysisTimer) clearTimeout(analysisTimer);
     const trimmed = value.trim();
     if (trimmed.length < 2) {
+      lastAnalyzedQuery = '';
       setDraftAnalysis(undefined);
       setAnalysisLoading(false);
       return;
     }
+    // Whitespace-only edits (a trailing space, a newline) must not re-run the analyzer.
+    if (trimmed === lastAnalyzedQuery) return;
 
     setAnalysisLoading(true);
     analysisTimer = setTimeout(async () => {
       const result = await props.core.analyzeQuery({ query: trimmed, includeSuggestions: true });
       if (query().trim() !== trimmed) return;
       setAnalysisLoading(false);
-      if (result.ok) setDraftAnalysis(result.value);
+      if (result.ok) {
+        lastAnalyzedQuery = trimmed;
+        setDraftAnalysis(result.value);
+      }
     }, 180);
   }
 
@@ -219,11 +228,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const trimmed = value.trim();
     if (trimmed.length < 2) {
       searchGeneration += 1;
+      lastSearchedQuery = '';
       setResponse(undefined);
       setShowAllGroups(false);
       setLoading(false);
       return;
     }
+    // A trailing space used to schedule a full second search for the identical query — the whole
+    // FTS5 + vector pass ran again on the main thread just to produce the same results.
+    if (trimmed === lastSearchedQuery) return;
     searchTimer = setTimeout(() => void runSearch(trimmed, false), 500);
   }
 
@@ -239,7 +252,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (searchTimer) clearTimeout(searchTimer);
 
     const generation = ++searchGeneration;
-    setQuery(trimmed);
+    // Search normalizes its own input; writing the trimmed text back into the field deleted the
+    // space or newline the doctor had just typed mid-sentence.
     setLoading(true);
     setError(undefined);
     setContext(undefined);
@@ -262,6 +276,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       return;
     }
 
+    lastSearchedQuery = trimmed;
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
     setExpandedGroups([]);
@@ -307,6 +322,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     searchGeneration += 1;
     if (analysisTimer) clearTimeout(analysisTimer);
     if (searchTimer) clearTimeout(searchTimer);
+    lastSearchedQuery = '';
+    lastAnalyzedQuery = '';
     setQuery('');
     setDraftAnalysis(undefined);
     setResponse(undefined);

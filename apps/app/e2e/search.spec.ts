@@ -127,6 +127,15 @@ test('runs a debounced clinical search without requiring submit', async ({ page 
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
 });
 
+test('autosearch leaves the typed text untouched, including trailing space', async ({ page }) => {
+  await mountBuiltApp(page);
+  // The debounced search used to write the trimmed query back into the field, deleting the space a
+  // doctor had just typed mid-sentence.
+  await page.getByTestId('search-input').fill(`${query} `);
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
+  await expect(page.getByTestId('search-input')).toHaveValue(`${query} `);
+});
+
 test('filters the document library and opens a document with one click', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
