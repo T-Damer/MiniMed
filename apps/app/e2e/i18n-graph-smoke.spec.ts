@@ -3,13 +3,13 @@ import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
 
 function navigationButton(page: import('@playwright/test').Page, name: string) {
-  return page.locator('.app-nav-icons').getByRole('button', { name, exact: true });
+  return page.locator('.app-bottom-nav').getByRole('button', { name, exact: true });
 }
 
 test('shows localized specialty labels in the document library', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('tab', { name: 'На устройстве' }).click();
+  await page.getByRole('tab', { name: 'Документы на устройстве' }).click();
   await expect(page.getByText('Педиатрия').first()).toBeVisible();
   await expect(page.getByText('clinical-pharmacology')).toHaveCount(0);
 
