@@ -24,8 +24,8 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
           <p class="archive-kicker">Локальная медицинская библиотека</p>
           <h1>База знаний</h1>
           <p>
-            Откройте уже установленные документы или скачайте новые наборы. После установки они
-            работают без интернета и участвуют в поиске.
+            Открывайте уже установленные документы или добавляйте новые разделы. После установки они
+            работают без интернета и сразу участвуют в поиске.
           </p>
         </div>
       </header>
@@ -38,7 +38,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
           classList={{ active: tab() === 'installed' }}
           onClick={() => setTab('installed')}
         >
-          На устройстве
+          Документы на устройстве
         </button>
         <button
           type="button"
@@ -47,7 +47,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
           classList={{ active: tab() === 'download' }}
           onClick={() => setTab('download')}
         >
-          Скачать наборы
+          Каталог загрузок
         </button>
       </div>
 
