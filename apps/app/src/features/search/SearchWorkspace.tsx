@@ -527,7 +527,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         <Show when={response()}>
           {(searchResponse) => (
             <>
-              <div class="result-summary">
+              <Show when={loading()}>
+                <div class="results-refreshing-note" role="status">
+                  Обновляем результаты по установленным документам…
+                </div>
+              </Show>
+              <div class="result-summary" classList={{ 'results-refreshing': loading() }}>
                 <div>
                   <span>РЕЗУЛЬТАТЫ</span>
                   <strong>{resultCount()} фрагментов</strong>
@@ -550,7 +555,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
               <PersonalNoteMatches query={query()} />
 
-              <div class="results-list" data-testid="search-results">
+              <div
+                class="results-list"
+                classList={{ 'results-refreshing': loading() }}
+                data-testid="search-results"
+              >
                 <For
                   each={
                     showAllGroups()
