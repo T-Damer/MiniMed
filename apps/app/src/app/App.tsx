@@ -2,7 +2,6 @@ import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
-import { BrandMark } from '@/components/BrandMark';
 import { createBrowserCore } from '@/composition/create-browser-core';
 import {
   type InitializedMedicalCore,
@@ -17,6 +16,11 @@ import { ModelNavIndicator } from '@/features/models/ModelNavIndicator';
 import { ModelSettings } from '@/features/models/ModelSettings';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import {
+  getContentModuleRuntime,
+  subscribeContentModuleRuntime,
+} from '@/features/modules/module-runtime-service';
 import { SearchHome } from '@/features/search/SearchHome';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import { notifyContentChanged } from '@/state/content-events';
@@ -30,7 +34,7 @@ const VIEWS: readonly {
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'modules', label: 'База знаний', icon: 'modules' },
-  { id: 'status', label: 'Настройки', icon: 'system' },
+  { id: 'status', label: 'Настройки', icon: 'brain' },
 ];
 
 const DEFAULT_MODEL_CATALOG_URL =
@@ -44,7 +48,7 @@ function viewFromLocation(): View {
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
 }
 
-function availableModuleCount(
+function countAvailableModules(
   modules: readonly { releaseState: string; tags: readonly string[] }[],
 ): number {
   return modules.filter(
@@ -79,22 +83,22 @@ export function App(): JSX.Element {
   const [view, setView] = createSignal<View>(viewFromLocation());
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
-  const [moduleUpdateCount, setModuleUpdateCount] = createSignal(0);
+  const [availableModuleCount, setAvailableModuleCount] = createSignal(0);
+  const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
   let coreToClose: MedicalCore | undefined;
+  let unsubscribeInstalledModules: (() => void) | undefined;
+  let unsubscribeModuleRuntime: (() => void) | undefined;
 
   const navigate = (next: View): void => {
     setView(next);
-    if (next === 'modules') setModuleUpdateCount(0);
     window.history.replaceState({ view: next }, '', `#/${next}`);
   };
 
   const handleHashChange = (): void => {
-    const next = viewFromLocation();
-    setView(next);
-    if (next === 'modules') setModuleUpdateCount(0);
+    setView(viewFromLocation());
   };
 
   const handleScroll = (): void => {
@@ -118,6 +122,16 @@ export function App(): JSX.Element {
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
+    const bindModuleRuntime = (runtime: ReturnType<typeof getContentModuleRuntime>): void => {
+      unsubscribeInstalledModules?.();
+      const syncInstalledCount = (): void => {
+        setDownloadedModuleCount(runtime.listInstalled().length);
+      };
+      syncInstalledCount();
+      unsubscribeInstalledModules = runtime.subscribe(syncInstalledCount);
+    };
+    bindModuleRuntime(getContentModuleRuntime(MODULE_CATALOG));
+    unsubscribeModuleRuntime = subscribeContentModuleRuntime(bindModuleRuntime);
     try {
       const initialized = await initializeMedicalCore(createBrowserCore);
       coreToClose = initialized.core;
@@ -126,8 +140,7 @@ export function App(): JSX.Element {
       void modelController.start();
       void refreshContentModuleCatalog()
         .then((result) => {
-          if (view() !== 'modules')
-            setModuleUpdateCount(availableModuleCount(result.catalog.modules));
+          setAvailableModuleCount(countAvailableModules(result.catalog.modules));
         })
         .catch(() => undefined);
     } catch (cause) {
@@ -140,61 +153,14 @@ export function App(): JSX.Element {
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
+    unsubscribeInstalledModules?.();
+    unsubscribeModuleRuntime?.();
     if (coreToClose) void coreToClose.close();
     void modelController.dispose();
   });
 
   return (
     <div class="app-shell archive-app">
-      <header class="app-topbar">
-        <button class="app-brand-button" type="button" onClick={() => navigate('search')}>
-          <BrandMark class="app-brand-mark" />
-          <span class="app-brand-copy">
-            <strong>MiniMed</strong>
-            <small>медицинская база на устройстве</small>
-          </span>
-        </button>
-
-        <nav class="app-nav-icons" aria-label="Разделы приложения">
-          {VIEWS.map((item) => {
-            const label = () =>
-              item.id === 'modules' && moduleUpdateCount() > 0
-                ? `${item.label}, доступно: ${moduleUpdateCount()}`
-                : item.label;
-            return (
-              <div class="app-nav-item">
-                <Show when={item.id === 'status'}>
-                  <ModelNavIndicator controller={modelController} />
-                </Show>
-                <button
-                  class="app-nav-button"
-                  classList={{ active: view() === item.id }}
-                  type="button"
-                  aria-label={label()}
-                  title={label()}
-                  onClick={() => navigate(item.id)}
-                >
-                  <AppGlyph name={item.icon} />
-                  <Show when={item.id === 'modules' && moduleUpdateCount() > 0}>
-                    <span class="app-nav-badge" aria-hidden="true">
-                      {moduleUpdateCount() > 9 ? '9+' : moduleUpdateCount()}
-                    </span>
-                  </Show>
-                </button>
-              </div>
-            );
-          })}
-        </nav>
-
-        <div
-          class="app-core-indicator"
-          title={ready() ? 'База готова' : (error() ?? 'Открываем базу')}
-        >
-          <i />
-          <span>{ready() ? 'готово' : error() ? 'ошибка' : 'запуск'}</span>
-        </div>
-      </header>
-
       <Show
         when={ready()}
         fallback={
@@ -213,6 +179,7 @@ export function App(): JSX.Element {
             <main class="app-main">
               <section
                 class="app-view"
+                classList={{ active: view() === 'search' }}
                 hidden={view() !== 'search'}
                 aria-hidden={view() !== 'search'}
               >
@@ -224,6 +191,7 @@ export function App(): JSX.Element {
               </section>
               <section
                 class="app-view"
+                classList={{ active: view() === 'modules' }}
                 hidden={view() !== 'modules'}
                 aria-hidden={view() !== 'modules'}
               >
@@ -232,13 +200,12 @@ export function App(): JSX.Element {
                   status={state().status}
                   active={view() === 'modules'}
                   onContentChanged={connectInstalledModules}
-                  onAvailableUpdates={(count) => {
-                    if (view() !== 'modules') setModuleUpdateCount(count);
-                  }}
+                  onAvailableUpdates={setAvailableModuleCount}
                 />
               </section>
               <section
                 class="app-view model-status-view"
+                classList={{ active: view() === 'status' }}
                 hidden={view() !== 'status'}
                 aria-hidden={view() !== 'status'}
               >
@@ -253,17 +220,52 @@ export function App(): JSX.Element {
                   </p>
                 </section>
                 <ModelSettings controller={modelController} />
-                <ContentDownloadStatus />
                 <details class="system-technical-panel">
                   <summary>Техническая информация о приложении</summary>
                   <StatusPanel core={state().core} initialStatus={state().status} />
                 </details>
               </section>
             </main>
+            <ContentDownloadStatus floating />
             <DocumentOverlayHost
               getCore={() => state().core}
               reconnectContent={connectInstalledModules}
             />
+            <nav class="app-bottom-nav" aria-label="Разделы приложения">
+              {VIEWS.map((item) => {
+                const label = () =>
+                  item.id === 'modules'
+                    ? `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`
+                    : item.label;
+                return (
+                  <div class="app-nav-item">
+                    <Show when={item.id === 'status'}>
+                      <ModelNavIndicator controller={modelController} />
+                    </Show>
+                    <button
+                      class="app-nav-button"
+                      classList={{ active: view() === item.id }}
+                      type="button"
+                      aria-label={label()}
+                      title={label()}
+                      onClick={() => navigate(item.id)}
+                    >
+                      <AppGlyph name={item.icon} />
+                      <Show when={item.id === 'modules' && availableModuleCount() > 0}>
+                        <span class="app-nav-badge available" aria-hidden="true">
+                          {availableModuleCount() > 99 ? '99+' : availableModuleCount()}
+                        </span>
+                      </Show>
+                      <Show when={item.id === 'modules' && downloadedModuleCount() > 0}>
+                        <span class="app-nav-badge downloaded" aria-hidden="true">
+                          {downloadedModuleCount() > 99 ? '99+' : downloadedModuleCount()}
+                        </span>
+                      </Show>
+                    </button>
+                  </div>
+                );
+              })}
+            </nav>
           </>
         )}
       </Show>
