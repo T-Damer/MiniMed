@@ -1123,6 +1123,9 @@
 
 .patient-notes-add {
   flex: none;
+  align-self: center;
+  padding: 4px 10px;
+  font-size: 12px;
 }
 
 .patient-notes-empty {
@@ -1208,6 +1211,19 @@
   border: 1px solid rgb(103 92 68 / 24%);
   border-radius: 5px;
   font-size: 11px;
+}
+
+/* AppGlyph takes its size from the surrounding control, and these buttons are smaller than any
+   existing caller, so the icon collapsed to 0x0 without an explicit size. */
+.patient-note-actions button svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.patient-note-actions button:has(svg) {
+  min-width: 22px;
+  padding: 2px 4px;
 }
 
 .patient-note-form {
@@ -1298,4 +1314,135 @@
   margin-top: 5px;
   padding: 2px 9px;
   font-size: 12px;
+}
+
+/* Compact pass: page headers and the document list took most of a phone screen before any content. */
+.subpage-heading,
+.patient-notes-heading {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.subpage-heading h1,
+.settings-intro h1,
+.patient-notes-heading h1 {
+  margin: 2px 0 3px;
+  font-size: clamp(22px, 2.4vw, 30px);
+}
+
+.subpage-heading p:last-child,
+.patient-notes-heading p:last-child,
+.settings-intro > p {
+  max-width: 68ch;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* The tabs now sit on the panel they switch, instead of floating above unrelated content. */
+.knowledge-base-tabs {
+  display: flex;
+  width: 100%;
+  gap: 3px;
+  margin-bottom: 0;
+  padding: 3px;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.knowledge-base-tabs button {
+  flex: 1;
+  min-height: 30px;
+  padding: 5px 10px;
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+}
+
+.knowledge-base-page > .archive-page {
+  padding-top: 8px;
+  border: 1px solid rgb(72 59 34 / 22%);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: rgb(239 228 201 / 24%);
+}
+
+.document-library-card {
+  gap: 8px;
+  padding: 8px 10px;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.document-library-copy {
+  gap: 1px;
+}
+
+.document-library-copy strong {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.document-library-copy > span {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The whole card is already a button, so a separate "open" row is only spending vertical space. */
+.document-library-open {
+  display: none;
+}
+
+.document-library-index {
+  font-size: 10px;
+}
+
+.document-library-grid {
+  gap: 5px;
+}
+
+/* The library toolbar and its filter shared two tall rows above the list. Put them on one line. */
+.knowledge-base-page .library-embedded-toolbar {
+  margin: 0 0 6px;
+  padding: 0;
+}
+
+.knowledge-base-page .library-mode-tabs {
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.knowledge-base-page .library-mode-tabs button {
+  min-height: 28px;
+  padding: 4px 10px;
+  font-size: 10px;
+}
+
+.knowledge-base-page .archive-search-row {
+  margin-bottom: 6px;
+}
+
+.knowledge-base-page .archive-search-row input {
+  min-height: 34px;
+  padding: 6px 10px 6px 32px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+/* The history button is fixed at the top left, so the search heading has to leave room for it
+   instead of running underneath. */
+.search-mode-heading {
+  padding-left: 52px;
+}
+
+.search-mode-heading .archive-kicker {
+  margin-top: 2px;
+}
+
+@media (min-width: 900px) {
+  .search-mode-heading {
+    padding-left: 58px;
+  }
 }
