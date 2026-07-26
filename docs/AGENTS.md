@@ -14,6 +14,37 @@ roadmap ideas.
 - Personal notes and future transcription are a separate local trust layer; never present them as an
   official source.
 
+## Shell layout invariants
+
+- Navigation is a fixed bottom bubble (`.app-bottom-nav`); there is no in-app page header. Icon
+  tooltips and accessible labels are required. E2E specs locate navigation through that class.
+- The knowledge-base button carries two counters: available documents (yellow, top left) and
+  installed documents (green, bottom right). Neither resets on view change.
+- Search history opens from a floating button as a drawer, never as a route or a side column.
+- The download status card floats above the views, so progress stays visible on every tab.
+- Keep the layout compact: prefer expandable blocks over tall cards, and do not reintroduce large
+  padding around central blocks.
+
+## Downloads and models
+
+- Every artifact download — content modules and model weights alike — goes through
+  `downloadWithRetry`. Never call `downloadWithResume` directly from a feature; the retry layer is
+  what keeps a flaky network from reaching the doctor as "network error".
+- Partial bytes must be flushed with an awaited write before a failure propagates, otherwise an
+  automatic retry races the write and restarts a multi-gigabyte download from zero.
+- The local model loads in the background automatically. There is no opt-in checkbox, and the only
+  indicator is the loader over the settings icon.
+
+## Search expectations
+
+- Retrieval cases live in `tools/benchmarks/`. `doctor-workflow-queries.json` holds deliberately messy
+  real-world phrasing (typos, abbreviations, brand names, colloquial verbs) and gates the same
+  thresholds as the curated sets. Add real doctor phrasing there rather than canonical terminology.
+- When a realistic query misses, first check whether the pilot aliases lack the colloquial term.
+  Aliases are the intended Russian vocabulary layer.
+- The public pilot corpus carries no dosing regimens by design. A dose question must retrieve the
+  relevant treatment section, never imply a dose the corpus does not contain.
+
 ## Release order
 
 - `1.0`: complete/qualified corpus, reliable content lifecycle, measured Russian clinical scenarios,
