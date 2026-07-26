@@ -11,7 +11,7 @@ function pneumoniaResult(page: Page): Locator {
 }
 
 function navigationButton(page: Page, name: string): Locator {
-  return page.locator('.app-nav-icons').getByRole('button', { name });
+  return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
 
 test('asks for the search task before unlocking input', async ({ page }) => {
@@ -80,7 +80,7 @@ test('preserves the active search while navigating between mounted routes', asyn
 
   await navigationButton(page, 'База знаний').click();
   await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'На устройстве' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Документы на устройстве' })).toBeVisible();
   await navigationButton(page, 'Поиск').click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
@@ -92,7 +92,7 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await navigationButton(page, 'База знаний').click();
 
   await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
-  await page.getByRole('tab', { name: 'Скачать наборы' }).click();
+  await page.getByRole('tab', { name: 'Каталог загрузок' }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
   await expect(page.getByText('Педиатрия: инфекционные болезни')).toBeVisible();
   await expect(page.getByText('Лекарственные препараты РФ')).toBeVisible();
@@ -101,12 +101,14 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.getByText(/Текущий встроенный пакет:/u)).toBeVisible();
 });
 
-test('replays a saved query from the history panel beside search', async ({ page }) => {
+test('replays a saved query from the history drawer', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
+  // History now lives behind a floating button so the search view stays compact.
+  await page.getByRole('button', { name: 'Показать историю поиска' }).click();
   const historyEntry = page
     .locator('.search-history-panel-replay')
     .filter({ hasText: query })
@@ -128,7 +130,7 @@ test('runs a debounced clinical search without requiring submit', async ({ page 
 test('filters the document library and opens a document with one click', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('tab', { name: 'На устройстве' }).click();
+  await page.getByRole('tab', { name: 'Документы на устройстве' }).click();
   await page.getByPlaceholder('Название, специальность или источник').fill('пневмония');
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
   await expect(page.getByRole('dialog', { name: 'Пневмония у детей' })).toBeVisible();

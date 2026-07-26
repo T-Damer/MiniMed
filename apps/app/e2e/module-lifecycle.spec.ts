@@ -11,7 +11,7 @@ const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
 const REGULATORY_TITLE = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
 
 function navigationButton(page: Page, name: string): Locator {
-  return page.locator('.app-nav-icons').getByRole('button', { name });
+  return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
 
 function regulatoryCard(page: Page): Locator {
@@ -51,7 +51,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('tab', { name: 'Скачать наборы' }).click();
+  await page.getByRole('tab', { name: 'Каталог загрузок' }).click();
 
   const card = regulatoryCard(page);
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible();

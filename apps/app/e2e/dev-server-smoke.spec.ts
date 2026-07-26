@@ -17,7 +17,11 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
   test.skip(!running, 'dev server is not running on 127.0.0.1:5173');
 
   await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByText('Что нужно найти?')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Что вы хотите найти?')).toBeVisible({ timeout: 15_000 });
+
+  // A first-run visitor has no stored scope, so the search field stays locked until a mode is picked.
+  await expect(page.getByText('Поле поиска откроется после выбора режима')).toBeVisible();
+  await page.getByRole('radio', { name: 'Всё без диагностики' }).check();
 
   const searchInput = page.getByTestId('search-input');
   await expect(searchInput).toBeVisible();
@@ -26,10 +30,10 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
 
   await navigationButton(page, 'База знаний').click();
   await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
-  await page.getByRole('tab', { name: 'Скачать наборы' }).click();
+  await page.getByRole('tab', { name: 'Каталог загрузок' }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
 
-  await page.getByRole('tab', { name: 'На устройстве' }).click();
+  await page.getByRole('tab', { name: 'Документы на устройстве' }).click();
   await page.getByRole('button', { name: /Карта связей/u }).click();
   await expect(page.getByRole('heading', { name: 'Области и документы' })).toBeVisible();
   await expect(page.getByText('clinical-pharmacology')).toHaveCount(0);
