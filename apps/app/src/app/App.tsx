@@ -95,12 +95,17 @@ export function App(): JSX.Element {
   let unsubscribeModuleRuntime: (() => void) | undefined;
 
   const navigate = (next: View): void => {
+    // Re-tapping the active section is the mobile shorthand for "back to the top of this page".
+    const samePage = view() === next;
     setView(next);
     window.history.replaceState({ view: next }, '', `#/${next}`);
+    window.scrollTo({ top: 0, behavior: samePage ? 'smooth' : 'instant' });
   };
 
   const handleHashChange = (): void => {
-    setView(viewFromLocation());
+    const next = viewFromLocation();
+    if (next !== view()) window.scrollTo({ top: 0, behavior: 'instant' });
+    setView(next);
   };
 
   const handleScroll = (): void => {
