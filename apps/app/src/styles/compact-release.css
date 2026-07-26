@@ -748,3 +748,350 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* 1.0 shell: controls stay reachable without spending vertical space on a header. */
+.app-shell {
+  padding-bottom: calc(78px + var(--safe-bottom));
+}
+
+.app-main {
+  min-height: 100dvh;
+}
+
+.app-bottom-nav {
+  position: fixed;
+  z-index: 70;
+  bottom: max(10px, calc(10px + var(--safe-bottom)));
+  left: 50%;
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid rgb(54 47 36 / 36%);
+  border-radius: 999px;
+  color: #f8f0dd;
+  background: rgb(58 57 51 / 94%);
+  box-shadow: 0 10px 30px rgb(38 32 24 / 30%);
+  backdrop-filter: blur(16px);
+  transform: translateX(-50%);
+}
+
+.app-bottom-nav .app-nav-item {
+  position: relative;
+}
+
+.app-bottom-nav .app-nav-button {
+  width: 46px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: #d5cdbc;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-bottom-nav .app-nav-button.active {
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border-color: rgb(246 238 219 / 26%);
+  color: #423728;
+  background: #f8efdc;
+}
+
+.app-bottom-nav .app-nav-button.active::before,
+.app-bottom-nav .app-nav-button.active::after {
+  content: none;
+}
+
+.app-bottom-nav .app-nav-button.active svg {
+  transform: none;
+}
+
+.app-bottom-nav .app-nav-button:hover {
+  color: #fff9e9;
+  background: rgb(255 255 255 / 10%);
+}
+
+.app-bottom-nav .app-nav-button.active:hover {
+  color: #423728;
+  background: #fff8e8;
+}
+
+.app-bottom-nav .model-nav-indicator {
+  top: -4px;
+  right: -3px;
+}
+
+.app-nav-badge {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  place-items: center;
+  padding: 0 3px;
+  border: 1px solid rgb(61 50 27 / 35%);
+  border-radius: 5px;
+  color: #403416;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.app-nav-badge.available {
+  top: -5px;
+  left: -5px;
+  background: #e8c654;
+}
+
+.app-nav-badge.downloaded {
+  right: -5px;
+  bottom: -5px;
+  color: #f5f5df;
+  background: #4d7657;
+}
+
+.app-view.active {
+  animation: app-view-enter 180ms ease-out both;
+}
+
+@keyframes app-view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.overlay-backdrop {
+  animation: overlay-fade-in 150ms ease-out both;
+}
+
+.overlay-dialog {
+  animation: overlay-panel-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.search-history-fab {
+  position: fixed;
+  z-index: 75;
+  top: max(12px, calc(12px + var(--safe-top)));
+  left: max(12px, calc(12px + var(--safe-left)));
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(67 55 36 / 38%);
+  border-radius: 50%;
+  color: #f8f0dd;
+  background: rgb(70 69 62 / 92%);
+  box-shadow: 0 5px 18px rgb(52 43 27 / 22%);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+}
+
+.search-history-fab svg {
+  width: 20px;
+  height: 20px;
+}
+
+.search-history-drawer-backdrop {
+  position: fixed;
+  z-index: 210;
+  inset: 0;
+  background: rgb(35 33 29 / 38%);
+  backdrop-filter: blur(3px);
+}
+
+.search-history-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: min(360px, calc(100vw - 26px));
+  max-height: none;
+  margin: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0 12px 12px 0;
+  background: #f4ebd8;
+  box-shadow: 12px 0 36px rgb(33 28 20 / 28%);
+  animation: history-drawer-in 180ms ease-out both;
+}
+
+@keyframes history-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.search-history-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: max(16px, calc(16px + var(--safe-top))) 14px 12px;
+  border-bottom: 1px solid rgb(72 59 34 / 18%);
+}
+
+.search-history-panel-header > div,
+.search-history-panel-header span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.search-history-panel-header span {
+  font-family: var(--font-serif);
+  font-size: 19px;
+}
+
+.search-history-panel-header span svg,
+.search-history-panel-header button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.search-history-panel-header small {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  border-radius: 50%;
+  color: #f6edd8;
+  background: #565b49;
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.search-history-panel-header button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: var(--ink-soft);
+  background: transparent;
+  cursor: pointer;
+}
+
+.search-history-panel-body {
+  flex: 1;
+  overflow: auto;
+}
+
+.content-download-status.floating {
+  position: fixed;
+  z-index: 65;
+  right: max(12px, calc(12px + var(--safe-right)));
+  bottom: max(70px, calc(70px + var(--safe-bottom)));
+  width: min(430px, calc(100vw - 24px));
+  max-height: min(46dvh, 420px);
+  overflow: auto;
+  box-shadow: 0 12px 34px rgb(47 38 24 / 22%);
+}
+
+.content-download-status-detail {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.content-download-status-error {
+  color: #7e4c3d;
+  line-height: 1.35;
+}
+
+.knowledge-base-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgb(72 59 34 / 22%);
+  border-radius: 999px;
+  background: rgb(239 228 201 / 60%);
+}
+
+.knowledge-base-tabs button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.knowledge-base-tabs button.active {
+  color: #f7efdc;
+  background: #4c5d50;
+}
+
+.model-settings-heading h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-settings-heading h2 svg {
+  width: 24px;
+  height: 24px;
+  color: #4c5d50;
+}
+
+.knowledge-graph-legend i.clinical {
+  background: #4d755a;
+}
+.knowledge-graph-legend i.drug {
+  background: #3d7282;
+}
+.knowledge-graph-legend i.legal {
+  background: #986e35;
+}
+.knowledge-graph-legend i.notes {
+  background: #925a78;
+}
+
+@media (max-width: 640px) {
+  .app-bottom-nav .app-nav-button {
+    width: 42px;
+    height: 38px;
+  }
+
+  .app-bottom-nav .app-nav-button.active {
+    height: 38px;
+  }
+
+  .content-download-status.floating {
+    bottom: max(62px, calc(62px + var(--safe-bottom)));
+  }
+}
