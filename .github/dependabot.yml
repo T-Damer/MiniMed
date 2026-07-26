@@ -21,7 +21,9 @@ updates:
       github-actions:
         patterns:
           - "*"
-  - package-ecosystem: pip
+  # tools/ingest is a uv project. The pip ecosystem updates pyproject.toml without regenerating
+  # uv.lock, which makes every such pull request fail `uv sync --locked`.
+  - package-ecosystem: uv
     directory: /tools/ingest
     schedule:
       interval: weekly
