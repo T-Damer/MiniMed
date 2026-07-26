@@ -333,6 +333,8 @@
 .recommendation-section-help-body {
   display: grid;
   gap: 14px;
+  /* The shared dialog body carries no padding of its own (the document overlay pads itself). */
+  padding: 14px 16px 18px;
   color: #4a4335;
 }
 
