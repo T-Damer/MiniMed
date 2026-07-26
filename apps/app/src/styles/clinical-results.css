@@ -7,25 +7,25 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-  margin: 14px 0 0;
-  padding: 13px 15px;
+  gap: 1.125rem;
+  margin: 0.875rem 0 0;
+  padding: 0.8125rem 0.9375rem;
   transform: none;
 }
 
 .clinical-plan-card strong {
-  max-width: 680px;
+  max-width: 42.5rem;
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.35;
 }
 
 .clinical-plan-card span {
-  max-width: 330px;
+  max-width: 20.625rem;
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 0.5rem;
   line-height: 1.45;
   text-align: right;
   text-transform: uppercase;
@@ -33,24 +33,24 @@
 
 .query-warning-list {
   display: grid;
-  gap: 6px;
-  margin: 10px 0 0;
+  gap: 0.375rem;
+  margin: 0.625rem 0 0;
 }
 
 .query-warning-list p {
   margin: 0;
-  padding: 9px 12px;
-  border-left: 3px solid #9c6a3d;
+  padding: 0.5625rem 0.75rem;
+  border-left: 0.1875rem solid #9c6a3d;
   color: #634a34;
   background: rgb(181 132 73 / 9%);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
 .result-group-header {
   display: block;
   min-height: 0;
-  padding: 12px 14px;
+  padding: 0.75rem 0.875rem;
 }
 
 .result-group-header-button > div {
@@ -81,14 +81,14 @@
 
 .results-more {
   width: 100%;
-  margin-top: 12px;
-  padding: 12px 16px;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
   border: 1px solid rgb(64 91 78 / 35%);
   color: var(--green-file);
   background: rgb(246 238 219 / 72%);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.5625rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -101,20 +101,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-top: 18px;
-  padding-top: 14px;
+  gap: 0.875rem;
+  margin-top: 1.125rem;
+  padding-top: 0.875rem;
   border-top: 1px solid rgb(79 65 37 / 20%);
 }
 
 .source-reader-actions button {
-  padding: 10px 13px;
+  padding: 0.625rem 0.8125rem;
   border: 0;
   color: #f6eedb;
   background: var(--green-file);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -122,7 +122,7 @@
 .source-reader-actions small {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 7px;
+  font-size: 0.4375rem;
   line-height: 1.4;
   text-align: right;
   text-transform: uppercase;
@@ -130,7 +130,7 @@
 
 .document-reader-toolbar {
   grid-column: 1 / -1;
-  top: calc(60px + var(--safe-top));
+  top: calc(3.75rem + var(--safe-top));
 }
 
 .document-workspace {
@@ -143,7 +143,7 @@
 }
 
 .document-section {
-  scroll-margin-top: calc(128px + var(--safe-top));
+  scroll-margin-top: calc(8rem + var(--safe-top));
 }
 
 @media (max-width: 760px) {
@@ -160,7 +160,7 @@
   }
 
   .result-group-header-button {
-    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-columns: 2.125rem minmax(0, 1fr);
   }
 
   .result-group-header-button .group-count {
@@ -175,6 +175,6 @@
 
   .result-category-line .result-path {
     width: 100%;
-    padding-left: 36px;
+    padding-left: 2.25rem;
   }
 }

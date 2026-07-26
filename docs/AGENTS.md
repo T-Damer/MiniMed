@@ -27,6 +27,8 @@ roadmap ideas.
 - The download status card floats above the views, so progress stays visible on every tab.
 - Keep the layout compact: prefer expandable blocks over tall cards, and do not reintroduce large
   padding around central blocks.
+- Sizes are rem-based (16px root): write new CSS in rem. Hairline 1px borders, the 999px
+  fully-round radius sentinel, and media-query breakpoints stay in px.
 
 ## Downloads and models
 
