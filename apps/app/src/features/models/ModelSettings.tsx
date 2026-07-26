@@ -35,14 +35,8 @@ const ACTIVE_LOAD_PHASES = new Set<LocalModelState['phase']>([
   'benchmarking',
 ]);
 
-const DOWNLOAD_PHASES = new Set<LocalModelState['phase']>(['downloading', 'loading']);
-
 function isActiveLoadPhase(phase: LocalModelState['phase']): boolean {
   return ACTIVE_LOAD_PHASES.has(phase);
-}
-
-function isDownloadPhase(phase: LocalModelState['phase']): boolean {
-  return DOWNLOAD_PHASES.has(phase);
 }
 
 function deviceFitsModel(
@@ -121,6 +115,12 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
   const models = createMemo(() => catalog()?.models ?? []);
   const acceptedLicenses = (): ReadonlySet<string> => new Set(preference().acceptedLicenseIds);
 
+  // A load can be started by this page or by the background autoload; both must lock the controls.
+  // The controller state, not local click bookkeeping, decides what is in flight.
+  const busyPhase = (): boolean => isActiveLoadPhase(state().phase);
+  const inFlightModelId = (): string | null =>
+    busyPhase() ? (busyModelId() ?? state().selectedModelId ?? null) : null;
+
   const runtimeAvailable = (model: LocalModelDescriptor): boolean => {
     const platform = state().device?.platform;
     if (!platform) return false;
@@ -180,7 +180,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         </Show>
       </div>
 
-      <Show when={isActiveLoadPhase(state().phase)}>
+      <Show when={busyPhase()}>
         <div class="model-download-status paper-card" aria-live="polite">
           <div class="model-download-status-header">
             <strong>{PHASE_LABELS[state().phase]}</strong>
@@ -207,7 +207,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         <button
           type="button"
           classList={{ active: preference().automatic }}
-          disabled={isDownloadPhase(state().phase)}
+          disabled={busyPhase()}
           onClick={() => void props.controller.useAutomaticSelection()}
         >
           Подобрать автоматически
@@ -232,7 +232,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
               const available = () => runtimeAvailable(model);
               const active = () => state().activeModelId === model.id;
               const recommended = () => state().recommendedModelId === model.id;
-              const loading = () => busyModelId() === model.id && isActiveLoadPhase(state().phase);
+              const loading = () => inFlightModelId() === model.id && busyPhase();
               const deviceMemoryGb = () => state().device?.deviceMemoryGb;
               const statusLabel = () =>
                 modelStatusLabel(model, {
@@ -295,9 +295,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                     <button
                       type="button"
                       class="model-option-action"
-                      disabled={
-                        !available() || (busyModelId() !== null && busyModelId() !== model.id)
-                      }
+                      disabled={!available() || (busyPhase() && inFlightModelId() !== model.id)}
                       onClick={() => {
                         if (loading()) {
                           cancelLoad();
@@ -308,13 +306,11 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                     >
                       {loading()
                         ? 'Отменить'
-                        : busyModelId() === model.id
-                          ? 'Проверяем…'
-                          : active()
-                            ? 'Перепроверить'
-                            : available()
-                              ? 'Скачать'
-                              : 'Недоступно'}
+                        : active()
+                          ? 'Перепроверить'
+                          : available()
+                            ? 'Скачать'
+                            : 'Недоступно'}
                     </button>
                   </div>
                   <Show when={model.license.requiresAcceptance && !accepted() && available()}>
