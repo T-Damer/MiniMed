@@ -212,15 +212,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               </div>
             </Show>
 
-            <div class="search-workspace-grid">
-              <div class="search-workspace-main">
-                <Show when={scope() === 'diagnosis' && props.assistantCore}>
-                  <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
-                </Show>
-                <SearchWorkspace core={activeCore()} />
-              </div>
-              <SearchHistoryPanel />
+            <div class="search-workspace-main">
+              <Show when={scope() === 'diagnosis' && props.assistantCore}>
+                <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
+              </Show>
+              <SearchWorkspace core={activeCore()} />
             </div>
+            <SearchHistoryPanel />
           </>
         )}
       </Show>
