@@ -5,6 +5,8 @@ export type AppGlyphName =
   | 'archive'
   | 'modules'
   | 'history'
+  | 'menu'
+  | 'brain'
   | 'system'
   | 'close'
   | 'graph'
@@ -49,6 +51,14 @@ export function AppGlyph(props: {
         <>
           <path d="M4.3 9A8 8 0 1 1 5 16.4" />
           <path d="M4 4.8V9h4.2M12 7.5V12l3 1.8" />
+        </>
+      )}
+      {props.name === 'menu' && <path d="M4 7h16M4 12h16M4 17h16" />}
+      {props.name === 'brain' && (
+        <>
+          <path d="M9.2 4.8A3.2 3.2 0 0 0 6 8v.4a3.4 3.4 0 0 0-1.8 5.9A3.6 3.6 0 0 0 7.6 20H10V4.8Z" />
+          <path d="M14.8 4.8A3.2 3.2 0 0 1 18 8v.4a3.4 3.4 0 0 1 1.8 5.9 3.6 3.6 0 0 1-3.4 5.7H14V4.8Z" />
+          <path d="M10 8.1c-1 .2-1.8 1-1.8 2 0 1 .7 1.8 1.8 2M14 8.1c1 .2 1.8 1 1.8 2 0 1-.7 1.8-1.8 2M10 12.1c-1.1.2-2 .9-2 2.1 0 1 .8 1.9 2 2.1M14 12.1c1.1.2 2 .9 2 2.1 0 1-.8 1.9-2 2.1" />
         </>
       )}
       {props.name === 'system' && (
