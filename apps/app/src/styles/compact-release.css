@@ -780,7 +780,7 @@
 }
 
 .app-bottom-nav .app-nav-button {
-  width: 46px;
+  width: 44px;
   height: 42px;
   margin: 0;
   padding: 0;
@@ -1083,7 +1083,7 @@
 
 @media (max-width: 640px) {
   .app-bottom-nav .app-nav-button {
-    width: 42px;
+    width: 38px;
     height: 38px;
   }
 
@@ -1094,4 +1094,208 @@
   .content-download-status.floating {
     bottom: max(62px, calc(62px + var(--safe-bottom)));
   }
+}
+
+/* Personal notes: a separate trust layer, styled so it never reads as installed official content. */
+.patient-notes-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.patient-notes-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.patient-notes-heading h1 {
+  margin: 2px 0 4px;
+}
+
+.patient-notes-heading p:last-child {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.patient-notes-add {
+  flex: none;
+}
+
+.patient-notes-empty {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+
+.patient-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.patient-card {
+  padding: 0;
+  border: 1px solid rgb(103 92 68 / 26%);
+  border-left: 3px solid #925a78;
+  border-radius: 8px;
+  background: rgb(252 248 238 / 72%);
+}
+
+.patient-card > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.patient-card-title {
+  font-weight: 600;
+}
+
+.patient-card > summary small,
+.patient-note-actions small {
+  color: #6b6252;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.patient-card-summary {
+  padding: 0 12px 6px;
+}
+
+.patient-card-summary p {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+.patient-note-branch {
+  margin: 0;
+  padding: 0 12px;
+  list-style: none;
+}
+
+.patient-note-branch.nested {
+  margin-top: 4px;
+  padding: 0 0 0 12px;
+  border-left: 1px dashed rgb(103 92 68 / 32%);
+}
+
+.patient-note {
+  padding: 4px 0;
+}
+
+.patient-note-body p {
+  margin: 0 0 3px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.patient-note-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.patient-note-actions button {
+  padding: 1px 6px;
+  border: 1px solid rgb(103 92 68 / 24%);
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.patient-note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 12px 10px;
+}
+
+.patient-note-form textarea,
+.patient-note-form input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid rgb(103 92 68 / 30%);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.patient-note-form-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.patient-note-form-actions button {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+.personal-note-matches {
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border: 1px dashed #925a78;
+  border-radius: 8px;
+  background: rgb(234 217 229 / 34%);
+}
+
+.personal-note-matches header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.personal-note-badge {
+  padding: 1px 7px;
+  border-radius: 5px;
+  color: #f6eef5;
+  background: #925a78;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.personal-note-matches header small {
+  color: #6b5460;
+  font-size: 11px;
+}
+
+.personal-note-matches ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.personal-note-matches li {
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+.personal-note-matches li strong {
+  font-size: 13px;
+}
+
+.personal-note-matches li p {
+  margin: 1px 0 0;
+  line-height: 1.4;
+}
+
+.personal-note-matches li small {
+  color: #6b5460;
+  font-size: 11px;
+}
+
+.personal-note-matches > button {
+  margin-top: 5px;
+  padding: 2px 9px;
+  font-size: 12px;
 }

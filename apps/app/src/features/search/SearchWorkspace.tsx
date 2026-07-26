@@ -15,6 +15,7 @@ import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
 import { HighlightedText } from '@/components/HighlightedText';
 import { SearchField } from '@/components/SearchField';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
+import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '@/state/search-history';
@@ -538,6 +539,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   </strong>
                 </div>
               </div>
+
+              <PersonalNoteMatches query={query()} />
 
               <div class="results-list" data-testid="search-results">
                 <For
