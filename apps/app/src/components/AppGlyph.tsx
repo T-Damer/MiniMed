@@ -6,6 +6,7 @@ export type AppGlyphName =
   | 'modules'
   | 'history'
   | 'menu'
+  | 'notes'
   | 'brain'
   | 'system'
   | 'close'
@@ -54,6 +55,12 @@ export function AppGlyph(props: {
         </>
       )}
       {props.name === 'menu' && <path d="M4 7h16M4 12h16M4 17h16" />}
+      {props.name === 'notes' && (
+        <>
+          <path d="M6 3.5h9.5L19 7v13.5H6Z" />
+          <path d="M15 3.5V7h4M9 11h7M9 14.5h7M9 18h4.5" />
+        </>
+      )}
       {props.name === 'brain' && (
         <>
           <path d="M9.2 4.8A3.2 3.2 0 0 0 6 8v.4a3.4 3.4 0 0 0-1.8 5.9A3.6 3.6 0 0 0 7.6 20H10V4.8Z" />

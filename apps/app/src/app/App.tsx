@@ -21,11 +21,12 @@ import {
   getContentModuleRuntime,
   subscribeContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
+import { NotesView } from '@/features/notes/NotesView';
 import { SearchHome } from '@/features/search/SearchHome';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import { notifyContentChanged } from '@/state/content-events';
 
-type View = 'search' | 'modules' | 'status';
+type View = 'search' | 'modules' | 'notes' | 'status';
 
 const VIEWS: readonly {
   readonly id: View;
@@ -34,6 +35,7 @@ const VIEWS: readonly {
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'modules', label: 'База знаний', icon: 'modules' },
+  { id: 'notes', label: 'Заметки', icon: 'notes' },
   { id: 'status', label: 'Настройки', icon: 'brain' },
 ];
 
@@ -202,6 +204,14 @@ export function App(): JSX.Element {
                   onContentChanged={connectInstalledModules}
                   onAvailableUpdates={setAvailableModuleCount}
                 />
+              </section>
+              <section
+                class="app-view"
+                classList={{ active: view() === 'notes' }}
+                hidden={view() !== 'notes'}
+                aria-hidden={view() !== 'notes'}
+              >
+                <NotesView />
               </section>
               <section
                 class="app-view model-status-view"
