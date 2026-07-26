@@ -1,5 +1,6 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { LocalModelController } from '@/features/models/controller';
 import type { LocalModelDescriptor, LocalModelState } from '@/features/models/types';
@@ -73,14 +74,13 @@ function modelStatusLabel(
     readonly loading: boolean;
     readonly deviceMemoryGb: number | null | undefined;
   },
-): string {
+): string | null {
   if (options.loading) return 'Загрузка';
   if (options.active) return 'Запущена';
-  if (!options.available) return 'Недоступна';
   if (options.recommended) return 'Рекомендуется';
   const fits = deviceFitsModel(model, options.deviceMemoryGb);
   if (fits === false) return 'Мало памяти';
-  return 'Доступна';
+  return null;
 }
 
 function formatBytes(value: number): string {
@@ -111,6 +111,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       if (next.phase === 'error') setShowError(true);
       if (!isActiveLoadPhase(next.phase)) setBusyModelId(null);
     });
+    if (!props.controller.getPreference().autoLoad) void props.controller.setAutoLoad(true);
   });
   onCleanup(() => unsubscribe?.());
 
@@ -154,7 +155,9 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       <header class="model-settings-heading">
         <div>
           <p class="archive-kicker">Помощник на устройстве</p>
-          <h2 id="local-model-heading">Локальная модель</h2>
+          <h2 id="local-model-heading">
+            <AppGlyph name="brain" /> Локальная модель
+          </h2>
           <p>
             Модель работает на устройстве без отправки запроса на сервер. Поиск доступен и без неё.
           </p>
@@ -201,17 +204,6 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       </Show>
 
       <div class="model-settings-controls doctor-controls">
-        <label>
-          <input
-            type="checkbox"
-            checked={preference().autoLoad}
-            onChange={(event) => void props.controller.setAutoLoad(event.currentTarget.checked)}
-          />
-          <span>
-            <strong>Запускать при открытии MiniMed</strong>
-            <small>Только после того, как обычный поиск уже готов.</small>
-          </span>
-        </label>
         <button
           type="button"
           classList={{ active: preference().automatic }}
@@ -268,17 +260,22 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                       <h3>{model.name}</h3>
                       <span class="model-tier-chip">{TIER_LABELS[model.tier]}</span>
                     </div>
-                    <span
-                      class="model-option-status"
-                      classList={{
-                        active: active(),
-                        recommended: recommended(),
-                        warning: available() && deviceFitsModel(model, deviceMemoryGb()) === false,
-                        loading: loading(),
-                      }}
-                    >
-                      {statusLabel()}
-                    </span>
+                    <Show when={statusLabel()}>
+                      {(label) => (
+                        <span
+                          class="model-option-status"
+                          classList={{
+                            active: active(),
+                            recommended: recommended(),
+                            warning:
+                              available() && deviceFitsModel(model, deviceMemoryGb()) === false,
+                            loading: loading(),
+                          }}
+                        >
+                          {label()}
+                        </span>
+                      )}
+                    </Show>
                   </div>
                   <div class="model-option-row">
                     <dl class="model-option-specs">
