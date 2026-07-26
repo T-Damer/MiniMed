@@ -18,6 +18,10 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 - Download reliability: shared retry/backoff for module *and* model downloads, awaited flush of
   partial bytes, floating status card with transfer speed and per-stage progress.
 - Ten realistic Russian doctor queries in the public-pilot gate, plus the alias gaps they exposed.
+- Personal notes: patient cards with nested notes as a fourth section, plus a badged personal
+  results block in search that stays outside the official results container.
+- Dependency hygiene: ruff, biome, playwright and astro bumps, and the Dependabot uv ecosystem fix
+  that stopped every tools/ingest update from failing `uv sync --locked`.
 
 ## UX and navigation
 
@@ -36,12 +40,13 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 
 ## Patient notes and voice
 
-Not started; the largest remaining 1.0 feature.
+Cards, nested notes, and search integration have landed. Voice is the remaining part.
 
-- Local patient cards with nested personal notes, in a trust boundary separate from official
-  knowledge and never labelled as an official source.
-- Include notes in local search with an explicit personal-source label.
-- Optional local Russian speech-to-text for dictated notes.
+- Optional local Russian speech-to-text for dictated notes. Not started: it needs a Russian-capable
+  transcription model in the browser/WebView runtime, sized like the existing model tiers, and it must
+  stay optional so notes remain fully usable by typing.
+- Consider exporting or wiping a single card for handover and retention, once real use shows whether
+  that is needed.
 
 ## Data and AI
 
@@ -60,6 +65,6 @@ Not started; the largest remaining 1.0 feature.
 
 ## 1.0 release checklist
 
-- Finish patient notes, the knowledge-base panel pass, and search-driven installation.
+- Finish the knowledge-base panel pass and search-driven installation.
 - Improve section ranking for messy queries, or record an accepted threshold with rationale.
 - Verify the public `/app/` browser build and the Android release candidate after the 1.0 changes.

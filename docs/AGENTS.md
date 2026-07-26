@@ -21,6 +21,9 @@ roadmap ideas.
 - The knowledge-base button carries two counters: available documents (yellow, top left) and
   installed documents (green, bottom right). Neither resets on view change.
 - Search history opens from a floating button as a drawer, never as a route or a side column.
+- There are four sections: search, knowledge base, notes, settings. Personal notes are their own
+  section, and personal matches in search render outside the official results container so a
+  local record can never pass as installed content — in the DOM or on screen.
 - The download status card floats above the views, so progress stays visible on every tab.
 - Keep the layout compact: prefer expandable blocks over tall cards, and do not reintroduce large
   padding around central blocks.
