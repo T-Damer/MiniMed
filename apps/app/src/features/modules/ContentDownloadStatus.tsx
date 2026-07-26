@@ -90,9 +90,25 @@ function describeTask(task: ContentModuleDownloadTask, metrics: TaskMetrics | un
   return sanitizeErrorMessage(task.errorMessage) ?? '';
 }
 
+function aggregateProgress(tasks: readonly ContentModuleDownloadTask[]): number | null {
+  let downloaded = 0;
+  let total = 0;
+  for (const task of tasks) {
+    if (!task.totalBytes || task.totalBytes <= 0) continue;
+    downloaded += task.downloadedBytes;
+    total += task.totalBytes;
+  }
+  if (total <= 0) return null;
+  return Math.max(0, Math.min(1, downloaded / total));
+}
+
 export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): JSX.Element {
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
   const [metrics, setMetrics] = createSignal<Readonly<Record<string, TaskMetrics>>>({});
+  // The floating card starts as a compact pill: downloads run on their own, so the expanded panel
+  // is only worth screen space when the doctor asks for it — or when something actually failed.
+  const [collapsed, setCollapsed] = createSignal(Boolean(props.floating));
+  let knownFailedIds = new Set<string>();
   let currentRuntime: BrowserContentModuleRuntime | undefined;
   let unsubscribeTasks: (() => void) | undefined;
   let unsubscribeRuntime: (() => void) | undefined;
@@ -129,6 +145,13 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
     previousSnapshot = nextSnapshot;
     setMetrics(nextMetrics);
     setTasks(nextTasks);
+
+    const failedIds = new Set(
+      nextTasks.filter((task) => task.state === 'failed').map((task) => task.id),
+    );
+    const hasNewFailure = [...failedIds].some((id) => !knownFailedIds.has(id));
+    knownFailedIds = failedIds;
+    if (hasNewFailure) setCollapsed(false);
   };
 
   const bindRuntime = (runtime: BrowserContentModuleRuntime): void => {
@@ -165,79 +188,113 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
 
   return (
     <Show when={visibleTasks().length > 0}>
-      <section
-        class="content-download-status paper-card"
-        classList={{ floating: Boolean(props.floating) }}
-        aria-label="Загрузка наборов документов"
-        data-testid="content-download-status"
+      <Show
+        when={!(props.floating && collapsed())}
+        fallback={
+          <button
+            type="button"
+            class="content-download-pill"
+            data-testid="content-download-status"
+            aria-label={`Загрузка наборов: ${visibleTasks().length}. Показать детали`}
+            onClick={() => setCollapsed(false)}
+          >
+            <i
+              classList={{ failed: visibleTasks().some((task) => task.state === 'failed') }}
+              aria-hidden="true"
+            />
+            <span>
+              {aggregateProgress(visibleTasks()) === null
+                ? `Загрузка · ${visibleTasks().length}`
+                : `Загрузка ${Math.round((aggregateProgress(visibleTasks()) ?? 0) * 100)}%`}
+            </span>
+          </button>
+        }
       >
-        <header class="content-download-status-heading">
-          <div>
-            <h3>Загрузка наборов</h3>
-            <p>
-              Частичные данные сохраняются. После перезапуска MiniMed продолжит загрузку
-              автоматически.
-            </p>
-          </div>
-          <span>{visibleTasks().length}</span>
-        </header>
-        <ul>
-          <For each={visibleTasks()}>
-            {(task) => {
-              const progress = () => taskProgress(task);
-              const retryAvailable = () =>
-                task.state === 'failed' &&
-                Boolean(
-                  currentRuntime
-                    ?.getCatalog()
-                    .modules.some(
-                      (module) =>
-                        module.id === task.moduleId &&
-                        module.version === task.version &&
-                        module.releaseState === 'published',
-                    ),
+        <section
+          class="content-download-status"
+          classList={{ floating: Boolean(props.floating) }}
+          aria-label="Загрузка наборов документов"
+          data-testid="content-download-status"
+        >
+          <header class="content-download-status-heading">
+            <div>
+              <h3>Загрузка наборов</h3>
+              <p>
+                Частичные данные сохраняются. После перезапуска MiniMed продолжит загрузку
+                автоматически.
+              </p>
+            </div>
+            <Show
+              when={props.floating}
+              fallback={<span class="content-download-count">{visibleTasks().length}</span>}
+            >
+              <button
+                type="button"
+                aria-label="Свернуть панель загрузок"
+                onClick={() => setCollapsed(true)}
+              >
+                Свернуть
+              </button>
+            </Show>
+          </header>
+          <ul>
+            <For each={visibleTasks()}>
+              {(task) => {
+                const progress = () => taskProgress(task);
+                const retryAvailable = () =>
+                  task.state === 'failed' &&
+                  Boolean(
+                    currentRuntime
+                      ?.getCatalog()
+                      .modules.some(
+                        (module) =>
+                          module.id === task.moduleId &&
+                          module.version === task.version &&
+                          module.releaseState === 'published',
+                      ),
+                  );
+                return (
+                  <li classList={{ failed: task.state === 'failed' }}>
+                    <div class="content-download-status-row">
+                      <div>
+                        <strong>{task.moduleId}</strong>
+                        <small>Версия {task.version}</small>
+                      </div>
+                      <span>{TASK_LABELS[task.state]}</span>
+                    </div>
+                    <Show when={progress() !== null}>
+                      <div
+                        class="content-download-status-progress"
+                        role="progressbar"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow={Math.round((progress() ?? 0) * 100)}
+                      >
+                        <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
+                      </div>
+                    </Show>
+                    <small class="content-download-status-detail">
+                      {describeTask(task, metrics()[task.id])}
+                    </small>
+                    <Show when={task.errorMessage}>
+                      {(message) => (
+                        <small class="content-download-status-error">
+                          {sanitizeErrorMessage(message())}
+                        </small>
+                      )}
+                    </Show>
+                    <Show when={retryAvailable()}>
+                      <button type="button" onClick={() => retry(task)}>
+                        Повторить сейчас
+                      </button>
+                    </Show>
+                  </li>
                 );
-              return (
-                <li classList={{ failed: task.state === 'failed' }}>
-                  <div class="content-download-status-row">
-                    <div>
-                      <strong>{task.moduleId}</strong>
-                      <small>Версия {task.version}</small>
-                    </div>
-                    <span>{TASK_LABELS[task.state]}</span>
-                  </div>
-                  <Show when={progress() !== null}>
-                    <div
-                      class="content-download-status-progress"
-                      role="progressbar"
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                      aria-valuenow={Math.round((progress() ?? 0) * 100)}
-                    >
-                      <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
-                    </div>
-                  </Show>
-                  <small class="content-download-status-detail">
-                    {describeTask(task, metrics()[task.id])}
-                  </small>
-                  <Show when={task.errorMessage}>
-                    {(message) => (
-                      <small class="content-download-status-error">
-                        {sanitizeErrorMessage(message())}
-                      </small>
-                    )}
-                  </Show>
-                  <Show when={retryAvailable()}>
-                    <button type="button" onClick={() => retry(task)}>
-                      Повторить сейчас
-                    </button>
-                  </Show>
-                </li>
-              );
-            }}
-          </For>
-        </ul>
-      </section>
+              }}
+            </For>
+          </ul>
+        </section>
+      </Show>
     </Show>
   );
 }

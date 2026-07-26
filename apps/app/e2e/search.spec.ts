@@ -30,7 +30,7 @@ test('asks for the search task before unlocking input', async ({ page }) => {
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
   await mountBuiltApp(page);
-  await expect(page.getByText('Что нужно найти?')).toBeVisible();
+  await expect(page.getByTestId('search-input')).toBeVisible();
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
