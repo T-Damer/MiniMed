@@ -160,18 +160,6 @@ export async function downloadWithResume(options: ResumableDownloadOptions): Pro
     });
   };
 
-  const persistOnAbort = (): void => {
-    if (pendingParts.length === 0) return;
-    const data = new Blob(pendingParts);
-    void writePartial({
-      key: cacheKey,
-      url,
-      totalBytes,
-      data,
-      updatedAt: new Date().toISOString(),
-    });
-  };
-
   if (downloadedBytes > 0) reportProgress();
 
   const requestInit: RequestInit = { cache: 'no-store' };
@@ -236,7 +224,13 @@ export async function downloadWithResume(options: ResumableDownloadOptions): Pro
       if (bytesSinceFlush >= FLUSH_BYTES) await flushPartial();
     }
   } catch (cause) {
-    persistOnAbort();
+    // Persist before rethrowing, and wait for the write: an automatic retry reads this record
+    // immediately, so a fire-and-forget flush would race it and restart from zero.
+    try {
+      await flushPartial();
+    } catch {
+      // Reporting the storage failure would bury the transfer failure that actually stopped us.
+    }
     throw cause;
   }
 
