@@ -59,6 +59,8 @@ interface StagedBytes {
   readonly bytes: Uint8Array;
 }
 
+const DOWNLOAD_RETRY_DELAYS_MS = [700, 1_400, 2_500] as const;
+
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
@@ -136,18 +138,66 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     try {
       const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
       const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
-      return await downloadWithResume({
-        url: resolvedUrl,
-        cacheKey,
-        expectedBytes: artifact.sizeBytes,
-        signal,
-        onProgress: ({ downloadedBytes, totalBytes }) =>
-          onProgress({ downloadedBytes, totalBytes }),
-      });
+      let lastError: unknown;
+      for (const delay of [0, ...DOWNLOAD_RETRY_DELAYS_MS]) {
+        if (delay > 0) {
+          await waitForRetry(delay, signal);
+        }
+        try {
+          return await downloadWithResume({
+            url: resolvedUrl,
+            cacheKey,
+            expectedBytes: artifact.sizeBytes,
+            signal,
+            onProgress: ({ downloadedBytes, totalBytes }) =>
+              onProgress({ downloadedBytes, totalBytes }),
+          });
+        } catch (cause) {
+          lastError = cause;
+          if (!isTransientDownloadError(cause) || signal.aborted) throw cause;
+        }
+      }
+      throw isTransientDownloadError(lastError)
+        ? new Error('Временная сетевая ошибка. Повторите загрузку позже.')
+        : lastError;
     } finally {
       releaseContentLane();
     }
   }
+}
+
+function isTransientDownloadError(cause: unknown): boolean {
+  if (cause instanceof DOMException && cause.name === 'AbortError') return false;
+  if (!(cause instanceof Error)) return false;
+  const normalized = cause.message.toLowerCase();
+  return (
+    normalized.includes('network error') ||
+    normalized.includes('failed to fetch') ||
+    normalized.includes('load failed') ||
+    normalized.includes('http 408') ||
+    normalized.includes('http 425') ||
+    normalized.includes('http 429') ||
+    normalized.includes('http 500') ||
+    normalized.includes('http 502') ||
+    normalized.includes('http 503') ||
+    normalized.includes('http 504')
+  );
+}
+
+function waitForRetry(delayMs: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.reject(new DOMException('Download aborted.', 'AbortError'));
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, delayMs);
+    const onAbort = (): void => {
+      window.clearTimeout(timeout);
+      signal.removeEventListener('abort', onAbort);
+      reject(new DOMException('Download aborted.', 'AbortError'));
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
 }
 
 class BrowserModuleBackend implements ContentModuleArtifactBackend {
