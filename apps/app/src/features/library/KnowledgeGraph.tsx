@@ -19,6 +19,8 @@ interface GraphNode {
   readonly label: string;
   readonly documentId: string | null;
   readonly tone: GraphTone;
+  /** Fill colors of the areas this node belongs to; several areas render as equal pie slices. */
+  readonly areaColors: readonly string[];
   x: number;
   y: number;
   vx: number;
@@ -46,6 +48,28 @@ const TONES: Readonly<Record<GraphTone, { readonly fill: string; readonly stroke
   other: { fill: '#fbf7ea', stroke: '#655e51' },
 };
 
+/* Every medical area gets its own fill; a document in several areas is drawn as a pie of them.
+   The palette is muted to sit on the paper theme, and the color is chosen by hashing the specialty
+   key so an area keeps its color no matter which documents are installed. */
+const DOMAIN_PALETTE: readonly string[] = [
+  '#e3c6d2',
+  '#c4d9e4',
+  '#cfe0c2',
+  '#e8d8b0',
+  '#d5cde6',
+  '#c2ded6',
+  '#e6cbbd',
+  '#dee3b8',
+];
+
+function domainColor(specialty: string): string {
+  let hash = 0;
+  for (let index = 0; index < specialty.length; index += 1) {
+    hash = (hash * 31 + specialty.charCodeAt(index)) >>> 0;
+  }
+  return DOMAIN_PALETTE[hash % DOMAIN_PALETTE.length] ?? '#fbf7ea';
+}
+
 function shortLabel(value: string, limit: number): string {
   return value.length <= limit ? value : `${value.slice(0, limit - 1)}…`;
 }
@@ -61,12 +85,16 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
 
   documents.forEach((document, index) => {
     const angle = (index / count) * Math.PI * 2;
+    const specialties = document.specialties.length
+      ? document.specialties
+      : [OTHER_DOCUMENTS_DOMAIN];
     const documentNode: GraphNode = {
       id: `document:${document.id}`,
       kind: 'document',
       label: document.shortTitle ?? document.title,
       documentId: document.id,
       tone: graphToneForSourceType(document.sourceType),
+      areaColors: specialties.map(domainColor),
       x: Math.cos(angle) * 190,
       y: Math.sin(angle) * 150,
       vx: 0,
@@ -75,9 +103,6 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
     };
     nodes.push(documentNode);
 
-    const specialties = document.specialties.length
-      ? document.specialties
-      : [OTHER_DOCUMENTS_DOMAIN];
     specialties.forEach((specialty, specialtyIndex) => {
       let domain = domains.get(specialty);
       if (!domain) {
@@ -92,6 +117,7 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
               : specialtyLabel(specialty),
           documentId: null,
           tone: 'other',
+          areaColors: [domainColor(specialty)],
           x: Math.cos(domainAngle) * 80,
           y: Math.sin(domainAngle) * 70,
           vx: 0,
@@ -164,7 +190,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   };
 
   const stepSimulation = (): boolean => {
-    const damping = 0.84;
+    const damping = 0.86;
     for (let leftIndex = 0; leftIndex < nodes.length; leftIndex += 1) {
       const left = nodes[leftIndex];
       if (!left) continue;
@@ -175,7 +201,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
         const dy = right.y - left.y;
         const distanceSquared = Math.max(180, dx * dx + dy * dy);
         const distance = Math.sqrt(distanceSquared);
-        const force = 1150 / distanceSquared;
+        const force = 760 / distanceSquared;
         const fx = (dx / distance) * force;
         const fy = (dy / distance) * force;
         if (!left.fixed) {
@@ -214,8 +240,9 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     let energy = 0;
     for (const node of nodes) {
       if (node.fixed) continue;
-      node.vx += -node.x * 0.0008;
-      node.vy += -node.y * 0.0008;
+      // Just enough pull to keep the layout on screen; the old value packed everything into a clump.
+      node.vx += -node.x * 0.0003;
+      node.vy += -node.y * 0.0003;
       node.vx *= damping;
       node.vy *= damping;
       node.x += node.vx;
@@ -251,12 +278,32 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       const selected = node.documentId === props.selectedId;
       const hovered = node.id === hoveredNodeId;
       const tone = node.kind === 'domain' ? TONES.other : TONES[node.tone];
+      const radius = node.kind === 'domain' ? 26 : 17;
+      const colors = node.areaColors.length > 0 ? node.areaColors : [tone.fill];
+
+      if (colors.length === 1) {
+        context.beginPath();
+        context.arc(node.x, node.y, radius, 0, Math.PI * 2);
+        context.fillStyle = colors[0] ?? tone.fill;
+        context.fill();
+      } else {
+        // Equal pie slices, one per area the document belongs to.
+        const slice = (Math.PI * 2) / colors.length;
+        colors.forEach((color, index) => {
+          const start = -Math.PI / 2 + index * slice;
+          context.beginPath();
+          context.moveTo(node.x, node.y);
+          context.arc(node.x, node.y, radius, start, start + slice);
+          context.closePath();
+          context.fillStyle = color;
+          context.fill();
+        });
+      }
+
       context.beginPath();
-      context.arc(node.x, node.y, node.kind === 'domain' ? 26 : 17, 0, Math.PI * 2);
-      context.fillStyle = node.kind === 'domain' ? '#8f7849' : tone.fill;
+      context.arc(node.x, node.y, radius, 0, Math.PI * 2);
       context.strokeStyle = selected ? '#87453c' : tone.stroke;
       context.lineWidth = (selected || hovered ? 2.8 : 1.35) / scale;
-      context.fill();
       context.stroke();
 
       context.textAlign = 'center';
