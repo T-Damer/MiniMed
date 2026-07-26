@@ -1,6 +1,7 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
+import { type GraphTone, graphToneForSourceType } from '@/features/library/graph-tones';
 import { browserI18n } from '@/i18n/browser-i18n';
 import { specialtyLabel } from '@/i18n/labels';
 
@@ -17,6 +18,7 @@ interface GraphNode {
   readonly kind: GraphNodeKind;
   readonly label: string;
   readonly documentId: string | null;
+  readonly tone: GraphTone;
   x: number;
   y: number;
   vx: number;
@@ -34,11 +36,19 @@ interface Point {
   readonly y: number;
 }
 
+const OTHER_DOCUMENTS_DOMAIN = '__other_documents__';
+
+const TONES: Readonly<Record<GraphTone, { readonly fill: string; readonly stroke: string }>> = {
+  clinical: { fill: '#d9e6d2', stroke: '#4d755a' },
+  drug: { fill: '#d9e8ed', stroke: '#3d7282' },
+  legal: { fill: '#f1dfc4', stroke: '#986e35' },
+  notes: { fill: '#ead9e5', stroke: '#925a78' },
+  other: { fill: '#fbf7ea', stroke: '#655e51' },
+};
+
 function shortLabel(value: string, limit: number): string {
   return value.length <= limit ? value : `${value.slice(0, limit - 1)}…`;
 }
-
-const OTHER_DOCUMENTS_DOMAIN = '__other_documents__';
 
 function buildGraph(documents: readonly MedicalDocumentSummary[]): {
   readonly nodes: GraphNode[];
@@ -56,6 +66,7 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
       kind: 'document',
       label: document.shortTitle ?? document.title,
       documentId: document.id,
+      tone: graphToneForSourceType(document.sourceType),
       x: Math.cos(angle) * 190,
       y: Math.sin(angle) * 150,
       vx: 0,
@@ -80,6 +91,7 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
               ? browserI18n.getMessage('specialty_other_documents')
               : specialtyLabel(specialty),
           documentId: null,
+          tone: 'other',
           x: Math.cos(domainAngle) * 80,
           y: Math.sin(domainAngle) * 70,
           vx: 0,
@@ -110,8 +122,13 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let pointerStart: Point | null = null;
   let pointerLast: Point | null = null;
   let draggedNode: GraphNode | null = null;
+  let hoveredNodeId: string | null = null;
   let moved = false;
-  let simulationTicks = 0;
+  let simulationActive = true;
+
+  const wakeSimulation = (): void => {
+    simulationActive = true;
+  };
 
   const resize = (): void => {
     if (!canvas) return;
@@ -146,11 +163,8 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     return nearest;
   };
 
-  const stepSimulation = (): void => {
-    if (simulationTicks > 420) return;
-    simulationTicks += 1;
+  const stepSimulation = (): boolean => {
     const damping = 0.84;
-
     for (let leftIndex = 0; leftIndex < nodes.length; leftIndex += 1) {
       const left = nodes[leftIndex];
       if (!left) continue;
@@ -197,6 +211,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       }
     }
 
+    let energy = 0;
     for (const node of nodes) {
       if (node.fixed) continue;
       node.vx += -node.x * 0.0008;
@@ -205,7 +220,9 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       node.vy *= damping;
       node.x += node.vx;
       node.y += node.vy;
+      energy += Math.abs(node.vx) + Math.abs(node.vy);
     }
+    return energy > 0.015;
   };
 
   const draw = (): void => {
@@ -232,11 +249,13 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
 
     for (const node of nodes) {
       const selected = node.documentId === props.selectedId;
+      const hovered = node.id === hoveredNodeId;
+      const tone = node.kind === 'domain' ? TONES.other : TONES[node.tone];
       context.beginPath();
       context.arc(node.x, node.y, node.kind === 'domain' ? 26 : 17, 0, Math.PI * 2);
-      context.fillStyle = node.kind === 'domain' ? '#8f7849' : selected ? '#87453c' : '#fbf7ea';
-      context.strokeStyle = selected ? '#87453c' : '#655e51';
-      context.lineWidth = (selected ? 2.5 : 1.2) / scale;
+      context.fillStyle = node.kind === 'domain' ? '#8f7849' : tone.fill;
+      context.strokeStyle = selected ? '#87453c' : tone.stroke;
+      context.lineWidth = (selected || hovered ? 2.8 : 1.35) / scale;
       context.fill();
       context.stroke();
 
@@ -255,7 +274,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   };
 
   const animate = (): void => {
-    stepSimulation();
+    if (simulationActive) simulationActive = stepSimulation();
     draw();
     frame = requestAnimationFrame(animate);
   };
@@ -264,10 +283,11 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     const graph = buildGraph(props.documents);
     nodes = graph.nodes;
     edges = graph.edges;
-    simulationTicks = 0;
     scale = 1;
     panX = 0;
     panY = 0;
+    hoveredNodeId = null;
+    wakeSimulation();
   });
 
   onMount(() => {
@@ -316,10 +336,17 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           draggedNode = hitTest(point);
           moved = false;
           if (draggedNode) draggedNode.fixed = true;
+          wakeSimulation();
         }}
         onPointerMove={(event) => {
-          if (!pointerLast) return;
           const point = pointFromEvent(event);
+          const hit = hitTest(point);
+          const nextHoveredNodeId = hit?.id ?? null;
+          if (nextHoveredNodeId !== hoveredNodeId) {
+            hoveredNodeId = nextHoveredNodeId;
+            draw();
+          }
+          if (!pointerLast) return;
           const dx = point.x - pointerLast.x;
           const dy = point.y - pointerLast.y;
           if (
@@ -340,6 +367,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
             panY += dy;
           }
           pointerLast = point;
+          wakeSimulation();
           draw();
         }}
         onPointerUp={(event) => {
@@ -353,22 +381,39 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           draggedNode = null;
           pointerStart = null;
           pointerLast = null;
-          canvas.releasePointerCapture(event.pointerId);
+          if (canvas.hasPointerCapture(event.pointerId))
+            canvas.releasePointerCapture(event.pointerId);
+          wakeSimulation();
+        }}
+        onPointerLeave={() => {
+          if (pointerLast) return;
+          hoveredNodeId = null;
+          draw();
         }}
         onWheel={(event) => {
           event.preventDefault();
           const factor = event.deltaY > 0 ? 0.9 : 1.1;
           scale = Math.max(0.55, Math.min(2.4, scale * factor));
+          wakeSimulation();
           draw();
         }}
       />
 
-      <div class="knowledge-graph-legend" aria-hidden="true">
+      <div class="knowledge-graph-legend">
         <span>
           <i class="domain" /> {browserI18n.getMessage('graph_legend_domain')}
         </span>
         <span>
-          <i class="document" /> {browserI18n.getMessage('graph_legend_document')}
+          <i class="clinical" /> КР
+        </span>
+        <span>
+          <i class="drug" /> Препараты
+        </span>
+        <span>
+          <i class="legal" /> Право
+        </span>
+        <span>
+          <i class="notes" /> Заметки
         </span>
       </div>
     </section>
