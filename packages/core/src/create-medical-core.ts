@@ -126,17 +126,55 @@ function toSearchResult(aggregate: AggregatedHit): SearchResult {
   };
 }
 
-function requestedSectionType(query: string): 'diagnostics' | 'routing' | null {
-  if (/(?:^|\s)диагностик/u.test(query)) return 'diagnostics';
-  if (/(?:маршрутизац|госпитализац|экстренн|интенсивн[а-я]*\s+помощ)/u.test(query)) {
+/**
+ * The section a question is *about*, judged from how doctors actually phrase it. Symptom words pull
+ * lexical scores toward clinical-picture chunks, so without this preference "чем отпаивать" ranked
+ * the symptom description above the rehydration guidance. Order matters: routing outranks treatment
+ * so that an urgent "куда/когда" question is not read as a drug question.
+ */
+function requestedSectionType(query: string): 'diagnostics' | 'routing' | 'treatment' | null {
+  if (
+    /(?:^|\s)диагностик/u.test(query) ||
+    /(?:какие|нужны\s+ли)\s+(?:обследовани|анализ)/u.test(query) ||
+    /подтвердит[ьи]\s+диагноз/u.test(query)
+  ) {
+    return 'diagnostics';
+  }
+  if (
+    /(?:маршрутизац|госпитализ|экстренн|реанимац|интенсивн[а-я]*\s+(?:помощ|терапи))/u.test(
+      query,
+    ) ||
+    /красн[а-я]*\s+флаг/u.test(query) ||
+    /что\s+делать/u.test(query)
+  ) {
     return 'routing';
+  }
+  if (
+    /(?:^|\s)(?:лечени|лечить|терапи)/u.test(query) ||
+    /(?:отпаива|чем\s+поить)/u.test(query) ||
+    /антибиотик/u.test(query) ||
+    /препарат[а-я]*\s+выбора/u.test(query) ||
+    /дозировк/u.test(query)
+  ) {
+    return 'treatment';
   }
   return null;
 }
 
+/**
+ * Sections like "Ограничения"/"Источник и ограничения" describe what a card does NOT cover. They
+ * legitimately match many queries (they repeat the card's own terms), but they must not lead a
+ * document group unless the doctor asked about limitations themselves.
+ */
+function isMetaSection(result: SearchResult): boolean {
+  const leaf = normalizeSurfaceText(result.sectionPath.at(-1) ?? '');
+  return leaf === 'ограничения' || leaf === 'источник и ограничения';
+}
+
 function groupResults(
   results: readonly SearchResult[],
-  preferredSectionType: 'diagnostics' | 'routing' | null,
+  preferredSectionType: 'diagnostics' | 'routing' | 'treatment' | null,
+  demoteMetaSections: boolean,
 ): readonly SearchResultGroup[] {
   const byDocument = new Map<string, SearchResult[]>();
   for (const result of results) {
@@ -151,7 +189,10 @@ function groupResults(
           ? Number(right.sectionType === preferredSectionType) -
             Number(left.sectionType === preferredSectionType)
           : 0;
-        return preferredDifference || right.finalScore - left.finalScore;
+        const metaDifference = demoteMetaSections
+          ? Number(isMetaSection(left)) - Number(isMetaSection(right))
+          : 0;
+        return preferredDifference || metaDifference || right.finalScore - left.finalScore;
       });
       const first = sorted[0];
       if (!first) throw new Error('Search group cannot be empty.');
@@ -626,7 +667,11 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           modeUsed,
           analysis: plan.analysis,
           suggestions: plan.analysis.suggestions,
-          groups: groupResults(results, requestedSectionType(plan.analysis.normalizedQuery)),
+          groups: groupResults(
+            results,
+            requestedSectionType(plan.analysis.normalizedQuery),
+            !/ограничен/u.test(plan.analysis.normalizedQuery),
+          ),
           diagnostics: {
             ftsQuery: plan.branches.map((branch) => branch.ftsQuery).join(' || '),
             candidateCount: candidateIds.size,
