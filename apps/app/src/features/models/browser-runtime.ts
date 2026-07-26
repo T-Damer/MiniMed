@@ -14,7 +14,7 @@ import type {
   LocalModelStructuredResponse,
 } from '@/features/models/types';
 import { downloadCoordinator } from '@/features/network/download-coordinator';
-import { downloadWithResume } from '@/features/network/resumable-download';
+import { downloadWithRetry } from '@/features/network/download-retry';
 
 interface WllamaProgress {
   readonly loaded: number;
@@ -96,7 +96,9 @@ async function loadModelFromResumableUrl(
   callbacks: LocalModelLoadCallbacks,
   signal: AbortSignal,
 ): Promise<void> {
-  const bytes = await downloadWithResume({
+  // Model weights are the largest download in the app, so a flaky mobile network is expected rather
+  // than exceptional. Recover from it here instead of surfacing "network error" to the doctor.
+  const bytes = await downloadWithRetry({
     url,
     cacheKey,
     expectedBytes,
