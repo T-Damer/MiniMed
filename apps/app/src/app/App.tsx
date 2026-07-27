@@ -24,10 +24,21 @@ import {
 import { NotesView } from '@/features/notes/NotesView';
 import { SearchHome } from '@/features/search/SearchHome';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
+import {
+  APP_UPDATE_READY_EVENT,
+  type AppUpdateReadyDetail,
+  activateAppUpdate,
+} from '@/state/app-update';
 import { notifyContentChanged } from '@/state/content-events';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 
 type View = 'search' | 'modules' | 'notes';
+type RootNavigationDirection = 'forward' | 'backward';
+
+interface RootNavigationMotion {
+  readonly view: View;
+  readonly direction: RootNavigationDirection;
+}
 
 const VIEWS: readonly {
   readonly id: View;
@@ -38,6 +49,7 @@ const VIEWS: readonly {
   { id: 'modules', label: 'База знаний', icon: 'modules' },
   { id: 'notes', label: 'Заметки', icon: 'notes' },
 ];
+const VIEW_ORDER = new Map(VIEWS.map((item, index) => [item.id, index]));
 
 const DEFAULT_MODEL_CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
@@ -47,6 +59,7 @@ function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
   if (value === 'documents') return 'modules';
   if (value === 'status' || value.startsWith('modules/')) return 'modules';
+  if (value.startsWith('notes/')) return 'notes';
   if (value === 'history') return 'search';
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
 }
@@ -85,12 +98,15 @@ function createLocalModelController(): LocalModelController {
 export function App(): JSX.Element {
   const showBrowserFooter = !('Capacitor' in window);
   const [view, setView] = createSignal<View>(viewFromLocation());
+  const [rootNavigationMotion, setRootNavigationMotion] = createSignal<RootNavigationMotion>();
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
   const [availableModuleCount, setAvailableModuleCount] = createSignal(0);
   const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
   const [dueReminderCount, setDueReminderCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
+  const [appUpdateWorker, setAppUpdateWorker] = createSignal<ServiceWorker>();
+  const [appUpdating, setAppUpdating] = createSignal(false);
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
@@ -102,22 +118,49 @@ export function App(): JSX.Element {
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
 
+  const moveToRootView = (next: View): boolean => {
+    const current = view();
+    if (current === next) return false;
+    setRootNavigationMotion({
+      view: next,
+      direction:
+        (VIEW_ORDER.get(next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward',
+    });
+    setView(next);
+    return true;
+  };
+
+  const rootViewClasses = (target: View): Readonly<Record<string, boolean>> => {
+    const motion = rootNavigationMotion();
+    return {
+      active: view() === target,
+      'root-view-enter-forward': motion?.view === target && motion.direction === 'forward',
+      'root-view-enter-backward': motion?.view === target && motion.direction === 'backward',
+    };
+  };
+
   const navigate = (next: View): void => {
     // Re-tapping the active section is the mobile shorthand for "back to the top of this page".
-    const samePage = view() === next;
-    setView(next);
+    const changed = moveToRootView(next);
+    const oldURL = window.location.href;
     window.history.replaceState({ view: next }, '', `#/${next}`);
-    window.scrollTo({ top: 0, behavior: samePage ? 'smooth' : 'instant' });
+    window.dispatchEvent(
+      new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
+    );
+    window.scrollTo({ top: 0, behavior: changed ? 'instant' : 'smooth' });
   };
 
   const handleHashChange = (): void => {
     const next = viewFromLocation();
-    if (next !== view()) window.scrollTo({ top: 0, behavior: 'instant' });
-    setView(next);
+    if (moveToRootView(next)) window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleScroll = (): void => {
     setShowScrollTop(window.scrollY > 560);
+  };
+
+  const handleAppUpdate = (event: Event): void => {
+    setAppUpdateWorker((event as CustomEvent<AppUpdateReadyDetail>).detail.worker);
   };
 
   const connectInstalledModules = async (): Promise<void> => {
@@ -147,6 +190,7 @@ export function App(): JSX.Element {
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
+    window.addEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     refreshDueReminders();
     // Due-ness changes with the clock, not only with edits.
     reminderTimer = setInterval(refreshDueReminders, 30_000);
@@ -184,6 +228,7 @@ export function App(): JSX.Element {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
+    window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     if (reminderTimer) clearInterval(reminderTimer);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
@@ -214,7 +259,7 @@ export function App(): JSX.Element {
             <main class="app-main">
               <section
                 class="app-view"
-                classList={{ active: view() === 'search' }}
+                classList={rootViewClasses('search')}
                 hidden={view() !== 'search'}
                 aria-hidden={view() !== 'search'}
               >
@@ -226,7 +271,7 @@ export function App(): JSX.Element {
               </section>
               <section
                 class="app-view"
-                classList={{ active: view() === 'modules' }}
+                classList={rootViewClasses('modules')}
                 hidden={view() !== 'modules'}
                 aria-hidden={view() !== 'modules'}
               >
@@ -241,7 +286,7 @@ export function App(): JSX.Element {
               </section>
               <section
                 class="app-view"
-                classList={{ active: view() === 'notes' }}
+                classList={rootViewClasses('notes')}
                 hidden={view() !== 'notes'}
                 aria-hidden={view() !== 'notes'}
               >
@@ -252,13 +297,31 @@ export function App(): JSX.Element {
                   <a href="https://github.com/T-Damer/MiniMed" target="_blank" rel="noreferrer">
                     GitHub
                   </a>
-                  <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.2/MiniMed-0.6.2-rf-public-pilot-debug.apk">
+                  <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.3/MiniMed-0.6.3-rf-public-pilot-debug.apk">
                     Android APK
                   </a>
                 </footer>
               </Show>
             </main>
-            <ContentDownloadStatus floating />
+            <div class="floating-system-status" aria-live="polite">
+              <Show when={appUpdateWorker()}>
+                {(worker) => (
+                  <button
+                    class="content-download-pill app-update-pill"
+                    type="button"
+                    disabled={appUpdating()}
+                    onClick={() => {
+                      setAppUpdating(true);
+                      activateAppUpdate(worker());
+                    }}
+                  >
+                    <AppGlyph name="refresh" />
+                    <span>{appUpdating() ? 'Обновляем приложение…' : 'Обновить приложение'}</span>
+                  </button>
+                )}
+              </Show>
+              <ContentDownloadStatus floating />
+            </div>
             <DocumentOverlayHost
               getCore={() => state().core}
               reconnectContent={connectInstalledModules}

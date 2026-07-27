@@ -63,6 +63,11 @@ const MAX_SNIPPET_LENGTH = 180;
 const EMPTY: PatientNotesSnapshot = { cards: [], notes: [] };
 const DATABASE_NAME = 'minimed-personal-notes-v1';
 const SNAPSHOT_STORE = 'snapshots';
+const COLLEAGUE_NOTE_MARKER_KEY = 'minimed.colleague-note.v1';
+const COLLEAGUE_CARD_ID = 'card-colleague-welcome';
+const COLLEAGUE_NOTE_ID = 'note-colleague-welcome';
+const COLLEAGUE_NOTE_TEXT =
+  'Я сделал это приложение, чтобы тебе было удобно искать документы и записывать информацию о пациентах. Здесь же можно создавать напоминания — они появятся прямо в этом разделе. Для полноценной работы рекомендую скачать локальную ИИ-модель и всю базу знаний: так всё нужное останется под рукой, даже если пропадёт интернет.';
 
 function isCard(value: unknown): value is PatientCard {
   if (!value || typeof value !== 'object') return false;
@@ -159,6 +164,45 @@ function persist(snapshot: PatientNotesSnapshot): PatientNotesSnapshot {
   });
   window.dispatchEvent(new CustomEvent(PATIENT_NOTES_EVENT, { detail: snapshot }));
   return snapshot;
+}
+
+/** Adds the editable welcome note once; its marker prevents a deleted note from returning. */
+export function injectColleagueNote(): PatientNotesSnapshot {
+  const current = loadPatientNotes();
+  if (window.localStorage.getItem(COLLEAGUE_NOTE_MARKER_KEY)) return current;
+  window.localStorage.setItem(COLLEAGUE_NOTE_MARKER_KEY, '1');
+  if (
+    current.cards.some((card) => card.id === COLLEAGUE_CARD_ID) ||
+    current.notes.some((note) => note.id === COLLEAGUE_NOTE_ID)
+  ) {
+    return current;
+  }
+  const now = new Date().toISOString();
+  return persist({
+    cards: [
+      {
+        id: COLLEAGUE_CARD_ID,
+        title: 'Привет, коллега!',
+        summary: '',
+        createdAt: now,
+        updatedAt: now,
+      },
+      ...current.cards,
+    ],
+    notes: [
+      ...current.notes,
+      {
+        id: COLLEAGUE_NOTE_ID,
+        cardId: COLLEAGUE_CARD_ID,
+        parentNoteId: null,
+        text: COLLEAGUE_NOTE_TEXT,
+        createdAt: now,
+        updatedAt: now,
+        categories: ['Общее'],
+        relatedDocumentIds: [],
+      },
+    ],
+  });
 }
 
 function openNotesDatabase(): Promise<IDBDatabase> {

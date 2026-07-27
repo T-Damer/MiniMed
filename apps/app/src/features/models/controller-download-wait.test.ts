@@ -1,13 +1,39 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LocalModelController } from '@/features/models/controller';
-import { downloadCoordinator } from '@/features/network/download-coordinator';
 
 vi.mock('@/features/models/browser-runtime', () => ({
   BrowserWllamaRuntime: class {
     public readonly kind = 'wllama-web';
     public async isAvailable(): Promise<boolean> {
       return true;
+    }
+    public async load(
+      model: { readonly id: string },
+      artifact: { readonly id: string },
+      _profile: unknown,
+      callbacks: { readonly onProgress: (loaded: number, total: number) => void },
+    ) {
+      callbacks.onProgress(1, 2);
+      callbacks.onProgress(2, 2);
+      return {
+        modelId: model.id,
+        artifactId: artifact.id,
+        async benchmark() {
+          return {
+            modelId: model.id,
+            artifactId: artifact.id,
+            runtime: 'wllama-web',
+            generationMs: 1,
+            outputCharacters: 20,
+            validStructuredOutput: true,
+          };
+        },
+        async completeStructured() {
+          throw new Error('not used');
+        },
+        async unload() {},
+      };
     }
   },
 }));
@@ -34,8 +60,7 @@ describe('local model download coordination', () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it('shows a deferred state while document downloads own the network lane', async () => {
-    const release = downloadCoordinator.beginContentDownload();
+  it('starts loading without waiting for the document queue', async () => {
     const controller = new LocalModelController({
       remoteCatalogUrl: '',
       mirrorBaseUrl: '',
@@ -44,14 +69,11 @@ describe('local model download coordination', () => {
       defaultAutoLoad: true,
     });
 
-    const start = controller.start();
-    await vi.waitFor(() => {
-      expect(controller.getState().phase).toBe('deferred');
-      expect(controller.getState().message).toContain('после загрузки документов');
-    });
-
-    controller.cancelLoad();
-    release();
-    await start;
+    try {
+      await controller.start();
+      expect(controller.getState().phase).toBe('ready');
+    } finally {
+      await controller.dispose();
+    }
   });
 });

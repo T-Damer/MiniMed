@@ -224,7 +224,9 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       >
         <details class="model-catalog-details">
           <summary>
-            Доступные модели <span>{models().length}</span>
+            <strong>Доступные модели</strong>
+            <span>{models().length}</span>
+            <small class="model-catalog-expand-hint" aria-hidden="true" />
           </summary>
           <div class="model-card-grid">
             <For each={models()}>
@@ -339,38 +341,6 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
           Модель не запустилась. Нажмите, чтобы посмотреть причину и повторить проверку.
         </button>
       </Show>
-
-      <details class="doctor-technical-details model-technical-details">
-        <summary>Технические сведения</summary>
-        <div class="model-settings-summary">
-          <div>
-            <span>Режим</span>
-            <strong>{preference().automatic ? 'автоматический' : 'ручной'}</strong>
-          </div>
-          <div>
-            <span>Каталог</span>
-            <strong>{state().catalogSource ?? 'не загружен'}</strong>
-          </div>
-          <div>
-            <span>Устройство</span>
-            <strong>
-              {state().device
-                ? `${state().device?.platform} · ${state().device?.deviceMemoryGb ?? '?'} ГБ`
-                : 'не проверено'}
-            </strong>
-          </div>
-          <Show when={state().benchmark}>
-            {(benchmark) => (
-              <div>
-                <span>Последний тест</span>
-                <strong>
-                  {Math.round(benchmark().loadMs)} мс / {Math.round(benchmark().generationMs)} мс
-                </strong>
-              </div>
-            )}
-          </Show>
-        </div>
-      </details>
 
       <OverlayDialog
         open={showError() && Boolean(state().error)}

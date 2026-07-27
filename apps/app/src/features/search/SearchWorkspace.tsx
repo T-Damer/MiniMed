@@ -40,14 +40,38 @@ interface SearchWorkspaceProps {
   readonly core: MedicalCore;
   readonly scope: SearchScope;
   readonly searchAllowed?: boolean;
+  readonly modePicker?: JSX.Element;
+  readonly placeholder?: string;
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
 }
 
-const EXAMPLES = [
-  'Ребёнок часто дышит и температурит второй день',
-  'Боль справа внизу живота, тошнота и рвота',
-  'Лихорадка без очага и рези при мочеиспускании',
-] as const;
+const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
+  diagnosis: [
+    'Ребёнок часто дышит и температурит второй день',
+    'Боль справа внизу живота, тошнота и рвота',
+    'Лихорадка без очага и рези при мочеиспускании',
+  ],
+  guidelines: [
+    'Внебольничная пневмония у детей: диагностика и лечение',
+    'Клинические рекомендации по острому аппендициту',
+    'Тактика при анафилактическом шоке',
+  ],
+  medications: [
+    'Цефтриаксон: показания и противопоказания',
+    'Ибупрофен: официальная инструкция',
+    'Осельтамивир: лекарственные формы и ограничения',
+  ],
+  legal: [
+    'Порядок оказания медицинской помощи детям',
+    'Информированное добровольное согласие',
+    'Правила выписки рецептов на лекарственные препараты',
+  ],
+  all: [
+    'Внебольничная пневмония у детей',
+    'Цефтриаксон: официальная инструкция',
+    'Порядок оказания медицинской помощи',
+  ],
+};
 
 const INITIAL_DOCUMENT_LIMIT = 5;
 
@@ -128,9 +152,11 @@ const INTENT_LABELS: Readonly<Record<NonNullable<QueryAnalysis['intent']>['prima
 };
 
 function resizeTextarea(element: HTMLTextAreaElement): void {
+  const maxHeight = 260;
   element.style.height = 'auto';
-  // Grows with content; the floor stays low so an empty composer is a line, not a page.
-  element.style.height = `${Math.min(Math.max(element.scrollHeight, 56), 300)}px`;
+  const contentHeight = Math.max(element.scrollHeight, 56);
+  element.style.height = `${Math.min(contentHeight, maxHeight)}px`;
+  element.style.overflowY = contentHeight > maxHeight ? 'auto' : 'hidden';
 }
 
 function factDisplayValue(fact: QueryFact): string {
@@ -165,6 +191,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   let lastSearchedQuery = '';
   let lastAnalyzedQuery = '';
   let searchWasAllowed = props.searchAllowed !== false;
+  let activeScope = props.scope;
 
   const activeAnalysis = createMemo(() => {
     const searched = response();
@@ -193,7 +220,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   createEffect(() => {
     const allowed = props.searchAllowed !== false;
-    if (allowed && !searchWasAllowed && query().trim().length >= 2) {
+    const scopeChanged = activeScope !== props.scope;
+    activeScope = props.scope;
+    if (allowed && (scopeChanged || !searchWasAllowed) && query().trim().length >= 2) {
+      lastSearchedQuery = '';
       void runSearch(query(), false);
     }
     searchWasAllowed = allowed;
@@ -416,8 +446,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   return (
-    <section class="workspace archive-desk" aria-label="Локальный медицинский поиск">
-      <div class="search-column case-folder">
+    <section
+      class="workspace archive-desk"
+      aria-label="Локальный медицинский поиск"
+    >
+      <div
+        class="search-column case-folder"
+        classList={{ 'has-search-content': query().length > 0 }}
+      >
         {/* The page heading lives in SearchHome; repeating a second hero here doubled the height
             a doctor scrolls past before the first result. */}
         <form
@@ -443,7 +479,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               resizeTextarea(event.currentTarget);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Например: 5 лет, мальчик, второй день кашляет и температурит…"
+            placeholder={
+              props.placeholder ?? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
+            }
+            disabled={props.searchAllowed === false}
             maxlength={20_000}
             autocomplete="off"
             autocapitalize="sentences"
@@ -451,7 +490,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           />
           <div class="query-actions">
             <div class="query-shortcuts">
-              <span class="keyboard-only">Автопоиск через 500 мс · Ctrl / ⌘ + Enter — сразу</span>
+              {props.modePicker}
               <Show when={query().length > 16_000}>
                 <strong>{query().length.toLocaleString('ru-RU')} / 20 000</strong>
               </Show>
@@ -479,18 +518,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         <Show when={activeAnalysis()}>
           {(analysis) => (
             <section class="query-index" aria-label="Разбор запроса">
-              <Show when={analysis().intent}>
-                {(intent) => (
-                  <div class="clinical-plan-card paper-card">
-                    <strong>{INTENT_LABELS[intent().primary]}</strong>
-                    <span>
-                      Уверенность {Math.round(intent().confidence * 100)}% · результаты уже
-                      показаны, уточнения не блокируют поиск.
-                    </span>
-                  </div>
-                )}
-              </Show>
-
               <Show when={analysis().suggestions.length > 0}>
                 <div class="index-row suggestions-row">
                   <div class="index-label">
@@ -525,6 +552,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     ? 'Обновляем разбор…'
                     : `Распознано ${analysis().facts.length} полей · показать детали`}
                 </summary>
+                <Show when={analysis().intent}>
+                  {(intent) => (
+                    <div class="clinical-plan-card paper-card">
+                      <strong>{INTENT_LABELS[intent().primary]}</strong>
+                      <span>Уверенность {Math.round(intent().confidence * 100)}%</span>
+                    </div>
+                  )}
+                </Show>
                 <div class="fact-strip">
                   <For each={analysis().facts}>
                     {(fact) => (
@@ -557,23 +592,25 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           )}
         </Show>
 
-        <Show when={!response() && query().length === 0}>
+        <Show when={props.searchAllowed !== false && !response() && query().length === 0}>
           <fieldset class="example-row">
             <legend>Примеры поиска</legend>
-            <For each={EXAMPLES}>
-              {(example, index) => (
-                <button
-                  type="button"
-                  onClick={() => {
-                    updateQuery(example, false);
-                    void runSearch(example, true);
-                  }}
-                >
-                  <span>{String(index() + 1).padStart(2, '0')}</span>
-                  {example}
-                </button>
-              )}
-            </For>
+            <div class="example-scroll">
+              <For each={EXAMPLES_BY_SCOPE[props.scope]}>
+                {(example, index) => (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateQuery(example, false);
+                      void runSearch(example, true);
+                    }}
+                  >
+                    <span>{String(index() + 1).padStart(2, '0')}</span>
+                    {example}
+                  </button>
+                )}
+              </For>
+            </div>
           </fieldset>
         </Show>
 

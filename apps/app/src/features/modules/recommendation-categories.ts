@@ -67,15 +67,18 @@ export function recommendationCategoryDownloadProgress(
     (task) => publishedIds.has(task.moduleId) && !TERMINAL_TASK_STATES.has(task.state),
   );
 
-  let totalBytes = 0;
-  let downloadedBytes = 0;
-  let hasByteTotals = false;
-  for (const task of activeTasks) {
-    if (!task.totalBytes || task.totalBytes <= 0) continue;
-    hasByteTotals = true;
-    totalBytes += task.totalBytes;
-    downloadedBytes += task.downloadedBytes;
-  }
+  const hasCatalogByteTotals = published.every(
+    (module) => module.sizes.downloadBytes !== null && module.sizes.downloadBytes > 0,
+  );
+  const totalBytes = published.reduce((sum, module) => sum + (module.sizes.downloadBytes ?? 0), 0);
+  const downloadedBytes = published.reduce((sum, module) => {
+    const moduleBytes = module.sizes.downloadBytes ?? 0;
+    if (installedModuleIds.has(module.id)) return sum + moduleBytes;
+    const task = activeTasks.find((candidate) => candidate.moduleId === module.id);
+    if (!task?.totalBytes || task.totalBytes <= 0) return sum;
+    const taskFraction = Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));
+    return sum + moduleBytes * taskFraction;
+  }, 0);
 
   return {
     publishedCount: published.length,
@@ -83,6 +86,9 @@ export function recommendationCategoryDownloadProgress(
     activeTaskCount: activeTasks.length,
     installedFraction:
       published.length > 0 ? Math.max(0, Math.min(1, installedCount / published.length)) : 0,
-    byteProgress: hasByteTotals && totalBytes > 0 ? downloadedBytes / totalBytes : null,
+    byteProgress:
+      activeTasks.length > 0 && hasCatalogByteTotals && totalBytes > 0
+        ? downloadedBytes / totalBytes
+        : null,
   };
 }

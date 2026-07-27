@@ -179,6 +179,40 @@ class TestDownloader implements ContentModuleArtifactDownloader {
   }
 }
 
+class BlockingDownloader implements ContentModuleArtifactDownloader {
+  public active = 0;
+  public maxActive = 0;
+  public calls = 0;
+  private readonly releases: Array<() => void> = [];
+
+  public constructor(private readonly bytes: Uint8Array) {}
+
+  public download(
+    _artifact: Artifact,
+    _signal: AbortSignal,
+    onProgress: (progress: { downloadedBytes: number; totalBytes: number | null }) => void,
+  ): Promise<Uint8Array> {
+    this.calls += 1;
+    this.active += 1;
+    this.maxActive = Math.max(this.maxActive, this.active);
+    return new Promise((resolve) => {
+      this.releases.push(() => {
+        this.active -= 1;
+        onProgress({ downloadedBytes: this.bytes.byteLength, totalBytes: this.bytes.byteLength });
+        resolve(this.bytes);
+      });
+    });
+  }
+
+  public releaseOne(): void {
+    this.releases.shift()?.();
+  }
+
+  public releaseAll(): void {
+    for (const release of this.releases.splice(0)) release();
+  }
+}
+
 class TestBackend implements ContentModuleArtifactBackend {
   public readonly staged: string[] = [];
   public discarded = false;
@@ -243,6 +277,48 @@ const runtime = {
 } as const;
 
 describe('ForegroundContentModuleInstaller', () => {
+  it('keeps installs above the concurrency limit queued', async () => {
+    const indexBytes = new Uint8Array([1, 2, 3]);
+    const fixture = await moduleFixture({ indexBytes });
+    const modules = Array.from({ length: 4 }, (_, index) => ({
+      ...fixture.module,
+      id: `minimed.clinical.test-${index + 1}`,
+      title: `Test ${index + 1}`,
+    }));
+    const catalog = {
+      ...fixture.catalog,
+      modules: [fixture.catalog.modules[0] as ContentModuleCatalogEntry, ...modules],
+    };
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(validatedInstallation());
+    const downloader = new BlockingDownloader(indexBytes);
+    const installer = new ForegroundContentModuleInstaller(
+      catalog,
+      runtime,
+      downloader,
+      new TestBackend(),
+      validator(),
+      registry,
+      3,
+    );
+
+    const tasks = modules.map((module) =>
+      installer.install({
+        moduleId: module.id,
+        version: module.version,
+        includeSourceAssets: false,
+      }),
+    );
+    await vi.waitFor(() => expect(downloader.active).toBe(3));
+    expect(installer.listTasks().find((task) => task.id === tasks[3]?.id)?.state).toBe('queued');
+
+    downloader.releaseOne();
+    await vi.waitFor(() => expect(downloader.calls).toBe(4));
+    downloader.releaseAll();
+    await Promise.all(tasks.map((task) => installer.wait(task.id)));
+    expect(downloader.maxActive).toBe(3);
+  });
+
   it('returns immediately, reports progress and activates only after validation', async () => {
     const indexBytes = new Uint8Array([1, 2, 3]);
     const sourceBytes = new Uint8Array([4, 5]);

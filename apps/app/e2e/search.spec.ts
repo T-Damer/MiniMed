@@ -18,18 +18,30 @@ async function chooseScope(page: Page, name: RegExp): Promise<void> {
   await page.getByRole('radio', { name }).click();
 }
 
-test('requires a search task before showing the query field', async ({ page }) => {
+test('requires a search mode before enabling the query field', async ({ page }) => {
   await mountBuiltApp(page);
 
-  await expect(page.getByText('В каком разделе искать?')).toBeVisible();
-  await expect(page.getByTestId('search-input')).toHaveCount(0);
+  await expect(page.getByTestId('search-input')).toBeVisible();
+  await expect(page.getByTestId('search-input')).toBeDisabled();
+  await expect(page.getByTestId('search-input')).toHaveAttribute(
+    'placeholder',
+    'Выберите режим поиска',
+  );
   await chooseScope(page, /В клин\. рекомендациях/u);
 
-  await expect(page.getByTestId('search-input')).toBeVisible();
+  await expect(page.getByTestId('search-input')).toBeEnabled();
   await expect(page.getByTestId('search-submit')).toBeEnabled();
-  await expect(
-    page.getByText(/Искать только в установленных клинических рекомендациях/u),
-  ).toBeVisible();
+  await expect(page.getByRole('radio', { name: /В клин\. рекомендациях/u })).toBeChecked();
+});
+
+test('translates vertical wheel movement into horizontal mode scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page);
+
+  const modes = page.locator('.search-mode-picker');
+  await modes.hover();
+  await page.mouse.wheel(0, 180);
+  await expect.poll(() => modes.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
 });
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
@@ -103,8 +115,12 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Всегда доступно/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Лекарства, документы и нормы/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Клинические рекомендации/u })).toBeVisible();
+  await page.getByRole('button', { name: /Клинические рекомендации/u }).click();
+  await expect(page).toHaveURL(/#\/modules\/documents\/recommendations/u);
   await expect(page.getByRole('button', { name: /^Инфекционные болезни/u })).toBeVisible();
   await expect(page.getByText('Обновление списка наборов')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Назад' }).click();
   await page.getByRole('button', { name: /Клиническая педиатрия/u }).click();
   await expect(page).toHaveURL(/#\/modules\/documents\/collection\//u);
   await expect(page.getByRole('button', { name: 'Назад' })).toHaveCount(1);
@@ -120,7 +136,6 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
-  await page.getByRole('button', { name: 'Сменить' }).click();
   await chooseScope(page, /Препараты/u);
 
   // History now lives behind a floating button so the search view stays compact.
@@ -134,9 +149,7 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await historyEntry.click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
-  await expect(
-    page.getByText(/Обычный локальный поиск по всем установленным источникам/u),
-  ).toBeVisible();
+  await expect(page.getByRole('radio', { name: /Всё без диагностики/u })).toBeChecked();
   await expect(pneumoniaResult(page)).toBeVisible();
 });
 
@@ -189,4 +202,28 @@ test('shows neuroinfection clarifications without hiding search results', async 
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
   await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 3_000 });
+});
+
+test('asks before activating an installed application update', async ({ page }) => {
+  await mountBuiltApp(page);
+  await page.evaluate(() => {
+    const worker = {
+      postMessage: (message: unknown) => {
+        (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage = message;
+      },
+    };
+    window.dispatchEvent(new CustomEvent('minimed:app-update-ready', { detail: { worker } }));
+  });
+
+  const update = page.getByRole('button', { name: 'Обновить приложение' });
+  await expect(update).toBeVisible();
+  await update.click();
+  await expect(page.getByRole('button', { name: 'Обновляем приложение…' })).toBeDisabled();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage,
+      ),
+    )
+    .toEqual({ type: 'SKIP_WAITING' });
 });

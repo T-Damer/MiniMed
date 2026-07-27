@@ -271,6 +271,10 @@
   border-color: rgb(64 91 78 / 42%);
 }
 
+.model-state-badge.deferred {
+  text-align: center;
+}
+
 .model-state-badge.error {
   color: var(--stamp);
   border-color: rgb(135 69 60 / 42%);
@@ -371,16 +375,24 @@
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
   border: 1px solid var(--paper-line);
-  background: rgb(251 247 234 / 62%);
-}
-
-.model-option-card.recommended {
-  border-color: var(--green-file);
-  box-shadow: 0 0 0 1px rgb(64 91 78 / 10%) inset;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
 }
 
 .model-option-card.active {
-  background: rgb(225 234 216 / 54%);
+  background:
+    linear-gradient(var(--theme-accent-soft), var(--theme-accent-soft)),
+    var(--theme-surface-raised);
+}
+
+.model-option-card.recommended {
+  border-color: var(--theme-accent);
+  background:
+    linear-gradient(var(--theme-accent-soft), var(--theme-accent-soft)),
+    var(--theme-surface-raised);
+  box-shadow:
+    0.25rem 0 0 var(--theme-accent) inset,
+    0 0 0 0.125rem var(--theme-accent-soft);
 }
 
 .model-option-card.loading {
@@ -438,14 +450,11 @@
   white-space: nowrap;
 }
 
-.model-option-status.active {
-  color: var(--green-file);
-  border-color: rgb(64 91 78 / 42%);
-}
-
+.model-option-status.active,
 .model-option-status.recommended {
-  color: var(--green-file);
-  border-color: rgb(64 91 78 / 42%);
+  color: var(--theme-accent-contrast);
+  border-color: var(--theme-accent);
+  background: var(--theme-accent);
 }
 
 .model-option-status.warning {

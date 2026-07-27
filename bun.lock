@@ -15,7 +15,7 @@
     },
     "apps/app": {
       "name": "@localmed/app",
-      "version": "0.6.2",
+      "version": "0.6.3",
       "dependencies": {
         "@capacitor/core": "8.4.2",
         "@kobalte/core": "0.13.7",
@@ -43,7 +43,7 @@
     },
     "apps/landing": {
       "name": "@localmed/landing",
-      "version": "0.6.2",
+      "version": "0.6.3",
       "dependencies": {
         "astro": "7.1.3",
       },

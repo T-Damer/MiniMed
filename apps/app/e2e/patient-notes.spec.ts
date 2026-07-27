@@ -6,7 +6,13 @@ function navigationButton(page: Page, name: string) {
   return page.locator('.app-bottom-nav').getByRole('button', { name, exact: true });
 }
 
-test('keeps patient note records local, editable in modals, and findable from search', async ({
+function futureDateInput(days = 2): string {
+  const date = new Date(Date.now() + days * 86_400_000);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 10);
+}
+
+test('keeps patient note records local, editable in nested routes, and findable from search', async ({
   page,
 }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
@@ -23,25 +29,27 @@ test('keeps patient note records local, editable in modals, and findable from se
   await expect(card).toBeVisible();
   await card.click();
 
-  const cardDialog = page.locator('.patient-card-detail-dialog');
-  await cardDialog
+  await expect(page).toHaveURL(/#\/notes\/.+/u);
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await expect(page).toHaveURL(/\/records\/new$/u);
+  await page
     .getByLabel('Новая заметка для Иванов И., 3 года, 20 кг')
     .fill('Назначен цефтриаксон, вторая линия при пневмонии');
-  await cardDialog.getByRole('button', { name: 'Добавить запись' }).click();
-  const record = cardDialog.locator('.patient-note-record');
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  const record = page.locator('.patient-note-record');
   await expect(record).toContainText('Назначен цефтриаксон');
   await record.getByRole('button').first().click();
-  await expect(page.locator('.patient-note-detail-dialog')).toContainText('Назначен цефтриаксон');
-  await page.locator('.patient-note-detail-dialog').getByLabel('Закрыть').click();
-  await cardDialog.getByLabel('Закрыть').click();
+  await expect(page.getByRole('heading', { name: 'Редактировать запись' })).toBeVisible();
+  await expect(page.getByLabel('Текст записи')).toHaveValue(/Назначен цефтриаксон/u);
+  await page.getByLabel('Назад к записям').click();
+  await navigationButton(page, 'Поиск').click();
+  await navigationButton(page, 'Заметки').click();
+  await expect(page.getByRole('heading', { name: 'Заметки' })).toBeVisible();
+  await card.click();
 
   // The note survives a reload, because it lives on this device only.
   await page.reload();
-  await navigationButton(page, 'Заметки').click();
-  const reloadedCard = page.locator('.patient-card').filter({ hasText: 'Иванов И.' });
-  await reloadedCard.click();
   await expect(page.locator('.patient-note-record')).toContainText(/Назначен цефтриаксон/u);
-  await page.locator('.patient-card-detail-dialog').getByLabel('Закрыть').click();
 
   // Searching finds it, labelled as personal and outside the official results container.
   await navigationButton(page, 'Поиск').click();
@@ -108,7 +116,7 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
   await expect(cards.first()).toHaveClass(/has-due-reminder/u);
 
   await cards.first().click();
-  const link = page.locator('.patient-card-detail-dialog .note-reminder-link');
+  const link = page.locator('.note-reminder-link');
   await expect(link).toHaveClass(/due/u);
   await link.click();
 
@@ -135,13 +143,32 @@ test('a reminder can be attached while writing a note', async ({ page }) => {
 
   const card = page.locator('.patient-card').filter({ hasText: 'Сидорова А.' });
   await card.click();
-  const cardDialog = page.locator('.patient-card-detail-dialog');
-  await cardDialog.getByLabel('Новая заметка для Сидорова А.').fill('Повторный осмотр');
-  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-  await cardDialog.getByLabel('Дата напоминания').fill(tomorrow);
-  await cardDialog.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.getByLabel('Новая заметка для Сидорова А.').fill('Повторный осмотр');
+  await page.getByLabel('Дата напоминания').fill(futureDateInput());
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
 
-  const link = cardDialog.locator('.note-reminder-link');
+  const link = page.locator('.note-reminder-link');
   await expect(link).toBeVisible();
   await expect(link).not.toHaveClass(/due/u);
+});
+
+test('requires a valid reminder timestamp before installation', async ({ page }) => {
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await navigationButton(page, 'Заметки').click();
+  await page.getByRole('button', { name: 'Создать карточку' }).click();
+  await page.getByLabel('Название карточки').fill('Орлова М.');
+  await page.getByRole('button', { name: 'Создать', exact: true }).click();
+  await page.locator('.patient-card').filter({ hasText: 'Орлова М.' }).click();
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.getByLabel('Новая заметка для Орлова М.').fill('Контроль состояния');
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.locator('.patient-note-record').getByRole('button').first().click();
+
+  const install = page.getByRole('button', { name: 'Установить' });
+  await expect(install).toBeDisabled();
+  await page.getByLabel('Дата напоминания').fill(futureDateInput());
+  await expect(install).toBeEnabled();
+  await install.click();
+  await expect(page.locator('.note-reminder-link')).toBeVisible();
 });

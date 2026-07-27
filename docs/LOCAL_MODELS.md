@@ -97,6 +97,9 @@ downloads receive a strong penalty unless the device has at least 12 GB RAM and 
 recommended memory. This permits QVikhr 1.7B on suitable 8 GB devices while keeping Qwen 1.7B Q8 and
 larger candidates conservative.
 
+The selected model uses a reserved download slot. It may download alongside up to three document
+modules and never waits behind the document queue.
+
 This recommendation is a device-fit estimate. The loaded model then has to return valid compact JSON
 for a fixed Russian query. A failure records a seven-day cooldown and tries one smaller candidate.
 

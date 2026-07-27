@@ -1,8 +1,8 @@
 # Current state
 
-> Updated: 27 July 2026
-> Repository version: `0.6.2`
-> Active target: `0.6.2` release candidate toward `1.0`
+> Updated: 28 July 2026
+> Repository version: `0.6.3`
+> Active target: `0.6.3` release candidate toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -37,29 +37,39 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 ### Browser workspace
 
 - Three primary sections in a compact bottom navigation bubble: search, knowledge base, and personal
-  notes. Document archive and local-model settings are knowledge-base subroutes.
-- Search mode is an explicit first choice and remains blocked until the selected scope has documents.
+  notes. Directional iOS-style entry motion follows their left-to-right order, while document,
+  note, and local-model subroutes remain instant.
+- Search mode is an explicit compact choice inside the query composer; the disabled field prompts for
+  a mode first, and the horizontally scrollable mode strip remains available for direct switching.
+  The idle composer is vertically centered, then moves smoothly to the top when a query begins;
+  scope-specific examples stay on one horizontally scrollable line. Search text expands to a bounded
+  height before scrolling internally, while note editors expand with their content.
 - Recent device-local search history opens from a floating drawer, preserves the selected source
   scope, and can show the current-session result cache immediately while refreshing in the background.
-- The paper/archive design remains, with materially smaller gutters, cards, controls, result rows,
-  module tiles, model tiles, and responsive mobile spacing.
+- The paper/archive design uses one top-level semantic color palette in light and dark modes, a
+  shared 65-character page measure, and compact cards, controls, result rows, and responsive spacing.
 - Personal cards use a responsive three-column sticker board and a focused creation dialog opened
-  from a floating add button. Cards and dated records open in separate editor dialogs.
+  from a floating add button. Card timelines and dated-record editors use nested note routes; card
+  edit/delete actions are compact icon controls. On first launch, an editable colleague card and
+  record introduce the local notes workflow; once removed, they stay removed.
 - Local-model detection is user-initiated; its CPU probe runs in a Worker and model choices stay
   collapsed until requested.
 - The knowledge-base overview reports the model and corpus state, then opens dedicated document and
   model subroutes without mixing every document family into one long page.
-- Document drilldown exposes the built-in core, section recommendation lists, full-document opening,
-  bulk download, background update pause, rollback to retained older versions, and nested URLs for
-  opened collections and recommendation sections.
-- Module and model downloads share retry/backoff, resume partial bytes, keep retrying in the
-  background, and expose titled floating progress with bulk retry.
+- The document overview exposes four entry cards, including clinical recommendations. Drilldown
+  exposes the built-in core, section recommendation lists, full-document opening, bulk download,
+  background update pause, rollback to retained older versions, and nested URLs for opened
+  collections and recommendation sections.
+- Module and model downloads share retry/backoff and resumable partial bytes, but use independent
+  network lanes: up to three document installs run concurrently while additional documents remain
+  queued, and the selected model always receives its own download slot.
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
   medication, legal, and personal-note sources.
 - Model settings distinguish always-available offline search from the optional local model and expose
   model size, requirements, advantages, limitations, and model selection.
-- A selected model waiting behind document downloads is reported as deferred rather than remaining
-  indefinitely in the active “selecting” state.
+- Browser application updates install in the background but wait for explicit approval in the shared
+  floating system-status area before the new service worker activates and reloads the page.
+- The paper workspace follows the device light/dark preference without adding an application toggle.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
@@ -72,7 +82,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 ### Personal notes
 
 - Device-local patient cards support editable summaries and a flat dated record timeline; the former
-  nested-reply editor is no longer exposed.
+  nested-reply editor is no longer exposed. Card and record deletion require an accessible Kobalte
+  alert-dialog confirmation.
 - New and edited notes receive deterministic topic labels, are mirrored to IndexedDB, and are
   enriched through the search worker after the editor yields. Related sources appear only with
   sufficient meaningful-term overlap and a readable document title.
@@ -115,7 +126,8 @@ ordinary search response when validation fails.
 - Published snapshot `clinical-json-2026.07.27-13991c1feee5` contains 744 checksummed SQLite modules
   plus its manifest and catalog fragment. Clinical source-PDF archives are no longer published.
 - The knowledge base lists individual recommendations under 21 visible medical sections and supports
-  individual or section-level installation.
+  individual or section-level installation. Cross-listed recommendations are downloaded once, and
+  each section's progress remains relative to its complete document list.
 - Official GRLS inventory contains 38,815 unique registration records from 140,274 status/version rows,
   with the source ZIP, edition, and checksums retained locally.
 - Current official instruction synchronization covers eight pilot medications; seven text-layer PDFs
@@ -153,7 +165,7 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.2 gate passes 17 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.3 gate includes 19 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
 
@@ -182,7 +194,7 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Finish the 0.6.2 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
+1. Finish the 0.6.3 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
    the measured Replicate pilot decision.
 2. Add verified OCR for the blocked drug instruction.
 3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.

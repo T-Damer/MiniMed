@@ -10,30 +10,30 @@
   border: 0 !important;
 }
 
-.search-scope-prompt {
-  margin: 0.75rem 0 0.5rem;
-  padding: 0.75rem 0.875rem;
-}
-
-.search-scope-prompt p {
-  margin: 0.25rem 0 0;
-}
-
-/* Scope selection is a chip row attached to the composer, not a grid of cards: the five options
-   must not cost more screen than the query they configure. */
 fieldset.search-mode-picker {
   display: flex;
+  width: 100%;
   min-inline-size: 0;
-  flex-wrap: wrap;
-  gap: 0.3125rem;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
   border: 0;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+fieldset.search-mode-picker::-webkit-scrollbar {
+  display: none;
 }
 
 .search-mode-picker label {
   position: relative;
   display: inline-flex;
   min-width: 0;
-  min-height: 1.875rem;
+  min-height: 1.625rem;
   flex: none;
   align-items: center;
   padding: 0;
@@ -87,14 +87,14 @@ fieldset.search-mode-picker {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
+  padding: 0.1875rem 0.5625rem;
   pointer-events: none;
 }
 
 .search-mode-option-copy strong {
   overflow: hidden;
   font-family: var(--font-sans);
-  font-size: 0.7812rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -108,12 +108,23 @@ fieldset.search-mode-picker {
   text-transform: uppercase;
 }
 
+.search-workspace-main .query-shortcuts {
+  min-width: 0;
+  flex: 1;
+  flex-wrap: nowrap;
+}
+
+.search-workspace-main .query-sheet textarea:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   .search-mode-picker label {
-    min-height: 2rem;
+    min-height: 1.75rem;
   }
 
   .search-mode-option-copy {
-    padding: 0.25rem 0.625rem;
+    padding: 0.1875rem 0.5rem;
   }
 }

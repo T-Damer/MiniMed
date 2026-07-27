@@ -1,6 +1,7 @@
 import { render } from 'solid-js/web';
 
 import { App } from '@/app/App';
+import { registerAppServiceWorker } from '@/state/app-update';
 import 'overlayscrollbars/overlayscrollbars.css';
 import '@/styles/global.css';
 import '@/styles/archive-search.css';
@@ -16,6 +17,7 @@ import '@/styles/grounded-assistant.css';
 import '@/styles/compact-release.css';
 import '@/styles/search-scope-radio.css';
 import '@/styles/download-status.css';
+import '@/styles/theme-dark.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
@@ -23,5 +25,7 @@ if (!root) throw new Error('Missing #root element.');
 render(() => <App />, root);
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  navigator.serviceWorker.register('./sw.js').catch(() => undefined);
+  void registerAppServiceWorker().catch(() => {
+    console.warn('Не удалось проверить обновление приложения.');
+  });
 }

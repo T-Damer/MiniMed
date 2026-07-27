@@ -63,6 +63,13 @@ export interface ContentModuleIndexValidator {
 }
 
 export type ContentModuleTaskListener = (task: ContentModuleDownloadTask) => void;
+type ReleaseInstallSlot = () => void;
+
+interface InstallSlotWaiter {
+  readonly signal: AbortSignal;
+  readonly resolve: (release: ReleaseInstallSlot | null) => void;
+  readonly onAbort: () => void;
+}
 
 interface ParsedVersion {
   readonly major: number;
@@ -169,6 +176,8 @@ export class ForegroundContentModuleInstaller {
   private readonly controllers = new Map<string, AbortController>();
   private readonly completions = new Map<string, Promise<ContentModuleDownloadTask>>();
   private readonly listeners = new Set<ContentModuleTaskListener>();
+  private readonly installSlotWaiters: InstallSlotWaiter[] = [];
+  private activeInstalls = 0;
 
   public constructor(
     catalog: ContentModuleCatalog,
@@ -177,8 +186,57 @@ export class ForegroundContentModuleInstaller {
     private readonly backend: ContentModuleArtifactBackend,
     private readonly validator: ContentModuleIndexValidator,
     private readonly registry: InstalledModuleRegistry,
+    private readonly maxConcurrentInstalls = Number.POSITIVE_INFINITY,
   ) {
     this.catalog = ContentModuleCatalogSchema.parse(catalog);
+    if (maxConcurrentInstalls < 1) {
+      throw new Error('maxConcurrentInstalls must be at least 1.');
+    }
+  }
+
+  private releaseInstallSlot(): void {
+    this.activeInstalls = Math.max(0, this.activeInstalls - 1);
+    while (this.installSlotWaiters.length > 0) {
+      const waiter = this.installSlotWaiters.shift();
+      if (!waiter) return;
+      waiter.signal.removeEventListener('abort', waiter.onAbort);
+      if (waiter.signal.aborted) {
+        waiter.resolve(null);
+        continue;
+      }
+      this.activeInstalls += 1;
+      waiter.resolve(this.createInstallSlotRelease());
+      return;
+    }
+  }
+
+  private createInstallSlotRelease(): ReleaseInstallSlot {
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.releaseInstallSlot();
+    };
+  }
+
+  private acquireInstallSlot(signal: AbortSignal): Promise<ReleaseInstallSlot | null> {
+    if (signal.aborted) return Promise.resolve(null);
+    if (this.activeInstalls < this.maxConcurrentInstalls) {
+      this.activeInstalls += 1;
+      return Promise.resolve(this.createInstallSlotRelease());
+    }
+    return new Promise((resolve) => {
+      let waiter: InstallSlotWaiter;
+      const onAbort = (): void => {
+        const index = this.installSlotWaiters.indexOf(waiter);
+        if (index >= 0) this.installSlotWaiters.splice(index, 1);
+        resolve(null);
+      };
+      waiter = { signal, resolve, onAbort };
+      this.installSlotWaiters.push(waiter);
+      signal.addEventListener('abort', onAbort, { once: true });
+      if (signal.aborted) onAbort();
+    });
   }
 
   public listTasks(): readonly ContentModuleDownloadTask[] {
@@ -266,7 +324,12 @@ export class ForegroundContentModuleInstaller {
     const staged: StagedContentModuleArtifact[] = [];
     const bytesByArtifact = new Map<string, Uint8Array>();
     const completedBytes = new Map<string, number>();
+    let releaseInstallSlot: ReleaseInstallSlot | null = null;
     try {
+      releaseInstallSlot = await this.acquireInstallSlot(signal);
+      if (!releaseInstallSlot || signal.aborted) {
+        return this.setTask(task.id, { state: 'cancelled', errorMessage: null });
+      }
       this.setTask(task.id, { state: 'downloading' });
       for (const artifact of artifacts) {
         if (!artifact.url || !artifact.sha256) {
@@ -345,6 +408,7 @@ export class ForegroundContentModuleInstaller {
         errorMessage: cause instanceof Error ? cause.message : 'Module installation failed.',
       });
     } finally {
+      releaseInstallSlot?.();
       this.controllers.delete(task.id);
       this.completions.delete(task.id);
     }
