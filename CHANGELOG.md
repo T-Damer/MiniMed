@@ -4,6 +4,27 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-27
+
+### Added
+
+- Official Ministry structured-JSON ingestion for all clinical recommendations, preserving headings,
+  table cells/spans, and embedded figures in one offline SQLite file per recommendation.
+- Automatic search-scope detection, worker-based retrieval, virtualized results, deep document
+  browsing, resilient bulk downloads/updates, and device-local patient notes with reminders.
+
+### Changed
+
+- Clinical module versions use the `0.6.0-json.*` line and replace installed `0.5.0-snapshot.*`
+  versions through the existing verified background-update and rollback lifecycle.
+- Clinical recommendation downloads no longer include original PDF archives or raw JSON.
+- The document reader renders validated structured tables and images without injecting source HTML.
+
+### Verification boundary
+
+- Deterministic search remains available offline without a local model or network.
+- Personal notes remain device-local notebook data, not an electronic medical record.
+
 ## [0.5.1] - 2026-07-24
 
 ### Changed

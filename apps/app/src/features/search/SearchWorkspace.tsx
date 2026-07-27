@@ -8,7 +8,17 @@ import type {
   SearchResultCategory,
   SearchSuggestion,
 } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
+import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
@@ -22,6 +32,8 @@ import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '@/state/search-history
 
 interface SearchWorkspaceProps {
   readonly core: MedicalCore;
+  readonly searchAllowed?: boolean;
+  readonly onAnalysis?: (analysis: QueryAnalysis) => void;
 }
 
 const EXAMPLES = [
@@ -145,6 +157,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // Last trimmed queries that completed, so whitespace-only edits skip the heavy work entirely.
   let lastSearchedQuery = '';
   let lastAnalyzedQuery = '';
+  let searchWasAllowed = props.searchAllowed !== false;
 
   const activeAnalysis = createMemo(() => {
     const searched = response();
@@ -155,6 +168,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const resultCount = createMemo(
     () => response()?.groups.reduce((total, group) => total + group.results.length, 0) ?? 0,
   );
+  const visibleGroups = createMemo(() => {
+    const groups = response()?.groups ?? [];
+    return showAllGroups() ? groups : groups.slice(0, INITIAL_DOCUMENT_LIMIT);
+  });
 
   const visibleContextChunks = createMemo(() => {
     const resolved = context();
@@ -165,6 +182,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
     if (contextExpanded()) return resolved.chunks;
     return resolved.chunks.filter((chunk) => chunk.id === resolved.focusChunkId);
+  });
+
+  createEffect(() => {
+    const allowed = props.searchAllowed !== false;
+    if (allowed && !searchWasAllowed && query().trim().length >= 2) {
+      void runSearch(query(), false);
+    }
+    searchWasAllowed = allowed;
   });
 
   const handleReplaySearch = (event: Event): void => {
@@ -219,6 +244,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       if (result.ok) {
         lastAnalyzedQuery = trimmed;
         setDraftAnalysis(result.value);
+        props.onAnalysis?.(result.value);
       }
     }, 180);
   }
@@ -242,6 +268,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   function updateQuery(value: string, debounce = true): void {
     setQuery(value);
+    if (response()?.analysis.originalQuery !== value.trim()) {
+      setResponse(undefined);
+      setContext(undefined);
+      setShowAllGroups(false);
+    }
     scheduleAnalysis(value);
     if (debounce) scheduleSearch(value);
   }
@@ -249,6 +280,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   async function runSearch(nextQuery = query(), recordHistory = true): Promise<void> {
     const trimmed = nextQuery.trim();
     if (!trimmed) return;
+    if (props.searchAllowed === false) {
+      setLoading(false);
+      return;
+    }
     if (searchTimer) clearTimeout(searchTimer);
 
     const generation = ++searchGeneration;
@@ -412,7 +447,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 class="search-button"
                 data-testid="search-submit"
                 type="submit"
-                disabled={loading()}
+                disabled={loading() || props.searchAllowed === false}
               >
                 <span>{loading() ? 'Ищем…' : 'Найти сейчас'}</span>
                 <b aria-hidden="true">↵</b>
@@ -560,13 +595,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 classList={{ 'results-refreshing': loading() }}
                 data-testid="search-results"
               >
-                <For
-                  each={
-                    showAllGroups()
-                      ? searchResponse().groups
-                      : searchResponse().groups.slice(0, INITIAL_DOCUMENT_LIMIT)
-                  }
-                >
+                <WindowVirtualizer data={visibleGroups()} bufferSize={400}>
                   {(group, groupIndex) => {
                     const expanded = () => expandedGroups().includes(group.documentId);
                     const visibleResults = () =>
@@ -641,7 +670,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       </section>
                     );
                   }}
-                </For>
+                </WindowVirtualizer>
               </div>
               <Show when={searchResponse().groups.length > INITIAL_DOCUMENT_LIMIT}>
                 <button

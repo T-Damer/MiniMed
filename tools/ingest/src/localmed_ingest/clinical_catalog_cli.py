@@ -126,7 +126,7 @@ def plan_sources_command(
     generated_at: Annotated[str | None, typer.Option("--generated-at")] = None,
     force: Annotated[bool, typer.Option("--force")] = False,
 ) -> None:
-    """Generate the complete PDF mirror plan and one-document registries."""
+    """Generate the complete official JSON mirror plan and one-document registries."""
     report = build_clinical_source_plan(
         ledger,
         output_root,
@@ -172,7 +172,6 @@ def build_documents_command(
 def package_snapshot_command(
     plan_root: Annotated[Path, typer.Option("--plan-root", exists=True, file_okay=False)],
     build_root: Annotated[Path, typer.Option("--build-root", exists=True, file_okay=False)],
-    source_root: Annotated[Path, typer.Option("--source-root", exists=True, file_okay=False)],
     output_root: Annotated[Path, typer.Option("--output-root")],
     snapshot_id: Annotated[str, typer.Option("--snapshot-id")],
     release_base_url: Annotated[str, typer.Option("--release-base-url")],
@@ -183,7 +182,6 @@ def package_snapshot_command(
     report = package_clinical_snapshot(
         plan_root,
         build_root,
-        source_root,
         output_root,
         snapshot_id=snapshot_id,
         release_base_url=release_base_url,

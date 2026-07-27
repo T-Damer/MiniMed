@@ -66,10 +66,10 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
 
     assert report["recommendations"] == 2
     sync_manifest = load_sync_manifest(output / "sources.yaml")
-    assert {source.target for source in sync_manifest.sources} == {"714_2.pdf", "53_2.pdf"}
-    pneumonia = next(source for source in sync_manifest.sources if source.target == "714_2.pdf")
-    assert pneumonia.location.endswith("GetClinrecPdf&id=714_2")
-    assert pneumonia.max_bytes == 256 * 1024 * 1024
+    assert {source.target for source in sync_manifest.sources} == {"714_2.json", "53_2.json"}
+    pneumonia = next(source for source in sync_manifest.sources if source.target == "714_2.json")
+    assert pneumonia.location.endswith("GetClinrec2&id=714_2&ssid=undefined")
+    assert pneumonia.max_bytes == 128 * 1024 * 1024
 
     registry = load_source_registry(output / "registries" / "714_2.yaml")
     assert registry.pack.id == "minimed.clinical.recommendation.714_2"
@@ -84,16 +84,13 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
     assert recommendation["downloadModuleId"] == "minimed.clinical.recommendation.714_2"
     assert recommendation["rights"] == "unknown"
 
-    source_root = tmp_path / "sources"
     build_root = tmp_path / "build"
-    source_root.mkdir()
     (build_root / "databases").mkdir(parents=True)
     artifacts = []
     for item in discovery["recommendations"]:
         official_id = item["officialId"]
         database = build_root / "databases" / f"{official_id}.db"
         database.write_bytes(f"database:{official_id}".encode())
-        (source_root / f"{official_id}.pdf").write_bytes(f"%PDF:{official_id}".encode())
         artifacts.append(
             {
                 "officialId": official_id,
@@ -105,6 +102,8 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
                 "documentId": item["recordId"],
                 "documentVersionId": f"{item['recordId']}@test",
                 "sourceChecksum": f"sha256:{'0' * 64}",
+                "structuredTables": 1,
+                "images": 1,
                 "warnings": [],
             }
         )
@@ -116,7 +115,6 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
     snapshot_report = package_clinical_snapshot(
         output,
         build_root,
-        source_root,
         snapshot,
         snapshot_id="clinical-test-1",
         release_base_url="https://example.test/releases/download/clinical-test-1",
@@ -124,7 +122,8 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
     fragment = json.loads((snapshot / "catalog-fragment.json").read_text(encoding="utf-8"))
 
     assert snapshot_report["recommendations"] == 2
-    assert snapshot_report["assets"] == 2 + cast(int, snapshot_report["sourceArchives"]) + 2
+    assert snapshot_report["assets"] == 4
+    assert cast(int, snapshot_report["sourceArchives"]) == 0
     assert len(fragment["modules"]) == 2
     assert all(
         module["artifacts"][0]["url"].startswith(
@@ -152,7 +151,6 @@ def test_builds_versioned_mirror_plan_and_individual_registries(tmp_path: Path) 
     partial_report = package_clinical_snapshot(
         output,
         build_root,
-        source_root,
         tmp_path / "partial-snapshot",
         snapshot_id="clinical-test-partial",
         release_base_url="https://example.test/releases/download/clinical-test-partial",

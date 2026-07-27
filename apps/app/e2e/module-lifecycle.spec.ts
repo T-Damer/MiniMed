@@ -51,7 +51,8 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('tab', { name: 'Каталог загрузок' }).click();
+  await page.getByRole('button', { name: /^Документы/u }).click();
+  await page.getByRole('button', { name: /Лекарства, документы и нормы/u }).click();
 
   const card = regulatoryCard(page);
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible();
@@ -61,6 +62,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await navigationButton(page, 'Поиск').click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
+  await page.getByRole('radio', { name: /Правовые документы/u }).click();
   await page.getByTestId('search-submit').click();
   await expect(page.getByTestId('search-results').getByText(REGULATORY_TITLE).first()).toBeVisible({
     timeout: 10_000,
@@ -73,6 +75,8 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   });
 
   await navigationButton(page, 'Поиск').click();
+  await page.getByRole('button', { name: 'Сменить' }).click();
+  await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение после удаления');
   await page.getByTestId('search-submit').click();
   await expect(page.getByTestId('search-results').getByText(REGULATORY_TITLE)).toHaveCount(0);

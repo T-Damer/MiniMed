@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   addPatientNote,
+  categorizeNoteText,
   childNotes,
   completeNoteReminder,
   createPatientCard,
@@ -64,6 +65,14 @@ describe('patient notes store', () => {
     const followUps = childNotes(loadPatientNotes(), cardId, visit.id);
     expect(followUps).toHaveLength(1);
     expect(followUps[0]?.text).toContain('Контроль через 48 часов');
+  });
+
+  it('categorizes a new note without a model', () => {
+    expect(categorizeNoteText('Ребёнку назначен антибиотик после анализа крови')).toEqual([
+      'Педиатрия',
+      'Препараты',
+      'Диагностика',
+    ]);
   });
 
   it('refuses a note without a card and an orphan nesting target', () => {

@@ -19,6 +19,7 @@ export interface MedicalChunk {
   readonly pageStart: number | null;
   readonly pageEnd: number | null;
   readonly anchor: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
 export interface MedicalSection {

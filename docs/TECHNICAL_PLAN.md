@@ -39,11 +39,14 @@ The browser is the primary target. It uses:
 - SQLite WASM/FTS5 for the default local pack;
 - deterministic portable embeddings for hybrid retrieval;
 - optional wllama CPU/WASM inference;
-- local storage only for preferences, history, bookmarks, and installed-module metadata.
+- browser-local storage for preferences, history, bookmarks, installed-module metadata, and the
+  explicitly separate personal-note layer; IndexedDB holds durable downloads, mounted packs, and the
+  note snapshot mirror.
 
-The primary navigation remains deliberately small: search, knowledge base/documents, and settings.
-Search history belongs beside the active search rather than in a separate top-level page. The search
-screen asks for an explicit source/task scope before accepting a query.
+The primary navigation remains deliberately small: search, knowledge base, and personal notes.
+Documents and the optional local model are knowledge-base subroutes. Search history opens from the
+search screen as a drawer rather than becoming a top-level page. Query analysis selects a confident
+scope automatically and asks for a scope only when confidence is insufficient.
 
 Development and preview servers bind to `127.0.0.1`. Browser automation must not auto-download model
 weights unless explicitly enabled.
@@ -100,9 +103,9 @@ Before clinical qualification, evaluate each supported model on:
 
 ## Content pipeline
 
-Inputs are raw source files or authored Markdown declared in registries. The preparer preserves raw
-checksums and source spans. Agents may propose extraction JSON or prepared Markdown, but they do not
-write production SQLite or silently rewrite source claims.
+Inputs are raw source files, official structured JSON, or authored Markdown declared in registries.
+The preparer preserves raw checksums and available source spans. Agents may propose extraction JSON or
+prepared Markdown, but they do not write production SQLite or silently rewrite source claims.
 
 A publishable pack must pass:
 
@@ -114,8 +117,9 @@ A publishable pack must pass:
 - retrieval benchmarks;
 - version and checksum generation.
 
-Full source text and structured tables belong in the index pack. Original PDFs or images are optional
-matching source assets.
+Full source text and structured tables belong in the index pack. For Ministry clinical
+recommendations, safe embedded figures also belong in that single SQLite pack and original PDFs are
+not published. Other source families may still use optional matching source assets.
 
 ## Data updates
 
@@ -126,9 +130,9 @@ official API. Initial ingestion remains local and explicit:
 declare source → prepare → inspect diagnostics → lint → build → benchmark → install
 ```
 
-A later tracker may poll selected official catalogs for version metadata and download candidates into a
-staging area. It must never replace an active local source without checksum validation and an explicit
-promotion step.
+A trusted catalog may advertise newer versions for already selected modules. The runtime validates the
+download and checksum before activation, records the previous version for rollback, exposes update
+status, and lets the user pause background updates.
 
 ## Milestones toward 1.0
 
@@ -167,8 +171,8 @@ abstain.
 - track owner-selected official source versions;
 - stage and checksum new documents;
 - show diffs and extraction diagnostics;
-- promote only validated packs with rollback metadata;
-- add local-only patient notes as a separate trust layer, with explicit export/delete controls;
+- promote only validated packs, retain rollback metadata, and expose background-update pause;
+- finish local-only patient notes as a separate trust layer, with explicit export/delete controls;
 - evaluate optional on-device Russian transcription without sending recordings to a service.
 
 Done when an update cannot silently change the active corpus, the previous version remains recoverable,

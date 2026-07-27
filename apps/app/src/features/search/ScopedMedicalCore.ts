@@ -13,6 +13,7 @@ import type {
   MedicalDocumentSummary,
   MedicalSection,
   QueryAnalysis,
+  QueryIntent,
   Result,
   SearchRequest,
   SearchResponse,
@@ -26,7 +27,7 @@ const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<string>>>> = {
   guidelines: new Set(['clinical_recommendation', 'clinical_recommendation_summary']),
   medications: new Set(['official_drug_instruction', 'official_registry_summary']),
-  legal: new Set(['regulatory_act']),
+  legal: new Set(['regulatory_act', 'regulatory_act_summary']),
 };
 
 export function documentMatchesSearchScope(
@@ -35,6 +36,21 @@ export function documentMatchesSearchScope(
 ): boolean {
   const sourceTypes = SOURCE_TYPES_BY_SCOPE[scope];
   return sourceTypes ? sourceTypes.has(document.sourceType) : true;
+}
+
+export function inferSearchScope(intent: QueryIntent | undefined): SearchScope | undefined {
+  if (
+    !intent ||
+    intent.confidence < 0.55 ||
+    intent.primary === 'unknown' ||
+    intent.primary === 'mixed'
+  ) {
+    return undefined;
+  }
+  if (intent.primary === 'medication') return 'medications';
+  if (intent.primary === 'administrative-reference') return 'legal';
+  if (intent.primary === 'diagnosis') return 'diagnosis';
+  return 'guidelines';
 }
 
 function intersectDocumentIds(

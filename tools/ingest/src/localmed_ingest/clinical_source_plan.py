@@ -5,7 +5,6 @@ import json
 import re
 import shutil
 import uuid
-import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
@@ -18,12 +17,12 @@ from .models import RegistryPack, RegistrySource, SourceRegistry
 from .source_registry import NoSearchableTextError, prepare_registry
 from .source_sync import SourceSyncManifest, SyncSource
 
-OFFICIAL_CLINICAL_PDF_API = (
-    "https://apicr.minzdrav.gov.ru/api.ashx?op=GetClinrecPdf&id={official_id}"
+OFFICIAL_CLINICAL_JSON_API = (
+    "https://apicr.minzdrav.gov.ru/api.ashx?op=GetClinrec2&id={official_id}&ssid=undefined"
 )
 _OFFICIAL_ID = re.compile(r"^\d+_\d+$")
 _SNAPSHOT_ID = re.compile(r"^[a-z0-9][a-z0-9.-]+$")
-_MAX_CLINICAL_PDF_BYTES = 256 * 1024 * 1024
+_MAX_CLINICAL_JSON_BYTES = 128 * 1024 * 1024
 
 
 def _utc_now() -> str:
@@ -82,18 +81,18 @@ def build_clinical_source_plan(
         for record in ledger.records:
             if not _OFFICIAL_ID.fullmatch(record.official_id):
                 raise ValueError(f"Unsupported official clinical ID: {record.official_id}")
-            pdf_url = OFFICIAL_CLINICAL_PDF_API.format(official_id=record.official_id)
-            filename = f"{record.official_id}.pdf"
+            json_url = OFFICIAL_CLINICAL_JSON_API.format(official_id=record.official_id)
+            filename = f"{record.official_id}.json"
             record_payload = record.model_dump(by_alias=True, mode="json")
             record_checksum = _checksum(record_payload)
             module_id = f"minimed.clinical.recommendation.{record.official_id}"
             sync_sources.append(
                 SyncSource(
                     id=f"clinical-{record.official_id}",
-                    location=pdf_url,
+                    location=json_url,
                     target=filename,
-                    content_type="pdf",
-                    max_bytes=_MAX_CLINICAL_PDF_BYTES,
+                    content_type="text",
+                    max_bytes=_MAX_CLINICAL_JSON_BYTES,
                 )
             )
             registry = SourceRegistry(
@@ -115,11 +114,11 @@ def build_clinical_source_plan(
                         status=record.status,
                         specialties=record.specialties,
                         age_groups=record.age_categories,
-                        format="pdf",
+                        format="clinical_json",
                         metadata={
                             "officialId": record.official_id,
                             "officialSourceUrl": record.official_url,
-                            "sourcePdfUrl": pdf_url,
+                            "sourceJsonUrl": json_url,
                             "sourceCatalogChecksum": ledger.source_checksum,
                             "catalogRecordChecksum": record_checksum,
                             "primaryModuleId": record.primary_module_id,
@@ -149,7 +148,7 @@ def build_clinical_source_plan(
                     "primaryCategoryId": record.primary_module_id,
                     "categoryIds": record.module_ids,
                     "officialUrl": record.official_url,
-                    "sourcePdfUrl": pdf_url,
+                    "sourceJsonUrl": json_url,
                     "catalogRecordChecksum": record_checksum,
                     "downloadModuleId": module_id,
                 }
@@ -197,6 +196,22 @@ def build_clinical_source_plan(
     except Exception:
         shutil.rmtree(temporary, ignore_errors=True)
         raise
+
+
+def _render_block_image_count(block: object) -> int:
+    if not isinstance(block, dict):
+        return 0
+    if block.get("kind") == "image":
+        return 1
+    if block.get("kind") != "table" or not isinstance(block.get("rows"), list):
+        return 0
+    return sum(
+        len(images)
+        for row in cast(list[object], block["rows"])
+        if isinstance(row, dict) and isinstance(row.get("cells"), list)
+        for cell in cast(list[object], row["cells"])
+        if isinstance(cell, dict) and isinstance(images := cell.get("images"), list)
+    )
 
 
 def build_individual_clinical_documents(
@@ -268,6 +283,11 @@ def build_individual_clinical_documents(
         if len(pack.documents) != 1:
             raise ValueError(f"{official_id}: individual module must contain exactly one document.")
         document = pack.documents[0]
+        render_blocks = [
+            chunk.metadata.get("renderBlock")
+            for section in document.sections
+            for chunk in section.chunks
+        ]
         artifacts.append(
             {
                 "officialId": official_id,
@@ -279,6 +299,11 @@ def build_individual_clinical_documents(
                 "documentId": document.id,
                 "documentVersionId": document.version.id,
                 "sourceChecksum": document.version.source_checksum,
+                "structuredTables": sum(
+                    isinstance(block, dict) and block.get("kind") == "table"
+                    for block in render_blocks
+                ),
+                "images": sum(_render_block_image_count(block) for block in render_blocks),
                 "warnings": report.warnings,
             }
         )
@@ -300,7 +325,6 @@ def build_individual_clinical_documents(
 def package_clinical_snapshot(
     plan_root: Path,
     build_root: Path,
-    source_root: Path,
     output_root: Path,
     *,
     snapshot_id: str,
@@ -349,7 +373,7 @@ def package_clinical_snapshot(
     temporary.mkdir(parents=True)
     published_at = _utc_now()
     release_url = release_base_url.rstrip("/")
-    module_version = f"0.5.0-snapshot.{_checksum(snapshot_id).removeprefix('sha256:')[:12]}"
+    module_version = f"0.6.0-json.{_checksum(snapshot_id).removeprefix('sha256:')[:12]}"
     try:
         modules: list[dict[str, object]] = []
         snapshot_records: list[dict[str, object]] = []
@@ -418,7 +442,7 @@ def package_clinical_snapshot(
                         *category_ids,
                     ],
                     "compatibility": {
-                        "minAppVersion": "0.3.3",
+                        "minAppVersion": "0.6.0",
                         "maxAppVersion": None,
                         "schemaVersion": 2,
                         "coreCatalogVersion": "1",
@@ -440,8 +464,8 @@ def package_clinical_snapshot(
                     "capabilities": {
                         "search": True,
                         "fullText": True,
-                        "structuredTables": True,
-                        "images": False,
+                        "structuredTables": cast(int, artifact.get("structuredTables", 0)) > 0,
+                        "images": cast(int, artifact.get("images", 0)) > 0,
                         "originalPdf": False,
                         "structuredKnowledge": False,
                         "calculations": False,
@@ -460,37 +484,7 @@ def package_clinical_snapshot(
                 }
             )
 
-        source_archives: list[dict[str, object]] = []
         categories = cast(list[dict[str, object]], discovery.get("categories", []))
-        for category in categories:
-            category_id = cast(str, category["id"])
-            category_records = [
-                item
-                for item in recommendations.values()
-                if item["primaryCategoryId"] == category_id
-            ]
-            archive_name = (
-                f"clinical-sources-{category_id.removeprefix('minimed.clinical.')}-"
-                f"{snapshot_id}.zip"
-            )
-            archive_path = temporary / archive_name
-            with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_STORED) as archive:
-                for item in category_records:
-                    official_id = cast(str, item["officialId"])
-                    pdf = source_root / f"{official_id}.pdf"
-                    if not pdf.is_file():
-                        raise FileNotFoundError(f"Mirrored source PDF is missing: {pdf}")
-                    archive.write(pdf, arcname=f"{official_id}.pdf")
-            source_archives.append(
-                {
-                    "categoryId": category_id,
-                    "url": f"{release_url}/{archive_name}",
-                    "sha256": _checksum_file(archive_path),
-                    "sizeBytes": archive_path.stat().st_size,
-                    "documents": len(category_records),
-                }
-            )
-
         manifest = {
             "schemaVersion": 1,
             "snapshotId": snapshot_id,
@@ -504,7 +498,7 @@ def package_clinical_snapshot(
                 for official_id in missing
             ],
             "categories": categories,
-            "sourceArchives": source_archives,
+            "sourceArchives": [],
         }
         fragment = {
             "schemaVersion": 1,
@@ -524,8 +518,8 @@ def package_clinical_snapshot(
             "snapshotId": snapshot_id,
             "recommendations": len(modules),
             "unavailableRecommendations": len(missing),
-            "sourceArchives": len(source_archives),
-            "assets": len(modules) + len(source_archives) + 2,
+            "sourceArchives": 0,
+            "assets": len(modules) + 2,
             "manifestChecksum": _checksum(manifest),
         }
     except Exception:

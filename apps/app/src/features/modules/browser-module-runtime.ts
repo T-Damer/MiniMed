@@ -141,6 +141,7 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
         cacheKey,
         expectedBytes: artifact.sizeBytes,
         signal,
+        retryForever: true,
         onProgress: ({ downloadedBytes, totalBytes }) =>
           onProgress({ downloadedBytes, totalBytes }),
       });
@@ -338,7 +339,7 @@ export class BrowserContentModuleRuntime {
     this.registry = createRegistry();
     this.installer = new ForegroundContentModuleInstaller(
       catalog,
-      { appVersion: '0.3.3', schemaVersion: 2, coreCatalogVersion: '1' },
+      { appVersion: '0.6.0', schemaVersion: 2, coreCatalogVersion: '1' },
       new BrowserModuleDownloader(),
       this.backend,
       new BrowserModuleValidator(),
@@ -396,17 +397,17 @@ export class BrowserContentModuleRuntime {
     );
   }
 
-  public async rollback(moduleId: string): Promise<InstalledContentModule> {
+  public async rollback(moduleId: string, version?: string): Promise<InstalledContentModule> {
     return commitRegistryAndArtifactMutation(
       this.registry,
-      () => this.registry.rollback(moduleId),
+      () => this.registry.rollback(moduleId, version),
       (installed) => this.backend.setActive(moduleId, installed.version),
     );
   }
 }
 
 export async function loadInstalledModuleMounts(): Promise<readonly MedicalStoreMount[]> {
-  if (!('indexedDB' in window)) return [];
+  if (!('indexedDB' in globalThis)) return [];
   const database = await openDatabase();
   try {
     const pointers = await readActivePointers(database);

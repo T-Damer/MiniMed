@@ -85,6 +85,31 @@ describe('downloadWithRetry', () => {
     vi.unstubAllGlobals();
   });
 
+  it('keeps retrying transient failures when recovery is requested', async () => {
+    const payload = new Uint8Array([7, 8, 9]);
+    const fetchMock = vi
+      .fn<() => Promise<Response>>()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(payloadResponse(payload));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('indexedDB', undefined);
+
+    const bytes = await downloadWithRetry({
+      url: 'https://example.com/model.gguf',
+      cacheKey: 'sha256:model',
+      expectedBytes: payload.byteLength,
+      retryDelaysMs: [0],
+      retryForever: true,
+    });
+
+    expect([...bytes]).toEqual([...payload]);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+    vi.unstubAllGlobals();
+  });
+
   it('fails fast on a permanent status instead of burning retries', async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 404 }));
     vi.stubGlobal('fetch', fetchMock);

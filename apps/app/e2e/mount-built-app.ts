@@ -49,12 +49,8 @@ export interface MountBuiltAppOptions {
   readonly skipDefaultSearchScope?: boolean;
 }
 
-async function waitForWorkspace(page: Page, skipDefaultSearchScope: boolean): Promise<void> {
-  if (skipDefaultSearchScope) {
-    await page.getByRole('radiogroup', { name: 'Режим поиска' }).waitFor();
-  } else {
-    await page.getByTestId('search-input').waitFor();
-  }
+async function waitForWorkspace(page: Page): Promise<void> {
+  await page.getByTestId('search-input').waitFor();
 
   // The knowledge-base badge deliberately extends the accessible label with an update count. Most
   // navigation tests are not testing that badge, so keep their exact-name helpers deterministic while
@@ -72,62 +68,11 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
   const initialStorage = options.skipDefaultSearchScope
     ? (options.localStorage ?? {})
     : { ...DEFAULT_SEARCH_STORAGE, ...(options.localStorage ?? {}) };
-  const persistentOrigin = options.persistentOrigin || options.skipDefaultSearchScope === true;
-
-  if (persistentOrigin) {
-    await page.addInitScript((initialValues) => {
-      for (const [key, value] of Object.entries(initialValues)) {
-        window.localStorage.setItem(key, value);
-      }
-    }, initialStorage);
-    await page.goto(`${E2E_ASSET_ORIGIN}/`, { waitUntil: 'domcontentloaded' });
-    await waitForWorkspace(page, options.skipDefaultSearchScope === true);
-    return;
-  }
-
-  // Fast UI tests use about:blank because no persistent browser storage is needed. Opaque origins deny
-  // Web Storage, so a standards-shaped in-memory implementation is installed for those tests.
-  await page.evaluate((initialValues) => {
-    const createStorage = (): Storage => {
-      const values = new Map<string, string>();
-      return {
-        get length() {
-          return values.size;
-        },
-        clear() {
-          values.clear();
-        },
-        getItem(key) {
-          return values.get(String(key)) ?? null;
-        },
-        key(index) {
-          return [...values.keys()][index] ?? null;
-        },
-        removeItem(key) {
-          values.delete(String(key));
-        },
-        setItem(key, value) {
-          values.set(String(key), String(value));
-        },
-      };
-    };
-
-    const localStorageValue = createStorage();
+  await page.addInitScript((initialValues) => {
     for (const [key, value] of Object.entries(initialValues)) {
-      localStorageValue.setItem(key, value);
+      window.localStorage.setItem(key, value);
     }
-    Object.defineProperty(window, 'localStorage', {
-      configurable: true,
-      value: localStorageValue,
-    });
-    Object.defineProperty(window, 'sessionStorage', {
-      configurable: true,
-      value: createStorage(),
-    });
   }, initialStorage);
-
-  const source = await readFile(join(DIST_ROOT, 'index.html'), 'utf8');
-  const html = source.replace('<head>', `<head><base href="${E2E_ASSET_ORIGIN}/">`);
-  await page.setContent(html, { waitUntil: 'domcontentloaded' });
-  await waitForWorkspace(page, options.skipDefaultSearchScope === true);
+  await page.goto(`${E2E_ASSET_ORIGIN}/`, { waitUntil: 'domcontentloaded' });
+  await waitForWorkspace(page);
 }

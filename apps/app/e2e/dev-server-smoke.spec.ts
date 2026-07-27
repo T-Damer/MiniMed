@@ -19,26 +19,20 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
   await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('Что вы хотите найти?')).toBeVisible({ timeout: 15_000 });
 
-  // A first-run visitor has no stored scope, so the search field stays locked until a mode is picked.
-  await expect(page.getByText('Поле поиска откроется после выбора режима')).toBeVisible();
-  await page.getByRole('radio', { name: 'Всё без диагностики' }).check();
-
   const searchInput = page.getByTestId('search-input');
   await expect(searchInput).toBeVisible();
   await searchInput.fill('пневмония');
+  await page.getByRole('radio', { name: /В клин\. рекомендациях/u }).click();
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 5_000 });
 
   await navigationButton(page, 'База знаний').click();
-  await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
-  await page.getByRole('tab', { name: 'Каталог загрузок' }).click();
+  await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
+  await page.getByRole('button', { name: /^Документы/u }).click();
+  await page.getByRole('button', { name: /Всегда доступно/u }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
 
-  await page.getByRole('tab', { name: 'Документы на устройстве' }).click();
-  await page.getByRole('button', { name: /Карта связей/u }).click();
-  await expect(page.getByRole('heading', { name: 'Области и документы' })).toBeVisible();
-  await expect(page.getByText('clinical-pharmacology')).toHaveCount(0);
-
-  await navigationButton(page, 'Настройки').click();
-  await expect(page.getByRole('heading', { name: 'Локальная модель' })).toBeVisible();
+  await page.getByRole('button', { name: '← Обзор' }).click();
+  await page.getByRole('button', { name: /^Локальная модель/u }).click();
+  await expect(page.getByRole('heading', { name: 'Модель', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Подобрать автоматически' })).toBeVisible();
 });

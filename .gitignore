@@ -27,10 +27,6 @@ data/synced/*
 data/build/*
 !data/build/.gitkeep
 release-clinical/
-!data/build/core-demo.db
-!data/build/core-demo-report.json
-!data/build/search-benchmark.json
-!data/build/verification-report.md
 apps/app/android/.gradle/
 apps/app/android/local.properties
 apps/app/android/app/build/
@@ -40,4 +36,3 @@ localmed-search.zip
 localmed-search.bundle
 
 *.tsbuildinfo
-!data/build/clinical-case-benchmark.json

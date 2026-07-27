@@ -22,6 +22,11 @@ CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
 - branch construction and suggestions;
 - strong-match rank-fusion regression;
 - snippets and highlight ranges;
+- patient-card validation, nested-note deletion/search, and follow-up reminder ordering/completion;
+- deterministic note categorization and installed-document cross-link segmentation;
+- worker search delegation/fallback and automatic scope inference;
+- module/model retry behavior and persisted partial-download recovery;
+- model catalog, selection, structured output, and grounded-result validation;
 - `MedicalCore` behavior over the shared storage contract;
 - native Capacitor row mapping, read-only FTS query shape, backend diagnostics, and fallback boundary;
 - deterministic IDs, anchors, Markdown parsing, chunking, and hidden provenance markers;
@@ -58,14 +63,16 @@ golden set that is not identical to tuning cases.
 
 ## Browser E2E
 
-Playwright builds the production bundle and verifies the main offline path in Chromium:
+Playwright builds the production bundle and verifies the offline workspace in Chromium:
 
 1. mount the built application without a hosted API;
-2. enter a free-form case;
-3. receive the expected document;
-4. require `FTS5 + VECTOR` mode;
-5. open the source context;
-6. observe a matched term in the original text.
+2. verify automatic/ambiguous search scopes, `FTS5 + VECTOR`, and exact source context;
+3. use the history drawer and preserve mounted view state across bottom-navigation changes;
+4. read documents, expand source context, and exercise the live module lifecycle;
+5. create, edit, nest, search, and delete personal notes outside the official results container;
+6. create and complete follow-up reminders and verify the due badge;
+7. exercise responsive navigation and the knowledge-base/model subroutes without downloading model
+   weights.
 
 ## Native source checks
 

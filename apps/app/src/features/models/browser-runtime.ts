@@ -103,6 +103,7 @@ async function loadModelFromResumableUrl(
     cacheKey,
     expectedBytes,
     signal,
+    retryForever: true,
     onProgress: ({ downloadedBytes, totalBytes }) =>
       callbacks.onProgress(downloadedBytes, totalBytes ?? expectedBytes ?? downloadedBytes),
   });

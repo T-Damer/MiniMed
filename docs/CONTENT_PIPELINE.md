@@ -7,7 +7,7 @@ artifact. Version 0.2.2 supports both synthetic Markdown fixtures and a private 
 workspace.
 
 ```text
-raw source
+raw source or official structured JSON
   → extraction blocks
   → source-preserving Markdown
   → deterministic sections/chunks
@@ -74,6 +74,10 @@ For PDF input a span can contain page, block ID, and bounding box. For TXT input
 line ranges. This allows future UI navigation and parser debugging without exposing citations by
 default.
 
+For official clinical JSON, the marker keeps the Ministry section ID/order and an optional validated
+render block. Table rows, cell spans, and embedded image data remain chunk metadata; base64 image bytes
+never enter visible text, FTS, or embeddings.
+
 ## Commands
 
 Demo pack:
@@ -82,6 +86,10 @@ Demo pack:
 bun run content:build
 ```
 
+The publish step refuses to replace `apps/app/public/content/core-demo.db` when the committed pack
+(built by CI from the pilot corpus) contains more documents than the local fixtures build. Run
+`bun scripts/publish-demo-pack.mjs --force` to overwrite it deliberately.
+
 Private pilot:
 
 ```bash
@@ -89,6 +97,40 @@ bun run content:prepare:private
 bun run content:lint:private
 bun run content:build:private
 ```
+
+Official clinical snapshot:
+
+```bash
+bun run content:catalog:clinical
+bun run content:sync:clinical -- --all
+bun run content:build:clinical:documents -- --all --force
+bun run content:package:clinical:snapshot -- \
+  --snapshot-id clinical-json-YYYY-MM-DD-CHECKSUM \
+  --release-base-url https://github.com/T-Damer/MiniMed/releases/download/TAG \
+  --force
+```
+
+Each recommendation is distributed as one SQLite file containing searchable text, navigable headings,
+structured tables, and safe embedded images. The JSON payload and original PDF are preparation inputs,
+not user downloads.
+
+Optional one-file Replicate OCR pilot:
+
+```bash
+bun run content:ocr:replicate:pilot -- \
+  --input data/raw/example.pdf \
+  --source-root data/raw \
+  --dry-run
+
+REPLICATE_API_TOKEN=... bun run content:ocr:replicate:pilot -- \
+  --input data/raw/example.pdf \
+  --source-root data/raw
+```
+
+The pilot accepts PDF or DOCX, forces OCR, and writes
+`data/intermediate/replicate-ocr/*.ocr-draft.json`. The result is explicitly review-required and is
+never promoted into prepared Markdown or a content pack automatically. `--use-llm` enables Marker's
+optional LLM pass; `--force` replaces only an existing OCR draft.
 
 Direct CLI:
 

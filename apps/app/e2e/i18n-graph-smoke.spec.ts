@@ -9,7 +9,9 @@ function navigationButton(page: import('@playwright/test').Page, name: string) {
 test('shows localized specialty labels in the document library', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('tab', { name: 'Документы на устройстве' }).click();
+  await page.getByRole('button', { name: /^Документы/u }).click();
+  await page.getByRole('button', { name: /Всегда доступно/u }).click();
+  await page.getByRole('button', { name: 'Открыть документы ядра' }).click();
   await expect(page.getByText('Педиатрия').first()).toBeVisible();
   await expect(page.getByText('clinical-pharmacology')).toHaveCount(0);
 

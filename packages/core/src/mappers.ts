@@ -30,6 +30,7 @@ export function toMedicalChunk(record: ChunkRecord): MedicalChunk {
     pageStart: record.pageStart,
     pageEnd: record.pageEnd,
     anchor: record.anchor,
+    metadata: record.metadata,
   };
 }
 

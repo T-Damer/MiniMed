@@ -348,6 +348,7 @@
 }
 
 .search-workspace-main .result-group {
+  margin-bottom: 0.375rem;
   border-radius: 0.3125rem;
 }
 
@@ -1223,6 +1224,37 @@
   margin: 0 0 0.1875rem;
   font-size: 0.8125rem;
   line-height: 1.4;
+}
+
+.patient-note-categories,
+.patient-note-related {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3125rem;
+}
+
+.patient-note-categories span {
+  padding: 0.1875rem 0.4375rem;
+  border-radius: 999px;
+  color: #f7efdc;
+  background: #596b5c;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.patient-note-related > span {
+  color: var(--ink-faint);
+  font-size: 0.6875rem;
+}
+
+.patient-note-related button {
+  padding: 0;
+  border: 0;
+  color: #8f3f35;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .patient-note-actions {

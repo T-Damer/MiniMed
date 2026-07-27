@@ -26,7 +26,8 @@
     "@localmed/storage-capacitor": "workspace:*",
     "@localmed/storage-sqlite": "workspace:*",
     "@localmed/test-fixtures": "workspace:*",
-    "solid-js": "1.9.14"
+    "solid-js": "1.9.14",
+    "virtua": "0.49.3"
   },
   "devDependencies": {
     "@capacitor/android": "8.4.2",

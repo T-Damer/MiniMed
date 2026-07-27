@@ -10,9 +10,11 @@ import {
   sourceTypeReaderLabel,
 } from '@/features/library/document-display';
 import {
-  buildMedicationLinkPhrases,
+  buildDocumentLinkPhrases,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
+import { DocumentRichBlock } from '@/features/library/document-rich-block';
+import { readDocumentRenderBlock } from '@/features/library/document-rich-block-data';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface DocumentReaderDialogProps {
@@ -39,8 +41,8 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
   const availableIds = createMemo(
     () => new Set((props.availableDocuments ?? []).map((document) => document.id)),
   );
-  const medicationLinks = createMemo(() =>
-    buildMedicationLinkPhrases(props.availableDocuments ?? []),
+  const documentLinks = createMemo(() =>
+    buildDocumentLinkPhrases(props.availableDocuments ?? [], props.document?.id),
   );
   const fullTextDocumentId = createMemo(() => {
     const document = props.document;
@@ -48,7 +50,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
     const fullId = `${document.id}.full`;
     return availableIds().has(fullId) ? fullId : null;
   });
-  const showMedicationLinks = createMemo(() =>
+  const showDocumentLinks = createMemo(() =>
     Boolean(props.document && isFullTextDocumentId(props.document.id)),
   );
 
@@ -178,42 +180,61 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                     <p class="document-overlay-path">{section.sectionPath.join(' / ')}</p>
                     <h2>{section.title}</h2>
                     <For each={section.chunks}>
-                      {(chunk) => (
-                        <p
-                          id={chunk.anchor}
-                          classList={{
-                            'document-initial-anchor': props.initialAnchor === chunk.anchor,
-                          }}
-                        >
-                          <Show when={showMedicationLinks()} fallback={chunk.originalText}>
-                            <For
-                              each={segmentTextWithMedicationLinks(
-                                chunk.originalText,
-                                medicationLinks(),
-                              )}
-                            >
-                              {(segment) =>
-                                segment.kind === 'text' ? (
-                                  segment.value
-                                ) : (
-                                  <button
-                                    type="button"
-                                    class="document-inline-link"
-                                    onClick={() => {
-                                      props.onClose();
-                                      openDocumentOverlay(segment.documentId, null, {
-                                        preferSummary: true,
-                                      });
-                                    }}
+                      {(chunk) => {
+                        const renderBlock = () => readDocumentRenderBlock(chunk.metadata);
+                        return (
+                          <Show
+                            when={renderBlock()}
+                            fallback={
+                              <p
+                                id={chunk.anchor}
+                                classList={{
+                                  'document-initial-anchor': props.initialAnchor === chunk.anchor,
+                                }}
+                              >
+                                <Show when={showDocumentLinks()} fallback={chunk.originalText}>
+                                  <For
+                                    each={segmentTextWithMedicationLinks(
+                                      chunk.originalText,
+                                      documentLinks(),
+                                    )}
                                   >
-                                    {segment.value}
-                                  </button>
-                                )
-                              }
-                            </For>
+                                    {(segment) =>
+                                      segment.kind === 'text' ? (
+                                        segment.value
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          class="document-inline-link"
+                                          onClick={() => {
+                                            openDocumentOverlay(segment.documentId, null, {
+                                              preferSummary: true,
+                                            });
+                                          }}
+                                        >
+                                          {segment.value}
+                                        </button>
+                                      )
+                                    }
+                                  </For>
+                                </Show>
+                              </p>
+                            }
+                          >
+                            {(block) => (
+                              <div
+                                id={chunk.anchor}
+                                classList={{
+                                  'document-rich-block': true,
+                                  'document-initial-anchor': props.initialAnchor === chunk.anchor,
+                                }}
+                              >
+                                <DocumentRichBlock block={block()} />
+                              </div>
+                            )}
                           </Show>
-                        </p>
-                      )}
+                        );
+                      }}
                     </For>
                   </section>
                 )}
