@@ -44,7 +44,7 @@ jobs:
           scripts/retry-step.sh bun run content:catalog:clinical
           scripts/retry-step.sh bun run content:sync:clinical:all
       - name: Build verified structured recommendation databases
-        run: scripts/retry-step.sh bun run content:build:clinical:documents -- --all --force
+        run: bun run content:build:clinical:documents -- --all --force
       - name: Name and package immutable snapshot
         shell: bash
         run: |

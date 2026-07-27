@@ -17,8 +17,9 @@ while true; do
   echo "Attempt ${attempt}/${max_attempts}: $*"
   if "$@"; then
     exit 0
+  else
+    status=$?
   fi
-  status=$?
   if [[ $attempt -ge $max_attempts ]]; then
     echo "Command failed after ${max_attempts} attempts (exit ${status})." >&2
     exit "$status"

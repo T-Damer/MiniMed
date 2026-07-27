@@ -90,8 +90,8 @@ def test_remote_sync_uses_conditional_request_and_stale_cache(tmp_path: Path) ->
             {
                 "id": "remote-recommendation",
                 "location": f"http://{host}:{port}/recommendation.md",
-                "target": "recommendation.md",
-                "content_type": "markdown",
+                "target": "recommendation.json",
+                "content_type": "text",
             }
         ],
     )
@@ -114,7 +114,7 @@ def test_remote_sync_uses_conditional_request_and_stale_cache(tmp_path: Path) ->
     assert second.sources[0].cache_hit is True
     assert fallback.sources[0].status == "cache-fallback"
     assert fallback.sources[0].warning is not None
-    assert (output / "recommendation.md").read_bytes() == _SourceHandler.payload
+    assert (output / "recommendation.json").read_bytes() == _SourceHandler.payload
     assert _SourceHandler.request_count == 2
     assert _SourceHandler.user_agent == "MiniMed/0.5"
 
