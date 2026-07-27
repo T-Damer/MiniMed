@@ -21,7 +21,7 @@ interface KnowledgeBaseViewProps {
 
 function routeFromLocation(): KnowledgeRoute {
   const route = window.location.hash.replace(/^#\/?/u, '');
-  if (route === 'modules/documents') return 'documents';
+  if (route === 'modules/documents' || route.startsWith('modules/documents/')) return 'documents';
   if (route === 'modules/model' || route === 'status') return 'model';
   return 'overview';
 }
@@ -64,6 +64,15 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
+  const navigateBack = (): void => {
+    const route = window.location.hash.replace(/^#\/?/u, '');
+    if (route.startsWith('modules/documents/')) {
+      window.location.hash = '#/modules/documents';
+      return;
+    }
+    navigate('overview');
+  };
+
   const handleHashChange = (): void => {
     setRoute(routeFromLocation());
   };
@@ -90,9 +99,6 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
           <div>
             <p class="archive-kicker">Всё локальное — в одном месте</p>
             <h1>База знаний и модель</h1>
-            <p>
-              Краткий статус без технических деталей. Откройте карточку, чтобы настроить раздел.
-            </p>
           </div>
         </header>
 
@@ -125,8 +131,13 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
       <Show when={route() === 'documents'}>
         <div class="knowledge-subroute-heading">
-          <button type="button" onClick={() => navigate('overview')}>
-            ← Обзор
+          <button
+            type="button"
+            class="knowledge-back-button"
+            aria-label="Назад"
+            onClick={navigateBack}
+          >
+            ←
           </button>
           <div>
             <p class="archive-kicker">Установленные и доступные источники</p>
@@ -145,8 +156,13 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
       <Show when={route() === 'model'}>
         <div class="knowledge-subroute-heading">
-          <button type="button" onClick={() => navigate('overview')}>
-            ← Обзор
+          <button
+            type="button"
+            class="knowledge-back-button"
+            aria-label="Назад"
+            onClick={() => navigate('overview')}
+          >
+            ←
           </button>
           <div>
             <p class="archive-kicker">Необязательное локальное дополнение</p>

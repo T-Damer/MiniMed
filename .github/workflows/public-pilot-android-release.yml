@@ -11,13 +11,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: public-pilot-0.6.1-${{ github.ref }}
+  group: public-pilot-0.6.2-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  RELEASE_VERSION: 0.6.1
-  RELEASE_TAG: v0.6.1
-  APK_NAME: MiniMed-0.6.1-rf-public-pilot-debug.apk
+  RELEASE_VERSION: 0.6.2
+  RELEASE_TAG: v0.6.2
+  APK_NAME: MiniMed-0.6.2-rf-public-pilot-debug.apk
   BUILD_TOOLS_VERSION: 36.0.0
 
 jobs:
@@ -245,19 +245,22 @@ jobs:
         if: >-
           github.event_name == 'push' &&
           github.ref == 'refs/heads/main' &&
-          contains(github.event.head_commit.message, 'release: MiniMed 0.6.1')
+          contains(github.event.head_commit.message, 'release: MiniMed 0.6.2')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           apk="release-output/${APK_NAME}"
           notes=$(cat <<'EOF'
-          MiniMed 0.6.1 is a debug-signed engineering prerelease of the offline-first medical reference.
+          MiniMed 0.6.2 is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
           - a compact three-section workspace: search, knowledge base/documents, and personal notes;
           - explicit search scopes for diagnosis support, clinical recommendations, medications, legal documents, and deterministic all-source search;
           - search history beside the active query instead of a separate top-level page;
+          - search history restores its source mode and can immediately replay cached results;
+          - redesigned device-local notes with card and dated-record dialogs;
+          - nested document-library routes with clearer install and progress controls;
           - resumable module downloads with durable recovery and automatic retry after interruption;
           - the verified 15-document Russian clinical/medication starter pack for immediate offline search;
           - searchable clinical-recommendation modules with individual and category installation;

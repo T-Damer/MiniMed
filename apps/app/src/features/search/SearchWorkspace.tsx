@@ -27,12 +27,18 @@ import { HighlightedText } from '@/components/HighlightedText';
 import { SearchField } from '@/components/SearchField';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
+import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
-import { appendSearchHistory, SEARCH_REPLAY_EVENT } from '@/state/search-history';
+import {
+  appendSearchHistory,
+  SEARCH_REPLAY_EVENT,
+  type SearchReplayDetail,
+} from '@/state/search-history';
 
 interface SearchWorkspaceProps {
   readonly core: MedicalCore;
+  readonly scope: SearchScope;
   readonly searchAllowed?: boolean;
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
 }
@@ -194,12 +200,19 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   });
 
   const handleReplaySearch = (event: Event): void => {
-    const replay = event as CustomEvent<string>;
-    if (typeof replay.detail !== 'string' || !replay.detail.trim()) return;
-    updateQuery(replay.detail, false);
+    const replay = event as CustomEvent<SearchReplayDetail>;
+    const replayQuery = replay.detail?.entry.query;
+    if (!replayQuery?.trim() || replay.detail.entry.scope !== props.scope) return;
+    updateQuery(replayQuery, false);
+    if (replay.detail.cachedResponse) {
+      lastSearchedQuery = replayQuery.trim();
+      setResponse(replay.detail.cachedResponse);
+      setDraftAnalysis(replay.detail.cachedResponse.analysis);
+      setExpandedGroups([]);
+    }
     requestAnimationFrame(() => {
       if (textarea) resizeTextarea(textarea);
-      void runSearch(replay.detail, true);
+      void runSearch(replayQuery, false);
     });
   };
 
@@ -316,7 +329,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
     setExpandedGroups([]);
-    if (recordHistory) appendSearchHistory(trimmed, result.value);
+    if (recordHistory) appendSearchHistory(trimmed, props.scope, result.value);
   }
 
   async function openResult(result: SearchResult): Promise<void> {

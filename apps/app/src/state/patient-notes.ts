@@ -312,7 +312,17 @@ export async function enrichPatientNote(noteId: string, core: MedicalCore): Prom
     includeSuggestions: false,
   });
   if (!result.ok) return;
-  const relatedDocumentIds = result.value.groups.map((group) => group.documentId).slice(0, 5);
+  const meaningfulTerms = new Set(tokenize(note.text).map(lightStemRussian)).size;
+  const minimumMatches = meaningfulTerms >= 3 ? 2 : 1;
+  const relatedDocumentIds = result.value.groups
+    .filter((group) =>
+      group.results.some(
+        (searchResult) =>
+          new Set(searchResult.matchedTerms.map(lightStemRussian)).size >= minimumMatches,
+      ),
+    )
+    .map((group) => group.documentId)
+    .slice(0, 5);
   const latest = loadPatientNotes();
   persist({
     cards: latest.cards,

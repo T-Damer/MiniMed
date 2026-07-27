@@ -10,13 +10,21 @@ import {
 } from '@/state/search-history';
 
 interface SearchHistoryViewProps {
-  readonly onReplay: (query: string) => void;
+  readonly onReplay: (entry: SearchHistoryEntry) => void;
 }
 
 const MODE_LABELS: Readonly<Record<SearchHistoryEntry['modeUsed'], string>> = {
   lexical: 'FTS5',
   semantic: 'VECTOR',
   hybrid: 'FTS5 + VECTOR',
+};
+
+const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
+  diagnosis: 'Диагноз',
+  guidelines: 'КР',
+  medications: 'Препараты',
+  legal: 'Право',
+  all: 'Все источники',
 };
 
 function formatDate(value: string): string {
@@ -84,17 +92,13 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
           <For each={entries()}>
             {(entry, index) => (
               <li class="history-entry paper-card">
-                <button
-                  class="history-replay"
-                  type="button"
-                  onClick={() => props.onReplay(entry.query)}
-                >
+                <button class="history-replay" type="button" onClick={() => props.onReplay(entry)}>
                   <span class="history-sequence">{String(index() + 1).padStart(2, '0')}</span>
                   <span class="history-copy">
                     <strong>{entry.query}</strong>
                     <small>
                       {formatDate(entry.createdAt)} · {entry.resultCount} док. ·{' '}
-                      {MODE_LABELS[entry.modeUsed]}
+                      {SCOPE_LABELS[entry.scope]} · {MODE_LABELS[entry.modeUsed]}
                     </small>
                   </span>
                   <span class="history-arrow" aria-hidden="true">

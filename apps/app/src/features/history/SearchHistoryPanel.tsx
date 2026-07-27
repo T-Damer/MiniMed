@@ -5,17 +5,28 @@ import {
   clearSearchHistory,
   loadSearchHistory,
   removeSearchHistoryEntry,
-  replaySearch,
   SEARCH_HISTORY_EVENT,
   type SearchHistoryEntry,
 } from '@/state/search-history';
 
 const HISTORY_LIMIT = 12;
 
+interface SearchHistoryPanelProps {
+  readonly onReplay: (entry: SearchHistoryEntry) => void;
+}
+
 const MODE_LABELS: Readonly<Record<SearchHistoryEntry['modeUsed'], string>> = {
   lexical: 'FTS5',
   semantic: 'VECTOR',
   hybrid: 'FTS5 + VECTOR',
+};
+
+const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
+  diagnosis: 'Диагноз',
+  guidelines: 'КР',
+  medications: 'Препараты',
+  legal: 'Право',
+  all: 'Все источники',
 };
 
 function formatDate(value: string): string {
@@ -29,7 +40,7 @@ function formatDate(value: string): string {
   }).format(date);
 }
 
-export function SearchHistoryPanel(): JSX.Element {
+export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element {
   const [entries, setEntries] = createSignal<readonly SearchHistoryEntry[]>([]);
   const [open, setOpen] = createSignal(false);
 
@@ -95,14 +106,14 @@ export function SearchHistoryPanel(): JSX.Element {
                           type="button"
                           title={entry.query}
                           onClick={() => {
-                            replaySearch(entry.query);
+                            props.onReplay(entry);
                             setOpen(false);
                           }}
                         >
                           <strong>{entry.query}</strong>
                           <small>
                             {formatDate(entry.createdAt)} · {entry.resultCount} док. ·{' '}
-                            {MODE_LABELS[entry.modeUsed]}
+                            {SCOPE_LABELS[entry.scope]} · {MODE_LABELS[entry.modeUsed]}
                           </small>
                         </button>
                         <button

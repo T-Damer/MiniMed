@@ -4,6 +4,23 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-07-27
+
+### Changed
+
+- Search history restores its source mode, can replay current-session cached results immediately, and
+  refreshes them in the background.
+- Personal notes use a responsive sticker grid with separate card and dated-record dialogs; source
+  suggestions are worker-enriched and hidden when they are not relevant.
+- Document collections use nested routes, compact back navigation, up to three columns, and explicit
+  download, progress, installed, and delete icons.
+- Model selection reports when it is waiting behind active content downloads.
+- Clinical snapshot downloads keep their published GitHub Release URLs.
+
+### Verification boundary
+
+- Deterministic search remains the source of candidates both with and without a ready local model.
+
 ## [0.6.1] - 2026-07-27
 
 ### Changed
