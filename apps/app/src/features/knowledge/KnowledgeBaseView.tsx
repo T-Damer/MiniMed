@@ -192,8 +192,8 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
                   <div>
                     <span>Последний тест</span>
                     <strong>
-                      {Math.round(benchmark().loadMs)} мс /{' '}
-                      {Math.round(benchmark().generationMs)} мс
+                      {Math.round(benchmark().loadMs)} мс / {Math.round(benchmark().generationMs)}{' '}
+                      мс
                     </strong>
                   </div>
                 )}
