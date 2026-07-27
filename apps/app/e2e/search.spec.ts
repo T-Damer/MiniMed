@@ -43,9 +43,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
   await pneumoniaResult(page).click();
   await page.getByTestId('search-result').first().click();
-  await expect(page.getByTestId('reader-context')).toContainText(
-    'Внебольничная пневмония у детей',
-  );
+  await expect(page.getByTestId('reader-context')).toContainText('Внебольничная пневмония у детей');
   await expect(page.getByTestId('reader-context')).toContainText('тахипноэ');
 });
 
