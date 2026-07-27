@@ -103,8 +103,8 @@ ordinary search response when validation fails.
   it validates the private root and never promotes the draft into a pack automatically.
 - Corpus lint now also rejects English-dominant output for a source expected to remain Russian, so OCR
   or a model cannot silently replace the original wording with an English translation.
-- Immutable clinical-snapshot packaging creates one SQLite module per recommendation, checksums, and a
-  channel-catalog fragment. Clinical source-PDF archives are no longer published.
+- Published snapshot `clinical-json-2026.07.27-13991c1feee5` contains 744 checksummed SQLite modules
+  plus its manifest and catalog fragment. Clinical source-PDF archives are no longer published.
 - The knowledge base lists individual recommendations under 21 visible medical sections and supports
   individual or section-level installation.
 - Official GRLS inventory contains 38,815 unique registration records from 140,274 status/version rows,
@@ -170,12 +170,11 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 1. Finish the 0.6.0 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
    the measured Replicate pilot decision.
-2. Rebuild and publish the immutable clinical snapshot from the official structured JSON API.
-3. Add verified OCR for the blocked drug instruction.
-4. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
-5. Finish the local-only personal-note lifecycle with explicit export and whole-notebook deletion,
+2. Add verified OCR for the blocked drug instruction.
+3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
+4. Finish the local-only personal-note lifecycle with explicit export and whole-notebook deletion,
    then evaluate an optional downloadable Russian on-device transcriber.
-6. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
+5. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
    presenting diagnostic assistance as a 1.0 capability.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
