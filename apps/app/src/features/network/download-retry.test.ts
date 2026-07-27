@@ -27,6 +27,7 @@ describe('isTransientDownloadError', () => {
   });
 
   it('recognizes retryable transport statuses raised in Russian', () => {
+    expect(isTransientDownloadError(new Error('Сервер ответил HTTP 404.'))).toBe(true);
     expect(isTransientDownloadError(new Error('Сервер ответил HTTP 503.'))).toBe(true);
     expect(isTransientDownloadError(new Error('Сервер ответил HTTP 429.'))).toBe(true);
     expect(isTransientDownloadError(new Error('Размер файла не совпал: 10 != 20.'))).toBe(true);
@@ -36,7 +37,6 @@ describe('isTransientDownloadError', () => {
     expect(isTransientDownloadError(new DOMException('Download aborted.', 'AbortError'))).toBe(
       false,
     );
-    expect(isTransientDownloadError(new Error('Сервер ответил HTTP 404.'))).toBe(false);
     expect(isTransientDownloadError(new Error('Сжатые наборы пока не поддерживаются.'))).toBe(
       false,
     );
@@ -110,20 +110,24 @@ describe('downloadWithRetry', () => {
     vi.unstubAllGlobals();
   });
 
-  it('fails fast on a permanent status instead of burning retries', async () => {
-    const fetchMock = vi.fn(async () => new Response(null, { status: 404 }));
+  it('retries a release asset that is temporarily missing', async () => {
+    const payload = new Uint8Array([7, 8, 9]);
+    const fetchMock = vi
+      .fn<() => Promise<Response>>()
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(payloadResponse(payload));
     vi.stubGlobal('fetch', fetchMock);
     vi.stubGlobal('indexedDB', undefined);
 
-    await expect(
-      downloadWithRetry({
-        url: 'https://example.com/missing.gguf',
-        cacheKey: 'sha256:missing',
-        retryDelaysMs: NO_DELAYS,
-      }),
-    ).rejects.toThrow(/HTTP 404/u);
+    const bytes = await downloadWithRetry({
+      url: 'https://example.com/publishing.gguf',
+      cacheKey: 'sha256:publishing',
+      expectedBytes: payload.byteLength,
+      retryDelaysMs: NO_DELAYS,
+    });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect([...bytes]).toEqual([...payload]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     vi.unstubAllGlobals();
   });
 

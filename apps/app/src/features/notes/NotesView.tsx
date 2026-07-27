@@ -453,18 +453,17 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
             Не официальный источник: записи не покидают устройство и в поиске помечены как личные.
           </p>
         </div>
-        <button
-          class="patient-notes-add"
-          type="button"
-          onClick={() => setCreating((current) => !current)}
-        >
-          {creating() ? 'Отмена' : 'Новая карточка'}
-        </button>
       </header>
 
-      <Show when={creating()}>
+      <OverlayDialog
+        open={creating()}
+        title="Новая карточка"
+        subtitle="Личная заметка на этом устройстве"
+        class="patient-card-dialog"
+        onClose={() => setCreating(false)}
+      >
         <form
-          class="patient-note-form paper-card"
+          class="patient-note-form patient-card-create-form"
           onSubmit={(event) => {
             event.preventDefault();
             const form = event.currentTarget;
@@ -495,7 +494,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
             <button type="submit">Создать</button>
           </div>
         </form>
-      </Show>
+      </OverlayDialog>
 
       <Show
         when={snapshot().cards.length > 0}
@@ -521,6 +520,16 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
           </For>
         </div>
       </Show>
+
+      <button
+        class="patient-notes-fab"
+        type="button"
+        aria-label="Создать карточку"
+        title="Новая карточка"
+        onClick={() => setCreating(true)}
+      >
+        <span aria-hidden="true">+</span>
+      </button>
 
       <OverlayDialog
         open={managedNote() !== null}

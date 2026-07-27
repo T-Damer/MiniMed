@@ -149,3 +149,44 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+.content-download-scroll {
+  max-height: min(24rem, 58vh);
+}
+
+.content-download-pill {
+  right: auto;
+  left: max(0.75rem, calc(0.75rem + var(--safe-left)));
+  width: 3rem;
+  height: 3rem;
+  justify-content: center;
+  padding: 0;
+}
+
+.content-download-ring {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.content-download-ring::before {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: rgb(58 57 51 / 98%);
+  content: "";
+}
+
+.content-download-ring svg {
+  z-index: 1;
+  width: 1rem;
+  height: 1rem;
+}
+
+.content-download-status.floating {
+  right: auto;
+  left: max(0.75rem, calc(0.75rem + var(--safe-left)));
+}

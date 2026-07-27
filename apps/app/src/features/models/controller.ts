@@ -227,7 +227,7 @@ function clearFailure(modelId: string): void {
   window.localStorage.setItem(FAILURE_KEY, JSON.stringify(store));
 }
 
-function cpuProbe(): number {
+function runCpuProbe(): number {
   const iterations = 160_000;
   let value = 0x12345678;
   const startedAt = performance.now();
@@ -237,6 +237,27 @@ function cpuProbe(): number {
   const elapsed = Math.max(1, performance.now() - startedAt);
   if (value === Number.MIN_SAFE_INTEGER) console.debug(value);
   return Math.round(iterations / elapsed);
+}
+
+async function cpuProbe(): Promise<number> {
+  if (typeof Worker === 'undefined') {
+    await new Promise<void>((resolve) => globalThis.setTimeout(resolve, 0));
+    return runCpuProbe();
+  }
+  return new Promise<number>((resolve, reject) => {
+    const worker = new Worker(new URL('./device-probe.worker.ts', import.meta.url), {
+      type: 'module',
+    });
+    worker.onmessage = (event: MessageEvent<number>) => {
+      worker.terminate();
+      resolve(event.data);
+    };
+    worker.onerror = (event) => {
+      worker.terminate();
+      reject(new Error(event.message || 'Не удалось проверить производительность устройства.'));
+    };
+    worker.postMessage(160_000);
+  });
 }
 
 async function hasWebGpu(navigatorValue: NavigatorCapabilities): Promise<boolean> {
@@ -271,7 +292,7 @@ export async function probeLocalModelDevice(): Promise<LocalModelDeviceProfile> 
   const webgpu = await hasWebGpu(navigatorValue);
   const saveData = navigatorValue.connection?.saveData === true;
   const effectiveConnectionType = navigatorValue.connection?.effectiveType ?? null;
-  const score = cpuProbe();
+  const score = await cpuProbe();
   const fingerprint = [
     platform,
     nativeContainer ? 'native' : 'web',

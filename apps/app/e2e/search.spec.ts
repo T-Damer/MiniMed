@@ -18,15 +18,14 @@ async function chooseScope(page: Page, name: RegExp): Promise<void> {
   await page.getByRole('radio', { name }).click();
 }
 
-test('asks for the search task when automatic detection is ambiguous', async ({ page }) => {
+test('requires a search task before showing the query field', async ({ page }) => {
   await mountBuiltApp(page);
-  await page.getByTestId('search-input').fill(query);
 
   await expect(page.getByText('В каком разделе искать?')).toBeVisible();
-  await expect(page.getByTestId('search-input')).toBeVisible();
-  await expect(page.getByTestId('search-submit')).toBeDisabled();
+  await expect(page.getByTestId('search-input')).toHaveCount(0);
   await chooseScope(page, /В клин\. рекомендациях/u);
 
+  await expect(page.getByTestId('search-input')).toBeVisible();
   await expect(page.getByTestId('search-submit')).toBeEnabled();
   await expect(
     page.getByText(/Искать только в установленных клинических рекомендациях/u),
@@ -35,23 +34,26 @@ test('asks for the search task when automatic detection is ambiguous', async ({ 
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
   await mountBuiltApp(page);
+  await chooseScope(page, /В клин\. рекомендациях/u);
   await expect(page.getByTestId('search-input')).toBeVisible();
   await page.getByTestId('search-input').fill(query);
-  await chooseScope(page, /В клин\. рекомендациях/u);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
   await expect(page.getByTestId('search-mode')).toHaveText('FTS5 + VECTOR');
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
+  await pneumoniaResult(page).click();
   await page.getByTestId('search-result').first().click();
-  await expect(page.getByTestId('reader-context')).toContainText('Клиническая картина');
+  await expect(page.getByTestId('reader-context')).toContainText(
+    'Внебольничная пневмония у детей',
+  );
   await expect(page.getByTestId('reader-context')).toContainText('тахипноэ');
 });
 
 test('limits medication mode to medication documents', async ({ page }) => {
   await mountBuiltApp(page);
 
-  await page.getByTestId('search-input').fill('цефтриаксон');
   await chooseScope(page, /Препараты/u);
+  await page.getByTestId('search-input').fill('цефтриаксон');
   await expect(page.locator('.result-group').first()).toContainText(/Цефтриаксон/u, {
     timeout: 10_000,
   });
@@ -62,8 +64,8 @@ test('limits medication mode to medication documents', async ({ page }) => {
 
 test('limits the initial document list and reveals remaining sources', async ({ page }) => {
   await mountBuiltApp(page);
-  await page.getByTestId('search-input').fill(query);
   await chooseScope(page, /Всё без диагностики/u);
+  await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
 
   const groups = page.locator('.result-group');
@@ -79,8 +81,8 @@ test('limits the initial document list and reveals remaining sources', async ({ 
 
 test('preserves the active search while navigating between mounted routes', async ({ page }) => {
   await mountBuiltApp(page);
-  await page.getByTestId('search-input').fill(query);
   await chooseScope(page, /Всё без диагностики/u);
+  await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
@@ -112,8 +114,8 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
 
 test('replays a saved query from the history drawer', async ({ page }) => {
   await mountBuiltApp(page);
-  await page.getByTestId('search-input').fill(query);
   await chooseScope(page, /Всё без диагностики/u);
+  await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
@@ -133,17 +135,17 @@ test('replays a saved query from the history drawer', async ({ page }) => {
 
 test('runs a debounced clinical search without requiring submit', async ({ page }) => {
   await mountBuiltApp(page);
-  await page.getByTestId('search-input').fill(query);
   await chooseScope(page, /Всё без диагностики/u);
+  await page.getByTestId('search-input').fill(query);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
 });
 
 test('autosearch leaves the typed text untouched, including trailing space', async ({ page }) => {
   await mountBuiltApp(page);
+  await chooseScope(page, /Всё без диагностики/u);
   // The debounced search used to write the trimmed query back into the field, deleting the space a
   // doctor had just typed mid-sentence.
   await page.getByTestId('search-input').fill(`${query} `);
-  await chooseScope(page, /Всё без диагностики/u);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
   await expect(page.getByTestId('search-input')).toHaveValue(`${query} `);
 });
@@ -164,9 +166,10 @@ test('opens only the exact fragment first and expands surrounding source context
   page,
 }) => {
   await mountBuiltApp(page);
-  await page.getByTestId('search-input').fill(query);
   await chooseScope(page, /Всё без диагностики/u);
+  await page.getByTestId('search-input').fill(query);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
+  await pneumoniaResult(page).click();
   await page.getByTestId('search-result').first().click();
   await expect(page.locator('.source-paragraph')).toHaveCount(1);
   await page.getByRole('button', { name: 'Показать текст вокруг' }).click();
@@ -175,8 +178,8 @@ test('opens only the exact fragment first and expands surrounding source context
 
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
   await mountBuiltApp(page);
+  await chooseScope(page, /Диагностировать/u);
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
   await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
-  await chooseScope(page, /Диагностировать/u);
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 3_000 });
 });

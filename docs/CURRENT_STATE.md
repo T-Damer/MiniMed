@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 27 July 2026
-> Repository version: `0.6.0`
-> Active target: `0.6.0` release candidate toward `1.0`
+> Repository version: `0.6.1`
+> Active target: `0.6.1` release candidate toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -17,11 +17,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Russian patient-case parsing, negative findings, bounded query branches, medical abbreviations, and
   missing-field prompts.
 - Search after 500 ms of inactivity with stale-response cancellation.
-- Query analysis selects a confident search scope automatically; ambiguous queries ask the user to
-  choose, and scopes with no installed documents cannot be searched.
+- Search is hidden until the user selects a scope; scopes with no installed documents are disabled.
 - Query analysis and deterministic retrieval run in a Web Worker, and long result sets are window
   virtualized.
-- Results grouped by document with exact fragment, surrounding context, and full-document navigation.
+- Results are grouped by document; collapsed groups show only their document header, while expanded
+  groups expose exact fragments, surrounding context, and full-document navigation.
 - Search-result context remaps stale pilot-summary chunks to installed full-text siblings and falls back
   to the readable document when an exact chunk cannot be resolved.
 - Within-document ranking uses query intent to prefer the relevant diagnostic, routing, or treatment
@@ -38,11 +38,14 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 - Three primary sections in a compact bottom navigation bubble: search, knowledge base, and personal
   notes. Document archive and local-model settings are knowledge-base subroutes.
-- Search stays available without onboarding; confident queries select a scope automatically and
-  uncertain queries expose the scope picker.
+- Search mode is an explicit first choice and remains blocked until the selected scope has documents.
 - Recent device-local search history opens from a floating drawer instead of a separate page.
 - The paper/archive design remains, with materially smaller gutters, cards, controls, result rows,
   module tiles, model tiles, and responsive mobile spacing.
+- Personal cards use a sticker-style notes board and a focused creation dialog opened from a floating
+  add button.
+- Local-model detection is user-initiated; its CPU probe runs in a Worker and model choices stay
+  collapsed until requested.
 - The knowledge-base overview reports the model and corpus state, then opens dedicated document and
   model subroutes without mixing every document family into one long page.
 - Document drilldown exposes the built-in core, section recommendation lists, full-document opening,
@@ -115,7 +118,8 @@ ordinary search response when validation fails.
   cards.
 - Structured knowledge tables support proposed facts, exact evidence links, relations, and review tasks.
 - Interrupted module downloads persist partial bytes in IndexedDB. Failed/interrupted installs remain in
-  a durable local queue, recover after restart or catalog refresh, and expose an explicit retry action.
+  a durable local queue, recover after restart or catalog refresh, and retry transient failures,
+  including temporarily missing release assets, without prompting.
 - The runtime fingerprints actual module versions, digests, URLs, checksums, and sizes rather than only
   comparing catalog counts.
 
@@ -141,7 +145,9 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The complete release candidate still requires the final CI/E2E/Android run on the release head.
+The local 0.6.1 gate passes 17 Chromium flows; the large-model download and standalone dev-server
+smokes remain intentionally conditional. CI and Android artifact verification run from the release
+head.
 
 A cents-scale Replicate knowledge-extraction pilot is configured for four public starter-pack excerpts.
 It has a hard estimated cost cap of `$0.25`, persists no raw model prose, accepts only proposed records,
@@ -168,7 +174,7 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Finish the 0.6.0 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
+1. Finish the 0.6.1 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
    the measured Replicate pilot decision.
 2. Add verified OCR for the blocked drug instruction.
 3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.

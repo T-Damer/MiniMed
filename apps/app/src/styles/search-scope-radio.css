@@ -10,6 +10,15 @@
   border: 0 !important;
 }
 
+.search-scope-prompt {
+  margin: 0.75rem 0 0.5rem;
+  padding: 0.75rem 0.875rem;
+}
+
+.search-scope-prompt p {
+  margin: 0.25rem 0 0;
+}
+
 /* Scope selection is a chip row attached to the composer, not a grid of cards: the five options
    must not cost more screen than the query they configure. */
 fieldset.search-mode-picker {

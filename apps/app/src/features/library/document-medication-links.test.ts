@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDocumentLinkPhrases,
   buildMedicationLinkPhrases,
+  parseDocumentText,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
 
@@ -24,6 +25,13 @@ const medication = (
 });
 
 describe('document-medication-links', () => {
+  it('turns OCR bullets into list items without losing the text', () => {
+    expect(parseDocumentText('Введение • Рекомендуется #дексаметазон** (H02AB)')).toEqual([
+      { kind: 'paragraph', text: 'Введение' },
+      { kind: 'bullet', text: 'Рекомендуется #дексаметазон** (H02AB)' },
+    ]);
+  });
+
   it('indexes INN phrases from installed medication cards', () => {
     const links = buildMedicationLinkPhrases([
       medication(

@@ -7,12 +7,30 @@ export interface DocumentLinkPhrase {
 
 export type MedicationLinkPhrase = DocumentLinkPhrase;
 
+export interface DocumentTextBlock {
+  readonly kind: 'paragraph' | 'bullet';
+  readonly text: string;
+}
+
 export type LinkedTextSegment =
   | { readonly kind: 'text'; readonly value: string }
   | { readonly kind: 'link'; readonly value: string; readonly documentId: string };
 
 function normalizePhrase(value: string): string {
   return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
+}
+
+export function parseDocumentText(value: string): readonly DocumentTextBlock[] {
+  return value
+    .replace(/\s*•\s*/gu, '\n• ')
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) =>
+      /^[•-]\s+/u.test(line)
+        ? { kind: 'bullet' as const, text: line.replace(/^[•-]\s+/u, '') }
+        : { kind: 'paragraph' as const, text: line },
+    );
 }
 
 function escapeRegExp(value: string): string {
