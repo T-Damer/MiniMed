@@ -19,6 +19,7 @@ All notable changes are documented here. The project follows Semantic Versioning
   versions through the existing verified background-update and rollback lifecycle.
 - Clinical recommendation downloads no longer include original PDF archives or raw JSON.
 - The document reader renders validated structured tables and images without injecting source HTML.
+- The 744-module snapshot is published as `clinical-json-2026.07.27-13991c1feee5`.
 
 ### Verification boundary
 
