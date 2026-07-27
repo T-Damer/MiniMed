@@ -525,6 +525,7 @@ describe('ForegroundContentModuleInstaller', () => {
     });
 
     expect(second.id).toBe(first.id);
+    await vi.waitFor(() => expect(releaseDownload).toBeTypeOf('function'));
     releaseDownload?.();
     expect((await installer.wait(first.id)).state).toBe('completed');
   });
