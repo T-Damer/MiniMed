@@ -709,7 +709,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
         </form>
       </OverlayDialog>
 
-      <AlertDialog.Root
+      <AlertDialog
         open={deleteTarget() !== null}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
@@ -743,7 +743,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
             </div>
           </AlertDialog.Content>
         </AlertDialog.Portal>
-      </AlertDialog.Root>
+      </AlertDialog>
 
       <OverlayDialog
         open={editingCard()}
