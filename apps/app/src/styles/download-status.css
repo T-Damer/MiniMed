@@ -11,6 +11,31 @@
   margin-bottom: 0.5rem;
 }
 
+.content-download-status.floating .content-download-status-heading {
+  position: sticky;
+  z-index: 2;
+  top: -0.75rem;
+  padding: 0.75rem 0 0.5rem;
+  background: rgb(48 47 42 / 98%);
+}
+
+.content-download-status-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.375rem;
+}
+
+.content-download-status-actions button {
+  padding: 0.375rem 0.5625rem;
+  border: 1px solid currentColor;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  text-transform: uppercase;
+}
+
 .content-download-status-heading h3 {
   margin: 0;
   font-family: var(--font-serif);

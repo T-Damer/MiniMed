@@ -206,6 +206,78 @@
   line-height: 1.62;
 }
 
+.document-rich-block {
+  min-width: 0;
+  margin: 0 0 1.25rem;
+}
+
+.document-rich-table {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--paper-line);
+  background: rgb(255 255 255 / 42%);
+}
+
+.document-rich-table table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.document-rich-table caption {
+  padding: 0.625rem;
+  color: var(--ink-soft);
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  text-align: left;
+}
+
+.document-rich-table th,
+.document-rich-table td {
+  max-width: 24rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--paper-line);
+  overflow-wrap: break-word;
+  text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
+}
+
+.document-rich-table th {
+  background: rgb(53 91 105 / 8%);
+  font-weight: 650;
+}
+
+.document-rich-table td img,
+.document-rich-table th img {
+  display: block;
+  max-width: min(100%, 48rem);
+  height: auto;
+  margin: 0.6rem auto 0;
+}
+
+.document-rich-image {
+  margin: 0;
+}
+
+.document-rich-image img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.document-rich-image figcaption {
+  margin-top: 0.5rem;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .document-initial-anchor {
   padding: 0.5rem 0.625rem;
   border-left: 0.1875rem solid var(--stamp);

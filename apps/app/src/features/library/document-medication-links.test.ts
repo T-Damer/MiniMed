@@ -2,6 +2,7 @@ import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildDocumentLinkPhrases,
   buildMedicationLinkPhrases,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
@@ -48,6 +49,27 @@ describe('document-medication-links', () => {
       { kind: 'text', value: 'При тяжёлом течении назначают ' },
       { kind: 'link', value: 'цефтриаксон', documentId: 'drug.rf.ceftriaxone.injection-1g' },
       { kind: 'text', value: ' внутримышечно.' },
+    ]);
+  });
+
+  it('indexes installed conditions and laws as cross-links', () => {
+    const documents: MedicalDocumentSummary[] = [
+      {
+        ...medication('clinical.pneumonia', 'Клинические рекомендации — Пневмония у детей'),
+        sourceType: 'clinical_recommendation_summary',
+        shortTitle: 'Пневмония у детей',
+      },
+      {
+        ...medication('law.323-fz', 'Федеральный закон № 323-ФЗ'),
+        sourceType: 'regulatory_act',
+        shortTitle: '323-ФЗ',
+      },
+    ];
+
+    expect(buildDocumentLinkPhrases(documents).map((link) => link.phrase)).toEqual([
+      'Федеральный закон № 323-ФЗ',
+      'Пневмония у детей',
+      '323-ФЗ',
     ]);
   });
 });

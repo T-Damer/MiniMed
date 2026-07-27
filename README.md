@@ -16,7 +16,9 @@ Implemented:
 - installable read-only content-module contracts;
 - optional browser-local GGUF inference;
 - model-assisted reranking and exact-source clinical extraction;
-- deterministic rejection of invented citations and unsupported dose text.
+- deterministic rejection of invented citations and unsupported dose text;
+- device-local patient cards, nested notes, follow-up reminders, and separately labelled personal
+  matches in search.
 
 The public pilot contains 15 source-linked navigation cards: seven clinical recommendations and eight
 official medication-registry identity records. These cards are enough to test retrieval, but they are

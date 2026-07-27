@@ -1,8 +1,8 @@
 # MiniMed TODO
 
-Short-term 1.0 follow-up work that remains after the 0.6.0 release.
+Short-term 1.0 follow-up work that remains after the 0.6.0 release-candidate implementation.
 
-## Done since 0.6.0
+## Done since the 0.6.0 release-candidate baseline
 
 Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 
@@ -18,8 +18,9 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 - Download reliability: shared retry/backoff for module *and* model downloads, awaited flush of
   partial bytes, floating status card with transfer speed and per-stage progress.
 - Ten realistic Russian doctor queries in the public-pilot gate, plus the alias gaps they exposed.
-- Personal notes: patient cards with nested notes as a fourth section, plus a badged personal
-  results block in search that stays outside the official results container.
+- Personal notes: patient cards with categorized nested notes, a badged personal results block outside
+  the official results container, linked installed documents, and follow-up reminders with a red tab
+  badge and recorded completion condition.
 - Dependency hygiene: ruff, biome, playwright and astro bumps, and the Dependabot uv ecosystem fix
   that stopped every tools/ingest update from failing `uv sync --locked`.
 - Compact pass on the knowledge base: tabs now connect to the panel they switch and seven document
@@ -42,7 +43,8 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 
 ## Patient notes and voice
 
-Cards, nested notes, and search integration have landed. Voice is the remaining part.
+Cards, nested notes, search integration, and follow-up reminders have landed. Voice and data
+portability remain.
 
 - Optional local Russian speech-to-text for dictated notes. Not started: it needs a Russian-capable
   transcription model in the browser/WebView runtime, sized like the existing model tiers, and it must

@@ -1,5 +1,5 @@
 import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
-import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { DocumentReaderDialog } from '@/features/library/DocumentReaderDialog';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
@@ -30,11 +30,16 @@ function userFacingOpenError(message: string): string {
 }
 
 export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Element {
-  const [selectedDocument, setSelectedDocument] = createSignal<MedicalDocument>();
+  const [openedDocuments, setOpenedDocuments] = createSignal<
+    readonly {
+      readonly id: string;
+      readonly document: MedicalDocument;
+      readonly anchor: string | null;
+    }[]
+  >([]);
   const [availableDocuments, setAvailableDocuments] = createSignal<
     readonly MedicalDocumentSummary[]
   >([]);
-  const [anchor, setAnchor] = createSignal<string | null>(null);
   const [loading, setLoading] = createSignal(false);
   const [openError, setOpenError] = createSignal<string | null>(null);
 
@@ -87,7 +92,6 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
     }
     setOpenError(null);
     setLoading(true);
-    setSelectedDocument(undefined);
     try {
       const document = await loadDocument(core, request);
       if (!document) {
@@ -100,8 +104,14 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
         );
         return;
       }
-      setAnchor(request.anchor ?? null);
-      setSelectedDocument(document);
+      setOpenedDocuments((current) => [
+        ...current,
+        {
+          id: `${document.id}:${Date.now().toString(36)}`,
+          document,
+          anchor: request.anchor ?? null,
+        },
+      ]);
       if (request.anchor) {
         requestAnimationFrame(() => {
           window.document.getElementById(request.anchor ?? '')?.scrollIntoView({ block: 'center' });
@@ -154,15 +164,18 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
         )}
       </Show>
 
-      <DocumentReaderDialog
-        document={selectedDocument()}
-        availableDocuments={availableDocuments()}
-        initialAnchor={anchor()}
-        onClose={() => {
-          setSelectedDocument(undefined);
-          setAnchor(null);
-        }}
-      />
+      <For each={openedDocuments()}>
+        {(opened, index) => (
+          <DocumentReaderDialog
+            document={opened.document}
+            availableDocuments={availableDocuments()}
+            initialAnchor={opened.anchor}
+            onClose={() => {
+              setOpenedDocuments((current) => current.slice(0, index()));
+            }}
+          />
+        )}
+      </For>
     </>
   );
 }

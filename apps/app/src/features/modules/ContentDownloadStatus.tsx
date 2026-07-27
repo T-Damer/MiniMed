@@ -172,6 +172,13 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
   });
 
   const visibleTasks = () => latestVisibleTasks(tasks());
+  const failedTasks = () => visibleTasks().filter((task) => task.state === 'failed');
+
+  const moduleTitle = (task: ContentModuleDownloadTask): string =>
+    currentRuntime
+      ?.getCatalog()
+      .modules.find((module) => module.id === task.moduleId && module.version === task.version)
+      ?.title ?? task.moduleId;
 
   const retry = (task: ContentModuleDownloadTask): void => {
     const runtime = currentRuntime;
@@ -181,9 +188,13 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
       .modules.find(
         (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
       );
-    if (!module || module.releaseState !== 'published') return;
+    if (module?.releaseState !== 'published') return;
     runtime.install(module);
     updateTasks(runtime);
+  };
+
+  const retryAll = (): void => {
+    for (const task of failedTasks()) retry(task);
   };
 
   return (
@@ -237,6 +248,13 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
               </button>
             </Show>
           </header>
+          <Show when={failedTasks().length > 1}>
+            <div class="content-download-status-actions">
+              <button type="button" onClick={retryAll}>
+                Повторить все
+              </button>
+            </div>
+          </Show>
           <ul>
             <For each={visibleTasks()}>
               {(task) => {
@@ -257,7 +275,7 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
                   <li classList={{ failed: task.state === 'failed' }}>
                     <div class="content-download-status-row">
                       <div>
-                        <strong>{task.moduleId}</strong>
+                        <strong title={task.moduleId}>{moduleTitle(task)}</strong>
                         <small>Версия {task.version}</small>
                       </div>
                       <span>{TASK_LABELS[task.state]}</span>

@@ -64,6 +64,10 @@ Every published module version has an immutable manifest and two possible artifa
 This lets users install a smaller searchable module or additionally keep original documents for visual
 fidelity. Original assets are never required for ordinary search.
 
+Official Ministry clinical-recommendation modules use only the index artifact. Their structured JSON
+tables and embedded figures are validated and stored inside the same SQLite database; neither the JSON
+payload nor the original PDF is downloaded to the device.
+
 ## GitHub distribution
 
 Until a dedicated server exists, `catalog.preview.json` on `main` is the mutable preview-channel
@@ -122,8 +126,8 @@ source modules.
 ## Full-document reading
 
 The module index stores the complete extracted text and structured tables. Results open directly at the
-stable section/chunk anchor. Table blocks retain cell structure, page number, and an optional page-image
-fallback.
+stable section/chunk anchor. Table blocks retain cell structure and available provenance; official
+clinical JSON figures are embedded in validated chunk metadata.
 
 When source assets are installed, the reader can open the original PDF at the linked page with text
 selection and search. PDF.js is the preferred first cross-platform reader inside the Capacitor WebView;

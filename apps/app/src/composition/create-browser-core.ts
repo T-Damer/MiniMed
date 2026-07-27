@@ -17,8 +17,8 @@ const QUERY_EMBEDDER = new PortableHashEmbedder();
 const PACK_DATABASE_NAME = 'core-demo.db';
 const PACK_ASSET_PATH = `public/content/${PACK_DATABASE_NAME}`;
 
-async function readPackReport(): Promise<PackBuildReport> {
-  const response = await fetch(`${import.meta.env.BASE_URL}content/core-demo-report.json`);
+async function readPackReport(contentBaseUrl = import.meta.env.BASE_URL): Promise<PackBuildReport> {
+  const response = await fetch(new URL('content/core-demo-report.json', contentBaseUrl));
   if (!response.ok) {
     throw new Error(`Unable to load content-pack report (${response.status}).`);
   }
@@ -35,7 +35,7 @@ async function readPackReport(): Promise<PackBuildReport> {
 }
 
 async function createNativeStore(): Promise<CapacitorMedicalStore> {
-  const report = await readPackReport();
+  const report = await readPackReport(new URL(import.meta.env.BASE_URL, window.location.href).href);
   const store = new CapacitorMedicalStore({
     assetPath: PACK_ASSET_PATH,
     databaseName: PACK_DATABASE_NAME,
@@ -47,8 +47,8 @@ async function createNativeStore(): Promise<CapacitorMedicalStore> {
   return store;
 }
 
-async function createPackagedWasmStore(): Promise<SqliteMedicalStore> {
-  const response = await fetch(`${import.meta.env.BASE_URL}content/${PACK_DATABASE_NAME}`);
+async function createPackagedWasmStore(contentBaseUrl: string): Promise<SqliteMedicalStore> {
+  const response = await fetch(new URL(`content/${PACK_DATABASE_NAME}`, contentBaseUrl));
   if (!response.ok) {
     throw new Error(`Unable to load compiled content pack (${response.status}).`);
   }
@@ -94,7 +94,8 @@ export async function createBrowserCore() {
   }
 
   try {
-    const store = await withInstalledModules(await createPackagedWasmStore());
+    const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
+    const store = await withInstalledModules(await createPackagedWasmStore(contentBaseUrl));
     return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Compiled content pack unavailable; falling back to the embedded seed.', error);
@@ -104,6 +105,23 @@ export async function createBrowserCore() {
       store: composed,
       seed: DEMO_CONTENT_PACK,
       platform,
+      embedder: QUERY_EMBEDDER,
+    });
+  }
+}
+
+export async function createBrowserWorkerCore(contentBaseUrl: string) {
+  try {
+    const store = await withInstalledModules(await createPackagedWasmStore(contentBaseUrl));
+    return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
+  } catch (error) {
+    console.warn('Worker content pack unavailable; falling back to the embedded seed.', error);
+    const store = await SqliteMedicalStore.create();
+    const composed = await withInstalledModules(store, true);
+    return createMedicalCore({
+      store: composed,
+      seed: DEMO_CONTENT_PACK,
+      platform: 'web',
       embedder: QUERY_EMBEDDER,
     });
   }

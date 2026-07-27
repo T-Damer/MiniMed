@@ -91,6 +91,18 @@ describe('InMemoryInstalledModuleRegistry', () => {
     expect(rolledBack.previousVersions).toEqual(['2']);
   });
 
+  it('activates a selected validated historical version', () => {
+    const registry = new InMemoryInstalledModuleRegistry();
+    const moduleId = registry.activate(installation('1')).moduleId;
+    registry.activate(installation('2'));
+    registry.activate(installation('3'));
+
+    const historical = registry.rollback(moduleId, '1');
+
+    expect(historical.version).toBe('1');
+    expect(historical.previousVersions).toEqual(['3', '2']);
+  });
+
   it('refreshes one immutable version without creating rollback duplicates', () => {
     const registry = new InMemoryInstalledModuleRegistry();
     registry.activate(installation('1'));

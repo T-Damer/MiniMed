@@ -1,9 +1,11 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 
-export interface MedicationLinkPhrase {
+export interface DocumentLinkPhrase {
   readonly phrase: string;
   readonly documentId: string;
 }
+
+export type MedicationLinkPhrase = DocumentLinkPhrase;
 
 export type LinkedTextSegment =
   | { readonly kind: 'text'; readonly value: string }
@@ -50,9 +52,43 @@ export function buildMedicationLinkPhrases(
   return phrases.toSorted((left, right) => right.phrase.length - left.phrase.length);
 }
 
+export function buildDocumentLinkPhrases(
+  documents: readonly MedicalDocumentSummary[],
+  currentDocumentId?: string,
+): readonly DocumentLinkPhrase[] {
+  const linkableSourceTypes = new Set([
+    'official_registry_summary',
+    'clinical_recommendation_summary',
+    'regulatory_act',
+  ]);
+  const phrases: DocumentLinkPhrase[] = [];
+  const seen = new Set<string>();
+
+  for (const document of documents) {
+    if (document.id === currentDocumentId || !linkableSourceTypes.has(document.sourceType))
+      continue;
+    const title = document.title
+      .replace(/^клинические рекомендации\s*[—:.-]\s*/iu, '')
+      .replace(/\s*\([^)]*\)\s*$/u, '')
+      .trim();
+    const candidates = [
+      document.shortTitle?.trim() ?? '',
+      title.split('—')[0]?.trim() ?? '',
+    ].filter((value) => value.length >= 5);
+    for (const phrase of candidates) {
+      const key = normalizePhrase(phrase);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      phrases.push({ phrase, documentId: document.id });
+    }
+  }
+
+  return phrases.toSorted((left, right) => right.phrase.length - left.phrase.length);
+}
+
 export function segmentTextWithMedicationLinks(
   text: string,
-  links: readonly MedicationLinkPhrase[],
+  links: readonly DocumentLinkPhrase[],
 ): readonly LinkedTextSegment[] {
   if (!text || links.length === 0) return [{ kind: 'text', value: text }];
 

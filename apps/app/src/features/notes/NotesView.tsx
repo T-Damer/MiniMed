@@ -1,12 +1,16 @@
+import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { openDocumentOverlay } from '@/state/document-navigation';
 import {
   addPatientNote,
   childNotes,
   completeNoteReminder,
   createPatientCard,
+  enrichPatientNote,
+  hydratePatientNotesFromIndexedDb,
   isReminderDue,
   loadPatientNotes,
   PATIENT_NOTES_EVENT,
@@ -108,6 +112,7 @@ function ReminderLink(props: {
 }
 
 function NoteBranch(props: {
+  readonly core: MedicalCore;
   readonly snapshot: PatientNotesSnapshot;
   readonly cardId: string;
   readonly parentNoteId: string | null;
@@ -131,6 +136,25 @@ function NoteBranch(props: {
                 fallback={
                   <div class="patient-note-body">
                     <p>{note.text}</p>
+                    <div class="patient-note-categories">
+                      <For each={note.categories}>{(category) => <span>{category}</span>}</For>
+                    </div>
+                    <Show when={note.relatedDocumentIds.length > 0}>
+                      <div class="patient-note-related">
+                        <span>Связанные источники:</span>
+                        <For each={note.relatedDocumentIds}>
+                          {(documentId, index) => (
+                            <button
+                              type="button"
+                              title={documentId}
+                              onClick={() => openDocumentOverlay(documentId)}
+                            >
+                              Источник {index() + 1}
+                            </button>
+                          )}
+                        </For>
+                      </div>
+                    </Show>
                     <div class="patient-note-actions">
                       <small>{formatDate(note.updatedAt)}</small>
                       <ReminderLink note={note} onManage={props.onManageReminder} />
@@ -160,13 +184,20 @@ function NoteBranch(props: {
                   class="patient-note-form"
                   onSubmit={(event) => {
                     event.preventDefault();
-                    const field = event.currentTarget.elements.namedItem('text');
-                    if (field instanceof HTMLTextAreaElement)
+                    const form = event.currentTarget;
+                    const field = form.elements.namedItem('text');
+                    const due = reminderFieldsValue(form);
+                    if (field instanceof HTMLTextAreaElement) {
                       updatePatientNote(note.id, field.value);
+                      void enrichPatientNote(note.id, props.core);
+                    }
+                    if (due) setNoteReminder(note.id, due.dueAt, due.allDay);
                     setEditing(undefined);
                   }}
                 >
                   <textarea name="text" rows={3} value={note.text} aria-label="Текст заметки" />
+                  <ReminderLink note={note} onManage={props.onManageReminder} />
+                  <ReminderFields />
                   <div class="patient-note-form-actions">
                     <button type="submit">Сохранить</button>
                     <button type="button" onClick={() => setEditing(undefined)}>
@@ -187,7 +218,10 @@ function NoteBranch(props: {
                     if (field instanceof HTMLTextAreaElement) {
                       const snapshot = addPatientNote(props.cardId, field.value, note.id);
                       const created = snapshot.notes.at(-1);
-                      if (due && created) setNoteReminder(created.id, due.dueAt, due.allDay);
+                      if (created) {
+                        if (due) setNoteReminder(created.id, due.dueAt, due.allDay);
+                        void enrichPatientNote(created.id, props.core);
+                      }
                     }
                     setReplyTo(undefined);
                   }}
@@ -209,6 +243,7 @@ function NoteBranch(props: {
               </Show>
 
               <NoteBranch
+                core={props.core}
                 snapshot={props.snapshot}
                 cardId={props.cardId}
                 parentNoteId={note.id}
@@ -224,6 +259,7 @@ function NoteBranch(props: {
 }
 
 function CardPanel(props: {
+  readonly core: MedicalCore;
   readonly card: PatientCard;
   readonly snapshot: PatientNotesSnapshot;
   readonly open: boolean;
@@ -310,6 +346,7 @@ function CardPanel(props: {
       </Show>
 
       <NoteBranch
+        core={props.core}
         snapshot={props.snapshot}
         cardId={props.card.id}
         parentNoteId={null}
@@ -327,7 +364,10 @@ function CardPanel(props: {
           if (field instanceof HTMLTextAreaElement) {
             const snapshot = addPatientNote(props.card.id, field.value);
             const created = snapshot.notes.at(-1);
-            if (due && created) setNoteReminder(created.id, due.dueAt, due.allDay);
+            if (created) {
+              if (due) setNoteReminder(created.id, due.dueAt, due.allDay);
+              void enrichPatientNote(created.id, props.core);
+            }
             field.value = '';
             form.reset();
           }
@@ -348,7 +388,7 @@ function CardPanel(props: {
   );
 }
 
-export function NotesView(): JSX.Element {
+export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [creating, setCreating] = createSignal(false);
   const [openCardIds, setOpenCardIds] = createSignal<readonly string[]>([]);
@@ -369,6 +409,9 @@ export function NotesView(): JSX.Element {
   let clockTimer: ReturnType<typeof setInterval> | undefined;
   onMount(() => {
     refresh();
+    void hydratePatientNotesFromIndexedDb()
+      .then(refresh)
+      .catch(() => console.warn('Не удалось восстановить заметки из IndexedDB.'));
     window.addEventListener(PATIENT_NOTES_EVENT, refresh);
     clockTimer = setInterval(() => setClock(Date.now()), 30_000);
   });
@@ -467,6 +510,7 @@ export function NotesView(): JSX.Element {
           <For each={sortedCards()}>
             {(card) => (
               <CardPanel
+                core={props.core}
                 card={card}
                 snapshot={snapshot()}
                 open={openCardIds().includes(card.id)}

@@ -106,7 +106,10 @@ def split_paragraphs(lines: list[str]) -> list[DraftParagraph]:
         source_marker = _parse_source_marker(line)
         if source_marker is not None:
             flush()
+            render_block = source_marker.pop("renderBlock", None)
             pending_spans = [source_marker]
+            if isinstance(render_block, dict):
+                pending_metadata["renderBlock"] = render_block
             continue
         review_match = REVIEW_MARKER_PATTERN.match(line.strip())
         if review_match:
@@ -197,6 +200,16 @@ def chunk_paragraphs(
 
     for paragraph in paragraphs:
         paragraph_size = len(paragraph.text)
+        if "renderBlock" in paragraph.metadata:
+            flush()
+            chunks.append(
+                DraftChunk(
+                    text=paragraph.text,
+                    source_spans=[dict(span) for span in paragraph.source_spans],
+                    metadata=dict(paragraph.metadata),
+                )
+            )
+            continue
         if current and current_size + paragraph_size + 2 > target_chars:
             flush()
         if paragraph_size > max_chars:

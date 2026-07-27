@@ -9,6 +9,7 @@ from typing import Literal
 
 import yaml
 
+from .clinical_json_import import extract_clinical_json
 from .html_import import extract_html
 from .models import (
     ExtractedBlock,
@@ -47,7 +48,7 @@ def _resolve_source_path(source_root: Path, relative_path: str) -> Path:
 
 def _source_format(
     source: RegistrySource, path: Path
-) -> Literal["pdf", "text", "markdown", "html"]:
+) -> Literal["pdf", "text", "markdown", "html", "clinical_json"]:
     if source.format != "auto":
         return source.format
     suffix = path.suffix.lower()
@@ -66,6 +67,8 @@ def extract_source(source: RegistrySource, path: Path) -> ExtractedSource:
     source_format = _source_format(source, path)
     if source_format == "pdf":
         return extract_pdf(path, source.extraction)
+    if source_format == "clinical_json":
+        return extract_clinical_json(path)
     if source_format == "html":
         return extract_html(path)
     return extract_text(path, source_format)
@@ -85,6 +88,9 @@ def _source_marker(block: ExtractedBlock) -> str:
     if block.bbox is not None:
         payload["bbox"] = block.bbox
     for key in ("lineStart", "lineEnd"):
+        if key in block.metadata:
+            payload[key] = block.metadata[key]
+    for key in ("sourceSectionId", "sourceSectionOrder", "renderBlock"):
         if key in block.metadata:
             payload[key] = block.metadata[key]
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)

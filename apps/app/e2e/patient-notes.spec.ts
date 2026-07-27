@@ -44,6 +44,7 @@ test('keeps patient notes local, nested, and findable from search', async ({ pag
   // Searching finds it, labelled as personal and outside the official results container.
   await navigationButton(page, 'Поиск').click();
   await page.getByTestId('search-input').fill('цефтриаксон пневмония');
+  await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
 
   const personal = page.locator('.personal-note-matches');
   await expect(personal).toBeVisible();

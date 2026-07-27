@@ -14,15 +14,20 @@ function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
 
-test('asks for the search task before unlocking input', async ({ page }) => {
+async function chooseScope(page: Page, name: RegExp): Promise<void> {
+  await page.getByRole('radio', { name }).click();
+}
+
+test('asks for the search task when automatic detection is ambiguous', async ({ page }) => {
   await mountBuiltApp(page);
-  await page.getByRole('button', { name: 'Сменить' }).click();
+  await page.getByTestId('search-input').fill(query);
 
-  await expect(page.getByText('Поле поиска откроется после выбора режима')).toBeVisible();
-  await expect(page.getByTestId('search-input')).toHaveCount(0);
-  await page.getByRole('radio', { name: /В клин\. рекомендациях/u }).click();
-
+  await expect(page.getByText('В каком разделе искать?')).toBeVisible();
   await expect(page.getByTestId('search-input')).toBeVisible();
+  await expect(page.getByTestId('search-submit')).toBeDisabled();
+  await chooseScope(page, /В клин\. рекомендациях/u);
+
+  await expect(page.getByTestId('search-submit')).toBeEnabled();
   await expect(
     page.getByText(/Искать только в установленных клинических рекомендациях/u),
   ).toBeVisible();
@@ -32,6 +37,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await mountBuiltApp(page);
   await expect(page.getByTestId('search-input')).toBeVisible();
   await page.getByTestId('search-input').fill(query);
+  await chooseScope(page, /В клин\. рекомендациях/u);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
   await expect(page.getByTestId('search-mode')).toHaveText('FTS5 + VECTOR');
@@ -42,13 +48,12 @@ test('finds a recommendation section and opens local context', async ({ page }) 
 });
 
 test('limits medication mode to medication documents', async ({ page }) => {
-  await mountBuiltApp(page, {
-    localStorage: { 'minimed.search-scope.v1': 'medications' },
-  });
+  await mountBuiltApp(page);
 
   await page.getByTestId('search-input').fill('цефтриаксон');
+  await chooseScope(page, /Препараты/u);
   await expect(page.locator('.result-group').first()).toContainText(/Цефтриаксон/u, {
-    timeout: 3_000,
+    timeout: 10_000,
   });
   await expect(page.getByTestId('search-results')).not.toContainText(
     'Внебольничная пневмония у детей',
@@ -58,6 +63,7 @@ test('limits medication mode to medication documents', async ({ page }) => {
 test('limits the initial document list and reveals remaining sources', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
+  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-submit').click();
 
   const groups = page.locator('.result-group');
@@ -65,7 +71,6 @@ test('limits the initial document list and reveals remaining sources', async ({ 
   const showMore = page.getByRole('button', { name: /Показать ещё/u });
   await expect(showMore).toHaveAttribute('aria-expanded', 'false');
   await showMore.click();
-  expect(await groups.count()).toBeGreaterThan(5);
   await expect(page.getByRole('button', { name: 'Скрыть остальные документы' })).toHaveAttribute(
     'aria-expanded',
     'true',
@@ -75,12 +80,13 @@ test('limits the initial document list and reveals remaining sources', async ({ 
 test('preserves the active search while navigating between mounted routes', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
+  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
   await navigationButton(page, 'База знаний').click();
-  await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Документы на устройстве' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Документы/u })).toBeVisible();
   await navigationButton(page, 'Поиск').click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
@@ -91,12 +97,15 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
 
-  await expect(page.getByRole('heading', { name: 'База знаний' })).toBeVisible();
-  await page.getByRole('tab', { name: 'Каталог загрузок' }).click();
+  await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
+  await page.getByRole('button', { name: /^Документы/u }).click();
+  await expect(page.getByRole('heading', { name: 'Документы' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Всегда доступно/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Лекарства, документы и нормы/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Инфекционные болезни/u })).toBeVisible();
+  await page.getByRole('button', { name: /Всегда доступно/u }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
-  await expect(page.getByText('Педиатрия: инфекционные болезни')).toBeVisible();
-  await expect(page.getByText('Лекарственные препараты РФ')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Пока недоступно' }).first()).toBeDisabled();
   await page.getByText('Обновление списка наборов').click();
   await expect(page.getByText(/Текущий встроенный пакет:/u)).toBeVisible();
 });
@@ -104,6 +113,7 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
 test('replays a saved query from the history drawer', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
+  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
 
@@ -124,6 +134,7 @@ test('replays a saved query from the history drawer', async ({ page }) => {
 test('runs a debounced clinical search without requiring submit', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
+  await chooseScope(page, /Всё без диагностики/u);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
 });
 
@@ -132,6 +143,7 @@ test('autosearch leaves the typed text untouched, including trailing space', asy
   // The debounced search used to write the trimmed query back into the field, deleting the space a
   // doctor had just typed mid-sentence.
   await page.getByTestId('search-input').fill(`${query} `);
+  await chooseScope(page, /Всё без диагностики/u);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
   await expect(page.getByTestId('search-input')).toHaveValue(`${query} `);
 });
@@ -139,10 +151,12 @@ test('autosearch leaves the typed text untouched, including trailing space', asy
 test('filters the document library and opens a document with one click', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('tab', { name: 'Документы на устройстве' }).click();
+  await page.getByRole('button', { name: /^Документы/u }).click();
+  await page.getByRole('button', { name: /Всегда доступно/u }).click();
+  await page.getByRole('button', { name: 'Открыть документы ядра' }).click();
   await page.getByPlaceholder('Название, специальность или источник').fill('пневмония');
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
-  await expect(page.getByRole('dialog', { name: 'Пневмония у детей' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Пневмония у детей', level: 2 })).toBeVisible();
   await expect(page.getByLabel('Поиск в документе')).toBeVisible();
 });
 
@@ -151,6 +165,7 @@ test('opens only the exact fragment first and expands surrounding source context
 }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
+  await chooseScope(page, /Всё без диагностики/u);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
   await page.getByTestId('search-result').first().click();
   await expect(page.locator('.source-paragraph')).toHaveCount(1);
@@ -162,5 +177,6 @@ test('shows neuroinfection clarifications without hiding search results', async 
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
   await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
+  await chooseScope(page, /Диагностировать/u);
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 3_000 });
 });

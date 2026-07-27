@@ -18,7 +18,7 @@ export interface InstalledModuleRegistry {
   activate(installation: ModuleVersionInstallation): InstalledContentModule;
   setEnabled(moduleId: string, enabled: boolean): InstalledContentModule;
   markUpdateAvailable(moduleId: string): InstalledContentModule;
-  rollback(moduleId: string): InstalledContentModule;
+  rollback(moduleId: string, version?: string): InstalledContentModule;
   remove(moduleId: string): void;
 }
 
@@ -362,14 +362,16 @@ export class InMemoryInstalledModuleRegistry implements InstalledModuleRegistry 
     return toPublic(next);
   }
 
-  public rollback(moduleId: string): InstalledContentModule {
+  public rollback(moduleId: string, version?: string): InstalledContentModule {
     const entry = this.requireEntry(moduleId);
-    const previous = entry.history[0];
+    const previous = version
+      ? entry.history.find((candidate) => candidate.version === version)
+      : entry.history[0];
     if (!previous) throw new Error(`Module ${moduleId} has no validated rollback version.`);
     const next: RegistryEntry = {
       ...entry,
       active: previous,
-      history: [entry.active, ...entry.history.slice(1)],
+      history: [entry.active, ...entry.history.filter((candidate) => candidate !== previous)],
       updateAvailable: false,
     };
     this.entries.set(moduleId, next);
@@ -420,8 +422,8 @@ export class PersistentInstalledModuleRegistry implements InstalledModuleRegistr
     return this.commit(() => this.registry.markUpdateAvailable(moduleId));
   }
 
-  public rollback(moduleId: string): InstalledContentModule {
-    return this.commit(() => this.registry.rollback(moduleId));
+  public rollback(moduleId: string, version?: string): InstalledContentModule {
+    return this.commit(() => this.registry.rollback(moduleId, version));
   }
 
   public remove(moduleId: string): void {

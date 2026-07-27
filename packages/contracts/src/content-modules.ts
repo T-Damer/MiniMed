@@ -301,7 +301,10 @@ export interface ContentModuleManager {
     moduleId: string,
     enabled: boolean,
   ): Promise<Result<InstalledContentModule, LocalMedError>>;
-  rollback(moduleId: string): Promise<Result<InstalledContentModule, LocalMedError>>;
+  rollback(
+    moduleId: string,
+    version?: string,
+  ): Promise<Result<InstalledContentModule, LocalMedError>>;
   remove(moduleId: string): Promise<Result<void, LocalMedError>>;
 }
 

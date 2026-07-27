@@ -59,6 +59,8 @@ function waitForRetry(delayMs: number, signal: AbortSignal | undefined): Promise
 export interface RetryingDownloadOptions extends ResumableDownloadOptions {
   /** Overridable so tests do not have to wait out the real backoff. */
   readonly retryDelaysMs?: readonly number[];
+  /** Keep retrying transient failures until the caller aborts. */
+  readonly retryForever?: boolean;
 }
 
 /**
@@ -67,17 +69,25 @@ export interface RetryingDownloadOptions extends ResumableDownloadOptions {
  * Only an exhausted retry budget, an abort, or a non-transient cause reaches the caller.
  */
 export async function downloadWithRetry(options: RetryingDownloadOptions): Promise<Uint8Array> {
-  const { retryDelaysMs = DOWNLOAD_RETRY_DELAYS_MS, ...downloadOptions } = options;
+  const {
+    retryDelaysMs = DOWNLOAD_RETRY_DELAYS_MS,
+    retryForever = false,
+    ...downloadOptions
+  } = options;
   let lastError: unknown;
+  let attempt = 0;
 
-  for (const [attempt, delay] of [0, ...retryDelaysMs].entries()) {
-    if (attempt > 0 && delay > 0) await waitForRetry(delay, downloadOptions.signal);
+  while (retryForever || attempt <= retryDelaysMs.length) {
+    const delay =
+      attempt === 0 ? 0 : (retryDelaysMs[Math.min(attempt - 1, retryDelaysMs.length - 1)] ?? 0);
+    if (delay > 0) await waitForRetry(delay, downloadOptions.signal);
     try {
       return await downloadWithResume(downloadOptions);
     } catch (cause) {
       lastError = cause;
       if (!isTransientDownloadError(cause) || downloadOptions.signal?.aborted) throw cause;
     }
+    attempt += 1;
   }
 
   throw new Error(

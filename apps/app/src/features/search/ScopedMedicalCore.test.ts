@@ -6,7 +6,7 @@ import type {
 } from '@localmed/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
+import { inferSearchScope, ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 
 function document(id: string, sourceType: string): MedicalDocumentSummary {
   return {
@@ -93,6 +93,7 @@ describe('ScopedMedicalCore', () => {
     document('drug', 'official_drug_instruction'),
     document('registry', 'official_registry_summary'),
     document('law', 'regulatory_act'),
+    document('law-summary', 'regulatory_act_summary'),
   ];
 
   it('limits medication searches to official medication documents', async () => {
@@ -118,7 +119,10 @@ describe('ScopedMedicalCore', () => {
 
   it('uses an impossible document id when the selected family is not installed', async () => {
     const base = coreWithDocuments(
-      documents.filter((item) => item.sourceType !== 'regulatory_act'),
+      documents.filter(
+        (item) =>
+          item.sourceType !== 'regulatory_act' && item.sourceType !== 'regulatory_act_summary',
+      ),
     );
     const scoped = new ScopedMedicalCore(base.core, undefined, 'legal');
 
@@ -127,6 +131,15 @@ describe('ScopedMedicalCore', () => {
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
       '__minimed_empty_search_scope__',
     ]);
+  });
+
+  it('includes regulatory source cards and full acts in legal search', async () => {
+    const base = coreWithDocuments(documents);
+    const scoped = new ScopedMedicalCore(base.core, undefined, 'legal');
+
+    await scoped.search(request());
+
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual(['law', 'law-summary']);
   });
 
   it('uses the grounded assistant only for diagnosis', async () => {
@@ -140,5 +153,27 @@ describe('ScopedMedicalCore', () => {
     expect(assistant.search).toHaveBeenCalledOnce();
     expect(assistant.analyzeQuery).toHaveBeenCalledOnce();
     expect(base.search).not.toHaveBeenCalled();
+  });
+});
+
+describe('inferSearchScope', () => {
+  it('maps confident intents and leaves ambiguous requests for the user', () => {
+    const intent = (
+      primary: 'diagnosis' | 'medication' | 'administrative-reference' | 'treatment' | 'mixed',
+      confidence = 0.8,
+    ) => ({
+      primary,
+      secondary: [],
+      confidence,
+      matchedSignals: [],
+      needsClarification: false,
+    });
+
+    expect(inferSearchScope(intent('diagnosis'))).toBe('diagnosis');
+    expect(inferSearchScope(intent('medication'))).toBe('medications');
+    expect(inferSearchScope(intent('administrative-reference'))).toBe('legal');
+    expect(inferSearchScope(intent('treatment'))).toBe('guidelines');
+    expect(inferSearchScope(intent('mixed'))).toBeUndefined();
+    expect(inferSearchScope(intent('diagnosis', 0.4))).toBeUndefined();
   });
 });

@@ -13,7 +13,6 @@ import { DocumentOverlayHost } from '@/features/library/DocumentOverlayHost';
 import { LocalModelController } from '@/features/models/controller';
 import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
 import { ModelNavIndicator } from '@/features/models/ModelNavIndicator';
-import { ModelSettings } from '@/features/models/ModelSettings';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
@@ -23,11 +22,11 @@ import {
 } from '@/features/modules/module-runtime-service';
 import { NotesView } from '@/features/notes/NotesView';
 import { SearchHome } from '@/features/search/SearchHome';
-import { StatusPanel } from '@/features/status/StatusPanel';
+import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 import { notifyContentChanged } from '@/state/content-events';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 
-type View = 'search' | 'modules' | 'notes' | 'status';
+type View = 'search' | 'modules' | 'notes';
 
 const VIEWS: readonly {
   readonly id: View;
@@ -37,7 +36,6 @@ const VIEWS: readonly {
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'modules', label: 'База знаний', icon: 'modules' },
   { id: 'notes', label: 'Заметки', icon: 'notes' },
-  { id: 'status', label: 'Настройки', icon: 'brain' },
 ];
 
 const DEFAULT_MODEL_CATALOG_URL =
@@ -47,6 +45,7 @@ const DEFAULT_MODEL_ASSET_BASE_URL = '';
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
   if (value === 'documents') return 'modules';
+  if (value === 'status' || value.startsWith('modules/')) return 'modules';
   if (value === 'history') return 'search';
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
 }
@@ -92,6 +91,7 @@ export function App(): JSX.Element {
   const [showScrollTop, setShowScrollTop] = createSignal(false);
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
+  const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
   let coreToClose: MedicalCore | undefined;
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
@@ -118,9 +118,13 @@ export function App(): JSX.Element {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
     const next = await swapMedicalCore(current, createBrowserCore, (core) => {
+      const previousSearchCore = searchCore();
+      const nextSearchCore = new WorkerSearchMedicalCore(core);
+      setSearchCore(nextSearchCore);
+      if (previousSearchCore) void previousSearchCore.close();
       const assistant = assistantCore();
-      if (assistant) assistant.setBase(core);
-      else setAssistantCore(new GroundedMedicalCore(core, modelController));
+      if (assistant) assistant.setBase(nextSearchCore);
+      else setAssistantCore(new GroundedMedicalCore(nextSearchCore, modelController));
     });
     coreToClose = next.core;
     setReady(next);
@@ -152,8 +156,10 @@ export function App(): JSX.Element {
     unsubscribeModuleRuntime = subscribeContentModuleRuntime(bindModuleRuntime);
     try {
       const initialized = await initializeMedicalCore(createBrowserCore);
+      const initializedSearchCore = new WorkerSearchMedicalCore(initialized.core);
       coreToClose = initialized.core;
-      setAssistantCore(new GroundedMedicalCore(initialized.core, modelController));
+      setSearchCore(initializedSearchCore);
+      setAssistantCore(new GroundedMedicalCore(initializedSearchCore, modelController));
       setReady(initialized);
       void modelController.start();
       void refreshContentModuleCatalog()
@@ -176,6 +182,8 @@ export function App(): JSX.Element {
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     if (coreToClose) void coreToClose.close();
+    const activeSearchCore = searchCore();
+    if (activeSearchCore) void activeSearchCore.close();
     void modelController.dispose();
   });
 
@@ -204,7 +212,7 @@ export function App(): JSX.Element {
                 aria-hidden={view() !== 'search'}
               >
                 <SearchHome
-                  baseCore={state().core}
+                  baseCore={searchCore() ?? state().core}
                   assistantCore={assistantCore()}
                   onOpenKnowledgeBase={() => navigate('modules')}
                 />
@@ -218,6 +226,7 @@ export function App(): JSX.Element {
                 <KnowledgeBaseView
                   core={state().core}
                   status={state().status}
+                  controller={modelController}
                   active={view() === 'modules'}
                   onContentChanged={connectInstalledModules}
                   onAvailableUpdates={setAvailableModuleCount}
@@ -229,29 +238,7 @@ export function App(): JSX.Element {
                 hidden={view() !== 'notes'}
                 aria-hidden={view() !== 'notes'}
               >
-                <NotesView />
-              </section>
-              <section
-                class="app-view model-status-view"
-                classList={{ active: view() === 'status' }}
-                hidden={view() !== 'status'}
-                aria-hidden={view() !== 'status'}
-              >
-                <section class="settings-intro paper-card">
-                  <div>
-                    <p class="archive-kicker">Поиск остаётся доступным всегда</p>
-                    <h1>Настройки</h1>
-                  </div>
-                  <p>
-                    Обычный FTS5/vector-поиск полностью локален и не требует модели. Модель нужна
-                    только для диагностического разбора найденных источников и может быть отключена.
-                  </p>
-                </section>
-                <ModelSettings controller={modelController} />
-                <details class="system-technical-panel">
-                  <summary>Техническая информация о приложении</summary>
-                  <StatusPanel core={state().core} initialStatus={state().status} />
-                </details>
+                <NotesView core={state().core} />
               </section>
             </main>
             <ContentDownloadStatus floating />
@@ -272,7 +259,7 @@ export function App(): JSX.Element {
                 };
                 return (
                   <div class="app-nav-item">
-                    <Show when={item.id === 'status'}>
+                    <Show when={item.id === 'modules'}>
                       <ModelNavIndicator controller={modelController} />
                     </Show>
                     <button
