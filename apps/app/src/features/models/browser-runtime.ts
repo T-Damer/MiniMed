@@ -13,7 +13,6 @@ import type {
   LocalModelStructuredRequest,
   LocalModelStructuredResponse,
 } from '@/features/models/types';
-import { downloadCoordinator } from '@/features/network/download-coordinator';
 import { downloadWithRetry } from '@/features/network/download-retry';
 
 interface WllamaProgress {
@@ -249,7 +248,6 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
     profile: LocalModelDeviceProfile,
     callbacks: LocalModelLoadCallbacks,
   ): Promise<LocalModelSession> {
-    await downloadCoordinator.waitForContentIdle();
     const imported: unknown = await import(/* @vite-ignore */ this.options.moduleUrl);
     const module = asWllamaModule(imported);
     const instance = new module.Wllama(

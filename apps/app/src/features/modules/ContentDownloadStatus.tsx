@@ -175,30 +175,7 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
 
   return (
     <Show when={visibleTasks().length > 0}>
-      <Show
-        when={!(props.floating && collapsed())}
-        fallback={
-          <button
-            type="button"
-            class="content-download-pill"
-            data-testid="content-download-status"
-            aria-label={`Загрузка наборов: ${visibleTasks().length}. Показать детали`}
-            onClick={() => setCollapsed(false)}
-          >
-            <span
-              class="content-download-ring"
-              style={{
-                background: `conic-gradient(#e8c654 ${Math.round(
-                  (aggregateProgress(visibleTasks()) ?? 0.08) * 100,
-                )}%, rgb(246 238 219 / 18%) 0)`,
-              }}
-              aria-hidden="true"
-            >
-              <AppGlyph name="download" />
-            </span>
-          </button>
-        }
-      >
+      <Show when={!props.floating || !collapsed()}>
         <section
           class="content-download-status"
           classList={{ floating: Boolean(props.floating) }}
@@ -213,17 +190,8 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
                 автоматически.
               </p>
             </div>
-            <Show
-              when={props.floating}
-              fallback={<span class="content-download-count">{visibleTasks().length}</span>}
-            >
-              <button
-                type="button"
-                aria-label="Свернуть панель загрузок"
-                onClick={() => setCollapsed(true)}
-              >
-                Свернуть
-              </button>
+            <Show when={!props.floating}>
+              <span class="content-download-count">{visibleTasks().length}</span>
             </Show>
           </header>
           <OverlayScrollbarsComponent
@@ -272,6 +240,32 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
             </ul>
           </OverlayScrollbarsComponent>
         </section>
+      </Show>
+      <Show when={props.floating}>
+        <button
+          type="button"
+          class="content-download-pill"
+          data-testid="content-download-status"
+          aria-expanded={!collapsed()}
+          aria-label={
+            collapsed()
+              ? `Загрузка наборов: ${visibleTasks().length}. Показать детали`
+              : 'Свернуть панель загрузок'
+          }
+          onClick={() => setCollapsed((value) => !value)}
+        >
+          <span
+            class="content-download-ring"
+            style={{
+              background: `conic-gradient(#e8c654 ${Math.round(
+                (aggregateProgress(visibleTasks()) ?? 0.08) * 100,
+              )}%, rgb(246 238 219 / 18%) 0)`,
+            }}
+            aria-hidden="true"
+          >
+            <AppGlyph name={collapsed() ? 'download' : 'minus'} />
+          </span>
+        </button>
       </Show>
     </Show>
   );

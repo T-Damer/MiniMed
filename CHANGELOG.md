@@ -4,6 +4,27 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-07-28
+
+### Changed
+
+- Search mode selection now lives inside the composer; mode-specific examples scroll horizontally,
+  the idle composer is centered, and active searches move smoothly to the top.
+- The interface follows the device light/dark theme, uses a shared compact page width, and adds
+  directional animation between primary routes.
+- Personal notes use two-column paper cards, nested record editors, reminders, a first-run colleague
+  note, expanding text fields, and accessible deletion confirmation.
+- The knowledge-base and model screens use compact drilldown layouts, clearer installed/download
+  states, simplified technical information, and direct GitHub/APK links.
+- Up to three document modules download concurrently while additional modules stay queued; the local
+  model uses an independent reserved download slot.
+- Browser application updates wait for explicit approval before activating the new service worker.
+
+### Verification boundary
+
+- Deterministic local retrieval remains available without the model, network, or downloaded modules.
+- This remains a debug-signed engineering prerelease rather than a production-signed medical device.
+
 ## [0.6.2] - 2026-07-27
 
 ### Changed

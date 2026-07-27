@@ -15,6 +15,7 @@
 .knowledge-status-card {
   display: grid;
   min-height: 12rem;
+  grid-template-rows: auto auto 1fr auto;
   align-content: start;
   gap: 0.625rem;
   padding: 1rem;
@@ -45,9 +46,17 @@
   line-height: 1.45;
 }
 
+.knowledge-document-counts {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-left: 1.125rem;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
 .knowledge-status-card > em {
-  align-self: end;
-  color: #405b49;
+  color: var(--theme-link);
 }
 
 .knowledge-subroute-heading {
@@ -71,6 +80,30 @@
   font-family: var(--font-serif);
   font-size: clamp(1.625rem, 3vw, 2.5rem);
   font-weight: 500;
+}
+
+.knowledge-subroute-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  margin-left: auto;
+}
+
+.knowledge-subroute-links a {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-link);
+  background: var(--theme-surface-raised);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  text-decoration: none;
+}
+
+.knowledge-subroute-links a:hover {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
 }
 
 @media (max-width: 640px) {
@@ -110,13 +143,46 @@
   margin-bottom: 0.75rem;
 }
 
-.module-catalog-actions > button:not(.module-download-all),
+.module-catalog-heading {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.module-catalog-heading .module-catalog-actions {
+  margin: 0 0 0 auto;
+}
+
 .module-version-history button {
   padding: 0.4375rem 0.625rem;
   border: 1px solid rgb(72 59 34 / 28%);
   color: inherit;
   background: rgb(247 238 215 / 55%);
   cursor: pointer;
+}
+
+.module-auto-update-toggle {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-accent);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.03em;
+}
+
+.module-auto-update-toggle.paused {
+  color: var(--theme-danger);
+}
+
+.module-auto-update-toggle svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .module-version-history {
@@ -312,6 +378,10 @@
   gap: 0.875rem;
 }
 
+.clinical-recommendations-entry {
+  grid-column: 1 / -1;
+}
+
 .module-card {
   display: flex;
   min-width: 0;
@@ -329,7 +399,7 @@
 
 .module-card code {
   overflow: hidden;
-  color: #81755d;
+  color: var(--theme-text-muted);
   font-size: 0.4375rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -342,29 +412,21 @@
   font-size: 0.4375rem;
 }
 
-.module-state.state-bundled {
-  color: #48654f;
-  background: rgb(94 139 102 / 10%);
-}
-
+.module-state.state-bundled,
 .module-state.state-preview {
-  color: #7b5d2e;
-  background: rgb(175 135 65 / 10%);
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
 }
 
-.module-state.state-published {
-  color: #355b69;
-  background: rgb(67 131 154 / 10%);
-}
-
+.module-state.state-published,
 .module-state.state-planned {
-  color: #777169;
-  background: rgb(98 92 82 / 7%);
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
 }
 
 .module-card h3 {
   margin: 1.1875rem 0 0.5rem;
-  color: #38311f;
+  color: var(--theme-text);
   font-family: var(--font-serif);
   font-size: 1.5rem;
   font-weight: 600;
@@ -373,7 +435,7 @@
 .module-card > p {
   min-height: 4.25rem;
   margin: 0 0 1.0625rem;
-  color: #645941;
+  color: var(--theme-text-muted);
   line-height: 1.5;
 }
 
@@ -381,7 +443,7 @@
   display: grid;
   gap: 0.375rem;
   margin-bottom: 0.875rem;
-  color: #756a55;
+  color: var(--theme-text-muted);
   font-size: 0.5rem;
   line-height: 1.35;
 }
@@ -428,12 +490,20 @@
 }
 
 .recommendation-browser-nested .recommendation-browser-heading {
+  justify-content: flex-start;
+  gap: 0.4375rem;
   margin-bottom: 0.5rem;
 }
 
 .recommendation-browser-nested .recommendation-browser-heading h2 {
   margin-bottom: 0.25rem;
   font-size: 1.375rem;
+}
+
+.recommendation-browser-nested .recommendation-browser-heading span {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.5rem;
 }
 
 .recommendation-search-compact {
@@ -641,14 +711,14 @@
 }
 
 .recommendation-section-select strong {
-  color: #38311f;
+  color: var(--theme-text);
   font-family: var(--font-serif);
   font-size: 1.25rem;
   font-weight: 600;
 }
 
 .recommendation-section-select span {
-  color: #756a55;
+  color: var(--theme-text-muted);
   font-family: var(--font-mono);
   font-size: 0.5rem;
   letter-spacing: 0.06em;

@@ -16,7 +16,6 @@ import type {
   LocalModelStructuredRequest,
   LocalModelStructuredResponse,
 } from '@/features/models/types';
-import { downloadCoordinator } from '@/features/network/download-coordinator';
 
 const PREFERENCE_KEY = 'minimed.local-model-preference.v1';
 const BENCHMARK_KEY = 'minimed.local-model-benchmarks.v1';
@@ -433,14 +432,6 @@ export class LocalModelController {
       return;
     }
     const loadPlan = buildLocalModelLoadPlan(selectionInput);
-    if (downloadCoordinator.hasActiveContentDownloads()) {
-      this.update({
-        phase: 'deferred',
-        message: `${recommended.model.name} выбрана. Запуск начнётся после загрузки документов.`,
-      });
-    }
-    await downloadCoordinator.waitForContentIdleWhile(() => generation === this.runGeneration);
-    if (generation !== this.runGeneration) return;
     await this.loadFirstWorking(loadPlan, runtimes, profile, generation);
   }
 
@@ -452,8 +443,6 @@ export class LocalModelController {
   ): Promise<void> {
     let finalError: string | null = null;
     for (const candidate of candidates) {
-      if (generation !== this.runGeneration) return;
-      await downloadCoordinator.waitForContentIdleWhile(() => generation === this.runGeneration);
       if (generation !== this.runGeneration) return;
       const runtime = runtimes.find((item) => item.kind === candidate.artifact.runtime);
       if (!runtime) continue;

@@ -12,8 +12,12 @@ export type AppGlyphName =
   | 'close'
   | 'graph'
   | 'list'
+  | 'arrow-left'
   | 'arrow-up'
+  | 'refresh'
   | 'download'
+  | 'minus'
+  | 'edit'
   | 'trash';
 
 export function AppGlyph(props: {
@@ -76,6 +80,7 @@ export function AppGlyph(props: {
         </>
       )}
       {props.name === 'close' && <path d="m6 6 12 12M18 6 6 18" />}
+      {props.name === 'minus' && <path d="M5 12h14" />}
       {props.name === 'graph' && (
         <>
           <circle cx="6" cy="12" r="2.2" />
@@ -92,8 +97,29 @@ export function AppGlyph(props: {
           <circle cx="4" cy="18" r=".8" fill="currentColor" stroke="none" />
         </>
       )}
+      {props.name === 'arrow-left' && (
+        <path
+          d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
+          fill="currentColor"
+          stroke="none"
+          transform="scale(0.09375)"
+        />
+      )}
       {props.name === 'arrow-up' && <path d="m5 14 7-7 7 7M12 7v13" />}
+      {props.name === 'refresh' && (
+        <>
+          <path d="M20 7v5h-5" />
+          <path d="M4 17v-5h5" />
+          <path d="M6.1 8.5A7 7 0 0 1 18.8 9L20 12M4 12l1.2 3A7 7 0 0 0 17.9 15.5" />
+        </>
+      )}
       {props.name === 'download' && <path d="M12 3v12m-4-4 4 4 4-4M5 20h14" />}
+      {props.name === 'edit' && (
+        <>
+          <path d="m4 20 4.2-1 10.6-10.6a2 2 0 0 0-2.8-2.8L5.4 16.2 4 20Z" />
+          <path d="m14.6 7 2.8 2.8" />
+        </>
+      )}
       {props.name === 'trash' && (
         <>
           <path d="M4.5 6h15" />

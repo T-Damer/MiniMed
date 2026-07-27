@@ -62,7 +62,6 @@ const SEARCH_SCOPES: readonly SearchScopeOption[] = [
 
 export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [scope, setScope] = createSignal<SearchScope>();
-  const [scopePromptOpen, setScopePromptOpen] = createSignal(true);
   const [documentCountsLoaded, setDocumentCountsLoaded] = createSignal(false);
   const [documentCounts, setDocumentCounts] = createSignal<Readonly<Record<SearchScope, number>>>({
     diagnosis: 0,
@@ -100,7 +99,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
   onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts));
 
-  const selectedOption = createMemo(() => SEARCH_SCOPES.find((option) => option.id === scope()));
   const scopedCore = createMemo(() => {
     const selected = scope();
     return selected
@@ -114,7 +112,27 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
 
   const selectScope = (next: SearchScope): void => {
     setScope(next);
-    setScopePromptOpen(false);
+  };
+
+  const scrollModesHorizontally = (
+    event: WheelEvent & { readonly currentTarget: HTMLFieldSetElement },
+  ): void => {
+    const picker = event.currentTarget;
+    if (
+      Math.abs(event.deltaY) <= Math.abs(event.deltaX) ||
+      picker.scrollWidth <= picker.clientWidth
+    ) {
+      return;
+    }
+    const maxScrollLeft = picker.scrollWidth - picker.clientWidth;
+    if (
+      (event.deltaY < 0 && picker.scrollLeft <= 0) ||
+      (event.deltaY > 0 && picker.scrollLeft >= maxScrollLeft)
+    ) {
+      return;
+    }
+    event.preventDefault();
+    picker.scrollLeft += event.deltaY;
   };
 
   const replayHistory = (entry: SearchHistoryEntry): void => {
@@ -124,15 +142,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
 
   return (
     <section class="search-home" aria-label="Поиск MiniMed">
-      <header class="search-mode-heading">
-        <div>
-          <p class="archive-kicker">Сначала выберите режим</p>
-          <h1>Что вы хотите найти?</h1>
-          <p>
-            Режим ограничивает поиск подходящими локальными источниками и исключает случайные
-            совпадения из других разделов.
-          </p>
-        </div>
+      <div class="search-mode-tools">
         <Show when={scope() === 'diagnosis'}>
           <button
             class="search-mode-help"
@@ -143,92 +153,65 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             ?
           </button>
         </Show>
-      </header>
+      </div>
 
-      <Show when={scopePromptOpen()}>
-        <div class="search-scope-prompt paper-card" role="status">
-          <strong>В каком разделе искать?</strong>
-          <p>Запрос подходит сразу к нескольким режимам. Выберите нужный раздел.</p>
-        </div>
-        <fieldset class="search-mode-picker">
-          <legend class="visually-hidden">Режим поиска</legend>
-          <For each={SEARCH_SCOPES}>
-            {(option) => (
-              <label
-                classList={{
-                  active: scope() === option.id,
-                  unavailable: documentCountsLoaded() && documentCounts()[option.id] === 0,
-                }}
-                title={option.description}
-              >
-                <input
-                  type="radio"
-                  name="minimed-search-scope"
-                  value={option.id}
-                  checked={scope() === option.id}
-                  disabled={documentCountsLoaded() && documentCounts()[option.id] === 0}
-                  onChange={() => selectScope(option.id)}
-                />
-                <span class="search-mode-option-copy">
-                  <strong>{option.label}</strong>
-                  <small>{documentCounts()[option.id]} док.</small>
-                </span>
-              </label>
-            )}
-          </For>
-        </fieldset>
-      </Show>
-
-      <Show when={scope()}>
-        <>
-          <div class="search-selected-mode" aria-live="polite">
-            <span>{selectedOption()?.shortLabel}</span>
-            <p>{selectedOption()?.description}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setScope(undefined);
-                setScopePromptOpen(true);
-              }}
-            >
-              Сменить
-            </button>
+      <Show when={selectedScopeUnavailable()}>
+        <div class="search-scope-unavailable paper-card">
+          <div>
+            <strong>Такие документы ещё не установлены</strong>
+            <p>Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.</p>
           </div>
-
-          <Show when={selectedScopeUnavailable()}>
-            <div class="search-scope-unavailable paper-card">
-              <div>
-                <strong>Такие документы ещё не установлены</strong>
-                <p>Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.</p>
-              </div>
-              <button type="button" onClick={props.onOpenKnowledgeBase}>
-                Открыть базу знаний
-              </button>
-            </div>
-          </Show>
-        </>
-      </Show>
-
-      <Show when={scopedCore()}>
-        {(core) => (
-          <div class="search-workspace-main">
-            <Show when={scope() === 'diagnosis' && props.assistantCore}>
-              <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
-            </Show>
-            <SearchWorkspace
-              core={core()}
-              scope={scope() as SearchScope}
-              searchAllowed={!selectedScopeUnavailable()}
-            />
-          </div>
-        )}
-      </Show>
-      <Show when={!scopedCore()}>
-        <div class="search-locked-state paper-card">
-          <strong>Поиск станет доступен после выбора режима</strong>
-          <p>Выберите раздел выше — доступны только режимы с установленными документами.</p>
+          <button type="button" onClick={props.onOpenKnowledgeBase}>
+            Открыть базу знаний
+          </button>
         </div>
       </Show>
+
+      <div class="search-workspace-main">
+        <Show when={scope() === 'diagnosis' && props.assistantCore}>
+          <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
+        </Show>
+        <SearchWorkspace
+          core={scopedCore() ?? props.baseCore}
+          scope={scope() ?? 'all'}
+          searchAllowed={Boolean(scope()) && !selectedScopeUnavailable()}
+          placeholder={
+            scope()
+              ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
+              : 'Выберите режим поиска'
+          }
+          modePicker={
+            <fieldset class="search-mode-picker" onWheel={scrollModesHorizontally}>
+              <legend class="visually-hidden">Режим поиска</legend>
+              <For each={SEARCH_SCOPES}>
+                {(option) => (
+                  <label
+                    classList={{
+                      active: scope() === option.id,
+                      unavailable: documentCountsLoaded() && documentCounts()[option.id] === 0,
+                    }}
+                    title={option.description}
+                  >
+                    <input
+                      type="radio"
+                      name="minimed-search-scope"
+                      value={option.id}
+                      aria-label={option.label}
+                      checked={scope() === option.id}
+                      disabled={documentCountsLoaded() && documentCounts()[option.id] === 0}
+                      onChange={() => selectScope(option.id)}
+                    />
+                    <span class="search-mode-option-copy">
+                      <strong>{option.shortLabel}</strong>
+                      <small>{documentCounts()[option.id]}</small>
+                    </span>
+                  </label>
+                )}
+              </For>
+            </fieldset>
+          }
+        />
+      </div>
       <SearchHistoryPanel onReplay={replayHistory} />
 
       <OverlayDialog

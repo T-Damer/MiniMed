@@ -24,7 +24,6 @@ import {
   enqueuePendingModuleInstall,
   recoverPendingModuleInstalls,
 } from '@/features/modules/pending-module-installs';
-import { downloadCoordinator } from '@/features/network/download-coordinator';
 import { downloadWithRetry } from '@/features/network/download-retry';
 
 const DATABASE_NAME = 'minimed-content-modules-v1';
@@ -132,22 +131,17 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     if (artifact.compression !== 'none') {
       throw new Error('Сжатые наборы пока не поддерживаются этим установщиком.');
     }
-    const releaseContentLane = downloadCoordinator.beginContentDownload();
-    try {
-      const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
-      const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
-      return await downloadWithRetry({
-        url: resolvedUrl,
-        cacheKey,
-        expectedBytes: artifact.sizeBytes,
-        signal,
-        retryForever: true,
-        onProgress: ({ downloadedBytes, totalBytes }) =>
-          onProgress({ downloadedBytes, totalBytes }),
-      });
-    } finally {
-      releaseContentLane();
-    }
+    const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
+    const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
+    return downloadWithRetry({
+      url: resolvedUrl,
+      cacheKey,
+      expectedBytes: artifact.sizeBytes,
+      signal,
+      retryForever: true,
+      onProgress: ({ downloadedBytes, totalBytes }) =>
+        onProgress({ downloadedBytes, totalBytes }),
+    });
   }
 }
 
@@ -339,11 +333,12 @@ export class BrowserContentModuleRuntime {
     this.registry = createRegistry();
     this.installer = new ForegroundContentModuleInstaller(
       catalog,
-      { appVersion: '0.6.2', schemaVersion: 2, coreCatalogVersion: '1' },
+      { appVersion: '0.6.3', schemaVersion: 2, coreCatalogVersion: '1' },
       new BrowserModuleDownloader(),
       this.backend,
       new BrowserModuleValidator(),
       this.registry,
+      3,
     );
     this.installer.subscribe((task) => {
       if (['completed', 'failed', 'cancelled'].includes(task.state)) {

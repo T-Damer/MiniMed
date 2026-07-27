@@ -105,7 +105,35 @@ describe('recommendation-categories', () => {
       installedCount: 1,
       activeTaskCount: 1,
       installedFraction: 0.5,
-      byteProgress: 0.5,
+      byteProgress: 0.75,
     });
+  });
+
+  it('does not show a shared category as fully loaded while overlapping modules download', () => {
+    const shared = module('shared', {
+      collection: 'minimed.clinical.emergency-critical.ru',
+      tags: ['individual-recommendation', category.id],
+    });
+    const respiratoryOnly = module('respiratory-only');
+    const progress = recommendationCategoryDownloadProgress(
+      [shared, respiratoryOnly],
+      category.id,
+      new Set(),
+      [
+        {
+          id: 'task-shared',
+          moduleId: 'shared',
+          version: '1.0.0',
+          state: 'downloading',
+          downloadedBytes: 1_000_000,
+          totalBytes: 1_000_000,
+          includeSourceAssets: false,
+          runsInBackground: false,
+          errorMessage: null,
+        },
+      ],
+    );
+
+    expect(progress.byteProgress).toBe(0.5);
   });
 });

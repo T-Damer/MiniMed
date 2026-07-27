@@ -1,4 +1,4 @@
-const CACHE_NAME = 'localmed-shell-v0.3.0-alpha.1';
+const CACHE_NAME = 'localmed-shell-v0.6.3';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -8,7 +8,10 @@ self.addEventListener('install', (event) => {
         cache.addAll(['./', './content/core-demo.db', './content/core-demo-report.json']),
       ),
   );
-  self.skipWaiting();
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

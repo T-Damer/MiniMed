@@ -9,6 +9,7 @@ import {
   createPatientCard,
   dueReminderNotes,
   enrichPatientNote,
+  injectColleagueNote,
   loadPatientNotes,
   PATIENT_NOTES_KEY,
   removePatientCard,
@@ -75,6 +76,16 @@ describe('patient notes store', () => {
       'Препараты',
       'Диагностика',
     ]);
+  });
+
+  it('adds the colleague note once and keeps it removed', () => {
+    const injected = injectColleagueNote();
+    const cardId = injected.cards[0]?.id ?? '';
+    expect(injected.cards[0]?.title).toBe('Привет, коллега!');
+    expect(injected.notes[0]?.cardId).toBe(cardId);
+
+    removePatientCard(cardId);
+    expect(injectColleagueNote().cards).toHaveLength(0);
   });
 
   it('refuses a note without a card and an orphan nesting target', () => {

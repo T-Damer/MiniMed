@@ -255,7 +255,7 @@
   position: fixed;
   z-index: 60;
   right: max(0.875rem, var(--safe-right));
-  bottom: calc(1.125rem + var(--safe-bottom));
+  bottom: max(0.625rem, calc(0.625rem + var(--safe-bottom)));
   display: grid;
   width: 2.6875rem;
   height: 2.6875rem;

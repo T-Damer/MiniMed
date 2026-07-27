@@ -1,0 +1,171 @@
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    color: var(--theme-text);
+    background: var(--theme-background);
+    --theme-background: #171816;
+    --theme-surface: #262723;
+    --theme-surface-raised: #30312c;
+    --theme-surface-muted: #1f201d;
+    --theme-border: #4b4a42;
+    --theme-text: #eee8da;
+    --theme-text-muted: #c5bdad;
+    --theme-text-faint: #958d80;
+    --theme-accent: #82a88d;
+    --theme-accent-contrast: #171816;
+    --theme-accent-soft: rgb(130 168 141 / 15%);
+    --theme-link: #9bc7a7;
+    --theme-search-surface: #243029;
+    --theme-search-surface-muted: #2c3a31;
+    --theme-floating-surface: #456452;
+    --theme-floating-border: #78947f;
+    --theme-floating-text: #fff9e8;
+    --theme-danger: #d98578;
+    --theme-note: #302d25;
+    --folder: #34322b;
+    --folder-light: #403c31;
+    --folder-dark: #24231f;
+    --desk: var(--theme-background);
+    --desk-dark: #111210;
+    --stamp-faded: rgb(217 133 120 / 15%);
+    --shadow-paper: 0 1px 0 rgb(255 255 255 / 5%) inset, 0 1.375rem 2.875rem rgb(0 0 0 / 30%);
+    --shadow-folder: 0 1.625rem 4.0625rem rgb(0 0 0 / 38%);
+  }
+
+  html,
+  body {
+    background: var(--desk);
+  }
+
+  body {
+    background:
+      linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px) 0 0 / 2.125rem 2.125rem,
+      linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px) 0 0 / 2.125rem 2.125rem,
+      radial-gradient(circle at 14% -10%, #363933 0, transparent 38rem),
+      var(--desk);
+  }
+
+  body::before {
+    opacity: 0.06;
+    mix-blend-mode: screen;
+  }
+
+  .search-home,
+  .page-surface,
+  .model-status-view {
+    color: var(--ink);
+    background:
+      linear-gradient(90deg, rgb(255 255 255 / 3%), transparent 17%),
+      linear-gradient(180deg, var(--folder-light), var(--folder));
+  }
+
+  :where(.search-home, .page-surface, .model-status-view, .overlay-dialog, .reader-card)
+    :where(h1, h2, h3, strong) {
+    color: var(--ink);
+  }
+
+  :where(
+    .paper-card,
+    .paper-sheet,
+    .query-sheet,
+    .result-group,
+    .module-card,
+    .model-card,
+    .knowledge-status-card,
+    .document-library-card,
+    .patient-note-record,
+    .search-history-panel,
+    .overlay-dialog,
+    .reader-card
+  ) {
+    border-color: var(--paper-line);
+    color: var(--ink);
+    background: var(--paper);
+    box-shadow: var(--shadow-paper);
+  }
+
+  :where(input, textarea, select) {
+    border-color: #55554d;
+    color: var(--ink);
+    background: var(--paper-light);
+  }
+
+  :where(input, textarea)::placeholder {
+    color: #878075;
+  }
+
+  .search-mode-heading p:last-child,
+  .search-selected-mode,
+  .search-mode-picker label,
+  .search-scope-unavailable p,
+  .module-card > p,
+  .module-card code,
+  .recommendation-intro,
+  .document-library-copy > span {
+    color: var(--ink-soft);
+  }
+
+  .search-mode-picker label,
+  .search-selected-mode,
+  .search-history-panel {
+    border-color: #5a574d;
+    background: rgb(28 29 26 / 68%);
+  }
+
+  .search-mode-picker label:hover {
+    background: rgb(64 63 56 / 82%);
+  }
+
+  .search-mode-picker label.active,
+  .search-selected-mode span {
+    border-color: #82a88d;
+    color: #f7f4ea;
+    background: #506957;
+  }
+
+  .search-selected-mode button,
+  .document-inline-reference,
+  .patient-note-related button {
+    color: #e09a8d;
+  }
+
+  .patient-card {
+    color: var(--theme-text);
+    background: var(--theme-note);
+    box-shadow: 0 0.5rem 1.25rem rgb(0 0 0 / 28%);
+  }
+
+  .patient-card p,
+  .patient-card small,
+  .patient-card .patient-card-title {
+    color: inherit;
+  }
+
+  .patient-card-create-form input,
+  .patient-card-create-form textarea,
+  .patient-note-form input,
+  .patient-note-form textarea {
+    border-color: #55554d;
+    color: var(--ink);
+    background: var(--paper-light);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 18%);
+  }
+
+  .patient-note-form-actions button[type="button"] {
+    color: var(--ink-soft);
+  }
+
+  .patient-note-categories span {
+    color: #f7f4ea;
+    background: #506957;
+  }
+
+  mark {
+    background: linear-gradient(
+      transparent 15%,
+      rgb(164 142 55 / 70%) 15%,
+      rgb(164 142 55 / 70%) 88%,
+      transparent 88%
+    );
+  }
+}

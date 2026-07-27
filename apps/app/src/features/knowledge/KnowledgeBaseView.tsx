@@ -1,6 +1,7 @@
 import type { CoreStatus, MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import type { LocalModelController } from '@/features/models/controller';
 import { ModelSettings } from '@/features/models/ModelSettings';
 import type { LocalModelState } from '@/features/models/types';
@@ -110,10 +111,12 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
           >
             <span>Документы</span>
             <strong>{documents().length} доступно</strong>
-            <p>
-              {counts().clinical} клинических · {counts().medications} лекарственных ·{' '}
-              {counts().legal} правовых · {noteCount()} заметок
-            </p>
+            <ul class="knowledge-document-counts">
+              <li>{counts().clinical} клинических</li>
+              <li>{counts().medications} лекарственных</li>
+              <li>{counts().legal} правовых</li>
+              <li>{noteCount()} заметок</li>
+            </ul>
             <em>Открыть каталог →</em>
           </button>
           <button
@@ -130,25 +133,12 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
       </Show>
 
       <Show when={route() === 'documents'}>
-        <div class="knowledge-subroute-heading">
-          <button
-            type="button"
-            class="knowledge-back-button"
-            aria-label="Назад"
-            onClick={navigateBack}
-          >
-            ←
-          </button>
-          <div>
-            <p class="archive-kicker">Установленные и доступные источники</p>
-            <h1>Документы</h1>
-          </div>
-        </div>
         <ModuleCatalogView
           core={props.core}
           status={props.status}
           active={props.active && route() === 'documents'}
           embedded
+          onBack={navigateBack}
           {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
           {...(props.onAvailableUpdates ? { onAvailableUpdates: props.onAvailableUpdates } : {})}
         />
@@ -162,17 +152,55 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
             aria-label="Назад"
             onClick={() => navigate('overview')}
           >
-            ←
+            <AppGlyph name="arrow-left" />
           </button>
-          <div>
-            <p class="archive-kicker">Необязательное локальное дополнение</p>
-            <h1>Модель</h1>
-          </div>
+          <nav class="knowledge-subroute-links" aria-label="Ссылки приложения">
+            <a href="https://github.com/T-Damer/MiniMed" target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+            <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.3/MiniMed-0.6.3-rf-public-pilot-debug.apk">
+              Android APK
+            </a>
+          </nav>
         </div>
         <ModelSettings controller={props.controller} />
         <details class="system-technical-panel">
           <summary>Техническая информация о приложении</summary>
-          <StatusPanel core={props.core} initialStatus={props.status} />
+          <section class="system-model-technical">
+            <h3>Локальная модель</h3>
+            <div class="model-settings-summary">
+              <div>
+                <span>Режим</span>
+                <strong>
+                  {props.controller.getPreference().automatic ? 'автоматический' : 'ручной'}
+                </strong>
+              </div>
+              <div>
+                <span>Каталог</span>
+                <strong>{model().catalogSource ?? 'не загружен'}</strong>
+              </div>
+              <div>
+                <span>Устройство</span>
+                <strong>
+                  {model().device
+                    ? `${model().device?.platform} · ${model().device?.deviceMemoryGb ?? '?'} ГБ`
+                    : 'не проверено'}
+                </strong>
+              </div>
+              <Show when={model().benchmark}>
+                {(benchmark) => (
+                  <div>
+                    <span>Последний тест</span>
+                    <strong>
+                      {Math.round(benchmark().loadMs)} мс /{' '}
+                      {Math.round(benchmark().generationMs)} мс
+                    </strong>
+                  </div>
+                )}
+              </Show>
+            </div>
+          </section>
+          <StatusPanel initialStatus={props.status} />
         </details>
       </Show>
     </section>

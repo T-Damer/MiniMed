@@ -42,6 +42,7 @@ interface ModuleCatalogViewProps {
   readonly core: MedicalCore;
   readonly active: boolean;
   readonly embedded?: boolean;
+  readonly onBack?: () => void;
   readonly onContentChanged?: () => Promise<void>;
   readonly onAvailableUpdates?: (count: number) => void;
 }
@@ -69,11 +70,15 @@ const AUTO_UPDATES_PAUSED_KEY = 'minimed.module-auto-updates-paused.v1';
 function catalogSelectionFromLocation():
   | { readonly kind: 'collection'; readonly id: string }
   | { readonly kind: 'category'; readonly id: string }
+  | { readonly kind: 'recommendations' }
   | null {
   const route = window.location.hash.replace(/^#\/?/u, '');
   const collectionPrefix = 'modules/documents/collection/';
   const categoryPrefix = 'modules/documents/category/';
   try {
+    if (route === 'modules/documents/recommendations') {
+      return { kind: 'recommendations' };
+    }
     if (route.startsWith(collectionPrefix)) {
       return { kind: 'collection', id: decodeURIComponent(route.slice(collectionPrefix.length)) };
     }
@@ -167,6 +172,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [connecting, setConnecting] = createSignal(false);
   const [recommendationQuery, setRecommendationQuery] = createSignal('');
   const [recommendationCategory, setRecommendationCategory] = createSignal('');
+  const [recommendationBrowserOpen, setRecommendationBrowserOpen] = createSignal(false);
   const [regularCollection, setRegularCollection] = createSignal('');
   const [showAllCategories, setShowAllCategories] = createSignal(false);
   const [busyCategories, setBusyCategories] = createSignal<ReadonlySet<string>>(new Set());
@@ -196,6 +202,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     const selection = catalogSelectionFromLocation();
     setRegularCollection(selection?.kind === 'collection' ? selection.id : '');
     setRecommendationCategory(selection?.kind === 'category' ? selection.id : '');
+    setRecommendationBrowserOpen(
+      selection?.kind === 'recommendations' || selection?.kind === 'category',
+    );
     if (!selection) setRecommendationQuery('');
   };
   const openCollection = (collection: string): void => {
@@ -203,6 +212,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   };
   const openCategory = (categoryId: string): void => {
     window.location.hash = `#/modules/documents/category/${encodeURIComponent(categoryId)}`;
+  };
+  const openRecommendations = (): void => {
+    window.location.hash = '#/modules/documents/recommendations';
   };
 
   onMount(() => {
@@ -505,20 +517,41 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </header>
       </Show>
       <Show when={props.embedded}>
-        <div class="module-catalog-actions">
-          <Show when={pendingRegularCount() > 0}>
+        <div class="knowledge-subroute-heading module-catalog-heading">
+          <button
+            type="button"
+            class="knowledge-back-button"
+            aria-label="Назад"
+            onClick={props.onBack}
+          >
+            <AppGlyph name="arrow-left" />
+          </button>
+          <div class="module-catalog-actions">
+            <Show when={pendingRegularCount() > 0}>
+              <button
+                type="button"
+                class="module-download-all"
+                disabled={installingAll()}
+                onClick={() => void installAllRegular()}
+              >
+                {installingAll() ? 'Скачиваем…' : `Скачать все · ${pendingRegularCount()}`}
+              </button>
+            </Show>
             <button
               type="button"
-              class="module-download-all"
-              disabled={installingAll()}
-              onClick={() => void installAllRegular()}
+              class="module-auto-update-toggle"
+              classList={{ paused: autoUpdatesPaused() }}
+              aria-label={
+                autoUpdatesPaused() ? 'Возобновить автообновление' : 'Приостановить автообновление'
+              }
+              onClick={toggleAutoUpdates}
             >
-              {installingAll() ? 'Скачиваем…' : `Скачать все · ${pendingRegularCount()}`}
+              <AppGlyph name="refresh" />
+              <span>
+                {autoUpdatesPaused() ? 'Автообновление выключено' : 'Автообновление включено'}
+              </span>
             </button>
-          </Show>
-          <button type="button" onClick={toggleAutoUpdates}>
-            {autoUpdatesPaused() ? 'Возобновить автообновление' : 'Пауза автообновлений'}
-          </button>
+          </div>
         </div>
       </Show>
 
@@ -548,7 +581,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         {(message) => <div class="module-doctor-warning">{message()}</div>}
       </Show>
 
-      <Show when={!browsingSection() && !browsingSearch()}>
+      <Show when={!recommendationBrowserOpen() && !browsingSection() && !browsingSearch()}>
         <Show when={recommendationModules().length === 0}>
           <section class="module-collection recommendation-browser">
             <div class="module-collection-heading">
@@ -566,7 +599,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <section class="module-collection">
             <div class="module-collection-heading">
               <h2>Наборы документов</h2>
-              <span>{collections().length}</span>
+              <span>{collections().length + 1}</span>
             </div>
             <div class="recommendation-section-grid recommendation-section-grid-compact">
               <For each={collections()}>
@@ -591,6 +624,23 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   );
                 }}
               </For>
+              <article class="recommendation-section-card paper-card recommendation-section-card-compact clinical-recommendations-entry">
+                <button
+                  type="button"
+                  class="recommendation-section-select"
+                  onClick={openRecommendations}
+                >
+                  <strong>Клинические рекомендации</strong>
+                  <span>
+                    {
+                      recommendationModules().filter((module) =>
+                        installedModuleIds().has(module.id),
+                      ).length
+                    }
+                    /{recommendationModules().length} на устройстве
+                  </span>
+                </button>
+              </article>
             </div>
           </section>
         </Show>
@@ -604,7 +654,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   {regularModules().filter((module) => module.collection === collection).length}
                 </span>
               </div>
-              <div class="module-grid">
+              <div
+                class="module-grid"
+                classList={{ 'module-grid-two-columns': collection === 'shared' }}
+              >
                 <For each={regularModules().filter((module) => module.collection === collection)}>
                   {(module) => {
                     const installedValue = () => installedModule(module.id);
@@ -756,7 +809,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </For>
       </Show>
 
-      <Show when={recommendationModules().length > 0 && !regularCollection()}>
+      <Show
+        when={
+          recommendationModules().length > 0 && !regularCollection() && recommendationBrowserOpen()
+        }
+      >
         <section class="module-collection recommendation-browser recommendation-browser-nested">
           <Show when={!browsingSection() && !browsingSearch()}>
             <div class="module-collection-heading recommendation-browser-heading">
