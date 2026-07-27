@@ -1976,10 +1976,7 @@ fieldset.search-mode-picker {
 body:has(.patient-notes-fab) .scroll-top-button {
   right: max(
     1.28125rem,
-    calc(
-      (100vw - min(100vw, var(--page-content-width))) / 2 + 1.28125rem +
-        var(--safe-right)
-    )
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.28125rem + var(--safe-right))
   );
   bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom)));
 }
@@ -1987,10 +1984,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
 .scroll-top-button {
   right: max(
     0.875rem,
-    calc(
-      (100vw - min(100vw, var(--page-content-width))) / 2 + 0.875rem +
-        var(--safe-right)
-    )
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.875rem + var(--safe-right))
   );
 }
 
@@ -1998,10 +1992,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
   z-index: 90;
   left: max(
     0.625rem,
-    calc(
-      (100vw - min(100vw, var(--page-content-width))) / 2 + 0.625rem +
-        var(--safe-left)
-    )
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.625rem + var(--safe-left))
   );
 }
 
@@ -2522,10 +2513,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
 .patient-notes-fab {
   right: max(
     1rem,
-    calc(
-      (100vw - min(100vw, var(--page-content-width))) / 2 + 1rem +
-        var(--safe-right)
-    )
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1rem + var(--safe-right))
   );
 }
 

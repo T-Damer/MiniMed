@@ -446,10 +446,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   return (
-    <section
-      class="workspace archive-desk"
-      aria-label="Локальный медицинский поиск"
-    >
+    <section class="workspace archive-desk" aria-label="Локальный медицинский поиск">
       <div
         class="search-column case-folder"
         classList={{ 'has-search-content': query().length > 0 }}
