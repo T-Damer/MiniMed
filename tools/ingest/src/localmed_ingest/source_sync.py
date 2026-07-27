@@ -215,7 +215,7 @@ def _read_limited(response: object, maximum: int) -> bytes:
 def _cache_paths(cache_root: Path, location: str, target: str) -> tuple[Path, Path]:
     key = hashlib.sha256(location.encode("utf-8")).hexdigest()
     suffix = Path(target).suffix.lower()
-    return cache_root / f"{key}{suffix}", cache_root / f"{key}.json"
+    return cache_root / f"{key}{suffix}", cache_root / f"{key}.metadata.json"
 
 
 def _load_cached_metadata(path: Path) -> CachedRemoteMetadata | None:
