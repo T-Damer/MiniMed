@@ -381,15 +381,13 @@
 
 .model-option-card.active {
   background:
-    linear-gradient(var(--theme-accent-soft), var(--theme-accent-soft)),
-    var(--theme-surface-raised);
+    linear-gradient(var(--theme-accent-soft), var(--theme-accent-soft)), var(--theme-surface-raised);
 }
 
 .model-option-card.recommended {
   border-color: var(--theme-accent);
   background:
-    linear-gradient(var(--theme-accent-soft), var(--theme-accent-soft)),
-    var(--theme-surface-raised);
+    linear-gradient(var(--theme-accent-soft), var(--theme-accent-soft)), var(--theme-surface-raised);
   box-shadow:
     0.25rem 0 0 var(--theme-accent) inset,
     0 0 0 0.125rem var(--theme-accent-soft);

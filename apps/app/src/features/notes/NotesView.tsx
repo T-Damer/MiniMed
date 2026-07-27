@@ -358,51 +358,51 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
           }
         >
           <div class="patient-card-list">
-          <For each={sortedCards()}>
-            {(card) => {
-              const notes = () => notesForCard(card.id);
-              const due = () =>
-                notes().some((note) => note.reminder && isReminderDue(note.reminder));
-              return (
-                <article
-                  class="patient-card paper-card"
-                  classList={{ 'has-due-reminder': due() }}
-                >
-                  <button
-                    type="button"
-                    class="patient-card-open"
-                    onClick={() => navigate(notesPath(card.id))}
+            <For each={sortedCards()}>
+              {(card) => {
+                const notes = () => notesForCard(card.id);
+                const due = () =>
+                  notes().some((note) => note.reminder && isReminderDue(note.reminder));
+                return (
+                  <article
+                    class="patient-card paper-card"
+                    classList={{ 'has-due-reminder': due() }}
                   >
-                    <span class="patient-card-title">{card.title}</span>
-                    <Show when={card.summary}>
-                      <p>{card.summary}</p>
-                    </Show>
-                    <small>
-                      {notes().length} зап. · {formatDate(card.updatedAt)}
-                    </small>
-                  </button>
-                  <div class="patient-card-corner-actions">
                     <button
                       type="button"
-                      class="patient-card-icon-action danger"
-                      aria-label={`Удалить карточку «${card.title}»`}
-                      title="Удалить карточку"
-                      onClick={() =>
-                        setDeleteTarget({
-                          kind: 'card',
-                          id: card.id,
-                          title: card.title,
-                          returnPath: null,
-                        })
-                      }
+                      class="patient-card-open"
+                      onClick={() => navigate(notesPath(card.id))}
                     >
-                      <AppGlyph name="trash" />
+                      <span class="patient-card-title">{card.title}</span>
+                      <Show when={card.summary}>
+                        <p>{card.summary}</p>
+                      </Show>
+                      <small>
+                        {notes().length} зап. · {formatDate(card.updatedAt)}
+                      </small>
                     </button>
-                  </div>
-                </article>
-              );
-            }}
-          </For>
+                    <div class="patient-card-corner-actions">
+                      <button
+                        type="button"
+                        class="patient-card-icon-action danger"
+                        aria-label={`Удалить карточку «${card.title}»`}
+                        title="Удалить карточку"
+                        onClick={() =>
+                          setDeleteTarget({
+                            kind: 'card',
+                            id: card.id,
+                            title: card.title,
+                            returnPath: null,
+                          })
+                        }
+                      >
+                        <AppGlyph name="trash" />
+                      </button>
+                    </div>
+                  </article>
+                );
+              }}
+            </For>
           </div>
         </Show>
 

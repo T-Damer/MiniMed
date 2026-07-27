@@ -139,8 +139,7 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
       expectedBytes: artifact.sizeBytes,
       signal,
       retryForever: true,
-      onProgress: ({ downloadedBytes, totalBytes }) =>
-        onProgress({ downloadedBytes, totalBytes }),
+      onProgress: ({ downloadedBytes, totalBytes }) => onProgress({ downloadedBytes, totalBytes }),
     });
   }
 }
