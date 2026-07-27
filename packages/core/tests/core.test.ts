@@ -35,18 +35,19 @@ describe('MedicalCore', () => {
     });
   });
 
-  it('expands colloquial terms and returns the pneumonia section', async () => {
+  it('expands colloquial terms and keeps the pneumonia section first in hybrid search', async () => {
     const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
     cores.push(core);
     const response = await core.search({
       query: 'Ребёнок часто дышит и температурит второй день',
-      mode: 'lexical',
+      mode: 'auto',
       filters: {},
       limit: 10,
       includeSuggestions: true,
     });
     expect(response.ok).toBe(true);
     if (!response.ok) return;
+    expect(response.value.modeUsed).toBe('hybrid');
     expect(response.value.groups[0]?.documentId).toBe('kr.demo.pediatrics.pneumonia');
     expect(response.value.diagnostics.aliasMatches).toContain('часто дышит → тахипноэ');
   });

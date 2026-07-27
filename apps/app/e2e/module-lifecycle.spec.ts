@@ -25,6 +25,9 @@ test('installs a regulatory dataset, searches it live, and removes it without re
     readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
     readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
   ]);
+  const catalogValue = JSON.parse(catalog) as { publishedAt: string };
+  catalogValue.publishedAt = '2099-01-01T00:00:00Z';
+  const currentCatalog = JSON.stringify(catalogValue);
 
   await page.route(
     (url) => url.href.startsWith(CATALOG_URL),
@@ -32,7 +35,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
       await route.fulfill({
         status: 200,
         contentType: 'application/json; charset=utf-8',
-        body: catalog,
+        body: currentCatalog,
         headers: {
           ETag: '"e2e-regulatory-catalog"',
           'Last-Modified': 'Wed, 22 Jul 2026 00:00:00 GMT',
@@ -61,8 +64,8 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
 
   await navigationButton(page, 'Поиск').click();
-  await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
   await page.getByRole('radio', { name: /Правовые документы/u }).click();
+  await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
   await page.getByTestId('search-submit').click();
   await expect(page.getByTestId('search-results').getByText(REGULATORY_TITLE).first()).toBeVisible({
     timeout: 10_000,

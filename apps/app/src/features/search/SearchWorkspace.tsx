@@ -22,6 +22,7 @@ import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
+import { DocumentText } from '@/components/DocumentText';
 import { HighlightedText } from '@/components/HighlightedText';
 import { SearchField } from '@/components/SearchField';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
@@ -395,6 +396,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setReaderQuery('');
   }
 
+  function searchReference(reference: string): void {
+    closeContext();
+    updateQuery(reference, false);
+    void runSearch(reference, true);
+  }
+
   return (
     <section class="workspace archive-desk" aria-label="Локальный медицинский поиск">
       <div class="search-column case-folder">
@@ -598,8 +605,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 <WindowVirtualizer data={visibleGroups()} bufferSize={400}>
                   {(group, groupIndex) => {
                     const expanded = () => expandedGroups().includes(group.documentId);
-                    const visibleResults = () =>
-                      expanded() ? group.results.slice(0, 5) : group.results.slice(0, 1);
+                    const visibleResults = () => (expanded() ? group.results.slice(0, 5) : []);
                     return (
                       <section class="result-group" classList={{ expanded: expanded() }}>
                         <div class="result-group-header">
@@ -724,7 +730,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 <header class="reader-header">
                   <div>
                     <p class="archive-kicker">В клинических рекомендациях</p>
-                    <h2>{resolved().section.sectionPath.join(' / ')}</h2>
+                    <h2>{resolved().document.title}</h2>
                   </div>
                   <span class="source-stamp">
                     ИСТОЧНИК
@@ -744,7 +750,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         <Show when={chunk.id === resolved().focusChunkId}>
                           <span class="margin-note">НАЙДЕНО</span>
                         </Show>
-                        <p>{chunk.originalText}</p>
+                        <DocumentText text={chunk.originalText} onReference={searchReference} />
                       </div>
                     )}
                   </For>

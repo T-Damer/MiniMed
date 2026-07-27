@@ -7,7 +7,6 @@ import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStat
 import type { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
 import {
   documentMatchesSearchScope,
-  inferSearchScope,
   ScopedMedicalCore,
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
@@ -62,8 +61,7 @@ const SEARCH_SCOPES: readonly SearchScopeOption[] = [
 
 export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [scope, setScope] = createSignal<SearchScope>();
-  const [manualScope, setManualScope] = createSignal(false);
-  const [scopePromptOpen, setScopePromptOpen] = createSignal(false);
+  const [scopePromptOpen, setScopePromptOpen] = createSignal(true);
   const [documentCountsLoaded, setDocumentCountsLoaded] = createSignal(false);
   const [documentCounts, setDocumentCounts] = createSignal<Readonly<Record<SearchScope, number>>>({
     diagnosis: 0,
@@ -113,28 +111,20 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     return Boolean(selected && documentCountsLoaded() && documentCounts()[selected] === 0);
   });
 
-  const selectScope = (next: SearchScope, manual = true): void => {
+  const selectScope = (next: SearchScope): void => {
     setScope(next);
-    setManualScope(manual);
     setScopePromptOpen(false);
-  };
-
-  const detectScope = (analysis: Parameters<typeof inferSearchScope>[0]): void => {
-    if (manualScope()) return;
-    const detected = inferSearchScope(analysis);
-    setScope(detected);
-    setScopePromptOpen(!detected);
   };
 
   return (
     <section class="search-home" aria-label="Поиск MiniMed">
       <header class="search-mode-heading">
         <div>
-          <p class="archive-kicker">Режим определяется по запросу</p>
+          <p class="archive-kicker">Сначала выберите режим</p>
           <h1>Что вы хотите найти?</h1>
           <p>
-            MiniMed выберет подходящие локальные источники. Если запрос неоднозначен, попросит
-            уточнить раздел.
+            Режим ограничивает поиск подходящими локальными источниками и исключает случайные
+            совпадения из других разделов.
           </p>
         </div>
         <Show when={scope() === 'diagnosis'}>
@@ -186,16 +176,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       <Show when={scope()}>
         <>
           <div class="search-selected-mode" aria-live="polite">
-            <span>
-              {manualScope()
-                ? selectedOption()?.shortLabel
-                : `Авто · ${selectedOption()?.shortLabel}`}
-            </span>
+            <span>{selectedOption()?.shortLabel}</span>
             <p>{selectedOption()?.description}</p>
             <button
               type="button"
               onClick={() => {
-                setManualScope(false);
                 setScope(undefined);
                 setScopePromptOpen(true);
               }}
@@ -218,16 +203,22 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         </>
       </Show>
 
-      <div class="search-workspace-main">
-        <Show when={scope() === 'diagnosis' && props.assistantCore}>
-          <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
-        </Show>
-        <SearchWorkspace
-          core={scopedCore() ?? props.baseCore}
-          searchAllowed={Boolean(scopedCore()) && !selectedScopeUnavailable()}
-          onAnalysis={(analysis) => detectScope(analysis.intent)}
-        />
-      </div>
+      <Show when={scopedCore()}>
+        {(core) => (
+          <div class="search-workspace-main">
+            <Show when={scope() === 'diagnosis' && props.assistantCore}>
+              <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
+            </Show>
+            <SearchWorkspace core={core()} searchAllowed={!selectedScopeUnavailable()} />
+          </div>
+        )}
+      </Show>
+      <Show when={!scopedCore()}>
+        <div class="search-locked-state paper-card">
+          <strong>Поиск станет доступен после выбора режима</strong>
+          <p>Выберите раздел выше — доступны только режимы с установленными документами.</p>
+        </div>
+      </Show>
       <SearchHistoryPanel />
 
       <OverlayDialog

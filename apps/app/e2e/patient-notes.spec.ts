@@ -13,10 +13,10 @@ test('keeps patient notes local, nested, and findable from search', async ({ pag
   await expect(page.getByRole('heading', { name: 'Заметки' })).toBeVisible();
   await expect(page.getByText(/Пока нет карточек/u)).toBeVisible();
 
-  await page.getByRole('button', { name: 'Новая карточка' }).click();
+  await page.getByRole('button', { name: 'Создать карточку' }).click();
   await page.getByLabel('Название карточки').fill('Иванов И., 3 года, 20 кг');
   await page.getByLabel('Контекст пациента').fill('аллергия на пенициллин');
-  await page.getByRole('button', { name: 'Создать' }).click();
+  await page.getByRole('button', { name: 'Создать', exact: true }).click();
 
   const card = page.locator('.patient-card').filter({ hasText: 'Иванов И.' });
   await expect(card).toBeVisible();
@@ -43,8 +43,8 @@ test('keeps patient notes local, nested, and findable from search', async ({ pag
 
   // Searching finds it, labelled as personal and outside the official results container.
   await navigationButton(page, 'Поиск').click();
-  await page.getByTestId('search-input').fill('цефтриаксон пневмония');
   await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
+  await page.getByTestId('search-input').fill('цефтриаксон пневмония');
 
   const personal = page.locator('.personal-note-matches');
   await expect(personal).toBeVisible();
@@ -127,9 +127,9 @@ test('a reminder can be attached while writing a note', async ({ page }) => {
     .getByRole('button', { name: 'Заметки', exact: true })
     .click();
 
-  await page.getByRole('button', { name: 'Новая карточка' }).click();
+  await page.getByRole('button', { name: 'Создать карточку' }).click();
   await page.getByLabel('Название карточки').fill('Сидорова А.');
-  await page.getByRole('button', { name: 'Создать' }).click();
+  await page.getByRole('button', { name: 'Создать', exact: true }).click();
 
   const card = page.locator('.patient-card').filter({ hasText: 'Сидорова А.' });
   await card.locator('summary').click();

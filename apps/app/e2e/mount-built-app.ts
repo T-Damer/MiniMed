@@ -4,7 +4,6 @@ import type { Page, Route } from '@playwright/test';
 
 export const E2E_ASSET_ORIGIN = 'https://localmed-assets.example.com';
 const DIST_ROOT = resolve(import.meta.dirname, '../dist');
-const DEFAULT_SEARCH_STORAGE = { 'minimed.search-scope.v1': 'all' } as const;
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.css': 'text/css; charset=utf-8',
@@ -46,11 +45,10 @@ async function serveBuiltAsset(route: Route): Promise<void> {
 export interface MountBuiltAppOptions {
   readonly localStorage?: Readonly<Record<string, string>>;
   readonly persistentOrigin?: boolean;
-  readonly skipDefaultSearchScope?: boolean;
 }
 
 async function waitForWorkspace(page: Page): Promise<void> {
-  await page.getByTestId('search-input').waitFor();
+  await page.getByRole('heading', { name: 'Что вы хотите найти?' }).waitFor();
 
   // The knowledge-base badge deliberately extends the accessible label with an update count. Most
   // navigation tests are not testing that badge, so keep their exact-name helpers deterministic while
@@ -65,9 +63,7 @@ async function waitForWorkspace(page: Page): Promise<void> {
 
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
-  const initialStorage = options.skipDefaultSearchScope
-    ? (options.localStorage ?? {})
-    : { ...DEFAULT_SEARCH_STORAGE, ...(options.localStorage ?? {}) };
+  const initialStorage = options.localStorage ?? {};
   await page.addInitScript((initialValues) => {
     for (const [key, value] of Object.entries(initialValues)) {
       window.localStorage.setItem(key, value);

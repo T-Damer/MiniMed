@@ -1,4 +1,5 @@
 import type { MedicalCore } from '@localmed/contracts';
+import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
@@ -82,6 +83,7 @@ function createLocalModelController(): LocalModelController {
 }
 
 export function App(): JSX.Element {
+  const showBrowserFooter = !('Capacitor' in window);
   const [view, setView] = createSignal<View>(viewFromLocation());
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
@@ -92,6 +94,10 @@ export function App(): JSX.Element {
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
+  const [initializePageScroll, pageScroll] = createOverlayScrollbars({
+    options: { scrollbars: { autoHide: 'scroll' } },
+    defer: true,
+  });
   let coreToClose: MedicalCore | undefined;
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
@@ -137,6 +143,7 @@ export function App(): JSX.Element {
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
 
   onMount(async () => {
+    initializePageScroll(document.body);
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -161,7 +168,6 @@ export function App(): JSX.Element {
       setSearchCore(initializedSearchCore);
       setAssistantCore(new GroundedMedicalCore(initializedSearchCore, modelController));
       setReady(initialized);
-      void modelController.start();
       void refreshContentModuleCatalog()
         .then((result) => {
           setAvailableModuleCount(countAvailableModules(result.catalog.modules));
@@ -184,6 +190,7 @@ export function App(): JSX.Element {
     if (coreToClose) void coreToClose.close();
     const activeSearchCore = searchCore();
     if (activeSearchCore) void activeSearchCore.close();
+    pageScroll()?.destroy();
     void modelController.dispose();
   });
 
@@ -240,6 +247,16 @@ export function App(): JSX.Element {
               >
                 <NotesView core={state().core} />
               </section>
+              <Show when={showBrowserFooter}>
+                <footer class="app-footer">
+                  <a href="https://github.com/T-Damer/MiniMed" target="_blank" rel="noreferrer">
+                    GitHub
+                  </a>
+                  <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.1/MiniMed-0.6.1-rf-public-pilot-debug.apk">
+                    Android APK
+                  </a>
+                </footer>
+              </Show>
             </main>
             <ContentDownloadStatus floating />
             <DocumentOverlayHost

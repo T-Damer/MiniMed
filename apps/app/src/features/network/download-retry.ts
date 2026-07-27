@@ -3,7 +3,7 @@ import {
   type ResumableDownloadOptions,
 } from '@/features/network/resumable-download';
 
-export const DOWNLOAD_RETRY_DELAYS_MS = [700, 1_400, 2_500] as const;
+export const DOWNLOAD_RETRY_DELAYS_MS = [1_000, 2_500, 5_000, 15_000, 30_000, 60_000] as const;
 
 const TRANSIENT_MESSAGE_MARKERS = [
   // Browser fetch failures differ per engine: Chrome says "Failed to fetch", Firefox reports a
@@ -17,6 +17,8 @@ const TRANSIENT_MESSAGE_MARKERS = [
   'timeout',
   'timed out',
   // Our own transport errors, raised in Russian with the status appended.
+  // Published catalogs can briefly lead their release assets; keep polling until the file appears.
+  'http 404',
   'http 408',
   'http 425',
   'http 429',

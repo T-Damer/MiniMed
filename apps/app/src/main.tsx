@@ -1,6 +1,7 @@
 import { render } from 'solid-js/web';
 
 import { App } from '@/app/App';
+import 'overlayscrollbars/overlayscrollbars.css';
 import '@/styles/global.css';
 import '@/styles/archive-search.css';
 import '@/styles/mobile-shell.css';

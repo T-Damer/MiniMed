@@ -105,7 +105,6 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       if (next.phase === 'error') setShowError(true);
       if (!isActiveLoadPhase(next.phase)) setBusyModelId(null);
     });
-    if (!props.controller.getPreference().autoLoad) void props.controller.setAutoLoad(true);
   });
   onCleanup(() => unsubscribe?.());
 
@@ -165,23 +164,38 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         <span class={`model-state-badge ${state().phase}`}>{PHASE_LABELS[state().phase]}</span>
       </header>
 
-      <div class="model-doctor-summary">
-        <div>
-          <span>Сейчас используется</span>
-          <strong>
-            {props.controller.modelById(state().activeModelId)?.name ?? 'Только обычный поиск'}
-          </strong>
-        </div>
-        <Show when={state().recommendedModelId}>
-          <div>
-            <span>Подходит устройству</span>
-            <strong>{props.controller.modelById(state().recommendedModelId)?.name}</strong>
-          </div>
-        </Show>
-      </div>
-
-      <Show when={busyPhase()}>
-        <div class="model-download-status paper-card" aria-live="polite">
+      <div class="model-current-state paper-card" aria-live="polite">
+        <Show
+          when={busyPhase()}
+          fallback={
+            <Show
+              when={state().phase === 'ready'}
+              fallback={
+                <>
+                  <div>
+                    <span>Текущее состояние</span>
+                    <strong>{state().message}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busyPhase()}
+                    onClick={() => void props.controller.useAutomaticSelection()}
+                  >
+                    Проверить устройство
+                  </button>
+                </>
+              }
+            >
+              <div>
+                <span>Используется</span>
+                <strong>{props.controller.modelById(state().activeModelId)?.name}</strong>
+              </div>
+              <button type="button" onClick={() => void props.controller.unload()}>
+                Остановить
+              </button>
+            </Show>
+          }
+        >
           <div class="model-download-status-header">
             <strong>{PHASE_LABELS[state().phase]}</strong>
             <button type="button" class="model-download-cancel" onClick={cancelLoad}>
@@ -200,22 +214,6 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
               <i style={{ width: `${Math.round((state().progress ?? 0) * 100)}%` }} />
             </div>
           </Show>
-        </div>
-      </Show>
-
-      <div class="model-settings-controls doctor-controls">
-        <button
-          type="button"
-          classList={{ active: preference().automatic }}
-          disabled={busyPhase()}
-          onClick={() => void props.controller.useAutomaticSelection()}
-        >
-          Подобрать автоматически
-        </button>
-        <Show when={state().activeModelId}>
-          <button type="button" onClick={() => void props.controller.unload()}>
-            Остановить модель
-          </button>
         </Show>
       </div>
 
@@ -223,110 +221,116 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         when={models().length > 0}
         fallback={<p class="model-settings-empty">Получаем список доступных моделей…</p>}
       >
-        <div class="model-card-grid">
-          <For each={models()}>
-            {(model) => {
-              const size = () => modelDownloadSize(model, state().device?.platform ?? null);
-              const accepted = () =>
-                !model.license.requiresAcceptance || acceptedLicenses().has(model.license.id);
-              const available = () => runtimeAvailable(model);
-              const active = () => state().activeModelId === model.id;
-              const recommended = () => state().recommendedModelId === model.id;
-              const loading = () => inFlightModelId() === model.id && busyPhase();
-              const deviceMemoryGb = () => state().device?.deviceMemoryGb;
-              const statusLabel = () =>
-                modelStatusLabel(model, {
-                  active: active(),
-                  recommended: recommended(),
-                  available: available(),
-                  loading: loading(),
-                  deviceMemoryGb: deviceMemoryGb(),
-                });
-              const deviceLabel = () => modelDeviceLabel(model, deviceMemoryGb(), available());
-              return (
-                <article
-                  class="model-option-card"
-                  classList={{
-                    recommended: recommended(),
+        <details class="model-catalog-details">
+          <summary>
+            Доступные модели <span>{models().length}</span>
+          </summary>
+          <div class="model-card-grid">
+            <For each={models()}>
+              {(model) => {
+                const size = () => modelDownloadSize(model, state().device?.platform ?? null);
+                const accepted = () =>
+                  !model.license.requiresAcceptance || acceptedLicenses().has(model.license.id);
+                const available = () => runtimeAvailable(model);
+                const active = () => state().activeModelId === model.id;
+                const recommended = () => state().recommendedModelId === model.id;
+                const loading = () => inFlightModelId() === model.id && busyPhase();
+                const deviceMemoryGb = () => state().device?.deviceMemoryGb;
+                const statusLabel = () =>
+                  modelStatusLabel(model, {
                     active: active(),
-                    selected: !preference().automatic && preference().selectedModelId === model.id,
+                    recommended: recommended(),
+                    available: available(),
                     loading: loading(),
-                    unavailable: !available(),
-                  }}
-                  title={model.description}
-                >
-                  <div class="model-option-header">
-                    <div class="model-option-title">
-                      <h3>{model.name}</h3>
-                      <span class="model-tier-chip">{TIER_LABELS[model.tier]}</span>
+                    deviceMemoryGb: deviceMemoryGb(),
+                  });
+                const deviceLabel = () => modelDeviceLabel(model, deviceMemoryGb(), available());
+                return (
+                  <article
+                    class="model-option-card"
+                    classList={{
+                      recommended: recommended(),
+                      active: active(),
+                      selected:
+                        !preference().automatic && preference().selectedModelId === model.id,
+                      loading: loading(),
+                      unavailable: !available(),
+                    }}
+                    title={model.description}
+                  >
+                    <div class="model-option-header">
+                      <div class="model-option-title">
+                        <h3>{model.name}</h3>
+                        <span class="model-tier-chip">{TIER_LABELS[model.tier]}</span>
+                      </div>
+                      <Show when={statusLabel()}>
+                        {(label) => (
+                          <span
+                            class="model-option-status"
+                            classList={{
+                              active: active(),
+                              recommended: recommended(),
+                              warning:
+                                available() && deviceFitsModel(model, deviceMemoryGb()) === false,
+                              loading: loading(),
+                            }}
+                          >
+                            {label()}
+                          </span>
+                        )}
+                      </Show>
                     </div>
-                    <Show when={statusLabel()}>
-                      {(label) => (
-                        <span
-                          class="model-option-status"
-                          classList={{
-                            active: active(),
-                            recommended: recommended(),
-                            warning:
-                              available() && deviceFitsModel(model, deviceMemoryGb()) === false,
-                            loading: loading(),
-                          }}
-                        >
-                          {label()}
-                        </span>
-                      )}
+                    <div class="model-option-row">
+                      <dl class="model-option-specs">
+                        <div>
+                          <dt>Размер</dt>
+                          <dd>{size() === null ? '—' : formatBytes(size() ?? 0)}</dd>
+                        </div>
+                        <div>
+                          <dt>ОЗУ</dt>
+                          <dd>от {model.minimumMemoryGb} ГБ</dd>
+                        </div>
+                        <div>
+                          <dt>Устройство</dt>
+                          <dd>{deviceLabel()}</dd>
+                        </div>
+                      </dl>
+                      <button
+                        type="button"
+                        class="model-option-action"
+                        disabled={!available() || (busyPhase() && inFlightModelId() !== model.id)}
+                        onClick={() => {
+                          if (loading()) {
+                            cancelLoad();
+                            return;
+                          }
+                          void testModel(model);
+                        }}
+                      >
+                        {loading()
+                          ? 'Отменить'
+                          : active()
+                            ? 'Перепроверить'
+                            : available()
+                              ? 'Скачать'
+                              : 'Недоступно'}
+                      </button>
+                    </div>
+                    <Show when={model.license.requiresAcceptance && !accepted() && available()}>
+                      <p class="model-license-note">
+                        Лицензия{' '}
+                        <a href={model.license.url} target="_blank" rel="noreferrer">
+                          {model.license.name}
+                        </a>{' '}
+                        — при запуске.
+                      </p>
                     </Show>
-                  </div>
-                  <div class="model-option-row">
-                    <dl class="model-option-specs">
-                      <div>
-                        <dt>Размер</dt>
-                        <dd>{size() === null ? '—' : formatBytes(size() ?? 0)}</dd>
-                      </div>
-                      <div>
-                        <dt>ОЗУ</dt>
-                        <dd>от {model.minimumMemoryGb} ГБ</dd>
-                      </div>
-                      <div>
-                        <dt>Устройство</dt>
-                        <dd>{deviceLabel()}</dd>
-                      </div>
-                    </dl>
-                    <button
-                      type="button"
-                      class="model-option-action"
-                      disabled={!available() || (busyPhase() && inFlightModelId() !== model.id)}
-                      onClick={() => {
-                        if (loading()) {
-                          cancelLoad();
-                          return;
-                        }
-                        void testModel(model);
-                      }}
-                    >
-                      {loading()
-                        ? 'Отменить'
-                        : active()
-                          ? 'Перепроверить'
-                          : available()
-                            ? 'Скачать'
-                            : 'Недоступно'}
-                    </button>
-                  </div>
-                  <Show when={model.license.requiresAcceptance && !accepted() && available()}>
-                    <p class="model-license-note">
-                      Лицензия{' '}
-                      <a href={model.license.url} target="_blank" rel="noreferrer">
-                        {model.license.name}
-                      </a>{' '}
-                      — при запуске.
-                    </p>
-                  </Show>
-                </article>
-              );
-            }}
-          </For>
-        </div>
+                  </article>
+                );
+              }}
+            </For>
+          </div>
+        </details>
       </Show>
 
       <Show when={state().error}>

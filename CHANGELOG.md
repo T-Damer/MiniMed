@@ -4,6 +4,25 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-27
+
+### Changed
+
+- Search now requires an available source mode before the query field appears, and collapsed results
+  show document headers only.
+- Source readers use document titles, render OCR bullets cleanly, keep narrow layouts contained, and
+  make detected medical references searchable.
+- Notes use a sticker-style grid with a floating create button and focused creation dialog.
+- Content downloads retry temporary HTTP 404 responses automatically and use a compact left-side
+  progress control.
+- Local-model setup is user-initiated, device performance probing runs in a Worker, and the core
+  status screen reports only the local document count.
+- Browser builds link to GitHub and the 0.6.1 Android APK.
+
+### Verification boundary
+
+- Deterministic search remains the source of candidates both with and without a ready local model.
+
 ## [0.6.0] - 2026-07-27
 
 ### Added
