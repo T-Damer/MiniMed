@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 27 July 2026
-> Repository version: `0.6.1`
-> Active target: `0.6.1` release candidate toward `1.0`
+> Repository version: `0.6.2`
+> Active target: `0.6.2` release candidate toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -39,23 +39,27 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Three primary sections in a compact bottom navigation bubble: search, knowledge base, and personal
   notes. Document archive and local-model settings are knowledge-base subroutes.
 - Search mode is an explicit first choice and remains blocked until the selected scope has documents.
-- Recent device-local search history opens from a floating drawer instead of a separate page.
+- Recent device-local search history opens from a floating drawer, preserves the selected source
+  scope, and can show the current-session result cache immediately while refreshing in the background.
 - The paper/archive design remains, with materially smaller gutters, cards, controls, result rows,
   module tiles, model tiles, and responsive mobile spacing.
-- Personal cards use a sticker-style notes board and a focused creation dialog opened from a floating
-  add button.
+- Personal cards use a responsive three-column sticker board and a focused creation dialog opened
+  from a floating add button. Cards and dated records open in separate editor dialogs.
 - Local-model detection is user-initiated; its CPU probe runs in a Worker and model choices stay
   collapsed until requested.
 - The knowledge-base overview reports the model and corpus state, then opens dedicated document and
   model subroutes without mixing every document family into one long page.
 - Document drilldown exposes the built-in core, section recommendation lists, full-document opening,
-  bulk download, background update pause, and rollback to retained older versions.
+  bulk download, background update pause, rollback to retained older versions, and nested URLs for
+  opened collections and recommendation sections.
 - Module and model downloads share retry/backoff, resume partial bytes, keep retrying in the
   background, and expose titled floating progress with bulk retry.
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
   medication, legal, and personal-note sources.
 - Model settings distinguish always-available offline search from the optional local model and expose
   model size, requirements, advantages, limitations, and model selection.
+- A selected model waiting behind document downloads is reported as deferred rather than remaining
+  indefinitely in the active “selecting” state.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
@@ -67,9 +71,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ### Personal notes
 
-- Device-local patient cards support editable summaries, nested notes, and recursive deletion.
-- New and edited notes receive deterministic topic labels, are mirrored to IndexedDB, and retain
-  links to matching installed documents.
+- Device-local patient cards support editable summaries and a flat dated record timeline; the former
+  nested-reply editor is no longer exposed.
+- New and edited notes receive deterministic topic labels, are mirrored to IndexedDB, and are
+  enriched through the search worker after the editor yields. Related sources appear only with
+  sufficient meaningful-term overlap and a readable document title.
 - Notes may carry dated follow-up reminders; due items rise to the top, add a red navigation badge,
   and retain the recorded completion condition when closed.
 - Personal matches appear in search with an explicit personal-source label and outside the official
@@ -120,6 +126,8 @@ ordinary search response when validation fails.
 - Interrupted module downloads persist partial bytes in IndexedDB. Failed/interrupted installs remain in
   a durable local queue, recover after restart or catalog refresh, and retry transient failures,
   including temporarily missing release assets, without prompting.
+- Clinical snapshot artifacts download from their published GitHub Release assets; they are no longer
+  rewritten to a non-existent raw-git content path.
 - The runtime fingerprints actual module versions, digests, URLs, checksums, and sizes rather than only
   comparing catalog counts.
 
@@ -145,7 +153,7 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.1 gate passes 17 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.2 gate passes 17 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
 
@@ -174,7 +182,7 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Finish the 0.6.1 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
+1. Finish the 0.6.2 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
    the measured Replicate pilot decision.
 2. Add verified OCR for the blocked drug instruction.
 3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.

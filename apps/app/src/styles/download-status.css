@@ -156,7 +156,10 @@
 
 .content-download-pill {
   right: auto;
-  left: max(0.75rem, calc(0.75rem + var(--safe-left)));
+  left: max(
+    0.75rem,
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.75rem + var(--safe-left))
+  );
   width: 3rem;
   height: 3rem;
   justify-content: center;
@@ -188,5 +191,10 @@
 
 .content-download-status.floating {
   right: auto;
-  left: max(0.75rem, calc(0.75rem + var(--safe-left)));
+  left: max(
+    0.75rem,
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.75rem + var(--safe-left))
+  );
+  max-height: none;
+  overflow: hidden;
 }

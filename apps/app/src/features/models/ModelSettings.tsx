@@ -178,6 +178,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                   </div>
                   <button
                     type="button"
+                    class="model-device-check"
                     disabled={busyPhase()}
                     onClick={() => void props.controller.useAutomaticSelection()}
                   >

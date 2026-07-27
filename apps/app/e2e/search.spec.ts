@@ -104,10 +104,13 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Лекарства, документы и нормы/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Инфекционные болезни/u })).toBeVisible();
+  await expect(page.getByText('Обновление списка наборов')).toHaveCount(0);
+  await page.getByRole('button', { name: /Клиническая педиатрия/u }).click();
+  await expect(page).toHaveURL(/#\/modules\/documents\/collection\//u);
+  await expect(page.getByRole('button', { name: 'Назад' })).toHaveCount(1);
+  await page.getByRole('button', { name: 'Назад' }).click();
   await page.getByRole('button', { name: /Всегда доступно/u }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
-  await page.getByText('Обновление списка наборов').click();
-  await expect(page.getByText(/Текущий встроенный пакет:/u)).toBeVisible();
 });
 
 test('replays a saved query from the history drawer', async ({ page }) => {
@@ -116,6 +119,9 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Сменить' }).click();
+  await chooseScope(page, /Препараты/u);
 
   // History now lives behind a floating button so the search view stays compact.
   await page.getByRole('button', { name: 'Показать историю поиска' }).click();
@@ -128,6 +134,9 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await historyEntry.click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
+  await expect(
+    page.getByText(/Обычный локальный поиск по всем установленным источникам/u),
+  ).toBeVisible();
   await expect(pneumoniaResult(page)).toBeVisible();
 });
 

@@ -433,6 +433,12 @@ export class LocalModelController {
       return;
     }
     const loadPlan = buildLocalModelLoadPlan(selectionInput);
+    if (downloadCoordinator.hasActiveContentDownloads()) {
+      this.update({
+        phase: 'deferred',
+        message: `${recommended.model.name} выбрана. Запуск начнётся после загрузки документов.`,
+      });
+    }
     await downloadCoordinator.waitForContentIdleWhile(() => generation === this.runGeneration);
     if (generation !== this.runGeneration) return;
     await this.loadFirstWorking(loadPlan, runtimes, profile, generation);

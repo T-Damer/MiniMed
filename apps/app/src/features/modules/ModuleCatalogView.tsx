@@ -7,7 +7,6 @@ import type {
   InstalledContentModule,
   MedicalCore,
 } from '@localmed/contracts';
-import type { ContentModuleCatalogSource } from '@localmed/core';
 import {
   createEffect,
   createMemo,
@@ -18,6 +17,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
@@ -65,6 +65,26 @@ const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> 
 
 const INDIVIDUAL_RECOMMENDATION_TAG = 'individual-recommendation';
 const AUTO_UPDATES_PAUSED_KEY = 'minimed.module-auto-updates-paused.v1';
+
+function catalogSelectionFromLocation():
+  | { readonly kind: 'collection'; readonly id: string }
+  | { readonly kind: 'category'; readonly id: string }
+  | null {
+  const route = window.location.hash.replace(/^#\/?/u, '');
+  const collectionPrefix = 'modules/documents/collection/';
+  const categoryPrefix = 'modules/documents/category/';
+  try {
+    if (route.startsWith(collectionPrefix)) {
+      return { kind: 'collection', id: decodeURIComponent(route.slice(collectionPrefix.length)) };
+    }
+    if (route.startsWith(categoryPrefix)) {
+      return { kind: 'category', id: decodeURIComponent(route.slice(categoryPrefix.length)) };
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 function formatBytes(value: number | null): string {
   if (value === null) return 'размер пока не указан';
@@ -136,7 +156,6 @@ function categoryInstallLabel(
 
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [catalog, setCatalog] = createSignal<ContentModuleCatalog>(MODULE_CATALOG);
-  const [source, setSource] = createSignal<ContentModuleCatalogSource>('bundled');
   const [warning, setWarning] = createSignal<string | null>(null);
   const [refreshing, setRefreshing] = createSignal(false);
   const [runtime, setRuntime] = createSignal(getContentModuleRuntime(MODULE_CATALOG));
@@ -173,8 +192,28 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     });
   };
 
-  onMount(() => bindRuntime(MODULE_CATALOG));
-  onCleanup(() => unsubscribeTask?.());
+  const syncSelectionFromLocation = (): void => {
+    const selection = catalogSelectionFromLocation();
+    setRegularCollection(selection?.kind === 'collection' ? selection.id : '');
+    setRecommendationCategory(selection?.kind === 'category' ? selection.id : '');
+    if (!selection) setRecommendationQuery('');
+  };
+  const openCollection = (collection: string): void => {
+    window.location.hash = `#/modules/documents/collection/${encodeURIComponent(collection)}`;
+  };
+  const openCategory = (categoryId: string): void => {
+    window.location.hash = `#/modules/documents/category/${encodeURIComponent(categoryId)}`;
+  };
+
+  onMount(() => {
+    bindRuntime(MODULE_CATALOG);
+    syncSelectionFromLocation();
+    window.addEventListener('hashchange', syncSelectionFromLocation);
+  });
+  onCleanup(() => {
+    unsubscribeTask?.();
+    window.removeEventListener('hashchange', syncSelectionFromLocation);
+  });
 
   const recommendationModules = createMemo(() =>
     catalog().modules.filter((module) => module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
@@ -239,7 +278,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     try {
       const result = await refreshContentModuleCatalog();
       setCatalog(result.catalog);
-      setSource(result.source);
       setWarning(result.warning);
       bindRuntime(result.catalog);
     } finally {
@@ -542,7 +580,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       <button
                         type="button"
                         class="recommendation-section-select"
-                        onClick={() => setRegularCollection(collection)}
+                        onClick={() => openCollection(collection)}
                       >
                         <strong>{collectionLabel(collection)}</strong>
                         <span>
@@ -555,15 +593,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               </For>
             </div>
           </section>
-        </Show>
-
-        <Show when={regularCollection()}>
-          <div class="recommendation-breadcrumb">
-            <button type="button" onClick={() => setRegularCollection('')}>
-              ← Наборы
-            </button>
-            <span>{collectionLabel(regularCollection())}</span>
-          </div>
         </Show>
 
         <For each={collections().filter((collection) => collection === regularCollection())}>
@@ -677,7 +706,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                                   class="module-remove-button"
                                   onClick={() => void remove(module.id)}
                                 >
-                                  Удалить с устройства
+                                  <AppGlyph name="trash" /> Удалить с устройства
                                 </button>
                               </div>
                             }
@@ -687,6 +716,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                               disabled={module.releaseState !== 'published' || Boolean(working())}
                               onClick={() => void install(module)}
                             >
+                              <Show
+                                when={!working()}
+                                fallback={<span class="module-action-spinner" />}
+                              >
+                                <AppGlyph name="download" />
+                              </Show>
                               {working()
                                 ? TASK_LABELS[task()?.state ?? 'queued']
                                 : module.releaseState === 'published'
@@ -761,7 +796,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <button
                           type="button"
                           class="recommendation-section-select"
-                          onClick={() => setRecommendationCategory(category.id)}
+                          onClick={() => openCategory(category.id)}
                         >
                           <strong>{category.title}</strong>
                           <span>
@@ -781,41 +816,40 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           ?
                         </button>
                       </div>
-                      <Show
-                        when={
-                          stats().installedCount > 0 ||
-                          downloadProgress().activeTaskCount > 0 ||
-                          categoryBusy()
-                        }
+                      <div
+                        class="recommendation-section-progress"
+                        classList={{ complete: downloadProgress().installedFraction === 1 }}
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(
+                          (showByteProgress() ?? downloadProgress().installedFraction) * 100,
+                        )}
                       >
-                        <div
-                          class="recommendation-section-progress"
-                          role="progressbar"
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-valuenow={Math.round(
-                            (showByteProgress() ?? downloadProgress().installedFraction) * 100,
-                          )}
-                        >
-                          <i
-                            style={{
-                              width: `${Math.round(
-                                (showByteProgress() ?? downloadProgress().installedFraction) * 100,
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </Show>
+                        <i
+                          style={{
+                            width: `${Math.round(
+                              (showByteProgress() ?? downloadProgress().installedFraction) * 100,
+                            )}%`,
+                          }}
+                        />
+                      </div>
                       <div class="recommendation-section-actions">
                         <Show
                           when={stats().pendingCount > 0}
                           fallback={
                             <button
                               type="button"
+                              aria-label={`Удалить раздел «${category.title}»`}
                               disabled={stats().installedCount === 0 || categoryBusy()}
                               onClick={() => void removeCategory(category.id)}
                             >
-                              {categoryBusy() ? 'Удаляем…' : 'Удалить'}
+                              <Show
+                                when={!categoryBusy()}
+                                fallback={<span class="module-action-spinner" />}
+                              >
+                                <AppGlyph name="trash" />
+                              </Show>
                             </button>
                           }
                         >
@@ -824,6 +858,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                             disabled={categoryBusy()}
                             onClick={() => void installCategory(category.id)}
                           >
+                            <Show
+                              when={!categoryBusy()}
+                              fallback={<span class="module-action-spinner" />}
+                            >
+                              <AppGlyph name="download" />
+                            </Show>
                             {categoryInstallLabel(categoryBusy(), downloadProgress())}
                           </button>
                         </Show>
@@ -847,24 +887,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           </Show>
 
           <Show when={browsingSection() || browsingSearch()}>
-            <div class="recommendation-breadcrumb">
-              <button
-                type="button"
-                onClick={() => {
-                  setRecommendationCategory('');
-                  setRecommendationQuery('');
-                }}
-              >
-                ← Разделы
-              </button>
-              <Show when={browsingSection()}>
-                <span>{activeCategory()?.title}</span>
-              </Show>
-              <Show when={browsingSearch()}>
-                <span>Поиск</span>
-              </Show>
-            </div>
-
             <SearchField
               class="recommendation-search recommendation-search-compact"
               value={recommendationQuery()}
@@ -882,6 +904,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     disabled={isCategoryBusy(recommendationCategory())}
                     onClick={() => void installCategory()}
                   >
+                    <Show
+                      when={!isCategoryBusy(recommendationCategory())}
+                      fallback={<span class="module-action-spinner" />}
+                    >
+                      <AppGlyph name="download" />
+                    </Show>
                     {categoryInstallLabel(
                       isCategoryBusy(recommendationCategory()),
                       recommendationCategoryDownloadProgress(
@@ -962,7 +990,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                               class="module-remove-button"
                               onClick={() => void remove(module.id)}
                             >
-                              Удалить
+                              <AppGlyph name="trash" /> Удалить
                             </button>
                           </div>
                         }
@@ -972,6 +1000,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           disabled={module.releaseState !== 'published' || Boolean(working())}
                           onClick={() => void install(module)}
                         >
+                          <Show when={!working()} fallback={<span class="module-action-spinner" />}>
+                            <AppGlyph name="download" />
+                          </Show>
                           {working()
                             ? progress() !== null
                               ? `${Math.round((progress() ?? 0) * 100)}%`
@@ -1059,16 +1090,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       >
         <DocumentLibrary core={props.core} embedded />
       </OverlayDialog>
-
-      <details class="module-catalog-status doctor-technical-details">
-        <summary>Обновление списка наборов</summary>
-        <p>
-          Источник: {source()}. Текущий встроенный пакет: {props.status.contentPackIds.join(', ')}.
-        </p>
-        <button type="button" disabled={refreshing()} onClick={() => void refresh()}>
-          {refreshing() ? 'Проверяем…' : 'Проверить обновления'}
-        </button>
-      </details>
     </section>
   );
 }

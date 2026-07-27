@@ -245,14 +245,14 @@ export function App(): JSX.Element {
                 hidden={view() !== 'notes'}
                 aria-hidden={view() !== 'notes'}
               >
-                <NotesView core={state().core} />
+                <NotesView core={searchCore() ?? state().core} />
               </section>
               <Show when={showBrowserFooter}>
                 <footer class="app-footer">
                   <a href="https://github.com/T-Damer/MiniMed" target="_blank" rel="noreferrer">
                     GitHub
                   </a>
-                  <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.1/MiniMed-0.6.1-rf-public-pilot-debug.apk">
+                  <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.2/MiniMed-0.6.2-rf-public-pilot-debug.apk">
                     Android APK
                   </a>
                 </footer>

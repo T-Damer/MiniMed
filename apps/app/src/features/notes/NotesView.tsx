@@ -1,18 +1,20 @@
-import type { MedicalCore } from '@localmed/contracts';
+import { TextField } from '@kobalte/core/text-field';
+import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import {
   addPatientNote,
-  childNotes,
   completeNoteReminder,
   createPatientCard,
   enrichPatientNote,
   hydratePatientNotesFromIndexedDb,
   isReminderDue,
   loadPatientNotes,
+  type NoteReminder,
   PATIENT_NOTES_EVENT,
   type PatientCard,
   type PatientNote,
@@ -30,41 +32,38 @@ function formatDate(value: string): string {
   return new Intl.DateTimeFormat('ru-RU', {
     day: '2-digit',
     month: 'short',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
 }
 
-function formatReminderDate(dueAt: string, allDay: boolean): string {
-  const date = new Date(dueAt);
-  if (Number.isNaN(date.getTime())) return dueAt;
+function formatReminderDate(reminder: NoteReminder): string {
+  const date = new Date(reminder.dueAt);
+  if (Number.isNaN(date.getTime())) return reminder.dueAt;
   return new Intl.DateTimeFormat(
     'ru-RU',
-    allDay
-      ? { day: '2-digit', month: 'short' }
-      : { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' },
+    reminder.allDay
+      ? { day: '2-digit', month: 'short', year: 'numeric' }
+      : {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        },
   ).format(date);
 }
 
-/**
- * Turns the inline date (+ optional time) fields into a concrete moment. A date-only reminder for
- * today means "due now", not midnight that already passed — the store rejects past moments.
- */
 function composeDueAt(
   dateValue: string,
   timeValue: string,
 ): { dueAt: string; allDay: boolean } | null {
   if (!dateValue) return null;
-  if (timeValue) {
-    const withTime = new Date(`${dateValue}T${timeValue}`);
-    return Number.isNaN(withTime.getTime())
-      ? null
-      : { dueAt: withTime.toISOString(), allDay: false };
-  }
-  const startOfDay = new Date(`${dateValue}T00:00`);
-  if (Number.isNaN(startOfDay.getTime())) return null;
-  const dueAt = startOfDay.getTime() <= Date.now() ? new Date(Date.now() + 60_000) : startOfDay;
-  return { dueAt: dueAt.toISOString(), allDay: true };
+  const date = new Date(`${dateValue}T${timeValue || '00:00'}`);
+  if (Number.isNaN(date.getTime())) return null;
+  const dueAt = !timeValue && date.getTime() <= Date.now() ? new Date(Date.now() + 60_000) : date;
+  return { dueAt: dueAt.toISOString(), allDay: !timeValue };
 }
 
 function reminderFieldsValue(form: HTMLFormElement): { dueAt: string; allDay: boolean } | null {
@@ -76,375 +75,132 @@ function reminderFieldsValue(form: HTMLFormElement): { dueAt: string; allDay: bo
   );
 }
 
+function NoteTextArea(props: {
+  readonly name: string;
+  readonly label: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly placeholder?: string;
+}): JSX.Element {
+  return (
+    <TextField name={props.name} value={props.value} onChange={props.onChange}>
+      <TextField.Label class="visually-hidden">{props.label}</TextField.Label>
+      <TextField.TextArea
+        autoResize
+        aria-label={props.label}
+        placeholder={props.placeholder}
+        rows={2}
+      />
+    </TextField>
+  );
+}
+
 function ReminderFields(): JSX.Element {
   return (
     <div class="note-reminder-fields">
-      <span>Напомнить:</span>
+      <span>Напомнить</span>
       <input type="date" name="reminder-date" aria-label="Дата напоминания" />
       <input type="time" name="reminder-time" aria-label="Время напоминания" />
     </div>
   );
 }
 
-function ReminderLink(props: {
-  readonly note: PatientNote;
-  readonly onManage: (noteId: string) => void;
-}): JSX.Element {
-  const reminder = () => props.note.reminder;
-  return (
-    <Show when={reminder()}>
-      {(value) => (
-        <button
-          type="button"
-          class="note-reminder-link"
-          classList={{
-            due: isReminderDue(value()),
-            done: value().completedAt !== null,
-          }}
-          onClick={() => props.onManage(props.note.id)}
-        >
-          ⏰ {formatReminderDate(value().dueAt, value().allDay)}
-          <Show when={value().completedAt !== null}> · выполнено</Show>
-        </button>
-      )}
-    </Show>
-  );
-}
-
-function NoteBranch(props: {
-  readonly core: MedicalCore;
-  readonly snapshot: PatientNotesSnapshot;
-  readonly cardId: string;
-  readonly parentNoteId: string | null;
-  readonly depth: number;
-  readonly onManageReminder: (noteId: string) => void;
-}): JSX.Element {
-  const [replyTo, setReplyTo] = createSignal<string>();
-  const [editing, setEditing] = createSignal<string>();
-  const notes = (): readonly ReturnType<typeof childNotes>[number][] => [
-    ...childNotes(props.snapshot, props.cardId, props.parentNoteId),
-  ];
-
-  return (
-    <Show when={notes().length > 0}>
-      <ul class="patient-note-branch" classList={{ nested: props.depth > 0 }}>
-        <For each={notes()}>
-          {(note) => (
-            <li class="patient-note">
-              <Show
-                when={editing() === note.id}
-                fallback={
-                  <div class="patient-note-body">
-                    <p>{note.text}</p>
-                    <div class="patient-note-categories">
-                      <For each={note.categories}>{(category) => <span>{category}</span>}</For>
-                    </div>
-                    <Show when={note.relatedDocumentIds.length > 0}>
-                      <div class="patient-note-related">
-                        <span>Связанные источники:</span>
-                        <For each={note.relatedDocumentIds}>
-                          {(documentId, index) => (
-                            <button
-                              type="button"
-                              title={documentId}
-                              onClick={() => openDocumentOverlay(documentId)}
-                            >
-                              Источник {index() + 1}
-                            </button>
-                          )}
-                        </For>
-                      </div>
-                    </Show>
-                    <div class="patient-note-actions">
-                      <small>{formatDate(note.updatedAt)}</small>
-                      <ReminderLink note={note} onManage={props.onManageReminder} />
-                      <Show when={!note.reminder}>
-                        <button type="button" onClick={() => props.onManageReminder(note.id)}>
-                          Напоминание
-                        </button>
-                      </Show>
-                      <button type="button" onClick={() => setReplyTo(note.id)}>
-                        Уточнить
-                      </button>
-                      <button type="button" onClick={() => setEditing(note.id)}>
-                        Изменить
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Удалить заметку: ${note.text.slice(0, 40)}`}
-                        onClick={() => removePatientNote(note.id)}
-                      >
-                        <AppGlyph name="close" />
-                      </button>
-                    </div>
-                  </div>
-                }
-              >
-                <form
-                  class="patient-note-form"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    const form = event.currentTarget;
-                    const field = form.elements.namedItem('text');
-                    const due = reminderFieldsValue(form);
-                    if (field instanceof HTMLTextAreaElement) {
-                      updatePatientNote(note.id, field.value);
-                      void enrichPatientNote(note.id, props.core);
-                    }
-                    if (due) setNoteReminder(note.id, due.dueAt, due.allDay);
-                    setEditing(undefined);
-                  }}
-                >
-                  <textarea name="text" rows={3} value={note.text} aria-label="Текст заметки" />
-                  <ReminderLink note={note} onManage={props.onManageReminder} />
-                  <ReminderFields />
-                  <div class="patient-note-form-actions">
-                    <button type="submit">Сохранить</button>
-                    <button type="button" onClick={() => setEditing(undefined)}>
-                      Отмена
-                    </button>
-                  </div>
-                </form>
-              </Show>
-
-              <Show when={replyTo() === note.id}>
-                <form
-                  class="patient-note-form"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    const form = event.currentTarget;
-                    const field = form.elements.namedItem('text');
-                    const due = reminderFieldsValue(form);
-                    if (field instanceof HTMLTextAreaElement) {
-                      const snapshot = addPatientNote(props.cardId, field.value, note.id);
-                      const created = snapshot.notes.at(-1);
-                      if (created) {
-                        if (due) setNoteReminder(created.id, due.dueAt, due.allDay);
-                        void enrichPatientNote(created.id, props.core);
-                      }
-                    }
-                    setReplyTo(undefined);
-                  }}
-                >
-                  <textarea
-                    name="text"
-                    rows={2}
-                    placeholder="Уточнение, динамика, результат"
-                    aria-label="Вложенная заметка"
-                  />
-                  <ReminderFields />
-                  <div class="patient-note-form-actions">
-                    <button type="submit">Добавить</button>
-                    <button type="button" onClick={() => setReplyTo(undefined)}>
-                      Отмена
-                    </button>
-                  </div>
-                </form>
-              </Show>
-
-              <NoteBranch
-                core={props.core}
-                snapshot={props.snapshot}
-                cardId={props.cardId}
-                parentNoteId={note.id}
-                depth={props.depth + 1}
-                onManageReminder={props.onManageReminder}
-              />
-            </li>
-          )}
-        </For>
-      </ul>
-    </Show>
-  );
-}
-
-function CardPanel(props: {
-  readonly core: MedicalCore;
-  readonly card: PatientCard;
-  readonly snapshot: PatientNotesSnapshot;
-  readonly open: boolean;
-  readonly onToggle: (open: boolean) => void;
-  readonly onManageReminder: (noteId: string) => void;
-}): JSX.Element {
-  const [editingCard, setEditingCard] = createSignal(false);
-  const noteCount = (): number =>
-    props.snapshot.notes.filter((note) => note.cardId === props.card.id).length;
-  const hasDueReminder = (): boolean =>
-    props.snapshot.notes.some(
-      (note) => note.cardId === props.card.id && note.reminder && isReminderDue(note.reminder),
-    );
-
-  return (
-    // Every store change hands down fresh objects, so this element is rebuilt. Open state therefore
-    // has to live above it, otherwise adding a note would collapse the card the doctor is writing in.
-    <details
-      class="patient-card paper-card"
-      classList={{ 'has-due-reminder': hasDueReminder() }}
-      open={props.open}
-      onToggle={(event) => props.onToggle(event.currentTarget.open)}
-    >
-      <summary>
-        <span class="patient-card-title">{props.card.title}</span>
-        <small>
-          {noteCount()} зап. · {formatDate(props.card.updatedAt)}
-        </small>
-      </summary>
-
-      <Show
-        when={editingCard()}
-        fallback={
-          <div class="patient-card-summary">
-            <Show when={props.card.summary}>
-              <p>{props.card.summary}</p>
-            </Show>
-            <div class="patient-note-actions">
-              <button type="button" onClick={() => setEditingCard(true)}>
-                Изменить карточку
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm(`Удалить карточку «${props.card.title}» и все её заметки?`)) {
-                    removePatientCard(props.card.id);
-                  }
-                }}
-              >
-                Удалить карточку
-              </button>
-            </div>
-          </div>
-        }
-      >
-        <form
-          class="patient-note-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = event.currentTarget;
-            const title = form.elements.namedItem('title');
-            const summary = form.elements.namedItem('summary');
-            updatePatientCard(props.card.id, {
-              ...(title instanceof HTMLInputElement ? { title: title.value } : {}),
-              ...(summary instanceof HTMLTextAreaElement ? { summary: summary.value } : {}),
-            });
-            setEditingCard(false);
-          }}
-        >
-          <input name="title" value={props.card.title} aria-label="Название карточки" />
-          <textarea
-            name="summary"
-            rows={2}
-            value={props.card.summary}
-            aria-label="Контекст пациента"
-          />
-          <div class="patient-note-form-actions">
-            <button type="submit">Сохранить</button>
-            <button type="button" onClick={() => setEditingCard(false)}>
-              Отмена
-            </button>
-          </div>
-        </form>
-      </Show>
-
-      <NoteBranch
-        core={props.core}
-        snapshot={props.snapshot}
-        cardId={props.card.id}
-        parentNoteId={null}
-        depth={0}
-        onManageReminder={props.onManageReminder}
-      />
-
-      <form
-        class="patient-note-form"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const form = event.currentTarget;
-          const field = form.elements.namedItem('text');
-          const due = reminderFieldsValue(form);
-          if (field instanceof HTMLTextAreaElement) {
-            const snapshot = addPatientNote(props.card.id, field.value);
-            const created = snapshot.notes.at(-1);
-            if (created) {
-              if (due) setNoteReminder(created.id, due.dueAt, due.allDay);
-              void enrichPatientNote(created.id, props.core);
-            }
-            field.value = '';
-            form.reset();
-          }
-        }}
-      >
-        <textarea
-          name="text"
-          rows={2}
-          placeholder="Осмотр, назначение, динамика"
-          aria-label={`Новая заметка для ${props.card.title}`}
-        />
-        <ReminderFields />
-        <div class="patient-note-form-actions">
-          <button type="submit">Добавить запись</button>
-        </div>
-      </form>
-    </details>
-  );
+function deferEnrichment(noteId: string, core: MedicalCore): void {
+  window.setTimeout(() => void enrichPatientNote(noteId, core), 0);
 }
 
 export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
+  const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
   const [creating, setCreating] = createSignal(false);
-  const [openCardIds, setOpenCardIds] = createSignal<readonly string[]>([]);
-  const [manageNoteId, setManageNoteId] = createSignal<string | null>(null);
-  // Due-ness is a function of the clock, so re-render periodically even without edits.
+  const [activeCardId, setActiveCardId] = createSignal<string | null>(null);
+  const [activeNoteId, setActiveNoteId] = createSignal<string | null>(null);
+  const [reminderNoteId, setReminderNoteId] = createSignal<string | null>(null);
+  const [editingCard, setEditingCard] = createSignal(false);
+  const [editingNote, setEditingNote] = createSignal(false);
+  const [cardTitleDraft, setCardTitleDraft] = createSignal('');
+  const [cardSummaryDraft, setCardSummaryDraft] = createSignal('');
+  const [noteDraft, setNoteDraft] = createSignal('');
+  const [editNoteDraft, setEditNoteDraft] = createSignal('');
+  const [completionDraft, setCompletionDraft] = createSignal('');
   const [clock, setClock] = createSignal(Date.now());
-
-  const setCardOpen = (cardId: string, open: boolean): void => {
-    setOpenCardIds((current) =>
-      open ? [...new Set([...current, cardId])] : current.filter((id) => id !== cardId),
-    );
-  };
 
   const refresh = (): void => {
     setSnapshot(loadPatientNotes());
+  };
+  const refreshDocuments = (): void => {
+    void props.core.listDocuments().then((result) => {
+      if (result.ok) setDocuments(result.value);
+    });
   };
 
   let clockTimer: ReturnType<typeof setInterval> | undefined;
   onMount(() => {
     refresh();
+    refreshDocuments();
     void hydratePatientNotesFromIndexedDb()
       .then(refresh)
       .catch(() => console.warn('Не удалось восстановить заметки из IndexedDB.'));
     window.addEventListener(PATIENT_NOTES_EVENT, refresh);
+    window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     clockTimer = setInterval(() => setClock(Date.now()), 30_000);
   });
   onCleanup(() => {
     window.removeEventListener(PATIENT_NOTES_EVENT, refresh);
+    window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     if (clockTimer) clearInterval(clockTimer);
   });
 
-  const managedNote = (): PatientNote | null =>
-    snapshot().notes.find((note) => note.id === manageNoteId()) ?? null;
+  const activeCard = (): PatientCard | null =>
+    snapshot().cards.find((card) => card.id === activeCardId()) ?? null;
+  const activeNote = (): PatientNote | null =>
+    snapshot().notes.find((note) => note.id === activeNoteId()) ?? null;
+  const reminderNote = (): PatientNote | null =>
+    snapshot().notes.find((note) => note.id === reminderNoteId()) ?? null;
+  const notesForCard = (cardId: string): readonly PatientNote[] =>
+    snapshot()
+      .notes.filter((note) => note.cardId === cardId)
+      .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt));
+  const documentTitle = (documentId: string): string | null =>
+    documents().find((document) => document.id === documentId)?.title ?? null;
+  const relatedDocuments = (
+    note: PatientNote,
+  ): readonly { readonly id: string; readonly title: string }[] =>
+    note.relatedDocumentIds.flatMap((id) => {
+      const title = documentTitle(id);
+      return title ? [{ id, title }] : [];
+    });
 
-  // Cards carrying a due follow-up float to the top; the rest keep creation order.
   const sortedCards = (): readonly PatientCard[] => {
     clock();
-    const earliestDue = new Map<string, string>();
-    for (const note of snapshot().notes) {
-      if (!note.reminder || !isReminderDue(note.reminder)) continue;
-      const current = earliestDue.get(note.cardId);
-      if (!current || note.reminder.dueAt < current)
-        earliestDue.set(note.cardId, note.reminder.dueAt);
-    }
     return snapshot().cards.toSorted((left, right) => {
-      const leftDue = earliestDue.get(left.id);
-      const rightDue = earliestDue.get(right.id);
-      if (leftDue && rightDue) return leftDue.localeCompare(rightDue);
-      if (leftDue) return -1;
-      if (rightDue) return 1;
-      return 0;
+      const leftDue = notesForCard(left.id).some(
+        (note) => note.reminder && isReminderDue(note.reminder),
+      );
+      const rightDue = notesForCard(right.id).some(
+        (note) => note.reminder && isReminderDue(note.reminder),
+      );
+      if (leftDue !== rightDue) return leftDue ? -1 : 1;
+      return right.updatedAt.localeCompare(left.updatedAt);
     });
   };
 
+  const openCard = (card: PatientCard): void => {
+    setActiveCardId(card.id);
+    setCardTitleDraft(card.title);
+    setCardSummaryDraft(card.summary);
+    setNoteDraft('');
+    setEditingCard(false);
+  };
+
+  const openNote = (note: PatientNote): void => {
+    setActiveNoteId(note.id);
+    setEditNoteDraft(note.text);
+    setEditingNote(false);
+  };
+
   return (
-    <section class="patient-notes-view" aria-label="Личные заметки">
+    <section class="patient-notes-view page-surface" aria-label="Личные заметки">
       <header class="patient-notes-heading">
         <div>
           <p class="archive-kicker">Личный слой, только на этом устройстве</p>
@@ -455,68 +211,37 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
         </div>
       </header>
 
-      <OverlayDialog
-        open={creating()}
-        title="Новая карточка"
-        subtitle="Личная заметка на этом устройстве"
-        class="patient-card-dialog"
-        onClose={() => setCreating(false)}
-      >
-        <form
-          class="patient-note-form patient-card-create-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = event.currentTarget;
-            const title = form.elements.namedItem('title');
-            const summary = form.elements.namedItem('summary');
-            if (title instanceof HTMLInputElement) {
-              createPatientCard(
-                title.value,
-                summary instanceof HTMLTextAreaElement ? summary.value : '',
-              );
-            }
-            setCreating(false);
-          }}
-        >
-          <input
-            name="title"
-            placeholder="Фамилия И., возраст, вес"
-            aria-label="Название карточки"
-            required
-          />
-          <textarea
-            name="summary"
-            rows={2}
-            placeholder="Аллергии, сопутствующие состояния, отделение"
-            aria-label="Контекст пациента"
-          />
-          <div class="patient-note-form-actions">
-            <button type="submit">Создать</button>
-          </div>
-        </form>
-      </OverlayDialog>
-
       <Show
         when={snapshot().cards.length > 0}
         fallback={
           <p class="patient-notes-empty paper-card">
-            Пока нет карточек. Создайте первую, чтобы вести записи по пациенту и находить их в
-            поиске.
+            Пока нет карточек. Создайте первую, чтобы вести записи по пациенту.
           </p>
         }
       >
         <div class="patient-card-list">
           <For each={sortedCards()}>
-            {(card) => (
-              <CardPanel
-                core={props.core}
-                card={card}
-                snapshot={snapshot()}
-                open={openCardIds().includes(card.id)}
-                onToggle={(open) => setCardOpen(card.id, open)}
-                onManageReminder={setManageNoteId}
-              />
-            )}
+            {(card) => {
+              const notes = () => notesForCard(card.id);
+              const due = () =>
+                notes().some((note) => note.reminder && isReminderDue(note.reminder));
+              return (
+                <button
+                  type="button"
+                  class="patient-card paper-card"
+                  classList={{ 'has-due-reminder': due() }}
+                  onClick={() => openCard(card)}
+                >
+                  <span class="patient-card-title">{card.title}</span>
+                  <Show when={card.summary}>
+                    <p>{card.summary}</p>
+                  </Show>
+                  <small>
+                    {notes().length} зап. · {formatDate(card.updatedAt)}
+                  </small>
+                </button>
+              );
+            }}
           </For>
         </div>
       </Show>
@@ -532,13 +257,248 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
       </button>
 
       <OverlayDialog
-        open={managedNote() !== null}
-        title="Напоминание"
-        subtitle={managedNote()?.text.slice(0, 80) ?? ''}
-        class="reminder-dialog"
-        onClose={() => setManageNoteId(null)}
+        open={creating()}
+        title="Новая карточка"
+        subtitle="Личная заметка на этом устройстве"
+        class="patient-card-dialog"
+        onClose={() => setCreating(false)}
       >
-        <Show when={managedNote()}>
+        <form
+          class="patient-note-form patient-card-create-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const title = event.currentTarget.elements.namedItem('title');
+            if (title instanceof HTMLInputElement) createPatientCard(title.value);
+            setCreating(false);
+          }}
+        >
+          <input
+            name="title"
+            placeholder="ФИО или название заметки"
+            aria-label="Название карточки"
+            required
+          />
+          <div class="patient-note-form-actions">
+            <button type="submit">Создать</button>
+          </div>
+        </form>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={activeCard() !== null}
+        title={activeCard()?.title ?? 'Карточка'}
+        subtitle={activeCard() ? `Обновлено ${formatDate(activeCard()?.updatedAt ?? '')}` : ''}
+        class="patient-card-detail-dialog"
+        onClose={() => setActiveCardId(null)}
+      >
+        <Show when={activeCard()}>
+          {(card) => (
+            <div class="patient-card-detail">
+              <Show
+                when={editingCard()}
+                fallback={
+                  <div class="patient-card-summary">
+                    <Show when={card().summary}>
+                      <p>{card().summary}</p>
+                    </Show>
+                    <div class="patient-note-actions">
+                      <button type="button" onClick={() => setEditingCard(true)}>
+                        Изменить карточку
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            window.confirm(`Удалить карточку «${card().title}» и все её записи?`)
+                          ) {
+                            removePatientCard(card().id);
+                            setActiveCardId(null);
+                          }
+                        }}
+                      >
+                        Удалить карточку
+                      </button>
+                    </div>
+                  </div>
+                }
+              >
+                <form
+                  class="patient-note-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    updatePatientCard(card().id, {
+                      title: cardTitleDraft(),
+                      summary: cardSummaryDraft(),
+                    });
+                    setEditingCard(false);
+                  }}
+                >
+                  <input
+                    value={cardTitleDraft()}
+                    onInput={(event) => setCardTitleDraft(event.currentTarget.value)}
+                    aria-label="Название карточки"
+                  />
+                  <NoteTextArea
+                    name="summary"
+                    label="Контекст пациента"
+                    value={cardSummaryDraft()}
+                    onChange={setCardSummaryDraft}
+                    placeholder="Контекст, аллергии, сопутствующие состояния"
+                  />
+                  <div class="patient-note-form-actions">
+                    <button type="submit">Сохранить</button>
+                    <button type="button" onClick={() => setEditingCard(false)}>
+                      Отмена
+                    </button>
+                  </div>
+                </form>
+              </Show>
+
+              <div class="patient-note-timeline">
+                <For each={notesForCard(card().id)}>
+                  {(note) => (
+                    <article class="patient-note-record">
+                      <button type="button" onClick={() => openNote(note)}>
+                        <small>{formatDate(note.createdAt)}</small>
+                        <p>{note.text}</p>
+                      </button>
+                      <Show when={note.reminder}>
+                        {(reminder) => (
+                          <button
+                            type="button"
+                            class="note-reminder-link"
+                            classList={{
+                              due: isReminderDue(reminder()),
+                              done: reminder().completedAt !== null,
+                            }}
+                            onClick={() => setReminderNoteId(note.id)}
+                          >
+                            {formatReminderDate(reminder())}
+                            <Show when={reminder().completedAt !== null}> · выполнено</Show>
+                          </button>
+                        )}
+                      </Show>
+                    </article>
+                  )}
+                </For>
+              </div>
+
+              <form
+                class="patient-note-form patient-note-add-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const due = reminderFieldsValue(event.currentTarget);
+                  const next = addPatientNote(card().id, noteDraft());
+                  const created = next.notes.at(-1);
+                  if (created) {
+                    if (due) setNoteReminder(created.id, due.dueAt, due.allDay);
+                    deferEnrichment(created.id, props.core);
+                  }
+                  setNoteDraft('');
+                  event.currentTarget.reset();
+                }}
+              >
+                <NoteTextArea
+                  name="text"
+                  label={`Новая заметка для ${card().title}`}
+                  value={noteDraft()}
+                  onChange={setNoteDraft}
+                  placeholder="Осмотр, назначение, динамика"
+                />
+                <ReminderFields />
+                <div class="patient-note-form-actions">
+                  <button type="submit">Добавить запись</button>
+                </div>
+              </form>
+            </div>
+          )}
+        </Show>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={activeNote() !== null}
+        title={activeNote() ? `Запись от ${formatDate(activeNote()?.createdAt ?? '')}` : 'Запись'}
+        subtitle={activeCard()?.title ?? ''}
+        class="patient-note-detail-dialog"
+        onClose={() => setActiveNoteId(null)}
+      >
+        <Show when={activeNote()}>
+          {(note) => (
+            <Show
+              when={editingNote()}
+              fallback={
+                <div class="patient-note-detail">
+                  <p>{note().text}</p>
+                  <div class="patient-note-categories">
+                    <For each={note().categories}>{(category) => <span>{category}</span>}</For>
+                  </div>
+                  <Show when={relatedDocuments(note()).length > 0}>
+                    <div class="patient-note-related">
+                      <span>По теме:</span>
+                      <For each={relatedDocuments(note())}>
+                        {(document) => (
+                          <button type="button" onClick={() => openDocumentOverlay(document.id)}>
+                            {document.title}
+                          </button>
+                        )}
+                      </For>
+                    </div>
+                  </Show>
+                  <div class="patient-note-actions">
+                    <button type="button" onClick={() => setEditingNote(true)}>
+                      Изменить
+                    </button>
+                    <button type="button" onClick={() => setReminderNoteId(note().id)}>
+                      {note().reminder ? 'Напоминание' : 'Добавить напоминание'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        removePatientNote(note().id);
+                        setActiveNoteId(null);
+                      }}
+                    >
+                      <AppGlyph name="trash" /> Удалить
+                    </button>
+                  </div>
+                </div>
+              }
+            >
+              <form
+                class="patient-note-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  updatePatientNote(note().id, editNoteDraft());
+                  deferEnrichment(note().id, props.core);
+                  setEditingNote(false);
+                }}
+              >
+                <NoteTextArea
+                  name="text"
+                  label="Текст заметки"
+                  value={editNoteDraft()}
+                  onChange={setEditNoteDraft}
+                />
+                <div class="patient-note-form-actions">
+                  <button type="submit">Сохранить</button>
+                  <button type="button" onClick={() => setEditingNote(false)}>
+                    Отмена
+                  </button>
+                </div>
+              </form>
+            </Show>
+          )}
+        </Show>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={reminderNote() !== null}
+        title="Напоминание"
+        subtitle={reminderNote()?.text.slice(0, 80) ?? ''}
+        class="reminder-dialog"
+        onClose={() => setReminderNoteId(null)}
+      >
+        <Show when={reminderNote()}>
           {(note) => (
             <div class="reminder-dialog-body">
               <Show
@@ -550,7 +510,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                       event.preventDefault();
                       const due = reminderFieldsValue(event.currentTarget);
                       if (due) setNoteReminder(note().id, due.dueAt, due.allDay);
-                      setManageNoteId(null);
+                      setReminderNoteId(null);
                     }}
                   >
                     <ReminderFields />
@@ -564,57 +524,45 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                   <Show
                     when={reminder().completedAt === null}
                     fallback={
-                      <div class="reminder-dialog-done">
-                        <p>
-                          Выполнено {formatDate(reminder().completedAt ?? '')}
-                          <Show when={reminder().completionNote}>
-                            {' '}
-                            — {reminder().completionNote}
-                          </Show>
-                        </p>
-                      </div>
+                      <p>
+                        Выполнено {formatDate(reminder().completedAt ?? '')}
+                        <Show when={reminder().completionNote}> — {reminder().completionNote}</Show>
+                      </p>
                     }
                   >
                     <p class="reminder-dialog-due" classList={{ due: isReminderDue(reminder()) }}>
-                      Срок: {formatReminderDate(reminder().dueAt, reminder().allDay)}
+                      Срок: {formatReminderDate(reminder())}
                     </p>
-
                     <form
                       class="patient-note-form"
                       onSubmit={(event) => {
                         event.preventDefault();
-                        const form = event.currentTarget;
-                        const field = form.elements.namedItem('completion');
-                        completeNoteReminder(
-                          note().id,
-                          field instanceof HTMLTextAreaElement ? field.value : '',
-                        );
-                        setManageNoteId(null);
+                        completeNoteReminder(note().id, completionDraft());
+                        setCompletionDraft('');
+                        setReminderNoteId(null);
                       }}
                     >
-                      <textarea
+                      <NoteTextArea
                         name="completion"
-                        rows={2}
+                        label="Чем закрыто напоминание"
+                        value={completionDraft()}
+                        onChange={setCompletionDraft}
                         placeholder="Состояние, результат, условие завершения"
-                        aria-label="Чем закрыто напоминание"
                       />
                       <div class="patient-note-form-actions">
                         <button type="submit">Выполнено</button>
                       </div>
                     </form>
-
                     <form
                       class="patient-note-form"
                       onSubmit={(event) => {
                         event.preventDefault();
                         const due = reminderFieldsValue(event.currentTarget);
                         if (due) setNoteReminder(note().id, due.dueAt, due.allDay);
-                        setManageNoteId(null);
+                        setReminderNoteId(null);
                       }}
                     >
-                      <span class="reminder-dialog-hint">
-                        Перенести можно только на более поздний срок.
-                      </span>
+                      <span class="reminder-dialog-hint">Перенести на более поздний срок</span>
                       <ReminderFields />
                       <div class="patient-note-form-actions">
                         <button type="submit">Перенести</button>

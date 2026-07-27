@@ -12,6 +12,7 @@ import {
 } from '@/features/search/ScopedMedicalCore';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 
 interface SearchHomeProps {
   readonly baseCore: MedicalCore;
@@ -116,6 +117,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     setScopePromptOpen(false);
   };
 
+  const replayHistory = (entry: SearchHistoryEntry): void => {
+    selectScope(entry.scope);
+    requestAnimationFrame(() => replaySearch(entry));
+  };
+
   return (
     <section class="search-home" aria-label="Поиск MiniMed">
       <header class="search-mode-heading">
@@ -209,7 +215,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             <Show when={scope() === 'diagnosis' && props.assistantCore}>
               <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
             </Show>
-            <SearchWorkspace core={core()} searchAllowed={!selectedScopeUnavailable()} />
+            <SearchWorkspace
+              core={core()}
+              scope={scope() as SearchScope}
+              searchAllowed={!selectedScopeUnavailable()}
+            />
           </div>
         )}
       </Show>
@@ -219,7 +229,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           <p>Выберите раздел выше — доступны только режимы с установленными документами.</p>
         </div>
       </Show>
-      <SearchHistoryPanel />
+      <SearchHistoryPanel onReplay={replayHistory} />
 
       <OverlayDialog
         open={helpOpen()}

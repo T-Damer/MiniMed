@@ -1,3 +1,4 @@
+import type { MedicalCore } from '@localmed/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -7,6 +8,7 @@ import {
   completeNoteReminder,
   createPatientCard,
   dueReminderNotes,
+  enrichPatientNote,
   loadPatientNotes,
   PATIENT_NOTES_KEY,
   removePatientCard,
@@ -177,6 +179,33 @@ describe('patient notes store', () => {
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
     updatePatientNote(noteId, '   ');
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
+  });
+
+  it('keeps only sources matching more than one meaningful term', async () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'назначен цефтриаксон при пневмонии');
+    const noteId = loadPatientNotes().notes[0]?.id ?? '';
+    const core = {
+      search: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          groups: [
+            {
+              documentId: 'generic',
+              results: [{ matchedTerms: ['пневмония'] }],
+            },
+            {
+              documentId: 'relevant',
+              results: [{ matchedTerms: ['цефтриаксон', 'пневмония'] }],
+            },
+          ],
+        },
+      }),
+    } as unknown as MedicalCore;
+
+    await enrichPatientNote(noteId, core);
+    expect(loadPatientNotes().notes[0]?.relatedDocumentIds).toEqual(['relevant']);
   });
 });
 
