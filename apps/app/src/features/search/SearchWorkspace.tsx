@@ -28,6 +28,7 @@ import { SearchField } from '@/components/SearchField';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import { SearchExamples } from '@/features/search/SearchExamples';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import {
@@ -590,25 +591,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
 
         <Show when={props.searchAllowed !== false && !response() && query().length === 0}>
-          <fieldset class="example-row">
-            <legend>Примеры поиска</legend>
-            <div class="example-scroll">
-              <For each={EXAMPLES_BY_SCOPE[props.scope]}>
-                {(example, index) => (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      updateQuery(example, false);
-                      void runSearch(example, true);
-                    }}
-                  >
-                    <span>{String(index() + 1).padStart(2, '0')}</span>
-                    {example}
-                  </button>
-                )}
-              </For>
-            </div>
-          </fieldset>
+          <SearchExamples
+            examples={EXAMPLES_BY_SCOPE[props.scope]}
+            onSelect={(example) => {
+              updateQuery(example, false);
+              void runSearch(example, true);
+            }}
+          />
         </Show>
 
         <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>

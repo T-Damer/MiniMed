@@ -332,7 +332,7 @@ export class BrowserContentModuleRuntime {
     this.registry = createRegistry();
     this.installer = new ForegroundContentModuleInstaller(
       catalog,
-      { appVersion: '0.6.3', schemaVersion: 2, coreCatalogVersion: '1' },
+      { appVersion: '0.6.4', schemaVersion: 2, coreCatalogVersion: '1' },
       new BrowserModuleDownloader(),
       this.backend,
       new BrowserModuleValidator(),

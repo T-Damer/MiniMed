@@ -4,6 +4,24 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-07-28
+
+### Changed
+
+- Search examples and modes use compact horizontal scrolling, clearer dark-theme states, and shared
+  reusable controls; cards, buttons, and fields now have consistent hover and focus feedback.
+- Document collections use two-column drilldowns, clearer release-state colors, inspectable module
+  contents, and card-local download error details.
+- Notes use shared deletion confirmation and clearer record metadata, while the landing page reflects
+  the current structured 744-recommendation catalog and offline workflow.
+- The application uses a single OverlayScrollbars-owned page scrollbar without a duplicate native
+  scrollbar or reserved gutter.
+
+### Verification boundary
+
+- Deterministic local retrieval remains available without the model, network, or downloaded modules.
+- This remains a debug-signed engineering prerelease rather than a production-signed medical device.
+
 ## [0.6.3] - 2026-07-28
 
 ### Changed

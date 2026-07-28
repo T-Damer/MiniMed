@@ -158,7 +158,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
             <a href="https://github.com/T-Damer/MiniMed" target="_blank" rel="noreferrer">
               GitHub
             </a>
-            <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.3/MiniMed-0.6.3-rf-public-pilot-debug.apk">
+            <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.4/MiniMed-0.6.4-rf-public-pilot-debug.apk">
               Android APK
             </a>
           </nav>

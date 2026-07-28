@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 28 July 2026
-> Repository version: `0.6.3`
-> Active target: `0.6.3` release candidate toward `1.0`
+> Repository version: `0.6.4`
+> Active target: `0.6.4` release candidate toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -42,12 +42,17 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Search mode is an explicit compact choice inside the query composer; the disabled field prompts for
   a mode first, and the horizontally scrollable mode strip remains available for direct switching.
   The idle composer is vertically centered, then moves smoothly to the top when a query begins;
-  scope-specific examples stay on one horizontally scrollable line. Search text expands to a bounded
-  height before scrolling internally, while note editors expand with their content.
+  scope-specific examples stay on one OverlayScrollbars-backed horizontal line and accept vertical
+  mouse-wheel input. Search text expands to a bounded height before scrolling internally, while note
+  editors expand with their content.
 - Recent device-local search history opens from a floating drawer, preserves the selected source
   scope, and can show the current-session result cache immediately while refreshing in the background.
 - The paper/archive design uses one top-level semantic color palette in light and dark modes, a
-  shared 65-character page measure, and compact cards, controls, result rows, and responsive spacing.
+  shared 65-character page measure, compact cards, controls, result rows, responsive spacing, and
+  consistent hover/focus feedback for cards, buttons, and fields. The document uses one
+  OverlayScrollbars-owned page scrollbar without a second native gutter.
+- Reusable view components now own confirmation dialogs, horizontal search examples, module cards,
+  and module task states; their parent pages retain routing, persistence, and orchestration.
 - Personal cards use a responsive three-column sticker board and a focused creation dialog opened
   from a floating add button. Card timelines and dated-record editors use nested note routes; card
   edit/delete actions are compact icon controls. On first launch, an editable colleague card and
@@ -57,12 +62,14 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - The knowledge-base overview reports the model and corpus state, then opens dedicated document and
   model subroutes without mixing every document family into one long page.
 - The document overview exposes four entry cards, including clinical recommendations. Drilldown
-  exposes the built-in core, section recommendation lists, full-document opening, bulk download,
+  exposes the built-in core, two-column module collections with user-facing release states and
+  inspectable document lists, section recommendation lists, full-document opening, bulk download,
   background update pause, rollback to retained older versions, and nested URLs for opened
   collections and recommendation sections.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
-  queued, and the selected model always receives its own download slot.
+  queued, and the selected model always receives its own download slot. Document-download failures
+  stay on the affected card and open their technical details on demand.
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
   medication, legal, and personal-note sources.
 - Model settings distinguish always-available offline search from the optional local model and expose
@@ -165,7 +172,7 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.3 gate includes 19 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.4 gate includes 20 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
 
@@ -194,7 +201,7 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Finish the 0.6.3 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
+1. Finish the 0.6.4 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
    the measured Replicate pilot decision.
 2. Add verified OCR for the blocked drug instruction.
 3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.

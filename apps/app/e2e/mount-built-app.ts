@@ -48,7 +48,7 @@ export interface MountBuiltAppOptions {
 }
 
 async function waitForWorkspace(page: Page): Promise<void> {
-  await page.getByRole('heading', { name: 'Что вы хотите найти?' }).waitFor();
+  await page.getByTestId('search-input').waitFor();
 
   // The knowledge-base badge deliberately extends the accessible label with an update count. Most
   // navigation tests are not testing that badge, so keep their exact-name helpers deterministic while

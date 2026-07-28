@@ -23,7 +23,14 @@
   --theme-floating-border: #789083;
   --theme-floating-text: #fff9e8;
   --theme-danger: #87453c;
+  --theme-warning: #75560f;
+  --theme-warning-soft: #f2dfa3;
+  --theme-info: #315f7a;
+  --theme-info-soft: #dbeaf3;
   --theme-note: #f2e6c2;
+  --theme-control-hover-shadow: 0 0.25rem 0.75rem rgb(41 35 25 / 18%);
+  --theme-card-hover-shadow:
+    0 1px 0 rgb(255 255 255 / 75%) inset, 0 1.5rem 3rem rgb(34 31 25 / 26%);
   --ink: var(--theme-text);
   --ink-soft: var(--theme-text-muted);
   --ink-faint: var(--theme-text-faint);
@@ -56,7 +63,6 @@ html {
   min-height: 100%;
   background: var(--desk);
   scroll-behavior: smooth;
-  scrollbar-gutter: stable;
 }
 
 body {
@@ -83,7 +89,8 @@ body::before {
 
 button,
 textarea,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -98,6 +105,8 @@ button {
 
 button:focus-visible,
 textarea:focus-visible,
+input:focus-visible,
+select:focus-visible,
 a:focus-visible,
 summary:focus-visible {
   outline: 0.125rem solid var(--blue-pencil);
@@ -107,6 +116,38 @@ summary:focus-visible {
 button:disabled {
   cursor: not-allowed;
   opacity: 0.42;
+}
+
+:where(button, input, textarea, select, .paper-card) {
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--theme-control-hover-shadow);
+  }
+
+  :where(input, textarea, select):not(:disabled):hover {
+    border-color: var(--theme-accent);
+    box-shadow: 0 0 0 0.125rem var(--theme-accent-soft);
+  }
+
+  .paper-card:hover {
+    border-color: color-mix(in srgb, var(--theme-accent) 58%, var(--theme-border));
+    box-shadow: var(--theme-card-hover-shadow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(button, input, textarea, select, .paper-card) {
+    transition: none;
+  }
 }
 
 mark {

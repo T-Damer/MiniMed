@@ -19,7 +19,7 @@ test('keeps patient note records local, editable in nested routes, and findable 
 
   await navigationButton(page, 'Заметки').click();
   await expect(page.getByRole('heading', { name: 'Заметки' })).toBeVisible();
-  await expect(page.getByText(/Пока нет карточек/u)).toBeVisible();
+  await expect(page.locator('.patient-card').filter({ hasText: 'Привет, коллега!' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Создать карточку' }).click();
   await page.getByLabel('Название карточки').fill('Иванов И., 3 года, 20 кг');

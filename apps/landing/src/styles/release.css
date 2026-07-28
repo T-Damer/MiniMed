@@ -126,7 +126,26 @@
 }
 
 .section-register {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
+  color: #eee6d5;
+}
+
+.section-register span {
+  color: #cbb88a;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.section-register strong {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
 }
 
 .dossier-grid {
@@ -137,6 +156,37 @@
 .dossier-grid article {
   min-height: 0;
   padding: 18px;
+  border: 1px solid var(--paper-line);
+  color: var(--ink);
+  background: var(--paper-light);
+  box-shadow: 0 12px 32px rgb(34 29 21 / 17%);
+}
+
+.dossier-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dossier-card-topline > span {
+  color: var(--stamp);
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+.dossier-icon {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  border: 1px solid rgb(64 90 77 / 28%);
+  border-radius: 50%;
+  color: var(--green);
+  background: rgb(64 90 77 / 8%);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .dossier-grid article h2 {
@@ -146,6 +196,7 @@
 
 .dossier-grid article p {
   margin: 0;
+  color: var(--ink-soft);
   line-height: 1.45;
 }
 
@@ -223,6 +274,17 @@
   display: block;
   min-height: 0;
   padding: 18px;
+  border: 1px solid var(--paper-line);
+  color: var(--ink);
+  background: var(--paper-light);
+  box-shadow: 0 12px 32px rgb(34 29 21 / 17%);
+}
+
+.roadmap-table article.current {
+  margin: 0;
+  padding: 18px;
+  border-color: #a58b4e;
+  background: #efe4c5;
 }
 
 .roadmap-table .version-tab {
@@ -231,6 +293,20 @@
   min-width: 0;
   margin-bottom: 12px;
   padding: 5px 8px;
+  border-radius: 999px;
+  color: var(--paper-light);
+  background: var(--stamp);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.roadmap-table article small {
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .roadmap-table article h2 {

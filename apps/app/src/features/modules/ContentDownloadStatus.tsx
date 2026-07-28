@@ -5,6 +5,7 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 import { AppGlyph } from '@/components/AppGlyph';
 import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
   getContentModuleRuntime,
   subscribeContentModuleRuntime,
@@ -27,11 +28,6 @@ const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> 
   failed: 'Загрузка прервана',
   cancelled: 'Загрузка отменена',
 };
-
-function taskProgress(task: ContentModuleDownloadTask): number | null {
-  if (!task.totalBytes || task.totalBytes <= 0) return null;
-  return Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));
-}
 
 function latestVisibleTasks(
   tasks: readonly ContentModuleDownloadTask[],
@@ -70,7 +66,7 @@ function sanitizeErrorMessage(message: string | null): string | null {
 }
 
 function describeTask(task: ContentModuleDownloadTask, metrics: TaskMetrics | undefined): string {
-  const progress = taskProgress(task);
+  const progress = contentModuleTaskProgress(task);
   if (task.state === 'queued') return 'Ждём свободный слот загрузки.';
   if (task.state === 'downloading') {
     const parts = [];
@@ -202,7 +198,7 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
             <ul>
               <For each={visibleTasks()}>
                 {(task) => {
-                  const progress = () => taskProgress(task);
+                  const progress = () => contentModuleTaskProgress(task);
                   return (
                     <li classList={{ failed: task.state === 'failed' }}>
                       <div class="content-download-status-row">

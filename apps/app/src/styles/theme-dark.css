@@ -21,7 +21,13 @@
     --theme-floating-border: #78947f;
     --theme-floating-text: #fff9e8;
     --theme-danger: #d98578;
+    --theme-warning: #f0cd71;
+    --theme-warning-soft: rgb(240 205 113 / 16%);
+    --theme-info: #91c4e4;
+    --theme-info-soft: rgb(145 196 228 / 16%);
     --theme-note: #302d25;
+    --theme-control-hover-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 30%);
+    --theme-card-hover-shadow: 0 1px 0 rgb(255 255 255 / 7%) inset, 0 1.5rem 3rem rgb(0 0 0 / 40%);
     --folder: #34322b;
     --folder-light: #403c31;
     --folder-dark: #24231f;
@@ -82,6 +88,21 @@
     color: var(--ink);
     background: var(--paper);
     box-shadow: var(--shadow-paper);
+  }
+
+  .result-group-header {
+    border-color: var(--theme-border);
+    background: var(--theme-surface-muted);
+  }
+
+  .file-number {
+    border-color: var(--theme-border);
+    color: var(--theme-text-muted);
+  }
+
+  .result-group-header small,
+  .group-count {
+    color: var(--theme-text-muted);
   }
 
   :where(input, textarea, select) {

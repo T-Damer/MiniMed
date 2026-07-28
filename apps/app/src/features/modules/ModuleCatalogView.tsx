@@ -21,8 +21,17 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
+import { ContentModuleCard } from '@/features/modules/ContentModuleCard';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
+import { ModuleTaskStatus } from '@/features/modules/ModuleTaskStatus';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import {
+  contentModuleTaskProgress,
+  formatModuleBytes,
+  MODULE_RELEASE_LABELS,
+  MODULE_TASK_LABELS,
+  primaryModuleDocumentId,
+} from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import {
   modulesInCategory,
@@ -47,22 +56,10 @@ interface ModuleCatalogViewProps {
   readonly onAvailableUpdates?: (count: number) => void;
 }
 
-const RELEASE_LABELS: Readonly<Record<ContentModuleCatalogEntry['releaseState'], string>> = {
-  bundled: 'Уже в приложении',
-  published: 'Можно скачать',
-  preview: 'Готовится',
-  planned: 'Запланировано',
-};
-
-const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> = {
-  queued: 'Ожидает загрузки',
-  downloading: 'Скачивается',
-  verifying: 'Проверяется',
-  installing: 'Устанавливается',
-  completed: 'Установлено',
-  failed: 'Ошибка установки',
-  cancelled: 'Загрузка отменена',
-};
+interface ModuleLoadError {
+  readonly title: string;
+  readonly message: string;
+}
 
 const INDIVIDUAL_RECOMMENDATION_TAG = 'individual-recommendation';
 const AUTO_UPDATES_PAUSED_KEY = 'minimed.module-auto-updates-paused.v1';
@@ -91,36 +88,6 @@ function catalogSelectionFromLocation():
   return null;
 }
 
-function formatBytes(value: number | null): string {
-  if (value === null) return 'размер пока не указан';
-  if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} КБ`;
-  return `${(value / 1024 / 1024).toFixed(value >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
-}
-
-function capabilityLabels(module: ContentModuleCatalogEntry): readonly string[] {
-  const labels: string[] = [];
-  if (module.capabilities.fullText) labels.push('полный текст');
-  if (module.capabilities.structuredTables) labels.push('таблицы');
-  if (module.capabilities.originalPdf) labels.push('PDF отдельно');
-  if (module.capabilities.structuredKnowledge) labels.push('связи и карточки');
-  if (module.capabilities.calculations) labels.push('расчёты');
-  return labels;
-}
-
-function installedValidationLabel(installed: InstalledContentModule): string {
-  const validation = installed.lastValidation;
-  if (!validation) return 'Проверка установки не записана';
-  if (
-    validation.valid &&
-    validation.checksumValid &&
-    validation.schemaCompatible &&
-    validation.sqliteIntegrity === 'ok'
-  ) {
-    return 'SHA-256 и SQLite проверены';
-  }
-  return validation.message;
-}
-
 function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter(
     (module) =>
@@ -128,18 +95,8 @@ function availableCount(catalog: ContentModuleCatalog): number {
   ).length;
 }
 
-function taskProgress(task: ContentModuleDownloadTask): number | null {
-  if (!task.totalBytes || task.totalBytes <= 0) return null;
-  return Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));
-}
-
-function primaryDocumentId(module: ContentModuleCatalogEntry): string | null {
-  const activeDocument = module.documents.find((document) => document.status === 'active');
-  return activeDocument?.documentId ?? module.documents[0]?.documentId ?? null;
-}
-
 function openModuleDocument(module: ContentModuleCatalogEntry): void {
-  const documentId = primaryDocumentId(module);
+  const documentId = primaryModuleDocumentId(module);
   if (!documentId) return;
   openDocumentOverlay(documentId, null, { preferSummary: true });
 }
@@ -178,6 +135,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [busyCategories, setBusyCategories] = createSignal<ReadonlySet<string>>(new Set());
   const [installingAll, setInstallingAll] = createSignal(false);
   const [helpCategory, setHelpCategory] = createSignal<ContentModuleCategory | null>(null);
+  const [detailsModule, setDetailsModule] = createSignal<ContentModuleCatalogEntry | null>(null);
+  const [loadErrorDetails, setLoadErrorDetails] = createSignal<ModuleLoadError | null>(null);
+  const [installErrors, setInstallErrors] = createSignal<Readonly<Record<string, string>>>({});
   const [coreOpen, setCoreOpen] = createSignal(false);
   const [autoUpdatesPaused, setAutoUpdatesPaused] = createSignal(
     window.localStorage.getItem(AUTO_UPDATES_PAUSED_KEY) === 'true',
@@ -272,7 +232,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     return buildRecommendationCategoryHelp(
       category,
       recommendationCategoryStats(recommendationModules(), category, installedModuleIds()),
-      formatBytes,
+      formatModuleBytes,
     );
   });
   const activeHelpModules = createMemo(() => {
@@ -283,6 +243,16 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const visibleCategories = createMemo(() =>
     showAllCategories() ? catalog().categories : catalog().categories.slice(0, 6),
   );
+  const moduleDocumentTitle = (documentId: string): string => {
+    const catalogDocumentId = documentId.match(/^kr\.rf\.\d+_\d+/u)?.[0] ?? documentId;
+    return (
+      catalog().modules.find(
+        (module) =>
+          module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG) &&
+          module.documents.some((document) => document.documentId === catalogDocumentId),
+      )?.title ?? documentId
+    );
+  };
 
   const refresh = async (): Promise<void> => {
     if (refreshing()) return;
@@ -354,6 +324,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
   const install = async (module: ContentModuleCatalogEntry, reconnect = true): Promise<boolean> => {
     setWarning(null);
+    setInstallErrors((current) => ({ ...current, [module.id]: '' }));
     try {
       const task = runtime().install(module);
       setTasks(runtime().listTasks());
@@ -361,10 +332,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       setTasks(runtime().listTasks());
       setInstalled(runtime().listInstalled());
       if (completed.state === 'completed' && reconnect) await connectContentChanges();
-      if (completed.state === 'failed') setWarning(completed.errorMessage);
       return completed.state === 'completed';
     } catch (cause) {
-      setWarning(cause instanceof Error ? cause.message : 'Не удалось установить набор.');
+      setInstallErrors((current) => ({
+        ...current,
+        [module.id]: cause instanceof Error ? cause.message : 'Не удалось установить набор.',
+      }));
       return false;
     }
   };
@@ -384,10 +357,21 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         );
         setTasks(runtime().listTasks());
         setInstalled(runtime().listInstalled());
-        if (result.errorMessage) setWarning(result.errorMessage);
         if (result.changed) await connectContentChanges();
       } catch (cause) {
-        setWarning(cause instanceof Error ? cause.message : 'Не удалось скачать раздел целиком.');
+        const message =
+          cause instanceof Error ? cause.message : 'Не удалось скачать раздел целиком.';
+        setInstallErrors((current) => ({
+          ...current,
+          ...Object.fromEntries(
+            modules
+              .filter(
+                (module) =>
+                  module.releaseState === 'published' && !installedModuleIds().has(module.id),
+              )
+              .map((module) => [module.id, message]),
+          ),
+        }));
       }
     });
   };
@@ -404,10 +388,21 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       );
       setTasks(runtime().listTasks());
       setInstalled(runtime().listInstalled());
-      if (result.errorMessage) setWarning(result.errorMessage);
       if (result.changed) await connectContentChanges();
     } catch (cause) {
-      setWarning(cause instanceof Error ? cause.message : 'Не удалось скачать доступные наборы.');
+      const message =
+        cause instanceof Error ? cause.message : 'Не удалось скачать доступные наборы.';
+      setInstallErrors((current) => ({
+        ...current,
+        ...Object.fromEntries(
+          regularModules()
+            .filter(
+              (module) =>
+                module.releaseState === 'published' && !installedModuleIds().has(module.id),
+            )
+            .map((module) => [module.id, message]),
+        ),
+      }));
     } finally {
       setInstallingAll(false);
     }
@@ -654,154 +649,25 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   {regularModules().filter((module) => module.collection === collection).length}
                 </span>
               </div>
-              <div
-                class="module-grid"
-                classList={{ 'module-grid-two-columns': collection === 'shared' }}
-              >
+              <div class="module-grid module-grid-two-columns">
                 <For each={regularModules().filter((module) => module.collection === collection)}>
-                  {(module) => {
-                    const installedValue = () => installedModule(module.id);
-                    const task = () => moduleTask(module.id);
-                    const progress = () =>
-                      task() ? taskProgress(task() as ContentModuleDownloadTask) : null;
-                    const working = () =>
-                      task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
-                    const updateAvailable = () =>
-                      Boolean(
-                        installedValue() &&
-                          installedValue()?.version !== module.version &&
-                          module.releaseState === 'published',
-                      );
-                    return (
-                      <article
-                        class="module-card paper-card"
-                        classList={{ installed: Boolean(installedValue()) }}
-                      >
-                        <div class="module-card-topline">
-                          <span class={`module-state state-${module.releaseState}`}>
-                            {installedValue() ? 'Установлено' : RELEASE_LABELS[module.releaseState]}
-                          </span>
-                        </div>
-                        <h3>{module.title}</h3>
-                        <p>{module.description}</p>
-                        <div class="module-facts doctor-module-facts">
-                          <span>Версия {module.version}</span>
-                          <span>
-                            {module.previewDocumentCount || module.documents.length || '—'}{' '}
-                            документов
-                          </span>
-                          <Show
-                            when={installedValue()}
-                            fallback={<span>{formatBytes(module.sizes.downloadBytes)}</span>}
-                          >
-                            {(installedModuleValue) => (
-                              <>
-                                <span>Версия {installedModuleValue().version}</span>
-                                <span>
-                                  На устройстве{' '}
-                                  {formatBytes(installedModuleValue().installedSizeBytes)}
-                                </span>
-                                <span>{installedValidationLabel(installedModuleValue())}</span>
-                              </>
-                            )}
-                          </Show>
-                        </div>
-                        <div class="module-capabilities">
-                          <For each={capabilityLabels(module)}>
-                            {(label) => <span>{label}</span>}
-                          </For>
-                        </div>
-
-                        <Show when={task()}>
-                          {(currentTask) => (
-                            <div class="module-task-status">
-                              <strong>{TASK_LABELS[currentTask().state]}</strong>
-                              <Show when={progress() !== null}>
-                                <div class="module-task-progress">
-                                  <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
-                                </div>
-                              </Show>
-                              <Show when={currentTask().errorMessage}>
-                                {(message) => <small>{message()}</small>}
-                              </Show>
-                            </div>
-                          )}
-                        </Show>
-
-                        <Show
-                          when={!module.required}
-                          fallback={
-                            <button type="button" onClick={() => setCoreOpen(true)}>
-                              Открыть документы ядра
-                            </button>
-                          }
-                        >
-                          <Show
-                            when={!installedValue()}
-                            fallback={
-                              <div class="module-card-actions">
-                                <Show when={updateAvailable()}>
-                                  <button
-                                    type="button"
-                                    disabled={Boolean(working())}
-                                    onClick={() => void install(module)}
-                                  >
-                                    Обновить
-                                  </button>
-                                </Show>
-                                <Show when={primaryDocumentId(module)}>
-                                  <button type="button" onClick={() => openModuleDocument(module)}>
-                                    Открыть
-                                  </button>
-                                </Show>
-                                <button
-                                  type="button"
-                                  class="module-remove-button"
-                                  onClick={() => void remove(module.id)}
-                                >
-                                  <AppGlyph name="trash" /> Удалить с устройства
-                                </button>
-                              </div>
-                            }
-                          >
-                            <button
-                              type="button"
-                              disabled={module.releaseState !== 'published' || Boolean(working())}
-                              onClick={() => void install(module)}
-                            >
-                              <Show
-                                when={!working()}
-                                fallback={<span class="module-action-spinner" />}
-                              >
-                                <AppGlyph name="download" />
-                              </Show>
-                              {working()
-                                ? TASK_LABELS[task()?.state ?? 'queued']
-                                : module.releaseState === 'published'
-                                  ? 'Скачать документы'
-                                  : 'Пока недоступно'}
-                            </button>
-                          </Show>
-                        </Show>
-
-                        <Show when={(installedValue()?.previousVersions.length ?? 0) > 0}>
-                          <div class="module-version-history">
-                            <span>Старые версии</span>
-                            <For each={installedValue()?.previousVersions ?? []}>
-                              {(version) => (
-                                <button
-                                  type="button"
-                                  onClick={() => void activateVersion(module.id, version)}
-                                >
-                                  Открыть {version}
-                                </button>
-                              )}
-                            </For>
-                          </div>
-                        </Show>
-                      </article>
-                    );
-                  }}
+                  {(module) => (
+                    <ContentModuleCard
+                      module={module}
+                      installed={installedModule(module.id)}
+                      task={moduleTask(module.id)}
+                      fallbackError={installErrors()[module.id]}
+                      onInspect={() => setDetailsModule(module)}
+                      onOpenError={(message) =>
+                        setLoadErrorDetails({ title: module.title, message })
+                      }
+                      onInstall={() => void install(module)}
+                      onOpenCore={() => setCoreOpen(true)}
+                      onOpenDocument={() => openModuleDocument(module)}
+                      onRemove={() => void remove(module.id)}
+                      onActivateVersion={(version) => void activateVersion(module.id, version)}
+                    />
+                  )}
                 </For>
               </div>
             </section>
@@ -858,7 +724,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           <strong>{category.title}</strong>
                           <span>
                             {stats().installedCount}/{stats().publishedCount} ·{' '}
-                            {formatBytes(stats().downloadBytes)}
+                            {formatModuleBytes(stats().downloadBytes)}
                           </span>
                         </button>
                         <button
@@ -999,14 +865,18 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   const installedValue = () => installedModule(module.id);
                   const task = () => moduleTask(module.id);
                   const progress = () =>
-                    task() ? taskProgress(task() as ContentModuleDownloadTask) : null;
+                    task() ? contentModuleTaskProgress(task() as ContentModuleDownloadTask) : null;
+                  const installError = () =>
+                    task()?.state === 'failed'
+                      ? task()?.errorMessage || 'Не удалось скачать документ.'
+                      : installErrors()[module.id] || null;
                   const working = () =>
                     task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
                   return (
                     <article class="recommendation-row paper-card recommendation-row-compact">
                       <div>
                         <Show
-                          when={installedValue() && primaryDocumentId(module)}
+                          when={installedValue() && primaryModuleDocumentId(module)}
                           fallback={<strong>{module.title}</strong>}
                         >
                           <button
@@ -1021,19 +891,31 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           {module.tags.find((tag) => /^\d+_\d+$/u.test(tag))}
                           {installedValue()
                             ? ' · установлено'
-                            : ` · ${formatBytes(module.sizes.downloadBytes)}`}
+                            : ` · ${formatModuleBytes(module.sizes.downloadBytes)}`}
                         </span>
                         <Show when={working() && progress() !== null}>
                           <div class="recommendation-row-progress" role="progressbar">
                             <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
                           </div>
                         </Show>
+                        <Show when={installError()}>
+                          {(message) => (
+                            <ModuleTaskStatus
+                              label={MODULE_TASK_LABELS[task()?.state ?? 'failed']}
+                              progress={null}
+                              errorMessage={message()}
+                              onOpenError={() =>
+                                setLoadErrorDetails({ title: module.title, message: message() })
+                              }
+                            />
+                          )}
+                        </Show>
                       </div>
                       <Show
                         when={!installedValue()}
                         fallback={
                           <div class="recommendation-row-actions">
-                            <Show when={primaryDocumentId(module)}>
+                            <Show when={primaryModuleDocumentId(module)}>
                               <button
                                 type="button"
                                 class="recommendation-open-button"
@@ -1063,7 +945,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           {working()
                             ? progress() !== null
                               ? `${Math.round((progress() ?? 0) * 100)}%`
-                              : TASK_LABELS[task()?.state ?? 'queued']
+                              : MODULE_TASK_LABELS[task()?.state ?? 'queued']
                             : 'Скачать'}
                         </button>
                       </Show>
@@ -1075,6 +957,80 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           </Show>
         </section>
       </Show>
+
+      <OverlayDialog
+        open={loadErrorDetails() !== null}
+        title="Ошибка при загрузке"
+        subtitle={loadErrorDetails()?.title ?? ''}
+        class="module-error-dialog"
+        onClose={() => setLoadErrorDetails(null)}
+      >
+        <div class="module-error-details">
+          <p>{loadErrorDetails()?.message}</p>
+        </div>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={detailsModule() !== null}
+        title={detailsModule()?.title ?? 'Набор документов'}
+        subtitle={`${MODULE_RELEASE_LABELS[detailsModule()?.releaseState ?? 'planned']} · ${
+          detailsModule()?.version ?? ''
+        }`}
+        class="recommendation-section-help-dialog"
+        onClose={() => setDetailsModule(null)}
+      >
+        <Show when={detailsModule()}>
+          {(module) => (
+            <div class="recommendation-section-help-body">
+              <p>{module().description}</p>
+              <ul class="recommendation-section-help-facts">
+                <li>
+                  {module().previewDocumentCount || module().documents.length
+                    ? `${module().previewDocumentCount || module().documents.length} документов`
+                    : 'Список документов уточняется'}
+                </li>
+                <li>{formatModuleBytes(module().sizes.downloadBytes)}</li>
+              </ul>
+              <Show
+                when={module().documents.length > 0}
+                fallback={
+                  <p class="recommendation-section-help-note">
+                    Полный список документов появится здесь после публикации набора.
+                  </p>
+                }
+              >
+                <details class="recommendation-section-document-list" open>
+                  <summary>Документы · {module().documents.length}</summary>
+                  <div>
+                    <For each={module().documents}>
+                      {(document) => (
+                        <details>
+                          <summary>{moduleDocumentTitle(document.documentId)}</summary>
+                          <p>
+                            {document.status === 'active'
+                              ? 'Текущая редакция'
+                              : document.status === 'historical'
+                                ? 'Историческая редакция'
+                                : 'Предыдущая редакция'}
+                          </p>
+                          <Show when={installedModule(module().id)}>
+                            <button
+                              type="button"
+                              onClick={() => openDocumentOverlay(document.documentId)}
+                            >
+                              Открыть документ
+                            </button>
+                          </Show>
+                        </details>
+                      )}
+                    </For>
+                  </div>
+                </details>
+              </Show>
+            </div>
+          )}
+        </Show>
+      </OverlayDialog>
 
       <OverlayDialog
         open={helpCategory() !== null}
@@ -1122,7 +1078,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         >
                           <button
                             type="button"
-                            disabled={!primaryDocumentId(module)}
+                            disabled={!primaryModuleDocumentId(module)}
                             onClick={() => openModuleDocument(module)}
                           >
                             Открыть полный документ
