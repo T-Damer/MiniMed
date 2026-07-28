@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.7] - 2026-07-28
+
+### Changed
+
+- Added a dedicated 1200×630 Open Graph preview and social metadata to the public website.
+
 ## [0.6.6] - 2026-07-28
 
 ### Added

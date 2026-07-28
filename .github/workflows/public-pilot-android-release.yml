@@ -259,6 +259,7 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
+          - a dedicated social preview for the public website;
           - a compact three-section workspace: search, knowledge base/documents, and personal notes;
           - search modes inside the composer with mode-specific examples and a centered idle state;
           - directional primary-route animation and a shared light/dark theme matching the device;
