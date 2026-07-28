@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 28 July 2026
-> Repository version: `0.6.6`
-> Active target: `0.6.6` public prerelease toward `1.0`
+> Repository version: `0.6.7`
+> Active target: `0.6.7` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -180,7 +180,7 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.6 gate includes 20 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.7 gate includes 20 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
 
@@ -209,7 +209,7 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Verify the 0.6.6 prerelease on a physical Android device, including locally scheduled
+1. Verify the 0.6.7 prerelease on a physical Android device, including locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
 2. Add verified OCR for the blocked drug instruction.
 3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
