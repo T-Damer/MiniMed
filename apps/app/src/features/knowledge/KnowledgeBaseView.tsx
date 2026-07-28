@@ -2,6 +2,7 @@ import type { CoreStatus, MedicalCore, MedicalDocumentSummary } from '@localmed/
 import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { ReleaseLinks } from '@/components/ReleaseLinks';
 import type { LocalModelController } from '@/features/models/controller';
 import { ModelSettings } from '@/features/models/ModelSettings';
 import type { LocalModelState } from '@/features/models/types';
@@ -155,12 +156,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
             <AppGlyph name="arrow-left" />
           </button>
           <nav class="knowledge-subroute-links" aria-label="Ссылки приложения">
-            <a href="https://github.com/T-Damer/MiniMed" target="_blank" rel="noreferrer">
-              GitHub
-            </a>
-            <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.4/MiniMed-0.6.4-rf-public-pilot-debug.apk">
-              Android APK
-            </a>
+            <ReleaseLinks />
           </nav>
         </div>
         <ModelSettings controller={props.controller} />

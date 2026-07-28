@@ -41,7 +41,10 @@ The browser is the primary target. It uses:
 - optional wllama CPU/WASM inference;
 - browser-local storage for preferences, history, bookmarks, installed-module metadata, and the
   explicitly separate personal-note layer; IndexedDB holds durable downloads, mounted packs, and the
-  note snapshot mirror.
+  note snapshot mirror plus note-image attachments;
+- device-local reminder notifications: Android uses native scheduled notifications, while browsers
+  notify only during the lifetime of an open tab. Web Push and a notification backend remain out of
+  scope.
 
 The primary navigation remains deliberately small: search, knowledge base, and personal notes.
 Documents and the optional local model are knowledge-base subroutes. Search history opens from the
@@ -173,6 +176,9 @@ abstain.
 - show diffs and extraction diagnostics;
 - promote only validated packs, retain rollback metadata, and expose background-update pause;
 - finish local-only patient notes as a separate trust layer, with explicit export/delete controls;
+- keep scheduled reminders local: native Android alarms when the app is closed and browser
+  notifications only while the tab is open;
+- retain note images as local IndexedDB attachments and remove them with their owning note;
 - evaluate optional on-device Russian transcription without sending recordings to a service.
 
 Done when an update cannot silently change the active corpus, the previous version remains recoverable,

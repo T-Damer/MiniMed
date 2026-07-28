@@ -5,8 +5,15 @@ import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } f
 import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { NoteImageGallery, NoteImagePicker } from '@/features/notes/NoteImages';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import {
+  addNoteImages,
+  loadNoteImages,
+  NOTE_IMAGES_EVENT,
+  type NoteImage,
+} from '@/state/note-images';
 import {
   addPatientNote,
   completeNoteReminder,
@@ -27,6 +34,7 @@ import {
   updatePatientCard,
   updatePatientNote,
 } from '@/state/patient-notes';
+import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 
 type NotesRoute =
   | { readonly kind: 'index' }
@@ -150,8 +158,12 @@ function NoteTextArea(props: {
 function ReminderFields(props: {
   readonly date: string;
   readonly time: string;
+  readonly notificationEnabled: boolean;
+  readonly notificationDisabled: boolean;
+  readonly notificationMessage: string;
   readonly onDateChange: (value: string) => void;
   readonly onTimeChange: (value: string) => void;
+  readonly onNotificationChange: (enabled: boolean) => void;
 }): JSX.Element {
   return (
     <div class="note-reminder-fields">
@@ -168,6 +180,18 @@ function ReminderFields(props: {
         value={props.time}
         onInput={(event) => props.onTimeChange(event.currentTarget.value)}
       />
+      <label class="note-notification-choice">
+        <input
+          type="checkbox"
+          checked={props.notificationEnabled}
+          disabled={props.notificationDisabled}
+          onChange={(event) => props.onNotificationChange(event.currentTarget.checked)}
+        />
+        Системное уведомление
+      </label>
+      <Show when={props.notificationMessage}>
+        <small class="note-notification-message">{props.notificationMessage}</small>
+      </Show>
     </div>
   );
 }
@@ -189,6 +213,11 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
   const [noteDraft, setNoteDraft] = createSignal('');
   const [reminderDate, setReminderDate] = createSignal('');
   const [reminderTime, setReminderTime] = createSignal('');
+  const [notificationEnabled, setNotificationEnabled] = createSignal(false);
+  const [notificationMessage, setNotificationMessage] = createSignal('');
+  const [noteImages, setNoteImages] = createSignal<readonly NoteImage[]>([]);
+  const [pendingImages, setPendingImages] = createSignal<readonly File[]>([]);
+  const [imageError, setImageError] = createSignal('');
   const [completionDraft, setCompletionDraft] = createSignal('');
   const [clock, setClock] = createSignal(Date.now());
   let editorKey = '';
@@ -205,6 +234,18 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     setRoute(readNotesRoute());
     setEditingCard(false);
     setReminderNoteId(null);
+    setPendingImages([]);
+    setImageError('');
+  };
+  const refreshImages = (): void => {
+    const note = activeNote();
+    if (!note) {
+      setNoteImages([]);
+      return;
+    }
+    void loadNoteImages(note.id)
+      .then(setNoteImages)
+      .catch(() => setImageError('Не удалось загрузить изображения.'));
   };
 
   let clockTimer: ReturnType<typeof setInterval> | undefined;
@@ -220,12 +261,14 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener(PATIENT_NOTES_EVENT, refresh);
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
+    window.addEventListener(NOTE_IMAGES_EVENT, refreshImages);
     clockTimer = setInterval(() => setClock(Date.now()), 30_000);
   });
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener(PATIENT_NOTES_EVENT, refresh);
     window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
+    window.removeEventListener(NOTE_IMAGES_EVENT, refreshImages);
     if (clockTimer) clearInterval(clockTimer);
   });
 
@@ -299,6 +342,22 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     setReminderNoteId(note.id);
     setCompletionDraft('');
   };
+  const changeNotification = (enabled: boolean): void => {
+    if (!enabled) {
+      setNotificationEnabled(false);
+      setNotificationMessage('');
+      return;
+    }
+    void requestReminderNotificationPermission()
+      .then((result) => {
+        setNotificationEnabled(result.granted);
+        setNotificationMessage(result.message);
+      })
+      .catch(() => {
+        setNotificationEnabled(false);
+        setNotificationMessage('Не удалось запросить разрешение на уведомления.');
+      });
+  };
   const reminderValue = (): { dueAt: string; allDay: boolean } | null => {
     const value = composeDueAt(reminderDate(), reminderTime());
     const existing = activeNote()?.reminder;
@@ -322,6 +381,10 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
       setNoteDraft('');
       setReminderDate('');
       setReminderTime('');
+      setNotificationEnabled(false);
+      setNotificationMessage('');
+      setNoteImages([]);
+      setPendingImages([]);
       return;
     }
     if (current.kind === 'record') {
@@ -332,9 +395,14 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
       const reminder = reminderInputValues(note.reminder);
       setReminderDate(reminder.date);
       setReminderTime(reminder.time);
+      setNotificationEnabled(note.reminder?.notificationEnabled ?? false);
+      setNotificationMessage('');
+      setPendingImages([]);
+      refreshImages();
       return;
     }
     editorKey = '';
+    setNoteImages([]);
   });
 
   return (
@@ -510,6 +578,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                               onClick={() => openReminder(note)}
                             >
                               {formatReminderDate(reminder())}
+                              <Show when={reminder().notificationEnabled}> · уведомление</Show>
                               <Show when={reminder().completedAt !== null}> · выполнено</Show>
                             </button>
                           )}
@@ -559,22 +628,43 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                   class="patient-note-form patient-record-editor paper-card"
                   onSubmit={(event) => {
                     event.preventDefault();
-                    const existing = note();
-                    if (existing) {
-                      updatePatientNote(existing.id, noteDraft());
-                      deferEnrichment(existing.id, props.core);
-                    } else {
-                      const next = addPatientNote(card().id, noteDraft());
-                      const created = next.notes.at(-1);
-                      if (created) {
-                        const reminder = reminderValue();
-                        if (reminder) {
-                          setNoteReminder(created.id, reminder.dueAt, reminder.allDay);
+                    void (async () => {
+                      const existing = note();
+                      let savedNoteId = existing?.id;
+                      if (existing) {
+                        updatePatientNote(existing.id, noteDraft());
+                        deferEnrichment(existing.id, props.core);
+                      } else {
+                        const next = addPatientNote(card().id, noteDraft());
+                        const created = next.notes.at(-1);
+                        if (created) {
+                          savedNoteId = created.id;
+                          const reminder = reminderValue();
+                          if (reminder) {
+                            setNoteReminder(
+                              created.id,
+                              reminder.dueAt,
+                              reminder.allDay,
+                              notificationEnabled(),
+                            );
+                          }
+                          deferEnrichment(created.id, props.core);
                         }
-                        deferEnrichment(created.id, props.core);
                       }
-                    }
-                    navigate(notesPath(card().id));
+                      if (!savedNoteId) return;
+                      try {
+                        await addNoteImages(savedNoteId, pendingImages());
+                      } catch (cause) {
+                        setImageError(
+                          cause instanceof Error
+                            ? cause.message
+                            : 'Не удалось сохранить изображения.',
+                        );
+                        if (!existing) navigate(notesPath(card().id, savedNoteId));
+                        return;
+                      }
+                      navigate(notesPath(card().id));
+                    })();
                   }}
                 >
                   <NoteTextArea
@@ -584,12 +674,21 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                     onChange={setNoteDraft}
                     placeholder="Осмотр, назначение, динамика"
                   />
+                  <NoteImagePicker
+                    files={pendingImages()}
+                    error={imageError()}
+                    onFilesChange={setPendingImages}
+                  />
                   <Show when={!editing()}>
                     <ReminderFields
                       date={reminderDate()}
                       time={reminderTime()}
+                      notificationEnabled={notificationEnabled()}
+                      notificationDisabled={composeDueAt(reminderDate(), reminderTime()) === null}
+                      notificationMessage={notificationMessage()}
                       onDateChange={setReminderDate}
                       onTimeChange={setReminderTime}
+                      onNotificationChange={changeNotification}
                     />
                   </Show>
                   <div class="patient-note-form-actions">
@@ -618,6 +717,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                               onClick={() => openReminder(currentNote())}
                             >
                               {formatReminderDate(reminder())}
+                              <Show when={reminder().notificationEnabled}> · уведомление</Show>
                               <Show when={reminder().completedAt !== null}> · выполнено</Show>
                             </button>
                           )}
@@ -625,8 +725,12 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                         <ReminderFields
                           date={reminderDate()}
                           time={reminderTime()}
+                          notificationEnabled={notificationEnabled()}
+                          notificationDisabled={reminderValue() === null}
+                          notificationMessage={notificationMessage()}
                           onDateChange={setReminderDate}
                           onTimeChange={setReminderTime}
+                          onNotificationChange={changeNotification}
                         />
                         <button
                           type="button"
@@ -634,12 +738,18 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                           onClick={() => {
                             const reminder = reminderValue();
                             if (!reminder) return;
-                            setNoteReminder(currentNote().id, reminder.dueAt, reminder.allDay);
+                            setNoteReminder(
+                              currentNote().id,
+                              reminder.dueAt,
+                              reminder.allDay,
+                              notificationEnabled(),
+                            );
                           }}
                         >
-                          {currentNote().reminder ? 'Перенести' : 'Установить'}
+                          {currentNote().reminder ? 'Сохранить' : 'Установить'}
                         </button>
                       </div>
+                      <NoteImageGallery images={noteImages()} onError={setImageError} />
                       <div class="patient-note-categories">
                         <For each={currentNote().categories}>
                           {(category) => <span>{category}</span>}
@@ -791,6 +901,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
               >
                 <p class="reminder-dialog-due" classList={{ due: isReminderDue(reminder()) }}>
                   Срок: {formatReminderDate(reminder())}
+                  <Show when={reminder().notificationEnabled}> · системное уведомление</Show>
                 </p>
                 <form
                   class="patient-note-form"

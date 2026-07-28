@@ -1,4 +1,4 @@
-const CACHE_NAME = 'localmed-shell-v0.6.4';
+const CACHE_NAME = `localmed-shell-${new URL(self.location.href).searchParams.get('v') ?? 'dev'}`;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

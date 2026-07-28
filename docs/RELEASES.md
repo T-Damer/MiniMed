@@ -2,21 +2,23 @@
 
 ## Pre-release checklist
 
-1. Update `CHANGELOG.md` and package versions.
+1. Update `CHANGELOG.md` and root `release.json`; update the corpus manifest only when its snapshot
+   version also changes.
 2. Rebuild generated content artifacts.
 3. Run `bun run verify`.
 4. Run browser E2E.
 5. Run the relevant native smoke checklist.
 6. Review the generated benchmark and integrity reports.
 7. Confirm no real patient data, source PDFs, or API keys are tracked.
-8. Tag only from a clean working tree.
+8. Push a release commit only from a clean working tree; the release workflow creates the tag and
+   prerelease after all gates pass.
 
 ```bash
 git status --short
 bun run verify
 bun run test:e2e
-git tag -s v0.2.2 -m "LocalMed Search v0.2.2"
-git push origin main --tags
+git commit -m "release: MiniMed <version>"
+git push origin main
 ```
 
 ## Artifacts

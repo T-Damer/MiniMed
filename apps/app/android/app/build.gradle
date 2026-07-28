@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+import groovy.json.JsonSlurper
+
+def releaseMetadata = new JsonSlurper().parse(file('../../../../release.json'))
+
 android {
     namespace = "dev.localmed.search"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +11,8 @@ android {
         applicationId "dev.localmed.search"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 18
-        versionName "0.6.4"
+        versionCode releaseMetadata.androidVersionCode
+        versionName releaseMetadata.version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

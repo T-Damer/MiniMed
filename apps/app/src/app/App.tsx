@@ -3,6 +3,7 @@ import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { createBrowserCore } from '@/composition/create-browser-core';
 import {
   type InitializedMedicalCore,
@@ -294,12 +295,7 @@ export function App(): JSX.Element {
               </section>
               <Show when={showBrowserFooter}>
                 <footer class="app-footer">
-                  <a href="https://github.com/T-Damer/MiniMed" target="_blank" rel="noreferrer">
-                    GitHub
-                  </a>
-                  <a href="https://github.com/T-Damer/MiniMed/releases/download/v0.6.4/MiniMed-0.6.4-rf-public-pilot-debug.apk">
-                    Android APK
-                  </a>
+                  <ReleaseLinks />
                 </footer>
               </Show>
             </main>

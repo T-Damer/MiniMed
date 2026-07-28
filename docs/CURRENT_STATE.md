@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 28 July 2026
-> Repository version: `0.6.4`
-> Active target: `0.6.4` release candidate toward `1.0`
+> Repository version: `0.6.6`
+> Active target: `0.6.6` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -83,6 +83,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   source-grounded, and does not replace clinical responsibility.
 - The landing page and browser app are built together for GitHub Pages; the application is published
   below the site at `/app/`.
+- Release labels, tags, APK URLs, Android version metadata, and workflow artifact names derive from
+  the root `release.json`; only that file and the independently built corpus manifest are release
+  version sources.
 - WebExtensions-style localization uses `_locales/<lang>/messages.json` with a bundled
   `browser.i18n.getMessage` shim; the default UI locale is Russian.
 
@@ -96,6 +99,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   sufficient meaningful-term overlap and a readable document title.
 - Notes may carry dated follow-up reminders; due items rise to the top, add a red navigation badge,
   and retain the recorded completion condition when closed.
+- A reminder can opt into a system notification without a server: Android schedules it locally, while
+  the browser deliberately displays it only while the MiniMed tab remains open.
+- Note records accept JPEG, PNG, WebP, and GIF attachments up to 8 MB each. Their base64 payloads live
+  in a separate IndexedDB store rather than the localStorage note snapshot and are deleted with the
+  owning record.
 - Personal matches appear in search with an explicit personal-source label and outside the official
   result container, so they cannot be mistaken for installed medical content.
 - Document text links installed medications, recommendations, and laws into nested reader dialogs.
@@ -172,7 +180,7 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.4 gate includes 20 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.6 gate includes 20 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
 
@@ -201,12 +209,12 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Finish the 0.6.4 release gates: CI, Chromium E2E, Android artifact verification, Pages `/app/`, and
-   the measured Replicate pilot decision.
+1. Verify the 0.6.6 prerelease on a physical Android device, including locally scheduled
+   notifications, note-image persistence, and the published Pages `/app/`.
 2. Add verified OCR for the blocked drug instruction.
 3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
-4. Finish the local-only personal-note lifecycle with explicit export and whole-notebook deletion,
-   then evaluate an optional downloadable Russian on-device transcriber.
+4. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
+   on-device transcriber.
 5. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
    presenting diagnostic assistance as a 1.0 capability.
 

@@ -1,6 +1,8 @@
 import type { CoreStatus } from '@localmed/contracts';
 import type { JSX } from 'solid-js';
 
+import { RELEASE_VERSION } from '../../../../../release';
+
 interface StatusPanelProps {
   readonly initialStatus: CoreStatus;
 }
@@ -14,7 +16,7 @@ export function StatusPanel(props: StatusPanelProps): JSX.Element {
           <h2>Состояние ядра</h2>
           <p>Документы, доступные локальному поиску на этом устройстве.</p>
         </div>
-        <span class="core-status-version">Core 0.6.4</span>
+        <span class="core-status-version">Core {RELEASE_VERSION}</span>
       </header>
 
       <div class="core-status-count">

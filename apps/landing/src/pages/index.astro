@@ -2,13 +2,14 @@
 import '../styles/global.css';
 import '../styles/release.css';
 
+import { ANDROID_APK_URL, GITHUB_REPOSITORY_URL, RELEASE_VERSION } from '../../../../release';
+
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes these values in the template.
-const githubUrl = import.meta.env.PUBLIC_GITHUB_URL ?? 'https://github.com/T-Damer/MiniMed';
+const githubUrl = import.meta.env.PUBLIC_GITHUB_URL ?? GITHUB_REPOSITORY_URL;
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes these values in the template.
 const appUrl = `${import.meta.env.BASE_URL.replace(/\/$/u, '')}/app/`;
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes this value in the template.
-const apkUrl =
-  'https://github.com/T-Damer/MiniMed/releases/download/v0.6.4/MiniMed-0.6.4-rf-public-pilot-debug.apk';
+const apkUrl = ANDROID_APK_URL;
 
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes this value in the template.
 const milestones = [
@@ -19,10 +20,10 @@ const milestones = [
     copy: '744 структурированных модуля клинических рекомендаций из официального JSON-каталога.',
   },
   {
-    version: '0.6.4',
+    version: RELEASE_VERSION,
     state: 'текущий релиз',
-    title: 'Офлайн-рабочее место',
-    copy: 'Явные режимы поиска, 21 медицинский раздел, локальные заметки и надёжные фоновые загрузки.',
+    title: 'Напоминания и вложения',
+    copy: 'Офлайн-поиск, локальные уведомления без push-сервера и изображения заметок только на устройстве.',
   },
   {
     version: '1.0',
@@ -81,7 +82,7 @@ const stats = [
 
     <main id="top">
       <section class="hero-folder">
-        <div class="folder-tab">MINIMED · RELEASE 0.6.4</div>
+        <div class="folder-tab">MINIMED · RELEASE {RELEASE_VERSION}</div>
         <div class="hero-grid">
           <div class="hero-copy">
             <p class="kicker">Offline-first · retrieval before generation</p>
@@ -93,7 +94,7 @@ const stats = [
             </p>
             <div class="hero-actions">
               <a class="primary-action" href={appUrl}>Открыть MiniMed в браузере</a>
-              <a class="text-action" href={apkUrl}>Скачать APK 0.6.4 ↓</a>
+              <a class="text-action" href={apkUrl}>Скачать APK {RELEASE_VERSION} ↓</a>
               <a class="text-action" href={githubUrl}>Исходный код ↗</a>
             </div>
           </div>
@@ -102,7 +103,7 @@ const stats = [
             <span class="paper-clip" aria-hidden="true"></span>
             <div class="card-header">
               <span>КАРТОЧКА ЗАПРОСА</span>
-              <b>LOCAL / 0.6.4</b>
+              <b>LOCAL / {RELEASE_VERSION}</b>
             </div>
             <p class="case-query">
               Цефтриаксон ребёнку 3 лет, вес 20 кг, при пневмонии как второй антибиотик.
@@ -211,7 +212,7 @@ const stats = [
         </div>
         <div class="roadmap-table">
           {milestones.map((milestone) => (
-            <article class:list={{ current: milestone.version === '0.6.4' }}>
+            <article class:list={{ current: milestone.version === RELEASE_VERSION }}>
               <span class="version-tab">{milestone.version}</span>
               <div><small>{milestone.state}</small><h2>{milestone.title}</h2><p>{milestone.copy}</p></div>
             </article>
@@ -221,7 +222,7 @@ const stats = [
     </main>
 
     <footer>
-      <span>MINIMED / RELEASE 0.6.4</span>
+      <span>MINIMED / RELEASE {RELEASE_VERSION}</span>
       <span>Справочно-поисковая система · не заменяет решение врача</span>
       <a href={appUrl}>Открыть приложение →</a>
     </footer>

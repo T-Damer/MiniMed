@@ -11,13 +11,10 @@ permissions:
   contents: write
 
 concurrency:
-  group: public-pilot-0.6.4-${{ github.ref }}
+  group: public-pilot-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  RELEASE_VERSION: 0.6.4
-  RELEASE_TAG: v0.6.4
-  APK_NAME: MiniMed-0.6.4-rf-public-pilot-debug.apk
   BUILD_TOOLS_VERSION: 36.0.0
 
 jobs:
@@ -31,6 +28,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.3
+      - name: Read release metadata
+        shell: bash
+        run: |
+          version="$(bun -p "require('./release.json').version")"
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v$version" >> "$GITHUB_ENV"
+          echo "APK_NAME=MiniMed-$version-rf-public-pilot-debug.apk" >> "$GITHUB_ENV"
       - uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.0"
@@ -245,14 +249,14 @@ jobs:
         if: >-
           github.event_name == 'push' &&
           github.ref == 'refs/heads/main' &&
-          contains(github.event.head_commit.message, 'release: MiniMed 0.6.4')
+          contains(github.event.head_commit.message, 'release: MiniMed')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           apk="release-output/${APK_NAME}"
-          notes=$(cat <<'EOF'
-          MiniMed 0.6.4 is a debug-signed engineering prerelease of the offline-first medical reference.
+          notes=$(cat <<EOF
+          MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
           - a compact three-section workspace: search, knowledge base/documents, and personal notes;
@@ -260,6 +264,8 @@ jobs:
           - directional primary-route animation and a shared light/dark theme matching the device;
           - search history restores its source mode and can immediately replay cached results;
           - device-local paper notes with nested record editors, reminders, expanding text areas and accessible deletion confirmation;
+          - opt-in local reminder notifications without a hosted push service;
+          - note-image attachments stored only in device-local IndexedDB;
           - nested document-library routes with compact catalog, install, progress, update and rollback controls;
           - resumable module downloads with durable recovery and automatic retry after interruption;
           - three concurrent document-download slots plus an independent reserved local-model slot;
