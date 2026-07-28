@@ -1,4 +1,5 @@
 import type { TextRange } from '@localmed/contracts';
+import { buildSnippet } from '@localmed/search-lexical';
 import { For, type JSX } from 'solid-js';
 
 export interface HighlightedTextProps {
@@ -39,4 +40,17 @@ export function HighlightedText(props: HighlightedTextProps): JSX.Element {
       {(segment) => (segment.highlighted ? <mark>{segment.text}</mark> : segment.text)}
     </For>
   );
+}
+
+export function QueryHighlightedText(props: {
+  readonly text: string;
+  readonly query: string;
+}): JSX.Element {
+  const ranges = () => {
+    const phrase = props.query.trim();
+    if (!phrase) return [];
+    const terms = [phrase, ...phrase.split(/[^\p{L}\p{N}-]+/gu).filter((term) => term.length >= 2)];
+    return buildSnippet(props.text, terms, Number.MAX_SAFE_INTEGER).ranges;
+  };
+  return <HighlightedText text={props.text} ranges={ranges()} />;
 }

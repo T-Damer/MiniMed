@@ -4,6 +4,22 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.8] - 2026-07-28
+
+### Changed
+
+- Android now applies the system-bar safe area on every route and uses native Back for dialogs,
+  drawers, nested routes, root navigation, and app minimization instead of closing unexpectedly.
+- The app initializes one OverlayScrollbars-owned page scroller immediately, removes mobile edge
+  gutters, aligns floating controls, and animates the search-history drawer in both directions.
+- Note reminders request system-notification permission automatically when saved, and selected
+  images show a preview before they are stored in IndexedDB.
+- Clinical summaries identify themselves as recommendation extracts, point to full-version
+  installation, and the reader adds search highlighting, active contents headings, a mobile contents
+  drawer, and duplicate-heading suppression.
+- The exact lower-right-abdominal-pain query is a retrieval benchmark and ranks acute appendicitis
+  before urinary-tract infection in the bundled corpus.
+
 ## [0.6.7] - 2026-07-28
 
 ### Changed

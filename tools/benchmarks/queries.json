@@ -55,7 +55,7 @@
     "category": "exact"
   },
   {
-    "query": "справа внизу живота тошнота",
+    "query": "Боль справа внизу живота, тошнота и рвота",
     "expectedDocumentIds": ["kr.demo.surgery.appendicitis"],
     "category": "alias"
   },

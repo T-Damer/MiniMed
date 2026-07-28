@@ -35,12 +35,22 @@ test('keeps patient note records local, editable in nested routes, and findable 
   await page
     .getByLabel('Новая заметка для Иванов И., 3 года, 20 кг')
     .fill('Назначен цефтриаксон, вторая линия при пневмонии');
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'осмотр.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    ),
+  });
+  await expect(page.locator('.note-image-previews img')).toBeVisible();
   await page.getByRole('button', { name: 'Добавить запись' }).click();
   const record = page.locator('.patient-note-record');
   await expect(record).toContainText('Назначен цефтриаксон');
   await record.getByRole('button').first().click();
   await expect(page.getByRole('heading', { name: 'Редактировать запись' })).toBeVisible();
   await expect(page.getByLabel('Текст записи')).toHaveValue(/Назначен цефтриаксон/u);
+  await expect(page.locator('.patient-note-images img')).toBeVisible();
   await page.getByLabel('Назад к записям').click();
   await navigationButton(page, 'Поиск').click();
   await navigationButton(page, 'Заметки').click();
@@ -132,6 +142,9 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
 
 test('a reminder can be attached while writing a note', async ({ page }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
+  await page.context().grantPermissions(['notifications'], {
+    origin: new URL(page.url()).origin,
+  });
   await page
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Заметки', exact: true })
@@ -146,6 +159,7 @@ test('a reminder can be attached while writing a note', async ({ page }) => {
   await page.getByRole('button', { name: 'Добавить запись' }).click();
   await page.getByLabel('Новая заметка для Сидорова А.').fill('Повторный осмотр');
   await page.getByLabel('Дата напоминания').fill(futureDateInput());
+  await expect(page.getByText('Системное уведомление', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Добавить запись' }).click();
 
   const link = page.locator('.note-reminder-link');

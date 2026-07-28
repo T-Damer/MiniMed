@@ -255,15 +255,20 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const trimmed = query().trim();
     if (trimmed) void runSearch(trimmed, false);
   };
+  const handleReaderKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape' && context()) closeContext();
+  };
 
   onMount(() => {
     window.addEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
     window.addEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
+    window.addEventListener('keydown', handleReaderKeyDown);
   });
 
   onCleanup(() => {
     window.removeEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
     window.removeEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
+    window.removeEventListener('keydown', handleReaderKeyDown);
     if (analysisTimer) clearTimeout(analysisTimer);
     if (searchTimer) clearTimeout(searchTimer);
     searchGeneration += 1;
@@ -747,10 +752,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 <SearchField
                   tone="inverse"
                   hideLabel
-                  label="Поиск в открытом фрагменте"
+                  label="Поиск"
                   value={readerQuery()}
                   onInput={setReaderQuery}
-                  placeholder="Поиск в открытом фрагменте"
+                  placeholder="Поиск"
                 />
                 <button
                   class="reader-close"
@@ -786,7 +791,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         <Show when={chunk.id === resolved().focusChunkId}>
                           <span class="margin-note">НАЙДЕНО</span>
                         </Show>
-                        <DocumentText text={chunk.originalText} onReference={searchReference} />
+                        <DocumentText
+                          text={chunk.originalText}
+                          query={readerQuery()}
+                          onReference={searchReference}
+                        />
                       </div>
                     )}
                   </For>

@@ -54,7 +54,7 @@
 
 .app-main > .app-view {
   max-width: var(--page-content-width);
-  padding-inline: clamp(0.3125rem, 1.2vw, 0.875rem);
+  padding-inline: 0;
 }
 
 .page-surface,
@@ -136,11 +136,16 @@
 }
 
 .search-mode-tools {
+  position: sticky;
+  z-index: 90;
+  top: var(--safe-top);
   display: flex;
   min-height: 2.5rem;
   justify-content: flex-end;
+  gap: 0.5rem;
   margin-bottom: 0.375rem;
   padding-inline: clamp(0.625rem, 1.7vw, 1.375rem);
+  background: transparent;
 }
 
 .search-mode-picker {
@@ -979,10 +984,8 @@
 
 /* Same material as the bottom bubble, so the two floating controls read as one system. */
 .search-history-fab {
-  position: fixed;
+  position: static;
   z-index: 75;
-  top: max(0.625rem, calc(0.625rem + var(--safe-top)));
-  left: max(0.625rem, calc(0.625rem + var(--safe-left)));
   display: grid;
   width: 2.5rem;
   height: 2.5rem;
@@ -1020,6 +1023,15 @@
   backdrop-filter: blur(0.1875rem);
 }
 
+.search-history-drawer-backdrop.closing {
+  pointer-events: none;
+  animation: overlay-fade-out 180ms ease-in both;
+}
+
+.search-history-drawer-backdrop.closing .search-history-panel {
+  animation: history-drawer-out 180ms ease-in both;
+}
+
 .search-history-panel {
   position: absolute;
   top: 0;
@@ -1044,6 +1056,18 @@
   }
   to {
     transform: translateX(0);
+  }
+}
+
+@keyframes history-drawer-out {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes overlay-fade-out {
+  to {
+    opacity: 0;
   }
 }
 
@@ -1990,7 +2014,10 @@ fieldset.search-mode-picker {
 .patient-notes-fab {
   position: fixed;
   z-index: 60;
-  right: max(1rem, calc(1rem + var(--safe-right)));
+  right: max(
+    0.75rem,
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.75rem + var(--safe-right))
+  );
   bottom: max(0.625rem, calc(0.625rem + var(--safe-bottom)));
   display: grid;
   width: 3.25rem;
@@ -2006,8 +2033,8 @@ fieldset.search-mode-picker {
 
 body:has(.patient-notes-fab) .scroll-top-button {
   right: max(
-    1.28125rem,
-    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.28125rem + var(--safe-right))
+    1.03125rem,
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.03125rem + var(--safe-right))
   );
   bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom)));
 }
@@ -2021,14 +2048,6 @@ body:has(.patient-notes-fab) .scroll-top-button {
 
 body:has(.search-home) .scroll-top-button {
   bottom: max(0.96875rem, calc(0.96875rem + var(--safe-bottom)));
-}
-
-.search-history-fab {
-  z-index: 90;
-  left: max(
-    0.625rem,
-    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.625rem + var(--safe-left))
-  );
 }
 
 .search-history-drawer-backdrop {
@@ -2198,12 +2217,15 @@ body:has(.search-home) .scroll-top-button {
 
 /* Flat sticker cards open into a focused timeline instead of expanding the whole grid. */
 .patient-card-list,
-.module-grid,
-.recommendation-section-grid-compact {
+.module-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .patient-card-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.recommendation-section-grid-compact {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -2506,6 +2528,35 @@ body:has(.search-home) .scroll-top-button {
   font-size: 0.6875rem;
 }
 
+.note-image-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  gap: 0.5rem;
+}
+
+.note-image-previews figure {
+  min-width: 0;
+  margin: 0;
+}
+
+.note-image-previews img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.note-image-previews figcaption {
+  overflow: hidden;
+  margin-top: 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.625rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .note-image-error {
   color: var(--theme-danger);
 }
@@ -2662,8 +2713,8 @@ body:has(.search-home) .scroll-top-button {
 
 .patient-notes-fab {
   right: max(
-    1rem,
-    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1rem + var(--safe-right))
+    0.75rem,
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.75rem + var(--safe-right))
   );
 }
 

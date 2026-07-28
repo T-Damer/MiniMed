@@ -224,7 +224,7 @@
     "description": "Document source type label in the library list"
   },
   "source_clinical_recommendation_summary_reader": {
-    "message": "Клиническая рекомендация",
+    "message": "ВЫЖИМКА КЛИНИЧЕСКОЙ РЕКОМЕНДАЦИИ",
     "description": "Document source type label in the reader chrome"
   },
   "source_official_registry_summary": {

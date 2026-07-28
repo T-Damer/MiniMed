@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 28 July 2026
-> Repository version: `0.6.7`
-> Active target: `0.6.7` public prerelease toward `1.0`
+> Repository version: `0.6.8`
+> Active target: `0.6.8` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -77,6 +77,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Browser application updates install in the background but wait for explicit approval in the shared
   floating system-status area before the new service worker activates and reloads the page.
 - The paper workspace follows the device light/dark preference without adding an application toggle.
+- Android uses Capacitor system-bar insets across the shared shell and full-screen dialogs. Hardware
+  Back closes the active dialog or drawer, returns through nested routes and root sections, then
+  minimizes the app at the search root.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
@@ -99,8 +102,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   sufficient meaningful-term overlap and a readable document title.
 - Notes may carry dated follow-up reminders; due items rise to the top, add a red navigation badge,
   and retain the recorded completion condition when closed.
-- A reminder can opt into a system notification without a server: Android schedules it locally, while
-  the browser deliberately displays it only while the MiniMed tab remains open.
+- Saving a reminder automatically requests system-notification permission: Android schedules it
+  locally, while the browser deliberately displays it only while the MiniMed tab remains open.
 - Note records accept JPEG, PNG, WebP, and GIF attachments up to 8 MB each. Their base64 payloads live
   in a separate IndexedDB store rather than the localStorage note snapshot and are deleted with the
   owning record.
@@ -180,7 +183,7 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.7 gate includes 20 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.8 gate includes 20 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
 
@@ -209,7 +212,8 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Verify the 0.6.7 prerelease on a physical Android device, including locally scheduled
+1. Verify the 0.6.8 prerelease on a physical Android device, including system-bar insets, native Back,
+   locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
 2. Add verified OCR for the blocked drug instruction.
 3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.

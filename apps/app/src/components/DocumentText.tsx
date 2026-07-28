@@ -1,10 +1,12 @@
 import { For, type JSX } from 'solid-js';
 
+import { QueryHighlightedText } from '@/components/HighlightedText';
 import { parseDocumentText } from '@/features/library/document-medication-links';
 
 function InlineDocumentText(props: {
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
+  readonly query?: string | undefined;
 }): JSX.Element {
   const parts = () => props.text.split(/(\*\*|#[\p{L}\p{M}-]+|\([A-ZА-Я0-9]{4,8}\))/gu);
   return (
@@ -20,10 +22,10 @@ function InlineDocumentText(props: {
             class="document-inline-reference"
             onClick={() => props.onReference?.(reference)}
           >
-            {hashtag ?? part}
+            <QueryHighlightedText text={hashtag ?? part} query={props.query ?? ''} />
           </button>
         ) : (
-          part.replace(/^#/u, '')
+          <QueryHighlightedText text={part.replace(/^#/u, '')} query={props.query ?? ''} />
         );
       }}
     </For>
@@ -33,6 +35,7 @@ function InlineDocumentText(props: {
 export function DocumentText(props: {
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
+  readonly query?: string | undefined;
 }): JSX.Element {
   const blocks = () => parseDocumentText(props.text);
   const bullets = () => blocks().length > 0 && blocks().every((block) => block.kind === 'bullet');
@@ -42,7 +45,11 @@ export function DocumentText(props: {
       <For each={blocks()}>
         {(block) => (
           <li>
-            <InlineDocumentText text={block.text} onReference={props.onReference} />
+            <InlineDocumentText
+              text={block.text}
+              onReference={props.onReference}
+              query={props.query}
+            />
           </li>
         )}
       </For>
@@ -53,12 +60,20 @@ export function DocumentText(props: {
         block.kind === 'bullet' ? (
           <ul class="document-text-list">
             <li>
-              <InlineDocumentText text={block.text} onReference={props.onReference} />
+              <InlineDocumentText
+                text={block.text}
+                onReference={props.onReference}
+                query={props.query}
+              />
             </li>
           </ul>
         ) : (
           <p>
-            <InlineDocumentText text={block.text} onReference={props.onReference} />
+            <InlineDocumentText
+              text={block.text}
+              onReference={props.onReference}
+              query={props.query}
+            />
           </p>
         )
       }

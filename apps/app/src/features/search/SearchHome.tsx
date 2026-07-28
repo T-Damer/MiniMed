@@ -123,6 +123,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   return (
     <section class="search-home" aria-label="Поиск MiniMed">
       <div class="search-mode-tools">
+        <SearchHistoryPanel onReplay={replayHistory} />
         <Show when={scope() === 'diagnosis'}>
           <button
             class="search-mode-help"
@@ -195,7 +196,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           }
         />
       </div>
-      <SearchHistoryPanel onReplay={replayHistory} />
 
       <OverlayDialog
         open={helpOpen()}
