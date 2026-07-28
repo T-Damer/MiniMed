@@ -13,6 +13,9 @@
 8. Push a release commit only from a clean working tree; the release workflow creates the tag and
    prerelease after all gates pass.
 
+Application and embedded-corpus versions are independent. An app-only release may reuse the current
+verified corpus version; release evidence records both versions.
+
 ```bash
 git status --short
 bun run verify

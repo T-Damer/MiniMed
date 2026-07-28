@@ -142,7 +142,6 @@ jobs:
               assert quick_check == 'ok'
               assert foreign_key_violations == 0
               assert pack and pack[0] == 'minimed.rf-public-pilot' and pack[2] >= 2
-              assert pack[1] == os.environ['RELEASE_VERSION']
               assert len(documents) == report['documents']
               assert sections == report['sections']
               assert len(chunks) == report['chunks']
