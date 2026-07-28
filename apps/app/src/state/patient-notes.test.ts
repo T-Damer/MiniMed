@@ -245,8 +245,9 @@ describe('note reminders', () => {
   it('attaches a future reminder and rejects one in the past', () => {
     const noteId = noteIdWith('контроль анализа мочи');
     const future = new Date(Date.now() + 86_400_000).toISOString();
-    setNoteReminder(noteId, future, false);
+    setNoteReminder(noteId, future, false, true);
     expect(loadPatientNotes().notes[0]?.reminder?.completedAt).toBeNull();
+    expect(loadPatientNotes().notes[0]?.reminder?.notificationEnabled).toBe(true);
 
     const past = new Date(Date.now() - 3_600_000).toISOString();
     const before = loadPatientNotes().notes[0]?.reminder?.dueAt;

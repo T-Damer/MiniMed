@@ -1,3 +1,5 @@
+import { RELEASE_VERSION } from '../../../../release';
+
 export const APP_UPDATE_READY_EVENT = 'minimed:app-update-ready';
 
 export interface AppUpdateReadyDetail {
@@ -12,7 +14,7 @@ function announceUpdate(worker: ServiceWorker): void {
 }
 
 export async function registerAppServiceWorker(): Promise<void> {
-  const registration = await navigator.serviceWorker.register('./sw.js');
+  const registration = await navigator.serviceWorker.register(`./sw.js?v=${RELEASE_VERSION}`);
   if (registration.waiting) announceUpdate(registration.waiting);
   registration.addEventListener('updatefound', () => {
     const worker = registration.installing;

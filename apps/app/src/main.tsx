@@ -2,6 +2,7 @@ import { render } from 'solid-js/web';
 
 import { App } from '@/app/App';
 import { registerAppServiceWorker } from '@/state/app-update';
+import { startReminderNotifications } from '@/state/reminder-notifications';
 import 'overlayscrollbars/overlayscrollbars.css';
 import '@/styles/global.css';
 import '@/styles/archive-search.css';
@@ -23,6 +24,8 @@ const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
 render(() => <App />, root);
+const stopReminderNotifications = startReminderNotifications();
+if (import.meta.hot) import.meta.hot.dispose(stopReminderNotifications);
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   void registerAppServiceWorker().catch(() => {

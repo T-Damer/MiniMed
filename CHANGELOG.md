@@ -4,6 +4,19 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.6] - 2026-07-28
+
+### Added
+
+- Added opt-in note reminder notifications: native Android scheduling works without a server, while
+  browser notifications deliberately require an open MiniMed tab.
+- Added device-local note image attachments stored as base64 in IndexedDB.
+
+### Changed
+
+- Release tags, APK names/URLs, UI version labels, Android version metadata, and the release workflow
+  now derive from one root release file.
+
 ## [0.6.4] - 2026-07-28
 
 ### Changed

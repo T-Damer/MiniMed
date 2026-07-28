@@ -17,6 +17,7 @@ import {
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
@@ -25,6 +26,7 @@ import {
   recoverPendingModuleInstalls,
 } from '@/features/modules/pending-module-installs';
 import { downloadWithRetry } from '@/features/network/download-retry';
+import { RELEASE_VERSION } from '../../../../../release';
 
 const DATABASE_NAME = 'minimed-content-modules-v1';
 const DATABASE_VERSION = 1;
@@ -332,7 +334,7 @@ export class BrowserContentModuleRuntime {
     this.registry = createRegistry();
     this.installer = new ForegroundContentModuleInstaller(
       catalog,
-      { appVersion: '0.6.4', schemaVersion: 2, coreCatalogVersion: '1' },
+      { appVersion: RELEASE_VERSION, schemaVersion: 2, coreCatalogVersion: '1' },
       new BrowserModuleDownloader(),
       this.backend,
       new BrowserModuleValidator(),

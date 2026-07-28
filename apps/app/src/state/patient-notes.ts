@@ -1,6 +1,8 @@
 import type { MedicalCore } from '@localmed/contracts';
 import { lightStemRussian, tokenize } from '@localmed/search-lexical';
 
+import { deleteNoteImagesForNotes } from '@/state/note-images';
+
 /**
  * Local patient cards and their nested notes.
  *
@@ -25,6 +27,7 @@ export interface NoteReminder {
   readonly dueAt: string;
   /** Date-only reminders are due at the start of that day. */
   readonly allDay: boolean;
+  readonly notificationEnabled: boolean;
   readonly completedAt: string | null;
   /** The condition/observation the doctor recorded when closing the reminder. */
   readonly completionNote: string;
@@ -87,6 +90,8 @@ function isReminder(value: unknown): value is NoteReminder {
   return (
     typeof candidate.dueAt === 'string' &&
     typeof candidate.allDay === 'boolean' &&
+    (candidate.notificationEnabled === undefined ||
+      typeof candidate.notificationEnabled === 'boolean') &&
     (candidate.completedAt === null || typeof candidate.completedAt === 'string') &&
     typeof candidate.completionNote === 'string'
   );
@@ -107,7 +112,7 @@ function isNote(value: unknown): value is PatientNote {
 }
 
 function normalizedNote(note: PatientNote): PatientNote {
-  return {
+  const normalized = {
     ...note,
     categories: Array.isArray(note.categories)
       ? note.categories.filter((category): category is string => typeof category === 'string')
@@ -118,6 +123,15 @@ function normalizedNote(note: PatientNote): PatientNote {
         )
       : [],
   };
+  return note.reminder
+    ? {
+        ...normalized,
+        reminder: {
+          ...note.reminder,
+          notificationEnabled: note.reminder.notificationEnabled ?? false,
+        },
+      }
+    : normalized;
 }
 
 export function categorizeNoteText(text: string): readonly string[] {
@@ -300,6 +314,9 @@ export function updatePatientCard(
 /** Removes a card together with every note beneath it: a card is the retention boundary. */
 export function removePatientCard(cardId: string): PatientNotesSnapshot {
   const current = loadPatientNotes();
+  void deleteNoteImagesForNotes(
+    current.notes.filter((note) => note.cardId === cardId).map((note) => note.id),
+  ).catch(() => console.warn('Не удалось удалить изображения карточки.'));
   return persist({
     cards: current.cards.filter((card) => card.id !== cardId),
     notes: current.notes.filter((note) => note.cardId !== cardId),
@@ -390,6 +407,9 @@ export function removePatientNote(noteId: string): PatientNotesSnapshot {
       }
     }
   }
+  void deleteNoteImagesForNotes([...doomed]).catch(() =>
+    console.warn('Не удалось удалить изображения записи.'),
+  );
   return persist({
     cards: current.cards,
     notes: current.notes.filter((note) => !doomed.has(note.id)),
@@ -404,6 +424,7 @@ export function setNoteReminder(
   noteId: string,
   dueAt: string,
   allDay: boolean,
+  notificationEnabled = false,
 ): PatientNotesSnapshot {
   const current = loadPatientNotes();
   const note = current.notes.find((item) => item.id === noteId);
@@ -421,6 +442,7 @@ export function setNoteReminder(
   const reminder: NoteReminder = {
     dueAt: due.toISOString(),
     allDay,
+    notificationEnabled,
     completedAt: null,
     completionNote: existing?.completionNote ?? '',
   };

@@ -21,6 +21,8 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 - Personal notes: patient cards with categorized nested notes, a badged personal results block outside
   the official results container, linked installed documents, and follow-up reminders with a red tab
   badge and recorded completion condition.
+- Local reminder notifications and note images: Android schedules opted-in reminders without a server,
+  browsers notify while the tab is open, and validated image attachments stay in IndexedDB.
 - Dependency hygiene: ruff, biome, playwright and astro bumps, and the Dependabot uv ecosystem fix
   that stopped every tools/ingest update from failing `uv sync --locked`.
 - Compact pass on the knowledge base: tabs now connect to the panel they switch and seven document

@@ -1,6 +1,5 @@
 {
   "name": "localmed-search",
-  "version": "0.6.4",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.2.3",
