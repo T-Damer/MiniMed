@@ -22,6 +22,7 @@
 .content-download-status-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.375rem;
   margin-bottom: 0.375rem;
 }
 
@@ -80,8 +81,13 @@
 }
 
 .content-download-status li.failed {
-  border-left: 0.25rem solid #985443;
-  background: rgb(249 231 219 / 45%);
+  border-left: 0.25rem solid var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 10%, transparent);
+}
+
+.content-download-status li.retrying {
+  border-left: 0.25rem solid var(--theme-warning);
+  background: color-mix(in srgb, var(--theme-warning) 9%, transparent);
 }
 
 .content-download-status-row {
@@ -137,12 +143,17 @@
   line-height: 1.35;
 }
 
-.content-download-status li > button {
-  justify-self: start;
+.content-download-task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.content-download-task-actions button {
   padding: 0.375rem 0.5625rem;
-  border: 1px solid #5e4938;
-  color: #f8efdc;
-  background: #5e4938;
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 0.4375rem;
@@ -150,8 +161,15 @@
   text-transform: uppercase;
 }
 
+.content-download-manager-error {
+  margin: 0 0 0.5rem;
+  color: var(--theme-danger);
+  font-size: 0.6875rem;
+}
+
 .content-download-scroll {
   max-height: min(24rem, 58vh);
+  overflow-y: auto;
 }
 
 .content-download-pill {

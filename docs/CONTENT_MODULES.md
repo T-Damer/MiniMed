@@ -110,7 +110,10 @@ Downloads go to staging. Activation occurs only after size/checksum, compatibili
 `quick_check`, foreign-key, and source-set validation. A small active-version pointer changes atomically.
 Search reads only enabled active module databases and never a partial download.
 The browser runs at most three document installs concurrently; later requests remain in `queued`
-until a slot opens. Local-model downloads use a separate reserved slot.
+until a slot opens. A transient network failure uses bounded retries, releases its install slot, and
+requeues automatically; checksum, compatibility, and validation failures require an explicit retry.
+The browser keeps one runtime across catalog refreshes so an older runtime cannot continue hidden work.
+Local-model downloads use a separate reserved slot.
 
 Android uses WorkManager plus a notification channel; iOS uses background URLSession; web uses a
 foreground downloader. Search and reading from already installed modules continue during downloads.

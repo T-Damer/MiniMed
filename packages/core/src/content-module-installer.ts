@@ -171,7 +171,7 @@ function taskId(moduleId: string, version: string): string {
 }
 
 export class ForegroundContentModuleInstaller {
-  private readonly catalog: ContentModuleCatalog;
+  private catalog: ContentModuleCatalog;
   private readonly tasks = new Map<string, ContentModuleDownloadTask>();
   private readonly controllers = new Map<string, AbortController>();
   private readonly completions = new Map<string, Promise<ContentModuleDownloadTask>>();
@@ -192,6 +192,10 @@ export class ForegroundContentModuleInstaller {
     if (maxConcurrentInstalls < 1) {
       throw new Error('maxConcurrentInstalls must be at least 1.');
     }
+  }
+
+  public updateCatalog(catalog: ContentModuleCatalog): void {
+    this.catalog = ContentModuleCatalogSchema.parse(catalog);
   }
 
   private releaseInstallSlot(): void {

@@ -118,6 +118,13 @@ fieldset.search-mode-picker::-webkit-scrollbar {
   flex-wrap: nowrap;
 }
 
+.search-workspace-main .query-shortcuts fieldset.search-mode-picker {
+  width: max-content;
+  min-width: 100%;
+  padding-inline: 0.5rem;
+  overflow: visible;
+}
+
 .search-workspace-main .query-sheet textarea:disabled {
   opacity: 1;
   cursor: not-allowed;

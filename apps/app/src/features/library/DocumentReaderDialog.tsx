@@ -9,6 +9,7 @@ import {
   displayDocumentTitle,
   isFullTextDocumentId,
   orderDocumentSections,
+  resolveReadableDocumentId,
   sourceTypeReaderLabel,
 } from '@/features/library/document-display';
 import {
@@ -23,6 +24,7 @@ interface DocumentReaderDialogProps {
   readonly document: MedicalDocument | undefined;
   readonly availableDocuments?: readonly MedicalDocumentSummary[];
   readonly initialAnchor?: string | null;
+  readonly onRequestFullText: (document: MedicalDocument) => Promise<void>;
   readonly onClose: () => void;
 }
 
@@ -41,6 +43,8 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
   const [query, setQuery] = createSignal('');
   const [outlineOpen, setOutlineOpen] = createSignal(false);
   const [activeAnchor, setActiveAnchor] = createSignal(props.initialAnchor ?? '');
+  const [fullTextPending, setFullTextPending] = createSignal(false);
+  const [fullTextError, setFullTextError] = createSignal<string | null>(null);
 
   const availableIds = createMemo(
     () => new Set((props.availableDocuments ?? []).map((document) => document.id)),
@@ -50,12 +54,16 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
   );
   const fullTextDocumentId = createMemo(() => {
     const document = props.document;
-    if (!document || isFullTextDocumentId(document.id)) return null;
-    const fullId = `${document.id}.full`;
-    return availableIds().has(fullId) ? fullId : null;
+    if (!document || document.sourceType !== 'clinical_recommendation_summary') return null;
+    const readableId = resolveReadableDocumentId(document.id, availableIds());
+    return readableId === document.id ? null : readableId;
   });
   const showDocumentLinks = createMemo(() =>
-    Boolean(props.document && isFullTextDocumentId(props.document.id)),
+    Boolean(
+      props.document &&
+        (isFullTextDocumentId(props.document.id) ||
+          props.document.sourceType === 'clinical_recommendation'),
+    ),
   );
   const isClinicalSummary = createMemo(
     () => props.document?.sourceType === 'clinical_recommendation_summary',
@@ -94,14 +102,27 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
     props.onClose();
   };
 
-  const openFullText = (): void => {
+  const openFullText = async (): Promise<void> => {
     const document = props.document;
-    if (!document) return;
-    const fullId = fullTextDocumentId();
-    props.onClose();
-    if (fullId) openDocumentOverlay(fullId);
-    else window.location.hash = '#/modules/documents/recommendations';
+    if (!document || fullTextPending()) return;
+    setFullTextPending(true);
+    setFullTextError(null);
+    try {
+      await props.onRequestFullText(document);
+    } catch (cause) {
+      setFullTextError(
+        cause instanceof Error ? cause.message : 'Не удалось загрузить полную рекомендацию.',
+      );
+    } finally {
+      setFullTextPending(false);
+    }
   };
+  const fullTextButtonLabel = (): string =>
+    fullTextPending()
+      ? 'Загружаем полную версию…'
+      : fullTextDocumentId()
+        ? 'Открыть полную версию'
+        : 'Загрузить полную версию';
 
   return (
     <OverlayDialog
@@ -161,8 +182,13 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
               </details>
 
               <Show when={isClinicalSummary()}>
-                <button type="button" class="document-overlay-full-text" onClick={openFullText}>
-                  {fullTextDocumentId() ? 'Открыть полную версию' : 'Загрузить полную версию'}
+                <button
+                  type="button"
+                  class="document-overlay-full-text"
+                  disabled={fullTextPending()}
+                  onClick={() => void openFullText()}
+                >
+                  {fullTextButtonLabel()}
                 </button>
               </Show>
 
@@ -206,14 +232,22 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                   <button
                     type="button"
                     class="document-overlay-full-text-inline"
-                    onClick={openFullText}
+                    disabled={fullTextPending()}
+                    onClick={() => void openFullText()}
                   >
-                    {fullTextDocumentId() ? 'Открыть полную версию' : 'Загрузить полную версию'}
+                    {fullTextButtonLabel()}
                   </button>
+                </Show>
+                <Show when={fullTextError()}>
+                  {(message) => (
+                    <p class="document-overlay-full-text-error" role="alert">
+                      {message()}
+                    </p>
+                  )}
                 </Show>
                 <Show when={isClinicalSummary() && !fullTextDocumentId()}>
                   <p class="document-overlay-summary-note">
-                    Это краткая выжимка. Полную рекомендацию можно установить из базы знаний.
+                    Это краткая выжимка. Полная рекомендация загрузится и откроется здесь.
                   </p>
                 </Show>
               </header>

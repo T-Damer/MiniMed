@@ -474,7 +474,11 @@
 }
 
 .module-card button {
+  display: inline-flex;
   width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
   padding: 0.625rem 0.75rem;
   border: 1px solid rgb(68 57 35 / 23%);
   color: #837a68;
@@ -677,17 +681,6 @@
   margin-top: 1rem;
 }
 
-.module-show-all-sections {
-  width: 100%;
-  min-height: 2.5rem;
-  margin-top: 0.75rem;
-  border: 1px solid rgb(68 57 35 / 23%);
-  color: #355b69;
-  background: rgb(255 251 239 / 70%);
-  cursor: pointer;
-  font: inherit;
-}
-
 .recommendation-section-card {
   display: grid;
   gap: 0.75rem;
@@ -696,6 +689,19 @@
 
 .recommendation-section-card.selected {
   outline: 0.125rem solid rgb(53 91 105 / 35%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.recommendation-section-select:not(:disabled):hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .recommendation-section-card:hover {
+    transform: rotate(-0.25deg) scale(1.012);
+  }
 }
 
 .recommendation-section-select {
@@ -856,14 +862,20 @@
 }
 
 .module-remove-button {
-  color: #9f3f34;
-  border-color: rgb(159 63 52 / 34%);
-  background: rgb(159 63 52 / 8%);
+  color: var(--theme-danger);
+  border-color: color-mix(in srgb, var(--theme-danger) 48%, transparent);
+  background: color-mix(in srgb, var(--theme-danger) 10%, transparent);
+}
+
+.module-card .module-remove-button {
+  color: var(--theme-danger);
+  border-color: color-mix(in srgb, var(--theme-danger) 48%, transparent);
+  background: color-mix(in srgb, var(--theme-danger) 10%, transparent);
 }
 
 .module-remove-button:hover {
-  border-color: rgb(135 69 60 / 48%);
-  background: rgb(159 63 52 / 14%);
+  border-color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 18%, transparent);
 }
 
 .recommendation-row > div {

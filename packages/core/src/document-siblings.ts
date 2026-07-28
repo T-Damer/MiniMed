@@ -4,19 +4,31 @@ export function fullDocumentCandidateId(documentId: string): string {
   return `${documentId}.full`;
 }
 
+export function fullDocumentCandidateIds(documentId: string): readonly string[] {
+  const clinicalId = /^(kr\.rf\.\d+_\d+)(?:\.|$)/u.exec(documentId)?.[1];
+  return [
+    ...(clinicalId && clinicalId !== documentId ? [clinicalId] : []),
+    fullDocumentCandidateId(documentId),
+  ].filter(
+    (candidate, index, values) => candidate !== documentId && values.indexOf(candidate) === index,
+  );
+}
+
 export function resolveReadableDocumentId(
   documentId: string,
   availableIds: ReadonlySet<string>,
 ): string {
-  const fullId = fullDocumentCandidateId(documentId);
-  return fullId !== documentId && availableIds.has(fullId) ? fullId : documentId;
+  return (
+    fullDocumentCandidateIds(documentId).find((candidate) => availableIds.has(candidate)) ??
+    documentId
+  );
 }
 
 export function isSupersededSummaryDocument(
   documentId: string,
   availableIds: ReadonlySet<string>,
 ): boolean {
-  return !documentId.endsWith('.full') && availableIds.has(fullDocumentCandidateId(documentId));
+  return resolveReadableDocumentId(documentId, availableIds) !== documentId;
 }
 
 export function summaryDocumentId(documentId: string): string {

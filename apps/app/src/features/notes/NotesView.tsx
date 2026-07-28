@@ -5,7 +5,7 @@ import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } f
 import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { NoteImageGallery, NoteImagePicker } from '@/features/notes/NoteImages';
+import { NoteImagePicker } from '@/features/notes/NoteImages';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import {
@@ -208,6 +208,38 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
   const [completionDraft, setCompletionDraft] = createSignal('');
   const [clock, setClock] = createSignal(Date.now());
   let editorKey = '';
+  let allowEditorExit = false;
+  let restoringEditorRoute = false;
+
+  const editorRoutePath = (): string | null => {
+    const current = route();
+    if (current.kind === 'new-record') return notesPath(current.cardId, 'new');
+    if (current.kind === 'record') return notesPath(current.cardId, current.noteId);
+    return null;
+  };
+  const hasUnsavedEditorChanges = (): boolean => {
+    const current = route();
+    if (current.kind !== 'new-record' && current.kind !== 'record') return false;
+    const note =
+      current.kind === 'record'
+        ? (snapshot().notes.find(
+            (candidate) => candidate.id === current.noteId && candidate.cardId === current.cardId,
+          ) ?? null)
+        : null;
+    const reminder = reminderInputValues(note?.reminder);
+    return (
+      noteDraft() !== (note?.text ?? '') ||
+      pendingImages().length > 0 ||
+      reminderDate() !== reminder.date ||
+      reminderTime() !== reminder.time
+    );
+  };
+  const confirmEditorExit = (): boolean => {
+    if (allowEditorExit || !hasUnsavedEditorChanges()) return true;
+    const confirmed = window.confirm('Несохранённые изменения будут потеряны. Покинуть страницу?');
+    if (confirmed) allowEditorExit = true;
+    return confirmed;
+  };
 
   const refresh = (): void => {
     setSnapshot(loadPatientNotes());
@@ -218,6 +250,24 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     });
   };
   const handleHashChange = (): void => {
+    if (restoringEditorRoute) {
+      restoringEditorRoute = false;
+      return;
+    }
+    const editorPath = editorRoutePath();
+    if (editorPath && window.location.hash !== editorPath && !confirmEditorExit()) {
+      const rejectedUrl = window.location.href;
+      window.history.replaceState(window.history.state, '', editorPath);
+      restoringEditorRoute = true;
+      window.dispatchEvent(
+        new HashChangeEvent('hashchange', {
+          oldURL: rejectedUrl,
+          newURL: window.location.href,
+        }),
+      );
+      return;
+    }
+    allowEditorExit = false;
     setRoute(readNotesRoute());
     setEditingCard(false);
     setReminderNoteId(null);
@@ -234,6 +284,17 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
       .then(setNoteImages)
       .catch(() => setImageError('Не удалось загрузить изображения.'));
   };
+  const handleNavigationClick = (event: MouseEvent): void => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target?.closest('.app-bottom-nav') || confirmEditorExit()) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+    if (!hasUnsavedEditorChanges()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  };
 
   let clockTimer: ReturnType<typeof setInterval> | undefined;
   onMount(() => {
@@ -249,6 +310,8 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     window.addEventListener(PATIENT_NOTES_EVENT, refresh);
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     window.addEventListener(NOTE_IMAGES_EVENT, refreshImages);
+    document.addEventListener('click', handleNavigationClick, true);
+    window.addEventListener('beforeunload', handleBeforeUnload);
     clockTimer = setInterval(() => setClock(Date.now()), 30_000);
   });
   onCleanup(() => {
@@ -256,6 +319,8 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     window.removeEventListener(PATIENT_NOTES_EVENT, refresh);
     window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     window.removeEventListener(NOTE_IMAGES_EVENT, refreshImages);
+    document.removeEventListener('click', handleNavigationClick, true);
+    window.removeEventListener('beforeunload', handleBeforeUnload);
     if (clockTimer) clearInterval(clockTimer);
   });
 
@@ -310,13 +375,17 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
   };
 
   const navigate = (path: string): void => {
+    if (path !== editorRoutePath() && !confirmEditorExit()) return;
     window.location.hash = path;
   };
   const confirmDelete = (): void => {
     const target = deleteTarget();
     if (!target) return;
     if (target.kind === 'card') removePatientCard(target.id);
-    else removePatientNote(target.id);
+    else {
+      allowEditorExit = true;
+      removePatientNote(target.id);
+    }
     if (target.returnPath) navigate(target.returnPath);
     setDeleteTarget(null);
   };
@@ -602,7 +671,37 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                     <p class="archive-kicker">{card().title}</p>
                     <h1>{editing() ? 'Редактировать запись' : 'Новая запись'}</h1>
                   </div>
+                  <Show when={note()}>
+                    {(currentNote) => (
+                      <button
+                        class="patient-record-delete patient-card-icon-action danger"
+                        type="button"
+                        aria-label="Удалить запись"
+                        title="Удалить запись"
+                        onClick={() =>
+                          setDeleteTarget({
+                            kind: 'note',
+                            id: currentNote().id,
+                            title: currentNote().text.slice(0, 80),
+                            returnPath: notesPath(card().id),
+                          })
+                        }
+                      >
+                        <AppGlyph name="trash" />
+                      </button>
+                    )}
+                  </Show>
                 </header>
+                <Show when={note()}>
+                  {(currentNote) => (
+                    <div class="patient-note-categories notes-route-categories">
+                      <span class="patient-note-categories-label">Теги:</span>
+                      <For each={currentNote().categories}>
+                        {(category) => <span>{category}</span>}
+                      </For>
+                    </div>
+                  )}
+                </Show>
                 <form
                   class="patient-note-form patient-record-editor paper-card"
                   onSubmit={(event) => {
@@ -642,9 +741,13 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                             ? cause.message
                             : 'Не удалось сохранить изображения.',
                         );
-                        if (!existing) navigate(notesPath(card().id, savedNoteId));
+                        if (!existing) {
+                          allowEditorExit = true;
+                          navigate(notesPath(card().id, savedNoteId));
+                        }
                         return;
                       }
+                      allowEditorExit = true;
                       navigate(notesPath(card().id));
                     })();
                   }}
@@ -658,8 +761,10 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                   />
                   <NoteImagePicker
                     files={pendingImages()}
+                    images={noteImages()}
                     error={imageError()}
                     onFilesChange={setPendingImages}
+                    onError={setImageError}
                   />
                   <Show when={!editing()}>
                     <ReminderFields
@@ -673,9 +778,6 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                   <div class="patient-note-form-actions">
                     <button type="submit" disabled={!noteDraft().trim()}>
                       {editing() ? 'Сохранить' : 'Добавить запись'}
-                    </button>
-                    <button type="button" onClick={() => navigate(notesPath(card().id))}>
-                      Отмена
                     </button>
                   </div>
                 </form>
@@ -727,14 +829,8 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                           {currentNote().reminder ? 'Сохранить' : 'Установить'}
                         </button>
                       </div>
-                      <NoteImageGallery images={noteImages()} onError={setImageError} />
-                      <div class="patient-note-categories">
-                        <For each={currentNote().categories}>
-                          {(category) => <span>{category}</span>}
-                        </For>
-                      </div>
                       <Show when={relatedDocuments(currentNote()).length > 0}>
-                        <div class="patient-note-related">
+                        <div class="patient-note-related paper-card">
                           <span>По теме:</span>
                           <For each={relatedDocuments(currentNote())}>
                             {(document) => (
@@ -748,20 +844,6 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                           </For>
                         </div>
                       </Show>
-                      <button
-                        class="patient-record-delete"
-                        type="button"
-                        onClick={() =>
-                          setDeleteTarget({
-                            kind: 'note',
-                            id: currentNote().id,
-                            title: currentNote().text.slice(0, 80),
-                            returnPath: notesPath(card().id),
-                          })
-                        }
-                      >
-                        <AppGlyph name="trash" /> Удалить запись
-                      </button>
                     </div>
                   )}
                 </Show>

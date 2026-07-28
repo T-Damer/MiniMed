@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 28 July 2026
-> Repository version: `0.6.8`
-> Active target: `0.6.8` public prerelease toward `1.0`
+> Repository version: `0.6.9`
+> Active target: `0.6.9` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -40,36 +40,41 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   notes. Directional iOS-style entry motion follows their left-to-right order, while document,
   note, and local-model subroutes remain instant.
 - Search mode is an explicit compact choice inside the query composer; the disabled field prompts for
-  a mode first, and the horizontally scrollable mode strip remains available for direct switching.
+  a mode first, and the horizontally scrollable mode strip above the query remains available for
+  direct switching.
   The idle composer is vertically centered, then moves smoothly to the top when a query begins;
-  scope-specific examples stay on one OverlayScrollbars-backed horizontal line and accept vertical
-  mouse-wheel input. Search text expands to a bounded height before scrolling internally, while note
-  editors expand with their content.
+  scope-specific examples and modes use bounded overlay horizontal scrollers with always-visible
+  scrollbars and accept vertical mouse-wheel input. Search text expands to a bounded height before
+  scrolling internally, while note editors expand with their content.
 - Recent device-local search history opens from a floating drawer, preserves the selected source
   scope, and can show the current-session result cache immediately while refreshing in the background.
 - The paper/archive design uses one top-level semantic color palette in light and dark modes, a
   shared 65-character page measure, compact cards, controls, result rows, responsive spacing, and
   consistent hover/focus feedback for cards, buttons, and fields. The document uses one
-  OverlayScrollbars-owned page scrollbar without a second native gutter.
+  native page scrollbar without a second application-owned scroller.
 - Reusable view components now own confirmation dialogs, horizontal search examples, module cards,
   and module task states; their parent pages retain routing, persistence, and orchestration.
 - Personal cards use a responsive three-column sticker board and a focused creation dialog opened
   from a floating add button. Card timelines and dated-record editors use nested note routes; card
-  edit/delete actions are compact icon controls. On first launch, an editable colleague card and
-  record introduce the local notes workflow; once removed, they stay removed.
+  edit/delete actions are compact icon controls. Record editors guard unsaved drafts, accept image
+  attachments by file selection or drag-and-drop, and keep tags, reminders, images, and related
+  sources in distinct blocks. On first launch, an editable colleague card and record introduce the
+  local notes workflow; once removed, they stay removed.
 - Local-model detection is user-initiated; its CPU probe runs in a Worker and model choices stay
   collapsed until requested.
 - The knowledge-base overview reports the model and corpus state, then opens dedicated document and
   model subroutes without mixing every document family into one long page.
-- The document overview exposes four entry cards, including clinical recommendations. Drilldown
-  exposes the built-in core, two-column module collections with user-facing release states and
-  inspectable document lists, section recommendation lists, full-document opening, bulk download,
-  background update pause, rollback to retained older versions, and nested URLs for opened
-  collections and recommendation sections.
+- The document overview exposes three entry cards: the built-in core, shared medicines/norms, and
+  clinical recommendations. The legacy clinical-pediatrics collection is represented by the
+  recommendation sections instead of a duplicate top-level card. Drilldown exposes two-column module
+  collections with user-facing release states and inspectable document lists, all 21 recommendation
+  sections without an extra reveal step, full-document opening, bulk download, background update
+  pause, rollback to retained older versions, and nested URLs for opened collections and sections.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
-  queued, and the selected model always receives its own download slot. Document-download failures
-  stay on the affected card and open their technical details on demand.
+  queued, and the selected model always receives its own download slot. A single document runtime
+  survives catalog refreshes; transient failures release their slot before an automatic retry so one
+  broken source cannot starve the queue.
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
   medication, legal, and personal-note sources.
 - Model settings distinguish always-available offline search from the optional local model and expose
@@ -110,6 +115,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Personal matches appear in search with an explicit personal-source label and outside the official
   result container, so they cannot be mistaken for installed medical content.
 - Document text links installed medications, recommendations, and laws into nested reader dialogs.
+- A clinical-summary reader installs the matching individual JSON recommendation on request, then
+  reconnects the local corpus and replaces that same reader with the full document.
 
 ### Local model
 
@@ -145,7 +152,8 @@ ordinary search response when validation fails.
   plus its manifest and catalog fragment. Clinical source-PDF archives are no longer published.
 - The knowledge base lists individual recommendations under 21 visible medical sections and supports
   individual or section-level installation. Cross-listed recommendations are downloaded once, and
-  each section's progress remains relative to its complete document list.
+  each section's progress remains relative to its complete document list. Completed progress bars are
+  hidden, and category removal leaves its busy state before the search index reconnects.
 - Official GRLS inventory contains 38,815 unique registration records from 140,274 status/version rows,
   with the source ZIP, edition, and checksums retained locally.
 - Current official instruction synchronization covers eight pilot medications; seven text-layer PDFs
@@ -153,13 +161,18 @@ ordinary search response when validation fails.
 - Public Russian starter pack: seven clinical navigation cards and eight medication-registry identity
   cards.
 - Structured knowledge tables support proposed facts, exact evidence links, relations, and review tasks.
-- Interrupted module downloads persist partial bytes in IndexedDB. Failed/interrupted installs remain in
-  a durable local queue, recover after restart or catalog refresh, and retry transient failures,
-  including temporarily missing release assets, without prompting.
+- Interrupted module downloads persist partial bytes in IndexedDB. Failed/interrupted installs remain
+  in a durable local queue, recover after restart or catalog refresh, and retry transient failures,
+  including temporarily missing release assets, without prompting. Retries use a bounded attempt,
+  release one of the three document slots, then requeue; checksum and validation failures stop until
+  the user explicitly retries. The download panel shows live transfer, queue position, offline wait,
+  scheduled retry, and permanent failure states, with per-task and bulk cancellation/retry controls.
 - Clinical snapshot artifacts download from their published GitHub Release assets; they are no longer
   rewritten to a non-existent raw-git content path.
 - The runtime fingerprints actual module versions, digests, URLs, checksums, and sizes rather than only
   comparing catalog counts.
+- A unit gate verifies that catalog checksums and sizes match every thematic database hosted from the
+  repository.
 
 ## Verified baseline
 
@@ -183,7 +196,7 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.8 gate includes 20 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.9 gate includes 22 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
 
@@ -212,7 +225,7 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Verify the 0.6.8 prerelease on a physical Android device, including system-bar insets, native Back,
+1. Verify the 0.6.9 prerelease on a physical Android device, including system-bar insets, native Back,
    locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
 2. Add verified OCR for the blocked drug instruction.

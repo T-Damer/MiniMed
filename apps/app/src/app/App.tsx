@@ -1,7 +1,6 @@
 import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
-import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { nativeBackAction } from '@/app/native-back';
@@ -23,6 +22,7 @@ import { refreshContentModuleCatalog } from '@/features/modules/catalog-service'
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import {
   getContentModuleRuntime,
+  peekContentModuleRuntime,
   subscribeContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
 import { NotesView } from '@/features/notes/NotesView';
@@ -114,9 +114,6 @@ export function App(): JSX.Element {
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
-  const [initializePageScroll, pageScroll] = createOverlayScrollbars({
-    options: { scrollbars: { autoHide: 'scroll' } },
-  });
   let coreToClose: MedicalCore | undefined;
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
@@ -181,6 +178,7 @@ export function App(): JSX.Element {
     });
     coreToClose = next.core;
     setReady(next);
+    setDownloadedModuleCount(peekContentModuleRuntime()?.listInstalled().length ?? 0);
     notifyContentChanged();
   };
 
@@ -190,7 +188,6 @@ export function App(): JSX.Element {
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
 
   onMount(async () => {
-    initializePageScroll({ target: document.body, cancel: { body: false } });
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -267,7 +264,6 @@ export function App(): JSX.Element {
     if (coreToClose) void coreToClose.close();
     const activeSearchCore = searchCore();
     if (activeSearchCore) void activeSearchCore.close();
-    pageScroll()?.destroy();
     void modelController.dispose();
   });
 

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   dequeuePendingModuleInstall,
+  discardPendingModuleInstall,
   enqueuePendingModuleInstall,
   listPendingModuleInstalls,
 } from '@/features/modules/pending-module-installs';
@@ -47,6 +48,14 @@ describe('pending-module-installs', () => {
     expect(listPendingModuleInstalls()).toEqual([
       expect.objectContaining({ moduleId: 'clinical.100', version: '1.0.0' }),
     ]);
+  });
+
+  it('discards a cancelled or permanently failed install', () => {
+    enqueuePendingModuleInstall('clinical.100', '1.0.0', false);
+
+    discardPendingModuleInstall('clinical.100', '1.0.0');
+
+    expect(listPendingModuleInstalls()).toEqual([]);
   });
 
   it('removes a pending install only after the exact version is active', () => {

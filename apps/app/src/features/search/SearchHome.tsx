@@ -5,7 +5,6 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
 import type { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
-import { translateVerticalWheelToHorizontal } from '@/features/search/horizontal-wheel-scroll';
 import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
@@ -162,10 +161,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               : 'Выберите режим поиска'
           }
           modePicker={
-            <fieldset
-              class="search-mode-picker"
-              onWheel={(event) => translateVerticalWheelToHorizontal(event, event.currentTarget)}
-            >
+            <fieldset class="search-mode-picker">
               <legend class="visually-hidden">Режим поиска</legend>
               <For each={SEARCH_SCOPES}>
                 {(option) => (

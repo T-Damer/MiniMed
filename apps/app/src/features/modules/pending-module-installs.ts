@@ -87,6 +87,11 @@ export function dequeuePendingModuleInstall(moduleId: string, version: string): 
   writeQueue(readQueue().filter((item) => installKey(item.moduleId, item.version) !== key));
 }
 
+export function discardPendingModuleInstall(moduleId: string, version: string): void {
+  const key = installKey(moduleId, version);
+  writeQueue(readQueue().filter((item) => installKey(item.moduleId, item.version) !== key));
+}
+
 export function listPendingModuleInstalls(): readonly PendingModuleInstall[] {
   return readQueue();
 }

@@ -16,6 +16,7 @@ const TRANSIENT_MESSAGE_MARKERS = [
   'connection',
   'timeout',
   'timed out',
+  'нестабильной сети',
   // Our own transport errors, raised in Russian with the status appended.
   // Published catalogs can briefly lead their release assets; keep polling until the file appears.
   'http 404',

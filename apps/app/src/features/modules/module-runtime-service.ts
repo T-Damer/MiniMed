@@ -1,7 +1,6 @@
 import type { ContentModuleCatalog } from '@localmed/contracts';
 
 import { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
-import { recoverPendingModuleInstalls } from '@/features/modules/pending-module-installs';
 
 let sharedRuntime: BrowserContentModuleRuntime | null = null;
 let sharedCatalogFingerprint = '';
@@ -30,18 +29,18 @@ export function getContentModuleRuntime(
   catalog: ContentModuleCatalog,
 ): BrowserContentModuleRuntime {
   const fingerprint = contentModuleCatalogFingerprint(catalog);
-  if (!sharedRuntime || sharedCatalogFingerprint !== fingerprint) {
+  if (!sharedRuntime) {
     sharedRuntime = new BrowserContentModuleRuntime(catalog);
     sharedCatalogFingerprint = fingerprint;
-    // The runtime also performs an initial recovery. Calling it here is intentional: a refreshed
-    // catalog may finally contain a queued module that the bundled catalog did not know about.
-    recoverPendingModuleInstalls(
-      sharedRuntime,
-      catalog,
-      new Set(sharedRuntime.listInstalled().map((module) => module.moduleId)),
-    );
     for (const listener of runtimeListeners) listener(sharedRuntime);
+  } else if (sharedCatalogFingerprint !== fingerprint) {
+    sharedRuntime.updateCatalog(catalog);
+    sharedCatalogFingerprint = fingerprint;
   }
+  return sharedRuntime;
+}
+
+export function peekContentModuleRuntime(): BrowserContentModuleRuntime | null {
   return sharedRuntime;
 }
 
@@ -54,6 +53,7 @@ export function subscribeContentModuleRuntime(
 }
 
 export function resetContentModuleRuntimeForTests(): void {
+  sharedRuntime?.dispose();
   sharedRuntime = null;
   sharedCatalogFingerprint = '';
   runtimeListeners.clear();

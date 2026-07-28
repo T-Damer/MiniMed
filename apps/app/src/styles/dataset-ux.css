@@ -43,8 +43,7 @@
 }
 
 .module-card.installed {
-  border-color: rgb(64 91 78 / 45%);
-  background: rgb(237 243 230 / 68%);
+  border-color: var(--theme-accent);
 }
 
 .doctor-module-facts {

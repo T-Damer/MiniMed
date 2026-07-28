@@ -319,6 +319,53 @@ describe('ForegroundContentModuleInstaller', () => {
     expect(downloader.maxActive).toBe(3);
   });
 
+  it('keeps active downloads while the catalog is updated', async () => {
+    const indexBytes = new Uint8Array([1, 2, 3]);
+    const fixture = await moduleFixture({ indexBytes });
+    const nextModule = {
+      ...fixture.module,
+      id: 'minimed.clinical.pediatrics.updated-catalog',
+      title: 'Added after refresh',
+    };
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(validatedInstallation());
+    const downloader = new BlockingDownloader(indexBytes);
+    const installer = new ForegroundContentModuleInstaller(
+      fixture.catalog,
+      runtime,
+      downloader,
+      new TestBackend(),
+      validator(),
+      registry,
+      1,
+    );
+
+    const first = installer.install({
+      moduleId: fixture.module.id,
+      version: fixture.module.version,
+      includeSourceAssets: false,
+    });
+    await vi.waitFor(() => expect(downloader.active).toBe(1));
+    installer.updateCatalog({
+      ...fixture.catalog,
+      catalogVersion: '2',
+      modules: [...fixture.catalog.modules, nextModule],
+    });
+    const second = installer.install({
+      moduleId: nextModule.id,
+      version: nextModule.version,
+      includeSourceAssets: false,
+    });
+    expect(installer.listTasks().find((task) => task.id === first.id)?.state).toBe('downloading');
+    expect(installer.listTasks().find((task) => task.id === second.id)?.state).toBe('queued');
+
+    downloader.releaseOne();
+    await vi.waitFor(() => expect(downloader.calls).toBe(2));
+    downloader.releaseOne();
+    await expect(installer.wait(first.id)).resolves.toMatchObject({ state: 'completed' });
+    await expect(installer.wait(second.id)).resolves.toMatchObject({ state: 'completed' });
+  });
+
   it('returns immediately, reports progress and activates only after validation', async () => {
     const indexBytes = new Uint8Array([1, 2, 3]);
     const sourceBytes = new Uint8Array([4, 5]);
