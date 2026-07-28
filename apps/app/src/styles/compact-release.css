@@ -121,8 +121,8 @@
 
 .search-mode-help {
   display: grid;
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
@@ -137,7 +137,7 @@
 
 .search-mode-tools {
   display: flex;
-  min-height: 2rem;
+  min-height: 2.5rem;
   justify-content: flex-end;
   margin-bottom: 0.375rem;
   padding-inline: clamp(0.625rem, 1.7vw, 1.375rem);
@@ -289,6 +289,8 @@
 .search-workspace-main .case-folder {
   margin-top: clamp(4rem, 20dvh, 11rem);
   padding: 0.5rem clamp(0.625rem, 1.5vw, 1.125rem) 1.625rem;
+  background: none;
+  box-shadow: none;
   transition: margin-top 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -336,8 +338,7 @@
 }
 
 .search-workspace-main .clinical-plan-card,
-.search-workspace-main .analysis-details,
-.search-workspace-main .example-row {
+.search-workspace-main .analysis-details {
   margin-top: 0.4375rem;
 }
 
@@ -358,24 +359,28 @@
   max-width: 100%;
   min-inline-size: 0;
   gap: 0.3125rem;
-  padding: 0.625rem;
+  margin-top: 1rem;
+  padding: 0;
   overflow: hidden;
 }
 
 .search-workspace-main .example-row legend {
-  margin-bottom: 0.125rem;
+  margin-bottom: 0;
 }
 
 .search-workspace-main .example-scroll {
-  display: flex;
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  --os-size: 0.375rem;
+}
+
+.search-workspace-main .example-scroll-content {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
   gap: 0.3125rem;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-inline: contain;
-  scrollbar-width: thin;
+  padding-bottom: 0.5rem;
 }
 
 .search-workspace-main .example-row button {
@@ -656,14 +661,8 @@
   margin-bottom: 0.4375rem;
 }
 
-.module-capabilities {
-  min-height: 0;
+.module-details-button {
   margin-bottom: 0.5rem;
-}
-
-.module-capabilities span {
-  min-height: 1.25rem;
-  padding: 0.25rem 0.4375rem;
 }
 
 .model-status-view {
@@ -1988,6 +1987,10 @@ body:has(.patient-notes-fab) .scroll-top-button {
   );
 }
 
+body:has(.search-home) .scroll-top-button {
+  bottom: max(0.96875rem, calc(0.96875rem + var(--safe-bottom)));
+}
+
 .search-history-fab {
   z-index: 90;
   left: max(
@@ -2037,11 +2040,15 @@ body:has(.patient-notes-fab) .scroll-top-button {
 
 .model-catalog-details > summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: 0.625rem;
   padding: 0.75rem 0;
   font-weight: 600;
+}
+
+.model-catalog-expand-hint {
+  justify-self: end;
 }
 
 .model-catalog-expand-hint::before {
@@ -2055,10 +2062,16 @@ body:has(.patient-notes-fab) .scroll-top-button {
   content: "Свернуть ↑";
 }
 
-.model-catalog-details > summary span {
-  color: var(--ink-faint);
+.model-catalog-details > summary > span {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.5625rem;
 }
 
 .document-text-list {
@@ -2427,7 +2440,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
   height: 0.875rem;
 }
 
-.note-delete-alert-overlay {
+.confirmation-alert-overlay {
   position: fixed;
   z-index: 550;
   inset: 0;
@@ -2435,7 +2448,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
   backdrop-filter: blur(0.375rem);
 }
 
-.note-delete-alert {
+.confirmation-alert {
   position: fixed;
   z-index: 551;
   top: 50%;
@@ -2452,28 +2465,28 @@ body:has(.patient-notes-fab) .scroll-top-button {
   transform: translate(-50%, -50%);
 }
 
-.note-delete-alert h2,
-.note-delete-alert p {
+.confirmation-alert h2,
+.confirmation-alert p {
   margin: 0;
 }
 
-.note-delete-alert h2 {
+.confirmation-alert h2 {
   font-family: var(--font-serif);
   font-weight: 500;
 }
 
-.note-delete-alert p {
+.confirmation-alert p {
   color: var(--theme-text-muted);
   line-height: 1.45;
 }
 
-.note-delete-alert-actions {
+.confirmation-alert-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
 }
 
-.note-delete-alert-actions button {
+.confirmation-alert-actions button {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--theme-border);
   border-radius: 999px;
@@ -2482,7 +2495,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
   cursor: pointer;
 }
 
-.note-delete-alert-actions .danger {
+.confirmation-alert-actions .danger {
   border-color: var(--theme-danger);
   color: var(--theme-accent-contrast);
   background: var(--theme-danger);

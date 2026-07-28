@@ -14,7 +14,7 @@ export function StatusPanel(props: StatusPanelProps): JSX.Element {
           <h2>Состояние ядра</h2>
           <p>Документы, доступные локальному поиску на этом устройстве.</p>
         </div>
-        <span class="core-status-version">Core 0.6.3</span>
+        <span class="core-status-version">Core 0.6.4</span>
       </header>
 
       <div class="core-status-count">

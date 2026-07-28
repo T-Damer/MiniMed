@@ -6,6 +6,9 @@ import '../styles/release.css';
 const githubUrl = import.meta.env.PUBLIC_GITHUB_URL ?? 'https://github.com/T-Damer/MiniMed';
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes these values in the template.
 const appUrl = `${import.meta.env.BASE_URL.replace(/\/$/u, '')}/app/`;
+// biome-ignore lint/correctness/noUnusedVariables: Astro consumes this value in the template.
+const apkUrl =
+  'https://github.com/T-Damer/MiniMed/releases/download/v0.6.4/MiniMed-0.6.4-rf-public-pilot-debug.apk';
 
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes this value in the template.
 const milestones = [
@@ -13,19 +16,19 @@ const milestones = [
     version: '0.5',
     state: 'готово',
     title: 'Полный каталог',
-    copy: '723 поисковых модуля клинических рекомендаций, локальный FTS5 и проверяемые источники.',
+    copy: '744 структурированных модуля клинических рекомендаций из официального JSON-каталога.',
   },
   {
-    version: '0.6',
+    version: '0.6.4',
     state: 'текущий релиз',
-    title: 'Рабочее место врача',
-    copy: 'Компактный интерфейс, явные режимы поиска, история рядом и браузерная версия по /app/.',
+    title: 'Офлайн-рабочее место',
+    copy: 'Явные режимы поиска, 21 медицинский раздел, локальные заметки и надёжные фоновые загрузки.',
   },
   {
     version: '1.0',
     state: 'следующая цель',
-    title: 'Квалифицированный помощник',
-    copy: 'Проверенные русские сценарии, надёжные загрузки, локальные заметки и измеренное качество модели.',
+    title: 'Проверенный помощник',
+    copy: 'Больше реальных врачебных сценариев и измеренная точность, цитирование и сдержанность модели.',
   },
   {
     version: '1.1',
@@ -37,10 +40,10 @@ const milestones = [
 
 // biome-ignore lint/correctness/noUnusedVariables: Astro consumes this value in the template.
 const stats = [
-  ['Корпус', '744 КР'],
-  ['Доступно для поиска', '723 документа'],
+  ['Клинические рекомендации', '744 модуля'],
+  ['Медицинские разделы', '21'],
+  ['Загрузки документов', 'до 3 одновременно'],
   ['Работа без сети', 'Да'],
-  ['Основной режим', 'Источник прежде ответа'],
 ];
 ---
 
@@ -70,7 +73,7 @@ const stats = [
       <nav aria-label="Навигация по странице">
         <a href="#capabilities">Возможности</a>
         <a href="#workflow">Как работает</a>
-        <a href="#roadmap">Roadmap</a>
+        <a href="#roadmap">Версии</a>
         <a class="repo-link" href={githubUrl}>GitHub ↗</a>
         <a class="app-link" href={appUrl}>Открыть приложение →</a>
       </nav>
@@ -78,18 +81,19 @@ const stats = [
 
     <main id="top">
       <section class="hero-folder">
-        <div class="folder-tab">MINIMED · RELEASE 0.6</div>
+        <div class="folder-tab">MINIMED · RELEASE 0.6.4</div>
         <div class="hero-grid">
           <div class="hero-copy">
             <p class="kicker">Offline-first · retrieval before generation</p>
             <h1>Медицинский поиск, который открывает сам источник.</h1>
             <p class="lead">
               Выберите задачу: разобрать клинический случай, найти клиническую рекомендацию,
-              препарат или правовой документ. MiniMed работает локально, а модель подключается
-              только там, где действительно нужна.
+              препарат или правовой документ. Загруженные источники, заметки и напоминания остаются
+              на устройстве, а локальная модель подключается только в диагностическом режиме.
             </p>
             <div class="hero-actions">
               <a class="primary-action" href={appUrl}>Открыть MiniMed в браузере</a>
+              <a class="text-action" href={apkUrl}>Скачать APK 0.6.4 ↓</a>
               <a class="text-action" href={githubUrl}>Исходный код ↗</a>
             </div>
           </div>
@@ -98,7 +102,7 @@ const stats = [
             <span class="paper-clip" aria-hidden="true"></span>
             <div class="card-header">
               <span>КАРТОЧКА ЗАПРОСА</span>
-              <b>LOCAL / 0.6</b>
+              <b>LOCAL / 0.6.4</b>
             </div>
             <p class="case-query">
               Цефтриаксон ребёнку 3 лет, вес 20 кг, при пневмонии как второй антибиотик.
@@ -127,13 +131,54 @@ const stats = [
       <section class="dossier-section" id="capabilities">
         <div class="section-register">
           <span>РАБОЧЕЕ МЕСТО / 01</span>
-          <strong>Три понятных раздела</strong>
+          <strong>Три раздела и необязательная локальная модель</strong>
         </div>
         <div class="dossier-grid">
-          <article><span>01</span><h2>Поиск</h2><p>Режим задачи, свободный клинический ввод и недавние запросы на одном экране.</p></article>
-          <article><span>02</span><h2>База знаний</h2><p>Установленные документы, каталог разделов, проверка и возобновляемая загрузка.</p></article>
-          <article><span>03</span><h2>Настройки</h2><p>Обычный офлайн-поиск, выбор локальной модели, размер, требования и состояние.</p></article>
-          <article><span>04</span><h2>Точный источник</h2><p>Результат ведёт к фрагменту, соседнему контексту и стабильному якорю документа.</p></article>
+          <article>
+            <div class="dossier-card-topline">
+              <svg class="dossier-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                <path d="m15.4 15.4 4.1 4.1"></path>
+              </svg>
+              <span>01</span>
+            </div>
+            <h2>Поиск</h2>
+            <p>Пять режимов, свободный медицинский ввод, история запросов и точные фрагменты источников.</p>
+          </article>
+          <article>
+            <div class="dossier-card-topline">
+              <svg class="dossier-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m12 3 8 4-8 4-8-4 8-4Z"></path>
+                <path d="m4 12 8 4 8-4M4 17l8 4 8-4"></path>
+              </svg>
+              <span>02</span>
+            </div>
+            <h2>База знаний</h2>
+            <p>744 рекомендации в 21 разделе, таблицы и изображения из JSON, поиск и чтение без сети.</p>
+          </article>
+          <article>
+            <div class="dossier-card-topline">
+              <svg class="dossier-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 3.5h9.5L19 7v13.5H6Z"></path>
+                <path d="M15 3.5V7h4M9 11h7M9 14.5h7M9 18h4.5"></path>
+              </svg>
+              <span>03</span>
+            </div>
+            <h2>Заметки</h2>
+            <p>Локальные карточки, отдельные записи и напоминания с категоризацией и поиском по устройству.</p>
+          </article>
+          <article>
+            <div class="dossier-card-topline">
+              <svg class="dossier-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9.2 4.8A3.2 3.2 0 0 0 6 8v.4a3.4 3.4 0 0 0-1.8 5.9A3.6 3.6 0 0 0 7.6 20H10V4.8Z"></path>
+                <path d="M14.8 4.8A3.2 3.2 0 0 1 18 8v.4a3.4 3.4 0 0 1 1.8 5.9 3.6 3.6 0 0 1-3.4 5.7H14V4.8Z"></path>
+                <path d="M10 8.1c-1 .2-1.8 1-1.8 2 0 1 .7 1.8 1.8 2M14 8.1c1 .2 1.8 1 1.8 2 0 1-.7 1.8-1.8 2"></path>
+              </svg>
+              <span>04</span>
+            </div>
+            <h2>Локальная модель</h2>
+            <p>Необязательная помощь поверх найденных источников; модель загружается независимо от документов.</p>
+          </article>
         </div>
       </section>
 
@@ -166,7 +211,7 @@ const stats = [
         </div>
         <div class="roadmap-table">
           {milestones.map((milestone) => (
-            <article>
+            <article class:list={{ current: milestone.version === '0.6.4' }}>
               <span class="version-tab">{milestone.version}</span>
               <div><small>{milestone.state}</small><h2>{milestone.title}</h2><p>{milestone.copy}</p></div>
             </article>
@@ -176,7 +221,7 @@ const stats = [
     </main>
 
     <footer>
-      <span>MINIMED / RELEASE 0.6</span>
+      <span>MINIMED / RELEASE 0.6.4</span>
       <span>Справочно-поисковая система · не заменяет решение врача</span>
       <a href={appUrl}>Открыть приложение →</a>
     </footer>

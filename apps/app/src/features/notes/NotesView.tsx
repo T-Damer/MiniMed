@@ -1,9 +1,9 @@
-import { AlertDialog } from '@kobalte/core/alert-dialog';
 import { TextField } from '@kobalte/core/text-field';
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -378,7 +378,9 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                         <p>{card.summary}</p>
                       </Show>
                       <small>
-                        {notes().length} зап. · {formatDate(card.updatedAt)}
+                        {notes().length} зап.
+                        <br />
+                        {formatDate(card.updatedAt)}
                       </small>
                     </button>
                     <div class="patient-card-corner-actions">
@@ -709,41 +711,21 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
         </form>
       </OverlayDialog>
 
-      <AlertDialog
+      <ConfirmationDialog
         open={deleteTarget() !== null}
+        title={deleteTarget()?.kind === 'card' ? 'Удалить карточку?' : 'Удалить запись?'}
+        description={
+          deleteTarget()?.kind === 'card'
+            ? `Карточка «${deleteTarget()?.title}» и все её записи будут удалены с этого устройства. Отменить это действие нельзя.`
+            : `Запись «${deleteTarget()?.title}» будет удалена с этого устройства. Отменить это действие нельзя.`
+        }
+        confirmLabel="Удалить"
+        danger
+        onConfirm={confirmDelete}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-      >
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay class="note-delete-alert-overlay" />
-          <AlertDialog.Content class="note-delete-alert">
-            <AlertDialog.Title>
-              {deleteTarget()?.kind === 'card' ? 'Удалить карточку?' : 'Удалить запись?'}
-            </AlertDialog.Title>
-            <AlertDialog.Description>
-              <Show
-                when={deleteTarget()?.kind === 'card'}
-                fallback={
-                  <>
-                    Запись «{deleteTarget()?.title}» будет удалена с этого устройства. Отменить это
-                    действие нельзя.
-                  </>
-                }
-              >
-                Карточка «{deleteTarget()?.title}» и все её записи будут удалены с этого устройства.
-                Отменить это действие нельзя.
-              </Show>
-            </AlertDialog.Description>
-            <div class="note-delete-alert-actions">
-              <AlertDialog.CloseButton>Отмена</AlertDialog.CloseButton>
-              <button type="button" class="danger" onClick={confirmDelete}>
-                Удалить
-              </button>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog>
+      />
 
       <OverlayDialog
         open={editingCard()}

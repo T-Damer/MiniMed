@@ -1,4 +1,4 @@
-const CACHE_NAME = 'localmed-shell-v0.6.3';
+const CACHE_NAME = 'localmed-shell-v0.6.4';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

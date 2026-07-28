@@ -72,13 +72,14 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   });
 
   await navigationButton(page, 'База знаний').click();
+  await page.getByRole('button', { name: /^Документы/u }).click();
+  await page.getByRole('button', { name: /Лекарства, документы и нормы/u }).click();
   await card.getByRole('button', { name: 'Удалить с устройства' }).click();
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible({
     timeout: 15_000,
   });
 
   await navigationButton(page, 'Поиск').click();
-  await page.getByRole('button', { name: 'Сменить' }).click();
   await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение после удаления');
   await page.getByTestId('search-submit').click();

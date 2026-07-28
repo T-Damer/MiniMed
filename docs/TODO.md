@@ -58,7 +58,6 @@ portability remain.
   (issue #122): citation fidelity, unsupported-claim rate, abstention, latency, and memory per model.
 - OCR for the scan-only Russian recommendations, verifying the output stays Russian rather than being
   translated (issue #121).
-- Publish the 723-module clinical snapshot to the preview channel (issue #120).
 - Run a measured Replicate benchmark only when a candidate model/prompt pair is ready, and keep spend
   inside the agreed 10–15 USD ceiling.
 

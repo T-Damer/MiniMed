@@ -5,6 +5,7 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
 import type { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
+import { translateVerticalWheelToHorizontal } from '@/features/search/horizontal-wheel-scroll';
 import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
@@ -114,27 +115,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     setScope(next);
   };
 
-  const scrollModesHorizontally = (
-    event: WheelEvent & { readonly currentTarget: HTMLFieldSetElement },
-  ): void => {
-    const picker = event.currentTarget;
-    if (
-      Math.abs(event.deltaY) <= Math.abs(event.deltaX) ||
-      picker.scrollWidth <= picker.clientWidth
-    ) {
-      return;
-    }
-    const maxScrollLeft = picker.scrollWidth - picker.clientWidth;
-    if (
-      (event.deltaY < 0 && picker.scrollLeft <= 0) ||
-      (event.deltaY > 0 && picker.scrollLeft >= maxScrollLeft)
-    ) {
-      return;
-    }
-    event.preventDefault();
-    picker.scrollLeft += event.deltaY;
-  };
-
   const replayHistory = (entry: SearchHistoryEntry): void => {
     selectScope(entry.scope);
     requestAnimationFrame(() => replaySearch(entry));
@@ -181,7 +161,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               : 'Выберите режим поиска'
           }
           modePicker={
-            <fieldset class="search-mode-picker" onWheel={scrollModesHorizontally}>
+            <fieldset
+              class="search-mode-picker"
+              onWheel={(event) => translateVerticalWheelToHorizontal(event, event.currentTarget)}
+            >
               <legend class="visually-hidden">Режим поиска</legend>
               <For each={SEARCH_SCOPES}>
                 {(option) => (

@@ -111,7 +111,7 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await expect(page.getByRole('heading', { name: 'Документы' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Всегда доступно/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Лекарства, документы и нормы/u })).toBeVisible();
