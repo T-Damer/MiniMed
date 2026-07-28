@@ -35,14 +35,17 @@ test('keeps patient note records local, editable in nested routes, and findable 
   await page
     .getByLabel('Новая заметка для Иванов И., 3 года, 20 кг')
     .fill('Назначен цефтриаксон, вторая линия при пневмонии');
-  await page.locator('input[type="file"]').setInputFiles({
-    name: 'осмотр.png',
-    mimeType: 'image/png',
-    buffer: Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
-      'base64',
-    ),
+  const imageTransfer = await page.evaluateHandle(() => {
+    const transfer = new DataTransfer();
+    transfer.items.add(
+      new File(['image'], 'очень-длинное-название-осмотра.png', { type: 'image/png' }),
+    );
+    return transfer;
   });
+  await page.locator('.note-image-picker').dispatchEvent('drop', {
+    dataTransfer: imageTransfer,
+  });
+  await imageTransfer.dispose();
   await expect(page.locator('.note-image-previews img')).toBeVisible();
   await page.getByRole('button', { name: 'Добавить запись' }).click();
   const record = page.locator('.patient-note-record');
@@ -50,7 +53,7 @@ test('keeps patient note records local, editable in nested routes, and findable 
   await record.getByRole('button').first().click();
   await expect(page.getByRole('heading', { name: 'Редактировать запись' })).toBeVisible();
   await expect(page.getByLabel('Текст записи')).toHaveValue(/Назначен цефтриаксон/u);
-  await expect(page.locator('.patient-note-images img')).toBeVisible();
+  await expect(page.locator('.record-images-editor .note-image-previews img')).toBeVisible();
   await page.getByLabel('Назад к записям').click();
   await navigationButton(page, 'Поиск').click();
   await navigationButton(page, 'Заметки').click();
@@ -185,4 +188,35 @@ test('requires a valid reminder timestamp before installation', async ({ page })
   await expect(install).toBeEnabled();
   await install.click();
   await expect(page.locator('.note-reminder-link')).toBeVisible();
+});
+
+test('warns before leaving a record with unsaved changes', async ({ page }) => {
+  const createdAt = new Date().toISOString();
+  await mountBuiltApp(page, {
+    persistentOrigin: true,
+    localStorage: {
+      'minimed.patient-notes.v1': JSON.stringify({
+        cards: [
+          { id: 'guard-card', title: 'Черновик', summary: '', createdAt, updatedAt: createdAt },
+        ],
+        notes: [],
+      }),
+    },
+  });
+
+  await navigationButton(page, 'Заметки').click();
+  await page.locator('.patient-card').filter({ hasText: 'Черновик' }).click();
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.getByLabel('Новая заметка для Черновик').fill('Несохранённый текст');
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('Несохранённые изменения');
+    await dialog.dismiss();
+  });
+  await navigationButton(page, 'Поиск').click();
+  await expect(page).toHaveURL(/\/records\/new$/u);
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await navigationButton(page, 'Поиск').click();
+  await expect(page).toHaveURL(/#\/search$/u);
 });

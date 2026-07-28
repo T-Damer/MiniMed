@@ -22,10 +22,11 @@ import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
   dequeuePendingModuleInstall,
+  discardPendingModuleInstall,
   enqueuePendingModuleInstall,
   recoverPendingModuleInstalls,
 } from '@/features/modules/pending-module-installs';
-import { downloadWithRetry } from '@/features/network/download-retry';
+import { downloadWithRetry, isTransientDownloadError } from '@/features/network/download-retry';
 import { RELEASE_VERSION } from '../../../../../release';
 
 const DATABASE_NAME = 'minimed-content-modules-v1';
@@ -36,6 +37,8 @@ const CORE_MODULE_ID = 'minimed.core.ru';
 const CORE_VERSION = '1.0.0-preview.1';
 const CORE_SOURCE_SET_DIGEST =
   'sha256:6feb828182adfc45907c902bc39428dbf53c95fb25d09dd29281989660678acf';
+const MODULE_RETRY_DELAYS_MS = [1_000, 2_500, 5_000] as const;
+const MODULE_REQUEUE_DELAY_MS = 15_000;
 
 type ModuleArtifact = ContentModuleCatalogEntry['artifacts'][number];
 
@@ -140,7 +143,7 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
       cacheKey,
       expectedBytes: artifact.sizeBytes,
       signal,
-      retryForever: true,
+      retryDelaysMs: MODULE_RETRY_DELAYS_MS,
       onProgress: ({ downloadedBytes, totalBytes }) => onProgress({ downloadedBytes, totalBytes }),
     });
   }
@@ -321,13 +324,21 @@ function createRegistry(): PersistentInstalledModuleRegistry {
   return registry;
 }
 
-let recoveryStarted = false;
-
 export class BrowserContentModuleRuntime {
-  private readonly catalog: ContentModuleCatalog;
+  private catalog: ContentModuleCatalog;
   private readonly registry: PersistentInstalledModuleRegistry;
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
+  private readonly retryTimers = new Map<string, number>();
+  private readonly handleOnline = (): void => {
+    for (const timer of this.retryTimers.values()) window.clearTimeout(timer);
+    this.retryTimers.clear();
+    recoverPendingModuleInstalls(
+      this,
+      this.catalog,
+      new Set(this.listInstalled().map((module) => module.moduleId)),
+    );
+  };
 
   public constructor(catalog: ContentModuleCatalog) {
     this.catalog = catalog;
@@ -342,18 +353,62 @@ export class BrowserContentModuleRuntime {
       3,
     );
     this.installer.subscribe((task) => {
-      if (['completed', 'failed', 'cancelled'].includes(task.state)) {
+      if (task.state === 'completed') {
+        this.clearRetry(task.moduleId, task.version);
         dequeuePendingModuleInstall(task.moduleId, task.version);
+      } else if (task.state === 'cancelled') {
+        this.clearRetry(task.moduleId, task.version);
+        discardPendingModuleInstall(task.moduleId, task.version);
+      } else if (task.state === 'failed') {
+        if (isTransientDownloadError(new Error(task.errorMessage ?? ''))) {
+          this.scheduleRetry(task);
+        } else {
+          discardPendingModuleInstall(task.moduleId, task.version);
+        }
       }
     });
-    if (!recoveryStarted) {
-      recoveryStarted = true;
-      recoverPendingModuleInstalls(
-        this,
-        catalog,
-        new Set(this.listInstalled().map((module) => module.moduleId)),
+    window.addEventListener('online', this.handleOnline);
+    recoverPendingModuleInstalls(
+      this,
+      catalog,
+      new Set(this.listInstalled().map((module) => module.moduleId)),
+    );
+  }
+
+  private retryKey(moduleId: string, version: string): string {
+    return `${moduleId}@${version}`;
+  }
+
+  private clearRetry(moduleId: string, version: string): void {
+    const key = this.retryKey(moduleId, version);
+    const timer = this.retryTimers.get(key);
+    if (timer !== undefined) window.clearTimeout(timer);
+    this.retryTimers.delete(key);
+  }
+
+  private scheduleRetry(task: ContentModuleDownloadTask): void {
+    const key = this.retryKey(task.moduleId, task.version);
+    if (this.retryTimers.has(key)) return;
+    const timer = window.setTimeout(() => {
+      this.retryTimers.delete(key);
+      if (navigator.onLine === false) {
+        this.scheduleRetry(task);
+        return;
+      }
+      const module = this.catalog.modules.find(
+        (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
       );
-    }
+      if (module?.releaseState !== 'published') {
+        discardPendingModuleInstall(task.moduleId, task.version);
+        return;
+      }
+      try {
+        this.install(module);
+      } catch {
+        discardPendingModuleInstall(task.moduleId, task.version);
+      }
+    }, MODULE_REQUEUE_DELAY_MS);
+    this.retryTimers.set(key, timer);
   }
 
   public listInstalled(): readonly InstalledContentModule[] {
@@ -369,6 +424,7 @@ export class BrowserContentModuleRuntime {
   }
 
   public install(module: ContentModuleCatalogEntry): ContentModuleDownloadTask {
+    this.clearRetry(module.id, module.version);
     enqueuePendingModuleInstall(module.id, module.version, false);
     return this.installer.install({
       moduleId: module.id,
@@ -377,12 +433,70 @@ export class BrowserContentModuleRuntime {
     });
   }
 
+  public updateCatalog(catalog: ContentModuleCatalog): void {
+    this.catalog = catalog;
+    this.installer.updateCatalog(catalog);
+    recoverPendingModuleInstalls(
+      this,
+      catalog,
+      new Set(this.listInstalled().map((module) => module.moduleId)),
+    );
+  }
+
   public getCatalog(): ContentModuleCatalog {
     return this.catalog;
   }
 
   public wait(taskId: string): Promise<ContentModuleDownloadTask> {
     return this.installer.wait(taskId);
+  }
+
+  public isRetryScheduled(task: ContentModuleDownloadTask): boolean {
+    return this.retryTimers.has(this.retryKey(task.moduleId, task.version));
+  }
+
+  public retry(taskId: string): ContentModuleDownloadTask {
+    const task = this.installer.listTasks().find((candidate) => candidate.id === taskId);
+    if (!task) throw new Error(`Неизвестная задача загрузки: ${taskId}.`);
+    const module = this.catalog.modules.find(
+      (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
+    );
+    if (!module) throw new Error(`Набор ${task.moduleId}@${task.version} отсутствует в каталоге.`);
+    return this.install(module);
+  }
+
+  public retryFailed(): void {
+    const retried = new Set<string>();
+    for (const task of this.installer.listTasks().toReversed()) {
+      const key = this.retryKey(task.moduleId, task.version);
+      if (task.state !== 'failed' || retried.has(key)) continue;
+      retried.add(key);
+      this.retry(task.id);
+    }
+  }
+
+  public cancel(taskId: string): void {
+    const task = this.installer.cancel(taskId);
+    this.clearRetry(task.moduleId, task.version);
+    discardPendingModuleInstall(task.moduleId, task.version);
+  }
+
+  public cancelAll(): void {
+    for (const task of this.installer.listTasks()) {
+      if (
+        !['completed', 'failed', 'cancelled'].includes(task.state) ||
+        this.isRetryScheduled(task)
+      ) {
+        this.cancel(task.id);
+      }
+    }
+  }
+
+  public dispose(): void {
+    this.cancelAll();
+    for (const timer of this.retryTimers.values()) window.clearTimeout(timer);
+    this.retryTimers.clear();
+    window.removeEventListener('online', this.handleOnline);
   }
 
   public async remove(moduleId: string): Promise<void> {

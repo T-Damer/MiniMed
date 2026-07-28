@@ -14,7 +14,7 @@ export const MODULE_RELEASE_LABELS: Readonly<
 };
 
 export const MODULE_TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> = {
-  queued: 'Ожидает загрузки',
+  queued: 'В очереди',
   downloading: 'Скачивается',
   verifying: 'Проверяется',
   installing: 'Устанавливается',

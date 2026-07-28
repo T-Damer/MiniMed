@@ -16,7 +16,7 @@
     "apps/app": {
       "name": "@localmed/app",
       "dependencies": {
-        "@capacitor/app": "^8.0.0",
+        "@capacitor/app": "8.1.1",
         "@capacitor/core": "8.4.2",
         "@capacitor/local-notifications": "8.2.1",
         "@kobalte/core": "0.13.7",

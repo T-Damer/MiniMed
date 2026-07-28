@@ -1,8 +1,14 @@
 import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
+import { fullDocumentCandidateIds } from '@localmed/core';
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { DocumentReaderDialog } from '@/features/library/DocumentReaderDialog';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import {
+  getContentModuleRuntime,
+  peekContentModuleRuntime,
+} from '@/features/modules/module-runtime-service';
 import { OPEN_DOCUMENT_EVENT, type OpenDocumentRequest } from '@/state/document-navigation';
 
 interface DocumentOverlayHostProps {
@@ -41,6 +47,7 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
     readonly MedicalDocumentSummary[]
   >([]);
   const [loading, setLoading] = createSignal(false);
+  const [loadingTitle, setLoadingTitle] = createSignal('Открываем документ');
   const [openError, setOpenError] = createSignal<string | null>(null);
 
   const listDocuments = async (core: MedicalCore): Promise<readonly MedicalDocumentSummary[]> => {
@@ -91,6 +98,7 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
       return;
     }
     setOpenError(null);
+    setLoadingTitle('Открываем документ');
     setLoading(true);
     try {
       const document = await loadDocument(core, request);
@@ -124,6 +132,81 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
     }
   };
 
+  const requestFullText = async (openedId: string, summary: MedicalDocument): Promise<void> => {
+    let core = props.getCore();
+    if (!core) throw new Error('Локальный поиск ещё не готов.');
+    let documents = await listDocuments(core);
+    let fullDocumentId = resolveReadableDocumentId(
+      summary.id,
+      new Set(documents.map((document) => document.id)),
+    );
+    let readerHidden = false;
+    try {
+      if (fullDocumentId === summary.id) {
+        const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+        const candidateIds = new Set(fullDocumentCandidateIds(summary.id));
+        const matchingModules = runtime
+          .getCatalog()
+          .modules.filter(
+            (module) =>
+              module.releaseState === 'published' &&
+              module.documents.some((document) => candidateIds.has(document.documentId)),
+          );
+        const module =
+          matchingModules.find((candidate) =>
+            candidate.tags.includes('individual-recommendation'),
+          ) ?? matchingModules[0];
+        if (!module) {
+          throw new Error('Полная версия этой рекомендации пока недоступна для загрузки.');
+        }
+
+        const installed = runtime
+          .listInstalled()
+          .some((item) => item.moduleId === module.id && item.version === module.version);
+        if (!installed) {
+          const task = runtime.install(module);
+          const completed = await runtime.wait(task.id);
+          if (completed.state !== 'completed') {
+            throw new Error(completed.errorMessage ?? 'Не удалось загрузить полную рекомендацию.');
+          }
+        }
+
+        if (!props.reconnectContent) {
+          throw new Error('Документ загружен, но локальный поиск не удалось обновить.');
+        }
+        setLoadingTitle('Подключаем полную версию');
+        setLoading(true);
+        readerHidden = true;
+        await props.reconnectContent();
+        core = props.getCore();
+        if (!core) throw new Error('Локальный поиск ещё не готов.');
+        documents = await listDocuments(core);
+        fullDocumentId = resolveReadableDocumentId(
+          summary.id,
+          new Set(documents.map((document) => document.id)),
+        );
+      } else {
+        setLoadingTitle('Открываем полную версию');
+        setLoading(true);
+        readerHidden = true;
+      }
+
+      if (fullDocumentId === summary.id) {
+        throw new Error('Полная рекомендация загружена, но не подключилась к локальной базе.');
+      }
+      const result = await core.getDocument(fullDocumentId);
+      if (!result.ok) throw new Error(userFacingOpenError(result.error.message));
+      setAvailableDocuments(documents);
+      setOpenedDocuments((current) =>
+        current.map((opened) =>
+          opened.id === openedId ? { ...opened, document: result.value, anchor: null } : opened,
+        ),
+      );
+    } finally {
+      if (readerHidden) setLoading(false);
+    }
+  };
+
   const handleOpen = (event: Event): void => {
     const request = parseRequest((event as CustomEvent<unknown>).detail);
     if (request) void open(request);
@@ -137,7 +220,7 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
       <Show when={loading()}>
         <OverlayDialog
           open
-          title="Открываем документ"
+          title={loadingTitle()}
           subtitle="Загружаем полный текст из локальной базы"
           class="document-overlay-loading"
           onClose={() => {
@@ -164,18 +247,21 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
         )}
       </Show>
 
-      <For each={openedDocuments()}>
-        {(opened, index) => (
-          <DocumentReaderDialog
-            document={opened.document}
-            availableDocuments={availableDocuments()}
-            initialAnchor={opened.anchor}
-            onClose={() => {
-              setOpenedDocuments((current) => current.slice(0, index()));
-            }}
-          />
-        )}
-      </For>
+      <Show when={!loading()}>
+        <For each={openedDocuments()}>
+          {(opened, index) => (
+            <DocumentReaderDialog
+              document={opened.document}
+              availableDocuments={availableDocuments()}
+              initialAnchor={opened.anchor}
+              onRequestFullText={(document) => requestFullText(opened.id, document)}
+              onClose={() => {
+                setOpenedDocuments((current) => current.slice(0, index()));
+              }}
+            />
+          )}
+        </For>
+      </Show>
     </>
   );
 }

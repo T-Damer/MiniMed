@@ -39,9 +39,12 @@ test('translates vertical wheel movement into horizontal mode scrolling', async 
   await mountBuiltApp(page);
 
   const modes = page.locator('.search-mode-picker');
-  await modes.hover();
+  const viewport = page.locator('.query-shortcuts [data-overlayscrollbars-viewport]');
+  const bounds = await modes.boundingBox();
+  if (!bounds) throw new Error('Search modes are not visible.');
+  await page.mouse.move(bounds.x + 8, bounds.y + 4);
   await page.mouse.wheel(0, 180);
-  await expect.poll(() => modes.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  await expect.poll(() => viewport.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
 });
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
@@ -113,17 +116,14 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await page.getByRole('button', { name: /^Документы/u }).click();
   await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Всегда доступно/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Лекарства, документы и нормы/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Клинические рекомендации/u })).toBeVisible();
   await page.getByRole('button', { name: /Клинические рекомендации/u }).click();
   await expect(page).toHaveURL(/#\/modules\/documents\/recommendations/u);
   await expect(page.getByRole('button', { name: /^Инфекционные болезни/u })).toBeVisible();
+  await expect(page.locator('.recommendation-section-card')).toHaveCount(21);
   await expect(page.getByText('Обновление списка наборов')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Назад' }).click();
-  await page.getByRole('button', { name: /Клиническая педиатрия/u }).click();
-  await expect(page).toHaveURL(/#\/modules\/documents\/collection\//u);
-  await expect(page.getByRole('button', { name: 'Назад' })).toHaveCount(1);
   await page.getByRole('button', { name: 'Назад' }).click();
   await page.getByRole('button', { name: /Всегда доступно/u }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();

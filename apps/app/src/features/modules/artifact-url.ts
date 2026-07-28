@@ -10,7 +10,7 @@ function resolveRelativeModulePath(path: string): string {
   if (typeof base !== 'string' || base.trim().length === 0) {
     throw new Error('BASE_URL is not configured for module artifact resolution.');
   }
-  return new URL(normalized, base).toString();
+  return new URL(normalized, new URL(base, window.location.href)).toString();
 }
 
 function localModuleArtifactUrl(fileName: string): string | null {
@@ -44,6 +44,11 @@ export function resolveContentModuleArtifactUrl(url: string): string {
     const fileName = releaseMatch[4] ?? '';
     if (owner === 'T-Damer' && repo === 'MiniMed' && fileName.length > 0 && releaseTag.length > 0) {
       if (fileName.startsWith('clinical-') && fileName.endsWith('.db')) {
+        if (import.meta.env.DEV && typeof window !== 'undefined') {
+          return resolveRelativeModulePath(
+            `./content/releases/${encodeURIComponent(releaseTag)}/${encodeURIComponent(fileName)}`,
+          );
+        }
         return trimmed;
       }
       if (import.meta.env.DEV) {

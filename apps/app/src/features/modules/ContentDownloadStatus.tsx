@@ -1,5 +1,4 @@
 import type { ContentModuleDownloadTask } from '@localmed/contracts';
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-solid';
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -8,6 +7,7 @@ import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
   getContentModuleRuntime,
+  peekContentModuleRuntime,
   subscribeContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
 
@@ -20,7 +20,7 @@ interface TaskMetrics {
 }
 
 const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> = {
-  queued: 'Ожидает загрузки',
+  queued: 'В очереди',
   downloading: 'Скачивается',
   verifying: 'Проверяем базу',
   installing: 'Подключаем к поиску',
@@ -65,9 +65,14 @@ function sanitizeErrorMessage(message: string | null): string | null {
   return message;
 }
 
-function describeTask(task: ContentModuleDownloadTask, metrics: TaskMetrics | undefined): string {
+function describeTask(
+  task: ContentModuleDownloadTask,
+  metrics: TaskMetrics | undefined,
+  retryScheduled: boolean,
+  queuePosition: number,
+): string {
   const progress = contentModuleTaskProgress(task);
-  if (task.state === 'queued') return 'Ждём свободный слот загрузки.';
+  if (task.state === 'queued') return `В очереди: ${queuePosition}. Запустится автоматически.`;
   if (task.state === 'downloading') {
     const parts = [];
     if (task.downloadedBytes > 0) {
@@ -81,10 +86,14 @@ function describeTask(task: ContentModuleDownloadTask, metrics: TaskMetrics | un
     if (metrics?.speedBytesPerSecond) {
       parts.push(`${formatBytes(metrics.speedBytesPerSecond)}/с`);
     }
-    return parts.join(' · ');
+    return parts.join(' · ') || 'Подключаемся к источнику…';
   }
   if (task.state === 'verifying') return 'Проверяем SHA-256 и целостность SQLite.';
   if (task.state === 'installing') return 'Подключаем новые документы к локальному поиску.';
+  if (task.state === 'failed' && retryScheduled) {
+    return 'Сеть недоступна. Освободили слот и повторим автоматически.';
+  }
+  if (task.state === 'failed') return 'Автоматический повтор остановлен: нужна проверка ошибки.';
   return sanitizeErrorMessage(task.errorMessage) ?? '';
 }
 
@@ -103,6 +112,8 @@ function aggregateProgress(tasks: readonly ContentModuleDownloadTask[]): number 
 export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): JSX.Element {
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
   const [metrics, setMetrics] = createSignal<Readonly<Record<string, TaskMetrics>>>({});
+  const [online, setOnline] = createSignal(navigator.onLine);
+  const [managerError, setManagerError] = createSignal('');
   // The floating card starts as a compact pill: downloads run on their own, so the expanded panel
   // is only worth screen space when the doctor asks for it.
   const [collapsed, setCollapsed] = createSignal(Boolean(props.floating));
@@ -113,6 +124,12 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
     string,
     { downloadedBytes: number; capturedAt: number; speedBytesPerSecond: number | null }
   >();
+  const handleOnline = (): void => {
+    setOnline(true);
+  };
+  const handleOffline = (): void => {
+    setOnline(false);
+  };
 
   const updateTasks = (runtime: BrowserContentModuleRuntime): void => {
     const nextTasks = runtime.listTasks();
@@ -153,15 +170,44 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
   };
 
   onMount(() => {
-    bindRuntime(getContentModuleRuntime(MODULE_CATALOG));
     unsubscribeRuntime = subscribeContentModuleRuntime(bindRuntime);
+    if (!peekContentModuleRuntime()) bindRuntime(getContentModuleRuntime(MODULE_CATALOG));
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
   });
   onCleanup(() => {
     unsubscribeTasks?.();
     unsubscribeRuntime?.();
+    window.removeEventListener('online', handleOnline);
+    window.removeEventListener('offline', handleOffline);
   });
 
   const visibleTasks = () => latestVisibleTasks(tasks());
+  const activeTasks = () =>
+    visibleTasks().filter((task) => !['completed', 'failed', 'cancelled'].includes(task.state));
+  const failedTasks = () => visibleTasks().filter((task) => task.state === 'failed');
+  const retryScheduled = (task: ContentModuleDownloadTask): boolean =>
+    currentRuntime?.isRetryScheduled(task) ?? false;
+  const queuePosition = (task: ContentModuleDownloadTask): number =>
+    Math.max(
+      1,
+      visibleTasks()
+        .filter((candidate) => candidate.state === 'queued')
+        .findIndex((candidate) => candidate.id === task.id) + 1,
+    );
+  const taskLabel = (task: ContentModuleDownloadTask): string =>
+    retryScheduled(task) ? 'Повторим автоматически' : TASK_LABELS[task.state];
+  const summary = (): string => {
+    if (!online()) return 'Нет сети — загрузки продолжатся автоматически после подключения.';
+    const downloading = visibleTasks().filter((task) => task.state === 'downloading').length;
+    const queued = visibleTasks().filter((task) => task.state === 'queued').length;
+    const parts = [
+      downloading > 0 ? `${downloading} скачивается` : '',
+      queued > 0 ? `${queued} в очереди` : '',
+      failedTasks().length > 0 ? `${failedTasks().length} требует внимания` : '',
+    ].filter(Boolean);
+    return parts.join(' · ') || 'Проверяем и подключаем загруженные документы.';
+  };
 
   const moduleTitle = (task: ContentModuleDownloadTask): string =>
     currentRuntime
@@ -181,32 +227,61 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
           <header class="content-download-status-heading">
             <div>
               <h3>Загрузка наборов</h3>
-              <p>
-                Частичные данные сохраняются. После перезапуска MiniMed продолжит загрузку
-                автоматически.
-              </p>
+              <p>{summary()}</p>
             </div>
             <Show when={!props.floating}>
               <span class="content-download-count">{visibleTasks().length}</span>
             </Show>
           </header>
-          <OverlayScrollbarsComponent
-            class="content-download-scroll"
-            options={{ scrollbars: { autoHide: 'scroll' } }}
-            defer
-          >
+          <Show when={activeTasks().length > 0 || failedTasks().length > 0}>
+            <div class="content-download-status-actions">
+              <Show when={failedTasks().length > 0}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManagerError('');
+                    try {
+                      currentRuntime?.retryFailed();
+                    } catch (cause) {
+                      setManagerError(
+                        cause instanceof Error ? cause.message : 'Не удалось повторить загрузки.',
+                      );
+                    }
+                  }}
+                >
+                  Повторить ошибки
+                </button>
+              </Show>
+              <Show when={activeTasks().length > 0}>
+                <button type="button" onClick={() => currentRuntime?.cancelAll()}>
+                  Отменить все
+                </button>
+              </Show>
+            </div>
+          </Show>
+          <Show when={managerError()}>
+            <p class="content-download-manager-error" role="alert">
+              {managerError()}
+            </p>
+          </Show>
+          <div class="content-download-scroll">
             <ul>
               <For each={visibleTasks()}>
                 {(task) => {
                   const progress = () => contentModuleTaskProgress(task);
                   return (
-                    <li classList={{ failed: task.state === 'failed' }}>
+                    <li
+                      classList={{
+                        failed: task.state === 'failed' && !retryScheduled(task),
+                        retrying: retryScheduled(task),
+                      }}
+                    >
                       <div class="content-download-status-row">
                         <div>
                           <strong title={task.moduleId}>{moduleTitle(task)}</strong>
                           <small>Версия {task.version}</small>
                         </div>
-                        <span>{TASK_LABELS[task.state]}</span>
+                        <span>{taskLabel(task)}</span>
                       </div>
                       <Show when={progress() !== null}>
                         <div
@@ -220,21 +295,57 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
                         </div>
                       </Show>
                       <small class="content-download-status-detail">
-                        {describeTask(task, metrics()[task.id])}
+                        {describeTask(
+                          task,
+                          metrics()[task.id],
+                          retryScheduled(task),
+                          queuePosition(task),
+                        )}
                       </small>
-                      <Show when={task.errorMessage}>
+                      <Show when={retryScheduled(task) ? null : task.errorMessage}>
                         {(message) => (
                           <small class="content-download-status-error">
                             {sanitizeErrorMessage(message())}
                           </small>
                         )}
                       </Show>
+                      <div class="content-download-task-actions">
+                        <Show when={!['completed', 'failed', 'cancelled'].includes(task.state)}>
+                          <button type="button" onClick={() => currentRuntime?.cancel(task.id)}>
+                            Отменить
+                          </button>
+                        </Show>
+                        <Show when={task.state === 'failed'}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setManagerError('');
+                              try {
+                                currentRuntime?.retry(task.id);
+                              } catch (cause) {
+                                setManagerError(
+                                  cause instanceof Error
+                                    ? cause.message
+                                    : 'Не удалось повторить загрузку.',
+                                );
+                              }
+                            }}
+                          >
+                            Повторить сейчас
+                          </button>
+                          <Show when={retryScheduled(task)}>
+                            <button type="button" onClick={() => currentRuntime?.cancel(task.id)}>
+                              Не загружать
+                            </button>
+                          </Show>
+                        </Show>
+                      </div>
                     </li>
                   );
                 }}
               </For>
             </ul>
-          </OverlayScrollbarsComponent>
+          </div>
         </section>
       </Show>
       <Show when={props.floating}>

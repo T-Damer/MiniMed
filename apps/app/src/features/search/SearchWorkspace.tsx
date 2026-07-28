@@ -24,6 +24,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
 import { DocumentText } from '@/components/DocumentText';
 import { HighlightedText } from '@/components/HighlightedText';
+import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { SearchField } from '@/components/SearchField';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
@@ -466,6 +467,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             void runSearch(query(), true);
           }}
         >
+          <div class="query-actions query-mode-actions">
+            <HorizontalScroller class="query-shortcuts">{props.modePicker}</HorizontalScroller>
+          </div>
           <label class="sr-only" for="clinical-query">
             Поисковый запрос
           </label>
@@ -492,12 +496,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             spellcheck={false}
           />
           <div class="query-actions">
-            <div class="query-shortcuts">
-              {props.modePicker}
-              <Show when={query().length > 16_000}>
-                <strong>{query().length.toLocaleString('ru-RU')} / 20 000</strong>
-              </Show>
-            </div>
+            <Show when={query().length > 16_000}>
+              <strong class="query-character-count">
+                {query().length.toLocaleString('ru-RU')} / 20 000
+              </strong>
+            </Show>
             <div class="query-buttons">
               <Show when={query().length > 0}>
                 <button class="text-button clear-query-button" type="button" onClick={clearQuery}>

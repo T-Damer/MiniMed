@@ -4,6 +4,31 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.9] - 2026-07-28
+
+### Changed
+
+- Rebuilt the document download queue around one persistent runtime: transient failures now release
+  their slot before automatic retry, catalog refreshes no longer orphan active work, and the manager
+  shows real queue/offline/error states with retry and cancellation controls.
+- Restored native browser scrolling for pages and download lists; OverlayScrollbars is limited to
+  the two compact horizontal search strips.
+- Corrected thematic module checksums, removed duplicate download errors, and aligned the notes
+  create/scroll controls.
+- Moved search modes above the query field, kept horizontal scrollbars visible without edge
+  gradients, shifted hover motion to full result groups, and added confirmed red module deletion plus
+  open-book actions.
+- Merged the legacy clinical-pediatrics entry into clinical recommendations, exposed all 21 sections
+  immediately, hid completed progress bars, and stopped category removal from appearing as a stuck
+  zero-percent download while search reconnects; installed module cards now use a green outline
+  without replacing their normal paper background.
+- Added bottom-navigation clearance to search, knowledge-base, and notes pages.
+- Refined record editing with header-level tags and deletion, row-based reminder controls, a
+  drag-and-drop image tray, related-source cards, and an unsaved-changes guard.
+- Removed result-group tilt and moved record hover feedback from its inner button to the whole row.
+- Full-recommendation actions now download the matching JSON module in place and replace the open
+  summary with the connected full document instead of leaving the reader for the catalog.
+
 ## [0.6.8] - 2026-07-28
 
 ### Changed

@@ -322,6 +322,18 @@
   margin-top: 0.5rem;
 }
 
+.document-overlay-full-text:disabled,
+.document-overlay-full-text-inline:disabled {
+  cursor: progress;
+  opacity: 0.68;
+}
+
+.document-overlay-full-text-error {
+  max-width: 52ch;
+  margin: 0.5rem 0 0;
+  color: var(--theme-danger);
+}
+
 .document-inline-link {
   display: inline;
   padding: 0;

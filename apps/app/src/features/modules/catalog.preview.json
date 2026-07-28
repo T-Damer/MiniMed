@@ -399,7 +399,7 @@
           "kind": "index",
           "required": true,
           "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-respiratory-pediatrics-full-0.3.4-preview.1.db",
-          "sha256": "sha256:95198fe5317c127423b14f38c7e12b54bf9ed81296abd8688da30b77138183b1",
+          "sha256": "sha256:f51b7abfbf7e71ec5cb18d703bb122e27eaae03587af09ff699ff7d8a4fb1bed",
           "sizeBytes": 6049792,
           "compression": "none",
           "sourceSetDigest": "sha256:7db915167a927d900dde33439f71880df4a0ff4b4f6604ff5c74f2708cbe2efe"
@@ -754,7 +754,7 @@
           "kind": "index",
           "required": true,
           "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-regulatory-pediatrics-0.3.4-preview.1.db",
-          "sha256": "sha256:b2d1f54ef6ba36f95c849d47a8089c6d7e53c36d2a32f22d24e45a19b7b6f485",
+          "sha256": "sha256:61b82c9cc8a6899b24e7b6208642a35ef1a448e15c08990df3c79c7b911ca040",
           "sizeBytes": 401408,
           "compression": "none",
           "sourceSetDigest": "sha256:119e4b8a7767314a8cec9e84b30f6e8308b90479eb0a8bba0b625289c914e13c"

@@ -1,6 +1,7 @@
 import type { MedicalDocumentSummary, MedicalSection } from '@localmed/contracts';
 import {
   fullDocumentCandidateId,
+  fullDocumentCandidateIds,
   hasFullTextSibling,
   isSupersededSummaryDocument,
   resolveReadableDocumentId,
@@ -14,6 +15,7 @@ const REGISTRY_SECTION_PATTERN = /регистрационн|ограничен/
 
 export {
   fullDocumentCandidateId,
+  fullDocumentCandidateIds,
   hasFullTextSibling,
   isSupersededSummaryDocument,
   resolveReadableDocumentId,
@@ -62,11 +64,5 @@ export function preferReadableDocuments(
   documents: readonly MedicalDocumentSummary[],
 ): readonly MedicalDocumentSummary[] {
   const availableIds = new Set(documents.map((document) => document.id));
-  const hiddenSummaryIds = new Set(
-    documents
-      .filter((document) => document.id.endsWith('.full'))
-      .map((document) => document.id.replace(/\.full$/, ''))
-      .filter((summaryId) => availableIds.has(summaryId)),
-  );
-  return documents.filter((document) => !hiddenSummaryIds.has(document.id));
+  return documents.filter((document) => !isSupersededSummaryDocument(document.id, availableIds));
 }

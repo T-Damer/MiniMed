@@ -32,7 +32,10 @@ import {
   MODULE_TASK_LABELS,
   primaryModuleDocumentId,
 } from '@/features/modules/module-display';
-import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import {
+  getContentModuleRuntime,
+  peekContentModuleRuntime,
+} from '@/features/modules/module-runtime-service';
 import {
   modulesInCategory,
   recommendationCategoryDownloadProgress,
@@ -117,10 +120,11 @@ function categoryInstallLabel(
 }
 
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
-  const [catalog, setCatalog] = createSignal<ContentModuleCatalog>(MODULE_CATALOG);
+  const initialRuntime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+  const [catalog, setCatalog] = createSignal<ContentModuleCatalog>(initialRuntime.getCatalog());
   const [warning, setWarning] = createSignal<string | null>(null);
   const [refreshing, setRefreshing] = createSignal(false);
-  const [runtime, setRuntime] = createSignal(getContentModuleRuntime(MODULE_CATALOG));
+  const [runtime, setRuntime] = createSignal(initialRuntime);
   const [installed, setInstalled] = createSignal<readonly InstalledContentModule[]>(
     runtime().listInstalled(),
   );
@@ -131,7 +135,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [recommendationCategory, setRecommendationCategory] = createSignal('');
   const [recommendationBrowserOpen, setRecommendationBrowserOpen] = createSignal(false);
   const [regularCollection, setRegularCollection] = createSignal('');
-  const [showAllCategories, setShowAllCategories] = createSignal(false);
   const [busyCategories, setBusyCategories] = createSignal<ReadonlySet<string>>(new Set());
   const [installingAll, setInstallingAll] = createSignal(false);
   const [helpCategory, setHelpCategory] = createSignal<ContentModuleCategory | null>(null);
@@ -169,16 +172,19 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   };
   const openCollection = (collection: string): void => {
     window.location.hash = `#/modules/documents/collection/${encodeURIComponent(collection)}`;
+    syncSelectionFromLocation();
   };
   const openCategory = (categoryId: string): void => {
     window.location.hash = `#/modules/documents/category/${encodeURIComponent(categoryId)}`;
+    syncSelectionFromLocation();
   };
   const openRecommendations = (): void => {
     window.location.hash = '#/modules/documents/recommendations';
+    syncSelectionFromLocation();
   };
 
   onMount(() => {
-    bindRuntime(MODULE_CATALOG);
+    bindRuntime(catalog());
     syncSelectionFromLocation();
     window.addEventListener('hashchange', syncSelectionFromLocation);
   });
@@ -191,7 +197,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     catalog().modules.filter((module) => module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
   );
   const regularModules = createMemo(() =>
-    catalog().modules.filter((module) => !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
+    catalog().modules.filter(
+      (module) =>
+        module.kind !== 'clinical' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
+    ),
   );
   const collections = createMemo(() => [
     ...new Set(regularModules().map((module) => module.collection)),
@@ -240,9 +249,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     return category ? categoryModules(category.id) : [];
   });
   const browsingSearch = createMemo(() => Boolean(recommendationQuery().trim()));
-  const visibleCategories = createMemo(() =>
-    showAllCategories() ? catalog().categories : catalog().categories.slice(0, 6),
-  );
   const moduleDocumentTitle = (documentId: string): string => {
     const catalogDocumentId = documentId.match(/^kr\.rf\.\d+_\d+/u)?.[0] ?? documentId;
     return (
@@ -317,10 +323,16 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
   const installedModule = (moduleId: string): InstalledContentModule | undefined =>
     installed().find((item) => item.moduleId === moduleId);
-  const moduleTask = (moduleId: string): ContentModuleDownloadTask | undefined =>
-    tasks()
+  const moduleTask = (moduleId: string): ContentModuleDownloadTask | undefined => {
+    const latest = tasks()
       .filter((task) => task.moduleId === moduleId)
       .toSorted((left, right) => right.id.localeCompare(left.id))[0];
+    return latest && !['completed', 'cancelled'].includes(latest.state) ? latest : undefined;
+  };
+  const moduleRetryScheduled = (moduleId: string): boolean => {
+    const task = moduleTask(moduleId);
+    return Boolean(task && runtime().isRetryScheduled(task));
+  };
 
   const install = async (module: ContentModuleCatalogEntry, reconnect = true): Promise<boolean> => {
     setWarning(null);
@@ -417,6 +429,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
   const removeCategory = async (categoryId = recommendationCategory()): Promise<void> => {
     if (!categoryId) return;
+    const title = catalog().categories.find((category) => category.id === categoryId)?.title;
+    if (!window.confirm(`Удалить раздел «${title ?? categoryId}» с устройства?`)) return;
+    let removed = false;
     await withCategoryBusy(categoryId, async () => {
       const modules = categoryModules(categoryId);
       if (modules.length === 0) return;
@@ -424,14 +439,17 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       try {
         await removeInstalledCategoryModules(runtime(), modules, installedModuleIds());
         setInstalled(runtime().listInstalled());
-        await connectContentChanges();
+        removed = true;
       } catch (cause) {
         setWarning(cause instanceof Error ? cause.message : 'Не удалось удалить раздел.');
       }
     });
+    if (removed) await connectContentChanges();
   };
 
   const remove = async (moduleId: string, reconnect = true): Promise<void> => {
+    const title = catalog().modules.find((module) => module.id === moduleId)?.title;
+    if (!window.confirm(`Удалить набор «${title ?? moduleId}» с устройства?`)) return;
     try {
       await runtime().remove(moduleId);
       setInstalled(runtime().listInstalled());
@@ -656,6 +674,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       module={module}
                       installed={installedModule(module.id)}
                       task={moduleTask(module.id)}
+                      retryScheduled={moduleRetryScheduled(module.id)}
                       fallbackError={installErrors()[module.id]}
                       onInspect={() => setDetailsModule(module)}
                       onOpenError={(message) =>
@@ -696,7 +715,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             />
 
             <div class="recommendation-section-grid recommendation-section-grid-compact">
-              <For each={visibleCategories()}>
+              <For each={catalog().categories}>
                 {(category) => {
                   const stats = () =>
                     recommendationCategoryStats(
@@ -739,24 +758,25 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           ?
                         </button>
                       </div>
-                      <div
-                        class="recommendation-section-progress"
-                        classList={{ complete: downloadProgress().installedFraction === 1 }}
-                        role="progressbar"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={Math.round(
-                          (showByteProgress() ?? downloadProgress().installedFraction) * 100,
-                        )}
-                      >
-                        <i
-                          style={{
-                            width: `${Math.round(
-                              (showByteProgress() ?? downloadProgress().installedFraction) * 100,
-                            )}%`,
-                          }}
-                        />
-                      </div>
+                      <Show when={downloadProgress().installedFraction < 1}>
+                        <div
+                          class="recommendation-section-progress"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round(
+                            (showByteProgress() ?? downloadProgress().installedFraction) * 100,
+                          )}
+                        >
+                          <i
+                            style={{
+                              width: `${Math.round(
+                                (showByteProgress() ?? downloadProgress().installedFraction) * 100,
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </Show>
                       <div class="recommendation-section-actions">
                         <Show
                           when={stats().pendingCount > 0}
@@ -796,17 +816,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 }}
               </For>
             </div>
-            <Show when={catalog().categories.length > 6}>
-              <button
-                type="button"
-                class="module-show-all-sections"
-                onClick={() => setShowAllCategories((current) => !current)}
-              >
-                {showAllCategories()
-                  ? 'Свернуть список'
-                  : `Все разделы · ${catalog().categories.length}`}
-              </button>
-            </Show>
           </Show>
 
           <Show when={browsingSection() || browsingSearch()}>
@@ -864,14 +873,16 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 {(module) => {
                   const installedValue = () => installedModule(module.id);
                   const task = () => moduleTask(module.id);
+                  const retryScheduled = () => moduleRetryScheduled(module.id);
                   const progress = () =>
                     task() ? contentModuleTaskProgress(task() as ContentModuleDownloadTask) : null;
                   const installError = () =>
-                    task()?.state === 'failed'
+                    task()?.state === 'failed' && !retryScheduled()
                       ? task()?.errorMessage || 'Не удалось скачать документ.'
                       : installErrors()[module.id] || null;
                   const working = () =>
-                    task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? '');
+                    retryScheduled() ||
+                    (task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? ''));
                   return (
                     <article class="recommendation-row paper-card recommendation-row-compact">
                       <div>
@@ -893,22 +904,27 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                             ? ' · установлено'
                             : ` · ${formatModuleBytes(module.sizes.downloadBytes)}`}
                         </span>
-                        <Show when={working() && progress() !== null}>
+                        <Show when={!installedValue() && working() && progress() !== null}>
                           <div class="recommendation-row-progress" role="progressbar">
                             <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
                           </div>
                         </Show>
-                        <Show when={installError()}>
-                          {(message) => (
-                            <ModuleTaskStatus
-                              label={MODULE_TASK_LABELS[task()?.state ?? 'failed']}
-                              progress={null}
-                              errorMessage={message()}
-                              onOpenError={() =>
-                                setLoadErrorDetails({ title: module.title, message: message() })
-                              }
-                            />
-                          )}
+                        <Show when={retryScheduled() || installError()}>
+                          <ModuleTaskStatus
+                            label={
+                              retryScheduled()
+                                ? 'Повторим автоматически'
+                                : MODULE_TASK_LABELS[task()?.state ?? 'failed']
+                            }
+                            progress={null}
+                            errorMessage={retryScheduled() ? null : installError()}
+                            onOpenError={() =>
+                              setLoadErrorDetails({
+                                title: module.title,
+                                message: installError() ?? 'Не удалось скачать документ.',
+                              })
+                            }
+                          />
                         </Show>
                       </div>
                       <Show
@@ -934,20 +950,16 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           </div>
                         }
                       >
-                        <button
-                          type="button"
-                          disabled={module.releaseState !== 'published' || Boolean(working())}
-                          onClick={() => void install(module)}
-                        >
-                          <Show when={!working()} fallback={<span class="module-action-spinner" />}>
+                        <Show when={!working()}>
+                          <button
+                            type="button"
+                            disabled={module.releaseState !== 'published'}
+                            onClick={() => void install(module)}
+                          >
                             <AppGlyph name="download" />
-                          </Show>
-                          {working()
-                            ? progress() !== null
-                              ? `${Math.round((progress() ?? 0) * 100)}%`
-                              : MODULE_TASK_LABELS[task()?.state ?? 'queued']
-                            : 'Скачать'}
-                        </button>
+                            Скачать
+                          </button>
+                        </Show>
                       </Show>
                     </article>
                   );

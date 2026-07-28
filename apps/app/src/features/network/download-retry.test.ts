@@ -31,6 +31,7 @@ describe('isTransientDownloadError', () => {
     expect(isTransientDownloadError(new Error('Сервер ответил HTTP 503.'))).toBe(true);
     expect(isTransientDownloadError(new Error('Сервер ответил HTTP 429.'))).toBe(true);
     expect(isTransientDownloadError(new Error('Размер файла не совпал: 10 != 20.'))).toBe(true);
+    expect(isTransientDownloadError(new Error('Ошибка из-за нестабильной сети.'))).toBe(true);
   });
 
   it('never retries an abort or a permanent failure', () => {

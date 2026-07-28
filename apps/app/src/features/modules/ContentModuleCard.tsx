@@ -20,6 +20,7 @@ interface ContentModuleCardProps {
   readonly module: ContentModuleCatalogEntry;
   readonly installed?: InstalledContentModule | undefined;
   readonly task?: ContentModuleDownloadTask | undefined;
+  readonly retryScheduled?: boolean | undefined;
   readonly fallbackError?: string | null | undefined;
   readonly onInspect: () => void;
   readonly onOpenError: (message: string) => void;
@@ -33,11 +34,14 @@ interface ContentModuleCardProps {
 export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
   const progress = (): number | null => (props.task ? contentModuleTaskProgress(props.task) : null);
   const installError = (): string | null =>
-    props.task?.state === 'failed'
+    props.task?.state === 'failed' && !props.retryScheduled
       ? props.task.errorMessage || 'Не удалось скачать набор.'
       : props.fallbackError || null;
   const working = (): boolean =>
-    Boolean(props.task && !['completed', 'failed', 'cancelled'].includes(props.task.state));
+    Boolean(
+      props.retryScheduled ||
+        (props.task && !['completed', 'failed', 'cancelled'].includes(props.task.state)),
+    );
   const updateAvailable = (): boolean =>
     Boolean(
       props.installed &&
@@ -84,7 +88,11 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
 
       <Show when={props.task || installError()}>
         <ModuleTaskStatus
-          label={MODULE_TASK_LABELS[props.task?.state ?? 'failed']}
+          label={
+            props.retryScheduled
+              ? 'Повторим автоматически'
+              : MODULE_TASK_LABELS[props.task?.state ?? 'failed']
+          }
           progress={progress()}
           errorMessage={installError()}
           onOpenError={() => props.onOpenError(installError() ?? 'Не удалось скачать набор.')}
@@ -95,7 +103,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         when={!props.module.required}
         fallback={
           <button type="button" onClick={props.onOpenCore}>
-            Открыть документы ядра
+            <AppGlyph name="book-open" /> Открыть документы ядра
           </button>
         }
       >
@@ -110,7 +118,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
               </Show>
               <Show when={primaryModuleDocumentId(props.module)}>
                 <button type="button" onClick={props.onOpenDocument}>
-                  Открыть
+                  <AppGlyph name="book-open" /> Открыть
                 </button>
               </Show>
               <button type="button" class="module-remove-button" onClick={props.onRemove}>
@@ -119,20 +127,16 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
             </div>
           }
         >
-          <button
-            type="button"
-            disabled={props.module.releaseState !== 'published' || working()}
-            onClick={props.onInstall}
-          >
-            <Show when={!working()} fallback={<span class="module-action-spinner" />}>
+          <Show when={!working()}>
+            <button
+              type="button"
+              disabled={props.module.releaseState !== 'published'}
+              onClick={props.onInstall}
+            >
               <AppGlyph name="download" />
-            </Show>
-            {working()
-              ? MODULE_TASK_LABELS[props.task?.state ?? 'queued']
-              : props.module.releaseState === 'published'
-                ? 'Скачать документы'
-                : 'Пока недоступно'}
-          </button>
+              {props.module.releaseState === 'published' ? 'Скачать документы' : 'Пока недоступно'}
+            </button>
+          </Show>
         </Show>
       </Show>
 

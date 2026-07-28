@@ -90,6 +90,11 @@ describe('document-display', () => {
     );
   });
 
+  it('prefers installed structured recommendations over starter summaries', () => {
+    const available = new Set(['kr.rf.714_2.pneumonia', 'kr.rf.714_2']);
+    expect(resolveReadableDocumentId('kr.rf.714_2.pneumonia', available)).toBe('kr.rf.714_2');
+  });
+
   it('hides pilot summaries when full-text packs are installed', () => {
     const visible = preferReadableDocuments([
       {
@@ -116,6 +121,34 @@ describe('document-display', () => {
       },
     ]);
     expect(visible.map((document) => document.id)).toEqual(['kr.rf.714_2.pneumonia.full']);
+  });
+
+  it('hides starter summaries when their structured recommendation is installed', () => {
+    const visible = preferReadableDocuments([
+      {
+        id: 'kr.rf.714_2.pneumonia',
+        title: 'Внебольничная пневмония у детей',
+        shortTitle: null,
+        sourceType: 'clinical_recommendation_summary',
+        status: 'active',
+        specialties: [],
+        versionId: 'v1',
+        versionLabel: '714_2-2025',
+        effectiveFrom: null,
+      },
+      {
+        id: 'kr.rf.714_2',
+        title: 'Пневмония (внебольничная)',
+        shortTitle: null,
+        sourceType: 'clinical_recommendation',
+        status: 'active',
+        specialties: [],
+        versionId: 'v2',
+        versionLabel: '714_2',
+        effectiveFrom: null,
+      },
+    ]);
+    expect(visible.map((document) => document.id)).toEqual(['kr.rf.714_2']);
   });
 
   it('detects full-text siblings for summary cards', () => {

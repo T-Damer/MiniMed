@@ -74,6 +74,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
   await page.getByRole('button', { name: /Лекарства, документы и нормы/u }).click();
+  page.once('dialog', (dialog) => dialog.accept());
   await card.getByRole('button', { name: 'Удалить с устройства' }).click();
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible({
     timeout: 15_000,
@@ -90,4 +91,56 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await expect(
     page.getByTestId('search-results').getByText('Внебольничная пневмония у детей').first(),
   ).toBeVisible();
+});
+
+test('shows the real download state and resumes automatically when the network returns', async ({
+  page,
+  context,
+}) => {
+  const [catalog, database] = await Promise.all([
+    readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
+    readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
+  ]);
+  const catalogValue = JSON.parse(catalog) as { publishedAt: string };
+  catalogValue.publishedAt = '2099-01-01T00:00:00Z';
+
+  await page.route(
+    (url) => url.href.startsWith(CATALOG_URL),
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json; charset=utf-8',
+        body: JSON.stringify(catalogValue),
+      }),
+  );
+  let downloadAvailable = false;
+  await page.route(MODULE_URL, (route) =>
+    downloadAvailable
+      ? route.fulfill({
+          status: 200,
+          contentType: 'application/octet-stream',
+          body: database,
+          headers: { 'Content-Length': String(database.byteLength) },
+        })
+      : route.abort('internetdisconnected'),
+  );
+
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await navigationButton(page, 'База знаний').click();
+  await page.getByRole('button', { name: /^Документы/u }).click();
+  await page.getByRole('button', { name: /Лекарства, документы и нормы/u }).click();
+
+  await context.setOffline(true);
+  const card = regulatoryCard(page);
+  await card.getByRole('button', { name: 'Скачать документы' }).click();
+  await expect(card.getByRole('button', { name: 'Скачать документы' })).toHaveCount(0);
+  await page.locator('.content-download-pill').click();
+  const manager = page.locator('.content-download-status.floating');
+  await expect(manager).toContainText('Нет сети');
+  await expect(manager.getByRole('button', { name: 'Отменить', exact: true })).toBeVisible();
+
+  downloadAvailable = true;
+  await context.setOffline(false);
+  await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
+  await expect(manager).toHaveCount(0);
 });

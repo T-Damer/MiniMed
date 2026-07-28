@@ -5,12 +5,18 @@ import { deleteNoteImage, type NoteImage } from '@/state/note-images';
 
 export function NoteImagePicker(props: {
   readonly files: readonly File[];
+  readonly images: readonly NoteImage[];
   readonly error: string;
   readonly onFilesChange: (files: readonly File[]) => void;
+  readonly onError: (message: string) => void;
 }): JSX.Element {
+  const [dragging, setDragging] = createSignal(false);
   const [previews, setPreviews] = createSignal<
     readonly { readonly name: string; readonly url: string }[]
   >([]);
+  const appendFiles = (files: FileList | null): void => {
+    if (files?.length) props.onFilesChange([...props.files, ...Array.from(files)]);
+  };
 
   createEffect(() => {
     const next = props.files.map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
@@ -21,19 +27,60 @@ export function NoteImagePicker(props: {
   });
 
   return (
-    <>
-      <label class="note-image-picker">
-        <span class="note-image-picker-caption">Изображения</span>
+    <div class="record-images-editor paper-card">
+      <label
+        class="note-image-picker"
+        classList={{ dragging: dragging() }}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDragOver={(event) => event.preventDefault()}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragging(false);
+          appendFiles(event.dataTransfer?.files ?? null);
+        }}
+      >
+        <span class="visually-hidden">Добавить изображения</span>
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp,image/gif"
           multiple
-          onChange={(event) => props.onFilesChange(Array.from(event.currentTarget.files ?? []))}
+          onChange={(event) => {
+            appendFiles(event.currentTarget.files);
+            event.currentTarget.value = '';
+          }}
         />
-        <span class="note-image-picker-button">Выбрать изображения</span>
+        <span class="note-image-picker-plus" aria-hidden="true">
+          +
+        </span>
       </label>
-      <Show when={props.files.length > 0}>
+      <Show when={props.images.length > 0 || props.files.length > 0}>
         <div class="note-image-previews">
+          <For each={props.images}>
+            {(image) => (
+              <figure>
+                <a href={image.dataUrl} target="_blank" rel="noreferrer">
+                  <img src={image.dataUrl} alt={image.name} loading="lazy" />
+                </a>
+                <figcaption>{image.name}</figcaption>
+                <button
+                  type="button"
+                  aria-label={`Удалить изображение «${image.name}»`}
+                  title="Удалить изображение"
+                  onClick={() =>
+                    void deleteNoteImage(image.id).catch(() =>
+                      props.onError('Не удалось удалить изображение.'),
+                    )
+                  }
+                >
+                  <AppGlyph name="trash" />
+                </button>
+              </figure>
+            )}
+          </For>
           <For each={previews()}>
             {(preview) => (
               <figure>
@@ -49,40 +96,6 @@ export function NoteImagePicker(props: {
           {props.error}
         </p>
       </Show>
-    </>
-  );
-}
-
-export function NoteImageGallery(props: {
-  readonly images: readonly NoteImage[];
-  readonly onError: (message: string) => void;
-}): JSX.Element {
-  return (
-    <Show when={props.images.length > 0}>
-      <div class="patient-note-images paper-card">
-        <For each={props.images}>
-          {(image) => (
-            <figure>
-              <a href={image.dataUrl} target="_blank" rel="noreferrer">
-                <img src={image.dataUrl} alt={image.name} loading="lazy" />
-              </a>
-              <figcaption>{image.name}</figcaption>
-              <button
-                type="button"
-                aria-label={`Удалить изображение «${image.name}»`}
-                title="Удалить изображение"
-                onClick={() =>
-                  void deleteNoteImage(image.id).catch(() =>
-                    props.onError('Не удалось удалить изображение.'),
-                  )
-                }
-              >
-                <AppGlyph name="trash" />
-              </button>
-            </figure>
-          )}
-        </For>
-      </div>
-    </Show>
+    </div>
   );
 }
