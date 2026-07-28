@@ -10,6 +10,7 @@ import {
 } from '@/state/search-history';
 
 const HISTORY_LIMIT = 12;
+const CLOSE_DURATION_MS = 180;
 
 interface SearchHistoryPanelProps {
   readonly onReplay: (entry: SearchHistoryEntry) => void;
@@ -43,16 +44,34 @@ function formatDate(value: string): string {
 export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element {
   const [entries, setEntries] = createSignal<readonly SearchHistoryEntry[]>([]);
   const [open, setOpen] = createSignal(false);
+  const [closing, setClosing] = createSignal(false);
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
   const refresh = (): void => {
     setEntries(loadSearchHistory().slice(0, HISTORY_LIMIT));
+  };
+  const close = (): void => {
+    if (!open() || closing()) return;
+    setClosing(true);
+    closeTimer = setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, CLOSE_DURATION_MS);
+  };
+  const handleKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') close();
   };
 
   onMount(() => {
     refresh();
     window.addEventListener(SEARCH_HISTORY_EVENT, refresh);
+    window.addEventListener('keydown', handleKeyDown);
   });
-  onCleanup(() => window.removeEventListener(SEARCH_HISTORY_EVENT, refresh));
+  onCleanup(() => {
+    window.removeEventListener(SEARCH_HISTORY_EVENT, refresh);
+    window.removeEventListener('keydown', handleKeyDown);
+    if (closeTimer) clearTimeout(closeTimer);
+  });
 
   return (
     <>
@@ -61,7 +80,10 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
         type="button"
         aria-label={open() ? 'Скрыть историю поиска' : 'Показать историю поиска'}
         aria-expanded={open()}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          if (open()) close();
+          else setOpen(true);
+        }}
       >
         <AppGlyph name="menu" />
       </button>
@@ -69,9 +91,10 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
       <Show when={open()}>
         <div
           class="search-history-drawer-backdrop"
+          classList={{ closing: closing() }}
           role="presentation"
           onPointerDown={(event) => {
-            if (event.target === event.currentTarget) setOpen(false);
+            if (event.target === event.currentTarget) close();
           }}
         >
           <aside class="search-history-panel" aria-label="Недавние поисковые запросы">
@@ -83,7 +106,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                 </span>
                 <small>{entries().length}</small>
               </div>
-              <button type="button" aria-label="Закрыть историю" onClick={() => setOpen(false)}>
+              <button type="button" aria-label="Закрыть историю" onClick={close}>
                 <AppGlyph name="close" />
               </button>
             </header>
@@ -107,7 +130,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                           title={entry.query}
                           onClick={() => {
                             props.onReplay(entry);
-                            setOpen(false);
+                            close();
                           }}
                         >
                           <strong>{entry.query}</strong>

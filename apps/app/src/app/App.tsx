@@ -1,7 +1,10 @@
+import { App as NativeApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
 import { createOverlayScrollbars } from 'overlayscrollbars-solid';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { nativeBackAction } from '@/app/native-back';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { createBrowserCore } from '@/composition/create-browser-core';
@@ -113,11 +116,11 @@ export function App(): JSX.Element {
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
   const [initializePageScroll, pageScroll] = createOverlayScrollbars({
     options: { scrollbars: { autoHide: 'scroll' } },
-    defer: true,
   });
   let coreToClose: MedicalCore | undefined;
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
+  let nativeBackListener: Awaited<ReturnType<typeof NativeApp.addListener>> | undefined;
 
   const moveToRootView = (next: View): boolean => {
     const current = view();
@@ -157,7 +160,7 @@ export function App(): JSX.Element {
   };
 
   const handleScroll = (): void => {
-    setShowScrollTop(window.scrollY > 560);
+    setShowScrollTop(window.scrollY > 48);
   };
 
   const handleAppUpdate = (event: Event): void => {
@@ -187,7 +190,7 @@ export function App(): JSX.Element {
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
 
   onMount(async () => {
-    initializePageScroll(document.body);
+    initializePageScroll({ target: document.body, cancel: { body: false } });
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -196,6 +199,33 @@ export function App(): JSX.Element {
     // Due-ness changes with the clock, not only with edits.
     reminderTimer = setInterval(refreshDueReminders, 30_000);
     handleScroll();
+    if (Capacitor.getPlatform() === 'android') {
+      nativeBackListener = await NativeApp.addListener('backButton', ({ canGoBack }) => {
+        const openDialogs = document.querySelectorAll<HTMLElement>('[aria-modal="true"]');
+        const openDialog = openDialogs[openDialogs.length - 1];
+        if (openDialog) {
+          const closeButton = openDialog.querySelector<HTMLButtonElement>(
+            '.overlay-dialog-header button',
+          );
+          closeButton?.click();
+          if (!closeButton) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+          return;
+        }
+        if (document.querySelector('.search-history-drawer-backdrop, .reader-column.open')) {
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+          return;
+        }
+        const route = window.location.hash.replace(/^#\/?/u, '');
+        const action = nativeBackAction(route, view(), canGoBack);
+        if (action === 'history') {
+          window.history.back();
+        } else if (action === 'search') {
+          navigate('search');
+        } else {
+          void NativeApp.minimizeApp();
+        }
+      });
+    }
     const bindModuleRuntime = (runtime: ReturnType<typeof getContentModuleRuntime>): void => {
       unsubscribeInstalledModules?.();
       const syncInstalledCount = (): void => {
@@ -233,6 +263,7 @@ export function App(): JSX.Element {
     if (reminderTimer) clearInterval(reminderTimer);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
+    void nativeBackListener?.remove();
     if (coreToClose) void coreToClose.close();
     const activeSearchCore = searchCore();
     if (activeSearchCore) void activeSearchCore.close();

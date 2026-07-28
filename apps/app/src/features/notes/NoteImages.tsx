@@ -1,4 +1,4 @@
-import { For, type JSX, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { deleteNoteImage, type NoteImage } from '@/state/note-images';
@@ -8,6 +8,18 @@ export function NoteImagePicker(props: {
   readonly error: string;
   readonly onFilesChange: (files: readonly File[]) => void;
 }): JSX.Element {
+  const [previews, setPreviews] = createSignal<
+    readonly { readonly name: string; readonly url: string }[]
+  >([]);
+
+  createEffect(() => {
+    const next = props.files.map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
+    setPreviews(next);
+    onCleanup(() => {
+      for (const preview of next) URL.revokeObjectURL(preview.url);
+    });
+  });
+
   return (
     <>
       <label class="note-image-picker">
@@ -21,7 +33,16 @@ export function NoteImagePicker(props: {
         <span class="note-image-picker-button">Выбрать изображения</span>
       </label>
       <Show when={props.files.length > 0}>
-        <small class="note-image-selection">Выбрано изображений: {props.files.length}</small>
+        <div class="note-image-previews">
+          <For each={previews()}>
+            {(preview) => (
+              <figure>
+                <img src={preview.url} alt={preview.name} />
+                <figcaption>{preview.name}</figcaption>
+              </figure>
+            )}
+          </For>
+        </div>
       </Show>
       <Show when={props.error}>
         <p class="note-image-error" role="alert">

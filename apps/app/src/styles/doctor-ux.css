@@ -94,6 +94,12 @@
   background: #eee4cc;
 }
 
+.document-overlay-outline-header,
+.document-overlay-outline-toggle,
+.document-overlay-outline-backdrop {
+  display: none;
+}
+
 .document-overlay-outline details {
   margin-bottom: 0.75rem;
 }
@@ -128,6 +134,11 @@
 .document-overlay-outline nav button:hover {
   color: var(--ink);
   background: rgb(255 255 255 / 35%);
+}
+
+.document-overlay-outline nav button.active {
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
 }
 
 .document-overlay-outline nav button span {
@@ -189,6 +200,11 @@
 .document-overlay-section {
   scroll-margin-top: 1.25rem;
   margin: 0 0 1.875rem;
+}
+
+.document-overlay-section.active h2 {
+  background: var(--theme-accent-soft);
+  box-shadow: -0.375rem 0 0 var(--theme-accent-soft);
 }
 
 .document-overlay-section h2 {
@@ -294,6 +310,11 @@
   cursor: pointer;
   font: inherit;
   text-align: left;
+}
+
+.document-overlay-summary-note {
+  max-width: 52ch;
+  margin-top: 0.625rem;
 }
 
 .document-overlay-full-text-inline {
@@ -726,6 +747,7 @@
     width: 100%;
     max-height: 100dvh;
     min-height: 100dvh;
+    border: 0;
     border-radius: 0;
   }
 
@@ -747,18 +769,64 @@
   }
 
   .document-overlay-outline {
-    min-height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--paper-line);
+    position: fixed;
+    z-index: 12;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(21rem, calc(100vw - 2rem));
+    min-height: 0;
+    padding-top: calc(1rem + var(--safe-top));
+    border: 0;
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+  }
+
+  .document-overlay-outline.open {
+    transform: translateX(0);
+  }
+
+  .document-overlay-outline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .document-overlay-outline-header button,
+  .document-overlay-outline-toggle {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--theme-border);
+    border-radius: 50%;
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+  }
+
+  .document-overlay-outline-header svg,
+  .document-overlay-outline-toggle svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .document-overlay-outline-backdrop {
+    position: fixed;
+    z-index: 11;
+    inset: 0;
+    border: 0;
+    background: rgb(35 33 29 / 45%);
+  }
+
+  .document-overlay-outline-backdrop.open {
+    display: block;
   }
 
   .document-overlay-paper {
     overflow: visible;
-  }
-
-  .document-overlay-outline details:not(.doctor-technical-details) {
-    max-height: 11.25rem;
-    overflow: auto;
   }
 
   .document-overlay-paper {

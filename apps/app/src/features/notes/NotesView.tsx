@@ -158,12 +158,9 @@ function NoteTextArea(props: {
 function ReminderFields(props: {
   readonly date: string;
   readonly time: string;
-  readonly notificationEnabled: boolean;
-  readonly notificationDisabled: boolean;
   readonly notificationMessage: string;
   readonly onDateChange: (value: string) => void;
   readonly onTimeChange: (value: string) => void;
-  readonly onNotificationChange: (enabled: boolean) => void;
 }): JSX.Element {
   return (
     <div class="note-reminder-fields">
@@ -180,15 +177,6 @@ function ReminderFields(props: {
         value={props.time}
         onInput={(event) => props.onTimeChange(event.currentTarget.value)}
       />
-      <label class="note-notification-choice">
-        <input
-          type="checkbox"
-          checked={props.notificationEnabled}
-          disabled={props.notificationDisabled}
-          onChange={(event) => props.onNotificationChange(event.currentTarget.checked)}
-        />
-        Системное уведомление
-      </label>
       <Show when={props.notificationMessage}>
         <small class="note-notification-message">{props.notificationMessage}</small>
       </Show>
@@ -213,7 +201,6 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
   const [noteDraft, setNoteDraft] = createSignal('');
   const [reminderDate, setReminderDate] = createSignal('');
   const [reminderTime, setReminderTime] = createSignal('');
-  const [notificationEnabled, setNotificationEnabled] = createSignal(false);
   const [notificationMessage, setNotificationMessage] = createSignal('');
   const [noteImages, setNoteImages] = createSignal<readonly NoteImage[]>([]);
   const [pendingImages, setPendingImages] = createSignal<readonly File[]>([]);
@@ -342,21 +329,15 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     setReminderNoteId(note.id);
     setCompletionDraft('');
   };
-  const changeNotification = (enabled: boolean): void => {
-    if (!enabled) {
-      setNotificationEnabled(false);
-      setNotificationMessage('');
-      return;
+  const enableReminderNotification = async (): Promise<boolean> => {
+    try {
+      const result = await requestReminderNotificationPermission();
+      setNotificationMessage(result.message);
+      return result.granted;
+    } catch {
+      setNotificationMessage('Не удалось запросить разрешение на уведомления.');
+      return false;
     }
-    void requestReminderNotificationPermission()
-      .then((result) => {
-        setNotificationEnabled(result.granted);
-        setNotificationMessage(result.message);
-      })
-      .catch(() => {
-        setNotificationEnabled(false);
-        setNotificationMessage('Не удалось запросить разрешение на уведомления.');
-      });
   };
   const reminderValue = (): { dueAt: string; allDay: boolean } | null => {
     const value = composeDueAt(reminderDate(), reminderTime());
@@ -381,7 +362,6 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
       setNoteDraft('');
       setReminderDate('');
       setReminderTime('');
-      setNotificationEnabled(false);
       setNotificationMessage('');
       setNoteImages([]);
       setPendingImages([]);
@@ -395,7 +375,6 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
       const reminder = reminderInputValues(note.reminder);
       setReminderDate(reminder.date);
       setReminderTime(reminder.time);
-      setNotificationEnabled(note.reminder?.notificationEnabled ?? false);
       setNotificationMessage('');
       setPendingImages([]);
       refreshImages();
@@ -630,6 +609,10 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                     event.preventDefault();
                     void (async () => {
                       const existing = note();
+                      const reminder = existing ? null : reminderValue();
+                      const notificationGranted = reminder
+                        ? await enableReminderNotification()
+                        : false;
                       let savedNoteId = existing?.id;
                       if (existing) {
                         updatePatientNote(existing.id, noteDraft());
@@ -639,13 +622,12 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                         const created = next.notes.at(-1);
                         if (created) {
                           savedNoteId = created.id;
-                          const reminder = reminderValue();
                           if (reminder) {
                             setNoteReminder(
                               created.id,
                               reminder.dueAt,
                               reminder.allDay,
-                              notificationEnabled(),
+                              notificationGranted,
                             );
                           }
                           deferEnrichment(created.id, props.core);
@@ -683,12 +665,9 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                     <ReminderFields
                       date={reminderDate()}
                       time={reminderTime()}
-                      notificationEnabled={notificationEnabled()}
-                      notificationDisabled={composeDueAt(reminderDate(), reminderTime()) === null}
                       notificationMessage={notificationMessage()}
                       onDateChange={setReminderDate}
                       onTimeChange={setReminderTime}
-                      onNotificationChange={changeNotification}
                     />
                   </Show>
                   <div class="patient-note-form-actions">
@@ -725,12 +704,9 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                         <ReminderFields
                           date={reminderDate()}
                           time={reminderTime()}
-                          notificationEnabled={notificationEnabled()}
-                          notificationDisabled={reminderValue() === null}
                           notificationMessage={notificationMessage()}
                           onDateChange={setReminderDate}
                           onTimeChange={setReminderTime}
-                          onNotificationChange={changeNotification}
                         />
                         <button
                           type="button"
@@ -738,12 +714,14 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                           onClick={() => {
                             const reminder = reminderValue();
                             if (!reminder) return;
-                            setNoteReminder(
-                              currentNote().id,
-                              reminder.dueAt,
-                              reminder.allDay,
-                              notificationEnabled(),
-                            );
+                            void enableReminderNotification().then((notificationGranted) => {
+                              setNoteReminder(
+                                currentNote().id,
+                                reminder.dueAt,
+                                reminder.allDay,
+                                notificationGranted,
+                              );
+                            });
                           }}
                         >
                           {currentNote().reminder ? 'Сохранить' : 'Установить'}

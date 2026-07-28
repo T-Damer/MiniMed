@@ -31,15 +31,6 @@
   font-size: 0.5625rem;
 }
 
-.index-label small {
-  font-size: 0;
-}
-
-.index-label small::after {
-  content: "можно добавить к запросу";
-  font-size: 0.5rem;
-}
-
 .analysis-details .branch-ledger {
   margin-top: 0.75rem;
 }
