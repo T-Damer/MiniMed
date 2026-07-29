@@ -31,6 +31,69 @@
   animation: root-view-enter-backward 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
+.using-root-view-transition .app-view.root-view-enter-forward,
+.using-root-view-transition .app-view.root-view-enter-backward {
+  animation: none;
+}
+
+::view-transition-group(root) {
+  overflow: clip;
+  animation: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: normal;
+}
+
+html[data-root-navigation-direction="forward"]::view-transition-old(root) {
+  z-index: 1;
+  animation: root-page-old-forward 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+html[data-root-navigation-direction="forward"]::view-transition-new(root) {
+  z-index: 2;
+  animation: root-page-new-forward 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  box-shadow: -1rem 0 2.5rem rgb(18 17 15 / 24%);
+}
+
+html[data-root-navigation-direction="backward"]::view-transition-old(root) {
+  z-index: 2;
+  animation: root-page-old-backward 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  box-shadow: 1rem 0 2.5rem rgb(18 17 15 / 24%);
+}
+
+html[data-root-navigation-direction="backward"]::view-transition-new(root) {
+  z-index: 1;
+  animation: root-page-new-backward 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes root-page-old-forward {
+  to {
+    transform: translateX(-18%);
+  }
+}
+
+@keyframes root-page-new-forward {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes root-page-old-backward {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes root-page-new-backward {
+  from {
+    transform: translateX(-18%);
+  }
+}
+
 @keyframes root-view-enter-forward {
   from {
     opacity: 0.7;
@@ -347,8 +410,50 @@
   width: 100%;
 }
 
+.search-workspace-main .query-shortcuts.has-controls {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .search-workspace-main .query-actions:not(.query-mode-actions) .query-buttons {
   margin-left: auto;
+}
+
+.search-submit-reveal {
+  display: grid;
+  max-width: 0;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.375rem);
+  visibility: hidden;
+  transition:
+    max-width 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    grid-template-rows 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 160ms ease,
+    transform 240ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.search-submit-reveal > div {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.25rem;
+}
+
+.search-submit-reveal.visible {
+  flex: 0 0 auto;
+  max-width: 12rem;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.query-mode-tag {
+  border-color: color-mix(in srgb, var(--theme-info) 58%, var(--theme-border));
+  color: var(--theme-text);
+  background: var(--theme-info-soft);
 }
 
 .search-workspace-main .query-index > .suggestions-row {
@@ -397,10 +502,10 @@
   width: max-content;
   min-width: 100%;
   gap: 0.3125rem;
-  padding: 0 0.5rem 0.5rem;
+  padding-inline: 0.5rem;
 }
 
-.search-workspace-main .example-row button {
+.search-workspace-main .example-scroll-content > button {
   min-width: max-content;
   min-height: 2.125rem;
   flex: none;
@@ -410,7 +515,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .search-workspace-main .case-folder,
-  .search-workspace-main .result-group {
+  .search-workspace-main .result-group,
+  .search-submit-reveal {
     transition: none;
   }
 }
@@ -873,6 +979,14 @@
   box-shadow: 0 0.625rem 1.875rem rgb(38 32 24 / 30%);
   backdrop-filter: blur(1rem);
   transform: translateX(-50%);
+  view-transition-name: app-bottom-nav;
+}
+
+::view-transition-group(app-bottom-nav),
+::view-transition-old(app-bottom-nav),
+::view-transition-new(app-bottom-nav) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 .app-bottom-nav .app-nav-item {
@@ -965,22 +1079,6 @@
   left: auto;
   color: #f5f5df;
   background: #4d7657;
-}
-
-.app-view.active {
-  animation: app-view-enter 180ms ease-out both;
-}
-
-/* Opacity only, on purpose: a transform here — even a completed animation that fills 'both' —
-   turns the view into the containing block for every position:fixed descendant, which anchored the
-   history drawer and its button to the content column instead of the viewport. */
-@keyframes app-view-enter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 .overlay-backdrop {
@@ -1802,7 +1900,7 @@ fieldset.search-mode-picker {
   border-radius: 0.75rem;
 }
 
-.workspace .example-row button {
+.workspace .example-scroll-content > button {
   min-height: 1.75rem;
   padding: 0.25rem 0.6875rem;
   border-radius: 999px;
@@ -2164,6 +2262,18 @@ body:has(.app-view.active .search-home) .scroll-top-button {
 .document-text-list li {
   margin: 0.25rem 0;
   line-height: 1.55;
+}
+
+.document-text-chunk {
+  max-width: 74ch;
+  margin: 0 0 0.9em;
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  line-height: 1.62;
+}
+
+.document-text-chunk > p,
+.document-text-chunk > .document-text-list {
+  margin-block: 0 0.9em;
 }
 
 .document-inline-reference {
@@ -2564,20 +2674,29 @@ body:has(.app-view.active .search-home) .scroll-top-button {
 }
 
 .record-images-editor {
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  gap: 0.625rem;
+  display: block;
   padding: 0.75rem;
+  --note-image-card-size: 6rem;
+}
+
+.note-images-scroller {
+  width: 100%;
+}
+
+.note-image-row,
+.note-image-previews {
+  display: flex;
+  width: max-content;
+  align-items: stretch;
+  gap: 0.5rem;
 }
 
 .note-image-picker {
   position: relative;
   display: grid;
-  width: 5rem;
-  height: 5rem;
-  flex: none;
-  align-self: flex-start;
+  width: var(--note-image-card-size);
+  height: var(--note-image-card-size);
+  flex: 0 0 var(--note-image-card-size);
   box-sizing: border-box;
   place-items: center;
   border: 1px dashed var(--theme-border);
@@ -2622,36 +2741,42 @@ body:has(.app-view.active .search-home) .scroll-top-button {
 }
 
 .note-image-previews {
-  display: grid;
-  min-width: 0;
-  flex: 1 1 12rem;
-  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
-  gap: 0.5rem;
+  min-width: max-content;
 }
 
 .note-image-previews figure {
   position: relative;
-  min-width: 0;
+  width: var(--note-image-card-size);
+  height: var(--note-image-card-size);
+  flex: 0 0 var(--note-image-card-size);
+  overflow: hidden;
   margin: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.625rem;
+  background: var(--theme-surface-muted);
 }
 
 .note-image-previews a,
 .note-image-previews img {
   display: block;
   width: 100%;
+  height: 100%;
 }
 
 .note-image-previews img {
-  aspect-ratio: 1;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.5rem;
   object-fit: cover;
 }
 
 .note-image-previews figcaption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
   overflow: hidden;
-  margin-top: 0.25rem;
-  color: var(--theme-text-muted);
+  margin: 0;
+  padding: 0.25rem 0.375rem;
+  color: #fff;
+  background: rgb(20 19 17 / 72%);
   font-size: 0.625rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2679,7 +2804,7 @@ body:has(.app-view.active .search-home) .scroll-top-button {
 }
 
 .note-image-error {
-  flex-basis: 100%;
+  margin-top: 0.5rem;
   color: var(--theme-danger);
 }
 

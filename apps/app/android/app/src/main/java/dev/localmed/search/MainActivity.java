@@ -1,5 +1,6 @@
 package dev.localmed.search;
 
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,7 +27,10 @@ public class MainActivity extends BridgeActivity {
 
         WindowInsetsControllerCompat controller =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        controller.setAppearanceLightStatusBars(false);
-        controller.setAppearanceLightNavigationBars(false);
+        boolean darkMode =
+                (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                        == Configuration.UI_MODE_NIGHT_YES;
+        controller.setAppearanceLightStatusBars(!darkMode);
+        controller.setAppearanceLightNavigationBars(!darkMode);
     }
 }

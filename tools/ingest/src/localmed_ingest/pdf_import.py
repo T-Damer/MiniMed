@@ -41,7 +41,27 @@ COMMON_HEADING_MARKERS = {
     "профилактика",
     "организация оказания медицинской помощи",
     "критерии оценки качества медицинской помощи",
+    "показания к применению",
+    "способ действия препарата",
+    "противопоказания",
+    "особые указания и меры предосторожности",
+    "дети и подростки",
+    "беременность и грудное вскармливание",
+    "применение препарата",
+    "продолжительность терапии",
+    "возможные нежелательные реакции",
+    "сообщение о нежелательных реакциях",
+    "содержимое упаковки и прочие сведения",
+    "действующим веществом является",
+    "прочими ингредиентами являются",
+    "внешний вид препарата и содержимое упаковки",
+    "держатель регистрационного удостоверения",
+    "производитель",
 }
+ORGANIZATION_PREFIX_PATTERN = re.compile(
+    r"^(?:ООО|АО|ПАО|НАО|ФГУП|ФГБУ|ГБУ|ИП)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -308,7 +328,7 @@ def _looks_like_heading(
     )
     title_like = len(text) <= 100 and not text.endswith(".")
 
-    if numbered_depth is not None and (block.bold or ratio >= 1.0 or len(text) <= 90):
+    if numbered_depth is not None and (block.bold or ratio >= options.min_heading_font_ratio):
         return numbered_depth
     if ratio >= 1.45:
         return 1
@@ -318,7 +338,11 @@ def _looks_like_heading(
         return 2
     if block.bold and title_like and ratio >= options.min_heading_font_ratio:
         return 2
-    if uppercase_ratio >= 0.85 and 3 <= len(alphabetic) <= 100:
+    if (
+        uppercase_ratio >= 0.85
+        and 3 <= len(alphabetic) <= 100
+        and ORGANIZATION_PREFIX_PATTERN.match(text) is None
+    ):
         return 2
     return None
 

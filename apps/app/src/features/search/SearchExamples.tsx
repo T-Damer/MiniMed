@@ -11,7 +11,7 @@ export function SearchExamples(props: SearchExamplesProps): JSX.Element {
   return (
     <fieldset class="example-row">
       <legend>Примеры поиска</legend>
-      <HorizontalScroller class="example-scroll">
+      <HorizontalScroller class="example-scroll" controls hideScrollbar controlLabel="примеры">
         <div class="example-scroll-content">
           <For each={props.examples}>
             {(example, index) => (

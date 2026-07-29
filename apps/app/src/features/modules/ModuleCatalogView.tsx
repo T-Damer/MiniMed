@@ -182,6 +182,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     window.location.hash = '#/modules/documents/recommendations';
     syncSelectionFromLocation();
   };
+  const openMedications = (): void => {
+    window.location.hash = '#/modules/documents/medications';
+  };
 
   onMount(() => {
     bindRuntime(catalog());
@@ -202,9 +205,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         module.kind !== 'clinical' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
     ),
   );
-  const collections = createMemo(() => [
-    ...new Set(regularModules().map((module) => module.collection)),
-  ]);
+  const regularSectionModules = (section: string): readonly ContentModuleCatalogEntry[] =>
+    regularModules().filter((module) => module.kind === section || module.collection === section);
+  const regularSectionLabel = (section: string): string =>
+    ({
+      core: 'Ядро',
+      reference: 'Нормы и расчёты',
+      regulatory: 'Законы и нормативные акты',
+    })[section] ?? collectionLabel(section);
   const installedModuleIds = createMemo(
     () => new Set(installed().map((module) => module.moduleId)),
   );
@@ -612,13 +620,22 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <section class="module-collection">
             <div class="module-collection-heading">
               <h2>Наборы документов</h2>
-              <span>{collections().length + 1}</span>
+              <span>5</span>
             </div>
             <div class="recommendation-section-grid recommendation-section-grid-compact">
-              <For each={collections()}>
-                {(collection) => {
-                  const modules = () =>
-                    regularModules().filter((module) => module.collection === collection);
+              <article class="recommendation-section-card paper-card recommendation-section-card-compact">
+                <button
+                  type="button"
+                  class="recommendation-section-select"
+                  onClick={openMedications}
+                >
+                  <strong>Лекарства</strong>
+                  <span>Официальная инструкция и формы выпуска</span>
+                </button>
+              </article>
+              <For each={['reference', 'regulatory']}>
+                {(section) => {
+                  const modules = () => regularSectionModules(section);
                   const installedCount = () =>
                     modules().filter((module) => installedModuleIds().has(module.id)).length;
                   return (
@@ -626,9 +643,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       <button
                         type="button"
                         class="recommendation-section-select"
-                        onClick={() => openCollection(collection)}
+                        onClick={() => openCollection(section)}
                       >
-                        <strong>{collectionLabel(collection)}</strong>
+                        <strong>{regularSectionLabel(section)}</strong>
                         <span>
                           {installedCount()}/{modules().length} на устройстве
                         </span>
@@ -654,21 +671,36 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   </span>
                 </button>
               </article>
+              <article class="recommendation-section-card paper-card recommendation-section-card-compact">
+                <button
+                  type="button"
+                  class="recommendation-section-select"
+                  onClick={() => openCollection('core')}
+                >
+                  <strong>Ядро</strong>
+                  <span>
+                    {
+                      regularSectionModules('core').filter((module) =>
+                        installedModuleIds().has(module.id),
+                      ).length
+                    }
+                    /{regularSectionModules('core').length} на устройстве
+                  </span>
+                </button>
+              </article>
             </div>
           </section>
         </Show>
 
-        <For each={collections().filter((collection) => collection === regularCollection())}>
-          {(collection) => (
+        <For each={regularCollection() ? [regularCollection()] : []}>
+          {(section) => (
             <section class="module-collection">
               <div class="module-collection-heading">
-                <h2>{collectionLabel(collection)}</h2>
-                <span>
-                  {regularModules().filter((module) => module.collection === collection).length}
-                </span>
+                <h2>{regularSectionLabel(section)}</h2>
+                <span>{regularSectionModules(section).length}</span>
               </div>
               <div class="module-grid module-grid-two-columns">
-                <For each={regularModules().filter((module) => module.collection === collection)}>
+                <For each={regularSectionModules(section)}>
                   {(module) => (
                     <ContentModuleCard
                       module={module}

@@ -1,6 +1,8 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { hapticFeedback } from '@/state/haptics';
 import {
   clearSearchHistory,
   loadSearchHistory,
@@ -46,6 +48,9 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
   const [open, setOpen] = createSignal(false);
   const [closing, setClosing] = createSignal(false);
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
+  let swipeStart:
+    | { readonly pointerId: number; readonly x: number; readonly y: number }
+    | undefined;
 
   const refresh = (): void => {
     setEntries(loadSearchHistory().slice(0, HISTORY_LIMIT));
@@ -61,15 +66,52 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') close();
   };
+  const handlePointerDown = (event: PointerEvent): void => {
+    if (
+      open() ||
+      event.pointerType === 'mouse' ||
+      event.clientX > 36 ||
+      !(event.target instanceof Element) ||
+      !event.target.closest('.search-home')
+    ) {
+      return;
+    }
+    swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+  };
+  const handlePointerMove = (event: PointerEvent): void => {
+    const start = swipeStart;
+    if (!start || start.pointerId !== event.pointerId) return;
+    const deltaX = event.clientX - start.x;
+    const deltaY = Math.abs(event.clientY - start.y);
+    if (deltaY > Math.max(24, deltaX)) {
+      swipeStart = undefined;
+      return;
+    }
+    if (deltaX < 72) return;
+    swipeStart = undefined;
+    setOpen(true);
+    hapticFeedback('medium');
+  };
+  const clearSwipe = (): void => {
+    swipeStart = undefined;
+  };
 
   onMount(() => {
     refresh();
     window.addEventListener(SEARCH_HISTORY_EVENT, refresh);
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerup', clearSwipe, { passive: true });
+    window.addEventListener('pointercancel', clearSwipe, { passive: true });
   });
   onCleanup(() => {
     window.removeEventListener(SEARCH_HISTORY_EVENT, refresh);
     window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('pointerdown', handlePointerDown);
+    window.removeEventListener('pointermove', handlePointerMove);
+    window.removeEventListener('pointerup', clearSwipe);
+    window.removeEventListener('pointercancel', clearSwipe);
     if (closeTimer) clearTimeout(closeTimer);
   });
 
@@ -89,84 +131,86 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
       </button>
 
       <Show when={open()}>
-        <div
-          class="search-history-drawer-backdrop"
-          classList={{ closing: closing() }}
-          role="presentation"
-          onPointerDown={(event) => {
-            if (event.target === event.currentTarget) close();
-          }}
-        >
-          <aside class="search-history-panel" aria-label="Недавние поисковые запросы">
-            <header class="search-history-panel-header">
-              <div>
-                <span>
-                  <AppGlyph name="history" />
-                  Недавние запросы
-                </span>
-                <small>{entries().length}</small>
-              </div>
-              <button type="button" aria-label="Закрыть историю" onClick={close}>
-                <AppGlyph name="close" />
-              </button>
-            </header>
-
-            <div class="search-history-panel-body">
-              <Show
-                when={entries().length > 0}
-                fallback={
-                  <p class="search-history-panel-empty">
-                    История появится после первого поиска и останется только на этом устройстве.
-                  </p>
-                }
-              >
-                <ol>
-                  <For each={entries()}>
-                    {(entry) => (
-                      <li>
-                        <button
-                          class="search-history-panel-replay"
-                          type="button"
-                          title={entry.query}
-                          onClick={() => {
-                            props.onReplay(entry);
-                            close();
-                          }}
-                        >
-                          <strong>{entry.query}</strong>
-                          <small>
-                            {formatDate(entry.createdAt)} · {entry.resultCount} док. ·{' '}
-                            {SCOPE_LABELS[entry.scope]} · {MODE_LABELS[entry.modeUsed]}
-                          </small>
-                        </button>
-                        <button
-                          class="search-history-panel-remove"
-                          type="button"
-                          aria-label={`Удалить запрос: ${entry.query}`}
-                          onClick={() =>
-                            setEntries(removeSearchHistoryEntry(entry.id).slice(0, HISTORY_LIMIT))
-                          }
-                        >
-                          <AppGlyph name="close" />
-                        </button>
-                      </li>
-                    )}
-                  </For>
-                </ol>
-                <button
-                  class="search-history-panel-clear"
-                  type="button"
-                  onClick={() => {
-                    clearSearchHistory();
-                    setEntries([]);
-                  }}
-                >
-                  Очистить историю
+        <Portal>
+          <div
+            class="search-history-drawer-backdrop"
+            classList={{ closing: closing() }}
+            role="presentation"
+            onPointerDown={(event) => {
+              if (event.target === event.currentTarget) close();
+            }}
+          >
+            <aside class="search-history-panel" aria-label="Недавние поисковые запросы">
+              <header class="search-history-panel-header">
+                <div>
+                  <span>
+                    <AppGlyph name="history" />
+                    Недавние запросы
+                  </span>
+                  <small>{entries().length}</small>
+                </div>
+                <button type="button" aria-label="Закрыть историю" onClick={close}>
+                  <AppGlyph name="close" />
                 </button>
-              </Show>
-            </div>
-          </aside>
-        </div>
+              </header>
+
+              <div class="search-history-panel-body">
+                <Show
+                  when={entries().length > 0}
+                  fallback={
+                    <p class="search-history-panel-empty">
+                      История появится после первого поиска и останется только на этом устройстве.
+                    </p>
+                  }
+                >
+                  <ol>
+                    <For each={entries()}>
+                      {(entry) => (
+                        <li>
+                          <button
+                            class="search-history-panel-replay"
+                            type="button"
+                            title={entry.query}
+                            onClick={() => {
+                              props.onReplay(entry);
+                              close();
+                            }}
+                          >
+                            <strong>{entry.query}</strong>
+                            <small>
+                              {formatDate(entry.createdAt)} · {entry.resultCount} док. ·{' '}
+                              {SCOPE_LABELS[entry.scope]} · {MODE_LABELS[entry.modeUsed]}
+                            </small>
+                          </button>
+                          <button
+                            class="search-history-panel-remove"
+                            type="button"
+                            aria-label={`Удалить запрос: ${entry.query}`}
+                            onClick={() =>
+                              setEntries(removeSearchHistoryEntry(entry.id).slice(0, HISTORY_LIMIT))
+                            }
+                          >
+                            <AppGlyph name="close" />
+                          </button>
+                        </li>
+                      )}
+                    </For>
+                  </ol>
+                  <button
+                    class="search-history-panel-clear"
+                    type="button"
+                    onClick={() => {
+                      clearSearchHistory();
+                      setEntries([]);
+                    }}
+                  >
+                    Очистить историю
+                  </button>
+                </Show>
+              </div>
+            </aside>
+          </div>
+        </Portal>
       </Show>
     </>
   );

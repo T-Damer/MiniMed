@@ -9,6 +9,7 @@ interface OverlayDialogProps {
   readonly subtitle?: string;
   readonly labelledBy?: string;
   readonly class?: string;
+  readonly headerStart?: JSX.Element;
   readonly onClose: () => void;
   readonly children: JSX.Element;
 }
@@ -51,7 +52,8 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
             tabindex={-1}
           >
             <header class="overlay-dialog-header">
-              <div>
+              {props.headerStart}
+              <div class="overlay-dialog-title">
                 <h2 id={props.labelledBy ?? 'overlay-dialog-title'}>{props.title}</h2>
                 <Show when={props.subtitle}>{(subtitle) => <p>{subtitle()}</p>}</Show>
               </div>

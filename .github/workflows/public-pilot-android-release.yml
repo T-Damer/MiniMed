@@ -258,30 +258,24 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
-          - a dedicated social preview for the public website;
           - a compact three-section workspace: search, knowledge base/documents, and personal notes;
-          - search modes inside the composer with mode-specific examples and a centered idle state;
-          - directional primary-route animation and a shared light/dark theme matching the device;
-          - search history restores its source mode and can immediately replay cached results;
-          - device-local paper notes with nested record editors, reminders, expanding text areas and accessible deletion confirmation;
-          - opt-in local reminder notifications without a hosted push service;
-          - note-image attachments stored only in device-local IndexedDB;
-          - nested document-library routes with compact catalog, install, progress, update and rollback controls;
-          - resumable module downloads with durable recovery and automatic retry after interruption;
-          - three concurrent document-download slots plus an independent reserved local-model slot;
-          - explicit approval before a newly installed browser service worker activates;
-          - the verified 15-document Russian clinical/medication starter pack for immediate offline search;
-          - searchable clinical-recommendation modules with individual and category installation;
-          - doctor-facing source reading, exact anchors, archive search and knowledge-graph navigation;
-          - optional local-model query planning and source-bounded extraction over retrieved text;
+          - a bundled Miramistin medication pilot with its official GRLS registration, package variants, full patient leaflet, catalog and medication-scoped search;
+          - document reading with reconstructed lists, exact anchors, a tracked outline and sticky current headings;
+          - five explicit document sections for medications, norms/calculations, laws/regulations, clinical recommendations and core;
+          - directional primary-route animation with an interactive bottom bar and queued rapid tab changes;
+          - mode-specific search examples, swipe-open history, and source-scoped local retrieval;
+          - device-local notes with reminders, image attachments and local notifications without a hosted push service;
+          - resumable module downloads with automatic retry, three document slots and an independent model slot;
+          - the structured 744-recommendation snapshot catalog with individual and category installation;
+          - Android system-bar integration, native Back handling and three levels of haptic feedback;
           - deterministic fallback when the model is absent, invalid, stale or fails.
 
           The browser application is published with the landing site under /app/.
 
           Important boundaries:
+          - the bundled medication database is a one-drug pipeline proof and does not yet contain normalized dosing facts or a complete Russian medication corpus;
           - model weights are downloaded separately and are not bundled in the APK;
-          - diagnostic suggestions remain bounded to exact retrieved source evidence and visible citations;
-          - scan-only and metadata-only records are not treated as searchable full text;
+          - tested sub-4B local models are not qualified for grounded clinical answers;
           - native Android GPU/NPU acceleration, production signing and physical-device qualification remain follow-up gates.
           EOF
           )

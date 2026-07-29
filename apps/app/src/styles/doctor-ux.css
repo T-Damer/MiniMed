@@ -35,6 +35,11 @@
   background: #47453f;
 }
 
+.overlay-dialog-title {
+  min-width: 0;
+  flex: 1;
+}
+
 .overlay-dialog-header h2 {
   margin: 0;
   font-family: var(--font-serif);
@@ -95,7 +100,6 @@
 }
 
 .document-overlay-outline-header,
-.document-overlay-outline-toggle,
 .document-overlay-outline-backdrop {
   display: none;
 }
@@ -139,6 +143,7 @@
 .document-overlay-outline nav button.active {
   color: var(--theme-accent);
   background: var(--theme-accent-soft);
+  font-weight: 700;
 }
 
 .document-overlay-outline nav button span {
@@ -148,6 +153,8 @@
 }
 
 .document-overlay-paper {
+  --document-heading-sticky-top: calc(0px - clamp(1.5rem, 5vw, 3.625rem));
+
   width: min(55rem, 100%);
   min-width: 0;
   min-height: 0;
@@ -204,11 +211,19 @@
 
 .document-overlay-section.active h2 {
   background: var(--theme-accent-soft);
-  box-shadow: -0.375rem 0 0 var(--theme-accent-soft);
+  box-shadow:
+    -0.375rem 0 0 var(--theme-accent-soft),
+    0 1px 0 var(--paper-line);
 }
 
 .document-overlay-section h2 {
+  position: sticky;
+  z-index: 2;
+  top: var(--document-heading-sticky-top);
   margin: 0 0 0.75rem;
+  padding: 0.5rem 0;
+  background: var(--paper-light);
+  box-shadow: 0 1px 0 var(--paper-line);
   font-family: var(--font-serif);
   font-size: clamp(1.25rem, 3vw, 1.75rem);
   font-weight: 500;
@@ -807,7 +822,7 @@
   }
 
   .document-overlay-outline-header button,
-  .document-overlay-outline-toggle {
+  .overlay-dialog-header .document-overlay-outline-toggle {
     display: grid;
     width: 2.5rem;
     height: 2.5rem;
@@ -838,6 +853,8 @@
   }
 
   .document-overlay-paper {
+    --document-heading-sticky-top: 0px;
+
     overflow: visible;
   }
 

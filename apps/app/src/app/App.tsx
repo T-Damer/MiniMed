@@ -34,6 +34,7 @@ import {
   activateAppUpdate,
 } from '@/state/app-update';
 import { notifyContentChanged } from '@/state/content-events';
+import { installButtonHaptics } from '@/state/haptics';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 
 type View = 'search' | 'modules' | 'notes';
@@ -118,6 +119,9 @@ export function App(): JSX.Element {
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
   let nativeBackListener: Awaited<ReturnType<typeof NativeApp.addListener>> | undefined;
+  let stopButtonHaptics: (() => void) | undefined;
+  let activeRootNavigation: View | undefined;
+  const rootNavigationQueue: Array<{ readonly next: View; readonly commit: () => void }> = [];
 
   const moveToRootView = (next: View): boolean => {
     const current = view();
@@ -128,6 +132,51 @@ export function App(): JSX.Element {
         (VIEW_ORDER.get(next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward',
     });
     setView(next);
+    return true;
+  };
+
+  const runNextRootNavigation = (): void => {
+    if (activeRootNavigation) return;
+    const request = rootNavigationQueue.shift();
+    if (!request) return;
+
+    const current = view();
+    if (current === request.next) {
+      request.commit();
+      runNextRootNavigation();
+      return;
+    }
+    const direction: RootNavigationDirection =
+      (VIEW_ORDER.get(request.next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward';
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reducedMotion) {
+      request.commit();
+      runNextRootNavigation();
+      return;
+    }
+
+    activeRootNavigation = request.next;
+    document.documentElement.dataset['rootNavigationDirection'] = direction;
+    document.documentElement.classList.add('using-root-view-transition');
+    const transition = document.startViewTransition(request.commit);
+    void transition.finished.finally(() => {
+      setRootNavigationMotion(undefined);
+      document.documentElement.classList.remove('using-root-view-transition');
+      delete document.documentElement.dataset['rootNavigationDirection'];
+      activeRootNavigation = undefined;
+      runNextRootNavigation();
+    });
+  };
+
+  const transitionToRootView = (next: View, commit: () => void): boolean => {
+    const plannedView =
+      rootNavigationQueue[rootNavigationQueue.length - 1]?.next ?? activeRootNavigation ?? view();
+    if (plannedView === next) {
+      if (!activeRootNavigation && rootNavigationQueue.length === 0) commit();
+      return false;
+    }
+    rootNavigationQueue.push({ next, commit });
+    runNextRootNavigation();
     return true;
   };
 
@@ -142,18 +191,43 @@ export function App(): JSX.Element {
 
   const navigate = (next: View): void => {
     // Re-tapping the active section is the mobile shorthand for "back to the top of this page".
-    const changed = moveToRootView(next);
-    const oldURL = window.location.href;
-    window.history.replaceState({ view: next }, '', `#/${next}`);
-    window.dispatchEvent(
-      new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
-    );
-    window.scrollTo({ top: 0, behavior: changed ? 'instant' : 'smooth' });
+    transitionToRootView(next, () => {
+      const changed = view() !== next;
+      moveToRootView(next);
+      const oldURL = window.location.href;
+      window.history.replaceState({ view: next }, '', `#/${next}`);
+      window.dispatchEvent(
+        new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
+      );
+      window.scrollTo({ top: 0, behavior: changed ? 'instant' : 'smooth' });
+    });
+  };
+
+  const handleRootTransitionClick = (event: MouseEvent): void => {
+    if (!activeRootNavigation || event.target !== document.documentElement) return;
+    const button = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.app-bottom-nav .app-nav-button'),
+    ).find((candidate) => {
+      const bounds = candidate.getBoundingClientRect();
+      return (
+        event.clientX >= bounds.left &&
+        event.clientX <= bounds.right &&
+        event.clientY >= bounds.top &&
+        event.clientY <= bounds.bottom
+      );
+    });
+    if (!button) return;
+    event.preventDefault();
+    button.click();
   };
 
   const handleHashChange = (): void => {
     const next = viewFromLocation();
-    if (moveToRootView(next)) window.scrollTo({ top: 0, behavior: 'instant' });
+    if (next === view()) return;
+    transitionToRootView(next, () => {
+      moveToRootView(next);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
   };
 
   const handleScroll = (): void => {
@@ -188,6 +262,8 @@ export function App(): JSX.Element {
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
 
   onMount(async () => {
+    stopButtonHaptics = installButtonHaptics();
+    document.addEventListener('click', handleRootTransitionClick, true);
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -253,6 +329,7 @@ export function App(): JSX.Element {
   });
 
   onCleanup(() => {
+    document.removeEventListener('click', handleRootTransitionClick, true);
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -261,6 +338,7 @@ export function App(): JSX.Element {
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     void nativeBackListener?.remove();
+    stopButtonHaptics?.();
     if (coreToClose) void coreToClose.close();
     const activeSearchCore = searchCore();
     if (activeSearchCore) void activeSearchCore.close();

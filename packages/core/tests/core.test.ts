@@ -2,7 +2,7 @@ import { PORTABLE_HASH_PROFILE, PortableHashEmbedder } from '@localmed/search-se
 import { InMemoryMedicalStore } from '@localmed/storage';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
 import { afterEach, describe, expect, it } from 'vitest';
-import { createMedicalCore } from '../src/create-medical-core';
+import { createMedicalCore, requestedSectionType } from '../src/create-medical-core';
 
 import { createInMemoryMedicalCore } from '../src/index';
 
@@ -13,6 +13,10 @@ afterEach(async () => {
 });
 
 describe('MedicalCore', () => {
+  it('recognizes medication indication requests as treatment lookups', () => {
+    expect(requestedSectionType('мирамистин показания')).toBe('treatment');
+  });
+
   it('initializes a portable core contract', async () => {
     const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
     cores.push(core);

@@ -7,30 +7,83 @@ export interface DocumentLinkPhrase {
 
 export type MedicationLinkPhrase = DocumentLinkPhrase;
 
-export interface DocumentTextBlock {
-  readonly kind: 'paragraph' | 'bullet';
-  readonly text: string;
-}
+export type DocumentTextBlock =
+  | { readonly kind: 'paragraph'; readonly text: string }
+  | { readonly kind: 'bullet'; readonly text: string }
+  | { readonly kind: 'ordered'; readonly text: string; readonly ordinal: number };
 
 export type LinkedTextSegment =
   | { readonly kind: 'text'; readonly value: string }
   | { readonly kind: 'link'; readonly value: string; readonly documentId: string };
 
+function sourceSpanLeft(sourceSpans: unknown, index: number): number | undefined {
+  if (!Array.isArray(sourceSpans)) return undefined;
+  const span = sourceSpans[index];
+  if (!span || typeof span !== 'object') return undefined;
+  const bbox = (span as { readonly bbox?: unknown }).bbox;
+  if (!Array.isArray(bbox) || typeof bbox[0] !== 'number') return undefined;
+  return bbox[0];
+}
+
 function normalizePhrase(value: string): string {
   return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
 }
 
-export function parseDocumentText(value: string): readonly DocumentTextBlock[] {
-  return value
-    .replace(/\s*•\s*/gu, '\n• ')
-    .split(/\r?\n/u)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) =>
-      /^[•-]\s+/u.test(line)
-        ? { kind: 'bullet' as const, text: line.replace(/^[•-]\s+/u, '') }
-        : { kind: 'paragraph' as const, text: line },
-    );
+export function parseDocumentText(
+  value: string,
+  sourceSpans?: unknown,
+): readonly DocumentTextBlock[] {
+  const blocks: DocumentTextBlock[] = [];
+  const lines = value.split(/\r?\n(?:\s*\r?\n)+/u).flatMap((line, sourceIndex) =>
+    line
+      .trim()
+      .replace(/\s*([•▪◦●○])\s*/gu, '\n$1 ')
+      .split('\n')
+      .map((text) => ({ sourceIndex, text: text.trim() })),
+  );
+  let activeListIndent: number | undefined;
+  let previousSourceIndex: number | undefined;
+
+  for (const line of lines) {
+    if (!line.text) continue;
+    const bullet = /^[•▪◦●○*+-]\s+(.+)$/u.exec(line.text);
+    if (bullet?.[1]) {
+      blocks.push({ kind: 'bullet', text: bullet[1] });
+      activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
+      previousSourceIndex = line.sourceIndex;
+      continue;
+    }
+    const ordered = /^(\d+)[.)]\s+(.+)$/u.exec(line.text);
+    if (ordered?.[1] && ordered[2]) {
+      blocks.push({ kind: 'ordered', ordinal: Number(ordered[1]), text: ordered[2] });
+      activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
+      previousSourceIndex = line.sourceIndex;
+      continue;
+    }
+    const previous = blocks.at(-1);
+    const currentLeft = sourceSpanLeft(sourceSpans, line.sourceIndex);
+    const continuesList =
+      (previous?.kind === 'bullet' || previous?.kind === 'ordered') &&
+      (activeListIndent === undefined ||
+        currentLeft === undefined ||
+        currentLeft > activeListIndent + 4);
+    if (continuesList) {
+      blocks[blocks.length - 1] = { ...previous, text: `${previous.text} ${line.text}` };
+    } else if (
+      previous?.kind === 'paragraph' &&
+      !/[.!?;:]$/u.test(previous.text) &&
+      currentLeft !== undefined &&
+      previousSourceIndex !== undefined &&
+      Math.abs(currentLeft - (sourceSpanLeft(sourceSpans, previousSourceIndex) ?? currentLeft)) < 4
+    ) {
+      blocks[blocks.length - 1] = { ...previous, text: `${previous.text} ${line.text}` };
+    } else {
+      blocks.push({ kind: 'paragraph', text: line.text });
+      activeListIndent = undefined;
+    }
+    previousSourceIndex = line.sourceIndex;
+  }
+  return blocks;
 }
 
 function escapeRegExp(value: string): string {

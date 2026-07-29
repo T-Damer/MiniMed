@@ -131,19 +131,80 @@ button:disabled {
     transform 140ms ease;
 }
 
-.horizontal-overlay-scroll {
+.horizontal-scroll-frame {
   position: relative;
+  display: grid;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+.horizontal-scroll-frame.has-controls {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.horizontal-overlay-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
   --os-size: 0.375rem;
   --os-handle-bg: color-mix(in srgb, var(--theme-accent) 62%, transparent);
   --os-handle-bg-hover: var(--theme-accent);
   --os-handle-bg-active: var(--theme-accent);
 }
 
+.horizontal-scroll-frame.hide-scrollbar .os-scrollbar {
+  display: none !important;
+}
+
+.horizontal-scroll-control {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  display: grid;
+  width: 0.875rem;
+  height: 0.875rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-raised);
+  box-shadow: 0 0 0 0.125rem color-mix(in srgb, var(--theme-surface-raised) 82%, transparent);
+  transform: translateY(-50%);
+}
+
+.horizontal-scroll-control::after {
+  position: absolute;
+  inset: -0.9375rem;
+  content: "";
+}
+
+.horizontal-scroll-control.previous {
+  left: 0.25rem;
+}
+
+.horizontal-scroll-control.next {
+  right: 0.25rem;
+}
+
+.horizontal-scroll-control svg {
+  width: 0.4375rem;
+  height: 0.4375rem;
+}
+
+.horizontal-scroll-control.next svg {
+  transform: rotate(180deg);
+}
+
 @media (hover: hover) and (pointer: fine) {
   button:not(:disabled):hover {
     transform: translateY(-1px);
     box-shadow: var(--theme-control-hover-shadow);
+  }
+
+  .horizontal-scroll-control:not(:disabled):hover {
+    transform: translateY(-50%) scale(1.04);
   }
 
   :where(input, textarea, select):not(:disabled):hover {
@@ -928,7 +989,7 @@ main {
   text-transform: uppercase;
 }
 
-.example-row button {
+.example-scroll-content > button {
   display: flex;
   min-height: 4.625rem;
   align-items: flex-start;
@@ -944,11 +1005,11 @@ main {
   text-align: left;
 }
 
-.example-row button:hover {
+.example-scroll-content > button:hover {
   background: #eaddbd;
 }
 
-.example-row button span {
+.example-scroll-content > button span {
   color: var(--stamp);
   font-family: var(--font-mono);
   font-size: 0.5rem;

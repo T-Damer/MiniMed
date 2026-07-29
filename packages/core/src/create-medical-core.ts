@@ -132,7 +132,9 @@ function toSearchResult(aggregate: AggregatedHit): SearchResult {
  * the symptom description above the rehydration guidance. Order matters: routing outranks treatment
  * so that an urgent "куда/когда" question is not read as a drug question.
  */
-function requestedSectionType(query: string): 'diagnostics' | 'routing' | 'treatment' | null {
+export function requestedSectionType(
+  query: string,
+): 'diagnostics' | 'routing' | 'treatment' | null {
   if (
     /(?:^|\s)диагностик/u.test(query) ||
     /(?:какие|нужны\s+ли)\s+(?:обследовани|анализ)/u.test(query) ||
@@ -151,6 +153,7 @@ function requestedSectionType(query: string): 'diagnostics' | 'routing' | 'treat
   }
   if (
     /(?:^|\s)(?:лечени|лечить|терапи)/u.test(query) ||
+    /(?:^|\s)(?:показани|применени|применять|применяют)/u.test(query) ||
     /(?:отпаива|чем\s+поить)/u.test(query) ||
     /антибиотик/u.test(query) ||
     /препарат[а-я]*\s+выбора/u.test(query) ||
@@ -204,7 +207,13 @@ function groupResults(
         results: sorted,
       };
     })
-    .toSorted((left, right) => right.bestScore - left.bestScore);
+    .toSorted((left, right) => {
+      const preferredDifference = preferredSectionType
+        ? Number(right.results.some((result) => result.sectionType === preferredSectionType)) -
+          Number(left.results.some((result) => result.sectionType === preferredSectionType))
+        : 0;
+      return preferredDifference || right.bestScore - left.bestScore;
+    });
 }
 
 function filterSupersededSummaryResults(

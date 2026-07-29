@@ -6,6 +6,7 @@ from pathlib import Path
 
 import yaml
 
+from localmed_ingest.grls_products import parse_grls_presentations
 from localmed_ingest.legal_catalog import collect_legal_catalog
 from localmed_ingest.medication_catalog import build_medication_coverage_ledger
 
@@ -15,6 +16,29 @@ def write_yaml(path: Path, payload: object) -> None:
         yaml.safe_dump(payload, allow_unicode=True, sort_keys=False),
         encoding="utf-8",
     )
+
+
+def test_grls_presentations_keep_all_miramistin_packages() -> None:
+    value = (
+        "раствор для местного применения, 0.01%, 50 мл - флаконы - пачки картонные "
+        "/в комплекте с аппликатором урологическим - 1 шт./ - Без рецепта; "
+        "раствор для местного применения, 0.01%, 150 мл - флаконы - пачки картонные "
+        "/в комплекте с насадкой-распылителем - 1 шт./ - Без рецепта; "
+        "раствор для местного применения, 0.01%, 500 мл - флаконы - пачки картонные "
+        "- Без рецепта"
+    )
+
+    presentations = parse_grls_presentations(value)
+
+    assert len(presentations) == 1
+    assert presentations[0].dosage_form == "раствор для местного применения"
+    assert presentations[0].strength == "0.01%"
+    assert presentations[0].route == "topical"
+    assert [package.prescription_status for package in presentations[0].packages] == [
+        "Без рецепта",
+        "Без рецепта",
+        "Без рецепта",
+    ]
 
 
 def test_medication_ledger_preserves_registration_identity_and_atc_modules(

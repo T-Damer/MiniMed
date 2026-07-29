@@ -1,8 +1,8 @@
 # Current state
 
-> Updated: 28 July 2026
-> Repository version: `0.6.9`
-> Active target: `0.6.9` public prerelease toward `1.0`
+> Updated: 29 July 2026
+> Repository version: `0.6.10`
+> Active target: `0.6.10` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -22,6 +22,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   virtualized.
 - Results are grouped by document; collapsed groups show only their document header, while expanded
   groups expose exact fragments, surrounding context, and full-document navigation.
+- Document readers keep the outline control in the fixed dialog header; scrolling pins the current
+  section heading, marks its outline entry, and keeps that entry centered.
 - Search-result context remaps stale pilot-summary chunks to installed full-text siblings and falls back
   to the readable document when an exact chunk cannot be resolved.
 - Within-document ranking uses query intent to prefer the relevant diagnostic, routing, or treatment
@@ -37,17 +39,23 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 ### Browser workspace
 
 - Three primary sections in a compact bottom navigation bubble: search, knowledge base, and personal
-  notes. Directional iOS-style entry motion follows their left-to-right order, while document,
-  note, and local-model subroutes remain instant.
+  notes. View Transition viewport snapshots follow their left-to-right order: the next page slides
+  over the current one horizontally, while the bottom navigation remains fixed and interactive above
+  the transition. Rapid tab changes play through a serial queue; document, note, and local-model
+  subroutes remain instant.
 - Search mode is an explicit compact choice inside the query composer; the disabled field prompts for
   a mode first, and the horizontally scrollable mode strip above the query remains available for
   direct switching.
-  The idle composer is vertically centered, then moves smoothly to the top when a query begins;
-  scope-specific examples and modes use bounded overlay horizontal scrollers with always-visible
-  scrollbars and accept vertical mouse-wheel input. Search text expands to a bounded height before
-  scrolling internally, while note editors expand with their content.
-- Recent device-local search history opens from a floating drawer, preserves the selected source
-  scope, and can show the current-session result cache immediately while refreshing in the background.
+  The idle composer is vertically centered, then moves smoothly to the top when a query begins.
+  Search modes and scope-specific examples use scrollbar-free horizontal strips whose overlaid edge
+  controls appear only when more content exists in that direction; the submit button expands into the
+  composer only after a mode is selected. The strips accept horizontal touch input and vertical
+  mouse-wheel input. Search text expands to a bounded height before scrolling internally, while note
+  editors expand with their content.
+- Recent device-local search history opens from its floating control or a rightward swipe from the
+  search page's left edge, preserves the selected source scope, and can show the current-session
+  result cache immediately while refreshing in the background. The detected request type is presented
+  beside extracted facts as a compact category inside the analysis details.
 - The paper/archive design uses one top-level semantic color palette in light and dark modes, a
   shared 65-character page measure, compact cards, controls, result rows, responsive spacing, and
   consistent hover/focus feedback for cards, buttons, and fields. The document uses one
@@ -64,12 +72,13 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   collapsed until requested.
 - The knowledge-base overview reports the model and corpus state, then opens dedicated document and
   model subroutes without mixing every document family into one long page.
-- The document overview exposes three entry cards: the built-in core, shared medicines/norms, and
-  clinical recommendations. The legacy clinical-pediatrics collection is represented by the
-  recommendation sections instead of a duplicate top-level card. Drilldown exposes two-column module
-  collections with user-facing release states and inspectable document lists, all 21 recommendation
-  sections without an extra reveal step, full-document opening, bulk download, background update
-  pause, rollback to retained older versions, and nested URLs for opened collections and sections.
+- The document overview exposes five entry cards: medications, norms and calculations, laws and
+  regulations, clinical recommendations, and the built-in core. The legacy clinical-pediatrics
+  collection is represented by the recommendation sections instead of a duplicate top-level card.
+  Drilldown exposes two-column module collections with user-facing release states and inspectable
+  document lists, all 21 recommendation sections without an extra reveal step, full-document opening,
+  bulk download, background update pause, rollback to retained older versions, and nested URLs for
+  opened collections and sections.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
   queued, and the selected model always receives its own download slot. A single document runtime
@@ -82,9 +91,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Browser application updates install in the background but wait for explicit approval in the shared
   floating system-status area before the new service worker activates and reloads the page.
 - The paper workspace follows the device light/dark preference without adding an application toggle.
-- Android uses Capacitor system-bar insets across the shared shell and full-screen dialogs. Hardware
-  Back closes the active dialog or drawer, returns through nested routes and root sections, then
-  minimizes the app at the search root.
+- Android draws the page background beneath its transparent status bar while safe-area padding keeps
+  controls below it; system-bar icon contrast follows the device theme. Hardware Back closes the
+  active dialog or drawer, returns through nested routes and root sections, then minimizes the app at
+  the search root. Standard WebView vibration supplies light, medium, and heavy feedback for controls,
+  primary navigation, and destructive actions without another native plugin.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
@@ -111,7 +122,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   locally, while the browser deliberately displays it only while the MiniMed tab remains open.
 - Note records accept JPEG, PNG, WebP, and GIF attachments up to 8 MB each. Their base64 payloads live
   in a separate IndexedDB store rather than the localStorage note snapshot and are deleted with the
-  owning record.
+  owning record. The editor keeps its add tile and equal-size image previews in one horizontally
+  scrollable row with explicit previous/next controls.
 - Personal matches appear in search with an explicit personal-source label and outside the official
   result container, so they cannot be mistaken for installed medical content.
 - Document text links installed medications, recommendations, and laws into nested reader dialogs.
@@ -122,6 +134,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 - Validated remote/cache/bundled model catalog and device selection.
 - Browser CPU/WebAssembly GGUF runtime with a structured-output viability probe.
+- A CLI `tester-box` builds a disposable full-corpus FTS index and compares the three catalog models
+  across 20 clinician cases using direct and strict-JSON prompts, exact-quote/number validation,
+  explicit dose-conflict detection, and one bounded repair attempt.
 - Optional compact query planning and reranking over at most six retrieved chunks.
 - Exact-source diagnostic candidate extraction.
 - Exact-source dose extraction only from a treatment chunk containing both a numeric dose and regimen.
@@ -156,8 +171,15 @@ ordinary search response when validation fails.
   hidden, and category removal leaves its busy state before the search index reconnects.
 - Official GRLS inventory contains 38,815 unique registration records from 140,274 status/version rows,
   with the source ZIP, edition, and checksums retained locally.
-- Current official instruction synchronization covers eight pilot medications; seven text-layer PDFs
-  build into a 130-chunk SQLite pack and the oseltamivir scan remains explicitly blocked on OCR.
+- Current official instruction synchronization covers nine pilot medications; eight text-layer PDFs
+  build into a 147-chunk SQLite pack and the oseltamivir scan remains explicitly blocked on OCR.
+- The bundled `medications.db` vertical pilot contains one current Miramistin GRLS registration,
+  eight official package variants, the complete official patient leaflet, six traceable entities,
+  seven proposed relations, and four document links. The app exposes the same database through the
+  medication catalog, product detail route, document reader, catalog search, and main medication
+  search. Medication-indication queries prefer the full instruction and its treatment sections over
+  the registry identity card. The reader reconstructs bullet and numbered lists from their preserved
+  PDF markers and source-block indentation.
 - Public Russian starter pack: seven clinical navigation cards and eight medication-registry identity
   cards.
 - Structured knowledge tables support proposed facts, exact evidence links, relations, and review tasks.
@@ -196,9 +218,15 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
-The local 0.6.9 gate includes 22 Chromium flows; the large-model download and standalone dev-server
+The local 0.6.10 gate includes 26 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.
+
+A preliminary full-corpus model experiment indexed 744 structured clinical recommendations plus the
+regulatory pilot: 747 unique documents and 92,320 searchable chunks. Qwen3 0.6B passed the mechanical
+contract validator on 4 of 20 cases, QVikhr 3 1.7B on 3 of 20, and Vikhr Qwen 2.5 0.5B on none.
+Exact-quote validation did not establish semantic relevance, so no tested model is qualified for
+clinical answers. The complete reproducible report lives beside `packages/tester-box`.
 
 A cents-scale Replicate knowledge-extraction pilot is configured for four public starter-pack excerpts.
 It has a hard estimated cost cap of `$0.25`, persists no raw model prose, accepts only proposed records,
@@ -211,11 +239,20 @@ review-required intermediate draft. Neither pilot has been run with provider cre
   contains the official structured recommendation text, headings, tables, and embedded figures.
 - The selected oseltamivir instruction still requires reviewed OCR; the clinical recommendation
   snapshot no longer depends on PDF OCR.
+- Text-layer drug PDFs can still lose visually distinct subheadings that use the same font size as
+  body text. Preserved layout metadata prevents list continuations from absorbing adjacent text, but
+  complex layouts still require reviewed structure extraction before publication.
 - Medication registry cards establish identity, form, strength, and registration status; they do not
   establish a verified regimen.
+- `medications.db` is a one-drug pipeline proof, not a medication corpus. Similar products, normalized
+  dosing facts, ATC classification, and additional dosage forms remain absent.
+- The published corpus still lacks complete verified drug instructions, legal/normative material,
+  vaccination calendars, nutrition, growth, development, and calculation-rule sources. The complete
+  clinical-recommendation snapshot is not yet a complete physician knowledge base.
 - The full GRLS export has no confirmed ATC field, so most catalog records remain visibly unclassified.
 - The installed corpus must abstain from dose output when no supplied source contains the exact regimen.
-- Local-model clinical quality has not yet been qualified on a sufficiently broad reviewed Russian set.
+- Small local models can satisfy a JSON shape while citing semantically irrelevant exact text; the
+  20-case tester-box result is a screening benchmark, not clinical qualification.
 - Browser inference is CPU/WASM; model download size and latency remain substantial.
 - Physical Android interruption, memory-pressure, and local-model inference qualification remain release
   follow-up checks even when the debug APK and browser automation are green.
@@ -225,14 +262,16 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Verify the 0.6.9 prerelease on a physical Android device, including system-bar insets, native Back,
+1. Verify the 0.6.10 prerelease on a physical Android device, including system-bar insets, native Back,
    locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
-2. Add verified OCR for the blocked drug instruction.
-3. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
-4. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
+2. Validate the one-drug `medications.db` pipeline, then expand it without hand-editing generated
+   SQLite.
+3. Add verified OCR for the blocked drug instruction.
+4. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
+5. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
    on-device transcriber.
-5. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
+6. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
    presenting diagnostic assistance as a 1.0 capability.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.

@@ -26,9 +26,37 @@ const medication = (
 
 describe('document-medication-links', () => {
   it('turns OCR bullets into list items without losing the text', () => {
-    expect(parseDocumentText('Введение • Рекомендуется #дексаметазон** (H02AB)')).toEqual([
+    expect(
+      parseDocumentText(
+        'Введение • Рекомендуется #дексаметазон** (H02AB)\n\nдля лечения.\n\n• Наблюдать.',
+      ),
+    ).toEqual([
       { kind: 'paragraph', text: 'Введение' },
-      { kind: 'bullet', text: 'Рекомендуется #дексаметазон** (H02AB)' },
+      {
+        kind: 'bullet',
+        text: 'Рекомендуется #дексаметазон** (H02AB) для лечения.',
+      },
+      { kind: 'bullet', text: 'Наблюдать.' },
+    ]);
+  });
+
+  it('keeps numbered instructions as an ordered list', () => {
+    expect(parseDocumentText('1. Первый шаг\n\n2. Второй шаг')).toEqual([
+      { kind: 'ordered', ordinal: 1, text: 'Первый шаг' },
+      { kind: 'ordered', ordinal: 2, text: 'Второй шаг' },
+    ]);
+  });
+
+  it('uses PDF indentation to stop a list before the following paragraph', () => {
+    expect(
+      parseDocumentText('• Пункт начинается\n\nи продолжается.\n\nСледующий раздел', [
+        { bbox: [100, 0, 0, 0] },
+        { bbox: [120, 0, 0, 0] },
+        { bbox: [80, 0, 0, 0] },
+      ]),
+    ).toEqual([
+      { kind: 'bullet', text: 'Пункт начинается и продолжается.' },
+      { kind: 'paragraph', text: 'Следующий раздел' },
     ]);
   });
 
