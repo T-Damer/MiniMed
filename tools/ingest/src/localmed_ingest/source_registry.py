@@ -19,6 +19,7 @@ from .models import (
     RegistrySource,
     SourceRegistry,
 )
+from .normalization import normalize_surface_text
 from .pdf_import import extract_pdf
 from .text_import import extract_text
 
@@ -116,6 +117,23 @@ def _normalize_heading_levels(blocks: list[ExtractedBlock]) -> dict[str, int]:
     return result
 
 
+def _contents_entry_ids(blocks: list[ExtractedBlock]) -> set[str]:
+    in_contents = False
+    result: set[str] = set()
+    for block in blocks:
+        if block.kind != "heading":
+            continue
+        normalized = normalize_surface_text(block.text)
+        if "содержание" in normalized or "оглавление" in normalized:
+            in_contents = True
+            continue
+        if in_contents and block.bold:
+            in_contents = False
+        elif in_contents:
+            result.add(block.id)
+    return result
+
+
 def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource) -> str:
     included = [
         block
@@ -161,6 +179,7 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
     ).rstrip()
 
     heading_levels = _normalize_heading_levels(included)
+    contents_entry_ids = _contents_entry_ids(included)
     body: list[str] = []
     if included[0].kind != "heading":
         body.extend(["# Общая информация", ""])
@@ -168,7 +187,7 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
         text = block.text.strip()
         if not text:
             continue
-        if block.kind == "heading":
+        if block.kind == "heading" and block.id not in contents_entry_ids:
             level = heading_levels.get(block.id, 1)
             body.extend([f"{'#' * level} {text}", ""])
             continue

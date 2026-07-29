@@ -33,7 +33,7 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
   await navigationButton(page, 'База знаний').click();
   await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /Всегда доступно/u }).click();
+  await page.getByRole('button', { name: /^Ядро/u }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
 
   await page.getByRole('button', { name: '← Обзор' }).click();

@@ -1,0 +1,278 @@
+.medication-page {
+  min-height: calc(100dvh - 3.25rem - var(--safe-top) - var(--safe-bottom));
+  padding-bottom: calc(1.5rem + var(--safe-bottom));
+}
+
+.medication-route-heading {
+  align-items: center;
+}
+
+.medication-route-heading h1 {
+  margin: 0.125rem 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.medication-search {
+  margin-inline: calc(clamp(0.625rem, 1.7vw, 1.375rem) * -1);
+}
+
+.medication-search .archive-desk {
+  min-height: auto;
+}
+
+.medication-search .case-folder {
+  margin-top: 0;
+}
+
+.medication-catalog-section,
+.medication-section,
+.medication-detail {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.medication-catalog-section {
+  margin-top: 1.25rem;
+}
+
+.medication-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.medication-product-card {
+  display: grid;
+  min-height: 15rem;
+  align-content: start;
+  gap: 0.625rem;
+  padding: 1rem;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.medication-product-card:hover {
+  border-color: var(--theme-accent);
+  transform: translateY(-0.125rem);
+}
+
+.medication-card-state {
+  width: fit-content;
+  padding: 0.25rem 0.4375rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 65%, transparent);
+  border-radius: 999px;
+  color: var(--theme-link);
+  background: var(--theme-accent-soft);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+}
+
+.medication-product-card > strong {
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
+  font-weight: 500;
+}
+
+.medication-product-card > p,
+.medication-inn {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.medication-product-card > div {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+}
+
+.medication-product-card > em {
+  align-self: end;
+  margin-top: auto;
+  color: var(--theme-link);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.medication-detail {
+  gap: 1rem;
+}
+
+.medication-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.medication-hero > div {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.medication-hero > button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--theme-accent);
+  border-radius: 999px;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  cursor: pointer;
+}
+
+.medication-hero > button svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.medication-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.medication-tags span {
+  padding: 0.3125rem 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+}
+
+.medication-current-form,
+.medication-registry {
+  padding: 1rem;
+}
+
+.medication-current-form h2,
+.medication-registry h2,
+.medication-section h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.375rem, 2.4vw, 2rem);
+  font-weight: 500;
+}
+
+.medication-current-form > .archive-kicker {
+  margin-bottom: 0.375rem;
+}
+
+.medication-current-form dl,
+.medication-registry dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 1rem 0 0;
+  border-top: 1px solid var(--theme-border);
+}
+
+.medication-current-form dl > div,
+.medication-registry dl > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.medication-current-form dl > div:nth-child(odd),
+.medication-registry dl > div:nth-child(odd) {
+  padding-right: 0.75rem;
+}
+
+.medication-current-form dl > div:nth-child(even),
+.medication-registry dl > div:nth-child(even) {
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--theme-border);
+}
+
+.medication-current-form dt,
+.medication-registry dt {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+}
+
+.medication-current-form dd,
+.medication-registry dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.medication-variant-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.medication-variant-grid button {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.875rem;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.medication-variant-grid button:hover,
+.medication-variant-grid button.active {
+  border-color: var(--theme-accent);
+  background: color-mix(in srgb, var(--paper) 88%, var(--theme-accent));
+}
+
+.medication-variant-grid strong {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+}
+
+.medication-variant-grid span,
+.medication-variant-grid small {
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
+.medication-empty {
+  padding: 1rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 640px) {
+  .medication-grid,
+  .medication-variant-grid,
+  .medication-current-form dl,
+  .medication-registry dl {
+    grid-template-columns: 1fr;
+  }
+
+  .medication-hero {
+    flex-direction: column;
+  }
+
+  .medication-hero > button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .medication-current-form dl > div,
+  .medication-registry dl > div {
+    padding-inline: 0;
+    border-left: 0;
+  }
+}

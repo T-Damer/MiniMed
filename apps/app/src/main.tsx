@@ -19,6 +19,7 @@ import '@/styles/compact-release.css';
 import '@/styles/search-scope-radio.css';
 import '@/styles/download-status.css';
 import '@/styles/theme-dark.css';
+import '@/styles/medications.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');

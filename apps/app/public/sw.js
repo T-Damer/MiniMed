@@ -5,7 +5,12 @@ self.addEventListener('install', (event) => {
     caches
       .open(CACHE_NAME)
       .then((cache) =>
-        cache.addAll(['./', './content/core-demo.db', './content/core-demo-report.json']),
+        cache.addAll([
+          './',
+          './content/core-demo.db',
+          './content/core-demo-report.json',
+          './content/medications.db',
+        ]),
       ),
   );
 });

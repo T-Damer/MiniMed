@@ -19,6 +19,7 @@ import type {
   SearchResponse,
   SearchResult,
 } from '@localmed/contracts';
+import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
 export type SearchScope = 'diagnosis' | 'guidelines' | 'medications' | 'legal' | 'all';
 
@@ -62,6 +63,32 @@ function intersectDocumentIds(
   return requested.filter((documentId) => allowed.has(documentId));
 }
 
+function keepExplicitMedicationMatches(response: SearchResponse): SearchResponse {
+  const medicationTerms = new Set(
+    response.analysis.facts
+      .filter((fact) => fact.kind === 'medication' && fact.polarity !== 'negative')
+      .flatMap((fact) =>
+        tokenize(fact.normalizedValue).flatMap((term) => [term, lightStemRussian(term)]),
+      ),
+  );
+  if (medicationTerms.size === 0) return response;
+
+  return {
+    ...response,
+    groups: response.groups.filter((group) => {
+      const title = normalizeSurfaceText(group.title);
+      return (
+        [...medicationTerms].some((term) => title.includes(term)) ||
+        group.results.some((result) =>
+          result.matchedTerms.some((term) =>
+            medicationTerms.has(lightStemRussian(normalizeSurfaceText(term))),
+          ),
+        )
+      );
+    }),
+  };
+}
+
 /**
  * A UI-level core view that keeps the public MedicalCore contract intact while constraining
  * retrieval to the source family explicitly chosen by the clinician.
@@ -74,6 +101,7 @@ export class ScopedMedicalCore implements MedicalCore {
     private readonly base: MedicalCore,
     private readonly assistant: MedicalCore | undefined,
     private readonly scope: SearchScope,
+    private readonly includedDocumentIds?: ReadonlySet<string>,
   ) {}
 
   private target(): MedicalCore {
@@ -104,14 +132,18 @@ export class ScopedMedicalCore implements MedicalCore {
     if (!documents.ok) return { ok: false, error: documents.error };
 
     const availableDocumentIds = documents.value
-      .filter((document) => sourceTypes.has(document.sourceType))
+      .filter(
+        (document) =>
+          sourceTypes.has(document.sourceType) &&
+          (!this.includedDocumentIds || this.includedDocumentIds.has(document.id)),
+      )
       .map((document) => document.id);
     const selectedDocumentIds = intersectDocumentIds(
       availableDocumentIds,
       request.filters.documentIds,
     );
 
-    return this.base.search({
+    const result = await this.base.search({
       ...request,
       filters: {
         ...request.filters,
@@ -121,6 +153,9 @@ export class ScopedMedicalCore implements MedicalCore {
           selectedDocumentIds.length > 0 ? [...selectedDocumentIds] : [EMPTY_SCOPE_DOCUMENT_ID],
       },
     });
+    return result.ok && this.scope === 'medications'
+      ? { ok: true, value: keepExplicitMedicationMatches(result.value) }
+      : result;
   }
 
   public getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>> {

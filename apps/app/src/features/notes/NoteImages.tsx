@@ -1,6 +1,7 @@
 import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { deleteNoteImage, type NoteImage } from '@/state/note-images';
 
 export function NoteImagePicker(props: {
@@ -28,69 +29,79 @@ export function NoteImagePicker(props: {
 
   return (
     <div class="record-images-editor paper-card">
-      <label
-        class="note-image-picker"
-        classList={{ dragging: dragging() }}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setDragging(true);
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(event) => {
-          event.preventDefault();
-          setDragging(false);
-          appendFiles(event.dataTransfer?.files ?? null);
-        }}
+      <HorizontalScroller
+        class="note-images-scroller"
+        controls
+        hideScrollbar
+        controlLabel="изображения"
       >
-        <span class="visually-hidden">Добавить изображения</span>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          multiple
-          onChange={(event) => {
-            appendFiles(event.currentTarget.files);
-            event.currentTarget.value = '';
-          }}
-        />
-        <span class="note-image-picker-plus" aria-hidden="true">
-          +
-        </span>
-      </label>
-      <Show when={props.images.length > 0 || props.files.length > 0}>
-        <div class="note-image-previews">
-          <For each={props.images}>
-            {(image) => (
-              <figure>
-                <a href={image.dataUrl} target="_blank" rel="noreferrer">
-                  <img src={image.dataUrl} alt={image.name} loading="lazy" />
-                </a>
-                <figcaption>{image.name}</figcaption>
-                <button
-                  type="button"
-                  aria-label={`Удалить изображение «${image.name}»`}
-                  title="Удалить изображение"
-                  onClick={() =>
-                    void deleteNoteImage(image.id).catch(() =>
-                      props.onError('Не удалось удалить изображение.'),
-                    )
-                  }
-                >
-                  <AppGlyph name="trash" />
-                </button>
-              </figure>
-            )}
-          </For>
-          <For each={previews()}>
-            {(preview) => (
-              <figure>
-                <img src={preview.url} alt={preview.name} />
-                <figcaption>{preview.name}</figcaption>
-              </figure>
-            )}
-          </For>
+        <div class="note-image-row">
+          <label
+            class="note-image-picker"
+            classList={{ dragging: dragging() }}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragging(true);
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragging(false);
+              appendFiles(event.dataTransfer?.files ?? null);
+            }}
+          >
+            <span class="visually-hidden">Добавить изображения</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              onChange={(event) => {
+                appendFiles(event.currentTarget.files);
+                event.currentTarget.value = '';
+              }}
+            />
+            <span class="note-image-picker-plus" aria-hidden="true">
+              +
+            </span>
+          </label>
+          <Show when={props.images.length > 0 || props.files.length > 0}>
+            <div class="note-image-previews">
+              <For each={props.images}>
+                {(image) => (
+                  <figure>
+                    <a href={image.dataUrl} target="_blank" rel="noreferrer">
+                      <img src={image.dataUrl} alt={image.name} loading="lazy" />
+                    </a>
+                    <figcaption>{image.name}</figcaption>
+                    <button
+                      type="button"
+                      aria-label={`Удалить изображение «${image.name}»`}
+                      title="Удалить изображение"
+                      data-haptic="heavy"
+                      onClick={() =>
+                        void deleteNoteImage(image.id).catch(() =>
+                          props.onError('Не удалось удалить изображение.'),
+                        )
+                      }
+                    >
+                      <AppGlyph name="trash" />
+                    </button>
+                  </figure>
+                )}
+              </For>
+              <For each={previews()}>
+                {(preview) => (
+                  <figure>
+                    <img src={preview.url} alt={preview.name} />
+                    <figcaption>{preview.name}</figcaption>
+                  </figure>
+                )}
+              </For>
+            </div>
+          </Show>
         </div>
-      </Show>
+      </HorizontalScroller>
       <Show when={props.error}>
         <p class="note-image-error" role="alert">
           {props.error}

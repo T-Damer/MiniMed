@@ -55,7 +55,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /Лекарства, документы и нормы/u }).click();
+  await page.getByRole('button', { name: /^Законы и нормативные акты/u }).click();
 
   const card = regulatoryCard(page);
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible();
@@ -73,7 +73,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /Лекарства, документы и нормы/u }).click();
+  await page.getByRole('button', { name: /^Законы и нормативные акты/u }).click();
   page.once('dialog', (dialog) => dialog.accept());
   await card.getByRole('button', { name: 'Удалить с устройства' }).click();
   await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible({
@@ -128,7 +128,7 @@ test('shows the real download state and resumes automatically when the network r
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /Лекарства, документы и нормы/u }).click();
+  await page.getByRole('button', { name: /^Законы и нормативные акты/u }).click();
 
   await context.setOffline(true);
   const card = regulatoryCard(page);

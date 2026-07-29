@@ -1,7 +1,7 @@
 import type { MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
-import { QueryHighlightedText } from '@/components/HighlightedText';
+import { DocumentText } from '@/components/DocumentText';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import {
@@ -12,10 +12,7 @@ import {
   resolveReadableDocumentId,
   sourceTypeReaderLabel,
 } from '@/features/library/document-display';
-import {
-  buildDocumentLinkPhrases,
-  segmentTextWithMedicationLinks,
-} from '@/features/library/document-medication-links';
+import { buildDocumentLinkPhrases } from '@/features/library/document-medication-links';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
 import { readDocumentRenderBlock } from '@/features/library/document-rich-block-data';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -45,6 +42,9 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
   const [activeAnchor, setActiveAnchor] = createSignal(props.initialAnchor ?? '');
   const [fullTextPending, setFullTextPending] = createSignal(false);
   const [fullTextError, setFullTextError] = createSignal<string | null>(null);
+  let outline: HTMLElement | undefined;
+  let outlineNav: HTMLElement | undefined;
+  let paper: HTMLElement | undefined;
 
   const availableIds = createMemo(
     () => new Set((props.availableDocuments ?? []).map((document) => document.id)),
@@ -86,6 +86,49 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
         ].join(' '),
       ).includes(value),
     );
+  });
+
+  createEffect(() => {
+    const anchors = matchingSections().map((section) => section.anchor);
+    if (!props.document || !paper || anchors.length === 0) return;
+    const body = paper.closest<HTMLElement>('.overlay-dialog-body');
+    const updateActiveSection = (): void => {
+      if (!paper) return;
+      const sections = Array.from(paper.querySelectorAll<HTMLElement>('.document-overlay-section'));
+      if (sections.length === 0) return;
+      const scroller = paper.scrollHeight > paper.clientHeight + 1 ? paper : (body ?? paper);
+      const scrollerRect = scroller.getBoundingClientRect();
+      const readingLine = scrollerRect.top + Math.min(120, scrollerRect.height * 0.2);
+      let nextAnchor = sections[0]?.id ?? '';
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top > readingLine) break;
+        nextAnchor = section.id;
+      }
+      setActiveAnchor(nextAnchor);
+    };
+
+    paper.addEventListener('scroll', updateActiveSection, { passive: true });
+    body?.addEventListener('scroll', updateActiveSection, { passive: true });
+    window.addEventListener('resize', updateActiveSection);
+    queueMicrotask(updateActiveSection);
+    onCleanup(() => {
+      paper?.removeEventListener('scroll', updateActiveSection);
+      body?.removeEventListener('scroll', updateActiveSection);
+      window.removeEventListener('resize', updateActiveSection);
+    });
+  });
+
+  createEffect(() => {
+    const anchor = activeAnchor();
+    if (!anchor || !outline || !outlineNav) return;
+    queueMicrotask(() => {
+      const item = outlineNav?.querySelector<HTMLElement>(`[data-section-anchor="${anchor}"]`);
+      if (!outline || !item) return;
+      const outlineRect = outline.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      outline.scrollTop +=
+        itemRect.top - outlineRect.top - (outline.clientHeight - item.clientHeight) / 2;
+    });
   });
 
   const scrollTo = (anchor: string): void => {
@@ -133,6 +176,16 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
         : {})}
       class="document-overlay"
       onClose={close}
+      headerStart={
+        <button
+          type="button"
+          class="document-overlay-outline-toggle"
+          aria-label="Открыть оглавление"
+          onClick={() => setOutlineOpen(true)}
+        >
+          <AppGlyph name="menu" />
+        </button>
+      }
     >
       <Show when={props.document}>
         {(documentValue) => (
@@ -144,7 +197,11 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
               aria-label="Закрыть оглавление"
               onClick={() => setOutlineOpen(false)}
             />
-            <aside class="document-overlay-outline" classList={{ open: outlineOpen() }}>
+            <aside
+              ref={outline}
+              class="document-overlay-outline"
+              classList={{ open: outlineOpen() }}
+            >
               <header class="document-overlay-outline-header">
                 <strong>Оглавление</strong>
                 <button
@@ -165,12 +222,16 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
 
               <details open>
                 <summary>Оглавление</summary>
-                <nav aria-label="Разделы документа">
+                <nav ref={outlineNav} aria-label="Разделы документа">
                   <For each={matchingSections()}>
                     {(section, index) => (
                       <button
                         type="button"
+                        data-section-anchor={section.anchor}
                         classList={{ active: activeAnchor() === section.anchor }}
+                        aria-current={
+                          activeAnchor() === section.anchor ? ('location' as const) : undefined
+                        }
                         onClick={() => scrollTo(section.anchor)}
                       >
                         <span>{String(index() + 1).padStart(2, '0')}</span>
@@ -211,16 +272,8 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
               </details>
             </aside>
 
-            <article class="document-overlay-paper">
+            <article ref={paper} class="document-overlay-paper">
               <header>
-                <button
-                  type="button"
-                  class="document-overlay-outline-toggle"
-                  aria-label="Открыть оглавление"
-                  onClick={() => setOutlineOpen(true)}
-                >
-                  <AppGlyph name="menu" />
-                </button>
                 <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
                   {(label) => <p>{label()}</p>}
                 </Show>
@@ -272,53 +325,27 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                             <Show
                               when={renderBlock()}
                               fallback={
-                                <p
+                                <div
                                   id={chunk.anchor}
+                                  class="document-text-chunk"
                                   classList={{
                                     'document-initial-anchor': props.initialAnchor === chunk.anchor,
                                   }}
                                 >
-                                  <Show
-                                    when={showDocumentLinks()}
-                                    fallback={
-                                      <QueryHighlightedText
-                                        text={chunk.originalText}
-                                        query={query()}
-                                      />
+                                  <DocumentText
+                                    text={chunk.originalText}
+                                    query={query()}
+                                    sourceSpans={chunk.metadata?.['sourceSpans']}
+                                    documentLinks={
+                                      showDocumentLinks() ? documentLinks() : undefined
                                     }
-                                  >
-                                    <For
-                                      each={segmentTextWithMedicationLinks(
-                                        chunk.originalText,
-                                        documentLinks(),
-                                      )}
-                                    >
-                                      {(segment) =>
-                                        segment.kind === 'text' ? (
-                                          <QueryHighlightedText
-                                            text={segment.value}
-                                            query={query()}
-                                          />
-                                        ) : (
-                                          <button
-                                            type="button"
-                                            class="document-inline-link"
-                                            onClick={() => {
-                                              openDocumentOverlay(segment.documentId, null, {
-                                                preferSummary: true,
-                                              });
-                                            }}
-                                          >
-                                            <QueryHighlightedText
-                                              text={segment.value}
-                                              query={query()}
-                                            />
-                                          </button>
-                                        )
-                                      }
-                                    </For>
-                                  </Show>
-                                </p>
+                                    onDocumentLink={(documentId) => {
+                                      openDocumentOverlay(documentId, null, {
+                                        preferSummary: true,
+                                      });
+                                    }}
+                                  />
+                                </div>
                               }
                             >
                               {(block) => (

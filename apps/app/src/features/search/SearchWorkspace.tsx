@@ -44,6 +44,7 @@ interface SearchWorkspaceProps {
   readonly searchAllowed?: boolean;
   readonly modePicker?: JSX.Element;
   readonly placeholder?: string;
+  readonly examples?: readonly string[];
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
 }
 
@@ -143,13 +144,13 @@ const FACT_LABELS: Readonly<Record<QueryFact['kind'], string>> = {
 };
 
 const INTENT_LABELS: Readonly<Record<NonNullable<QueryAnalysis['intent']>['primary'], string>> = {
-  diagnosis: 'Клинический случай: ищем возможные диагнозы и источники',
-  treatment: 'Тактика лечения: сначала учитываем диагноз, тяжесть и ограничения',
-  medication: 'Запрос о препарате: показываем лекарственные источники и контекст применения',
-  'disease-reference': 'Справочный запрос о заболевании',
-  'care-guidance': 'Уход, профилактика или практические рекомендации',
-  'administrative-reference': 'Нормативный и организационный запрос',
-  mixed: 'Смешанный клинический запрос: разбираем его на несколько задач',
+  diagnosis: 'Диагностический запрос',
+  treatment: 'Тактика лечения',
+  medication: 'Запрос о препарате',
+  'disease-reference': 'Справка о заболевании',
+  'care-guidance': 'Уход и профилактика',
+  'administrative-reference': 'Нормативный запрос',
+  mixed: 'Смешанный клинический запрос',
   unknown: 'Свободный медицинский запрос',
 };
 
@@ -468,7 +469,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           }}
         >
           <div class="query-actions query-mode-actions">
-            <HorizontalScroller class="query-shortcuts">{props.modePicker}</HorizontalScroller>
+            <HorizontalScroller
+              class="query-shortcuts"
+              controls
+              hideScrollbar
+              controlLabel="режимы поиска"
+            >
+              {props.modePicker}
+            </HorizontalScroller>
           </div>
           <label class="sr-only" for="clinical-query">
             Поисковый запрос
@@ -508,15 +516,25 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   <span>Очистить</span>
                 </button>
               </Show>
-              <button
-                class="search-button"
-                data-testid="search-submit"
-                type="submit"
-                disabled={loading() || props.searchAllowed === false}
+              <div
+                class="search-submit-reveal"
+                classList={{ visible: props.searchAllowed !== false }}
+                aria-hidden={props.searchAllowed === false}
               >
-                <span>{loading() ? 'Ищем…' : 'Найти сейчас'}</span>
-                <b aria-hidden="true">↵</b>
-              </button>
+                <div>
+                  <button
+                    class="search-button"
+                    data-testid="search-submit"
+                    data-haptic="medium"
+                    type="submit"
+                    tabindex={props.searchAllowed === false ? -1 : undefined}
+                    disabled={loading() || props.searchAllowed === false}
+                  >
+                    <span>{loading() ? 'Ищем…' : 'Найти сейчас'}</span>
+                    <b aria-hidden="true">↵</b>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </form>
@@ -558,15 +576,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     ? 'Обновляем разбор…'
                     : `Распознано ${analysis().facts.length} полей · показать детали`}
                 </summary>
-                <Show when={analysis().intent}>
-                  {(intent) => (
-                    <div class="clinical-plan-card paper-card">
-                      <strong>{INTENT_LABELS[intent().primary]}</strong>
-                      <span>Уверенность {Math.round(intent().confidence * 100)}%</span>
-                    </div>
-                  )}
-                </Show>
                 <div class="fact-strip">
+                  <Show when={analysis().intent}>
+                    {(intent) => (
+                      <span
+                        class="fact-tag query-mode-tag"
+                        title={`Уверенность ${Math.round(intent().confidence * 100)}%`}
+                      >
+                        <small>режим поиска</small>
+                        {INTENT_LABELS[intent().primary]}
+                      </span>
+                    )}
+                  </Show>
                   <For each={analysis().facts}>
                     {(fact) => (
                       <span
@@ -600,7 +621,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
         <Show when={props.searchAllowed !== false && !response() && query().length === 0}>
           <SearchExamples
-            examples={EXAMPLES_BY_SCOPE[props.scope]}
+            examples={props.examples ?? EXAMPLES_BY_SCOPE[props.scope]}
             onSelect={(example) => {
               updateQuery(example, false);
               void runSearch(example, true);

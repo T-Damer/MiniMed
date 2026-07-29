@@ -3,6 +3,7 @@ import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'so
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
+import { MedicationCatalogView } from '@/features/medications/MedicationCatalogView';
 import type { LocalModelController } from '@/features/models/controller';
 import { ModelSettings } from '@/features/models/ModelSettings';
 import type { LocalModelState } from '@/features/models/types';
@@ -10,7 +11,7 @@ import { ModuleCatalogView } from '@/features/modules/ModuleCatalogView';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import { loadPatientNotes } from '@/state/patient-notes';
 
-type KnowledgeRoute = 'overview' | 'documents' | 'model';
+type KnowledgeRoute = 'overview' | 'documents' | 'medications' | 'model';
 
 interface KnowledgeBaseViewProps {
   readonly core: MedicalCore;
@@ -23,6 +24,12 @@ interface KnowledgeBaseViewProps {
 
 function routeFromLocation(): KnowledgeRoute {
   const route = window.location.hash.replace(/^#\/?/u, '');
+  if (
+    route === 'modules/documents/medications' ||
+    route.startsWith('modules/documents/medications/')
+  ) {
+    return 'medications';
+  }
   if (route === 'modules/documents' || route.startsWith('modules/documents/')) return 'documents';
   if (route === 'modules/model' || route === 'status') return 'model';
   return 'overview';
@@ -143,6 +150,10 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
           {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
           {...(props.onAvailableUpdates ? { onAvailableUpdates: props.onAvailableUpdates } : {})}
         />
+      </Show>
+
+      <Show when={route() === 'medications'}>
+        <MedicationCatalogView core={props.core} onBack={() => navigate('documents')} />
       </Show>
 
       <Show when={route() === 'model'}>

@@ -6,6 +6,7 @@ from typing import Annotated
 
 import typer
 
+from .grls_products import build_grls_product_workspace
 from .legal_catalog import collect_legal_catalog
 from .medication_catalog import (
     build_medication_coverage_ledger,
@@ -56,6 +57,25 @@ def grls_instructions_command(
         report,
         resolved_registry_output=resolved_registry,
         timeout_seconds=timeout_seconds,
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-products")
+def grls_products_command(
+    catalog: Annotated[Path, typer.Option("--catalog", exists=True, dir_okay=False)],
+    registry: Annotated[Path, typer.Option("--registry", exists=True, dir_okay=False)],
+    workspace: Annotated[Path, typer.Option("--workspace", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+) -> None:
+    """Build normalized drug entities and official registry cards for selected instructions."""
+    summary = build_grls_product_workspace(
+        catalog,
+        registry,
+        workspace,
+        output,
+        report_output=report,
     )
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
 

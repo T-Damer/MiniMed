@@ -163,6 +163,8 @@ def infer_section_type(title: str) -> str:
     rules = [
         ("дифференциаль", "differential-diagnosis"),
         ("диагност", "diagnostics"),
+        ("показания к применению", "treatment"),
+        ("применение препарата", "treatment"),
         ("лечен", "treatment"),
         ("маршрут", "routing"),
         ("классифика", "classification"),

@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const query = 'Ребёнок часто дышит и температурит второй день';
 
@@ -75,6 +75,61 @@ test('limits medication mode to medication documents', async ({ page }) => {
   );
 });
 
+test('opens Miramistin indications from the full instruction with structured lists', async ({
+  page,
+}) => {
+  await mountBuiltApp(page);
+  await chooseScope(page, /Препараты/u);
+  await page.getByTestId('search-input').fill('Мирамистин показания');
+  await expect(page.locator('.result-group').first()).toContainText(
+    'Мирамистин 0,01%: инструкция по медицинскому применению',
+  );
+
+  await page.goto(
+    `${E2E_ASSET_ORIGIN}/#/modules/documents/medications/${encodeURIComponent(
+      'ЛП-№(005744)-(РГ-RU)',
+    )}`,
+  );
+  await page.getByRole('button', { name: 'Открыть инструкцию' }).click();
+  await expect(
+    page.locator('.overlay-dialog-header > .document-overlay-outline-toggle'),
+  ).toBeVisible();
+
+  const indications = page
+    .locator('.document-overlay-section')
+    .filter({ has: page.getByRole('heading', { name: 'Показания к применению', level: 2 }) });
+  await expect(indications.locator('ul > li')).toHaveCount(8);
+  const contents = page
+    .locator('.document-overlay-section')
+    .filter({ has: page.getByRole('heading', { name: 'Содержание листка-вкладыша', level: 2 }) });
+  await expect(contents.locator('ol > li')).toHaveCount(6);
+
+  const application = page.getByRole('heading', {
+    name: '3. Применение препарата Мирамистин®',
+    level: 2,
+  });
+  await application.evaluate((heading) =>
+    heading.closest('section')?.scrollIntoView({ block: 'start' }),
+  );
+  const activeOutlineItem = page
+    .getByRole('navigation', { name: 'Разделы документа' })
+    .getByRole('button', { name: /08 3\. Применение препарата/u });
+  await expect(activeOutlineItem).toHaveAttribute('aria-current', 'location');
+  await expect
+    .poll(() =>
+      activeOutlineItem.evaluate((item) => {
+        const outline = item.closest('.document-overlay-outline');
+        if (!outline) return Number.POSITIVE_INFINITY;
+        const itemRect = item.getBoundingClientRect();
+        const outlineRect = outline.getBoundingClientRect();
+        return Math.abs(
+          itemRect.top + itemRect.height / 2 - (outlineRect.top + outlineRect.height / 2),
+        );
+      }),
+    )
+    .toBeLessThan(8);
+});
+
 test('limits the initial document list and reveals remaining sources', async ({ page }) => {
   await mountBuiltApp(page);
   await chooseScope(page, /Всё без диагностики/u);
@@ -108,6 +163,29 @@ test('preserves the active search while navigating between mounted routes', asyn
   await expect(pneumoniaResult(page)).toBeVisible();
 });
 
+test('queues rapid primary navigation without blocking the bottom bar', async ({ page }) => {
+  await mountBuiltApp(page);
+
+  const clickPosition = async (name: string): Promise<{ x: number; y: number }> => {
+    const bounds = await navigationButton(page, name).boundingBox();
+    if (!bounds) throw new Error(`Navigation button is not visible: ${name}`);
+    return { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
+  };
+  const modules = await clickPosition('База знаний');
+  const notes = await clickPosition('Заметки');
+  const search = await clickPosition('Поиск');
+
+  await page.mouse.click(modules.x, modules.y);
+  await page.waitForTimeout(35);
+  await page.mouse.click(notes.x, notes.y);
+  await page.waitForTimeout(35);
+  await page.mouse.click(search.x, search.y);
+
+  await expect(page).toHaveURL(/#\/search$/u, { timeout: 3_000 });
+  await expect(navigationButton(page, 'Поиск')).toHaveClass(/active/u);
+  await expect(page.locator('html')).not.toHaveClass(/using-root-view-transition/u);
+});
+
 test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
@@ -115,9 +193,11 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
   await page.getByRole('button', { name: /^Документы/u }).click();
   await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Всегда доступно/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /Лекарства, документы и нормы/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Лекарства/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Нормы и расчёты/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Законы и нормативные акты/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Ядро/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Клинические рекомендации/u })).toBeVisible();
   await page.getByRole('button', { name: /Клинические рекомендации/u }).click();
   await expect(page).toHaveURL(/#\/modules\/documents\/recommendations/u);
@@ -125,7 +205,7 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.locator('.recommendation-section-card')).toHaveCount(21);
   await expect(page.getByText('Обновление списка наборов')).toHaveCount(0);
   await page.getByRole('button', { name: 'Назад' }).click();
-  await page.getByRole('button', { name: /Всегда доступно/u }).click();
+  await page.getByRole('button', { name: /^Ядро/u }).click();
   await expect(page.getByText('Ядро MiniMed')).toBeVisible();
 });
 
@@ -174,7 +254,7 @@ test('filters the document library and opens a document with one click', async (
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /Всегда доступно/u }).click();
+  await page.getByRole('button', { name: /^Ядро/u }).click();
   await page.getByRole('button', { name: 'Открыть документы ядра' }).click();
   await page.getByPlaceholder('Название, специальность или источник').fill('пневмония');
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();

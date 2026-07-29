@@ -1,9 +1,9 @@
 pack:
   id: minimed.medications.selected-instructions.ru
-  version: 0.5.1
+  version: 0.5.2
   schemaVersion: 2
   title: "Выбранные официальные инструкции ГРЛС"
-  builtAt: "2026-07-24T00:00:00Z"
+  builtAt: "2026-07-29T00:00:00Z"
 
 sources:
   - id: drug.rf.augmentin.instruction
@@ -82,4 +82,18 @@ sources:
     format: pdf
     metadata:
       registrationNumber: "ЛП-№(012750)-(РГ-RU)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.miramistin.solution.instruction
+    path: miramistin-solution.pdf
+    title: "Мирамистин 0,01%: инструкция по медицинскому применению"
+    shortTitle: Мирамистин 0,01%
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(005744)-(РГ-RU)"
+      tradeName: "Мирамистин®"
+      inn: "Бензилдиметил-миристоиламино-пропиламмоний"
+      dosageForm: "Раствор для местного применения, 0,01%"
       officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx

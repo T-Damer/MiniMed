@@ -4,6 +4,40 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.10] - 2026-07-29
+
+### Added
+
+- Added a bundled `medications.db` vertical pilot for Miramistin with its current GRLS registration,
+  official package variants, complete patient leaflet, medication catalog, product route, source
+  reader, and medication-scoped search.
+- Added a reproducible CLI tester-box that evaluates 20 synthetic clinician cases against the full
+  structured recommendation snapshot and records retrieval, model output, latency, and contract
+  validation.
+- Added light, medium, and heavy WebView haptics without another native plugin.
+
+### Changed
+
+- Reconstructed document lists from preserved PDF layout markers, kept the outline control in the
+  reader header, tracked the active section, and pinned the current heading while reading.
+- Improved medication intent ranking so indication and administration queries prefer the full
+  instruction and relevant treatment sections over registry identity cards.
+- Reworked primary navigation into horizontal viewport transitions with an interactive fixed bottom
+  bar and a serial queue for rapid tab changes.
+- Replaced the mixed document overview with five explicit sections: medications, norms and
+  calculations, laws and regulations, clinical recommendations, and core.
+- Added scrollbar-free horizontal controls for search modes, examples, and note images; search
+  history can also open from an edge swipe.
+- Matched Android status-bar icon contrast to the device theme while keeping the application
+  background behind the system bar.
+
+### Verification boundary
+
+- `medications.db` remains a one-drug pipeline proof without normalized dosing facts, ATC coverage,
+  or a complete Russian medication corpus.
+- The tested sub-4B local models did not demonstrate sufficient grounded clinical-answer quality.
+- This remains a debug-signed engineering prerelease, not a production-signed medical device.
+
 ## [0.6.9] - 2026-07-28
 
 ### Changed

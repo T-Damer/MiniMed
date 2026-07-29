@@ -54,6 +54,9 @@ def create_text_pdf(path: Path) -> None:
         page.insert_textbox(
             (50, 120, 545, 600), "\n\n".join([body] * 4), fontsize=11, fontname="regular"
         )
+        page.insert_text(
+            (50, 700), "1. Удалить колпачок с флакона.", fontsize=11, fontname="regular"
+        )
         page.insert_text((290, 815), str(page_number), fontsize=8, fontname="regular")
     document.save(path)
     document.close()
@@ -104,6 +107,12 @@ def test_pdf_extraction_removes_repeated_marginalia_and_detects_headings(tmp_pat
         block.kind == "heading" and block.heading_level == 1
         for page in extracted.pages
         for block in page.blocks
+    )
+    assert all(
+        block.kind != "heading"
+        for page in extracted.pages
+        for block in page.blocks
+        if block.text == "1. Удалить колпачок с флакона."
     )
 
 
