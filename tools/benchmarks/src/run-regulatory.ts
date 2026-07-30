@@ -108,18 +108,19 @@ for (const fixture of queries) {
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
   if (!documentResult.ok) throw new Error(`${fixture.id}: ${documentResult.error.message}`);
   const document = documentResult.value;
+  const metadata = document.metadata;
   const expectedStatus = fixture.expectedStatus ?? 'active';
   const metadataValid =
     document.versionId === fixture.expectedVersionId &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
-    document.metadata['authorityTier'] === 'official-regulatory-act' &&
-    document.metadata['jurisdiction'] === 'RU' &&
-    document.metadata['documentNumber'] === fixture.expectedDocumentNumber &&
-    document.metadata['officialPublicationNumber'] === fixture.expectedPublicationNumber &&
-    document.metadata['contentMode'] === 'source_linked_paraphrase' &&
+    metadata.authorityTier === 'official-regulatory-act' &&
+    metadata.jurisdiction === 'RU' &&
+    metadata.documentNumber === fixture.expectedDocumentNumber &&
+    metadata.officialPublicationNumber === fixture.expectedPublicationNumber &&
+    metadata.contentMode === 'source_linked_paraphrase' &&
     (fixture.expectedSupersededBy === undefined ||
-      document.metadata['supersededByDocumentId'] === fixture.expectedSupersededBy);
+      metadata.supersededByDocumentId === fixture.expectedSupersededBy);
 
   rows.push({
     id: fixture.id,
