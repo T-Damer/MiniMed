@@ -74,7 +74,9 @@ function firstMatchingRank(
   needles: readonly string[],
   limit: number,
 ): number | null {
-  const index = groups.slice(0, limit).findIndex((group) => includesAny(resultText(group), needles));
+  const index = groups
+    .slice(0, limit)
+    .findIndex((group) => includesAny(resultText(group), needles));
   return index < 0 ? null : index + 1;
 }
 
@@ -157,9 +159,7 @@ export function aggregateHardQueryEvaluations(
     recallAt1: mean(rows.map((row) => Number(row.requiredAt1))),
     recallAt3: mean(rows.map((row) => Number(row.requiredAt3))),
     recallAt5: mean(rows.map((row) => Number(row.requiredAt5))),
-    acceptableOrRequiredRecallAt5: mean(
-      rows.map((row) => Number(row.acceptableOrRequiredAt5)),
-    ),
+    acceptableOrRequiredRecallAt5: mean(rows.map((row) => Number(row.acceptableOrRequiredAt5))),
     mrrAt5: mean(rows.map((row) => row.reciprocalRank)),
     retrievedNdcgAt5: mean(rows.map((row) => row.retrievedNdcgAt5)),
     expectedSectionRecallAt5: mean(rows.map((row) => Number(row.expectedSectionAt5))),
