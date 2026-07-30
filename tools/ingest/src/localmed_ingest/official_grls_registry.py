@@ -840,7 +840,6 @@ def build_grls_instruction_source_registry(
                     "reason": "no-pdf-text-layer",
                 }
             )
-            continue
         record = records.get(registration_number)
         if record is None:
             raise ValueError(f"GRLS catalog has no registration {registration_number}.")
@@ -902,9 +901,7 @@ def build_grls_instruction_source_registry(
             ).encode(),
         )
     if not sources:
-        raise ValueError(
-            "No text-layer GRLS instructions are available; see the OCR candidate report."
-        )
+        raise ValueError("No checksum-validated current GRLS instructions are available.")
     registry = {
         "pack": {
             "id": f"minimed.medications.grls-instructions.{edition.replace('.', '-')}",

@@ -334,7 +334,7 @@ def test_instruction_registry_uses_only_checksum_validated_current_pdfs(tmp_path
     ]
 
 
-def test_instruction_registry_reports_scan_only_pdf(tmp_path: Path) -> None:
+def test_instruction_registry_marks_scan_only_pdf_for_ocr(tmp_path: Path) -> None:
     catalog = tmp_path / "catalog.json"
     plan_path = tmp_path / "plan.json"
     state = tmp_path / "state.jsonl"
@@ -368,9 +368,9 @@ def test_instruction_registry_reports_scan_only_pdf(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="OCR candidate report"):
-        build_grls_instruction_source_registry(
-            plan_path, state, catalog, raw_root, output, report_output=report
-        )
+    summary = build_grls_instruction_source_registry(
+        plan_path, state, catalog, raw_root, output, report_output=report
+    )
 
+    assert summary["sources"] == 1
     assert json.loads(report.read_text(encoding="utf-8"))["ocrCandidates"] == 1
