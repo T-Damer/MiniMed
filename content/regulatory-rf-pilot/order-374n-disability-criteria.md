@@ -1,6 +1,6 @@
 ---
 id: regulatory.rf.mintrud.374n-2024-disability
- title: Критерии инвалидности для взрослых и детей — приказ № 374н
+title: Критерии инвалидности для взрослых и детей — приказ № 374н
 short_title: Инвалидность взрослых и детей — 374н
 version_label: 374n-2024-07-26-reviewed-2026-07-31
 source_type: regulatory_act_summary
