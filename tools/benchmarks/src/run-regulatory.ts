@@ -16,16 +16,22 @@ interface RegulatoryQuery {
   readonly expectedAnchorPrefix: string;
   readonly expectedStatus?: 'active' | 'superseded';
   readonly expectedSupersededBy?: string;
+  readonly expectedAgeGroups?: readonly string[];
+  readonly expectedAudienceLabel?: string;
   readonly requireTop1?: boolean;
+  readonly requireSection?: boolean;
   readonly category: string;
 }
 
 interface RegulatoryRow {
   readonly id: string;
   readonly category: string;
+  readonly rank: number | null;
   readonly hitAt1: boolean;
+  readonly hitAt2: boolean;
   readonly hitAt5: boolean;
-  readonly requiredTop1Passed: boolean;
+  readonly requiredRankPassed: boolean;
+  readonly sectionRequired: boolean;
   readonly sectionHit: boolean;
   readonly contextResolved: boolean;
   readonly metadataValid: boolean;
@@ -35,9 +41,9 @@ interface RegulatoryRow {
   readonly matchedAnchor: string | null;
 }
 
-function parseQueries(value: unknown): readonly RegulatoryQuery[] {
+function parseQueries(value: unknown, source: string): readonly RegulatoryQuery[] {
   if (!Array.isArray(value) || value.length === 0) {
-    throw new Error('Regulatory benchmark must be a non-empty array.');
+    throw new Error(`${source} must contain a non-empty regulatory query array.`);
   }
   return value as readonly RegulatoryQuery[];
 }
@@ -56,10 +62,27 @@ function percentile(values: readonly number[], percentileValue: number): number 
   return sorted[index] ?? 0;
 }
 
+function metadataStrings(
+  metadata: Readonly<Record<string, unknown>>,
+  key: string,
+): readonly string[] {
+  const value = metadata[key];
+  return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
+}
+
 const root = resolve(import.meta.dirname, '../../..');
-const queries = parseQueries(
-  JSON.parse(readFileSync(resolve(root, 'tools/benchmarks/regulatory-rf-queries.json'), 'utf8')),
+const queryPaths = [
+  'tools/benchmarks/regulatory-rf-queries.json',
+  'tools/benchmarks/regulatory-rf-major-queries.json',
+] as const;
+const queries = queryPaths.flatMap((path) =>
+  parseQueries(JSON.parse(readFileSync(resolve(root, path), 'utf8')), path),
 );
+const queryIds = queries.map((query) => query.id);
+if (new Set(queryIds).size !== queryIds.length) {
+  throw new Error('Regulatory benchmark contains duplicate query IDs.');
+}
+
 const databaseBytes = new Uint8Array(
   readFileSync(resolve(root, 'data/build/rf-regulatory-pilot.db')),
 );
@@ -101,8 +124,7 @@ for (const fixture of queries) {
     if (!context.ok) throw new Error(`${fixture.id}: ${context.error.message}`);
     const focus = context.value.chunks.find((chunk) => chunk.id === context.value.focusChunkId);
     contextResolved =
-      context.value.section.anchor === fixture.expectedAnchorPrefix &&
-      focus?.anchor === matched.anchor;
+      context.value.section.anchor === fixture.expectedAnchorPrefix && focus?.anchor === matched.anchor;
   }
 
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
@@ -110,24 +132,37 @@ for (const fixture of queries) {
   const document = documentResult.value;
   const metadata = document.metadata;
   const expectedStatus = fixture.expectedStatus ?? 'active';
+  const actualAgeGroups = metadataStrings(metadata, 'ageGroups');
+  const ageGroupsValid =
+    fixture.expectedAgeGroups === undefined ||
+    fixture.expectedAgeGroups.every((ageGroup) => actualAgeGroups.includes(ageGroup));
+  const audienceLabelValid =
+    fixture.expectedAudienceLabel === undefined ||
+    metadata['audienceLabel'] === fixture.expectedAudienceLabel;
   const metadataValid =
     document.versionId === fixture.expectedVersionId &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
-    metadata.authorityTier === 'official-regulatory-act' &&
-    metadata.jurisdiction === 'RU' &&
-    metadata.documentNumber === fixture.expectedDocumentNumber &&
-    metadata.officialPublicationNumber === fixture.expectedPublicationNumber &&
-    metadata.contentMode === 'source_linked_paraphrase' &&
+    metadata['authorityTier'] === 'official-regulatory-act' &&
+    metadata['jurisdiction'] === 'RU' &&
+    metadata['documentNumber'] === fixture.expectedDocumentNumber &&
+    metadata['officialPublicationNumber'] === fixture.expectedPublicationNumber &&
+    metadata['contentMode'] === 'source_linked_paraphrase' &&
+    ageGroupsValid &&
+    audienceLabelValid &&
     (fixture.expectedSupersededBy === undefined ||
-      metadata.supersededByDocumentId === fixture.expectedSupersededBy);
+      metadata['supersededByDocumentId'] === fixture.expectedSupersededBy);
 
+  const requiredRank = fixture.requireTop1 === true ? 1 : 2;
   rows.push({
     id: fixture.id,
     category: fixture.category,
+    rank: rank ?? null,
     hitAt1: rank === 1,
+    hitAt2: rank !== undefined && rank <= 2,
     hitAt5: rank !== undefined,
-    requiredTop1Passed: fixture.requireTop1 !== true || rank === 1,
+    requiredRankPassed: rank !== undefined && rank <= requiredRank,
+    sectionRequired: fixture.requireSection !== false,
     sectionHit: matched !== undefined,
     contextResolved,
     metadataValid,
@@ -139,16 +174,20 @@ for (const fixture of queries) {
 }
 await core.close();
 
+const sectionRows = rows.filter((row) => row.sectionRequired);
+const top1Rows = rows.filter((row) => queries.find((query) => query.id === row.id)?.requireTop1);
 const report = {
   generatedAt: new Date().toISOString(),
   corpus: initialized.value.contentPackIds[0] ?? 'unknown',
   queryCount: rows.length,
   recallAt1: mean(rows.map((row) => Number(row.hitAt1))),
+  recallAt2: mean(rows.map((row) => Number(row.hitAt2))),
   recallAt5: mean(rows.map((row) => Number(row.hitAt5))),
   mrrAt5: mean(rows.map((row) => row.reciprocalRank)),
-  requiredTop1Rate: mean(rows.map((row) => Number(row.requiredTop1Passed))),
-  sectionRecall: mean(rows.map((row) => Number(row.sectionHit))),
-  contextResolutionRate: mean(rows.map((row) => Number(row.contextResolved))),
+  requiredRankRate: mean(rows.map((row) => Number(row.requiredRankPassed))),
+  requiredTop1Rate: mean(top1Rows.map((row) => Number(row.hitAt1))),
+  sectionRecall: mean(sectionRows.map((row) => Number(row.sectionHit))),
+  contextResolutionRate: mean(sectionRows.map((row) => Number(row.contextResolved))),
   metadataRate: mean(rows.map((row) => Number(row.metadataValid))),
   latencyMs: {
     p50: percentile(
@@ -163,12 +202,15 @@ const report = {
   categories: Object.fromEntries(
     [...new Set(rows.map((row) => row.category))].toSorted().map((category) => {
       const categoryRows = rows.filter((row) => row.category === category);
+      const categorySectionRows = categoryRows.filter((row) => row.sectionRequired);
       return [
         category,
         {
           queryCount: categoryRows.length,
           recallAt1: mean(categoryRows.map((row) => Number(row.hitAt1))),
-          sectionRecall: mean(categoryRows.map((row) => Number(row.sectionHit))),
+          recallAt2: mean(categoryRows.map((row) => Number(row.hitAt2))),
+          requiredRankRate: mean(categoryRows.map((row) => Number(row.requiredRankPassed))),
+          sectionRecall: mean(categorySectionRows.map((row) => Number(row.sectionHit))),
         },
       ];
     }),
@@ -185,8 +227,13 @@ writeFileSync(
 console.log(JSON.stringify(report, null, 2));
 
 const failures: string[] = [];
+if (report.recallAt1 < 0.85) failures.push(`Recall@1 ${report.recallAt1.toFixed(3)} < 0.850`);
+if (report.recallAt2 < 1) failures.push(`Recall@2 ${report.recallAt2.toFixed(3)} < 1.000`);
 if (report.recallAt5 < 1) failures.push(`Recall@5 ${report.recallAt5.toFixed(3)} < 1.000`);
-if (report.requiredTop1Rate < 1) {
+if (report.requiredRankRate < 1) {
+  failures.push(`required rank rate ${report.requiredRankRate.toFixed(3)} < 1.000`);
+}
+if (top1Rows.length > 0 && report.requiredTop1Rate < 1) {
   failures.push(`required top-1 rate ${report.requiredTop1Rate.toFixed(3)} < 1.000`);
 }
 if (report.sectionRecall < 0.9) {
