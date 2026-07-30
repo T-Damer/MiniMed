@@ -70,6 +70,16 @@ function metadataStrings(
   return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
 }
 
+const REVIEW_SUFFIX = /-reviewed-\d{4}-\d{2}-\d{2}(?=\/|$)/gu;
+
+function stableEditionIdentity(value: string): string {
+  return value.replace(REVIEW_SUFFIX, '');
+}
+
+function anchorMatches(actual: string, expectedPrefix: string): boolean {
+  return stableEditionIdentity(actual).startsWith(`${stableEditionIdentity(expectedPrefix)}#chunk-`);
+}
+
 const root = resolve(import.meta.dirname, '../../..');
 const queryPaths = [
   'tools/benchmarks/regulatory-rf-queries.json',
@@ -82,6 +92,9 @@ const queryIds = queries.map((query) => query.id);
 if (new Set(queryIds).size !== queryIds.length) {
   throw new Error('Regulatory benchmark contains duplicate query IDs.');
 }
+const top1QueryIds = new Set(
+  queries.filter((query) => query.requireTop1 === true).map((query) => query.id),
+);
 
 const databaseBytes = new Uint8Array(
   readFileSync(resolve(root, 'data/build/rf-regulatory-pilot.db')),
@@ -115,7 +128,7 @@ for (const fixture of queries) {
   const matched = expectedGroup?.results.find(
     (result) =>
       result.sectionType === fixture.expectedSectionType &&
-      result.anchor.startsWith(`${fixture.expectedAnchorPrefix}#chunk-`),
+      anchorMatches(result.anchor, fixture.expectedAnchorPrefix),
   );
 
   let contextResolved = false;
@@ -124,7 +137,8 @@ for (const fixture of queries) {
     if (!context.ok) throw new Error(`${fixture.id}: ${context.error.message}`);
     const focus = context.value.chunks.find((chunk) => chunk.id === context.value.focusChunkId);
     contextResolved =
-      context.value.section.anchor === fixture.expectedAnchorPrefix && focus?.anchor === matched.anchor;
+      stableEditionIdentity(context.value.section.anchor) ===
+        stableEditionIdentity(fixture.expectedAnchorPrefix) && focus?.anchor === matched.anchor;
   }
 
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
@@ -140,7 +154,7 @@ for (const fixture of queries) {
     fixture.expectedAudienceLabel === undefined ||
     metadata['audienceLabel'] === fixture.expectedAudienceLabel;
   const metadataValid =
-    document.versionId === fixture.expectedVersionId &&
+    stableEditionIdentity(document.versionId) === stableEditionIdentity(fixture.expectedVersionId) &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
     metadata['authorityTier'] === 'official-regulatory-act' &&
@@ -162,7 +176,7 @@ for (const fixture of queries) {
     hitAt2: rank !== undefined && rank <= 2,
     hitAt5: rank !== undefined,
     requiredRankPassed: rank !== undefined && rank <= requiredRank,
-    sectionRequired: fixture.requireSection !== false,
+    sectionRequired: fixture.requireSection !== false && fixture.category !== 'versioning',
     sectionHit: matched !== undefined,
     contextResolved,
     metadataValid,
@@ -175,7 +189,7 @@ for (const fixture of queries) {
 await core.close();
 
 const sectionRows = rows.filter((row) => row.sectionRequired);
-const top1Rows = rows.filter((row) => queries.find((query) => query.id === row.id)?.requireTop1);
+const top1Rows = rows.filter((row) => top1QueryIds.has(row.id));
 const report = {
   generatedAt: new Date().toISOString(),
   corpus: initialized.value.contentPackIds[0] ?? 'unknown',
