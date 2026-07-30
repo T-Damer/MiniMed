@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { createMedicalCore } from '@localmed/core';
+import { createMedicalCore, rankSearchGroupsByQuery } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
@@ -39,6 +39,7 @@ interface RegulatoryRow {
   readonly elapsedMs: number;
   readonly topDocuments: readonly string[];
   readonly matchedAnchor: string | null;
+  readonly candidateAnchors: readonly string[];
 }
 
 function parseQueries(value: unknown, source: string): readonly RegulatoryQuery[] {
@@ -121,12 +122,11 @@ for (const fixture of queries) {
   });
   if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
 
-  const topDocuments = response.value.groups.map((group) => group.documentId).slice(0, 5);
+  const rankedGroups = rankSearchGroupsByQuery(response.value.groups, fixture.query);
+  const topDocuments = rankedGroups.map((group) => group.documentId).slice(0, 5);
   const rankIndex = topDocuments.indexOf(fixture.expectedDocumentId);
   const rank = rankIndex >= 0 ? rankIndex + 1 : undefined;
-  const expectedGroup = response.value.groups.find(
-    (group) => group.documentId === fixture.expectedDocumentId,
-  );
+  const expectedGroup = rankedGroups.find((group) => group.documentId === fixture.expectedDocumentId);
   const matched = expectedGroup?.results.find(
     (result) =>
       result.sectionType === fixture.expectedSectionType &&
@@ -187,6 +187,7 @@ for (const fixture of queries) {
     elapsedMs: response.value.elapsedMs,
     topDocuments,
     matchedAnchor: matched?.anchor ?? null,
+    candidateAnchors: expectedGroup?.results.map((result) => result.anchor) ?? [],
   });
 }
 await core.close();
