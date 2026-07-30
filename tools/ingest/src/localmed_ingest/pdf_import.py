@@ -4,6 +4,8 @@ import hashlib
 import json
 import math
 import re
+import subprocess
+import sys
 from collections import defaultdict
 from contextlib import suppress
 from dataclasses import dataclass
@@ -23,6 +25,8 @@ from .models import (
 )
 from .normalization import normalize_surface_text
 from .text_encoding import cyrillic_letter_ratio, is_likely_garbled_russian_pdf_text
+
+_MACOS_VISION_SCRIPT = Path(__file__).resolve().parents[2] / "macos_vision_ocr.swift"
 
 NUMBERED_HEADING_PATTERN = re.compile(r"^(?P<number>\d+(?:\.\d+){0,5})[.)]?\s+\S")
 LIST_PATTERN = re.compile(r"^(?:[•▪◦●○*+–—-]|\d+[.)])\s+")
@@ -474,6 +478,7 @@ def _build_diagnostics(
         warnings.append(
             "Used OCR fallback because the PDF text layer had broken Cyrillic encoding."
         )
+        reasons.append("OCR-derived text requires source-page review before clinical promotion.")
     elif is_likely_garbled_russian_pdf_text(included_text):
         reasons.append(
             "PDF text layer appears to use broken Cyrillic font encoding; "
@@ -520,7 +525,9 @@ def _maybe_extract_with_ocr(
     configured: ExtractionOptions,
 ) -> tuple[list[RawBlock], Literal["pdf_text_layer", "ocr"]]:
     included_text = _raw_blocks_text(raw_blocks)
-    if not configured.ocr_fallback or not is_likely_garbled_russian_pdf_text(included_text):
+    if not configured.ocr_fallback or (
+        included_text and not is_likely_garbled_russian_pdf_text(included_text)
+    ):
         return raw_blocks, "pdf_text_layer"
 
     baseline_ratio = cyrillic_letter_ratio(included_text)
@@ -532,6 +539,71 @@ def _maybe_extract_with_ocr(
     if cyrillic_letter_ratio(ocr_text) > baseline_ratio + 0.05:
         return ocr_blocks, "ocr"
     return raw_blocks, "pdf_text_layer"
+
+
+def _extract_raw_blocks_macos_vision(source: Path) -> list[RawBlock]:
+    if sys.platform != "darwin" or not _MACOS_VISION_SCRIPT.is_file():
+        return []
+    completed = subprocess.run(
+        ["swift", str(_MACOS_VISION_SCRIPT), str(source)],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    payload: object = json.loads(completed.stdout)
+    if not isinstance(payload, dict) or not isinstance(payload.get("pages"), list):
+        raise ValueError("macOS Vision OCR returned an invalid payload.")
+    blocks: list[RawBlock] = []
+    for raw_page in payload["pages"]:
+        if not isinstance(raw_page, dict):
+            raise ValueError("macOS Vision OCR returned an invalid page.")
+        page_number = raw_page.get("page")
+        width = raw_page.get("width")
+        height = raw_page.get("height")
+        lines = raw_page.get("lines")
+        if (
+            not isinstance(page_number, int)
+            or not isinstance(width, (int, float))
+            or not isinstance(height, (int, float))
+            or not isinstance(lines, list)
+        ):
+            raise ValueError("macOS Vision OCR page has invalid dimensions.")
+        for order_index, raw_line in enumerate(lines):
+            if not isinstance(raw_line, dict):
+                continue
+            text = raw_line.get("text")
+            bbox = raw_line.get("bbox")
+            if (
+                not isinstance(text, str)
+                or not text.strip()
+                or not isinstance(bbox, list)
+                or len(bbox) != 4
+                or not all(isinstance(value, (int, float)) for value in bbox)
+            ):
+                continue
+            x, y, box_width, box_height = (float(value) for value in bbox)
+            blocks.append(
+                RawBlock(
+                    page=page_number,
+                    page_width=float(width),
+                    page_height=float(height),
+                    order_index=order_index,
+                    bbox=(
+                        x * float(width),
+                        (1 - y - box_height) * float(height),
+                        (x + box_width) * float(width),
+                        (1 - y) * float(height),
+                    ),
+                    text=text.strip(),
+                    font_size=None,
+                    font_name=None,
+                    bold=False,
+                    line_count=1,
+                    columnar_lines=0,
+                )
+            )
+    return blocks
 
 
 def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> ExtractedSource:
@@ -549,6 +621,16 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             raw_blocks, text_extraction_mode = _maybe_extract_with_ocr(
                 document, raw_blocks, configured
             )
+        if not raw_blocks:
+            with suppress(
+                OSError,
+                ValueError,
+                json.JSONDecodeError,
+                subprocess.SubprocessError,
+            ):
+                raw_blocks = _extract_raw_blocks_macos_vision(source)
+                if raw_blocks:
+                    text_extraction_mode = "ocr"
         body_font_size = _weighted_body_font(raw_blocks, configured)
         pages, removed_repeated = _classify_blocks(raw_blocks, body_font_size, configured)
         existing_pages = {page.page for page in pages}

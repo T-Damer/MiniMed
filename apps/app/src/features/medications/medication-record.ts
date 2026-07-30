@@ -13,6 +13,7 @@ export interface MedicationPresentation {
 }
 
 export interface MedicationProduct {
+  readonly sourceKind: 'allmed' | 'registry';
   readonly registrationDocumentId: string;
   readonly instructionDocumentId: string | null;
   readonly registrationNumber: string;
@@ -44,6 +45,9 @@ interface MedicationMetadata extends Readonly<Record<string, unknown>> {
   readonly strength?: unknown;
   readonly route?: unknown;
   readonly packages?: unknown;
+  readonly allmedId?: unknown;
+  readonly nameLat?: unknown;
+  readonly productionForm?: unknown;
 }
 
 function stringValue(value: unknown): string | null {
@@ -98,6 +102,7 @@ export function parseMedicationProduct(
     return null;
   }
   return {
+    sourceKind: 'registry',
     registrationDocumentId: document.id,
     instructionDocumentId,
     registrationNumber,
@@ -110,6 +115,39 @@ export function parseMedicationProduct(
     registrationDate: stringValue(metadata.registrationDate),
     pharmacotherapeuticGroups: stringList(metadata.pharmacotherapeuticGroups),
     presentations,
+  };
+}
+
+export function parseAllmedMedicationProduct(document: MedicalDocument): MedicationProduct | null {
+  const metadata = document.metadata as MedicationMetadata;
+  if (document.sourceType !== 'allmed_reference' || metadata.contentMode !== 'allmed-snapshot') {
+    return null;
+  }
+  const allmedId = typeof metadata.allmedId === 'number' ? metadata.allmedId : null;
+  const tradeName = stringValue(document.title);
+  if (allmedId === null || !tradeName) return null;
+  const dosageForm = stringValue(metadata.productionForm) ?? 'Не указана';
+  return {
+    sourceKind: 'allmed',
+    registrationDocumentId: document.id,
+    instructionDocumentId: document.id,
+    registrationNumber: `allmed:${allmedId}`,
+    tradeName,
+    inn: stringValue(metadata.nameLat) ?? 'Не указано',
+    registrationStatus: 'Справочник Allmed',
+    prescriptionStatus: null,
+    holder: null,
+    manufacturer: null,
+    registrationDate: null,
+    pharmacotherapeuticGroups: [],
+    presentations: [
+      {
+        dosageForm,
+        strength: null,
+        route: null,
+        packages: [{ description: dosageForm, prescriptionStatus: null }],
+      },
+    ],
   };
 }
 

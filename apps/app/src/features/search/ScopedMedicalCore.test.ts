@@ -168,11 +168,12 @@ describe('ScopedMedicalCore', () => {
     document('guideline-summary', 'clinical_recommendation_summary'),
     document('drug', 'official_drug_instruction'),
     document('registry', 'official_registry_summary'),
+    document('allmed', 'allmed_reference'),
     document('law', 'regulatory_act'),
     document('law-summary', 'regulatory_act_summary'),
   ];
 
-  it('limits medication searches to official medication documents', async () => {
+  it('limits medication searches to installed medication documents', async () => {
     const base = coreWithDocuments(documents);
     const assistant = coreWithDocuments(documents);
     const scoped = new ScopedMedicalCore(base.core, assistant.core, 'medications');
@@ -181,7 +182,11 @@ describe('ScopedMedicalCore', () => {
 
     expect(base.search).toHaveBeenCalledOnce();
     expect(assistant.search).not.toHaveBeenCalled();
-    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual(['drug', 'registry']);
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
+      'drug',
+      'registry',
+      'allmed',
+    ]);
   });
 
   it('drops generic medication documents when the query names a specific drug', async () => {

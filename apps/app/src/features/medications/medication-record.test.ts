@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseMedicationProduct } from './medication-record';
+import { parseAllmedMedicationProduct, parseMedicationProduct } from './medication-record';
 
 describe('parseMedicationProduct', () => {
   it('keeps every package variant from a normalized registry document', () => {
@@ -42,5 +42,33 @@ describe('parseMedicationProduct', () => {
       '150 мл',
     ]);
     expect(product?.instructionDocumentId).toBe('drug.instruction');
+  });
+
+  it('maps an Allmed snapshot row without presenting it as a registry record', () => {
+    const product = parseAllmedMedicationProduct({
+      id: 'drug.allmed.12',
+      title: 'Мирамистин',
+      shortTitle: null,
+      sourceType: 'allmed_reference',
+      status: 'reference',
+      specialties: [],
+      versionId: 'drug.allmed.12@1',
+      versionLabel: '1',
+      effectiveFrom: null,
+      sections: [],
+      metadata: {
+        contentMode: 'allmed-snapshot',
+        allmedId: 12,
+        nameLat: 'Miramistin',
+        productionForm: 'раствор',
+      },
+    });
+
+    expect(product).toMatchObject({
+      sourceKind: 'allmed',
+      registrationNumber: 'allmed:12',
+      tradeName: 'Мирамистин',
+      inn: 'Miramistin',
+    });
   });
 });
