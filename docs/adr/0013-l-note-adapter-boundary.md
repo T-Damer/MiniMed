@@ -28,6 +28,10 @@ The initial adapter covers:
 
 The adapter reports `localCaseExtraction: false`. Connecting a generic backend does not imply that it
 implements MiniMed's medical case parser or that its results satisfy MiniMed's clinical safety gates.
+The browser registration boundary additionally marks every registered external core with
+`searchExecution: 'direct-only'`. This prevents MiniMed's built-in search Worker from replacing the
+external backend's own execution context. The Worker remains the default for MiniMed cores that do not
+request direct execution.
 
 ## Integration example
 
@@ -48,6 +52,7 @@ backend.
 
 - MiniMed remains usable with no L-Note code, account, server, or network.
 - L-Note can be tested against the same UI and `MedicalCore` lifecycle without becoming the default.
+- Registered external cores keep ownership of query analysis and search execution.
 - Medical safety, corpus provenance, and benchmark gates remain MiniMed responsibilities.
 - The adapter is intentionally approximate until L-Note publishes a versioned protocol. Protocol
   changes should be isolated inside the adapter module rather than propagated through the application.
