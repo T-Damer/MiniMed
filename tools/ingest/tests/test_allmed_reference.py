@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from localmed_ingest.allmed_reference import export_allmed_reference
+from localmed_ingest.allmed_reference import export_allmed_reference, prepare_allmed_medications
+from localmed_ingest.builder import build_content_pack
 from localmed_ingest.edition_manifest import sha256_file
 
 
@@ -121,3 +122,23 @@ def test_reports_missing_optional_candidate_columns(tmp_path: Path) -> None:
     report = export_allmed_reference(source, tmp_path / "allmed-reference.jsonl")
 
     assert report.missing_columns == ["analogs"]
+
+
+def test_prepares_allmed_snapshot_as_lexical_medications_pack(tmp_path: Path) -> None:
+    source = tmp_path / "allmed.db"
+    write_allmed_fixture(source)
+    workspace = tmp_path / "medications"
+
+    report = prepare_allmed_medications(source, workspace)
+    _, build_report = build_content_pack(
+        workspace,
+        tmp_path / "medications.db",
+        include_embeddings=False,
+    )
+
+    assert report.documents == 1
+    assert build_report.documents == 1
+    document = (workspace / "drug.allmed.1.md").read_text(encoding="utf-8")
+    assert "source_type: allmed_reference" in document
+    assert '"table":"drugs","drugId":1,"column":"indications"' not in document
+    assert '"table":"drugs","drugId":1,"column":"production_form"' in document

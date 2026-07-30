@@ -7,7 +7,7 @@ from typing import Annotated
 
 import typer
 
-from .allmed_reference import export_allmed_reference
+from .allmed_reference import export_allmed_reference, prepare_allmed_medications
 from .builder import build_content_pack, lint_content_pack, load_content_pack
 from .clinical_queries import import_real_pocqi_benchmark
 from .drug_sources import collect_drug_sources
@@ -36,6 +36,16 @@ def export_allmed_reference_command(
 ) -> None:
     """Export raw Allmed rows as review-only reference candidates."""
     report = export_allmed_reference(input_path, output)
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-allmed-medications")
+def prepare_allmed_medications_command(
+    input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Prepare one local Allmed snapshot as a lexical medications workspace."""
+    report = prepare_allmed_medications(input_path, output)
     typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 
 

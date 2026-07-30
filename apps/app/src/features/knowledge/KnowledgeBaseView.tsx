@@ -41,7 +41,9 @@ function documentCounts(documents: readonly MedicalDocumentSummary[]) {
       ['clinical_recommendation', 'clinical_recommendation_summary'].includes(document.sourceType),
     ).length,
     medications: documents.filter((document) =>
-      ['official_drug_instruction', 'official_registry_summary'].includes(document.sourceType),
+      ['allmed_reference', 'official_drug_instruction', 'official_registry_summary'].includes(
+        document.sourceType,
+      ),
     ).length,
     legal: documents.filter((document) => document.sourceType === 'regulatory_act').length,
   };

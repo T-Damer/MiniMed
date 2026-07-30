@@ -14,6 +14,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import {
   type MedicationProduct,
   medicationDocumentRegistration,
+  parseAllmedMedicationProduct,
   parseMedicationProduct,
 } from '@/features/medications/medication-record';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
@@ -66,7 +67,9 @@ async function loadProducts(core: MedicalCore): Promise<readonly MedicationProdu
   const summaries = await core.listDocuments();
   if (!summaries.ok) throw new Error(summaries.error.message);
   const medicationSummaries = summaries.value.filter((document) =>
-    ['official_drug_instruction', 'official_registry_summary'].includes(document.sourceType),
+    ['allmed_reference', 'official_drug_instruction', 'official_registry_summary'].includes(
+      document.sourceType,
+    ),
   );
   const documents: MedicalDocument[] = [];
   for (const summary of medicationSummaries) {
@@ -82,7 +85,7 @@ async function loadProducts(core: MedicalCore): Promise<readonly MedicationProdu
         return registration ? [[registration, document.id] as const] : [];
       }),
   );
-  return documents
+  const registryProducts = documents
     .filter((document) => document.sourceType === 'official_registry_summary')
     .flatMap((document) => {
       const registration = medicationDocumentRegistration(document);
@@ -93,6 +96,13 @@ async function loadProducts(core: MedicalCore): Promise<readonly MedicationProdu
       return product ? [product] : [];
     })
     .toSorted((left, right) => left.tradeName.localeCompare(right.tradeName, 'ru'));
+  const allmedProducts = documents.flatMap((document) => {
+    const product = parseAllmedMedicationProduct(document);
+    return product ? [product] : [];
+  });
+  return [...registryProducts, ...allmedProducts].toSorted((left, right) =>
+    left.tradeName.localeCompare(right.tradeName, 'ru'),
+  );
 }
 
 export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.Element {
@@ -171,7 +181,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
           <AppGlyph name="arrow-left" />
         </button>
         <div>
-          <p class="archive-kicker">Официальные данные ГРЛС</p>
+          <p class="archive-kicker">Локальная база препаратов</p>
           <h1>{selectedProduct()?.tradeName ?? 'Лекарственные препараты'}</h1>
         </div>
       </div>
@@ -248,7 +258,9 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                   {(documentId) => (
                     <button type="button" onClick={() => openDocumentOverlay(documentId())}>
                       <AppGlyph name="book-open" />
-                      Открыть инструкцию
+                      {product().sourceKind === 'allmed'
+                        ? 'Открыть карточку'
+                        : 'Открыть инструкцию'}
                     </button>
                   )}
                 </Show>

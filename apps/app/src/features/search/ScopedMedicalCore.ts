@@ -27,7 +27,11 @@ const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 
 const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<string>>>> = {
   guidelines: new Set(['clinical_recommendation', 'clinical_recommendation_summary']),
-  medications: new Set(['official_drug_instruction', 'official_registry_summary']),
+  medications: new Set([
+    'allmed_reference',
+    'official_drug_instruction',
+    'official_registry_summary',
+  ]),
   legal: new Set(['regulatory_act', 'regulatory_act_summary']),
 };
 
