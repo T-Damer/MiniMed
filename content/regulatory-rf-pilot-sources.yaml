@@ -8,6 +8,18 @@ sources:
     location: regulatory-rf-pilot/aliases.yaml
     target: aliases.yaml
     content_type: text
+  - id: federal-law-323-fz
+    location: regulatory-rf-pilot/federal-law-323-fz-health-protection.md
+    target: federal-law-323-fz-health-protection.md
+    content_type: markdown
+  - id: federal-law-157-fz
+    location: regulatory-rf-pilot/federal-law-157-fz-immunoprophylaxis.md
+    target: federal-law-157-fz-immunoprophylaxis.md
+    content_type: markdown
+  - id: order-1122n
+    location: regulatory-rf-pilot/order-1122n-vaccination-calendars.md
+    target: order-1122n-vaccination-calendars.md
+    content_type: markdown
   - id: order-192n
     location: regulatory-rf-pilot/order-192n-dispensary-observation.md
     target: order-192n-dispensary-observation.md
