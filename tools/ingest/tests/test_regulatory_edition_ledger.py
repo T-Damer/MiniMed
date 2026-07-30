@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import yaml
@@ -63,6 +63,7 @@ def test_every_active_regulatory_card_has_a_current_edition_review() -> None:
     )
 
     today = date.today()
+    latest_local_review_date = today + timedelta(days=1)
     for document_id, row in indexed.items():
         card = cards[document_id]
         card_details = card.get("metadata")
@@ -80,7 +81,9 @@ def test_every_active_regulatory_card_has_a_current_edition_review() -> None:
 
         reviewed_at = date.fromisoformat(str(row.get("reviewed_at")))
         next_review_by = date.fromisoformat(str(row.get("next_review_by")))
-        assert reviewed_at <= today, f"{document_id} review is dated in the future"
+        assert reviewed_at <= latest_local_review_date, (
+            f"{document_id} review is more than one local-calendar day in the future"
+        )
         assert today <= next_review_by, f"{document_id} edition review expired on {next_review_by}"
         assert (next_review_by - reviewed_at).days <= maximum_interval, (
             f"{document_id} review window exceeds {maximum_interval} days"
