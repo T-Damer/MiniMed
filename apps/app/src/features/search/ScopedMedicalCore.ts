@@ -62,9 +62,15 @@ export function inferSearchScope(intent: QueryIntent | undefined): SearchScope |
 
 export function inferRequestedAudience(query: string): SearchAudience | undefined {
   const normalized = normalizeSurfaceText(query);
-  if (/\b\d{1,2}\s*(?:месяц|месяца|месяцев|мес)\b/u.test(normalized)) return 'children';
+  if (
+    /(?:^|\s)\d{1,2}\s*(?:месяц|месяца|месяцев|мес)(?=\s|$|[,.])/u.test(normalized)
+  ) {
+    return 'children';
+  }
 
-  const years = normalized.match(/\b(\d{1,3})\s*(?:год|года|лет)\b/u);
+  const years = normalized.match(
+    /(?:^|\s)(\d{1,3})\s*(?:год|года|лет)(?=\s|$|[,.])/u,
+  );
   if (years?.[1]) return Number(years[1]) < 18 ? 'children' : 'adults';
 
   const childSignal =
@@ -121,16 +127,32 @@ function audiencePriority(ageGroups: readonly string[], audience: SearchAudience
   return supportsAdults ? 2 : 0;
 }
 
+function audienceLabel(ageGroups: readonly string[]): string | undefined {
+  const supportsChildren = ageGroups.some(
+    (ageGroup) => ageGroup === 'children' || ageGroup === 'adolescents',
+  );
+  const supportsAdults = ageGroups.includes('adults');
+  if (supportsChildren && supportsAdults) return 'Для детей и взрослых';
+  if (supportsChildren) return 'Для детей';
+  if (supportsAdults) return 'Для взрослых';
+  return undefined;
+}
+
 export function rankSearchGroupsByAudience(
   groups: readonly SearchResultGroup[],
   documents: readonly MedicalDocumentSummary[],
   audience: SearchAudience | undefined,
 ): readonly SearchResultGroup[] {
   const documentsById = new Map(documents.map((document) => [document.id, document]));
-  const annotated = groups.map((group) => ({
-    ...group,
-    ageGroups: documentsById.get(group.documentId)?.ageGroups ?? group.ageGroups ?? [],
-  }));
+  const annotated = groups.map((group) => {
+    const ageGroups = documentsById.get(group.documentId)?.ageGroups ?? group.ageGroups ?? [];
+    const label = audienceLabel(ageGroups);
+    return {
+      ...group,
+      ageGroups,
+      title: label && !group.title.startsWith('Для ') ? `${label} · ${group.title}` : group.title,
+    };
+  });
   if (!audience) return annotated;
 
   return annotated
