@@ -80,6 +80,7 @@
     "benchmark:search": "bun run --filter @localmed/benchmarks benchmark:search",
     "benchmark:pilot": "bun run --filter @localmed/benchmarks benchmark:pilot",
     "benchmark:regulatory": "bun run --filter @localmed/benchmarks benchmark:regulatory",
+    "benchmark:hard": "bun run --filter @localmed/benchmarks benchmark:hard",
     "benchmark:queries:import": "uv run --project tools/ingest medbase benchmark-import-real-pocqi --output data/intermediate/clinical-benchmark/real-pocqi.jsonl --report data/build/real-pocqi-import-report.json",
     "benchmark:queries:annotate": "uv run --project tools/ingest python -m localmed_ingest.clinical_query_annotations --input data/intermediate/clinical-benchmark/real-pocqi.jsonl --output data/intermediate/clinical-benchmark/real-pocqi.annotations.jsonl --report data/build/real-pocqi-annotation-report.json",
     "benchmark:queries:contracts": "uv run --project tools/ingest python -m localmed_ingest.clinical_query_contracts --contracts tools/benchmarks/russian-scenario-contracts.json --retrieval tools/benchmarks/pilot-rf-queries.json --retrieval tools/benchmarks/pilot-rf-drug-queries.json --report data/build/russian-scenario-contract-report.json",
