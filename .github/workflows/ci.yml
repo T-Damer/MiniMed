@@ -17,7 +17,7 @@ jobs:
         with:
           bun-version: 1.2.3
       - run: bun install --frozen-lockfile
-      - run: bun run check
+      - run: bunx biome check --max-diagnostics=500 .
       - run: bun run typecheck
       - run: bun run test:unit
       - run: bun run native:source:check
