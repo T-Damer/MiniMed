@@ -1,0 +1,24 @@
+{
+  "id": "minimed-hard-medical-queries-1500-v1",
+  "version": 1,
+  "description": "Synthetic Russian pediatric retrieval baseline: 300 scenarios with five query styles each.",
+  "encoding": "gzip+base64",
+  "queryCount": 1500,
+  "scenarioCount": 300,
+  "sourceSha256": "2ddb58e38ba31ffac3a8fd4e1b4b60ed8d631c6ab2643f413c7fe4c77413cf54",
+  "compressedSha256": "a36abf9bd4ee5374ecbf9e04495ee5bae8c17b89cadce1a56d86f08fc26aca95",
+  "splits": {
+    "dev": 900,
+    "validation": 300,
+    "hidden_test": 300
+  },
+  "styles": {
+    "professional": 300,
+    "colloquial": 300,
+    "keywords": 300,
+    "noisy": 300,
+    "case": 300
+  },
+  "partialOrNoAnswerCount": 40,
+  "generatedAt": "2026-07-30T00:00:00Z"
+}
