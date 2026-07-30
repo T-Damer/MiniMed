@@ -1,6 +1,6 @@
 ---
 id: regulatory.rf.minzdrav.127n-2019-tuberculosis
- title: Группы диспансерного наблюдения при туберкулёзе — приказ № 127н
+title: Группы диспансерного наблюдения при туберкулёзе — приказ № 127н
 short_title: Группы наблюдения при туберкулёзе — 127н
 version_label: 127n-2019-03-13-reviewed-2026-07-31
 source_type: regulatory_act_summary
