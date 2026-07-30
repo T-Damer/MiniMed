@@ -176,7 +176,9 @@ export function loadHardMedicalQueries(
     queryIds.size !== rows.length ||
     queryTexts.size !== rows.length
   ) {
-    throw new Error('Hard-query fixture must contain the declared number of unique ids and query texts.');
+    throw new Error(
+      'Hard-query fixture must contain the declared number of unique ids and query texts.',
+    );
   }
   if (scenarios.size !== manifest.scenarioCount) {
     throw new Error('Hard-query scenario count does not match the manifest.');
