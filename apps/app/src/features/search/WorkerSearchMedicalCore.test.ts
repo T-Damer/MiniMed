@@ -1,31 +1,39 @@
-import type { MedicalCore } from '@localmed/contracts';
-import { describe, expect, it, vi } from 'vitest';
+import type { CoreCapabilities, MedicalCore } from '@localmed/contracts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 
-const CAPABILITIES = {
-  lexicalSearch: true as const,
-  queryAnalysis: true as const,
+const CAPABILITIES: CoreCapabilities = {
+  lexicalSearch: true,
+  queryAnalysis: true,
   semanticSearch: false,
   embeddingProfileIds: [],
-  cloudChat: false as const,
+  cloudChat: false,
   localCaseExtraction: true,
-  platform: 'test' as const,
+  platform: 'test',
   sqliteVersion: 'test',
   fts5Available: true,
-  storageBackend: 'in-memory' as const,
+  storageBackend: 'in-memory',
   persistentStorage: false,
-  storageInstallation: 'memory' as const,
+  storageInstallation: 'memory',
   storageSizeBytes: null,
 };
 
+const RESPONSE = {
+  ok: false as const,
+  error: { code: 'UNKNOWN' as const, message: 'base' },
+};
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe('WorkerSearchMedicalCore', () => {
   it('falls back to the application core when Web Workers are unavailable', async () => {
-    const response = { ok: false as const, error: { code: 'UNKNOWN' as const, message: 'base' } };
-    const search = vi.fn(async () => response);
-    const analyzeQuery = vi.fn(async () => response);
-    const getCapabilities = vi.fn(async () => ({ ok: true as const, value: CAPABILITIES }));
-    const base = { search, analyzeQuery, getCapabilities } as unknown as MedicalCore;
+    vi.stubGlobal('Worker', undefined);
+    const search = vi.fn(async () => RESPONSE);
+    const analyzeQuery = vi.fn(async () => RESPONSE);
+    const base = { search, analyzeQuery } as unknown as MedicalCore;
     const core = new WorkerSearchMedicalCore(base);
 
     await expect(
@@ -36,14 +44,16 @@ describe('WorkerSearchMedicalCore', () => {
         limit: 10,
         includeSuggestions: true,
       }),
-    ).resolves.toEqual(response);
-    await core.analyzeQuery({ query: 'test', includeSuggestions: true });
+    ).resolves.toEqual(RESPONSE);
+    await expect(
+      core.analyzeQuery({ query: 'test', includeSuggestions: true }),
+    ).resolves.toEqual(RESPONSE);
 
     expect(search).toHaveBeenCalledOnce();
     expect(analyzeQuery).toHaveBeenCalledOnce();
   });
 
-  it('keeps search on the connected backend when it does not expose MiniMed case extraction', async () => {
+  it('keeps direct-only search on the connected backend and releases the unused worker', async () => {
     const postMessage = vi.fn();
     const terminate = vi.fn();
     vi.stubGlobal(
@@ -53,36 +63,31 @@ describe('WorkerSearchMedicalCore', () => {
         this['terminate'] = terminate;
       }),
     );
-    try {
-      const response = {
-        ok: false as const,
-        error: { code: 'UNKNOWN' as const, message: 'external' },
-      };
-      const search = vi.fn(async () => response);
-      const getCapabilities = vi.fn(async () => ({
-        ok: true as const,
-        value: { ...CAPABILITIES, localCaseExtraction: false },
-      }));
-      const base = { search, getCapabilities } as unknown as MedicalCore;
-      const core = new WorkerSearchMedicalCore(base);
 
-      await expect(
-        core.search({
-          query: 'грудничок свистит при дыхании',
-          mode: 'hybrid',
-          filters: {},
-          limit: 5,
-          includeSuggestions: false,
-        }),
-      ).resolves.toEqual(response);
+    const search = vi.fn(async () => RESPONSE);
+    const getCapabilities = vi.fn(async () => ({
+      ok: true as const,
+      value: { ...CAPABILITIES, searchExecution: 'direct-only' as const },
+    }));
+    const base = { search, getCapabilities } as unknown as MedicalCore;
+    const core = new WorkerSearchMedicalCore(base);
 
-      expect(getCapabilities).toHaveBeenCalledOnce();
-      expect(search).toHaveBeenCalledOnce();
-      expect(postMessage).not.toHaveBeenCalled();
-      await core.close();
-      expect(terminate).toHaveBeenCalledOnce();
-    } finally {
-      vi.unstubAllGlobals();
-    }
+    await expect(
+      core.search({
+        query: 'грудничок свистит при дыхании',
+        mode: 'hybrid',
+        filters: {},
+        limit: 5,
+        includeSuggestions: false,
+      }),
+    ).resolves.toEqual(RESPONSE);
+
+    expect(getCapabilities).toHaveBeenCalledOnce();
+    expect(search).toHaveBeenCalledOnce();
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(terminate).toHaveBeenCalledOnce();
+
+    await core.close();
+    expect(terminate).toHaveBeenCalledOnce();
   });
 });
