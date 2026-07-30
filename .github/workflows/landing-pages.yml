@@ -41,7 +41,7 @@ jobs:
         run: |
           version="$(bun -p "require('./release.json').version")"
           gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
-            --pattern medications.db --dir apps/app/public/content
+            --pattern medications.db --dir apps/app/public/content --clobber
       - name: Build landing and browser application
         run: |
           bun run build:landing
