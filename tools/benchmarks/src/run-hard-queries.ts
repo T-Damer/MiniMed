@@ -45,8 +45,7 @@ if (!initialized.ok) throw new Error(initialized.error.message);
 
 const loadedFixtures = loadHardMedicalQueries({ split });
 const maxQueriesValue = process.env.MINIMED_HARD_BENCHMARK_MAX_QUERIES;
-const maxQueries =
-  maxQueriesValue === undefined ? loadedFixtures.length : Number(maxQueriesValue);
+const maxQueries = maxQueriesValue === undefined ? loadedFixtures.length : Number(maxQueriesValue);
 if (!Number.isInteger(maxQueries) || maxQueries <= 0) {
   throw new Error(
     `MINIMED_HARD_BENCHMARK_MAX_QUERIES must be a positive integer: ${maxQueriesValue}`,
@@ -76,10 +75,9 @@ function sliceReport(values: readonly HardQueryEvaluation[]) {
 
 function groupedSlices(field: 'style' | 'intent' | 'specialty') {
   return Object.fromEntries(
-    [...new Set(rows.map((row) => row[field]))].toSorted().map((value) => [
-      value,
-      sliceReport(rows.filter((row) => row[field] === value)),
-    ]),
+    [...new Set(rows.map((row) => row[field]))]
+      .toSorted()
+      .map((value) => [value, sliceReport(rows.filter((row) => row[field] === value))]),
   );
 }
 
