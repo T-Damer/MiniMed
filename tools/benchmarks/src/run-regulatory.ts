@@ -77,7 +77,9 @@ function stableEditionIdentity(value: string): string {
 }
 
 function anchorMatches(actual: string, expectedPrefix: string): boolean {
-  return stableEditionIdentity(actual).startsWith(`${stableEditionIdentity(expectedPrefix)}#chunk-`);
+  return stableEditionIdentity(actual).startsWith(
+    `${stableEditionIdentity(expectedPrefix)}#chunk-`,
+  );
 }
 
 const root = resolve(import.meta.dirname, '../../..');
@@ -154,7 +156,8 @@ for (const fixture of queries) {
     fixture.expectedAudienceLabel === undefined ||
     metadata['audienceLabel'] === fixture.expectedAudienceLabel;
   const metadataValid =
-    stableEditionIdentity(document.versionId) === stableEditionIdentity(fixture.expectedVersionId) &&
+    stableEditionIdentity(document.versionId) ===
+      stableEditionIdentity(fixture.expectedVersionId) &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
     metadata['authorityTier'] === 'official-regulatory-act' &&
