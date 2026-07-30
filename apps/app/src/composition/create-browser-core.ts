@@ -6,6 +6,7 @@ import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
 
+import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
 
 interface PackBuildReport {
@@ -107,6 +108,13 @@ async function withInstalledModules(
 }
 
 export async function createBrowserCore() {
+  try {
+    const externalCore = await createRegisteredExternalMedicalCore();
+    if (externalCore) return externalCore;
+  } catch (error) {
+    console.warn('External MedicalCore unavailable; falling back to MiniMed storage.', error);
+  }
+
   const nativePlatform = Capacitor.getPlatform();
   const platform =
     nativePlatform === 'android' || nativePlatform === 'ios' ? nativePlatform : 'web';
