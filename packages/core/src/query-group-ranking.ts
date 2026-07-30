@@ -32,24 +32,24 @@ function legalReferences(value: string): ReadonlySet<string> {
   return references;
 }
 
-function titleCoverage(query: string, title: string): number {
+function textCoverage(query: string, text: string): number {
   const queryTerms = new Set(
     tokenize(query).filter((term) => term.length >= 4 && !GENERIC_QUERY_TERMS.has(term)),
   );
-  const titleTerms = tokenize(title);
-  const matchedTitleTerms = new Set<string>();
+  const textTerms = tokenize(text);
+  const matchedTextTerms = new Set<string>();
   for (const queryTerm of queryTerms) {
-    const titleTerm = titleTerms.find(
+    const textTerm = textTerms.find(
       (candidate) => candidate.startsWith(queryTerm) || queryTerm.startsWith(candidate),
     );
-    if (titleTerm) matchedTitleTerms.add(titleTerm);
+    if (textTerm) matchedTextTerms.add(textTerm);
   }
-  return Math.min(0.5, matchedTitleTerms.size * 0.12);
+  return Math.min(0.5, matchedTextTerms.size * 0.12);
 }
 
-function subjectPhraseBoost(query: string, title: string): number {
+function subjectPhraseBoost(query: string, text: string): number {
   const normalizedQuery = normalizeSurfaceText(query);
-  const normalizedTitle = normalizeSurfaceText(title);
+  const normalizedText = normalizeSurfaceText(text);
   const pairs: readonly [RegExp, RegExp, number][] = [
     [/групп[а-я]*\s+здоров/u, /групп[а-я]*\s+здоров/u, 0.55],
     [/инвалид/u, /инвалид/u, 0.55],
@@ -60,21 +60,31 @@ function subjectPhraseBoost(query: string, title: string): number {
     [/педиатр/u, /педиатр/u, 0.35],
   ];
   return pairs.reduce(
-    (boost, [queryPattern, titlePattern, value]) =>
-      queryPattern.test(normalizedQuery) && titlePattern.test(normalizedTitle)
+    (boost, [queryPattern, textPattern, value]) =>
+      queryPattern.test(normalizedQuery) && textPattern.test(normalizedText)
         ? Math.max(boost, value)
         : boost,
     0,
   );
 }
 
-export function queryGroupRelevanceBoost(query: string, title: string): number {
+export function queryGroupRelevanceBoost(query: string, text: string): number {
   const queryReferences = legalReferences(query);
-  const titleReferences = legalReferences(title);
-  const referenceBoost = [...queryReferences].some((reference) => titleReferences.has(reference))
+  const textReferences = legalReferences(text);
+  const referenceBoost = [...queryReferences].some((reference) => textReferences.has(reference))
     ? 1
     : 0;
-  return referenceBoost + titleCoverage(query, title) + subjectPhraseBoost(query, title);
+  return referenceBoost + textCoverage(query, text) + subjectPhraseBoost(query, text);
+}
+
+function groupRankingText(group: SearchResultGroup): string {
+  return [
+    group.title,
+    ...group.results.flatMap((result) => [
+      result.sectionPath.join(' '),
+      result.matchedTerms.join(' '),
+    ]),
+  ].join(' ');
 }
 
 export function rankSearchGroupsByQuery(
@@ -85,7 +95,7 @@ export function rankSearchGroupsByQuery(
     .map((group, index) => ({
       group,
       index,
-      score: group.bestScore + queryGroupRelevanceBoost(query, group.title),
+      score: group.bestScore + queryGroupRelevanceBoost(query, groupRankingText(group)),
     }))
     .toSorted((left, right) => right.score - left.score || left.index - right.index)
     .map((entry) => entry.group);
