@@ -27,7 +27,7 @@ export interface CoreCapabilities {
   readonly semanticSearch: boolean;
   readonly embeddingProfileIds: readonly string[];
   readonly cloudChat: false;
-  readonly localCaseExtraction: true;
+  readonly localCaseExtraction: boolean;
   readonly platform: 'web' | 'android' | 'ios' | 'test' | 'unknown';
   readonly sqliteVersion: string;
   readonly fts5Available: boolean;
