@@ -10,7 +10,8 @@
     "benchmark:search": "tsx src/run.ts",
     "benchmark:cases": "tsx src/run-cases.ts",
     "benchmark:pilot": "tsx src/run-pilot.ts",
-    "benchmark:regulatory": "tsx src/run-regulatory.ts"
+    "benchmark:regulatory": "tsx src/run-regulatory.ts",
+    "benchmark:hard": "tsx src/run-hard-queries.ts"
   },
   "dependencies": {
     "@localmed/core": "workspace:*",
