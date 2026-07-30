@@ -7,9 +7,11 @@ from typing import Annotated
 
 import typer
 
+from .allmed_reference import export_allmed_reference, prepare_allmed_medications
 from .builder import build_content_pack, lint_content_pack, load_content_pack
 from .clinical_queries import import_real_pocqi_benchmark
 from .drug_sources import collect_drug_sources
+from .instruction_card_drafts import export_instruction_card_drafts
 from .knowledge import (
     approve_knowledge,
     export_chatgpt_tasks,
@@ -21,9 +23,40 @@ from .knowledge import (
 from .pdf_import import import_pdf
 from .source_registry import prepare_registry
 from .source_sync import sync_source_manifest
+from .sqlite_composer import compose_sqlite_packs
 from .text_import import import_text
 
 app = typer.Typer(no_args_is_help=True, help="Build and inspect LocalMed content packs.")
+
+
+@app.command("export-allmed-reference")
+def export_allmed_reference_command(
+    input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Export raw Allmed rows as review-only reference candidates."""
+    report = export_allmed_reference(input_path, output)
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-allmed-medications")
+def prepare_allmed_medications_command(
+    input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Prepare one local Allmed snapshot as a lexical medications workspace."""
+    report = prepare_allmed_medications(input_path, output)
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("export-instruction-card-drafts")
+def export_instruction_card_drafts_command(
+    input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Export exact official-instruction excerpts as review-only card drafts."""
+    report = export_instruction_card_drafts(input_path, output)
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 
 
 @app.command("import")
@@ -221,10 +254,49 @@ def build(
     output: Annotated[Path, typer.Option("--output")],
     json_output: Annotated[Path | None, typer.Option("--json-output")] = None,
     report: Annotated[Path | None, typer.Option("--report")] = None,
+    edition_manifest: Annotated[Path | None, typer.Option("--edition-manifest")] = None,
+    lexical_only: Annotated[bool, typer.Option("--lexical-only")] = False,
 ) -> None:
     """Build a SQLite pack and optional JSON seed from Markdown sources."""
-    _, build_report = build_content_pack(input_dir, output, json_output, report)
+    _, build_report = build_content_pack(
+        input_dir,
+        output,
+        json_output,
+        report,
+        edition_manifest,
+        include_embeddings=not lexical_only,
+    )
     typer.echo(json.dumps(build_report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("compose")
+def compose_command(
+    inputs: Annotated[
+        list[Path],
+        typer.Option("--input", exists=True, help="SQLite database or directory of databases"),
+    ],
+    output: Annotated[Path, typer.Option("--output")],
+    edition_manifest: Annotated[Path, typer.Option("--edition-manifest")],
+    edition_id: Annotated[str, typer.Option("--edition-id")],
+    edition_version: Annotated[str, typer.Option("--edition-version")],
+    title: Annotated[str, typer.Option("--title")],
+    built_at: Annotated[str, typer.Option("--built-at")],
+    schema_version: Annotated[int, typer.Option("--schema-version", min=1)] = 2,
+    compact: Annotated[bool, typer.Option("--compact")] = False,
+) -> None:
+    """Compose existing compatible SQLite packs into one local-development edition."""
+    report = compose_sqlite_packs(
+        inputs,
+        output,
+        edition_manifest,
+        edition_id=edition_id,
+        edition_version=edition_version,
+        title=title,
+        built_at=built_at,
+        schema_version=schema_version,
+        compact=compact,
+    )
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 
 
 @app.command("lint")

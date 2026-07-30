@@ -6,6 +6,11 @@ from pathlib import Path
 
 import yaml
 
+from .edition_manifest import (
+    build_edition_manifest,
+    validate_pack_publication,
+    write_edition_manifest,
+)
 from .embedding import PORTABLE_HASH_PROFILE, build_chunk_embedding
 from .knowledge import apply_search_projection, knowledge_summary, write_knowledge_sqlite
 from .knowledge_modules import load_knowledge_modules
@@ -35,7 +40,7 @@ def calculate_pack_checksum(input_dir: Path) -> str:
     return f"sha256:{digest.hexdigest()}"
 
 
-def load_content_pack(input_dir: Path) -> ContentPack:
+def load_content_pack(input_dir: Path, *, include_embeddings: bool = True) -> ContentPack:
     manifest_data = read_yaml_mapping(input_dir / "manifest.yaml")
     manifest_data["checksum"] = calculate_pack_checksum(input_dir)
     manifest = PackManifest.model_validate(manifest_data)
@@ -57,31 +62,37 @@ def load_content_pack(input_dir: Path) -> ContentPack:
     knowledge = load_knowledge_modules(input_dir, documents)
     apply_search_projection(documents, knowledge)
 
-    embeddings = [
-        build_chunk_embedding(
-            chunk.id,
-            "\n".join(
-                value
-                for value in [
-                    document.title,
-                    *section.section_path,
-                    chunk.original_text,
-                    str(chunk.metadata.get("knowledgeProjectionText", "")),
-                ]
-                if value
-            ),
-        )
-        for document in documents
-        for section in document.sections
-        for chunk in section.chunks
-    ]
-    return ContentPack(
+    embeddings = (
+        [
+            build_chunk_embedding(
+                chunk.id,
+                "\n".join(
+                    value
+                    for value in [
+                        document.title,
+                        *section.section_path,
+                        chunk.original_text,
+                        str(chunk.metadata.get("knowledgeProjectionText", "")),
+                    ]
+                    if value
+                ),
+            )
+            for document in documents
+            for section in document.sections
+            for chunk in section.chunks
+        ]
+        if include_embeddings
+        else []
+    )
+    pack = ContentPack(
         manifest=manifest,
         documents=documents,
         aliases=aliases,
-        embedding_profiles=[PORTABLE_HASH_PROFILE],
+        embedding_profiles=[PORTABLE_HASH_PROFILE] if include_embeddings else [],
         embeddings=embeddings,
     )
+    validate_pack_publication(pack)
+    return pack
 
 
 def lint_content_pack(pack: ContentPack) -> list[str]:
@@ -167,8 +178,10 @@ def build_content_pack(
     output: Path,
     json_output: Path | None = None,
     report_path: Path | None = None,
+    edition_manifest_output: Path | None = None,
+    include_embeddings: bool = True,
 ) -> tuple[ContentPack, BuildReport]:
-    pack = load_content_pack(input_dir)
+    pack = load_content_pack(input_dir, include_embeddings=include_embeddings)
     errors = lint_content_pack(pack)
     if errors:
         raise ValueError("Content lint failed:\n" + "\n".join(errors))
@@ -230,5 +243,10 @@ def build_content_pack(
             )
             + "\n",
             encoding="utf-8",
+        )
+    if edition_manifest_output:
+        write_edition_manifest(
+            edition_manifest_output,
+            build_edition_manifest(pack, output),
         )
     return pack, report

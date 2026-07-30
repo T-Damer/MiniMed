@@ -9,6 +9,7 @@ on:
       - "apps/app/**"
       - "packages/**"
       - "package.json"
+      - "release.json"
       - "bun.lock"
       - ".github/workflows/landing-pages.yml"
 
@@ -34,6 +35,13 @@ jobs:
         with:
           bun-version: 1.2.3
       - run: bun install --frozen-lockfile
+      - name: Download released medication database
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(bun -p "require('./release.json').version")"
+          gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
+            --pattern medications.db --dir apps/app/public/content --clobber
       - name: Build landing and browser application
         run: |
           bun run build:landing

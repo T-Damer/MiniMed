@@ -13,7 +13,10 @@ from .medication_catalog import (
     write_medication_coverage_ledger,
 )
 from .official_grls_registry import (
+    build_grls_instruction_plan,
+    build_grls_instruction_source_registry,
     collect_official_grls_registry,
+    run_grls_instruction_batch,
     sync_selected_grls_instructions,
 )
 
@@ -57,6 +60,51 @@ def grls_instructions_command(
         report,
         resolved_registry_output=resolved_registry,
         timeout_seconds=timeout_seconds,
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-instruction-plan")
+def grls_instruction_plan_command(
+    catalog: Annotated[Path, typer.Option("--catalog", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Plan active GRLS instruction downloads from a local catalog snapshot."""
+    summary = build_grls_instruction_plan(catalog, output)
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-instruction-batch")
+def grls_instruction_batch_command(
+    plan: Annotated[Path, typer.Option("--plan", exists=True, dir_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    state: Annotated[Path, typer.Option("--state")],
+    limit: Annotated[int, typer.Option("--limit", min=1)] = 100,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 30.0,
+) -> None:
+    """Fetch one resumable GRLS instruction batch; failures remain in state."""
+    summary = run_grls_instruction_batch(
+        plan,
+        output_root,
+        state,
+        limit=limit,
+        timeout_seconds=timeout_seconds,
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-instruction-registry")
+def grls_instruction_registry_command(
+    plan: Annotated[Path, typer.Option("--plan", exists=True, dir_okay=False)],
+    state: Annotated[Path, typer.Option("--state", exists=True, dir_okay=False)],
+    catalog: Annotated[Path, typer.Option("--catalog", exists=True, dir_okay=False)],
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+) -> None:
+    """Create a prepared-source registry from checksum-validated current PDFs."""
+    summary = build_grls_instruction_source_registry(
+        plan, state, catalog, raw_root, output, report_output=report
     )
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
 
