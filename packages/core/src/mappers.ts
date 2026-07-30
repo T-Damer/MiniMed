@@ -6,6 +6,14 @@ import type {
 } from '@localmed/contracts';
 import type { ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 
+function metadataStrings(
+  metadata: Readonly<Record<string, unknown>>,
+  key: string,
+): readonly string[] {
+  const value = metadata[key];
+  return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
+}
+
 export function toDocumentSummary(record: DocumentRecord): MedicalDocumentSummary {
   return {
     id: record.id,
@@ -14,6 +22,7 @@ export function toDocumentSummary(record: DocumentRecord): MedicalDocumentSummar
     sourceType: record.sourceType,
     status: record.status,
     specialties: record.specialties,
+    ageGroups: metadataStrings(record.metadata, 'ageGroups'),
     versionId: record.version.id,
     versionLabel: record.version.versionLabel,
     effectiveFrom: record.version.effectiveFrom,
