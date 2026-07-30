@@ -20,6 +20,7 @@ import type {
   SearchResult,
   SearchResultGroup,
 } from '@localmed/contracts';
+import { rankSearchGroupsByQuery } from '@localmed/core';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
 export type SearchScope = 'diagnosis' | 'guidelines' | 'medications' | 'legal' | 'all';
@@ -237,12 +238,13 @@ export class ScopedMedicalCore implements MedicalCore {
 
     const scopedResponse =
       this.scope === 'medications' ? keepExplicitMedicationMatches(result.value) : result.value;
+    const queryRankedGroups = rankSearchGroupsByQuery(scopedResponse.groups, request.query);
     return {
       ok: true,
       value: {
         ...scopedResponse,
         groups: rankSearchGroupsByAudience(
-          scopedResponse.groups,
+          queryRankedGroups,
           documents.value,
           inferRequestedAudience(request.query),
         ),
