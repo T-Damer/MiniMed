@@ -24,6 +24,7 @@ export interface CoreStatus {
 export interface CoreCapabilities {
   readonly lexicalSearch: true;
   readonly queryAnalysis: true;
+  readonly searchExecution?: 'worker-compatible' | 'direct-only';
   readonly semanticSearch: boolean;
   readonly embeddingProfileIds: readonly string[];
   readonly cloudChat: false;
