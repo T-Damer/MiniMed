@@ -1,0 +1,98 @@
+schema_version: 1
+policy:
+  owner: MiniMed maintainers
+  maximum_review_interval_days: 92
+  checked_against: official-publication-portal
+  note: Active regulatory cards must be checked by the project; users are not responsible for resolving the edition.
+documents:
+  - document_id: regulatory.rf.federal-law.323-fz-2011
+    document_number: 323-ФЗ
+    official_publication_number: "0001201111220007"
+    official_url: https://publication.pravo.gov.ru/Document/View/0001201111220007
+    reviewed_at: "2026-07-30"
+    next_review_by: "2026-10-30"
+    audience: [children, adolescents]
+  - document_id: regulatory.rf.federal-law.157-fz-1998
+    document_number: 157-ФЗ
+    official_publication_number: "СЗ РФ 1998 № 38 ст. 4736"
+    official_url: https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517
+    reviewed_at: "2026-07-30"
+    next_review_by: "2026-10-30"
+    audience: [children, adolescents]
+  - document_id: regulatory.rf.minzdrav.1122n-2021
+    document_number: 1122н
+    official_publication_number: "0001202112200070"
+    official_url: https://publication.pravo.gov.ru/Document/View/0001202112200070
+    reviewed_at: "2026-07-30"
+    next_review_by: "2026-10-30"
+    audience: [children, adolescents]
+  - document_id: regulatory.rf.minzdrav.120n-2026
+    document_number: 120н
+    official_publication_number: "0001202603260014"
+    official_url: https://publication.pravo.gov.ru/document/0001202603260014
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children]
+  - document_id: regulatory.rf.minzdrav.127n-2019-tuberculosis
+    document_number: 127н
+    official_publication_number: "0001201906200019"
+    official_url: https://publication.pravo.gov.ru/document/0001201906200019
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children, adults]
+  - document_id: regulatory.rf.minzdrav.192n-2025
+    document_number: 192н
+    official_publication_number: "0001202505190026"
+    official_url: https://publication.pravo.gov.ru/document/0001202505190026
+    reviewed_at: "2026-07-21"
+    next_review_by: "2026-10-21"
+    audience: [children]
+  - document_id: regulatory.rf.minzdrav.211n-2025
+    document_number: 211н
+    official_publication_number: "0001202505230032"
+    official_url: https://publication.pravo.gov.ru/document/0001202505230032
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children]
+  - document_id: regulatory.rf.minzdrav.213n-2025
+    document_number: 213н
+    official_publication_number: "0001202505260012"
+    official_url: https://publication.pravo.gov.ru/document/0001202505260012
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children]
+  - document_id: regulatory.rf.minzdrav.220n-2024
+    document_number: 220н
+    official_publication_number: "0001202405310015"
+    official_url: https://publication.pravo.gov.ru/document/0001202405310015
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children, adults]
+  - document_id: regulatory.rf.minzdrav.274n-2025-sanatorium-forms
+    document_number: 274н
+    official_publication_number: "0001202505300033"
+    official_url: https://publication.pravo.gov.ru/document/0001202505300033
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children, adults]
+  - document_id: regulatory.rf.minzdrav.313n-2025
+    document_number: 313н
+    official_publication_number: "0001202506020071"
+    official_url: https://publication.pravo.gov.ru/document/0001202506020071
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children]
+  - document_id: regulatory.rf.mintrud.374n-2024-disability
+    document_number: 374н
+    official_publication_number: "0001202408260026"
+    official_url: https://publication.pravo.gov.ru/document/0001202408260026
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [children, adults]
+  - document_id: regulatory.rf.minzdrav.404n-2021-adult-health-groups
+    document_number: 404н
+    official_publication_number: "0001202106300043"
+    official_url: https://publication.pravo.gov.ru/Document/View/0001202106300043
+    reviewed_at: "2026-07-31"
+    next_review_by: "2026-10-31"
+    audience: [adults]
