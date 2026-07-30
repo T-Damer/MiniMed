@@ -31,7 +31,9 @@ function asDirectSearchCore(core: MedicalCore): MedicalCore {
   };
 }
 
-export function registerExternalMedicalCoreFactory(factory: ExternalMedicalCoreFactory): () => void {
+export function registerExternalMedicalCoreFactory(
+  factory: ExternalMedicalCoreFactory,
+): () => void {
   if (registeredFactory) {
     throw new Error('An external MedicalCore factory is already registered.');
   }
