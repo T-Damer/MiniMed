@@ -1,4 +1,3 @@
-import type { AskRequest } from '@localmed/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -127,6 +126,7 @@ describe('LNoteMedicalCoreAdapter', () => {
       value: {
         semanticSearch: true,
         embeddingProfileIds: ['l-note-hash-v1'],
+        localCaseExtraction: false,
         platform: 'web',
         storageBackend: 'multi-store',
       },
@@ -151,13 +151,19 @@ describe('LNoteMedicalCoreAdapter', () => {
     expect(response.ok).toBe(true);
     if (!response.ok) return;
     expect(response.value.groups).toHaveLength(1);
-    expect(response.value.groups[0]).toMatchObject({
+    const group = response.value.groups[0];
+    expect(group).toBeDefined();
+    if (!group) return;
+    expect(group).toMatchObject({
       documentId: DOCUMENT.id,
       categories: ['clinical-picture'],
     });
-    expect(response.value.groups[0]?.bestScore).toBeGreaterThan(0.99);
-    expect(response.value.groups[0]?.bestScore).toBeLessThan(1);
-    expect(response.value.groups[0]?.results[0]).toMatchObject({
+    expect(group.bestScore).toBeGreaterThan(0.99);
+    expect(group.bestScore).toBeLessThan(1);
+    const result = group.results[0];
+    expect(result).toBeDefined();
+    if (!result) return;
+    expect(result).toMatchObject({
       chunkId: CHUNK.id,
       anchor: CHUNK.anchor,
       semanticScore: 0.8,
@@ -170,7 +176,7 @@ describe('LNoteMedicalCoreAdapter', () => {
       limit: 5,
     });
 
-    const context = await core.getSearchResultContext(response.value.groups[0]!.results[0]!, 2);
+    const context = await core.getSearchResultContext(result, 2);
     expect(context).toMatchObject({
       ok: true,
       value: {
@@ -196,7 +202,7 @@ describe('LNoteMedicalCoreAdapter', () => {
       },
     });
 
-    const ask = await core.ask({ query: 'что это', chunkIds: [CHUNK.id] } as AskRequest);
+    const ask = await core.ask({ query: 'что это', chunkIds: [CHUNK.id] });
     expect(ask).toEqual({
       ok: false,
       error: {
