@@ -37,9 +37,14 @@ export class WorkerSearchMedicalCore implements MedicalCore {
       readonly reject: (error: Error) => void;
     }
   >();
+  private readonly workerEligible: Promise<boolean>;
   private requestId = 0;
 
   public constructor(private readonly base: MedicalCore) {
+    this.workerEligible = base
+      .getCapabilities()
+      .then((result) => result.ok && result.value.localCaseExtraction)
+      .catch(() => false);
     if (!this.worker) return;
     this.worker.onmessage = (event: MessageEvent<SearchWorkerResponse>) => {
       const pending = this.pending.get(event.data.id);
@@ -60,12 +65,15 @@ export class WorkerSearchMedicalCore implements MedicalCore {
     this.pending.clear();
   }
 
-  private request(
+  private async request(
     message:
       | { readonly method: 'analyzeQuery'; readonly request: AnalyzeQueryRequest }
       | { readonly method: 'search'; readonly request: SearchRequest },
   ): Promise<SearchWorkerResult> {
-    if (!this.worker) return Promise.reject(new Error('Web Worker недоступен.'));
+    if (!(await this.workerEligible)) {
+      throw new Error('The active MedicalCore owns its search execution context.');
+    }
+    if (!this.worker) throw new Error('Web Worker недоступен.');
     const id = ++this.requestId;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
