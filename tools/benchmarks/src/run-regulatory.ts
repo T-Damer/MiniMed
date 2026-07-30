@@ -126,7 +126,9 @@ for (const fixture of queries) {
   const topDocuments = rankedGroups.map((group) => group.documentId).slice(0, 5);
   const rankIndex = topDocuments.indexOf(fixture.expectedDocumentId);
   const rank = rankIndex >= 0 ? rankIndex + 1 : undefined;
-  const expectedGroup = rankedGroups.find((group) => group.documentId === fixture.expectedDocumentId);
+  const expectedGroup = rankedGroups.find(
+    (group) => group.documentId === fixture.expectedDocumentId,
+  );
   const matched = expectedGroup?.results.find(
     (result) =>
       result.sectionType === fixture.expectedSectionType &&

@@ -63,15 +63,11 @@ export function inferSearchScope(intent: QueryIntent | undefined): SearchScope |
 
 export function inferRequestedAudience(query: string): SearchAudience | undefined {
   const normalized = normalizeSurfaceText(query);
-  if (
-    /(?:^|\s)\d{1,2}\s*(?:месяц|месяца|месяцев|мес)(?=\s|$|[,.])/u.test(normalized)
-  ) {
+  if (/(?:^|\s)\d{1,2}\s*(?:месяц|месяца|месяцев|мес)(?=\s|$|[,.])/u.test(normalized)) {
     return 'children';
   }
 
-  const years = normalized.match(
-    /(?:^|\s)(\d{1,3})\s*(?:год|года|лет)(?=\s|$|[,.])/u,
-  );
+  const years = normalized.match(/(?:^|\s)(\d{1,3})\s*(?:год|года|лет)(?=\s|$|[,.])/u);
   if (years?.[1]) return Number(years[1]) < 18 ? 'children' : 'adults';
 
   const childSignal =

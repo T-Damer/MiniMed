@@ -45,9 +45,9 @@ describe('WorkerSearchMedicalCore', () => {
         includeSuggestions: true,
       }),
     ).resolves.toEqual(RESPONSE);
-    await expect(
-      core.analyzeQuery({ query: 'test', includeSuggestions: true }),
-    ).resolves.toEqual(RESPONSE);
+    await expect(core.analyzeQuery({ query: 'test', includeSuggestions: true })).resolves.toEqual(
+      RESPONSE,
+    );
 
     expect(search).toHaveBeenCalledOnce();
     expect(analyzeQuery).toHaveBeenCalledOnce();

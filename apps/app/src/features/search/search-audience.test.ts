@@ -57,12 +57,7 @@ describe('age-aware result ordering', () => {
       'children',
     );
 
-    expect(ranked.map((item) => item.documentId)).toEqual([
-      'child',
-      'mixed',
-      'unknown',
-      'adult',
-    ]);
+    expect(ranked.map((item) => item.documentId)).toEqual(['child', 'mixed', 'unknown', 'adult']);
     expect(ranked[0]?.ageGroups).toEqual(['children']);
     expect(ranked[3]?.ageGroups).toEqual(['adults']);
   });

@@ -13,11 +13,21 @@
     "answerability": "answerable",
     "split": "validation",
     "required_entities": ["парацетамол"],
-    "acceptable_entities": ["лихорадочный синдром", "болевой синдром", "жаропонижающее", "анальгезирующее"],
+    "acceptable_entities": [
+      "лихорадочный синдром",
+      "болевой синдром",
+      "жаропонижающее",
+      "анальгезирующее"
+    ],
     "forbidden_or_dangerous": ["антибиотик"],
     "expected_sections": ["treatment"],
     "expected_terms": ["показания к применению", "лихорадка", "боль"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-MED-002",
@@ -37,7 +47,12 @@
     "forbidden_or_dangerous": ["антибиотик"],
     "expected_sections": ["other"],
     "expected_terms": ["фармакологические свойства", "механизм действия"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-MED-003",
@@ -57,7 +72,12 @@
     "forbidden_or_dangerous": ["опиоидный рецептор", "антибиотик"],
     "expected_sections": ["other"],
     "expected_terms": ["фармакодинамика", "механизм действия", "циклооксигеназа"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-MED-004",
@@ -77,7 +97,12 @@
     "forbidden_or_dangerous": ["антибиотик"],
     "expected_sections": ["treatment"],
     "expected_terms": ["показания к применению"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-MED-005",
@@ -93,11 +118,31 @@
     "answerability": "answerable",
     "split": "validation",
     "required_entities": ["лихорадка у детей", "ибупрофен"],
-    "acceptable_entities": ["физическое охлаждение", "питье", "оценка состояния", "красные флаги", "парацетамол"],
-    "forbidden_or_dangerous": ["аспирин ребенку", "ацетилсалициловая кислота ребенку", "обтирание спиртом", "обтирание уксусом"],
+    "acceptable_entities": [
+      "физическое охлаждение",
+      "питье",
+      "оценка состояния",
+      "красные флаги",
+      "парацетамол"
+    ],
+    "forbidden_or_dangerous": [
+      "аспирин ребенку",
+      "ацетилсалициловая кислота ребенку",
+      "обтирание спиртом",
+      "обтирание уксусом"
+    ],
     "expected_sections": ["treatment", "routing"],
-    "expected_terms": ["жаропонижающая терапия", "физические методы охлаждения", "показания к осмотру"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "expected_terms": [
+      "жаропонижающая терапия",
+      "физические методы охлаждения",
+      "показания к осмотру"
+    ],
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-MED-006",
@@ -117,7 +162,12 @@
     "forbidden_or_dangerous": ["детская дозировка"],
     "expected_sections": ["treatment"],
     "expected_terms": ["жаропонижающая терапия", "противопоказания"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-MED-007",
@@ -133,11 +183,21 @@
     "answerability": "answerable",
     "split": "validation",
     "required_entities": ["ибупрофен"],
-    "acceptable_entities": ["противопоказания", "желудочно-кишечное кровотечение", "почечная недостаточность", "дегидратация"],
+    "acceptable_entities": [
+      "противопоказания",
+      "желудочно-кишечное кровотечение",
+      "почечная недостаточность",
+      "дегидратация"
+    ],
     "forbidden_or_dangerous": ["без ограничений"],
     "expected_sections": ["other"],
     "expected_terms": ["противопоказания"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-MED-008",
@@ -157,7 +217,12 @@
     "forbidden_or_dangerous": ["наблюдать дома без оценки"],
     "expected_sections": ["routing", "treatment"],
     "expected_terms": ["передозировка", "отравление"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-TERM-001",
@@ -177,7 +242,12 @@
     "forbidden_or_dangerous": ["акне"],
     "expected_sections": ["clinical-picture", "differential-diagnosis"],
     "expected_terms": ["белые элементы на слизистой", "налет", "пятна Коплика"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-TERM-002",
@@ -197,7 +267,12 @@
     "forbidden_or_dangerous": ["менингококцемия как единственный ответ"],
     "expected_sections": ["clinical-picture"],
     "expected_terms": ["сыпь с лица вниз", "слизистая щек"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -3}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -3
+    }
   },
   {
     "query_id": "CLIN-TERM-003",
@@ -213,11 +288,20 @@
     "answerability": "answerable",
     "split": "validation",
     "required_entities": ["бронхиолит"],
-    "acceptable_entities": ["бронхообструктивный синдром", "дыхательная недостаточность", "свистящее дыхание"],
+    "acceptable_entities": [
+      "бронхообструктивный синдром",
+      "дыхательная недостаточность",
+      "свистящее дыхание"
+    ],
     "forbidden_or_dangerous": ["регистрационная запись амоксициллина как первый результат"],
     "expected_sections": ["clinical-picture", "routing"],
     "expected_terms": ["втяжения", "нарушение кормления", "тахипноэ"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-REG-001",
@@ -237,7 +321,12 @@
     "forbidden_or_dangerous": ["II группа инвалидности"],
     "expected_sections": ["other"],
     "expected_terms": ["группа здоровья"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-REG-002",
@@ -257,7 +346,12 @@
     "forbidden_or_dangerous": ["III группа инвалидности"],
     "expected_sections": ["other"],
     "expected_terms": ["для взрослых"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-REG-003",
@@ -273,11 +367,23 @@
     "answerability": "partial_or_no_answer",
     "split": "validation",
     "required_entities": ["критерии инвалидности", "приказ 374н"],
-    "acceptable_entities": ["процент стойких нарушений", "ограничения жизнедеятельности", "осложнения диабета"],
-    "forbidden_or_dangerous": ["автоматически присваивается III группа", "группа только по диагнозу"],
+    "acceptable_entities": [
+      "процент стойких нарушений",
+      "ограничения жизнедеятельности",
+      "осложнения диабета"
+    ],
+    "forbidden_or_dangerous": [
+      "автоматически присваивается III группа",
+      "группа только по диагнозу"
+    ],
     "expected_sections": ["other"],
     "expected_terms": ["диагноз сам по себе не определяет инвалидность"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-REG-004",
@@ -297,7 +403,12 @@
     "forbidden_or_dangerous": ["III группа инвалидности ребенку"],
     "expected_sections": ["other"],
     "expected_terms": ["отдельные критерии для детей"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-REG-005",
@@ -317,7 +428,12 @@
     "forbidden_or_dangerous": ["форма 072/у для ребенка"],
     "expected_sections": ["other"],
     "expected_terms": ["для детей"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   },
   {
     "query_id": "CLIN-REG-006",
@@ -337,6 +453,11 @@
     "forbidden_or_dangerous": ["группа I без подтвержденного активного туберкулеза"],
     "expected_sections": ["other"],
     "expected_terms": ["контакт по месту жительства"],
-    "grading": {"required_gain": 3, "acceptable_gain": 1, "irrelevant_gain": 0, "forbidden_gain": -5}
+    "grading": {
+      "required_gain": 3,
+      "acceptable_gain": 1,
+      "irrelevant_gain": 0,
+      "forbidden_gain": -5
+    }
   }
 ]
