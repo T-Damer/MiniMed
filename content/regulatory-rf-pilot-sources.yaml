@@ -20,6 +20,14 @@ sources:
     location: regulatory-rf-pilot/order-1122n-vaccination-calendars.md
     target: order-1122n-vaccination-calendars.md
     content_type: markdown
+  - id: order-120n-pediatrics
+    location: regulatory-rf-pilot/order-120n-pediatrics.md
+    target: order-120n-pediatrics.md
+    content_type: markdown
+  - id: order-127n-tuberculosis
+    location: regulatory-rf-pilot/order-127n-tuberculosis-observation-groups.md
+    target: order-127n-tuberculosis-observation-groups.md
+    content_type: markdown
   - id: order-192n
     location: regulatory-rf-pilot/order-192n-dispensary-observation.md
     target: order-192n-dispensary-observation.md
@@ -27,6 +35,30 @@ sources:
   - id: order-211n
     location: regulatory-rf-pilot/order-211n-preventive-exams.md
     target: order-211n-preventive-exams.md
+    content_type: markdown
+  - id: order-213n-education
+    location: regulatory-rf-pilot/order-213n-child-care-education.md
+    target: order-213n-child-care-education.md
+    content_type: markdown
+  - id: order-220n-first-aid
+    location: regulatory-rf-pilot/order-220n-first-aid.md
+    target: order-220n-first-aid.md
+    content_type: markdown
+  - id: order-274n-sanatorium
+    location: regulatory-rf-pilot/order-274n-sanatorium-forms.md
+    target: order-274n-sanatorium-forms.md
+    content_type: markdown
+  - id: order-313n-primary-care-children
+    location: regulatory-rf-pilot/order-313n-primary-care-children.md
+    target: order-313n-primary-care-children.md
+    content_type: markdown
+  - id: order-374n-disability
+    location: regulatory-rf-pilot/order-374n-disability-criteria.md
+    target: order-374n-disability-criteria.md
+    content_type: markdown
+  - id: order-404n-adult-health
+    location: regulatory-rf-pilot/order-404n-adult-health-groups.md
+    target: order-404n-adult-health-groups.md
     content_type: markdown
   - id: order-302n-superseded
     location: regulatory-rf-pilot/order-302n-dispensary-observation-superseded.md
