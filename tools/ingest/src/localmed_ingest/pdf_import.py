@@ -520,7 +520,9 @@ def _maybe_extract_with_ocr(
     configured: ExtractionOptions,
 ) -> tuple[list[RawBlock], Literal["pdf_text_layer", "ocr"]]:
     included_text = _raw_blocks_text(raw_blocks)
-    if not configured.ocr_fallback or not is_likely_garbled_russian_pdf_text(included_text):
+    if not configured.ocr_fallback or (
+        included_text and not is_likely_garbled_russian_pdf_text(included_text)
+    ):
         return raw_blocks, "pdf_text_layer"
 
     baseline_ratio = cyrillic_letter_ratio(included_text)

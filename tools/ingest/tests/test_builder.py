@@ -137,3 +137,24 @@ def test_generated_pack_has_complete_embedding_coverage(tmp_path: Path) -> None:
         assert row[1] > 0
     finally:
         connection.close()
+
+
+def test_lexical_only_pack_keeps_fts_without_embeddings(tmp_path: Path) -> None:
+    database = tmp_path / "lexical.db"
+    _pack, report = build_content_pack(fixture_dir(), database, include_embeddings=False)
+
+    assert report.embedding_profiles == 0
+    assert report.embeddings == 0
+    connection = sqlite3.connect(database)
+    try:
+        assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+        assert connection.execute("SELECT count(*) FROM chunk_embeddings").fetchone() == (0,)
+        assert connection.execute("SELECT count(*) FROM embedding_profiles").fetchone() == (0,)
+        assert (
+            connection.execute(
+                "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH 'пневмония'"
+            ).fetchone()[0]
+            > 0
+        )
+    finally:
+        connection.close()

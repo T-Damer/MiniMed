@@ -21,6 +21,49 @@ class PackManifest(CamelModel):
     title: str
     built_at: str
     checksum: str = ""
+    publication_state: Literal["local-dev", "published"] = "local-dev"
+
+
+class SourceRights(CamelModel):
+    owner: str
+    license_id: str
+    allows_offline_storage: bool = False
+    allows_derivative_processing: bool = False
+    allows_redistribution: bool = False
+    attribution: str | None = None
+    expires_at: str | None = None
+    notes: str | None = None
+
+    @model_validator(mode="after")
+    def validate_identifiers(self) -> SourceRights:
+        for label, value in (("owner", self.owner), ("license_id", self.license_id)):
+            if not value.strip():
+                raise ValueError(f"Source rights {label} must not be blank.")
+        return self
+
+
+class SourceProvenance(CamelModel):
+    source_id: str
+    publisher: str
+    official_locator: str
+    jurisdiction: str
+    rights_status: Literal["verified", "unknown", "revoked"] = "unknown"
+    rights: SourceRights
+    raw_checksum: str | None = None
+
+    @model_validator(mode="after")
+    def validate_publishable_rights(self) -> SourceProvenance:
+        for label, value in (
+            ("source_id", self.source_id),
+            ("publisher", self.publisher),
+            ("official_locator", self.official_locator),
+            ("jurisdiction", self.jurisdiction),
+        ):
+            if not value.strip():
+                raise ValueError(f"Source provenance {label} must not be blank.")
+        if self.rights_status == "verified" and not self.rights.allows_offline_storage:
+            raise ValueError("Verified source rights must permit offline storage.")
+        return self
 
 
 class SourceMetadata(BaseModel):
@@ -172,6 +215,7 @@ class RegistryPack(CamelModel):
     schema_version: int = Field(default=2, ge=1)
     title: str
     built_at: str
+    publication_state: Literal["local-dev", "published"] = "local-dev"
 
 
 class RegistrySource(CamelModel):
@@ -188,6 +232,7 @@ class RegistrySource(CamelModel):
     effective_to: str | None = None
     format: Literal["auto", "pdf", "text", "markdown", "html", "clinical_json"] = "auto"
     extraction: ExtractionOptions = Field(default_factory=ExtractionOptions)
+    provenance: SourceProvenance | None = None
     metadata: dict[str, object] = Field(default_factory=dict)
 
 
@@ -206,6 +251,19 @@ class SourceRegistry(CamelModel):
             raise ValueError("Source registry contains duplicate source paths.")
         if not self.sources:
             raise ValueError("Source registry must contain at least one source.")
+        if self.pack.publication_state == "published":
+            for source in self.sources:
+                provenance = source.provenance
+                if provenance is None:
+                    raise ValueError(f"Published source {source.id} has no typed provenance.")
+                if provenance.rights_status != "verified":
+                    raise ValueError(
+                        f"Published source {source.id} rights are {provenance.rights_status}."
+                    )
+                if not provenance.rights.allows_redistribution:
+                    raise ValueError(
+                        f"Published source {source.id} does not permit redistribution."
+                    )
         return self
 
 

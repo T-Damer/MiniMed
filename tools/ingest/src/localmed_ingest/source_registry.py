@@ -145,6 +145,10 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
         raise NoSearchableTextError(f"Source {source.id} produced no searchable text blocks.")
 
     metadata = dict(source.metadata)
+    if source.provenance is not None:
+        provenance = source.provenance.model_dump(by_alias=True, mode="json")
+        provenance["rawChecksum"] = extracted.source_checksum
+        metadata["provenance"] = provenance
     metadata["sourcePath"] = source.path
     metadata["extraction"] = {
         "format": extracted.source_format,
