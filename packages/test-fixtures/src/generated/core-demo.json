@@ -5,7 +5,8 @@
     "schemaVersion": 2,
     "title": "LocalMed synthetic core demo",
     "builtAt": "1970-01-01T00:00:00Z",
-    "checksum": "sha256:04c5ba4a2f8134c7ec28c7d1135d909878f1662c25c1a4024a1446db6a5f6399"
+    "checksum": "sha256:04c5ba4a2f8134c7ec28c7d1135d909878f1662c25c1a4024a1446db6a5f6399",
+    "publicationState": "local-dev"
   },
   "documents": [
     {
