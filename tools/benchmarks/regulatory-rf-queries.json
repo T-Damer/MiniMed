@@ -134,5 +134,140 @@
     "expectedSupersededBy": "regulatory.rf.minzdrav.192n-2025",
     "requireTop1": true,
     "category": "versioning"
+  },
+  {
+    "id": "regulatory.323fz.child-consent",
+    "query": "Кто подписывает информированное согласие на медицинское вмешательство ребенку по 323-ФЗ",
+    "expectedDocumentId": "regulatory.rf.federal-law.323-fz-2011",
+    "expectedVersionId": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30",
+    "expectedDocumentNumber": "323-ФЗ",
+    "expectedPublicationNumber": "0001201111220007",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/информированное-добровольное-согласие-и-отказ",
+    "requireTop1": true,
+    "category": "patient-rights"
+  },
+  {
+    "id": "regulatory.323fz.medical-secrecy",
+    "query": "Какие сведения о диагнозе и обращении ребенка относятся к медицинской тайне статья 13",
+    "expectedDocumentId": "regulatory.rf.federal-law.323-fz-2011",
+    "expectedVersionId": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30",
+    "expectedDocumentNumber": "323-ФЗ",
+    "expectedPublicationNumber": "0001201111220007",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/медицинская-тайна",
+    "category": "patient-rights"
+  },
+  {
+    "id": "regulatory.323fz.health-information",
+    "query": "Имеет ли родитель право получить результаты обследования и информацию о здоровье ребенка",
+    "expectedDocumentId": "regulatory.rf.federal-law.323-fz-2011",
+    "expectedVersionId": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30",
+    "expectedDocumentNumber": "323-ФЗ",
+    "expectedPublicationNumber": "0001201111220007",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/информация-о-состоянии-здоровья",
+    "category": "patient-rights"
+  },
+  {
+    "id": "regulatory.323fz.parent-stay",
+    "query": "Можно ли родителю бесплатно находиться вместе с ребенком в стационаре статья 51 323-ФЗ",
+    "expectedDocumentId": "regulatory.rf.federal-law.323-fz-2011",
+    "expectedVersionId": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30",
+    "expectedDocumentNumber": "323-ФЗ",
+    "expectedPublicationNumber": "0001201111220007",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/совместное-пребывание-с-ребенком-в-стационаре",
+    "category": "patient-rights"
+  },
+  {
+    "id": "regulatory.157fz.vaccine-refusal",
+    "query": "Можно ли отказаться от профилактической прививки ребенку по 157-ФЗ",
+    "expectedDocumentId": "regulatory.rf.federal-law.157-fz-1998",
+    "expectedVersionId": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30",
+    "expectedDocumentNumber": "157-ФЗ",
+    "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
+    "expectedSectionType": "prevention",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/права-граждан-и-отказ-от-профилактической-прививки",
+    "requireTop1": true,
+    "category": "vaccination-law"
+  },
+  {
+    "id": "regulatory.157fz.school-restriction",
+    "query": "Могут ли временно не принять непривитого ребенка в школу или детский сад при угрозе эпидемии",
+    "expectedDocumentId": "regulatory.rf.federal-law.157-fz-1998",
+    "expectedVersionId": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30",
+    "expectedDocumentNumber": "157-ФЗ",
+    "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
+    "expectedSectionType": "prevention",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/возможные-последствия-отсутствия-профилактической-прививки",
+    "category": "vaccination-law"
+  },
+  {
+    "id": "regulatory.157fz.vaccine-conditions",
+    "query": "Какие условия и согласие нужны перед профилактической прививкой статья 11 157-ФЗ",
+    "expectedDocumentId": "regulatory.rf.federal-law.157-fz-1998",
+    "expectedVersionId": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30",
+    "expectedDocumentNumber": "157-ФЗ",
+    "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
+    "expectedSectionType": "prevention",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/условия-проведения-профилактических-прививок",
+    "category": "vaccination-law"
+  },
+  {
+    "id": "regulatory.157fz.records",
+    "query": "Где учитываются сведения о прививках и отказах от вакцинации",
+    "expectedDocumentId": "regulatory.rf.federal-law.157-fz-1998",
+    "expectedVersionId": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30",
+    "expectedDocumentNumber": "157-ФЗ",
+    "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/учет-прививок-и-отказов",
+    "category": "vaccination-law"
+  },
+  {
+    "id": "regulatory.1122n.national-calendar",
+    "query": "Какой приказ утверждает национальный календарь профилактических прививок детям",
+    "expectedDocumentId": "regulatory.rf.minzdrav.1122n-2021",
+    "expectedVersionId": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01",
+    "expectedDocumentNumber": "1122н",
+    "expectedPublicationNumber": "0001202112200070",
+    "expectedSectionType": "prevention",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/национальный-календарь-профилактических-прививок",
+    "requireTop1": true,
+    "category": "vaccination-calendar"
+  },
+  {
+    "id": "regulatory.1122n.epidemic-calendar",
+    "query": "Где посмотреть календарь прививок по эпидемическим показаниям приказ 1122н",
+    "expectedDocumentId": "regulatory.rf.minzdrav.1122n-2021",
+    "expectedVersionId": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01",
+    "expectedDocumentNumber": "1122н",
+    "expectedPublicationNumber": "0001202112200070",
+    "expectedSectionType": "prevention",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/профилактические-прививки-по-эпидемическим-показаниям",
+    "category": "vaccination-calendar"
+  },
+  {
+    "id": "regulatory.1122n.procedure",
+    "query": "Какой нормативный акт определяет порядок проведения профилактических прививок и осмотр перед вакцинацией",
+    "expectedDocumentId": "regulatory.rf.minzdrav.1122n-2021",
+    "expectedVersionId": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01",
+    "expectedDocumentNumber": "1122н",
+    "expectedPublicationNumber": "0001202112200070",
+    "expectedSectionType": "prevention",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/порядок-проведения-профилактических-прививок",
+    "category": "vaccination-calendar"
+  },
+  {
+    "id": "regulatory.1122n.amendment-677n",
+    "query": "Какие изменения приказ 677н внес в календарь прививок 1122н и какую редакцию применять",
+    "expectedDocumentId": "regulatory.rf.minzdrav.1122n-2021",
+    "expectedVersionId": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01",
+    "expectedDocumentNumber": "1122н",
+    "expectedPublicationNumber": "0001202112200070",
+    "expectedSectionType": "other",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/изменения-приказа-677н",
+    "category": "versioning"
   }
 ]
