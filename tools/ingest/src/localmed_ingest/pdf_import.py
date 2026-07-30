@@ -478,6 +478,7 @@ def _build_diagnostics(
         warnings.append(
             "Used OCR fallback because the PDF text layer had broken Cyrillic encoding."
         )
+        reasons.append("OCR-derived text requires source-page review before clinical promotion.")
     elif is_likely_garbled_russian_pdf_text(included_text):
         reasons.append(
             "PDF text layer appears to use broken Cyrillic font encoding; "

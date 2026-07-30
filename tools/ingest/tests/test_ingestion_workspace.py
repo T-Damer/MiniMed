@@ -9,8 +9,8 @@ import pymupdf
 import yaml
 
 from localmed_ingest.builder import build_content_pack, load_content_pack
-from localmed_ingest.models import RegistrySource
-from localmed_ingest.pdf_import import extract_pdf
+from localmed_ingest.models import ExtractedBlock, ExtractedPage, RegistrySource
+from localmed_ingest.pdf_import import _build_diagnostics, extract_pdf
 from localmed_ingest.source_registry import prepare_registry, render_prepared_markdown
 
 
@@ -114,6 +114,37 @@ def test_pdf_extraction_removes_repeated_marginalia_and_detects_headings(tmp_pat
         for block in page.blocks
         if block.text == "1. Удалить колпачок с флакона."
     )
+
+
+def test_ocr_extraction_requires_source_page_review() -> None:
+    text = "Проверочный фрагмент инструкции. " * 24
+    diagnostics = _build_diagnostics(
+        "sha256:test",
+        [
+            ExtractedPage(
+                page=1,
+                width=595,
+                height=842,
+                character_count=len(text),
+                blocks=[
+                    ExtractedBlock(
+                        id="p1-b1",
+                        page=1,
+                        order_index=0,
+                        kind="heading",
+                        text=text,
+                    )
+                ],
+            )
+        ],
+        None,
+        0,
+        text_extraction_mode="ocr",
+        included_text=text,
+    )
+
+    assert diagnostics.requires_review is True
+    assert "OCR-derived text requires source-page review" in diagnostics.review_reasons[0]
 
 
 def test_rendered_markdown_keeps_source_markers(tmp_path: Path) -> None:
