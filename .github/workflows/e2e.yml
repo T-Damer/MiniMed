@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - ".github/workflows/e2e.yml"
       - "apps/app/**"
       - "content/regulatory-rf-pilot/**"
       - "packages/**"
@@ -11,12 +12,17 @@ on:
       - "playwright.config.ts"
       - "bun.lock"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   chromium:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
@@ -25,6 +31,16 @@ jobs:
           version: "0.10.0"
           enable-cache: true
       - run: bun install --frozen-lockfile
+      - name: Read Playwright version
+        id: playwright-version
+        shell: bash
+        run: echo "version=$(bunx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Restore Playwright Chromium cache
+        id: playwright-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}
       - run: uv sync --project tools/ingest --all-groups --locked
       - name: Build regulatory E2E module
         run: |
@@ -148,7 +164,11 @@ jobs:
               encoding='utf-8',
           )
           PY
-      - run: bunx playwright install chromium --with-deps
+      - name: Install Chromium system dependencies
+        run: bunx playwright install-deps chromium
+      - name: Install Chromium headless shell
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx playwright install chromium --only-shell
       - name: Run Chromium E2E
         shell: bash
         run: |
