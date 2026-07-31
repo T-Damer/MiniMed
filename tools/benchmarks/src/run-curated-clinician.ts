@@ -70,12 +70,8 @@ const reportPath = resolve(root, 'data/build/curated-clinician-benchmark.json');
 writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 console.log(JSON.stringify({ ...aggregate, reportPath }, null, 2));
 
-const minRecallAt1 = Number(
-  process.env['MINIMED_CLINICIAN_MIN_RECALL_AT_1'] ?? '0.75',
-);
-const minRecallAt5 = Number(
-  process.env['MINIMED_CLINICIAN_MIN_RECALL_AT_5'] ?? '0.9',
-);
+const minRecallAt1 = Number(process.env['MINIMED_CLINICIAN_MIN_RECALL_AT_1'] ?? '0.75');
+const minRecallAt5 = Number(process.env['MINIMED_CLINICIAN_MIN_RECALL_AT_5'] ?? '0.9');
 const minSectionRecall = Number(
   process.env['MINIMED_CLINICIAN_MIN_SECTION_RECALL_AT_5'] ?? '0.7',
 );
