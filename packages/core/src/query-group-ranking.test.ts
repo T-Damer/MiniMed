@@ -38,6 +38,27 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['health', 'disability']);
   });
 
+  it('recognizes the colloquial profosmot wording as a preventive-exam request', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('follow-up', 'Диспансерное наблюдение несовершеннолетних — приказ № 192н', 1.1),
+        group('pediatrics', 'Порядок оказания помощи по профилю «Педиатрия»', 1.05),
+        group(
+          'preventive',
+          'Профилактические медицинские осмотры несовершеннолетних — приказ № 211н',
+          0.72,
+        ),
+      ],
+      'Как провести детский профосмотр, если в медицинской организации нет нужного специалиста?',
+    );
+
+    expect(ranked.map((item) => item.documentId)).toEqual([
+      'preventive',
+      'follow-up',
+      'pediatrics',
+    ]);
+  });
+
   it('preserves the base order when titles have equal query relevance', () => {
     const ranked = rankSearchGroupsByQuery(
       [group('first', 'Первый документ', 0.8), group('second', 'Второй документ', 0.7)],
