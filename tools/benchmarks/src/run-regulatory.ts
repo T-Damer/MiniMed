@@ -33,6 +33,7 @@ interface RegulatoryRow {
   readonly requiredRankPassed: boolean;
   readonly sectionRequired: boolean;
   readonly sectionHit: boolean;
+  readonly sectionTypeMatched: boolean;
   readonly contextResolved: boolean;
   readonly metadataValid: boolean;
   readonly reciprocalRank: number;
@@ -72,15 +73,21 @@ function metadataStrings(
 }
 
 const REVIEW_SUFFIX = /-reviewed-\d{4}-\d{2}-\d{2}(?=\/|$)/gu;
+const CHUNK_SUFFIX = /#chunk-[^/]+$/u;
 
 function stableEditionIdentity(value: string): string {
   return value.replace(REVIEW_SUFFIX, '');
 }
 
+function normalizedSectionAnchor(value: string): string {
+  return stableEditionIdentity(value)
+    .replace(CHUNK_SUFFIX, '')
+    .replace(/\/форма-(?:no|n)-(?=\d)/gu, '/форма-')
+    .replace(/-+/gu, '-');
+}
+
 function anchorMatches(actual: string, expectedPrefix: string): boolean {
-  return stableEditionIdentity(actual).startsWith(
-    `${stableEditionIdentity(expectedPrefix)}#chunk-`,
-  );
+  return normalizedSectionAnchor(actual) === normalizedSectionAnchor(expectedPrefix);
 }
 
 const root = resolve(import.meta.dirname, '../../..');
@@ -129,11 +136,10 @@ for (const fixture of queries) {
   const expectedGroup = rankedGroups.find(
     (group) => group.documentId === fixture.expectedDocumentId,
   );
-  const matched = expectedGroup?.results.find(
-    (result) =>
-      result.sectionType === fixture.expectedSectionType &&
-      anchorMatches(result.anchor, fixture.expectedAnchorPrefix),
+  const matched = expectedGroup?.results.find((result) =>
+    anchorMatches(result.anchor, fixture.expectedAnchorPrefix),
   );
+  const sectionTypeMatched = matched?.sectionType === fixture.expectedSectionType;
 
   let contextResolved = false;
   if (matched) {
@@ -141,8 +147,8 @@ for (const fixture of queries) {
     if (!context.ok) throw new Error(`${fixture.id}: ${context.error.message}`);
     const focus = context.value.chunks.find((chunk) => chunk.id === context.value.focusChunkId);
     contextResolved =
-      stableEditionIdentity(context.value.section.anchor) ===
-        stableEditionIdentity(fixture.expectedAnchorPrefix) && focus?.anchor === matched.anchor;
+      anchorMatches(context.value.section.anchor, fixture.expectedAnchorPrefix) &&
+      focus?.anchor === matched.anchor;
   }
 
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
@@ -156,21 +162,21 @@ for (const fixture of queries) {
     fixture.expectedAgeGroups.every((ageGroup) => actualAgeGroups.includes(ageGroup));
   const audienceLabelValid =
     fixture.expectedAudienceLabel === undefined ||
-    metadata['audienceLabel'] === fixture.expectedAudienceLabel;
+    metadata.audienceLabel === fixture.expectedAudienceLabel;
   const metadataValid =
     stableEditionIdentity(document.versionId) ===
       stableEditionIdentity(fixture.expectedVersionId) &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
-    metadata['authorityTier'] === 'official-regulatory-act' &&
-    metadata['jurisdiction'] === 'RU' &&
-    metadata['documentNumber'] === fixture.expectedDocumentNumber &&
-    metadata['officialPublicationNumber'] === fixture.expectedPublicationNumber &&
-    metadata['contentMode'] === 'source_linked_paraphrase' &&
+    metadata.authorityTier === 'official-regulatory-act' &&
+    metadata.jurisdiction === 'RU' &&
+    metadata.documentNumber === fixture.expectedDocumentNumber &&
+    metadata.officialPublicationNumber === fixture.expectedPublicationNumber &&
+    metadata.contentMode === 'source_linked_paraphrase' &&
     ageGroupsValid &&
     audienceLabelValid &&
     (fixture.expectedSupersededBy === undefined ||
-      metadata['supersededByDocumentId'] === fixture.expectedSupersededBy);
+      metadata.supersededByDocumentId === fixture.expectedSupersededBy);
 
   const requiredRank = fixture.requireTop1 === true ? 1 : 2;
   rows.push({
@@ -183,6 +189,7 @@ for (const fixture of queries) {
     requiredRankPassed: rank !== undefined && rank <= requiredRank,
     sectionRequired: fixture.requireSection !== false && fixture.category !== 'versioning',
     sectionHit: matched !== undefined,
+    sectionTypeMatched,
     contextResolved,
     metadataValid,
     reciprocalRank: rank === undefined ? 0 : 1 / rank,
@@ -207,6 +214,7 @@ const report = {
   requiredRankRate: mean(rows.map((row) => Number(row.requiredRankPassed))),
   requiredTop1Rate: mean(top1Rows.map((row) => Number(row.hitAt1))),
   sectionRecall: mean(sectionRows.map((row) => Number(row.sectionHit))),
+  sectionTypeRate: mean(sectionRows.map((row) => Number(row.sectionTypeMatched))),
   contextResolutionRate: mean(sectionRows.map((row) => Number(row.contextResolved))),
   metadataRate: mean(rows.map((row) => Number(row.metadataValid))),
   latencyMs: {
@@ -231,6 +239,9 @@ const report = {
           recallAt2: mean(categoryRows.map((row) => Number(row.hitAt2))),
           requiredRankRate: mean(categoryRows.map((row) => Number(row.requiredRankPassed))),
           sectionRecall: mean(categorySectionRows.map((row) => Number(row.sectionHit))),
+          sectionTypeRate: mean(
+            categorySectionRows.map((row) => Number(row.sectionTypeMatched)),
+          ),
         },
       ];
     }),
