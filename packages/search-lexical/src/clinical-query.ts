@@ -1,4 +1,3 @@
-import type { QueryBranch } from '@localmed/contracts';
 import type { AliasRecord } from '@localmed/domain';
 
 import {
@@ -24,11 +23,6 @@ function medicationTerms(plan: ClinicalQueryPlan): ReadonlySet<string> {
 
 function ftsToken(term: string): string {
   return `"${term.replaceAll('"', '""')}"*`;
-}
-
-function publicBranch(branch: LexicalQueryBranchPlan): QueryBranch {
-  const { ftsQuery: _ftsQuery, ...value } = branch;
-  return value;
 }
 
 function symptomBranch(plan: ClinicalQueryPlan): LexicalQueryBranchPlan | null {
