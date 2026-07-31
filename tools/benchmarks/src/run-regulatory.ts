@@ -162,21 +162,21 @@ for (const fixture of queries) {
     fixture.expectedAgeGroups.every((ageGroup) => actualAgeGroups.includes(ageGroup));
   const audienceLabelValid =
     fixture.expectedAudienceLabel === undefined ||
-    metadata.audienceLabel === fixture.expectedAudienceLabel;
+    metadata['audienceLabel'] === fixture.expectedAudienceLabel;
   const metadataValid =
     stableEditionIdentity(document.versionId) ===
       stableEditionIdentity(fixture.expectedVersionId) &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
-    metadata.authorityTier === 'official-regulatory-act' &&
-    metadata.jurisdiction === 'RU' &&
-    metadata.documentNumber === fixture.expectedDocumentNumber &&
-    metadata.officialPublicationNumber === fixture.expectedPublicationNumber &&
-    metadata.contentMode === 'source_linked_paraphrase' &&
+    metadata['authorityTier'] === 'official-regulatory-act' &&
+    metadata['jurisdiction'] === 'RU' &&
+    metadata['documentNumber'] === fixture.expectedDocumentNumber &&
+    metadata['officialPublicationNumber'] === fixture.expectedPublicationNumber &&
+    metadata['contentMode'] === 'source_linked_paraphrase' &&
     ageGroupsValid &&
     audienceLabelValid &&
     (fixture.expectedSupersededBy === undefined ||
-      metadata.supersededByDocumentId === fixture.expectedSupersededBy);
+      metadata['supersededByDocumentId'] === fixture.expectedSupersededBy);
 
   const requiredRank = fixture.requireTop1 === true ? 1 : 2;
   rows.push({
