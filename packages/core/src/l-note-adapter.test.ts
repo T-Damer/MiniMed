@@ -8,6 +8,9 @@ import {
   type LNoteSection,
 } from './l-note-adapter';
 
+const SECTION_PATH = ['Бронхиолит', 'Клиническая картина'] as const;
+const SECTION_TYPE = 'clinical-picture' as const;
+
 const CHUNK: LNoteChunk = {
   id: 'chunk-1',
   sectionId: 'section-1',
@@ -21,11 +24,11 @@ const SECTION: LNoteSection = {
   id: 'section-1',
   documentVersionId: 'document-1@v1',
   title: 'Клиническая картина',
-  sectionType: 'clinical-picture',
+  sectionType: SECTION_TYPE,
   depth: 1,
   orderIndex: 0,
   anchor: 'document-1@v1/clinical-picture',
-  path: ['Бронхиолит', 'Клиническая картина'],
+  path: SECTION_PATH,
   chunks: [CHUNK],
 };
 
@@ -80,13 +83,13 @@ function fakeClient(overrides: Partial<LNoteClient> = {}): LNoteClient {
           sectionId: SECTION.id,
           anchor: CHUNK.anchor,
           title: DOCUMENT.title,
-          sectionPath: SECTION.path,
+          sectionPath: SECTION_PATH,
           snippet: CHUNK.text,
           score: 150,
           lexicalScore: 30,
           semanticScore: 0.8,
           matchedTerms: ['свистит', 'дыхании'],
-          sectionType: SECTION.sectionType,
+          sectionType: SECTION_TYPE,
         },
       ],
     })),
