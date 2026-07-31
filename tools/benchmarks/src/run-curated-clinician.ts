@@ -72,12 +72,8 @@ console.log(JSON.stringify({ ...aggregate, reportPath }, null, 2));
 
 const minRecallAt1 = Number(process.env['MINIMED_CLINICIAN_MIN_RECALL_AT_1'] ?? '0.75');
 const minRecallAt5 = Number(process.env['MINIMED_CLINICIAN_MIN_RECALL_AT_5'] ?? '0.9');
-const minSectionRecall = Number(
-  process.env['MINIMED_CLINICIAN_MIN_SECTION_RECALL_AT_5'] ?? '0.7',
-);
-const maxForbiddenRate = Number(
-  process.env['MINIMED_CLINICIAN_MAX_FORBIDDEN_RATE_AT_5'] ?? '0',
-);
+const minSectionRecall = Number(process.env['MINIMED_CLINICIAN_MIN_SECTION_RECALL_AT_5'] ?? '0.7');
+const maxForbiddenRate = Number(process.env['MINIMED_CLINICIAN_MAX_FORBIDDEN_RATE_AT_5'] ?? '0');
 const failures: string[] = [];
 if (aggregate.recallAt1 < minRecallAt1) {
   failures.push(`Recall@1 ${aggregate.recallAt1.toFixed(3)} < ${minRecallAt1.toFixed(3)}`);
