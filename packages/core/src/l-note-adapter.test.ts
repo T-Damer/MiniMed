@@ -54,7 +54,7 @@ function fakeClient(overrides: Partial<LNoteClient> = {}): LNoteClient {
       semanticSearch: true,
       embeddingProfileIds: ['l-note-hash-v1'],
       persistentStorage: true,
-      storageInstallation: 'reused',
+      storageInstallation: 'reused' as const,
       storageSizeBytes: 1024,
     })),
     listDocuments: vi.fn(async () => [DOCUMENT]),
@@ -62,7 +62,7 @@ function fakeClient(overrides: Partial<LNoteClient> = {}): LNoteClient {
       requestId: 'request-1',
       normalizedQuery: 'грудничок свистит при дыхании',
       elapsedMs: 7,
-      modeUsed: 'hybrid',
+      modeUsed: 'hybrid' as const,
       analysis: {
         normalizedQuery: 'грудничок свистит при дыхании',
         terms: ['грудничок', 'свистит', 'дыхании'],
