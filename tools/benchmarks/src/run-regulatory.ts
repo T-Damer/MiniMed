@@ -239,9 +239,7 @@ const report = {
           recallAt2: mean(categoryRows.map((row) => Number(row.hitAt2))),
           requiredRankRate: mean(categoryRows.map((row) => Number(row.requiredRankPassed))),
           sectionRecall: mean(categorySectionRows.map((row) => Number(row.sectionHit))),
-          sectionTypeRate: mean(
-            categorySectionRows.map((row) => Number(row.sectionTypeMatched)),
-          ),
+          sectionTypeRate: mean(categorySectionRows.map((row) => Number(row.sectionTypeMatched))),
         },
       ];
     }),
