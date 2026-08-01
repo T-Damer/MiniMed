@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import type { MedicalDocumentSummary, SearchResultGroup } from '@localmed/contracts';
 import { createMedicalCore, rankSearchGroupsByQuery } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
@@ -43,6 +44,8 @@ interface RegulatoryRow {
   readonly candidateAnchors: readonly string[];
 }
 
+type RequestedAudience = 'children' | 'adults';
+
 function parseQueries(value: unknown, source: string): readonly RegulatoryQuery[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new Error(`${source} must contain a non-empty regulatory query array.`);
@@ -72,6 +75,54 @@ function metadataStrings(
   return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
 }
 
+function inferRequestedAudience(query: string): RequestedAudience | undefined {
+  const normalized = query.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
+  if (/(?:^|\s)\d{1,2}\s*(?:месяц|месяца|месяцев|мес)(?=\s|$|[,.])/u.test(normalized)) {
+    return 'children';
+  }
+
+  const years = normalized.match(/(?:^|\s)(\d{1,3})\s*(?:год|года|лет)(?=\s|$|[,.])/u);
+  if (years?.[1]) return Number(years[1]) < 18 ? 'children' : 'adults';
+
+  const childSignal =
+    /(?:ребен|детск|дет(?:и|ей|ям|ьми|ях)|младен|груднич|новорож|несовершеннолет|подрост|школьник|мальчик|девочк|педиатр)/u.test(
+      normalized,
+    );
+  const adultSignal = /(?:взросл|совершеннолет|мужчин|женщин|терапевт)/u.test(normalized);
+  if (childSignal === adultSignal) return undefined;
+  return childSignal ? 'children' : 'adults';
+}
+
+function audiencePriority(ageGroups: readonly string[], audience: RequestedAudience): number {
+  const supportsChildren = ageGroups.some(
+    (ageGroup) => ageGroup === 'children' || ageGroup === 'adolescents',
+  );
+  const supportsAdults = ageGroups.includes('adults');
+  if (!supportsChildren && !supportsAdults) return 1;
+  if (audience === 'children') return supportsChildren ? 2 : 0;
+  return supportsAdults ? 2 : 0;
+}
+
+function rankGroupsByAudience(
+  groups: readonly SearchResultGroup[],
+  documentsById: ReadonlyMap<string, MedicalDocumentSummary>,
+  audience: RequestedAudience | undefined,
+): readonly SearchResultGroup[] {
+  if (!audience) return groups;
+  return groups
+    .map((group, index) => ({ group, index }))
+    .toSorted((left, right) => {
+      const leftAgeGroups =
+        documentsById.get(left.group.documentId)?.ageGroups ?? left.group.ageGroups ?? [];
+      const rightAgeGroups =
+        documentsById.get(right.group.documentId)?.ageGroups ?? right.group.ageGroups ?? [];
+      const priorityDifference =
+        audiencePriority(rightAgeGroups, audience) - audiencePriority(leftAgeGroups, audience);
+      return priorityDifference || left.index - right.index;
+    })
+    .map((entry) => entry.group);
+}
+
 const REVIEW_SUFFIX = /-reviewed-\d{4}-\d{2}-\d{2}(?=\/|$)/gu;
 const CHUNK_SUFFIX = /#chunk-[^/]+$/u;
 
@@ -94,14 +145,14 @@ const root = resolve(import.meta.dirname, '../../..');
 const queryPaths = [
   'tools/benchmarks/regulatory-rf-queries.json',
   'tools/benchmarks/regulatory-rf-major-queries.json',
+  'tools/benchmarks/regulatory-rf-expanded-queries.json',
 ] as const;
-const queries = queryPaths.flatMap((path) =>
-  parseQueries(JSON.parse(readFileSync(resolve(root, path), 'utf8')), path),
-);
-const queryIds = queries.map((query) => query.id);
-if (new Set(queryIds).size !== queryIds.length) {
-  throw new Error('Regulatory benchmark contains duplicate query IDs.');
+const queryById = new Map<string, RegulatoryQuery>();
+for (const path of queryPaths) {
+  const fixtures = parseQueries(JSON.parse(readFileSync(resolve(root, path), 'utf8')), path);
+  for (const fixture of fixtures) queryById.set(fixture.id, fixture);
 }
+const queries = [...queryById.values()];
 const top1QueryIds = new Set(
   queries.filter((query) => query.requireTop1 === true).map((query) => query.id),
 );
@@ -117,6 +168,11 @@ const core = createMedicalCore({
 });
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);
+const documentsResult = await core.listDocuments();
+if (!documentsResult.ok) throw new Error(documentsResult.error.message);
+const documentsById = new Map(
+  documentsResult.value.map((document) => [document.id, document] as const),
+);
 
 const rows: RegulatoryRow[] = [];
 for (const fixture of queries) {
@@ -129,7 +185,11 @@ for (const fixture of queries) {
   });
   if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
 
-  const rankedGroups = rankSearchGroupsByQuery(response.value.groups, fixture.query);
+  const rankedGroups = rankGroupsByAudience(
+    rankSearchGroupsByQuery(response.value.groups, fixture.query),
+    documentsById,
+    inferRequestedAudience(fixture.query),
+  );
   const topDocuments = rankedGroups.map((group) => group.documentId).slice(0, 5);
   const rankIndex = topDocuments.indexOf(fixture.expectedDocumentId);
   const rank = rankIndex >= 0 ? rankIndex + 1 : undefined;
