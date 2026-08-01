@@ -7,6 +7,7 @@ on:
       - ".github/workflows/e2e.yml"
       - "apps/app/**"
       - "content/regulatory-rf-pilot/**"
+      - "content/reference-rf-pilot/**"
       - "packages/**"
       - "tools/ingest/**"
       - "playwright.config.ts"
@@ -42,9 +43,18 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}
       - run: uv sync --project tools/ingest --all-groups --locked
-      - name: Build regulatory E2E module
+      - name: Build regulatory E2E module and built-in web packs
         run: |
+          bun run content:lint:regulatory
           bun run content:build:regulatory
+          mkdir -p apps/app/public/content
+          cp data/build/rf-regulatory-pilot.db apps/app/public/content/regulatory.db
+          cp data/build/rf-regulatory-pilot-report.json apps/app/public/content/regulatory-report.json
+          uv run --project tools/ingest medbase lint --input content/reference-rf-pilot
+          uv run --project tools/ingest medbase build \
+            --input content/reference-rf-pilot \
+            --output apps/app/public/content/reference.db \
+            --report apps/app/public/content/reference-report.json
           python3 - <<'PY'
           import hashlib
           import json
@@ -158,7 +168,7 @@ jobs:
               }
           )
           catalog['catalogVersion'] = 'e2e-regulatory-module'
-          catalog['publishedAt'] = '2026-07-22T00:00:00Z'
+          catalog['publishedAt'] = '2026-08-01T00:00:00Z'
           Path('data/build/e2e-regulatory-catalog.json').write_text(
               json.dumps(catalog, ensure_ascii=False, indent=2) + '\n',
               encoding='utf-8',
