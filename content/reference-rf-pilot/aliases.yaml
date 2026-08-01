@@ -1,0 +1,41 @@
+aliases:
+  - id: reference-bmi-ru
+    canonicalTerm: индекс массы тела
+    alias: ИМТ
+    category: calculation
+    weight: 1.5
+  - id: reference-bmi-en
+    canonicalTerm: индекс массы тела
+    alias: BMI
+    category: calculation
+    weight: 1.3
+  - id: reference-growth-z-score
+    canonicalTerm: стандартное отклонение показателя роста
+    alias: z-score
+    category: measurement
+    weight: 1.3
+  - id: reference-growth-sds
+    canonicalTerm: стандартное отклонение показателя роста
+    alias: SDS
+    category: measurement
+    weight: 1.3
+  - id: reference-egfr-ru
+    canonicalTerm: расчетная скорость клубочковой фильтрации
+    alias: рСКФ
+    category: calculation
+    weight: 1.5
+  - id: reference-egfr-en
+    canonicalTerm: расчетная скорость клубочковой фильтрации
+    alias: eGFR
+    category: calculation
+    weight: 1.4
+  - id: reference-ckd-epi
+    canonicalTerm: формула CKD-EPI 2021
+    alias: CKD-EPI
+    category: calculation
+    weight: 1.4
+  - id: reference-ckid-u25
+    canonicalTerm: формула CKiD U25
+    alias: U25
+    category: calculation
+    weight: 1.4
