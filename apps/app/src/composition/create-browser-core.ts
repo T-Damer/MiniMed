@@ -149,7 +149,11 @@ async function createNativeCompanionStores(contentBaseUrl: string): Promise<Comp
     createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
     createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
   ]);
-  return { medicationsStore, regulatoryStore, referenceStore };
+  return {
+    medicationsStore,
+    ...(regulatoryStore ? { regulatoryStore } : {}),
+    ...(referenceStore ? { referenceStore } : {}),
+  };
 }
 
 async function createCompanionStores(
