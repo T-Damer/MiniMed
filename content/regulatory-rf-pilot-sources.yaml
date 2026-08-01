@@ -28,9 +28,17 @@ sources:
     location: regulatory-rf-pilot/order-127n-tuberculosis-observation-groups.md
     target: order-127n-tuberculosis-observation-groups.md
     content_type: markdown
+  - id: order-190n-tuberculosis-screening
+    location: regulatory-rf-pilot/order-190n-tuberculosis-screening.md
+    target: order-190n-tuberculosis-screening.md
+    content_type: markdown
   - id: order-192n
     location: regulatory-rf-pilot/order-192n-dispensary-observation.md
     target: order-192n-dispensary-observation.md
+    content_type: markdown
+  - id: order-202n-adult-primary-care
+    location: regulatory-rf-pilot/order-202n-adult-primary-care.md
+    target: order-202n-adult-primary-care.md
     content_type: markdown
   - id: order-211n
     location: regulatory-rf-pilot/order-211n-preventive-exams.md
@@ -43,6 +51,10 @@ sources:
   - id: order-220n-first-aid
     location: regulatory-rf-pilot/order-220n-first-aid.md
     target: order-220n-first-aid.md
+    content_type: markdown
+  - id: order-222n-neonatology
+    location: regulatory-rf-pilot/order-222n-neonatology.md
+    target: order-222n-neonatology.md
     content_type: markdown
   - id: order-274n-sanatorium
     location: regulatory-rf-pilot/order-274n-sanatorium-forms.md
@@ -59,6 +71,10 @@ sources:
   - id: order-404n-adult-health
     location: regulatory-rf-pilot/order-404n-adult-health-groups.md
     target: order-404n-adult-health-groups.md
+    content_type: markdown
+  - id: order-583n-pediatric-endocrinology
+    location: regulatory-rf-pilot/order-583n-pediatric-endocrinology.md
+    target: order-583n-pediatric-endocrinology.md
     content_type: markdown
   - id: order-302n-superseded
     location: regulatory-rf-pilot/order-302n-dispensary-observation-superseded.md
