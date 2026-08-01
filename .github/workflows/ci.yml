@@ -35,6 +35,8 @@ jobs:
           enable-cache: true
       - run: uv sync --project tools/ingest --all-groups --locked
       - run: uv run --project tools/ingest medbase lint --input content/fixtures
+      - run: uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot
+      - run: uv run --project tools/ingest medbase lint --input content/reference-rf-pilot
       - run: uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
       - run: uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
       - run: uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
@@ -45,4 +47,14 @@ jobs:
           --output data/build/core-demo.db
           --json-output packages/test-fixtures/src/generated/core-demo.json
           --report data/build/core-demo-report.json
+      - run: >-
+          uv run --project tools/ingest medbase build
+          --input content/regulatory-rf-pilot
+          --output data/build/rf-regulatory-pilot.db
+          --report data/build/rf-regulatory-pilot-report.json
+      - run: >-
+          uv run --project tools/ingest medbase build
+          --input content/reference-rf-pilot
+          --output data/build/reference-rf-pilot.db
+          --report data/build/reference-rf-pilot-report.json
       - run: git diff --exit-code -- packages/test-fixtures/src/generated/core-demo.json
