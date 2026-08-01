@@ -1,7 +1,11 @@
 import { Capacitor } from '@capacitor/core';
 import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
-import { type MedicalStore, MultiMedicalStore } from '@localmed/storage';
+import {
+  type MedicalStore,
+  type MedicalStoreMount,
+  MultiMedicalStore,
+} from '@localmed/storage';
 import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
@@ -11,6 +15,12 @@ import { loadInstalledModuleMounts } from '@/features/modules/browser-module-run
 
 interface PackBuildReport {
   readonly outputChecksum: string;
+}
+
+interface CompanionStores {
+  readonly medicationsStore: MedicalStore;
+  readonly regulatoryStore?: MedicalStore;
+  readonly referenceStore?: MedicalStore;
 }
 
 const QUERY_EMBEDDER = new PortableHashEmbedder();
@@ -64,12 +74,10 @@ async function createPackagedWasmStore(
 
 async function withInstalledModules(
   coreStore: MedicalStore,
-  medicationsStore: MedicalStore,
-  regulatoryStore: MedicalStore,
-  referenceStore: MedicalStore,
+  companions: CompanionStores,
   acceptsSeed = false,
 ): Promise<MedicalStore> {
-  const builtInMounts = [
+  const builtInMounts: MedicalStoreMount[] = [
     {
       moduleId: 'minimed.core.ru',
       store: coreStore,
@@ -80,26 +88,30 @@ async function withInstalledModules(
     },
     {
       moduleId: 'minimed.medications.ru',
-      store: medicationsStore,
+      store: companions.medicationsStore,
       required: true,
       enabled: true,
       searchWeight: 1.15,
     },
-    {
+  ];
+  if (companions.regulatoryStore) {
+    builtInMounts.push({
       moduleId: 'minimed.regulatory.ru',
-      store: regulatoryStore,
+      store: companions.regulatoryStore,
       required: true,
       enabled: true,
       searchWeight: 1.12,
-    },
-    {
+    });
+  }
+  if (companions.referenceStore) {
+    builtInMounts.push({
       moduleId: 'minimed.reference.ru',
-      store: referenceStore,
+      store: companions.referenceStore,
       required: true,
       enabled: true,
       searchWeight: 1.08,
-    },
-  ] as const;
+    });
+  }
 
   try {
     const modules = await loadInstalledModuleMounts();
@@ -110,13 +122,43 @@ async function withInstalledModules(
   }
 }
 
-async function createPackagedCompanionStores(contentBaseUrl: string) {
+async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
   const [medicationsStore, regulatoryStore, referenceStore] = await Promise.all([
     createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
     createPackagedWasmStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
     createPackagedWasmStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
   ]);
   return { medicationsStore, regulatoryStore, referenceStore };
+}
+
+async function createOptionalPackagedStore(
+  contentBaseUrl: string,
+  databaseName: string,
+): Promise<MedicalStore | undefined> {
+  try {
+    return await createPackagedWasmStore(contentBaseUrl, databaseName);
+  } catch (cause) {
+    console.warn(`Optional packaged content ${databaseName} is unavailable.`, cause);
+    return undefined;
+  }
+}
+
+async function createNativeCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
+  const medicationsStore = await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME);
+  const [regulatoryStore, referenceStore] = await Promise.all([
+    createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
+    createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
+  ]);
+  return { medicationsStore, regulatoryStore, referenceStore };
+}
+
+async function createCompanionStores(
+  contentBaseUrl: string,
+  platform: 'android' | 'ios' | 'web',
+): Promise<CompanionStores> {
+  return platform === 'web'
+    ? createPackagedCompanionStores(contentBaseUrl)
+    : createNativeCompanionStores(contentBaseUrl);
 }
 
 export async function createBrowserCore() {
@@ -134,12 +176,9 @@ export async function createBrowserCore() {
   if (platform === 'android' || platform === 'ios') {
     try {
       const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
-      const companions = await createPackagedCompanionStores(contentBaseUrl);
       const store = await withInstalledModules(
         await createNativeStore(),
-        companions.medicationsStore,
-        companions.regulatoryStore,
-        companions.referenceStore,
+        await createNativeCompanionStores(contentBaseUrl),
       );
       return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
     } catch (error) {
@@ -149,24 +188,18 @@ export async function createBrowserCore() {
 
   try {
     const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
-    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const store = await withInstalledModules(
       await createPackagedWasmStore(contentBaseUrl),
-      companions.medicationsStore,
-      companions.regulatoryStore,
-      companions.referenceStore,
+      await createCompanionStores(contentBaseUrl, platform),
     );
     return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Compiled content pack unavailable; falling back to the embedded seed.', error);
     const store = await SqliteMedicalStore.create();
     const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
-    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const composed = await withInstalledModules(
       store,
-      companions.medicationsStore,
-      companions.regulatoryStore,
-      companions.referenceStore,
+      await createCompanionStores(contentBaseUrl, platform),
       true,
     );
     return createMedicalCore({
@@ -180,23 +213,17 @@ export async function createBrowserCore() {
 
 export async function createBrowserWorkerCore(contentBaseUrl: string) {
   try {
-    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const store = await withInstalledModules(
       await createPackagedWasmStore(contentBaseUrl),
-      companions.medicationsStore,
-      companions.regulatoryStore,
-      companions.referenceStore,
+      await createPackagedCompanionStores(contentBaseUrl),
     );
     return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Worker content pack unavailable; falling back to the embedded seed.', error);
     const store = await SqliteMedicalStore.create();
-    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const composed = await withInstalledModules(
       store,
-      companions.medicationsStore,
-      companions.regulatoryStore,
-      companions.referenceStore,
+      await createPackagedCompanionStores(contentBaseUrl),
       true,
     );
     return createMedicalCore({
