@@ -29,7 +29,11 @@ export type SearchAudience = 'children' | 'adults';
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 
 const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<string>>>> = {
-  guidelines: new Set(['clinical_recommendation', 'clinical_recommendation_summary']),
+  guidelines: new Set([
+    'clinical_recommendation',
+    'clinical_recommendation_summary',
+    'medical_reference',
+  ]),
   medications: new Set([
     'allmed_reference',
     'official_drug_instruction',
