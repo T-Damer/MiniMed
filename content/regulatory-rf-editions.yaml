@@ -40,6 +40,13 @@ documents:
     reviewed_at: "2026-07-31"
     next_review_by: "2026-10-31"
     audience: [children, adults]
+  - document_id: regulatory.rf.minzdrav.190n-2025
+    document_number: 190н
+    official_publication_number: "0001202505190006"
+    official_url: https://publication.pravo.gov.ru/document/0001202505190006
+    reviewed_at: "2026-08-01"
+    next_review_by: "2026-11-01"
+    audience: [children, adolescents, adults]
   - document_id: regulatory.rf.minzdrav.192n-2025
     document_number: 192н
     official_publication_number: "0001202505190026"
@@ -47,6 +54,13 @@ documents:
     reviewed_at: "2026-07-21"
     next_review_by: "2026-10-21"
     audience: [children]
+  - document_id: regulatory.rf.minzdrav.202n-2025
+    document_number: 202н
+    official_publication_number: "0001202506020016"
+    official_url: https://publication.pravo.gov.ru/document/0001202506020016
+    reviewed_at: "2026-08-01"
+    next_review_by: "2026-11-01"
+    audience: [adults]
   - document_id: regulatory.rf.minzdrav.211n-2025
     document_number: 211н
     official_publication_number: "0001202505230032"
@@ -68,6 +82,13 @@ documents:
     reviewed_at: "2026-07-31"
     next_review_by: "2026-10-31"
     audience: [children, adults]
+  - document_id: regulatory.rf.minzdrav.222n-2025
+    document_number: 222н
+    official_publication_number: "0001202506030010"
+    official_url: https://publication.pravo.gov.ru/document/0001202506030010
+    reviewed_at: "2026-08-01"
+    next_review_by: "2026-11-01"
+    audience: [children]
   - document_id: regulatory.rf.minzdrav.274n-2025-sanatorium-forms
     document_number: 274н
     official_publication_number: "0001202505300033"
@@ -93,6 +114,13 @@ documents:
     document_number: 404н
     official_publication_number: "0001202106300043"
     official_url: https://publication.pravo.gov.ru/Document/View/0001202106300043
-    reviewed_at: "2026-07-31"
-    next_review_by: "2026-10-31"
+    reviewed_at: "2026-08-01"
+    next_review_by: "2026-11-01"
     audience: [adults]
+  - document_id: regulatory.rf.minzdrav.583n-2024
+    document_number: 583н
+    official_publication_number: "0001202411200017"
+    official_url: https://publication.pravo.gov.ru/document/0001202411200017
+    reviewed_at: "2026-08-01"
+    next_review_by: "2026-11-01"
+    audience: [children, adolescents]
