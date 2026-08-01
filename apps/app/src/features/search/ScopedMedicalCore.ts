@@ -71,7 +71,7 @@ export function inferRequestedAudience(query: string): SearchAudience | undefine
   if (years?.[1]) return Number(years[1]) < 18 ? 'children' : 'adults';
 
   const childSignal =
-    /(?:ребен|ребён|детск|младен|груднич|новорож|несовершеннолет|подрост|школьник|мальчик|девочк|педиатр)/u.test(
+    /(?:ребен|ребён|детск|дет(?:и|ей|ям|ьми|ях)|младен|груднич|новорож|несовершеннолет|подрост|школьник|мальчик|девочк|педиатр)/u.test(
       normalized,
     );
   const adultSignal = /(?:взросл|совершеннолет|мужчин|женщин|терапевт)/u.test(normalized);
