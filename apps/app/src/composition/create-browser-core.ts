@@ -17,6 +17,8 @@ const QUERY_EMBEDDER = new PortableHashEmbedder();
 
 const PACK_DATABASE_NAME = 'core-demo.db';
 const MEDICATIONS_DATABASE_NAME = 'medications.db';
+const REGULATORY_DATABASE_NAME = 'regulatory.db';
+const REFERENCE_DATABASE_NAME = 'reference.db';
 const PACK_ASSET_PATH = `public/content/${PACK_DATABASE_NAME}`;
 
 async function readPackReport(contentBaseUrl = import.meta.env.BASE_URL): Promise<PackBuildReport> {
@@ -63,48 +65,58 @@ async function createPackagedWasmStore(
 async function withInstalledModules(
   coreStore: MedicalStore,
   medicationsStore: MedicalStore,
+  regulatoryStore: MedicalStore,
+  referenceStore: MedicalStore,
   acceptsSeed = false,
 ): Promise<MedicalStore> {
+  const builtInMounts = [
+    {
+      moduleId: 'minimed.core.ru',
+      store: coreStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.1,
+      acceptsSeed,
+    },
+    {
+      moduleId: 'minimed.medications.ru',
+      store: medicationsStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.15,
+    },
+    {
+      moduleId: 'minimed.regulatory.ru',
+      store: regulatoryStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.12,
+    },
+    {
+      moduleId: 'minimed.reference.ru',
+      store: referenceStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.08,
+    },
+  ] as const;
+
   try {
     const modules = await loadInstalledModuleMounts();
-    return new MultiMedicalStore([
-      {
-        moduleId: 'minimed.core.ru',
-        store: coreStore,
-        required: true,
-        enabled: true,
-        searchWeight: 1.1,
-        acceptsSeed,
-      },
-      {
-        moduleId: 'minimed.medications.ru',
-        store: medicationsStore,
-        required: true,
-        enabled: true,
-        searchWeight: 1.15,
-      },
-      ...modules,
-    ]);
+    return new MultiMedicalStore([...builtInMounts, ...modules]);
   } catch (cause) {
     console.warn('Downloaded content modules could not be opened; using the built-in base.', cause);
-    return new MultiMedicalStore([
-      {
-        moduleId: 'minimed.core.ru',
-        store: coreStore,
-        required: true,
-        enabled: true,
-        searchWeight: 1.1,
-        acceptsSeed,
-      },
-      {
-        moduleId: 'minimed.medications.ru',
-        store: medicationsStore,
-        required: true,
-        enabled: true,
-        searchWeight: 1.15,
-      },
-    ]);
+    return new MultiMedicalStore(builtInMounts);
   }
+}
+
+async function createPackagedCompanionStores(contentBaseUrl: string) {
+  const [medicationsStore, regulatoryStore, referenceStore] = await Promise.all([
+    createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+    createPackagedWasmStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
+    createPackagedWasmStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
+  ]);
+  return { medicationsStore, regulatoryStore, referenceStore };
 }
 
 export async function createBrowserCore() {
@@ -122,9 +134,12 @@ export async function createBrowserCore() {
   if (platform === 'android' || platform === 'ios') {
     try {
       const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
+      const companions = await createPackagedCompanionStores(contentBaseUrl);
       const store = await withInstalledModules(
         await createNativeStore(),
-        await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+        companions.medicationsStore,
+        companions.regulatoryStore,
+        companions.referenceStore,
       );
       return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
     } catch (error) {
@@ -134,18 +149,24 @@ export async function createBrowserCore() {
 
   try {
     const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
+    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const store = await withInstalledModules(
       await createPackagedWasmStore(contentBaseUrl),
-      await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+      companions.medicationsStore,
+      companions.regulatoryStore,
+      companions.referenceStore,
     );
     return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Compiled content pack unavailable; falling back to the embedded seed.', error);
     const store = await SqliteMedicalStore.create();
     const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
+    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const composed = await withInstalledModules(
       store,
-      await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+      companions.medicationsStore,
+      companions.regulatoryStore,
+      companions.referenceStore,
       true,
     );
     return createMedicalCore({
@@ -159,17 +180,23 @@ export async function createBrowserCore() {
 
 export async function createBrowserWorkerCore(contentBaseUrl: string) {
   try {
+    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const store = await withInstalledModules(
       await createPackagedWasmStore(contentBaseUrl),
-      await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+      companions.medicationsStore,
+      companions.regulatoryStore,
+      companions.referenceStore,
     );
     return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Worker content pack unavailable; falling back to the embedded seed.', error);
     const store = await SqliteMedicalStore.create();
+    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const composed = await withInstalledModules(
       store,
-      await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+      companions.medicationsStore,
+      companions.regulatoryStore,
+      companions.referenceStore,
       true,
     );
     return createMedicalCore({
