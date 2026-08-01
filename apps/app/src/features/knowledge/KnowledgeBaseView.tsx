@@ -45,7 +45,10 @@ function documentCounts(documents: readonly MedicalDocumentSummary[]) {
         document.sourceType,
       ),
     ).length,
-    legal: documents.filter((document) => document.sourceType === 'regulatory_act').length,
+    legal: documents.filter((document) =>
+      ['regulatory_act', 'regulatory_act_summary'].includes(document.sourceType),
+    ).length,
+    reference: documents.filter((document) => document.sourceType === 'medical_reference').length,
   };
 }
 
@@ -125,6 +128,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
               <li>{counts().clinical} клинических</li>
               <li>{counts().medications} лекарственных</li>
               <li>{counts().legal} правовых</li>
+              <li>{counts().reference} норм и расчётов</li>
               <li>{noteCount()} заметок</li>
             </ul>
             <em>Открыть каталог →</em>
