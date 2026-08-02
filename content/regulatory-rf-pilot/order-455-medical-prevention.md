@@ -24,6 +24,7 @@ metadata:
   documentKind: приказ
   documentNumber: "455"
   signedAt: "2003-09-23"
+  officialPublicationNumber: "Контур.Норматив 1/63078"
   officialSourceUrl: https://normativ.kontur.ru/document/1/63078-prikaz-minzdrava-rf-ot-23-09-2003-n-455
   sourceReviewedAt: "2026-08-02"
   editionVerified: true
