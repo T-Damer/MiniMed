@@ -27,6 +27,14 @@ async function hideBuiltInRegulatoryPack(page: Page): Promise<void> {
   );
 }
 
+async function visibleSearchState(page: Page): Promise<string> {
+  const error = await page.locator('.error-card').textContent();
+  if (error) return `ERROR: ${error}`;
+  const results = page.getByTestId('search-results');
+  if ((await results.count()) === 0) return 'WAITING_FOR_RESULTS';
+  return (await results.innerText()) || 'EMPTY_RESULTS';
+}
+
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
   page,
 }) => {
@@ -77,7 +85,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await page.getByRole('radio', { name: /Правовые документы/u }).click();
   await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
   await page.getByTestId('search-submit').click();
-  await expect(page.getByTestId('search-results')).toContainText('192н', { timeout: 20_000 });
+  await expect.poll(() => visibleSearchState(page), { timeout: 20_000 }).toContain('192н');
 
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
