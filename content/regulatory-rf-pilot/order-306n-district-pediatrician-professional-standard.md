@@ -25,6 +25,7 @@ metadata:
   signedAt: "2017-03-27"
   minjustRegistrationNumber: "46397"
   minjustRegistrationDate: "2017-04-17"
+  officialPublicationNumber: "Российская газета, 19.04.2017"
   officialSourceUrl: https://rg.ru/documents/2017/04/19/mintrud-prikaz306-site-dok.html
   sourceReviewedAt: "2026-08-02"
   editionVerified: true
