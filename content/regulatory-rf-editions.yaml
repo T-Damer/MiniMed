@@ -26,6 +26,13 @@ documents:
     reviewed_at: "2026-07-30"
     next_review_by: "2026-10-30"
     audience: [children, adolescents]
+  - document_id: regulatory.rf.minzdrav.1089n-2021
+    document_number: 1089н
+    official_publication_number: "0001202111300010"
+    official_url: https://publication.pravo.gov.ru/Document/View/0001202111300010
+    reviewed_at: "2026-08-02"
+    next_review_by: "2026-11-02"
+    audience: [children, adolescents, adults]
   - document_id: regulatory.rf.minzdrav.120n-2026
     document_number: 120н
     official_publication_number: "0001202603260014"
@@ -54,12 +61,26 @@ documents:
     reviewed_at: "2026-07-21"
     next_review_by: "2026-10-21"
     audience: [children]
+  - document_id: regulatory.rf.minzdrav.195n-2025
+    document_number: 195н
+    official_publication_number: "0001202505140009"
+    official_url: https://publication.pravo.gov.ru/document/0001202505140009
+    reviewed_at: "2026-08-02"
+    next_review_by: "2026-11-02"
+    audience: [children, adolescents, adults]
   - document_id: regulatory.rf.minzdrav.202n-2025
     document_number: 202н
     official_publication_number: "0001202506020016"
     official_url: https://publication.pravo.gov.ru/document/0001202506020016
     reviewed_at: "2026-08-01"
     next_review_by: "2026-11-01"
+    audience: [adults]
+  - document_id: regulatory.rf.minzdrav.206n-2023-qualification
+    document_number: 206н
+    official_publication_number: "0001202306010041"
+    official_url: https://publication.pravo.gov.ru/document/0001202306010041
+    reviewed_at: "2026-08-02"
+    next_review_by: "2026-08-31"
     audience: [adults]
   - document_id: regulatory.rf.minzdrav.211n-2025
     document_number: 211н
@@ -116,6 +137,13 @@ documents:
     official_url: https://publication.pravo.gov.ru/Document/View/0001202106300043
     reviewed_at: "2026-08-01"
     next_review_by: "2026-11-01"
+    audience: [adults]
+  - document_id: regulatory.rf.minzdrav.436n-2026-qualification
+    document_number: 436н
+    official_publication_number: "0001202605290053"
+    official_url: https://publication.pravo.gov.ru/document/0001202605290053
+    reviewed_at: "2026-08-02"
+    next_review_by: "2026-09-01"
     audience: [adults]
   - document_id: regulatory.rf.minzdrav.583n-2024
     document_number: 583н
