@@ -62,11 +62,7 @@ describe('query-aware group ranking', () => {
   it('demotes a superseded card when the query asks for the current order', () => {
     const ranked = rankSearchGroupsByQuery(
       [
-        group(
-          'old',
-          'Порядок оказания педиатрической помощи — приказ № 366н (утратил силу)',
-          1.1,
-        ),
+        group('old', 'Порядок оказания педиатрической помощи — приказ № 366н (утратил силу)', 1.1),
         group(
           'current',
           'Порядок оказания медицинской помощи по профилю «Педиатрия» — приказ № 120н',
