@@ -7,10 +7,14 @@ on:
     paths:
       - "apps/landing/**"
       - "apps/app/**"
+      - "content/regulatory-rf-pilot/**"
+      - "content/reference-rf-pilot/**"
       - "packages/**"
+      - "tools/ingest/**"
       - "package.json"
       - "release.json"
       - "bun.lock"
+      - "uv.lock"
       - ".github/workflows/landing-pages.yml"
 
 permissions:
@@ -34,7 +38,12 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.3
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.0"
+          enable-cache: true
       - run: bun install --frozen-lockfile
+      - run: uv sync --project tools/ingest --all-groups --locked
       - name: Download released medication database
         env:
           GH_TOKEN: ${{ github.token }}
@@ -42,6 +51,19 @@ jobs:
           version="$(bun -p "require('./release.json').version")"
           gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
             --pattern medications.db --dir apps/app/public/content --clobber
+      - name: Build regulatory and reference databases
+        run: |
+          mkdir -p apps/app/public/content
+          uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot
+          uv run --project tools/ingest medbase build \
+            --input content/regulatory-rf-pilot \
+            --output apps/app/public/content/regulatory.db \
+            --report apps/app/public/content/regulatory-report.json
+          uv run --project tools/ingest medbase lint --input content/reference-rf-pilot
+          uv run --project tools/ingest medbase build \
+            --input content/reference-rf-pilot \
+            --output apps/app/public/content/reference.db \
+            --report apps/app/public/content/reference-report.json
       - name: Build landing and browser application
         run: |
           bun run build:landing

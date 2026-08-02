@@ -24,10 +24,11 @@ export interface CoreStatus {
 export interface CoreCapabilities {
   readonly lexicalSearch: true;
   readonly queryAnalysis: true;
+  readonly searchExecution?: 'worker-compatible' | 'direct-only';
   readonly semanticSearch: boolean;
   readonly embeddingProfileIds: readonly string[];
   readonly cloudChat: false;
-  readonly localCaseExtraction: true;
+  readonly localCaseExtraction: boolean;
   readonly platform: 'web' | 'android' | 'ios' | 'test' | 'unknown';
   readonly sqliteVersion: string;
   readonly fts5Available: boolean;

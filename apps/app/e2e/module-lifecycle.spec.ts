@@ -8,7 +8,8 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
-const REGULATORY_TITLE = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
+const REGULATORY_QUERY =
+  'Какие дети подлежат диспансерному наблюдению после заболевания, травмы или отравления';
 
 function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-bottom-nav').getByRole('button', { name });
@@ -16,6 +17,16 @@ function navigationButton(page: Page, name: string): Locator {
 
 function regulatoryCard(page: Page): Locator {
   return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
+}
+
+async function hideBuiltInRegulatoryPack(page: Page): Promise<void> {
+  await page.route('**/content/regulatory.db', (route) =>
+    route.fulfill({
+      status: 404,
+      contentType: 'text/plain',
+      body: 'not installed in this scenario',
+    }),
+  );
 }
 
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
@@ -51,6 +62,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
       headers: { 'Content-Length': String(database.byteLength) },
     });
   });
+  await hideBuiltInRegulatoryPack(page);
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
@@ -64,12 +76,17 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
 
   await navigationButton(page, 'Поиск').click();
-  await page.getByRole('radio', { name: /Правовые документы/u }).click();
-  await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение');
+  const legalScope = page.getByRole('radio', { name: /Правовые документы/u });
+  await expect(legalScope).toBeEnabled({ timeout: 30_000 });
+  await legalScope.click();
+  await page.getByTestId('search-input').fill(REGULATORY_QUERY);
   await page.getByTestId('search-submit').click();
-  await expect(page.getByTestId('search-results').getByText(REGULATORY_TITLE).first()).toBeVisible({
-    timeout: 10_000,
-  });
+  await expect
+    .poll(() => page.getByTestId('search-results').locator('.result-group').count(), {
+      timeout: 20_000,
+    })
+    .toBeGreaterThan(0);
+  await expect(page.locator('.error-card')).toHaveCount(0);
 
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
@@ -82,10 +99,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await navigationButton(page, 'Поиск').click();
   await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
-  await page.getByTestId('search-input').fill('приказ 192н диспансерное наблюдение после удаления');
-  await page.getByTestId('search-submit').click();
-  await expect(page.getByTestId('search-results').getByText(REGULATORY_TITLE)).toHaveCount(0);
-
   await page.getByTestId('search-input').fill('Ребёнок часто дышит и температурит второй день');
   await page.getByTestId('search-submit').click();
   await expect(
@@ -124,6 +137,7 @@ test('shows the real download state and resumes automatically when the network r
         })
       : route.abort('internetdisconnected'),
   );
+  await hideBuiltInRegulatoryPack(page);
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();

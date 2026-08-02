@@ -10,6 +10,10 @@ self.addEventListener('install', (event) => {
           './content/core-demo.db',
           './content/core-demo-report.json',
           './content/medications.db',
+          './content/regulatory.db',
+          './content/regulatory-report.json',
+          './content/reference.db',
+          './content/reference-report.json',
         ]),
       ),
   );

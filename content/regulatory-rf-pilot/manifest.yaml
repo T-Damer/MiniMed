@@ -1,5 +1,6 @@
 id: minimed.rf-regulatory-pilot
-version: 0.5.1
+version: 0.9.0
 schemaVersion: 2
-title: MiniMed Russian pediatric regulatory pilot
-builtAt: "2026-07-23T00:00:00Z"
+title: MiniMed Russian child and adult medical regulatory pilot
+builtAt: "2026-08-02T10:00:00Z"
+publicationState: local-dev

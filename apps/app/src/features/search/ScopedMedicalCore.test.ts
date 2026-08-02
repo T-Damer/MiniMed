@@ -166,6 +166,7 @@ describe('ScopedMedicalCore', () => {
   const documents = [
     document('guideline', 'clinical_recommendation'),
     document('guideline-summary', 'clinical_recommendation_summary'),
+    document('reference', 'medical_reference'),
     document('drug', 'official_drug_instruction'),
     document('registry', 'official_registry_summary'),
     document('allmed', 'allmed_reference'),
@@ -208,6 +209,19 @@ describe('ScopedMedicalCore', () => {
     await scoped.search(request(['guideline-summary', 'drug']));
 
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual(['guideline-summary']);
+  });
+
+  it('includes medical references with recommendations and norms', async () => {
+    const base = coreWithDocuments(documents);
+    const scoped = new ScopedMedicalCore(base.core, undefined, 'guidelines');
+
+    await scoped.search(request());
+
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
+      'guideline',
+      'guideline-summary',
+      'reference',
+    ]);
   });
 
   it('can constrain a medication page to its own database documents', async () => {
