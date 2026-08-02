@@ -18,6 +18,12 @@ function regulatoryCard(page: Page): Locator {
   return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
 }
 
+async function hideBuiltInRegulatoryPack(page: Page): Promise<void> {
+  await page.route('**/content/regulatory.db', (route) =>
+    route.fulfill({ status: 404, contentType: 'text/plain', body: 'not installed in this scenario' }),
+  );
+}
+
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
   page,
 }) => {
@@ -51,6 +57,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
       headers: { 'Content-Length': String(database.byteLength) },
     });
   });
+  await hideBuiltInRegulatoryPack(page);
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
@@ -124,6 +131,7 @@ test('shows the real download state and resumes automatically when the network r
         })
       : route.abort('internetdisconnected'),
   );
+  await hideBuiltInRegulatoryPack(page);
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
