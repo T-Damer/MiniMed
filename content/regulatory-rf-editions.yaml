@@ -19,6 +19,13 @@ documents:
     reviewed_at: "2026-07-30"
     next_review_by: "2026-10-30"
     audience: [children, adolescents]
+  - document_id: regulatory.rf.federal-law.255-fz-2006-child-care
+    document_number: 255-ФЗ
+    official_publication_number: "Российская газета № 297, 31.12.2006"
+    official_url: https://rg.ru/documents/2006/12/31/beremennost-dok.html
+    reviewed_at: "2026-08-02"
+    next_review_by: "2026-11-02"
+    audience: [children, adolescents, adults]
   - document_id: regulatory.rf.minzdrav.1122n-2021
     document_number: 1122н
     official_publication_number: "0001202112200070"
@@ -124,6 +131,13 @@ documents:
     reviewed_at: "2026-07-31"
     next_review_by: "2026-10-31"
     audience: [children]
+  - document_id: regulatory.rf.mintrud.306n-2017-district-pediatrician
+    document_number: 306н
+    official_publication_number: "Российская газета, 19.04.2017"
+    official_url: https://rg.ru/documents/2017/04/19/mintrud-prikaz306-site-dok.html
+    reviewed_at: "2026-08-02"
+    next_review_by: "2026-11-02"
+    audience: [children, adolescents, adults]
   - document_id: regulatory.rf.mintrud.374n-2024-disability
     document_number: 374н
     official_publication_number: "0001202408260026"
@@ -138,17 +152,24 @@ documents:
     reviewed_at: "2026-08-01"
     next_review_by: "2026-11-01"
     audience: [adults]
-  - document_id: regulatory.rf.minzdrav.436n-2026-qualification
-    document_number: 436н
-    official_publication_number: "0001202605290053"
-    official_url: https://publication.pravo.gov.ru/document/0001202605290053
+  - document_id: regulatory.rf.minzdrav.455-2003-medical-prevention
+    document_number: "455"
+    official_publication_number: "Контур.Норматив 1/63078"
+    official_url: https://normativ.kontur.ru/document/1/63078-prikaz-minzdrava-rf-ot-23-09-2003-n-455
     reviewed_at: "2026-08-02"
-    next_review_by: "2026-09-01"
-    audience: [adults]
+    next_review_by: "2026-11-02"
+    audience: [children, adolescents, adults]
   - document_id: regulatory.rf.minzdrav.583n-2024
     document_number: 583н
     official_publication_number: "0001202411200017"
     official_url: https://publication.pravo.gov.ru/document/0001202411200017
     reviewed_at: "2026-08-01"
     next_review_by: "2026-11-01"
+    audience: [children, adolescents]
+  - document_id: regulatory.rf.minzdravsoc.521n-2012
+    document_number: 521н
+    official_publication_number: "Минздрав России, документ 9117"
+    official_url: https://minzdrav.gov.ru/documents/9117
+    reviewed_at: "2026-08-02"
+    next_review_by: "2026-11-02"
     audience: [children, adolescents]
