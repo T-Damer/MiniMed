@@ -2,11 +2,41 @@ import { For, type JSX } from 'solid-js';
 
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import {
+  openAssessment,
+  segmentTextWithAssessmentLinks,
+} from '@/features/assessments/assessment-links';
+import {
   type DocumentLinkPhrase,
   type DocumentTextBlock,
   parseDocumentText,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
+
+function LinkedPlainText(props: {
+  readonly text: string;
+  readonly query?: string | undefined;
+}): JSX.Element {
+  return (
+    <For each={segmentTextWithAssessmentLinks(props.text)}>
+      {(segment) =>
+        segment.kind === 'assessment' ? (
+          <button
+            type="button"
+            class="document-inline-link assessment-inline-link"
+            onClick={() => openAssessment(segment.slug)}
+          >
+            <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
+          </button>
+        ) : (
+          <QueryHighlightedText
+            text={segment.value.replace(/^#/u, '')}
+            query={props.query ?? ''}
+          />
+        )
+      }
+    </For>
+  );
+}
 
 function InlineDocumentText(props: {
   readonly documentLinks?: readonly DocumentLinkPhrase[] | undefined;
@@ -43,10 +73,7 @@ function InlineDocumentText(props: {
                   <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
                 </button>
               ) : (
-                <QueryHighlightedText
-                  text={segment.value.replace(/^#/u, '')}
-                  query={props.query ?? ''}
-                />
+                <LinkedPlainText text={segment.value} query={props.query} />
               )
             }
           </For>
