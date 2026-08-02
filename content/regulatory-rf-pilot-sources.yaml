@@ -8,13 +8,141 @@ sources:
     location: regulatory-rf-pilot/aliases.yaml
     target: aliases.yaml
     content_type: text
+  - id: federal-law-323-fz
+    location: regulatory-rf-pilot/federal-law-323-fz-health-protection.md
+    target: federal-law-323-fz-health-protection.md
+    content_type: markdown
+  - id: federal-law-157-fz
+    location: regulatory-rf-pilot/federal-law-157-fz-immunoprophylaxis.md
+    target: federal-law-157-fz-immunoprophylaxis.md
+    content_type: markdown
+  - id: order-1122n
+    location: regulatory-rf-pilot/order-1122n-vaccination-calendars.md
+    target: order-1122n-vaccination-calendars.md
+    content_type: markdown
+  - id: order-120n-pediatrics
+    location: regulatory-rf-pilot/order-120n-pediatrics.md
+    target: order-120n-pediatrics.md
+    content_type: markdown
+  - id: order-127n-tuberculosis
+    location: regulatory-rf-pilot/order-127n-tuberculosis-observation-groups.md
+    target: order-127n-tuberculosis-observation-groups.md
+    content_type: markdown
+  - id: order-190n-tuberculosis-screening
+    location: regulatory-rf-pilot/order-190n-tuberculosis-screening.md
+    target: order-190n-tuberculosis-screening.md
+    content_type: markdown
   - id: order-192n
     location: regulatory-rf-pilot/order-192n-dispensary-observation.md
     target: order-192n-dispensary-observation.md
     content_type: markdown
+  - id: order-202n-adult-primary-care
+    location: regulatory-rf-pilot/order-202n-adult-primary-care.md
+    target: order-202n-adult-primary-care.md
+    content_type: markdown
   - id: order-211n
     location: regulatory-rf-pilot/order-211n-preventive-exams.md
     target: order-211n-preventive-exams.md
+    content_type: markdown
+  - id: order-213n-education
+    location: regulatory-rf-pilot/order-213n-child-care-education.md
+    target: order-213n-child-care-education.md
+    content_type: markdown
+  - id: order-220n-first-aid
+    location: regulatory-rf-pilot/order-220n-first-aid.md
+    target: order-220n-first-aid.md
+    content_type: markdown
+  - id: order-222n-neonatology
+    location: regulatory-rf-pilot/order-222n-neonatology.md
+    target: order-222n-neonatology.md
+    content_type: markdown
+  - id: order-274n-sanatorium
+    location: regulatory-rf-pilot/order-274n-sanatorium-forms.md
+    target: order-274n-sanatorium-forms.md
+    content_type: markdown
+  - id: order-313n-primary-care-children
+    location: regulatory-rf-pilot/order-313n-primary-care-children.md
+    target: order-313n-primary-care-children.md
+    content_type: markdown
+  - id: order-374n-disability
+    location: regulatory-rf-pilot/order-374n-disability-criteria.md
+    target: order-374n-disability-criteria.md
+    content_type: markdown
+  - id: order-404n-adult-health
+    location: regulatory-rf-pilot/order-404n-adult-health-groups.md
+    target: order-404n-adult-health-groups.md
+    content_type: markdown
+  - id: order-583n-pediatric-endocrinology
+    location: regulatory-rf-pilot/order-583n-pediatric-endocrinology.md
+    target: order-583n-pediatric-endocrinology.md
+    content_type: markdown
+  - id: federal-law-255-fz-child-care-benefits
+    location: regulatory-rf-pilot/federal-law-255-fz-child-care-benefits.md
+    target: federal-law-255-fz-child-care-benefits.md
+    content_type: markdown
+  - id: order-195n-temporary-disability-expertise
+    location: regulatory-rf-pilot/order-195n-temporary-disability-expertise.md
+    target: order-195n-temporary-disability-expertise.md
+    content_type: markdown
+  - id: order-1089n-sick-leave-certificates
+    location: regulatory-rf-pilot/order-1089n-sick-leave-certificates.md
+    target: order-1089n-sick-leave-certificates.md
+    content_type: markdown
+  - id: order-521n-child-infectious-diseases
+    location: regulatory-rf-pilot/order-521n-child-infectious-diseases.md
+    target: order-521n-child-infectious-diseases.md
+    content_type: markdown
+  - id: order-306n-district-pediatrician-professional-standard
+    location: regulatory-rf-pilot/order-306n-district-pediatrician-professional-standard.md
+    target: order-306n-district-pediatrician-professional-standard.md
+    content_type: markdown
+  - id: order-455-medical-prevention
+    location: regulatory-rf-pilot/order-455-medical-prevention.md
+    target: order-455-medical-prevention.md
+    content_type: markdown
+  - id: order-206n-qualification-requirements
+    location: regulatory-rf-pilot/order-206n-qualification-requirements.md
+    target: order-206n-qualification-requirements.md
+    content_type: markdown
+  - id: order-436n-qualification-requirements-future
+    location: regulatory-rf-pilot/order-436n-qualification-requirements-future.md
+    target: order-436n-qualification-requirements-future.md
+    content_type: markdown
+  - id: order-625n-temporary-disability-superseded
+    location: regulatory-rf-pilot/order-625n-temporary-disability-superseded.md
+    target: order-625n-temporary-disability-superseded.md
+    content_type: markdown
+  - id: order-514n-preventive-exams-superseded
+    location: regulatory-rf-pilot/order-514n-preventive-exams-superseded.md
+    target: order-514n-preventive-exams-superseded.md
+    content_type: markdown
+  - id: order-366n-pediatrics-superseded
+    location: regulatory-rf-pilot/order-366n-pediatrics-superseded.md
+    target: order-366n-pediatrics-superseded.md
+    content_type: markdown
+  - id: order-707n-qualification-requirements-superseded
+    location: regulatory-rf-pilot/order-707n-qualification-requirements-superseded.md
+    target: order-707n-qualification-requirements-superseded.md
+    content_type: markdown
+  - id: order-154-adolescent-care-superseded
+    location: regulatory-rf-pilot/order-154-adolescent-care-superseded.md
+    target: order-154-adolescent-care-superseded.md
+    content_type: markdown
+  - id: order-5-temporary-disability-superseded
+    location: regulatory-rf-pilot/order-5-temporary-disability-superseded.md
+    target: order-5-temporary-disability-superseded.md
+    content_type: markdown
+  - id: order-1346n-medical-exams-superseded
+    location: regulatory-rf-pilot/order-1346n-medical-exams-superseded.md
+    target: order-1346n-medical-exams-superseded.md
+    content_type: markdown
+  - id: pediatric-orders-study-list-status
+    location: regulatory-rf-pilot/pediatric-orders-study-list-status.md
+    target: pediatric-orders-study-list-status.md
+    content_type: markdown
+  - id: pediatric-medical-forms-status
+    location: regulatory-rf-pilot/pediatric-medical-forms-status.md
+    target: pediatric-medical-forms-status.md
     content_type: markdown
   - id: order-302n-superseded
     location: regulatory-rf-pilot/order-302n-dispensary-observation-superseded.md

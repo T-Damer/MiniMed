@@ -19,6 +19,7 @@ import type {
   SearchResult,
 } from '@localmed/contracts';
 
+import { peekContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import type {
   SearchWorkerRequest,
   SearchWorkerResponse,
@@ -38,8 +39,17 @@ export class WorkerSearchMedicalCore implements MedicalCore {
     }
   >();
   private requestId = 0;
+  private workerEligibility: Promise<boolean> | undefined;
 
   public constructor(private readonly base: MedicalCore) {
+    // Downloaded modules are mounted into the freshly composed application core. Keep that exact
+    // composition on the direct path instead of asking an independently booted Worker to rediscover
+    // IndexedDB state during a live install/remove transition. Recreating this wrapper after the last
+    // downloaded module is removed enables background search again.
+    if ((peekContentModuleRuntime()?.listInstalled().length ?? 0) > 0) {
+      this.disableWorker();
+      return;
+    }
     if (!this.worker) return;
     this.worker.onmessage = (event: MessageEvent<SearchWorkerResponse>) => {
       const pending = this.pending.get(event.data.id);
@@ -58,6 +68,22 @@ export class WorkerSearchMedicalCore implements MedicalCore {
       pending.reject(new Error('Фоновый поиск недоступен.'));
     }
     this.pending.clear();
+  }
+
+  private async canUseWorker(): Promise<boolean> {
+    if (!this.worker) return false;
+    this.workerEligibility ??= this.base
+      .getCapabilities()
+      .then((result) => {
+        const enabled = result.ok && result.value.searchExecution !== 'direct-only';
+        if (!enabled) this.disableWorker();
+        return enabled;
+      })
+      .catch(() => {
+        this.disableWorker();
+        return false;
+      });
+    return this.workerEligibility;
   }
 
   private request(
@@ -92,6 +118,7 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   public async analyzeQuery(
     request: AnalyzeQueryRequest,
   ): Promise<Result<QueryAnalysis, LocalMedError>> {
+    if (!(await this.canUseWorker())) return this.base.analyzeQuery(request);
     try {
       return (await this.request({ method: 'analyzeQuery', request })) as Result<
         QueryAnalysis,
@@ -103,6 +130,7 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   public async search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
+    if (!(await this.canUseWorker())) return this.base.search(request);
     try {
       return (await this.request({ method: 'search', request })) as Result<
         SearchResponse,

@@ -29,3 +29,198 @@ aliases:
     alias: направление на детский медосмотр
     category: documentation
     weight: 1.0
+  - id: alias.regulatory.child-consent
+    canonicalTerm: информированное добровольное согласие на медицинское вмешательство несовершеннолетнему статья 20 323-ФЗ
+    alias: кто подписывает согласие на лечение ребенка
+    category: patient-rights
+    weight: 1.25
+  - id: alias.regulatory.medical-secrecy
+    canonicalTerm: медицинская тайна статья 13 323-ФЗ
+    alias: можно ли сообщать диагноз ребенка посторонним
+    category: patient-rights
+    weight: 1.15
+  - id: alias.regulatory.health-information
+    canonicalTerm: информация о состоянии здоровья несовершеннолетнего статья 22 323-ФЗ
+    alias: имеет ли родитель право получить результаты обследования ребенка
+    category: patient-rights
+    weight: 1.15
+  - id: alias.regulatory.parent-hospital-stay
+    canonicalTerm: совместное пребывание родителя с ребенком в стационаре статья 51 323-ФЗ
+    alias: можно ли лежать в больнице вместе с ребенком
+    category: patient-rights
+    weight: 1.25
+  - id: alias.regulatory.vaccine-refusal
+    canonicalTerm: отказ от профилактической прививки статья 5 157-ФЗ
+    alias: можно ли отказаться от прививки ребенку
+    category: vaccination
+    weight: 1.25
+  - id: alias.regulatory.unvaccinated-school
+    canonicalTerm: временный отказ в приеме в образовательную организацию при угрозе эпидемии статья 5 157-ФЗ
+    alias: могут ли не пустить непривитого ребенка в школу или сад
+    category: vaccination
+    weight: 1.3
+  - id: alias.regulatory.vaccine-consent
+    canonicalTerm: условия проведения профилактической прививки и информированное согласие статья 11 157-ФЗ
+    alias: нужно ли согласие родителей перед вакцинацией
+    category: vaccination
+    weight: 1.2
+  - id: alias.regulatory.national-vaccine-calendar
+    canonicalTerm: национальный календарь профилактических прививок приказ 1122н
+    alias: календарь прививок детям
+    category: vaccination
+    weight: 1.25
+  - id: alias.regulatory.epidemic-vaccination
+    canonicalTerm: календарь профилактических прививок по эпидемическим показаниям приказ 1122н
+    alias: прививки по эпидпоказаниям
+    category: vaccination
+    weight: 1.15
+  - id: alias.regulatory.vaccine-calendar-current-version
+    canonicalTerm: приказ 1122н действующая редакция календаря профилактических прививок
+    alias: какой сейчас действует приказ по календарю вакцинации
+    category: vaccination
+    weight: 1.3
+  - id: alias.regulatory.child-health-group
+    canonicalTerm: группы здоровья детей I II III IV V приказ 211н
+    alias: какая группа здоровья у ребенка
+    category: child-health
+    weight: 1.35
+  - id: alias.regulatory.child-health-frequent-ari
+    canonicalTerm: II группа здоровья ребенка часто длительно болеющие острые респираторные инфекции
+    alias: часто болеющий ребенок группа здоровья
+    category: child-health
+    weight: 1.35
+  - id: alias.regulatory.child-health-remission
+    canonicalTerm: III группа здоровья ребенка хроническое заболевание клиническая ремиссия компенсация функций
+    alias: хроническое заболевание в ремиссии группа здоровья ребенка
+    category: child-health
+    weight: 1.35
+  - id: alias.regulatory.child-health-active-disease
+    canonicalTerm: IV группа здоровья ребенка активное хроническое заболевание нестойкая ремиссия частые обострения
+    alias: ребенок часто обостряется какая группа здоровья
+    category: child-health
+    weight: 1.25
+  - id: alias.regulatory.child-health-severe
+    canonicalTerm: V группа здоровья ребенка тяжелое хроническое заболевание декомпенсация постоянное лечение
+    alias: тяжелое хроническое заболевание группа здоровья ребенка
+    category: child-health
+    weight: 1.25
+  - id: alias.regulatory.physical-group-child
+    canonicalTerm: медицинская группа для занятий физической культурой несовершеннолетнего приказ 211н
+    alias: физкультурная группа ребенка
+    category: physical-education
+    weight: 1.35
+  - id: alias.regulatory.physical-group-preparatory
+    canonicalTerm: подготовительная медицинская группа II для занятий физической культурой ребенка
+    alias: подготовительная группа по физкультуре кому назначают
+    category: physical-education
+    weight: 1.25
+  - id: alias.regulatory.physical-group-special-a
+    canonicalTerm: специальная медицинская группа А III для занятий физической культурой ребенка
+    alias: спецгруппа А по физкультуре
+    category: physical-education
+    weight: 1.35
+  - id: alias.regulatory.physical-group-special-b
+    canonicalTerm: специальная медицинская группа Б IV лечебная физкультура ребенку
+    alias: спецгруппа Б ЛФК
+    category: physical-education
+    weight: 1.4
+  - id: alias.regulatory.lfk-instead-of-pe
+    canonicalTerm: специальная группа Б занятия лечебной физкультурой в медицинской организации и дома
+    alias: кому назначают ЛФК вместо физкультуры
+    category: physical-education
+    weight: 1.4
+  - id: alias.regulatory.tb-observation-group
+    canonicalTerm: группы диспансерного наблюдения при туберкулезе приказ 127н
+    alias: группа учета по туберкулезу
+    category: tuberculosis
+    weight: 1.35
+  - id: alias.regulatory.tb-active-treatment
+    canonicalTerm: I группа диспансерного наблюдения активный туберкулез курс химиотерапии
+    alias: активный туберкулез на лечении какая группа учета
+    category: tuberculosis
+    weight: 1.35
+  - id: alias.regulatory.tb-contact-group
+    canonicalTerm: IV А группа контакт с больным туберкулезом по месту жительства работы учебы
+    alias: контакт с туберкулезом какая группа
+    category: tuberculosis
+    weight: 1.35
+  - id: alias.regulatory.tb-child-immunodiagnostics
+    canonicalTerm: VI А группа дети подозрение на туберкулез по иммунодиагностике измененная чувствительность
+    alias: диаскинтест положительный группа учета ребенка
+    category: tuberculosis
+    weight: 1.4
+  - id: alias.regulatory.tb-bcg-complication
+    canonicalTerm: V А V Б группы осложнения вакцинации БЦЖ у детей
+    alias: осложнение БЦЖ группа наблюдения
+    category: tuberculosis
+    weight: 1.4
+  - id: alias.regulatory.sanatorium-certificate-070u
+    canonicalTerm: форма 070/у справка для получения путевки на санаторно-курортное лечение приказ 274н
+    alias: справка для санатория 070 у
+    category: documentation
+    weight: 1.4
+  - id: alias.regulatory.sanatorium-card-adult-072u
+    canonicalTerm: форма 072/у санаторно-курортная карта взрослого приказ 274н
+    alias: санаторно курортная карта взрослому
+    category: documentation
+    weight: 1.35
+  - id: alias.regulatory.sanatorium-card-child-076u
+    canonicalTerm: форма 076/у санаторно-курортная карта ребенка приказ 274н
+    alias: санаторная карта ребенку 076 у
+    category: documentation
+    weight: 1.45
+  - id: alias.regulatory.adult-health-copd
+    canonicalTerm: IIIа группа здоровья взрослого хроническое неинфекционное заболевание ХОБЛ диспансерное наблюдение приказ 404н
+    alias: ХОБЛ какая группа здоровья
+    category: adult-health
+    weight: 1.45
+  - id: alias.regulatory.adult-health-diabetes
+    canonicalTerm: IIIа группа здоровья взрослого сахарный диабет 2 типа диспансерное наблюдение приказ 404н
+    alias: диабет 2 типа группа здоровья
+    category: adult-health
+    weight: 1.45
+  - id: alias.regulatory.disability-diabetes-adult
+    canonicalTerm: инвалидность взрослого при сахарном диабете 2 типа стойкие нарушения функций проценты ограничения жизнедеятельности приказ 374н
+    alias: диабет 2 типа какая группа инвалидности
+    category: disability
+    weight: 1.45
+  - id: alias.regulatory.disability-child-category
+    canonicalTerm: категория ребенок-инвалид без присвоения I II III группы приказ 374н
+    alias: ребенку какая группа инвалидности
+    category: disability
+    weight: 1.45
+  - id: alias.regulatory.disability-percent-calculation
+    canonicalTerm: расчет процентов стойких нарушений функций основное нарушение увеличение не более 10 процентных пунктов приказ 374н
+    alias: как считаются проценты инвалидности
+    category: disability
+    weight: 1.45
+  - id: alias.regulatory.first-aid-order
+    canonicalTerm: порядок оказания первой помощи приказ 220н состояния и последовательность мероприятий
+    alias: порядок первой помощи
+    category: first-aid
+    weight: 1.4
+  - id: alias.regulatory.first-aid-no-breathing
+    canonicalTerm: первая помощь отсутствие дыхания вызов скорой сердечно-легочная реанимация автоматический дефибриллятор приказ 220н
+    alias: что делать при остановке дыхания до скорой
+    category: first-aid
+    weight: 1.45
+  - id: alias.regulatory.pediatrics-profile-order
+    canonicalTerm: порядок оказания медицинской помощи по профилю педиатрия приказ 120н
+    alias: какой приказ по педиатрии
+    category: pediatric-care
+    weight: 1.45
+  - id: alias.regulatory.pediatric-care-general
+    canonicalTerm: порядок оказания медицинской помощи детям профиль педиатрия приказ 120н
+    alias: порядок оказания помощи детям
+    category: pediatric-care
+    weight: 1.35
+  - id: alias.regulatory.child-primary-care
+    canonicalTerm: организация первичной медико-санитарной помощи детям приказ 313н детская поликлиника участковая служба
+    alias: работа детской поликлиники приказ
+    category: pediatric-care
+    weight: 1.45
+  - id: alias.regulatory.child-care-school
+    canonicalTerm: медицинская помощь несовершеннолетним в образовательных организациях приказ 213н
+    alias: медицинская помощь в школе приказ
+    category: school-medicine
+    weight: 1.45

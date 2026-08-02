@@ -37,8 +37,8 @@ const SEARCH_SCOPES: readonly SearchScopeOption[] = [
   {
     id: 'guidelines',
     label: 'В клин. рекомендациях',
-    shortLabel: 'КР',
-    description: 'Искать только в установленных клинических рекомендациях.',
+    shortLabel: 'КР и нормы',
+    description: 'Искать в клинических рекомендациях, медицинских нормах и формулах.',
   },
   {
     id: 'medications',

@@ -163,6 +163,7 @@ export interface SearchResultGroup {
   readonly title: string;
   readonly bestScore: number;
   readonly categories: readonly SearchResultCategory[];
+  readonly ageGroups?: readonly string[];
   readonly results: readonly SearchResult[];
 }
 
