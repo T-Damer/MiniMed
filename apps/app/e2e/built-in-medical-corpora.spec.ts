@@ -10,9 +10,7 @@ test('searches the built-in adult CKD-EPI reference from the norms scope', async
   await mountBuiltApp(page);
   await chooseScope(page, /В клин\. рекомендациях/u);
 
-  await page
-    .getByTestId('search-input')
-    .fill('Формула CKD-EPI 2021 для расчета СКФ у взрослого');
+  await page.getByTestId('search-input').fill('Формула CKD-EPI 2021 для расчета СКФ у взрослого');
   await page.getByTestId('search-submit').click();
 
   await expect(page.getByTestId('search-results')).toContainText(
