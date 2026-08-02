@@ -24,6 +24,7 @@ metadata:
   signedAt: "2012-05-05"
   minjustRegistrationNumber: "24867"
   minjustRegistrationDate: "2012-07-10"
+  officialPublicationNumber: "Минздрав России, документ 9117"
   officialSourceUrl: https://minzdrav.gov.ru/documents/9117
   lastAmendedAt: "2020-02-21"
   sourceReviewedAt: "2026-08-02"
