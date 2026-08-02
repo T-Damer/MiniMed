@@ -59,6 +59,38 @@ describe('query-aware group ranking', () => {
     ]);
   });
 
+  it('demotes a superseded card when the query asks for the current order', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group(
+          'old',
+          'Порядок оказания педиатрической помощи — приказ № 366н (утратил силу)',
+          1.1,
+        ),
+        group(
+          'current',
+          'Порядок оказания медицинской помощи по профилю «Педиатрия» — приказ № 120н',
+          0.75,
+        ),
+      ],
+      'Какой действующий приказ устанавливает порядок оказания медицинской помощи по профилю педиатрия?',
+    );
+
+    expect(ranked.map((item) => item.documentId)).toEqual(['current', 'old']);
+  });
+
+  it('keeps a historical redirect discoverable when the query asks about an obsolete order', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('current', 'Экспертиза временной нетрудоспособности — приказ № 195н', 0.95),
+        group('old', 'Экспертиза временной нетрудоспособности — приказ № 625н (утратил силу)', 0.5),
+      ],
+      'Приказ 625н утратил силу?',
+    );
+
+    expect(ranked.map((item) => item.documentId)).toEqual(['old', 'current']);
+  });
+
   it('preserves the base order when titles have equal query relevance', () => {
     const ranked = rankSearchGroupsByQuery(
       [group('first', 'Первый документ', 0.8), group('second', 'Второй документ', 0.7)],
