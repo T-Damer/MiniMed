@@ -83,10 +83,7 @@ export function builtInCompanionMounts(
       searchWeight: 1.15,
     },
   ];
-  if (
-    companions.regulatoryStore &&
-    !installedModuleIds.has(BUILT_IN_REGULATORY_MODULE_ID)
-  ) {
+  if (companions.regulatoryStore && !installedModuleIds.has(BUILT_IN_REGULATORY_MODULE_ID)) {
     mounts.push({
       moduleId: BUILT_IN_REGULATORY_MODULE_ID,
       store: companions.regulatoryStore,
