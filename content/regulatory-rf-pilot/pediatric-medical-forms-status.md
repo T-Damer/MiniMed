@@ -3,7 +3,7 @@ id: regulatory.rf.reference.pediatric-medical-forms-status-2026
 title: Медицинские формы из педиатрического учебного списка — статус и замены
 short_title: Педиатрические медицинские формы
 version_label: pediatric-forms-reviewed-2026-08-02
-source_type: regulatory_act_summary
+source_type: medical_reference
 status: active
 specialties:
   - pediatrics
