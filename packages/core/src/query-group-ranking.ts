@@ -16,6 +16,12 @@ const GENERIC_QUERY_TERMS = new Set([
   'закон',
 ]);
 
+const CURRENT_EDITION_QUERY =
+  /(?:действующ|актуальн|текущ|сейчас|на\s+сегодня|вместо|замен(?:ил|яет|ен|ён|ить))/u;
+const HISTORICAL_EDITION_QUERY =
+  /(?:утратил[ао]?\s+сил|историческ|стар(?:ый|ая|ое)|отмен[её]н|недействующ)/u;
+const HISTORICAL_DOCUMENT_TEXT = /(?:утратил[ао]?\s+сил|историческ|отмен[её]н|недействующ)/u;
+
 function compactReference(value: string): string {
   return normalizeSurfaceText(value).replace(/[^0-9a-zа-я]+/gu, '');
 }
@@ -72,13 +78,27 @@ function subjectPhraseBoost(query: string, text: string): number {
   );
 }
 
+function editionStatusBoost(query: string, text: string): number {
+  const normalizedQuery = normalizeSurfaceText(query);
+  const normalizedText = normalizeSurfaceText(text);
+  const historicalDocument = HISTORICAL_DOCUMENT_TEXT.test(normalizedText);
+  if (CURRENT_EDITION_QUERY.test(normalizedQuery) && historicalDocument) return -2;
+  if (HISTORICAL_EDITION_QUERY.test(normalizedQuery) && historicalDocument) return 0.8;
+  return 0;
+}
+
 export function queryGroupRelevanceBoost(query: string, text: string): number {
   const queryReferences = legalReferences(query);
   const textReferences = legalReferences(text);
   const referenceBoost = [...queryReferences].some((reference) => textReferences.has(reference))
     ? 1
     : 0;
-  return referenceBoost + textCoverage(query, text) + subjectPhraseBoost(query, text);
+  return (
+    referenceBoost +
+    textCoverage(query, text) +
+    subjectPhraseBoost(query, text) +
+    editionStatusBoost(query, text)
+  );
 }
 
 function groupRankingText(group: SearchResultGroup): string {
