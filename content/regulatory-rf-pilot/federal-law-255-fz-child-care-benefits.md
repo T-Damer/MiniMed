@@ -24,6 +24,7 @@ metadata:
   documentKind: федеральный закон
   documentNumber: 255-ФЗ
   signedAt: "2006-12-29"
+  officialPublicationNumber: "Российская газета № 297, 31.12.2006"
   officialPublicationDate: "2006-12-31"
   officialSourceUrl: https://rg.ru/documents/2006/12/31/beremennost-dok.html
   additionalOfficialSourceUrl: https://sfr.gov.ru/branches/perm/news~2026/03/11/279429
