@@ -20,7 +20,11 @@ function regulatoryCard(page: Page): Locator {
 
 async function hideBuiltInRegulatoryPack(page: Page): Promise<void> {
   await page.route('**/content/regulatory.db', (route) =>
-    route.fulfill({ status: 404, contentType: 'text/plain', body: 'not installed in this scenario' }),
+    route.fulfill({
+      status: 404,
+      contentType: 'text/plain',
+      body: 'not installed in this scenario',
+    }),
   );
 }
 
