@@ -1,14 +1,5 @@
 import type { MedicalCore } from '@localmed/contracts';
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  type JSX,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
@@ -80,13 +71,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     all: 0,
   });
   const [helpOpen, setHelpOpen] = createSignal(false);
-  let documentCountGeneration = 0;
 
   const refreshDocumentCounts = (): void => {
-    const core = props.baseCore;
-    const generation = ++documentCountGeneration;
-    void core.listDocuments().then((result) => {
-      if (generation !== documentCountGeneration) return;
+    void props.baseCore.listDocuments().then((result) => {
       if (result.ok) {
         const all = result.value.length;
         setDocumentCounts({
@@ -106,14 +93,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     });
   };
 
-  createEffect(() => {
-    // Content installation replaces the application core. Refresh against that exact instance and
-    // ignore an older count request that may have been started by the preceding content event.
-    props.baseCore;
+  onMount(() => {
     refreshDocumentCounts();
+    window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts);
   });
-
-  onMount(() => window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts));
   onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts));
 
   const scopedCore = createMemo(() => {
