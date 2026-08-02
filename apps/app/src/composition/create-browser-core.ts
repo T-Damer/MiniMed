@@ -26,6 +26,8 @@ const MEDICATIONS_DATABASE_NAME = 'medications.db';
 const REGULATORY_DATABASE_NAME = 'regulatory.db';
 const REFERENCE_DATABASE_NAME = 'reference.db';
 const PACK_ASSET_PATH = `public/content/${PACK_DATABASE_NAME}`;
+const BUILT_IN_REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
+const BUILT_IN_REFERENCE_MODULE_ID = 'minimed.reference.ru';
 
 async function readPackReport(contentBaseUrl = import.meta.env.BASE_URL): Promise<PackBuildReport> {
   const response = await fetch(new URL('content/core-demo-report.json', contentBaseUrl));
@@ -68,11 +70,56 @@ async function createPackagedWasmStore(
   return SqliteMedicalStore.createFromBytes(new Uint8Array(await response.arrayBuffer()));
 }
 
+export function builtInCompanionMounts(
+  companions: CompanionStores,
+  installedModuleIds: ReadonlySet<string>,
+): readonly MedicalStoreMount[] {
+  const mounts: MedicalStoreMount[] = [
+    {
+      moduleId: 'minimed.medications.ru',
+      store: companions.medicationsStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.15,
+    },
+  ];
+  if (
+    companions.regulatoryStore &&
+    !installedModuleIds.has(BUILT_IN_REGULATORY_MODULE_ID)
+  ) {
+    mounts.push({
+      moduleId: BUILT_IN_REGULATORY_MODULE_ID,
+      store: companions.regulatoryStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.12,
+    });
+  }
+  if (companions.referenceStore && !installedModuleIds.has(BUILT_IN_REFERENCE_MODULE_ID)) {
+    mounts.push({
+      moduleId: BUILT_IN_REFERENCE_MODULE_ID,
+      store: companions.referenceStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.08,
+    });
+  }
+  return mounts;
+}
+
 async function withInstalledModules(
   coreStore: MedicalStore,
   companions: CompanionStores,
   acceptsSeed = false,
 ): Promise<MedicalStore> {
+  let installedModules: readonly MedicalStoreMount[] = [];
+  try {
+    installedModules = await loadInstalledModuleMounts();
+  } catch (cause) {
+    console.warn('Downloaded content modules could not be opened; using the built-in base.', cause);
+  }
+
+  const installedModuleIds = new Set(installedModules.map((module) => module.moduleId));
   const builtInMounts: MedicalStoreMount[] = [
     {
       moduleId: 'minimed.core.ru',
@@ -82,40 +129,9 @@ async function withInstalledModules(
       searchWeight: 1.1,
       acceptsSeed,
     },
-    {
-      moduleId: 'minimed.medications.ru',
-      store: companions.medicationsStore,
-      required: true,
-      enabled: true,
-      searchWeight: 1.15,
-    },
+    ...builtInCompanionMounts(companions, installedModuleIds),
   ];
-  if (companions.regulatoryStore) {
-    builtInMounts.push({
-      moduleId: 'minimed.regulatory.ru',
-      store: companions.regulatoryStore,
-      required: true,
-      enabled: true,
-      searchWeight: 1.12,
-    });
-  }
-  if (companions.referenceStore) {
-    builtInMounts.push({
-      moduleId: 'minimed.reference.ru',
-      store: companions.referenceStore,
-      required: true,
-      enabled: true,
-      searchWeight: 1.08,
-    });
-  }
-
-  try {
-    const modules = await loadInstalledModuleMounts();
-    return new MultiMedicalStore([...builtInMounts, ...modules]);
-  } catch (cause) {
-    console.warn('Downloaded content modules could not be opened; using the built-in base.', cause);
-    return new MultiMedicalStore(builtInMounts);
-  }
+  return new MultiMedicalStore([...builtInMounts, ...installedModules]);
 }
 
 async function createOptionalPackagedStore(
