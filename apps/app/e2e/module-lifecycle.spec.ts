@@ -81,7 +81,10 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await page.getByTestId('search-input').fill(REGULATORY_QUERY);
   await page.getByTestId('search-submit').click();
   await expect
-    .poll(() => page.getByTestId('search-result').count(), { timeout: 20_000 })
+    .poll(
+      () => page.getByTestId('search-results').locator('.result-group').count(),
+      { timeout: 20_000 },
+    )
     .toBeGreaterThan(0);
   await expect(page.locator('.error-card')).toHaveCount(0);
 
