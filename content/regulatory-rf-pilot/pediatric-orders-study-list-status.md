@@ -3,7 +3,7 @@ id: regulatory.rf.reference.pediatric-orders-study-list-2026
 title: Приказы и законы из учебного списка педиатра — проверка актуальности на 02.08.2026
 short_title: Учебный список приказов — актуальность
 version_label: pediatric-study-list-reviewed-2026-08-02
-source_type: regulatory_act_summary
+source_type: medical_reference
 status: active
 specialties:
   - pediatrics
