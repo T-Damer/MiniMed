@@ -8,7 +8,8 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
-const REGULATORY_QUERY = 'диспансерное наблюдение несовершеннолетних';
+const REGULATORY_QUERY =
+  'Какие дети подлежат диспансерному наблюдению после заболевания, травмы или отравления';
 
 function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-bottom-nav').getByRole('button', { name });
