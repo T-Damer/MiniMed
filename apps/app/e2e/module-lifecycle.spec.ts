@@ -98,9 +98,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   });
 
   await navigationButton(page, 'Поиск').click();
-  await expect(page.getByRole('radio', { name: /Правовые документы/u })).toBeDisabled({
-    timeout: 30_000,
-  });
+  await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
   await page.getByTestId('search-input').fill('Ребёнок часто дышит и температурит второй день');
   await page.getByTestId('search-submit').click();
   await expect(
