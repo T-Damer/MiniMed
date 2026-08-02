@@ -89,7 +89,9 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await legalScope.click();
   await page.getByTestId('search-input').fill(REGULATORY_QUERY);
   await page.getByTestId('search-submit').click();
-  await expect.poll(() => visibleSearchState(page), { timeout: 20_000 }).toContain(REGULATORY_TITLE);
+  await expect
+    .poll(() => visibleSearchState(page), { timeout: 20_000 })
+    .toContain(REGULATORY_TITLE);
 
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
