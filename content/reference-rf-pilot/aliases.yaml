@@ -39,3 +39,33 @@ aliases:
     alias: U25
     category: calculation
     weight: 1.4
+  - id: assessment-braverman
+    canonicalTerm: Тест Бравермана
+    alias: нейромедиаторный профиль
+    category: assessment
+    weight: 1.5
+  - id: assessment-egogram
+    canonicalTerm: Личная эгопрограмма
+    alias: эгограмма
+    category: assessment
+    weight: 1.5
+  - id: assessment-egogram-berne
+    canonicalTerm: Личная эгопрограмма
+    alias: эго-состояния Берна
+    category: assessment
+    weight: 1.4
+  - id: assessment-paei
+    canonicalTerm: PAEI
+    alias: стили Адизеса
+    category: assessment
+    weight: 1.5
+  - id: assessment-team-roles
+    canonicalTerm: Командные роли
+    alias: тест Белбина
+    category: assessment
+    weight: 1.5
+  - id: assessment-temperament
+    canonicalTerm: Тест на темперамент
+    alias: сангвиник холерик флегматик меланхолик
+    category: assessment
+    weight: 1.4
