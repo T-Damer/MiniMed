@@ -1,11 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
-import {
-  type MedicalStore,
-  type MedicalStoreMount,
-  MultiMedicalStore,
-} from '@localmed/storage';
+import { type MedicalStore, type MedicalStoreMount, MultiMedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
@@ -122,15 +118,6 @@ async function withInstalledModules(
   }
 }
 
-async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
-  const [medicationsStore, regulatoryStore, referenceStore] = await Promise.all([
-    createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
-    createPackagedWasmStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
-    createPackagedWasmStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
-  ]);
-  return { medicationsStore, regulatoryStore, referenceStore };
-}
-
 async function createOptionalPackagedStore(
   contentBaseUrl: string,
   databaseName: string,
@@ -143,7 +130,7 @@ async function createOptionalPackagedStore(
   }
 }
 
-async function createNativeCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
+async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
   const medicationsStore = await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME);
   const [regulatoryStore, referenceStore] = await Promise.all([
     createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
@@ -154,15 +141,6 @@ async function createNativeCompanionStores(contentBaseUrl: string): Promise<Comp
     ...(regulatoryStore ? { regulatoryStore } : {}),
     ...(referenceStore ? { referenceStore } : {}),
   };
-}
-
-async function createCompanionStores(
-  contentBaseUrl: string,
-  platform: 'android' | 'ios' | 'web',
-): Promise<CompanionStores> {
-  return platform === 'web'
-    ? createPackagedCompanionStores(contentBaseUrl)
-    : createNativeCompanionStores(contentBaseUrl);
 }
 
 export async function createBrowserCore() {
@@ -182,7 +160,7 @@ export async function createBrowserCore() {
       const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
       const store = await withInstalledModules(
         await createNativeStore(),
-        await createNativeCompanionStores(contentBaseUrl),
+        await createPackagedCompanionStores(contentBaseUrl),
       );
       return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
     } catch (error) {
@@ -194,7 +172,7 @@ export async function createBrowserCore() {
     const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
     const store = await withInstalledModules(
       await createPackagedWasmStore(contentBaseUrl),
-      await createCompanionStores(contentBaseUrl, platform),
+      await createPackagedCompanionStores(contentBaseUrl),
     );
     return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
   } catch (error) {
@@ -203,7 +181,7 @@ export async function createBrowserCore() {
     const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
     const composed = await withInstalledModules(
       store,
-      await createCompanionStores(contentBaseUrl, platform),
+      await createPackagedCompanionStores(contentBaseUrl),
       true,
     );
     return createMedicalCore({
