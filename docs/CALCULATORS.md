@@ -2,6 +2,8 @@
 
 MiniMed calculators are deterministic tools. The same calculation engine must power forms, text parsing, tests, and any future printable view. UI code must not reimplement formulas.
 
+The first release is explicitly a prototype for validating workflow, formula traceability, local persistence, printing, sharing, and patient-note integration before the catalog is expanded.
+
 ## Safety contract
 
 - Every input has an explicit quantity and unit.
