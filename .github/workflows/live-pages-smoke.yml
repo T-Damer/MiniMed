@@ -1,0 +1,49 @@
+name: Live Pages prototype smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/live-pages-smoke.yml"
+      - "apps/app/e2e/live-prototype.spec.ts"
+  workflow_run:
+    workflows: ["Deploy landing and browser app to GitHub Pages"]
+    types: [completed]
+
+concurrency:
+  group: live-pages-prototype-smoke
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  chromium:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MINIMED_LIVE_URL: https://t-damer.github.io/MiniMed/app/
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - run: bun install --frozen-lockfile
+      - name: Read Playwright version
+        id: playwright-version
+        shell: bash
+        run: echo "version=$(bunx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Restore Playwright Chromium cache
+        id: playwright-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}
+      - name: Install Chromium system dependencies
+        run: bunx playwright install-deps chromium
+      - name: Install Chromium headless shell
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx playwright install chromium --only-shell
+      - name: Verify the published prototype
+        run: bunx playwright test apps/app/e2e/live-prototype.spec.ts --project=chromium
