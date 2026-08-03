@@ -102,9 +102,13 @@ export function AssessmentsView(): JSX.Element {
     const current = route();
     return current.kind === 'index' ? undefined : findAssessmentBySlug(current.slug);
   });
-  const definitionInstalled = createMemo(() => {
+  const installedDefinition = createMemo(() => {
     const current = definition();
-    return Boolean(current && installedIds().has(current.id));
+    return current && installedIds().has(current.id) ? current : undefined;
+  });
+  const unavailableDefinition = createMemo(() => {
+    const current = definition();
+    return current && !installedIds().has(current.id) ? current : undefined;
   });
   const record = createMemo(() => {
     const current = route();
@@ -163,7 +167,7 @@ export function AssessmentsView(): JSX.Element {
         />
       </Show>
 
-      <Show when={route().kind === 'assessment' && definition() && definitionInstalled()}>
+      <Show when={route().kind === 'assessment' ? installedDefinition() : undefined}>
         {(selected) => (
           <AssessmentQuestionnairePage
             definition={selected()}
@@ -177,7 +181,7 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
-      <Show when={route().kind === 'assessment' && definition() && !definitionInstalled()}>
+      <Show when={route().kind === 'assessment' ? unavailableDefinition() : undefined}>
         {(selected) => (
           <section class="assessment-pack-required paper-card">
             <h1>{selected().title}</h1>
@@ -194,21 +198,25 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
-      <Show when={route().kind === 'result' && definition() && record()}>
-        {(selectedRecord) => (
-          <AssessmentResultPage
-            definition={definition() as NonNullable<ReturnType<typeof definition>>}
-            record={selectedRecord()}
-            notes={notes()}
-            onBack={() => navigate(assessmentPath(definition()?.slug ?? ''))}
-            onMessage={setMessage}
-            onNotesChanged={setNotes}
-            onDelete={() => {
-              removeAssessmentRecord(selectedRecord().id);
-              refreshRecords();
-              navigate('#/assessments');
-            }}
-          />
+      <Show when={route().kind === 'result' ? definition() : undefined}>
+        {(selectedDefinition) => (
+          <Show when={record()}>
+            {(selectedRecord) => (
+              <AssessmentResultPage
+                definition={selectedDefinition()}
+                record={selectedRecord()}
+                notes={notes()}
+                onBack={() => navigate(assessmentPath(selectedDefinition().slug))}
+                onMessage={setMessage}
+                onNotesChanged={setNotes}
+                onDelete={() => {
+                  removeAssessmentRecord(selectedRecord().id);
+                  refreshRecords();
+                  navigate('#/assessments');
+                }}
+              />
+            )}
+          </Show>
         )}
       </Show>
 
