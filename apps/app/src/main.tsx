@@ -1,6 +1,7 @@
 import { render } from 'solid-js/web';
 
 import { App } from '@/app/App';
+import { AssessmentHost } from '@/features/assessments/AssessmentHost';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { startReminderNotifications } from '@/state/reminder-notifications';
 import 'overlayscrollbars/overlayscrollbars.css';
@@ -20,11 +21,20 @@ import '@/styles/search-scope-radio.css';
 import '@/styles/download-status.css';
 import '@/styles/theme-dark.css';
 import '@/styles/medications.css';
+import '@/styles/assessments.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
-render(() => <App />, root);
+render(
+  () => (
+    <>
+      <App />
+      <AssessmentHost />
+    </>
+  ),
+  root,
+);
 const stopReminderNotifications = startReminderNotifications();
 if (import.meta.hot) import.meta.hot.dispose(stopReminderNotifications);
 
