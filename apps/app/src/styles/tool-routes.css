@@ -4,13 +4,11 @@
   width: min(100%, 65ch);
   min-height: calc(100dvh - 3.25rem - var(--safe-top) - var(--safe-bottom));
   margin-inline: auto;
-  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem)
-    calc(6.5rem + var(--safe-bottom));
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem) calc(6.5rem + var(--safe-bottom));
 }
 
 .assessments-page.page-surface {
-  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem)
-    calc(6.5rem + var(--safe-bottom));
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem) calc(6.5rem + var(--safe-bottom));
 }
 
 .assessments-heading p,
@@ -58,13 +56,6 @@
 
 .calculator-subpage-header {
   padding-right: 0;
-}
-
-.assessment-launch-button,
-.calculator-launch-button,
-.assessment-overlay-close,
-.calculator-overlay-close {
-  display: none !important;
 }
 
 .boot-card > button {
