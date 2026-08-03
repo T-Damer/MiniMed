@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
 
-test('calculates body surface area and writes the result to a patient note', async ({ page }) => {
+test('calculates body surface area and writes the result to a patient note', async ({
+  page,
+}) => {
   await mountBuiltApp(page, { persistentOrigin: true });
 
   await page.getByRole('button', { name: 'Открыть медицинские калькуляторы' }).click();
