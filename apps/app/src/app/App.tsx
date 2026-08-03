@@ -12,6 +12,8 @@ import {
   initializeMedicalCore,
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
+import { AssessmentsView } from '@/features/assessments/AssessmentsView';
+import { CalculatorsView } from '@/features/calculators/CalculatorsView';
 import { KnowledgeBaseView } from '@/features/knowledge/KnowledgeBaseView';
 import { DocumentOverlayHost } from '@/features/library/DocumentOverlayHost';
 import { LocalModelController } from '@/features/models/controller';
@@ -37,7 +39,7 @@ import { notifyContentChanged } from '@/state/content-events';
 import { installButtonHaptics } from '@/state/haptics';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 
-type View = 'search' | 'modules' | 'notes';
+type View = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes';
 type RootNavigationDirection = 'forward' | 'backward';
 
 interface RootNavigationMotion {
@@ -52,6 +54,8 @@ const VIEWS: readonly {
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'modules', label: 'База знаний', icon: 'modules' },
+  { id: 'assessments', label: 'Тесты', icon: 'brain' },
+  { id: 'calculators', label: 'Калькуляторы', icon: 'graph' },
   { id: 'notes', label: 'Заметки', icon: 'notes' },
 ];
 const VIEW_ORDER = new Map(VIEWS.map((item, index) => [item.id, index]));
@@ -59,11 +63,14 @@ const VIEW_ORDER = new Map(VIEWS.map((item, index) => [item.id, index]));
 const DEFAULT_MODEL_CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
 const DEFAULT_MODEL_ASSET_BASE_URL = '';
+const SLOW_BOOT_DELAY_MS = 10_000;
 
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
   if (value === 'documents') return 'modules';
   if (value === 'status' || value.startsWith('modules/')) return 'modules';
+  if (value === 'assessments' || value.startsWith('assessments/')) return 'assessments';
+  if (value === 'calculators' || value.startsWith('calculators/')) return 'calculators';
   if (value.startsWith('notes/')) return 'notes';
   if (value === 'history') return 'search';
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
@@ -106,6 +113,7 @@ export function App(): JSX.Element {
   const [rootNavigationMotion, setRootNavigationMotion] = createSignal<RootNavigationMotion>();
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
+  const [bootSlow, setBootSlow] = createSignal(false);
   const [availableModuleCount, setAvailableModuleCount] = createSignal(0);
   const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
   const [dueReminderCount, setDueReminderCount] = createSignal(0);
@@ -120,6 +128,7 @@ export function App(): JSX.Element {
   let unsubscribeModuleRuntime: (() => void) | undefined;
   let nativeBackListener: Awaited<ReturnType<typeof NativeApp.addListener>> | undefined;
   let stopButtonHaptics: (() => void) | undefined;
+  let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let activeRootNavigation: View | undefined;
   const rootNavigationQueue: Array<{ readonly next: View; readonly commit: () => void }> = [];
 
@@ -190,7 +199,6 @@ export function App(): JSX.Element {
   };
 
   const navigate = (next: View): void => {
-    // Re-tapping the active section is the mobile shorthand for "back to the top of this page".
     transitionToRootView(next, () => {
       const changed = view() !== next;
       moveToRootView(next);
@@ -269,7 +277,6 @@ export function App(): JSX.Element {
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.addEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     refreshDueReminders();
-    // Due-ness changes with the clock, not only with edits.
     reminderTimer = setInterval(refreshDueReminders, 30_000);
     handleScroll();
     if (Capacitor.getPlatform() === 'android') {
@@ -309,6 +316,7 @@ export function App(): JSX.Element {
     };
     bindModuleRuntime(getContentModuleRuntime(MODULE_CATALOG));
     unsubscribeModuleRuntime = subscribeContentModuleRuntime(bindModuleRuntime);
+    bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
     try {
       const initialized = await initializeMedicalCore(createBrowserCore);
       const initializedSearchCore = new WorkerSearchMedicalCore(initialized.core);
@@ -325,6 +333,9 @@ export function App(): JSX.Element {
       setError(
         cause instanceof Error ? cause.message : 'Не удалось открыть локальную базу знаний.',
       );
+    } finally {
+      if (bootTimer) clearTimeout(bootTimer);
+      bootTimer = undefined;
     }
   });
 
@@ -335,6 +346,7 @@ export function App(): JSX.Element {
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     if (reminderTimer) clearInterval(reminderTimer);
+    if (bootTimer) clearTimeout(bootTimer);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     void nativeBackListener?.remove();
@@ -347,22 +359,51 @@ export function App(): JSX.Element {
 
   return (
     <div class="app-shell archive-app">
-      <Show
-        when={ready()}
-        fallback={
-          <main class="boot-screen archive-boot">
-            <div class="boot-card paper-sheet">
-              <span class="boot-spinner" />
-              <p class="archive-kicker">Локальная медицинская база</p>
-              <h1>{error() ? 'База не открылась' : 'Открываем документы…'}</h1>
-              <p>{error() ?? 'Подготавливаем локальный поиск. Интернет для работы не нужен.'}</p>
-            </div>
-          </main>
-        }
-      >
-        {(state) => (
-          <>
-            <main class="app-main">
+      <main class="app-main">
+        <section
+          class="app-view"
+          classList={rootViewClasses('assessments')}
+          hidden={view() !== 'assessments'}
+          aria-hidden={view() !== 'assessments'}
+        >
+          <AssessmentsView />
+        </section>
+        <section
+          class="app-view"
+          classList={rootViewClasses('calculators')}
+          hidden={view() !== 'calculators'}
+          aria-hidden={view() !== 'calculators'}
+        >
+          <CalculatorsView />
+        </section>
+
+        <Show
+          when={ready()}
+          fallback={
+            <Show when={view() !== 'assessments' && view() !== 'calculators'}>
+              <section class="boot-screen archive-boot">
+                <div class="boot-card paper-sheet">
+                  <span class="boot-spinner" />
+                  <p class="archive-kicker">Локальная медицинская база</p>
+                  <h1>{error() ? 'База не открылась' : 'Открываем документы…'}</h1>
+                  <p>
+                    {error() ??
+                      (bootSlow()
+                        ? 'Загрузка базы занимает необычно много времени. Тесты и калькуляторы уже доступны в нижней навигации.'
+                        : 'Подготавливаем локальный поиск. Интернет для работы не нужен.')}
+                  </p>
+                  <Show when={error() || bootSlow()}>
+                    <button type="button" onClick={() => window.location.reload()}>
+                      Повторить загрузку
+                    </button>
+                  </Show>
+                </div>
+              </section>
+            </Show>
+          }
+        >
+          {(state) => (
+            <>
               <section
                 class="app-view"
                 classList={rootViewClasses('search')}
@@ -403,7 +444,14 @@ export function App(): JSX.Element {
                   <ReleaseLinks />
                 </footer>
               </Show>
-            </main>
+            </>
+          )}
+        </Show>
+      </main>
+
+      <Show when={ready()}>
+        {(state) => (
+          <>
             <div class="floating-system-status" aria-live="polite">
               <Show when={appUpdateWorker()}>
                 {(worker) => (
@@ -427,54 +475,55 @@ export function App(): JSX.Element {
               getCore={() => state().core}
               reconnectContent={connectInstalledModules}
             />
-            <nav class="app-bottom-nav" aria-label="Разделы приложения">
-              {VIEWS.map((item) => {
-                const label = () => {
-                  if (item.id === 'modules') {
-                    return `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`;
-                  }
-                  if (item.id === 'notes' && dueReminderCount() > 0) {
-                    return `${item.label}, напоминаний: ${dueReminderCount()}`;
-                  }
-                  return item.label;
-                };
-                return (
-                  <div class="app-nav-item">
-                    <Show when={item.id === 'modules'}>
-                      <ModelNavIndicator controller={modelController} />
-                    </Show>
-                    <button
-                      class="app-nav-button"
-                      classList={{ active: view() === item.id }}
-                      type="button"
-                      aria-label={label()}
-                      title={label()}
-                      onClick={() => navigate(item.id)}
-                    >
-                      <AppGlyph name={item.icon} />
-                      <Show when={item.id === 'modules' && availableModuleCount() > 0}>
-                        <span class="app-nav-badge available" aria-hidden="true">
-                          {availableModuleCount() > 99 ? '99+' : availableModuleCount()}
-                        </span>
-                      </Show>
-                      <Show when={item.id === 'modules' && downloadedModuleCount() > 0}>
-                        <span class="app-nav-badge downloaded" aria-hidden="true">
-                          {downloadedModuleCount() > 99 ? '99+' : downloadedModuleCount()}
-                        </span>
-                      </Show>
-                      <Show when={item.id === 'notes' && dueReminderCount() > 0}>
-                        <span class="app-nav-badge reminder" aria-hidden="true">
-                          {dueReminderCount() > 9 ? '9+' : dueReminderCount()}
-                        </span>
-                      </Show>
-                    </button>
-                  </div>
-                );
-              })}
-            </nav>
           </>
         )}
       </Show>
+
+      <nav class="app-bottom-nav" aria-label="Разделы приложения">
+        {VIEWS.map((item) => {
+          const label = () => {
+            if (item.id === 'modules') {
+              return `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`;
+            }
+            if (item.id === 'notes' && dueReminderCount() > 0) {
+              return `${item.label}, напоминаний: ${dueReminderCount()}`;
+            }
+            return item.label;
+          };
+          return (
+            <div class="app-nav-item">
+              <Show when={item.id === 'modules'}>
+                <ModelNavIndicator controller={modelController} />
+              </Show>
+              <button
+                class="app-nav-button"
+                classList={{ active: view() === item.id }}
+                type="button"
+                aria-label={label()}
+                title={label()}
+                onClick={() => navigate(item.id)}
+              >
+                <AppGlyph name={item.icon} />
+                <Show when={item.id === 'modules' && availableModuleCount() > 0}>
+                  <span class="app-nav-badge available" aria-hidden="true">
+                    {availableModuleCount() > 99 ? '99+' : availableModuleCount()}
+                  </span>
+                </Show>
+                <Show when={item.id === 'modules' && downloadedModuleCount() > 0}>
+                  <span class="app-nav-badge downloaded" aria-hidden="true">
+                    {downloadedModuleCount() > 99 ? '99+' : downloadedModuleCount()}
+                  </span>
+                </Show>
+                <Show when={item.id === 'notes' && dueReminderCount() > 0}>
+                  <span class="app-nav-badge reminder" aria-hidden="true">
+                    {dueReminderCount() > 9 ? '9+' : dueReminderCount()}
+                  </span>
+                </Show>
+              </button>
+            </div>
+          );
+        })}
+      </nav>
 
       <Show when={showScrollTop()}>
         <button

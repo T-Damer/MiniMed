@@ -14,7 +14,7 @@ interface PackBuildReport {
 }
 
 interface CompanionStores {
-  readonly medicationsStore: MedicalStore;
+  readonly medicationsStore?: MedicalStore;
   readonly regulatoryStore?: MedicalStore;
   readonly referenceStore?: MedicalStore;
 }
@@ -28,9 +28,40 @@ const REFERENCE_DATABASE_NAME = 'reference.db';
 const PACK_ASSET_PATH = `public/content/${PACK_DATABASE_NAME}`;
 const BUILT_IN_REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
 const BUILT_IN_REFERENCE_MODULE_ID = 'minimed.reference.ru';
+const CONTENT_FETCH_TIMEOUT_MS = 15_000;
+const CONTENT_OPEN_TIMEOUT_MS = 15_000;
+
+async function withTimeout<T>(task: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      task,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out.`)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function fetchContent(url: URL): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CONTENT_FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === 'AbortError') {
+      throw new Error(`Unable to load ${url.pathname}: request timed out.`);
+    }
+    throw cause;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function readPackReport(contentBaseUrl = import.meta.env.BASE_URL): Promise<PackBuildReport> {
-  const response = await fetch(new URL('content/core-demo-report.json', contentBaseUrl));
+  const response = await fetchContent(new URL('content/core-demo-report.json', contentBaseUrl));
   if (!response.ok) {
     throw new Error(`Unable to load content-pack report (${response.status}).`);
   }
@@ -53,9 +84,7 @@ async function createNativeStore(): Promise<CapacitorMedicalStore> {
     databaseName: PACK_DATABASE_NAME,
     expectedSha256: report.outputChecksum,
   });
-  // Probe the native plugin before returning the core so a missing plugin or system FTS5
-  // incompatibility can fall back to SQLite WASM without breaking application startup.
-  await store.initialize();
+  await withTimeout(store.initialize(), CONTENT_OPEN_TIMEOUT_MS, 'Native content database');
   return store;
 }
 
@@ -63,26 +92,32 @@ async function createPackagedWasmStore(
   contentBaseUrl: string,
   databaseName = PACK_DATABASE_NAME,
 ): Promise<SqliteMedicalStore> {
-  const response = await fetch(new URL(`content/${databaseName}`, contentBaseUrl));
+  const response = await fetchContent(new URL(`content/${databaseName}`, contentBaseUrl));
   if (!response.ok) {
     throw new Error(`Unable to load compiled content pack (${response.status}).`);
   }
-  return SqliteMedicalStore.createFromBytes(new Uint8Array(await response.arrayBuffer()));
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  return withTimeout(
+    SqliteMedicalStore.createFromBytes(bytes),
+    CONTENT_OPEN_TIMEOUT_MS,
+    `Opening ${databaseName}`,
+  );
 }
 
 export function builtInCompanionMounts(
   companions: CompanionStores,
   installedModuleIds: ReadonlySet<string>,
 ): readonly MedicalStoreMount[] {
-  const mounts: MedicalStoreMount[] = [
-    {
+  const mounts: MedicalStoreMount[] = [];
+  if (companions.medicationsStore) {
+    mounts.push({
       moduleId: 'minimed.medications.ru',
       store: companions.medicationsStore,
       required: true,
       enabled: true,
       searchWeight: 1.15,
-    },
-  ];
+    });
+  }
   if (companions.regulatoryStore && !installedModuleIds.has(BUILT_IN_REGULATORY_MODULE_ID)) {
     mounts.push({
       moduleId: BUILT_IN_REGULATORY_MODULE_ID,
@@ -144,13 +179,13 @@ async function createOptionalPackagedStore(
 }
 
 async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
-  const medicationsStore = await createPackagedWasmStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME);
-  const [regulatoryStore, referenceStore] = await Promise.all([
+  const [medicationsStore, regulatoryStore, referenceStore] = await Promise.all([
+    createOptionalPackagedStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
     createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
     createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
   ]);
   return {
-    medicationsStore,
+    ...(medicationsStore ? { medicationsStore } : {}),
     ...(regulatoryStore ? { regulatoryStore } : {}),
     ...(referenceStore ? { referenceStore } : {}),
   };
@@ -183,10 +218,11 @@ export async function createBrowserCore() {
 
   try {
     const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
-    const store = await withInstalledModules(
-      await createPackagedWasmStore(contentBaseUrl),
-      await createPackagedCompanionStores(contentBaseUrl),
-    );
+    const [coreStore, companions] = await Promise.all([
+      createPackagedWasmStore(contentBaseUrl),
+      createPackagedCompanionStores(contentBaseUrl),
+    ]);
+    const store = await withInstalledModules(coreStore, companions);
     return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Compiled content pack unavailable; falling back to the embedded seed.', error);
@@ -208,10 +244,11 @@ export async function createBrowserCore() {
 
 export async function createBrowserWorkerCore(contentBaseUrl: string) {
   try {
-    const store = await withInstalledModules(
-      await createPackagedWasmStore(contentBaseUrl),
-      await createPackagedCompanionStores(contentBaseUrl),
-    );
+    const [coreStore, companions] = await Promise.all([
+      createPackagedWasmStore(contentBaseUrl),
+      createPackagedCompanionStores(contentBaseUrl),
+    ]);
+    const store = await withInstalledModules(coreStore, companions);
     return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
   } catch (error) {
     console.warn('Worker content pack unavailable; falling back to the embedded seed.', error);
