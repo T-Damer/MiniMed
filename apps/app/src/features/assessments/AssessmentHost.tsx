@@ -12,7 +12,9 @@ export function AssessmentHost(): JSX.Element {
   const open = () => route().startsWith('assessments');
   const calculatorOpen = () => route().startsWith('calculators');
 
-  const refresh = (): void => setRoute(currentRoute());
+  const refresh = (): void => {
+    setRoute(currentRoute());
+  };
   onMount(() => window.addEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('hashchange', refresh));
 
