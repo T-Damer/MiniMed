@@ -3,17 +3,16 @@ import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from '
 import { AppGlyph } from '@/components/AppGlyph';
 import { AssessmentsView } from '@/features/assessments/AssessmentsView';
 
-function routeIsAssessment(): boolean {
-  return window.location.hash.replace(/^#\/?/u, '').startsWith('assessments');
+function currentRoute(): string {
+  return window.location.hash.replace(/^#\/?/u, '');
 }
 
 export function AssessmentHost(): JSX.Element {
-  const [open, setOpen] = createSignal(routeIsAssessment());
+  const [route, setRoute] = createSignal(currentRoute());
+  const open = () => route().startsWith('assessments');
+  const calculatorOpen = () => route().startsWith('calculators');
 
-  const refresh = (): void => {
-    setOpen(routeIsAssessment());
-  };
-
+  const refresh = (): void => setRoute(currentRoute());
   onMount(() => window.addEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('hashchange', refresh));
 
@@ -26,17 +25,19 @@ export function AssessmentHost(): JSX.Element {
     <Show
       when={open()}
       fallback={
-        <button
-          class="assessment-launch-button"
-          type="button"
-          aria-label="Открыть тесты и опросники"
-          onClick={() => {
-            window.location.hash = '#/assessments';
-          }}
-        >
-          <AppGlyph name="brain" />
-          <span>Тесты</span>
-        </button>
+        <Show when={!calculatorOpen()}>
+          <button
+            class="assessment-launch-button"
+            type="button"
+            aria-label="Открыть тесты и опросники"
+            onClick={() => {
+              window.location.hash = '#/assessments';
+            }}
+          >
+            <AppGlyph name="brain" />
+            <span>Тесты</span>
+          </button>
+        </Show>
       }
     >
       <div class="assessment-overlay-shell">
