@@ -12,11 +12,11 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 import {
+  type CreatinineUnit,
   calculateAdultEgfrCkdEpi2021,
   calculateMostellerBsa,
   calculatePediatricEgfrSchwartz2009,
   calculatePediatricMaintenanceFluids,
-  type CreatinineUnit,
   type StoredCalculationResult,
 } from '@/features/calculators/clinical-calculations';
 import {
@@ -25,11 +25,11 @@ import {
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
 import {
+  type CalculationRecord,
   createCalculationRecord,
   deleteCalculationRecord,
   loadCalculationHistory,
   saveCalculationRecord,
-  type CalculationRecord,
 } from '@/state/calculation-history';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
 
@@ -271,13 +271,17 @@ function CalculatorForm(props: {
         <label>
           <span>Из единицы</span>
           <select value={fromUnit()} onChange={(event) => setFromUnit(event.currentTarget.value)}>
-            <For each={unitsForFamily(family())}>{(unit) => <option value={unit}>{unit}</option>}</For>
+            <For each={unitsForFamily(family())}>
+              {(unit) => <option value={unit}>{unit}</option>}
+            </For>
           </select>
         </label>
         <label>
           <span>В единицу</span>
           <select value={toUnit()} onChange={(event) => setToUnit(event.currentTarget.value)}>
-            <For each={unitsForFamily(family())}>{(unit) => <option value={unit}>{unit}</option>}</For>
+            <For each={unitsForFamily(family())}>
+              {(unit) => <option value={unit}>{unit}</option>}
+            </For>
           </select>
         </label>
       </Show>
@@ -510,7 +514,9 @@ function CalculationResultPanel(props: {
               onChange={(event) => setSelectedCardId(event.currentTarget.value)}
             >
               <option value="">Создать новую карточку</option>
-              <For each={notes().cards}>{(card) => <option value={card.id}>{card.title}</option>}</For>
+              <For each={notes().cards}>
+                {(card) => <option value={card.id}>{card.title}</option>}
+              </For>
             </select>
           </label>
           <Show when={!selectedCardId()}>
@@ -535,7 +541,9 @@ function CalculationResultPanel(props: {
 export function CalculatorsView(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
   const [query, setQuery] = createSignal('');
-  const [history, setHistory] = createSignal<readonly CalculationRecord[]>(loadCalculationHistory());
+  const [history, setHistory] = createSignal<readonly CalculationRecord[]>(
+    loadCalculationHistory(),
+  );
   const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
   const [message, setMessage] = createSignal('');
   let messageTimer: ReturnType<typeof setTimeout> | undefined;
@@ -576,7 +584,7 @@ export function CalculatorsView(): JSX.Element {
 
   const openHistoryRecord = (record: CalculationRecord): void => {
     const definition = findCalculator(record.calculatorId);
-    if (!definition || definition.state !== 'available') return;
+    if (definition?.state !== 'available') return;
     setActiveRecord(record);
     window.location.hash = `#/calculators/${definition.slug}`;
   };
@@ -623,7 +631,9 @@ export function CalculatorsView(): JSX.Element {
                   <For each={history()}>
                     {(record) => (
                       <button type="button" onClick={() => openHistoryRecord(record)}>
-                        <strong>{findCalculator(record.calculatorId)?.title ?? record.calculatorId}</strong>
+                        <strong>
+                          {findCalculator(record.calculatorId)?.title ?? record.calculatorId}
+                        </strong>
                         <span>{record.subjectLabel || record.inputSummary}</span>
                         <small>
                           {new Intl.DateTimeFormat('ru-RU', {
