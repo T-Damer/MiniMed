@@ -1,0 +1,110 @@
+name: Finalize patient assessments preview
+
+on:
+  push:
+    branches: [feature/patient-assessments]
+    paths:
+      - .github/workflows/format-patient-assessments.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-patient-assessments
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feature/patient-assessments
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Move questionnaires to psychology and psychodiagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          assessment_files = [
+              Path('apps/app/src/features/assessments/braverman-assessment.ts'),
+              Path('apps/app/src/features/assessments/egogram-assessment.ts'),
+              Path('apps/app/src/features/assessments/paei-assessment.ts'),
+              Path('apps/app/src/features/assessments/team-roles-assessment.ts'),
+              Path('apps/app/src/features/assessments/temperament-assessment.ts'),
+          ]
+          for path in assessment_files:
+              text = path.read_text(encoding='utf-8')
+              text = text.replace("  bankId: 'psychiatry',", "  bankId: 'psychology',")
+              text = text.replace(
+                  "  bankLabel: 'Психиатрия и психология',",
+                  "  bankLabel: 'Психология и психодиагностика',",
+              )
+              path.write_text(text, encoding='utf-8')
+
+          catalog = Path('apps/app/src/features/assessments/AssessmentCatalogPage.tsx')
+          text = catalog.read_text(encoding='utf-8').replace(
+              'Психометрия и самонаблюдение',
+              'Психология и психодиагностика',
+          )
+          catalog.write_text(text, encoding='utf-8')
+
+          for path in sorted(Path('content/reference-rf-pilot').glob('assessment-*.md')):
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('  - psychiatry\n  - psychology\n', '  - psychology\n')
+              path.write_text(text, encoding='utf-8')
+
+          docs = Path('docs/ASSESSMENTS.md')
+          text = docs.read_text(encoding='utf-8')
+          text = text.replace('Психиатрия и психология', 'Психология и психодиагностика')
+          text = text.replace('банке «Психиатрия»', 'банке «Психология и психодиагностика»')
+          docs.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Install dependencies and format changed sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+          bunx biome check --write \
+            apps/app/src/components/DocumentText.tsx \
+            apps/app/src/features/assessments \
+            apps/app/src/state/assessment-results.ts
+
+      - name: Verify assessments and reference pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          bunx biome check --max-diagnostics=500 .
+          bun run typecheck
+          bun run test:unit
+          uv run --project tools/ingest medbase lint --input content/reference-rf-pilot
+          bun run build:app
+          bun run secrets:check
+
+      - name: Commit finalized branch and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/format-patient-assessments.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix(app): classify and verify psychology assessments'
+            git push origin HEAD:feature/patient-assessments
+          fi
