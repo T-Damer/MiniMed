@@ -27,12 +27,12 @@ A clinical calculator cannot move from `planned` to `available` until its defini
 
 Changing a formula, coefficient, population boundary, or interpretation rule requires a new reviewed source entry and regression tests. An article summary, search snippet, secondary calculator, or remembered formula is not sufficient as the sole source.
 
-## Initial delivery order
+## First preview set
 
 1. Unit conversion for mass, length, and volume.
-2. Adult renal-function block after its formula and population are explicitly selected.
-3. Pediatric renal-function block after its formula version, age limits, and laboratory assumptions are fixed.
-4. Pediatric anthropometry after one reference dataset and its LMS tables are versioned in the repository.
-5. Medication calculations only after dose source, concentration, route, maximum dose, and rounding policy are represented separately.
+2. Body surface area by the Mosteller 1987 equation.
+3. Adult creatinine eGFR by CKD-EPI 2021 without a race coefficient.
+4. Pediatric bedside CKiD/Schwartz 2009 with the source population restricted to ages 1–16 years.
+5. Pediatric maintenance water by Holliday–Segar 100/50/20 and the separately displayed 4–2–1 hourly approximation.
 
-Planned clinical calculators remain visible only as roadmap metadata and must not return numeric clinical results.
+Each preview result can be stored locally, printed, shared, and written to a patient note. Pediatric anthropometry and medication-dose calculators remain visible only as roadmap metadata and cannot return a numeric clinical result until their reference data and dosing rules are versioned.
