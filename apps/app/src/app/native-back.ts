@@ -1,8 +1,10 @@
 export type NativeBackAction = 'history' | 'search' | 'minimize';
 
+export type RootView = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes';
+
 export function nativeBackAction(
   route: string,
-  currentView: 'search' | 'modules' | 'notes',
+  currentView: RootView,
   canGoBack: boolean,
 ): NativeBackAction {
   if (
