@@ -4,6 +4,7 @@ export type CalculatorCategory =
   | 'unit-conversion'
   | 'renal'
   | 'anthropometry'
+  | 'fluids'
   | 'medication'
   | 'screening';
 
@@ -26,12 +27,18 @@ export interface CalculatorInputConstraint {
 
 export interface AvailableCalculatorDefinition {
   readonly id: string;
+  readonly slug: string;
   readonly state: 'available';
   readonly title: string;
+  readonly shortTitle: string;
+  readonly aliases: readonly string[];
   readonly summary: string;
   readonly audience: CalculatorAudience;
   readonly category: CalculatorCategory;
   readonly clinical: boolean;
+  readonly formula: string;
+  readonly population: string;
+  readonly limitations: readonly string[];
   readonly inputs: readonly CalculatorInputConstraint[];
   readonly sources: readonly CalculatorSourceReference[];
 }
