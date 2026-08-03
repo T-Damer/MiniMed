@@ -3,7 +3,20 @@ import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'so
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
-import { findAssessmentBySlug, searchAssessments } from '@/features/assessments/assessment-catalog';
+import {
+  ASSESSMENT_CATALOG,
+  findAssessmentBySlug,
+  searchAssessments,
+} from '@/features/assessments/assessment-catalog';
+import {
+  ASSESSMENT_PACKS_EVENT,
+  installAssessmentIds,
+  installAssessmentSection,
+  loadInstalledAssessmentIds,
+  removeAssessmentIds,
+  removeAssessmentSection,
+  type AssessmentSectionId,
+} from '@/features/assessments/assessment-packs';
 import type { AssessmentRecord } from '@/features/assessments/assessment-types';
 import {
   ASSESSMENT_RESULTS_EVENT,
@@ -48,6 +61,9 @@ export function AssessmentsView(): JSX.Element {
   const [query, setQuery] = createSignal('');
   const [records, setRecords] = createSignal<readonly AssessmentRecord[]>([]);
   const [notes, setNotes] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
+  const [installedIds, setInstalledIds] = createSignal<ReadonlySet<string>>(
+    loadInstalledAssessmentIds(ASSESSMENT_CATALOG),
+  );
   const [message, setMessage] = createSignal('');
 
   const refreshRecords = (): void => {
@@ -55,6 +71,9 @@ export function AssessmentsView(): JSX.Element {
   };
   const refreshNotes = (): void => {
     setNotes(loadPatientNotes());
+  };
+  const refreshPacks = (): void => {
+    setInstalledIds(loadInstalledAssessmentIds(ASSESSMENT_CATALOG));
   };
   const handleHashChange = (): void => {
     setRoute(readRoute());
@@ -65,20 +84,27 @@ export function AssessmentsView(): JSX.Element {
   onMount(() => {
     refreshRecords();
     refreshNotes();
+    refreshPacks();
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
     window.addEventListener(PATIENT_NOTES_EVENT, refreshNotes);
+    window.addEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
   });
 
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshNotes);
+    window.removeEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
   });
 
   const definition = createMemo(() => {
     const current = route();
     return current.kind === 'index' ? undefined : findAssessmentBySlug(current.slug);
+  });
+  const definitionInstalled = createMemo(() => {
+    const current = definition();
+    return Boolean(current && installedIds().has(current.id));
   });
   const record = createMemo(() => {
     const current = route();
@@ -90,6 +116,23 @@ export function AssessmentsView(): JSX.Element {
   });
   const navigate = (hash: string): void => {
     window.location.hash = hash;
+  };
+  const installDefinition = (id: string): void => {
+    setInstalledIds(installAssessmentIds([id], ASSESSMENT_CATALOG));
+    setMessage('Опросник добавлен на устройство.');
+  };
+  const removeDefinition = (id: string): void => {
+    setInstalledIds(removeAssessmentIds([id], ASSESSMENT_CATALOG));
+    setMessage('Опросник удалён с устройства. Сохранённые результаты не изменены.');
+  };
+  const installSection = (sectionId: AssessmentSectionId): void => {
+    setInstalledIds(installAssessmentSection(sectionId, ASSESSMENT_CATALOG));
+    setMessage('Раздел опросников добавлен на устройство.');
+  };
+  const removeSection = (sectionId: AssessmentSectionId): void => {
+    if (!window.confirm('Удалить все опросники этого раздела с устройства?')) return;
+    setInstalledIds(removeAssessmentSection(sectionId, ASSESSMENT_CATALOG));
+    setMessage('Раздел удалён. Сохранённые результаты не изменены.');
   };
 
   return (
@@ -105,6 +148,7 @@ export function AssessmentsView(): JSX.Element {
       <Show when={route().kind === 'index'}>
         <AssessmentCatalogPage
           definitions={searchAssessments(query())}
+          installedIds={installedIds()}
           query={query()}
           recentRecords={records().slice(0, 8)}
           onQuery={setQuery}
@@ -112,10 +156,14 @@ export function AssessmentsView(): JSX.Element {
           onOpenRecord={(selected, selectedRecord) =>
             navigate(resultPath(selected.slug, selectedRecord.id))
           }
+          onInstall={(selected) => installDefinition(selected.id)}
+          onRemove={(selected) => removeDefinition(selected.id)}
+          onInstallSection={installSection}
+          onRemoveSection={removeSection}
         />
       </Show>
 
-      <Show when={route().kind === 'assessment' && definition()}>
+      <Show when={route().kind === 'assessment' && definition() && definitionInstalled()}>
         {(selected) => (
           <AssessmentQuestionnairePage
             definition={selected()}
@@ -126,6 +174,23 @@ export function AssessmentsView(): JSX.Element {
               navigate(resultPath(selected().slug, saved.id));
             }}
           />
+        )}
+      </Show>
+
+      <Show when={route().kind === 'assessment' && definition() && !definitionInstalled()}>
+        {(selected) => (
+          <section class="assessment-pack-required paper-card">
+            <h1>{selected().title}</h1>
+            <p>Опросник не установлен. Его можно добавить отдельно, не загружая весь раздел.</p>
+            <div>
+              <button type="button" onClick={() => installDefinition(selected().id)}>
+                Скачать опросник
+              </button>
+              <button type="button" onClick={() => navigate('#/assessments')}>
+                К разделам
+              </button>
+            </div>
+          </section>
         )}
       </Show>
 
