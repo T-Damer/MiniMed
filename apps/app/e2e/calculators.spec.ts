@@ -5,7 +5,12 @@ import { mountBuiltApp } from './mount-built-app';
 test('calculates body surface area and writes the result to a patient note', async ({ page }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
 
-  await page.getByRole('button', { name: 'Открыть медицинские калькуляторы' }).click();
+  await expect(page.locator('.calculator-launch-button')).toHaveCount(0);
+  await page
+    .locator('.app-bottom-nav')
+    .getByRole('button', { name: 'Калькуляторы', exact: true })
+    .click();
+  await expect(page).toHaveURL(/#\/calculators$/u);
   await expect(page.getByRole('heading', { name: 'Медицинские калькуляторы' })).toBeVisible();
 
   await page.getByTestId('calculator-open-body-surface-area-mosteller').click();
@@ -25,7 +30,6 @@ test('calculates body surface area and writes the result to a patient note', asy
   await page.getByRole('button', { name: 'Записать результат' }).click();
   await expect(page.getByText('Расчёт записан в карточку пациента.')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Закрыть калькуляторы' }).click();
   await page
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Заметки', exact: true })

@@ -7,7 +7,9 @@ test('completes a psychology questionnaire and writes the result to a patient no
 }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
 
-  await page.getByRole('button', { name: 'Открыть тесты и опросники' }).click();
+  await expect(page.locator('.assessment-launch-button')).toHaveCount(0);
+  await page.locator('.app-bottom-nav').getByRole('button', { name: 'Тесты', exact: true }).click();
+  await expect(page).toHaveURL(/#\/assessments$/u);
   await expect(page.getByRole('heading', { name: 'Тесты и опросники' })).toBeVisible();
   await expect(page.getByText('Психология и психодиагностика').first()).toBeVisible();
 
@@ -32,7 +34,6 @@ test('completes a psychology questionnaire and writes the result to a patient no
   await page.getByTestId('assessment-save-note').click();
   await page.getByRole('button', { name: 'Записать результат' }).click();
 
-  await page.getByRole('button', { name: 'Закрыть тесты' }).click();
   await page
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Заметки', exact: true })
