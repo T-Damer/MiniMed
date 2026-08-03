@@ -3,6 +3,7 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
+import { MedicationInteractionChecker } from '@/features/interactions/MedicationInteractionChecker';
 import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
 import type { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
 import {
@@ -71,6 +72,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     all: 0,
   });
   const [helpOpen, setHelpOpen] = createSignal(false);
+  const [detectedMedicationNames, setDetectedMedicationNames] = createSignal<readonly string[]>([]);
 
   const refreshDocumentCounts = (): void => {
     void props.baseCore.listDocuments().then((result) => {
@@ -112,6 +114,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
 
   const selectScope = (next: SearchScope): void => {
     setScope(next);
+    if (next !== 'medications') setDetectedMedicationNames([]);
   };
 
   const replayHistory = (entry: SearchHistoryEntry): void => {
@@ -151,6 +154,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         <Show when={scope() === 'diagnosis' && props.assistantCore}>
           <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
         </Show>
+        <Show when={scope() === 'medications'}>
+          <MedicationInteractionChecker detectedMedicationNames={detectedMedicationNames()} />
+        </Show>
         <SearchWorkspace
           core={scopedCore() ?? props.baseCore}
           scope={scope() ?? 'all'}
@@ -160,6 +166,14 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
               : 'Выберите режим поиска'
           }
+          onAnalysis={(analysis) => {
+            if (scope() !== 'medications') return;
+            setDetectedMedicationNames(
+              analysis.facts
+                .filter((fact) => fact.kind === 'medication' && fact.polarity !== 'negative')
+                .map((fact) => fact.value),
+            );
+          }}
           modePicker={
             <fieldset class="search-mode-picker">
               <legend class="visually-hidden">Режим поиска</legend>
