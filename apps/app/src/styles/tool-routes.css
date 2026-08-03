@@ -1,0 +1,112 @@
+.assessments-page,
+.calculators-page {
+  box-sizing: border-box;
+  width: min(100%, 65ch);
+  min-height: calc(100dvh - 3.25rem - var(--safe-top) - var(--safe-bottom));
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem)
+    calc(6.5rem + var(--safe-bottom));
+}
+
+.assessments-page.page-surface {
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem)
+    calc(6.5rem + var(--safe-bottom));
+}
+
+.assessments-heading p,
+.calculators-heading p,
+.assessment-workspace,
+.assessment-result-page,
+.calculator-workspace {
+  width: 100%;
+  max-width: 65ch;
+}
+
+.assessment-catalog-grid,
+.calculator-catalog-grid {
+  width: 100%;
+}
+
+.assessment-card,
+.assessment-manual-panel,
+.assessment-note-panel,
+.assessment-methodology,
+.assessment-submit-panel,
+.assessment-result-summary,
+.assessment-result-actions,
+.assessment-not-found,
+.calculator-card,
+.calculator-form,
+.calculator-result,
+.calculator-note-panel {
+  padding: clamp(0.875rem, 2.5vw, 1.25rem);
+}
+
+.assessment-question {
+  padding: clamp(0.875rem, 2.5vw, 1.125rem);
+}
+
+.assessment-history,
+.calculator-history {
+  padding-block: 0.25rem;
+}
+
+.assessment-subpage-header,
+.calculator-subpage-header {
+  padding-inline: 0;
+}
+
+.calculator-subpage-header {
+  padding-right: 0;
+}
+
+.assessment-launch-button,
+.calculator-launch-button,
+.assessment-overlay-close,
+.calculator-overlay-close {
+  display: none !important;
+}
+
+.boot-card > button {
+  min-height: 2.75rem;
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.9rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.5rem;
+  color: var(--button-on-accent, #fff);
+  background: var(--accent, #2f5f55);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.app-bottom-nav {
+  padding-inline: max(0.375rem, var(--safe-left)) max(0.375rem, var(--safe-right));
+}
+
+.app-bottom-nav .app-nav-item {
+  min-width: 0;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  .assessments-page,
+  .calculators-page,
+  .assessments-page.page-surface {
+    padding-inline: 0.75rem;
+  }
+
+  .app-bottom-nav .app-nav-button {
+    width: clamp(2.25rem, 17vw, 3rem);
+  }
+}
+
+@media print {
+  .assessments-page,
+  .calculators-page,
+  .assessments-page.page-surface {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+}
