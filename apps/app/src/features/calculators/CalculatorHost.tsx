@@ -1,16 +1,16 @@
 import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
-import { AssessmentsView } from '@/features/assessments/AssessmentsView';
+import { CalculatorsView } from '@/features/calculators/CalculatorsView';
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
 }
 
-export function AssessmentHost(): JSX.Element {
+export function CalculatorHost(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
-  const open = () => route().startsWith('assessments');
-  const calculatorOpen = () => route().startsWith('calculators');
+  const open = () => route().startsWith('calculators');
+  const assessmentOpen = () => route().startsWith('assessments');
 
   const refresh = (): void => {
     setRoute(currentRoute());
@@ -19,41 +19,41 @@ export function AssessmentHost(): JSX.Element {
   onCleanup(() => window.removeEventListener('hashchange', refresh));
 
   createEffect(() => {
-    document.documentElement.classList.toggle('assessment-route-open', open());
+    document.documentElement.classList.toggle('calculator-route-open', open());
   });
-  onCleanup(() => document.documentElement.classList.remove('assessment-route-open'));
+  onCleanup(() => document.documentElement.classList.remove('calculator-route-open'));
 
   return (
     <Show
       when={open()}
       fallback={
-        <Show when={!calculatorOpen()}>
+        <Show when={!assessmentOpen()}>
           <button
-            class="assessment-launch-button"
+            class="calculator-launch-button"
             type="button"
-            aria-label="Открыть тесты и опросники"
+            aria-label="Открыть медицинские калькуляторы"
             onClick={() => {
-              window.location.hash = '#/assessments';
+              window.location.hash = '#/calculators';
             }}
           >
-            <AppGlyph name="brain" />
-            <span>Тесты</span>
+            <AppGlyph name="graph" />
+            <span>Расчёты</span>
           </button>
         </Show>
       }
     >
-      <div class="assessment-overlay-shell">
+      <div class="calculator-overlay-shell">
         <button
-          class="assessment-overlay-close"
+          class="calculator-overlay-close"
           type="button"
-          aria-label="Закрыть тесты"
+          aria-label="Закрыть калькуляторы"
           onClick={() => {
             window.location.hash = '#/search';
           }}
         >
           <AppGlyph name="close" />
         </button>
-        <AssessmentsView />
+        <CalculatorsView />
       </div>
     </Show>
   );
