@@ -1,14 +1,4 @@
-import {
-  createMemo,
-  createSignal,
-  For,
-  type JSX,
-  Match,
-  onCleanup,
-  onMount,
-  Show,
-  Switch,
-} from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import {
@@ -17,14 +7,17 @@ import {
   shareCalculationRecord,
 } from '@/features/calculators/calculator-print';
 import { findCalculator, searchCalculators } from '@/features/calculators/calculator-registry';
-import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
+import type {
+  AvailableCalculatorDefinition,
+  CalculatorDefinition,
+} from '@/features/calculators/calculator-types';
 import {
-  type ClinicalCalculationResult,
-  type CreatinineUnit,
   calculateAdultEgfrCkdEpi2021,
   calculateMostellerBsa,
   calculatePediatricEgfrSchwartz2009,
   calculatePediatricMaintenanceFluids,
+  type CreatinineUnit,
+  type StoredCalculationResult,
 } from '@/features/calculators/clinical-calculations';
 import {
   convertQuantity,
@@ -32,12 +25,11 @@ import {
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
 import {
-  type CalculationRecord,
   createCalculationRecord,
   deleteCalculationRecord,
   loadCalculationHistory,
-  type StoredCalculationResult,
   saveCalculationRecord,
+  type CalculationRecord,
 } from '@/state/calculation-history';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
 
@@ -57,8 +49,39 @@ function formatNumber(value: number, precision = 4): string {
   }).format(value);
 }
 
-function isSuccessfulResult(value: ClinicalCalculationResult): value is StoredCalculationResult {
-  return value.ok;
+function audienceLabel(definition: CalculatorDefinition): string {
+  if (definition.audience === 'adult') return 'Взрослые';
+  if (definition.audience === 'pediatric') return 'Дети';
+  return 'Все';
+}
+
+function CalculatorCard(props: {
+  readonly definition: CalculatorDefinition;
+  readonly onOpen: (definition: AvailableCalculatorDefinition) => void;
+}): JSX.Element {
+  const definition = props.definition;
+  return (
+    <article class="calculator-card paper-card">
+      <div class="calculator-card-meta">
+        <span>{audienceLabel(definition)}</span>
+        <span>{definition.clinical ? 'Клинический' : 'Служебный'}</span>
+        <span>{definition.state === 'available' ? 'Доступен' : 'В плане'}</span>
+      </div>
+      <h2>{definition.title}</h2>
+      <p>{definition.summary}</p>
+      {definition.state === 'available' ? (
+        <button
+          type="button"
+          data-testid={`calculator-open-${definition.slug}`}
+          onClick={() => props.onOpen(definition)}
+        >
+          Открыть
+        </button>
+      ) : (
+        <small>{definition.sourceRequirement}</small>
+      )}
+    </article>
+  );
 }
 
 function CalculatorForm(props: {
@@ -79,79 +102,99 @@ function CalculatorForm(props: {
   const [creatinineUnit, setCreatinineUnit] = createSignal<CreatinineUnit>('umol/l');
 
   const changeFamily = (next: QuantityFamily): void => {
-    setFamily(next);
     const units = unitsForFamily(next);
+    setFamily(next);
     setFromUnit(units[0] ?? '');
     setToUnit(units[1] ?? units[0] ?? '');
   };
 
   const submit = (): void => {
-    let result: StoredCalculationResult | undefined;
-    let inputSummary = '';
+    let result: StoredCalculationResult;
+    let inputSummary: string;
 
-    if (props.definition.id === 'unit-conversion') {
-      const conversion = convertQuantity({
-        family: family(),
-        value: parseNumber(value()),
-        from: fromUnit(),
-        to: toUnit(),
-      });
-      if (!conversion.ok) {
-        props.onMessage(conversion.error.message);
-        return;
-      }
-      result = {
-        ok: true,
-        calculatorId: props.definition.id,
-        formula: props.definition.formula,
-        value: conversion.value,
-        unit: conversion.unit,
-        displayPrecision: 8,
-        trace: conversion.trace,
-        warnings: [],
-      };
-      inputSummary = `${value()} ${fromUnit()} → ${toUnit()}`;
-    } else {
-      let clinical: ClinicalCalculationResult;
-      switch (props.definition.id) {
-        case 'body-surface-area-mosteller':
-          clinical = calculateMostellerBsa({
-            heightCm: parseNumber(heightCm()),
-            weightKg: parseNumber(weightKg()),
-          });
-          inputSummary = `рост ${heightCm()} см, масса ${weightKg()} кг`;
-          break;
-        case 'adult-egfr-ckd-epi-2021':
-          clinical = calculateAdultEgfrCkdEpi2021({
-            ageYears: parseNumber(ageYears()),
-            sex: sex(),
-            creatinine: parseNumber(creatinine()),
-            creatinineUnit: creatinineUnit(),
-          });
-          inputSummary = `возраст ${ageYears()} лет, пол ${sex() === 'female' ? 'женский' : 'мужской'}, креатинин ${creatinine()} ${creatinineUnit() === 'umol/l' ? 'мкмоль/л' : 'мг/дл'}`;
-          break;
-        case 'pediatric-egfr-schwartz-2009':
-          clinical = calculatePediatricEgfrSchwartz2009({
-            ageYears: parseNumber(ageYears()),
-            heightCm: parseNumber(heightCm()),
-            creatinine: parseNumber(creatinine()),
-            creatinineUnit: creatinineUnit(),
-          });
-          inputSummary = `возраст ${ageYears()} лет, рост ${heightCm()} см, креатинин ${creatinine()} ${creatinineUnit() === 'umol/l' ? 'мкмоль/л' : 'мг/дл'}`;
-          break;
-        case 'pediatric-maintenance-fluids':
-          clinical = calculatePediatricMaintenanceFluids({ weightKg: parseNumber(weightKg()) });
-          inputSummary = `масса ${weightKg()} кг`;
-          break;
-        default:
-          props.onMessage('Этот калькулятор пока недоступен.');
+    switch (props.definition.id) {
+      case 'unit-conversion': {
+        const conversion = convertQuantity({
+          family: family(),
+          value: parseNumber(value()),
+          from: fromUnit(),
+          to: toUnit(),
+        });
+        if (!conversion.ok) {
+          props.onMessage(conversion.error.message);
           return;
+        }
+        result = {
+          ok: true,
+          calculatorId: props.definition.id,
+          formula: props.definition.formula,
+          value: conversion.value,
+          unit: conversion.unit,
+          displayPrecision: 8,
+          trace: conversion.trace,
+          warnings: [],
+        };
+        inputSummary = `${value()} ${fromUnit()} → ${toUnit()}`;
+        break;
       }
-      if (!isSuccessfulResult(clinical)) {
-        props.onMessage(clinical.error);
+      case 'body-surface-area-mosteller': {
+        const calculation = calculateMostellerBsa({
+          heightCm: parseNumber(heightCm()),
+          weightKg: parseNumber(weightKg()),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `рост ${heightCm()} см, масса ${weightKg()} кг`;
+        break;
+      }
+      case 'adult-egfr-ckd-epi-2021': {
+        const calculation = calculateAdultEgfrCkdEpi2021({
+          ageYears: parseNumber(ageYears()),
+          sex: sex(),
+          creatinine: parseNumber(creatinine()),
+          creatinineUnit: creatinineUnit(),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `возраст ${ageYears()} лет, пол ${sex() === 'female' ? 'женский' : 'мужской'}, креатинин ${creatinine()} ${creatinineUnit() === 'umol/l' ? 'мкмоль/л' : 'мг/дл'}`;
+        break;
+      }
+      case 'pediatric-egfr-schwartz-2009': {
+        const calculation = calculatePediatricEgfrSchwartz2009({
+          ageYears: parseNumber(ageYears()),
+          heightCm: parseNumber(heightCm()),
+          creatinine: parseNumber(creatinine()),
+          creatinineUnit: creatinineUnit(),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `возраст ${ageYears()} лет, рост ${heightCm()} см, креатинин ${creatinine()} ${creatinineUnit() === 'umol/l' ? 'мкмоль/л' : 'мг/дл'}`;
+        break;
+      }
+      case 'pediatric-maintenance-fluids': {
+        const calculation = calculatePediatricMaintenanceFluids({
+          weightKg: parseNumber(weightKg()),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `масса ${weightKg()} кг`;
+        break;
+      }
+      default:
+        props.onMessage('Этот калькулятор пока недоступен.');
         return;
-      }
-      result = clinical;
     }
 
     const record = createCalculationRecord({
@@ -164,6 +207,29 @@ function CalculatorForm(props: {
     props.onRecord(record);
     props.onMessage('Расчёт сохранён локально.');
   };
+
+  const creatinineFields = () => (
+    <>
+      <label>
+        <span>Креатинин</span>
+        <input
+          inputmode="decimal"
+          value={creatinine()}
+          onInput={(event) => setCreatinine(event.currentTarget.value)}
+        />
+      </label>
+      <label>
+        <span>Единицы креатинина</span>
+        <select
+          value={creatinineUnit()}
+          onChange={(event) => setCreatinineUnit(event.currentTarget.value as CreatinineUnit)}
+        >
+          <option value="umol/l">мкмоль/л</option>
+          <option value="mg/dl">мг/дл</option>
+        </select>
+      </label>
+    </>
+  );
 
   return (
     <form
@@ -182,151 +248,111 @@ function CalculatorForm(props: {
         />
       </label>
 
-      <Switch>
-        <Match when={props.definition.id === 'unit-conversion'}>
-          <label>
-            <span>Величина</span>
-            <select
-              value={family()}
-              onChange={(event) => changeFamily(event.currentTarget.value as QuantityFamily)}
-            >
-              <option value="mass">Масса</option>
-              <option value="length">Длина</option>
-              <option value="volume">Объём</option>
-            </select>
-          </label>
-          <label>
-            <span>Значение</span>
-            <input
-              inputmode="decimal"
-              value={value()}
-              onInput={(event) => setValue(event.currentTarget.value)}
-            />
-          </label>
-          <label>
-            <span>Из единицы</span>
-            <select value={fromUnit()} onChange={(event) => setFromUnit(event.currentTarget.value)}>
-              <For each={unitsForFamily(family())}>
-                {(unit) => <option value={unit}>{unit}</option>}
-              </For>
-            </select>
-          </label>
-          <label>
-            <span>В единицу</span>
-            <select value={toUnit()} onChange={(event) => setToUnit(event.currentTarget.value)}>
-              <For each={unitsForFamily(family())}>
-                {(unit) => <option value={unit}>{unit}</option>}
-              </For>
-            </select>
-          </label>
-        </Match>
+      <Show when={props.definition.id === 'unit-conversion'}>
+        <label>
+          <span>Величина</span>
+          <select
+            value={family()}
+            onChange={(event) => changeFamily(event.currentTarget.value as QuantityFamily)}
+          >
+            <option value="mass">Масса</option>
+            <option value="length">Длина</option>
+            <option value="volume">Объём</option>
+          </select>
+        </label>
+        <label>
+          <span>Значение</span>
+          <input
+            inputmode="decimal"
+            value={value()}
+            onInput={(event) => setValue(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Из единицы</span>
+          <select value={fromUnit()} onChange={(event) => setFromUnit(event.currentTarget.value)}>
+            <For each={unitsForFamily(family())}>{(unit) => <option value={unit}>{unit}</option>}</For>
+          </select>
+        </label>
+        <label>
+          <span>В единицу</span>
+          <select value={toUnit()} onChange={(event) => setToUnit(event.currentTarget.value)}>
+            <For each={unitsForFamily(family())}>{(unit) => <option value={unit}>{unit}</option>}</For>
+          </select>
+        </label>
+      </Show>
 
-        <Match when={props.definition.id === 'body-surface-area-mosteller'}>
-          <label>
-            <span>Рост, см</span>
-            <input
-              inputmode="decimal"
-              value={heightCm()}
-              onInput={(event) => setHeightCm(event.currentTarget.value)}
-            />
-          </label>
-          <label>
-            <span>Масса, кг</span>
-            <input
-              inputmode="decimal"
-              value={weightKg()}
-              onInput={(event) => setWeightKg(event.currentTarget.value)}
-            />
-          </label>
-        </Match>
+      <Show when={props.definition.id === 'body-surface-area-mosteller'}>
+        <label>
+          <span>Рост, см</span>
+          <input
+            inputmode="decimal"
+            value={heightCm()}
+            onInput={(event) => setHeightCm(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Масса, кг</span>
+          <input
+            inputmode="decimal"
+            value={weightKg()}
+            onInput={(event) => setWeightKg(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
 
-        <Match when={props.definition.id === 'adult-egfr-ckd-epi-2021'}>
-          <label>
-            <span>Возраст, лет</span>
-            <input
-              inputmode="decimal"
-              value={ageYears()}
-              onInput={(event) => setAgeYears(event.currentTarget.value)}
-            />
-          </label>
-          <label>
-            <span>Пол в формуле</span>
-            <select
-              value={sex()}
-              onChange={(event) => setSex(event.currentTarget.value as 'female' | 'male')}
-            >
-              <option value="female">Женский</option>
-              <option value="male">Мужской</option>
-            </select>
-          </label>
-          <label>
-            <span>Креатинин</span>
-            <input
-              inputmode="decimal"
-              value={creatinine()}
-              onInput={(event) => setCreatinine(event.currentTarget.value)}
-            />
-          </label>
-          <label>
-            <span>Единицы креатинина</span>
-            <select
-              value={creatinineUnit()}
-              onChange={(event) => setCreatinineUnit(event.currentTarget.value as CreatinineUnit)}
-            >
-              <option value="umol/l">мкмоль/л</option>
-              <option value="mg/dl">мг/дл</option>
-            </select>
-          </label>
-        </Match>
+      <Show when={props.definition.id === 'adult-egfr-ckd-epi-2021'}>
+        <label>
+          <span>Возраст, лет</span>
+          <input
+            inputmode="decimal"
+            value={ageYears()}
+            onInput={(event) => setAgeYears(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Пол в формуле</span>
+          <select
+            value={sex()}
+            onChange={(event) => setSex(event.currentTarget.value as 'female' | 'male')}
+          >
+            <option value="female">Женский</option>
+            <option value="male">Мужской</option>
+          </select>
+        </label>
+        {creatinineFields()}
+      </Show>
 
-        <Match when={props.definition.id === 'pediatric-egfr-schwartz-2009'}>
-          <label>
-            <span>Возраст, лет</span>
-            <input
-              inputmode="decimal"
-              value={ageYears()}
-              onInput={(event) => setAgeYears(event.currentTarget.value)}
-            />
-          </label>
-          <label>
-            <span>Рост, см</span>
-            <input
-              inputmode="decimal"
-              value={heightCm()}
-              onInput={(event) => setHeightCm(event.currentTarget.value)}
-            />
-          </label>
-          <label>
-            <span>Креатинин</span>
-            <input
-              inputmode="decimal"
-              value={creatinine()}
-              onInput={(event) => setCreatinine(event.currentTarget.value)}
-            />
-          </label>
-          <label>
-            <span>Единицы креатинина</span>
-            <select
-              value={creatinineUnit()}
-              onChange={(event) => setCreatinineUnit(event.currentTarget.value as CreatinineUnit)}
-            >
-              <option value="umol/l">мкмоль/л</option>
-              <option value="mg/dl">мг/дл</option>
-            </select>
-          </label>
-        </Match>
+      <Show when={props.definition.id === 'pediatric-egfr-schwartz-2009'}>
+        <label>
+          <span>Возраст, лет</span>
+          <input
+            inputmode="decimal"
+            value={ageYears()}
+            onInput={(event) => setAgeYears(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Рост, см</span>
+          <input
+            inputmode="decimal"
+            value={heightCm()}
+            onInput={(event) => setHeightCm(event.currentTarget.value)}
+          />
+        </label>
+        {creatinineFields()}
+      </Show>
 
-        <Match when={props.definition.id === 'pediatric-maintenance-fluids'}>
-          <label>
-            <span>Масса, кг</span>
-            <input
-              inputmode="decimal"
-              value={weightKg()}
-              onInput={(event) => setWeightKg(event.currentTarget.value)}
-            />
-          </label>
-        </Match>
-      </Switch>
+      <Show when={props.definition.id === 'pediatric-maintenance-fluids'}>
+        <label>
+          <span>Масса, кг</span>
+          <input
+            inputmode="decimal"
+            value={weightKg()}
+            onInput={(event) => setWeightKg(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
 
       <button class="calculator-submit" type="submit" data-testid="calculator-submit">
         Рассчитать и сохранить
@@ -346,6 +372,20 @@ function CalculationResultPanel(props: {
   const [selectedCardId, setSelectedCardId] = createSignal('');
   const [newCardTitle, setNewCardTitle] = createSignal('');
 
+  const outputs = () => {
+    const result = props.record.result;
+    return 'value' in result
+      ? [
+          {
+            label: 'Результат',
+            value: result.value,
+            unit: result.unit,
+            displayPrecision: result.displayPrecision,
+          },
+        ]
+      : result.values;
+  };
+
   const saveToNote = (): void => {
     let cardId = selectedCardId();
     if (!cardId) {
@@ -363,10 +403,9 @@ function CalculationResultPanel(props: {
       props.onMessage('Не удалось создать карточку пациента.');
       return;
     }
-    const next = addPatientNote(cardId, formatCalculationRecord(props.record));
-    setNotes(next);
-    props.onMessage('Расчёт записан в карточку пациента.');
+    setNotes(addPatientNote(cardId, formatCalculationRecord(props.record)));
     setNoteOpen(false);
+    props.onMessage('Расчёт записан в карточку пациента.');
   };
 
   return (
@@ -378,30 +417,16 @@ function CalculationResultPanel(props: {
       </header>
 
       <div class="calculator-output-list">
-        <Show
-          when={'value' in props.record.result}
-          fallback={
-            <For each={'values' in props.record.result ? props.record.result.values : []}>
-              {(item) => (
-                <div>
-                  <span>{item.label}</span>
-                  <strong>
-                    {formatNumber(item.value, item.displayPrecision)} {item.unit}
-                  </strong>
-                </div>
-              )}
-            </For>
-          }
-        >
-          <div>
-            <span>Результат</span>
-            <strong>
-              {'value' in props.record.result
-                ? `${formatNumber(props.record.result.value, props.record.result.displayPrecision)} ${props.record.result.unit}`
-                : ''}
-            </strong>
-          </div>
-        </Show>
+        <For each={outputs()}>
+          {(item) => (
+            <div>
+              <span>{item.label}</span>
+              <strong>
+                {formatNumber(item.value, item.displayPrecision)} {item.unit}
+              </strong>
+            </div>
+          )}
+        </For>
       </div>
 
       <details>
@@ -454,11 +479,11 @@ function CalculationResultPanel(props: {
           type="button"
           onClick={() => {
             void shareCalculationRecord(props.record)
-              .then((mode) =>
+              .then((mode) => {
                 props.onMessage(
                   mode === 'shared' ? 'Расчёт передан.' : 'Расчёт скопирован в буфер обмена.',
-                ),
-              )
+                );
+              })
               .catch(() => props.onMessage('Не удалось поделиться расчётом.'));
           }}
         >
@@ -485,9 +510,7 @@ function CalculationResultPanel(props: {
               onChange={(event) => setSelectedCardId(event.currentTarget.value)}
             >
               <option value="">Создать новую карточку</option>
-              <For each={notes().cards}>
-                {(card) => <option value={card.id}>{card.title}</option>}
-              </For>
+              <For each={notes().cards}>{(card) => <option value={card.id}>{card.title}</option>}</For>
             </select>
           </label>
           <Show when={!selectedCardId()}>
@@ -512,14 +535,14 @@ function CalculationResultPanel(props: {
 export function CalculatorsView(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
   const [query, setQuery] = createSignal('');
-  const [history, setHistory] = createSignal<readonly CalculationRecord[]>(
-    loadCalculationHistory(),
-  );
+  const [history, setHistory] = createSignal<readonly CalculationRecord[]>(loadCalculationHistory());
   const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
   const [message, setMessage] = createSignal('');
   let messageTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const refresh = (): void => setRoute(currentRoute());
+  const refresh = (): void => {
+    setRoute(currentRoute());
+  };
   onMount(() => window.addEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('hashchange', refresh));
   onCleanup(() => {
@@ -529,11 +552,13 @@ export function CalculatorsView(): JSX.Element {
   const notify = (text: string): void => {
     setMessage(text);
     if (messageTimer) clearTimeout(messageTimer);
-    messageTimer = setTimeout(() => setMessage(''), 3200);
+    messageTimer = setTimeout(() => {
+      setMessage('');
+    }, 3200);
   };
 
   const slug = createMemo(() => route().split('/')[1] ?? '');
-  const selected = createMemo(() => {
+  const selected = createMemo<AvailableCalculatorDefinition | undefined>(() => {
     const definition = slug() ? findCalculator(slug()) : undefined;
     return definition?.state === 'available' ? definition : undefined;
   });
@@ -547,6 +572,13 @@ export function CalculatorsView(): JSX.Element {
   const backToCatalog = (): void => {
     setActiveRecord(undefined);
     window.location.hash = '#/calculators';
+  };
+
+  const openHistoryRecord = (record: CalculationRecord): void => {
+    const definition = findCalculator(record.calculatorId);
+    if (!definition || definition.state !== 'available') return;
+    setActiveRecord(record);
+    window.location.hash = `#/calculators/${definition.slug}`;
   };
 
   return (
@@ -580,41 +612,7 @@ export function CalculatorsView(): JSX.Element {
 
             <div class="calculator-catalog-grid">
               <For each={filtered()}>
-                {(definition) => (
-                  <article class="calculator-card paper-card">
-                    <div class="calculator-card-meta">
-                      <span>
-                        {definition.audience === 'adult'
-                          ? 'Взрослые'
-                          : definition.audience === 'pediatric'
-                            ? 'Дети'
-                            : 'Все'}
-                      </span>
-                      <span>{definition.clinical ? 'Клинический' : 'Служебный'}</span>
-                      <span>{definition.state === 'available' ? 'Доступен' : 'В плане'}</span>
-                    </div>
-                    <h2>{definition.title}</h2>
-                    <p>{definition.summary}</p>
-                    <Show
-                      when={definition.state === 'available'}
-                      fallback={
-                        <small>
-                          {definition.state === 'planned' ? definition.sourceRequirement : ''}
-                        </small>
-                      }
-                    >
-                      {(available) => (
-                        <button
-                          type="button"
-                          data-testid={`calculator-open-${available().slug}`}
-                          onClick={() => openCalculator(available())}
-                        >
-                          Открыть
-                        </button>
-                      )}
-                    </Show>
-                  </article>
-                )}
+                {(definition) => <CalculatorCard definition={definition} onOpen={openCalculator} />}
               </For>
             </div>
 
@@ -623,31 +621,18 @@ export function CalculatorsView(): JSX.Element {
                 <h2>Последние расчёты</h2>
                 <div>
                   <For each={history()}>
-                    {(record) => {
-                      const definition = findCalculator(record.calculatorId);
-                      return (
-                        <Show when={definition?.state === 'available' ? definition : undefined}>
-                          {(available) => (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveRecord(record);
-                                window.location.hash = `#/calculators/${available().slug}`;
-                              }}
-                            >
-                              <strong>{available().shortTitle}</strong>
-                              <span>{record.subjectLabel || record.inputSummary}</span>
-                              <small>
-                                {new Intl.DateTimeFormat('ru-RU', {
-                                  dateStyle: 'short',
-                                  timeStyle: 'short',
-                                }).format(new Date(record.createdAt))}
-                              </small>
-                            </button>
-                          )}
-                        </Show>
-                      );
-                    }}
+                    {(record) => (
+                      <button type="button" onClick={() => openHistoryRecord(record)}>
+                        <strong>{findCalculator(record.calculatorId)?.title ?? record.calculatorId}</strong>
+                        <span>{record.subjectLabel || record.inputSummary}</span>
+                        <small>
+                          {new Intl.DateTimeFormat('ru-RU', {
+                            dateStyle: 'short',
+                            timeStyle: 'short',
+                          }).format(new Date(record.createdAt))}
+                        </small>
+                      </button>
+                    )}
                   </For>
                 </div>
               </section>
@@ -662,13 +647,7 @@ export function CalculatorsView(): JSX.Element {
                 <AppGlyph name="arrow-left" />
               </button>
               <div>
-                <p class="archive-kicker">
-                  {definition().audience === 'adult'
-                    ? 'Взрослые'
-                    : definition().audience === 'pediatric'
-                      ? 'Педиатрия'
-                      : 'Общие расчёты'}
-                </p>
+                <p class="archive-kicker">{audienceLabel(definition())}</p>
                 <h1>{definition().title}</h1>
                 <p>{definition().summary}</p>
               </div>
