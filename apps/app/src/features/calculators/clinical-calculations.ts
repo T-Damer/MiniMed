@@ -33,15 +33,14 @@ export interface DualCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
 }
 
+export type StoredCalculationResult = NumericCalculationResult | DualCalculationResult;
+
 export interface CalculationFailure {
   readonly ok: false;
   readonly error: string;
 }
 
-export type ClinicalCalculationResult =
-  | NumericCalculationResult
-  | DualCalculationResult
-  | CalculationFailure;
+export type ClinicalCalculationResult = StoredCalculationResult | CalculationFailure;
 
 const UMOL_PER_MG_DL_CREATININE = 88.4;
 
@@ -286,9 +285,24 @@ export function calculatePediatricMaintenanceFluids(input: {
     calculatorId: 'pediatric-maintenance-fluids',
     formula: 'Holliday–Segar 100/50/20 мл/кг/сут и приближённое правило 4–2–1 мл/кг/ч',
     values: [
-      { label: 'Суточная поддерживающая потребность', value: daily, unit: 'мл/сут', displayPrecision: 0 },
-      { label: 'Почасовая скорость 4–2–1', value: hourly421, unit: 'мл/ч', displayPrecision: 1 },
-      { label: 'Средняя скорость из суточного объёма', value: daily / 24, unit: 'мл/ч', displayPrecision: 1 },
+      {
+        label: 'Суточная поддерживающая потребность',
+        value: daily,
+        unit: 'мл/сут',
+        displayPrecision: 0,
+      },
+      {
+        label: 'Почасовая скорость 4–2–1',
+        value: hourly421,
+        unit: 'мл/ч',
+        displayPrecision: 1,
+      },
+      {
+        label: 'Средняя скорость из суточного объёма',
+        value: daily / 24,
+        unit: 'мл/ч',
+        displayPrecision: 1,
+      },
     ],
     trace: [
       {
