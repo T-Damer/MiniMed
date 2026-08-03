@@ -12,7 +12,9 @@ export function CalculatorHost(): JSX.Element {
   const open = () => route().startsWith('calculators');
   const assessmentOpen = () => route().startsWith('assessments');
 
-  const refresh = (): void => setRoute(currentRoute());
+  const refresh = (): void => {
+    setRoute(currentRoute());
+  };
   onMount(() => window.addEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('hashchange', refresh));
 
