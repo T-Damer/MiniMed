@@ -13,9 +13,15 @@ function installStorage(): void {
   const values = new Map<string, string>();
   const localStorage = {
     getItem: (key: string) => values.get(key) ?? null,
-    setItem: (key: string, value: string) => values.set(key, value),
-    removeItem: (key: string) => values.delete(key),
-    clear: () => values.clear(),
+    setItem: (key: string, value: string) => {
+      values.set(key, value);
+    },
+    removeItem: (key: string) => {
+      values.delete(key);
+    },
+    clear: () => {
+      values.clear();
+    },
     key: (index: number) => [...values.keys()][index] ?? null,
     get length() {
       return values.size;
@@ -46,9 +52,9 @@ describe('questionnaire packs', () => {
 
     const restored = installAssessmentSection('team-role', ASSESSMENT_CATALOG);
     expect(restored.has(target?.id ?? '')).toBe(true);
-    expect(assessmentIdsInSection('work-style', ASSESSMENT_CATALOG).every((id) => restored.has(id))).toBe(
-      true,
-    );
+    expect(
+      assessmentIdsInSection('work-style', ASSESSMENT_CATALOG).every((id) => restored.has(id)),
+    ).toBe(true);
     expect(loadInstalledAssessmentIds(ASSESSMENT_CATALOG)).toEqual(restored);
   });
 });
