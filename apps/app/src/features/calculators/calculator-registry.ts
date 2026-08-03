@@ -3,7 +3,7 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 
-export const CALCULATOR_REGISTRY = [
+export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
   {
     id: 'unit-conversion',
     slug: 'unit-conversion',
@@ -182,7 +182,7 @@ export const CALCULATOR_REGISTRY = [
     sourceRequirement:
       'Зафиксировать препарат, показание, возраст, путь введения, концентрацию, максимум и правила округления.',
   },
-] as const satisfies readonly CalculatorDefinition[];
+];
 
 export const AVAILABLE_CALCULATORS: readonly AvailableCalculatorDefinition[] =
   CALCULATOR_REGISTRY.filter(
