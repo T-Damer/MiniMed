@@ -8,11 +8,12 @@ export function nativeBackAction(
   if (
     (route.startsWith('modules/') ||
       route.startsWith('notes/') ||
-      route.startsWith('assessments/')) &&
+      route.startsWith('assessments/') ||
+      route.startsWith('calculators/')) &&
     canGoBack
   ) {
     return 'history';
   }
-  if (route === 'assessments') return 'search';
+  if (route === 'assessments' || route === 'calculators') return 'search';
   return currentView === 'search' ? 'minimize' : 'search';
 }
