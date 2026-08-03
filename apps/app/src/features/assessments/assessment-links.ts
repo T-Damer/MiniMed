@@ -1,4 +1,5 @@
 import { ASSESSMENT_CATALOG } from '@/features/assessments/assessment-catalog';
+import { installAssessmentIds } from '@/features/assessments/assessment-packs';
 
 export type AssessmentTextSegment =
   | { readonly kind: 'text'; readonly value: string }
@@ -79,6 +80,12 @@ export function segmentTextWithAssessmentLinks(text: string): readonly Assessmen
   return segments;
 }
 
+export function ensureAssessmentAvailable(slug: string): void {
+  const definition = ASSESSMENT_CATALOG.find((assessment) => assessment.slug === slug);
+  if (definition) installAssessmentIds([definition.id], ASSESSMENT_CATALOG);
+}
+
 export function openAssessment(slug: string): void {
+  ensureAssessmentAvailable(slug);
   window.location.hash = `#/assessments/${encodeURIComponent(slug)}`;
 }
