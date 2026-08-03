@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
 
-const LIVE_URL = process.env.MINIMED_LIVE_URL ?? 'https://t-damer.github.io/MiniMed/app/';
+const LIVE_URL = process.env.MINIMED_LIVE_URL;
 
 test.describe('published MiniMed prototype', () => {
+  test.skip(!LIVE_URL, 'Live Pages smoke test requires MINIMED_LIVE_URL.');
   test.setTimeout(90_000);
 
   test('exposes questionnaires and calculators on GitHub Pages', async ({ page }) => {
-    await page.goto(LIVE_URL, { waitUntil: 'networkidle', timeout: 60_000 });
+    await page.goto(LIVE_URL as string, { waitUntil: 'networkidle', timeout: 60_000 });
 
     const assessments = page.getByRole('button', { name: 'Открыть тесты и опросники' });
     await expect(assessments).toBeVisible({ timeout: 30_000 });
