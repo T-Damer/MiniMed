@@ -1,4 +1,5 @@
 name: Finalize medical calculators branch
+# Re-run after opening the draft pull request.
 
 on:
   push:
