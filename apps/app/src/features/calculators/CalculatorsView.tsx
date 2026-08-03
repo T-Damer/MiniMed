@@ -12,42 +12,34 @@ import {
 
 import { AppGlyph } from '@/components/AppGlyph';
 import {
-  calculateAdultEgfrCkdEpi2021,
-  calculateMostellerBsa,
-  calculatePediatricEgfrSchwartz2009,
-  calculatePediatricMaintenanceFluids,
-  type ClinicalCalculationResult,
-  type CreatinineUnit,
-  type StoredCalculationResult as NeverStoredCalculationResult,
-} from '@/features/calculators/clinical-calculations';
-import {
-  AVAILABLE_CALCULATORS,
-  CALCULATOR_REGISTRY,
-  findCalculator,
-  searchCalculators,
-} from '@/features/calculators/calculator-registry';
-import {
   formatCalculationRecord,
   printCalculationRecord,
   shareCalculationRecord,
 } from '@/features/calculators/calculator-print';
+import { findCalculator, searchCalculators } from '@/features/calculators/calculator-registry';
 import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
+import {
+  type ClinicalCalculationResult,
+  type CreatinineUnit,
+  calculateAdultEgfrCkdEpi2021,
+  calculateMostellerBsa,
+  calculatePediatricEgfrSchwartz2009,
+  calculatePediatricMaintenanceFluids,
+} from '@/features/calculators/clinical-calculations';
 import {
   convertQuantity,
   type QuantityFamily,
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
 import {
+  type CalculationRecord,
   createCalculationRecord,
   deleteCalculationRecord,
   loadCalculationHistory,
-  saveCalculationRecord,
-  type CalculationRecord,
   type StoredCalculationResult,
+  saveCalculationRecord,
 } from '@/state/calculation-history';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
-
-void (undefined as NeverStoredCalculationResult | undefined);
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
@@ -65,9 +57,7 @@ function formatNumber(value: number, precision = 4): string {
   }).format(value);
 }
 
-function isSuccessfulResult(
-  value: ClinicalCalculationResult,
-): value is StoredCalculationResult {
+function isSuccessfulResult(value: ClinicalCalculationResult): value is StoredCalculationResult {
   return value.ok;
 }
 
@@ -216,13 +206,17 @@ function CalculatorForm(props: {
           <label>
             <span>Из единицы</span>
             <select value={fromUnit()} onChange={(event) => setFromUnit(event.currentTarget.value)}>
-              <For each={unitsForFamily(family())}>{(unit) => <option value={unit}>{unit}</option>}</For>
+              <For each={unitsForFamily(family())}>
+                {(unit) => <option value={unit}>{unit}</option>}
+              </For>
             </select>
           </label>
           <label>
             <span>В единицу</span>
             <select value={toUnit()} onChange={(event) => setToUnit(event.currentTarget.value)}>
-              <For each={unitsForFamily(family())}>{(unit) => <option value={unit}>{unit}</option>}</For>
+              <For each={unitsForFamily(family())}>
+                {(unit) => <option value={unit}>{unit}</option>}
+              </For>
             </select>
           </label>
         </Match>
@@ -257,7 +251,10 @@ function CalculatorForm(props: {
           </label>
           <label>
             <span>Пол в формуле</span>
-            <select value={sex()} onChange={(event) => setSex(event.currentTarget.value as 'female' | 'male')}>
+            <select
+              value={sex()}
+              onChange={(event) => setSex(event.currentTarget.value as 'female' | 'male')}
+            >
               <option value="female">Женский</option>
               <option value="male">Мужской</option>
             </select>
@@ -427,9 +424,7 @@ function CalculationResultPanel(props: {
 
       <Show when={props.record.result.warnings.length > 0}>
         <div class="calculator-warnings">
-          <For each={props.record.result.warnings}>
-            {(warning) => <p>{warning.message}</p>}
-          </For>
+          <For each={props.record.result.warnings}>{(warning) => <p>{warning.message}</p>}</For>
         </div>
       </Show>
 
@@ -469,7 +464,11 @@ function CalculationResultPanel(props: {
         >
           Поделиться
         </button>
-        <button type="button" data-testid="calculator-save-note" onClick={() => setNoteOpen((open) => !open)}>
+        <button
+          type="button"
+          data-testid="calculator-save-note"
+          onClick={() => setNoteOpen((open) => !open)}
+        >
           Записать в заметку
         </button>
         <button type="button" onClick={props.onDelete}>
@@ -481,9 +480,14 @@ function CalculationResultPanel(props: {
         <div class="calculator-note-panel">
           <label>
             <span>Существующая карточка</span>
-            <select value={selectedCardId()} onChange={(event) => setSelectedCardId(event.currentTarget.value)}>
+            <select
+              value={selectedCardId()}
+              onChange={(event) => setSelectedCardId(event.currentTarget.value)}
+            >
               <option value="">Создать новую карточку</option>
-              <For each={notes().cards}>{(card) => <option value={card.id}>{card.title}</option>}</For>
+              <For each={notes().cards}>
+                {(card) => <option value={card.id}>{card.title}</option>}
+              </For>
             </select>
           </label>
           <Show when={!selectedCardId()}>
@@ -508,7 +512,9 @@ function CalculationResultPanel(props: {
 export function CalculatorsView(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
   const [query, setQuery] = createSignal('');
-  const [history, setHistory] = createSignal<readonly CalculationRecord[]>(loadCalculationHistory());
+  const [history, setHistory] = createSignal<readonly CalculationRecord[]>(
+    loadCalculationHistory(),
+  );
   const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
   const [message, setMessage] = createSignal('');
   let messageTimer: ReturnType<typeof setTimeout> | undefined;
@@ -577,7 +583,13 @@ export function CalculatorsView(): JSX.Element {
                 {(definition) => (
                   <article class="calculator-card paper-card">
                     <div class="calculator-card-meta">
-                      <span>{definition.audience === 'adult' ? 'Взрослые' : definition.audience === 'pediatric' ? 'Дети' : 'Все'}</span>
+                      <span>
+                        {definition.audience === 'adult'
+                          ? 'Взрослые'
+                          : definition.audience === 'pediatric'
+                            ? 'Дети'
+                            : 'Все'}
+                      </span>
                       <span>{definition.clinical ? 'Клинический' : 'Служебный'}</span>
                       <span>{definition.state === 'available' ? 'Доступен' : 'В плане'}</span>
                     </div>
@@ -585,7 +597,11 @@ export function CalculatorsView(): JSX.Element {
                     <p>{definition.summary}</p>
                     <Show
                       when={definition.state === 'available'}
-                      fallback={<small>{definition.state === 'planned' ? definition.sourceRequirement : ''}</small>}
+                      fallback={
+                        <small>
+                          {definition.state === 'planned' ? definition.sourceRequirement : ''}
+                        </small>
+                      }
                     >
                       {(available) => (
                         <button

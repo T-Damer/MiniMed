@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  convertQuantity,
-  unitsForFamily,
-} from '@/features/calculators/unit-conversion';
+import { convertQuantity, unitsForFamily } from '@/features/calculators/unit-conversion';
 
 describe('convertQuantity', () => {
   it('converts mass through the canonical kilogram base unit', () => {
@@ -29,9 +26,9 @@ describe('convertQuantity', () => {
   });
 
   it('rejects non-finite and negative quantities', () => {
-    expect(convertQuantity({ family: 'mass', value: Number.NaN, from: 'kg', to: 'g' })).toMatchObject(
-      { ok: false, error: { code: 'non-finite-value' } },
-    );
+    expect(
+      convertQuantity({ family: 'mass', value: Number.NaN, from: 'kg', to: 'g' }),
+    ).toMatchObject({ ok: false, error: { code: 'non-finite-value' } });
     expect(convertQuantity({ family: 'length', value: -1, from: 'cm', to: 'm' })).toMatchObject({
       ok: false,
       error: { code: 'negative-value' },

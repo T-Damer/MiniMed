@@ -67,8 +67,7 @@ export const CALCULATOR_REGISTRY = [
     audience: 'adult',
     category: 'renal',
     clinical: true,
-    formula:
-      '142 × min(Scr/κ,1)^α × max(Scr/κ,1)^−1,200 × 0,9938^возраст × 1,012 для женщин',
+    formula: '142 × min(Scr/κ,1)^α × max(Scr/κ,1)^−1,200 × 0,9938^возраст × 1,012 для женщин',
     population: 'Взрослые от 18 лет со стандартизованным по IDMS сывороточным креатинином.',
     limitations: [
       'Не предназначена для детей.',
@@ -193,7 +192,8 @@ export const AVAILABLE_CALCULATORS: readonly AvailableCalculatorDefinition[] =
 export function findCalculator(idOrSlug: string): CalculatorDefinition | undefined {
   return CALCULATOR_REGISTRY.find(
     (calculator) =>
-      calculator.id === idOrSlug || (calculator.state === 'available' && calculator.slug === idOrSlug),
+      calculator.id === idOrSlug ||
+      (calculator.state === 'available' && calculator.slug === idOrSlug),
   );
 }
 

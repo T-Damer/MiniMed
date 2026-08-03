@@ -64,9 +64,7 @@ function creatinineTrace(value: number, unit: CreatinineUnit): CalculationTraceS
   return {
     label: 'Креатинин в единицах формулы',
     expression:
-      unit === 'mg/dl'
-        ? `${value} мг/дл`
-        : `${value} мкмоль/л ÷ ${UMOL_PER_MG_DL_CREATININE}`,
+      unit === 'mg/dl' ? `${value} мг/дл` : `${value} мкмоль/л ÷ ${UMOL_PER_MG_DL_CREATININE}`,
     value: normalized,
     unit: 'мг/дл',
   };
@@ -145,12 +143,7 @@ export function calculateAdultEgfrCkdEpi2021(input: {
   const minimum = Math.min(ratio, 1);
   const maximum = Math.max(ratio, 1);
   const sexFactor = input.sex === 'female' ? 1.012 : 1;
-  const value =
-    142 *
-    minimum ** alpha *
-    maximum ** -1.2 *
-    0.9938 ** input.ageYears *
-    sexFactor;
+  const value = 142 * minimum ** alpha * maximum ** -1.2 * 0.9938 ** input.ageYears * sexFactor;
 
   return {
     ok: true,

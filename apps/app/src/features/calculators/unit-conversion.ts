@@ -56,10 +56,7 @@ export interface QuantityConversionFailure {
 
 export type QuantityConversionResult = QuantityConversionSuccess | QuantityConversionFailure;
 
-function failure(
-  code: QuantityConversionErrorCode,
-  message: string,
-): QuantityConversionFailure {
+function failure(code: QuantityConversionErrorCode, message: string): QuantityConversionFailure {
   return { ok: false, error: { code, message } };
 }
 

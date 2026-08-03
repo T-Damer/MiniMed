@@ -54,9 +54,7 @@ export interface PlannedCalculatorDefinition {
   readonly sourceRequirement: string;
 }
 
-export type CalculatorDefinition =
-  | AvailableCalculatorDefinition
-  | PlannedCalculatorDefinition;
+export type CalculatorDefinition = AvailableCalculatorDefinition | PlannedCalculatorDefinition;
 
 export interface CalculationTraceStep {
   readonly label: string;
