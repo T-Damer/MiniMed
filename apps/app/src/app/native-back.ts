@@ -5,6 +5,14 @@ export function nativeBackAction(
   currentView: 'search' | 'modules' | 'notes',
   canGoBack: boolean,
 ): NativeBackAction {
-  if ((route.startsWith('modules/') || route.startsWith('notes/')) && canGoBack) return 'history';
+  if (
+    (route.startsWith('modules/') ||
+      route.startsWith('notes/') ||
+      route.startsWith('assessments/')) &&
+    canGoBack
+  ) {
+    return 'history';
+  }
+  if (route === 'assessments') return 'search';
   return currentView === 'search' ? 'minimize' : 'search';
 }
