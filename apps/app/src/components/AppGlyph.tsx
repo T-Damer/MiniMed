@@ -8,9 +8,11 @@ export type AppGlyphName =
   | 'menu'
   | 'notes'
   | 'brain'
+  | 'list-checks'
   | 'system'
   | 'close'
   | 'graph'
+  | 'calculator'
   | 'list'
   | 'arrow-left'
   | 'arrow-up'
@@ -67,11 +69,11 @@ export function AppGlyph(props: {
           <path d="M15 3.5V7h4M9 11h7M9 14.5h7M9 18h4.5" />
         </>
       )}
-      {props.name === 'brain' && (
+      {(props.name === 'brain' || props.name === 'list-checks') && (
         <>
-          <path d="M9.2 4.8A3.2 3.2 0 0 0 6 8v.4a3.4 3.4 0 0 0-1.8 5.9A3.6 3.6 0 0 0 7.6 20H10V4.8Z" />
-          <path d="M14.8 4.8A3.2 3.2 0 0 1 18 8v.4a3.4 3.4 0 0 1 1.8 5.9 3.6 3.6 0 0 1-3.4 5.7H14V4.8Z" />
-          <path d="M10 8.1c-1 .2-1.8 1-1.8 2 0 1 .7 1.8 1.8 2M14 8.1c1 .2 1.8 1 1.8 2 0 1-.7 1.8-1.8 2M10 12.1c-1.1.2-2 .9-2 2.1 0 1 .8 1.9 2 2.1M14 12.1c1.1.2 2 .9 2 2.1 0 1-.8 1.9-2 2.1" />
+          <path d="m3 6 2 2 4-4" />
+          <path d="m3 16 2 2 4-4" />
+          <path d="M13 6h8M13 12h8M13 18h8" />
         </>
       )}
       {props.name === 'system' && (
@@ -82,12 +84,11 @@ export function AppGlyph(props: {
       )}
       {props.name === 'close' && <path d="m6 6 12 12M18 6 6 18" />}
       {props.name === 'minus' && <path d="M5 12h14" />}
-      {props.name === 'graph' && (
+      {(props.name === 'graph' || props.name === 'calculator') && (
         <>
-          <circle cx="6" cy="12" r="2.2" />
-          <circle cx="17.5" cy="6" r="2.2" />
-          <circle cx="17.5" cy="18" r="2.2" />
-          <path d="m8 11 7.4-4M8 13l7.4 4" />
+          <rect x="4" y="2" width="16" height="20" rx="2" />
+          <path d="M8 6h8M16 14v4" />
+          <path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01" />
         </>
       )}
       {props.name === 'list' && (
