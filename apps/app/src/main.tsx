@@ -22,6 +22,7 @@ import '@/styles/theme-dark.css';
 import '@/styles/medications.css';
 import '@/styles/assessments.css';
 import '@/styles/calculators.css';
+import '@/styles/tool-routes.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
