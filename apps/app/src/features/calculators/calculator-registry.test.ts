@@ -31,14 +31,18 @@ describe('calculator registry', () => {
   });
 
   it('requires a source gate for every planned clinical calculator', () => {
-    const plannedClinical = CALCULATOR_REGISTRY.filter(
-      (calculator) => calculator.state === 'planned' && calculator.clinical,
-    );
+    let plannedClinicalCount = 0;
 
-    expect(plannedClinical.length).toBeGreaterThan(0);
-    for (const calculator of plannedClinical) {
+    for (const calculator of CALCULATOR_REGISTRY) {
+      if (calculator.state !== 'planned' || !calculator.clinical) {
+        continue;
+      }
+
+      plannedClinicalCount += 1;
       expect(calculator.sourceRequirement.trim().length).toBeGreaterThan(20);
     }
+
+    expect(plannedClinicalCount).toBeGreaterThan(0);
   });
 
   it('finds calculators by id or slug and searches aliases', () => {
