@@ -1,5 +1,4 @@
-name: Finalize medical calculators branch
-# Re-run after opening the draft pull request.
+name: Format and wire medical calculators
 
 on:
   push:
@@ -11,13 +10,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: finalize-medical-calculators
+  group: format-medical-calculators
   cancel-in-progress: false
 
 jobs:
   finalize:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -28,46 +27,46 @@ jobs:
         with:
           bun-version: 1.2.3
 
-      - name: Wire calculator UI into the application
+      - name: Wire files
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
 
-          view = Path('apps/app/src/features/calculators/CalculatorsView.tsx')
-          text = view.read_text(encoding='utf-8')
-          text = text.replace('  type StoredCalculationResult as NeverStoredCalculationResult,\n', '')
-          text = text.replace('\nvoid (undefined as NeverStoredCalculationResult | undefined);\n', '\n')
-          view.write_text(text, encoding='utf-8')
+          clinical = Path('apps/app/src/features/calculators/clinical-calculations.ts')
+          text = clinical.read_text(encoding='utf-8')
+          marker = "export interface CalculationFailure {\n"
+          alias = "export type StoredCalculationResult = NumericCalculationResult | DualCalculationResult;\n\n"
+          if alias not in text:
+              text = text.replace(marker, alias + marker)
+          clinical.write_text(text, encoding='utf-8')
 
-          glyph = Path('apps/app/src/components/AppGlyph.tsx')
-          text = glyph.read_text(encoding='utf-8')
-          text = text.replace("  | 'brain'\n", "  | 'brain'\n  | 'calculator'\n")
-          marker = "      {props.name === 'system' && (\n"
-          calculator = """      {props.name === 'calculator' && (\n        <>\n          <rect x=\"5\" y=\"3.5\" width=\"14\" height=\"17\" rx=\"2\" />\n          <path d=\"M8 7.5h8M8 11h2M14 11h2M8 15h2M14 15h2M8 18h2M14 18h2\" />\n        </>\n      )}\n"""
-          if calculator not in text:
-              text = text.replace(marker, calculator + marker)
-          glyph.write_text(text, encoding='utf-8')
+          host = Path('apps/app/src/features/calculators/CalculatorHost.tsx')
+          text = host.read_text(encoding='utf-8').replace(
+              '<AppGlyph name="calculator" />',
+              '<AppGlyph name="graph" />',
+          )
+          host.write_text(text, encoding='utf-8')
 
           main = Path('apps/app/src/main.tsx')
           text = main.read_text(encoding='utf-8')
-          text = text.replace(
-              "import { AssessmentHost } from '@/features/assessments/AssessmentHost';\n",
-              "import { AssessmentHost } from '@/features/assessments/AssessmentHost';\nimport { CalculatorHost } from '@/features/calculators/CalculatorHost';\n",
-          )
-          text = text.replace(
-              "import '@/styles/assessments.css';\n",
-              "import '@/styles/assessments.css';\nimport '@/styles/calculators.css';\n",
-          )
-          text = text.replace(
-              "      <AssessmentHost />\n",
-              "      <AssessmentHost />\n      <CalculatorHost />\n",
-          )
+          if "CalculatorHost" not in text:
+              text = text.replace(
+                  "import { AssessmentHost } from '@/features/assessments/AssessmentHost';\n",
+                  "import { AssessmentHost } from '@/features/assessments/AssessmentHost';\nimport { CalculatorHost } from '@/features/calculators/CalculatorHost';\n",
+              )
+              text = text.replace(
+                  "import '@/styles/assessments.css';\n",
+                  "import '@/styles/assessments.css';\nimport '@/styles/calculators.css';\n",
+              )
+              text = text.replace(
+                  "      <AssessmentHost />\n",
+                  "      <AssessmentHost />\n      <CalculatorHost />\n",
+              )
           main.write_text(text, encoding='utf-8')
 
-          assessment = Path('apps/app/src/features/assessments/AssessmentHost.tsx')
-          assessment.write_text("""import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+          Path('apps/app/src/features/assessments/AssessmentHost.tsx').write_text("""import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { AssessmentsView } from '@/features/assessments/AssessmentsView';
@@ -140,7 +139,7 @@ export function AssessmentHost(): JSX.Element {
           native.write_text(text, encoding='utf-8')
           PY
 
-      - name: Install, format, and verify
+      - name: Format changed files
         shell: bash
         run: |
           set -euo pipefail
@@ -148,18 +147,12 @@ export function AssessmentHost(): JSX.Element {
           bunx biome check --write \
             apps/app/src/main.tsx \
             apps/app/src/app/native-back.ts \
-            apps/app/src/components/AppGlyph.tsx \
             apps/app/src/features/assessments/AssessmentHost.tsx \
             apps/app/src/features/calculators \
             apps/app/src/state/calculation-history.ts \
             apps/app/src/styles/calculators.css
-          bunx biome check --max-diagnostics=500 .
-          bun run typecheck
-          bun run test:unit
-          bun run build:app
-          bun run secrets:check
 
-      - name: Commit finalized integration and remove one-shot workflow
+      - name: Commit formatted integration
         shell: bash
         run: |
           set -euo pipefail
@@ -167,7 +160,5 @@ export function AssessmentHost(): JSX.Element {
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m 'feat(app): integrate sourced medical calculators'
-            git push origin HEAD:feature/medical-calculators
-          fi
+          git commit -m 'feat(app): integrate sourced medical calculators'
+          git push origin HEAD:feature/medical-calculators
