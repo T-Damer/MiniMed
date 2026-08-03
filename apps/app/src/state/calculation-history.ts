@@ -1,12 +1,9 @@
-import type {
-  DualCalculationResult,
-  NumericCalculationResult,
-} from '@/features/calculators/clinical-calculations';
+import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
 
 const STORAGE_KEY = 'minimed.calculation-history.v1';
 const MAX_RECORDS = 100;
 
-export type StoredCalculationResult = NumericCalculationResult | DualCalculationResult;
+export type { StoredCalculationResult };
 
 export interface CalculationRecord {
   readonly id: string;
@@ -22,19 +19,21 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 }
 
 function isCalculationRecord(value: unknown): value is CalculationRecord {
-  if (!isRecord(value) || !isRecord(value.result)) return false;
+  if (!isRecord(value)) return false;
+  const result = value['result'];
+  if (!isRecord(result)) return false;
   return (
-    typeof value.id === 'string' &&
-    typeof value.calculatorId === 'string' &&
-    typeof value.subjectLabel === 'string' &&
-    typeof value.createdAt === 'string' &&
-    typeof value.inputSummary === 'string' &&
-    value.result.ok === true &&
-    typeof value.result.calculatorId === 'string' &&
-    typeof value.result.formula === 'string' &&
-    Array.isArray(value.result.trace) &&
-    Array.isArray(value.result.warnings) &&
-    (typeof value.result.value === 'number' || Array.isArray(value.result.values))
+    typeof value['id'] === 'string' &&
+    typeof value['calculatorId'] === 'string' &&
+    typeof value['subjectLabel'] === 'string' &&
+    typeof value['createdAt'] === 'string' &&
+    typeof value['inputSummary'] === 'string' &&
+    result['ok'] === true &&
+    typeof result['calculatorId'] === 'string' &&
+    typeof result['formula'] === 'string' &&
+    Array.isArray(result['trace']) &&
+    Array.isArray(result['warnings']) &&
+    (typeof result['value'] === 'number' || Array.isArray(result['values']))
   );
 }
 
