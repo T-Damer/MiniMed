@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { findAssessmentBySlug } from '@/features/assessments/assessment-catalog';
-import {
-  answeredQuestionCount,
-  scoreAssessment,
-} from '@/features/assessments/assessment-engine';
+import { answeredQuestionCount, scoreAssessment } from '@/features/assessments/assessment-engine';
 import type {
   AssessmentAnswers,
   AssessmentResponseValue,

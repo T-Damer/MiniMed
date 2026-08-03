@@ -18,15 +18,14 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
-const ASSESSMENT_PHRASES: readonly AssessmentPhrase[] = ASSESSMENT_CATALOG.flatMap(
-  (assessment) =>
-    [assessment.title, assessment.shortTitle, ...assessment.aliases]
-      .filter((phrase) => phrase.trim().length >= 4)
-      .map((phrase) => ({
-        phrase,
-        normalizedPhrase: normalize(phrase),
-        slug: assessment.slug,
-      })),
+const ASSESSMENT_PHRASES: readonly AssessmentPhrase[] = ASSESSMENT_CATALOG.flatMap((assessment) =>
+  [assessment.title, assessment.shortTitle, ...assessment.aliases]
+    .filter((phrase) => phrase.trim().length >= 4)
+    .map((phrase) => ({
+      phrase,
+      normalizedPhrase: normalize(phrase),
+      slug: assessment.slug,
+    })),
 )
   .filter(
     (candidate, index, values) =>
@@ -38,10 +37,7 @@ const ASSESSMENT_PHRASES: readonly AssessmentPhrase[] = ASSESSMENT_CATALOG.flatM
   .toSorted((left, right) => right.phrase.length - left.phrase.length);
 
 function findPhraseIndex(text: string, phrase: string): number {
-  const pattern = new RegExp(
-    `(?:^|[^0-9a-zа-я])(${escapeRegExp(phrase)})(?![0-9a-zа-я])`,
-    'iu',
-  );
+  const pattern = new RegExp(`(?:^|[^0-9a-zа-я])(${escapeRegExp(phrase)})(?![0-9a-zа-я])`, 'iu');
   const match = pattern.exec(text);
   const matchedPhrase = match?.[1];
   if (!match || !matchedPhrase) return -1;
@@ -55,14 +51,9 @@ export function segmentTextWithAssessmentLinks(text: string): readonly Assessmen
   let cursor = 0;
 
   while (cursor < text.length) {
-    let best:
-      | { readonly start: number; readonly end: number; readonly slug: string }
-      | undefined;
+    let best: { readonly start: number; readonly end: number; readonly slug: string } | undefined;
     for (const phrase of ASSESSMENT_PHRASES) {
-      const relativeStart = findPhraseIndex(
-        normalizedText.slice(cursor),
-        phrase.normalizedPhrase,
-      );
+      const relativeStart = findPhraseIndex(normalizedText.slice(cursor), phrase.normalizedPhrase);
       if (relativeStart < 0) continue;
       const start = cursor + relativeStart;
       const end = start + phrase.phrase.length;

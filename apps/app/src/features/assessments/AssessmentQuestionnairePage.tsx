@@ -2,10 +2,7 @@ import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
-import {
-  answeredQuestionCount,
-  scoreAssessment,
-} from '@/features/assessments/assessment-engine';
+import { answeredQuestionCount, scoreAssessment } from '@/features/assessments/assessment-engine';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
 import type {
   AssessmentDefinition,
@@ -100,8 +97,8 @@ export function AssessmentQuestionnairePage(props: {
         <section class="assessment-manual-panel paper-card">
           <h2>Результат уже получен вне приложения</h2>
           <p>
-            Запишите шкалы, баллы и заключение без пересчёта. В истории будет отмечено,
-            что версия внешнего бланка не проверялась.
+            Запишите шкалы, баллы и заключение без пересчёта. В истории будет отмечено, что версия
+            внешнего бланка не проверялась.
           </p>
           <textarea
             rows={7}

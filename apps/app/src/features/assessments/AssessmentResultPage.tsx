@@ -124,10 +124,7 @@ export function AssessmentResultPage(props: {
       </Show>
 
       <div class="assessment-result-actions paper-card">
-        <button
-          type="button"
-          onClick={() => printAssessmentRecord(props.definition, props.record)}
-        >
+        <button type="button" onClick={() => printAssessmentRecord(props.definition, props.record)}>
           Распечатать / PDF
         </button>
         <button
@@ -136,9 +133,7 @@ export function AssessmentResultPage(props: {
             void shareAssessmentRecord(props.definition, props.record)
               .then((mode) =>
                 props.onMessage(
-                  mode === 'shared'
-                    ? 'Результат передан.'
-                    : 'Результат скопирован в буфер обмена.',
+                  mode === 'shared' ? 'Результат передан.' : 'Результат скопирован в буфер обмена.',
                 ),
               )
               .catch(() => props.onMessage('Не удалось поделиться результатом.'));

@@ -1,8 +1,8 @@
-import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import {
   buildAssessmentQuestions,
   STANDARD_RESPONSE_OPTIONS,
 } from '@/features/assessments/assessment-factory';
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
 export const TEMPERAMENT_ASSESSMENT: AssessmentDefinition = {
   id: 'minimed.assessment.temperament',
@@ -15,8 +15,8 @@ export const TEMPERAMENT_ASSESSMENT: AssessmentDefinition = {
     'темперамент Айзенка',
     'extraversion emotional stability',
   ],
-  bankId: 'psychiatry',
-  bankLabel: 'Психиатрия и психология',
+  bankId: 'psychology',
+  bankLabel: 'Психология и психодиагностика',
   category: 'temperament',
   description:
     'Краткий профиль по двум измерениям — экстраверсии и эмоциональной устойчивости. Для привычного языка результат дополнительно сопоставляется с четырьмя классическими темпераментами.',
@@ -34,8 +34,7 @@ export const TEMPERAMENT_ASSESSMENT: AssessmentDefinition = {
       id: 'emotional-stability',
       label: 'Эмоциональная устойчивость',
       shortLabel: 'Устойчивость',
-      description:
-        'Склонность сохранять равновесие и быстрее восстанавливаться после напряжения.',
+      description: 'Склонность сохранять равновесие и быстрее восстанавливаться после напряжения.',
     },
   ],
   questions: buildAssessmentQuestions('temperament-profile', [
@@ -58,23 +57,12 @@ export const TEMPERAMENT_ASSESSMENT: AssessmentDefinition = {
       'После неприятного события я относительно быстро возвращаюсь к обычному состоянию',
     ],
     ['emotional-stability', 'В напряжённой ситуации я способен сохранять ясность мыслей'],
-    [
-      'emotional-stability',
-      'Неопределённость редко полностью выбивает меня из рабочего ритма',
-    ],
+    ['emotional-stability', 'Неопределённость редко полностью выбивает меня из рабочего ритма'],
     ['emotional-stability', 'Я могу отложить тревожную мысль и заняться текущей задачей'],
     ['emotional-stability', 'Моё настроение обычно достаточно устойчиво в течение дня'],
     ['emotional-stability', 'Я часто переживаю из-за возможных неудач', true],
-    [
-      'emotional-stability',
-      'Небольшая критика может надолго испортить мне настроение',
-      true,
-    ],
-    [
-      'emotional-stability',
-      'Под давлением я легко начинаю паниковать или теряться',
-      true,
-    ],
+    ['emotional-stability', 'Небольшая критика может надолго испортить мне настроение', true],
+    ['emotional-stability', 'Под давлением я легко начинаю паниковать или теряться', true],
     ['emotional-stability', 'Мне трудно расслабиться после напряжённого дня', true],
     ['emotional-stability', 'Я часто ощущаю внутреннее беспокойство без ясной причины', true],
   ]),

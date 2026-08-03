@@ -48,10 +48,7 @@ function isAssessmentAnswers(value: unknown): value is AssessmentAnswers {
     isStringRecord(value) &&
     Object.values(value).every(
       (answer) =>
-        typeof answer === 'number' &&
-        Number.isInteger(answer) &&
-        answer >= 1 &&
-        answer <= 5,
+        typeof answer === 'number' && Number.isInteger(answer) && answer >= 1 && answer <= 5,
     )
   );
 }
@@ -84,9 +81,9 @@ export function loadAssessmentRecords(): readonly AssessmentRecord[] {
     if (!raw) return [];
     const value: unknown = JSON.parse(raw);
     if (!Array.isArray(value)) return [];
-    return value.filter(isAssessmentRecord).toSorted((left, right) =>
-      right.createdAt.localeCompare(left.createdAt),
-    );
+    return value
+      .filter(isAssessmentRecord)
+      .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt));
   } catch {
     return [];
   }

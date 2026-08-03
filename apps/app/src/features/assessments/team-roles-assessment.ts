@@ -1,8 +1,8 @@
-import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import {
   buildAssessmentQuestions,
   STANDARD_RESPONSE_OPTIONS,
 } from '@/features/assessments/assessment-factory';
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
 export const TEAM_ROLES_ASSESSMENT: AssessmentDefinition = {
   id: 'minimed.assessment.team-roles',
@@ -16,8 +16,8 @@ export const TEAM_ROLES_ASSESSMENT: AssessmentDefinition = {
     'командные роли',
     'генератор идей координатор аналитик',
   ],
-  bankId: 'psychiatry',
-  bankLabel: 'Психиатрия и психология',
+  bankId: 'psychology',
+  bankLabel: 'Психология и психодиагностика',
   category: 'team-role',
   description:
     'Авторский профиль девяти наблюдаемых способов участия в команде. Он помогает обсудить вклад человека, но не является официальным Belbin Self-Perception Inventory.',
@@ -88,10 +88,7 @@ export const TEAM_ROLES_ASSESSMENT: AssessmentDefinition = {
     ['plant', 'Мне нравится формулировать концепцию до того, как известны все детали'],
     ['plant', 'Я часто соединяю идеи из разных областей'],
     ['plant', 'В команде ко мне обращаются, когда нужен нестандартный ход'],
-    [
-      'resource-investigator',
-      'Я легко начинаю разговор с людьми, которые могут помочь проекту',
-    ],
+    ['resource-investigator', 'Я легко начинаю разговор с людьми, которые могут помочь проекту'],
     [
       'resource-investigator',
       'Мне интересно узнавать, какие решения уже существуют вне нашей команды',
@@ -100,17 +97,11 @@ export const TEAM_ROLES_ASSESSMENT: AssessmentDefinition = {
       'resource-investigator',
       'Я быстро замечаю полезный контакт, инструмент или возможность сотрудничества',
     ],
-    [
-      'resource-investigator',
-      'После встречи я обычно возвращаюсь с новыми вариантами и связями',
-    ],
+    ['resource-investigator', 'После встречи я обычно возвращаюсь с новыми вариантами и связями'],
     ['coordinator', 'Я помогаю группе договориться, что именно является общей целью'],
     ['coordinator', 'Я замечаю сильные стороны участников и предлагаю им подходящие задачи'],
     ['coordinator', 'На обсуждении я слежу, чтобы важные голоса не потерялись'],
-    [
-      'coordinator',
-      'Мне удаётся подвести группу к ясному решению без присвоения всей работы себе',
-    ],
+    ['coordinator', 'Мне удаётся подвести группу к ясному решению без присвоения всей работы себе'],
     ['shaper', 'Когда темп падает, я прямо напоминаю о результате и сроках'],
     ['shaper', 'Я спокойно выдерживаю рабочее столкновение мнений'],
     ['shaper', 'Мне легче действовать под давлением, чем долго ждать полной определённости'],
@@ -129,10 +120,7 @@ export const TEAM_ROLES_ASSESSMENT: AssessmentDefinition = {
     ['teamworker', 'Мне легко подстроить способ общения под разных людей'],
     ['teamworker', 'Я помогаю участнику вернуться в работу после ошибки или неудачи'],
     ['teamworker', 'Для меня естественно искать вариант, который сохраняет сотрудничество'],
-    [
-      'implementer',
-      'После решения я быстро превращаю его в последовательность конкретных шагов',
-    ],
+    ['implementer', 'После решения я быстро превращаю его в последовательность конкретных шагов'],
     ['implementer', 'Мне нравится организовывать рабочий процесс и распределять ресурсы'],
     ['implementer', 'Я устойчиво выполняю план даже после того, как новизна проекта прошла'],
     ['implementer', 'Я предпочитаю практичное решение, которое можно внедрить сейчас'],

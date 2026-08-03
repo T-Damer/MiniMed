@@ -26,8 +26,7 @@ function roundedPercent(value: number): number {
 
 function temperamentHeadline(scores: readonly AssessmentScaleScore[]): string {
   const extraversion = scores.find((score) => score.scaleId === 'extraversion')?.percent ?? 50;
-  const stability =
-    scores.find((score) => score.scaleId === 'emotional-stability')?.percent ?? 50;
+  const stability = scores.find((score) => score.scaleId === 'emotional-stability')?.percent ?? 50;
   if (extraversion >= 50 && stability >= 50) {
     return 'Классический ориентир: сангвинический профиль';
   }
@@ -100,9 +99,7 @@ export function scoreAssessment(
       const percent =
         maximumScore === minimumScore
           ? 0
-          : roundedPercent(
-              ((total.rawScore - minimumScore) / (maximumScore - minimumScore)) * 100,
-            );
+          : roundedPercent(((total.rawScore - minimumScore) / (maximumScore - minimumScore)) * 100);
       return {
         scaleId: scale.id,
         label: scale.label,
@@ -113,7 +110,9 @@ export function scoreAssessment(
         percent,
       };
     })
-    .toSorted((left, right) => right.percent - left.percent || left.label.localeCompare(right.label));
+    .toSorted(
+      (left, right) => right.percent - left.percent || left.label.localeCompare(right.label),
+    );
 
   const highest = scores[0]?.percent ?? 0;
   const primaryScaleIds = scores
@@ -158,8 +157,7 @@ export function formatCompletedAssessment(
   }).format(new Date(result.completedAt));
   const scores = result.scores
     .map(
-      (score) =>
-        `- ${score.label}: ${score.percent}% (${score.rawScore} из ${score.maximumScore})`,
+      (score) => `- ${score.label}: ${score.percent}% (${score.rawScore} из ${score.maximumScore})`,
     )
     .join('\n');
   return [

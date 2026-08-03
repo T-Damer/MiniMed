@@ -28,10 +28,7 @@ function LinkedPlainText(props: {
             <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
           </button>
         ) : (
-          <QueryHighlightedText
-            text={segment.value.replace(/^#/u, '')}
-            query={props.query ?? ''}
-          />
+          <QueryHighlightedText text={segment.value.replace(/^#/u, '')} query={props.query ?? ''} />
         )
       }
     </For>

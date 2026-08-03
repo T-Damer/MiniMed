@@ -1,9 +1,9 @@
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import { BRAVERMAN_ASSESSMENT } from '@/features/assessments/braverman-assessment';
 import { EGOGRAM_ASSESSMENT } from '@/features/assessments/egogram-assessment';
 import { PAEI_ASSESSMENT } from '@/features/assessments/paei-assessment';
 import { TEAM_ROLES_ASSESSMENT } from '@/features/assessments/team-roles-assessment';
 import { TEMPERAMENT_ASSESSMENT } from '@/features/assessments/temperament-assessment';
-import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
 export const ASSESSMENT_CATALOG: readonly AssessmentDefinition[] = [
   BRAVERMAN_ASSESSMENT,

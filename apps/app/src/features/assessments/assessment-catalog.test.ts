@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  ASSESSMENT_CATALOG,
-  searchAssessments,
-} from '@/features/assessments/assessment-catalog';
+import { ASSESSMENT_CATALOG, searchAssessments } from '@/features/assessments/assessment-catalog';
 
 describe('assessment catalog', () => {
   it('contains five complete, uniquely identified assessments', () => {

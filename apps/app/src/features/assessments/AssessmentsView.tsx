@@ -3,10 +3,7 @@ import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'so
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
-import {
-  findAssessmentBySlug,
-  searchAssessments,
-} from '@/features/assessments/assessment-catalog';
+import { findAssessmentBySlug, searchAssessments } from '@/features/assessments/assessment-catalog';
 import type { AssessmentRecord } from '@/features/assessments/assessment-types';
 import {
   ASSESSMENT_RESULTS_EVENT,

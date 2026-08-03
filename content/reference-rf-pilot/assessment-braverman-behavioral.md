@@ -6,7 +6,6 @@ version_label: minimed-assessments-2026-08-02
 source_type: medical_reference
 status: active
 specialties:
-  - psychiatry
   - psychology
   - general-practice
 age_groups:

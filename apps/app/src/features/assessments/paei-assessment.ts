@@ -1,8 +1,8 @@
-import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import {
   buildAssessmentQuestions,
   STANDARD_RESPONSE_OPTIONS,
 } from '@/features/assessments/assessment-factory';
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
 export const PAEI_ASSESSMENT: AssessmentDefinition = {
   id: 'minimed.assessment.paei',
@@ -15,8 +15,8 @@ export const PAEI_ASSESSMENT: AssessmentDefinition = {
     'Producer Administrator Entrepreneur Integrator',
     'стиль управления',
   ],
-  bankId: 'psychiatry',
-  bankLabel: 'Психиатрия и психология',
+  bankId: 'psychology',
+  bankLabel: 'Психология и психодиагностика',
   category: 'work-style',
   description:
     'Независимый самоопросник по четырём рабочим функциям: достижение результата, администрирование, предпринимательское изменение и интеграция людей.',
@@ -28,8 +28,7 @@ export const PAEI_ASSESSMENT: AssessmentDefinition = {
       id: 'producer',
       label: 'Производитель результата',
       shortLabel: 'P',
-      description:
-        'Фокус на выполнении, пользе для клиента и достижении конкретного результата.',
+      description: 'Фокус на выполнении, пользе для клиента и достижении конкретного результата.',
     },
     {
       id: 'administrator',
@@ -47,8 +46,7 @@ export const PAEI_ASSESSMENT: AssessmentDefinition = {
       id: 'integrator',
       label: 'Интегратор',
       shortLabel: 'I',
-      description:
-        'Доверие, согласование интересов, командные связи и совместная ответственность.',
+      description: 'Доверие, согласование интересов, командные связи и совместная ответственность.',
     },
   ],
   questions: buildAssessmentQuestions('paei-work-style', [
@@ -60,10 +58,7 @@ export const PAEI_ASSESSMENT: AssessmentDefinition = {
     ['producer', 'Я могу долго обсуждать задачу, не переходя к выполнению', true],
     ['administrator', 'Я превращаю повторяющуюся работу в понятный процесс'],
     ['administrator', 'Мне важно заранее определить роли, сроки и критерии готовности'],
-    [
-      'administrator',
-      'Я фиксирую решения, чтобы команда не возвращалась к одной неопределённости',
-    ],
+    ['administrator', 'Я фиксирую решения, чтобы команда не возвращалась к одной неопределённости'],
     ['administrator', 'Я замечаю риски, возникающие из-за отсутствия порядка или контроля'],
     [
       'administrator',

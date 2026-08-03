@@ -31,11 +31,11 @@ export function AssessmentCatalogPage(props: {
     <>
       <header class="subpage-heading assessments-heading">
         <div>
-          <p class="archive-kicker">Психометрия и самонаблюдение</p>
+          <p class="archive-kicker">Психология и психодиагностика</p>
           <h1>Тесты и опросники</h1>
           <p>
-            Пройти на устройстве, записать внешний результат, сохранить в карточку,
-            распечатать или отправить.
+            Пройти на устройстве, записать внешний результат, сохранить в карточку, распечатать или
+            отправить.
           </p>
         </div>
       </header>
@@ -92,10 +92,7 @@ export function AssessmentCatalogPage(props: {
                 return (
                   <Show when={definition()}>
                     {(resolved) => (
-                      <button
-                        type="button"
-                        onClick={() => props.onOpenRecord(resolved(), record)}
-                      >
+                      <button type="button" onClick={() => props.onOpenRecord(resolved(), record)}>
                         <span>{resolved().shortTitle}</span>
                         <strong>
                           {record.subjectLabel || 'Без подписи'} · {formatDate(record.createdAt)}

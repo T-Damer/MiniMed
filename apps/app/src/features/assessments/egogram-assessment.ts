@@ -1,8 +1,8 @@
-import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import {
   buildAssessmentQuestions,
   STANDARD_RESPONSE_OPTIONS,
 } from '@/features/assessments/assessment-factory';
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
 export const EGOGRAM_ASSESSMENT: AssessmentDefinition = {
   id: 'minimed.assessment.egogram',
@@ -16,8 +16,8 @@ export const EGOGRAM_ASSESSMENT: AssessmentDefinition = {
     'Родитель Взрослый Ребёнок',
     'transactional analysis egogram',
   ],
-  bankId: 'psychiatry',
-  bankLabel: 'Психиатрия и психология',
+  bankId: 'psychology',
+  bankLabel: 'Психология и психодиагностика',
   category: 'self-reflection',
   description:
     'Авторский самоопросник по функциональным эго-состояниям транзактного анализа: Критический Родитель, Заботливый Родитель, Взрослый, Свободный Ребёнок и Адаптированный Ребёнок.',
@@ -53,15 +53,11 @@ export const EGOGRAM_ASSESSMENT: AssessmentDefinition = {
       id: 'adapted-child',
       label: 'Адаптированный Ребёнок',
       shortLabel: 'АР',
-      description:
-        'Приспособление к ожиданиям, осторожность, уступчивость или внутренний протест.',
+      description: 'Приспособление к ожиданиям, осторожность, уступчивость или внутренний протест.',
     },
   ],
   questions: buildAssessmentQuestions('personal-egogram', [
-    [
-      'critical-parent',
-      'Я легко замечаю, когда люди нарушают договорённости или принятые правила',
-    ],
+    ['critical-parent', 'Я легко замечаю, когда люди нарушают договорённости или принятые правила'],
     ['critical-parent', 'Мне важно прямо обозначать, что допустимо, а что нет'],
     ['critical-parent', 'Я часто думаю, как «следует» поступать в конкретной ситуации'],
     ['critical-parent', 'Когда работа выполнена плохо, мне трудно не указать на ошибку'],
@@ -71,10 +67,7 @@ export const EGOGRAM_ASSESSMENT: AssessmentDefinition = {
     ],
     ['nurturing-parent', 'Я замечаю, когда человеку нужна поддержка, даже если он не просит'],
     ['nurturing-parent', 'Мне естественно успокаивать и подбадривать других'],
-    [
-      'nurturing-parent',
-      'Я стараюсь создать безопасные условия, прежде чем требовать результат',
-    ],
+    ['nurturing-parent', 'Я стараюсь создать безопасные условия, прежде чем требовать результат'],
     ['nurturing-parent', 'Я умею заботиться, не решая за другого все его задачи'],
     ['nurturing-parent', 'Мне важно, чтобы люди рядом чувствовали себя принятыми'],
     ['adult', 'Перед решением я отделяю проверенные факты от предположений'],
@@ -90,14 +83,8 @@ export const EGOGRAM_ASSESSMENT: AssessmentDefinition = {
     ['adapted-child', 'Я заранее пытаюсь угадать, чего от меня ждут'],
     ['adapted-child', 'Критика надолго заставляет меня сомневаться в себе'],
     ['adapted-child', 'Мне трудно отказать, когда просьба неудобна для меня'],
-    [
-      'adapted-child',
-      'В присутствии авторитетного человека я становлюсь заметно осторожнее',
-    ],
-    [
-      'adapted-child',
-      'Иногда я внешне соглашаюсь, но внутри сопротивляюсь и откладываю действие',
-    ],
+    ['adapted-child', 'В присутствии авторитетного человека я становлюсь заметно осторожнее'],
+    ['adapted-child', 'Иногда я внешне соглашаюсь, но внутри сопротивляюсь и откладываю действие'],
   ]),
   disclaimer:
     'Эгопрограмма не является диагнозом и не определяет «правильное» эго-состояние. Один человек использует разные состояния в зависимости от роли, контекста и уровня стресса.',
