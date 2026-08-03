@@ -44,13 +44,37 @@ function aliasIndex(
   return index;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+function candidateOffset(value: string, candidate: string): number {
+  const exactPattern = new RegExp(`(?:^|\\s)${escapeRegExp(candidate)}(?=\\s|$)`, 'u');
+  const exact = exactPattern.exec(value);
+  if (exact?.index !== undefined) return exact.index;
+  if (!/^[а-я]+$/u.test(candidate)) return -1;
+  const inflectedPattern = new RegExp(
+    `(?:^|\\s)${escapeRegExp(candidate)}[а-я]{1,5}(?=\\s|$)`,
+    'u',
+  );
+  return inflectedPattern.exec(value)?.index ?? -1;
+}
+
 export function resolveMedication(
   input: string,
   knowledge: MedicationInteractionKnowledgeBase,
 ): MedicationConcept | undefined {
   const normalized = normalizeMedicationName(input);
   if (!normalized) return undefined;
-  return aliasIndex(knowledge).get(normalized);
+  const exact = aliasIndex(knowledge).get(normalized);
+  if (exact) return exact;
+  if (normalized.includes(' ')) return undefined;
+
+  return knowledge.medications.find((medication) =>
+    [medication.preferredName, ...medication.aliases]
+      .map((name) => normalizeMedicationName(name))
+      .some((candidate) => candidateOffset(normalized, candidate) === 0),
+  );
 }
 
 export function extractMedicationNames(
@@ -64,7 +88,7 @@ export function extractMedicationNames(
   const directlyResolved = directParts.filter((part) => resolveMedication(part, knowledge));
   if (directlyResolved.length >= 2) return directlyResolved;
 
-  const normalizedValue = ` ${normalizeMedicationName(value)} `;
+  const normalizedValue = normalizeMedicationName(value);
   const matches: Array<{ readonly input: string; readonly offset: number }> = [];
   const seen = new Set<string>();
   for (const medication of knowledge.medications) {
@@ -73,7 +97,7 @@ export function extractMedicationNames(
       .filter((name) => name.length >= 4)
       .toSorted((left, right) => right.length - left.length);
     const match = candidates
-      .map((candidate) => ({ candidate, offset: normalizedValue.indexOf(` ${candidate} `) }))
+      .map((candidate) => ({ candidate, offset: candidateOffset(normalizedValue, candidate) }))
       .filter((item) => item.offset >= 0)
       .toSorted((left, right) => left.offset - right.offset)[0];
     if (!match || seen.has(medication.id)) continue;
