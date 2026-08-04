@@ -352,6 +352,8 @@ export class BrowserContentModuleRuntime {
   private readonly installer: ForegroundContentModuleInstaller;
   private readonly retryTimers = new Map<string, number>();
   private readonly assessmentDependencyScans = new Map<string, Promise<void>>();
+  private readonly assessmentDependencyGenerations = new Map<string, number>();
+  private disposed = false;
   private readonly handleOnline = (): void => {
     for (const timer of this.retryTimers.values()) window.clearTimeout(timer);
     this.retryTimers.clear();
@@ -378,9 +380,14 @@ export class BrowserContentModuleRuntime {
       if (task.state === 'completed') {
         this.clearRetry(task.moduleId, task.version);
         dequeuePendingModuleInstall(task.moduleId, task.version);
-        void this.syncAssessmentDependencies(task.moduleId, task.version).catch((cause: unknown) => {
-          console.warn(`Unable to resolve questionnaire dependencies for ${task.moduleId}.`, cause);
-        });
+        void this.syncAssessmentDependencies(task.moduleId, task.version).catch(
+          (cause: unknown) => {
+            console.warn(
+              `Unable to resolve questionnaire dependencies for ${task.moduleId}.`,
+              cause,
+            );
+          },
+        );
       } else if (task.state === 'cancelled') {
         this.clearRetry(task.moduleId, task.version);
         discardPendingModuleInstall(task.moduleId, task.version);
@@ -403,6 +410,32 @@ export class BrowserContentModuleRuntime {
 
   private retryKey(moduleId: string, version: string): string {
     return `${moduleId}@${version}`;
+  }
+
+  private activeModuleVersion(moduleId: string): string | null {
+    return this.registry.get(moduleId)?.version ?? null;
+  }
+
+  private invalidateAssessmentDependencyScans(moduleId: string): number {
+    const generation = (this.assessmentDependencyGenerations.get(moduleId) ?? 0) + 1;
+    this.assessmentDependencyGenerations.set(moduleId, generation);
+    const prefix = `${moduleId}@`;
+    for (const key of this.assessmentDependencyScans.keys()) {
+      if (key.startsWith(prefix)) this.assessmentDependencyScans.delete(key);
+    }
+    return generation;
+  }
+
+  private isCurrentAssessmentDependencyScan(
+    moduleId: string,
+    version: string,
+    generation: number,
+  ): boolean {
+    return (
+      !this.disposed &&
+      this.assessmentDependencyGenerations.get(moduleId) === generation &&
+      this.activeModuleVersion(moduleId) === version
+    );
   }
 
   private clearRetry(moduleId: string, version: string): void {
@@ -447,6 +480,7 @@ export class BrowserContentModuleRuntime {
         (module) => module.id === moduleId && module.version === version,
       );
       if (descriptor?.kind !== 'clinical') {
+        this.invalidateAssessmentDependencyScans(moduleId);
         removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
         continue;
       }
@@ -458,27 +492,41 @@ export class BrowserContentModuleRuntime {
   }
 
   private syncAssessmentDependencies(moduleId: string, version: string): Promise<void> {
+    if (this.disposed || this.activeModuleVersion(moduleId) !== version) return Promise.resolve();
     const key = this.retryKey(moduleId, version);
     const existing = this.assessmentDependencyScans.get(key);
     if (existing) return existing;
-    const scan = this.scanAssessmentDependencies(moduleId, version).finally(() => {
-      this.assessmentDependencyScans.delete(key);
-    });
+    const generation = this.invalidateAssessmentDependencyScans(moduleId);
+    const scan = this.scanAssessmentDependencies(moduleId, version, generation);
     this.assessmentDependencyScans.set(key, scan);
+    const cleanup = (): void => {
+      if (this.assessmentDependencyScans.get(key) === scan) {
+        this.assessmentDependencyScans.delete(key);
+      }
+    };
+    scan.then(cleanup, cleanup);
     return scan;
   }
 
-  private async scanAssessmentDependencies(moduleId: string, version: string): Promise<void> {
+  private async scanAssessmentDependencies(
+    moduleId: string,
+    version: string,
+    generation: number,
+  ): Promise<void> {
     const descriptor = this.catalog.modules.find(
       (module) => module.id === moduleId && module.version === version,
     );
     if (descriptor?.kind !== 'clinical') {
-      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      if (this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) {
+        removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      }
       return;
     }
     const bytes = await this.backend.readIndexBytes(moduleId, version);
     if (!bytes) {
-      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      if (this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) {
+        removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      }
       return;
     }
     let store: SqliteMedicalStore | null = null;
@@ -486,20 +534,25 @@ export class BrowserContentModuleRuntime {
       store = await SqliteMedicalStore.createFromBytes(bytes);
       await store.initialize();
       const assessmentIds = await findAssessmentDependenciesInStore(store);
+      if (!this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) return;
       if (assessmentIds.length > 0) {
         await preloadAssessmentDefinitions(assessmentIds).catch((cause: unknown) => {
           console.warn(`Unable to preload questionnaires required by ${moduleId}.`, cause);
         });
       }
-      setAssessmentModuleDependencies(
-        moduleId,
-        version,
-        assessmentIds,
-        ASSESSMENT_CATALOG,
-      );
+      if (!this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) return;
+      setAssessmentModuleDependencies(moduleId, version, assessmentIds, ASSESSMENT_CATALOG);
     } finally {
       await store?.close().catch(() => undefined);
     }
+  }
+
+  private restoreAssessmentDependencyScan(moduleId: string): void {
+    const installed = this.registry.get(moduleId);
+    if (!installed) return;
+    void this.syncAssessmentDependencies(moduleId, installed.version).catch((cause: unknown) => {
+      console.warn(`Unable to restore questionnaire dependencies for ${moduleId}.`, cause);
+    });
   }
 
   public listInstalled(): readonly InstalledContentModule[] {
@@ -585,29 +638,46 @@ export class BrowserContentModuleRuntime {
   }
 
   public dispose(): void {
+    this.disposed = true;
     this.cancelAll();
     for (const timer of this.retryTimers.values()) window.clearTimeout(timer);
     this.retryTimers.clear();
+    for (const module of this.listInstalled()) {
+      this.invalidateAssessmentDependencyScans(module.moduleId);
+    }
+    this.assessmentDependencyScans.clear();
     window.removeEventListener('online', this.handleOnline);
   }
 
   public async remove(moduleId: string): Promise<void> {
-    await commitRegistryAndArtifactMutation(
-      this.registry,
-      () => this.registry.remove(moduleId),
-      () => this.backend.remove(moduleId),
-    );
-    removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+    this.invalidateAssessmentDependencyScans(moduleId);
+    try {
+      await commitRegistryAndArtifactMutation(
+        this.registry,
+        () => this.registry.remove(moduleId),
+        () => this.backend.remove(moduleId),
+      );
+      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+    } catch (cause) {
+      this.restoreAssessmentDependencyScan(moduleId);
+      throw cause;
+    }
   }
 
   public async rollback(moduleId: string, version?: string): Promise<InstalledContentModule> {
-    const installed = await commitRegistryAndArtifactMutation(
-      this.registry,
-      () => this.registry.rollback(moduleId, version),
-      (next) => this.backend.setActive(moduleId, next.version),
-    );
-    await this.syncAssessmentDependencies(moduleId, installed.version);
-    return installed;
+    this.invalidateAssessmentDependencyScans(moduleId);
+    try {
+      const installed = await commitRegistryAndArtifactMutation(
+        this.registry,
+        () => this.registry.rollback(moduleId, version),
+        (next) => this.backend.setActive(moduleId, next.version),
+      );
+      await this.syncAssessmentDependencies(moduleId, installed.version);
+      return installed;
+    } catch (cause) {
+      this.restoreAssessmentDependencyScan(moduleId);
+      throw cause;
+    }
   }
 }
 
