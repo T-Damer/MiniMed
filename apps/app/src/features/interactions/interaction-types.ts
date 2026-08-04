@@ -37,7 +37,7 @@ export interface InteractionAssertion {
   readonly subjectMedicationId: string;
   readonly interactant: InteractionTarget;
   readonly direction: InteractionDirection;
-  readonly conclusion: Exclude<InteractionConclusion, 'unknown'>;
+  readonly conclusion: Exclude<InteractionConclusion, 'unknown' | 'conflicting-evidence'>;
   readonly severity: Exclude<InteractionSeverity, 'unknown'>;
   readonly certainty: InteractionCertainty;
   readonly interactionType: 'pharmacodynamic' | 'pharmacokinetic' | 'pharmaceutical';
@@ -54,7 +54,10 @@ export interface InteractionEvidence {
   readonly sourceTitle: string;
   readonly sourceUrl: string;
   readonly sourceType: 'official-label' | 'clinical-guideline' | 'peer-reviewed';
+  readonly issuer: string;
+  readonly jurisdiction: string;
   readonly sourceVersion: string;
+  readonly reviewedAt: string;
   readonly quote: string;
 }
 
@@ -75,9 +78,15 @@ export interface UnresolvedMedication {
   readonly input: string;
 }
 
+export interface InteractionParticipant {
+  readonly input: string;
+  readonly label: string;
+  readonly concept?: MedicationConcept;
+}
+
 export interface InteractionPairResult {
-  readonly left: MedicationConcept;
-  readonly right: MedicationConcept;
+  readonly left: InteractionParticipant;
+  readonly right: InteractionParticipant;
   readonly conclusion: InteractionConclusion;
   readonly severity: InteractionSeverity;
   readonly certainty?: InteractionCertainty;
@@ -90,6 +99,7 @@ export interface InteractionPairResult {
 }
 
 export interface MedicationInteractionCheckResult {
+  readonly participants: readonly InteractionParticipant[];
   readonly resolved: readonly ResolvedMedication[];
   readonly unresolved: readonly UnresolvedMedication[];
   readonly duplicateInputs: readonly string[];
