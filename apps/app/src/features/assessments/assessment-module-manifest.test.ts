@@ -17,11 +17,7 @@ describe('declared questionnaire dependencies', () => {
 
     expect(
       resolveDeclaredAssessmentDependencies(
-        [
-          `assessment-section:team-role`,
-          `assessment:${exactId}`,
-          `assessment:${exactId}`,
-        ],
+        [`assessment-section:team-role`, `assessment:${exactId}`, `assessment:${exactId}`],
         ASSESSMENT_CATALOG,
       ),
     ).toEqual([...new Set([exactId, ...sectionIds])].toSorted());
@@ -29,10 +25,7 @@ describe('declared questionnaire dependencies', () => {
 
   it('supports an explicit declaration that no questionnaires are required', () => {
     expect(
-      resolveDeclaredAssessmentDependencies(
-        ['assessment-dependencies:none'],
-        ASSESSMENT_CATALOG,
-      ),
+      resolveDeclaredAssessmentDependencies(['assessment-dependencies:none'], ASSESSMENT_CATALOG),
     ).toEqual([]);
   });
 
