@@ -3,14 +3,19 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ASSESSMENT_CATALOG } from '@/features/assessments/assessment-catalog';
 import {
   assessmentIdsInSection,
+  assessmentRequiredByModules,
   groupAssessmentsBySection,
+  installAssessmentIds,
   installAssessmentSection,
-  loadInstalledAssessmentIds,
+  loadAssessmentInstallationState,
   removeAssessmentIds,
+  removeAssessmentModuleDependencies,
+  removeAssessmentSection,
+  setAssessmentModuleDependencies,
 } from '@/features/assessments/assessment-packs';
 
-function installStorage(): void {
-  const values = new Map<string, string>();
+function installStorage(initial: Readonly<Record<string, string>> = {}): Map<string, string> {
+  const values = new Map(Object.entries(initial));
   const localStorage = {
     getItem: (key: string) => values.get(key) ?? null,
     setItem: (key: string, value: string) => {
@@ -28,12 +33,13 @@ function installStorage(): void {
     },
   } satisfies Storage;
   vi.stubGlobal('window', { localStorage, dispatchEvent: vi.fn() });
+  return values;
 }
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe('questionnaire packs', () => {
-  it('groups the catalog into named sections', () => {
+  it('groups every catalog item into a named section', () => {
     const groups = groupAssessmentsBySection(ASSESSMENT_CATALOG);
 
     expect(groups.flatMap((group) => group.assessments)).toHaveLength(ASSESSMENT_CATALOG.length);
@@ -42,19 +48,69 @@ describe('questionnaire packs', () => {
     );
   });
 
-  it('removes one questionnaire and restores its section without touching other sections', () => {
+  it('starts empty and installs or removes a complete section explicitly', () => {
+    installStorage();
+    const sectionIds = assessmentIdsInSection('self-reflection', ASSESSMENT_CATALOG);
+
+    expect(loadAssessmentInstallationState(ASSESSMENT_CATALOG).installedIds.size).toBe(0);
+    const installed = installAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
+    expect(installed.sectionIds.has('self-reflection')).toBe(true);
+    expect(sectionIds.every((id) => installed.installedIds.has(id))).toBe(true);
+
+    const removed = removeAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
+    expect(removed.sectionIds.has('self-reflection')).toBe(false);
+    expect(sectionIds.every((id) => !removed.installedIds.has(id))).toBe(true);
+  });
+
+  it('supports excluding one item from a selected section and restoring it', () => {
     installStorage();
     const target = ASSESSMENT_CATALOG.find((definition) => definition.category === 'team-role');
     expect(target).toBeDefined();
 
+    installAssessmentSection('team-role', ASSESSMENT_CATALOG);
     const afterRemove = removeAssessmentIds([target?.id ?? ''], ASSESSMENT_CATALOG);
-    expect(afterRemove.has(target?.id ?? '')).toBe(false);
+    expect(afterRemove.excludedIds.has(target?.id ?? '')).toBe(true);
+    expect(afterRemove.installedIds.has(target?.id ?? '')).toBe(false);
 
     const restored = installAssessmentSection('team-role', ASSESSMENT_CATALOG);
-    expect(restored.has(target?.id ?? '')).toBe(true);
-    expect(
-      assessmentIdsInSection('work-style', ASSESSMENT_CATALOG).every((id) => restored.has(id)),
-    ).toBe(true);
-    expect(loadInstalledAssessmentIds(ASSESSMENT_CATALOG)).toEqual(restored);
+    expect(restored.excludedIds.has(target?.id ?? '')).toBe(false);
+    expect(restored.installedIds.has(target?.id ?? '')).toBe(true);
+  });
+
+  it('keeps a questionnaire while any manual or module source still requires it', () => {
+    installStorage();
+    const target = ASSESSMENT_CATALOG[0];
+    expect(target).toBeDefined();
+    const id = target?.id ?? '';
+
+    installAssessmentIds([id], ASSESSMENT_CATALOG);
+    setAssessmentModuleDependencies('clinical.one', '1.0.0', [id], ASSESSMENT_CATALOG);
+    let state = setAssessmentModuleDependencies(
+      'clinical.two',
+      '1.0.0',
+      [id],
+      ASSESSMENT_CATALOG,
+    );
+    expect(assessmentRequiredByModules(id, state)).toEqual(['clinical.one', 'clinical.two']);
+
+    state = removeAssessmentIds([id], ASSESSMENT_CATALOG);
+    expect(state.manualIds.has(id)).toBe(false);
+    expect(state.installedIds.has(id)).toBe(true);
+
+    state = removeAssessmentModuleDependencies('clinical.one', ASSESSMENT_CATALOG);
+    expect(state.installedIds.has(id)).toBe(true);
+    state = removeAssessmentModuleDependencies('clinical.two', ASSESSMENT_CATALOG);
+    expect(state.installedIds.has(id)).toBe(false);
+  });
+
+  it('migrates the legacy list as explicit manual installations', () => {
+    const id = ASSESSMENT_CATALOG[0]?.id ?? '';
+    const values = installStorage({ 'minimed.assessment-packs.v1': JSON.stringify([id]) });
+
+    const state = loadAssessmentInstallationState(ASSESSMENT_CATALOG);
+    expect(state.manualIds.has(id)).toBe(true);
+    expect(state.installedIds.has(id)).toBe(true);
+    expect(values.has('minimed.assessment-packs.v1')).toBe(false);
+    expect(values.has('minimed.assessment-packs.v2')).toBe(true);
   });
 });
