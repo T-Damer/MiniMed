@@ -3,7 +3,7 @@ import type { MedicalStore } from '@localmed/storage';
 
 import { ASSESSMENT_CATALOG } from '@/features/assessments/assessment-catalog';
 import { resolveDeclaredAssessmentDependencies } from '@/features/assessments/assessment-module-manifest';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { getActiveContentModuleCatalog } from '@/features/modules/catalog-service';
 import { assessmentIdsReferencedInText } from '@/features/tool-links/document-tool-links';
 
 type AssessmentDependencyStore = Pick<MedicalStore, 'getChunksByDocument' | 'listDocuments'> &
@@ -22,6 +22,21 @@ function collectAssessmentIds(text: string, target: Set<string>): void {
   for (const id of assessmentIdsReferencedInText(text)) target.add(id);
 }
 
+function reportDeclarationError(
+  options: AssessmentDependencyScanOptions,
+  moduleId: string,
+  cause: unknown,
+): void {
+  if (options.onDeclarationError) {
+    options.onDeclarationError(moduleId, cause);
+    return;
+  }
+  console.warn(
+    `Unable to resolve declared questionnaire dependencies for ${moduleId}; falling back to content scan.`,
+    cause,
+  );
+}
+
 async function declaredDependencies(
   store: AssessmentDependencyStore,
   options: AssessmentDependencyScanOptions,
@@ -31,21 +46,21 @@ async function declaredDependencies(
   try {
     contentPackIds = (await store.getHealth()).contentPackIds;
   } catch (cause) {
-    options.onDeclarationError?.('unknown', cause);
+    reportDeclarationError(options, 'unknown', cause);
     return null;
   }
   if (contentPackIds.length !== 1) return null;
 
   const moduleId = contentPackIds[0];
   if (!moduleId) return null;
-  const modules = options.modules ?? MODULE_CATALOG.modules;
+  const modules = options.modules ?? getActiveContentModuleCatalog().modules;
   const descriptor = modules.find((module) => module.id === moduleId);
   if (descriptor?.kind !== 'clinical') return null;
 
   try {
     return resolveDeclaredAssessmentDependencies(descriptor.tags, ASSESSMENT_CATALOG);
   } catch (cause) {
-    options.onDeclarationError?.(moduleId, cause);
+    reportDeclarationError(options, moduleId, cause);
     return null;
   }
 }
