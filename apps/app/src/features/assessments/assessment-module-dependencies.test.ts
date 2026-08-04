@@ -136,10 +136,7 @@ describe('assessment module dependencies', () => {
       findAssessmentDependenciesInStore(store, {
         modules: [{ id: 'clinical.legacy', kind: 'clinical', tags: ['legacy'] }],
       }),
-    ).resolves.toEqual([
-      'minimed.assessment.braverman-behavioral',
-      'minimed.assessment.egogram',
-    ]);
+    ).resolves.toEqual(['minimed.assessment.braverman-behavioral', 'minimed.assessment.egogram']);
     expect(getChunksByDocument).toHaveBeenCalledOnce();
   });
 
