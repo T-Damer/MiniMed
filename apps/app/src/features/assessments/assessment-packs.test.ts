@@ -106,12 +106,7 @@ describe('questionnaire packs', () => {
 
     installAssessmentIds([id], ASSESSMENT_CATALOG);
     setAssessmentModuleDependencies('clinical.one', '1.0.0', [id], ASSESSMENT_CATALOG);
-    let state = setAssessmentModuleDependencies(
-      'clinical.two',
-      '1.0.0',
-      [id],
-      ASSESSMENT_CATALOG,
-    );
+    let state = setAssessmentModuleDependencies('clinical.two', '1.0.0', [id], ASSESSMENT_CATALOG);
     expect(assessmentRequiredByModules(id, state)).toEqual(['clinical.one', 'clinical.two']);
 
     state = removeAssessmentIds([id], ASSESSMENT_CATALOG);
