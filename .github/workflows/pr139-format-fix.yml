@@ -1,0 +1,37 @@
+name: PR 139 formatter fix
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'feat/assessment-packs-and-inline-icons'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - run: bun install --frozen-lockfile
+      - run: bunx biome format --write apps/app/src/features/modules/browser-module-runtime.ts
+      - name: Commit formatter output
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/app/src/features/modules/browser-module-runtime.ts
+          git commit -m "style: format browser module runtime"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
