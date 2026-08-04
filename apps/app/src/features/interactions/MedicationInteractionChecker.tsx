@@ -43,6 +43,7 @@ function inputItems(value: string): readonly string[] {
     .split(/[,;\n+]|\s+и\s+/giu)
     .map((item) => item.trim())
     .filter(Boolean);
+  if (direct.length >= 2) return direct;
   const extracted = extractMedicationNames(value, MEDICATION_INTERACTION_KNOWLEDGE);
   return extracted.length >= 2 ? extracted : direct;
 }
