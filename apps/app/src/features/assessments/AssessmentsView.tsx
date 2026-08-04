@@ -31,7 +31,10 @@ import {
   removeAssessmentSection,
 } from '@/features/assessments/assessment-packs';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
-import type { AssessmentDefinition, AssessmentRecord } from '@/features/assessments/assessment-types';
+import type {
+  AssessmentDefinition,
+  AssessmentRecord,
+} from '@/features/assessments/assessment-types';
 import {
   ASSESSMENT_RESULTS_EVENT,
   loadAssessmentRecords,
@@ -138,10 +141,11 @@ export function AssessmentsView(): JSX.Element {
   createEffect(() => {
     const current = route();
     const entry = catalogEntry();
-    const shouldLoad =
-      Boolean(entry) &&
-      (current.kind === 'result' ||
-        (current.kind === 'assessment' && installation().installedIds.has(entry?.id ?? '')));
+    const shouldLoad = Boolean(
+      entry &&
+        (current.kind === 'result' ||
+          (current.kind === 'assessment' && installation().installedIds.has(entry.id))),
+    );
     const request = ++definitionRequest;
     setLoadedDefinition(undefined);
     setDefinitionError('');
@@ -208,7 +212,9 @@ export function AssessmentsView(): JSX.Element {
     );
   };
   const removeSection = (sectionId: AssessmentSectionId): void => {
-    if (!window.confirm('Отключить выбранный раздел опросников? Сохранённые результаты останутся.')) {
+    if (
+      !window.confirm('Отключить выбранный раздел опросников? Сохранённые результаты останутся.')
+    ) {
       return;
     }
     const next = removeAssessmentSection(sectionId, ASSESSMENT_CATALOG);
