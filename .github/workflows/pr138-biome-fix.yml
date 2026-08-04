@@ -34,10 +34,14 @@ jobs:
 
           checker = Path('apps/app/src/features/interactions/MedicationInteractionChecker.tsx')
           text = checker.read_text(encoding='utf-8')
-          text = text.replace(
-              '<div class="interaction-examples" aria-label="Примеры проверок">',
-              '<div class="interaction-examples" role="group" aria-label="Примеры проверок">',
-          )
+          marker = '<div class="interaction-examples" aria-label="Примеры проверок">'
+          start = text.index(marker)
+          text = text[:start] + (
+              '<fieldset class="interaction-examples">\n'
+              '            <legend class="visually-hidden">Примеры проверок</legend>'
+          ) + text[start + len(marker):]
+          close = text.index('\n          </div>', start)
+          text = text[:close] + '\n          </fieldset>' + text[close + len('\n          </div>'):]
           checker.write_text(text, encoding='utf-8')
 
           e2e = Path('apps/app/e2e/medication-interactions.spec.ts')
