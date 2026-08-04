@@ -1,36 +1,48 @@
 import { For, type JSX } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
-import {
-  openAssessment,
-  segmentTextWithAssessmentLinks,
-} from '@/features/assessments/assessment-links';
+import { openAssessment } from '@/features/assessments/assessment-links';
+import { openCalculator } from '@/features/calculators/calculator-links';
 import {
   type DocumentLinkPhrase,
   type DocumentTextBlock,
   parseDocumentText,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
+import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
 
 function LinkedPlainText(props: {
   readonly text: string;
   readonly query?: string | undefined;
 }): JSX.Element {
   return (
-    <For each={segmentTextWithAssessmentLinks(props.text)}>
-      {(segment) =>
-        segment.kind === 'assessment' ? (
+    <For each={segmentTextWithToolLinks(props.text)}>
+      {(segment) => {
+        if (segment.kind === 'text') {
+          return (
+            <QueryHighlightedText
+              text={segment.value.replace(/^#/u, '')}
+              query={props.query ?? ''}
+            />
+          );
+        }
+        const assessment = segment.kind === 'assessment';
+        return (
           <button
             type="button"
-            class="document-inline-link assessment-inline-link"
-            onClick={() => openAssessment(segment.slug)}
+            class={`document-inline-link document-inline-tool-link ${segment.kind}-inline-link`}
+            onClick={() =>
+              assessment ? openAssessment(segment.slug) : openCalculator(segment.slug)
+            }
           >
-            <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
+            <AppGlyph name={assessment ? 'list-checks' : 'calculator'} />
+            <span>
+              <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
+            </span>
           </button>
-        ) : (
-          <QueryHighlightedText text={segment.value.replace(/^#/u, '')} query={props.query ?? ''} />
-        )
-      }
+        );
+      }}
     </For>
   );
 }
