@@ -106,12 +106,12 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       id: 'interaction.fosfomycin.cimetidine',
       subjectMedicationId: 'med.fosfomycin',
       interactant: { kind: 'medication', id: 'med.cimetidine' },
-      direction: 'bidirectional',
+      direction: 'interactant-affects-subject',
       conclusion: 'documented-no-significant-interaction',
       severity: 'none',
       certainty: 'established',
       interactionType: 'pharmacokinetic',
-      mechanism: 'В официальной маркировке не выявлено влияния на фармакокинетику фосфомицина.',
+      mechanism: 'В маркировке не выявлено влияния циметидина на фармакокинетику фосфомицина.',
       effect: 'Клинически значимого фармакокинетического изменения не показано.',
       recommendation:
         'По проверенному источнику специальная коррекция из-за этой пары не требуется.',
@@ -127,7 +127,7 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=7d924d16-8a10-411d-be57-97c450f56de7&type=display',
       sourceType: 'official-label',
-      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      issuer: 'U.S. National Library of Medicine / DailyMed',
       jurisdiction: 'США',
       sourceVersion: 'DailyMed set ID 7d924d16-8a10-411d-be57-97c450f56de7',
       reviewedAt: '2026-08-04',
@@ -140,7 +140,7 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=7d924d16-8a10-411d-be57-97c450f56de7&type=display',
       sourceType: 'official-label',
-      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      issuer: 'U.S. National Library of Medicine / DailyMed',
       jurisdiction: 'США',
       sourceVersion: 'DailyMed set ID 7d924d16-8a10-411d-be57-97c450f56de7',
       reviewedAt: '2026-08-04',
@@ -152,7 +152,7 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6b9167a9-80e9-44e1-a609-c3eb78960acf',
       sourceType: 'official-label',
-      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      issuer: 'U.S. National Library of Medicine / DailyMed',
       jurisdiction: 'США',
       sourceVersion: 'DailyMed set ID 6b9167a9-80e9-44e1-a609-c3eb78960acf',
       reviewedAt: '2026-08-04',
@@ -164,7 +164,7 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6b9167a9-80e9-44e1-a609-c3eb78960acf',
       sourceType: 'official-label',
-      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      issuer: 'U.S. National Library of Medicine / DailyMed',
       jurisdiction: 'США',
       sourceVersion: 'DailyMed set ID 6b9167a9-80e9-44e1-a609-c3eb78960acf',
       reviewedAt: '2026-08-04',
