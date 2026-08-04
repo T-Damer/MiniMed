@@ -32,9 +32,9 @@ export function segmentTextWithToolLinks(text: string): readonly DocumentToolTex
 export function assessmentIdsReferencedInText(text: string): readonly string[] {
   return [
     ...new Set(
-      segmentTextWithToolLinks(text)
-        .filter((segment) => segment.kind === 'assessment')
-        .map((segment) => segment.id),
+      segmentTextWithToolLinks(text).flatMap((segment) =>
+        segment.kind === 'assessment' ? [segment.id] : [],
+      ),
     ),
   ].toSorted();
 }
