@@ -77,6 +77,13 @@
   font: inherit;
 }
 
+.interaction-examples {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .interaction-examples,
 .interaction-recognized {
   display: flex;
