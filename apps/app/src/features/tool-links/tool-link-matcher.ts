@@ -26,11 +26,7 @@ interface IndexedPhrase<Kind extends string> {
 }
 
 function normalizePhrase(value: string): string {
-  return value
-    .toLocaleLowerCase('ru-RU')
-    .replaceAll('ё', 'е')
-    .replace(/\s+/gu, ' ')
-    .trim();
+  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').replace(/\s+/gu, ' ').trim();
 }
 
 function escapeRegExp(value: string): string {
