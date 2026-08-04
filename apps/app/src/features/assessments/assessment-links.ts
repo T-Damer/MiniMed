@@ -1,23 +1,31 @@
-import {
-  type DocumentToolTextSegment,
-  segmentTextWithToolLinks,
-} from '@/features/tool-links/document-tool-links';
+import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
 
-export type AssessmentTextSegment = Exclude<DocumentToolTextSegment, { readonly kind: 'calculator' }>;
+export type AssessmentTextSegment =
+  | { readonly kind: 'text'; readonly value: string }
+  | {
+      readonly kind: 'assessment';
+      readonly id: string;
+      readonly slug: string;
+      readonly value: string;
+    };
 
 export function segmentTextWithAssessmentLinks(text: string): readonly AssessmentTextSegment[] {
   const segments: AssessmentTextSegment[] = [];
   for (const segment of segmentTextWithToolLinks(text)) {
-    const value = segment.value;
     if (segment.kind === 'assessment') {
-      segments.push(segment);
+      segments.push({
+        kind: 'assessment',
+        id: segment.id,
+        slug: segment.slug,
+        value: segment.value,
+      });
       continue;
     }
     const previous = segments.at(-1);
     if (previous?.kind === 'text') {
-      segments[segments.length - 1] = { kind: 'text', value: previous.value + value };
+      segments[segments.length - 1] = { kind: 'text', value: previous.value + segment.value };
     } else {
-      segments.push({ kind: 'text', value });
+      segments.push({ kind: 'text', value: segment.value });
     }
   }
   return segments;
