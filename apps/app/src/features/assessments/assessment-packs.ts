@@ -45,6 +45,8 @@ interface StoredAssessmentInstallationSnapshot {
 export const ASSESSMENT_PACKS_EVENT = 'minimed:assessment-packs-changed';
 const STORAGE_KEY = 'minimed.assessment-packs.v2';
 const LEGACY_STORAGE_KEY = 'minimed.assessment-packs.v1';
+const MODULE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,127}$/u;
+const MAX_VERSION_LENGTH = 128;
 
 export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
   {
@@ -111,10 +113,7 @@ function availableIdSet(definitions: readonly AssessmentCatalogEntry[]): Readonl
   return new Set(definitions.map((definition) => definition.id));
 }
 
-function validAssessmentIds(
-  values: unknown,
-  availableIds: ReadonlySet<string>,
-): readonly string[] {
+function validAssessmentIds(values: unknown, availableIds: ReadonlySet<string>): readonly string[] {
   if (!Array.isArray(values)) return [];
   return [
     ...new Set(
@@ -137,6 +136,14 @@ function validSectionIds(values: unknown): readonly AssessmentSectionId[] {
   ].toSorted();
 }
 
+function validModuleId(value: string): boolean {
+  return MODULE_ID_PATTERN.test(value);
+}
+
+function validModuleVersion(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0 && value.length <= MAX_VERSION_LENGTH;
+}
+
 function validModuleDependencies(
   value: unknown,
   availableIds: ReadonlySet<string>,
@@ -144,9 +151,9 @@ function validModuleDependencies(
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   const dependencies: Record<string, StoredAssessmentModuleDependency> = {};
   for (const [moduleId, rawDependency] of Object.entries(value)) {
-    if (!moduleId || !rawDependency || typeof rawDependency !== 'object') continue;
+    if (!validModuleId(moduleId) || !rawDependency || typeof rawDependency !== 'object') continue;
     const dependency = rawDependency as Readonly<Record<string, unknown>>;
-    if (typeof dependency.version !== 'string' || !dependency.version) continue;
+    if (!validModuleVersion(dependency.version)) continue;
     const assessmentIds = validAssessmentIds(dependency.assessmentIds, availableIds);
     if (assessmentIds.length === 0) continue;
     dependencies[moduleId] = { version: dependency.version, assessmentIds };
@@ -237,9 +244,13 @@ function stateFromSnapshot(
   };
 }
 
-function snapshotFromState(state: AssessmentInstallationState): StoredAssessmentInstallationSnapshot {
+function snapshotFromState(
+  state: AssessmentInstallationState,
+): StoredAssessmentInstallationSnapshot {
   const dependencies: Record<string, StoredAssessmentModuleDependency> = {};
-  for (const [moduleId, dependency] of Object.entries(state.moduleDependencies)) {
+  for (const [moduleId, dependency] of Object.entries(state.moduleDependencies).toSorted(
+    ([left], [right]) => left.localeCompare(right, 'en'),
+  )) {
     dependencies[moduleId] = {
       version: dependency.version,
       assessmentIds: [...dependency.assessmentIds].toSorted(),
@@ -258,8 +269,12 @@ function persist(
   snapshot: StoredAssessmentInstallationSnapshot,
   definitions: readonly AssessmentCatalogEntry[],
 ): AssessmentInstallationState {
-  writeStorage(STORAGE_KEY, JSON.stringify(snapshot));
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event(ASSESSMENT_PACKS_EVENT));
+  const serialized = JSON.stringify(snapshot);
+  if (readStorage(STORAGE_KEY) === serialized) return stateFromSnapshot(snapshot, definitions);
+  const stored = writeStorage(STORAGE_KEY, serialized);
+  if (stored && typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(ASSESSMENT_PACKS_EVENT));
+  }
   return stateFromSnapshot(snapshot, definitions);
 }
 
@@ -311,10 +326,7 @@ export function installAssessmentIds(
     manualIds.add(id);
     excludedIds.delete(id);
   }
-  return persist(
-    snapshotFromState({ ...current, manualIds, excludedIds }),
-    definitions,
-  );
+  return persist(snapshotFromState({ ...current, manualIds, excludedIds }), definitions);
 }
 
 export function removeAssessmentIds(
@@ -322,7 +334,9 @@ export function removeAssessmentIds(
   definitions: readonly AssessmentCatalogEntry[],
 ): AssessmentInstallationState {
   const current = loadAssessmentInstallationState(definitions);
-  const definitionById = new Map(definitions.map((definition) => [definition.id, definition] as const));
+  const definitionById = new Map(
+    definitions.map((definition) => [definition.id, definition] as const),
+  );
   const manualIds = new Set(current.manualIds);
   const excludedIds = new Set(current.excludedIds);
   for (const id of ids) {
@@ -331,10 +345,7 @@ export function removeAssessmentIds(
     if (definition && current.sectionIds.has(definition.category)) excludedIds.add(id);
     else excludedIds.delete(id);
   }
-  return persist(
-    snapshotFromState({ ...current, manualIds, excludedIds }),
-    definitions,
-  );
+  return persist(snapshotFromState({ ...current, manualIds, excludedIds }), definitions);
 }
 
 export function installAssessmentSection(
@@ -342,14 +353,12 @@ export function installAssessmentSection(
   definitions: readonly AssessmentCatalogEntry[],
 ): AssessmentInstallationState {
   const current = loadAssessmentInstallationState(definitions);
+  if (!SECTION_IDS.has(sectionId)) return current;
   const sectionIds = new Set(current.sectionIds);
   const excludedIds = new Set(current.excludedIds);
   sectionIds.add(sectionId);
   for (const id of assessmentIdsInSection(sectionId, definitions)) excludedIds.delete(id);
-  return persist(
-    snapshotFromState({ ...current, sectionIds, excludedIds }),
-    definitions,
-  );
+  return persist(snapshotFromState({ ...current, sectionIds, excludedIds }), definitions);
 }
 
 export function removeAssessmentSection(
@@ -357,9 +366,12 @@ export function removeAssessmentSection(
   definitions: readonly AssessmentCatalogEntry[],
 ): AssessmentInstallationState {
   const current = loadAssessmentInstallationState(definitions);
+  if (!SECTION_IDS.has(sectionId)) return current;
   const sectionIds = new Set(current.sectionIds);
+  const excludedIds = new Set(current.excludedIds);
   sectionIds.delete(sectionId);
-  return persist(snapshotFromState({ ...current, sectionIds }), definitions);
+  for (const id of assessmentIdsInSection(sectionId, definitions)) excludedIds.delete(id);
+  return persist(snapshotFromState({ ...current, sectionIds, excludedIds }), definitions);
 }
 
 export function setAssessmentModuleDependencies(
@@ -369,14 +381,12 @@ export function setAssessmentModuleDependencies(
   definitions: readonly AssessmentCatalogEntry[],
 ): AssessmentInstallationState {
   const current = loadAssessmentInstallationState(definitions);
+  if (!validModuleId(moduleId) || !validModuleVersion(version)) return current;
   const availableIds = availableIdSet(definitions);
   const assessmentIds = validAssessmentIds(ids, availableIds);
   const moduleDependencies = { ...current.moduleDependencies };
-  if (moduleId && version && assessmentIds.length > 0) {
-    moduleDependencies[moduleId] = { version, assessmentIds };
-  } else {
-    delete moduleDependencies[moduleId];
-  }
+  if (assessmentIds.length > 0) moduleDependencies[moduleId] = { version, assessmentIds };
+  else delete moduleDependencies[moduleId];
   return persist(snapshotFromState({ ...current, moduleDependencies }), definitions);
 }
 
@@ -402,9 +412,7 @@ export function pruneAssessmentModuleDependencies(
       moduleDependencies[moduleId] = dependency;
     }
   }
-  if (
-    Object.keys(moduleDependencies).length === Object.keys(current.moduleDependencies).length
-  ) {
+  if (Object.keys(moduleDependencies).length === Object.keys(current.moduleDependencies).length) {
     return current;
   }
   return persist(snapshotFromState({ ...current, moduleDependencies }), definitions);
