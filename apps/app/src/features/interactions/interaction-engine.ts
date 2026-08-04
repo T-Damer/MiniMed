@@ -1,25 +1,16 @@
 import type {
   InteractionAssertion,
+  InteractionEvidence,
   InteractionPairResult,
+  InteractionParticipant,
   MedicationConcept,
   MedicationInteractionCheckResult,
   MedicationInteractionKnowledgeBase,
 } from '@/features/interactions/interaction-types';
 
 const MAX_MEDICATIONS = 20;
-
-const CONCLUSION_PRIORITY: Readonly<Record<InteractionPairResult['conclusion'], number>> = {
-  contraindicated: 100,
-  avoid: 90,
-  'management-required': 80,
-  monitor: 70,
-  'separate-administration': 60,
-  'potential-mechanistic-interaction': 50,
-  'conflicting-evidence': 45,
-  'documented-minor': 30,
-  'documented-no-significant-interaction': 10,
-  unknown: 0,
-};
+const REVIEW_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
+const validatedKnowledge = new WeakSet<object>();
 
 export function normalizeMedicationName(value: string): string {
   return value
@@ -31,14 +22,148 @@ export function normalizeMedicationName(value: string): string {
     .trim();
 }
 
+function requireText(value: string, path: string): void {
+  if (!value.trim()) throw new Error(`Medication interaction catalog: ${path} must not be empty.`);
+}
+
+function addUniqueId(ids: Set<string>, id: string, path: string): void {
+  requireText(id, path);
+  if (ids.has(id)) throw new Error(`Medication interaction catalog: duplicate ${path} “${id}”.`);
+  ids.add(id);
+}
+
+export function validateMedicationInteractionKnowledge(
+  knowledge: MedicationInteractionKnowledgeBase,
+): void {
+  if (knowledge.schemaVersion !== 1) {
+    throw new Error('Medication interaction catalog: unsupported schema version.');
+  }
+
+  const classIds = new Set<string>();
+  for (const medicationClass of knowledge.classes) {
+    addUniqueId(classIds, medicationClass.id, 'class ID');
+    requireText(medicationClass.title, `class ${medicationClass.id} title`);
+  }
+
+  const medicationIds = new Set<string>();
+  const aliasOwners = new Map<string, string>();
+  for (const medication of knowledge.medications) {
+    addUniqueId(medicationIds, medication.id, 'medication ID');
+    requireText(medication.preferredName, `medication ${medication.id} preferredName`);
+    for (const classId of medication.classes) {
+      if (!classIds.has(classId)) {
+        throw new Error(
+          `Medication interaction catalog: medication ${medication.id} references unknown class ${classId}.`,
+        );
+      }
+    }
+    for (const name of [medication.preferredName, ...medication.aliases]) {
+      const normalized = normalizeMedicationName(name);
+      requireText(normalized, `medication ${medication.id} alias`);
+      const owner = aliasOwners.get(normalized);
+      if (owner && owner !== medication.id) {
+        throw new Error(
+          `Medication interaction catalog: alias “${normalized}” belongs to both ${owner} and ${medication.id}.`,
+        );
+      }
+      aliasOwners.set(normalized, medication.id);
+    }
+  }
+
+  const evidenceIds = new Set<string>();
+  for (const evidence of knowledge.evidence) {
+    addUniqueId(evidenceIds, evidence.id, 'evidence ID');
+    requireText(evidence.sourceTitle, `evidence ${evidence.id} sourceTitle`);
+    requireText(evidence.issuer, `evidence ${evidence.id} issuer`);
+    requireText(evidence.jurisdiction, `evidence ${evidence.id} jurisdiction`);
+    requireText(evidence.sourceVersion, `evidence ${evidence.id} sourceVersion`);
+    requireText(evidence.quote, `evidence ${evidence.id} quote`);
+    if (!REVIEW_DATE_PATTERN.test(evidence.reviewedAt)) {
+      throw new Error(
+        `Medication interaction catalog: evidence ${evidence.id} has invalid reviewedAt.`,
+      );
+    }
+    let sourceUrl: URL;
+    try {
+      sourceUrl = new URL(evidence.sourceUrl);
+    } catch {
+      throw new Error(
+        `Medication interaction catalog: evidence ${evidence.id} has an invalid source URL.`,
+      );
+    }
+    if (sourceUrl.protocol !== 'https:') {
+      throw new Error(
+        `Medication interaction catalog: evidence ${evidence.id} must use an HTTPS source URL.`,
+      );
+    }
+  }
+
+  const assertionIds = new Set<string>();
+  const assertionTargets = new Set<string>();
+  for (const assertion of knowledge.assertions) {
+    addUniqueId(assertionIds, assertion.id, 'assertion ID');
+    if (!medicationIds.has(assertion.subjectMedicationId)) {
+      throw new Error(
+        `Medication interaction catalog: assertion ${assertion.id} references unknown subject medication.`,
+      );
+    }
+    const targetIds = assertion.interactant.kind === 'medication' ? medicationIds : classIds;
+    if (!targetIds.has(assertion.interactant.id)) {
+      throw new Error(
+        `Medication interaction catalog: assertion ${assertion.id} references an unknown target.`,
+      );
+    }
+    if (
+      assertion.interactant.kind === 'medication' &&
+      assertion.interactant.id === assertion.subjectMedicationId
+    ) {
+      throw new Error(
+        `Medication interaction catalog: assertion ${assertion.id} cannot target the same medication.`,
+      );
+    }
+    const targetKey = `${assertion.subjectMedicationId}|${assertion.interactant.kind}|${assertion.interactant.id}`;
+    if (assertionTargets.has(targetKey)) {
+      throw new Error(
+        `Medication interaction catalog: duplicate reviewed assertion target ${targetKey}.`,
+      );
+    }
+    assertionTargets.add(targetKey);
+    if (assertion.reviewStatus !== 'reviewed' || !REVIEW_DATE_PATTERN.test(assertion.reviewedAt)) {
+      throw new Error(
+        `Medication interaction catalog: assertion ${assertion.id} is not validly reviewed.`,
+      );
+    }
+    requireText(assertion.mechanism, `assertion ${assertion.id} mechanism`);
+    requireText(assertion.effect, `assertion ${assertion.id} effect`);
+    requireText(assertion.recommendation, `assertion ${assertion.id} recommendation`);
+    if (assertion.evidenceIds.length === 0) {
+      throw new Error(
+        `Medication interaction catalog: assertion ${assertion.id} has no evidence.`,
+      );
+    }
+    for (const evidenceId of assertion.evidenceIds) {
+      if (!evidenceIds.has(evidenceId)) {
+        throw new Error(
+          `Medication interaction catalog: assertion ${assertion.id} references unknown evidence ${evidenceId}.`,
+        );
+      }
+    }
+  }
+}
+
+function ensureValidated(knowledge: MedicationInteractionKnowledgeBase): void {
+  if (validatedKnowledge.has(knowledge)) return;
+  validateMedicationInteractionKnowledge(knowledge);
+  validatedKnowledge.add(knowledge);
+}
+
 function aliasIndex(
   knowledge: MedicationInteractionKnowledgeBase,
 ): ReadonlyMap<string, MedicationConcept> {
   const index = new Map<string, MedicationConcept>();
   for (const medication of knowledge.medications) {
     for (const name of [medication.preferredName, ...medication.aliases]) {
-      const normalized = normalizeMedicationName(name);
-      if (normalized) index.set(normalized, medication);
+      index.set(normalizeMedicationName(name), medication);
     }
   }
   return index;
@@ -64,6 +189,7 @@ export function resolveMedication(
   input: string,
   knowledge: MedicationInteractionKnowledgeBase,
 ): MedicationConcept | undefined {
+  ensureValidated(knowledge);
   const normalized = normalizeMedicationName(input);
   if (!normalized) return undefined;
   const exact = aliasIndex(knowledge).get(normalized);
@@ -81,6 +207,7 @@ export function extractMedicationNames(
   value: string,
   knowledge: MedicationInteractionKnowledgeBase,
 ): readonly string[] {
+  ensureValidated(knowledge);
   const directParts = value
     .split(/[,;\n+]|\s+и\s+/giu)
     .map((part) => part.trim())
@@ -125,13 +252,30 @@ function assertionMatchesPair(
   );
 }
 
+function evidenceForAssertions(
+  assertions: readonly InteractionAssertion[],
+  knowledge: MedicationInteractionKnowledgeBase,
+): readonly InteractionEvidence[] {
+  const evidenceById = new Map(knowledge.evidence.map((evidence) => [evidence.id, evidence]));
+  const seen = new Set<string>();
+  const evidence: InteractionEvidence[] = [];
+  for (const assertion of assertions) {
+    for (const evidenceId of assertion.evidenceIds) {
+      const item = evidenceById.get(evidenceId);
+      if (!item || seen.has(item.id)) continue;
+      seen.add(item.id);
+      evidence.push(item);
+    }
+  }
+  return evidence;
+}
+
 function resultFromAssertion(
-  left: MedicationConcept,
-  right: MedicationConcept,
+  left: InteractionParticipant,
+  right: InteractionParticipant,
   assertion: InteractionAssertion,
   knowledge: MedicationInteractionKnowledgeBase,
 ): InteractionPairResult {
-  const evidenceIds = new Set(assertion.evidenceIds);
   return {
     left,
     right,
@@ -143,75 +287,119 @@ function resultFromAssertion(
     effect: assertion.effect,
     recommendation: assertion.recommendation,
     assertionId: assertion.id,
-    evidence: knowledge.evidence.filter((item) => evidenceIds.has(item.id)),
+    evidence: evidenceForAssertions([assertion], knowledge),
+  };
+}
+
+function conflictingResult(
+  left: InteractionParticipant,
+  right: InteractionParticipant,
+  assertions: readonly InteractionAssertion[],
+  knowledge: MedicationInteractionKnowledgeBase,
+): InteractionPairResult {
+  return {
+    left,
+    right,
+    conclusion: 'conflicting-evidence',
+    severity: 'unknown',
+    recommendation:
+      'Для этой пары найдены несколько пересекающихся проверенных утверждений. Требуется ручная сверка источников; автоматический вывод не применяется.',
+    evidence: evidenceForAssertions(assertions, knowledge),
   };
 }
 
 function unknownResult(
-  left: MedicationConcept,
-  right: MedicationConcept,
+  left: InteractionParticipant,
+  right: InteractionParticipant,
 ): InteractionPairResult {
+  const hasUnresolvedParticipant = !left.concept || !right.concept;
   return {
     left,
     right,
     conclusion: 'unknown',
     severity: 'unknown',
-    recommendation:
-      'В подключённой проверенной базе нет утверждения для этой пары. Это не подтверждает отсутствие взаимодействия.',
+    recommendation: hasUnresolvedParticipant
+      ? 'Один или оба препарата не распознаны в подключённой проверенной базе. Взаимодействие не оценено.'
+      : 'В подключённой проверенной базе нет утверждения для этой пары. Это не подтверждает отсутствие взаимодействия.',
     evidence: [],
   };
+}
+
+function participant(input: string, concept?: MedicationConcept): InteractionParticipant {
+  return concept
+    ? { input, label: concept.preferredName, concept }
+    : { input, label: input };
+}
+
+function resolvePair(
+  left: InteractionParticipant,
+  right: InteractionParticipant,
+  knowledge: MedicationInteractionKnowledgeBase,
+): InteractionPairResult {
+  if (!left.concept || !right.concept) return unknownResult(left, right);
+  const assertions = knowledge.assertions.filter((assertion) =>
+    assertionMatchesPair(assertion, left.concept as MedicationConcept, right.concept as MedicationConcept),
+  );
+  if (assertions.length === 0) return unknownResult(left, right);
+
+  const highestSpecificity = Math.max(
+    ...assertions.map((assertion) => (assertion.interactant.kind === 'medication' ? 2 : 1)),
+  );
+  const mostSpecific = assertions.filter(
+    (assertion) => (assertion.interactant.kind === 'medication' ? 2 : 1) === highestSpecificity,
+  );
+  if (mostSpecific.length !== 1) {
+    return conflictingResult(left, right, mostSpecific, knowledge);
+  }
+  const assertion = mostSpecific[0];
+  return assertion
+    ? resultFromAssertion(left, right, assertion, knowledge)
+    : unknownResult(left, right);
 }
 
 export function checkMedicationInteractions(
   inputs: readonly string[],
   knowledge: MedicationInteractionKnowledgeBase,
 ): MedicationInteractionCheckResult {
+  ensureValidated(knowledge);
   const resolved: MedicationInteractionCheckResult['resolved'][number][] = [];
   const unresolved: MedicationInteractionCheckResult['unresolved'][number][] = [];
+  const participants: InteractionParticipant[] = [];
   const duplicateInputs: string[] = [];
-  const seenConceptIds = new Set<string>();
-  const boundedInputs = inputs.map((input) => input.trim()).filter(Boolean).slice(0, MAX_MEDICATIONS);
+  const seenKeys = new Set<string>();
+  const nonEmptyInputs = inputs.map((input) => input.trim()).filter(Boolean);
+  const boundedInputs = nonEmptyInputs.slice(0, MAX_MEDICATIONS);
 
   for (const input of boundedInputs) {
     const concept = resolveMedication(input, knowledge);
-    if (!concept) {
-      unresolved.push({ input });
-      continue;
-    }
-    if (seenConceptIds.has(concept.id)) {
+    const normalized = normalizeMedicationName(input);
+    const key = concept ? `medication:${concept.id}` : `unresolved:${normalized}`;
+    if (seenKeys.has(key)) {
       duplicateInputs.push(input);
       continue;
     }
-    seenConceptIds.add(concept.id);
-    resolved.push({ input, concept });
+    seenKeys.add(key);
+    participants.push(participant(input, concept));
+    if (concept) resolved.push({ input, concept });
+    else unresolved.push({ input });
   }
 
   const pairs: InteractionPairResult[] = [];
-  for (let leftIndex = 0; leftIndex < resolved.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < resolved.length; rightIndex += 1) {
-      const left = resolved[leftIndex]?.concept;
-      const right = resolved[rightIndex]?.concept;
+  for (let leftIndex = 0; leftIndex < participants.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < participants.length; rightIndex += 1) {
+      const left = participants[leftIndex];
+      const right = participants[rightIndex];
       if (!left || !right) continue;
-      const assertions = knowledge.assertions
-        .filter((assertion) => assertionMatchesPair(assertion, left, right))
-        .toSorted(
-          (first, second) =>
-            CONCLUSION_PRIORITY[second.conclusion] - CONCLUSION_PRIORITY[first.conclusion],
-        );
-      const assertion = assertions[0];
-      pairs.push(
-        assertion
-          ? resultFromAssertion(left, right, assertion, knowledge)
-          : unknownResult(left, right),
-      );
+      pairs.push(resolvePair(left, right, knowledge));
     }
   }
 
   return {
+    participants,
     resolved,
     unresolved,
     duplicateInputs,
     pairs,
-    truncated: inputs.filter((input) => input.trim()).length > MAX_MEDICATIONS,
+    truncated: nonEmptyInputs.length > MAX_MEDICATIONS,
   };
 }
