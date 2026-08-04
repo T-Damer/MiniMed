@@ -127,7 +127,10 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=7d924d16-8a10-411d-be57-97c450f56de7&type=display',
       sourceType: 'official-label',
-      sourceVersion: 'DailyMed label reviewed 2026-08-04',
+      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      jurisdiction: 'США',
+      sourceVersion: 'Актуальная маркировка DailyMed',
+      reviewedAt: '2026-08-04',
       quote:
         'Escitalopram is contraindicated in patients taking MAOIs, including MAOIs such as linezolid.',
     },
@@ -137,7 +140,10 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=7d924d16-8a10-411d-be57-97c450f56de7&type=display',
       sourceType: 'official-label',
-      sourceVersion: 'DailyMed label reviewed 2026-08-04',
+      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      jurisdiction: 'США',
+      sourceVersion: 'Актуальная маркировка DailyMed',
+      reviewedAt: '2026-08-04',
       quote: 'Escitalopram is contraindicated in patients taking pimozide.',
     },
     {
@@ -146,7 +152,10 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6b9167a9-80e9-44e1-a609-c3eb78960acf',
       sourceType: 'official-label',
-      sourceVersion: 'DailyMed label reviewed 2026-08-04',
+      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      jurisdiction: 'США',
+      sourceVersion: 'Актуальная маркировка DailyMed',
+      reviewedAt: '2026-08-04',
       quote:
         'Metoclopramide lowers the serum concentration and urinary excretion of fosfomycin.',
     },
@@ -156,7 +165,10 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       sourceUrl:
         'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6b9167a9-80e9-44e1-a609-c3eb78960acf',
       sourceType: 'official-label',
-      sourceVersion: 'DailyMed label reviewed 2026-08-04',
+      issuer: 'U.S. Food and Drug Administration / DailyMed',
+      jurisdiction: 'США',
+      sourceVersion: 'Актуальная маркировка DailyMed',
+      reviewedAt: '2026-08-04',
       quote: 'Cimetidine does not affect the pharmacokinetics of fosfomycin.',
     },
   ],
