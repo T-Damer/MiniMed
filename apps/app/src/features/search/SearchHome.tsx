@@ -11,8 +11,8 @@ import {
   ScopedMedicalCore,
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
-import { canSelectSearchScope } from '@/features/search/search-scope-availability';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
+import { canSelectSearchScope } from '@/features/search/search-scope-availability';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 

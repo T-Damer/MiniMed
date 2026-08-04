@@ -23,7 +23,7 @@ const CONCLUSION_LABELS: Readonly<Record<InteractionConclusion, string>> = {
   monitor: 'Требуется наблюдение',
   'separate-administration': 'Разнести приём',
   'documented-minor': 'Документированное слабое взаимодействие',
-  'documented-no-significant-interaction': 'Значимое взаимодействие не выявлено',
+  'documented-no-significant-interaction': 'Документированное отсутствие значимого взаимодействия',
   'potential-mechanistic-interaction': 'Потенциальное механистическое взаимодействие',
   'conflicting-evidence': 'Требуется ручная сверка',
   unknown: 'Данные не подтверждены',
@@ -48,6 +48,16 @@ function inputItems(value: string): readonly string[] {
   return extracted.length >= 2 ? extracted : direct;
 }
 
+function conclusionLabel(pair: InteractionPairResult): string {
+  if (
+    pair.conclusion === 'documented-no-significant-interaction' &&
+    pair.interactionType === 'pharmacokinetic'
+  ) {
+    return 'Значимое ФК-влияние не выявлено';
+  }
+  return CONCLUSION_LABELS[pair.conclusion];
+}
+
 function InteractionResultCard(props: { readonly pair: InteractionPairResult }): JSX.Element {
   return (
     <article
@@ -62,7 +72,7 @@ function InteractionResultCard(props: { readonly pair: InteractionPairResult }):
             {props.pair.left.label} + {props.pair.right.label}
           </h3>
         </div>
-        <strong>{CONCLUSION_LABELS[props.pair.conclusion]}</strong>
+        <strong>{conclusionLabel(props.pair)}</strong>
       </header>
 
       <Show
@@ -157,8 +167,8 @@ export function MedicationInteractionChecker(
           <p class="archive-kicker">Клиническая фармакология · пилот</p>
           <h2>Проверка взаимодействий препаратов</h2>
           <p>
-            Проверяются только рецензированные связи. Отсутствие связи означает недостаток данных, а
-            не доказанную совместимость.
+            Проверяются только вручную проверенные связи. Отсутствие связи означает недостаток
+            данных, а не доказанную совместимость.
           </p>
         </div>
         <button

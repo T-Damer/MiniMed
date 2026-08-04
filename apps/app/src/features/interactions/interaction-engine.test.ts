@@ -145,6 +145,17 @@ describe('medication interaction engine', () => {
     expect(() => validateMedicationInteractionKnowledge(invalid)).toThrow('has no evidence');
   });
 
+  it('rejects unsupported runtime assertion enum values', () => {
+    const assertion = MEDICATION_INTERACTION_KNOWLEDGE.assertions[0];
+    expect(assertion).toBeDefined();
+    const invalid: MedicationInteractionKnowledgeBase = {
+      ...MEDICATION_INTERACTION_KNOWLEDGE,
+      assertions: assertion ? [{ ...assertion, direction: 'sideways' as never }] : [],
+    };
+
+    expect(() => validateMedicationInteractionKnowledge(invalid)).toThrow('invalid assertion');
+  });
+
   it('rejects impossible calendar review dates', () => {
     const evidence = MEDICATION_INTERACTION_KNOWLEDGE.evidence[0];
     expect(evidence).toBeDefined();

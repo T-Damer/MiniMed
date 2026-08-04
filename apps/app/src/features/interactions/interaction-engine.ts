@@ -12,6 +12,45 @@ const MAX_MEDICATIONS = 20;
 const REVIEW_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 const validatedKnowledge = new WeakSet<object>();
 const aliasIndexes = new WeakMap<object, ReadonlyMap<string, MedicationConcept>>();
+const INTERACTION_DIRECTIONS: ReadonlySet<string> = new Set([
+  'bidirectional',
+  'subject-affects-interactant',
+  'interactant-affects-subject',
+]);
+const INTERACTION_CONCLUSIONS: ReadonlySet<string> = new Set([
+  'contraindicated',
+  'avoid',
+  'management-required',
+  'monitor',
+  'separate-administration',
+  'documented-minor',
+  'documented-no-significant-interaction',
+  'potential-mechanistic-interaction',
+]);
+const INTERACTION_SEVERITIES: ReadonlySet<string> = new Set([
+  'critical',
+  'high',
+  'moderate',
+  'low',
+  'none',
+]);
+const INTERACTION_CERTAINTIES: ReadonlySet<string> = new Set([
+  'established',
+  'probable',
+  'possible',
+  'theoretical',
+]);
+const INTERACTION_TYPES: ReadonlySet<string> = new Set([
+  'pharmacodynamic',
+  'pharmacokinetic',
+  'pharmaceutical',
+]);
+const INTERACTION_TARGET_KINDS: ReadonlySet<string> = new Set(['medication', 'class']);
+const EVIDENCE_SOURCE_TYPES: ReadonlySet<string> = new Set([
+  'official-label',
+  'clinical-guideline',
+  'peer-reviewed',
+]);
 
 export function normalizeMedicationName(value: string): string {
   return value
@@ -25,6 +64,12 @@ export function normalizeMedicationName(value: string): string {
 
 function requireText(value: string, path: string): void {
   if (!value.trim()) throw new Error(`Medication interaction catalog: ${path} must not be empty.`);
+}
+
+function requireEnum(value: string, allowed: ReadonlySet<string>, path: string): void {
+  if (!allowed.has(value)) {
+    throw new Error(`Medication interaction catalog: invalid ${path} “${value}”.`);
+  }
 }
 
 function isValidReviewDate(value: string): boolean {
@@ -86,6 +131,7 @@ export function validateMedicationInteractionKnowledge(
   const evidenceIds = new Set<string>();
   for (const evidence of knowledge.evidence) {
     addUniqueId(evidenceIds, evidence.id, 'evidence ID');
+    requireEnum(evidence.sourceType, EVIDENCE_SOURCE_TYPES, `evidence ${evidence.id} sourceType`);
     requireText(evidence.sourceTitle, `evidence ${evidence.id} sourceTitle`);
     requireText(evidence.issuer, `evidence ${evidence.id} issuer`);
     requireText(evidence.jurisdiction, `evidence ${evidence.id} jurisdiction`);
@@ -115,6 +161,28 @@ export function validateMedicationInteractionKnowledge(
   const assertionTargets = new Set<string>();
   for (const assertion of knowledge.assertions) {
     addUniqueId(assertionIds, assertion.id, 'assertion ID');
+    requireEnum(
+      assertion.interactant.kind,
+      INTERACTION_TARGET_KINDS,
+      `assertion ${assertion.id} interactant kind`,
+    );
+    requireEnum(assertion.direction, INTERACTION_DIRECTIONS, `assertion ${assertion.id} direction`);
+    requireEnum(
+      assertion.conclusion,
+      INTERACTION_CONCLUSIONS,
+      `assertion ${assertion.id} conclusion`,
+    );
+    requireEnum(assertion.severity, INTERACTION_SEVERITIES, `assertion ${assertion.id} severity`);
+    requireEnum(
+      assertion.certainty,
+      INTERACTION_CERTAINTIES,
+      `assertion ${assertion.id} certainty`,
+    );
+    requireEnum(
+      assertion.interactionType,
+      INTERACTION_TYPES,
+      `assertion ${assertion.id} interactionType`,
+    );
     if (!medicationIds.has(assertion.subjectMedicationId)) {
       throw new Error(
         `Medication interaction catalog: assertion ${assertion.id} references unknown subject medication.`,
