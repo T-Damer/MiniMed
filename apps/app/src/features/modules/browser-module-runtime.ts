@@ -666,18 +666,27 @@ export class BrowserContentModuleRuntime {
 
   public async rollback(moduleId: string, version?: string): Promise<InstalledContentModule> {
     this.invalidateAssessmentDependencyScans(moduleId);
+    let installed: InstalledContentModule;
     try {
-      const installed = await commitRegistryAndArtifactMutation(
+      installed = await commitRegistryAndArtifactMutation(
         this.registry,
         () => this.registry.rollback(moduleId, version),
         (next) => this.backend.setActive(moduleId, next.version),
       );
-      await this.syncAssessmentDependencies(moduleId, installed.version);
-      return installed;
     } catch (cause) {
       this.restoreAssessmentDependencyScan(moduleId);
       throw cause;
     }
+
+    try {
+      await this.syncAssessmentDependencies(moduleId, installed.version);
+    } catch (cause) {
+      this.invalidateAssessmentDependencyScans(moduleId);
+      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      console.warn(`Unable to resolve questionnaire dependencies after rolling back ${moduleId}.`, cause);
+      this.restoreAssessmentDependencyScan(moduleId);
+    }
+    return installed;
   }
 }
 
