@@ -11,6 +11,7 @@ import {
   ScopedMedicalCore,
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
+import { canSelectSearchScope } from '@/features/search/search-scope-availability';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
@@ -111,6 +112,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const selected = scope();
     return Boolean(selected && documentCountsLoaded() && documentCounts()[selected] === 0);
   });
+  const scopeSelectable = (candidate: SearchScope): boolean =>
+    canSelectSearchScope(candidate, documentCountsLoaded(), documentCounts()[candidate]);
 
   const selectScope = (next: SearchScope): void => {
     setScope(next);
@@ -141,8 +144,16 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       <Show when={selectedScopeUnavailable()}>
         <div class="search-scope-unavailable paper-card">
           <div>
-            <strong>Такие документы ещё не установлены</strong>
-            <p>Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.</p>
+            <strong>
+              {scope() === 'medications'
+                ? 'Инструкции препаратов ещё не установлены'
+                : 'Такие документы ещё не установлены'}
+            </strong>
+            <p>
+              {scope() === 'medications'
+                ? 'Проверка взаимодействий доступна ниже. Для поиска по инструкциям установите подходящий раздел базы знаний.'
+                : 'Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.'}
+            </p>
           </div>
           <button type="button" onClick={props.onOpenKnowledgeBase}>
             Открыть базу знаний
@@ -182,7 +193,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                   <label
                     classList={{
                       active: scope() === option.id,
-                      unavailable: documentCountsLoaded() && documentCounts()[option.id] === 0,
+                      unavailable: !scopeSelectable(option.id),
                     }}
                     title={option.description}
                   >
@@ -192,7 +203,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                       value={option.id}
                       aria-label={option.label}
                       checked={scope() === option.id}
-                      disabled={documentCountsLoaded() && documentCounts()[option.id] === 0}
+                      disabled={!scopeSelectable(option.id)}
                       onChange={() => selectScope(option.id)}
                     />
                     <span class="search-mode-option-copy">
