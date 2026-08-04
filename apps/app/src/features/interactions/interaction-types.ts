@@ -12,7 +12,10 @@ export type InteractionConclusion =
 
 export type InteractionSeverity = 'critical' | 'high' | 'moderate' | 'low' | 'none' | 'unknown';
 export type InteractionCertainty = 'established' | 'probable' | 'possible' | 'theoretical';
-export type InteractionDirection = 'bidirectional' | 'subject-affects-interactant';
+export type InteractionDirection =
+  | 'bidirectional'
+  | 'subject-affects-interactant'
+  | 'interactant-affects-subject';
 
 export interface MedicationConcept {
   readonly id: string;
@@ -91,6 +94,7 @@ export interface InteractionPairResult {
   readonly severity: InteractionSeverity;
   readonly certainty?: InteractionCertainty;
   readonly interactionType?: InteractionAssertion['interactionType'];
+  readonly direction?: InteractionDirection;
   readonly mechanism?: string;
   readonly effect?: string;
   readonly recommendation: string;

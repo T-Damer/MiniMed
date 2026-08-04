@@ -67,9 +67,23 @@ describe('medication interaction engine', () => {
       severity: 'critical',
       certainty: 'established',
       assertionId: 'interaction.escitalopram.maoi',
+      direction: 'bidirectional',
     });
     expect(result.pairs[0]?.evidence).toHaveLength(1);
     expect(result.pairs[0]?.evidence[0]?.jurisdiction).toBe('США');
+  });
+
+  it('preserves the reviewed direction of a pharmacokinetic interaction', () => {
+    const result = checkMedicationInteractions(
+      ['фосфомицин', 'метоклопрамид'],
+      MEDICATION_INTERACTION_KNOWLEDGE,
+    );
+
+    expect(result.pairs[0]).toMatchObject({
+      conclusion: 'management-required',
+      direction: 'interactant-affects-subject',
+      assertionId: 'interaction.fosfomycin.metoclopramide',
+    });
   });
 
   it('returns an explicit reviewed negative assertion only when it exists', () => {
@@ -102,11 +116,16 @@ describe('medication interaction engine', () => {
     expect(result.unresolved).toEqual([{ input: 'неизвестный препарат' }]);
   });
 
-  it('reports truncation and never evaluates more than twenty unique inputs', () => {
-    const inputs = Array.from({ length: 21 }, (_, index) => `неизвестный-${index}`);
+  it('reports truncation after twenty unique inputs rather than twenty raw entries', () => {
+    const inputs = [
+      'эсциталопрам',
+      'Ципралекс',
+      ...Array.from({ length: 20 }, (_, index) => `неизвестный-${index}`),
+    ];
     const result = checkMedicationInteractions(inputs, MEDICATION_INTERACTION_KNOWLEDGE);
 
     expect(result.truncated).toBe(true);
+    expect(result.duplicateInputs).toEqual(['Ципралекс']);
     expect(result.participants).toHaveLength(20);
     expect(result.pairs).toHaveLength(190);
   });
@@ -120,6 +139,17 @@ describe('medication interaction engine', () => {
     };
 
     expect(() => validateMedicationInteractionKnowledge(invalid)).toThrow('has no evidence');
+  });
+
+  it('rejects impossible calendar review dates', () => {
+    const evidence = MEDICATION_INTERACTION_KNOWLEDGE.evidence[0];
+    expect(evidence).toBeDefined();
+    const invalid: MedicationInteractionKnowledgeBase = {
+      ...MEDICATION_INTERACTION_KNOWLEDGE,
+      evidence: evidence ? [{ ...evidence, reviewedAt: '2026-02-31' }] : [],
+    };
+
+    expect(() => validateMedicationInteractionKnowledge(invalid)).toThrow('invalid reviewedAt');
   });
 
   it('rejects aliases that resolve to multiple medications', () => {

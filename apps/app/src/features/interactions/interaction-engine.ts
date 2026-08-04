@@ -11,6 +11,7 @@ import type {
 const MAX_MEDICATIONS = 20;
 const REVIEW_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 const validatedKnowledge = new WeakSet<object>();
+const aliasIndexes = new WeakMap<object, ReadonlyMap<string, MedicationConcept>>();
 
 export function normalizeMedicationName(value: string): string {
   return value
@@ -24,6 +25,18 @@ export function normalizeMedicationName(value: string): string {
 
 function requireText(value: string, path: string): void {
   if (!value.trim()) throw new Error(`Medication interaction catalog: ${path} must not be empty.`);
+}
+
+function isValidReviewDate(value: string): boolean {
+  if (!REVIEW_DATE_PATTERN.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  if (year === undefined || month === undefined || day === undefined) return false;
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return (
+    parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day
+  );
 }
 
 function addUniqueId(ids: Set<string>, id: string, path: string): void {
@@ -78,7 +91,7 @@ export function validateMedicationInteractionKnowledge(
     requireText(evidence.jurisdiction, `evidence ${evidence.id} jurisdiction`);
     requireText(evidence.sourceVersion, `evidence ${evidence.id} sourceVersion`);
     requireText(evidence.quote, `evidence ${evidence.id} quote`);
-    if (!REVIEW_DATE_PATTERN.test(evidence.reviewedAt)) {
+    if (!isValidReviewDate(evidence.reviewedAt)) {
       throw new Error(
         `Medication interaction catalog: evidence ${evidence.id} has invalid reviewedAt.`,
       );
@@ -128,7 +141,7 @@ export function validateMedicationInteractionKnowledge(
       );
     }
     assertionTargets.add(targetKey);
-    if (assertion.reviewStatus !== 'reviewed' || !REVIEW_DATE_PATTERN.test(assertion.reviewedAt)) {
+    if (assertion.reviewStatus !== 'reviewed' || !isValidReviewDate(assertion.reviewedAt)) {
       throw new Error(
         `Medication interaction catalog: assertion ${assertion.id} is not validly reviewed.`,
       );
@@ -158,12 +171,15 @@ function ensureValidated(knowledge: MedicationInteractionKnowledgeBase): void {
 function aliasIndex(
   knowledge: MedicationInteractionKnowledgeBase,
 ): ReadonlyMap<string, MedicationConcept> {
+  const cached = aliasIndexes.get(knowledge);
+  if (cached) return cached;
   const index = new Map<string, MedicationConcept>();
   for (const medication of knowledge.medications) {
     for (const name of [medication.preferredName, ...medication.aliases]) {
       index.set(normalizeMedicationName(name), medication);
     }
   }
+  aliasIndexes.set(knowledge, index);
   return index;
 }
 
@@ -281,6 +297,7 @@ function resultFromAssertion(
     severity: assertion.severity,
     certainty: assertion.certainty,
     interactionType: assertion.interactionType,
+    direction: assertion.direction,
     mechanism: assertion.mechanism,
     effect: assertion.effect,
     recommendation: assertion.recommendation,
@@ -368,14 +385,18 @@ export function checkMedicationInteractions(
   const duplicateInputs: string[] = [];
   const seenKeys = new Set<string>();
   const nonEmptyInputs = inputs.map((input) => input.trim()).filter(Boolean);
-  const boundedInputs = nonEmptyInputs.slice(0, MAX_MEDICATIONS);
+  let truncated = false;
 
-  for (const input of boundedInputs) {
+  for (const input of nonEmptyInputs) {
     const concept = resolveMedication(input, knowledge);
     const normalized = normalizeMedicationName(input);
     const key = concept ? `medication:${concept.id}` : `unresolved:${normalized}`;
     if (seenKeys.has(key)) {
       duplicateInputs.push(input);
+      continue;
+    }
+    if (participants.length >= MAX_MEDICATIONS) {
+      truncated = true;
       continue;
     }
     seenKeys.add(key);
@@ -400,6 +421,6 @@ export function checkMedicationInteractions(
     unresolved,
     duplicateInputs,
     pairs,
-    truncated: nonEmptyInputs.length > MAX_MEDICATIONS,
+    truncated,
   };
 }
