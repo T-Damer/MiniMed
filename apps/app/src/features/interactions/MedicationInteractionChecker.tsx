@@ -25,7 +25,7 @@ const CONCLUSION_LABELS: Readonly<Record<InteractionConclusion, string>> = {
   'documented-minor': 'Документированное слабое взаимодействие',
   'documented-no-significant-interaction': 'Значимое взаимодействие не выявлено',
   'potential-mechanistic-interaction': 'Потенциальное механистическое взаимодействие',
-  'conflicting-evidence': 'Противоречивые данные',
+  'conflicting-evidence': 'Требуется ручная сверка',
   unknown: 'Данные не подтверждены',
 };
 
@@ -58,7 +58,7 @@ function InteractionResultCard(props: { readonly pair: InteractionPairResult }):
         <div>
           <p class="archive-kicker">{SEVERITY_LABELS[props.pair.severity]}</p>
           <h3>
-            {props.pair.left.preferredName} + {props.pair.right.preferredName}
+            {props.pair.left.label} + {props.pair.right.label}
           </h3>
         </div>
         <strong>{CONCLUSION_LABELS[props.pair.conclusion]}</strong>
@@ -103,7 +103,12 @@ function InteractionResultCard(props: { readonly pair: InteractionPairResult }):
                   <a href={evidence.sourceUrl} target="_blank" rel="noreferrer">
                     {evidence.sourceTitle}
                   </a>
-                  <span>{evidence.sourceVersion}</span>
+                  <span>
+                    {evidence.issuer} · юрисдикция: {evidence.jurisdiction}
+                  </span>
+                  <span>
+                    {evidence.sourceVersion} · проверено {evidence.reviewedAt}
+                  </span>
                 </cite>
               </blockquote>
             )}
@@ -134,7 +139,7 @@ export function MedicationInteractionChecker(
   const result = createMemo(() =>
     checkMedicationInteractions(items(), MEDICATION_INTERACTION_KNOWLEDGE),
   );
-  const hasEnoughMedications = createMemo(() => result().resolved.length >= 2);
+  const hasEnoughMedications = createMemo(() => result().pairs.length > 0);
 
   const useExample = (example: string): void => {
     setValue(example);
@@ -149,7 +154,7 @@ export function MedicationInteractionChecker(
         </div>
         <div>
           <p class="archive-kicker">Клиническая фармакология · пилот</p>
-          <h2>Проверка совместимости препаратов</h2>
+          <h2>Проверка взаимодействий препаратов</h2>
           <p>
             Проверяются только рецензированные связи. Отсутствие связи означает недостаток данных,
             а не доказанную совместимость.
@@ -203,6 +208,14 @@ export function MedicationInteractionChecker(
               {result()
                 .unresolved.map((item) => item.input)
                 .join(', ')}
+              . Пары с этими названиями помечены как непроверенные.
+            </div>
+          </Show>
+
+          <Show when={result().duplicateInputs.length > 0}>
+            <div class="interaction-unresolved" role="status">
+              Повторные названия исключены:{' '}
+              {result().duplicateInputs.join(', ')}
             </div>
           </Show>
 
@@ -214,9 +227,7 @@ export function MedicationInteractionChecker(
 
           <Show
             when={hasEnoughMedications()}
-            fallback={
-              <p class="interaction-empty">Укажите как минимум два распознаваемых препарата.</p>
-            }
+            fallback={<p class="interaction-empty">Укажите как минимум два названия препаратов.</p>}
           >
             <div class="interaction-result-list">
               <For each={result().pairs}>
@@ -227,8 +238,9 @@ export function MedicationInteractionChecker(
 
           <p class="interaction-disclaimer">
             Проверка не учитывает дозы, путь введения, функцию почек и печени, электролиты,
-            беременность и другие индивидуальные факторы. Она не заменяет клиническое решение и
-            актуальную официальную инструкцию.
+            беременность и другие индивидуальные факторы. Зарубежная маркировка показана с её
+            юрисдикцией и не заменяет актуальную российскую инструкцию. Проверка не заменяет
+            клиническое решение.
           </p>
         </div>
       </Show>
