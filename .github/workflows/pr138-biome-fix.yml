@@ -1,6 +1,13 @@
 name: PR 138 Biome fix
 
 on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
   push:
     branches:
       - agent/medication-interaction-checker
