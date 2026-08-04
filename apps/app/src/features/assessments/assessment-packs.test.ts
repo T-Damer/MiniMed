@@ -64,7 +64,9 @@ describe('questionnaire packs', () => {
     const installed = installAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
     expect(installed.sectionIds.has('self-reflection')).toBe(true);
     expect(sectionIds.every((id) => installed.installedIds.has(id))).toBe(true);
-    expect(isAssessmentSectionComplete('self-reflection', installed, ASSESSMENT_CATALOG)).toBe(true);
+    expect(isAssessmentSectionComplete('self-reflection', installed, ASSESSMENT_CATALOG)).toBe(
+      true,
+    );
 
     const removed = removeAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
     expect(removed.sectionIds.has('self-reflection')).toBe(false);
@@ -101,7 +103,9 @@ describe('questionnaire packs', () => {
 
     expect(excluded.excludedIds.has(id)).toBe(true);
     expect(excluded.installedIds.has(id)).toBe(true);
-    expect(isAssessmentSectionComplete('self-reflection', excluded, ASSESSMENT_CATALOG)).toBe(false);
+    expect(isAssessmentSectionComplete('self-reflection', excluded, ASSESSMENT_CATALOG)).toBe(
+      false,
+    );
 
     const restored = installAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
     expect(isAssessmentSectionComplete('self-reflection', restored, ASSESSMENT_CATALOG)).toBe(true);
