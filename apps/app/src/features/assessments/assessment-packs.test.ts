@@ -7,6 +7,7 @@ import {
   groupAssessmentsBySection,
   installAssessmentIds,
   installAssessmentSection,
+  isAssessmentSectionComplete,
   loadAssessmentInstallationState,
   pruneAssessmentModuleDependencies,
   removeAssessmentIds,
@@ -63,10 +64,12 @@ describe('questionnaire packs', () => {
     const installed = installAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
     expect(installed.sectionIds.has('self-reflection')).toBe(true);
     expect(sectionIds.every((id) => installed.installedIds.has(id))).toBe(true);
+    expect(isAssessmentSectionComplete('self-reflection', installed, ASSESSMENT_CATALOG)).toBe(true);
 
     const removed = removeAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
     expect(removed.sectionIds.has('self-reflection')).toBe(false);
     expect(sectionIds.every((id) => !removed.installedIds.has(id))).toBe(true);
+    expect(isAssessmentSectionComplete('self-reflection', removed, ASSESSMENT_CATALOG)).toBe(false);
   });
 
   it('supports excluding one item from a selected section and restoring it', () => {
@@ -82,6 +85,26 @@ describe('questionnaire packs', () => {
     const restored = installAssessmentSection('team-role', ASSESSMENT_CATALOG);
     expect(restored.excludedIds.has(target?.id ?? '')).toBe(false);
     expect(restored.installedIds.has(target?.id ?? '')).toBe(true);
+  });
+
+  it('keeps a module-retained exclusion incomplete until the section is restored', () => {
+    installStorage();
+    const target = ASSESSMENT_CATALOG.find(
+      (definition) => definition.category === 'self-reflection',
+    );
+    expect(target).toBeDefined();
+    const id = target?.id ?? '';
+
+    installAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
+    setAssessmentModuleDependencies('clinical.one', '1.0.0', [id], ASSESSMENT_CATALOG);
+    const excluded = removeAssessmentIds([id], ASSESSMENT_CATALOG);
+
+    expect(excluded.excludedIds.has(id)).toBe(true);
+    expect(excluded.installedIds.has(id)).toBe(true);
+    expect(isAssessmentSectionComplete('self-reflection', excluded, ASSESSMENT_CATALOG)).toBe(false);
+
+    const restored = installAssessmentSection('self-reflection', ASSESSMENT_CATALOG);
+    expect(isAssessmentSectionComplete('self-reflection', restored, ASSESSMENT_CATALOG)).toBe(true);
   });
 
   it('drops stale exclusions when their section is removed', () => {
