@@ -316,6 +316,16 @@ export function assessmentIdsInSection(
     .map((definition) => definition.id);
 }
 
+export function isAssessmentSectionComplete(
+  sectionId: AssessmentSectionId,
+  state: AssessmentInstallationState,
+  definitions: readonly AssessmentCatalogEntry[],
+): boolean {
+  if (!state.sectionIds.has(sectionId)) return false;
+  const assessmentIds = assessmentIdsInSection(sectionId, definitions);
+  return assessmentIds.length > 0 && assessmentIds.every((id) => !state.excludedIds.has(id));
+}
+
 export function assessmentRequiredByModules(
   assessmentId: string,
   state: AssessmentInstallationState,
