@@ -39,13 +39,13 @@ const SEVERITY_LABELS: Readonly<Record<InteractionSeverity, string>> = {
 };
 
 function inputItems(value: string): readonly string[] {
-  const direct = value
-    .split(/[,;\n+]|\s+и\s+/giu)
+  const explicitItems = value
+    .split(/[,;\n+]/gu)
     .map((item) => item.trim())
     .filter(Boolean);
-  if (direct.length >= 2) return direct;
+  if (explicitItems.length >= 2) return explicitItems;
   const extracted = extractMedicationNames(value, MEDICATION_INTERACTION_KNOWLEDGE);
-  return extracted.length >= 2 ? extracted : direct;
+  return extracted.length >= 2 ? extracted : explicitItems;
 }
 
 function conclusionLabel(pair: InteractionPairResult): string {
