@@ -34,12 +34,25 @@ interface StoredAssessmentModuleDependency {
   readonly assessmentIds: readonly string[];
 }
 
+interface StoredAssessmentModuleDependencyInput {
+  readonly version?: unknown;
+  readonly assessmentIds?: unknown;
+}
+
 interface StoredAssessmentInstallationSnapshot {
   readonly schemaVersion: 2;
   readonly manualIds: readonly string[];
   readonly sectionIds: readonly AssessmentSectionId[];
   readonly excludedIds: readonly string[];
   readonly moduleDependencies: Readonly<Record<string, StoredAssessmentModuleDependency>>;
+}
+
+interface StoredAssessmentInstallationSnapshotInput {
+  readonly schemaVersion?: unknown;
+  readonly manualIds?: unknown;
+  readonly sectionIds?: unknown;
+  readonly excludedIds?: unknown;
+  readonly moduleDependencies?: unknown;
 }
 
 export const ASSESSMENT_PACKS_EVENT = 'minimed:assessment-packs-changed';
@@ -152,7 +165,7 @@ function validModuleDependencies(
   const dependencies: Record<string, StoredAssessmentModuleDependency> = {};
   for (const [moduleId, rawDependency] of Object.entries(value)) {
     if (!validModuleId(moduleId) || !rawDependency || typeof rawDependency !== 'object') continue;
-    const dependency = rawDependency as Readonly<Record<string, unknown>>;
+    const dependency = rawDependency as StoredAssessmentModuleDependencyInput;
     if (!validModuleVersion(dependency.version)) continue;
     const assessmentIds = validAssessmentIds(dependency.assessmentIds, availableIds);
     if (assessmentIds.length === 0) continue;
@@ -179,7 +192,7 @@ function parseSnapshot(
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
-    const value = parsed as Readonly<Record<string, unknown>>;
+    const value = parsed as StoredAssessmentInstallationSnapshotInput;
     if (value.schemaVersion !== 2) return null;
     const availableIds = availableIdSet(definitions);
     return {
