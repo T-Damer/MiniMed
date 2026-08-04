@@ -1,4 +1,12 @@
-import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
@@ -6,18 +14,24 @@ import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPag
 import {
   ASSESSMENT_CATALOG,
   findAssessmentBySlug,
+  loadAssessmentDefinition,
+  preloadAssessmentDefinitions,
   searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
   ASSESSMENT_PACKS_EVENT,
+  type AssessmentInstallationState,
+  type AssessmentSectionId,
+  assessmentIdsInSection,
+  assessmentRequiredByModules,
   installAssessmentIds,
   installAssessmentSection,
-  loadInstalledAssessmentIds,
+  loadAssessmentInstallationState,
   removeAssessmentIds,
   removeAssessmentSection,
-  type AssessmentSectionId,
 } from '@/features/assessments/assessment-packs';
-import type { AssessmentRecord } from '@/features/assessments/assessment-types';
+import { printBlankAssessment } from '@/features/assessments/assessment-print';
+import type { AssessmentDefinition, AssessmentRecord } from '@/features/assessments/assessment-types';
 import {
   ASSESSMENT_RESULTS_EVENT,
   loadAssessmentRecords,
@@ -61,10 +75,14 @@ export function AssessmentsView(): JSX.Element {
   const [query, setQuery] = createSignal('');
   const [records, setRecords] = createSignal<readonly AssessmentRecord[]>([]);
   const [notes, setNotes] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
-  const [installedIds, setInstalledIds] = createSignal<ReadonlySet<string>>(
-    loadInstalledAssessmentIds(ASSESSMENT_CATALOG),
+  const [installation, setInstallation] = createSignal<AssessmentInstallationState>(
+    loadAssessmentInstallationState(ASSESSMENT_CATALOG),
   );
+  const [loadedDefinition, setLoadedDefinition] = createSignal<AssessmentDefinition>();
+  const [definitionLoading, setDefinitionLoading] = createSignal(false);
+  const [definitionError, setDefinitionError] = createSignal('');
   const [message, setMessage] = createSignal('');
+  let definitionRequest = 0;
 
   const refreshRecords = (): void => {
     setRecords(loadAssessmentRecords());
@@ -73,12 +91,15 @@ export function AssessmentsView(): JSX.Element {
     setNotes(loadPatientNotes());
   };
   const refreshPacks = (): void => {
-    setInstalledIds(loadInstalledAssessmentIds(ASSESSMENT_CATALOG));
+    setInstallation(loadAssessmentInstallationState(ASSESSMENT_CATALOG));
   };
   const handleHashChange = (): void => {
     setRoute(readRoute());
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+  const handleStorage = (event: StorageEvent): void => {
+    if (!event.key || event.key.startsWith('minimed.assessment-packs.')) refreshPacks();
   };
 
   onMount(() => {
@@ -86,57 +107,124 @@ export function AssessmentsView(): JSX.Element {
     refreshNotes();
     refreshPacks();
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('storage', handleStorage);
     window.addEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
     window.addEventListener(PATIENT_NOTES_EVENT, refreshNotes);
     window.addEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
   });
 
   onCleanup(() => {
+    definitionRequest += 1;
     window.removeEventListener('hashchange', handleHashChange);
+    window.removeEventListener('storage', handleStorage);
     window.removeEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshNotes);
     window.removeEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
   });
 
-  const definition = createMemo(() => {
+  const catalogEntry = createMemo(() => {
     const current = route();
     return current.kind === 'index' ? undefined : findAssessmentBySlug(current.slug);
-  });
-  const installedDefinition = createMemo(() => {
-    const current = definition();
-    return current && installedIds().has(current.id) ? current : undefined;
-  });
-  const unavailableDefinition = createMemo(() => {
-    const current = definition();
-    return current && !installedIds().has(current.id) ? current : undefined;
   });
   const record = createMemo(() => {
     const current = route();
     if (current.kind !== 'result') return undefined;
     return records().find(
       (candidate) =>
-        candidate.id === current.recordId && candidate.assessmentId === definition()?.id,
+        candidate.id === current.recordId && candidate.assessmentId === catalogEntry()?.id,
     );
   });
+
+  createEffect(() => {
+    const current = route();
+    const entry = catalogEntry();
+    const shouldLoad =
+      Boolean(entry) &&
+      (current.kind === 'result' ||
+        (current.kind === 'assessment' && installation().installedIds.has(entry?.id ?? '')));
+    const request = ++definitionRequest;
+    setLoadedDefinition(undefined);
+    setDefinitionError('');
+    setDefinitionLoading(shouldLoad);
+    if (!entry || !shouldLoad) return;
+    void loadAssessmentDefinition(entry.id)
+      .then((definition) => {
+        if (request !== definitionRequest) return;
+        setLoadedDefinition(definition);
+      })
+      .catch((cause: unknown) => {
+        if (request !== definitionRequest) return;
+        setDefinitionError(
+          cause instanceof Error ? cause.message : 'Не удалось подключить опросник.',
+        );
+      })
+      .finally(() => {
+        if (request === definitionRequest) setDefinitionLoading(false);
+      });
+  });
+
   const navigate = (hash: string): void => {
     window.location.hash = hash;
   };
+
+  const installIds = async (
+    ids: readonly string[],
+    commit: () => AssessmentInstallationState,
+    successMessage: string,
+  ): Promise<void> => {
+    setMessage('Подключаем опросник…');
+    try {
+      await preloadAssessmentDefinitions(ids);
+      setInstallation(commit());
+      setMessage(successMessage);
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : 'Не удалось подключить опросник.');
+    }
+  };
+
   const installDefinition = (id: string): void => {
-    setInstalledIds(installAssessmentIds([id], ASSESSMENT_CATALOG));
-    setMessage('Опросник добавлен на устройство.');
+    void installIds(
+      [id],
+      () => installAssessmentIds([id], ASSESSMENT_CATALOG),
+      'Опросник подключён на устройстве.',
+    );
   };
   const removeDefinition = (id: string): void => {
-    setInstalledIds(removeAssessmentIds([id], ASSESSMENT_CATALOG));
-    setMessage('Опросник удалён с устройства. Сохранённые результаты не изменены.');
+    const next = removeAssessmentIds([id], ASSESSMENT_CATALOG);
+    setInstallation(next);
+    const requiredBy = assessmentRequiredByModules(id, next);
+    setMessage(
+      requiredBy.length > 0
+        ? 'Ручная копия отключена, но опросник сохранён: он нужен установленной базе знаний.'
+        : 'Опросник отключён. Сохранённые результаты не изменены.',
+    );
   };
   const installSection = (sectionId: AssessmentSectionId): void => {
-    setInstalledIds(installAssessmentSection(sectionId, ASSESSMENT_CATALOG));
-    setMessage('Раздел опросников добавлен на устройство.');
+    const ids = assessmentIdsInSection(sectionId, ASSESSMENT_CATALOG);
+    void installIds(
+      ids,
+      () => installAssessmentSection(sectionId, ASSESSMENT_CATALOG),
+      'Раздел опросников подключён на устройстве.',
+    );
   };
   const removeSection = (sectionId: AssessmentSectionId): void => {
-    if (!window.confirm('Удалить все опросники этого раздела с устройства?')) return;
-    setInstalledIds(removeAssessmentSection(sectionId, ASSESSMENT_CATALOG));
-    setMessage('Раздел удалён. Сохранённые результаты не изменены.');
+    if (!window.confirm('Отключить выбранный раздел опросников? Сохранённые результаты останутся.')) {
+      return;
+    }
+    const next = removeAssessmentSection(sectionId, ASSESSMENT_CATALOG);
+    setInstallation(next);
+    setMessage('Раздел отключён. Ручные и обязательные для базы знаний опросники сохранены.');
+  };
+  const printDefinition = (id: string): void => {
+    setMessage('Подготавливаем бланк…');
+    void loadAssessmentDefinition(id)
+      .then((definition) => {
+        printBlankAssessment(definition);
+        setMessage('Бланк подготовлен к печати.');
+      })
+      .catch((cause: unknown) => {
+        setMessage(cause instanceof Error ? cause.message : 'Не удалось подготовить бланк.');
+      });
   };
 
   return (
@@ -152,7 +240,7 @@ export function AssessmentsView(): JSX.Element {
       <Show when={route().kind === 'index'}>
         <AssessmentCatalogPage
           definitions={searchAssessments(query())}
-          installedIds={installedIds()}
+          installation={installation()}
           query={query()}
           recentRecords={records().slice(0, 8)}
           onQuery={setQuery}
@@ -162,12 +250,32 @@ export function AssessmentsView(): JSX.Element {
           }
           onInstall={(selected) => installDefinition(selected.id)}
           onRemove={(selected) => removeDefinition(selected.id)}
+          onPrint={(selected) => printDefinition(selected.id)}
           onInstallSection={installSection}
           onRemoveSection={removeSection}
         />
       </Show>
 
-      <Show when={route().kind === 'assessment' ? installedDefinition() : undefined}>
+      <Show when={definitionLoading()}>
+        <section class="assessment-pack-required paper-card" aria-live="polite">
+          <h1>Подключаем опросник</h1>
+          <p>Загружаем только выбранное определение и проверяем его идентификатор.</p>
+        </section>
+      </Show>
+
+      <Show when={definitionError()}>
+        {(error) => (
+          <section class="assessment-pack-required paper-card" role="alert">
+            <h1>Не удалось открыть опросник</h1>
+            <p>{error()}</p>
+            <button type="button" onClick={() => navigate('#/assessments')}>
+              К разделам
+            </button>
+          </section>
+        )}
+      </Show>
+
+      <Show when={route().kind === 'assessment' ? loadedDefinition() : undefined}>
         {(selected) => (
           <AssessmentQuestionnairePage
             definition={selected()}
@@ -181,14 +289,22 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
-      <Show when={route().kind === 'assessment' ? unavailableDefinition() : undefined}>
+      <Show
+        when={
+          route().kind === 'assessment' &&
+          catalogEntry() &&
+          !installation().installedIds.has(catalogEntry()?.id ?? '')
+            ? catalogEntry()
+            : undefined
+        }
+      >
         {(selected) => (
           <section class="assessment-pack-required paper-card">
             <h1>{selected().title}</h1>
-            <p>Опросник не установлен. Его можно добавить отдельно, не загружая весь раздел.</p>
+            <p>Опросник не подключён. Можно загрузить только его, не подключая весь раздел.</p>
             <div>
               <button type="button" onClick={() => installDefinition(selected().id)}>
-                Скачать опросник
+                Подключить опросник
               </button>
               <button type="button" onClick={() => navigate('#/assessments')}>
                 К разделам
@@ -198,7 +314,7 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
-      <Show when={route().kind === 'result' ? definition() : undefined}>
+      <Show when={route().kind === 'result' ? loadedDefinition() : undefined}>
         {(selectedDefinition) => (
           <Show when={record()}>
             {(selectedRecord) => (
@@ -220,10 +336,10 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
-      <Show when={route().kind !== 'index' && !definition()}>
+      <Show when={route().kind !== 'index' && !catalogEntry()}>
         <section class="assessment-not-found paper-card">
           <h1>Опросник не найден</h1>
-          <p>Возможно, банк знаний был обновлён или ссылка устарела.</p>
+          <p>Возможно, каталог был обновлён или ссылка устарела.</p>
           <button type="button" onClick={() => navigate('#/assessments')}>
             К каталогу
           </button>
