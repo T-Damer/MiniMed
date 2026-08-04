@@ -1,85 +1,48 @@
-import { For, type JSX, onMount } from 'solid-js';
+import { For, type JSX } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
-import {
-  ensureAssessmentAvailable,
-  openAssessment,
-  segmentTextWithAssessmentLinks,
-} from '@/features/assessments/assessment-links';
-import {
-  openCalculator,
-  segmentTextWithCalculatorLinks,
-} from '@/features/calculators/calculator-links';
+import { openAssessment } from '@/features/assessments/assessment-links';
+import { openCalculator } from '@/features/calculators/calculator-links';
 import {
   type DocumentLinkPhrase,
   type DocumentTextBlock,
   parseDocumentText,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
-
-function AssessmentInlineLink(props: {
-  readonly query?: string | undefined;
-  readonly slug: string;
-  readonly text: string;
-}): JSX.Element {
-  onMount(() => ensureAssessmentAvailable(props.slug));
-  return (
-    <button
-      type="button"
-      class="document-inline-link document-inline-tool-link assessment-inline-link"
-      onClick={() => openAssessment(props.slug)}
-    >
-      <AppGlyph name="list-checks" />
-      <span>
-        <QueryHighlightedText text={props.text} query={props.query ?? ''} />
-      </span>
-    </button>
-  );
-}
-
-function LinkedAssessmentText(props: {
-  readonly text: string;
-  readonly query?: string | undefined;
-}): JSX.Element {
-  return (
-    <For each={segmentTextWithAssessmentLinks(props.text)}>
-      {(segment) =>
-        segment.kind === 'assessment' ? (
-          <AssessmentInlineLink text={segment.value} slug={segment.slug} query={props.query} />
-        ) : (
-          <QueryHighlightedText
-            text={segment.value.replace(/^#/u, '')}
-            query={props.query ?? ''}
-          />
-        )
-      }
-    </For>
-  );
-}
+import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
 
 function LinkedPlainText(props: {
   readonly text: string;
   readonly query?: string | undefined;
 }): JSX.Element {
   return (
-    <For each={segmentTextWithCalculatorLinks(props.text)}>
-      {(segment) =>
-        segment.kind === 'calculator' ? (
+    <For each={segmentTextWithToolLinks(props.text)}>
+      {(segment) => {
+        if (segment.kind === 'text') {
+          return (
+            <QueryHighlightedText
+              text={segment.value.replace(/^#/u, '')}
+              query={props.query ?? ''}
+            />
+          );
+        }
+        const assessment = segment.kind === 'assessment';
+        return (
           <button
             type="button"
-            class="document-inline-link document-inline-tool-link calculator-inline-link"
-            onClick={() => openCalculator(segment.slug)}
+            class={`document-inline-link document-inline-tool-link ${segment.kind}-inline-link`}
+            onClick={() =>
+              assessment ? openAssessment(segment.slug) : openCalculator(segment.slug)
+            }
           >
-            <AppGlyph name="calculator" />
+            <AppGlyph name={assessment ? 'list-checks' : 'calculator'} />
             <span>
               <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
             </span>
           </button>
-        ) : (
-          <LinkedAssessmentText text={segment.value} query={props.query} />
-        )
-      }
+        );
+      }}
     </For>
   );
 }
