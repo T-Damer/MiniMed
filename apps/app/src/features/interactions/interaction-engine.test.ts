@@ -86,7 +86,7 @@ describe('medication interaction engine', () => {
     });
   });
 
-  it('returns an explicit reviewed negative assertion only when it exists', () => {
+  it('returns a directional reviewed negative assertion only when it exists', () => {
     const result = checkMedicationInteractions(
       ['фосфомицин', 'циметидин'],
       MEDICATION_INTERACTION_KNOWLEDGE,
@@ -96,8 +96,12 @@ describe('medication interaction engine', () => {
       conclusion: 'documented-no-significant-interaction',
       severity: 'none',
       certainty: 'established',
+      direction: 'interactant-affects-subject',
     });
-    expect(result.pairs[0]?.evidence[0]?.sourceType).toBe('official-label');
+    expect(result.pairs[0]?.evidence[0]).toMatchObject({
+      sourceType: 'official-label',
+      issuer: 'U.S. National Library of Medicine / DailyMed',
+    });
   });
 
   it('checks every unique input pair and reports unresolved or duplicate inputs', () => {
