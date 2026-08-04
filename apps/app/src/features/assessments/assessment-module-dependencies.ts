@@ -25,10 +25,7 @@ export async function findAssessmentDependenciesInStore(
 
   let nextDocumentIndex = 0;
   const scanDocuments = async (): Promise<void> => {
-    while (
-      nextDocumentIndex < documents.length &&
-      assessmentIds.size < KNOWN_ASSESSMENT_COUNT
-    ) {
+    while (nextDocumentIndex < documents.length && assessmentIds.size < KNOWN_ASSESSMENT_COUNT) {
       const document = documents[nextDocumentIndex++];
       if (!document) return;
       const chunks = await store.getChunksByDocument(document.id);
