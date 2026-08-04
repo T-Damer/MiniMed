@@ -18,6 +18,16 @@ import {
 } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
+import {
+  ASSESSMENT_CATALOG,
+  preloadAssessmentDefinitions,
+} from '@/features/assessments/assessment-catalog';
+import { findAssessmentDependenciesInStore } from '@/features/assessments/assessment-module-dependencies';
+import {
+  pruneAssessmentModuleDependencies,
+  removeAssessmentModuleDependencies,
+  setAssessmentModuleDependencies,
+} from '@/features/assessments/assessment-packs';
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
@@ -198,6 +208,7 @@ class BrowserModuleBackend implements ContentModuleArtifactBackend {
       transaction.objectStore(VERSIONS_STORE).put(stored);
       transaction.objectStore(ACTIVE_STORE).put({ moduleId: module.id, version: module.version });
       await transactionDone(transaction);
+      await this.discardStaging(module.id, module.version);
       return {
         moduleId: module.id,
         version: module.version,
@@ -228,6 +239,16 @@ class BrowserModuleBackend implements ContentModuleArtifactBackend {
   public async discardStaging(moduleId: string, version: string): Promise<void> {
     for (const [token, staged] of this.staged) {
       if (staged.moduleId === moduleId && staged.version === version) this.staged.delete(token);
+    }
+  }
+
+  public async readIndexBytes(moduleId: string, version: string): Promise<Uint8Array | null> {
+    const database = await openDatabase();
+    try {
+      const stored = await readVersion(database, moduleId, version);
+      return stored ? new Uint8Array(stored.bytes.slice(0)) : null;
+    } finally {
+      database.close();
     }
   }
 
@@ -330,6 +351,7 @@ export class BrowserContentModuleRuntime {
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
   private readonly retryTimers = new Map<string, number>();
+  private readonly assessmentDependencyScans = new Map<string, Promise<void>>();
   private readonly handleOnline = (): void => {
     for (const timer of this.retryTimers.values()) window.clearTimeout(timer);
     this.retryTimers.clear();
@@ -356,6 +378,9 @@ export class BrowserContentModuleRuntime {
       if (task.state === 'completed') {
         this.clearRetry(task.moduleId, task.version);
         dequeuePendingModuleInstall(task.moduleId, task.version);
+        void this.syncAssessmentDependencies(task.moduleId, task.version).catch((cause: unknown) => {
+          console.warn(`Unable to resolve questionnaire dependencies for ${task.moduleId}.`, cause);
+        });
       } else if (task.state === 'cancelled') {
         this.clearRetry(task.moduleId, task.version);
         discardPendingModuleInstall(task.moduleId, task.version);
@@ -373,6 +398,7 @@ export class BrowserContentModuleRuntime {
       catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
     );
+    this.reconcileAssessmentDependencies();
   }
 
   private retryKey(moduleId: string, version: string): string {
@@ -411,6 +437,71 @@ export class BrowserContentModuleRuntime {
     this.retryTimers.set(key, timer);
   }
 
+  private reconcileAssessmentDependencies(): void {
+    const installed = new Map(
+      this.listInstalled().map((module) => [module.moduleId, module.version] as const),
+    );
+    const state = pruneAssessmentModuleDependencies(installed, ASSESSMENT_CATALOG);
+    for (const [moduleId, version] of installed) {
+      const descriptor = this.catalog.modules.find(
+        (module) => module.id === moduleId && module.version === version,
+      );
+      if (descriptor?.kind !== 'clinical') {
+        removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+        continue;
+      }
+      if (state.moduleDependencies[moduleId]?.version === version) continue;
+      void this.syncAssessmentDependencies(moduleId, version).catch((cause: unknown) => {
+        console.warn(`Unable to reconcile questionnaire dependencies for ${moduleId}.`, cause);
+      });
+    }
+  }
+
+  private syncAssessmentDependencies(moduleId: string, version: string): Promise<void> {
+    const key = this.retryKey(moduleId, version);
+    const existing = this.assessmentDependencyScans.get(key);
+    if (existing) return existing;
+    const scan = this.scanAssessmentDependencies(moduleId, version).finally(() => {
+      this.assessmentDependencyScans.delete(key);
+    });
+    this.assessmentDependencyScans.set(key, scan);
+    return scan;
+  }
+
+  private async scanAssessmentDependencies(moduleId: string, version: string): Promise<void> {
+    const descriptor = this.catalog.modules.find(
+      (module) => module.id === moduleId && module.version === version,
+    );
+    if (descriptor?.kind !== 'clinical') {
+      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      return;
+    }
+    const bytes = await this.backend.readIndexBytes(moduleId, version);
+    if (!bytes) {
+      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      return;
+    }
+    let store: SqliteMedicalStore | null = null;
+    try {
+      store = await SqliteMedicalStore.createFromBytes(bytes);
+      await store.initialize();
+      const assessmentIds = await findAssessmentDependenciesInStore(store);
+      if (assessmentIds.length > 0) {
+        await preloadAssessmentDefinitions(assessmentIds).catch((cause: unknown) => {
+          console.warn(`Unable to preload questionnaires required by ${moduleId}.`, cause);
+        });
+      }
+      setAssessmentModuleDependencies(
+        moduleId,
+        version,
+        assessmentIds,
+        ASSESSMENT_CATALOG,
+      );
+    } finally {
+      await store?.close().catch(() => undefined);
+    }
+  }
+
   public listInstalled(): readonly InstalledContentModule[] {
     return this.registry.list().filter((module) => module.moduleId !== CORE_MODULE_ID);
   }
@@ -441,6 +532,7 @@ export class BrowserContentModuleRuntime {
       catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
     );
+    this.reconcileAssessmentDependencies();
   }
 
   public getCatalog(): ContentModuleCatalog {
@@ -505,14 +597,17 @@ export class BrowserContentModuleRuntime {
       () => this.registry.remove(moduleId),
       () => this.backend.remove(moduleId),
     );
+    removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
   }
 
   public async rollback(moduleId: string, version?: string): Promise<InstalledContentModule> {
-    return commitRegistryAndArtifactMutation(
+    const installed = await commitRegistryAndArtifactMutation(
       this.registry,
       () => this.registry.rollback(moduleId, version),
-      (installed) => this.backend.setActive(moduleId, installed.version),
+      (next) => this.backend.setActive(moduleId, next.version),
     );
+    await this.syncAssessmentDependencies(moduleId, installed.version);
+    return installed;
   }
 }
 
