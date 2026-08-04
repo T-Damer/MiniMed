@@ -156,8 +156,7 @@ export const MEDICATION_INTERACTION_KNOWLEDGE: MedicationInteractionKnowledgeBas
       jurisdiction: 'США',
       sourceVersion: 'Актуальная маркировка DailyMed',
       reviewedAt: '2026-08-04',
-      quote:
-        'Metoclopramide lowers the serum concentration and urinary excretion of fosfomycin.',
+      quote: 'Metoclopramide lowers the serum concentration and urinary excretion of fosfomycin.',
     },
     {
       id: 'evidence.fosfomycin.cimetidine',

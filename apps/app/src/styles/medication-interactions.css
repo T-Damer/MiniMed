@@ -136,18 +136,18 @@
   background: color-mix(in srgb, var(--surface, #fff) 75%, #d79731);
 }
 
-.interaction-result-card[data-severity='critical'] > header > strong,
-.interaction-result-card[data-severity='high'] > header > strong {
+.interaction-result-card[data-severity="critical"] > header > strong,
+.interaction-result-card[data-severity="high"] > header > strong {
   color: #fff;
   background: #8e2f2f;
 }
 
-.interaction-result-card[data-severity='none'] > header > strong {
+.interaction-result-card[data-severity="none"] > header > strong {
   color: #fff;
   background: #39725f;
 }
 
-.interaction-result-card[data-conclusion='unknown'] {
+.interaction-result-card[data-conclusion="unknown"] {
   border-style: dashed;
 }
 

@@ -95,7 +95,9 @@ describe('medication interaction engine', () => {
     expect(result.resolved).toHaveLength(3);
     expect(result.participants).toHaveLength(4);
     expect(result.pairs).toHaveLength(6);
-    expect(result.pairs.filter((pair) => !pair.left.concept || !pair.right.concept)).toHaveLength(3);
+    expect(result.pairs.filter((pair) => !pair.left.concept || !pair.right.concept)).toHaveLength(
+      3,
+    );
     expect(result.duplicateInputs).toEqual(['Ципралекс']);
     expect(result.unresolved).toEqual([{ input: 'неизвестный препарат' }]);
   });

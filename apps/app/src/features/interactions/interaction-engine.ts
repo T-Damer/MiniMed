@@ -137,9 +137,7 @@ export function validateMedicationInteractionKnowledge(
     requireText(assertion.effect, `assertion ${assertion.id} effect`);
     requireText(assertion.recommendation, `assertion ${assertion.id} recommendation`);
     if (assertion.evidenceIds.length === 0) {
-      throw new Error(
-        `Medication interaction catalog: assertion ${assertion.id} has no evidence.`,
-      );
+      throw new Error(`Medication interaction catalog: assertion ${assertion.id} has no evidence.`);
     }
     for (const evidenceId of assertion.evidenceIds) {
       if (!evidenceIds.has(evidenceId)) {
@@ -326,9 +324,7 @@ function unknownResult(
 }
 
 function participant(input: string, concept?: MedicationConcept): InteractionParticipant {
-  return concept
-    ? { input, label: concept.preferredName, concept }
-    : { input, label: input };
+  return concept ? { input, label: concept.preferredName, concept } : { input, label: input };
 }
 
 function resolvePair(
@@ -338,7 +334,11 @@ function resolvePair(
 ): InteractionPairResult {
   if (!left.concept || !right.concept) return unknownResult(left, right);
   const assertions = knowledge.assertions.filter((assertion) =>
-    assertionMatchesPair(assertion, left.concept as MedicationConcept, right.concept as MedicationConcept),
+    assertionMatchesPair(
+      assertion,
+      left.concept as MedicationConcept,
+      right.concept as MedicationConcept,
+    ),
   );
   if (assertions.length === 0) return unknownResult(left, right);
 

@@ -156,8 +156,8 @@ export function MedicationInteractionChecker(
           <p class="archive-kicker">Клиническая фармакология · пилот</p>
           <h2>Проверка взаимодействий препаратов</h2>
           <p>
-            Проверяются только рецензированные связи. Отсутствие связи означает недостаток данных,
-            а не доказанную совместимость.
+            Проверяются только рецензированные связи. Отсутствие связи означает недостаток данных, а
+            не доказанную совместимость.
           </p>
         </div>
         <button
@@ -181,7 +181,8 @@ export function MedicationInteractionChecker(
             />
           </label>
 
-          <div class="interaction-examples" aria-label="Примеры проверок">
+          <fieldset class="interaction-examples">
+            <legend class="visually-hidden">Примеры проверок</legend>
             <button type="button" onClick={() => useExample('эсциталопрам, фосфомицин')}>
               Эсциталопрам + фосфомицин
             </button>
@@ -191,7 +192,7 @@ export function MedicationInteractionChecker(
             <button type="button" onClick={() => useExample('фосфомицин, метоклопрамид')}>
               Фосфомицин + метоклопрамид
             </button>
-          </div>
+          </fieldset>
 
           <Show when={result().resolved.length > 0}>
             <div class="interaction-recognized">
@@ -214,8 +215,7 @@ export function MedicationInteractionChecker(
 
           <Show when={result().duplicateInputs.length > 0}>
             <div class="interaction-unresolved" role="status">
-              Повторные названия исключены:{' '}
-              {result().duplicateInputs.join(', ')}
+              Повторные названия исключены: {result().duplicateInputs.join(', ')}
             </div>
           </Show>
 
@@ -230,9 +230,7 @@ export function MedicationInteractionChecker(
             fallback={<p class="interaction-empty">Укажите как минимум два названия препаратов.</p>}
           >
             <div class="interaction-result-list">
-              <For each={result().pairs}>
-                {(pair) => <InteractionResultCard pair={pair} />}
-              </For>
+              <For each={result().pairs}>{(pair) => <InteractionResultCard pair={pair} />}</For>
             </div>
           </Show>
 

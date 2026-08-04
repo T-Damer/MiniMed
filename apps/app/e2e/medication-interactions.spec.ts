@@ -17,12 +17,16 @@ test('checks reviewed medication relations without treating missing data as comp
   await expect(checker.getByText(/не подтверждает отсутствие взаимодействия/u)).toBeVisible();
 
   await input.fill('эсциталопрам, неизвестный препарат');
-  await expect(checker.getByText(/Пары с этими названиями помечены как непроверенные/u)).toBeVisible();
-  await expect(checker.getByRole('heading', { name: /Эсциталопрам \+ неизвестный препарат/u })).toBeVisible();
+  await expect(
+    checker.getByText(/Пары с этими названиями помечены как непроверенные/u),
+  ).toBeVisible();
+  await expect(
+    checker.getByRole('heading', { name: /Эсциталопрам \+ неизвестный препарат/u }),
+  ).toBeVisible();
   await expect(checker.getByText(/не распознаны в подключённой проверенной базе/u)).toBeVisible();
 
   await input.fill('эсциталопрам, линезолид');
-  await expect(checker.getByText('Противопоказано')).toBeVisible();
+  await expect(checker.getByText('Противопоказано', { exact: true })).toBeVisible();
   await expect(checker.getByText('Повышенный риск серотонинового синдрома.')).toBeVisible();
   await checker.getByText('Подтверждающие источники').click();
   await expect(checker.getByRole('link', { name: /DailyMed — Escitalopram/u })).toBeVisible();
