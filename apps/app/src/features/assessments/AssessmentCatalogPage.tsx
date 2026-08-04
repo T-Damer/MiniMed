@@ -85,11 +85,7 @@ export function AssessmentCatalogPage(props: {
               const installedCount = () =>
                 sectionAssessmentIds.filter((id) => installed(id)).length;
               const complete = () =>
-                isAssessmentSectionComplete(
-                  group.section.id,
-                  props.installation,
-                  ASSESSMENT_CATALOG,
-                );
+                isAssessmentSectionComplete(group.section.id, props.installation, ASSESSMENT_CATALOG);
               const actionLabel = () => {
                 if (!selected()) return 'Подключить раздел';
                 return complete() ? 'Отключить раздел' : 'Восстановить раздел';
