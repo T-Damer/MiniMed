@@ -11,7 +11,7 @@ The first browser pilot uses the same logical shape as the existing knowledge gr
 - normalized medication entities and aliases;
 - medication-class membership;
 - reviewed interaction assertions;
-- explicit conclusion, severity, certainty, mechanism and clinical action;
+- explicit conclusion, severity, certainty, direction, mechanism and clinical action;
 - source metadata and short exact evidence excerpts.
 
 The reusable relational persistence target is the existing set of `knowledge_entities`, `medication_profiles`, `knowledge_relations` and `knowledge_evidence` tables. Interaction-specific values are stored in relation predicates/status and structured relation metadata rather than creating an incompatible second graph.
@@ -33,6 +33,8 @@ The engine never returns a bare boolean. It uses one of:
 
 A documented negative assertion is different from `unknown`. The former requires explicit reviewed evidence that a meaningful interaction was not found; the latter means that the connected reviewed graph contains no applicable assertion.
 
+Assertions also preserve direction independently from input order: bidirectional, subject affecting interactant, or interactant affecting subject. This prevents a pharmacokinetic statement such as “metoclopramide reduces fosfomycin exposure” from being stored in the opposite direction.
+
 ## Initial pilot
 
 The initial browser catalog intentionally remains small and auditable. It includes reviewed official-label assertions for:
@@ -49,13 +51,29 @@ Sources:
 - DailyMed escitalopram prescribing information, section 7 Drug Interactions;
 - DailyMed fosfomycin tromethamine prescribing information, Drug Interactions.
 
+Each evidence record includes its issuer, jurisdiction, stable source identifier, HTTPS URL and review date. The interface identifies foreign jurisdiction and does not present a U.S. label as a replacement for the current Russian prescribing information.
+
 The clinical model follows the same high-level separation used by FHIR R5 `ClinicalUseDefinition`: a definitional interaction identifies the subject, interactant, type, effect and management information. FHIR is an interoperability reference, not the source of MiniMed clinical assertions.
 
 ## User flow
 
 The checker appears in the **Medications** search mode. It can be used directly with comma-, plus- or newline-separated medication names. When query analysis identifies at least two medication facts in an ordinary question, the checker is populated automatically.
 
-Every unique pair is evaluated. Unresolved medication names remain visible and are not silently ignored. The current limit is 20 unique medications per check.
+Every unique pair is evaluated. Unresolved medication names remain visible and are not silently ignored. The current limit is 20 unique medications per check; duplicate aliases do not consume that limit.
+
+## Catalog validation
+
+The browser catalog fails closed before it is used. Validation rejects:
+
+- duplicate medication, class, assertion or evidence identifiers;
+- aliases owned by multiple medication concepts;
+- references to unknown medications, classes or evidence;
+- reviewed assertions without evidence;
+- impossible calendar review dates;
+- non-HTTPS evidence URLs;
+- duplicate reviewed targets and self-interactions.
+
+When multiple equally specific reviewed assertions apply to the same pair, the engine returns `conflicting-evidence` and requires manual source review instead of selecting a conclusion automatically.
 
 ## Safety boundary
 
