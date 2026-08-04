@@ -1,18 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
-import { ASSESSMENT_CATALOG, searchAssessments } from '@/features/assessments/assessment-catalog';
+import {
+  ASSESSMENT_CATALOG,
+  loadAssessmentDefinition,
+  searchAssessments,
+} from '@/features/assessments/assessment-catalog';
 
 describe('assessment catalog', () => {
-  it('contains five complete, uniquely identified assessments', () => {
+  it('contains five lightweight, uniquely identified catalog entries', () => {
     expect(ASSESSMENT_CATALOG).toHaveLength(5);
     expect(new Set(ASSESSMENT_CATALOG.map((item) => item.id)).size).toBe(5);
     expect(new Set(ASSESSMENT_CATALOG.map((item) => item.slug)).size).toBe(5);
-    expect(ASSESSMENT_CATALOG.every((item) => item.questions.length >= 20)).toBe(true);
+    expect(ASSESSMENT_CATALOG.every((item) => item.aliases.length > 0)).toBe(true);
   });
 
-  it('keeps question and scale identifiers valid inside each assessment', () => {
-    for (const assessment of ASSESSMENT_CATALOG) {
+  it('loads complete definitions lazily and validates their identifiers', async () => {
+    const definitions = await Promise.all(
+      ASSESSMENT_CATALOG.map((entry) => loadAssessmentDefinition(entry.id)),
+    );
+
+    for (const assessment of definitions) {
       const scaleIds = new Set(assessment.scales.map((scale) => scale.id));
+      expect(assessment.questions.length).toBeGreaterThanOrEqual(20);
       expect(new Set(assessment.questions.map((question) => question.id)).size).toBe(
         assessment.questions.length,
       );
