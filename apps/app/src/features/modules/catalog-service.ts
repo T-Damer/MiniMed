@@ -1,3 +1,4 @@
+import type { ContentModuleCatalog } from '@localmed/contracts';
 import {
   type ContentModuleCatalogCache,
   type ContentModuleCatalogCacheRecord,
@@ -8,6 +9,7 @@ import {
 import { MODULE_CATALOG, REMOTE_MODULE_CATALOG_URL } from '@/features/modules/module-catalog';
 
 const CACHE_KEY = 'minimed.content-module-catalog.preview.v1';
+let activeCatalog: ContentModuleCatalog = MODULE_CATALOG;
 
 class BrowserContentModuleCatalogCache implements ContentModuleCatalogCache {
   public async read(): Promise<unknown | null> {
@@ -26,11 +28,17 @@ class BrowserContentModuleCatalogCache implements ContentModuleCatalogCache {
   }
 }
 
-export function refreshContentModuleCatalog(): Promise<LoadedContentModuleCatalog> {
+export function getActiveContentModuleCatalog(): ContentModuleCatalog {
+  return activeCatalog;
+}
+
+export async function refreshContentModuleCatalog(): Promise<LoadedContentModuleCatalog> {
   const configuredUrl = import.meta.env['VITE_MODULE_CATALOG_URL']?.trim();
-  return loadContentModuleCatalog({
+  const loaded = await loadContentModuleCatalog({
     bundledCatalog: MODULE_CATALOG,
     remoteUrl: configuredUrl || REMOTE_MODULE_CATALOG_URL,
     cache: new BrowserContentModuleCatalogCache(),
   });
+  activeCatalog = loaded.catalog;
+  return loaded;
 }
