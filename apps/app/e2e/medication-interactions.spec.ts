@@ -12,7 +12,10 @@ test('checks reviewed medication relations without treating missing data as comp
   await checker.getByRole('button', { name: 'Открыть' }).click();
 
   const input = checker.getByLabel('Препараты через запятую или с новой строки');
-  await input.fill('эсциталопрам, фосфомицин');
+  await input.fill('Можно ли принимать эсциталопрам и фосфомицин?');
+  await expect(
+    checker.getByRole('heading', { name: 'Эсциталопрам + Фосфомицин' }),
+  ).toBeVisible();
   await expect(checker.getByText('Данные не подтверждены')).toBeVisible();
   await expect(checker.getByText(/не подтверждает отсутствие взаимодействия/u)).toBeVisible();
 
