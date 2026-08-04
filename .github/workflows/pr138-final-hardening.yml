@@ -1,0 +1,107 @@
+name: PR 138 final hardening
+
+on:
+  push:
+    branches:
+      - agent/medication-interaction-checker
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/medication-interaction-checker
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - run: bun install --frozen-lockfile
+      - name: Apply runtime schema and wording fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              text = file.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f'{path}: expected one replacement, found {count}')
+              file.write_text(text.replace(old, new), encoding='utf-8')
+
+          engine = 'apps/app/src/features/interactions/interaction-engine.ts'
+          replace_once(
+              engine,
+              "const aliasIndexes = new WeakMap<object, ReadonlyMap<string, MedicationConcept>>();\n",
+              "const aliasIndexes = new WeakMap<object, ReadonlyMap<string, MedicationConcept>>();\nconst INTERACTION_DIRECTIONS: ReadonlySet<string> = new Set([\n  'bidirectional',\n  'subject-affects-interactant',\n  'interactant-affects-subject',\n]);\nconst INTERACTION_CONCLUSIONS: ReadonlySet<string> = new Set([\n  'contraindicated',\n  'avoid',\n  'management-required',\n  'monitor',\n  'separate-administration',\n  'documented-minor',\n  'documented-no-significant-interaction',\n  'potential-mechanistic-interaction',\n]);\nconst INTERACTION_SEVERITIES: ReadonlySet<string> = new Set([\n  'critical',\n  'high',\n  'moderate',\n  'low',\n  'none',\n]);\nconst INTERACTION_CERTAINTIES: ReadonlySet<string> = new Set([\n  'established',\n  'probable',\n  'possible',\n  'theoretical',\n]);\nconst INTERACTION_TYPES: ReadonlySet<string> = new Set([\n  'pharmacodynamic',\n  'pharmacokinetic',\n  'pharmaceutical',\n]);\nconst INTERACTION_TARGET_KINDS: ReadonlySet<string> = new Set(['medication', 'class']);\nconst EVIDENCE_SOURCE_TYPES: ReadonlySet<string> = new Set([\n  'official-label',\n  'clinical-guideline',\n  'peer-reviewed',\n]);\n",
+          )
+          replace_once(
+              engine,
+              "function requireText(value: string, path: string): void {\n  if (!value.trim()) throw new Error(`Medication interaction catalog: ${path} must not be empty.`);\n}\n",
+              "function requireText(value: string, path: string): void {\n  if (!value.trim()) throw new Error(`Medication interaction catalog: ${path} must not be empty.`);\n}\n\nfunction requireEnum(value: string, allowed: ReadonlySet<string>, path: string): void {\n  if (!allowed.has(value)) {\n    throw new Error(`Medication interaction catalog: invalid ${path} “${value}”.`);\n  }\n}\n",
+          )
+          replace_once(
+              engine,
+              "  for (const evidence of knowledge.evidence) {\n    addUniqueId(evidenceIds, evidence.id, 'evidence ID');\n",
+              "  for (const evidence of knowledge.evidence) {\n    addUniqueId(evidenceIds, evidence.id, 'evidence ID');\n    requireEnum(evidence.sourceType, EVIDENCE_SOURCE_TYPES, `evidence ${evidence.id} sourceType`);\n",
+          )
+          replace_once(
+              engine,
+              "  for (const assertion of knowledge.assertions) {\n    addUniqueId(assertionIds, assertion.id, 'assertion ID');\n    if (!medicationIds.has(assertion.subjectMedicationId)) {",
+              "  for (const assertion of knowledge.assertions) {\n    addUniqueId(assertionIds, assertion.id, 'assertion ID');\n    requireEnum(\n      assertion.interactant.kind,\n      INTERACTION_TARGET_KINDS,\n      `assertion ${assertion.id} interactant kind`,\n    );\n    requireEnum(assertion.direction, INTERACTION_DIRECTIONS, `assertion ${assertion.id} direction`);\n    requireEnum(\n      assertion.conclusion,\n      INTERACTION_CONCLUSIONS,\n      `assertion ${assertion.id} conclusion`,\n    );\n    requireEnum(assertion.severity, INTERACTION_SEVERITIES, `assertion ${assertion.id} severity`);\n    requireEnum(\n      assertion.certainty,\n      INTERACTION_CERTAINTIES,\n      `assertion ${assertion.id} certainty`,\n    );\n    requireEnum(\n      assertion.interactionType,\n      INTERACTION_TYPES,\n      `assertion ${assertion.id} interactionType`,\n    );\n    if (!medicationIds.has(assertion.subjectMedicationId)) {",
+          )
+
+          tests = 'apps/app/src/features/interactions/interaction-engine.test.ts'
+          replace_once(
+              tests,
+              "  it('rejects impossible calendar review dates', () => {",
+              "  it('rejects unsupported runtime assertion enum values', () => {\n    const assertion = MEDICATION_INTERACTION_KNOWLEDGE.assertions[0];\n    expect(assertion).toBeDefined();\n    const invalid: MedicationInteractionKnowledgeBase = {\n      ...MEDICATION_INTERACTION_KNOWLEDGE,\n      assertions: assertion ? [{ ...assertion, direction: 'sideways' as never }] : [],\n    };\n\n    expect(() => validateMedicationInteractionKnowledge(invalid)).toThrow('invalid assertion');\n  });\n\n  it('rejects impossible calendar review dates', () => {",
+          )
+
+          checker = 'apps/app/src/features/interactions/MedicationInteractionChecker.tsx'
+          replace_once(
+              checker,
+              "  'documented-no-significant-interaction': 'Значимое взаимодействие не выявлено',",
+              "  'documented-no-significant-interaction': 'Документированное отсутствие значимого взаимодействия',",
+          )
+          replace_once(
+              checker,
+              "function InteractionResultCard(props: { readonly pair: InteractionPairResult }): JSX.Element {\n",
+              "function conclusionLabel(pair: InteractionPairResult): string {\n  if (\n    pair.conclusion === 'documented-no-significant-interaction' &&\n    pair.interactionType === 'pharmacokinetic'\n  ) {\n    return 'Значимое ФК-влияние не выявлено';\n  }\n  return CONCLUSION_LABELS[pair.conclusion];\n}\n\nfunction InteractionResultCard(props: { readonly pair: InteractionPairResult }): JSX.Element {\n",
+          )
+          replace_once(
+              checker,
+              "        <strong>{CONCLUSION_LABELS[props.pair.conclusion]}</strong>",
+              "        <strong>{conclusionLabel(props.pair)}</strong>",
+          )
+          replace_once(
+              checker,
+              "            Проверяются только рецензированные связи. Отсутствие связи означает недостаток данных, а\n            не доказанную совместимость.",
+              "            Проверяются только вручную проверенные связи. Отсутствие связи означает недостаток данных,\n            а не доказанную совместимость.",
+          )
+          PY
+      - name: Format and verify
+        run: |
+          bunx biome check --write \
+            apps/app/src/features/interactions/interaction-engine.ts \
+            apps/app/src/features/interactions/interaction-engine.test.ts \
+            apps/app/src/features/interactions/MedicationInteractionChecker.tsx \
+            apps/app/src/features/search/SearchHome.tsx \
+            apps/app/src/features/search/search-scope-availability.ts \
+            apps/app/src/features/search/search-scope-availability.test.ts
+          bun run typecheck
+          bun run test:unit
+      - name: Commit final hardening
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/app/src/features/interactions apps/app/src/features/search
+          git commit -m "fix: validate interaction schema at runtime"
+          git push origin HEAD:agent/medication-interaction-checker
