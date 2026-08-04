@@ -683,7 +683,10 @@ export class BrowserContentModuleRuntime {
     } catch (cause) {
       this.invalidateAssessmentDependencyScans(moduleId);
       removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
-      console.warn(`Unable to resolve questionnaire dependencies after rolling back ${moduleId}.`, cause);
+      console.warn(
+        `Unable to resolve questionnaire dependencies after rolling back ${moduleId}.`,
+        cause,
+      );
       this.restoreAssessmentDependencyScan(moduleId);
     }
     return installed;
