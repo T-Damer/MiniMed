@@ -69,7 +69,10 @@ export function AssessmentCatalogPage(props: {
         />
       </label>
 
-      <Show when={props.definitions.length > 0} fallback={<p>По этому запросу ничего не найдено.</p>}>
+      <Show
+        when={props.definitions.length > 0}
+        fallback={<p>По этому запросу ничего не найдено.</p>}
+      >
         <div class="assessment-section-list">
           <For each={groupAssessmentsBySection(props.definitions)}>
             {(group) => {
