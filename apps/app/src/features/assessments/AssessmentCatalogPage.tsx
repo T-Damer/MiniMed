@@ -83,7 +83,9 @@ export function AssessmentCatalogPage(props: {
               const selected = () => props.installation.sectionIds.has(group.section.id);
               const installedCount = () =>
                 sectionAssessmentIds.filter((id) => installed(id)).length;
-              const complete = () => installedCount() === sectionAssessmentIds.length;
+              const complete = () =>
+                selected() &&
+                sectionAssessmentIds.every((id) => !props.installation.excludedIds.has(id));
               const actionLabel = () => {
                 if (!selected()) return 'Подключить раздел';
                 return complete() ? 'Отключить раздел' : 'Восстановить раздел';
@@ -102,12 +104,12 @@ export function AssessmentCatalogPage(props: {
                       type="button"
                       data-testid={`assessment-section-${group.section.id}`}
                       onClick={() =>
-                        selected() && complete()
+                        complete()
                           ? props.onRemoveSection(group.section.id)
                           : props.onInstallSection(group.section.id)
                       }
                     >
-                      <AppGlyph name={selected() && complete() ? 'trash' : 'download'} />
+                      <AppGlyph name={complete() ? 'trash' : 'download'} />
                       <span>{actionLabel()}</span>
                     </button>
                   </header>
@@ -130,7 +132,9 @@ export function AssessmentCatalogPage(props: {
                               <span>{definition.bankLabel}</span>
                               <span>{definition.estimatedMinutes} мин</span>
                               <Show when={requiredModules().length > 0}>
-                                <span title={requiredModules().join(', ')}>Нужен базе знаний</span>
+                                <span title={requiredModules().join(', ')}>
+                                  Требуется модулю базы знаний
+                                </span>
                               </Show>
                             </div>
                             <h3>{definition.title}</h3>
