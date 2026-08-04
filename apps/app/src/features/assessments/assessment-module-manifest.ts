@@ -1,8 +1,8 @@
 import type { AssessmentCatalogEntry } from '@/features/assessments/assessment-catalog';
 import {
   ASSESSMENT_SECTIONS,
-  assessmentIdsInSection,
   type AssessmentSectionId,
+  assessmentIdsInSection,
 } from '@/features/assessments/assessment-packs';
 
 const ASSESSMENT_TAG_PREFIX = 'assessment:';
