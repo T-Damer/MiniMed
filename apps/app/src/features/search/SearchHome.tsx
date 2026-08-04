@@ -142,7 +142,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       </div>
 
       <Show when={selectedScopeUnavailable()}>
-        <div class="search-scope-unavailable paper-card">
+        <output class="search-scope-unavailable paper-card">
           <div>
             <strong>
               {scope() === 'medications'
@@ -158,7 +158,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           <button type="button" onClick={props.onOpenKnowledgeBase}>
             Открыть базу знаний
           </button>
-        </div>
+        </output>
       </Show>
 
       <div class="search-workspace-main">
