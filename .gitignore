@@ -39,3 +39,6 @@ localmed-search.zip
 localmed-search.bundle
 
 *.tsbuildinfo
+
+# Private ambulatory literature pack (copyrighted textbooks — local only)
+apps/app/public/content/ambulatory.db
