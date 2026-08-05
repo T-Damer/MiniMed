@@ -44,13 +44,18 @@ jobs:
           enable-cache: true
       - run: bun install --frozen-lockfile
       - run: uv sync --project tools/ingest --all-groups --locked
-      - name: Download released medication database
+      - name: Download released content databases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="$(bun -p "require('./release.json').version")"
+          mkdir -p apps/app/public/content
           gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
             --pattern medications.db --dir apps/app/public/content --clobber
+          # Optional private ambulatory pack — skip cleanly if not on this release.
+          gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
+            --pattern ambulatory.db --dir apps/app/public/content --clobber \
+            || echo "ambulatory.db not on v$version; Pages ships without it"
       - name: Build regulatory and reference databases
         run: |
           mkdir -p apps/app/public/content
