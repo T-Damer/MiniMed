@@ -180,6 +180,11 @@ ordinary search response when validation fails.
   search. Medication-indication queries prefer the full instruction and its treatment sections over
   the registry identity card. The reader reconstructs bullet and numbered lists from their preserved
   PDF markers and source-block indentation.
+- Optional local `ambulatory.db` companion (`minimed.ambulatory.v1`) mounts private textbook/handbook
+  extracts for site/call use. Build via `bun run content:rebuild:ambulatory` (anydoc text-layer +
+  macOS Vision OCR). Pack is gitignored — copyrighted sources stay local; GroundedMedicalCore already
+  cites whatever MultiMedicalStore returns, so diagnosis AI uses ambulatory chunks once mounted. See
+  `docs/AMBULATORY_CORPUS_V1.md`.
 - Public Russian starter pack: seven clinical navigation cards and eight medication-registry identity
   cards.
 - Structured knowledge tables support proposed facts, exact evidence links, relations, and review tasks.

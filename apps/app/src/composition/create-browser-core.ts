@@ -15,6 +15,7 @@ interface PackBuildReport {
 
 interface CompanionStores {
   readonly medicationsStore?: MedicalStore;
+  readonly ambulatoryStore?: MedicalStore;
   readonly regulatoryStore?: MedicalStore;
   readonly referenceStore?: MedicalStore;
 }
@@ -23,11 +24,13 @@ const QUERY_EMBEDDER = new PortableHashEmbedder();
 
 const PACK_DATABASE_NAME = 'core-demo.db';
 const MEDICATIONS_DATABASE_NAME = 'medications.db';
+const AMBULATORY_DATABASE_NAME = 'ambulatory.db';
 const REGULATORY_DATABASE_NAME = 'regulatory.db';
 const REFERENCE_DATABASE_NAME = 'reference.db';
 const PACK_ASSET_PATH = `public/content/${PACK_DATABASE_NAME}`;
 const BUILT_IN_REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
 const BUILT_IN_REFERENCE_MODULE_ID = 'minimed.reference.ru';
+const BUILT_IN_AMBULATORY_MODULE_ID = 'minimed.ambulatory.v1';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
 
@@ -118,6 +121,15 @@ export function builtInCompanionMounts(
       searchWeight: 1.15,
     });
   }
+  if (companions.ambulatoryStore && !installedModuleIds.has(BUILT_IN_AMBULATORY_MODULE_ID)) {
+    mounts.push({
+      moduleId: BUILT_IN_AMBULATORY_MODULE_ID,
+      store: companions.ambulatoryStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.05,
+    });
+  }
   if (companions.regulatoryStore && !installedModuleIds.has(BUILT_IN_REGULATORY_MODULE_ID)) {
     mounts.push({
       moduleId: BUILT_IN_REGULATORY_MODULE_ID,
@@ -179,13 +191,15 @@ async function createOptionalPackagedStore(
 }
 
 async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
-  const [medicationsStore, regulatoryStore, referenceStore] = await Promise.all([
+  const [medicationsStore, ambulatoryStore, regulatoryStore, referenceStore] = await Promise.all([
     createOptionalPackagedStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+    createOptionalPackagedStore(contentBaseUrl, AMBULATORY_DATABASE_NAME),
     createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
     createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
   ]);
   return {
     ...(medicationsStore ? { medicationsStore } : {}),
+    ...(ambulatoryStore ? { ambulatoryStore } : {}),
     ...(regulatoryStore ? { regulatoryStore } : {}),
     ...(referenceStore ? { referenceStore } : {}),
   };

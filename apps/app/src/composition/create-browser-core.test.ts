@@ -12,6 +12,7 @@ describe('builtInCompanionMounts', () => {
     const mounts = builtInCompanionMounts(
       {
         medicationsStore: store(),
+        ambulatoryStore: store(),
         regulatoryStore: store(),
         referenceStore: store(),
       },
@@ -20,6 +21,7 @@ describe('builtInCompanionMounts', () => {
 
     expect(mounts.map((mount) => mount.moduleId)).toEqual([
       'minimed.medications.ru',
+      'minimed.ambulatory.v1',
       'minimed.regulatory.pediatrics.ru',
       'minimed.reference.ru',
     ]);
@@ -29,6 +31,7 @@ describe('builtInCompanionMounts', () => {
     const mounts = builtInCompanionMounts(
       {
         medicationsStore: store(),
+        ambulatoryStore: store(),
         regulatoryStore: store(),
         referenceStore: store(),
       },
@@ -37,6 +40,7 @@ describe('builtInCompanionMounts', () => {
 
     expect(mounts.map((mount) => mount.moduleId)).toEqual([
       'minimed.medications.ru',
+      'minimed.ambulatory.v1',
       'minimed.reference.ru',
     ]);
   });
