@@ -22,6 +22,16 @@ function localModuleArtifactUrl(fileName: string): string | null {
   }
 }
 
+function clinicalDatasetsBranchUrl(
+  owner: string,
+  repo: string,
+  releaseTag: string,
+  fileName: string,
+): string {
+  // Release asset hosts have no CORS. Browser installs read the datasets/* mirror branch instead.
+  return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/apps/app/public/content/clinical/${fileName}`;
+}
+
 export function resolveContentModuleArtifactUrl(url: string): string {
   const trimmed = url.trim();
   if (trimmed.length === 0) return trimmed;
@@ -49,7 +59,7 @@ export function resolveContentModuleArtifactUrl(url: string): string {
             `./content/releases/${encodeURIComponent(releaseTag)}/${encodeURIComponent(fileName)}`,
           );
         }
-        return trimmed;
+        return clinicalDatasetsBranchUrl(owner, repo, releaseTag, fileName);
       }
       if (import.meta.env.DEV) {
         const localUrl = localModuleArtifactUrl(fileName);

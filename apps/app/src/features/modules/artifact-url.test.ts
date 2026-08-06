@@ -13,10 +13,12 @@ describe('resolveContentModuleArtifactUrl', () => {
     );
   });
 
-  it('keeps clinical snapshot release assets on the published release', () => {
+  it('rewrites clinical snapshot release assets to the CORS-safe datasets mirror branch', () => {
     const url =
-      'https://github.com/T-Damer/MiniMed/releases/download/clinical-2026.07.24-cbb0e01c1bce/clinical-714_2-clinical-2026.07.24-cbb0e01c1bce.db';
-    expect(resolveContentModuleArtifactUrl(url)).toBe(url);
+      'https://github.com/T-Damer/MiniMed/releases/download/clinical-json-2026.07.27-13991c1feee5/clinical-714_2-clinical-json-2026.07.27-13991c1feee5.db';
+    expect(resolveContentModuleArtifactUrl(url)).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/clinical-json-2026.07.27-13991c1feee5/apps/app/public/content/clinical/clinical-714_2-clinical-json-2026.07.27-13991c1feee5.db',
+    );
   });
 
   it('keeps unrelated hosts unchanged', () => {
