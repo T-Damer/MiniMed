@@ -96,4 +96,7 @@ jobs:
             --notes "Immutable MiniMed snapshot: official structured JSON compiled into individual SQLite modules with tables and embedded images. No source PDFs." \
             --prerelease \
             --target "$GITHUB_SHA"
+          # Browser installs cannot fetch release assets (no CORS). Mirror onto datasets/<tag>.
+          chmod +x scripts/publish-clinical-datasets-branch.sh
+          scripts/publish-clinical-datasets-branch.sh "$SNAPSHOT_TAG" release-clinical
           gh release upload "$CHANNEL_TAG" data/build/catalog.preview.json --clobber

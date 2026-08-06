@@ -194,8 +194,10 @@ ordinary search response when validation fails.
   release one of the three document slots, then requeue; checksum and validation failures stop until
   the user explicitly retries. The download panel shows live transfer, queue position, offline wait,
   scheduled retry, and permanent failure states, with per-task and bulk cancellation/retry controls.
-- Clinical snapshot artifacts download from their published GitHub Release assets; they are no longer
-  rewritten to a non-existent raw-git content path.
+- Clinical snapshot artifacts stay on GitHub Releases for archival download, but the browser installer
+  rewrites them to the CORS-safe `datasets/<snapshot-tag>` mirror branch on
+  `raw.githubusercontent.com` (`apps/app/public/content/clinical/*.db`). Publish via
+  `scripts/publish-clinical-datasets-branch.sh` (also hooked into `publish-clinical-snapshot.yml`).
 - The runtime fingerprints actual module versions, digests, URLs, checksums, and sizes rather than only
   comparing catalog counts.
 - A unit gate verifies that catalog checksums and sizes match every thematic database hosted from the
