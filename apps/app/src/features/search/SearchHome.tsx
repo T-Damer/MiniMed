@@ -3,6 +3,7 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
+import { MedicationInteractionChecker } from '@/features/interactions/MedicationInteractionChecker';
 import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
 import type { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
 import {
@@ -11,6 +12,7 @@ import {
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
+import { canSelectSearchScope } from '@/features/search/search-scope-availability';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 
@@ -71,6 +73,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     all: 0,
   });
   const [helpOpen, setHelpOpen] = createSignal(false);
+  const [detectedMedicationNames, setDetectedMedicationNames] = createSignal<readonly string[]>([]);
 
   const refreshDocumentCounts = (): void => {
     void props.baseCore.listDocuments().then((result) => {
@@ -109,9 +112,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const selected = scope();
     return Boolean(selected && documentCountsLoaded() && documentCounts()[selected] === 0);
   });
+  const scopeSelectable = (candidate: SearchScope): boolean =>
+    canSelectSearchScope(candidate, documentCountsLoaded(), documentCounts()[candidate]);
 
   const selectScope = (next: SearchScope): void => {
     setScope(next);
+    if (next !== 'medications') setDetectedMedicationNames([]);
   };
 
   const replayHistory = (entry: SearchHistoryEntry): void => {
@@ -136,20 +142,31 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       </div>
 
       <Show when={selectedScopeUnavailable()}>
-        <div class="search-scope-unavailable paper-card">
+        <output class="search-scope-unavailable paper-card">
           <div>
-            <strong>Такие документы ещё не установлены</strong>
-            <p>Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.</p>
+            <strong>
+              {scope() === 'medications'
+                ? 'Инструкции препаратов ещё не установлены'
+                : 'Такие документы ещё не установлены'}
+            </strong>
+            <p>
+              {scope() === 'medications'
+                ? 'Проверка взаимодействий доступна ниже. Для поиска по инструкциям установите подходящий раздел базы знаний.'
+                : 'Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.'}
+            </p>
           </div>
           <button type="button" onClick={props.onOpenKnowledgeBase}>
             Открыть базу знаний
           </button>
-        </div>
+        </output>
       </Show>
 
       <div class="search-workspace-main">
         <Show when={scope() === 'diagnosis' && props.assistantCore}>
           <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
+        </Show>
+        <Show when={scope() === 'medications'}>
+          <MedicationInteractionChecker detectedMedicationNames={detectedMedicationNames()} />
         </Show>
         <SearchWorkspace
           core={scopedCore() ?? props.baseCore}
@@ -160,6 +177,14 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
               : 'Выберите режим поиска'
           }
+          onAnalysis={(analysis) => {
+            if (scope() !== 'medications') return;
+            setDetectedMedicationNames(
+              analysis.facts
+                .filter((fact) => fact.kind === 'medication' && fact.polarity !== 'negative')
+                .map((fact) => fact.value),
+            );
+          }}
           modePicker={
             <fieldset class="search-mode-picker">
               <legend class="visually-hidden">Режим поиска</legend>
@@ -168,7 +193,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                   <label
                     classList={{
                       active: scope() === option.id,
-                      unavailable: documentCountsLoaded() && documentCounts()[option.id] === 0,
+                      unavailable: !scopeSelectable(option.id),
                     }}
                     title={option.description}
                   >
@@ -178,7 +203,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                       value={option.id}
                       aria-label={option.label}
                       checked={scope() === option.id}
-                      disabled={documentCountsLoaded() && documentCounts()[option.id] === 0}
+                      disabled={!scopeSelectable(option.id)}
                       onChange={() => selectScope(option.id)}
                     />
                     <span class="search-mode-option-copy">

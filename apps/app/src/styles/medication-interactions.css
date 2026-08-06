@@ -1,0 +1,223 @@
+.interaction-checker {
+  display: grid;
+  gap: 0.9rem;
+  width: min(100%, 65ch);
+  margin-inline: auto;
+  padding: clamp(0.9rem, 2.5vw, 1.2rem);
+}
+
+.interaction-checker-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.interaction-checker-heading h2,
+.interaction-checker-heading p,
+.interaction-result-card h3,
+.interaction-result-card p {
+  margin: 0;
+}
+
+.interaction-checker-heading > button,
+.interaction-examples button {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 0.55rem;
+  color: inherit;
+  background: var(--surface, #fff);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.interaction-checker-icon {
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 0.7rem;
+  color: var(--button-on-accent, #fff);
+  background: var(--accent, #2f5f55);
+}
+
+.interaction-checker-icon svg {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.interaction-checker-body {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.interaction-checker-body > label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.interaction-checker-body > label > span {
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.interaction-checker textarea {
+  width: 100%;
+  min-height: 6.5rem;
+  resize: vertical;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.6rem;
+  color: inherit;
+  background: var(--surface, #fff);
+  font: inherit;
+}
+
+.interaction-examples {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.interaction-examples,
+.interaction-recognized {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.interaction-examples button {
+  min-height: 2.2rem;
+  font-size: 0.82rem;
+}
+
+.interaction-recognized strong {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+.interaction-unresolved,
+.interaction-empty,
+.interaction-disclaimer {
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--surface, #fff) 88%, var(--accent, #2f5f55));
+}
+
+.interaction-unresolved {
+  border-left: 0.25rem solid #a66b1f;
+}
+
+.interaction-result-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.interaction-result-card {
+  display: grid;
+  gap: 0.8rem;
+  padding: clamp(0.85rem, 2.5vw, 1.1rem);
+}
+
+.interaction-result-card > header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.interaction-result-card > header > strong {
+  max-width: 18rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  text-align: center;
+  background: color-mix(in srgb, var(--surface, #fff) 75%, #d79731);
+}
+
+.interaction-result-card[data-severity="critical"] > header > strong,
+.interaction-result-card[data-severity="high"] > header > strong {
+  color: #fff;
+  background: #8e2f2f;
+}
+
+.interaction-result-card[data-severity="none"] > header > strong {
+  color: #fff;
+  background: #39725f;
+}
+
+.interaction-result-card[data-conclusion="unknown"] {
+  border-style: dashed;
+}
+
+.interaction-details {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.interaction-details > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.interaction-details dt {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.interaction-details dd {
+  margin: 0;
+}
+
+.interaction-result-card details {
+  padding: 0.7rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.55rem;
+}
+
+.interaction-result-card summary {
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.interaction-result-card blockquote {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.65rem 0 0;
+  padding-left: 0.8rem;
+  border-left: 0.2rem solid color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.interaction-result-card cite {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  font-style: normal;
+}
+
+.interaction-disclaimer {
+  color: var(--muted-text, #666);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 680px) {
+  .interaction-checker-heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .interaction-checker-heading > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
