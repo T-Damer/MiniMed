@@ -9,7 +9,7 @@
     --theme-surface-muted: #1f201d;
     --theme-border: #4b4a42;
     --theme-text: #eee8da;
-    --theme-text-muted: #c5bdad;
+    --theme-text-muted: #d0c8b6;
     --theme-text-faint: #958d80;
     --theme-accent: #82a88d;
     --theme-accent-contrast: #171816;
@@ -151,7 +151,7 @@
     background: var(--theme-surface-raised);
   }
 
-  .assessments-page .assessments-heading > div > p:not(.archive-kicker) {
+  .subpage-heading > div > p:not(.archive-kicker) {
     color: var(--theme-text-muted);
   }
 

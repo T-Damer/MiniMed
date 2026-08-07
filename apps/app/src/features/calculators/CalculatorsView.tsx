@@ -41,6 +41,20 @@ import {
   type StoredCalculationResult,
 } from '@/features/calculators/clinical-calculations';
 import {
+  calculateBishopScore,
+  calculateEddByConception,
+  calculateEddByLmp,
+  calculateEddByQuickening,
+  calculateEddByUltrasound,
+  calculateEddForGivenDate,
+  calculateGestationalAgeByBiometry,
+  calculateGestationalAgeByCrl,
+  calculateGestationalAgeFromEdd,
+  calculateMaternityLeaveTimeframe,
+  type Parity,
+  type PregnancyType,
+} from '@/features/calculators/obstetric-calculations';
+import {
   convertQuantity,
   type QuantityFamily,
   unitsForFamily,
@@ -161,14 +175,11 @@ function CalculatorSectionCard(props: {
           <small>
             {availableCount() > 0
               ? `${installedCount()}/${availableCount()} скачано на устройство`
-              : 'Доступных инструментов пока нет'}
+              : 'Доступных инструментов пока нет · источники и правила ещё проверяются'}
           </small>
         </div>
         <div class="calculator-section-actions">
-          <Show
-            when={availableCount() > 0}
-            fallback={<small>Источники и правила ещё проверяются.</small>}
-          >
+          <Show when={availableCount() > 0}>
             <button
               type="button"
               class="calculator-section-action"
@@ -277,6 +288,28 @@ function CalculatorForm(props: {
   const [sex, setSex] = createSignal<'female' | 'male'>('female');
   const [creatinine, setCreatinine] = createSignal('');
   const [creatinineUnit, setCreatinineUnit] = createSignal<CreatinineUnit>('umol/l');
+  const [lmpDate, setLmpDate] = createSignal('');
+  const [examDate, setExamDate] = createSignal('');
+  const [conceptionDate, setConceptionDate] = createSignal('');
+  const [quickeningDate, setQuickeningDate] = createSignal('');
+  const [parity, setParity] = createSignal<Parity>('primigravida');
+  const [referenceDate, setReferenceDate] = createSignal('');
+  const [gaWeeks, setGaWeeks] = createSignal('');
+  const [gaDays, setGaDays] = createSignal('');
+  const [eddDate, setEddDate] = createSignal('');
+  const [asOfDate, setAsOfDate] = createSignal('');
+  const [pregnancyType, setPregnancyType] = createSignal<PregnancyType>('single');
+  const [complicatedBirth, setComplicatedBirth] = createSignal(false);
+  const [crlMm, setCrlMm] = createSignal('');
+  const [bpdCm, setBpdCm] = createSignal('');
+  const [hcCm, setHcCm] = createSignal('');
+  const [acCm, setAcCm] = createSignal('');
+  const [flCm, setFlCm] = createSignal('');
+  const [dilationScore, setDilationScore] = createSignal('0');
+  const [effacementScore, setEffacementScore] = createSignal('0');
+  const [stationScore, setStationScore] = createSignal('0');
+  const [consistencyScore, setConsistencyScore] = createSignal('0');
+  const [positionScore, setPositionScore] = createSignal('0');
 
   const changeFamily = (next: QuantityFamily): void => {
     const units = unitsForFamily(next);
@@ -367,6 +400,142 @@ function CalculatorForm(props: {
         }
         result = calculation;
         inputSummary = `масса ${weightKg()} кг`;
+        break;
+      }
+      case 'obstetric-edd-lmp': {
+        const calculation = calculateEddByLmp({ lmpDate: lmpDate() });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `последняя менструация ${lmpDate()}`;
+        break;
+      }
+      case 'obstetric-edd-ultrasound': {
+        const calculation = calculateEddByUltrasound({
+          examDate: examDate(),
+          gaWeeks: parseNumber(gaWeeks()),
+          gaDays: parseNumber(gaDays()),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `УЗИ ${examDate()}, срок ${gaWeeks()} нед ${gaDays()} дн`;
+        break;
+      }
+      case 'obstetric-edd-conception': {
+        const calculation = calculateEddByConception({ conceptionDate: conceptionDate() });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `дата зачатия ${conceptionDate()}`;
+        break;
+      }
+      case 'obstetric-edd-quickening': {
+        const calculation = calculateEddByQuickening({
+          quickeningDate: quickeningDate(),
+          parity: parity(),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `первое шевеление ${quickeningDate()}, ${parity() === 'primigravida' ? 'первобеременная' : 'повторнобеременная'}`;
+        break;
+      }
+      case 'obstetric-edd-given-date': {
+        const calculation = calculateEddForGivenDate({
+          referenceDate: referenceDate(),
+          gaWeeks: parseNumber(gaWeeks()),
+          gaDays: parseNumber(gaDays()),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `дата ${referenceDate()}, срок ${gaWeeks()} нед ${gaDays()} дн`;
+        break;
+      }
+      case 'obstetric-ga-from-edd': {
+        const calculation = calculateGestationalAgeFromEdd({
+          eddDate: eddDate(),
+          asOfDate: asOfDate() || undefined,
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `ПДР ${eddDate()}${asOfDate() ? `, на дату ${asOfDate()}` : ''}`;
+        break;
+      }
+      case 'obstetric-maternity-leave': {
+        const calculation = calculateMaternityLeaveTimeframe({
+          eddDate: eddDate(),
+          pregnancyType: pregnancyType(),
+          complicatedBirth: complicatedBirth(),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `ПДР ${eddDate()}, ${pregnancyType() === 'multiple' ? 'многоплодная' : 'одноплодная'} беременность`;
+        break;
+      }
+      case 'obstetric-ga-crl': {
+        const calculation = calculateGestationalAgeByCrl({ crlMm: parseNumber(crlMm()) });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `КТР ${crlMm()} мм`;
+        break;
+      }
+      case 'obstetric-ga-biometry': {
+        const calculation = calculateGestationalAgeByBiometry({
+          bpdCm: bpdCm() ? parseNumber(bpdCm()) : undefined,
+          hcCm: hcCm() ? parseNumber(hcCm()) : undefined,
+          acCm: acCm() ? parseNumber(acCm()) : undefined,
+          flCm: flCm() ? parseNumber(flCm()) : undefined,
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = [
+          bpdCm() && `БПР ${bpdCm()} см`,
+          hcCm() && `ОГ ${hcCm()} см`,
+          acCm() && `ОЖ ${acCm()} см`,
+          flCm() && `ДБ ${flCm()} см`,
+        ]
+          .filter(Boolean)
+          .join(', ');
+        break;
+      }
+      case 'obstetric-bishop-score': {
+        const calculation = calculateBishopScore({
+          dilationScore: parseNumber(dilationScore()),
+          effacementScore: parseNumber(effacementScore()),
+          stationScore: parseNumber(stationScore()),
+          consistencyScore: parseNumber(consistencyScore()),
+          positionScore: parseNumber(positionScore()),
+        });
+        if (!calculation.ok) {
+          props.onMessage(calculation.error);
+          return;
+        }
+        result = calculation;
+        inputSummary = `раскрытие ${dilationScore()}, сглаживание ${effacementScore()}, станция ${stationScore()}, консистенция ${consistencyScore()}, позиция ${positionScore()}`;
         break;
       }
       default:
@@ -539,6 +708,253 @@ function CalculatorForm(props: {
         </label>
       </Show>
 
+      <Show when={props.definition.id === 'obstetric-edd-lmp'}>
+        <label>
+          <span>Дата последней менструации</span>
+          <input
+            type="date"
+            value={lmpDate()}
+            onInput={(event) => setLmpDate(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-edd-ultrasound'}>
+        <label>
+          <span>Дата УЗИ</span>
+          <input
+            type="date"
+            value={examDate()}
+            onInput={(event) => setExamDate(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Срок на дату УЗИ, недели</span>
+          <input
+            inputmode="numeric"
+            value={gaWeeks()}
+            onInput={(event) => setGaWeeks(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Срок на дату УЗИ, дни</span>
+          <input
+            inputmode="numeric"
+            value={gaDays()}
+            onInput={(event) => setGaDays(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-edd-conception'}>
+        <label>
+          <span>Дата зачатия</span>
+          <input
+            type="date"
+            value={conceptionDate()}
+            onInput={(event) => setConceptionDate(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-edd-quickening'}>
+        <label>
+          <span>Дата первого шевеления</span>
+          <input
+            type="date"
+            value={quickeningDate()}
+            onInput={(event) => setQuickeningDate(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Беременность</span>
+          <select
+            value={parity()}
+            onChange={(event) => setParity(event.currentTarget.value as Parity)}
+          >
+            <option value="primigravida">Первобеременная</option>
+            <option value="multigravida">Повторнобеременная</option>
+          </select>
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-edd-given-date'}>
+        <label>
+          <span>Дата отсчёта</span>
+          <input
+            type="date"
+            value={referenceDate()}
+            onInput={(event) => setReferenceDate(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Срок на эту дату, недели</span>
+          <input
+            inputmode="numeric"
+            value={gaWeeks()}
+            onInput={(event) => setGaWeeks(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Срок на эту дату, дни</span>
+          <input
+            inputmode="numeric"
+            value={gaDays()}
+            onInput={(event) => setGaDays(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-ga-from-edd'}>
+        <label>
+          <span>Предполагаемая дата родов</span>
+          <input
+            type="date"
+            value={eddDate()}
+            onInput={(event) => setEddDate(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Дата расчёта — необязательно, по умолчанию сегодня</span>
+          <input
+            type="date"
+            value={asOfDate()}
+            onInput={(event) => setAsOfDate(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-maternity-leave'}>
+        <label>
+          <span>Предполагаемая дата родов</span>
+          <input
+            type="date"
+            value={eddDate()}
+            onInput={(event) => setEddDate(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>Беременность</span>
+          <select
+            value={pregnancyType()}
+            onChange={(event) => setPregnancyType(event.currentTarget.value as PregnancyType)}
+          >
+            <option value="single">Одноплодная</option>
+            <option value="multiple">Многоплодная</option>
+          </select>
+        </label>
+        <Show when={pregnancyType() === 'single'}>
+          <label>
+            <span>Осложнённые роды (+16 дней)</span>
+            <select
+              value={complicatedBirth() ? 'yes' : 'no'}
+              onChange={(event) => setComplicatedBirth(event.currentTarget.value === 'yes')}
+            >
+              <option value="no">Нет</option>
+              <option value="yes">Да</option>
+            </select>
+          </label>
+        </Show>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-ga-crl'}>
+        <label>
+          <span>КТР (копчико-теменной размер), мм</span>
+          <input
+            inputmode="decimal"
+            value={crlMm()}
+            onInput={(event) => setCrlMm(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-ga-biometry'}>
+        <label>
+          <span>БПР (бипариетальный размер), см — необязательно</span>
+          <input
+            inputmode="decimal"
+            value={bpdCm()}
+            onInput={(event) => setBpdCm(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>ОГ (окружность головы), см — необязательно</span>
+          <input
+            inputmode="decimal"
+            value={hcCm()}
+            onInput={(event) => setHcCm(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>ОЖ (окружность живота), см — необязательно</span>
+          <input
+            inputmode="decimal"
+            value={acCm()}
+            onInput={(event) => setAcCm(event.currentTarget.value)}
+          />
+        </label>
+        <label>
+          <span>ДБ (длина бедра), см — необязательно</span>
+          <input
+            inputmode="decimal"
+            value={flCm()}
+            onInput={(event) => setFlCm(event.currentTarget.value)}
+          />
+        </label>
+      </Show>
+
+      <Show when={props.definition.id === 'obstetric-bishop-score'}>
+        <label>
+          <span>Раскрытие шейки матки</span>
+          <select value={dilationScore()} onChange={(event) => setDilationScore(event.currentTarget.value)}>
+            <option value="0">Закрыта (0)</option>
+            <option value="1">1–2 см (1)</option>
+            <option value="2">3–4 см (2)</option>
+            <option value="3">≥5 см (3)</option>
+          </select>
+        </label>
+        <label>
+          <span>Сглаживание шейки матки</span>
+          <select
+            value={effacementScore()}
+            onChange={(event) => setEffacementScore(event.currentTarget.value)}
+          >
+            <option value="0">0–30% (0)</option>
+            <option value="1">40–50% (1)</option>
+            <option value="2">60–70% (2)</option>
+            <option value="3">≥80% (3)</option>
+          </select>
+        </label>
+        <label>
+          <span>Положение головки (станция)</span>
+          <select value={stationScore()} onChange={(event) => setStationScore(event.currentTarget.value)}>
+            <option value="0">−3 (0)</option>
+            <option value="1">−2 (1)</option>
+            <option value="2">−1 / 0 (2)</option>
+            <option value="3">+1 / +2 (3)</option>
+          </select>
+        </label>
+        <label>
+          <span>Консистенция шейки матки</span>
+          <select
+            value={consistencyScore()}
+            onChange={(event) => setConsistencyScore(event.currentTarget.value)}
+          >
+            <option value="0">Плотная (0)</option>
+            <option value="1">Средняя (1)</option>
+            <option value="2">Мягкая (2)</option>
+          </select>
+        </label>
+        <label>
+          <span>Позиция шейки матки</span>
+          <select value={positionScore()} onChange={(event) => setPositionScore(event.currentTarget.value)}>
+            <option value="0">Кзади (0)</option>
+            <option value="1">Срединное положение (1)</option>
+            <option value="2">Кпереди (2)</option>
+          </select>
+        </label>
+      </Show>
+
       <Button
         class="calculator-submit"
         type="submit"
@@ -563,18 +979,23 @@ function CalculationResultPanel(props: {
   const [selectedCardId, setSelectedCardId] = createSignal('');
   const [newCardTitle, setNewCardTitle] = createSignal('');
 
-  const outputs = () => {
+  const outputs = (): readonly { readonly label: string; readonly display: string }[] => {
     const result = props.record.result;
-    return 'value' in result
-      ? [
-          {
-            label: 'Результат',
-            value: result.value,
-            unit: result.unit,
-            displayPrecision: result.displayPrecision,
-          },
-        ]
-      : result.values;
+    if ('textValues' in result) {
+      return result.textValues.map((item) => ({ label: item.label, display: item.text }));
+    }
+    if ('value' in result) {
+      return [
+        {
+          label: 'Результат',
+          display: `${formatNumber(result.value, result.displayPrecision)} ${result.unit}`,
+        },
+      ];
+    }
+    return result.values.map((item) => ({
+      label: item.label,
+      display: `${formatNumber(item.value, item.displayPrecision)} ${item.unit}`,
+    }));
   };
 
   const saveToNote = (): void => {
@@ -612,9 +1033,7 @@ function CalculationResultPanel(props: {
           {(item) => (
             <div>
               <span>{item.label}</span>
-              <strong>
-                {formatNumber(item.value, item.displayPrecision)} {item.unit}
-              </strong>
+              <strong>{item.display}</strong>
             </div>
           )}
         </For>

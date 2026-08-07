@@ -16,11 +16,25 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 0.09rem 0 0 color-mix(in srgb, currentColor 20%, transparent);
+  transition:
+    box-shadow var(--theme-motion-control, 140ms ease-out),
+    transform var(--theme-motion-control, 140ms ease-out);
+}
+
+.ui-button:active {
+  box-shadow: none;
+  transform: translateY(0.07rem);
 }
 
 .ui-button-primary {
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
+  box-shadow: 0 0.09rem 0 0 color-mix(in srgb, var(--theme-accent) 55%, black);
+}
+
+.ui-button-primary:active {
+  box-shadow: none;
 }
 
 .ui-button-danger {
@@ -30,6 +44,11 @@
 .ui-button-quiet {
   border-color: transparent;
   background: transparent;
+  box-shadow: none;
+}
+
+.ui-button-quiet:active {
+  transform: none;
 }
 
 .ui-button-icon {

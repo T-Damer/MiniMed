@@ -33,7 +33,9 @@ function isCalculationRecord(value: unknown): value is CalculationRecord {
     typeof result['formula'] === 'string' &&
     Array.isArray(result['trace']) &&
     Array.isArray(result['warnings']) &&
-    (typeof result['value'] === 'number' || Array.isArray(result['values']))
+    (typeof result['value'] === 'number' ||
+      Array.isArray(result['values']) ||
+      Array.isArray(result['textValues']))
   );
 }
 

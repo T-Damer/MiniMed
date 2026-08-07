@@ -21,14 +21,16 @@ export function formatCalculationRecord(record: CalculationRecord): string {
   const definition = findCalculator(record.calculatorId);
   const title = definition?.title ?? record.calculatorId;
   const outputs =
-    'value' in record.result
-      ? `${formatNumber(record.result.value, record.result.displayPrecision)} ${record.result.unit}`
-      : record.result.values
-          .map(
-            (item) =>
-              `${item.label}: ${formatNumber(item.value, item.displayPrecision)} ${item.unit}`,
-          )
-          .join('\n');
+    'textValues' in record.result
+      ? record.result.textValues.map((item) => `${item.label}: ${item.text}`).join('\n')
+      : 'value' in record.result
+        ? `${formatNumber(record.result.value, record.result.displayPrecision)} ${record.result.unit}`
+        : record.result.values
+            .map(
+              (item) =>
+                `${item.label}: ${formatNumber(item.value, item.displayPrecision)} ${item.unit}`,
+            )
+            .join('\n');
   const warnings = record.result.warnings.map((warning) => `- ${warning.message}`).join('\n');
   const subject = record.subjectLabel ? `Пациент / случай: ${record.subjectLabel}\n` : '';
   return [
