@@ -1,5 +1,6 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGlyph';
@@ -141,39 +142,40 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
 
       <Show when={mode() === 'list'}>
         <div class="document-library-grid">
-          <For each={filteredDocuments()}>
-            {(document, index) => (
-              <button
-                class="document-library-card paper-card"
-                type="button"
-                onClick={() => openDocumentOverlay(document.id)}
-              >
-                <span class="document-library-index">{String(index() + 1).padStart(2, '0')}</span>
-                <span class="document-library-copy">
-                  <small>{sourceTypeLibraryLabel(document.sourceType)}</small>
-                  <strong>{document.title}</strong>
-                  <span>
-                    {specialtyLabels(document.specialties).join(' · ') ||
-                      browserI18n.getMessage('specialty_general_medicine')}
+          <Show when={filteredDocuments().length > 0}>
+            <WindowVirtualizer data={filteredDocuments()} bufferSize={400}>
+              {(document, index) => (
+                <button
+                  class="document-library-card paper-card"
+                  type="button"
+                  onClick={() => openDocumentOverlay(document.id)}
+                >
+                  <span class="document-library-index">{String(index() + 1).padStart(2, '0')}</span>
+                  <span class="document-library-copy">
+                    <small>{sourceTypeLibraryLabel(document.sourceType)}</small>
+                    <strong>{document.title}</strong>
+                    <span>
+                      {specialtyLabels(document.specialties).join(' · ') ||
+                        browserI18n.getMessage('specialty_general_medicine')}
+                    </span>
+                    <em>Редакция {document.versionLabel}</em>
                   </span>
-                  <em>Редакция {document.versionLabel}</em>
-                </span>
-                <span class="clinical-signals" aria-hidden="true">
-                  <For each={documentClinicalSignals(document).slice(0, 3)}>
-                    {(signal) => (
-                      <span
-                        class={`clinical-signal ${signal.strength} tone-${signal.tone}`}
-                        title={signal.label}
-                      >
-                        <ClinicalGlyph name={signal.icon} />
-                      </span>
-                    )}
-                  </For>
-                </span>
-                <span class="document-library-open">Открыть</span>
-              </button>
-            )}
-          </For>
+                  <span class="clinical-signals" aria-hidden="true">
+                    <For each={documentClinicalSignals(document).slice(0, 3)}>
+                      {(signal) => (
+                        <span
+                          class={`clinical-signal ${signal.strength} tone-${signal.tone}`}
+                          title={signal.label}
+                        >
+                          <ClinicalGlyph name={signal.icon} />
+                        </span>
+                      )}
+                    </For>
+                  </span>
+                </button>
+              )}
+            </WindowVirtualizer>
+          </Show>
           <Show when={filteredDocuments().length === 0}>
             <div class="reader-empty library-empty paper-card">
               <h2>Документы не найдены</h2>

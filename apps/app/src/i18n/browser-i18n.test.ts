@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { browserI18n, setUILanguageForTests } from '@/i18n/browser-i18n';
 import {
   collectionLabel,
+  documentCountLabel,
   recommendationCountLabel,
   specialtyLabel,
   specialtyMessageKey,
@@ -52,6 +53,12 @@ describe('labels', () => {
     expect(recommendationCountLabel(1)).toBe('1 клиническая рекомендация');
     expect(recommendationCountLabel(3)).toBe('3 клинические рекомендации');
     expect(recommendationCountLabel(37)).toBe('37 клинических рекомендаций');
+  });
+
+  it('formats document counts with Russian plural rules', () => {
+    expect(documentCountLabel(1)).toBe('1 документ');
+    expect(documentCountLabel(2)).toBe('2 документа');
+    expect(documentCountLabel(15)).toBe('15 документов');
   });
 
   it('localizes module collection ids', () => {

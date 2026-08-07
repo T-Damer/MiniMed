@@ -30,6 +30,7 @@ import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
+import { documentCountLabel } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import {
@@ -752,9 +753,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 >
                   {showAllGroups()
                     ? 'Скрыть остальные документы'
-                    : `Показать ещё ${
-                        searchResponse().groups.length - INITIAL_DOCUMENT_LIMIT
-                      } документов`}
+                    : `Показать ещё ${documentCountLabel(
+                        searchResponse().groups.length - INITIAL_DOCUMENT_LIMIT,
+                      )}`}
                 </button>
               </Show>
             </>

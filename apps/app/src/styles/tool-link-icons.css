@@ -90,7 +90,7 @@
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
   border-radius: 0.55rem;
   color: inherit;
-  background: var(--surface, #fff);
+  background: var(--theme-surface-raised);
   cursor: pointer;
   font: inherit;
   font-weight: 700;

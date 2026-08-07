@@ -113,6 +113,7 @@ export function DocumentText(props: {
   readonly documentLinks?: readonly DocumentLinkPhrase[] | undefined;
   readonly onDocumentLink?: ((documentId: string) => void) | undefined;
   readonly sourceSpans?: unknown;
+  readonly paragraphClass?: string | undefined;
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
   readonly query?: string | undefined;
@@ -149,7 +150,7 @@ export function DocumentText(props: {
             </ol>
           );
         }
-        return <p>{inline(group.items[0]?.text ?? '')}</p>;
+        return <p class={props.paragraphClass}>{inline(group.items[0]?.text ?? '')}</p>;
       }}
     </For>
   );

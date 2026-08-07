@@ -19,6 +19,7 @@ import type {
   SearchResult,
 } from '@localmed/contracts';
 
+import { getPackagedContentBaseUrl } from '@/composition/create-browser-core';
 import { peekContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import type {
   SearchWorkerRequest,
@@ -98,7 +99,7 @@ export class WorkerSearchMedicalCore implements MedicalCore {
       this.worker?.postMessage({
         ...message,
         id,
-        contentBaseUrl: new URL(import.meta.env.BASE_URL, window.location.href).href,
+        contentBaseUrl: getPackagedContentBaseUrl(),
       } satisfies SearchWorkerRequest);
     });
   }

@@ -41,3 +41,26 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
   await expect(page.getByRole('heading', { name: 'Модель', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Проверить устройство' })).toBeVisible();
 });
+
+test('does not show root navigation while the medical core is loading', async ({
+  page,
+  request,
+}) => {
+  let running = false;
+  try {
+    const health = await request.get('http://127.0.0.1:5173/', { timeout: 1_000 });
+    running = health.ok();
+  } catch {
+    running = false;
+  }
+  test.skip(!running, 'dev server is not running on 127.0.0.1:5173');
+
+  await page.route('**/core-demo.db', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
+    await route.continue();
+  });
+  await page.goto('http://127.0.0.1:5173/#/search', { waitUntil: 'commit' });
+  await expect(page.locator('.archive-boot')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.locator('.app-bottom-nav')).toHaveCount(0);
+});

@@ -1,7 +1,6 @@
 import type {
   ContentModuleCatalog,
   ContentModuleCatalogEntry,
-  ContentModuleCategory,
   ContentModuleDownloadTask,
   CoreStatus,
   InstalledContentModule,
@@ -17,7 +16,9 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { WindowVirtualizer } from 'virtua/solid';
 import { AppGlyph } from '@/components/AppGlyph';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
@@ -41,12 +42,11 @@ import {
   recommendationCategoryDownloadProgress,
   recommendationCategoryStats,
 } from '@/features/modules/recommendation-categories';
-import { buildRecommendationCategoryHelp } from '@/features/modules/recommendation-category-help';
 import {
   installPublishedCategoryModules,
   removeInstalledCategoryModules,
 } from '@/features/modules/recommendation-category-operations';
-import { collectionLabel } from '@/i18n/labels';
+import { collectionLabel, documentCountLabel, recommendationCountLabel } from '@/i18n/labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface ModuleCatalogViewProps {
@@ -116,7 +116,7 @@ function categoryInstallLabel(
     return `Загружаем ${downloadProgress.activeTaskCount}…`;
   }
   if (categoryBusy) return 'Скачиваем…';
-  return 'Скачать раздел';
+  return 'Скачать';
 }
 
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
@@ -137,11 +137,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [regularCollection, setRegularCollection] = createSignal('');
   const [busyCategories, setBusyCategories] = createSignal<ReadonlySet<string>>(new Set());
   const [installingAll, setInstallingAll] = createSignal(false);
-  const [helpCategory, setHelpCategory] = createSignal<ContentModuleCategory | null>(null);
   const [detailsModule, setDetailsModule] = createSignal<ContentModuleCatalogEntry | null>(null);
   const [loadErrorDetails, setLoadErrorDetails] = createSignal<ModuleLoadError | null>(null);
   const [installErrors, setInstallErrors] = createSignal<Readonly<Record<string, string>>>({});
   const [coreOpen, setCoreOpen] = createSignal(false);
+  const [pendingRemoval, setPendingRemoval] = createSignal<{
+    readonly kind: 'module' | 'category';
+    readonly id: string;
+    readonly title: string;
+  } | null>(null);
   const [autoUpdatesPaused, setAutoUpdatesPaused] = createSignal(
     window.localStorage.getItem(AUTO_UPDATES_PAUSED_KEY) === 'true',
   );
@@ -243,29 +247,30 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const browsingSection = createMemo(
     () => Boolean(recommendationCategory()) && !recommendationQuery().trim(),
   );
-  const activeCategoryHelp = createMemo(() => {
-    const category = helpCategory();
-    if (!category) return null;
-    return buildRecommendationCategoryHelp(
-      category,
-      recommendationCategoryStats(recommendationModules(), category, installedModuleIds()),
-      formatModuleBytes,
-    );
-  });
-  const activeHelpModules = createMemo(() => {
-    const category = helpCategory();
-    return category ? categoryModules(category.id) : [];
-  });
   const browsingSearch = createMemo(() => Boolean(recommendationQuery().trim()));
+  const regulatoryTitles: Readonly<Record<string, string>> = {
+    'regulatory.rf.minzdrav.192n-2025':
+      'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н',
+    'regulatory.rf.minzdrav.211n-2025':
+      'Профилактические медицинские осмотры несовершеннолетних — приказ № 211н',
+    'regulatory.rf.minzdrav.302n-2019':
+      'Диспансерное наблюдение несовершеннолетних — приказ № 302н (утратил силу)',
+  };
   const moduleDocumentTitle = (documentId: string): string => {
     const catalogDocumentId = documentId.match(/^kr\.rf\.\d+_\d+/u)?.[0] ?? documentId;
     return (
+      regulatoryTitles[documentId] ??
       catalog().modules.find(
         (module) =>
           module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG) &&
           module.documents.some((document) => document.documentId === catalogDocumentId),
-      )?.title ?? documentId
+      )?.title ??
+      documentId
     );
+  };
+  const moduleDocumentDate = (versionId: string): string => {
+    const match = versionId.match(/(\d{4})-(\d{2})-(\d{2})(?:$|[-])/u);
+    return match ? `${match[3]}.${match[2]}.${match[1]}` : 'Дата редакции не указана';
   };
 
   const refresh = async (): Promise<void> => {
@@ -437,8 +442,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
   const removeCategory = async (categoryId = recommendationCategory()): Promise<void> => {
     if (!categoryId) return;
-    const title = catalog().categories.find((category) => category.id === categoryId)?.title;
-    if (!window.confirm(`Удалить раздел «${title ?? categoryId}» с устройства?`)) return;
     let removed = false;
     await withCategoryBusy(categoryId, async () => {
       const modules = categoryModules(categoryId);
@@ -456,8 +459,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   };
 
   const remove = async (moduleId: string, reconnect = true): Promise<void> => {
-    const title = catalog().modules.find((module) => module.id === moduleId)?.title;
-    if (!window.confirm(`Удалить набор «${title ?? moduleId}» с устройства?`)) return;
     try {
       await runtime().remove(moduleId);
       setInstalled(runtime().listInstalled());
@@ -465,6 +466,22 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     } catch (cause) {
       setWarning(cause instanceof Error ? cause.message : 'Не удалось удалить набор.');
     }
+  };
+
+  const requestRemoveCategory = (categoryId: string): void => {
+    const title = catalog().categories.find((category) => category.id === categoryId)?.title;
+    setPendingRemoval({ kind: 'category', id: categoryId, title: title ?? categoryId });
+  };
+  const requestRemove = (moduleId: string): void => {
+    const title = catalog().modules.find((module) => module.id === moduleId)?.title;
+    setPendingRemoval({ kind: 'module', id: moduleId, title: title ?? moduleId });
+  };
+  const confirmRemoval = async (): Promise<void> => {
+    const pending = pendingRemoval();
+    setPendingRemoval(null);
+    if (!pending) return;
+    if (pending.kind === 'category') await removeCategory(pending.id);
+    else await remove(pending.id);
   };
 
   const activateVersion = async (moduleId: string, version: string): Promise<void> => {
@@ -528,11 +545,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <Show when={pendingRegularCount() > 0}>
             <button
               type="button"
+              aria-label={`Скачать все документы: ${pendingRegularCount()}`}
               class="module-download-all"
               disabled={installingAll()}
               onClick={() => void installAllRegular()}
             >
-              {installingAll() ? 'Скачиваем…' : `Скачать все · ${pendingRegularCount()}`}
+              <AppGlyph name="download" />
+              <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
             </button>
           </Show>
         </header>
@@ -551,11 +570,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             <Show when={pendingRegularCount() > 0}>
               <button
                 type="button"
+                aria-label={`Скачать все документы: ${pendingRegularCount()}`}
                 class="module-download-all"
                 disabled={installingAll()}
                 onClick={() => void installAllRegular()}
               >
-                {installingAll() ? 'Скачиваем…' : `Скачать все · ${pendingRegularCount()}`}
+                <AppGlyph name="download" />
+                <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
               </button>
             </Show>
             <button
@@ -624,6 +645,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             </div>
             <div class="recommendation-section-grid recommendation-section-grid-compact">
               <article class="recommendation-section-card paper-card recommendation-section-card-compact">
+                <AppGlyph name="notes" class="recommendation-section-card-icon" />
                 <button
                   type="button"
                   class="recommendation-section-select"
@@ -640,6 +662,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     modules().filter((module) => installedModuleIds().has(module.id)).length;
                   return (
                     <article class="recommendation-section-card paper-card recommendation-section-card-compact">
+                      <AppGlyph
+                        name={section === 'reference' ? 'calculator' : 'archive'}
+                        class="recommendation-section-card-icon"
+                      />
                       <button
                         type="button"
                         class="recommendation-section-select"
@@ -655,6 +681,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 }}
               </For>
               <article class="recommendation-section-card paper-card recommendation-section-card-compact clinical-recommendations-entry">
+                <AppGlyph name="book-open" class="recommendation-section-card-icon" />
                 <button
                   type="button"
                   class="recommendation-section-select"
@@ -672,6 +699,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 </button>
               </article>
               <article class="recommendation-section-card paper-card recommendation-section-card-compact">
+                <AppGlyph name="modules" class="recommendation-section-card-icon" />
                 <button
                   type="button"
                   class="recommendation-section-select"
@@ -714,8 +742,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       }
                       onInstall={() => void install(module)}
                       onOpenCore={() => setCoreOpen(true)}
-                      onOpenDocument={() => openModuleDocument(module)}
-                      onRemove={() => void remove(module.id)}
+                      onRemove={() => requestRemove(module.id)}
                       onActivateVersion={(version) => void activateVersion(module.id, version)}
                     />
                   )}
@@ -765,30 +792,25 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     );
                   const showByteProgress = () => downloadProgress().byteProgress;
                   return (
-                    <article class="recommendation-section-card paper-card recommendation-section-card-compact">
+                    <article
+                      class="recommendation-section-card paper-card recommendation-section-card-compact"
+                      tabindex="0"
+                      aria-label={`Открыть раздел «${category.title}»`}
+                      onClick={(event) => {
+                        if (!(event.target instanceof HTMLButtonElement)) openCategory(category.id);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') openCategory(category.id);
+                      }}
+                    >
                       <div class="recommendation-section-card-header">
-                        <button
-                          type="button"
-                          class="recommendation-section-select"
-                          onClick={() => openCategory(category.id)}
-                        >
+                        <div class="recommendation-section-select">
                           <strong>{category.title}</strong>
                           <span>
                             {stats().installedCount}/{stats().publishedCount} ·{' '}
                             {formatModuleBytes(stats().downloadBytes)}
                           </span>
-                        </button>
-                        <button
-                          type="button"
-                          class="recommendation-section-help"
-                          aria-label={`Что входит в раздел «${category.title}»`}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setHelpCategory(category);
-                          }}
-                        >
-                          ?
-                        </button>
+                        </div>
                       </div>
                       <Show when={downloadProgress().installedFraction < 1}>
                         <div
@@ -815,9 +837,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           fallback={
                             <button
                               type="button"
+                              class="module-remove-button"
                               aria-label={`Удалить раздел «${category.title}»`}
                               disabled={stats().installedCount === 0 || categoryBusy()}
-                              onClick={() => void removeCategory(category.id)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                requestRemoveCategory(category.id);
+                              }}
                             >
                               <Show
                                 when={!categoryBusy()}
@@ -831,7 +857,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           <button
                             type="button"
                             disabled={categoryBusy()}
-                            onClick={() => void installCategory(category.id)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void installCategory(category.id);
+                            }}
                           >
                             <Show
                               when={!categoryBusy()}
@@ -895,13 +924,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             </Show>
 
             <p class="recommendation-result-note">
-              {filteredRecommendations().length}
-              {browsingSearch() && filteredRecommendations().length === 50 ? ' первых' : ''}{' '}
-              рекомендаций
+              {recommendationCountLabel(filteredRecommendations().length)}
+              {browsingSearch() && filteredRecommendations().length === 50
+                ? ' · показаны первые'
+                : ''}
             </p>
 
             <div class="recommendation-list recommendation-list-compact">
-              <For each={filteredRecommendations()}>
+              <WindowVirtualizer data={filteredRecommendations()} bufferSize={500}>
                 {(module) => {
                   const installedValue = () => installedModule(module.id);
                   const task = () => moduleTask(module.id);
@@ -916,20 +946,41 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     retryScheduled() ||
                     (task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? ''));
                   return (
-                    <article class="recommendation-row paper-card recommendation-row-compact">
+                    <article
+                      class="recommendation-row paper-card recommendation-row-compact"
+                      classList={{
+                        'recommendation-row-openable': Boolean(
+                          installedValue() && primaryModuleDocumentId(module),
+                        ),
+                      }}
+                      tabindex={installedValue() && primaryModuleDocumentId(module) ? 0 : undefined}
+                      aria-label={
+                        installedValue() && primaryModuleDocumentId(module)
+                          ? `Открыть «${module.title}»`
+                          : undefined
+                      }
+                      onClick={(event) => {
+                        if (
+                          installedValue() &&
+                          primaryModuleDocumentId(module) &&
+                          !(event.target instanceof HTMLButtonElement)
+                        ) {
+                          openModuleDocument(module);
+                        }
+                      }}
+                      onKeyDown={(event) => {
+                        if (
+                          (event.key === 'Enter' || event.key === ' ') &&
+                          installedValue() &&
+                          primaryModuleDocumentId(module)
+                        ) {
+                          event.preventDefault();
+                          openModuleDocument(module);
+                        }
+                      }}
+                    >
                       <div>
-                        <Show
-                          when={installedValue() && primaryModuleDocumentId(module)}
-                          fallback={<strong>{module.title}</strong>}
-                        >
-                          <button
-                            type="button"
-                            class="recommendation-title-button"
-                            onClick={() => openModuleDocument(module)}
-                          >
-                            {module.title}
-                          </button>
-                        </Show>
+                        <strong>{module.title}</strong>
                         <span>
                           {module.tags.find((tag) => /^\d+_\d+$/u.test(tag))}
                           {installedValue()
@@ -963,21 +1014,17 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         when={!installedValue()}
                         fallback={
                           <div class="recommendation-row-actions">
-                            <Show when={primaryModuleDocumentId(module)}>
-                              <button
-                                type="button"
-                                class="recommendation-open-button"
-                                onClick={() => openModuleDocument(module)}
-                              >
-                                Выжимка
-                              </button>
-                            </Show>
                             <button
                               type="button"
                               class="module-remove-button"
-                              onClick={() => void remove(module.id)}
+                              aria-label={`Удалить «${module.title}»`}
+                              title="Удалить"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                requestRemove(module.id);
+                              }}
                             >
-                              <AppGlyph name="trash" /> Удалить
+                              <AppGlyph name="trash" />
                             </button>
                           </div>
                         }
@@ -986,7 +1033,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           <button
                             type="button"
                             disabled={module.releaseState !== 'published'}
-                            onClick={() => void install(module)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void install(module);
+                            }}
                           >
                             <AppGlyph name="download" />
                             Скачать
@@ -996,7 +1046,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     </article>
                   );
                 }}
-              </For>
+              </WindowVirtualizer>
             </div>
           </Show>
         </section>
@@ -1030,7 +1080,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               <ul class="recommendation-section-help-facts">
                 <li>
                   {module().previewDocumentCount || module().documents.length
-                    ? `${module().previewDocumentCount || module().documents.length} документов`
+                    ? documentCountLabel(module().previewDocumentCount || module().documents.length)
                     : 'Список документов уточняется'}
                 </li>
                 <li>{formatModuleBytes(module().sizes.downloadBytes)}</li>
@@ -1043,96 +1093,41 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   </p>
                 }
               >
-                <details class="recommendation-section-document-list" open>
-                  <summary>Документы · {module().documents.length}</summary>
-                  <div>
-                    <For each={module().documents}>
-                      {(document) => (
-                        <details>
-                          <summary>{moduleDocumentTitle(document.documentId)}</summary>
-                          <p>
-                            {document.status === 'active'
-                              ? 'Текущая редакция'
-                              : document.status === 'historical'
-                                ? 'Историческая редакция'
-                                : 'Предыдущая редакция'}
-                          </p>
-                          <Show when={installedModule(module().id)}>
-                            <button
-                              type="button"
-                              onClick={() => openDocumentOverlay(document.documentId)}
-                            >
-                              Открыть документ
-                            </button>
-                          </Show>
-                        </details>
-                      )}
-                    </For>
-                  </div>
-                </details>
-              </Show>
-            </div>
-          )}
-        </Show>
-      </OverlayDialog>
-
-      <OverlayDialog
-        open={helpCategory() !== null}
-        title={helpCategory()?.title ?? 'Раздел'}
-        class="recommendation-section-help-dialog"
-        onClose={() => setHelpCategory(null)}
-      >
-        <Show when={activeCategoryHelp()}>
-          {(help) => (
-            <div class="recommendation-section-help-body">
-              <p>{help().lead}</p>
-              <ul class="recommendation-section-help-facts">
-                <li>{help().recommendationLabel}</li>
-                <li>{help().installedLabel}</li>
-                <li>{help().sizeLabel}</li>
-              </ul>
-              <Show when={help().specialtyLabels.length > 0}>
-                <div class="recommendation-section-help-specialties">
-                  <strong>Направления</strong>
-                  <div>
-                    <For each={help().specialtyLabels}>{(label) => <span>{label}</span>}</For>
-                  </div>
-                </div>
-              </Show>
-              <p class="recommendation-section-help-note">{help().offlineNote}</p>
-              <details class="recommendation-section-document-list">
-                <summary>Полный список рекомендаций · {activeHelpModules().length}</summary>
-                <div>
-                  <For each={activeHelpModules()}>
-                    {(module) => (
-                      <details>
-                        <summary>{module.title}</summary>
-                        <p>{module.description}</p>
-                        <Show
-                          when={installedModule(module.id)}
-                          fallback={
-                            <button
-                              type="button"
-                              disabled={module.releaseState !== 'published'}
-                              onClick={() => void install(module)}
-                            >
-                              {module.releaseState === 'published' ? 'Скачать' : 'Пока недоступно'}
-                            </button>
-                          }
+                <div class="recommendation-section-document-list">
+                  <For each={module().documents}>
+                    {(document) => {
+                      const canOpen = () => Boolean(installedModule(module().id));
+                      return (
+                        <button
+                          type="button"
+                          class="module-document-row"
+                          classList={{ 'module-document-row-openable': canOpen() }}
+                          disabled={!canOpen()}
+                          onClick={() => {
+                            if (canOpen()) openDocumentOverlay(document.documentId);
+                          }}
+                          onKeyDown={(event) => {
+                            if (canOpen() && (event.key === 'Enter' || event.key === ' ')) {
+                              event.preventDefault();
+                              openDocumentOverlay(document.documentId);
+                            }
+                          }}
                         >
-                          <button
-                            type="button"
-                            disabled={!primaryModuleDocumentId(module)}
-                            onClick={() => openModuleDocument(module)}
-                          >
-                            Открыть полный документ
-                          </button>
-                        </Show>
-                      </details>
-                    )}
+                          <strong>{moduleDocumentTitle(document.documentId)}</strong>
+                          <span>
+                            {moduleDocumentDate(document.documentVersionId)} ·{' '}
+                            {document.status === 'active'
+                              ? 'действующая редакция'
+                              : document.status === 'historical'
+                                ? 'историческая редакция'
+                                : 'предыдущая редакция'}
+                          </span>
+                        </button>
+                      );
+                    }}
                   </For>
                 </div>
-              </details>
+              </Show>
             </div>
           )}
         </Show>
@@ -1147,6 +1142,18 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       >
         <DocumentLibrary core={props.core} embedded />
       </OverlayDialog>
+
+      <ConfirmationDialog
+        open={pendingRemoval() !== null}
+        title="Удалить с устройства?"
+        description={`«${pendingRemoval()?.title ?? ''}» будет удалён с устройства. Сохранённые результаты не изменятся.`}
+        confirmLabel="Удалить"
+        danger
+        onConfirm={() => void confirmRemoval()}
+        onOpenChange={(open) => {
+          if (!open) setPendingRemoval(null);
+        }}
+      />
     </section>
   );
 }

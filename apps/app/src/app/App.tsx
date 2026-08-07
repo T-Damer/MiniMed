@@ -64,6 +64,7 @@ const DEFAULT_MODEL_CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
 const DEFAULT_MODEL_ASSET_BASE_URL = '';
 const SLOW_BOOT_DELAY_MS = 10_000;
+const ROOT_NAVIGATION_MOTION_MS = 240;
 
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
@@ -129,7 +130,7 @@ export function App(): JSX.Element {
   let nativeBackListener: Awaited<ReturnType<typeof NativeApp.addListener>> | undefined;
   let stopButtonHaptics: (() => void) | undefined;
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
-  let activeRootNavigation: View | undefined;
+  let rootNavigationMotionTimer: ReturnType<typeof setTimeout> | undefined;
   const rootNavigationQueue: Array<{ readonly next: View; readonly commit: () => void }> = [];
 
   const moveToRootView = (next: View): boolean => {
@@ -140,12 +141,16 @@ export function App(): JSX.Element {
       direction:
         (VIEW_ORDER.get(next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward',
     });
+    if (rootNavigationMotionTimer) clearTimeout(rootNavigationMotionTimer);
+    rootNavigationMotionTimer = setTimeout(
+      () => setRootNavigationMotion(undefined),
+      ROOT_NAVIGATION_MOTION_MS,
+    );
     setView(next);
     return true;
   };
 
   const runNextRootNavigation = (): void => {
-    if (activeRootNavigation) return;
     const request = rootNavigationQueue.shift();
     if (!request) return;
 
@@ -155,33 +160,14 @@ export function App(): JSX.Element {
       runNextRootNavigation();
       return;
     }
-    const direction: RootNavigationDirection =
-      (VIEW_ORDER.get(request.next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward';
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!document.startViewTransition || reducedMotion) {
-      request.commit();
-      runNextRootNavigation();
-      return;
-    }
-
-    activeRootNavigation = request.next;
-    document.documentElement.dataset['rootNavigationDirection'] = direction;
-    document.documentElement.classList.add('using-root-view-transition');
-    const transition = document.startViewTransition(request.commit);
-    void transition.finished.finally(() => {
-      setRootNavigationMotion(undefined);
-      document.documentElement.classList.remove('using-root-view-transition');
-      delete document.documentElement.dataset['rootNavigationDirection'];
-      activeRootNavigation = undefined;
-      runNextRootNavigation();
-    });
+    request.commit();
+    runNextRootNavigation();
   };
 
   const transitionToRootView = (next: View, commit: () => void): boolean => {
-    const plannedView =
-      rootNavigationQueue[rootNavigationQueue.length - 1]?.next ?? activeRootNavigation ?? view();
+    const plannedView = rootNavigationQueue[rootNavigationQueue.length - 1]?.next ?? view();
     if (plannedView === next) {
-      if (!activeRootNavigation && rootNavigationQueue.length === 0) commit();
+      if (rootNavigationQueue.length === 0) commit();
       return false;
     }
     rootNavigationQueue.push({ next, commit });
@@ -209,24 +195,6 @@ export function App(): JSX.Element {
       );
       window.scrollTo({ top: 0, behavior: changed ? 'instant' : 'smooth' });
     });
-  };
-
-  const handleRootTransitionClick = (event: MouseEvent): void => {
-    if (!activeRootNavigation || event.target !== document.documentElement) return;
-    const button = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('.app-bottom-nav .app-nav-button'),
-    ).find((candidate) => {
-      const bounds = candidate.getBoundingClientRect();
-      return (
-        event.clientX >= bounds.left &&
-        event.clientX <= bounds.right &&
-        event.clientY >= bounds.top &&
-        event.clientY <= bounds.bottom
-      );
-    });
-    if (!button) return;
-    event.preventDefault();
-    button.click();
   };
 
   const handleHashChange = (): void => {
@@ -271,7 +239,6 @@ export function App(): JSX.Element {
 
   onMount(async () => {
     stopButtonHaptics = installButtonHaptics();
-    document.addEventListener('click', handleRootTransitionClick, true);
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -340,13 +307,13 @@ export function App(): JSX.Element {
   });
 
   onCleanup(() => {
-    document.removeEventListener('click', handleRootTransitionClick, true);
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     if (reminderTimer) clearInterval(reminderTimer);
     if (bootTimer) clearTimeout(bootTimer);
+    if (rootNavigationMotionTimer) clearTimeout(rootNavigationMotionTimer);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     void nativeBackListener?.remove();
@@ -389,7 +356,7 @@ export function App(): JSX.Element {
                   <p>
                     {error() ??
                       (bootSlow()
-                        ? 'Загрузка базы занимает необычно много времени. Тесты и калькуляторы уже доступны в нижней навигации.'
+                        ? 'Загрузка базы занимает необычно много времени. Оставьте окно открытым, мы продолжаем загрузку в фоне.'
                         : 'Подготавливаем локальный поиск. Интернет для работы не нужен.')}
                   </p>
                   <Show when={error() || bootSlow()}>
@@ -479,51 +446,53 @@ export function App(): JSX.Element {
         )}
       </Show>
 
-      <nav class="app-bottom-nav" aria-label="Разделы приложения">
-        {VIEWS.map((item) => {
-          const label = () => {
-            if (item.id === 'modules') {
-              return `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`;
-            }
-            if (item.id === 'notes' && dueReminderCount() > 0) {
-              return `${item.label}, напоминаний: ${dueReminderCount()}`;
-            }
-            return item.label;
-          };
-          return (
-            <div class="app-nav-item">
-              <Show when={item.id === 'modules'}>
-                <ModelNavIndicator controller={modelController} />
-              </Show>
-              <button
-                class="app-nav-button"
-                classList={{ active: view() === item.id }}
-                type="button"
-                aria-label={label()}
-                title={label()}
-                onClick={() => navigate(item.id)}
-              >
-                <AppGlyph name={item.icon} />
-                <Show when={item.id === 'modules' && availableModuleCount() > 0}>
-                  <span class="app-nav-badge available" aria-hidden="true">
-                    {availableModuleCount() > 99 ? '99+' : availableModuleCount()}
-                  </span>
+      <Show when={ready()}>
+        <nav class="app-bottom-nav" aria-label="Разделы приложения">
+          {VIEWS.map((item) => {
+            const label = () => {
+              if (item.id === 'modules') {
+                return `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`;
+              }
+              if (item.id === 'notes' && dueReminderCount() > 0) {
+                return `${item.label}, напоминаний: ${dueReminderCount()}`;
+              }
+              return item.label;
+            };
+            return (
+              <div class="app-nav-item">
+                <Show when={item.id === 'modules'}>
+                  <ModelNavIndicator controller={modelController} />
                 </Show>
-                <Show when={item.id === 'modules' && downloadedModuleCount() > 0}>
-                  <span class="app-nav-badge downloaded" aria-hidden="true">
-                    {downloadedModuleCount() > 99 ? '99+' : downloadedModuleCount()}
-                  </span>
-                </Show>
-                <Show when={item.id === 'notes' && dueReminderCount() > 0}>
-                  <span class="app-nav-badge reminder" aria-hidden="true">
-                    {dueReminderCount() > 9 ? '9+' : dueReminderCount()}
-                  </span>
-                </Show>
-              </button>
-            </div>
-          );
-        })}
-      </nav>
+                <button
+                  class="app-nav-button"
+                  classList={{ active: view() === item.id }}
+                  type="button"
+                  aria-label={label()}
+                  title={label()}
+                  onClick={() => navigate(item.id)}
+                >
+                  <AppGlyph name={item.icon} />
+                  <Show when={item.id === 'modules' && availableModuleCount() > 0}>
+                    <span class="app-nav-badge available" aria-hidden="true">
+                      {availableModuleCount() > 99 ? '99+' : availableModuleCount()}
+                    </span>
+                  </Show>
+                  <Show when={item.id === 'modules' && downloadedModuleCount() > 0}>
+                    <span class="app-nav-badge downloaded" aria-hidden="true">
+                      {downloadedModuleCount() > 99 ? '99+' : downloadedModuleCount()}
+                    </span>
+                  </Show>
+                  <Show when={item.id === 'notes' && dueReminderCount() > 0}>
+                    <span class="app-nav-badge reminder" aria-hidden="true">
+                      {dueReminderCount() > 9 ? '9+' : dueReminderCount()}
+                    </span>
+                  </Show>
+                </button>
+              </div>
+            );
+          })}
+        </nav>
+      </Show>
 
       <Show when={showScrollTop()}>
         <button

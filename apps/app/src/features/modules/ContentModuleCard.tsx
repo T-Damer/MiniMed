@@ -10,11 +10,10 @@ import { ModuleTaskStatus } from '@/features/modules/ModuleTaskStatus';
 import {
   contentModuleTaskProgress,
   formatModuleBytes,
-  installedModuleValidationLabel,
   MODULE_RELEASE_LABELS,
   MODULE_TASK_LABELS,
-  primaryModuleDocumentId,
 } from '@/features/modules/module-display';
+import { documentCountLabel } from '@/i18n/labels';
 
 interface ContentModuleCardProps {
   readonly module: ContentModuleCatalogEntry;
@@ -26,7 +25,6 @@ interface ContentModuleCardProps {
   readonly onOpenError: (message: string) => void;
   readonly onInstall: () => void;
   readonly onOpenCore: () => void;
-  readonly onOpenDocument: () => void;
   readonly onRemove: () => void;
   readonly onActivateVersion: (version: string) => void;
 }
@@ -51,6 +49,16 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
 
   return (
     <article class="module-card paper-card" classList={{ installed: Boolean(props.installed) }}>
+      <button
+        type="button"
+        class="module-card-open-hit-area"
+        aria-label={
+          props.module.required
+            ? 'Показать документы ядра'
+            : `Показать документы набора «${props.module.title}»`
+        }
+        onClick={props.module.required ? props.onOpenCore : props.onInspect}
+      />
       <div class="module-card-topline">
         <span
           class={`module-state ${
@@ -65,7 +73,9 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
       <p>{props.module.description}</p>
       <div class="module-facts doctor-module-facts">
         <span>
-          {props.module.previewDocumentCount || props.module.documents.length || '—'} документов
+          {props.module.previewDocumentCount || props.module.documents.length
+            ? documentCountLabel(props.module.previewDocumentCount || props.module.documents.length)
+            : 'Список документов уточняется'}
         </span>
         <Show
           when={props.installed}
@@ -73,19 +83,12 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         >
           {(installed) => (
             <>
-              <Show when={installed().version !== props.module.version}>
-                <span>На устройстве версия {installed().version}</span>
-              </Show>
+              <span>Версия {installed().version}</span>
               <span>На устройстве {formatModuleBytes(installed().installedSizeBytes)}</span>
-              <span>{installedModuleValidationLabel(installed())}</span>
             </>
           )}
         </Show>
       </div>
-      <button type="button" class="module-details-button" onClick={props.onInspect}>
-        <AppGlyph name="list" /> Что входит
-      </button>
-
       <Show when={props.task || installError()}>
         <ModuleTaskStatus
           label={
@@ -99,30 +102,25 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         />
       </Show>
 
-      <Show
-        when={!props.module.required}
-        fallback={
-          <button type="button" onClick={props.onOpenCore}>
-            <AppGlyph name="book-open" /> Открыть документы ядра
-          </button>
-        }
-      >
+      <Show when={!props.module.required} fallback={null}>
         <Show
           when={!props.installed}
           fallback={
             <div class="module-card-actions">
               <Show when={updateAvailable()}>
                 <button type="button" disabled={working()} onClick={props.onInstall}>
+                  <AppGlyph name="refresh" />
                   Обновить
                 </button>
               </Show>
-              <Show when={primaryModuleDocumentId(props.module)}>
-                <button type="button" onClick={props.onOpenDocument}>
-                  <AppGlyph name="book-open" /> Открыть
-                </button>
-              </Show>
-              <button type="button" class="module-remove-button" onClick={props.onRemove}>
-                <AppGlyph name="trash" /> Удалить с устройства
+              <button
+                type="button"
+                class="module-remove-button"
+                aria-label={`Удалить «${props.module.title}»`}
+                title="Удалить"
+                onClick={props.onRemove}
+              >
+                <AppGlyph name="trash" />
               </button>
             </div>
           }
@@ -134,7 +132,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
               onClick={props.onInstall}
             >
               <AppGlyph name="download" />
-              {props.module.releaseState === 'published' ? 'Скачать документы' : 'Пока недоступно'}
+              {props.module.releaseState === 'published' ? 'Скачать' : 'Пока недоступно'}
             </button>
           </Show>
         </Show>
@@ -146,7 +144,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
           <For each={props.installed?.previousVersions ?? []}>
             {(version) => (
               <button type="button" onClick={() => props.onActivateVersion(version)}>
-                Открыть {version}
+                Версия {version}
               </button>
             )}
           </For>

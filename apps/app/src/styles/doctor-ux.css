@@ -20,7 +20,7 @@
   border-radius: 0.75rem;
   color: var(--ink);
   background: var(--paper-light);
-  box-shadow: 0 1.75rem 5rem rgb(15 14 12 / 48%);
+  box-shadow: var(--shadow-folder);
 }
 
 .overlay-dialog-header {
@@ -40,20 +40,22 @@
   flex: 1;
 }
 
-.overlay-dialog-header h2 {
+.overlay-dialog__heading {
   margin: 0;
   font-family: var(--font-serif);
   font-size: clamp(1.1875rem, 2.4vw, 1.6875rem);
   font-weight: 500;
 }
 
-.overlay-dialog-header p {
+.overlay-dialog__subtitle {
   margin: 0.1875rem 0 0;
   color: #cfc7b6;
   font-size: 0.625rem;
 }
 
-.overlay-dialog-header button {
+.overlay-dialog__back-button,
+.overlay-dialog__close-button,
+.document-overlay-outline-toggle {
   display: grid;
   width: 2.5rem;
   height: 2.5rem;
@@ -68,17 +70,24 @@
   line-height: 1;
 }
 
+.overlay-dialog__button-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .overlay-dialog-body {
   min-height: 0;
   flex: 1;
   overflow: auto;
   overscroll-behavior: contain;
+  padding: 1rem;
 }
 
-.document-overlay .overlay-dialog-body {
+.document-overlay__body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 0;
 }
 
 .document-overlay-layout {
@@ -87,6 +96,14 @@
   flex: 1;
   grid-template-columns: minmax(11.875rem, 15.625rem) minmax(0, 1fr);
   align-items: stretch;
+}
+
+.document-overlay-layout--outline-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.document-overlay-outline--hidden {
+  display: none;
 }
 
 .document-overlay-outline {
@@ -104,24 +121,24 @@
   display: none;
 }
 
-.document-overlay-outline details {
+.document-overlay-outline-details {
   margin-bottom: 0.75rem;
 }
 
-.document-overlay-outline summary,
+.document-overlay-outline-summary,
 .doctor-technical-details > summary,
 .system-technical-panel > summary {
   cursor: pointer;
   font-weight: 700;
 }
 
-.document-overlay-outline nav {
+.document-overlay-outline-nav {
   display: grid;
   gap: 0.25rem;
   margin-top: 0.5625rem;
 }
 
-.document-overlay-outline nav button {
+.document-overlay-outline-section-button {
   display: grid;
   grid-template-columns: 1.5625rem minmax(0, 1fr);
   gap: 0.4375rem;
@@ -135,18 +152,18 @@
   text-align: left;
 }
 
-.document-overlay-outline nav button:hover {
+.document-overlay-outline-section-button:hover {
   color: var(--ink);
   background: rgb(255 255 255 / 35%);
 }
 
-.document-overlay-outline nav button.active {
+.document-overlay-outline-section-button--active {
   color: var(--theme-accent);
   background: var(--theme-accent-soft);
   font-weight: 700;
 }
 
-.document-overlay-outline nav button span {
+.document-overlay-outline-section-number {
   color: var(--ink-faint);
   font-family: var(--font-mono);
   font-size: 0.5rem;
@@ -169,13 +186,13 @@
     var(--paper-light);
 }
 
-.document-overlay-paper > header {
+.document-overlay-paper__header {
   margin-bottom: 1.875rem;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--paper-line);
 }
 
-.document-overlay-paper > header > p,
+.document-overlay-paper__source-label,
 .document-overlay-path {
   margin: 0 0 0.4375rem;
   color: var(--ink-faint);
@@ -195,7 +212,7 @@
   text-transform: none;
 }
 
-.document-overlay-paper h1 {
+.document-overlay-paper__title {
   max-width: 24ch;
   margin: 0;
   font-family: var(--font-serif);
@@ -209,20 +226,20 @@
   margin: 0 0 1.875rem;
 }
 
-.document-overlay-section.active h2 {
-  background: var(--theme-accent-soft);
+.document-overlay-section__title--active {
+  background: var(--theme-surface-raised);
   box-shadow:
     -0.375rem 0 0 var(--theme-accent-soft),
     0 1px 0 var(--paper-line);
 }
 
-.document-overlay-section h2 {
+.document-overlay-section__title {
   position: sticky;
   z-index: 2;
   top: var(--document-heading-sticky-top);
   margin: 0 0 0.75rem;
   padding: 0.5rem 0;
-  background: var(--paper-light);
+  background: var(--theme-surface-raised);
   box-shadow: 0 1px 0 var(--paper-line);
   font-family: var(--font-serif);
   font-size: clamp(1.25rem, 3vw, 1.75rem);
@@ -230,7 +247,7 @@
   line-height: 1.2;
 }
 
-.document-overlay-section > p:not(.document-overlay-path) {
+.document-overlay-section__paragraph {
   max-width: 74ch;
   margin: 0 0 0.9em;
   font-size: clamp(0.875rem, 1.5vw, 1rem);
@@ -787,7 +804,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .document-overlay .overlay-dialog-body {
+  .document-overlay__body {
     overflow: auto;
   }
 
@@ -809,7 +826,7 @@
     transition: transform 180ms ease;
   }
 
-  .document-overlay-outline.open {
+  .document-overlay-outline--open {
     transform: translateX(0);
   }
 
@@ -821,8 +838,10 @@
     margin-bottom: 0.75rem;
   }
 
-  .document-overlay-outline-header button,
-  .overlay-dialog-header .document-overlay-outline-toggle {
+  .document-overlay-outline-header__close-button,
+  .document-overlay-outline-toggle,
+  .overlay-dialog__back-button,
+  .overlay-dialog__close-button {
     display: grid;
     width: 2.5rem;
     height: 2.5rem;
@@ -834,12 +853,6 @@
     background: var(--theme-surface-raised);
   }
 
-  .document-overlay-outline-header svg,
-  .document-overlay-outline-toggle svg {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-
   .document-overlay-outline-backdrop {
     position: fixed;
     z-index: 11;
@@ -848,7 +861,7 @@
     background: rgb(35 33 29 / 45%);
   }
 
-  .document-overlay-outline-backdrop.open {
+  .document-overlay-outline-backdrop--open {
     display: block;
   }
 

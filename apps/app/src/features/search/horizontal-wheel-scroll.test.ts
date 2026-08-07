@@ -15,5 +15,11 @@ describe('translateVerticalWheelToHorizontal', () => {
     preventDefault.mockClear();
     translateVerticalWheelToHorizontal({ deltaX: 0, deltaY: 40, preventDefault }, scroller);
     expect(preventDefault).not.toHaveBeenCalled();
+
+    scroller.scrollLeft = 100;
+    preventDefault.mockClear();
+    translateVerticalWheelToHorizontal({ deltaX: 120, deltaY: 40, preventDefault }, scroller);
+    expect(scroller.scrollLeft).toBe(140);
+    expect(preventDefault).toHaveBeenCalledOnce();
   });
 });

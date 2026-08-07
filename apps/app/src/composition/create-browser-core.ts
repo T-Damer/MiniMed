@@ -33,6 +33,19 @@ const BUILT_IN_REFERENCE_MODULE_ID = 'minimed.reference.ru';
 const BUILT_IN_AMBULATORY_MODULE_ID = 'minimed.ambulatory.v1';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
+const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
+
+export function getPackagedContentBaseUrl(): string {
+  const configuredBaseUrl = import.meta.env.VITE_CONTENT_BASE_URL?.trim();
+  return new URL(configuredBaseUrl || import.meta.env.BASE_URL, window.location.href).href;
+}
+
+export function hasSqliteHeader(bytes: Uint8Array): boolean {
+  return (
+    bytes.byteLength >= SQLITE_HEADER.byteLength &&
+    SQLITE_HEADER.every((byte, index) => bytes[index] === byte)
+  );
+}
 
 async function withTimeout<T>(task: Promise<T>, timeoutMs: number, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -63,7 +76,9 @@ async function fetchContent(url: URL): Promise<Response> {
   }
 }
 
-async function readPackReport(contentBaseUrl = import.meta.env.BASE_URL): Promise<PackBuildReport> {
+async function readPackReport(
+  contentBaseUrl = getPackagedContentBaseUrl(),
+): Promise<PackBuildReport> {
   const response = await fetchContent(new URL('content/core-demo-report.json', contentBaseUrl));
   if (!response.ok) {
     throw new Error(`Unable to load content-pack report (${response.status}).`);
@@ -81,7 +96,7 @@ async function readPackReport(contentBaseUrl = import.meta.env.BASE_URL): Promis
 }
 
 async function createNativeStore(): Promise<CapacitorMedicalStore> {
-  const report = await readPackReport(new URL(import.meta.env.BASE_URL, window.location.href).href);
+  const report = await readPackReport();
   const store = new CapacitorMedicalStore({
     assetPath: PACK_ASSET_PATH,
     databaseName: PACK_DATABASE_NAME,
@@ -100,6 +115,9 @@ async function createPackagedWasmStore(
     throw new Error(`Unable to load compiled content pack (${response.status}).`);
   }
   const bytes = new Uint8Array(await response.arrayBuffer());
+  if (!hasSqliteHeader(bytes)) {
+    throw new Error(`Unable to load compiled content pack (${databaseName} is not SQLite).`);
+  }
   return withTimeout(
     SqliteMedicalStore.createFromBytes(bytes),
     CONTENT_OPEN_TIMEOUT_MS,
@@ -219,7 +237,7 @@ export async function createBrowserCore() {
 
   if (platform === 'android' || platform === 'ios') {
     try {
-      const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
+      const contentBaseUrl = getPackagedContentBaseUrl();
       const store = await withInstalledModules(
         await createNativeStore(),
         await createPackagedCompanionStores(contentBaseUrl),
@@ -231,7 +249,7 @@ export async function createBrowserCore() {
   }
 
   try {
-    const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
+    const contentBaseUrl = getPackagedContentBaseUrl();
     const [coreStore, companions] = await Promise.all([
       createPackagedWasmStore(contentBaseUrl),
       createPackagedCompanionStores(contentBaseUrl),
@@ -241,7 +259,7 @@ export async function createBrowserCore() {
   } catch (error) {
     console.warn('Compiled content pack unavailable; falling back to the embedded seed.', error);
     const store = await SqliteMedicalStore.create();
-    const contentBaseUrl = new URL(import.meta.env.BASE_URL, window.location.href).href;
+    const contentBaseUrl = getPackagedContentBaseUrl();
     const composed = await withInstalledModules(
       store,
       await createPackagedCompanionStores(contentBaseUrl),

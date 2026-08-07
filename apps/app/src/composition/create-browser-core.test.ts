@@ -1,7 +1,7 @@
 import type { MedicalStore } from '@localmed/storage';
 import { describe, expect, it } from 'vitest';
 
-import { builtInCompanionMounts } from '@/composition/create-browser-core';
+import { builtInCompanionMounts, hasSqliteHeader } from '@/composition/create-browser-core';
 
 function store(): MedicalStore {
   return {} as MedicalStore;
@@ -43,5 +43,15 @@ describe('builtInCompanionMounts', () => {
       'minimed.ambulatory.v1',
       'minimed.reference.ru',
     ]);
+  });
+});
+
+describe('hasSqliteHeader', () => {
+  it('rejects an HTML fallback served for a missing database asset', () => {
+    expect(hasSqliteHeader(new TextEncoder().encode('<!doctype html>'))).toBe(false);
+  });
+
+  it('accepts a SQLite database header', () => {
+    expect(hasSqliteHeader(new TextEncoder().encode('SQLite format 3\u0000'))).toBe(true);
   });
 });

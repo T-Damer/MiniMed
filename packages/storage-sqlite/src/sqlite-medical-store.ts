@@ -672,8 +672,12 @@ export class SqliteMedicalStore implements MedicalStore {
     const bind: BindableValue[] = [request.ftsQuery];
 
     if (request.filters.documentIds?.length) {
-      clauses.push(`d.id IN (${placeholders(request.filters.documentIds.length)})`);
-      bind.push(...request.filters.documentIds);
+      // A plain `d.id IN (?, ?, ...)` list blows up the bound-parameter count for large
+      // document sets (hundreds of IDs), which can exhaust the WASM SQLite heap with
+      // SQLITE_NOMEM. Binding the IDs as one JSON array and scanning it via json_each keeps
+      // the parameter count constant regardless of how many documents are selected.
+      clauses.push('d.id IN (SELECT value FROM json_each(?))');
+      bind.push(JSON.stringify(request.filters.documentIds));
     }
     if (request.filters.sectionTypes?.length) {
       clauses.push(`s.section_type IN (${placeholders(request.filters.sectionTypes.length)})`);

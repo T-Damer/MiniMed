@@ -122,6 +122,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
             class="knowledge-status-card paper-card"
             onClick={() => navigate('documents')}
           >
+            <AppGlyph name="book-open" class="knowledge-status-card-icon" />
             <span>Документы</span>
             <strong>{documents().length} доступно</strong>
             <ul class="knowledge-document-counts">
@@ -138,6 +139,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
             class="knowledge-status-card paper-card"
             onClick={() => navigate('model')}
           >
+            <AppGlyph name="brain" class="knowledge-status-card-icon" />
             <span>Локальная модель</span>
             <strong>{modelStatus(model())}</strong>
             <p>Используется только после локального поиска по установленным источникам.</p>

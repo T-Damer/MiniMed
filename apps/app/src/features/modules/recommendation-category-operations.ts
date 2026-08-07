@@ -7,6 +7,10 @@ export interface CategoryInstallResult {
   readonly errorMessage: string | null;
 }
 
+function yieldToBrowser(): Promise<void> {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, 0));
+}
+
 export async function installPublishedCategoryModules(
   runtime: BrowserContentModuleRuntime,
   modules: readonly ContentModuleCatalogEntry[],
@@ -19,10 +23,12 @@ export async function installPublishedCategoryModules(
     return { changed: false, errorMessage: null };
   }
 
-  const completions = pending.map((module) => {
-    const task = runtime.install(module);
-    return runtime.wait(task.id);
-  });
+  const tasks = [];
+  for (const module of pending) {
+    tasks.push(runtime.install(module));
+    await yieldToBrowser();
+  }
+  const completions = tasks.map((task) => runtime.wait(task.id));
   const results = await Promise.all(completions);
   const changed = results.some((task) => task.state === 'completed');
   const failed = results.find((task) => task.state === 'failed');
