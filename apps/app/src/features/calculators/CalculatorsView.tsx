@@ -1,12 +1,33 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { OverlayDialog } from '@/components/OverlayDialog';
+import type {
+  CalculatorInstallationState,
+  CalculatorSectionId,
+} from '@/features/calculators/calculator-packs';
+import {
+  CALCULATOR_PACKS_EVENT,
+  CALCULATOR_SECTIONS,
+  calculatorsInSection,
+  installCalculatorSection,
+  isCalculatorSectionComplete,
+  loadCalculatorInstallationState,
+  removeCalculatorSection,
+} from '@/features/calculators/calculator-packs';
 import {
   formatCalculationRecord,
   printCalculationRecord,
   shareCalculationRecord,
 } from '@/features/calculators/calculator-print';
-import { findCalculator, searchCalculators } from '@/features/calculators/calculator-registry';
+import {
+  CALCULATOR_REGISTRY,
+  findCalculator,
+  searchCalculators,
+} from '@/features/calculators/calculator-registry';
 import type {
   AvailableCalculatorDefinition,
   CalculatorDefinition,
@@ -57,30 +78,186 @@ function audienceLabel(definition: CalculatorDefinition): string {
 
 function CalculatorCard(props: {
   readonly definition: CalculatorDefinition;
+  readonly installed: boolean;
+  readonly sectionTitle: string;
   readonly onOpen: (definition: AvailableCalculatorDefinition) => void;
 }): JSX.Element {
   const definition = props.definition;
+  const availableDefinition = (): AvailableCalculatorDefinition | undefined =>
+    definition.state === 'available' ? definition : undefined;
   return (
-    <article class="calculator-card paper-card">
+    <Card class="calculator-card">
       <div class="calculator-card-meta">
         <span>{audienceLabel(definition)}</span>
         <span>{definition.clinical ? 'Клинический' : 'Служебный'}</span>
-        <span>{definition.state === 'available' ? 'Доступен' : 'В плане'}</span>
+        <span>
+          {definition.state === 'planned'
+            ? 'В плане'
+            : props.installed
+              ? 'На устройстве'
+              : 'После скачивания'}
+        </span>
       </div>
       <h2>{definition.title}</h2>
       <p>{definition.summary}</p>
-      {definition.state === 'available' ? (
+      <Show when={definition.state === 'available' && props.installed}>
         <button
           type="button"
-          data-testid={`calculator-open-${definition.slug}`}
-          onClick={() => props.onOpen(definition)}
-        >
-          Открыть
-        </button>
+          class="calculator-card-open-hit-area"
+          aria-label={`Открыть «${definition.title}»`}
+          data-testid={`calculator-open-${definition.id}`}
+          onClick={() => {
+            const available = availableDefinition();
+            if (available) props.onOpen(available);
+          }}
+        />
+      </Show>
+      {definition.state === 'available' ? (
+        !props.installed ? (
+          <small>Скачайте раздел «{props.sectionTitle}», чтобы открыть инструмент.</small>
+        ) : null
       ) : (
         <small>{definition.sourceRequirement}</small>
       )}
-    </article>
+    </Card>
+  );
+}
+
+function CalculatorSectionCard(props: {
+  readonly section: (typeof CALCULATOR_SECTIONS)[number];
+  readonly installation: CalculatorInstallationState;
+  readonly definitions: readonly CalculatorDefinition[];
+  readonly onOpenSection: (sectionId: CalculatorSectionId) => void;
+  readonly onInstall: (sectionId: CalculatorSectionId) => void;
+  readonly onRemove: (sectionId: CalculatorSectionId) => void;
+}): JSX.Element {
+  const allSectionDefinitions = () => calculatorsInSection(props.section.id, props.definitions);
+  const availableCount = () =>
+    allSectionDefinitions().filter((definition) => definition.state === 'available').length;
+  const installedCount = () =>
+    allSectionDefinitions().filter(
+      (definition) =>
+        definition.state === 'available' && props.installation.installedIds.has(definition.id),
+    ).length;
+  const complete = () =>
+    isCalculatorSectionComplete(props.section.id, props.installation, props.definitions);
+
+  return (
+    <section
+      class="calculator-section paper-card"
+      data-testid={`calculator-section-${props.section.id}`}
+    >
+      <button
+        type="button"
+        class="calculator-section-open-hit-area"
+        aria-label={`Открыть раздел «${props.section.title}»`}
+        onClick={() => props.onOpenSection(props.section.id)}
+      />
+      <header class="calculator-section-header">
+        <div>
+          <p class="archive-kicker">Инструменты раздела</p>
+          <h2>{props.section.title}</h2>
+          <p>{props.section.description}</p>
+          <small>
+            {availableCount() > 0
+              ? `${installedCount()}/${availableCount()} скачано на устройство`
+              : 'Доступных инструментов пока нет'}
+          </small>
+        </div>
+        <div class="calculator-section-actions">
+          <Show
+            when={availableCount() > 0}
+            fallback={<small>Источники и правила ещё проверяются.</small>}
+          >
+            <button
+              type="button"
+              class="calculator-section-action"
+              classList={{ 'calculator-section-remove': complete() }}
+              aria-label={
+                complete()
+                  ? `Удалить раздел «${props.section.title}»`
+                  : `Скачать раздел «${props.section.title}»`
+              }
+              title={complete() ? 'Удалить раздел' : 'Скачать раздел'}
+              onClick={() =>
+                complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
+              }
+            >
+              <AppGlyph
+                class="calculator-section-action-icon"
+                name={complete() ? 'trash' : 'download'}
+              />
+            </button>
+          </Show>
+        </div>
+      </header>
+    </section>
+  );
+}
+
+function CalculatorSectionPage(props: {
+  readonly section: (typeof CALCULATOR_SECTIONS)[number];
+  readonly installation: CalculatorInstallationState;
+  readonly definitions: readonly CalculatorDefinition[];
+  readonly onOpen: (definition: AvailableCalculatorDefinition) => void;
+  readonly onBack: () => void;
+  readonly onInstall: (sectionId: CalculatorSectionId) => void;
+  readonly onRemove: (sectionId: CalculatorSectionId) => void;
+}): JSX.Element {
+  const definitions = () => calculatorsInSection(props.section.id, props.definitions);
+  const complete = () =>
+    isCalculatorSectionComplete(props.section.id, props.installation, props.definitions);
+
+  return (
+    <section class="calculator-section-page">
+      <header class="calculator-section-page-header">
+        <button
+          type="button"
+          class="calculator-section-back"
+          aria-label="К разделам калькуляторов"
+          title="К разделам"
+          onClick={props.onBack}
+        >
+          <AppGlyph class="calculator-section-back-icon" name="arrow-left" />
+        </button>
+        <div>
+          <p class="archive-kicker">Раздел инструментов</p>
+          <h1>{props.section.title}</h1>
+          <p>{props.section.description}</p>
+        </div>
+        <button
+          type="button"
+          class="calculator-section-action"
+          classList={{ 'calculator-section-remove': complete() }}
+          aria-label={
+            complete()
+              ? `Удалить раздел «${props.section.title}»`
+              : `Скачать раздел «${props.section.title}»`
+          }
+          title={complete() ? 'Удалить раздел' : 'Скачать раздел'}
+          onClick={() =>
+            complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
+          }
+        >
+          <AppGlyph
+            class="calculator-section-action-icon"
+            name={complete() ? 'trash' : 'download'}
+          />
+        </button>
+      </header>
+      <div class="calculator-catalog-grid">
+        <For each={definitions()}>
+          {(definition) => (
+            <CalculatorCard
+              definition={definition}
+              installed={props.installation.installedIds.has(definition.id)}
+              sectionTitle={props.section.title}
+              onOpen={props.onOpen}
+            />
+          )}
+        </For>
+      </div>
+    </section>
   );
 }
 
@@ -242,10 +419,14 @@ function CalculatorForm(props: {
       <label class="calculator-wide-field">
         <span>Пациент / случай — необязательно</span>
         <input
+          list="calculator-patient-suggestions"
           value={subjectLabel()}
           placeholder="Имя, номер карты или псевдоним"
           onInput={(event) => setSubjectLabel(event.currentTarget.value)}
         />
+        <datalist id="calculator-patient-suggestions">
+          <For each={loadPatientNotes().cards}>{(card) => <option value={card.title} />}</For>
+        </datalist>
       </label>
 
       <Show when={props.definition.id === 'unit-conversion'}>
@@ -358,9 +539,14 @@ function CalculatorForm(props: {
         </label>
       </Show>
 
-      <button class="calculator-submit" type="submit" data-testid="calculator-submit">
+      <Button
+        class="calculator-submit"
+        type="submit"
+        data-testid="calculator-submit"
+        icon={<AppGlyph name="calculator" />}
+      >
         Рассчитать и сохранить
-      </button>
+      </Button>
     </form>
   );
 }
@@ -373,6 +559,7 @@ function CalculationResultPanel(props: {
 }): JSX.Element {
   const [notes, setNotes] = createSignal(loadPatientNotes());
   const [noteOpen, setNoteOpen] = createSignal(false);
+  const [detailsOpen, setDetailsOpen] = createSignal<'formula' | 'sources' | null>(null);
   const [selectedCardId, setSelectedCardId] = createSignal('');
   const [newCardTitle, setNewCardTitle] = createSignal('');
 
@@ -433,23 +620,13 @@ function CalculationResultPanel(props: {
         </For>
       </div>
 
-      <details>
-        <summary>Формула и промежуточные шаги</summary>
-        <p>{props.record.result.formula}</p>
-        <ol class="calculator-trace">
-          <For each={props.record.result.trace}>
-            {(step) => (
-              <li>
-                <strong>{step.label}</strong>
-                <code>{step.expression}</code>
-                <span>
-                  {formatNumber(step.value, 8)} {step.unit}
-                </span>
-              </li>
-            )}
-          </For>
-        </ol>
-      </details>
+      <Button
+        variant="quiet"
+        icon={<AppGlyph name="list" />}
+        onClick={() => setDetailsOpen('formula')}
+      >
+        Формула и шаги
+      </Button>
 
       <Show when={props.record.result.warnings.length > 0}>
         <div class="calculator-warnings">
@@ -457,30 +634,23 @@ function CalculationResultPanel(props: {
         </div>
       </Show>
 
-      <details>
-        <summary>Источники и границы применения</summary>
-        <p>{props.definition.population}</p>
-        <ul>
-          <For each={props.definition.limitations}>{(limitation) => <li>{limitation}</li>}</For>
-        </ul>
-        <For each={props.definition.sources}>
-          {(source) => (
-            <p>
-              <a href={source.url} target="_blank" rel="noreferrer">
-                {source.title}
-              </a>{' '}
-              · {source.version} · проверено {source.reviewedAt}
-            </p>
-          )}
-        </For>
-      </details>
+      <Button
+        variant="quiet"
+        icon={<AppGlyph name="book-open" />}
+        onClick={() => setDetailsOpen('sources')}
+      >
+        Источники и ограничения
+      </Button>
 
       <div class="calculator-result-actions">
-        <button type="button" onClick={() => printCalculationRecord(props.record)}>
-          Распечатать / PDF
-        </button>
-        <button
-          type="button"
+        <Button
+          icon={<AppGlyph name="printer" />}
+          onClick={() => printCalculationRecord(props.record)}
+        >
+          Распечатать
+        </Button>
+        <Button
+          icon={<AppGlyph name="share" />}
           onClick={() => {
             void shareCalculationRecord(props.record)
               .then((mode) => {
@@ -492,18 +662,58 @@ function CalculationResultPanel(props: {
           }}
         >
           Поделиться
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="quiet"
+          icon={<AppGlyph name="notes" />}
           data-testid="calculator-save-note"
           onClick={() => setNoteOpen((open) => !open)}
         >
-          Записать в заметку
-        </button>
-        <button type="button" onClick={props.onDelete}>
+          Записать
+        </Button>
+        <Button variant="danger" icon={<AppGlyph name="trash" />} onClick={props.onDelete}>
           Удалить
-        </button>
+        </Button>
       </div>
+
+      <OverlayDialog
+        open={detailsOpen() !== null}
+        title={detailsOpen() === 'formula' ? 'Формула и шаги' : 'Источники и ограничения'}
+        onClose={() => setDetailsOpen(null)}
+      >
+        <Show when={detailsOpen() === 'formula'}>
+          <p>{props.record.result.formula}</p>
+          <ol class="calculator-trace">
+            <For each={props.record.result.trace}>
+              {(step) => (
+                <li>
+                  <strong>{step.label}</strong>
+                  <code>{step.expression}</code>
+                  <span>
+                    {formatNumber(step.value, 8)} {step.unit}
+                  </span>
+                </li>
+              )}
+            </For>
+          </ol>
+        </Show>
+        <Show when={detailsOpen() === 'sources'}>
+          <p>{props.definition.population}</p>
+          <ul>
+            <For each={props.definition.limitations}>{(limitation) => <li>{limitation}</li>}</For>
+          </ul>
+          <For each={props.definition.sources}>
+            {(source) => (
+              <p>
+                <a href={source.url} target="_blank" rel="noreferrer">
+                  {source.title}
+                </a>{' '}
+                · {source.version} · проверено {source.reviewedAt}
+              </p>
+            )}
+          </For>
+        </Show>
+      </OverlayDialog>
 
       <Show when={noteOpen()}>
         <div class="calculator-note-panel">
@@ -541,18 +751,38 @@ function CalculationResultPanel(props: {
 export function CalculatorsView(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
   const [query, setQuery] = createSignal('');
+  const [installation, setInstallation] = createSignal<CalculatorInstallationState>(
+    loadCalculatorInstallationState(),
+  );
   const [history, setHistory] = createSignal<readonly CalculationRecord[]>(
     loadCalculationHistory(),
   );
   const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
   const [message, setMessage] = createSignal('');
+  const [pendingDeletion, setPendingDeletion] = createSignal<{
+    readonly kind: 'section' | 'record';
+    readonly id: string;
+    readonly title: string;
+  } | null>(null);
   let messageTimer: ReturnType<typeof setTimeout> | undefined;
 
   const refresh = (): void => {
     setRoute(currentRoute());
   };
-  onMount(() => window.addEventListener('hashchange', refresh));
+  const refreshInstallation = (): void => {
+    setInstallation(loadCalculatorInstallationState());
+  };
+  const handleStorage = (event: StorageEvent): void => {
+    if (!event.key || event.key === 'minimed.calculator-packs.v1') refreshInstallation();
+  };
+  onMount(() => {
+    window.addEventListener('hashchange', refresh);
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation);
+  });
   onCleanup(() => window.removeEventListener('hashchange', refresh));
+  onCleanup(() => window.removeEventListener('storage', handleStorage));
+  onCleanup(() => window.removeEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation));
   onCleanup(() => {
     if (messageTimer) clearTimeout(messageTimer);
   });
@@ -566,9 +796,17 @@ export function CalculatorsView(): JSX.Element {
   };
 
   const slug = createMemo(() => route().split('/')[1] ?? '');
+  const selectedSection = createMemo(() => {
+    const parts = route().split('/');
+    if (parts[1] !== 'section') return undefined;
+    return CALCULATOR_SECTIONS.find((section) => section.id === parts[2]);
+  });
+  const routeDefinition = createMemo(() => (slug() ? findCalculator(slug()) : undefined));
   const selected = createMemo<AvailableCalculatorDefinition | undefined>(() => {
-    const definition = slug() ? findCalculator(slug()) : undefined;
-    return definition?.state === 'available' ? definition : undefined;
+    const definition = routeDefinition();
+    return definition?.state === 'available' && installation().installedIds.has(definition.id)
+      ? definition
+      : undefined;
   });
   const filtered = createMemo(() => searchCalculators(query()));
 
@@ -582,6 +820,43 @@ export function CalculatorsView(): JSX.Element {
     window.location.hash = '#/calculators';
   };
 
+  const openSection = (sectionId: CalculatorSectionId): void => {
+    setQuery('');
+    window.location.hash = `#/calculators/section/${sectionId}`;
+  };
+
+  const installSection = (sectionId: CalculatorSectionId): void => {
+    setInstallation(installCalculatorSection(sectionId));
+  };
+
+  const removeSection = (sectionId: CalculatorSectionId): void => {
+    const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
+    if (section) setPendingDeletion({ kind: 'section', id: sectionId, title: section.title });
+  };
+
+  const requestDeleteRecord = (record: CalculationRecord): void => {
+    const definition = findCalculator(record.calculatorId);
+    setPendingDeletion({
+      kind: 'record',
+      id: record.id,
+      title: definition?.state === 'available' ? definition.shortTitle : 'Расчёт',
+    });
+  };
+
+  const confirmDeletion = (): void => {
+    const pending = pendingDeletion();
+    setPendingDeletion(null);
+    if (!pending) return;
+    if (pending.kind === 'section') {
+      setInstallation(removeCalculatorSection(pending.id as CalculatorSectionId));
+      notify('Раздел удалён. История расчётов сохранена.');
+      return;
+    }
+    setHistory(deleteCalculationRecord(pending.id));
+    setActiveRecord(undefined);
+    notify('Расчёт удалён.');
+  };
+
   const openHistoryRecord = (record: CalculationRecord): void => {
     const definition = findCalculator(record.calculatorId);
     if (definition?.state !== 'available') return;
@@ -590,64 +865,142 @@ export function CalculatorsView(): JSX.Element {
   };
 
   return (
-    <main class="calculators-page">
+    <section class="calculators-page page-surface" aria-label="Медицинские калькуляторы">
       <Show when={message()}>{(text) => <div class="calculator-message">{text()}</div>}</Show>
 
       <Show
         when={selected()}
         fallback={
-          <>
-            <header class="subpage-heading calculators-heading">
-              <div>
-                <p class="archive-kicker">Клинические инструменты с явными формулами</p>
-                <h1>Медицинские калькуляторы</h1>
-                <p>
-                  Единицы, промежуточные шаги, версия источника и границы применения сохраняются
-                  вместе с результатом.
-                </p>
-              </div>
-            </header>
+          <Show
+            when={selectedSection()}
+            fallback={
+              <Show
+                when={
+                  routeDefinition()?.state === 'available' &&
+                  !installation().installedIds.has(routeDefinition()?.id ?? '')
+                    ? routeDefinition()
+                    : undefined
+                }
+                fallback={
+                  <>
+                    <header class="subpage-heading calculators-heading">
+                      <div>
+                        <p class="archive-kicker">Разделы инструментов</p>
+                        <h1>Калькуляторы</h1>
+                        <p>
+                          Скачайте нужный раздел на устройство. После этого его инструменты работают
+                          без сети, а каждый результат сохраняется с формулой и границами
+                          применения.
+                        </p>
+                      </div>
+                    </header>
 
-            <label class="calculator-search">
-              <span>Найти калькулятор</span>
-              <input
-                type="search"
-                value={query()}
-                placeholder="Например: СКФ, 4-2-1, ППТ"
-                onInput={(event) => setQuery(event.currentTarget.value)}
+                    <label class="calculator-search">
+                      <span>Найти калькулятор</span>
+                      <input
+                        type="search"
+                        value={query()}
+                        placeholder="Например: СКФ, 4-2-1, ППТ"
+                        onInput={(event) => setQuery(event.currentTarget.value)}
+                      />
+                    </label>
+
+                    <Show
+                      when={filtered().length > 0}
+                      fallback={<p>По этому запросу ничего не найдено.</p>}
+                    >
+                      <div class="calculator-section-list">
+                        <For
+                          each={CALCULATOR_SECTIONS.filter(
+                            (section) => calculatorsInSection(section.id, filtered()).length > 0,
+                          )}
+                        >
+                          {(section) => (
+                            <CalculatorSectionCard
+                              section={section}
+                              installation={installation()}
+                              definitions={CALCULATOR_REGISTRY}
+                              onOpenSection={openSection}
+                              onInstall={installSection}
+                              onRemove={removeSection}
+                            />
+                          )}
+                        </For>
+                      </div>
+                    </Show>
+
+                    <Show when={history().length > 0}>
+                      <section class="calculator-history">
+                        <h2>Последние расчёты</h2>
+                        <div>
+                          <For each={history()}>
+                            {(record) => (
+                              <button type="button" onClick={() => openHistoryRecord(record)}>
+                                <strong>
+                                  {findCalculator(record.calculatorId)?.title ??
+                                    record.calculatorId}
+                                </strong>
+                                <span>{record.subjectLabel || record.inputSummary}</span>
+                                <small>
+                                  {new Intl.DateTimeFormat('ru-RU', {
+                                    dateStyle: 'short',
+                                    timeStyle: 'short',
+                                  }).format(new Date(record.createdAt))}
+                                </small>
+                              </button>
+                            )}
+                          </For>
+                        </div>
+                      </section>
+                    </Show>
+                  </>
+                }
+              >
+                {(definition) => {
+                  const section = CALCULATOR_SECTIONS.find(
+                    (candidate) => candidate.id === definition().category,
+                  );
+                  return (
+                    <section class="calculator-pack-required paper-card" role="status">
+                      <p class="archive-kicker">{section?.title ?? 'Раздел калькуляторов'}</p>
+                      <h1>{definition().title}</h1>
+                      <p>
+                        Этот инструмент входит в скачиваемый раздел. Сначала скачайте раздел, затем
+                        откройте калькулятор без сети.
+                      </p>
+                      <div>
+                        <Button
+                          icon={<AppGlyph name="download" />}
+                          onClick={() => installSection(definition().category)}
+                        >
+                          Скачать
+                        </Button>
+                        <Button
+                          variant="quiet"
+                          icon={<AppGlyph name="arrow-left" />}
+                          onClick={backToCatalog}
+                        >
+                          К разделам
+                        </Button>
+                      </div>
+                    </section>
+                  );
+                }}
+              </Show>
+            }
+          >
+            {(section) => (
+              <CalculatorSectionPage
+                section={section()}
+                installation={installation()}
+                definitions={CALCULATOR_REGISTRY}
+                onOpen={openCalculator}
+                onBack={backToCatalog}
+                onInstall={installSection}
+                onRemove={removeSection}
               />
-            </label>
-
-            <div class="calculator-catalog-grid">
-              <For each={filtered()}>
-                {(definition) => <CalculatorCard definition={definition} onOpen={openCalculator} />}
-              </For>
-            </div>
-
-            <Show when={history().length > 0}>
-              <section class="calculator-history">
-                <h2>Последние расчёты</h2>
-                <div>
-                  <For each={history()}>
-                    {(record) => (
-                      <button type="button" onClick={() => openHistoryRecord(record)}>
-                        <strong>
-                          {findCalculator(record.calculatorId)?.title ?? record.calculatorId}
-                        </strong>
-                        <span>{record.subjectLabel || record.inputSummary}</span>
-                        <small>
-                          {new Intl.DateTimeFormat('ru-RU', {
-                            dateStyle: 'short',
-                            timeStyle: 'short',
-                          }).format(new Date(record.createdAt))}
-                        </small>
-                      </button>
-                    )}
-                  </For>
-                </div>
-              </section>
-            </Show>
-          </>
+            )}
+          </Show>
         }
       >
         {(definition) => (
@@ -657,7 +1010,13 @@ export function CalculatorsView(): JSX.Element {
                 <AppGlyph name="arrow-left" />
               </button>
               <div>
-                <p class="archive-kicker">{audienceLabel(definition())}</p>
+                <p class="archive-kicker">
+                  {
+                    CALCULATOR_SECTIONS.find((section) => section.id === definition().category)
+                      ?.title
+                  }
+                  {' · скачано на устройство'}
+                </p>
                 <h1>{definition().title}</h1>
                 <p>{definition().summary}</p>
               </div>
@@ -679,9 +1038,7 @@ export function CalculatorsView(): JSX.Element {
                   definition={definition()}
                   onMessage={notify}
                   onDelete={() => {
-                    setHistory(deleteCalculationRecord(record().id));
-                    setActiveRecord(undefined);
-                    notify('Расчёт удалён.');
+                    requestDeleteRecord(record());
                   }}
                 />
               )}
@@ -689,6 +1046,18 @@ export function CalculatorsView(): JSX.Element {
           </div>
         )}
       </Show>
-    </main>
+
+      <ConfirmationDialog
+        open={pendingDeletion() !== null}
+        title="Удалить?"
+        description={`«${pendingDeletion()?.title ?? ''}» будет удалён. Это действие нельзя отменить.`}
+        confirmLabel="Удалить"
+        danger
+        onConfirm={confirmDeletion}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeletion(null);
+        }}
+      />
+    </section>
   );
 }

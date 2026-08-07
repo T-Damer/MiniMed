@@ -42,3 +42,6 @@ localmed-search.bundle
 
 # Private ambulatory literature pack (copyrighted textbooks — local only)
 apps/app/public/content/ambulatory.db
+
+# Personal medical study library (12GB+, not app source)
+Med/

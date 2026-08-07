@@ -144,6 +144,94 @@
     background: #506957;
   }
 
+  .assessment-section-header > button,
+  .assessment-pack-required button {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+  }
+
+  .assessments-page .assessments-heading > div > p:not(.archive-kicker) {
+    color: var(--theme-text-muted);
+  }
+
+  .module-page .knowledge-subroute-heading > button,
+  .module-page .module-version-history button {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+  }
+
+  .module-page .module-catalog-version {
+    border-color: var(--theme-border);
+    background: var(--theme-surface-muted);
+  }
+
+  .module-page .module-catalog-version span,
+  .module-page .module-catalog-status span,
+  .module-page .module-catalog-status small,
+  .module-page .module-version-history > span,
+  .module-page .recommendation-row span,
+  .module-page .recommendation-result-note,
+  .module-page .recommendation-breadcrumb {
+    color: var(--theme-text-muted);
+  }
+
+  .module-page .module-catalog-version strong,
+  .module-page .module-catalog-status strong,
+  .module-page .module-transition-note strong,
+  .module-page .recommendation-list-heading h3,
+  .module-page .recommendation-row strong,
+  .module-page .recommendation-title-button {
+    color: var(--theme-text);
+  }
+
+  .module-page .module-catalog-status {
+    border-left-color: var(--theme-accent);
+  }
+
+  .module-page .module-catalog-status button,
+  .module-page .recommendation-section-actions button,
+  .module-page .recommendation-list-actions button,
+  .module-page .recommendation-controls input,
+  .module-page .recommendation-controls select,
+  .module-page .recommendation-controls button,
+  .module-page .recommendation-row button,
+  .module-page .module-card button:not(.module-card-open-hit-area) {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+  }
+
+  .module-page .recommendation-section-actions button,
+  .module-page .recommendation-list-actions button,
+  .module-page .recommendation-controls button,
+  .module-page .recommendation-row button {
+    color: var(--theme-link);
+  }
+
+  .module-page .module-transition-note p,
+  .module-page .module-download-plan ol,
+  .module-page .recommendation-intro {
+    color: var(--theme-text-muted);
+  }
+
+  .module-page .recommendation-section-progress,
+  .module-page .recommendation-row-progress {
+    background: color-mix(in srgb, var(--theme-text) 16%, transparent);
+  }
+
+  .module-page .recommendation-section-help,
+  .module-page .recommendation-section-help-specialties span {
+    border-color: var(--theme-border);
+    color: var(--theme-link);
+    background: var(--theme-surface-raised);
+  }
+
+  .module-page .recommendation-section-help-specialties strong {
+    color: var(--theme-text);
+  }
+
   .search-selected-mode button,
   .document-inline-reference,
   .patient-note-related button {
@@ -179,6 +267,88 @@
   .patient-note-categories span {
     color: #f7f4ea;
     background: #506957;
+  }
+
+  .overlay-backdrop {
+    background: rgb(5 6 5 / 78%);
+  }
+
+  .overlay-dialog {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface);
+  }
+
+  .overlay-dialog-header {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface-muted);
+  }
+
+  .overlay-dialog__subtitle {
+    color: var(--theme-text-muted);
+  }
+
+  .overlay-dialog__back-button,
+  .overlay-dialog__close-button,
+  .document-overlay-outline-toggle {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+  }
+
+  .document-overlay-outline {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface-muted);
+  }
+
+  .document-overlay-outline-section-button {
+    color: var(--theme-text-muted);
+  }
+
+  .document-overlay-outline-section-button:hover,
+  .document-overlay-outline-section-button--active {
+    color: var(--theme-text);
+    background: var(--theme-accent-soft);
+  }
+
+  .document-overlay-paper {
+    color: var(--theme-text);
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 1.9375rem,
+        rgb(255 255 255 / 3%) 2rem
+      ),
+      var(--theme-surface);
+  }
+
+  .document-overlay-paper__header,
+  .document-overlay-section__title {
+    border-color: var(--theme-border);
+  }
+
+  .document-overlay-paper__source-label,
+  .document-overlay-path {
+    color: var(--theme-text-faint);
+  }
+
+  .document-overlay-lead,
+  .document-overlay-section__paragraph {
+    color: var(--theme-text-muted);
+  }
+
+  .document-overlay-full-text,
+  .document-overlay-full-text-inline {
+    border-color: var(--theme-border);
+    color: var(--theme-link);
+    background: var(--theme-surface-raised);
+  }
+
+  .document-overlay-outline-backdrop {
+    background: rgb(0 0 0 / 60%);
   }
 
   mark {

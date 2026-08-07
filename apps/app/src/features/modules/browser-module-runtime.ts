@@ -374,7 +374,7 @@ export class BrowserContentModuleRuntime {
       this.backend,
       new BrowserModuleValidator(),
       this.registry,
-      3,
+      1,
     );
     this.installer.subscribe((task) => {
       if (task.state === 'completed') {

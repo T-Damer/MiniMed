@@ -1,0 +1,49 @@
+- main:
+  - region "Медицинские калькуляторы":
+    - generic: Расчёт сохранён локально.
+    - button "К каталогу калькуляторов":
+    - paragraph: Преобразование единиц · скачано на устройство
+    - heading "Преобразование единиц" [level=1]
+    - paragraph: Масса, длина и объём с явным промежуточным значением в базовой единице.
+    - generic: Пациент / случай — необязательно
+    - textbox "Пациент / случай — необязательно":
+      - /placeholder: Имя, номер карты или псевдоним
+    - generic: Величина
+    - combobox "Величина":
+      - option "Масса" [selected]
+      - option "Длина"
+      - option "Объём"
+    - generic: Значение
+    - textbox "Значение": "100"
+    - generic: Из единицы
+    - combobox "Из единицы":
+      - option "kg" [selected]
+      - option "g"
+      - option "mg"
+      - option "mcg"
+    - generic: В единицу
+    - combobox "В единицу":
+      - option "kg"
+      - option "g" [selected]
+      - option "mg"
+      - option "mcg"
+    - button "Рассчитать и сохранить" [active]
+    - paragraph: Результат сохранён локально
+    - heading "Единицы" [level=2]
+    - text: 100 kg → g
+    - generic: Результат
+    - strong: 100 000 g
+    - generic "Формула и промежуточные шаги"
+    - generic "Источники и границы применения"
+    - button "Распечатать / PDF"
+    - button "Поделиться"
+    - button "Записать в заметку"
+    - button "Удалить"
+- navigation "Разделы приложения":
+  - button "Поиск":
+  - 'button "База знаний, доступно: 2, загружено: 0"':
+    - generic: "2"
+  - button "Тесты":
+  - button "Калькуляторы":
+  - button "Заметки":
+- button "Вернуться наверх":

@@ -105,3 +105,9 @@ bun run content:build:private
 
 State honestly which dependency suites, native SDKs, physical devices, and real source documents
 were not tested.
+
+## CSS selectors and BEM
+
+- New or touched UI elements must have their own semantic BEM class (`block`, `block__element`, or `block--modifier`).
+- Do not style elements through descendant selectors such as `.block h2` or `.block button`; put the class on the styled element and target that class directly.
+- Keep state selectors class-based (`.block--active`) and avoid selector chains whose meaning depends on DOM nesting.

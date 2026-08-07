@@ -1,0 +1,328 @@
+.ui-card {
+  min-width: 0;
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.6rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.55rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ui-button-primary {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.ui-button-danger {
+  color: var(--theme-danger);
+}
+
+.ui-button-quiet {
+  border-color: transparent;
+  background: transparent;
+}
+
+.ui-button-icon {
+  display: inline-flex;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.ui-button-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ui-button.ui-button-icon {
+  width: 2.6rem;
+  padding: 0;
+}
+
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ui-button:focus-visible,
+.ui-card:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.module-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.module-card > button.module-card-open-hit-area {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.module-card > :not(.module-card-open-hit-area) {
+  position: relative;
+  z-index: 1;
+}
+
+.module-card > button:not(.module-card-open-hit-area),
+.module-card .module-card-actions,
+.module-card .module-version-history,
+.module-card .module-task-status {
+  z-index: 3;
+}
+
+.recommendation-row-openable,
+.module-document-row-openable {
+  cursor: pointer;
+}
+
+.module-document-row {
+  display: grid;
+  width: 100%;
+  gap: 0.2rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.55rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  text-align: left;
+}
+
+.module-document-row:disabled {
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-muted);
+  cursor: default;
+}
+
+.module-document-row span {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+.module-document-row-openable:hover {
+  border-color: var(--theme-accent);
+}
+
+.recommendation-row-compact .module-remove-button {
+  width: 2.125rem;
+  padding: 0.4375rem;
+}
+
+.recommendation-row-compact .module-remove-button svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.calculator-card {
+  position: relative;
+}
+
+.calculator-card-open-hit-area {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.calculator-card > button.calculator-card-open-hit-area {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: transparent;
+  background: transparent;
+  font: inherit;
+}
+
+.calculator-card > :not(.calculator-card-open-hit-area) {
+  position: relative;
+  z-index: 1;
+}
+
+.calculator-section {
+  position: relative;
+}
+
+.calculator-section-open-hit-area {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.calculator-section > :not(.calculator-section-open-hit-area) {
+  position: relative;
+  z-index: 1;
+}
+
+.calculator-section-actions {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  pointer-events: auto;
+}
+
+.assessment-card {
+  padding-top: 3.4rem;
+}
+
+.assessment-card-open-hit-area {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.assessment-card > :not(.assessment-card-open-hit-area) {
+  position: relative;
+  z-index: 1;
+}
+
+.assessment-card > .assessment-card-icon-actions {
+  position: absolute;
+  z-index: 3;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.assessment-card-icon-button {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.55rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  line-height: 0;
+  transition:
+    border-color var(--theme-motion-control),
+    background-color var(--theme-motion-control),
+    color var(--theme-motion-control);
+}
+
+.assessment-card-icon-button svg {
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.assessment-card-icon-button:hover {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.assessment-card-icon-button-danger {
+  border-color: color-mix(in srgb, var(--theme-danger) 48%, transparent);
+  color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 10%, transparent);
+}
+
+.assessment-card-icon-button-danger:hover {
+  border-color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 18%, transparent);
+}
+
+.knowledge-status-card {
+  position: relative;
+  padding-top: 2.75rem;
+}
+
+.knowledge-status-card-icon {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--theme-link);
+}
+
+.module-card {
+  padding-top: 2.75rem;
+}
+
+.module-card-actions {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  align-items: center;
+}
+
+.module-card-actions .module-remove-button,
+.recommendation-row-compact .module-remove-button,
+.recommendation-section-card-compact .module-remove-button {
+  width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  color: var(--theme-danger);
+}
+
+.recommendation-section-card-compact {
+  position: relative;
+  padding-top: 2.75rem;
+}
+
+.recommendation-section-card-icon {
+  position: absolute;
+  top: 0.875rem;
+  left: 0.875rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--theme-link);
+}
+
+.recommendation-section-card-compact .recommendation-section-actions .module-remove-button {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+}
+
+.recommendation-row-compact .recommendation-row-actions {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+}
+
+.document-library-grid {
+  padding-inline: clamp(0.75rem, 3vw, 1.5rem);
+}

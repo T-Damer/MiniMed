@@ -2,40 +2,104 @@ import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import {
-  ASSESSMENT_CATALOG,
-  findAssessmentById,
+  type AssessmentSpecialty,
   type searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
   type AssessmentInstallationState,
   type AssessmentSectionId,
-  assessmentIdsInSection,
   assessmentRequiredByModules,
   groupAssessmentsBySection,
   isAssessmentSectionComplete,
 } from '@/features/assessments/assessment-packs';
-import type { AssessmentRecord } from '@/features/assessments/assessment-types';
 
-function formatDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('ru-RU', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
+export type AssessmentCatalogEntry = ReturnType<typeof searchAssessments>[number];
+
+export function AssessmentCard(props: {
+  readonly definition: AssessmentCatalogEntry;
+  readonly installed: boolean;
+  readonly canDelete: boolean;
+  readonly requiredModules: readonly string[];
+  readonly onOpen: (definition: AssessmentCatalogEntry) => void;
+  readonly onInstall: (definition: AssessmentCatalogEntry) => void;
+  readonly onRemove: (definition: AssessmentCatalogEntry) => void;
+  readonly onPrint: (definition: AssessmentCatalogEntry) => void;
+}): JSX.Element {
+  return (
+    <article
+      class="assessment-card paper-card"
+      classList={{ 'assessment-card-unavailable': !props.installed }}
+    >
+      <Show when={props.installed}>
+        <button
+          type="button"
+          class="assessment-card-open-hit-area"
+          aria-label={`Открыть тест «${props.definition.title}»`}
+          data-testid={`assessment-open-${props.definition.slug}`}
+          onClick={() => props.onOpen(props.definition)}
+        />
+      </Show>
+      <div class="assessment-card-meta">
+        <span>{props.definition.bankLabel}</span>
+        <span>{props.definition.estimatedMinutes} мин</span>
+        <span>{props.installed ? 'На устройстве' : 'После скачивания'}</span>
+        <Show when={props.requiredModules.length > 0}>
+          <span title={props.requiredModules.join(', ')}>Требуется модулю базы знаний</span>
+        </Show>
+      </div>
+      <h3>{props.definition.title}</h3>
+      <p>{props.definition.description}</p>
+      <small>{props.definition.audience}</small>
+      <Show
+        when={props.installed}
+        fallback={
+          <div class="assessment-card-actions">
+            <button
+              type="button"
+              data-testid={`assessment-install-${props.definition.slug}`}
+              onClick={() => props.onInstall(props.definition)}
+            >
+              <AppGlyph name="download" />
+              <span>Скачать</span>
+            </button>
+          </div>
+        }
+      >
+        <div class="assessment-card-icon-actions">
+          <button
+            type="button"
+            class="assessment-card-icon-button"
+            aria-label={`Распечатать бланк «${props.definition.shortTitle}»`}
+            title="Распечатать бланк"
+            onClick={() => props.onPrint(props.definition)}
+          >
+            <AppGlyph name="printer" />
+          </button>
+          <Show when={props.canDelete}>
+            <button
+              type="button"
+              class="assessment-card-icon-button assessment-card-icon-button-danger"
+              aria-label={`Удалить тест «${props.definition.shortTitle}»`}
+              title="Удалить тест"
+              onClick={() => props.onRemove(props.definition)}
+            >
+              <AppGlyph name="trash" />
+            </button>
+          </Show>
+        </div>
+      </Show>
+    </article>
+  );
 }
 
 export function AssessmentCatalogPage(props: {
+  readonly specialty: AssessmentSpecialty;
   readonly definitions: ReturnType<typeof searchAssessments>;
   readonly installation: AssessmentInstallationState;
   readonly query: string;
-  readonly recentRecords: readonly AssessmentRecord[];
   readonly onQuery: (value: string) => void;
+  readonly onBack: () => void;
   readonly onOpen: (definition: ReturnType<typeof searchAssessments>[number]) => void;
-  readonly onOpenRecord: (
-    definition: ReturnType<typeof searchAssessments>[number],
-    record: AssessmentRecord,
-  ) => void;
   readonly onInstall: (definition: ReturnType<typeof searchAssessments>[number]) => void;
   readonly onRemove: (definition: ReturnType<typeof searchAssessments>[number]) => void;
   readonly onPrint: (definition: ReturnType<typeof searchAssessments>[number]) => void;
@@ -46,17 +110,22 @@ export function AssessmentCatalogPage(props: {
 
   return (
     <>
-      <header class="subpage-heading assessments-heading">
+      <header class="subpage-heading assessments-heading assessment-specialty-heading">
+        <button
+          type="button"
+          class="knowledge-back-button"
+          aria-label="К разделам тестов"
+          onClick={props.onBack}
+        >
+          <AppGlyph name="arrow-left" />
+        </button>
         <div>
-          <p class="archive-kicker">Психология и психодиагностика</p>
+          <p class="archive-kicker">Раздел тестов</p>
           <div class="tool-page-title">
             <AppGlyph name="list-checks" />
-            <h1>Тесты и опросники</h1>
+            <h1>{props.specialty.title}</h1>
           </div>
-          <p>
-            Подключайте отдельные опросники или тематические разделы, проходите их на устройстве и
-            сохраняйте результаты в карточку.
-          </p>
+          <p>{props.specialty.description}</p>
         </div>
       </header>
 
@@ -77,23 +146,11 @@ export function AssessmentCatalogPage(props: {
         <div class="assessment-section-list">
           <For each={groupAssessmentsBySection(props.definitions)}>
             {(group) => {
-              const sectionAssessmentIds = assessmentIdsInSection(
-                group.section.id,
-                ASSESSMENT_CATALOG,
-              );
-              const selected = () => props.installation.sectionIds.has(group.section.id);
+              const sectionAssessmentIds = () => group.assessments.map((definition) => definition.id);
               const installedCount = () =>
-                sectionAssessmentIds.filter((id) => installed(id)).length;
+                sectionAssessmentIds().filter((id) => installed(id)).length;
               const complete = () =>
-                isAssessmentSectionComplete(
-                  group.section.id,
-                  props.installation,
-                  ASSESSMENT_CATALOG,
-                );
-              const actionLabel = () => {
-                if (!selected()) return 'Подключить раздел';
-                return complete() ? 'Отключить раздел' : 'Восстановить раздел';
-              };
+                isAssessmentSectionComplete(group.section.id, props.installation, props.definitions);
               return (
                 <section class="assessment-section paper-card">
                   <header class="assessment-section-header">
@@ -101,7 +158,8 @@ export function AssessmentCatalogPage(props: {
                       <h2>{group.section.title}</h2>
                       <p>{group.section.description}</p>
                       <small>
-                        {installedCount()}/{sectionAssessmentIds.length} подключено
+                        {installedCount()}/{sectionAssessmentIds().length} тестов на устройстве ·{' '}
+                        {complete() ? 'раздел скачан' : 'раздел не скачан'}
                       </small>
                     </div>
                     <button
@@ -114,7 +172,7 @@ export function AssessmentCatalogPage(props: {
                       }
                     >
                       <AppGlyph name={complete() ? 'trash' : 'download'} />
-                      <span>{actionLabel()}</span>
+                      <span>{complete() ? 'Удалить' : 'Скачать'}</span>
                     </button>
                   </header>
 
@@ -128,58 +186,16 @@ export function AssessmentCatalogPage(props: {
                           (props.installation.sectionIds.has(definition.category) &&
                             !props.installation.excludedIds.has(definition.id));
                         return (
-                          <article
-                            class="assessment-card paper-card"
-                            classList={{ 'assessment-card-unavailable': !installed(definition.id) }}
-                          >
-                            <div class="assessment-card-meta">
-                              <span>{definition.bankLabel}</span>
-                              <span>{definition.estimatedMinutes} мин</span>
-                              <Show when={requiredModules().length > 0}>
-                                <span title={requiredModules().join(', ')}>
-                                  Требуется модулю базы знаний
-                                </span>
-                              </Show>
-                            </div>
-                            <h3>{definition.title}</h3>
-                            <p>{definition.description}</p>
-                            <small>{definition.audience}</small>
-                            <div class="assessment-card-actions">
-                              <Show
-                                when={installed(definition.id)}
-                                fallback={
-                                  <button
-                                    type="button"
-                                    data-testid={`assessment-install-${definition.slug}`}
-                                    onClick={() => props.onInstall(definition)}
-                                  >
-                                    <AppGlyph name="download" />
-                                    <span>Подключить опросник</span>
-                                  </button>
-                                }
-                              >
-                                <button
-                                  type="button"
-                                  data-testid={`assessment-open-${definition.slug}`}
-                                  onClick={() => props.onOpen(definition)}
-                                >
-                                  Пройти
-                                </button>
-                                <button type="button" onClick={() => props.onPrint(definition)}>
-                                  Распечатать бланк
-                                </button>
-                                <Show when={hasUserManagedSource()}>
-                                  <button
-                                    type="button"
-                                    aria-label={`Отключить опросник «${definition.shortTitle}»`}
-                                    onClick={() => props.onRemove(definition)}
-                                  >
-                                    <AppGlyph name="trash" />
-                                  </button>
-                                </Show>
-                              </Show>
-                            </div>
-                          </article>
+                          <AssessmentCard
+                            definition={definition}
+                            installed={installed(definition.id)}
+                            canDelete={hasUserManagedSource()}
+                            requiredModules={requiredModules()}
+                            onOpen={props.onOpen}
+                            onInstall={props.onInstall}
+                            onRemove={props.onRemove}
+                            onPrint={props.onPrint}
+                          />
                         );
                       }}
                     </For>
@@ -189,39 +205,6 @@ export function AssessmentCatalogPage(props: {
             }}
           </For>
         </div>
-      </Show>
-
-      <Show when={props.recentRecords.length > 0}>
-        <section class="assessment-history">
-          <header>
-            <p class="archive-kicker">Локальная история</p>
-            <h2>Последние результаты</h2>
-          </header>
-          <div class="assessment-history-list">
-            <For each={props.recentRecords}>
-              {(record) => {
-                const definition = () => findAssessmentById(record.assessmentId);
-                return (
-                  <Show when={definition()}>
-                    {(resolved) => (
-                      <button type="button" onClick={() => props.onOpenRecord(resolved(), record)}>
-                        <span>{resolved().shortTitle}</span>
-                        <strong>
-                          {record.subjectLabel || 'Без подписи'} · {formatDate(record.createdAt)}
-                        </strong>
-                        <small>
-                          {record.kind === 'completed'
-                            ? record.result.headline
-                            : 'Результат внесён вручную'}
-                        </small>
-                      </button>
-                    )}
-                  </Show>
-                );
-              }}
-            </For>
-          </div>
-        </section>
       </Show>
     </>
   );

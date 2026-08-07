@@ -13,6 +13,8 @@ test('completes a psychology questionnaire and writes the result to a patient no
   await expect(page.getByRole('heading', { name: 'Тесты и опросники' })).toBeVisible();
   await expect(page.getByText('Психология и психодиагностика').first()).toBeVisible();
 
+  await page.getByTestId('assessment-specialty-psychology').click();
+  await expect(page).toHaveURL(/#\/assessments\/psychology$/u);
   await page.getByTestId('assessment-install-braverman-behavioral-profile').click();
   await expect(page.getByText('Опросник подключён на устройстве.')).toBeVisible();
   await page.getByTestId('assessment-open-braverman-behavioral-profile').click();

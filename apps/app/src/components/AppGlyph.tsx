@@ -21,7 +21,9 @@ export type AppGlyphName =
   | 'download'
   | 'minus'
   | 'edit'
-  | 'trash';
+  | 'trash'
+  | 'printer'
+  | 'share';
 
 export function AppGlyph(props: {
   readonly name: AppGlyphName;
@@ -151,6 +153,22 @@ export function AppGlyph(props: {
           <path d="M8 6V4.5h8V6" />
           <path d="M7 6l.8 13h8.4L17 6" />
           <path d="M10 9.5v6.5M14 9.5v6.5" />
+        </>
+      )}
+      {props.name === 'printer' && (
+        <>
+          <path d="M6.5 9V4.5h11V9" />
+          <path d="M6 17H4.5A1.5 1.5 0 0 1 3 15.5v-4A1.5 1.5 0 0 1 4.5 10h15a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H18" />
+          <path d="M6 14h12v6H6z" />
+          <path d="M18 12h.01" />
+        </>
+      )}
+      {props.name === 'share' && (
+        <>
+          <circle cx="6" cy="12" r="2" />
+          <circle cx="17.5" cy="6" r="2" />
+          <circle cx="17.5" cy="18" r="2" />
+          <path d="m7.8 11 7.8-4M7.8 13l7.8 4" />
         </>
       )}
     </svg>

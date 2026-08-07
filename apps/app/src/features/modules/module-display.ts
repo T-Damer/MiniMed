@@ -1,8 +1,4 @@
-import type {
-  ContentModuleCatalogEntry,
-  ContentModuleDownloadTask,
-  InstalledContentModule,
-} from '@localmed/contracts';
+import type { ContentModuleCatalogEntry, ContentModuleDownloadTask } from '@localmed/contracts';
 
 export const MODULE_RELEASE_LABELS: Readonly<
   Record<ContentModuleCatalogEntry['releaseState'], string>
@@ -37,18 +33,4 @@ export function contentModuleTaskProgress(task: ContentModuleDownloadTask): numb
 export function primaryModuleDocumentId(module: ContentModuleCatalogEntry): string | null {
   const activeDocument = module.documents.find((document) => document.status === 'active');
   return activeDocument?.documentId ?? module.documents[0]?.documentId ?? null;
-}
-
-export function installedModuleValidationLabel(installed: InstalledContentModule): string {
-  const validation = installed.lastValidation;
-  if (!validation) return 'Проверка установки не записана';
-  if (
-    validation.valid &&
-    validation.checksumValid &&
-    validation.schemaCompatible &&
-    validation.sqliteIntegrity === 'ok'
-  ) {
-    return 'SHA-256 и SQLite проверены';
-  }
-  return validation.message;
 }

@@ -17,6 +17,51 @@ export type AssessmentCatalogEntry = Pick<
   | 'audience'
 >;
 
+export interface AssessmentSpecialty {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+}
+
+export const ASSESSMENT_SPECIALTIES: readonly AssessmentSpecialty[] = [
+  {
+    id: 'psychology',
+    title: 'Психология и психодиагностика',
+    description: 'Опросники для саморефлексии, рабочего стиля и командных ролей.',
+  },
+  {
+    id: 'psychiatry',
+    title: 'Психиатрия',
+    description: 'Скрининговые шкалы и опросники психиатрического профиля.',
+  },
+  {
+    id: 'obstetrics',
+    title: 'Акушерство и гинекология',
+    description: 'Опросники и шкалы для акушерско-гинекологической практики.',
+  },
+  {
+    id: 'pediatrics',
+    title: 'Педиатрия',
+    description: 'Возрастные шкалы развития и скрининговые опросники для детей.',
+  },
+  {
+    id: 'gastroenterology',
+    title: 'Гастроэнтерология',
+    description: 'Опросники симптомов и качества жизни при заболеваниях ЖКТ.',
+  },
+];
+
+export function findAssessmentSpecialty(id: string): AssessmentSpecialty | undefined {
+  return ASSESSMENT_SPECIALTIES.find((specialty) => specialty.id === id);
+}
+
+export function assessmentsInSpecialty(
+  specialtyId: string,
+  definitions: readonly AssessmentCatalogEntry[],
+): readonly AssessmentCatalogEntry[] {
+  return definitions.filter((definition) => definition.bankId === specialtyId);
+}
+
 type AssessmentLoader = () => Promise<AssessmentDefinition>;
 
 export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [

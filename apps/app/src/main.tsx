@@ -24,6 +24,7 @@ import '@/styles/assessments.css';
 import '@/styles/calculators.css';
 import '@/styles/tool-routes.css';
 import '@/styles/tool-link-icons.css';
+import '@/styles/components.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');

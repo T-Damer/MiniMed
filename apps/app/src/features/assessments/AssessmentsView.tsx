@@ -8,18 +8,23 @@ import {
   Show,
 } from 'solid-js';
 
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
+import { AssessmentSpecialtyIndexPage } from '@/features/assessments/AssessmentSpecialtyIndexPage';
 import {
   ASSESSMENT_CATALOG,
+  assessmentsInSpecialty,
   findAssessmentBySlug,
+  findAssessmentSpecialty,
   loadAssessmentDefinition,
   preloadAssessmentDefinitions,
   searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
   ASSESSMENT_PACKS_EVENT,
+  ASSESSMENT_SECTIONS,
   type AssessmentInstallationState,
   type AssessmentSectionId,
   assessmentIdsInSection,
@@ -48,6 +53,7 @@ import {
 
 type AssessmentRoute =
   | { readonly kind: 'index' }
+  | { readonly kind: 'specialty'; readonly specialtyId: string }
   | { readonly kind: 'assessment'; readonly slug: string }
   | { readonly kind: 'result'; readonly slug: string; readonly recordId: string };
 
@@ -56,6 +62,7 @@ function readRoute(): AssessmentRoute {
   if (parts[0] !== 'assessments' || !parts[1]) return { kind: 'index' };
   try {
     const slug = decodeURIComponent(parts[1]);
+    if (findAssessmentSpecialty(slug)) return { kind: 'specialty', specialtyId: slug };
     if (parts[2] === 'results' && parts[3]) {
       return { kind: 'result', slug, recordId: decodeURIComponent(parts[3]) };
     }
@@ -67,6 +74,10 @@ function readRoute(): AssessmentRoute {
 
 function assessmentPath(slug: string): string {
   return `#/assessments/${encodeURIComponent(slug)}`;
+}
+
+function specialtyPath(specialtyId: string): string {
+  return `#/assessments/${encodeURIComponent(specialtyId)}`;
 }
 
 function resultPath(slug: string, recordId: string): string {
@@ -85,6 +96,11 @@ export function AssessmentsView(): JSX.Element {
   const [definitionLoading, setDefinitionLoading] = createSignal(false);
   const [definitionError, setDefinitionError] = createSignal('');
   const [message, setMessage] = createSignal('');
+  const [pendingDeletion, setPendingDeletion] = createSignal<{
+    readonly kind: 'assessment' | 'section' | 'result';
+    readonly id: string;
+    readonly title: string;
+  } | null>(null);
   let definitionRequest = 0;
 
   const refreshRecords = (): void => {
@@ -127,7 +143,9 @@ export function AssessmentsView(): JSX.Element {
 
   const catalogEntry = createMemo(() => {
     const current = route();
-    return current.kind === 'index' ? undefined : findAssessmentBySlug(current.slug);
+    return current.kind === 'assessment' || current.kind === 'result'
+      ? findAssessmentBySlug(current.slug)
+      : undefined;
   });
   const record = createMemo(() => {
     const current = route();
@@ -158,9 +176,7 @@ export function AssessmentsView(): JSX.Element {
       })
       .catch((cause: unknown) => {
         if (request !== definitionRequest) return;
-        setDefinitionError(
-          cause instanceof Error ? cause.message : 'Не удалось подключить опросник.',
-        );
+        setDefinitionError(cause instanceof Error ? cause.message : 'Не удалось скачать опросник.');
       })
       .finally(() => {
         if (request === definitionRequest) setDefinitionLoading(false);
@@ -176,13 +192,13 @@ export function AssessmentsView(): JSX.Element {
     commit: () => AssessmentInstallationState,
     successMessage: string,
   ): Promise<void> => {
-    setMessage('Подключаем опросник…');
+    setMessage('Скачиваем опросник…');
     try {
       await preloadAssessmentDefinitions(ids);
       setInstallation(commit());
       setMessage(successMessage);
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : 'Не удалось подключить опросник.');
+      setMessage(cause instanceof Error ? cause.message : 'Не удалось скачать опросник.');
     }
   };
 
@@ -190,7 +206,7 @@ export function AssessmentsView(): JSX.Element {
     void installIds(
       [id],
       () => installAssessmentIds([id], ASSESSMENT_CATALOG),
-      'Опросник подключён на устройстве.',
+      'Опросник скачан на устройство.',
     );
   };
   const removeDefinition = (id: string): void => {
@@ -208,18 +224,39 @@ export function AssessmentsView(): JSX.Element {
     void installIds(
       ids,
       () => installAssessmentSection(sectionId, ASSESSMENT_CATALOG),
-      'Раздел опросников подключён на устройстве.',
+      'Раздел опросников скачан на устройство.',
     );
   };
   const removeSection = (sectionId: AssessmentSectionId): void => {
-    if (
-      !window.confirm('Отключить выбранный раздел опросников? Сохранённые результаты останутся.')
-    ) {
-      return;
-    }
     const next = removeAssessmentSection(sectionId, ASSESSMENT_CATALOG);
     setInstallation(next);
-    setMessage('Раздел отключён. Ручные и обязательные для базы знаний опросники сохранены.');
+    setMessage(
+      'Раздел удалён с устройства. Отдельно скачанные и необходимые базе знаний опросники сохранены.',
+    );
+  };
+  const requestDeleteDefinition = (id: string): void => {
+    const title = ASSESSMENT_CATALOG.find((definition) => definition.id === id)?.shortTitle ?? id;
+    setPendingDeletion({ kind: 'assessment', id, title });
+  };
+  const requestDeleteSection = (sectionId: AssessmentSectionId): void => {
+    const title =
+      ASSESSMENT_SECTIONS.find((section) => section.id === sectionId)?.title ?? sectionId;
+    setPendingDeletion({ kind: 'section', id: sectionId, title });
+  };
+  const requestDeleteResult = (recordId: string, title: string): void => {
+    setPendingDeletion({ kind: 'result', id: recordId, title });
+  };
+  const confirmDeletion = (): void => {
+    const pending = pendingDeletion();
+    setPendingDeletion(null);
+    if (!pending) return;
+    if (pending.kind === 'assessment') removeDefinition(pending.id);
+    if (pending.kind === 'section') removeSection(pending.id as AssessmentSectionId);
+    if (pending.kind === 'result') {
+      removeAssessmentRecord(pending.id);
+      refreshRecords();
+      navigate('#/assessments');
+    }
   };
   const printDefinition = (id: string): void => {
     setMessage('Подготавливаем бланк…');
@@ -244,22 +281,50 @@ export function AssessmentsView(): JSX.Element {
       </Show>
 
       <Show when={route().kind === 'index'}>
-        <AssessmentCatalogPage
-          definitions={searchAssessments(query())}
+        <AssessmentSpecialtyIndexPage
+          definitions={ASSESSMENT_CATALOG}
+          matches={query().trim() ? searchAssessments(query()) : []}
           installation={installation()}
           query={query()}
           recentRecords={records().slice(0, 8)}
           onQuery={setQuery}
+          onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
           onOpen={(selected) => navigate(assessmentPath(selected.slug))}
           onOpenRecord={(selected, selectedRecord) =>
             navigate(resultPath(selected.slug, selectedRecord.id))
           }
           onInstall={(selected) => installDefinition(selected.id)}
-          onRemove={(selected) => removeDefinition(selected.id)}
+          onRemove={(selected) => requestDeleteDefinition(selected.id)}
           onPrint={(selected) => printDefinition(selected.id)}
-          onInstallSection={installSection}
-          onRemoveSection={removeSection}
         />
+      </Show>
+
+      <Show
+        when={
+          route().kind === 'specialty'
+            ? findAssessmentSpecialty((route() as { specialtyId: string }).specialtyId)
+            : undefined
+        }
+      >
+        {(specialty) => (
+          <AssessmentCatalogPage
+            specialty={specialty()}
+            definitions={assessmentsInSpecialty(specialty().id, searchAssessments(query()))}
+            installation={installation()}
+            query={query()}
+            onQuery={setQuery}
+            onBack={() => {
+              setQuery('');
+              navigate('#/assessments');
+            }}
+            onOpen={(selected) => navigate(assessmentPath(selected.slug))}
+            onInstall={(selected) => installDefinition(selected.id)}
+            onRemove={(selected) => requestDeleteDefinition(selected.id)}
+            onPrint={(selected) => printDefinition(selected.id)}
+            onInstallSection={installSection}
+            onRemoveSection={requestDeleteSection}
+          />
+        )}
       </Show>
 
       <Show when={definitionLoading()}>
@@ -285,6 +350,10 @@ export function AssessmentsView(): JSX.Element {
         {(selected) => (
           <AssessmentQuestionnairePage
             definition={selected()}
+            sectionTitle={
+              ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
+              selected().bankLabel
+            }
             onBack={() => navigate('#/assessments')}
             onMessage={setMessage}
             onSaved={(saved) => {
@@ -306,11 +375,18 @@ export function AssessmentsView(): JSX.Element {
       >
         {(selected) => (
           <section class="assessment-pack-required paper-card">
+            <p class="archive-kicker">
+              {ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
+                selected().bankLabel}
+            </p>
             <h1>{selected().title}</h1>
-            <p>Опросник не подключён. Можно загрузить только его, не подключая весь раздел.</p>
+            <p>
+              Этот тест входит в скачиваемый раздел. Сначала скачайте раздел, чтобы пройти его без
+              сети.
+            </p>
             <div>
               <button type="button" onClick={() => installDefinition(selected().id)}>
-                Подключить опросник
+                Скачать только этот тест
               </button>
               <button type="button" onClick={() => navigate('#/assessments')}>
                 К разделам
@@ -331,18 +407,19 @@ export function AssessmentsView(): JSX.Element {
                 onBack={() => navigate(assessmentPath(selectedDefinition().slug))}
                 onMessage={setMessage}
                 onNotesChanged={setNotes}
-                onDelete={() => {
-                  removeAssessmentRecord(selectedRecord().id);
-                  refreshRecords();
-                  navigate('#/assessments');
-                }}
+                onDelete={() =>
+                  requestDeleteResult(
+                    selectedRecord().id,
+                    selectedRecord().subjectLabel || selectedDefinition().shortTitle,
+                  )
+                }
               />
             )}
           </Show>
         )}
       </Show>
 
-      <Show when={route().kind !== 'index' && !catalogEntry()}>
+      <Show when={route().kind !== 'index' && route().kind !== 'specialty' && !catalogEntry()}>
         <section class="assessment-not-found paper-card">
           <h1>Опросник не найден</h1>
           <p>Возможно, каталог был обновлён или ссылка устарела.</p>
@@ -351,6 +428,18 @@ export function AssessmentsView(): JSX.Element {
           </button>
         </section>
       </Show>
+
+      <ConfirmationDialog
+        open={pendingDeletion() !== null}
+        title="Удалить?"
+        description={`«${pendingDeletion()?.title ?? ''}» будет удалён. Сохранённые результаты не изменятся.`}
+        confirmLabel="Удалить"
+        danger
+        onConfirm={confirmDeletion}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeletion(null);
+        }}
+      />
     </section>
   );
 }

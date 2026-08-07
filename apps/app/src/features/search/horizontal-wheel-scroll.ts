@@ -10,10 +10,7 @@ export function translateVerticalWheelToHorizontal(
   event: WheelDelta,
   scroller: HorizontalScroller,
 ): void {
-  if (
-    Math.abs(event.deltaY) <= Math.abs(event.deltaX) ||
-    scroller.scrollWidth <= scroller.clientWidth
-  ) {
+  if (event.deltaY === 0 || scroller.scrollWidth <= scroller.clientWidth) {
     return;
   }
   const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;

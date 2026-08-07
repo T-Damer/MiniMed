@@ -3,7 +3,7 @@ import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { type GraphTone, graphToneForSourceType } from '@/features/library/graph-tones';
 import { browserI18n } from '@/i18n/browser-i18n';
-import { specialtyLabel } from '@/i18n/labels';
+import { documentCountLabel, specialtyLabel } from '@/i18n/labels';
 
 interface KnowledgeGraphProps {
   readonly documents: readonly MedicalDocumentSummary[];
@@ -363,9 +363,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           <h2 id="knowledge-graph-title">{browserI18n.getMessage('graph_title')}</h2>
           <p>{browserI18n.getMessage('graph_hint')}</p>
         </div>
-        <span>
-          {browserI18n.getMessage('graph_document_count', String(props.documents.length))}
-        </span>
+        <span>{documentCountLabel(props.documents.length)}</span>
       </header>
 
       <canvas

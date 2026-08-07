@@ -62,6 +62,32 @@ describe('SqliteMedicalStore', () => {
     expect(results[0]?.document.id).toBe('kr.demo.pediatrics.pneumonia');
   });
 
+  it('filters by a large documentIds list without exhausting bound parameters', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(DEMO_CONTENT_PACK);
+    const paddedDocumentIds = [
+      ...Array.from({ length: 500 }, (_, index) => `nonexistent-document-${index}`),
+      'kr.demo.pediatrics.pneumonia',
+    ];
+    const results = await store.search({
+      ftsQuery: '"тахипноэ"* OR "лихорадка"*',
+      terms: ['тахипноэ', 'лихорадка'],
+      filters: { documentIds: paddedDocumentIds },
+      limit: 10,
+    });
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((hit) => hit.document.id === 'kr.demo.pediatrics.pneumonia')).toBe(true);
+
+    const excluded = await store.search({
+      ftsQuery: '"тахипноэ"* OR "лихорадка"*',
+      terms: ['тахипноэ', 'лихорадка'],
+      filters: { documentIds: ['kr.demo.surgery.appendicitis'] },
+      limit: 10,
+    });
+    expect(excluded).toHaveLength(0);
+  });
+
   it('loads embedding profiles and performs an exact local vector scan', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);

@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import { formatAssessmentRecord } from '@/features/assessments/assessment-engine';
 import {
@@ -81,7 +82,7 @@ export function AssessmentResultPage(props: {
         </button>
         <div>
           <p class="archive-kicker">Результат сохранён локально</p>
-          <h1>{props.definition.title}</h1>
+          <h1 class="assessment-subpage-title">{props.definition.title}</h1>
           <p>
             {props.record.subjectLabel || 'Без подписи'} · {formatDate(props.record.createdAt)}
           </p>
@@ -124,11 +125,14 @@ export function AssessmentResultPage(props: {
       </Show>
 
       <div class="assessment-result-actions paper-card">
-        <button type="button" onClick={() => printAssessmentRecord(props.definition, props.record)}>
-          Распечатать / PDF
-        </button>
-        <button
-          type="button"
+        <Button
+          icon={<AppGlyph name="printer" />}
+          onClick={() => printAssessmentRecord(props.definition, props.record)}
+        >
+          Распечатать
+        </Button>
+        <Button
+          icon={<AppGlyph name="share" />}
           onClick={() => {
             void shareAssessmentRecord(props.definition, props.record)
               .then((mode) =>
@@ -140,17 +144,18 @@ export function AssessmentResultPage(props: {
           }}
         >
           Поделиться
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="quiet"
+          icon={<AppGlyph name="notes" />}
           data-testid="assessment-save-note"
           onClick={() => setNotePanelOpen((value) => !value)}
         >
-          Записать в заметку
-        </button>
-        <button type="button" onClick={props.onDelete}>
-          Удалить результат
-        </button>
+          Записать
+        </Button>
+        <Button variant="danger" icon={<AppGlyph name="trash" />} onClick={props.onDelete}>
+          Удалить
+        </Button>
       </div>
 
       <Show when={notePanelOpen()}>
@@ -172,19 +177,27 @@ export function AssessmentResultPage(props: {
             <label>
               <span>Название новой карточки</span>
               <input
+                list="assessment-patient-suggestions"
                 value={newCardTitle()}
                 placeholder={props.record.subjectLabel || 'Пациент'}
                 onInput={(event) => setNewCardTitle(event.currentTarget.value)}
               />
+              <datalist id="assessment-patient-suggestions">
+                <For each={props.notes.cards}>{(card) => <option value={card.title} />}</For>
+              </datalist>
             </label>
           </Show>
           <div class="assessment-panel-actions">
-            <button type="button" onClick={saveToNote}>
-              Записать результат
-            </button>
-            <button type="button" onClick={() => setNotePanelOpen(false)}>
+            <Button icon={<AppGlyph name="notes" />} onClick={saveToNote}>
+              Сохранить
+            </Button>
+            <Button
+              variant="quiet"
+              icon={<AppGlyph name="close" />}
+              onClick={() => setNotePanelOpen(false)}
+            >
               Отмена
-            </button>
+            </Button>
           </div>
         </section>
       </Show>

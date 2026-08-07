@@ -52,6 +52,42 @@
   --font-serif: Georgia, "Times New Roman", Times, serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --page-content-width: 65ch;
+  --theme-space-1: 0.25rem;
+  --theme-space-2: 0.5rem;
+  --theme-space-3: 0.75rem;
+  --theme-space-4: 1rem;
+  --theme-space-5: 1.25rem;
+  --theme-space-control: 0.9rem;
+  --theme-space-body-gap: 0.7rem;
+  --theme-space-floating-inline: 0.875rem;
+  --theme-radius-control: 0.55rem;
+  --theme-radius-panel: 0.7rem;
+  --theme-border-hairline: 1px;
+  --theme-outline-width: 0.125rem;
+  --theme-outline-offset: 0.1875rem;
+  --theme-outline-tight-offset: 1px;
+  --theme-type-label: 0.6875rem;
+  --theme-type-field-label: 0.78rem;
+  --theme-type-caption: 0.75rem;
+  --theme-type-response: clamp(0.68rem, 1.3vw, 0.8rem);
+  --theme-weight-label: 700;
+  --theme-weight-emphasis: 750;
+  --theme-weight-strong: 800;
+  --theme-motion-control: 140ms ease-out;
+  --theme-motion-standard: 180ms ease;
+  --theme-control-height-large: 3.5rem;
+  --theme-control-icon-size: 2.1rem;
+  --theme-icon-size-small: 1.1rem;
+  --theme-icon-size-methodology: 1.15rem;
+  --theme-assessment-methodology-width: 30rem;
+  --theme-assessment-response-height: 5.5rem;
+  --theme-text-underline-offset: 0.18em;
+  --theme-assessment-floating-size: 2.6875rem;
+  --theme-assessment-floating-offset: 4.375rem;
+  --theme-assessment-scroll-top-offset: 7.625rem;
+  --theme-assessment-response-safe-space: 3.25rem;
+  --theme-assessment-legend-overlap: -1.8rem;
+  --theme-assessment-legend-padding: 0.45rem 0.7rem 0.45rem 0.35rem;
 }
 
 * {

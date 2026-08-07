@@ -1,5 +1,14 @@
 import type { MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
-import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { DocumentText } from '@/components/DocumentText';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -46,6 +55,10 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
   let outlineNav: HTMLElement | undefined;
   let paper: HTMLElement | undefined;
 
+  onMount(() => {
+    if (window.matchMedia('(min-width: 761px)').matches) setOutlineOpen(true);
+  });
+
   const availableIds = createMemo(
     () => new Set((props.availableDocuments ?? []).map((document) => document.id)),
   );
@@ -54,7 +67,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
   );
   const fullTextDocumentId = createMemo(() => {
     const document = props.document;
-    if (!document || document.sourceType !== 'clinical_recommendation_summary') return null;
+    if (document?.sourceType !== 'clinical_recommendation_summary') return null;
     const readableId = resolveReadableDocumentId(document.id, availableIds());
     return readableId === document.id ? null : readableId;
   });
@@ -164,8 +177,8 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
     fullTextPending()
       ? 'Загружаем полную версию…'
       : fullTextDocumentId()
-        ? 'Открыть полную версию'
-        : 'Загрузить полную версию';
+        ? 'Полный текст'
+        : 'Загрузить полный текст';
 
   return (
     <OverlayDialog
@@ -175,41 +188,51 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
         ? { subtitle: displayDocumentSubtitle(props.document) as string }
         : {})}
       class="document-overlay"
+      bodyClass="document-overlay__body"
+      showBack
       onClose={close}
       headerStart={
         <button
           type="button"
           class="document-overlay-outline-toggle"
-          aria-label="Открыть оглавление"
-          onClick={() => setOutlineOpen(true)}
+          aria-label={outlineOpen() ? 'Скрыть оглавление' : 'Открыть оглавление'}
+          aria-expanded={outlineOpen()}
+          onClick={() => setOutlineOpen((open) => !open)}
         >
-          <AppGlyph name="menu" />
+          <AppGlyph name="menu" class="overlay-dialog__button-icon" />
         </button>
       }
     >
       <Show when={props.document}>
         {(documentValue) => (
-          <div class="document-overlay-layout">
+          <div
+            class="document-overlay-layout"
+            classList={{ 'document-overlay-layout--outline-hidden': !outlineOpen() }}
+          >
             <button
               type="button"
               class="document-overlay-outline-backdrop"
-              classList={{ open: outlineOpen() }}
+              classList={{ 'document-overlay-outline-backdrop--open': outlineOpen() }}
               aria-label="Закрыть оглавление"
               onClick={() => setOutlineOpen(false)}
             />
             <aside
               ref={outline}
               class="document-overlay-outline"
-              classList={{ open: outlineOpen() }}
+              classList={{
+                'document-overlay-outline--hidden': !outlineOpen(),
+                'document-overlay-outline--open': outlineOpen(),
+              }}
             >
               <header class="document-overlay-outline-header">
                 <strong>Оглавление</strong>
                 <button
                   type="button"
+                  class="document-overlay-outline-header__close-button"
                   aria-label="Закрыть оглавление"
                   onClick={() => setOutlineOpen(false)}
                 >
-                  <AppGlyph name="close" />
+                  <AppGlyph name="close" class="overlay-dialog__button-icon" />
                 </button>
               </header>
               <SearchField
@@ -220,21 +243,31 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                 placeholder="Слово или фраза"
               />
 
-              <details open>
-                <summary>Оглавление</summary>
-                <nav ref={outlineNav} aria-label="Разделы документа">
+              <details class="document-overlay-outline-details" open>
+                <summary class="document-overlay-outline-summary">Оглавление</summary>
+                <nav
+                  ref={outlineNav}
+                  class="document-overlay-outline-nav"
+                  aria-label="Разделы документа"
+                >
                   <For each={matchingSections()}>
                     {(section, index) => (
                       <button
                         type="button"
                         data-section-anchor={section.anchor}
-                        classList={{ active: activeAnchor() === section.anchor }}
+                        class="document-overlay-outline-section-button"
+                        classList={{
+                          'document-overlay-outline-section-button--active':
+                            activeAnchor() === section.anchor,
+                        }}
                         aria-current={
                           activeAnchor() === section.anchor ? ('location' as const) : undefined
                         }
                         onClick={() => scrollTo(section.anchor)}
                       >
-                        <span>{String(index() + 1).padStart(2, '0')}</span>
+                        <span class="document-overlay-outline-section-number">
+                          {String(index() + 1).padStart(2, '0')}
+                        </span>
                         {section.title}
                       </button>
                     )}
@@ -273,11 +306,13 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
             </aside>
 
             <article ref={paper} class="document-overlay-paper">
-              <header>
+              <header class="document-overlay-paper__header">
                 <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
-                  {(label) => <p>{label()}</p>}
+                  {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
                 </Show>
-                <h1>{displayDocumentTitle(documentValue())}</h1>
+                <h1 class="document-overlay-paper__title">
+                  {displayDocumentTitle(documentValue())}
+                </h1>
                 <Show when={displayDocumentSubtitle(documentValue())}>
                   {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
                 </Show>
@@ -311,13 +346,23 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                   return (
                     <section
                       class="document-overlay-section"
-                      classList={{ active: activeAnchor() === section.anchor }}
+                      classList={{
+                        'document-overlay-section--active': activeAnchor() === section.anchor,
+                      }}
                       id={section.anchor}
                     >
                       <Show when={normalize(path()) !== normalize(section.title)}>
                         <p class="document-overlay-path">{path()}</p>
                       </Show>
-                      <h2>{section.title}</h2>
+                      <h2
+                        class="document-overlay-section__title"
+                        classList={{
+                          'document-overlay-section__title--active':
+                            activeAnchor() === section.anchor,
+                        }}
+                      >
+                        {section.title}
+                      </h2>
                       <For each={section.chunks}>
                         {(chunk) => {
                           const renderBlock = () => readDocumentRenderBlock(chunk.metadata);
@@ -335,6 +380,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                                   <DocumentText
                                     text={chunk.originalText}
                                     query={query()}
+                                    paragraphClass="document-overlay-section__paragraph"
                                     sourceSpans={chunk.metadata?.['sourceSpans']}
                                     documentLinks={
                                       showDocumentLinks() ? documentLinks() : undefined

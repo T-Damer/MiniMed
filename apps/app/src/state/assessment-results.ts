@@ -2,7 +2,6 @@ import type {
   AssessmentAnswers,
   AssessmentRecord,
   CompletedAssessmentRecord,
-  ManualAssessmentRecord,
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
 
@@ -103,25 +102,6 @@ export function createCompletedAssessmentRecord(input: {
     kind: 'completed',
     answers: input.answers,
     result: input.result,
-  };
-  persist([record, ...loadAssessmentRecords()]);
-  return record;
-}
-
-export function createManualAssessmentRecord(input: {
-  readonly assessmentId: string;
-  readonly subjectLabel: string;
-  readonly text: string;
-}): ManualAssessmentRecord | null {
-  const text = input.text.trim();
-  if (!text) return null;
-  const record: ManualAssessmentRecord = {
-    id: createId(),
-    assessmentId: input.assessmentId,
-    subjectLabel: input.subjectLabel.trim(),
-    createdAt: new Date().toISOString(),
-    kind: 'manual',
-    text,
   };
   persist([record, ...loadAssessmentRecords()]);
   return record;

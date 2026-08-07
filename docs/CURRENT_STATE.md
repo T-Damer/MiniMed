@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 29 July 2026
+> Updated: 7 August 2026
 > Repository version: `0.6.10`
 > Active target: `0.6.10` public prerelease toward `1.0`
 
@@ -39,10 +39,13 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 ### Browser workspace
 
 - Three primary sections in a compact bottom navigation bubble: search, knowledge base, and personal
-  notes. View Transition viewport snapshots follow their left-to-right order: the next page slides
-  over the current one horizontally, while the bottom navigation remains fixed and interactive above
-  the transition. Rapid tab changes play through a serial queue; document, note, and local-model
-  subroutes remain instant.
+  notes. Root navigation commits immediately and uses a short CSS transform/opacity slide, while the
+  bottom navigation remains fixed and interactive. Rapid tab changes do not wait on View Transition
+  snapshots; document, note, and local-model subroutes remain instant. The scroll-to-top control
+  reserves the bottom-navigation band on long pages.
+- The bottom navigation is mounted only after the asynchronous MedicalCore bootstrap completes;
+  loading and error states therefore do not expose a menu whose routes are not ready yet. Tests and
+  calculators remain directly renderable while the search core loads.
 - Search mode is an explicit compact choice inside the query composer; the disabled field prompts for
   a mode first, and the horizontally scrollable mode strip above the query remains available for
   direct switching.
@@ -79,6 +82,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   document lists, all 21 recommendation sections without an extra reveal step, full-document opening,
   bulk download, background update pause, rollback to retained older versions, and nested URLs for
   opened collections and sections.
+- Assessment tests and medical calculators are grouped into downloadable sections. Catalog cards show
+  what is on the device, direct tool routes explain which section is missing, and installed tools keep
+  their offline-use state across reloads.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
   queued, and the selected model always receives its own download slot. A single document runtime
@@ -91,6 +97,14 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Browser application updates install in the background but wait for explicit approval in the shared
   floating system-status area before the new service worker activates and reloads the page.
 - The paper workspace follows the device light/dark preference without adding an application toggle.
+- Shared `Button` and `Card` primitives cover new tool/module surfaces; card readers open from the
+  whole card, destructive actions use confirmation dialogs, and icon-only trash controls keep secondary
+  actions compact. Modal state adds one navigator-history entry so Back closes the active modal first.
+- Assessment methodology and calculator formula/limitation details use dialogs instead of primary-page
+  accordions. Patient names are suggested from locally stored patient cards, and external/manual test
+  results can be saved into the same local result history.
+- Vertical mouse-wheel delta is translated into horizontal movement for the shared overflowing-strip
+  component, including mixed diagonal wheel input; touch and trackpad scrolling remain native.
 - Android draws the page background beneath its transparent status bar while safe-area padding keeps
   controls below it; system-bar icon contrast follows the device theme. Hardware Back closes the
   active dialog or drawer, returns through nested routes and root sections, then minimizes the app at
@@ -200,6 +214,13 @@ ordinary search response when validation fails.
   `scripts/publish-clinical-datasets-branch.sh` (also hooked into `publish-clinical-snapshot.yml`).
 - The runtime fingerprints actual module versions, digests, URLs, checksums, and sizes rather than only
   comparing catalog counts.
+- Regulatory catalog rows resolve Russian document titles, revision dates, and current/historical status;
+  document readers render structured tables as HTML tables rather than image blocks. The current 192н
+  pilot artifact is still a source-linked summary without the official specialist-visit schedule table;
+  that content gap must be filled from a reviewed full source before it is used as a clinical schedule.
+- Browser artifact QA can set `VITE_CONTENT_BASE_URL` to the remote `apps/app/public/` root and
+  `VITE_USE_LOCAL_MODULE_ARTIFACTS=false`; this fetches packaged databases and catalog modules from
+  their published remote URLs without using local `public/content` copies.
 - A unit gate verifies that catalog checksums and sizes match every thematic database hosted from the
   repository.
 
@@ -225,6 +246,9 @@ retrieval cases:
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
 document reading, source-context expansion, module lifecycle, responsive navigation, personal notes,
 and follow-up reminders.
+A browser QA pass also verifies that HTML or other non-SQLite responses at packaged database paths are
+rejected before WASM deserialization, so missing optional assets no longer block core boot and a
+missing core pack falls back to the embedded seed.
 The local 0.6.10 gate includes 26 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
 head.

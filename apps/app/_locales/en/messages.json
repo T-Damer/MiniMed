@@ -22,5 +22,35 @@
   "collection_pediatrics": {
     "message": "Clinical pediatrics",
     "description": "Module catalog collection id: pediatrics"
+  },
+  "document_count_one": {
+    "message": "$1 document",
+    "description": "Document count with English singular form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "document_count_few": {
+    "message": "$1 documents",
+    "description": "Document count with English plural form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "document_count_many": {
+    "message": "$1 documents",
+    "description": "Document count with English plural form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "15"
+      }
+    }
   }
 }
