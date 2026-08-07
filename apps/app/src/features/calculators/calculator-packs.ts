@@ -30,6 +30,8 @@ const SECTION_IDS = new Set<CalculatorSectionId>([
   'fluids',
   'medication',
   'screening',
+  'obstetrics',
+  'gynecology',
 ]);
 
 export const CALCULATOR_PACKS_EVENT = 'minimed:calculator-packs-changed';
@@ -59,6 +61,16 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
     id: 'medication',
     title: 'Лекарственные расчёты',
     description: 'Дозы, концентрации и правила округления после отдельной проверки источников.',
+  },
+  {
+    id: 'obstetrics',
+    title: 'Акушерство',
+    description: 'Срок беременности, предполагаемая дата родов и оценка готовности к родам.',
+  },
+  {
+    id: 'gynecology',
+    title: 'Гинекология',
+    description: 'Онкологический скрининг и другие гинекологические расчёты.',
   },
 ];
 

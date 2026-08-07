@@ -33,7 +33,22 @@ export interface DualCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
 }
 
-export type StoredCalculationResult = NumericCalculationResult | DualCalculationResult;
+export interface TextCalculationResult {
+  readonly ok: true;
+  readonly calculatorId: string;
+  readonly formula: string;
+  readonly textValues: readonly {
+    readonly label: string;
+    readonly text: string;
+  }[];
+  readonly trace: readonly CalculationTraceStep[];
+  readonly warnings: readonly CalculatorWarning[];
+}
+
+export type StoredCalculationResult =
+  | NumericCalculationResult
+  | DualCalculationResult
+  | TextCalculationResult;
 
 export interface CalculationFailure {
   readonly ok: false;

@@ -6,7 +6,9 @@ export type CalculatorCategory =
   | 'anthropometry'
   | 'fluids'
   | 'medication'
-  | 'screening';
+  | 'screening'
+  | 'obstetrics'
+  | 'gynecology';
 
 export interface CalculatorSourceReference {
   readonly title: string;
