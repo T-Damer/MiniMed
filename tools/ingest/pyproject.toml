@@ -20,7 +20,7 @@ medbase-catalog-modules = "localmed_ingest.catalog_module_cli:app"
 dev = [
   "pyright==1.1.411",
   "pytest==9.1.1",
-  "ruff==0.16.0",
+  "ruff==0.16.1",
 ]
 
 [build-system]
