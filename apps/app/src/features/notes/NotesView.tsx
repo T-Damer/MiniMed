@@ -1,6 +1,7 @@
 import { TextField } from '@kobalte/core/text-field';
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -524,15 +525,17 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
           </div>
         </Show>
 
-        <button
-          class="patient-notes-fab"
-          type="button"
-          aria-label="Создать карточку"
-          title="Новая карточка"
-          onClick={() => setCreating(true)}
-        >
-          <span aria-hidden="true">+</span>
-        </button>
+        <Portal>
+          <button
+            class="patient-notes-fab"
+            type="button"
+            aria-label="Создать карточку"
+            title="Новая карточка"
+            onClick={() => setCreating(true)}
+          >
+            <span aria-hidden="true">+</span>
+          </button>
+        </Portal>
       </Show>
 
       <Show when={route().kind === 'card'}>

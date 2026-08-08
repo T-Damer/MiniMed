@@ -733,7 +733,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                       ranges={result.highlightedRanges}
                                     />
                                   </p>
-                                  <span class="result-link">Открыть точный источник →</span>
                                 </button>
                               </article>
                             );
