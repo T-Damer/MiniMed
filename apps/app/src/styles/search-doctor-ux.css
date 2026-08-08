@@ -22,15 +22,6 @@
   display: none;
 }
 
-.result-link {
-  font-size: 0;
-}
-
-.result-link::after {
-  content: "Показать найденный фрагмент →";
-  font-size: 0.5625rem;
-}
-
 .analysis-details .branch-ledger {
   margin-top: 0.75rem;
 }

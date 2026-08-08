@@ -155,7 +155,6 @@
     color: var(--theme-text-muted);
   }
 
-  .module-page .knowledge-subroute-heading > button,
   .module-page .module-version-history button {
     border-color: var(--theme-border);
     color: var(--theme-text);
@@ -164,6 +163,25 @@
 
   .module-page .module-catalog-version {
     border-color: var(--theme-border);
+    background: var(--theme-surface-muted);
+  }
+
+  .analysis-details {
+    border-color: var(--theme-border);
+    background: var(--theme-surface-muted);
+  }
+
+  .analysis-details summary {
+    color: var(--theme-text-muted);
+  }
+
+  .analysis-details[open] summary {
+    border-bottom-color: var(--theme-border);
+  }
+
+  .source-context-toggle button {
+    border-color: var(--theme-border);
+    color: var(--theme-text-muted);
     background: var(--theme-surface-muted);
   }
 

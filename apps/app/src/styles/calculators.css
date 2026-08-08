@@ -181,7 +181,8 @@ html.calculator-route-open body {
   background: var(--theme-accent);
 }
 
-.calculator-section-action {
+.calculator-section-actions .calculator-section-action,
+.calculator-section-page-header .calculator-section-action {
   display: inline-grid;
   width: 2.5rem;
   height: 2.5rem;

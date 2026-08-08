@@ -520,10 +520,6 @@
   line-height: 1.4;
 }
 
-.search-workspace-main .result-link {
-  font-size: 0.4375rem;
-}
-
 /* Compact history beside search */
 .search-history-panel {
   position: sticky;
@@ -2090,7 +2086,7 @@ fieldset.search-mode-picker {
   cursor: pointer;
 }
 
-body:has(.app-view.active .patient-notes-fab) .scroll-top-button {
+body:has(.patient-notes-fab) .scroll-top-button {
   right: max(
     1.25rem,
     calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))

@@ -1291,12 +1291,6 @@ main {
   text-transform: uppercase;
 }
 
-.result-link {
-  color: var(--stamp);
-  font-weight: 800;
-  white-space: nowrap;
-}
-
 .no-results-card {
   padding: 2.125rem;
   border: 1px dashed #766742;
