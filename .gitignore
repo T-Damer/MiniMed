@@ -43,5 +43,9 @@ localmed-search.bundle
 # Private ambulatory literature pack (copyrighted textbooks — local only)
 apps/app/public/content/ambulatory.db
 
+# Full medications.db exceeds GitHub's 100MB limit; fetched from a GitHub Release at build/deploy
+# time (see .github/workflows/landing-pages.yml). Do not commit the full file here.
+apps/app/public/content/medications.db
+
 # Personal medical study library (12GB+, not app source)
 Med/
