@@ -11,10 +11,12 @@ import type {
 } from '@/features/calculators/calculator-packs';
 import {
   CALCULATOR_PACKS_EVENT,
+  CALCULATOR_SECTION_CATEGORY_IDS,
   CALCULATOR_SECTIONS,
   calculatorsInSection,
   installCalculatorSection,
   isCalculatorSectionComplete,
+  isCalculatorSectionCore,
   loadCalculatorInstallationState,
   removeCalculatorSection,
 } from '@/features/calculators/calculator-packs';
@@ -66,10 +68,24 @@ import {
   loadCalculationHistory,
   saveCalculationRecord,
 } from '@/state/calculation-history';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
+}
+
+function relatedCategoriesForSection(
+  sectionId: CalculatorSectionId,
+): readonly { readonly id: string; readonly title: string }[] {
+  return CALCULATOR_SECTION_CATEGORY_IDS[sectionId]
+    .map((categoryId) => MODULE_CATALOG.categories.find((category) => category.id === categoryId))
+    .filter((category) => category !== undefined)
+    .map((category) => ({ id: category.id, title: category.title }));
+}
+
+function openRecommendationCategory(categoryId: string): void {
+  window.location.hash = `#/modules/documents/category/${encodeURIComponent(categoryId)}`;
 }
 
 function parseNumber(value: string): number {
@@ -155,6 +171,7 @@ function CalculatorSectionCard(props: {
     ).length;
   const complete = () =>
     isCalculatorSectionComplete(props.section.id, props.installation, props.definitions);
+  const core = () => isCalculatorSectionCore(props.section.id, props.definitions);
 
   return (
     <section
@@ -173,13 +190,15 @@ function CalculatorSectionCard(props: {
           <h2>{props.section.title}</h2>
           <p>{props.section.description}</p>
           <small>
-            {availableCount() > 0
-              ? `${installedCount()}/${availableCount()} скачано на устройство`
-              : 'Доступных инструментов пока нет · источники и правила ещё проверяются'}
+            {availableCount() === 0
+              ? 'Доступных инструментов пока нет · источники и правила ещё проверяются'
+              : core()
+                ? 'Всегда доступно, без скачивания'
+                : `${installedCount()}/${availableCount()} скачано на устройство`}
           </small>
         </div>
         <div class="calculator-section-actions">
-          <Show when={availableCount() > 0}>
+          <Show when={availableCount() > 0 && !core()}>
             <button
               type="button"
               class="calculator-section-action"
@@ -218,6 +237,7 @@ function CalculatorSectionPage(props: {
   const definitions = () => calculatorsInSection(props.section.id, props.definitions);
   const complete = () =>
     isCalculatorSectionComplete(props.section.id, props.installation, props.definitions);
+  const core = () => isCalculatorSectionCore(props.section.id, props.definitions);
 
   return (
     <section class="calculator-section-page">
@@ -236,26 +256,40 @@ function CalculatorSectionPage(props: {
           <h1>{props.section.title}</h1>
           <p>{props.section.description}</p>
         </div>
-        <button
-          type="button"
-          class="calculator-section-action"
-          classList={{ 'calculator-section-remove': complete() }}
-          aria-label={
-            complete()
-              ? `Удалить раздел «${props.section.title}»`
-              : `Скачать раздел «${props.section.title}»`
-          }
-          title={complete() ? 'Удалить раздел' : 'Скачать раздел'}
-          onClick={() =>
-            complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
-          }
-        >
-          <AppGlyph
-            class="calculator-section-action-icon"
-            name={complete() ? 'trash' : 'download'}
-          />
-        </button>
+        <Show when={!core()}>
+          <button
+            type="button"
+            class="calculator-section-action"
+            classList={{ 'calculator-section-remove': complete() }}
+            aria-label={
+              complete()
+                ? `Удалить раздел «${props.section.title}»`
+                : `Скачать раздел «${props.section.title}»`
+            }
+            title={complete() ? 'Удалить раздел' : 'Скачать раздел'}
+            onClick={() =>
+              complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
+            }
+          >
+            <AppGlyph
+              class="calculator-section-action-icon"
+              name={complete() ? 'trash' : 'download'}
+            />
+          </button>
+        </Show>
       </header>
+      <Show when={relatedCategoriesForSection(props.section.id).length > 0}>
+        <div class="calculator-section-related">
+          <span>По теме:</span>
+          <For each={relatedCategoriesForSection(props.section.id)}>
+            {(category) => (
+              <button type="button" onClick={() => openRecommendationCategory(category.id)}>
+                {category.title}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
       <div class="calculator-catalog-grid">
         <For each={definitions()}>
           {(definition) => (
@@ -1246,6 +1280,8 @@ export function CalculatorsView(): JSX.Element {
 
   const installSection = (sectionId: CalculatorSectionId): void => {
     setInstallation(installCalculatorSection(sectionId));
+    const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
+    notify(`«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`);
   };
 
   const removeSection = (sectionId: CalculatorSectionId): void => {

@@ -2443,6 +2443,29 @@ body:has(.patient-notes-fab) .scroll-top-button {
   text-align: left;
 }
 
+.patient-note-record > button:first-child p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.patient-note-record-thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.patient-note-record-thumbnails img {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.25rem;
+  object-fit: cover;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .patient-note-record > button:first-child:not(:disabled):hover {
     transform: none;

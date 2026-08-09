@@ -260,6 +260,28 @@ html.calculator-route-open body {
   color: var(--theme-text-muted);
 }
 
+.calculator-section-related {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calculator-section-related span {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.calculator-section-related button {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-link);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
 .calculator-section-back,
 .calculator-section-page-header .calculator-section-action {
   display: inline-grid;

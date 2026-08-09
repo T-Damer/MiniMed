@@ -23,7 +23,8 @@ export type AppGlyphName =
   | 'edit'
   | 'trash'
   | 'printer'
-  | 'share';
+  | 'share'
+  | 'arrow-square-up-right';
 
 export function AppGlyph(props: {
   readonly name: AppGlyphName;
@@ -169,6 +170,13 @@ export function AppGlyph(props: {
           <circle cx="17.5" cy="6" r="2" />
           <circle cx="17.5" cy="18" r="2" />
           <path d="m7.8 11 7.8-4M7.8 13l7.8 4" />
+        </>
+      )}
+      {props.name === 'arrow-square-up-right' && (
+        <>
+          <rect x="3.5" y="3.5" width="17" height="17" rx="3" />
+          <path d="M10 14 20 4" />
+          <path d="M13 4h7v7" />
         </>
       )}
     </svg>

@@ -256,6 +256,14 @@
     color: #e09a8d;
   }
 
+  .document-inline-link {
+    color: var(--theme-link);
+  }
+
+  .document-inline-link:hover {
+    color: color-mix(in srgb, var(--theme-link) 80%, white);
+  }
+
   .patient-card {
     color: var(--theme-text);
     background: var(--theme-note);
