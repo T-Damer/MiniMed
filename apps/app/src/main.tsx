@@ -20,6 +20,7 @@ import '@/styles/search-scope-radio.css';
 import '@/styles/download-status.css';
 import '@/styles/theme-dark.css';
 import '@/styles/medications.css';
+import '@/styles/medication-interactions.css';
 import '@/styles/assessments.css';
 import '@/styles/calculators.css';
 import '@/styles/tool-routes.css';
