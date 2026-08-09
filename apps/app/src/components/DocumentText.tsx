@@ -2,6 +2,7 @@ import { For, type JSX } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
+import { stripKnownHtmlMarkup } from '@/components/html-markup';
 import { openAssessment } from '@/features/assessments/assessment-links';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import {
@@ -118,7 +119,8 @@ export function DocumentText(props: {
   readonly onReference?: ((reference: string) => void) | undefined;
   readonly query?: string | undefined;
 }): JSX.Element {
-  const groups = () => groupBlocks(parseDocumentText(props.text, props.sourceSpans));
+  const groups = () =>
+    groupBlocks(parseDocumentText(stripKnownHtmlMarkup(props.text), props.sourceSpans));
   const inline = (text: string): JSX.Element => (
     <InlineDocumentText
       text={text}

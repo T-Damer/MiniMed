@@ -36,6 +36,30 @@ const SECTION_IDS = new Set<CalculatorSectionId>([
 
 export const CALCULATOR_PACKS_EVENT = 'minimed:calculator-packs-changed';
 
+/**
+ * Calculators with no specialty tie (unlike renal/obstetrics/etc.) that stay usable without an
+ * explicit section download. Keep this list short and only add calculators nothing else depends on.
+ */
+export const CORE_CALCULATOR_IDS: ReadonlySet<string> = new Set(['unit-conversion']);
+
+/**
+ * Links a calculator section to the clinical-recommendation categories (real ids from
+ * catalog.preview.json) it's most relevant to. Sections without an unambiguous specialty match
+ * (unit-conversion, medication) are intentionally left unlinked.
+ */
+export const CALCULATOR_SECTION_CATEGORY_IDS: Readonly<
+  Record<CalculatorSectionId, readonly string[]>
+> = {
+  'unit-conversion': [],
+  anthropometry: ['minimed.clinical.pediatrics-general.ru'],
+  renal: ['minimed.clinical.nephrology-urology.ru'],
+  fluids: ['minimed.clinical.pediatrics-general.ru'],
+  medication: [],
+  screening: [],
+  obstetrics: ['minimed.clinical.obstetrics-gynecology.ru'],
+  gynecology: ['minimed.clinical.obstetrics-gynecology.ru'],
+};
+
 export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
   {
     id: 'unit-conversion',
@@ -113,7 +137,9 @@ function installedIdsFromSections(
   return new Set(
     definitions
       .filter(
-        (definition) => definition.state === 'available' && sectionIds.has(definition.category),
+        (definition) =>
+          definition.state === 'available' &&
+          (CORE_CALCULATOR_IDS.has(definition.id) || sectionIds.has(definition.category)),
       )
       .map((definition) => definition.id),
   );
@@ -164,10 +190,16 @@ export function isCalculatorSectionComplete(
 ): boolean {
   const available = availableDefinitions(definitions, sectionId);
   return (
-    state.sectionIds.has(sectionId) &&
-    available.length > 0 &&
-    available.every((definition) => state.installedIds.has(definition.id))
+    available.length > 0 && available.every((definition) => state.installedIds.has(definition.id))
   );
+}
+
+export function isCalculatorSectionCore(
+  sectionId: CalculatorSectionId,
+  definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
+): boolean {
+  const available = availableDefinitions(definitions, sectionId);
+  return available.length > 0 && available.every((definition) => CORE_CALCULATOR_IDS.has(definition.id));
 }
 
 function persist(

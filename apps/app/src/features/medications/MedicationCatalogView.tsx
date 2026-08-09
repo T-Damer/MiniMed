@@ -1,4 +1,4 @@
-import type { MedicalCore, MedicalDocument } from '@localmed/contracts';
+import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
 import {
   createEffect,
   createMemo,
@@ -9,8 +9,10 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { stripKnownHtmlMarkupInline } from '@/components/html-markup';
 import {
   type MedicationProduct,
   medicationDocumentRegistration,
@@ -55,36 +57,43 @@ function productVariants(product: MedicationProduct): readonly PackageVariant[] 
   return product.presentations.flatMap((presentation, presentationIndex) =>
     presentation.packages.map((item, packageIndex) => ({
       key: `${presentationIndex}-${packageIndex}`,
-      dosageForm: presentation.dosageForm,
+      dosageForm: stripKnownHtmlMarkupInline(presentation.dosageForm),
       strength: presentation.strength,
-      description: item.description,
+      description: stripKnownHtmlMarkupInline(item.description),
       prescriptionStatus: item.prescriptionStatus ?? product.prescriptionStatus,
     })),
   );
 }
 
-async function loadProducts(core: MedicalCore): Promise<readonly MedicationProduct[]> {
-  const summaries = await core.listDocuments();
-  if (!summaries.ok) throw new Error(summaries.error.message);
-  const medicationSummaries = summaries.value.filter((document) =>
-    ['allmed_reference', 'official_drug_instruction', 'official_registry_summary'].includes(
-      document.sourceType,
-    ),
-  );
+// Fetching one document at a time (~4700 of them) serialized every round trip and blocked the
+// first paint. Batching keeps the number of in-flight requests bounded while still resolving the
+// whole catalog far faster than the original sequential loop.
+const DOCUMENT_FETCH_BATCH_SIZE = 60;
+
+async function fetchDocumentsInBatches(
+  core: MedicalCore,
+  summaries: readonly MedicalDocumentSummary[],
+  onBatch?: (documents: readonly MedicalDocument[]) => void,
+): Promise<readonly MedicalDocument[]> {
   const documents: MedicalDocument[] = [];
-  for (const summary of medicationSummaries) {
-    const result = await core.getDocument(summary.id);
-    if (!result.ok) throw new Error(result.error.message);
-    documents.push(result.value);
+  for (let start = 0; start < summaries.length; start += DOCUMENT_FETCH_BATCH_SIZE) {
+    const batch = summaries.slice(start, start + DOCUMENT_FETCH_BATCH_SIZE);
+    const results = await Promise.all(batch.map((summary) => core.getDocument(summary.id)));
+    const batchDocuments: MedicalDocument[] = [];
+    for (const result of results) {
+      if (!result.ok) throw new Error(result.error.message);
+      batchDocuments.push(result.value);
+    }
+    documents.push(...batchDocuments);
+    onBatch?.(batchDocuments);
   }
-  const instructions = new Map(
-    documents
-      .filter((document) => document.sourceType === 'official_drug_instruction')
-      .flatMap((document) => {
-        const registration = medicationDocumentRegistration(document);
-        return registration ? [[registration, document.id] as const] : [];
-      }),
-  );
+  return documents;
+}
+
+function toProducts(
+  documents: readonly MedicalDocument[],
+  instructions: ReadonlyMap<string, string>,
+): readonly MedicationProduct[] {
   const registryProducts = documents
     .filter((document) => document.sourceType === 'official_registry_summary')
     .flatMap((document) => {
@@ -94,15 +103,54 @@ async function loadProducts(core: MedicalCore): Promise<readonly MedicationProdu
         registration ? (instructions.get(registration) ?? null) : null,
       );
       return product ? [product] : [];
-    })
-    .toSorted((left, right) => left.tradeName.localeCompare(right.tradeName, 'ru'));
+    });
   const allmedProducts = documents.flatMap((document) => {
     const product = parseAllmedMedicationProduct(document);
     return product ? [product] : [];
   });
-  return [...registryProducts, ...allmedProducts].toSorted((left, right) =>
-    left.tradeName.localeCompare(right.tradeName, 'ru'),
+  return [...registryProducts, ...allmedProducts];
+}
+
+/**
+ * Loads the medication catalog progressively: instruction documents are resolved first (needed to
+ * cross-reference registry entries), then registry/allmed documents stream in batches so the list
+ * can render as data arrives instead of blocking on the full ~4700-document catalog.
+ */
+async function loadProducts(
+  core: MedicalCore,
+  onUpdate: (products: readonly MedicationProduct[]) => void,
+): Promise<void> {
+  const summaries = await core.listDocuments();
+  if (!summaries.ok) throw new Error(summaries.error.message);
+  const medicationSummaries = summaries.value.filter((document) =>
+    ['allmed_reference', 'official_drug_instruction', 'official_registry_summary'].includes(
+      document.sourceType,
+    ),
   );
+  const instructionSummaries = medicationSummaries.filter(
+    (document) => document.sourceType === 'official_drug_instruction',
+  );
+  const otherSummaries = medicationSummaries.filter(
+    (document) => document.sourceType !== 'official_drug_instruction',
+  );
+
+  const instructionDocuments = await fetchDocumentsInBatches(core, instructionSummaries);
+  const instructions = new Map(
+    instructionDocuments.flatMap((document) => {
+      const registration = medicationDocumentRegistration(document);
+      return registration ? [[registration, document.id] as const] : [];
+    }),
+  );
+
+  let accumulated: readonly MedicationProduct[] = [];
+  await fetchDocumentsInBatches(core, otherSummaries, (batchDocuments) => {
+    accumulated = accumulated.concat(toProducts(batchDocuments, instructions));
+    onUpdate(
+      [...accumulated].toSorted((left, right) =>
+        left.tradeName.localeCompare(right.tradeName, 'ru'),
+      ),
+    );
+  });
 }
 
 export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.Element {
@@ -117,8 +165,16 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const refresh = async (): Promise<void> => {
     setLoading(true);
     setError(undefined);
+    setProducts([]);
+    let firstBatchSeen = false;
     try {
-      setProducts(await loadProducts(props.core));
+      await loadProducts(props.core, (next) => {
+        setProducts(next);
+        if (!firstBatchSeen) {
+          firstBatchSeen = true;
+          setLoading(false);
+        }
+      });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось открыть базу препаратов.');
     } finally {
@@ -191,8 +247,9 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
           <SearchWorkspace
             core={medicationCore()}
             scope="medications"
+            compact
             searchAllowed={!loading() && products().length > 0}
-            placeholder="Название, МНН, показание или фрагмент инструкции"
+            placeholder="Название, МНН, показание…"
             examples={[
               'Мирамистин',
               'Мирамистин показания',
@@ -213,27 +270,32 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
           </Show>
           <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
           <div class="medication-grid">
-            <For each={products()}>
+            <WindowVirtualizer data={products()} bufferSize={400}>
               {(product) => {
                 const variants = () => productVariants(product);
+                const description = () =>
+                  stripKnownHtmlMarkupInline(product.presentations[0]?.dosageForm ?? '');
                 return (
                   <button
                     type="button"
                     class="medication-product-card paper-card"
                     onClick={() => openProduct(product)}
                   >
+                    <AppGlyph
+                      name="arrow-square-up-right"
+                      class="medication-product-card-open-icon"
+                    />
                     <span class="medication-card-state">{product.registrationStatus}</span>
                     <strong>{product.tradeName}</strong>
                     <p>{product.inn}</p>
                     <div>
-                      <span>{product.presentations[0]?.dosageForm}</span>
+                      <span class="medication-card-description">{description()}</span>
                       <span>{variants().length} вариантов упаковки</span>
                     </div>
-                    <em>Открыть карточку →</em>
                   </button>
                 );
               }}
-            </For>
+            </WindowVirtualizer>
           </div>
         </section>
       </Show>

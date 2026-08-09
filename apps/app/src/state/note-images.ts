@@ -115,6 +115,37 @@ export async function loadNoteImages(noteId: string): Promise<readonly NoteImage
   }
 }
 
+export async function loadNoteImagesForNotes(
+  noteIds: readonly string[],
+): Promise<ReadonlyMap<string, readonly NoteImage[]>> {
+  if (noteIds.length === 0 || !('indexedDB' in globalThis) || !indexedDB) return new Map();
+  const wanted = new Set(noteIds);
+  const database = await openDatabase();
+  try {
+    const records = await new Promise<readonly NoteImage[]>((resolve, reject) => {
+      const request = database
+        .transaction(STORE_NAME, 'readonly')
+        .objectStore(STORE_NAME)
+        .getAll() as IDBRequest<NoteImage[]>;
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () =>
+        reject(request.error ?? new Error('Не удалось загрузить изображения.'));
+    });
+    const byNote = new Map<string, NoteImage[]>();
+    for (const record of records.toSorted((left, right) =>
+      left.createdAt.localeCompare(right.createdAt),
+    )) {
+      if (!wanted.has(record.noteId)) continue;
+      const existing = byNote.get(record.noteId);
+      if (existing) existing.push(record);
+      else byNote.set(record.noteId, [record]);
+    }
+    return byNote;
+  } finally {
+    database.close();
+  }
+}
+
 export async function deleteNoteImage(imageIdValue: string): Promise<void> {
   if (!imageIdValue || !('indexedDB' in globalThis) || !indexedDB) return;
   const database = await openDatabase();

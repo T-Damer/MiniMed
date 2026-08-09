@@ -47,6 +47,8 @@ interface SearchWorkspaceProps {
   readonly placeholder?: string;
   readonly examples?: readonly string[];
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
+  /** Collapse to a single-line bar until focused or typed into; used when embedded above a scrollable list. */
+  readonly compact?: boolean;
 }
 
 const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
@@ -187,6 +189,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
   const [contextLoading, setContextLoading] = createSignal(false);
   const [error, setError] = createSignal<string>();
+  const [focused, setFocused] = createSignal(false);
+  const expanded = createMemo(() => !props.compact || focused() || query().length > 0);
   let textarea: HTMLTextAreaElement | undefined;
   let analysisTimer: ReturnType<typeof setTimeout> | undefined;
   let searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -231,6 +235,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       void runSearch(query(), false);
     }
     searchWasAllowed = allowed;
+  });
+
+  createEffect(() => {
+    if (expanded() && textarea) resizeTextarea(textarea);
   });
 
   const handleReplaySearch = (event: Event): void => {
@@ -455,7 +463,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   return (
-    <section class="workspace archive-desk" aria-label="Локальный медицинский поиск">
+    <section
+      class="workspace archive-desk"
+      classList={{
+        'workspace-compact': props.compact ?? false,
+        'workspace-expanded': expanded(),
+      }}
+      aria-label="Локальный медицинский поиск"
+    >
       <div
         class="search-column case-folder"
         classList={{ 'has-search-content': query().length > 0 }}
@@ -469,23 +484,25 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             void runSearch(query(), true);
           }}
         >
-          <div class="query-actions query-mode-actions">
-            <HorizontalScroller
-              class="query-shortcuts"
-              controls
-              hideScrollbar
-              controlLabel="режимы поиска"
-            >
-              {props.modePicker}
-            </HorizontalScroller>
-          </div>
+          <Show when={expanded()}>
+            <div class="query-actions query-mode-actions">
+              <HorizontalScroller
+                class="query-shortcuts"
+                controls
+                hideScrollbar
+                controlLabel="режимы поиска"
+              >
+                {props.modePicker}
+              </HorizontalScroller>
+            </div>
+          </Show>
           <label class="sr-only" for="clinical-query">
             Поисковый запрос
           </label>
           <textarea
             ref={(element) => {
               textarea = element;
-              resizeTextarea(element);
+              if (!props.compact) resizeTextarea(element);
             }}
             id="clinical-query"
             data-testid="search-input"
@@ -495,6 +512,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               resizeTextarea(event.currentTarget);
             }}
             onKeyDown={handleKeyDown}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             placeholder={
               props.placeholder ?? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
             }
@@ -504,40 +523,46 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             autocapitalize="sentences"
             spellcheck={false}
           />
-          <div class="query-actions">
-            <Show when={query().length > 16_000}>
-              <strong class="query-character-count">
-                {query().length.toLocaleString('ru-RU')} / 20 000
-              </strong>
-            </Show>
-            <div class="query-buttons">
-              <Show when={query().length > 0}>
-                <button class="text-button clear-query-button" type="button" onClick={clearQuery}>
-                  <AppGlyph name="trash" />
-                  <span>Очистить</span>
-                </button>
+          <Show when={expanded()}>
+            <div class="query-actions">
+              <Show when={query().length > 16_000}>
+                <strong class="query-character-count">
+                  {query().length.toLocaleString('ru-RU')} / 20 000
+                </strong>
               </Show>
-              <div
-                class="search-submit-reveal"
-                classList={{ visible: props.searchAllowed !== false }}
-                aria-hidden={props.searchAllowed === false}
-              >
-                <div>
+              <div class="query-buttons">
+                <Show when={query().length > 0}>
                   <button
-                    class="search-button"
-                    data-testid="search-submit"
-                    data-haptic="medium"
-                    type="submit"
-                    tabindex={props.searchAllowed === false ? -1 : undefined}
-                    disabled={loading() || props.searchAllowed === false}
+                    class="text-button clear-query-button"
+                    type="button"
+                    onClick={clearQuery}
                   >
-                    <span>{loading() ? 'Ищем…' : 'Найти сейчас'}</span>
-                    <b aria-hidden="true">↵</b>
+                    <AppGlyph name="trash" />
+                    <span>Очистить</span>
                   </button>
+                </Show>
+                <div
+                  class="search-submit-reveal"
+                  classList={{ visible: props.searchAllowed !== false }}
+                  aria-hidden={props.searchAllowed === false}
+                >
+                  <div>
+                    <button
+                      class="search-button"
+                      data-testid="search-submit"
+                      data-haptic="medium"
+                      type="submit"
+                      tabindex={props.searchAllowed === false ? -1 : undefined}
+                      disabled={loading() || props.searchAllowed === false}
+                    >
+                      <span>{loading() ? 'Ищем…' : 'Найти сейчас'}</span>
+                      <b aria-hidden="true">↵</b>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </Show>
         </form>
 
         <Show when={activeAnalysis()}>

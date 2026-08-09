@@ -12,6 +12,7 @@ import { openDocumentOverlay } from '@/state/document-navigation';
 import {
   addNoteImages,
   loadNoteImages,
+  loadNoteImagesForNotes,
   NOTE_IMAGES_EVENT,
   type NoteImage,
 } from '@/state/note-images';
@@ -204,6 +205,10 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
   const [reminderTime, setReminderTime] = createSignal('');
   const [notificationMessage, setNotificationMessage] = createSignal('');
   const [noteImages, setNoteImages] = createSignal<readonly NoteImage[]>([]);
+  const [recordImages, setRecordImages] = createSignal<ReadonlyMap<string, readonly NoteImage[]>>(
+    new Map(),
+  );
+  const [imagesTick, setImagesTick] = createSignal(0);
   const [pendingImages, setPendingImages] = createSignal<readonly File[]>([]);
   const [imageError, setImageError] = createSignal('');
   const [completionDraft, setCompletionDraft] = createSignal('');
@@ -276,6 +281,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     setImageError('');
   };
   const refreshImages = (): void => {
+    setImagesTick((tick) => tick + 1);
     const note = activeNote();
     if (!note) {
       setNoteImages([]);
@@ -351,6 +357,17 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
     snapshot()
       .notes.filter((note) => note.cardId === cardId)
       .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt));
+
+  createEffect(() => {
+    imagesTick();
+    const cardId = routeCardId();
+    const ids = cardId ? notesForCard(cardId).map((note) => note.id) : [];
+    if (ids.length === 0) {
+      setRecordImages(new Map());
+      return;
+    }
+    void loadNoteImagesForNotes(ids).then(setRecordImages);
+  });
   const documentTitle = (documentId: string): string | null =>
     documents().find((document) => document.id === documentId)?.title ?? null;
   const relatedDocuments = (
@@ -615,6 +632,13 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                           onClick={() => navigate(notesPath(card().id, note.id))}
                         >
                           <small>{formatDate(note.createdAt)}</small>
+                          <Show when={(recordImages().get(note.id)?.length ?? 0) > 0}>
+                            <div class="patient-note-record-thumbnails">
+                              <For each={recordImages().get(note.id)}>
+                                {(image) => <img src={image.dataUrl} alt="" loading="lazy" />}
+                              </For>
+                            </div>
+                          </Show>
                           <p>{note.text}</p>
                         </button>
                         <Show when={note.reminder}>

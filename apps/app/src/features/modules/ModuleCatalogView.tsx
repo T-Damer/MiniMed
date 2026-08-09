@@ -21,6 +21,10 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
+import {
+  CALCULATOR_SECTION_CATEGORY_IDS,
+  CALCULATOR_SECTIONS,
+} from '@/features/calculators/calculator-packs';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { ContentModuleCard } from '@/features/modules/ContentModuleCard';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
@@ -117,6 +121,18 @@ function categoryInstallLabel(
   }
   if (categoryBusy) return 'Скачиваем…';
   return 'Скачать';
+}
+
+function relatedCalculatorSectionsForCategory(
+  categoryId: string,
+): readonly (typeof CALCULATOR_SECTIONS)[number][] {
+  return CALCULATOR_SECTIONS.filter((section) =>
+    CALCULATOR_SECTION_CATEGORY_IDS[section.id].includes(categoryId),
+  );
+}
+
+function openCalculatorSection(sectionId: string): void {
+  window.location.hash = `#/calculators/section/${sectionId}`;
 }
 
 export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
@@ -915,6 +931,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   </button>
                 </div>
               </div>
+              <Show
+                when={relatedCalculatorSectionsForCategory(recommendationCategory()).length > 0}
+              >
+                <div class="recommendation-related-calculators">
+                  <span>Калькуляторы по теме:</span>
+                  <For each={relatedCalculatorSectionsForCategory(recommendationCategory())}>
+                    {(section) => (
+                      <button type="button" onClick={() => openCalculatorSection(section.id)}>
+                        {section.title}
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </Show>
             </Show>
 
             <Show when={browsingSearch()}>

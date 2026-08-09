@@ -89,14 +89,21 @@ async function main() {
       ? 'application/pdf'
       : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
   const replicate = new Replicate({ auth: token });
-  const output = await replicate.run(MODEL, {
+  const created = await replicate.predictions.create({
+    model: MODEL,
     input: {
       file: new File([source], basename(resolvedInput), { type: mediaType }),
       force_ocr: true,
       use_llm: plan.useLlm,
     },
   });
-  const marker = output;
+  // replicate.run() can resolve with a partially attached output on large responses (e.g. long
+  // image-URL arrays). Poll to a terminal state explicitly and read output from that final record.
+  const finished = await replicate.wait(created);
+  if (finished.status !== 'succeeded') {
+    throw new Error(`Replicate prediction ${finished.status}: ${finished.error ?? 'no error detail'}`);
+  }
+  const marker = finished.output;
   if (
     !marker ||
     typeof marker !== 'object' ||
@@ -105,6 +112,10 @@ async function main() {
   ) {
     throw new Error('Replicate Marker returned no Markdown.');
   }
+
+  const imageUrls = Array.isArray(marker.images)
+    ? marker.images.filter((value) => typeof value === 'string')
+    : [];
 
   const report = {
     schemaVersion: 1,
@@ -119,6 +130,7 @@ async function main() {
     pageCount:
       'page_count' in marker && typeof marker.page_count === 'number' ? marker.page_count : null,
     markdown: marker.markdown,
+    imageUrls,
   };
   await mkdir(resolve(OUTPUT_ROOT), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
