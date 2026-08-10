@@ -111,11 +111,11 @@
     "native:source:check": "bun scripts/check-native-bridge.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.5",
-    "@playwright/test": "1.62.0",
-    "@types/node": "26.1.1",
+    "@biomejs/biome": "2.5.7",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.2.0",
     "replicate": "1.4.0",
-    "tsx": "4.23.1",
+    "tsx": "4.23.11",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   }
