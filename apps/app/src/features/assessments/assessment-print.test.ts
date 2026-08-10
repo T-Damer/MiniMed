@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { loadAssessmentDefinition } from '@/features/assessments/assessment-catalog';
-import { printBlankAssessment } from '@/features/assessments/assessment-print';
+import {
+  printBlankAssessment,
+  shareAssessmentRecord,
+} from '@/features/assessments/assessment-print';
 
 describe('assessment print layout', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -37,5 +40,26 @@ describe('assessment print layout', () => {
       'href="http://127.0.0.1:5175/#/assessments/braverman-behavioral-profile"',
     );
     expect(markup).toContain('class="footer-qr"');
+  });
+
+  it('reports clipboard share success and failure through its promise contract', async () => {
+    const definition = await loadAssessmentDefinition('perinatal-mood-whooley');
+    const record = {
+      id: 'assessment-share-test',
+      assessmentId: definition.id,
+      subjectLabel: '',
+      createdAt: '2026-08-10T10:00:00.000Z',
+      kind: 'manual' as const,
+      text: 'Внешний результат',
+    };
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    await expect(shareAssessmentRecord(definition, record)).resolves.toBe('copied');
+    expect(writeText).toHaveBeenCalledOnce();
+
+    writeText.mockRejectedValueOnce(new Error('clipboard unavailable'));
+    await expect(shareAssessmentRecord(definition, record)).rejects.toThrow(
+      'clipboard unavailable',
+    );
   });
 });

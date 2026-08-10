@@ -2,10 +2,6 @@
   display: none;
 }
 
-.clinical-plan-card > span {
-  display: none;
-}
-
 .result-summary {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -15,10 +11,6 @@
 }
 
 .result-group-header .group-count {
-  display: none;
-}
-
-.source-reader-actions > small {
   display: none;
 }
 

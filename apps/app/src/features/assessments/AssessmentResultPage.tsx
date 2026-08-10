@@ -1,4 +1,4 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -39,8 +39,26 @@ export function AssessmentResultPage(props: {
   const [notePanelOpen, setNotePanelOpen] = createSignal(false);
   const [selectedCardId, setSelectedCardId] = createSignal('');
   const [newCardTitle, setNewCardTitle] = createSignal('');
+  const [methodologyOpen, setMethodologyOpen] = createSignal(false);
+  const [shareMessage, setShareMessage] = createSignal('');
   const completed = () => (props.record.kind === 'completed' ? props.record.result : undefined);
   const manualText = () => (props.record.kind === 'manual' ? props.record.text : '');
+
+  onMount(() => {
+    const hideFloatingControls = (): void => {
+      document
+        .querySelector<HTMLElement>('.patient-notes-fab')
+        ?.classList.add('assessment-patient-notes-fab--hidden');
+    };
+    hideFloatingControls();
+    const timer = window.setTimeout(hideFloatingControls, 0);
+    onCleanup(() => window.clearTimeout(timer));
+  });
+  onCleanup(() => {
+    document
+      .querySelector<HTMLElement>('.patient-notes-fab')
+      ?.classList.remove('assessment-patient-notes-fab--hidden');
+  });
 
   const saveToNote = (): void => {
     let cardId = selectedCardId();
@@ -72,20 +90,35 @@ export function AssessmentResultPage(props: {
   return (
     <article class="assessment-result-page">
       <header class="assessment-subpage-header">
-        <button
-          type="button"
-          class="knowledge-back-button"
-          aria-label="К тесту"
-          onClick={props.onBack}
-        >
-          <AppGlyph name="arrow-left" />
-        </button>
-        <div>
+        <div class="assessment-subpage-header-actions assessment-subpage-header-actions--leading">
+          <button
+            type="button"
+            class="knowledge-back-button"
+            aria-label="К тесту"
+            onClick={props.onBack}
+          >
+            <AppGlyph name="arrow-left" />
+          </button>
+        </div>
+        <div class="assessment-subpage-header__content">
           <p class="archive-kicker">Результат сохранён локально</p>
           <h1 class="assessment-subpage-title">{props.definition.title}</h1>
           <p>
             {props.record.subjectLabel || 'Без подписи'} · {formatDate(props.record.createdAt)}
           </p>
+        </div>
+        <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
+          <button
+            type="button"
+            class="knowledge-back-button assessment-help-button"
+            aria-label="Методика и ограничения"
+            title="Методика и ограничения"
+            onClick={() => setMethodologyOpen(true)}
+          >
+            <span class="assessment-help-button__label" aria-hidden="true">
+              ?
+            </span>
+          </button>
         </div>
       </header>
 
@@ -93,34 +126,50 @@ export function AssessmentResultPage(props: {
         when={completed()}
         fallback={
           <section class="assessment-result-summary paper-card">
-            <h2>Результат внесён вручную</h2>
-            <pre>{manualText()}</pre>
-            <p>MiniMed не пересчитывал баллы и не проверял версию внешнего бланка.</p>
+            <h2 class="assessment-result-summary__heading">Результат внесён вручную</h2>
+            <pre class="assessment-result-summary__manual-text">{manualText()}</pre>
+            <p class="assessment-result-summary__text">
+              MiniMed не пересчитывал баллы и не проверял версию внешнего бланка.
+            </p>
           </section>
         }
       >
         {(result) => (
           <section class="assessment-result-summary paper-card">
-            <h2>{result().headline}</h2>
-            <p>{result().summary}</p>
+            <h2 class="assessment-result-summary__heading">{result().headline}</h2>
+            <p class="assessment-result-summary__text">{result().summary}</p>
             <div class="assessment-score-list">
               <For each={result().scores}>
                 {(score) => (
-                  <div>
-                    <span>
+                  <div class="assessment-score-list__row">
+                    <span class="assessment-score-list__label">
                       <strong>{score.label}</strong>
-                      <small>
+                      <small class="assessment-score-list__detail">
                         {score.rawScore} / {score.maximumScore}
                       </small>
                     </span>
-                    <progress value={score.percent} max={100} />
-                    <b>{score.percent}%</b>
+                    <progress class="assessment-score-list__bar" value={score.percent} max={100} />
+                    <b class="assessment-score-list__value">{score.percent}%</b>
                   </div>
                 )}
               </For>
             </div>
             <p class="assessment-disclaimer">{props.definition.disclaimer}</p>
           </section>
+        )}
+      </Show>
+
+      <AssessmentDefinitionNotice
+        definition={props.definition}
+        open={methodologyOpen()}
+        onOpenChange={setMethodologyOpen}
+      />
+
+      <Show when={shareMessage()}>
+        {(message) => (
+          <p class="assessment-result-share-status" role="status" aria-live="polite">
+            {message()}
+          </p>
         )}
       </Show>
 
@@ -134,13 +183,14 @@ export function AssessmentResultPage(props: {
         <Button
           icon={<AppGlyph name="share" />}
           onClick={() => {
+            setShareMessage('Подготавливаем результат…');
             void shareAssessmentRecord(props.definition, props.record)
               .then((mode) =>
-                props.onMessage(
+                setShareMessage(
                   mode === 'shared' ? 'Результат передан.' : 'Результат скопирован в буфер обмена.',
                 ),
               )
-              .catch(() => props.onMessage('Не удалось поделиться результатом.'));
+              .catch(() => setShareMessage('Не удалось поделиться результатом.'));
           }}
         >
           Поделиться
@@ -160,10 +210,11 @@ export function AssessmentResultPage(props: {
 
       <Show when={notePanelOpen()}>
         <section class="assessment-note-panel paper-card">
-          <h2>Сохранить в карточку пациента</h2>
-          <label>
-            <span>Существующая карточка</span>
+          <h2 class="assessment-note-panel__heading">Сохранить в карточку пациента</h2>
+          <label class="assessment-note-panel__field">
+            <span class="assessment-note-panel__label">Существующая карточка</span>
             <select
+              class="assessment-note-panel__select"
               value={selectedCardId()}
               onChange={(event) => setSelectedCardId(event.currentTarget.value)}
             >
@@ -174,9 +225,10 @@ export function AssessmentResultPage(props: {
             </select>
           </label>
           <Show when={!selectedCardId()}>
-            <label>
-              <span>Название новой карточки</span>
+            <label class="assessment-note-panel__field">
+              <span class="assessment-note-panel__label">Название новой карточки</span>
               <input
+                class="assessment-note-panel__input"
                 list="assessment-patient-suggestions"
                 value={newCardTitle()}
                 placeholder={props.record.subjectLabel || 'Пациент'}
@@ -188,10 +240,15 @@ export function AssessmentResultPage(props: {
             </label>
           </Show>
           <div class="assessment-panel-actions">
-            <Button icon={<AppGlyph name="notes" />} onClick={saveToNote}>
+            <Button
+              class="assessment-panel-actions__button assessment-panel-actions__button--primary"
+              icon={<AppGlyph name="notes" />}
+              onClick={saveToNote}
+            >
               Сохранить
             </Button>
             <Button
+              class="assessment-panel-actions__button"
               variant="quiet"
               icon={<AppGlyph name="close" />}
               onClick={() => setNotePanelOpen(false)}
@@ -201,8 +258,6 @@ export function AssessmentResultPage(props: {
           </div>
         </section>
       </Show>
-
-      <AssessmentDefinitionNotice definition={props.definition} />
     </article>
   );
 }

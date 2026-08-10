@@ -2,6 +2,7 @@ import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { Toaster } from 'solid-sonner';
 
 import { nativeBackAction } from '@/app/native-back';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
@@ -54,8 +55,8 @@ const VIEWS: readonly {
 }[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'modules', label: 'База знаний', icon: 'modules' },
-  { id: 'assessments', label: 'Тесты', icon: 'brain' },
-  { id: 'calculators', label: 'Калькуляторы', icon: 'graph' },
+  { id: 'assessments', label: 'Тесты', icon: 'list-checks' },
+  { id: 'calculators', label: 'Калькуляторы', icon: 'calculator' },
   { id: 'notes', label: 'Заметки', icon: 'notes' },
 ];
 const VIEW_ORDER = new Map(VIEWS.map((item, index) => [item.id, index]));
@@ -325,7 +326,18 @@ export function App(): JSX.Element {
   });
 
   return (
-    <div class="app-shell archive-app">
+    <div class="app-shell archive-app" classList={{ 'app-shell--booting': !ready() }}>
+      <Toaster
+        class="app-notification-host"
+        position="top-center"
+        closeButton
+        duration={4200}
+        containerAriaLabel="Уведомления"
+        toastOptions={{
+          className: 'app-notification',
+          closeButtonAriaLabel: 'Закрыть уведомление',
+        }}
+      />
       <main class="app-main">
         <section
           class="app-view"
@@ -348,7 +360,7 @@ export function App(): JSX.Element {
           when={ready()}
           fallback={
             <Show when={view() !== 'assessments' && view() !== 'calculators'}>
-              <section class="boot-screen archive-boot">
+              <section class="boot-screen boot-screen--shell-booting archive-boot">
                 <div class="boot-card paper-sheet">
                   <span class="boot-spinner" />
                   <p class="archive-kicker">Локальная медицинская база</p>
@@ -404,7 +416,7 @@ export function App(): JSX.Element {
                 hidden={view() !== 'notes'}
                 aria-hidden={view() !== 'notes'}
               >
-                <NotesView core={searchCore() ?? state().core} />
+                <NotesView core={searchCore() ?? state().core} active={view() === 'notes'} />
               </section>
               <Show when={showBrowserFooter}>
                 <footer class="app-footer">
@@ -465,25 +477,29 @@ export function App(): JSX.Element {
                 </Show>
                 <button
                   class="app-nav-button"
-                  classList={{ active: view() === item.id }}
+                  classList={{ 'app-nav-button--active': view() === item.id }}
                   type="button"
                   aria-label={label()}
+                  aria-current={view() === item.id ? 'page' : undefined}
                   title={label()}
                   onClick={() => navigate(item.id)}
                 >
-                  <AppGlyph name={item.icon} />
+                  <AppGlyph
+                    name={item.icon}
+                    class={`app-nav-button__icon${view() === item.id ? ' app-nav-button__icon--active' : ''}`}
+                  />
                   <Show when={item.id === 'modules' && availableModuleCount() > 0}>
-                    <span class="app-nav-badge available" aria-hidden="true">
+                    <span class="app-nav-badge app-nav-badge--available" aria-hidden="true">
                       {availableModuleCount() > 99 ? '99+' : availableModuleCount()}
                     </span>
                   </Show>
                   <Show when={item.id === 'modules' && downloadedModuleCount() > 0}>
-                    <span class="app-nav-badge downloaded" aria-hidden="true">
+                    <span class="app-nav-badge app-nav-badge--downloaded" aria-hidden="true">
                       {downloadedModuleCount() > 99 ? '99+' : downloadedModuleCount()}
                     </span>
                   </Show>
                   <Show when={item.id === 'notes' && dueReminderCount() > 0}>
-                    <span class="app-nav-badge reminder" aria-hidden="true">
+                    <span class="app-nav-badge app-nav-badge--reminder" aria-hidden="true">
                       {dueReminderCount() > 9 ? '9+' : dueReminderCount()}
                     </span>
                   </Show>
@@ -494,14 +510,15 @@ export function App(): JSX.Element {
         </nav>
       </Show>
 
-      <Show when={showScrollTop()}>
+      <Show when={ready() && showScrollTop()}>
         <button
           class="scroll-top-button"
+          classList={{ 'scroll-top-button--notes': view() === 'notes' }}
           type="button"
           aria-label="Вернуться наверх"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
-          <AppGlyph name="arrow-up" />
+          <AppGlyph name="arrow-up" class="scroll-top-button__icon" />
         </button>
       </Show>
     </div>

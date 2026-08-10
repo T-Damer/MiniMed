@@ -19,6 +19,7 @@ import {
 import { WindowVirtualizer } from 'virtua/solid';
 import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { CountBadge } from '@/components/CountBadge';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import {
@@ -37,6 +38,7 @@ import {
   MODULE_TASK_LABELS,
   primaryModuleDocumentId,
 } from '@/features/modules/module-display';
+import { selectBulkDownloadModules } from '@/features/modules/module-download-selection';
 import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
@@ -108,27 +110,23 @@ function openModuleDocument(module: ContentModuleCatalogEntry): void {
   openDocumentOverlay(documentId, null, { preferSummary: true });
 }
 
-function categoryInstallLabel(
-  categoryBusy: boolean,
-  downloadProgress: ReturnType<typeof recommendationCategoryDownloadProgress>,
-): string {
-  if (categoryBusy && downloadProgress.activeTaskCount === 0) return 'Подготовка…';
-  if (downloadProgress.activeTaskCount > 0 && downloadProgress.byteProgress !== null) {
-    return `Загрузка ${Math.round(downloadProgress.byteProgress * 100)}%`;
-  }
-  if (downloadProgress.activeTaskCount > 0) {
-    return `Загружаем ${downloadProgress.activeTaskCount}…`;
-  }
-  if (categoryBusy) return 'Скачиваем…';
-  return 'Скачать';
-}
-
 function relatedCalculatorSectionsForCategory(
   categoryId: string,
 ): readonly (typeof CALCULATOR_SECTIONS)[number][] {
   return CALCULATOR_SECTIONS.filter((section) =>
     CALCULATOR_SECTION_CATEGORY_IDS[section.id].includes(categoryId),
   );
+}
+
+function matchesCatalogQuery(query: string, values: readonly string[]): boolean {
+  const tokens = query
+    .trim()
+    .toLocaleLowerCase('ru-RU')
+    .split(/\s+/u)
+    .filter((token) => token.length > 0);
+  if (tokens.length === 0) return true;
+  const searchableText = values.join(' ').toLocaleLowerCase('ru-RU');
+  return tokens.every((token) => searchableText.includes(token));
 }
 
 function openCalculatorSection(sectionId: string): void {
@@ -147,7 +145,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
   const [contentChangePending, setContentChangePending] = createSignal(false);
   const [connecting, setConnecting] = createSignal(false);
-  const [recommendationQuery, setRecommendationQuery] = createSignal('');
+  const [catalogQuery, setCatalogQuery] = createSignal('');
   const [recommendationCategory, setRecommendationCategory] = createSignal('');
   const [recommendationBrowserOpen, setRecommendationBrowserOpen] = createSignal(false);
   const [regularCollection, setRegularCollection] = createSignal('');
@@ -188,7 +186,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     setRecommendationBrowserOpen(
       selection?.kind === 'recommendations' || selection?.kind === 'category',
     );
-    if (!selection) setRecommendationQuery('');
+    setCatalogQuery('');
   };
   const openCollection = (collection: string): void => {
     window.location.hash = `#/modules/documents/collection/${encodeURIComponent(collection)}`;
@@ -225,6 +223,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         module.kind !== 'clinical' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
     ),
   );
+  const bulkDownloadModules = createMemo(() =>
+    selectBulkDownloadModules(
+      recommendationBrowserOpen(),
+      recommendationModules(),
+      regularModules(),
+    ),
+  );
   const regularSectionModules = (section: string): readonly ContentModuleCatalogEntry[] =>
     regularModules().filter((module) => module.kind === section || module.collection === section);
   const regularSectionLabel = (section: string): string =>
@@ -239,19 +244,17 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const categoryModules = (categoryId: string): readonly ContentModuleCatalogEntry[] =>
     modulesInCategory(recommendationModules(), categoryId);
   const filteredRecommendations = createMemo(() => {
-    const query = recommendationQuery().trim().toLocaleLowerCase('ru-RU');
+    const query = catalogQuery().trim();
     const category = recommendationCategory();
-    const queryTokens = query ? query.split(/\s+/u).filter((token) => token.length > 0) : [];
     const matchesQuery = (module: ContentModuleCatalogEntry): boolean =>
-      queryTokens.length === 0 ||
-      queryTokens.every((token) =>
-        [module.title, module.description, ...module.specialties, ...module.tags]
-          .join(' ')
-          .toLocaleLowerCase('ru-RU')
-          .includes(token),
-      );
+      matchesCatalogQuery(query, [
+        module.title,
+        module.description,
+        ...module.specialties,
+        ...module.tags,
+      ]);
 
-    if (queryTokens.length > 0) {
+    if (query.trim()) {
       return recommendationModules().filter(matchesQuery).slice(0, 50);
     }
     if (!category) return [];
@@ -261,9 +264,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     catalog().categories.find((category) => category.id === recommendationCategory()),
   );
   const browsingSection = createMemo(
-    () => Boolean(recommendationCategory()) && !recommendationQuery().trim(),
+    () => Boolean(recommendationCategory()) && !catalogQuery().trim(),
   );
-  const browsingSearch = createMemo(() => Boolean(recommendationQuery().trim()));
+  const browsingSearch = createMemo(
+    () => recommendationBrowserOpen() && Boolean(catalogQuery().trim()),
+  );
+  const visibleRegularSectionModules = (section: string): readonly ContentModuleCatalogEntry[] =>
+    regularSectionModules(section).filter((module) =>
+      matchesCatalogQuery(catalogQuery(), [module.title, module.description, ...module.tags]),
+    );
   const regulatoryTitles: Readonly<Record<string, string>> = {
     'regulatory.rf.minzdrav.192n-2025':
       'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н',
@@ -417,14 +426,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     });
   };
 
-  const installAllRegular = async (): Promise<void> => {
+  const installAllAvailable = async (): Promise<void> => {
     if (installingAll()) return;
     setInstallingAll(true);
     setWarning(null);
     try {
       const result = await installPublishedCategoryModules(
         runtime(),
-        regularModules(),
+        bulkDownloadModules(),
         installedModuleIds(),
       );
       setTasks(runtime().listTasks());
@@ -436,7 +445,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       setInstallErrors((current) => ({
         ...current,
         ...Object.fromEntries(
-          regularModules()
+          bulkDownloadModules()
             .filter(
               (module) =>
                 module.releaseState === 'published' && !installedModuleIds().has(module.id),
@@ -449,12 +458,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     }
   };
 
-  const pendingRegularCount = createMemo(
+  const pendingDownloadCount = createMemo(
     () =>
-      regularModules().filter(
+      bulkDownloadModules().filter(
         (module) => module.releaseState === 'published' && !installedModuleIds().has(module.id),
       ).length,
   );
+  const bulkDownloadLabel = (): string =>
+    recommendationBrowserOpen() ? 'Скачать все рекомендации' : 'Скачать все документы';
 
   const removeCategory = async (categoryId = recommendationCategory()): Promise<void> => {
     if (!categoryId) return;
@@ -558,13 +569,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               общем поиске MiniMed.
             </p>
           </div>
-          <Show when={pendingRegularCount() > 0}>
+          <Show when={pendingDownloadCount() > 0}>
             <button
               type="button"
-              aria-label={`Скачать все документы: ${pendingRegularCount()}`}
+              aria-label={`${bulkDownloadLabel()}: ${pendingDownloadCount()}`}
               class="module-download-all"
               disabled={installingAll()}
-              onClick={() => void installAllRegular()}
+              onClick={() => void installAllAvailable()}
             >
               <AppGlyph name="download" />
               <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
@@ -573,43 +584,51 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </header>
       </Show>
       <Show when={props.embedded}>
-        <div class="knowledge-subroute-heading module-catalog-heading">
+        <div class="knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading">
           <button
             type="button"
-            class="knowledge-back-button"
+            class="knowledge-back-button knowledge-subroute-heading__control"
             aria-label="Назад"
             onClick={props.onBack}
           >
             <AppGlyph name="arrow-left" />
           </button>
-          <div class="module-catalog-actions">
-            <Show when={pendingRegularCount() > 0}>
-              <button
-                type="button"
-                aria-label={`Скачать все документы: ${pendingRegularCount()}`}
-                class="module-download-all"
-                disabled={installingAll()}
-                onClick={() => void installAllRegular()}
-              >
-                <AppGlyph name="download" />
-                <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
-              </button>
-            </Show>
+          <SearchField
+            class="route-search knowledge-subroute-heading__control"
+            value={catalogQuery()}
+            onInput={setCatalogQuery}
+            label="Поиск по текущему разделу"
+            hideLabel
+            placeholder="Поиск в текущем разделе"
+          />
+        </div>
+        <div class="module-catalog-actions module-catalog-actions--heading">
+          <Show when={pendingDownloadCount() > 0}>
             <button
               type="button"
-              class="module-auto-update-toggle"
-              classList={{ paused: autoUpdatesPaused() }}
-              aria-label={
-                autoUpdatesPaused() ? 'Возобновить автообновление' : 'Приостановить автообновление'
-              }
-              onClick={toggleAutoUpdates}
+              aria-label={`${bulkDownloadLabel()}: ${pendingDownloadCount()}`}
+              class="module-download-all"
+              disabled={installingAll()}
+              onClick={() => void installAllAvailable()}
             >
-              <AppGlyph name="refresh" />
-              <span>
-                {autoUpdatesPaused() ? 'Автообновление выключено' : 'Автообновление включено'}
-              </span>
+              <AppGlyph name="download" />
+              <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
             </button>
-          </div>
+          </Show>
+          <button
+            type="button"
+            class="module-auto-update-toggle"
+            classList={{ paused: autoUpdatesPaused() }}
+            aria-label={
+              autoUpdatesPaused() ? 'Возобновить автообновление' : 'Приостановить автообновление'
+            }
+            onClick={toggleAutoUpdates}
+          >
+            <AppGlyph name="refresh" />
+            <span>
+              {autoUpdatesPaused() ? 'Автообновление выключено' : 'Автообновление включено'}
+            </span>
+          </button>
         </div>
       </Show>
 
@@ -643,7 +662,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         <Show when={recommendationModules().length === 0}>
           <section class="module-collection recommendation-browser">
             <div class="module-collection-heading">
-              <h2>Клинические рекомендации</h2>
+              <h2 class="module-collection-heading__title">Клинические рекомендации</h2>
             </div>
             <p class="recommendation-result-note">
               Отдельные клинические рекомендации (около 700) появятся здесь после публикации снимка
@@ -656,82 +675,113 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         <Show when={!regularCollection()}>
           <section class="module-collection">
             <div class="module-collection-heading">
-              <h2>Наборы документов</h2>
-              <span>5</span>
+              <h2 class="module-collection-heading__title">Наборы документов</h2>
+              <CountBadge value={5} />
             </div>
             <div class="recommendation-section-grid recommendation-section-grid-compact">
-              <article class="recommendation-section-card paper-card recommendation-section-card-compact">
-                <AppGlyph name="notes" class="recommendation-section-card-icon" />
-                <button
-                  type="button"
-                  class="recommendation-section-select"
+              <Show
+                when={matchesCatalogQuery(catalogQuery(), [
+                  'Лекарства',
+                  'Официальная инструкция и формы выпуска',
+                ])}
+              >
+                <article
+                  class="recommendation-section-card paper-card recommendation-section-card-compact"
+                  tabindex="0"
+                  aria-label="Открыть набор «Лекарства»"
                   onClick={openMedications}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') openMedications();
+                  }}
                 >
-                  <strong>Лекарства</strong>
-                  <span>Официальная инструкция и формы выпуска</span>
-                </button>
-              </article>
+                  <AppGlyph name="notes" class="recommendation-section-card-icon" />
+                  <div class="recommendation-section-select">
+                    <strong>Лекарства</strong>
+                    <span>Официальная инструкция и формы выпуска</span>
+                  </div>
+                </article>
+              </Show>
               <For each={['reference', 'regulatory']}>
                 {(section) => {
                   const modules = () => regularSectionModules(section);
                   const installedCount = () =>
                     modules().filter((module) => installedModuleIds().has(module.id)).length;
                   return (
-                    <article class="recommendation-section-card paper-card recommendation-section-card-compact">
-                      <AppGlyph
-                        name={section === 'reference' ? 'calculator' : 'archive'}
-                        class="recommendation-section-card-icon"
-                      />
-                      <button
-                        type="button"
-                        class="recommendation-section-select"
+                    <Show
+                      when={matchesCatalogQuery(catalogQuery(), [regularSectionLabel(section)])}
+                    >
+                      <article
+                        class="recommendation-section-card paper-card recommendation-section-card-compact"
+                        tabindex="0"
+                        aria-label={`Открыть набор «${regularSectionLabel(section)}»`}
                         onClick={() => openCollection(section)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') openCollection(section);
+                        }}
                       >
-                        <strong>{regularSectionLabel(section)}</strong>
-                        <span>
-                          {installedCount()}/{modules().length} на устройстве
-                        </span>
-                      </button>
-                    </article>
+                        <AppGlyph
+                          name={section === 'reference' ? 'calculator' : 'archive'}
+                          class="recommendation-section-card-icon"
+                        />
+                        <div class="recommendation-section-select">
+                          <strong>{regularSectionLabel(section)}</strong>
+                          <span>
+                            {installedCount()}/{modules().length} на устройстве
+                          </span>
+                        </div>
+                      </article>
+                    </Show>
                   );
                 }}
               </For>
-              <article class="recommendation-section-card paper-card recommendation-section-card-compact clinical-recommendations-entry">
-                <AppGlyph name="book-open" class="recommendation-section-card-icon" />
-                <button
-                  type="button"
-                  class="recommendation-section-select"
+              <Show when={matchesCatalogQuery(catalogQuery(), ['Клинические рекомендации'])}>
+                <article
+                  class="recommendation-section-card paper-card recommendation-section-card-compact clinical-recommendations-entry"
+                  tabindex="0"
+                  aria-label="Открыть набор «Клинические рекомендации»"
                   onClick={openRecommendations}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') openRecommendations();
+                  }}
                 >
-                  <strong>Клинические рекомендации</strong>
-                  <span>
-                    {
-                      recommendationModules().filter((module) =>
-                        installedModuleIds().has(module.id),
-                      ).length
-                    }
-                    /{recommendationModules().length} на устройстве
-                  </span>
-                </button>
-              </article>
-              <article class="recommendation-section-card paper-card recommendation-section-card-compact">
-                <AppGlyph name="modules" class="recommendation-section-card-icon" />
-                <button
-                  type="button"
-                  class="recommendation-section-select"
+                  <AppGlyph name="book-open" class="recommendation-section-card-icon" />
+                  <div class="recommendation-section-select">
+                    <strong>Клинические рекомендации</strong>
+                    <span>
+                      {
+                        recommendationModules().filter((module) =>
+                          installedModuleIds().has(module.id),
+                        ).length
+                      }
+                      /{recommendationModules().length} на устройстве
+                    </span>
+                  </div>
+                </article>
+              </Show>
+              <Show when={matchesCatalogQuery(catalogQuery(), ['Ядро'])}>
+                <article
+                  class="recommendation-section-card paper-card recommendation-section-card-compact"
+                  tabindex="0"
+                  aria-label="Открыть набор «Ядро»"
                   onClick={() => openCollection('core')}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') openCollection('core');
+                  }}
                 >
-                  <strong>Ядро</strong>
-                  <span>
-                    {
-                      regularSectionModules('core').filter((module) =>
-                        installedModuleIds().has(module.id),
-                      ).length
-                    }
-                    /{regularSectionModules('core').length} на устройстве
-                  </span>
-                </button>
-              </article>
+                  <AppGlyph name="modules" class="recommendation-section-card-icon" />
+                  <div class="recommendation-section-select">
+                    <strong>Ядро</strong>
+                    <span>
+                      {
+                        regularSectionModules('core').filter((module) =>
+                          installedModuleIds().has(module.id),
+                        ).length
+                      }
+                      /{regularSectionModules('core').length} на устройстве
+                    </span>
+                  </div>
+                </article>
+              </Show>
             </div>
           </section>
         </Show>
@@ -740,11 +790,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           {(section) => (
             <section class="module-collection">
               <div class="module-collection-heading">
-                <h2>{regularSectionLabel(section)}</h2>
-                <span>{regularSectionModules(section).length}</span>
+                <h2 class="module-collection-heading__title">{regularSectionLabel(section)}</h2>
+                <CountBadge value={regularSectionModules(section).length} />
               </div>
               <div class="module-grid module-grid-two-columns">
-                <For each={regularSectionModules(section)}>
+                <For each={visibleRegularSectionModules(section)}>
                   {(module) => (
                     <ContentModuleCard
                       module={module}
@@ -777,17 +827,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         <section class="module-collection recommendation-browser recommendation-browser-nested">
           <Show when={!browsingSection() && !browsingSearch()}>
             <div class="module-collection-heading recommendation-browser-heading">
-              <h2>Клинические рекомендации</h2>
-              <span>{catalog().categories.length}</span>
+              <h2 class="module-collection-heading__title">Клинические рекомендации</h2>
+              <CountBadge value={catalog().categories.length} />
             </div>
-
-            <SearchField
-              class="recommendation-search recommendation-search-compact"
-              value={recommendationQuery()}
-              onInput={setRecommendationQuery}
-              label="Поиск по названию или коду"
-              placeholder="Например: пневмония, J18"
-            />
 
             <div class="recommendation-section-grid recommendation-section-grid-compact">
               <For each={catalog().categories}>
@@ -809,7 +851,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   const showByteProgress = () => downloadProgress().byteProgress;
                   return (
                     <article
-                      class="recommendation-section-card paper-card recommendation-section-card-compact"
+                      class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--category"
                       tabindex="0"
                       aria-label={`Открыть раздел «${category.title}»`}
                       onClick={(event) => {
@@ -853,7 +895,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           fallback={
                             <button
                               type="button"
-                              class="module-remove-button"
+                              class="module-remove-button recommendation-section-actions__remove"
                               aria-label={`Удалить раздел «${category.title}»`}
                               disabled={stats().installedCount === 0 || categoryBusy()}
                               onClick={(event) => {
@@ -865,13 +907,19 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                                 when={!categoryBusy()}
                                 fallback={<span class="module-action-spinner" />}
                               >
-                                <AppGlyph name="trash" />
+                                <AppGlyph
+                                  name="trash"
+                                  class="recommendation-section-actions__icon"
+                                />
                               </Show>
                             </button>
                           }
                         >
                           <button
                             type="button"
+                            class="recommendation-section-actions__download"
+                            aria-label={`Скачать раздел «${category.title}»`}
+                            title="Скачать раздел"
                             disabled={categoryBusy()}
                             onClick={(event) => {
                               event.stopPropagation();
@@ -882,9 +930,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                               when={!categoryBusy()}
                               fallback={<span class="module-action-spinner" />}
                             >
-                              <AppGlyph name="download" />
+                              <AppGlyph
+                                name="download"
+                                class="recommendation-section-actions__icon"
+                              />
                             </Show>
-                            {categoryInstallLabel(categoryBusy(), downloadProgress())}
                           </button>
                         </Show>
                       </div>
@@ -896,20 +946,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           </Show>
 
           <Show when={browsingSection() || browsingSearch()}>
-            <SearchField
-              class="recommendation-search recommendation-search-compact"
-              value={recommendationQuery()}
-              onInput={setRecommendationQuery}
-              label="Поиск по названию или коду"
-              placeholder="Например: пневмония, J18"
-            />
-
             <Show when={browsingSection()}>
               <div class="recommendation-list-heading recommendation-list-heading-compact">
                 <h3>{activeCategory()?.title}</h3>
                 <div class="recommendation-list-actions">
                   <button
                     type="button"
+                    class="recommendation-list-actions__download"
+                    aria-label="Скачать все"
+                    title="Скачать все"
                     disabled={isCategoryBusy(recommendationCategory())}
                     onClick={() => void installCategory()}
                   >
@@ -917,17 +962,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       when={!isCategoryBusy(recommendationCategory())}
                       fallback={<span class="module-action-spinner" />}
                     >
-                      <AppGlyph name="download" />
+                      <AppGlyph name="download" class="recommendation-list-actions__icon" />
                     </Show>
-                    {categoryInstallLabel(
-                      isCategoryBusy(recommendationCategory()),
-                      recommendationCategoryDownloadProgress(
-                        recommendationModules(),
-                        recommendationCategory(),
-                        installedModuleIds(),
-                        tasks(),
-                      ),
-                    )}
+                    <span>Скачать все</span>
                   </button>
                 </div>
               </div>
@@ -1009,9 +1046,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         }
                       }}
                     >
-                      <div>
-                        <strong>{module.title}</strong>
-                        <span>
+                      <div class="recommendation-row__content recommendation-row-compact__content">
+                        <strong class="recommendation-row__title recommendation-row-compact__title">
+                          {module.title}
+                        </strong>
+                        <span class="recommendation-row__meta">
                           {module.tags.find((tag) => /^\d+_\d+$/u.test(tag))}
                           {installedValue()
                             ? ' · установлено'
@@ -1046,7 +1085,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           <div class="recommendation-row-actions">
                             <button
                               type="button"
-                              class="module-remove-button"
+                              class="module-remove-button recommendation-row-actions__remove"
                               aria-label={`Удалить «${module.title}»`}
                               title="Удалить"
                               onClick={(event) => {
@@ -1054,7 +1093,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                                 requestRemove(module.id);
                               }}
                             >
-                              <AppGlyph name="trash" />
+                              <AppGlyph name="trash" class="recommendation-row-actions__icon" />
                             </button>
                           </div>
                         }
@@ -1062,14 +1101,19 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <Show when={!working()}>
                           <button
                             type="button"
+                            class="recommendation-row-download-button"
+                            aria-label={`Скачать «${module.title}»`}
+                            title="Скачать"
                             disabled={module.releaseState !== 'published'}
                             onClick={(event) => {
                               event.stopPropagation();
                               void install(module);
                             }}
                           >
-                            <AppGlyph name="download" />
-                            Скачать
+                            <AppGlyph
+                              name="download"
+                              class="recommendation-row-download-button__icon"
+                            />
                           </button>
                         </Show>
                       </Show>

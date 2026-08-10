@@ -44,7 +44,13 @@
 }
 
 .ui-button-danger {
+  border-color: color-mix(in srgb, var(--theme-danger) 45%, transparent);
   color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 12%, var(--theme-surface-raised));
+}
+
+.ui-button-danger:hover {
+  background: color-mix(in srgb, var(--theme-danger) 20%, var(--theme-surface-raised));
 }
 
 .ui-button-quiet {
@@ -217,7 +223,7 @@
 }
 
 .assessment-card {
-  padding-top: 3.4rem;
+  padding-top: var(--theme-space-4);
 }
 
 .assessment-card-open-hit-area {
@@ -237,11 +243,10 @@
   z-index: 1;
 }
 
-.assessment-card > .assessment-card-icon-actions {
-  position: absolute;
+.assessment-card-icon-actions {
+  position: relative;
   z-index: 3;
-  top: 0.75rem;
-  right: 0.75rem;
+  flex: 0 0 auto;
   display: flex;
   gap: 0.4rem;
   pointer-events: auto;
@@ -302,14 +307,7 @@
   color: var(--theme-link);
 }
 
-.module-card {
-  padding-top: 2.75rem;
-}
-
 .module-card-actions {
-  position: absolute;
-  top: 0.625rem;
-  right: 0.625rem;
   align-items: center;
 }
 
@@ -324,22 +322,57 @@
 
 .recommendation-section-card-compact {
   position: relative;
-  padding-top: 2.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding-top: 0.75rem;
 }
 
 .recommendation-section-card-icon {
-  position: absolute;
-  top: 0.875rem;
-  left: 0.875rem;
+  position: static;
+  flex: 0 0 auto;
   width: 1.25rem;
   height: 1.25rem;
   color: var(--theme-link);
 }
 
-.recommendation-section-card-compact .recommendation-section-actions .module-remove-button {
-  position: absolute;
-  top: 0.625rem;
-  right: 0.625rem;
+.recommendation-section-card-compact > .recommendation-section-select {
+  width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.recommendation-section-card-compact > .recommendation-section-card-header {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.recommendation-section-card-compact > .recommendation-section-progress {
+  flex: 0 0 100%;
+}
+
+.recommendation-section-card--category {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
+}
+
+.recommendation-section-card--category > .recommendation-section-card-header {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.recommendation-section-card--category > .recommendation-section-actions {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  flex: 0 0 auto;
+}
+
+.recommendation-section-card--category > .recommendation-section-progress {
+  grid-column: 1 / -1;
+  grid-row: 2;
 }
 
 .recommendation-row-compact .recommendation-row-actions {

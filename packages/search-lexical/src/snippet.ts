@@ -1,6 +1,6 @@
 import type { TextRange } from '@localmed/contracts';
 
-import { normalizeSurfaceText } from './normalize';
+import { normalizeSurfaceText, normalizeSurfaceTextWithOffsets } from './normalize';
 
 export interface SnippetResult {
   readonly text: string;
@@ -26,9 +26,13 @@ export function buildSnippet(
   terms: readonly string[],
   maxLength = 360,
 ): SnippetResult {
-  const normalized = normalizeSurfaceText(originalText);
+  const normalizedWithOffsets = normalizeSurfaceTextWithOffsets(originalText);
+  const normalized = normalizedWithOffsets.text;
   const candidatePositions = terms
-    .map((term) => normalized.indexOf(normalizeSurfaceText(term)))
+    .map((term) => {
+      const position = normalized.indexOf(normalizeSurfaceText(term));
+      return position >= 0 ? (normalizedWithOffsets.offsets[position]?.start ?? 0) : -1;
+    })
     .filter((position) => position >= 0);
   const firstPosition = candidatePositions.length > 0 ? Math.min(...candidatePositions) : 0;
   const start = Math.max(0, firstPosition - Math.floor(maxLength / 3));
@@ -38,7 +42,8 @@ export function buildSnippet(
   const body = originalText.slice(start, end);
   const text = `${prefix}${body}${suffix}`;
   const bodyOffset = prefix.length;
-  const normalizedBody = normalizeSurfaceText(body);
+  const normalizedBodyWithOffsets = normalizeSurfaceTextWithOffsets(body);
+  const normalizedBody = normalizedBodyWithOffsets.text;
   const ranges: TextRange[] = [];
 
   for (const term of terms) {
@@ -48,7 +53,14 @@ export function buildSnippet(
     while (offset < normalizedBody.length) {
       const index = normalizedBody.indexOf(normalizedTerm, offset);
       if (index < 0) break;
-      ranges.push({ start: bodyOffset + index, end: bodyOffset + index + normalizedTerm.length });
+      const firstOffset = normalizedBodyWithOffsets.offsets[index];
+      const lastOffset = normalizedBodyWithOffsets.offsets[index + normalizedTerm.length - 1];
+      if (firstOffset && lastOffset) {
+        ranges.push({
+          start: bodyOffset + firstOffset.start,
+          end: bodyOffset + lastOffset.end,
+        });
+      }
       offset = index + normalizedTerm.length;
     }
   }

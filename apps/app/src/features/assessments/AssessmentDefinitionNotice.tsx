@@ -1,4 +1,4 @@
-import { createSignal, type JSX, Show } from 'solid-js';
+import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -6,16 +6,16 @@ import type { AssessmentDefinition } from '@/features/assessments/assessment-typ
 
 export function AssessmentDefinitionNotice(props: {
   readonly definition: AssessmentDefinition;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
 }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-
   return (
     <>
       <button
         type="button"
         class="assessment-methodology-trigger"
         aria-haspopup="dialog"
-        onClick={() => setOpen(true)}
+        onClick={() => props.onOpenChange(true)}
       >
         <span class="assessment-methodology-trigger__icon" aria-hidden="true">
           <AppGlyph name="list" class="assessment-methodology-trigger__glyph" />
@@ -28,19 +28,35 @@ export function AssessmentDefinitionNotice(props: {
         </span>
       </button>
       <OverlayDialog
-        open={open()}
+        open={props.open}
         title="Методика и ограничения"
         class="assessment-methodology-dialog"
-        onClose={() => setOpen(false)}
+        onClose={() => props.onOpenChange(false)}
       >
         <div class="assessment-methodology-body">
           <p class="assessment-methodology-body__text assessment-methodology-body__description">
             {props.definition.description}
           </p>
           <p class="assessment-methodology-body__text">{props.definition.evidenceNote}</p>
+          <div class="assessment-methodology-body__scales">
+            <strong>Что описывает и как читать</strong>
+            <ul class="assessment-methodology-body__scale-list">
+              <For each={props.definition.scales}>
+                {(scale) => (
+                  <li>
+                    <strong>{scale.label}:</strong> {scale.description}
+                  </li>
+                )}
+              </For>
+            </ul>
+            <p class="assessment-methodology-body__text">
+              Итог показывает относительную выраженность шкал внутри этого опросника. Сравнивайте
+              его с описаниями выше и с контекстом ответов; это не диагноз и не замена очной оценке.
+            </p>
+          </div>
           <p class="assessment-methodology-body__text">{props.definition.disclaimer}</p>
           <p class="assessment-methodology-body__text">
-            <strong>Правовой статус:</strong> {props.definition.license.notice}
+            <strong>Источник и статус:</strong> {props.definition.license.notice}
           </p>
           <Show when={props.definition.license.sourceUrl}>
             {(sourceUrl) => (

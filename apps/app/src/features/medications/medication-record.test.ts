@@ -1,8 +1,39 @@
 import { describe, expect, it } from 'vitest';
 
+import { documentFromSummary, processMedicationSummariesInBatches } from './medication-loading';
 import { parseAllmedMedicationProduct, parseMedicationProduct } from './medication-record';
 
 describe('parseMedicationProduct', () => {
+  it('streams metadata-only summaries without loading document chunks', async () => {
+    const summaries = Array.from({ length: 61 }, (_, index) => ({
+      id: `document-${index}`,
+      title: `Препарат ${index}`,
+      shortTitle: null,
+      sourceType: 'allmed_reference',
+      status: 'reference',
+      specialties: [],
+      versionId: `document-${index}@1`,
+      versionLabel: '1',
+      effectiveFrom: null,
+      metadata: { contentMode: 'allmed-snapshot', allmedId: index },
+    }));
+    const updates: number[] = [];
+    const sections: number[] = [];
+    await processMedicationSummariesInBatches(summaries, (batch) => {
+      updates.push(batch.length);
+      sections.push(...batch.map((document) => document.sections.length));
+    });
+
+    expect(updates.length).toBeGreaterThan(1);
+    expect(Math.max(...updates)).toBeLessThanOrEqual(60);
+    expect(updates.reduce((total, size) => total + size, 0)).toBe(summaries.length);
+    expect(sections).toEqual(Array.from({ length: 61 }, () => 0));
+    const firstSummary = summaries[0];
+    if (!firstSummary) throw new Error('test fixture is empty');
+    const { metadata: _metadata, ...withoutMetadata } = firstSummary;
+    expect(documentFromSummary(withoutMetadata)).toBeNull();
+  });
+
   it('keeps every package variant from a normalized registry document', () => {
     const product = parseMedicationProduct(
       {

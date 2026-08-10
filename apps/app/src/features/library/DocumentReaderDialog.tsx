@@ -9,6 +9,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { DocumentText } from '@/components/DocumentText';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -16,6 +17,7 @@ import { SearchField } from '@/components/SearchField';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
+  documentSectionHeadingTag,
   isFullTextDocumentId,
   orderDocumentSections,
   resolveReadableDocumentId,
@@ -146,7 +148,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
 
   const scrollTo = (anchor: string): void => {
     setActiveAnchor(anchor);
-    setOutlineOpen(false);
+    if (!window.matchMedia('(min-width: 761px)').matches) setOutlineOpen(false);
     requestAnimationFrame(() => {
       document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -189,7 +191,6 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
         : {})}
       class="document-overlay"
       bodyClass="document-overlay__body"
-      showBack
       onClose={close}
       headerStart={
         <button
@@ -199,7 +200,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
           aria-expanded={outlineOpen()}
           onClick={() => setOutlineOpen((open) => !open)}
         >
-          <AppGlyph name="menu" class="overlay-dialog__button-icon" />
+          <AppGlyph name="menu" class="document-overlay-outline-toggle__icon" />
         </button>
       }
     >
@@ -232,7 +233,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                   aria-label="Закрыть оглавление"
                   onClick={() => setOutlineOpen(false)}
                 >
-                  <AppGlyph name="close" class="overlay-dialog__button-icon" />
+                  <AppGlyph name="close" class="document-overlay-outline-header__close-icon" />
                 </button>
               </header>
               <SearchField
@@ -354,15 +355,16 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                       <Show when={normalize(path()) !== normalize(section.title)}>
                         <p class="document-overlay-path">{path()}</p>
                       </Show>
-                      <h2
-                        class="document-overlay-section__title"
+                      <Dynamic
+                        component={documentSectionHeadingTag(section.depth)}
+                        class={`document-overlay-section__title document-overlay-section__title--${documentSectionHeadingTag(section.depth)}`}
                         classList={{
                           'document-overlay-section__title--active':
                             activeAnchor() === section.anchor,
                         }}
                       >
                         {section.title}
-                      </h2>
+                      </Dynamic>
                       <For each={section.chunks}>
                         {(chunk) => {
                           const renderBlock = () => readDocumentRenderBlock(chunk.metadata);

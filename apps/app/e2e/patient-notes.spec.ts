@@ -121,7 +121,7 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
     .locator('.app-bottom-nav')
     .getByRole('button', { name: /Заметки, напоминаний: 1/u });
   await expect(notesButton).toBeVisible();
-  await expect(page.locator('.app-nav-badge.reminder')).toHaveText('1');
+  await expect(page.locator('.app-nav-badge--reminder')).toHaveText('1');
 
   await notesButton.click();
   const cards = page.locator('.patient-card');
@@ -136,7 +136,7 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
   await page.getByLabel('Чем закрыто напоминание').fill('сатурация 97, жалоб нет');
   await page.getByRole('button', { name: 'Выполнено' }).click();
 
-  await expect(page.locator('.app-nav-badge.reminder')).toHaveCount(0);
+  await expect(page.locator('.app-nav-badge--reminder')).toHaveCount(0);
   await expect(page.locator('.note-reminder-link')).toContainText('выполнено');
   await expect(
     page.locator('.app-bottom-nav').getByRole('button', { name: 'Заметки', exact: true }),

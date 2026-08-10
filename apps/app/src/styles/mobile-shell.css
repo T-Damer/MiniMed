@@ -186,7 +186,7 @@ body {
   background: rgb(255 255 255 / 5%);
 }
 
-.app-nav-button.active {
+.app-nav-button--active {
   z-index: 2;
   height: calc(var(--nav-tab-rest-height) + var(--nav-tab-notch-depth));
   margin-bottom: calc(-1 * (var(--nav-tab-active-overhang) + var(--nav-tab-notch-depth)));
@@ -199,7 +199,7 @@ body {
   filter: none;
 }
 
-.app-nav-button.active::before {
+.app-nav-button--active::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -210,17 +210,17 @@ body {
   pointer-events: none;
 }
 
-.app-nav-button.active::after {
+.app-nav-button--active::after {
   content: none;
 }
 
-.app-nav-button.active svg {
+.app-nav-button__icon--active {
   position: relative;
   z-index: 1;
   transform: translateY(-0.125rem);
 }
 
-.app-nav-button svg {
+.app-nav-button__icon {
   width: 1.3125rem;
   height: 1.3125rem;
 }
@@ -368,7 +368,7 @@ body {
   background: transparent;
 }
 
-.query-index > .suggestions-row {
+.query-index__suggestions {
   margin-top: 0.875rem;
   border: 1px dashed rgb(78 65 37 / 31%);
   background: rgb(242 233 211 / 42%);
@@ -424,28 +424,6 @@ body {
 .reader-card {
   min-height: auto;
   transform: none;
-}
-
-.reader-close {
-  position: fixed;
-  z-index: 4;
-  top: calc(0.625rem + var(--safe-top));
-  right: max(0.75rem, var(--safe-right));
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgb(246 238 219 / 24%);
-  border-radius: 50%;
-  color: #f6eedb;
-  background: #47453f;
-  cursor: pointer;
-}
-
-.reader-close svg {
-  width: 1.25rem;
-  height: 1.25rem;
 }
 
 @keyframes reader-in {
@@ -801,11 +779,11 @@ body {
     font-size: 0.5625rem;
   }
 
-  .query-index > .suggestions-row .index-label {
+  .query-index__label {
     display: none;
   }
 
-  .query-index > .suggestions-row {
+  .query-index__suggestions {
     display: block;
   }
 
@@ -815,7 +793,7 @@ body {
     flex-wrap: nowrap;
   }
 
-  .suggestion-strip button {
+  .suggestion-strip__button {
     flex: 0 0 auto;
   }
 
@@ -834,6 +812,14 @@ body {
 
   .result-group-header {
     grid-template-columns: 2.5rem minmax(0, 1fr);
+  }
+
+  .search-results-skeleton__row {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+  }
+
+  .search-results-skeleton__tail {
+    display: none;
   }
 
   .group-count {

@@ -371,7 +371,7 @@
     transform 240ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.search-submit-reveal > div {
+.search-submit-reveal__content {
   min-height: 0;
   overflow: hidden;
   padding: 0.25rem;
@@ -382,9 +382,14 @@
   max-width: 12rem;
   grid-template-rows: 1fr;
   opacity: 1;
+  overflow: visible;
   pointer-events: auto;
   transform: translateY(0);
   visibility: visible;
+}
+
+.search-submit-reveal__content--visible {
+  overflow: visible;
 }
 
 .query-mode-tag {
@@ -432,6 +437,10 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
+}
+
+.example-scroll__viewport {
+  margin-inline-end: 1.25rem;
 }
 
 .search-workspace-main .example-scroll-content {
@@ -703,7 +712,7 @@
   margin-bottom: 0.4375rem;
 }
 
-.module-collection-heading h2 {
+.module-collection-heading__title {
   margin-bottom: 0.3125rem;
   font-size: 1.3125rem;
 }
@@ -893,6 +902,19 @@
   padding-bottom: calc(4.875rem + var(--safe-bottom));
 }
 
+/* While booting there's no bottom nav to reserve space for, and the boot card alone should
+   never make the page tall enough to scroll. */
+.app-shell--booting {
+  height: 100dvh;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.boot-screen--shell-booting {
+  min-height: 100%;
+  overflow: auto;
+}
+
 .app-main {
   min-height: 100dvh;
 }
@@ -930,21 +952,22 @@
   box-shadow: none;
 }
 
-.app-bottom-nav .app-nav-button.active {
+.app-bottom-nav .app-nav-button--active {
   height: 2.625rem;
   margin: 0;
   padding: 0;
-  border-color: rgb(246 238 219 / 26%);
-  color: #423728;
-  background: #f8efdc;
+  border-color: var(--theme-accent);
+  color: var(--theme-accent);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-control-hover-shadow);
 }
 
-.app-bottom-nav .app-nav-button.active::before,
-.app-bottom-nav .app-nav-button.active::after {
+.app-bottom-nav .app-nav-button--active::before,
+.app-bottom-nav .app-nav-button--active::after {
   content: none;
 }
 
-.app-bottom-nav .app-nav-button.active svg {
+.app-nav-button__icon--active {
   transform: none;
 }
 
@@ -953,9 +976,9 @@
   background: rgb(255 255 255 / 10%);
 }
 
-.app-bottom-nav .app-nav-button.active:hover {
-  color: #423728;
-  background: #fff8e8;
+.app-bottom-nav .app-nav-button--active:hover {
+  color: var(--theme-accent);
+  background: var(--theme-surface-raised);
 }
 
 /* The loading ring joins the badge family: same size and corner offsets as the counters, so it
@@ -989,7 +1012,7 @@
   line-height: 1;
 }
 
-.app-nav-badge.available {
+.app-nav-badge--available {
   top: -0.3125rem;
   /* The legacy shell rule anchors badges right; leaving both anchors set stretches the pill. */
   right: auto;
@@ -997,7 +1020,7 @@
   background: #e8c654;
 }
 
-.app-nav-badge.downloaded {
+.app-nav-badge--downloaded {
   top: auto;
   right: -0.3125rem;
   bottom: -0.3125rem;
@@ -1254,7 +1277,7 @@
     height: 2.375rem;
   }
 
-  .app-bottom-nav .app-nav-button.active {
+  .app-nav-button--active {
     height: 2.375rem;
   }
 
@@ -1843,7 +1866,7 @@ fieldset.search-mode-picker {
 .workspace .search-button {
   min-height: 2rem;
   padding: 0.3125rem 0.875rem;
-  border-radius: 999px;
+  border-radius: var(--theme-radius-control);
 }
 
 /* Stale results stay on screen while a refreshed search runs, dimmed so the update is visible. */
@@ -1865,7 +1888,7 @@ fieldset.search-mode-picker {
 }
 
 /* Reminders: the red layer of the scheme — due follow-ups must be loud everywhere they surface. */
-.app-nav-badge.reminder {
+.app-nav-badge--reminder {
   top: -0.3125rem;
   right: auto;
   left: -0.3125rem;
@@ -2071,8 +2094,8 @@ fieldset.search-mode-picker {
     calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
   );
   bottom: max(
-    var(--theme-assessment-floating-offset),
-    calc(var(--theme-assessment-floating-offset) + var(--safe-bottom))
+    var(--theme-bottom-nav-clearance),
+    calc(var(--theme-bottom-nav-clearance) + var(--safe-bottom))
   );
   display: grid;
   width: 3.25rem;
@@ -2086,19 +2109,6 @@ fieldset.search-mode-picker {
   cursor: pointer;
 }
 
-body:has(.patient-notes-fab) .scroll-top-button {
-  right: max(
-    1.25rem,
-    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
-  );
-  bottom: max(
-    var(--theme-assessment-scroll-top-offset),
-    calc(var(--theme-assessment-scroll-top-offset) + var(--safe-bottom))
-  );
-  width: 3.25rem;
-  height: 3.25rem;
-}
-
 .scroll-top-button {
   right: max(
     0.875rem,
@@ -2106,11 +2116,24 @@ body:has(.patient-notes-fab) .scroll-top-button {
   );
 }
 
+.scroll-top-button--notes {
+  right: max(
+    1.25rem,
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
+  );
+  bottom: max(
+    var(--theme-bottom-nav-secondary-clearance),
+    calc(var(--theme-bottom-nav-secondary-clearance) + var(--safe-bottom))
+  );
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
 .search-history-drawer-backdrop {
   z-index: 300;
 }
 
-.patient-notes-fab span {
+.patient-notes-fab__icon {
   font-size: 2rem;
   font-weight: 300;
   line-height: 1;
@@ -2186,7 +2209,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
   padding-left: 1.25rem;
 }
 
-.document-text-list li {
+.document-text-list__item {
   margin: 0.25rem 0;
   line-height: 1.55;
 }
@@ -2198,8 +2221,8 @@ body:has(.patient-notes-fab) .scroll-top-button {
   line-height: 1.62;
 }
 
-.document-text-chunk > p,
-.document-text-chunk > .document-text-list {
+.document-overlay-section__paragraph,
+.document-text-list {
   margin-block: 0 0.9em;
 }
 
@@ -2222,10 +2245,10 @@ body:has(.patient-notes-fab) .scroll-top-button {
   max-width: 100%;
 }
 
-.reader-header h2,
+.reader-header__title,
 .source-paragraph,
-.source-paragraph p,
-.source-paragraph li {
+.document-text__paragraph,
+.document-text-list__item {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -2368,7 +2391,7 @@ body:has(.patient-notes-fab) .scroll-top-button {
   color: var(--theme-danger);
 }
 
-.patient-card-icon-action svg {
+.patient-card-icon-action__icon {
   width: 0.875rem;
   height: 0.875rem;
 }
@@ -2871,10 +2894,11 @@ body:has(.patient-notes-fab) .scroll-top-button {
 
 .module-card-actions button,
 .module-card > button,
-.recommendation-row-actions button,
-.recommendation-row > button,
-.recommendation-section-actions button,
-.recommendation-list-actions button {
+.recommendation-row-actions__remove,
+.recommendation-row-download-button,
+.recommendation-section-actions__remove,
+.recommendation-section-actions__download,
+.recommendation-list-actions__download {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2883,10 +2907,10 @@ body:has(.patient-notes-fab) .scroll-top-button {
 
 .module-card-actions svg,
 .module-card > button svg,
-.recommendation-row-actions svg,
-.recommendation-row > button svg,
-.recommendation-section-actions svg,
-.recommendation-list-actions svg {
+.recommendation-row-actions__icon,
+.recommendation-row-download-button__icon,
+.recommendation-section-actions__icon,
+.recommendation-list-actions__icon {
   width: 1rem;
   height: 1rem;
 }

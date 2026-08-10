@@ -42,6 +42,7 @@ import type {
 } from '@/features/assessments/assessment-types';
 import {
   ASSESSMENT_RESULTS_EVENT,
+  ASSESSMENT_RESULTS_KEY,
   loadAssessmentRecords,
   removeAssessmentRecord,
 } from '@/state/assessment-results';
@@ -54,7 +55,12 @@ import {
 type AssessmentRoute =
   | { readonly kind: 'index' }
   | { readonly kind: 'specialty'; readonly specialtyId: string }
-  | { readonly kind: 'assessment'; readonly slug: string }
+  | {
+      readonly kind: 'section';
+      readonly specialtyId: string;
+      readonly sectionId: AssessmentSectionId;
+    }
+  | { readonly kind: 'assessment'; readonly slug: string; readonly recordId?: string }
   | { readonly kind: 'result'; readonly slug: string; readonly recordId: string };
 
 function readRoute(): AssessmentRoute {
@@ -62,9 +68,19 @@ function readRoute(): AssessmentRoute {
   if (parts[0] !== 'assessments' || !parts[1]) return { kind: 'index' };
   try {
     const slug = decodeURIComponent(parts[1]);
-    if (findAssessmentSpecialty(slug)) return { kind: 'specialty', specialtyId: slug };
+    if (findAssessmentSpecialty(slug)) {
+      const candidateSectionId = parts[2] ? decodeURIComponent(parts[2]) : undefined;
+      const section = ASSESSMENT_SECTIONS.find((item) => item.id === candidateSectionId);
+      if (section) {
+        return { kind: 'section', specialtyId: slug, sectionId: section.id };
+      }
+      return { kind: 'specialty', specialtyId: slug };
+    }
     if (parts[2] === 'results' && parts[3]) {
       return { kind: 'result', slug, recordId: decodeURIComponent(parts[3]) };
+    }
+    if (parts[2] === 'resume' && parts[3]) {
+      return { kind: 'assessment', slug, recordId: decodeURIComponent(parts[3]) };
     }
     return { kind: 'assessment', slug };
   } catch {
@@ -78,6 +94,10 @@ function assessmentPath(slug: string): string {
 
 function specialtyPath(specialtyId: string): string {
   return `#/assessments/${encodeURIComponent(specialtyId)}`;
+}
+
+function sectionPath(specialtyId: string, sectionId: AssessmentSectionId): string {
+  return `${specialtyPath(specialtyId)}/${encodeURIComponent(sectionId)}`;
 }
 
 function resultPath(slug: string, recordId: string): string {
@@ -96,6 +116,12 @@ export function AssessmentsView(): JSX.Element {
   const [definitionLoading, setDefinitionLoading] = createSignal(false);
   const [definitionError, setDefinitionError] = createSignal('');
   const [message, setMessage] = createSignal('');
+
+  createEffect(() => {
+    if (!message()) return;
+    const timer = window.setTimeout(() => setMessage(''), 4000);
+    onCleanup(() => window.clearTimeout(timer));
+  });
   const [pendingDeletion, setPendingDeletion] = createSignal<{
     readonly kind: 'assessment' | 'section' | 'result';
     readonly id: string;
@@ -119,6 +145,7 @@ export function AssessmentsView(): JSX.Element {
   };
   const handleStorage = (event: StorageEvent): void => {
     if (!event.key || event.key.startsWith('minimed.assessment-packs.')) refreshPacks();
+    if (event.key === ASSESSMENT_RESULTS_KEY) refreshRecords();
   };
 
   onMount(() => {
@@ -154,6 +181,14 @@ export function AssessmentsView(): JSX.Element {
       (candidate) =>
         candidate.id === current.recordId && candidate.assessmentId === catalogEntry()?.id,
     );
+  });
+  const draftRecord = createMemo(() => {
+    const current = route();
+    if (current.kind !== 'assessment' || !current.recordId) return undefined;
+    const candidate = records().find(
+      (entry) => entry.id === current.recordId && entry.assessmentId === catalogEntry()?.id,
+    );
+    return candidate?.kind === 'incomplete' ? candidate : undefined;
   });
 
   createEffect(() => {
@@ -275,7 +310,15 @@ export function AssessmentsView(): JSX.Element {
       <Show when={message()}>
         {(value) => (
           <div class="assessment-message" role="status">
-            {value()}
+            <span class="assessment-message__text">{value()}</span>
+            <button
+              class="assessment-message__close"
+              type="button"
+              aria-label="Скрыть уведомление"
+              onClick={() => setMessage('')}
+            >
+              ×
+            </button>
           </div>
         )}
       </Show>
@@ -291,7 +334,11 @@ export function AssessmentsView(): JSX.Element {
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
           onOpen={(selected) => navigate(assessmentPath(selected.slug))}
           onOpenRecord={(selected, selectedRecord) =>
-            navigate(resultPath(selected.slug, selectedRecord.id))
+            navigate(
+              selectedRecord.kind === 'incomplete'
+                ? `${assessmentPath(selected.slug)}/resume/${encodeURIComponent(selectedRecord.id)}`
+                : resultPath(selected.slug, selectedRecord.id),
+            )
           }
           onInstall={(selected) => installDefinition(selected.id)}
           onRemove={(selected) => requestDeleteDefinition(selected.id)}
@@ -317,6 +364,37 @@ export function AssessmentsView(): JSX.Element {
               setQuery('');
               navigate('#/assessments');
             }}
+            onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
+            onOpen={(selected) => navigate(assessmentPath(selected.slug))}
+            onInstall={(selected) => installDefinition(selected.id)}
+            onRemove={(selected) => requestDeleteDefinition(selected.id)}
+            onPrint={(selected) => printDefinition(selected.id)}
+            onInstallSection={installSection}
+            onRemoveSection={requestDeleteSection}
+          />
+        )}
+      </Show>
+
+      <Show
+        when={
+          route().kind === 'section'
+            ? findAssessmentSpecialty((route() as { specialtyId: string }).specialtyId)
+            : undefined
+        }
+      >
+        {(specialty) => (
+          <AssessmentCatalogPage
+            specialty={specialty()}
+            sectionId={(route() as { sectionId: AssessmentSectionId }).sectionId}
+            definitions={assessmentsInSpecialty(specialty().id, searchAssessments(query()))}
+            installation={installation()}
+            query={query()}
+            onQuery={setQuery}
+            onBack={() => {
+              setQuery('');
+              navigate(specialtyPath(specialty().id));
+            }}
+            onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
             onOpen={(selected) => navigate(assessmentPath(selected.slug))}
             onInstall={(selected) => installDefinition(selected.id)}
             onRemove={(selected) => requestDeleteDefinition(selected.id)}
@@ -329,17 +407,23 @@ export function AssessmentsView(): JSX.Element {
 
       <Show when={definitionLoading()}>
         <section class="assessment-pack-required paper-card" aria-live="polite">
-          <h1>Подключаем опросник</h1>
-          <p>Загружаем только выбранное определение и проверяем его идентификатор.</p>
+          <h1 class="assessment-pack-required__title">Подключаем опросник</h1>
+          <p class="assessment-pack-required__text">
+            Загружаем только выбранное определение и проверяем его идентификатор.
+          </p>
         </section>
       </Show>
 
       <Show when={definitionError()}>
         {(error) => (
           <section class="assessment-pack-required paper-card" role="alert">
-            <h1>Не удалось открыть опросник</h1>
-            <p>{error()}</p>
-            <button type="button" onClick={() => navigate('#/assessments')}>
+            <h1 class="assessment-pack-required__title">Не удалось открыть опросник</h1>
+            <p class="assessment-pack-required__text">{error()}</p>
+            <button
+              class="assessment-pack-required__button"
+              type="button"
+              onClick={() => navigate('#/assessments')}
+            >
               К разделам
             </button>
           </section>
@@ -350,11 +434,13 @@ export function AssessmentsView(): JSX.Element {
         {(selected) => (
           <AssessmentQuestionnairePage
             definition={selected()}
+            {...(draftRecord() ? { initialRecord: draftRecord() } : {})}
             sectionTitle={
               ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
               selected().bankLabel
             }
             onBack={() => navigate('#/assessments')}
+            onDraftSaved={refreshRecords}
             onMessage={setMessage}
             onSaved={(saved) => {
               refreshRecords();
@@ -375,20 +461,28 @@ export function AssessmentsView(): JSX.Element {
       >
         {(selected) => (
           <section class="assessment-pack-required paper-card">
-            <p class="archive-kicker">
+            <p class="assessment-pack-required__kicker archive-kicker">
               {ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
                 selected().bankLabel}
             </p>
-            <h1>{selected().title}</h1>
-            <p>
+            <h1 class="assessment-pack-required__title">{selected().title}</h1>
+            <p class="assessment-pack-required__text">
               Этот тест входит в скачиваемый раздел. Сначала скачайте раздел, чтобы пройти его без
               сети.
             </p>
-            <div>
-              <button type="button" onClick={() => installDefinition(selected().id)}>
+            <div class="assessment-pack-required__actions">
+              <button
+                class="assessment-pack-required__button"
+                type="button"
+                onClick={() => installDefinition(selected().id)}
+              >
                 Скачать только этот тест
               </button>
-              <button type="button" onClick={() => navigate('#/assessments')}>
+              <button
+                class="assessment-pack-required__button"
+                type="button"
+                onClick={() => navigate('#/assessments')}
+              >
                 К разделам
               </button>
             </div>
@@ -419,11 +513,24 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
-      <Show when={route().kind !== 'index' && route().kind !== 'specialty' && !catalogEntry()}>
+      <Show
+        when={
+          route().kind !== 'index' &&
+          route().kind !== 'specialty' &&
+          route().kind !== 'section' &&
+          !catalogEntry()
+        }
+      >
         <section class="assessment-not-found paper-card">
-          <h1>Опросник не найден</h1>
-          <p>Возможно, каталог был обновлён или ссылка устарела.</p>
-          <button type="button" onClick={() => navigate('#/assessments')}>
+          <h1 class="assessment-not-found__title">Опросник не найден</h1>
+          <p class="assessment-not-found__text">
+            Возможно, каталог был обновлён или ссылка устарела.
+          </p>
+          <button
+            class="assessment-not-found__button"
+            type="button"
+            onClick={() => navigate('#/assessments')}
+          >
             К каталогу
           </button>
         </section>

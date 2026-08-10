@@ -199,7 +199,9 @@ export function isCalculatorSectionCore(
   definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
 ): boolean {
   const available = availableDefinitions(definitions, sectionId);
-  return available.length > 0 && available.every((definition) => CORE_CALCULATOR_IDS.has(definition.id));
+  return (
+    available.length > 0 && available.every((definition) => CORE_CALCULATOR_IDS.has(definition.id))
+  );
 }
 
 function persist(
@@ -222,7 +224,9 @@ export function installCalculatorSection(
   sectionId: CalculatorSectionId,
   definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
 ): CalculatorInstallationState {
-  if (!SECTION_IDS.has(sectionId)) return loadCalculatorInstallationState(definitions);
+  if (!SECTION_IDS.has(sectionId) || availableDefinitions(definitions, sectionId).length === 0) {
+    return loadCalculatorInstallationState(definitions);
+  }
   const current = loadCalculatorInstallationState(definitions);
   const sectionIds = new Set(current.sectionIds);
   sectionIds.add(sectionId);

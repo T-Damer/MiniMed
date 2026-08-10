@@ -45,6 +45,7 @@ async function serveBuiltAsset(route: Route): Promise<void> {
 export interface MountBuiltAppOptions {
   readonly localStorage?: Readonly<Record<string, string>>;
   readonly persistentOrigin?: boolean;
+  readonly skipLargeCompanionPacks?: boolean;
 }
 
 async function waitForWorkspace(page: Page): Promise<void> {
@@ -63,6 +64,11 @@ async function waitForWorkspace(page: Page): Promise<void> {
 
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
+  if (options.skipLargeCompanionPacks) {
+    for (const databaseName of ['ambulatory.db', 'medications.db']) {
+      await page.route(`${E2E_ASSET_ORIGIN}/content/${databaseName}`, (route) => route.abort());
+    }
+  }
   const initialStorage = options.localStorage ?? {};
   await page.addInitScript((initialValues) => {
     for (const [key, value] of Object.entries(initialValues)) {

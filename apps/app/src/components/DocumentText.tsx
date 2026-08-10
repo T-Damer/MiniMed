@@ -137,7 +137,9 @@ export function DocumentText(props: {
         if (group.kind === 'bullet') {
           return (
             <ul class="document-text-list">
-              <For each={group.items}>{(item) => <li>{inline(item.text)}</li>}</For>
+              <For each={group.items}>
+                {(item) => <li class="document-text-list__item">{inline(item.text)}</li>}
+              </For>
             </ul>
           );
         }
@@ -148,7 +150,9 @@ export function DocumentText(props: {
               class="document-text-list"
               start={first?.kind === 'ordered' ? first.ordinal : undefined}
             >
-              <For each={group.items}>{(item) => <li>{inline(item.text)}</li>}</For>
+              <For each={group.items}>
+                {(item) => <li class="document-text-list__item">{inline(item.text)}</li>}
+              </For>
             </ol>
           );
         }

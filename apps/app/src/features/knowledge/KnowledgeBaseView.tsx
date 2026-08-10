@@ -3,6 +3,7 @@ import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'so
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
+import { knowledgeDocumentBackHash } from '@/features/knowledge/knowledge-routing';
 import { MedicationCatalogView } from '@/features/medications/MedicationCatalogView';
 import type { LocalModelController } from '@/features/models/controller';
 import { ModelSettings } from '@/features/models/ModelSettings';
@@ -80,8 +81,9 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
   const navigateBack = (): void => {
     const route = window.location.hash.replace(/^#\/?/u, '');
-    if (route.startsWith('modules/documents/')) {
-      window.location.hash = '#/modules/documents';
+    const backHash = knowledgeDocumentBackHash(route);
+    if (backHash) {
+      window.location.hash = backHash;
       return;
     }
     navigate('overview');

@@ -18,7 +18,8 @@ def write_allmed_fixture(path: Path) -> None:
             """
             CREATE TABLE drugs (
                 id INTEGER PRIMARY KEY, name_ru TEXT, name_lat TEXT, analogs TEXT,
-                production_form TEXT, pharma_effect TEXT, untouched_field TEXT
+                production_form TEXT, pharma_effect TEXT, method_of_use_man TEXT,
+                untouched_field TEXT
             );
             CREATE TABLE ingredients (id INTEGER PRIMARY KEY, name_ru TEXT, description TEXT);
             CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT, description TEXT);
@@ -27,7 +28,8 @@ def write_allmed_fixture(path: Path) -> None:
                 id INTEGER PRIMARY KEY, drug_id INTEGER, category_id INTEGER
             );
             INSERT INTO drugs VALUES (1, 'Тестовый препарат', 'Test drug', 'Тест-альфа',
-                'таблетки', '', 'сохраняется как есть');
+                'таблетки', '', '<div>400 мг<br /><br /></div><div>после еды</div>',
+                'сохраняется как есть');
             INSERT INTO ingredients VALUES (4, 'Тестовое вещество', 'Исходное описание');
             INSERT INTO categories VALUES (9, 'Тестовая категория', 'Исходная категория');
             INSERT INTO ingredients_relation VALUES (1, 4);
@@ -142,3 +144,6 @@ def test_prepares_allmed_snapshot_as_lexical_medications_pack(tmp_path: Path) ->
     assert "source_type: allmed_reference" in document
     assert '"table":"drugs","drugId":1,"column":"indications"' not in document
     assert '"table":"drugs","drugId":1,"column":"production_form"' in document
+    assert "<div>" not in document
+    assert "<br" not in document
+    assert "400 мг\n\nпосле еды" in document

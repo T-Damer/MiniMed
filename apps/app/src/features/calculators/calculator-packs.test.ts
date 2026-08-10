@@ -33,4 +33,10 @@ describe('calculator packs', () => {
     expect(isCalculatorSectionComplete('unit-conversion', state, CALCULATOR_REGISTRY)).toBe(true);
     expect(isCalculatorSectionCore('renal', CALCULATOR_REGISTRY)).toBe(false);
   });
+
+  it('does not install a section that has no available calculators', () => {
+    const installed = installCalculatorSection('gynecology', CALCULATOR_REGISTRY);
+
+    expect(installed.sectionIds.has('gynecology')).toBe(false);
+  });
 });

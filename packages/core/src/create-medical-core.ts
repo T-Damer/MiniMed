@@ -490,6 +490,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     };
   };
 
+  let documentSummariesPromise:
+    | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
+    | undefined;
+
   return {
     initialize,
 
@@ -526,14 +530,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     },
 
     async listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>> {
-      try {
-        const ready = await ensureInitialized();
-        if (!ready.ok) return err(ready.error);
-        const documents = await options.store.listDocuments();
-        return ok(documents.map(toDocumentSummary));
-      } catch (error) {
-        return err(asLocalMedError(error));
-      }
+      documentSummariesPromise ??= (async () => {
+        try {
+          const ready = await ensureInitialized();
+          if (!ready.ok) return err(ready.error);
+          const documents = await options.store.listDocuments();
+          return ok(documents.map(toDocumentSummary));
+        } catch (error) {
+          return err(asLocalMedError(error));
+        }
+      })();
+      const result = await documentSummariesPromise;
+      if (!result.ok) documentSummariesPromise = undefined;
+      return result;
     },
 
     async analyzeQuery(untrustedRequest): Promise<Result<QueryAnalysis, LocalMedError>> {
@@ -789,6 +798,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     async close(): Promise<void> {
       await options.store.close();
       initialized = false;
+      documentSummariesPromise = undefined;
     },
   };
 }

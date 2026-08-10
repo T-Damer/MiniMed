@@ -190,7 +190,10 @@ function deferEnrichment(noteId: string, core: MedicalCore): void {
   window.setTimeout(() => void enrichPatientNote(noteId, core), 0);
 }
 
-export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
+export function NotesView(props: {
+  readonly core: MedicalCore;
+  readonly active: boolean;
+}): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
   const [route, setRoute] = createSignal<NotesRoute>(readNotesRoute());
@@ -473,7 +476,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
 
   return (
     <section class="patient-notes-view page-surface" aria-label="Личные заметки">
-      <Show when={route().kind === 'index'}>
+      <Show when={props.active && route().kind === 'index'}>
         <header class="patient-notes-heading">
           <div>
             <p class="archive-kicker">Личный слой, только на этом устройстве</p>
@@ -532,7 +535,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                           })
                         }
                       >
-                        <AppGlyph name="trash" />
+                        <AppGlyph name="trash" class="patient-card-icon-action__icon" />
                       </button>
                     </div>
                   </article>
@@ -550,7 +553,9 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
             title="Новая карточка"
             onClick={() => setCreating(true)}
           >
-            <span aria-hidden="true">+</span>
+            <span class="patient-notes-fab__icon" aria-hidden="true">
+              +
+            </span>
           </button>
         </Portal>
       </Show>
@@ -593,7 +598,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                     title="Изменить карточку"
                     onClick={() => openCardEditor(card())}
                   >
-                    <AppGlyph name="edit" />
+                    <AppGlyph name="edit" class="patient-card-icon-action__icon" />
                   </button>
                   <button
                     type="button"
@@ -609,7 +614,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                       })
                     }
                   >
-                    <AppGlyph name="trash" />
+                    <AppGlyph name="trash" class="patient-card-icon-action__icon" />
                   </button>
                 </div>
               </header>
@@ -714,7 +719,7 @@ export function NotesView(props: { readonly core: MedicalCore }): JSX.Element {
                           })
                         }
                       >
-                        <AppGlyph name="trash" />
+                        <AppGlyph name="trash" class="patient-card-icon-action__icon" />
                       </button>
                     )}
                   </Show>

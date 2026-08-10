@@ -259,10 +259,12 @@ jobs:
 
           Included in this APK:
           - a compact three-section workspace: search, knowledge base/documents, and personal notes;
-          - a bundled Miramistin medication pilot with its official GRLS registration, package variants, full patient leaflet, catalog and medication-scoped search;
+          - assessments with durable incomplete-attempt resume, completed-result history and local-only persistence;
+          - calculator catalog and reader UX with formula/limitation details, saved results and source-linked document navigation;
           - document reading with reconstructed lists, exact anchors, a tracked outline and sticky current headings;
+          - the Primary Obsidian theme, responsive navigation icons and directional primary-route animation;
+          - a medication catalog that loads metadata in bounded batches and coalesces summary reads for responsive startup;
           - five explicit document sections for medications, norms/calculations, laws/regulations, clinical recommendations and core;
-          - directional primary-route animation with an interactive bottom bar and queued rapid tab changes;
           - mode-specific search examples, swipe-open history, and source-scoped local retrieval;
           - device-local notes with reminders, image attachments and local notifications without a hosted push service;
           - resumable module downloads with automatic retry, three document slots and an independent model slot;
@@ -273,7 +275,7 @@ jobs:
           The browser application is published with the landing site under /app/.
 
           Important boundaries:
-          - the bundled medication database is a one-drug pipeline proof and does not yet contain normalized dosing facts or a complete Russian medication corpus;
+          - medication registry content remains source-linked identity metadata; it is not a complete Russian medication corpus and does not establish verified regimens;
           - model weights are downloaded separately and are not bundled in the APK;
           - tested sub-4B local models are not qualified for grounded clinical answers;
           - native Android GPU/NPU acceleration, production signing and physical-device qualification remain follow-up gates.

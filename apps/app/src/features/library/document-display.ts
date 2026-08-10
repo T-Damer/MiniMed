@@ -13,6 +13,8 @@ import { sourceTypeReaderLabel as localizedSourceTypeReaderLabel } from '@/i18n/
 
 const REGISTRY_SECTION_PATTERN = /регистрационн|ограничен/i;
 
+export type DocumentSectionHeadingTag = 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
 export {
   fullDocumentCandidateId,
   fullDocumentCandidateIds,
@@ -44,6 +46,25 @@ export function displayDocumentSubtitle(
 
 export function sourceTypeReaderLabel(sourceType: string): string | null {
   return localizedSourceTypeReaderLabel(sourceType);
+}
+
+export function documentSectionHeadingTag(
+  depth: number,
+  documentTitleLevel: 1 | 2 = 1,
+): DocumentSectionHeadingTag {
+  const level = Math.min(6, Math.max(2, depth + documentTitleLevel));
+  switch (level) {
+    case 2:
+      return 'h2';
+    case 3:
+      return 'h3';
+    case 4:
+      return 'h4';
+    case 5:
+      return 'h5';
+    default:
+      return 'h6';
+  }
 }
 
 export function orderDocumentSections(

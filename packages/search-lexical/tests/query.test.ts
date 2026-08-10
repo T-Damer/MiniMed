@@ -191,6 +191,22 @@ describe('lexical query planning', () => {
     );
   });
 
+  it('recognizes nosebleed as a searchable symptom phrase', () => {
+    const plan = analyzeClinicalQuery(
+      '15 лет, кровотечение из носа 3 дня, 15 дней назад ударился головой',
+      aliases,
+    );
+    expect(plan.analysis.facts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'symptom',
+          normalizedValue: 'носовое кровотечение эпистаксис',
+        }),
+      ]),
+    );
+    expect(plan.terms).toEqual(expect.arrayContaining(['носовое', 'кровотечение', 'эпистаксис']));
+  });
+
   it('keeps neuroinfection results searchable while proposing discriminating clarifications', () => {
     const plan = analyzeClinicalQuery('Менингит или энцефалит у ребёнка', aliases);
     expect(plan.analysis.intent?.needsClarification).toBe(true);
@@ -224,5 +240,22 @@ describe('lexical query planning', () => {
     const plan = analyzeClinicalQuery('Ребёнок часто дышит второй день', aliases);
     expect(plan.terms).not.toContain('часто');
     expect(plan.terms).toContain('тахипноэ');
+  });
+
+  it('recognizes a misspelled alias term through fuzzy token matching', () => {
+    const plan = analyzeClinicalQuery('Дизурея у ребенка', aliases);
+    expect(plan.aliasMatches).toContain('дизурия → болезненное мочеиспускание');
+    expect(plan.terms).toEqual(expect.arrayContaining(['болезненн', 'мочеиспуск']));
+  });
+
+  it('does not promote a fuzzy-matched alias that is explicitly negated', () => {
+    const plan = analyzeClinicalQuery('Дизурея не наблюдается', aliases);
+    const clinical = plan.branches.find((branch) => branch.id === 'clinical');
+    expect(clinical?.terms ?? []).not.toEqual(expect.arrayContaining(['мочеиспуск']));
+  });
+
+  it('keeps a short abbreviation exact-only and never fuzzy-expands it', () => {
+    const plan = analyzeClinicalQuery('ОАТ без изменений', aliases);
+    expect(plan.aliasMatches).not.toContain('ОАК → общий анализ крови');
   });
 });

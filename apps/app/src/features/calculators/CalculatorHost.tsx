@@ -36,7 +36,7 @@ export function CalculatorHost(): JSX.Element {
               window.location.hash = '#/calculators';
             }}
           >
-            <AppGlyph name="graph" />
+            <AppGlyph name="graph" class="calculator-launch-button__icon" />
             <span>Расчёты</span>
           </button>
         </Show>
@@ -51,7 +51,7 @@ export function CalculatorHost(): JSX.Element {
             window.location.hash = '#/search';
           }}
         >
-          <AppGlyph name="close" />
+          <AppGlyph name="close" class="calculator-overlay-close__icon" />
         </button>
         <CalculatorsView />
       </div>

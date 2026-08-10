@@ -23,6 +23,7 @@ export function toDocumentSummary(record: DocumentRecord): MedicalDocumentSummar
     status: record.status,
     specialties: record.specialties,
     ageGroups: metadataStrings(record.metadata, 'ageGroups'),
+    metadata: record.metadata,
     versionId: record.version.id,
     versionLabel: record.version.versionLabel,
     effectiveFrom: record.version.effectiveFrom,

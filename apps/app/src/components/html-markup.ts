@@ -1,6 +1,7 @@
 const BR_TAG = /<br\s*\/?>/giu;
+const BLOCK_CLOSE_TAG = /<\/(?:div|p|ul|ol|li)\s*>/giu;
 const BOLD_TAG = /<(?:strong|b)>([\s\S]*?)<\/(?:strong|b)>/giu;
-const KNOWN_TAG = /<\/?(?:em|i|strong|b|p|ul|ol|li)(?:\s[^<>]*)?>/giu;
+const KNOWN_TAG = /<\/?(?:div|span|em|i|strong|b|p|ul|ol|li)(?:\s[^<>]*)?>/giu;
 const HTML_ENTITY =
   /&(nbsp|amp|lt|gt|quot|apos|ndash|mdash|hellip|laquo|raquo|deg|middot|bull|times|#\d+|#x[0-9a-f]+);/giu;
 
@@ -37,7 +38,7 @@ function decodeKnownHtmlEntities(value: string): string {
  */
 export function stripKnownHtmlMarkup(value: string): string {
   if (!value.includes('<') && !value.includes('&')) return value;
-  const withLineBreaks = value.replace(BR_TAG, '\n');
+  const withLineBreaks = value.replace(BR_TAG, '\n').replace(BLOCK_CLOSE_TAG, '\n');
   const withBold = withLineBreaks.replace(BOLD_TAG, '**$1**');
   const withoutTags = withBold.replace(KNOWN_TAG, '');
   return decodeKnownHtmlEntities(withoutTags);

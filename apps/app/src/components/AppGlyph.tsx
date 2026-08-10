@@ -1,3 +1,28 @@
+import archiveBold from '@phosphor-icons/core/assets/bold/archive-bold.svg?raw';
+import arrowLeftBold from '@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw';
+import arrowSquareUpRightBold from '@phosphor-icons/core/assets/bold/arrow-square-up-right-bold.svg?raw';
+import arrowUpBold from '@phosphor-icons/core/assets/bold/arrow-up-bold.svg?raw';
+import arrowUpRightBold from '@phosphor-icons/core/assets/bold/arrow-up-right-bold.svg?raw';
+import arrowsClockwiseBold from '@phosphor-icons/core/assets/bold/arrows-clockwise-bold.svg?raw';
+import binocularsBold from '@phosphor-icons/core/assets/bold/binoculars-bold.svg?raw';
+import bookOpenBold from '@phosphor-icons/core/assets/bold/book-open-bold.svg?raw';
+import brainBold from '@phosphor-icons/core/assets/bold/brain-bold.svg?raw';
+import calculatorBold from '@phosphor-icons/core/assets/bold/calculator-bold.svg?raw';
+import clockCounterClockwiseBold from '@phosphor-icons/core/assets/bold/clock-counter-clockwise-bold.svg?raw';
+import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
+import gearBold from '@phosphor-icons/core/assets/bold/gear-bold.svg?raw';
+import graphBold from '@phosphor-icons/core/assets/bold/graph-bold.svg?raw';
+import listBold from '@phosphor-icons/core/assets/bold/list-bold.svg?raw';
+import listChecksBold from '@phosphor-icons/core/assets/bold/list-checks-bold.svg?raw';
+import magnifyingGlassBold from '@phosphor-icons/core/assets/bold/magnifying-glass-bold.svg?raw';
+import minusBold from '@phosphor-icons/core/assets/bold/minus-bold.svg?raw';
+import noteBold from '@phosphor-icons/core/assets/bold/note-bold.svg?raw';
+import pencilSimpleBold from '@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw';
+import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
+import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
+import stackBold from '@phosphor-icons/core/assets/bold/stack-bold.svg?raw';
+import trashBold from '@phosphor-icons/core/assets/bold/trash-bold.svg?raw';
+import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
 import type { JSX } from 'solid-js';
 
 export type AppGlyphName =
@@ -20,11 +45,46 @@ export type AppGlyphName =
   | 'refresh'
   | 'download'
   | 'minus'
+  | 'arrow-up-right'
   | 'edit'
   | 'trash'
   | 'printer'
   | 'share'
+  | 'binoculars'
   | 'arrow-square-up-right';
+
+function svgBody(asset: string): string {
+  return asset.slice(asset.indexOf('>') + 1, asset.lastIndexOf('</svg>'));
+}
+
+const glyphBodies: Record<AppGlyphName, string> = {
+  search: svgBody(magnifyingGlassBold),
+  archive: svgBody(archiveBold),
+  modules: svgBody(stackBold),
+  history: svgBody(clockCounterClockwiseBold),
+  menu: svgBody(listBold),
+  notes: svgBody(noteBold),
+  brain: svgBody(brainBold),
+  'list-checks': svgBody(listChecksBold),
+  system: svgBody(gearBold),
+  close: svgBody(xBold),
+  graph: svgBody(graphBold),
+  calculator: svgBody(calculatorBold),
+  list: svgBody(listBold),
+  'arrow-left': svgBody(arrowLeftBold),
+  'arrow-up': svgBody(arrowUpBold),
+  'book-open': svgBody(bookOpenBold),
+  refresh: svgBody(arrowsClockwiseBold),
+  download: svgBody(downloadSimpleBold),
+  minus: svgBody(minusBold),
+  'arrow-up-right': svgBody(arrowUpRightBold),
+  edit: svgBody(pencilSimpleBold),
+  trash: svgBody(trashBold),
+  printer: svgBody(printerBold),
+  share: svgBody(shareNetworkBold),
+  binoculars: svgBody(binocularsBold),
+  'arrow-square-up-right': svgBody(arrowSquareUpRightBold),
+};
 
 export function AppGlyph(props: {
   readonly name: AppGlyphName;
@@ -33,152 +93,10 @@ export function AppGlyph(props: {
   return (
     <svg
       class={props.class}
-      viewBox="0 0 24 24"
+      viewBox="0 0 256 256"
       aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      {props.name === 'search' && (
-        <>
-          <circle cx="10.5" cy="10.5" r="6.5" />
-          <path d="m15.4 15.4 4.1 4.1" />
-        </>
-      )}
-      {props.name === 'archive' && (
-        <>
-          <path d="M4 7.5h16v11H4z" />
-          <path d="M6 4.5h12l2 3H4zM9 11h6" />
-        </>
-      )}
-      {props.name === 'modules' && (
-        <>
-          <path d="m12 3 8 4-8 4-8-4 8-4Z" />
-          <path d="m4 12 8 4 8-4M4 17l8 4 8-4" />
-        </>
-      )}
-      {props.name === 'history' && (
-        <>
-          <path d="M4.3 9A8 8 0 1 1 5 16.4" />
-          <path d="M4 4.8V9h4.2M12 7.5V12l3 1.8" />
-        </>
-      )}
-      {props.name === 'menu' && <path d="M4 7h16M4 12h16M4 17h16" />}
-      {props.name === 'notes' && (
-        <>
-          <path d="M6 3.5h9.5L19 7v13.5H6Z" />
-          <path d="M15 3.5V7h4M9 11h7M9 14.5h7M9 18h4.5" />
-        </>
-      )}
-      {props.name === 'brain' && (
-        <>
-          <path d="M9.2 4.8A3.2 3.2 0 0 0 6 8v.4a3.4 3.4 0 0 0-1.8 5.9A3.6 3.6 0 0 0 7.6 20H10V4.8Z" />
-          <path d="M14.8 4.8A3.2 3.2 0 0 1 18 8v.4a3.4 3.4 0 0 1 1.8 5.9 3.6 3.6 0 0 1-3.4 5.7H14V4.8Z" />
-          <path d="M10 8.1c-1 .2-1.8 1-1.8 2 0 1 .7 1.8 1.8 2M14 8.1c1 .2 1.8 1 1.8 2 0 1-.7 1.8-1.8 2M10 12.1c-1.1.2-2 .9-2 2.1 0 1 .8 1.9 2 2.1M14 12.1c1.1.2 2 .9 2 2.1 0 1-.8 1.9-2 2.1" />
-        </>
-      )}
-      {props.name === 'list-checks' && (
-        <>
-          <path d="m3 6 2 2 4-4" />
-          <path d="m3 16 2 2 4-4" />
-          <path d="M13 6h8M13 12h8M13 18h8" />
-        </>
-      )}
-      {props.name === 'system' && (
-        <>
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.5 1a8 8 0 0 0-2-1.2L14 3h-4l-.4 2.7a8 8 0 0 0-2 1.2l-2.5-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.5-1a8 8 0 0 0 2 1.2L10 21h4l.4-2.7a8 8 0 0 0 2-1.2l2.5 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" />
-        </>
-      )}
-      {props.name === 'close' && <path d="m6 6 12 12M18 6 6 18" />}
-      {props.name === 'minus' && <path d="M5 12h14" />}
-      {props.name === 'graph' && (
-        <>
-          <circle cx="6" cy="12" r="2.2" />
-          <circle cx="17.5" cy="6" r="2.2" />
-          <circle cx="17.5" cy="18" r="2.2" />
-          <path d="m8 11 7.4-4M8 13l7.4 4" />
-        </>
-      )}
-      {props.name === 'calculator' && (
-        <>
-          <rect x="4" y="2" width="16" height="20" rx="2" />
-          <path d="M8 6h8M16 14v4" />
-          <path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01" />
-        </>
-      )}
-      {props.name === 'list' && (
-        <>
-          <path d="M8 6h12M8 12h12M8 18h12" />
-          <circle cx="4" cy="6" r=".8" fill="currentColor" stroke="none" />
-          <circle cx="4" cy="12" r=".8" fill="currentColor" stroke="none" />
-          <circle cx="4" cy="18" r=".8" fill="currentColor" stroke="none" />
-        </>
-      )}
-      {props.name === 'arrow-left' && (
-        <path
-          d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
-          fill="currentColor"
-          stroke="none"
-          transform="scale(0.09375)"
-        />
-      )}
-      {props.name === 'arrow-up' && <path d="m5 14 7-7 7 7M12 7v13" />}
-      {props.name === 'book-open' && (
-        <path
-          d="M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z"
-          fill="currentColor"
-          stroke="none"
-          transform="scale(0.09375)"
-        />
-      )}
-      {props.name === 'refresh' && (
-        <>
-          <path d="M20 7v5h-5" />
-          <path d="M4 17v-5h5" />
-          <path d="M6.1 8.5A7 7 0 0 1 18.8 9L20 12M4 12l1.2 3A7 7 0 0 0 17.9 15.5" />
-        </>
-      )}
-      {props.name === 'download' && <path d="M12 3v12m-4-4 4 4 4-4M5 20h14" />}
-      {props.name === 'edit' && (
-        <>
-          <path d="m4 20 4.2-1 10.6-10.6a2 2 0 0 0-2.8-2.8L5.4 16.2 4 20Z" />
-          <path d="m14.6 7 2.8 2.8" />
-        </>
-      )}
-      {props.name === 'trash' && (
-        <>
-          <path d="M4.5 6h15" />
-          <path d="M8 6V4.5h8V6" />
-          <path d="M7 6l.8 13h8.4L17 6" />
-          <path d="M10 9.5v6.5M14 9.5v6.5" />
-        </>
-      )}
-      {props.name === 'printer' && (
-        <>
-          <path d="M6.5 9V4.5h11V9" />
-          <path d="M6 17H4.5A1.5 1.5 0 0 1 3 15.5v-4A1.5 1.5 0 0 1 4.5 10h15a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H18" />
-          <path d="M6 14h12v6H6z" />
-          <path d="M18 12h.01" />
-        </>
-      )}
-      {props.name === 'share' && (
-        <>
-          <circle cx="6" cy="12" r="2" />
-          <circle cx="17.5" cy="6" r="2" />
-          <circle cx="17.5" cy="18" r="2" />
-          <path d="m7.8 11 7.8-4M7.8 13l7.8 4" />
-        </>
-      )}
-      {props.name === 'arrow-square-up-right' && (
-        <>
-          <rect x="3.5" y="3.5" width="17" height="17" rx="3" />
-          <path d="M10 14 20 4" />
-          <path d="M13 4h7v7" />
-        </>
-      )}
-    </svg>
+      fill="currentColor"
+      innerHTML={glyphBodies[props.name]}
+    />
   );
 }

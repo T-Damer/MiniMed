@@ -1,16 +1,17 @@
 .assessment-launch-button {
+  --assessment-radius-pill: 999px;
   position: fixed;
   z-index: 45;
-  right: 1rem;
+  right: var(--theme-space-4);
   bottom: 5.4rem;
   display: grid;
   grid-template-columns: 1.4rem auto;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--theme-space-2);
   min-height: 2.8rem;
   padding: 0.6rem 0.85rem;
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 999px;
+  border-radius: var(--assessment-radius-pill);
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
   box-shadow: var(--theme-card-hover-shadow);
@@ -19,7 +20,7 @@
   cursor: pointer;
 }
 
-.assessment-launch-button svg {
+.assessment-launch-button__icon {
   width: 1.35rem;
   height: 1.35rem;
 }
@@ -51,23 +52,24 @@
   cursor: pointer;
 }
 
-.assessment-overlay-close svg {
+.assessment-overlay-close__icon {
   width: 1.35rem;
   height: 1.35rem;
 }
 
-html.assessment-route-open,
-html.assessment-route-open body {
+.assessment-route-open {
   overflow: hidden;
 }
 
 .assessments-page {
+  --assessment-radius-pill: 999px;
   display: grid;
-  gap: 1rem;
-  padding: 1rem 1rem 7rem;
+  align-content: start;
+  gap: var(--theme-space-4);
+  padding: var(--theme-space-4) var(--theme-space-4) 7rem;
 }
 
-.assessments-heading p {
+.assessments-heading__description {
   max-width: 64rem;
 }
 
@@ -96,18 +98,18 @@ html.assessment-route-open body {
   cursor: pointer;
 }
 
-.assessment-specialty-card h2 {
+.assessment-specialty-card__title {
   margin: 0;
   font-family: var(--font-serif);
   font-size: 1.3rem;
 }
 
-.assessment-specialty-card p {
+.assessment-specialty-card__description {
   margin: 0;
   color: var(--theme-text-muted);
 }
 
-.assessment-specialty-card small {
+.assessment-specialty-card__meta {
   color: var(--theme-text-muted);
 }
 
@@ -117,22 +119,65 @@ html.assessment-route-open body {
 }
 
 .assessment-specialty-card:disabled,
-.assessment-specialty-card.assessment-specialty-card-empty {
+.assessment-specialty-card--empty {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .assessment-message {
-  position: sticky;
-  z-index: 30;
-  top: 0.75rem;
-  width: min(100%, 52rem);
-  margin-inline: auto;
-  padding: 0.8rem 1rem;
+  --assessment-message-width: 30rem;
+  --assessment-message-close-size: 1.5rem;
+  position: fixed;
+  z-index: 150;
+  top: max(var(--theme-space-3), var(--safe-top));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-body-gap);
+  width: min(92vw, var(--assessment-message-width));
+  padding: var(--theme-space-body-gap) var(--theme-space-2) var(--theme-space-body-gap)
+    var(--theme-space-control);
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 0.8rem;
+  border-radius: var(--theme-radius-panel);
   background: var(--theme-surface-raised);
   box-shadow: var(--theme-control-hover-shadow);
+  transform: translateX(-50%);
+  animation: assessment-toast-in 160ms ease-out;
+}
+
+.assessment-message__text {
+  min-width: 0;
+}
+
+.assessment-message__close {
+  display: grid;
+  flex: 0 0 auto;
+  width: var(--assessment-message-close-size);
+  height: var(--assessment-message-close-size);
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: inherit;
+  background: transparent;
+  font-size: var(--theme-icon-size-small);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.assessment-message__close:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+@keyframes assessment-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-1 * var(--theme-space-2)));
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .assessment-search {
@@ -141,8 +186,7 @@ html.assessment-route-open body {
   max-width: 42rem;
 }
 
-.assessment-search span,
-.assessment-note-panel label span,
+.assessment-note-panel__label,
 .assessment-toolbar__label {
   font-size: var(--theme-type-field-label);
   font-weight: 700;
@@ -150,9 +194,8 @@ html.assessment-route-open body {
   text-transform: uppercase;
 }
 
-.assessment-search input,
-.assessment-note-panel input,
-.assessment-note-panel select,
+.assessment-note-panel__input,
+.assessment-note-panel__select,
 .assessment-toolbar__input {
   width: 100%;
   min-height: 2.8rem;
@@ -178,31 +221,40 @@ html.assessment-route-open body {
   min-height: 0;
 }
 
-.assessment-card h2,
-.assessment-card p {
+.assessment-card__title,
+.assessment-card__description {
   margin: 0;
 }
 
-.assessment-card > small {
+.assessment-card__audience {
   margin-top: auto;
   color: var(--theme-text-muted);
 }
 
 .assessment-card-meta {
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
 
-.assessment-card-meta span {
-  padding: 0.2rem 0.45rem;
+.assessment-card-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--theme-space-3);
+}
+
+.assessment-card-meta__item {
+  padding: var(--theme-space-1) var(--theme-space-2);
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  border-radius: 999px;
+  border-radius: var(--assessment-radius-pill);
   font-size: 0.72rem;
 }
 
 .assessment-card-actions,
-.assessment-toolbar > div,
+.assessment-toolbar__content,
 .assessment-panel-actions,
 .assessment-result-actions {
   display: flex;
@@ -210,11 +262,11 @@ html.assessment-route-open body {
   gap: 0.55rem;
 }
 
-.assessment-card-actions button,
-.assessment-panel-actions button,
-.assessment-result-actions button,
+.assessment-card-actions__button,
+.assessment-panel-actions__button,
 .assessment-submit-panel__button,
-.assessment-not-found button {
+.assessment-not-found__button,
+.assessment-pack-required__button {
   min-height: 2.6rem;
   padding: 0.6rem 0.85rem;
   border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
@@ -226,9 +278,9 @@ html.assessment-route-open body {
   cursor: pointer;
 }
 
-.assessment-card-actions button:first-child,
+.assessment-card-actions__button--primary,
 .assessment-submit-panel__button,
-.assessment-panel-actions button:first-child {
+.assessment-panel-actions__button--primary {
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
 }
@@ -236,10 +288,10 @@ html.assessment-route-open body {
 .assessment-history {
   display: grid;
   gap: 0.8rem;
-  margin-top: 1rem;
+  margin-top: var(--theme-space-4);
 }
 
-.assessment-history h2 {
+.assessment-history__heading {
   margin: 0;
 }
 
@@ -248,7 +300,7 @@ html.assessment-route-open body {
   gap: 0.55rem;
 }
 
-.assessment-history-list button {
+.assessment-history__entry {
   display: grid;
   grid-template-columns: minmax(8rem, 0.45fr) minmax(12rem, 1fr);
   gap: 0.25rem 0.8rem;
@@ -262,37 +314,66 @@ html.assessment-route-open body {
   cursor: pointer;
 }
 
-.assessment-history-list button span {
+.assessment-history__title {
   grid-row: 1 / 3;
   font-weight: 800;
 }
 
-.assessment-history-list button small {
+.assessment-history__tag,
+.assessment-history__count {
+  display: inline-block;
+  margin-inline-end: 0.35rem;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 36%, transparent);
+  border-radius: var(--assessment-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.assessment-history__tag {
+  color: var(--theme-warning);
+}
+
+.assessment-history__summary {
   color: var(--theme-text-muted);
 }
 
 .assessment-workspace,
 .assessment-result-page {
+  --assessment-radius-pill: 999px;
+  --assessment-content-width: 68rem;
   display: grid;
-  gap: 1rem;
-  width: min(100%, 68rem);
+  gap: var(--theme-space-4);
+  width: min(100%, var(--assessment-content-width));
   margin-inline: auto;
 }
 
 .assessment-subpage-header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 0.8rem;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--theme-space-3);
 }
 
 .assessment-subpage-header-actions {
-  display: grid;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 0.55rem;
 }
 
-.assessment-subpage-header > div {
+.assessment-subpage-header-actions--trailing {
+  flex-direction: column;
+  margin-left: auto;
+}
+
+.assessment-help-button {
+  order: -1;
+}
+
+.assessment-subpage-header__content {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .assessment-subpage-title {
@@ -312,7 +393,7 @@ html.assessment-route-open body {
 }
 
 .assessment-toolbar__field,
-.assessment-note-panel label {
+.assessment-note-panel__field {
   display: grid;
   gap: 0.35rem;
 }
@@ -323,7 +404,7 @@ html.assessment-route-open body {
   gap: var(--theme-space-body-gap);
 }
 
-.assessment-note-panel h2,
+.assessment-note-panel__heading,
 .assessment-methodology-body__text {
   margin: 0;
 }
@@ -334,7 +415,7 @@ html.assessment-route-open body {
   align-items: center;
   gap: var(--theme-space-3);
   justify-self: start;
-  width: min(100%, var(--theme-assessment-methodology-width));
+  width: 100%;
   min-height: var(--theme-control-height-large);
   padding: var(--theme-space-2) var(--theme-space-3);
   border: var(--theme-border-hairline) solid
@@ -403,6 +484,18 @@ html.assessment-route-open body {
   text-underline-offset: var(--theme-text-underline-offset);
 }
 
+.assessment-methodology-body__scales {
+  display: grid;
+  gap: var(--theme-space-2);
+}
+
+.assessment-methodology-body__scale-list {
+  display: grid;
+  gap: var(--theme-space-2);
+  margin: 0;
+  padding-inline-start: var(--theme-space-4);
+}
+
 .assessment-progress {
   display: grid;
   grid-template-columns: 1fr minmax(10rem, 22rem);
@@ -410,8 +503,8 @@ html.assessment-route-open body {
   gap: 0.8rem;
 }
 
-.assessment-progress progress,
-.assessment-score-list progress {
+.assessment-progress__bar,
+.assessment-score-list__bar {
   width: 100%;
   accent-color: var(--theme-accent);
 }
@@ -425,16 +518,6 @@ html.assessment-route-open body {
   min-width: 0;
   margin: 0;
   padding: var(--theme-space-5) var(--theme-space-control) var(--theme-space-control);
-  outline: var(--theme-outline-width) solid transparent;
-  outline-offset: var(--theme-outline-offset);
-  transition:
-    outline-color var(--theme-motion-standard),
-    border-color var(--theme-motion-standard),
-    box-shadow var(--theme-motion-standard);
-}
-
-.assessment-question--unanswered {
-  outline-color: color-mix(in srgb, var(--theme-warning) 52%, transparent);
 }
 
 .assessment-question__legend {
@@ -448,23 +531,34 @@ html.assessment-route-open body {
   margin: var(--theme-assessment-legend-overlap) 0 var(--theme-space-3);
   padding: var(--theme-assessment-legend-padding);
   border: var(--theme-border-hairline) solid
-    color-mix(in srgb, var(--theme-accent) 42%, transparent);
+    color-mix(in srgb, var(--theme-warning) 62%, transparent);
   border-radius: var(--theme-radius-control);
   color: var(--theme-text);
-  background: var(--theme-accent-soft);
+  background: var(--theme-warning-soft);
   box-shadow: var(--theme-control-hover-shadow);
   font-weight: var(--theme-weight-emphasis);
   line-height: 1.25;
+  transition:
+    border-color var(--theme-motion-standard),
+    background var(--theme-motion-standard);
+}
+
+.assessment-question__legend--answered {
+  border-color: color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+  backdrop-filter: blur(0.35rem);
 }
 
 .assessment-question__number {
   display: grid;
-  flex: 0 0 var(--theme-space-5);
-  place-items: center;
+  flex: 0 0 auto;
+  min-width: var(--theme-space-5);
   min-height: var(--theme-space-5);
+  place-items: center;
+  padding: 0 var(--theme-space-1);
   border: var(--theme-border-hairline) solid
     color-mix(in srgb, var(--theme-accent) 42%, transparent);
-  border-radius: 50%;
+  border-radius: var(--assessment-radius-pill);
   color: var(--theme-accent);
   background: var(--theme-surface-raised);
   font-variant-numeric: tabular-nums;
@@ -497,7 +591,7 @@ html.assessment-route-open body {
   cursor: pointer;
 }
 
-.assessment-response-options__option:has(.assessment-response-options__input:checked) {
+.assessment-response-options__option--selected {
   outline: var(--theme-outline-width) solid var(--theme-accent);
   outline-offset: var(--theme-outline-tight-offset);
   background: var(--theme-accent-soft);
@@ -535,7 +629,7 @@ html.assessment-route-open body {
 .assessment-submit-panel__disclaimer {
   max-width: 48rem;
   margin: 0.25rem 0 0;
-  font-size: 0.82rem;
+  font-size: var(--theme-type-caption);
   color: var(--theme-text-muted);
 }
 
@@ -544,7 +638,7 @@ html.assessment-route-open body {
   opacity: 0.45;
 }
 
-.ui-button.assessment-next-button {
+.assessment-next-button {
   position: fixed;
   z-index: 61;
   right: max(
@@ -557,8 +651,8 @@ html.assessment-route-open body {
     )
   );
   bottom: max(
-    var(--theme-assessment-floating-offset),
-    calc(var(--theme-assessment-floating-offset) + var(--safe-bottom))
+    var(--theme-bottom-nav-clearance),
+    calc(var(--theme-bottom-nav-clearance) + var(--safe-bottom))
   );
   display: grid;
   width: var(--theme-assessment-floating-size);
@@ -580,22 +674,48 @@ html.assessment-route-open body {
   transform: rotate(180deg);
 }
 
-.ui-button.assessment-next-button:hover {
+.assessment-next-button__icon--complete {
+  transform: none;
+}
+
+.assessment-help-button__label {
+  --assessment-help-label-size: 1.05rem;
+  font-family: var(--font-serif);
+  font-size: var(--assessment-help-label-size);
+  font-weight: 700;
+}
+
+.assessment-next-button:hover {
   color: var(--theme-accent-contrast);
   background:
     radial-gradient(circle, var(--theme-accent) 0 58%, transparent 59%),
     conic-gradient(var(--theme-accent) var(--assessment-progress), var(--theme-surface-raised) 0);
 }
 
-body:has(.assessment-next-button) .scroll-top-button {
-  bottom: max(
-    var(--theme-assessment-scroll-top-offset),
-    calc(var(--theme-assessment-scroll-top-offset) + var(--safe-bottom))
+.assessment-scroll-top--secondary {
+  right: max(
+    var(--theme-space-floating-inline),
+    calc(
+      (100vw - min(100vw, var(--page-content-width))) /
+      2 +
+      var(--theme-space-floating-inline) +
+      var(--safe-right)
+    )
   );
+  bottom: max(
+    var(--theme-bottom-nav-secondary-clearance),
+    calc(var(--theme-bottom-nav-secondary-clearance) + var(--safe-bottom))
+  );
+  width: var(--theme-assessment-floating-size);
+  height: var(--theme-assessment-floating-size);
 }
 
-body:has(.assessment-next-button) .assessment-response-options {
+.assessment-response-options--has-next {
   padding-inline-end: var(--theme-assessment-response-safe-space);
+}
+
+.assessment-patient-notes-fab--hidden {
+  display: none;
 }
 
 .assessment-result-summary {
@@ -603,12 +723,18 @@ body:has(.assessment-next-button) .assessment-response-options {
   gap: 0.8rem;
 }
 
-.assessment-result-summary h2,
-.assessment-result-summary p {
+.assessment-result-share-status {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--theme-type-caption);
+}
+
+.assessment-result-summary__heading,
+.assessment-result-summary__text {
   margin: 0;
 }
 
-.assessment-result-summary pre {
+.assessment-result-summary__manual-text {
   margin: 0;
   white-space: pre-wrap;
   font: inherit;
@@ -619,33 +745,26 @@ body:has(.assessment-next-button) .assessment-response-options {
   gap: 0.7rem;
 }
 
-.assessment-score-list > div {
+.assessment-score-list__row {
   display: grid;
   grid-template-columns: minmax(10rem, 0.75fr) minmax(8rem, 1fr) 4rem;
   align-items: center;
   gap: 0.7rem;
 }
 
-.assessment-score-list span {
+.assessment-score-list__label {
   display: flex;
   flex-direction: column;
 }
 
-.assessment-score-list small,
+.assessment-score-list__detail,
 .assessment-disclaimer {
   color: var(--theme-text-muted);
 }
 
-.assessment-score-list b {
+.assessment-score-list__value {
   text-align: right;
   font-variant-numeric: tabular-nums;
-}
-
-.assessment-result-actions {
-  position: sticky;
-  bottom: 5.4rem;
-  z-index: 12;
-  box-shadow: var(--theme-control-hover-shadow);
 }
 
 .assessment-not-found {
@@ -655,8 +774,8 @@ body:has(.assessment-next-button) .assessment-response-options {
   margin: 3rem auto;
 }
 
-.assessment-not-found h1,
-.assessment-not-found p {
+.assessment-not-found__title,
+.assessment-not-found__text {
   margin: 0;
 }
 
@@ -704,20 +823,20 @@ body:has(.assessment-next-button) .assessment-response-options {
     width: 100%;
   }
 
-  .assessment-score-list > div {
+  .assessment-score-list__row {
     grid-template-columns: 1fr 3.5rem;
   }
 
-  .assessment-score-list progress {
+  .assessment-score-list__bar {
     grid-column: 1 / -1;
     grid-row: 2;
   }
 
-  .assessment-history-list button {
+  .assessment-history__entry {
     grid-template-columns: 1fr;
   }
 
-  .assessment-history-list button span {
+  .assessment-history__title {
     grid-row: auto;
   }
 }
