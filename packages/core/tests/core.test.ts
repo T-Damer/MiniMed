@@ -1,7 +1,7 @@
 import { PORTABLE_HASH_PROFILE, PortableHashEmbedder } from '@localmed/search-semantic';
 import { InMemoryMedicalStore } from '@localmed/storage';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMedicalCore, requestedSectionType } from '../src/create-medical-core';
 
 import { createInMemoryMedicalCore } from '../src/index';
@@ -23,6 +23,20 @@ describe('MedicalCore', () => {
     const status = await core.initialize();
     expect(status.ok).toBe(true);
     if (status.ok) expect(status.value.documentCount).toBe(3);
+  });
+
+  it('shares concurrent document-list reads', async () => {
+    const store = new InMemoryMedicalStore();
+    const listDocuments = vi.spyOn(store, 'listDocuments');
+    const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+    cores.push(core);
+
+    const results = await Promise.all([core.listDocuments(), core.listDocuments()]);
+
+    expect(results[0]?.ok).toBe(true);
+    expect(results[1]?.ok).toBe(true);
+    if (results[0]?.ok) expect(results[0].value[0]?.metadata).toBeDefined();
+    expect(listDocuments).toHaveBeenCalledTimes(1);
   });
 
   it('reports the selected storage backend through core capabilities', async () => {

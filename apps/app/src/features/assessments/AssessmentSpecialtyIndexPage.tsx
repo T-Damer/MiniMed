@@ -1,6 +1,7 @@
 import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { SearchField } from '@/components/SearchField';
 import { AssessmentCard } from '@/features/assessments/AssessmentCatalogPage';
 import {
   ASSESSMENT_SPECIALTIES,
@@ -46,28 +47,27 @@ export function AssessmentSpecialtyIndexPage(props: {
   return (
     <>
       <header class="subpage-heading assessments-heading">
-        <div>
+        <div class="assessment-subpage-header__content">
           <p class="archive-kicker">Тесты и опросники</p>
           <div class="tool-page-title">
             <AppGlyph name="list-checks" />
             <h1>Тесты и опросники</h1>
           </div>
-          <p>
+          <p class="assessments-heading__description">
             Выберите раздел медицины, скачайте нужные тесты на устройство и проходите их без сети.
             Результаты сохраняются локально и не отправляются в интернет.
           </p>
         </div>
       </header>
 
-      <label class="assessment-search">
-        <span>Найти тест</span>
-        <input
-          type="search"
-          value={props.query}
-          placeholder="Например: Белбин, темперамент, эгограмма"
-          onInput={(event) => props.onQuery(event.currentTarget.value)}
-        />
-      </label>
+      <SearchField
+        class="assessment-search"
+        value={props.query}
+        placeholder="Например: Белбин, темперамент, эгограмма"
+        label="Найти тест"
+        hideLabel
+        onInput={props.onQuery}
+      />
 
       <Show
         when={hasQuery()}
@@ -84,15 +84,15 @@ export function AssessmentSpecialtyIndexPage(props: {
                   <button
                     type="button"
                     class="assessment-specialty-card paper-card"
-                    classList={{ 'assessment-specialty-card-empty': empty() }}
+                    classList={{ 'assessment-specialty-card--empty': empty() }}
                     disabled={empty()}
                     data-testid={`assessment-specialty-${specialty.id}`}
                     onClick={() => props.onOpenSpecialty(specialty.id)}
                   >
-                    <p class="archive-kicker">Раздел тестов</p>
-                    <h2>{specialty.title}</h2>
-                    <p>{specialty.description}</p>
-                    <small>
+                    <p class="archive-kicker assessment-specialty-card__kicker">Раздел тестов</p>
+                    <h2 class="assessment-specialty-card__title">{specialty.title}</h2>
+                    <p class="assessment-specialty-card__description">{specialty.description}</p>
+                    <small class="assessment-specialty-card__meta">
                       {empty()
                         ? 'Тесты появятся позже'
                         : `${installedCount()}/${specialtyDefinitions().length} тестов на устройстве`}
@@ -134,9 +134,9 @@ export function AssessmentSpecialtyIndexPage(props: {
 
       <Show when={props.recentRecords.length > 0}>
         <section class="assessment-history">
-          <header>
+          <header class="assessment-history__header">
             <p class="archive-kicker">Локальная история</p>
-            <h2>Последние результаты</h2>
+            <h2 class="assessment-history__heading">Последние результаты</h2>
           </header>
           <div class="assessment-history-list">
             <For each={props.recentRecords}>
@@ -145,15 +145,27 @@ export function AssessmentSpecialtyIndexPage(props: {
                 return (
                   <Show when={definition()}>
                     {(resolved) => (
-                      <button type="button" onClick={() => props.onOpenRecord(resolved(), record)}>
-                        <span>{resolved().shortTitle}</span>
-                        <strong>
+                      <button
+                        class="assessment-history__entry"
+                        type="button"
+                        onClick={() => props.onOpenRecord(resolved(), record)}
+                      >
+                        <span class="assessment-history__title">{resolved().shortTitle}</span>
+                        <strong class="assessment-history__subject">
                           {record.subjectLabel || 'Без подписи'} · {formatDate(record.createdAt)}
                         </strong>
-                        <small>
-                          {record.kind === 'completed'
-                            ? record.result.headline
-                            : 'Результат внесён вручную'}
+                        <small class="assessment-history__summary">
+                          {record.kind === 'completed' && record.result.headline}
+                          {record.kind === 'manual' && 'Результат внесён вручную'}
+                          {record.kind === 'incomplete' && (
+                            <>
+                              <span class="assessment-history__tag">incomplete</span>{' '}
+                              <span class="assessment-history__count">
+                                {Object.keys(record.answers).length}/{record.totalQuestions}{' '}
+                                отвечено
+                              </span>
+                            </>
+                          )}
                         </small>
                       </button>
                     )}

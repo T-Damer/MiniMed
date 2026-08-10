@@ -48,7 +48,7 @@ test('translates vertical wheel movement into horizontal mode scrolling', async 
 });
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await chooseScope(page, /В клин\. рекомендациях/u);
   await expect(page.getByTestId('search-input')).toBeVisible();
   await page.getByTestId('search-input').fill(query);
@@ -128,6 +128,50 @@ test('opens Miramistin indications from the full instruction with structured lis
       }),
     )
     .toBeLessThan(8);
+});
+
+test('toggles the document outline on desktop and highlights exact reader matches', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await chooseScope(page, /В клин\. рекомендациях/u);
+  await page.getByTestId('search-input').fill(query);
+  await page.getByTestId('search-submit').click();
+  await expect(pneumoniaResult(page)).toBeVisible();
+  await pneumoniaResult(page).click();
+  await page.getByTestId('search-result').first().click();
+  await expect(page.getByTestId('reader-context')).toBeVisible();
+  await page.getByRole('button', { name: 'Открыть полный документ' }).click();
+
+  const overlay = page.locator('.document-overlay');
+  const outline = overlay.locator('.document-overlay-outline');
+  const toggle = overlay.locator('.document-overlay-outline-toggle');
+  await expect(outline).toBeVisible();
+  await toggle.click();
+  await expect(outline).toBeHidden();
+  await expect(overlay.locator('.document-overlay-layout')).toHaveClass(
+    /document-overlay-layout--outline-hidden/u,
+  );
+  await page.screenshot({ path: '.omo/evidence/document-overlay/reader-1280-toc-hidden.png' });
+  await toggle.click();
+  await expect(outline).toBeVisible();
+  await page.screenshot({ path: '.omo/evidence/document-overlay/reader-1280-toc-visible.png' });
+
+  await page.setViewportSize({ width: 768, height: 900 });
+  await expect(outline).toBeVisible();
+  await page.screenshot({ path: '.omo/evidence/document-overlay/reader-768.png' });
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(outline).toBeVisible();
+  await page.screenshot({ path: '.omo/evidence/document-overlay/reader-375.png' });
+  await outline.getByRole('button', { name: 'Закрыть оглавление' }).click();
+  await expect(outline).not.toHaveClass(/document-overlay-outline--open/u);
+  await page.screenshot({ path: '.omo/evidence/document-overlay/reader-375-closed.png' });
+  await toggle.click();
+  await expect(outline).toHaveClass(/document-overlay-outline--open/u);
+
+  await overlay.getByRole('searchbox', { name: 'Поиск в документе' }).fill('тахипноэ');
+  await expect(overlay.locator('mark').first()).toHaveText(/тахипноэ/iu);
 });
 
 test('limits the initial document list and reveals remaining sources', async ({ page }) => {
@@ -262,9 +306,7 @@ test('filters the document library and opens a document with one click', async (
   await expect(page.getByLabel('Поиск в документе')).toBeVisible();
 });
 
-test('opens only the exact fragment first and expands surrounding source context', async ({
-  page,
-}) => {
+test('opens only the exact fragment without surrounding source context', async ({ page }) => {
   await mountBuiltApp(page);
   await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
@@ -272,8 +314,9 @@ test('opens only the exact fragment first and expands surrounding source context
   await pneumoniaResult(page).click();
   await page.getByTestId('search-result').first().click();
   await expect(page.locator('.source-paragraph')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Показать текст вокруг' }).click();
-  expect(await page.locator('.source-paragraph').count()).toBeGreaterThan(1);
+  await expect(page.getByRole('button', { name: 'Показать текст вокруг' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Открыть полный документ' })).toBeVisible();
+  await expect(page.locator('.reader-toolbar')).toHaveCount(0);
 });
 
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {

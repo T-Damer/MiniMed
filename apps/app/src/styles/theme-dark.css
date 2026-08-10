@@ -3,14 +3,14 @@
     color-scheme: dark;
     color: var(--theme-text);
     background: var(--theme-background);
-    --theme-background: #1c1712;
-    --theme-surface: #2a241e;
-    --theme-surface-raised: #2e261f;
-    --theme-surface-muted: #211b17;
-    --theme-border: #6b563d;
-    --theme-text: #d7c0a3;
-    --theme-text-muted: #ab916d;
-    --theme-text-faint: #917959;
+    --theme-background: #211b17;
+    --theme-surface: #2d2721;
+    --theme-surface-raised: #372e26;
+    --theme-surface-muted: #251f1a;
+    --theme-border: #594735;
+    --theme-text: #dfc7a8;
+    --theme-text-muted: #b89b78;
+    --theme-text-faint: #b69776;
     --theme-accent: #82a88d;
     --theme-accent-contrast: #1c1712;
     --theme-accent-soft: rgb(130 168 141 / 15%);
@@ -26,21 +26,54 @@
     --theme-info: #91c4e4;
     --theme-info-soft: rgb(145 196 228 / 16%);
     --theme-note: #302d25;
-    --theme-control-hover-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 30%);
-    --theme-card-hover-shadow: 0 1px 0 rgb(255 255 255 / 7%) inset, 0 1.5rem 3rem rgb(0 0 0 / 40%);
+    --theme-control-hover-shadow:
+      inset 0 0.05rem 0 rgb(255 255 255 / 8%), inset 0 -0.08rem 0 rgb(0 0 0 / 14%),
+      0 0.16rem 0.3rem rgb(0 0 0 / 32%), 0 0.5rem 1rem rgb(0 0 0 / 24%);
+    --theme-card-hover-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 6%), 0 0.125rem 0.3rem rgb(0 0 0 / 22%),
+      0 1.5rem 3rem rgb(0 0 0 / 40%);
     --folder: #2e261f;
     --folder-light: #342c23;
     --folder-dark: #2a241e;
     --desk: var(--theme-background);
     --desk-dark: #16120d;
     --stamp-faded: rgb(217 133 120 / 15%);
-    --shadow-paper: 0 1px 0 rgb(255 255 255 / 5%) inset, 0 1.375rem 2.875rem rgb(0 0 0 / 30%);
-    --shadow-folder: 0 1.625rem 4.0625rem rgb(0 0 0 / 38%);
+    --shadow-paper:
+      0 1px 0 rgb(255 255 255 / 5%) inset, 0 0.25rem 0.75rem rgb(0 0 0 / 20%),
+      0 1.375rem 2.875rem rgb(0 0 0 / 30%);
+    --shadow-folder: 0 0.25rem 0.75rem rgb(0 0 0 / 24%), 0 1.625rem 4.0625rem rgb(0 0 0 / 38%);
   }
 
   html,
   body {
     background: var(--desk);
+  }
+
+  .app-bottom-nav {
+    border-color: var(--theme-border);
+    color: var(--theme-floating-text);
+    background: color-mix(in srgb, var(--theme-surface) 86%, #0f0c09);
+    box-shadow: var(--theme-card-hover-shadow);
+  }
+
+  .app-nav-button {
+    color: var(--theme-text-muted);
+  }
+
+  .app-bottom-nav .app-nav-button--active {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    color: var(--theme-accent-contrast);
+    background: var(--theme-accent);
+  }
+
+  .app-nav-button:hover {
+    color: var(--theme-text);
+    background: rgb(255 255 255 / 8%);
+  }
+
+  .app-bottom-nav .app-nav-button--active:hover {
+    color: var(--theme-accent-contrast);
+    background: var(--theme-accent);
   }
 
   body {
@@ -179,10 +212,61 @@
     border-bottom-color: var(--theme-border);
   }
 
-  .source-context-toggle button {
+  .query-index__suggestions {
     border-color: var(--theme-border);
-    color: var(--theme-text-muted);
     background: var(--theme-surface-muted);
+  }
+
+  .index-row {
+    border-bottom-color: var(--theme-border);
+  }
+
+  .index-label {
+    border-right-color: var(--theme-border);
+    color: var(--theme-text);
+  }
+
+  .index-label__hint {
+    color: var(--theme-text-muted);
+  }
+
+  .fact-tag {
+    border-color: var(--theme-border);
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+    box-shadow: none;
+  }
+
+  .fact-tag__label {
+    color: var(--theme-text-muted);
+  }
+
+  .fact-tag--negative {
+    border-color: color-mix(in srgb, var(--theme-danger) 58%, var(--theme-border));
+    color: var(--theme-danger);
+    background: var(--theme-surface-muted);
+  }
+
+  .empty-index {
+    color: var(--theme-text-muted);
+  }
+
+  .suggestion-strip__button {
+    border-color: var(--theme-text-faint);
+    color: var(--theme-text);
+  }
+
+  .suggestion-strip__button:hover {
+    background: var(--theme-surface-raised);
+  }
+
+  .branch-ledger {
+    color: var(--theme-text-muted);
+  }
+
+  .branch-ticket {
+    border-left-color: var(--theme-accent);
+    background: rgb(255 255 255 / 4%);
   }
 
   .module-page .module-catalog-version span,
@@ -209,8 +293,9 @@
   }
 
   .module-page .module-catalog-status button,
-  .module-page .recommendation-section-actions button,
-  .module-page .recommendation-list-actions button,
+  .recommendation-section-actions__remove,
+  .recommendation-section-actions__download,
+  .recommendation-list-actions__download,
   .module-page .recommendation-controls input,
   .module-page .recommendation-controls select,
   .module-page .recommendation-controls button,
@@ -221,8 +306,9 @@
     background: var(--theme-surface-raised);
   }
 
-  .module-page .recommendation-section-actions button,
-  .module-page .recommendation-list-actions button,
+  .recommendation-section-actions__remove,
+  .recommendation-section-actions__download,
+  .recommendation-list-actions__download,
   .module-page .recommendation-controls button,
   .module-page .recommendation-row button {
     color: var(--theme-link);
@@ -315,7 +401,6 @@
     color: var(--theme-text-muted);
   }
 
-  .overlay-dialog__back-button,
   .overlay-dialog__close-button,
   .document-overlay-outline-toggle {
     border-color: var(--theme-border);

@@ -215,7 +215,10 @@ export function calculateEddByQuickening(input: {
     textValues: [{ label: 'Предполагаемая дата родов', text: formatDateRu(edd) }],
     trace: [
       {
-        label: input.parity === 'primigravida' ? 'Первобеременная: +22 нед' : 'Повторнобеременная: +24 нед',
+        label:
+          input.parity === 'primigravida'
+            ? 'Первобеременная: +22 нед'
+            : 'Повторнобеременная: +24 нед',
         expression: `${weeksToAdd} нед × 7`,
         value: weeksToAdd * DAYS_PER_WEEK,
         unit: 'дней',
@@ -315,7 +318,8 @@ export function calculateGestationalAgeFromEdd(input: {
     warnings: [
       {
         code: 'edd-estimate',
-        message: 'Расчёт основан на среднем сроке 280 дней и не учитывает фактическую дату зачатия.',
+        message:
+          'Расчёт основан на среднем сроке 280 дней и не учитывает фактическую дату зачатия.',
       },
     ],
   };
@@ -333,8 +337,7 @@ export function calculateMaternityLeaveTimeframe(input: {
   const leaveStartWeeks = input.pregnancyType === 'multiple' ? 28 : 30;
   const leaveStart = addDays(impliedLmp, leaveStartWeeks * DAYS_PER_WEEK);
 
-  const totalDays =
-    input.pregnancyType === 'multiple' ? 194 : input.complicatedBirth ? 156 : 140;
+  const totalDays = input.pregnancyType === 'multiple' ? 194 : input.complicatedBirth ? 156 : 140;
   const leaveEnd = addDays(leaveStart, totalDays - 1);
 
   return {
@@ -454,25 +457,29 @@ export function calculateGestationalAgeByBiometry(input: {
   if (input.bpdCm !== undefined) {
     const error = positiveFinite(input.bpdCm, 'БПР');
     if (error) return error;
-    if (input.bpdCm < 2 || input.bpdCm > 10.5) return failure('БПР вне поддерживаемого диапазона 2–10,5 см.');
+    if (input.bpdCm < 2 || input.bpdCm > 10.5)
+      return failure('БПР вне поддерживаемого диапазона 2–10,5 см.');
     estimates.push({ label: 'БПР', weeks: hadlockBpdWeeks(input.bpdCm) });
   }
   if (input.hcCm !== undefined) {
     const error = positiveFinite(input.hcCm, 'ОГ');
     if (error) return error;
-    if (input.hcCm < 8 || input.hcCm > 38) return failure('ОГ вне поддерживаемого диапазона 8–38 см.');
+    if (input.hcCm < 8 || input.hcCm > 38)
+      return failure('ОГ вне поддерживаемого диапазона 8–38 см.');
     estimates.push({ label: 'ОГ', weeks: hadlockHcWeeks(input.hcCm) });
   }
   if (input.acCm !== undefined) {
     const error = positiveFinite(input.acCm, 'ОЖ');
     if (error) return error;
-    if (input.acCm < 6 || input.acCm > 40) return failure('ОЖ вне поддерживаемого диапазона 6–40 см.');
+    if (input.acCm < 6 || input.acCm > 40)
+      return failure('ОЖ вне поддерживаемого диапазона 6–40 см.');
     estimates.push({ label: 'ОЖ', weeks: hadlockAcWeeks(input.acCm) });
   }
   if (input.flCm !== undefined) {
     const error = positiveFinite(input.flCm, 'ДБ');
     if (error) return error;
-    if (input.flCm < 1 || input.flCm > 8.5) return failure('ДБ вне поддерживаемого диапазона 1–8,5 см.');
+    if (input.flCm < 1 || input.flCm > 8.5)
+      return failure('ДБ вне поддерживаемого диапазона 1–8,5 см.');
     estimates.push({ label: 'ДБ', weeks: hadlockFlWeeks(input.flCm) });
   }
 
@@ -516,7 +523,8 @@ export function calculateGestationalAgeByBiometry(input: {
       },
       {
         code: 'second-trimester-preferred',
-        message: 'Формулы наиболее точны во II триместре; в III триместре погрешность оценки возраста плода возрастает.',
+        message:
+          'Формулы наиболее точны во II триместре; в III триместре погрешность оценки возраста плода возрастает.',
       },
     ],
   };
@@ -564,16 +572,42 @@ export function calculateBishopScore(input: {
   return {
     ok: true,
     calculatorId: 'obstetric-bishop-score',
-    formula: 'Bishop, 1964: сумма баллов по раскрытию, сглаживанию, положению головки, консистенции и позиции шейки матки',
+    formula:
+      'Bishop, 1964: сумма баллов по раскрытию, сглаживанию, положению головки, консистенции и позиции шейки матки',
     value: total,
     unit: 'баллов',
     displayPrecision: 0,
     trace: [
-      { label: 'Раскрытие шейки матки', expression: 'балл', value: input.dilationScore, unit: 'баллов' },
-      { label: 'Сглаживание шейки матки', expression: 'балл', value: input.effacementScore, unit: 'баллов' },
-      { label: 'Положение головки (станция)', expression: 'балл', value: input.stationScore, unit: 'баллов' },
-      { label: 'Консистенция шейки матки', expression: 'балл', value: input.consistencyScore, unit: 'баллов' },
-      { label: 'Позиция шейки матки', expression: 'балл', value: input.positionScore, unit: 'баллов' },
+      {
+        label: 'Раскрытие шейки матки',
+        expression: 'балл',
+        value: input.dilationScore,
+        unit: 'баллов',
+      },
+      {
+        label: 'Сглаживание шейки матки',
+        expression: 'балл',
+        value: input.effacementScore,
+        unit: 'баллов',
+      },
+      {
+        label: 'Положение головки (станция)',
+        expression: 'балл',
+        value: input.stationScore,
+        unit: 'баллов',
+      },
+      {
+        label: 'Консистенция шейки матки',
+        expression: 'балл',
+        value: input.consistencyScore,
+        unit: 'баллов',
+      },
+      {
+        label: 'Позиция шейки матки',
+        expression: 'балл',
+        value: input.positionScore,
+        unit: 'баллов',
+      },
     ],
     warnings: [{ code: 'bishop-interpretation', message: interpretation }],
   };

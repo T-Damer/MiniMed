@@ -55,6 +55,23 @@
   padding: clamp(0.9rem, 3vw, 1.25rem);
 }
 
+.assessment-section--link {
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.assessment-section--link:hover {
+  border-color: var(--theme-accent);
+  transform: translateY(-0.125rem);
+}
+
+.assessment-section--link:focus-visible {
+  outline: 0.125rem solid color-mix(in srgb, var(--theme-accent) 70%, transparent);
+  outline-offset: 0.125rem;
+}
+
 .assessment-section-header {
   display: flex;
   align-items: flex-start;

@@ -55,10 +55,15 @@ Reusable layout tokens are `--theme-space-1` through `--theme-space-5`, `--theme
 `--theme-motion-control` and `--theme-motion-standard`; assessment controls use
 `--theme-assessment-floating-size`, `--theme-assessment-floating-offset`,
 `--theme-assessment-scroll-top-offset`, `--theme-assessment-response-safe-space`,
+`--theme-bottom-nav-clearance`, `--theme-bottom-nav-secondary-clearance`,
 `--theme-control-height-large`, `--theme-control-icon-size`, `--theme-icon-size-small`,
-`--theme-icon-size-methodology`, `--theme-assessment-methodology-width`,
+`--theme-icon-size-methodology`,
 `--theme-assessment-response-height`, `--theme-assessment-legend-overlap`,
 `--theme-assessment-legend-padding`, and `--theme-text-underline-offset`.
+Assessment surfaces may scope `--assessment-content-width`, `--assessment-radius-pill`,
+`--assessment-message-width`, `--assessment-message-close-size`, and
+`--assessment-help-label-size` locally when a component needs feature-specific geometry or type;
+these values stay local to the assessment surface rather than becoming global theme tokens.
 
 Print documents use a local token contract: `--print-page-margin`, `--print-title-size`,
 `--print-body-size`, `--print-footer-size`, `--print-leading`, `--print-footer-gap`, and
@@ -118,6 +123,14 @@ saved PDFs remain legible in light and dark browser themes.
   activation. Do not add a second `Открыть`, `Что входит`, or `Выжимка` button inside it. Buttons that
   perform another action (download/delete) stop propagation and retain their own accessible name.
 
+### Count badge
+
+- **Structure**: `CountBadge` renders a short numeric label beside a collection heading.
+- **Variants**: compact capsule with a one- or multi-character count.
+- **States**: rest; focus only when the count becomes interactive.
+- **Accessibility**: visible text remains the count; the badge is not a standalone control.
+- **Motion**: none.
+
 ## 6. Motion & Interaction
 
 | Type | Duration | Easing | Usage |
@@ -146,6 +159,24 @@ touch and trackpad horizontal input remain native. At the strip edge the page ma
 
 Depth uses a mixed strategy: tonal shifts for the desk/paper relationship and warm tinted shadows for
 floating cards and navigation. Borders remain hairlines and are never the only error signal.
+
+### Primary Obsidian extraction
+
+MiniMed borrows the Primary Obsidian theme's functional principles, not its brand assets: lower
+contrast for secondary surfaces, deliberate borders, and layered inset/external shadows for controls
+and raised blocks. The source extraction and mapping matrix live in
+[`docs/PRIMARY-OBSIDIAN-THEME.md`](docs/PRIMARY-OBSIDIAN-THEME.md).
+
+- The implemented mapping applies to the shared paper surfaces, `Button` controls, search/index
+  blocks, and the fixed root navigation.
+  - Medication headings, count badges, and assessment controls now use the same warm surface, accent,
+    deliberate-border, and translucent-state rules; calculator and document-specific rules remain
+    feature-owned until those screens are edited deliberately.
+  - Dark-mode `--theme-text-faint` is kept above the AA contrast target for compact metadata on the
+    warm surface ramp; feature-specific colors remain owned by their screens.
+  - Root navigation uses accessible icon-only buttons. The assessment and calculator entries use the
+    Phosphor Bold `list-checks` and `calculator` paths in `AppGlyph`, normalized to the component's
+    existing SVG contract and exposed with semantic BEM state classes plus `aria-current`.
 
 ## 8. Accessibility Constraints & Accepted Debt
 

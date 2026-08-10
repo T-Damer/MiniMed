@@ -11,7 +11,6 @@ interface OverlayDialogProps {
   readonly class?: string;
   readonly bodyClass?: string;
   readonly historyKey?: string;
-  readonly showBack?: boolean;
   readonly headerStart?: JSX.Element;
   readonly onClose: () => void;
   readonly children: JSX.Element;
@@ -100,17 +99,6 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
             tabindex={-1}
           >
             <header class="overlay-dialog-header">
-              <Show when={props.showBack}>
-                <button
-                  type="button"
-                  class="overlay-dialog__back-button"
-                  aria-label="Назад"
-                  title="Назад"
-                  onClick={closeDialog}
-                >
-                  <AppGlyph name="arrow-left" class="overlay-dialog__button-icon" />
-                </button>
-              </Show>
               {props.headerStart}
               <div class="overlay-dialog-title">
                 <h2 class="overlay-dialog__heading" id={titleId}>

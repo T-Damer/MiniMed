@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 7 August 2026
+> Updated: 10 August 2026
 > Repository version: `0.6.10`
 > Active target: `0.6.10` public prerelease toward `1.0`
 
@@ -15,7 +15,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - SQLite/FTS5 retrieval with SQLite WASM fallback and compatible native read-only storage adapters.
 - Deterministic portable embeddings and hybrid lexical/vector fusion.
 - Russian patient-case parsing, negative findings, bounded query branches, medical abbreviations, and
-  missing-field prompts.
+  missing-field prompts; the symptom lexicon recognizes nosebleed phrases such as `кровотечение из
+  носа` and expands them to searchable `носовое кровотечение`/`эпистаксис` terms.
 - Search after 500 ms of inactivity with stale-response cancellation.
 - Search is hidden until the user selects a scope; scopes with no installed documents are disabled.
 - Query analysis and deterministic retrieval run in a Web Worker, and long result sets are window
@@ -42,7 +43,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   notes. Root navigation commits immediately and uses a short CSS transform/opacity slide, while the
   bottom navigation remains fixed and interactive. Rapid tab changes do not wait on View Transition
   snapshots; document, note, and local-model subroutes remain instant. The scroll-to-top control
-  reserves the bottom-navigation band on long pages.
+  reserves the bottom-navigation band on long pages, and the notes add control mounts only while the
+  notes root is active.
 - The bottom navigation is mounted only after the asynchronous MedicalCore bootstrap completes;
   loading and error states therefore do not expose a menu whose routes are not ready yet. Tests and
   calculators remain directly renderable while the search core loads.
@@ -82,9 +84,26 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   document lists, all 21 recommendation sections without an extra reveal step, full-document opening,
   bulk download, background update pause, rollback to retained older versions, and nested URLs for
   opened collections and sections.
+- The medications catalog reads medication metadata from document summaries in bounded batches and
+  coalesces concurrent summary reads, so direct and navigated catalog routes avoid materializing
+  every document's sections/chunks on the main thread.
+- Document catalog routes share one route-bounded search field: the query filters only the currently
+  opened collection, category, or catalog page, and the recommendations search remains in its sticky
+  route header.
+- Medication catalog cards use a responsive two-column layout and live rendering so progressive
+  batches populate both columns; its route header uses the shared compact catalog search field.
+- The document library uses a live adaptive multi-column grid so filtered and newly listed items keep
+  their CSS-grid placement; embedded library toolbars put search on the left and view modes on the
+  right. Product routes expose the source document title, outline, and readable sections inline
+  alongside the selected package details.
+- Allmed reference preparation converts known HTML fragments in medication sections and production
+  metadata to readable Markdown while preserving the source SQLite snapshot unchanged.
 - Assessment tests and medical calculators are grouped into downloadable sections. Catalog cards show
   what is on the device, direct tool routes explain which section is missing, and installed tools keep
-  their offline-use state across reloads.
+  specialty section cards open dedicated sub-routes containing the section's full assessment grid.
+  Installed tools keep their offline-use state across reloads. Incomplete assessment attempts are
+  also stored in the existing device-local results store, restored by their history entry with an
+  `incomplete` tag and answered-count, and replaced by the completed result when submitted.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
   queued, and the selected model always receives its own download slot. A single document runtime

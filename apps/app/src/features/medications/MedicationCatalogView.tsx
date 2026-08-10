@@ -1,4 +1,4 @@
-import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
+import type { MedicalCore, MedicalDocument } from '@localmed/contracts';
 import {
   createEffect,
   createMemo,
@@ -9,18 +9,32 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-import { WindowVirtualizer } from 'virtua/solid';
+import { Dynamic } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { CountBadge } from '@/components/CountBadge';
+import { DocumentText } from '@/components/DocumentText';
 import { stripKnownHtmlMarkupInline } from '@/components/html-markup';
+import { SearchField } from '@/components/SearchField';
+import {
+  displayDocumentSubtitle,
+  displayDocumentTitle,
+  documentSectionHeadingTag,
+  orderDocumentSections,
+  sourceTypeReaderLabel,
+} from '@/features/library/document-display';
+import {
+  documentFromSummary,
+  processMedicationSummariesInBatches,
+  shouldHideMedicationCatalog,
+  shouldPreserveMedicationCatalog,
+} from '@/features/medications/medication-loading';
 import {
   type MedicationProduct,
   medicationDocumentRegistration,
   parseAllmedMedicationProduct,
   parseMedicationProduct,
 } from '@/features/medications/medication-record';
-import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
-import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
@@ -53,6 +67,96 @@ function packageTitle(description: string): string {
   return description.split(/\s+-\s+/u, 1)[0] || description;
 }
 
+function normalizeSearch(value: string): string {
+  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
+}
+
+function medicationSearchText(product: MedicationProduct): string {
+  return [
+    product.tradeName,
+    product.inn,
+    product.registrationNumber,
+    product.registrationStatus,
+    product.prescriptionStatus ?? '',
+    product.holder ?? '',
+    product.manufacturer ?? '',
+    ...product.pharmacotherapeuticGroups,
+    ...product.presentations.flatMap((presentation) => [
+      presentation.dosageForm,
+      presentation.strength ?? '',
+      presentation.route ?? '',
+      ...presentation.packages.flatMap((item) => [item.description, item.prescriptionStatus ?? '']),
+    ]),
+  ].join(' ');
+}
+
+function MedicationSourceContent(props: { readonly sourceDocument: MedicalDocument }): JSX.Element {
+  const sections = orderDocumentSections(
+    props.sourceDocument.sections,
+    props.sourceDocument.sourceType,
+  ).filter((section) => section.chunks.length > 0);
+  const scrollToSection = (anchor: string): void => {
+    document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <section class="medication-source paper-card">
+      <header class="medication-source__header">
+        <Show when={sourceTypeReaderLabel(props.sourceDocument.sourceType)}>
+          {(label) => <p class="medication-source__label">{label()}</p>}
+        </Show>
+        <h2 class="medication-source__title">{displayDocumentTitle(props.sourceDocument)}</h2>
+        <Show when={displayDocumentSubtitle(props.sourceDocument)}>
+          {(subtitle) => <p class="medication-source__subtitle">{subtitle()}</p>}
+        </Show>
+      </header>
+
+      <details class="medication-source__outline" open>
+        <summary class="medication-source__outline-summary">Оглавление</summary>
+        <nav class="medication-source__outline-list" aria-label="Разделы карточки препарата">
+          <For each={sections}>
+            {(section, index) => (
+              <button
+                type="button"
+                class="medication-source__outline-button"
+                onClick={() => scrollToSection(section.anchor)}
+              >
+                <span class="medication-source__outline-number">
+                  {String(index() + 1).padStart(2, '0')}
+                </span>
+                <span class="medication-source__outline-title">{section.title}</span>
+              </button>
+            )}
+          </For>
+        </nav>
+      </details>
+
+      <div class="medication-source__sections">
+        <For each={sections}>
+          {(section) => (
+            <section class="medication-source__section" id={section.anchor}>
+              <Dynamic
+                component={documentSectionHeadingTag(section.depth, 2)}
+                class={`medication-source__section-title medication-source__section-title--${documentSectionHeadingTag(section.depth, 2)}`}
+              >
+                {section.title}
+              </Dynamic>
+              <For each={section.chunks}>
+                {(chunk) => (
+                  <DocumentText
+                    text={chunk.originalText}
+                    paragraphClass="medication-source__paragraph"
+                  />
+                )}
+              </For>
+            </section>
+          )}
+        </For>
+      </div>
+    </section>
+  );
+}
+
 function productVariants(product: MedicationProduct): readonly PackageVariant[] {
   return product.presentations.flatMap((presentation, presentationIndex) =>
     presentation.packages.map((item, packageIndex) => ({
@@ -63,31 +167,6 @@ function productVariants(product: MedicationProduct): readonly PackageVariant[] 
       prescriptionStatus: item.prescriptionStatus ?? product.prescriptionStatus,
     })),
   );
-}
-
-// Fetching one document at a time (~4700 of them) serialized every round trip and blocked the
-// first paint. Batching keeps the number of in-flight requests bounded while still resolving the
-// whole catalog far faster than the original sequential loop.
-const DOCUMENT_FETCH_BATCH_SIZE = 60;
-
-async function fetchDocumentsInBatches(
-  core: MedicalCore,
-  summaries: readonly MedicalDocumentSummary[],
-  onBatch?: (documents: readonly MedicalDocument[]) => void,
-): Promise<readonly MedicalDocument[]> {
-  const documents: MedicalDocument[] = [];
-  for (let start = 0; start < summaries.length; start += DOCUMENT_FETCH_BATCH_SIZE) {
-    const batch = summaries.slice(start, start + DOCUMENT_FETCH_BATCH_SIZE);
-    const results = await Promise.all(batch.map((summary) => core.getDocument(summary.id)));
-    const batchDocuments: MedicalDocument[] = [];
-    for (const result of results) {
-      if (!result.ok) throw new Error(result.error.message);
-      batchDocuments.push(result.value);
-    }
-    documents.push(...batchDocuments);
-    onBatch?.(batchDocuments);
-  }
-  return documents;
 }
 
 function toProducts(
@@ -119,7 +198,7 @@ function toProducts(
 async function loadProducts(
   core: MedicalCore,
   onUpdate: (products: readonly MedicationProduct[]) => void,
-): Promise<void> {
+): Promise<readonly MedicationProduct[]> {
   const summaries = await core.listDocuments();
   if (!summaries.ok) throw new Error(summaries.error.message);
   const medicationSummaries = summaries.value.filter((document) =>
@@ -134,33 +213,38 @@ async function loadProducts(
     (document) => document.sourceType !== 'official_drug_instruction',
   );
 
-  const instructionDocuments = await fetchDocumentsInBatches(core, instructionSummaries);
   const instructions = new Map(
-    instructionDocuments.flatMap((document) => {
+    instructionSummaries.flatMap((summary) => {
+      const document = documentFromSummary(summary);
+      if (!document) return [];
       const registration = medicationDocumentRegistration(document);
       return registration ? [[registration, document.id] as const] : [];
     }),
   );
 
   let accumulated: readonly MedicationProduct[] = [];
-  await fetchDocumentsInBatches(core, otherSummaries, (batchDocuments) => {
+  await processMedicationSummariesInBatches(otherSummaries, (batchDocuments) => {
     accumulated = accumulated.concat(toProducts(batchDocuments, instructions));
-    onUpdate(
-      [...accumulated].toSorted((left, right) =>
-        left.tradeName.localeCompare(right.tradeName, 'ru'),
-      ),
-    );
+    onUpdate(accumulated);
   });
+  return [...accumulated].toSorted((left, right) =>
+    left.tradeName.localeCompare(right.tradeName, 'ru'),
+  );
 }
 
 export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.Element {
+  const initialSelectedRegistration = selectedRegistrationFromLocation();
   const [products, setProducts] = createSignal<readonly MedicationProduct[]>([]);
-  const [selectedRegistration, setSelectedRegistration] = createSignal(
-    selectedRegistrationFromLocation(),
-  );
+  const [searchQuery, setSearchQuery] = createSignal('');
+  const [selectedRegistration, setSelectedRegistration] = createSignal(initialSelectedRegistration);
+  const [catalogVisited, setCatalogVisited] = createSignal(initialSelectedRegistration === null);
   const [selectedVariant, setSelectedVariant] = createSignal(0);
+  const [sourceDocument, setSourceDocument] = createSignal<MedicalDocument>();
+  const [sourceDocumentLoading, setSourceDocumentLoading] = createSignal(false);
+  const [sourceDocumentError, setSourceDocumentError] = createSignal<string>();
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal<string>();
+  let sourceDocumentId = '';
 
   const refresh = async (): Promise<void> => {
     setLoading(true);
@@ -168,13 +252,14 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     setProducts([]);
     let firstBatchSeen = false;
     try {
-      await loadProducts(props.core, (next) => {
+      const complete = await loadProducts(props.core, (next) => {
         setProducts(next);
         if (!firstBatchSeen) {
           firstBatchSeen = true;
           setLoading(false);
         }
       });
+      setProducts(complete);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось открыть базу препаратов.');
     } finally {
@@ -182,7 +267,9 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     }
   };
   const syncRoute = (): void => {
-    setSelectedRegistration(selectedRegistrationFromLocation());
+    const nextRegistration = selectedRegistrationFromLocation();
+    setSelectedRegistration(nextRegistration);
+    if (nextRegistration === null) setCatalogVisited(true);
     setSelectedVariant(0);
   };
 
@@ -199,22 +286,47 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const selectedProduct = createMemo(() =>
     products().find((product) => product.registrationNumber === selectedRegistration()),
   );
-  const searchableDocumentIds = createMemo(
-    () =>
-      new Set(
-        products().flatMap((product) => [
-          product.registrationDocumentId,
-          ...(product.instructionDocumentId ? [product.instructionDocumentId] : []),
-        ]),
-      ),
-  );
-  const medicationCore = createMemo(
-    () => new ScopedMedicalCore(props.core, undefined, 'medications', searchableDocumentIds()),
-  );
+  const visibleProducts = createMemo(() => {
+    const query = normalizeSearch(searchQuery());
+    if (!query) return products();
+    return products().filter((product) =>
+      normalizeSearch(medicationSearchText(product)).includes(query),
+    );
+  });
 
   createEffect(() => {
     selectedProduct();
     setSelectedVariant(0);
+  });
+
+  createEffect(() => {
+    const product = selectedProduct();
+    const nextDocumentId = product?.instructionDocumentId ?? product?.registrationDocumentId ?? '';
+    if (nextDocumentId === sourceDocumentId) return;
+    sourceDocumentId = nextDocumentId;
+    setSourceDocument(undefined);
+    setSourceDocumentError(undefined);
+    if (!nextDocumentId) {
+      setSourceDocumentLoading(false);
+      return;
+    }
+    setSourceDocumentLoading(true);
+    void props.core
+      .getDocument(nextDocumentId)
+      .then((result) => {
+        if (sourceDocumentId !== nextDocumentId) return;
+        if (result.ok) setSourceDocument(result.value);
+        else setSourceDocumentError(result.error.message);
+      })
+      .catch((cause: unknown) => {
+        if (sourceDocumentId !== nextDocumentId) return;
+        setSourceDocumentError(
+          cause instanceof Error ? cause.message : 'Не удалось загрузить содержание карточки.',
+        );
+      })
+      .finally(() => {
+        if (sourceDocumentId === nextDocumentId) setSourceDocumentLoading(false);
+      });
   });
 
   const openProduct = (product: MedicationProduct): void => {
@@ -232,45 +344,61 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
 
   return (
     <section class="medication-page">
-      <div class="knowledge-subroute-heading medication-route-heading">
-        <button type="button" class="knowledge-back-button" aria-label="Назад" onClick={back}>
+      <div class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading">
+        <button
+          type="button"
+          class="knowledge-back-button knowledge-subroute-heading__control"
+          aria-label="Назад"
+          onClick={back}
+        >
           <AppGlyph name="arrow-left" />
         </button>
-        <div>
-          <p class="archive-kicker">Локальная база препаратов</p>
-          <h1>{selectedProduct()?.tradeName ?? 'Лекарственные препараты'}</h1>
-        </div>
+        <Show when={selectedRegistration()}>
+          <h1 class="medication-route-heading__title knowledge-subroute-heading__control">
+            {selectedProduct()?.tradeName}
+          </h1>
+        </Show>
+        <Show when={!selectedRegistration()}>
+          <SearchField
+            class="route-search knowledge-subroute-heading__control"
+            value={searchQuery()}
+            onInput={setSearchQuery}
+            label="Поиск по препаратам"
+            hideLabel
+            placeholder="Название, МНН или показание"
+          />
+        </Show>
       </div>
 
-      <Show when={!selectedRegistration()}>
-        <div class="search-workspace-main medication-search">
-          <SearchWorkspace
-            core={medicationCore()}
-            scope="medications"
-            compact
-            searchAllowed={!loading() && products().length > 0}
-            placeholder="Название, МНН, показание…"
-            examples={[
-              'Мирамистин',
-              'Мирамистин показания',
-              'Мирамистин способ применения у детей',
-            ]}
-          />
-        </div>
-
-        <section class="medication-catalog-section">
+      <Show when={shouldPreserveMedicationCatalog(catalogVisited(), selectedRegistration())}>
+        <section
+          class="medication-catalog-section"
+          classList={{
+            'medication-catalog-section--hidden': shouldHideMedicationCatalog(
+              selectedRegistration(),
+            ),
+          }}
+          aria-hidden={shouldHideMedicationCatalog(selectedRegistration())}
+          hidden={shouldHideMedicationCatalog(selectedRegistration())}
+        >
           <div class="module-collection-heading">
-            <h2>Препараты</h2>
-            <span>{products().length}</span>
+            <h2 class="module-collection-heading__title">Препараты</h2>
+            <CountBadge value={products().length} />
           </div>
           <Show when={loading()}>
             <div class="medication-empty paper-card" role="status">
               Открываем локальную базу…
             </div>
           </Show>
-          <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
+          <Show when={error()}>
+            {(message) => (
+              <div class="error-card" role="alert">
+                {message()}
+              </div>
+            )}
+          </Show>
           <div class="medication-grid">
-            <WindowVirtualizer data={products()} bufferSize={400}>
+            <For each={visibleProducts()}>
               {(product) => {
                 const variants = () => productVariants(product);
                 const description = () =>
@@ -281,21 +409,19 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                     class="medication-product-card paper-card"
                     onClick={() => openProduct(product)}
                   >
-                    <AppGlyph
-                      name="arrow-square-up-right"
-                      class="medication-product-card-open-icon"
-                    />
-                    <span class="medication-card-state">{product.registrationStatus}</span>
-                    <strong>{product.tradeName}</strong>
-                    <p>{product.inn}</p>
-                    <div>
-                      <span class="medication-card-description">{description()}</span>
-                      <span>{variants().length} вариантов упаковки</span>
+                    <AppGlyph name="arrow-up-right" class="medication-product-card__open-icon" />
+                    <strong class="medication-product-card__title">{product.tradeName}</strong>
+                    <p class="medication-product-card__inn">{product.inn}</p>
+                    <div class="medication-product-card__summary">
+                      <span class="medication-product-card__description">{description()}</span>
                     </div>
+                    <p class="medication-product-card-meta">
+                      {product.registrationStatus} · {variants().length} вариантов упаковки
+                    </p>
                   </button>
                 );
               }}
-            </WindowVirtualizer>
+            </For>
           </div>
         </section>
       </Show>
@@ -308,11 +434,11 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
             <article class="medication-detail">
               <header class="medication-hero paper-card">
                 <div>
-                  <span class="medication-card-state">{product().registrationStatus}</span>
-                  <p class="medication-inn">{product().inn}</p>
-                  <div class="medication-tags">
+                  <span class="medication-detail__state">{product().registrationStatus}</span>
+                  <p class="medication-detail__inn">{product().inn}</p>
+                  <div class="medication-detail__tags">
                     <For each={product().pharmacotherapeuticGroups}>
-                      {(group) => <span>{group}</span>}
+                      {(group) => <span class="medication-detail__tag">{group}</span>}
                     </For>
                   </div>
                 </div>
@@ -355,20 +481,44 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                 )}
               </Show>
 
+              <Show when={sourceDocumentLoading()}>
+                <div class="medication-source-status paper-card" role="status">
+                  Загружаем содержание карточки…
+                </div>
+              </Show>
+              <Show when={sourceDocumentError()}>
+                {(message) => (
+                  <div
+                    class="medication-source-status medication-source-status--error"
+                    role="alert"
+                  >
+                    {message()}
+                  </div>
+                )}
+              </Show>
+              <Show when={sourceDocument()}>
+                {(document) => <MedicationSourceContent sourceDocument={document()} />}
+              </Show>
+
               <section class="medication-section">
-                <h2>Другие формы и упаковки</h2>
+                <h2 class="medication-section__title">Другие формы и упаковки</h2>
                 <div class="medication-variant-grid">
                   <For each={variants()}>
                     {(variant, index) => (
                       <button
                         type="button"
-                        class="paper-card"
+                        class="medication-variant-card paper-card"
                         classList={{ active: selectedVariant() === index() }}
+                        aria-pressed={selectedVariant() === index()}
                         onClick={() => setSelectedVariant(index())}
                       >
-                        <strong>{packageTitle(variant.description)}</strong>
-                        <span>{variant.dosageForm}</span>
-                        <small>{variant.description}</small>
+                        <strong class="medication-variant-card__title">
+                          {packageTitle(variant.description)}
+                        </strong>
+                        <span class="medication-variant-card__form">{variant.dosageForm}</span>
+                        <small class="medication-variant-card__description">
+                          {variant.description}
+                        </small>
                       </button>
                     )}
                   </For>
@@ -376,29 +526,33 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
               </section>
 
               <section class="medication-registry paper-card">
-                <h2>Регистрационные данные</h2>
-                <dl>
-                  <div>
-                    <dt>Регистрационное удостоверение</dt>
-                    <dd>{product().registrationNumber}</dd>
+                <h2 class="medication-registry__title">Регистрационные данные</h2>
+                <dl class="medication-registry__details">
+                  <div class="medication-registry__detail">
+                    <dt class="medication-registry__label">Регистрационное удостоверение</dt>
+                    <dd class="medication-registry__value">{product().registrationNumber}</dd>
                   </div>
-                  <div>
-                    <dt>Дата регистрации</dt>
-                    <dd>{product().registrationDate ?? 'Не указана'}</dd>
+                  <div class="medication-registry__detail">
+                    <dt class="medication-registry__label">Дата регистрации</dt>
+                    <dd class="medication-registry__value">
+                      {product().registrationDate ?? 'Не указана'}
+                    </dd>
                   </div>
-                  <div>
-                    <dt>Держатель</dt>
-                    <dd>{product().holder ?? 'Не указан'}</dd>
+                  <div class="medication-registry__detail">
+                    <dt class="medication-registry__label">Держатель</dt>
+                    <dd class="medication-registry__value">{product().holder ?? 'Не указан'}</dd>
                   </div>
-                  <div>
-                    <dt>Производитель</dt>
-                    <dd>{product().manufacturer ?? 'Не указан'}</dd>
+                  <div class="medication-registry__detail">
+                    <dt class="medication-registry__label">Производитель</dt>
+                    <dd class="medication-registry__value">
+                      {product().manufacturer ?? 'Не указан'}
+                    </dd>
                   </div>
                 </dl>
               </section>
 
               <section class="medication-section">
-                <h2>Похожие</h2>
+                <h2 class="medication-section__title">Похожие</h2>
                 <div class="medication-empty paper-card">Похожие препараты пока не рассчитаны.</div>
               </section>
             </article>

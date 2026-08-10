@@ -9,6 +9,7 @@ import { translateVerticalWheelToHorizontal } from '@/features/search/horizontal
 
 interface HorizontalScrollerProps {
   readonly class: string;
+  readonly viewportClass?: string;
   readonly children: JSX.Element;
   readonly controls?: boolean;
   readonly hideScrollbar?: boolean;
@@ -56,7 +57,7 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
         ref={(value) => {
           scroller = value;
         }}
-        class="horizontal-overlay-scroll os-theme-dark"
+        class={`horizontal-overlay-scroll os-theme-dark ${props.viewportClass ?? ''}`}
         options={{
           overflow: { x: 'scroll', y: 'hidden' },
           scrollbars: { autoHide: props.hideScrollbar ? 'scroll' : 'never' },

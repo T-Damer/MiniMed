@@ -877,17 +877,24 @@ function buildBranches(
   const negativeRanges = facts
     .filter((fact) => fact.kind === 'negative-finding')
     .map((fact) => fact.range);
-  const canonicalTerms = termsWithStems(
-    expansion.matchedAliases
-      .filter((alias) => {
-        const index = findNormalizedPhraseIndex(normalizedQuery, normalizeSurfaceText(alias.alias));
-        if (index < 0) return false;
-        const aliasRange = range(index, index + normalizeSurfaceText(alias.alias).length);
-        return !negativeRanges.some((negativeRange) => overlaps(negativeRange, aliasRange));
-      })
-      .map((alias) => alias.canonicalTerm),
+  const positiveMatches = expansion.matchSpans.filter(
+    (matchSpan) =>
+      !negativeRanges.some((negativeRange) => overlaps(negativeRange, matchSpan.range)),
   );
-  const clinicalTerms = [...new Set([...positiveTerms, ...canonicalTerms])].slice(0, MAX_FTS_TERMS);
+  const exactCanonicalTerms = termsWithStems(
+    positiveMatches
+      .filter((matchSpan) => matchSpan.matchType === 'exact')
+      .map((matchSpan) => matchSpan.alias.canonicalTerm),
+  );
+  const fuzzyCanonicalTerms = termsWithStems(
+    positiveMatches
+      .filter((matchSpan) => matchSpan.matchType === 'fuzzy')
+      .map((matchSpan) => matchSpan.alias.canonicalTerm),
+  );
+  const clinicalTerms = [...new Set([...positiveTerms, ...exactCanonicalTerms])].slice(
+    0,
+    MAX_FTS_TERMS,
+  );
   const branches: LexicalQueryBranchPlan[] = [];
   const clinicalWeight = intent.primary === 'diagnosis' ? 1.32 : 1.18;
   const clinical = makeBranch(
@@ -899,6 +906,15 @@ function buildBranches(
     clinicalWeight,
   );
   if (clinical) branches.push(clinical);
+  const fuzzyAliases = makeBranch(
+    'fuzzy-aliases',
+    'clinical',
+    'Похожие клинические термины',
+    fuzzyCanonicalTerms.join(' '),
+    fuzzyCanonicalTerms,
+    0.72,
+  );
+  if (fuzzyAliases && exactCanonicalTerms.length === 0) branches.push(fuzzyAliases);
 
   const intentSpec = INTENT_BRANCH[intent.primary];
   if (intent.primary !== 'unknown') {

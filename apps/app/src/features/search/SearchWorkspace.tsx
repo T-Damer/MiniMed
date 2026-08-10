@@ -25,7 +25,6 @@ import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
 import { DocumentText } from '@/components/DocumentText';
 import { HighlightedText } from '@/components/HighlightedText';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
-import { SearchField } from '@/components/SearchField';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
@@ -80,6 +79,7 @@ const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
 };
 
 const INITIAL_DOCUMENT_LIMIT = 5;
+const SEARCH_QUERY_EMPTY_ERROR = 'Search query has no searchable terms.';
 
 const CATEGORY_LABELS: Readonly<Record<SearchResultCategory, string>> = {
   overview: 'Обзор',
@@ -172,10 +172,6 @@ function factDisplayValue(fact: QueryFact): string {
   return fact.value;
 }
 
-function normalized(value: string): string {
-  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
-}
-
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [query, setQuery] = createSignal('');
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
@@ -183,8 +179,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [context, setContext] = createSignal<ChunkContext>();
   const [expandedGroups, setExpandedGroups] = createSignal<readonly string[]>([]);
   const [showAllGroups, setShowAllGroups] = createSignal(false);
-  const [contextExpanded, setContextExpanded] = createSignal(false);
-  const [readerQuery, setReaderQuery] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
   const [contextLoading, setContextLoading] = createSignal(false);
@@ -218,11 +212,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const visibleContextChunks = createMemo(() => {
     const resolved = context();
     if (!resolved) return [];
-    const localQuery = normalized(readerQuery());
-    if (localQuery) {
-      return resolved.chunks.filter((chunk) => normalized(chunk.originalText).includes(localQuery));
-    }
-    if (contextExpanded()) return resolved.chunks;
     return resolved.chunks.filter((chunk) => chunk.id === resolved.focusChunkId);
   });
 
@@ -260,8 +249,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   const handleContentChanged = (): void => {
     setContext(undefined);
-    setContextExpanded(false);
-    setReaderQuery('');
     setError(undefined);
     const trimmed = query().trim();
     if (trimmed) void runSearch(trimmed, false);
@@ -353,9 +340,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setLoading(true);
     setError(undefined);
     setContext(undefined);
-    setContextExpanded(false);
     setShowAllGroups(false);
-    setReaderQuery('');
 
     const result = await props.core.search({
       query: trimmed,
@@ -382,8 +367,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   async function openResult(result: SearchResult): Promise<void> {
     setContextLoading(true);
     setError(undefined);
-    setContextExpanded(false);
-    setReaderQuery('');
     const resolved = await props.core.getSearchResultContext(result, 3);
     setContextLoading(false);
     if (!resolved.ok) {
@@ -452,8 +435,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   function closeContext(): void {
     setContext(undefined);
-    setContextExpanded(false);
-    setReaderQuery('');
   }
 
   function searchReference(reference: string): void {
@@ -532,11 +513,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               </Show>
               <div class="query-buttons">
                 <Show when={query().length > 0}>
-                  <button
-                    class="text-button clear-query-button"
-                    type="button"
-                    onClick={clearQuery}
-                  >
+                  <button class="text-button clear-query-button" type="button" onClick={clearQuery}>
                     <AppGlyph name="trash" />
                     <span>Очистить</span>
                   </button>
@@ -546,7 +523,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   classList={{ visible: props.searchAllowed !== false }}
                   aria-hidden={props.searchAllowed === false}
                 >
-                  <div>
+                  <div
+                    class="search-submit-reveal__content"
+                    classList={{
+                      'search-submit-reveal__content--visible': props.searchAllowed !== false,
+                    }}
+                  >
                     <button
                       class="search-button"
                       data-testid="search-submit"
@@ -569,20 +551,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           {(analysis) => (
             <section class="query-index" aria-label="Разбор запроса">
               <Show when={analysis().suggestions.length > 0}>
-                <div class="index-row suggestions-row">
-                  <div class="index-label">
+                <div class="index-row suggestions-row query-index__suggestions">
+                  <div class="index-label query-index__label">
                     <span>Полезно уточнить</span>
-                    <small>не блокирует диагнозы</small>
+                    <small class="index-label__hint">не блокирует диагнозы</small>
                   </div>
                   <div class="suggestion-strip">
                     <For each={analysis().suggestions}>
                       {(suggestion) => (
                         <button
+                          class="suggestion-strip__button"
                           type="button"
                           title={suggestion.detail}
                           onClick={() => insertSuggestion(suggestion)}
                         >
-                          <span>+</span> {suggestion.label}
+                          <span class="suggestion-strip__marker">+</span> {suggestion.label}
                         </button>
                       )}
                     </For>
@@ -609,7 +592,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         class="fact-tag query-mode-tag"
                         title={`Уверенность ${Math.round(intent().confidence * 100)}%`}
                       >
-                        <small>режим поиска</small>
+                        <small class="fact-tag__label">режим поиска</small>
                         {INTENT_LABELS[intent().primary]}
                       </span>
                     )}
@@ -618,10 +601,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     {(fact) => (
                       <span
                         class="fact-tag"
-                        classList={{ negative: fact.polarity === 'negative' }}
+                        classList={{
+                          negative: fact.polarity === 'negative',
+                          'fact-tag--negative': fact.polarity === 'negative',
+                        }}
                         title={fact.label}
                       >
-                        <small>{FACT_LABELS[fact.kind]}</small>
+                        <small class="fact-tag__label">{FACT_LABELS[fact.kind]}</small>
                         {factDisplayValue(fact)}
                       </span>
                     )}
@@ -655,7 +641,34 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           />
         </Show>
 
-        <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
+        <Show when={loading() && !response()}>
+          <div class="search-results-skeleton" role="status" aria-label="Loading search results">
+            <For each={[0, 1, 2]}>
+              {() => (
+                <div class="search-results-skeleton__row">
+                  <span class="search-results-skeleton__marker" aria-hidden="true" />
+                  <div class="search-results-skeleton__copy">
+                    <span class="search-results-skeleton__line search-results-skeleton__line--long" />
+                    <span class="search-results-skeleton__line" />
+                  </div>
+                  <span class="search-results-skeleton__tail" aria-hidden="true" />
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
+
+        <Show when={error() === SEARCH_QUERY_EMPTY_ERROR}>
+          <div class="search-empty-state paper-card" role="status">
+            <AppGlyph name="binoculars" class="search-empty-state__icon" />
+            <p class="search-empty-state__text">
+              Search has not enough data, please provide more info
+            </p>
+          </div>
+        </Show>
+        <Show when={error() && error() !== SEARCH_QUERY_EMPTY_ERROR}>
+          {(message) => <div class="error-card">{message()}</div>}
+        </Show>
 
         <Show when={response()}>
           {(searchResponse) => (
@@ -796,37 +809,29 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         <Show when={context()}>
           {(resolved) => (
             <>
-              <div class="reader-toolbar">
-                <strong>{resolved().document.shortTitle ?? resolved().document.title}</strong>
-                <SearchField
-                  tone="inverse"
-                  hideLabel
-                  label="Поиск"
-                  value={readerQuery()}
-                  onInput={setReaderQuery}
-                  placeholder="Поиск"
-                />
-                <button
-                  class="reader-close"
-                  type="button"
-                  aria-label="Закрыть источник"
-                  onClick={closeContext}
-                >
-                  <AppGlyph name="close" />
-                </button>
-              </div>
-
               <article class="reader-card paper-sheet" data-testid="reader-context">
                 <header class="reader-header">
-                  <div>
+                  <div class="reader-header__content">
                     <p class="archive-kicker">В клинических рекомендациях</p>
-                    <h2>{resolved().document.title}</h2>
+                    <h2 class="reader-header__title">{resolved().document.title}</h2>
                   </div>
-                  <span class="source-stamp">
-                    ИСТОЧНИК
-                    <br />
-                    ЛОКАЛЬНЫЙ
-                  </span>
+                  <div class="reader-header__actions">
+                    <button
+                      class="reader-header__open-document"
+                      type="button"
+                      onClick={() => openDocumentInArchive(resolved().document.id)}
+                    >
+                      Открыть полный документ
+                    </button>
+                    <button
+                      class="reader-header__close"
+                      type="button"
+                      aria-label="Закрыть источник"
+                      onClick={closeContext}
+                    >
+                      <AppGlyph name="close" class="reader-header__close-icon" />
+                    </button>
+                  </div>
                 </header>
 
                 <div class="document-text">
@@ -842,37 +847,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         </Show>
                         <DocumentText
                           text={chunk.originalText}
-                          query={readerQuery()}
+                          paragraphClass="document-text__paragraph"
                           onReference={searchReference}
                         />
                       </div>
                     )}
                   </For>
-                  <Show when={readerQuery().trim() && visibleContextChunks().length === 0}>
-                    <div class="reader-empty">
-                      <p>В загруженном контексте совпадений нет.</p>
-                    </div>
-                  </Show>
-                </div>
-
-                <Show when={resolved().chunks.length > 1 && !readerQuery().trim()}>
-                  <div class="source-context-toggle">
-                    <button type="button" onClick={() => setContextExpanded((value) => !value)}>
-                      {contextExpanded() ? 'Скрыть окружающий контекст' : 'Показать текст вокруг'}
-                    </button>
-                  </div>
-                </Show>
-
-                <div class="source-reader-actions">
-                  <button
-                    type="button"
-                    onClick={() => openDocumentInArchive(resolved().document.id)}
-                  >
-                    Открыть полный документ
-                  </button>
-                  <small>
-                    Редакция {resolved().document.versionLabel} · {resolved().document.status}
-                  </small>
                 </div>
               </article>
             </>

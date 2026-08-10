@@ -24,7 +24,6 @@ import fitz
 OMLX_BIN = "/opt/homebrew/bin/omlx"
 OMLX_HOST = "127.0.0.1"
 OMLX_PORT = 19020
-API_KEY = "***REMOVED-SECRET***"
 WORK_DIR = Path("/Users/d/Projects/Personal/MiniMed/data/build/omlx-bakeoff")
 REPORT_DIR = WORK_DIR / "runs"
 PDF_PATH = Path("/Users/d/Projects/Personal/MiniMed/Med/ПДБ/ПДБМетодичка_less.pdf")
@@ -201,7 +200,10 @@ def run_command(command: list[str]) -> tuple[int, str]:
 
 
 def get_api_key() -> str:
-    return API_KEY
+    api_key = os.environ.get("OMLX_API_KEY")
+    if not api_key:
+        raise RuntimeError("OMLX_API_KEY environment variable is required")
+    return api_key
 
 
 def request_models(base_url: str) -> dict[str, Any] | None:
@@ -521,7 +523,7 @@ def start_model(model_dir: Path, log_path: Path):
         "--model-dir",
         str(model_dir),
         "--api-key",
-        API_KEY,
+        get_api_key(),
     ]
     return subprocess.Popen(
         cmd,

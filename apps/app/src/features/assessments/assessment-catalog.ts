@@ -80,7 +80,7 @@ export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [
     bankLabel: 'Психология и психодиагностика',
     category: 'self-reflection',
     description:
-      'Авторский самоопросник MiniMed по четырём поведенческим кластерам, которые популярная модель Бравермана связывает с дофамином, ацетилхолином, ГАМК и серотонином.',
+      'Образовательный самоопросник по популярной модели Бравермана и её четырём поведенческим кластерам: дофамин, ацетилхолин, ГАМК и серотонин.',
     estimatedMinutes: 6,
     audience: 'Взрослые; образовательная саморефлексия',
   },
@@ -100,7 +100,7 @@ export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [
     bankLabel: 'Психология и психодиагностика',
     category: 'self-reflection',
     description:
-      'Авторский самоопросник по функциональным эго-состояниям транзактного анализа: Критический Родитель, Заботливый Родитель, Взрослый, Свободный Ребёнок и Адаптированный Ребёнок.',
+      'Самооценка пяти функциональных эго-состояний транзактного анализа: Критический Родитель, Заботливый Родитель, Взрослый, Свободный Ребёнок и Адаптированный Ребёнок.',
     estimatedMinutes: 7,
     audience: 'Взрослые; саморефлексия и обсуждение с психологом',
   },
@@ -119,7 +119,7 @@ export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [
     bankLabel: 'Психология и психодиагностика',
     category: 'work-style',
     description:
-      'Независимый самоопросник по четырём рабочим функциям: достижение результата, администрирование, предпринимательское изменение и интеграция людей.',
+      'Неформальный профиль по управленческой рамке Адизеса и четырём рабочим функциям: достижение результата, администрирование, предпринимательское изменение и интеграция людей.',
     estimatedMinutes: 6,
     audience: 'Взрослые; работа, обучение и управление',
   },
@@ -139,7 +139,7 @@ export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [
     bankLabel: 'Психология и психодиагностика',
     category: 'team-role',
     description:
-      'Авторский профиль девяти наблюдаемых способов участия в команде. Он помогает обсудить вклад человека, но не является официальным Belbin Self-Perception Inventory.',
+      'Неформальный профиль девяти способов участия в команде, сопоставленных с моделью командных ролей Белбина. Он помогает обсудить вклад человека, но не является официальным Belbin Self-Perception Inventory.',
     estimatedMinutes: 9,
     audience: 'Взрослые; команды, обучение и управление',
   },
@@ -162,6 +162,78 @@ export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [
     estimatedMinutes: 5,
     audience: 'Подростки старшего возраста и взрослые; образовательная саморефлексия',
   },
+  {
+    id: 'minimed.assessment.apgar',
+    slug: 'apgar-newborn-score',
+    title: 'Шкала Апгар — оценка новорождённого',
+    shortTitle: 'Шкала Апгар',
+    aliases: ['Апгар', 'Apgar score', 'оценка новорождённого', 'шкала Апгар'],
+    bankId: 'obstetrics',
+    bankLabel: 'Акушерство и гинекология',
+    category: 'newborn-screening',
+    description:
+      'Стандартная клиническая шкала Вирджинии Апгар (1952) для быстрой оценки состояния новорождённого сразу после рождения по пяти признакам.',
+    estimatedMinutes: 1,
+    audience: 'Для медицинского персонала; оценивает врач или акушерка, а не пациент(ка)',
+  },
+  {
+    id: 'minimed.assessment.epds',
+    slug: 'postnatal-mood-epds',
+    title: 'Эдинбургская шкала послеродовой депрессии (EPDS)',
+    shortTitle: 'Шкала EPDS',
+    aliases: [
+      'EPDS',
+      'Edinburgh Postnatal Depression Scale',
+      'эдинбургская шкала',
+      'послеродовая депрессия',
+      'перинатальная депрессия',
+    ],
+    bankId: 'obstetrics',
+    bankLabel: 'Акушерство и гинекология',
+    category: 'perinatal-mood',
+    description:
+      'Стандартный скрининговый опросник из 10 пунктов для выявления признаков депрессии у женщин во время беременности и после родов, основанный на самочувствии за последние 7 дней.',
+    estimatedMinutes: 4,
+    audience: 'Женщины в период беременности и в первый год после родов',
+  },
+  {
+    id: 'minimed.assessment.ferriman-gallwey',
+    slug: 'ferriman-gallwey-hirsutism',
+    title: 'Модифицированная шкала Ферримана–Голлвея (гирсутизм)',
+    shortTitle: 'Шкала Ферримана–Голлвея',
+    aliases: [
+      'Ferriman-Gallwey',
+      'шкала гирсутизма',
+      'модифицированная шкала Ферримана-Голлвея',
+      'оценка гирсутизма',
+    ],
+    bankId: 'obstetrics',
+    bankLabel: 'Акушерство и гинекология',
+    category: 'gynecologic-endocrinology',
+    description:
+      'Стандартная клиническая шкала для оценки выраженности гирсутизма по девяти областям тела; используется в диагностике синдрома поликистозных яичников и других причин гиперандрогении.',
+    estimatedMinutes: 3,
+    audience: 'Для медицинского персонала; оценивает врач по результатам осмотра',
+  },
+  {
+    id: 'minimed.assessment.whooley',
+    slug: 'perinatal-mood-whooley',
+    title: 'Скрининг настроения Whooley (2 вопроса)',
+    shortTitle: 'Скрининг Whooley',
+    aliases: [
+      'Whooley questions',
+      'вопросы Whooley',
+      'краткий скрининг депрессии',
+      'скрининг настроения',
+    ],
+    bankId: 'obstetrics',
+    bankLabel: 'Акушерство и гинекология',
+    category: 'perinatal-mood',
+    description:
+      'Сверхкороткий скрининг из двух вопросов для быстрой первичной оценки сниженного настроения во время беременности и после родов.',
+    estimatedMinutes: 1,
+    audience: 'Женщины в период беременности и в первый год после родов',
+  },
 ];
 
 const ASSESSMENT_LOADERS: Readonly<Record<string, AssessmentLoader>> = {
@@ -181,6 +253,16 @@ const ASSESSMENT_LOADERS: Readonly<Record<string, AssessmentLoader>> = {
     import('@/features/assessments/temperament-assessment').then(
       (module) => module.TEMPERAMENT_ASSESSMENT,
     ),
+  'minimed.assessment.apgar': () =>
+    import('@/features/assessments/apgar-assessment').then((module) => module.APGAR_ASSESSMENT),
+  'minimed.assessment.epds': () =>
+    import('@/features/assessments/epds-assessment').then((module) => module.EPDS_ASSESSMENT),
+  'minimed.assessment.ferriman-gallwey': () =>
+    import('@/features/assessments/ferriman-gallwey-assessment').then(
+      (module) => module.FERRIMAN_GALLWEY_ASSESSMENT,
+    ),
+  'minimed.assessment.whooley': () =>
+    import('@/features/assessments/whooley-assessment').then((module) => module.WHOOLEY_ASSESSMENT),
 };
 
 const definitionPromises = new Map<string, Promise<AssessmentDefinition>>();

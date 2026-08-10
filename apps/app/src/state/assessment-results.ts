@@ -2,6 +2,7 @@ import type {
   AssessmentAnswers,
   AssessmentRecord,
   CompletedAssessmentRecord,
+  IncompleteAssessmentRecord,
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
 
@@ -47,7 +48,7 @@ function isAssessmentAnswers(value: unknown): value is AssessmentAnswers {
     isStringRecord(value) &&
     Object.values(value).every(
       (answer) =>
-        typeof answer === 'number' && Number.isInteger(answer) && answer >= 1 && answer <= 5,
+        typeof answer === 'number' && Number.isInteger(answer) && answer >= 0 && answer <= 5,
     )
   );
 }
@@ -61,6 +62,14 @@ function isAssessmentRecord(value: unknown): value is AssessmentRecord {
     typeof value['createdAt'] === 'string';
   if (!common) return false;
   if (value['kind'] === 'manual') return typeof value['text'] === 'string';
+  if (value['kind'] === 'incomplete') {
+    return (
+      isAssessmentAnswers(value['answers']) &&
+      typeof value['totalQuestions'] === 'number' &&
+      Number.isInteger(value['totalQuestions']) &&
+      value['totalQuestions'] > 0
+    );
+  }
   return (
     value['kind'] === 'completed' &&
     isAssessmentAnswers(value['answers']) &&
@@ -89,13 +98,14 @@ export function loadAssessmentRecords(): readonly AssessmentRecord[] {
 }
 
 export function createCompletedAssessmentRecord(input: {
+  readonly id?: string;
   readonly assessmentId: string;
   readonly subjectLabel: string;
   readonly answers: AssessmentAnswers;
   readonly result: ScoredAssessment;
 }): CompletedAssessmentRecord {
   const record: CompletedAssessmentRecord = {
-    id: createId(),
+    id: input.id ?? createId(),
     assessmentId: input.assessmentId,
     subjectLabel: input.subjectLabel.trim(),
     createdAt: input.result.completedAt,
@@ -103,7 +113,27 @@ export function createCompletedAssessmentRecord(input: {
     answers: input.answers,
     result: input.result,
   };
-  persist([record, ...loadAssessmentRecords()]);
+  persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
+  return record;
+}
+
+export function saveIncompleteAssessmentRecord(input: {
+  readonly id?: string;
+  readonly assessmentId: string;
+  readonly subjectLabel: string;
+  readonly answers: AssessmentAnswers;
+  readonly totalQuestions: number;
+}): IncompleteAssessmentRecord {
+  const record: IncompleteAssessmentRecord = {
+    id: input.id ?? createId(),
+    assessmentId: input.assessmentId,
+    subjectLabel: input.subjectLabel.trim(),
+    createdAt: new Date().toISOString(),
+    kind: 'incomplete',
+    answers: input.answers,
+    totalQuestions: input.totalQuestions,
+  };
+  persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
   return record;
 }
 

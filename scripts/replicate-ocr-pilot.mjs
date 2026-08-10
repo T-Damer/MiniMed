@@ -101,7 +101,9 @@ async function main() {
   // image-URL arrays). Poll to a terminal state explicitly and read output from that final record.
   const finished = await replicate.wait(created);
   if (finished.status !== 'succeeded') {
-    throw new Error(`Replicate prediction ${finished.status}: ${finished.error ?? 'no error detail'}`);
+    throw new Error(
+      `Replicate prediction ${finished.status}: ${finished.error ?? 'no error detail'}`,
+    );
   }
   const marker = finished.output;
   if (

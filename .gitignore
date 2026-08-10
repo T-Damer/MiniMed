@@ -49,3 +49,6 @@ apps/app/public/content/medications.db
 
 # Personal medical study library (12GB+, not app source)
 Med/
+
+# Local QA evidence is generated during development; committed history remains tracked.
+.omo/evidence/*

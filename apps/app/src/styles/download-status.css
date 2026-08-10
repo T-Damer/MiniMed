@@ -220,7 +220,10 @@
 .floating-system-status {
   position: fixed;
   z-index: 65;
-  bottom: max(0.625rem, calc(0.625rem + var(--safe-bottom)));
+  bottom: max(
+    var(--theme-bottom-nav-clearance),
+    calc(var(--theme-bottom-nav-clearance) + var(--safe-bottom))
+  );
   left: max(
     0.75rem,
     calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.75rem + var(--safe-left))

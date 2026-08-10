@@ -82,6 +82,23 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     title: 'Темперамент',
     description: 'Типологические опросники для описания устойчивых особенностей реагирования.',
   },
+  {
+    id: 'newborn-screening',
+    title: 'Оценка новорождённого',
+    description: 'Стандартизированная оценка состояния новорождённого сразу после рождения.',
+  },
+  {
+    id: 'perinatal-mood',
+    title: 'Психологический скрининг',
+    description:
+      'Скрининговые шкалы настроения и тревоги для использования во время беременности и после родов.',
+  },
+  {
+    id: 'gynecologic-endocrinology',
+    title: 'Гинекологическая эндокринология',
+    description:
+      'Шкалы для оценки признаков гиперандрогении и сопутствующих эндокринных нарушений.',
+  },
 ];
 
 const SECTION_IDS = new Set(ASSESSMENT_SECTIONS.map((section) => section.id));

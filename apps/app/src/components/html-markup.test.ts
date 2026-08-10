@@ -10,14 +10,20 @@ describe('stripKnownHtmlMarkup', () => {
   });
 
   it('collapses <br><br> into a paragraph break', () => {
-    expect(stripKnownHtmlMarkup('Абзац один.<br><br>Абзац два.')).toBe(
-      'Абзац один.\n\nАбзац два.',
-    );
+    expect(stripKnownHtmlMarkup('Абзац один.<br><br>Абзац два.')).toBe('Абзац один.\n\nАбзац два.');
   });
 
   it('strips emphasis and bold tags while keeping their text', () => {
     expect(stripKnownHtmlMarkup('<em>Перорально</em>.')).toBe('Перорально.');
-    expect(stripKnownHtmlMarkup('<strong>Важно</strong>: доза 5 мг.')).toBe('**Важно**: доза 5 мг.');
+    expect(stripKnownHtmlMarkup('<strong>Важно</strong>: доза 5 мг.')).toBe(
+      '**Важно**: доза 5 мг.',
+    );
+  });
+
+  it('strips layout tags from medication instruction fragments', () => {
+    expect(stripKnownHtmlMarkup('<div>Первая часть</div><div>Вторая часть</div>')).toBe(
+      'Первая часть\nВторая часть\n',
+    );
   });
 
   it('decodes known HTML entities', () => {

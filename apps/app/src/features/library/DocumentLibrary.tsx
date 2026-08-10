@@ -1,6 +1,5 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
-import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGlyph';
@@ -97,6 +96,14 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
 
       <Show when={props.embedded}>
         <div class="library-embedded-toolbar">
+          <SearchField
+            class="route-search library-embedded-search"
+            value={filter()}
+            onInput={setFilter}
+            label="Поиск по документам"
+            hideLabel
+            placeholder="Название, специальность или источник"
+          />
           <fieldset class="library-mode-tabs">
             <legend class="sr-only">Представление библиотеки</legend>
             <button
@@ -117,18 +124,21 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
         </div>
       </Show>
 
-      <div class="archive-search-row">
-        <SearchField
-          value={filter()}
-          onInput={setFilter}
-          label="Поиск по документам"
-          hideLabel
-          placeholder="Название, специальность или источник"
-        />
-        <span class="archive-search-meta">
-          {filteredDocuments().length} из {documents().length}
-        </span>
-      </div>
+      <Show when={!props.embedded}>
+        <div class="archive-search-row">
+          <SearchField
+            class="route-search"
+            value={filter()}
+            onInput={setFilter}
+            label="Поиск по документам"
+            hideLabel
+            placeholder="Название, специальность или источник"
+          />
+          <span class="archive-search-meta">
+            {filteredDocuments().length} из {documents().length}
+          </span>
+        </div>
+      </Show>
 
       <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
 
@@ -143,7 +153,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       <Show when={mode() === 'list'}>
         <div class="document-library-grid">
           <Show when={filteredDocuments().length > 0}>
-            <WindowVirtualizer data={filteredDocuments()} bufferSize={400}>
+            <For each={filteredDocuments()}>
               {(document, index) => (
                 <button
                   class="document-library-card paper-card"
@@ -174,7 +184,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                   </span>
                 </button>
               )}
-            </WindowVirtualizer>
+            </For>
           </Show>
           <Show when={filteredDocuments().length === 0}>
             <div class="reader-empty library-empty paper-card">

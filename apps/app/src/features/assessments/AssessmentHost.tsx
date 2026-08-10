@@ -20,8 +20,12 @@ export function AssessmentHost(): JSX.Element {
 
   createEffect(() => {
     document.documentElement.classList.toggle('assessment-route-open', open());
+    document.body.classList.toggle('assessment-route-open', open());
   });
-  onCleanup(() => document.documentElement.classList.remove('assessment-route-open'));
+  onCleanup(() => {
+    document.documentElement.classList.remove('assessment-route-open');
+    document.body.classList.remove('assessment-route-open');
+  });
 
   return (
     <Show
@@ -36,7 +40,7 @@ export function AssessmentHost(): JSX.Element {
               window.location.hash = '#/assessments';
             }}
           >
-            <AppGlyph name="brain" />
+            <AppGlyph name="brain" class="assessment-launch-button__icon" />
             <span>Тесты</span>
           </button>
         </Show>
@@ -51,7 +55,7 @@ export function AssessmentHost(): JSX.Element {
             window.location.hash = '#/search';
           }}
         >
-          <AppGlyph name="close" />
+          <AppGlyph name="close" class="assessment-overlay-close__icon" />
         </button>
         <AssessmentsView />
       </div>

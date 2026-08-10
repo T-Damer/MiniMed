@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sqlite3
+from html import unescape
 from pathlib import Path
 from uuid import uuid4
 
@@ -40,6 +42,8 @@ _RUNTIME_SECTIONS = (
     ("interaction", "Взаимодействие с лекарственными средствами"),
     ("analogs", "Аналоги"),
 )
+_HTML_LINE_BREAK_TAG = re.compile(r"<(?:br\b[^>]*|/(?:div|p|ul|ol|li)\b[^>]*)>", re.IGNORECASE)
+_HTML_TAG = re.compile(r"</?(?:br|div|p|ul|ol|li|span|strong|b|em|i)\b[^>]*>", re.IGNORECASE)
 
 
 class AllmedReferenceExport(CamelModel):
@@ -280,6 +284,16 @@ def _field_text(row: sqlite3.Row, column: str) -> str:
     return value if isinstance(value, str) else ""
 
 
+def _clean_allmed_text(value: str) -> str:
+    if "<" not in value and "&" not in value:
+        return value
+    with_line_breaks = _HTML_LINE_BREAK_TAG.sub("\n", value)
+    without_tags = _HTML_TAG.sub("", with_line_breaks)
+    decoded = unescape(without_tags)
+    normalized = "\n".join(line.strip() for line in decoded.splitlines()).strip()
+    return re.sub(r"\n{3,}", "\n\n", normalized)
+
+
 def prepare_allmed_medications(input_path: Path, output: Path) -> AllmedMedicationWorkspace:
     """Make a lexical LocalMed medications workspace from one local Allmed snapshot."""
     if not input_path.is_file():
@@ -324,7 +338,7 @@ def prepare_allmed_medications(input_path: Path, output: Path) -> AllmedMedicati
                 "sourceLabel": "Allmed snapshot",
                 "sourceNotice": "Локальный справочный снимок; не официальная инструкция ГРЛС.",
                 "nameLat": name_lat or None,
-                "productionForm": _field_text(drug, "production_form").strip() or None,
+                "productionForm": _clean_allmed_text(_field_text(drug, "production_form")) or None,
             }
             front_matter = {
                 "id": f"drug.allmed.{drug_id}",
@@ -349,7 +363,7 @@ def prepare_allmed_medications(input_path: Path, output: Path) -> AllmedMedicati
             if name_lat:
                 lines.extend([_source_marker("drugs", drug_id, "name_lat"), name_lat, ""])
             for column, section_title in _RUNTIME_SECTIONS:
-                value = _field_text(drug, column)
+                value = _clean_allmed_text(_field_text(drug, column))
                 if value.strip():
                     lines.extend(
                         [

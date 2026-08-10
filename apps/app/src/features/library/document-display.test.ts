@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
+  documentSectionHeadingTag,
   hasFullTextSibling,
   isFullTextDocumentId,
   orderDocumentSections,
@@ -39,6 +40,18 @@ const section = (title: string): MedicalSection => ({
 });
 
 describe('document-display', () => {
+  it('preserves Markdown section depth in rendered heading levels', () => {
+    expect([1, 2, 3, 4, 5, 6].map((depth) => documentSectionHeadingTag(depth))).toEqual([
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'h6',
+    ]);
+    expect(documentSectionHeadingTag(1, 2)).toBe('h3');
+  });
+
   it('uses INN for registry drug titles', () => {
     expect(
       displayDocumentTitle({

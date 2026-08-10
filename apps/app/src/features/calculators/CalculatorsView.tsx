@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -61,6 +62,7 @@ import {
   type QuantityFamily,
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import {
   type CalculationRecord,
   createCalculationRecord,
@@ -68,7 +70,6 @@ import {
   loadCalculationHistory,
   saveCalculationRecord,
 } from '@/state/calculation-history';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
 
 function currentRoute(): string {
@@ -235,6 +236,8 @@ function CalculatorSectionPage(props: {
   readonly onRemove: (sectionId: CalculatorSectionId) => void;
 }): JSX.Element {
   const definitions = () => calculatorsInSection(props.section.id, props.definitions);
+  const availableCount = () =>
+    definitions().filter((definition) => definition.state === 'available').length;
   const complete = () =>
     isCalculatorSectionComplete(props.section.id, props.installation, props.definitions);
   const core = () => isCalculatorSectionCore(props.section.id, props.definitions);
@@ -256,7 +259,7 @@ function CalculatorSectionPage(props: {
           <h1>{props.section.title}</h1>
           <p>{props.section.description}</p>
         </div>
-        <Show when={!core()}>
+        <Show when={!core() && availableCount() > 0}>
           <button
             type="button"
             class="calculator-section-action"
@@ -278,6 +281,11 @@ function CalculatorSectionPage(props: {
           </button>
         </Show>
       </header>
+      <Show when={availableCount() === 0}>
+        <p class="calculator-section-page__status" role="status">
+          В этом разделе пока нет доступных калькуляторов. Инструменты находятся в подготовке.
+        </p>
+      </Show>
       <Show when={relatedCategoriesForSection(props.section.id).length > 0}>
         <div class="calculator-section-related">
           <span>По теме:</span>
@@ -601,6 +609,7 @@ function CalculatorForm(props: {
       <label>
         <span>Единицы креатинина</span>
         <select
+          class="calculator-form__select"
           value={creatinineUnit()}
           onChange={(event) => setCreatinineUnit(event.currentTarget.value as CreatinineUnit)}
         >
@@ -636,6 +645,7 @@ function CalculatorForm(props: {
         <label>
           <span>Величина</span>
           <select
+            class="calculator-form__select calculator-form__select--compact"
             value={family()}
             onChange={(event) => changeFamily(event.currentTarget.value as QuantityFamily)}
           >
@@ -654,7 +664,11 @@ function CalculatorForm(props: {
         </label>
         <label>
           <span>Из единицы</span>
-          <select value={fromUnit()} onChange={(event) => setFromUnit(event.currentTarget.value)}>
+          <select
+            class="calculator-form__select calculator-form__select--compact"
+            value={fromUnit()}
+            onChange={(event) => setFromUnit(event.currentTarget.value)}
+          >
             <For each={unitsForFamily(family())}>
               {(unit) => <option value={unit}>{unit}</option>}
             </For>
@@ -662,7 +676,11 @@ function CalculatorForm(props: {
         </label>
         <label>
           <span>В единицу</span>
-          <select value={toUnit()} onChange={(event) => setToUnit(event.currentTarget.value)}>
+          <select
+            class="calculator-form__select calculator-form__select--compact"
+            value={toUnit()}
+            onChange={(event) => setToUnit(event.currentTarget.value)}
+          >
             <For each={unitsForFamily(family())}>
               {(unit) => <option value={unit}>{unit}</option>}
             </For>
@@ -701,6 +719,7 @@ function CalculatorForm(props: {
         <label>
           <span>Пол в формуле</span>
           <select
+            class="calculator-form__select"
             value={sex()}
             onChange={(event) => setSex(event.currentTarget.value as 'female' | 'male')}
           >
@@ -803,6 +822,7 @@ function CalculatorForm(props: {
         <label>
           <span>Беременность</span>
           <select
+            class="calculator-form__select"
             value={parity()}
             onChange={(event) => setParity(event.currentTarget.value as Parity)}
           >
@@ -870,6 +890,7 @@ function CalculatorForm(props: {
         <label>
           <span>Беременность</span>
           <select
+            class="calculator-form__select"
             value={pregnancyType()}
             onChange={(event) => setPregnancyType(event.currentTarget.value as PregnancyType)}
           >
@@ -881,6 +902,7 @@ function CalculatorForm(props: {
           <label>
             <span>Осложнённые роды (+16 дней)</span>
             <select
+              class="calculator-form__select"
               value={complicatedBirth() ? 'yes' : 'no'}
               onChange={(event) => setComplicatedBirth(event.currentTarget.value === 'yes')}
             >
@@ -940,7 +962,11 @@ function CalculatorForm(props: {
       <Show when={props.definition.id === 'obstetric-bishop-score'}>
         <label>
           <span>Раскрытие шейки матки</span>
-          <select value={dilationScore()} onChange={(event) => setDilationScore(event.currentTarget.value)}>
+          <select
+            class="calculator-form__select"
+            value={dilationScore()}
+            onChange={(event) => setDilationScore(event.currentTarget.value)}
+          >
             <option value="0">Закрыта (0)</option>
             <option value="1">1–2 см (1)</option>
             <option value="2">3–4 см (2)</option>
@@ -950,6 +976,7 @@ function CalculatorForm(props: {
         <label>
           <span>Сглаживание шейки матки</span>
           <select
+            class="calculator-form__select"
             value={effacementScore()}
             onChange={(event) => setEffacementScore(event.currentTarget.value)}
           >
@@ -961,7 +988,11 @@ function CalculatorForm(props: {
         </label>
         <label>
           <span>Положение головки (станция)</span>
-          <select value={stationScore()} onChange={(event) => setStationScore(event.currentTarget.value)}>
+          <select
+            class="calculator-form__select"
+            value={stationScore()}
+            onChange={(event) => setStationScore(event.currentTarget.value)}
+          >
             <option value="0">−3 (0)</option>
             <option value="1">−2 (1)</option>
             <option value="2">−1 / 0 (2)</option>
@@ -971,6 +1002,7 @@ function CalculatorForm(props: {
         <label>
           <span>Консистенция шейки матки</span>
           <select
+            class="calculator-form__select"
             value={consistencyScore()}
             onChange={(event) => setConsistencyScore(event.currentTarget.value)}
           >
@@ -981,7 +1013,11 @@ function CalculatorForm(props: {
         </label>
         <label>
           <span>Позиция шейки матки</span>
-          <select value={positionScore()} onChange={(event) => setPositionScore(event.currentTarget.value)}>
+          <select
+            class="calculator-form__select"
+            value={positionScore()}
+            onChange={(event) => setPositionScore(event.currentTarget.value)}
+          >
             <option value="0">Кзади (0)</option>
             <option value="1">Срединное положение (1)</option>
             <option value="2">Кпереди (2)</option>
@@ -1173,6 +1209,7 @@ function CalculationResultPanel(props: {
           <label>
             <span>Существующая карточка</span>
             <select
+              class="calculator-note-panel__select"
               value={selectedCardId()}
               onChange={(event) => setSelectedCardId(event.currentTarget.value)}
             >
@@ -1186,6 +1223,7 @@ function CalculationResultPanel(props: {
             <label>
               <span>Название новой карточки</span>
               <input
+                class="calculator-note-panel__input"
                 value={newCardTitle()}
                 placeholder={props.record.subjectLabel || 'Пациент'}
                 onInput={(event) => setNewCardTitle(event.currentTarget.value)}
@@ -1211,14 +1249,11 @@ export function CalculatorsView(): JSX.Element {
     loadCalculationHistory(),
   );
   const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
-  const [message, setMessage] = createSignal('');
   const [pendingDeletion, setPendingDeletion] = createSignal<{
     readonly kind: 'section' | 'record';
     readonly id: string;
     readonly title: string;
   } | null>(null);
-  let messageTimer: ReturnType<typeof setTimeout> | undefined;
-
   const refresh = (): void => {
     setRoute(currentRoute());
   };
@@ -1236,16 +1271,8 @@ export function CalculatorsView(): JSX.Element {
   onCleanup(() => window.removeEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('storage', handleStorage));
   onCleanup(() => window.removeEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation));
-  onCleanup(() => {
-    if (messageTimer) clearTimeout(messageTimer);
-  });
-
   const notify = (text: string): void => {
-    setMessage(text);
-    if (messageTimer) clearTimeout(messageTimer);
-    messageTimer = setTimeout(() => {
-      setMessage('');
-    }, 3200);
+    toast(text, { duration: 3200 });
   };
 
   const slug = createMemo(() => route().split('/')[1] ?? '');
@@ -1279,6 +1306,10 @@ export function CalculatorsView(): JSX.Element {
   };
 
   const installSection = (sectionId: CalculatorSectionId): void => {
+    const hasAvailableCalculator = calculatorsInSection(sectionId, CALCULATOR_REGISTRY).some(
+      (definition) => definition.state === 'available',
+    );
+    if (!hasAvailableCalculator) return;
     setInstallation(installCalculatorSection(sectionId));
     const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
     notify(`«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`);
@@ -1321,8 +1352,6 @@ export function CalculatorsView(): JSX.Element {
 
   return (
     <section class="calculators-page page-surface" aria-label="Медицинские калькуляторы">
-      <Show when={message()}>{(text) => <div class="calculator-message">{text()}</div>}</Show>
-
       <Show
         when={selected()}
         fallback={
@@ -1461,10 +1490,15 @@ export function CalculatorsView(): JSX.Element {
         {(definition) => (
           <div class="calculator-workspace">
             <header class="calculator-subpage-header">
-              <button type="button" aria-label="К каталогу калькуляторов" onClick={backToCatalog}>
+              <button
+                type="button"
+                class="knowledge-back-button"
+                aria-label="К каталогу калькуляторов"
+                onClick={backToCatalog}
+              >
                 <AppGlyph name="arrow-left" />
               </button>
-              <div>
+              <div class="calculator-subpage-header__content">
                 <p class="archive-kicker">
                   {
                     CALCULATOR_SECTIONS.find((section) => section.id === definition().category)
@@ -1472,8 +1506,8 @@ export function CalculatorsView(): JSX.Element {
                   }
                   {' · скачано на устройство'}
                 </p>
-                <h1>{definition().title}</h1>
-                <p>{definition().summary}</p>
+                <h1 class="calculator-subpage-title">{definition().title}</h1>
+                <p class="calculator-subpage-summary">{definition().summary}</p>
               </div>
             </header>
 

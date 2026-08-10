@@ -21,7 +21,7 @@
 .clinical-signal svg,
 .result-category-icon svg,
 .archive-search__icon,
-.scroll-top-button svg {
+.scroll-top-button__icon {
   width: 1.125rem;
   height: 1.125rem;
 }
@@ -193,56 +193,6 @@
   background: color-mix(in srgb, currentColor 9%, transparent);
 }
 
-.reader-toolbar {
-  position: sticky;
-  z-index: 5;
-  top: calc(0.25rem + var(--safe-top));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(11.25rem, 17.5rem) 2.5rem;
-  align-items: center;
-  gap: 0.625rem;
-  margin-bottom: 0.625rem;
-  padding: 0.5rem 0.625rem;
-  border: 1px solid rgb(246 238 219 / 24%);
-  color: #f6eedb;
-  background: rgb(71 69 63 / 96%);
-  box-shadow: 0 0.5rem 1.5rem rgb(24 22 19 / 28%);
-}
-
-.reader-toolbar .archive-search {
-  gap: 0;
-}
-
-.reader-toolbar strong {
-  overflow: hidden;
-  font-family: var(--font-serif);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.reader-toolbar .reader-close {
-  position: static;
-  width: 2.375rem;
-  height: 2.375rem;
-}
-
-.source-context-toggle {
-  display: flex;
-  justify-content: center;
-  margin: 0.9375rem 0;
-}
-
-.source-context-toggle button {
-  padding: 0.5625rem 0.75rem;
-  border: 1px solid rgb(79 65 37 / 28%);
-  color: var(--ink-soft);
-  background: rgb(246 237 214 / 46%);
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  text-transform: uppercase;
-}
-
 .source-paragraph.context-hidden {
   display: none;
 }
@@ -310,15 +260,6 @@
     grid-template-columns: 1fr;
   }
 
-  .reader-toolbar {
-    grid-template-columns: minmax(0, 1fr) 2.5rem;
-  }
-
-  .reader-toolbar .archive-search {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
   .archive-search-row {
     align-items: stretch;
     flex-direction: column;
@@ -366,8 +307,20 @@
 .library-embedded-toolbar {
   display: flex;
   width: 100%;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin: 0 0 0.75rem;
+}
+
+.library-embedded-search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.library-embedded-toolbar .library-mode-tabs {
+  flex: 0 0 auto;
+  margin: 0;
 }
 
 .module-page:not(.page-surface) {

@@ -64,6 +64,8 @@ Forbidden without a dedicated ADR:
 - Preserve raw-file checksum and source spans when transforming authoring artifacts.
 - Reject source paths that escape the configured private root.
 - Do not catch and discard errors.
+- Assessment copy must attribute or accurately describe real instruments and explain how to
+  interpret results; never brand an established instrument or questionnaire as a MiniMed invention.
 - Update `docs/CURRENT_STATE.md` when a change affects behavior, corpus coverage, trust boundaries,
   benchmark composition, or ordered next tasks.
 
@@ -110,4 +112,6 @@ were not tested.
 
 - New or touched UI elements must have their own semantic BEM class (`block`, `block__element`, or `block--modifier`).
 - Do not style elements through descendant selectors such as `.block h2` or `.block button`; put the class on the styled element and target that class directly.
+- Never add selectors shaped like `.class <node />` (for example `.block svg`); use a specific class on the styled node instead.
 - Keep state selectors class-based (`.block--active`) and avoid selector chains whose meaning depends on DOM nesting.
+- Use normal flex/grid/document flow for layout. Use `position: absolute` only for intentional overlays, such as a full-card hit area or an icon layered over content; do not use it for ordinary actions or spacing.

@@ -6,6 +6,7 @@ export interface MedicalDocumentSummary {
   readonly status: string;
   readonly specialties: readonly string[];
   readonly ageGroups?: readonly string[];
+  readonly metadata?: Readonly<Record<string, unknown>>;
   readonly versionId: string;
   readonly versionLabel: string;
   readonly effectiveFrom: string | null;
