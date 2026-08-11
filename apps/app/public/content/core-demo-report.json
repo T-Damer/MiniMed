@@ -2,14 +2,14 @@
   "documents": 15,
   "sections": 58,
   "chunks": 58,
-  "aliases": 31,
+  "aliases": 45,
   "embeddingProfiles": 1,
   "embeddings": 58,
   "warnings": [
     "knowledge: 9 entities, 8 facts (0 reviewed), 1 relations (0 reviewed), 3 review tasks"
   ],
   "errors": [],
-  "outputChecksum": "sha256:621111a65e2929672602718ad969544d28fcc6ce14d0430f1db0e0c5a98d9a3c",
+  "outputChecksum": "sha256:54c5700f864016cc64f04363fa13d314d3bb06764c0649499986e258d4ddf659",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0
 }
