@@ -160,10 +160,14 @@
   }
 
   .search-mode-picker label,
-  .search-selected-mode,
-  .search-history-panel {
+  .search-selected-mode {
     border-color: #5a574d;
     background: rgb(28 29 26 / 68%);
+  }
+
+  .search-history-panel {
+    border-color: #5a574d;
+    background: var(--theme-surface-raised);
   }
 
   .search-mode-picker label:hover {

@@ -143,9 +143,12 @@
       "version": "0.5.1",
       "dependencies": {
         "@localmed/core": "workspace:*",
+        "@localmed/domain": "workspace:*",
+        "@localmed/search-lexical": "workspace:*",
         "@localmed/search-semantic": "workspace:*",
         "@localmed/storage-sqlite": "workspace:*",
         "@localmed/test-fixtures": "workspace:*",
+        "yaml": "2.8.3",
       },
     },
   },

@@ -67,15 +67,13 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
     if (event.key === 'Escape') close();
   };
   const handlePointerDown = (event: PointerEvent): void => {
-    if (
-      open() ||
-      event.pointerType === 'mouse' ||
-      event.clientX > 36 ||
-      !(event.target instanceof Element) ||
-      !event.target.closest('.search-home')
-    ) {
+    if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return;
+    if (open()) {
+      if (!event.target.closest('.search-history-panel')) return;
+      swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
       return;
     }
+    if (event.clientX > 36 || !event.target.closest('.search-home')) return;
     swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
   };
   const handlePointerMove = (event: PointerEvent): void => {
@@ -83,8 +81,15 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
     if (!start || start.pointerId !== event.pointerId) return;
     const deltaX = event.clientX - start.x;
     const deltaY = Math.abs(event.clientY - start.y);
-    if (deltaY > Math.max(24, deltaX)) {
+    if (deltaY > Math.max(24, Math.abs(deltaX))) {
       swipeStart = undefined;
+      return;
+    }
+    if (open()) {
+      if (deltaX > -72) return;
+      swipeStart = undefined;
+      close();
+      hapticFeedback('light');
       return;
     }
     if (deltaX < 72) return;

@@ -21,9 +21,13 @@ body,
   min-height: 100%;
 }
 
+html {
+  overscroll-behavior: none;
+}
+
 body {
   min-height: 100dvh;
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
 }
 
 .app-shell {
@@ -34,18 +38,6 @@ body {
   padding-bottom: var(--safe-bottom);
   padding-left: var(--safe-left);
   background: var(--desk);
-}
-
-.app-shell::before {
-  position: fixed;
-  z-index: 0;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: var(--safe-top);
-  pointer-events: none;
-  content: "";
-  background: var(--folder-light);
 }
 
 .app-topbar {

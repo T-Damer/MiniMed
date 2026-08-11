@@ -11,7 +11,8 @@
   align-items: center;
   flex-wrap: nowrap;
   gap: 0.625rem 0.875rem;
-  padding-block: 0.5rem;
+  padding-top: calc(var(--safe-top) + 0.5rem);
+  padding-bottom: 0.5rem;
   padding-inline: 0.15rem;
   border-radius: var(--theme-radius-panel);
 }

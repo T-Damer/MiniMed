@@ -12,12 +12,17 @@
     "benchmark:pilot": "tsx src/run-pilot.ts",
     "benchmark:regulatory": "tsx src/run-regulatory.ts",
     "benchmark:hard": "tsx src/run-hard-queries.ts",
-    "benchmark:clinician": "tsx src/run-curated-clinician.ts"
+    "benchmark:clinician": "tsx src/run-curated-clinician.ts",
+    "review:aliases": "tsx src/alias-review-batch.ts && tsx src/generate-review-ui.ts",
+    "verify:aliases": "tsx src/verify-alias-batch.ts"
   },
   "dependencies": {
     "@localmed/core": "workspace:*",
+    "@localmed/domain": "workspace:*",
+    "@localmed/search-lexical": "workspace:*",
     "@localmed/storage-sqlite": "workspace:*",
     "@localmed/test-fixtures": "workspace:*",
-    "@localmed/search-semantic": "workspace:*"
+    "@localmed/search-semantic": "workspace:*",
+    "yaml": "2.8.3"
   }
 }

@@ -2,17 +2,19 @@
 .calculators-page {
   box-sizing: border-box;
   width: min(100%, 65ch);
-  min-height: calc(100dvh + 4.875rem + var(--safe-bottom));
+  min-height: calc(100dvh + 4.875rem + var(--safe-bottom) + var(--safe-top));
   margin-inline: auto;
   margin-bottom: calc(-4.875rem - var(--safe-bottom));
-  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem) calc(6.5rem + var(--safe-bottom));
+  padding: calc(clamp(1rem, 3vw, 1.5rem) + var(--safe-top)) clamp(0.875rem, 3vw, 1.5rem)
+    calc(6.5rem + var(--safe-bottom));
   background:
     linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%),
     linear-gradient(180deg, var(--folder-light), var(--folder));
 }
 
 .assessments-page.page-surface {
-  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.5rem) calc(6.5rem + var(--safe-bottom));
+  padding: calc(clamp(1rem, 3vw, 1.5rem) + var(--safe-top)) clamp(0.875rem, 3vw, 1.5rem)
+    calc(6.5rem + var(--safe-bottom));
 }
 
 .assessments-heading p,

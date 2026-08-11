@@ -154,3 +154,73 @@ aliases:
     alias: с одной стороны дыхание хуже
     category: finding
     weight: 1.0
+  - id: alias.pilot.nasal-flaring
+    canonicalTerm: раздувание крыльев носа дыхательная недостаточность пневмония
+    alias: раздувает ноздри при дыхании
+    category: finding
+    weight: 1.0
+  - id: alias.pilot.chest-pain-pneumonia
+    canonicalTerm: боль в груди пневмония
+    alias: болит в грудной клетке при кашле
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.apnea-infant
+    canonicalTerm: апноэ дыхательная недостаточность
+    alias: перестает дышать на несколько секунд
+    category: finding
+    weight: 1.0
+  - id: alias.pilot.cyanosis
+    canonicalTerm: цианоз дыхательная недостаточность гипоксемия
+    alias: губы синеют
+    category: finding
+    weight: 1.0
+  - id: alias.pilot.bulging-fontanelle
+    canonicalTerm: выбухание родничка менингококковая инфекция
+    alias: родничок выбухает
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.monotone-cry
+    canonicalTerm: монотонный крик менингококковая инфекция
+    alias: плачет на одной ноте
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.severe-headache-meningeal
+    canonicalTerm: сильная головная боль менингококковая инфекция
+    alias: сильно болит голова и тошнит
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.abdominal-rumbling
+    canonicalTerm: урчание в животе ротавирусный гастроэнтерит
+    alias: живот урчит
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.poor-appetite
+    canonicalTerm: снижение аппетита обезвоживание
+    alias: плохо ест второй день
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.cloudy-urine
+    canonicalTerm: мутная моча резко пахнущая моча инфекция мочевых путей
+    alias: моча стала мутная и воняет
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.urgency
+    canonicalTerm: императивные позывы инфекция мочевых путей
+    alias: резко хочет в туалет и не успевает добежать
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.daytime-wetting
+    canonicalTerm: дневное недержание энурез инфекция мочевых путей
+    alias: писается днем хотя раньше не было
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.chills
+    canonicalTerm: озноб пиелонефрит
+    alias: трясет от температуры
+    category: symptom
+    weight: 1.0
+  - id: alias.pilot.disturbed-consciousness
+    canonicalTerm: нарушение сознания менингококковая инфекция
+    alias: стал заторможенным и плохо реагирует
+    category: symptom
+    weight: 1.0
