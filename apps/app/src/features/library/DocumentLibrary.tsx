@@ -1,5 +1,6 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGlyph';
@@ -153,7 +154,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       <Show when={mode() === 'list'}>
         <div class="document-library-grid">
           <Show when={filteredDocuments().length > 0}>
-            <For each={filteredDocuments()}>
+            <WindowVirtualizer data={filteredDocuments()} bufferSize={500}>
               {(document, index) => (
                 <button
                   class="document-library-card paper-card"
@@ -184,7 +185,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
                   </span>
                 </button>
               )}
-            </For>
+            </WindowVirtualizer>
           </Show>
           <Show when={filteredDocuments().length === 0}>
             <div class="reader-empty library-empty paper-card">

@@ -10,6 +10,7 @@ import {
   Show,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
+import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
 import { DocumentText } from '@/components/DocumentText';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -24,6 +25,7 @@ import {
   sourceTypeReaderLabel,
 } from '@/features/library/document-display';
 import { buildDocumentLinkPhrases } from '@/features/library/document-medication-links';
+import { printDocument, shareDocument } from '@/features/library/document-print';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
 import { readDocumentRenderBlock } from '@/features/library/document-rich-block-data';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -77,7 +79,8 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
     Boolean(
       props.document &&
         (isFullTextDocumentId(props.document.id) ||
-          props.document.sourceType === 'clinical_recommendation'),
+          props.document.sourceType === 'clinical_recommendation' ||
+          props.document.sourceType === 'medical_reference'),
     ),
   );
   const isClinicalSummary = createMemo(
@@ -338,6 +341,40 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                   <p class="document-overlay-summary-note">
                     Это краткая выжимка. Полная рекомендация загрузится и откроется здесь.
                   </p>
+                </Show>
+                <Show when={documentValue().sourceType === 'medical_reference'}>
+                  <div class="document-overlay-paper__actions">
+                    <button
+                      type="button"
+                      class="document-overlay-action-button"
+                      onClick={() => {
+                        if (!printDocument(documentValue())) {
+                          toast.error('Не удалось открыть окно печати.');
+                        }
+                      }}
+                    >
+                      <AppGlyph name="printer" class="document-overlay-action-button__icon" />
+                      Распечатать
+                    </button>
+                    <button
+                      type="button"
+                      class="document-overlay-action-button"
+                      onClick={() => {
+                        shareDocument(documentValue())
+                          .then((mode) => {
+                            toast.success(
+                              mode === 'shared'
+                                ? 'Памятка передана.'
+                                : 'Памятка скопирована в буфер обмена.',
+                            );
+                          })
+                          .catch(() => toast.error('Не удалось поделиться памяткой.'));
+                      }}
+                    >
+                      <AppGlyph name="share" class="document-overlay-action-button__icon" />
+                      Поделиться
+                    </button>
+                  </div>
                 </Show>
               </header>
 

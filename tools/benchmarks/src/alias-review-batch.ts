@@ -171,7 +171,9 @@ const CANDIDATES: readonly AliasCandidate[] = [
   },
 ];
 
-function factSnapshot(facts: readonly { kind: string; label: string; value: string; normalizedValue: string }[]): readonly FactSnapshot[] {
+function factSnapshot(
+  facts: readonly { kind: string; label: string; value: string; normalizedValue: string }[],
+): readonly FactSnapshot[] {
   return facts.map((fact) => ({
     kind: fact.kind,
     label: fact.label,

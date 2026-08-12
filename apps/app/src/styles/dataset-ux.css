@@ -1,27 +1,3 @@
-.module-reload-banner {
-  display: flex;
-  width: min(68.75rem, calc(100% - 2rem));
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 0 auto 1.125rem;
-  padding: 0.875rem 1rem;
-  border-color: rgb(64 91 78 / 42%);
-  background: rgb(225 234 216 / 72%);
-}
-
-.module-reload-banner > div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1875rem;
-}
-
-.module-reload-banner span {
-  color: var(--ink-soft);
-  font-size: 0.6875rem;
-}
-
-.module-reload-banner button,
 .module-catalog-status button {
   flex: 0 0 auto;
   padding: 0.5625rem 0.75rem;
@@ -32,7 +8,11 @@
 }
 
 .module-doctor-warning {
+  display: flex;
   width: min(68.75rem, calc(100% - 2rem));
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin: 0 auto 1rem;
   padding: 0.75rem 0.875rem;
   border: 1px solid rgb(135 69 60 / 42%);
@@ -40,6 +20,15 @@
   background: var(--stamp-faded);
   font-size: 0.6875rem;
   line-height: 1.45;
+}
+
+.module-doctor-warning button {
+  flex: 0 0 auto;
+  padding: 0.5625rem 0.75rem;
+  border: 1px solid rgb(135 69 60 / 42%);
+  color: var(--stamp);
+  background: rgb(255 255 255 / 45%);
+  cursor: pointer;
 }
 
 .module-card.installed {

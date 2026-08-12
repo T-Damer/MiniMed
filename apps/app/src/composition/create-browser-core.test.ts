@@ -23,7 +23,7 @@ describe('builtInCompanionMounts', () => {
       'minimed.medications.ru',
       'minimed.ambulatory.v1',
       'minimed.regulatory.pediatrics.ru',
-      'minimed.reference.ru',
+      'minimed.reference.pediatrics.ru',
     ]);
   });
 
@@ -41,7 +41,25 @@ describe('builtInCompanionMounts', () => {
     expect(mounts.map((mount) => mount.moduleId)).toEqual([
       'minimed.medications.ru',
       'minimed.ambulatory.v1',
-      'minimed.reference.ru',
+      'minimed.reference.pediatrics.ru',
+    ]);
+  });
+
+  it('does not mount the packaged reference copy beside an installed replacement', () => {
+    const mounts = builtInCompanionMounts(
+      {
+        medicationsStore: store(),
+        ambulatoryStore: store(),
+        regulatoryStore: store(),
+        referenceStore: store(),
+      },
+      new Set(['minimed.reference.pediatrics.ru']),
+    );
+
+    expect(mounts.map((mount) => mount.moduleId)).toEqual([
+      'minimed.medications.ru',
+      'minimed.ambulatory.v1',
+      'minimed.regulatory.pediatrics.ru',
     ]);
   });
 });

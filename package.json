@@ -68,6 +68,7 @@
     "content:ocr:replicate:pilot:test": "bun scripts/replicate-ocr-pilot.mjs --self-test",
     "content:knowledge:approve": "uv run --project tools/ingest medbase knowledge-approve",
     "content:knowledge:lint": "uv run --project tools/ingest medbase knowledge-lint",
+    "content:lint:calculator": "bun scripts/lint-calculator-schema.ts",
     "content:lint": "uv run --project tools/ingest medbase lint --input content/fixtures",
     "content:build": "bun run content:compile && bun run content:publish",
     "content:lint:pilot": "uv run --project tools/ingest medbase lint --input content/pilot-rf",

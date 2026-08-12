@@ -19,16 +19,56 @@
 }
 
 .app-main {
+  position: relative;
   min-height: calc(100dvh - 3.25rem - var(--safe-top) - var(--safe-bottom));
   overflow-x: clip;
 }
 
+/* Both the outgoing and incoming view stay visible (App.tsx toggles `hidden` off for both during the
+   motion window) and overlap in place instead of stacking in normal flow, so the transition reads as
+   one screen sliding away while the next arrives on top of it — not a fade-in over empty space. Anchor
+   only the top/sides so a tall (unscrolled) exiting view doesn't force page height during its 320ms
+   slide-out; the settling incoming view returns to normal static flow once the motion class is gone. */
+.app-view.root-view-enter-forward,
+.app-view.root-view-enter-backward,
+.app-view.root-view-exit-forward,
+.app-view.root-view-exit-backward {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.app-view.root-view-enter-forward,
+.app-view.root-view-enter-backward {
+  z-index: 1;
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-fill-mode: both;
+}
+
+.app-view.root-view-exit-forward,
+.app-view.root-view-exit-backward {
+  z-index: 0;
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-fill-mode: both;
+}
+
 .app-view.root-view-enter-forward {
-  animation: root-view-enter-forward 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-name: root-view-enter-forward;
 }
 
 .app-view.root-view-enter-backward {
-  animation: root-view-enter-backward 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-name: root-view-enter-backward;
+}
+
+.app-view.root-view-exit-forward {
+  animation-name: root-view-exit-forward;
+}
+
+.app-view.root-view-exit-backward {
+  animation-name: root-view-exit-backward;
 }
 
 @keyframes root-view-enter-forward {
@@ -45,9 +85,26 @@
   }
 }
 
+@keyframes root-view-exit-forward {
+  to {
+    opacity: 0.7;
+    transform: translate3d(clamp(-5rem, -8vw, -2rem), 0, 0);
+  }
+}
+
+@keyframes root-view-exit-backward {
+  to {
+    opacity: 0.7;
+    transform: translate3d(clamp(2rem, 8vw, 5rem), 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app-view.root-view-enter-forward,
-  .app-view.root-view-enter-backward {
+  .app-view.root-view-enter-backward,
+  .app-view.root-view-exit-forward,
+  .app-view.root-view-exit-backward {
+    position: static;
     animation: none;
   }
 }
@@ -61,8 +118,8 @@
 .model-status-view {
   min-height: calc(100dvh + var(--safe-top));
   margin-top: calc(-1 * var(--safe-top));
-  padding: calc(clamp(0.875rem, 2vw, 1.5rem) + var(--safe-top))
-    clamp(0.625rem, 2vw, 1.5rem) calc(1.5rem + var(--safe-bottom));
+  padding: calc(clamp(0.875rem, 2vw, 1.5rem) + var(--safe-top)) clamp(0.625rem, 2vw, 1.5rem)
+    calc(1.5rem + var(--safe-bottom));
 }
 
 .subpage-heading {

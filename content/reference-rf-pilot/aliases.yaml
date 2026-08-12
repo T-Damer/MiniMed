@@ -69,3 +69,53 @@ aliases:
     alias: сангвиник холерик флегматик меланхолик
     category: assessment
     weight: 1.4
+  - id: diet-table-5-alias
+    canonicalTerm: Лечебная диета — стол №5
+    alias: стол 5
+    category: reference
+    weight: 1.5
+  - id: diet-table-5-alias-diet
+    canonicalTerm: Лечебная диета — стол №5
+    alias: диета номер 5
+    category: reference
+    weight: 1.3
+  - id: diet-table-9-alias
+    canonicalTerm: Лечебная диета — стол №9
+    alias: стол 9
+    category: reference
+    weight: 1.5
+  - id: diet-table-9-alias-diet
+    canonicalTerm: Лечебная диета — стол №9
+    alias: диета номер 9
+    category: reference
+    weight: 1.3
+  - id: diet-table-1-alias
+    canonicalTerm: Лечебная диета — стол №1
+    alias: стол 1
+    category: reference
+    weight: 1.5
+  - id: diet-table-7-alias
+    canonicalTerm: Лечебная диета — стол №7
+    alias: стол 7
+    category: reference
+    weight: 1.5
+  - id: diet-table-8-alias
+    canonicalTerm: Лечебная диета — стол №8
+    alias: стол 8
+    category: reference
+    weight: 1.5
+  - id: diet-table-15-alias
+    canonicalTerm: Лечебная диета — стол №15
+    alias: стол 15
+    category: reference
+    weight: 1.5
+  - id: standard-diet-system-alias
+    canonicalTerm: Система стандартных диет
+    alias: приказ 330
+    category: reference
+    weight: 1.4
+  - id: standard-diet-system-alias-ovd
+    canonicalTerm: Система стандартных диет
+    alias: ОВД диета
+    category: reference
+    weight: 1.2

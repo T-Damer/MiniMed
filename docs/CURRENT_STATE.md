@@ -312,16 +312,23 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
-1. Verify the 0.6.10 prerelease on a physical Android device, including system-bar insets, native Back,
+1. Grow the content bank before further retrieval/model work — see [CONTENT_DATA_PLAN.md](CONTENT_DATA_PLAN.md)
+   for the full cross-category priority list (regulatory acts, pediatric norms/calculators, assessments,
+   diets, nutrition/feeding norms). A personal textbook library under `Med/` is an acceptable cited source
+   per book/edition/page ([LITERATURE_BANK.md](LITERATURE_BANK.md)) — MiniMed itself is never the cited
+   source — but redistribution review still applies before any extracted table or excerpt publishes.
+   Anything uncertain found while extracting goes to [LITERATURE_REVIEW_QUEUE.md](LITERATURE_REVIEW_QUEUE.md)
+   for review rather than being silently trusted.
+2. Verify the 0.6.10 prerelease on a physical Android device, including system-bar insets, native Back,
    locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
-2. Validate the one-drug `medications.db` pipeline, then expand it without hand-editing generated
+3. Validate the one-drug `medications.db` pipeline, then expand it without hand-editing generated
    SQLite.
-3. Add verified OCR for the blocked drug instruction.
-4. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
-5. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
+4. Add verified OCR for the blocked drug instruction.
+5. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
+6. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
    on-device transcriber.
-6. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
+7. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
    presenting diagnostic assistance as a 1.0 capability.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.

@@ -22,6 +22,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { CountBadge } from '@/components/CountBadge';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
+import { ASSESSMENT_CATALOG } from '@/features/assessments/assessment-catalog';
 import {
   CALCULATOR_SECTION_CATEGORY_IDS,
   CALCULATOR_SECTIONS,
@@ -77,6 +78,7 @@ function catalogSelectionFromLocation():
   | { readonly kind: 'collection'; readonly id: string }
   | { readonly kind: 'category'; readonly id: string }
   | { readonly kind: 'recommendations' }
+  | { readonly kind: 'core-library' }
   | null {
   const route = window.location.hash.replace(/^#\/?/u, '');
   const collectionPrefix = 'modules/documents/collection/';
@@ -84,6 +86,9 @@ function catalogSelectionFromLocation():
   try {
     if (route === 'modules/documents/recommendations') {
       return { kind: 'recommendations' };
+    }
+    if (route === 'modules/documents/core-library') {
+      return { kind: 'core-library' };
     }
     if (route.startsWith(collectionPrefix)) {
       return { kind: 'collection', id: decodeURIComponent(route.slice(collectionPrefix.length)) };
@@ -145,6 +150,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
   const [contentChangePending, setContentChangePending] = createSignal(false);
   const [connecting, setConnecting] = createSignal(false);
+  // Tracks which single module (outside the category/bulk install paths, which already show their own
+  // busy spinner throughout the reconnect) triggered the current connectContentChanges() call, so its
+  // card can show an inline "connecting" loader instead of a page-wide banner.
+  const [reconnectingModuleId, setReconnectingModuleId] = createSignal<string | null>(null);
   const [catalogQuery, setCatalogQuery] = createSignal('');
   const [recommendationCategory, setRecommendationCategory] = createSignal('');
   const [recommendationBrowserOpen, setRecommendationBrowserOpen] = createSignal(false);
@@ -154,7 +163,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [detailsModule, setDetailsModule] = createSignal<ContentModuleCatalogEntry | null>(null);
   const [loadErrorDetails, setLoadErrorDetails] = createSignal<ModuleLoadError | null>(null);
   const [installErrors, setInstallErrors] = createSignal<Readonly<Record<string, string>>>({});
-  const [coreOpen, setCoreOpen] = createSignal(false);
+  const [coreLibraryOpen, setCoreLibraryOpen] = createSignal(false);
   const [pendingRemoval, setPendingRemoval] = createSignal<{
     readonly kind: 'module' | 'category';
     readonly id: string;
@@ -186,10 +195,19 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     setRecommendationBrowserOpen(
       selection?.kind === 'recommendations' || selection?.kind === 'category',
     );
+    setCoreLibraryOpen(selection?.kind === 'core-library');
     setCatalogQuery('');
   };
   const openCollection = (collection: string): void => {
     window.location.hash = `#/modules/documents/collection/${encodeURIComponent(collection)}`;
+    syncSelectionFromLocation();
+  };
+  const openCoreLibrary = (): void => {
+    window.location.hash = '#/modules/documents/core-library';
+    syncSelectionFromLocation();
+  };
+  const closeCoreLibrary = (): void => {
+    window.location.hash = '#/modules/documents';
     syncSelectionFromLocation();
   };
   const openCategory = (categoryId: string): void => {
@@ -281,14 +299,27 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     'regulatory.rf.minzdrav.302n-2019':
       'Диспансерное наблюдение несовершеннолетних — приказ № 302н (утратил силу)',
   };
-  const moduleDocumentTitle = (documentId: string): string => {
+  // "reference.<assessment id>" reference documents explain a specific assessment tool — resolve their
+  // title from the same assessment catalog the tool itself uses, instead of falling back to the raw id.
+  const referenceAssessmentTitle = (documentId: string): string | undefined => {
+    const assessmentId = documentId.match(/^reference\.(minimed\.assessment\.[\w-]+)$/u)?.[1];
+    if (!assessmentId) return undefined;
+    return ASSESSMENT_CATALOG.find((assessment) => assessment.id === assessmentId)?.title;
+  };
+  const moduleDocumentTitle = (document: {
+    readonly documentId: string;
+    readonly title?: string | null;
+  }): string => {
+    const documentId = document.documentId;
     const catalogDocumentId = documentId.match(/^kr\.rf\.\d+_\d+/u)?.[0] ?? documentId;
     return (
+      document.title ??
       regulatoryTitles[documentId] ??
+      referenceAssessmentTitle(documentId) ??
       catalog().modules.find(
         (module) =>
           module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG) &&
-          module.documents.some((document) => document.documentId === catalogDocumentId),
+          module.documents.some((entry) => entry.documentId === catalogDocumentId),
       )?.title ??
       documentId
     );
@@ -381,7 +412,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       const completed = await runtime().wait(task.id);
       setTasks(runtime().listTasks());
       setInstalled(runtime().listInstalled());
-      if (completed.state === 'completed' && reconnect) await connectContentChanges();
+      if (completed.state === 'completed' && reconnect) {
+        setReconnectingModuleId(module.id);
+        try {
+          await connectContentChanges();
+        } finally {
+          setReconnectingModuleId((current) => (current === module.id ? null : current));
+        }
+      }
       return completed.state === 'completed';
     } catch (cause) {
       setInstallErrors((current) => ({
@@ -489,7 +527,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     try {
       await runtime().remove(moduleId);
       setInstalled(runtime().listInstalled());
-      if (reconnect) await connectContentChanges();
+      if (reconnect) {
+        setReconnectingModuleId(moduleId);
+        try {
+          await connectContentChanges();
+        } finally {
+          setReconnectingModuleId((current) => (current === moduleId ? null : current));
+        }
+      }
     } catch (cause) {
       setWarning(cause instanceof Error ? cause.message : 'Не удалось удалить набор.');
     }
@@ -515,7 +560,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     try {
       await runtime().rollback(moduleId, version);
       setInstalled(runtime().listInstalled());
-      await connectContentChanges();
+      setReconnectingModuleId(moduleId);
+      try {
+        await connectContentChanges();
+      } finally {
+        setReconnectingModuleId((current) => (current === moduleId ? null : current));
+      }
     } catch (cause) {
       setWarning(cause instanceof Error ? cause.message : 'Не удалось открыть старую версию.');
     }
@@ -632,33 +682,52 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </div>
       </Show>
 
-      <Show when={contentChangePending() || connecting()}>
-        <div class="module-reload-banner paper-card" aria-live="polite">
-          <div>
-            <strong>
-              {connecting() ? 'Подключаем базу к поиску…' : 'Нужно повторить подключение'}
-            </strong>
-            <span>
-              {connecting()
-                ? 'Текущий поиск продолжает работать до готовности нового состава базы.'
-                : 'Документы сохранены на устройстве, но поиск пока использует прежний состав.'}
-            </span>
-          </div>
-          <button
-            type="button"
-            disabled={connecting()}
-            onClick={() => void connectContentChanges()}
-          >
-            {connecting() ? 'Подключаем…' : 'Повторить'}
-          </button>
+      {/* Active reconnects show an inline loader on the card that triggered them (ContentModuleCard's
+         `connecting` prop, or the existing per-category busy spinner) instead of a page-wide banner.
+         A reconnect that failed — or that has no in-view card to attach to — still needs a way to
+         retry, so that stays here alongside any other warning. */}
+      <Show when={warning() || (contentChangePending() && !connecting())}>
+        <div class="module-doctor-warning">
+          <span>
+            {warning() ??
+              'Документы сохранены на устройстве, но поиск пока использует прежний состав.'}
+          </span>
+          <Show when={contentChangePending() && !connecting()}>
+            <button type="button" onClick={() => void connectContentChanges()}>
+              Повторить
+            </button>
+          </Show>
         </div>
       </Show>
 
-      <Show when={warning()}>
-        {(message) => <div class="module-doctor-warning">{message()}</div>}
+      <Show when={coreLibraryOpen()}>
+        <section class="module-page core-library-page">
+          <header class="subpage-heading module-heading core-library-heading">
+            <button
+              type="button"
+              class="knowledge-back-button"
+              aria-label="Назад к разделам"
+              onClick={closeCoreLibrary}
+            >
+              <AppGlyph name="arrow-left" />
+            </button>
+            <div>
+              <p class="archive-kicker">Ядро</p>
+              <h1>{props.status.documentCount} встроенных документов</h1>
+            </div>
+          </header>
+          <DocumentLibrary core={props.core} embedded />
+        </section>
       </Show>
 
-      <Show when={!recommendationBrowserOpen() && !browsingSection() && !browsingSearch()}>
+      <Show
+        when={
+          !coreLibraryOpen() &&
+          !recommendationBrowserOpen() &&
+          !browsingSection() &&
+          !browsingSearch()
+        }
+      >
         <Show when={recommendationModules().length === 0}>
           <section class="module-collection recommendation-browser">
             <div class="module-collection-heading">
@@ -763,9 +832,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   class="recommendation-section-card paper-card recommendation-section-card-compact"
                   tabindex="0"
                   aria-label="Открыть набор «Ядро»"
-                  onClick={() => openCollection('core')}
+                  onClick={openCoreLibrary}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') openCollection('core');
+                    if (event.key === 'Enter' || event.key === ' ') openCoreLibrary();
                   }}
                 >
                   <AppGlyph name="modules" class="recommendation-section-card-icon" />
@@ -802,12 +871,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       task={moduleTask(module.id)}
                       retryScheduled={moduleRetryScheduled(module.id)}
                       fallbackError={installErrors()[module.id]}
+                      connecting={reconnectingModuleId() === module.id && connecting()}
                       onInspect={() => setDetailsModule(module)}
                       onOpenError={(message) =>
                         setLoadErrorDetails({ title: module.title, message })
                       }
                       onInstall={() => void install(module)}
-                      onOpenCore={() => setCoreOpen(true)}
+                      onOpenCore={openCoreLibrary}
                       onRemove={() => requestRemove(module.id)}
                       onActivateVersion={(version) => void activateVersion(module.id, version)}
                     />
@@ -821,7 +891,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
       <Show
         when={
-          recommendationModules().length > 0 && !regularCollection() && recommendationBrowserOpen()
+          !coreLibraryOpen() &&
+          recommendationModules().length > 0 &&
+          !regularCollection() &&
+          recommendationBrowserOpen()
         }
       >
         <section class="module-collection recommendation-browser recommendation-browser-nested">
@@ -1187,7 +1260,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                             }
                           }}
                         >
-                          <strong>{moduleDocumentTitle(document.documentId)}</strong>
+                          <strong>{moduleDocumentTitle(document)}</strong>
                           <span>
                             {moduleDocumentDate(document.documentVersionId)} ·{' '}
                             {document.status === 'active'
@@ -1205,16 +1278,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             </div>
           )}
         </Show>
-      </OverlayDialog>
-
-      <OverlayDialog
-        open={coreOpen()}
-        title="Ядро MiniMed"
-        subtitle={`${props.status.documentCount} встроенных документов`}
-        class="core-document-dialog"
-        onClose={() => setCoreOpen(false)}
-      >
-        <DocumentLibrary core={props.core} embedded />
       </OverlayDialog>
 
       <ConfirmationDialog

@@ -790,13 +790,13 @@
     },
     {
       "id": "minimed.reference.pediatrics.ru",
-      "version": "0.0.0-planned",
+      "version": "0.1.0-preview.1",
       "kind": "reference",
       "collection": "shared",
       "title": "Диагностика, нормы и расчёты: педиатрия",
       "description": "Возрастные нормы, лабораторные диапазоны, шкалы, формулы и детерминированные клинические калькуляторы.",
       "required": false,
-      "releaseState": "planned",
+      "releaseState": "published",
       "specialties": [
         "pediatrics",
         "laboratory-medicine"
@@ -815,7 +815,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": null,
+      "sourceSetDigest": "sha256:11a7ef43b9bbd4a866378cea8cdf8c125945ea2c51c4804250006f9f883d92dc",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -824,10 +824,10 @@
         }
       ],
       "sizes": {
-        "downloadBytes": null,
-        "installedBytes": null,
+        "downloadBytes": 913408,
+        "installedBytes": 913408,
         "sourceAssetsDownloadBytes": null,
-        "precision": "unknown"
+        "precision": "exact"
       },
       "capabilities": {
         "search": true,
@@ -838,9 +838,174 @@
         "structuredKnowledge": true,
         "calculations": true
       },
-      "artifacts": [],
-      "documents": [],
-      "previewDocumentCount": 0
+      "artifacts": [
+        {
+          "id": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-reference-pediatrics-0.1.0-preview.1.db",
+          "sha256": "sha256:11a7ef43b9bbd4a866378cea8cdf8c125945ea2c51c4804250006f9f883d92dc",
+          "sizeBytes": 913408,
+          "compression": "none",
+          "sourceSetDigest": "sha256:11a7ef43b9bbd4a866378cea8cdf8c125945ea2c51c4804250006f9f883d92dc"
+        }
+      ],
+      "documents": [
+        {
+          "documentId": "reference.minimed.assessment.braverman-behavioral",
+          "documentVersionId": "reference.minimed.assessment.braverman-behavioral@minimed-assessments-2026-08-02",
+          "sourceChecksum": "sha256:0c2353789c5b76b11c70806ff72adeda53a4f26b1f4f2b0d21a7fd9656e11ce2",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Тест Бравермана — поведенческий профиль"
+        },
+        {
+          "documentId": "reference.minimed.assessment.egogram",
+          "documentVersionId": "reference.minimed.assessment.egogram@minimed-assessments-2026-08-02",
+          "sourceChecksum": "sha256:7a2c46e2a371ddc9d9f1de95d261acdd10fa4a344862364806fed684515746e5",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Личная эгопрограмма — эго-состояния транзактного анализа"
+        },
+        {
+          "documentId": "reference.minimed.assessment.paei",
+          "documentVersionId": "reference.minimed.assessment.paei@minimed-assessments-2026-08-02",
+          "sourceChecksum": "sha256:6906175f3f85ad5bbec12e50ca6325066234d74f1a0e2ad8fcc37a858a1611ae",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "PAEI — профиль рабочего и управленческого стиля"
+        },
+        {
+          "documentId": "reference.minimed.assessment.team-roles",
+          "documentVersionId": "reference.minimed.assessment.team-roles@minimed-assessments-2026-08-02",
+          "sourceChecksum": "sha256:10583351d8a16afef84aa4e143a1b44a5428b1842fb70f63a2daa689caea060d",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Командные роли — авторский профиль в духе Белбина"
+        },
+        {
+          "documentId": "reference.minimed.assessment.temperament",
+          "documentVersionId": "reference.minimed.assessment.temperament@minimed-assessments-2026-08-02",
+          "sourceChecksum": "sha256:928ae5a2e83b4f3213d2e96e859c07d1cc606c2a6f1ee0f6b7aedb03000bb76e",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Тест на темперамент — экстраверсия и эмоциональная устойчивость"
+        },
+        {
+          "documentId": "reference.niddk.egfr-adults-ckd-epi-2021",
+          "documentVersionId": "reference.niddk.egfr-adults-ckd-epi-2021@niddk-ckd-epi-2021-reviewed-2026-08-01",
+          "sourceChecksum": "sha256:aa7edf93b600e0e40dcd49730325779dacc8668bf9ddf630c8a9ca9c7efe7fcd",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Расчетная СКФ у взрослых — CKD-EPI 2021"
+        },
+        {
+          "documentId": "reference.niddk.egfr-children-ckid-u25",
+          "documentVersionId": "reference.niddk.egfr-children-ckid-u25@niddk-ckid-u25-reviewed-2026-08-01",
+          "sourceChecksum": "sha256:4c956828915a7191816b6836011d66ff20d20e8a0fcb2523db3657ebf9da394b",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Расчетная СКФ у детей и молодых взрослых — CKiD U25"
+        },
+        {
+          "documentId": "reference.order330.standard-diet-system",
+          "documentVersionId": "reference.order330.standard-diet-system@order-330-2003-reviewed-2026-08-11",
+          "sourceChecksum": "sha256:74550e3e7b6713aa4b09c2ed435c098b283d7fd70a97da3742af0c3577944711",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Система стандартных диет (приказ Минздрава №330)"
+        },
+        {
+          "documentId": "reference.pevzner.diet-table-1",
+          "documentVersionId": "reference.pevzner.diet-table-1@web-secondary-reviewed-2026-08-11",
+          "sourceChecksum": "sha256:d986463dcf496ac130181d1aee65bb7e11c23a1eacbc81027a02678b6b496a4c",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Лечебная диета — стол №1 (язвенная болезнь желудка и двенадцатиперстной кишки, гастрит)"
+        },
+        {
+          "documentId": "reference.pevzner.diet-table-15",
+          "documentVersionId": "reference.pevzner.diet-table-15@web-secondary-reviewed-2026-08-11",
+          "sourceChecksum": "sha256:475efda671063f147a4bc5e86c857a80a92b75f4d773e7913083f38425345e5b",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Лечебная диета — стол №15 (общий стол)"
+        },
+        {
+          "documentId": "reference.pevzner.diet-table-5",
+          "documentVersionId": "reference.pevzner.diet-table-5@web-secondary-reviewed-2026-08-11",
+          "sourceChecksum": "sha256:7f0623d9cc8403ddffb9827221584c2ed64b79bfed4f23453de02d162a77b88e",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Лечебная диета — стол №5 (заболевания печени и желчевыводящих путей)"
+        },
+        {
+          "documentId": "reference.pevzner.diet-table-7",
+          "documentVersionId": "reference.pevzner.diet-table-7@web-secondary-reviewed-2026-08-11",
+          "sourceChecksum": "sha256:5836e836c4c7b34fe6e4f51635bce1a9efa3c91bf6ca525366c1bf030d26c1b7",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Лечебная диета — стол №7 (заболевания почек)"
+        },
+        {
+          "documentId": "reference.pevzner.diet-table-8",
+          "documentVersionId": "reference.pevzner.diet-table-8@web-secondary-reviewed-2026-08-11",
+          "sourceChecksum": "sha256:ca59716c94a94940e3628996cf284e8d639582e6bcff86d2987bd8c3a4af12dd",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Лечебная диета — стол №8 (ожирение)"
+        },
+        {
+          "documentId": "reference.pevzner.diet-table-9",
+          "documentVersionId": "reference.pevzner.diet-table-9@web-secondary-reviewed-2026-08-11",
+          "sourceChecksum": "sha256:40694c1344c56e5652b9bd4a7e79f52f4d5da7a6d7c297ac28913305efade289",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Лечебная диета — стол №9 (сахарный диабет)"
+        },
+        {
+          "documentId": "reference.who.adult-blood-pressure",
+          "documentVersionId": "reference.who.adult-blood-pressure@who-bp-reviewed-2026-08-01",
+          "sourceChecksum": "sha256:4fc1c8f2186f7f46c5abdbd754bee4fcfe379613909c7d9fdf2b8a379f51b9d1",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Артериальное давление у взрослых — диагностический порог ВОЗ"
+        },
+        {
+          "documentId": "reference.who.bmi-classification",
+          "documentVersionId": "reference.who.bmi-classification@who-bmi-reviewed-2026-08-01",
+          "sourceChecksum": "sha256:d03d25af8425cf12c4987c1d3806101f129f97dad171ca6f7a0b5f593b68b7ff",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Индекс массы тела у взрослых и детей — классификация ВОЗ"
+        },
+        {
+          "documentId": "reference.who.child-growth-0-19",
+          "documentVersionId": "reference.who.child-growth-0-19@who-growth-reviewed-2026-08-01",
+          "sourceChecksum": "sha256:e5161304202405ef416ce7725a0a37759deb577de0ea26d18135a61b70f1d887",
+          "status": "active",
+          "indexArtifactId": "minimed.reference.pediatrics.ru-index-0.1.0-preview.1",
+          "sourceAssetArtifactId": null,
+          "title": "Оценка роста и массы тела детей по стандартам ВОЗ"
+        }
+      ],
+      "previewDocumentCount": 17
     },
     {
       "id": "minimed.clinical.recommendation.53_2",

@@ -5,21 +5,81 @@ import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
-const CASES: readonly { readonly id: string; readonly query: string; readonly expectedDocumentId: string }[] = [
-  { id: 'nasal-flaring', query: 'Ребенок 8 месяцев, раздувает ноздри при дыхании, температура 38.5', expectedDocumentId: 'kr.rf.714_2.pneumonia' },
-  { id: 'chest-pain-pneumonia', query: 'Кашель неделю, болит в грудной клетке при кашле, температура держится', expectedDocumentId: 'kr.rf.714_2.pneumonia' },
-  { id: 'apnea-infant', query: 'Грудничок иногда перестает дышать на несколько секунд, кашель', expectedDocumentId: 'kr.rf.714_2.pneumonia' },
-  { id: 'cyanosis', query: 'Ребенок кашляет, губы синеют при плаче', expectedDocumentId: 'kr.rf.714_2.pneumonia' },
-  { id: 'bulging-fontanelle', query: 'Грудничок вялый, родничок выбухает, температура 39', expectedDocumentId: 'kr.rf.58_2.meningococcal' },
-  { id: 'monotone-cry', query: 'Младенец плачет на одной ноте уже час, не берет грудь', expectedDocumentId: 'kr.rf.58_2.meningococcal' },
-  { id: 'severe-headache-meningeal', query: 'Ребенок 10 лет, сильно болит голова и тошнит, температура 39.5', expectedDocumentId: 'kr.rf.58_2.meningococcal' },
-  { id: 'abdominal-rumbling', query: 'Живот урчит второй день, понос и температура', expectedDocumentId: 'kr.rf.755_1.rotavirus' },
-  { id: 'poor-appetite', query: 'Ребенок плохо ест второй день, рвота, вялый', expectedDocumentId: 'kr.rf.755_1.rotavirus' },
-  { id: 'cloudy-urine', query: 'У дочки моча стала мутная и воняет, больно писать', expectedDocumentId: 'kr.rf.281_3.uti' },
-  { id: 'urgency', query: 'Ребенок 6 лет резко хочет в туалет и не успевает добежать, температура', expectedDocumentId: 'kr.rf.281_3.uti' },
-  { id: 'daytime-wetting', query: 'Девочка 5 лет писается днем хотя раньше не было такого', expectedDocumentId: 'kr.rf.281_3.uti' },
-  { id: 'chills', query: 'Взрослого трясет от температуры, боль в пояснице', expectedDocumentId: 'kr.rf.281_3.uti' },
-  { id: 'disturbed-consciousness', query: 'Ребенок стал заторможенным и плохо реагирует, сыпь на ногах', expectedDocumentId: 'kr.rf.58_2.meningococcal' },
+const CASES: readonly {
+  readonly id: string;
+  readonly query: string;
+  readonly expectedDocumentId: string;
+}[] = [
+  {
+    id: 'nasal-flaring',
+    query: 'Ребенок 8 месяцев, раздувает ноздри при дыхании, температура 38.5',
+    expectedDocumentId: 'kr.rf.714_2.pneumonia',
+  },
+  {
+    id: 'chest-pain-pneumonia',
+    query: 'Кашель неделю, болит в грудной клетке при кашле, температура держится',
+    expectedDocumentId: 'kr.rf.714_2.pneumonia',
+  },
+  {
+    id: 'apnea-infant',
+    query: 'Грудничок иногда перестает дышать на несколько секунд, кашель',
+    expectedDocumentId: 'kr.rf.714_2.pneumonia',
+  },
+  {
+    id: 'cyanosis',
+    query: 'Ребенок кашляет, губы синеют при плаче',
+    expectedDocumentId: 'kr.rf.714_2.pneumonia',
+  },
+  {
+    id: 'bulging-fontanelle',
+    query: 'Грудничок вялый, родничок выбухает, температура 39',
+    expectedDocumentId: 'kr.rf.58_2.meningococcal',
+  },
+  {
+    id: 'monotone-cry',
+    query: 'Младенец плачет на одной ноте уже час, не берет грудь',
+    expectedDocumentId: 'kr.rf.58_2.meningococcal',
+  },
+  {
+    id: 'severe-headache-meningeal',
+    query: 'Ребенок 10 лет, сильно болит голова и тошнит, температура 39.5',
+    expectedDocumentId: 'kr.rf.58_2.meningococcal',
+  },
+  {
+    id: 'abdominal-rumbling',
+    query: 'Живот урчит второй день, понос и температура',
+    expectedDocumentId: 'kr.rf.755_1.rotavirus',
+  },
+  {
+    id: 'poor-appetite',
+    query: 'Ребенок плохо ест второй день, рвота, вялый',
+    expectedDocumentId: 'kr.rf.755_1.rotavirus',
+  },
+  {
+    id: 'cloudy-urine',
+    query: 'У дочки моча стала мутная и воняет, больно писать',
+    expectedDocumentId: 'kr.rf.281_3.uti',
+  },
+  {
+    id: 'urgency',
+    query: 'Ребенок 6 лет резко хочет в туалет и не успевает добежать, температура',
+    expectedDocumentId: 'kr.rf.281_3.uti',
+  },
+  {
+    id: 'daytime-wetting',
+    query: 'Девочка 5 лет писается днем хотя раньше не было такого',
+    expectedDocumentId: 'kr.rf.281_3.uti',
+  },
+  {
+    id: 'chills',
+    query: 'Взрослого трясет от температуры, боль в пояснице',
+    expectedDocumentId: 'kr.rf.281_3.uti',
+  },
+  {
+    id: 'disturbed-consciousness',
+    query: 'Ребенок стал заторможенным и плохо реагирует, сыпь на ногах',
+    expectedDocumentId: 'kr.rf.58_2.meningococcal',
+  },
 ];
 
 const root = resolve(import.meta.dirname, '../../..');

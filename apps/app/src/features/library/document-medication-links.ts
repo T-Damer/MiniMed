@@ -131,6 +131,7 @@ export function buildDocumentLinkPhrases(
     'official_registry_summary',
     'clinical_recommendation_summary',
     'regulatory_act',
+    'medical_reference',
   ]);
   const phrases: DocumentLinkPhrase[] = [];
   const seen = new Set<string>();

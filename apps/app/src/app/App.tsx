@@ -44,7 +44,8 @@ type View = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes';
 type RootNavigationDirection = 'forward' | 'backward';
 
 interface RootNavigationMotion {
-  readonly view: View;
+  readonly from: View;
+  readonly to: View;
   readonly direction: RootNavigationDirection;
 }
 
@@ -65,7 +66,7 @@ const DEFAULT_MODEL_CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json';
 const DEFAULT_MODEL_ASSET_BASE_URL = '';
 const SLOW_BOOT_DELAY_MS = 10_000;
-const ROOT_NAVIGATION_MOTION_MS = 240;
+const ROOT_NAVIGATION_MOTION_MS = 320;
 
 function viewFromLocation(): View {
   const value = window.location.hash.replace(/^#\/?/u, '');
@@ -133,20 +134,43 @@ export function App(): JSX.Element {
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let rootNavigationMotionTimer: ReturnType<typeof setTimeout> | undefined;
   const rootNavigationQueue: Array<{ readonly next: View; readonly commit: () => void }> = [];
+  // Each of the 5 root views stays mounted (hidden, never unmounted — see the `hidden={view() !== X}`
+  // sections below), so its own component state (open document, calculator inputs, etc.) already
+  // survives a tab switch. What used to erase it was this file: every root navigation collapsed the URL
+  // to the bare `#/<view>` and reset scroll to 0, so a view's own hashchange listener (e.g.
+  // MedicationCatalogView's) would see a route that no longer matches its sub-page and reset itself —
+  // and Solid's <Show> inside CalculatorsView/AssessmentsView would unmount the open form entirely.
+  // Remembering the last hash and scroll offset per view and restoring them on return fixes both.
+  const lastRouteByView = new Map<View, string>();
+  const scrollByView = new Map<View, number>();
+  const snapshotCurrentRoute = (): void => {
+    scrollByView.set(view(), window.scrollY);
+    lastRouteByView.set(view(), window.location.hash || `#/${view()}`);
+  };
+  const restoreScrollFor = (target: View): void => {
+    const top = scrollByView.get(target) ?? 0;
+    requestAnimationFrame(() => window.scrollTo({ top, behavior: 'instant' }));
+  };
 
   const moveToRootView = (next: View): boolean => {
     const current = view();
     if (current === next) return false;
-    setRootNavigationMotion({
-      view: next,
-      direction:
-        (VIEW_ORDER.get(next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward',
-    });
-    if (rootNavigationMotionTimer) clearTimeout(rootNavigationMotionTimer);
-    rootNavigationMotionTimer = setTimeout(
-      () => setRootNavigationMotion(undefined),
-      ROOT_NAVIGATION_MOTION_MS,
-    );
+    // With the animation off, the outgoing view would otherwise sit stacked on top of the incoming
+    // one for the full timer duration with nothing animating it away.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+      setRootNavigationMotion({
+        from: current,
+        to: next,
+        direction:
+          (VIEW_ORDER.get(next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward',
+      });
+      if (rootNavigationMotionTimer) clearTimeout(rootNavigationMotionTimer);
+      rootNavigationMotionTimer = setTimeout(
+        () => setRootNavigationMotion(undefined),
+        ROOT_NAVIGATION_MOTION_MS,
+      );
+    }
     setView(next);
     return true;
   };
@@ -180,21 +204,40 @@ export function App(): JSX.Element {
     const motion = rootNavigationMotion();
     return {
       active: view() === target,
-      'root-view-enter-forward': motion?.view === target && motion.direction === 'forward',
-      'root-view-enter-backward': motion?.view === target && motion.direction === 'backward',
+      'root-view-enter-forward': motion?.to === target && motion.direction === 'forward',
+      'root-view-enter-backward': motion?.to === target && motion.direction === 'backward',
+      'root-view-exit-forward': motion?.from === target && motion.direction === 'forward',
+      'root-view-exit-backward': motion?.from === target && motion.direction === 'backward',
     };
+  };
+
+  // While a root-nav transition is running, the outgoing view stays visible (not `hidden`) so it can
+  // slide away underneath the incoming one instead of vanishing before the animation even starts.
+  const isViewVisible = (target: View): boolean => {
+    const motion = rootNavigationMotion();
+    return view() === target || motion?.from === target;
   };
 
   const navigate = (next: View): void => {
     transitionToRootView(next, () => {
       const changed = view() !== next;
+      // Tapping the tab you're already on is a "go home" gesture: reset that section to its root
+      // instead of restoring a remembered sub-route.
+      if (!changed) {
+        moveToRootView(next);
+        window.history.replaceState({ view: next }, '', `#/${next}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      snapshotCurrentRoute();
       moveToRootView(next);
+      const targetHash = lastRouteByView.get(next) ?? `#/${next}`;
       const oldURL = window.location.href;
-      window.history.replaceState({ view: next }, '', `#/${next}`);
+      window.history.replaceState({ view: next }, '', targetHash);
       window.dispatchEvent(
         new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
       );
-      window.scrollTo({ top: 0, behavior: changed ? 'instant' : 'smooth' });
+      restoreScrollFor(next);
     });
   };
 
@@ -202,8 +245,9 @@ export function App(): JSX.Element {
     const next = viewFromLocation();
     if (next === view()) return;
     transitionToRootView(next, () => {
+      snapshotCurrentRoute();
       moveToRootView(next);
-      window.scrollTo({ top: 0, behavior: 'instant' });
+      restoreScrollFor(next);
     });
   };
 
@@ -342,7 +386,7 @@ export function App(): JSX.Element {
         <section
           class="app-view"
           classList={rootViewClasses('assessments')}
-          hidden={view() !== 'assessments'}
+          hidden={!isViewVisible('assessments')}
           aria-hidden={view() !== 'assessments'}
         >
           <AssessmentsView />
@@ -350,7 +394,7 @@ export function App(): JSX.Element {
         <section
           class="app-view"
           classList={rootViewClasses('calculators')}
-          hidden={view() !== 'calculators'}
+          hidden={!isViewVisible('calculators')}
           aria-hidden={view() !== 'calculators'}
         >
           <CalculatorsView />
@@ -386,7 +430,7 @@ export function App(): JSX.Element {
               <section
                 class="app-view"
                 classList={rootViewClasses('search')}
-                hidden={view() !== 'search'}
+                hidden={!isViewVisible('search')}
                 aria-hidden={view() !== 'search'}
               >
                 <SearchHome
@@ -398,7 +442,7 @@ export function App(): JSX.Element {
               <section
                 class="app-view"
                 classList={rootViewClasses('modules')}
-                hidden={view() !== 'modules'}
+                hidden={!isViewVisible('modules')}
                 aria-hidden={view() !== 'modules'}
               >
                 <KnowledgeBaseView
@@ -413,7 +457,7 @@ export function App(): JSX.Element {
               <section
                 class="app-view"
                 classList={rootViewClasses('notes')}
-                hidden={view() !== 'notes'}
+                hidden={!isViewVisible('notes')}
                 aria-hidden={view() !== 'notes'}
               >
                 <NotesView core={searchCore() ?? state().core} active={view() === 'notes'} />

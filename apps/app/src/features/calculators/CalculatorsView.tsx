@@ -1,4 +1,13 @@
-import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -31,32 +40,17 @@ import {
   findCalculator,
   searchCalculators,
 } from '@/features/calculators/calculator-registry';
+import { CALCULATOR_SCHEMA_BY_ID } from '@/features/calculators/calculator-schema-catalog';
+import {
+  evaluateCalculatorSchema,
+  toStoredCalculationResult,
+} from '@/features/calculators/calculator-schema-engine';
 import type {
   AvailableCalculatorDefinition,
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
-import {
-  type CreatinineUnit,
-  calculateAdultEgfrCkdEpi2021,
-  calculateMostellerBsa,
-  calculatePediatricEgfrSchwartz2009,
-  calculatePediatricMaintenanceFluids,
-  type StoredCalculationResult,
-} from '@/features/calculators/clinical-calculations';
-import {
-  calculateBishopScore,
-  calculateEddByConception,
-  calculateEddByLmp,
-  calculateEddByQuickening,
-  calculateEddByUltrasound,
-  calculateEddForGivenDate,
-  calculateGestationalAgeByBiometry,
-  calculateGestationalAgeByCrl,
-  calculateGestationalAgeFromEdd,
-  calculateMaternityLeaveTimeframe,
-  type Parity,
-  type PregnancyType,
-} from '@/features/calculators/obstetric-calculations';
+import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
+import { calculateGestationalAgeByBiometry } from '@/features/calculators/obstetric-calculations';
 import {
   convertQuantity,
   type QuantityFamily,
@@ -324,34 +318,30 @@ function CalculatorForm(props: {
   const [family, setFamily] = createSignal<QuantityFamily>('mass');
   const [fromUnit, setFromUnit] = createSignal('kg');
   const [toUnit, setToUnit] = createSignal('g');
-  const [heightCm, setHeightCm] = createSignal('');
-  const [weightKg, setWeightKg] = createSignal('');
-  const [ageYears, setAgeYears] = createSignal('');
-  const [sex, setSex] = createSignal<'female' | 'male'>('female');
-  const [creatinine, setCreatinine] = createSignal('');
-  const [creatinineUnit, setCreatinineUnit] = createSignal<CreatinineUnit>('umol/l');
-  const [lmpDate, setLmpDate] = createSignal('');
-  const [examDate, setExamDate] = createSignal('');
-  const [conceptionDate, setConceptionDate] = createSignal('');
-  const [quickeningDate, setQuickeningDate] = createSignal('');
-  const [parity, setParity] = createSignal<Parity>('primigravida');
-  const [referenceDate, setReferenceDate] = createSignal('');
-  const [gaWeeks, setGaWeeks] = createSignal('');
-  const [gaDays, setGaDays] = createSignal('');
-  const [eddDate, setEddDate] = createSignal('');
-  const [asOfDate, setAsOfDate] = createSignal('');
-  const [pregnancyType, setPregnancyType] = createSignal<PregnancyType>('single');
-  const [complicatedBirth, setComplicatedBirth] = createSignal(false);
-  const [crlMm, setCrlMm] = createSignal('');
+  // Generic input store for every schema-driven calculator (CALCULATOR_SCHEMA_BY_ID) — one field per
+  // `schema.inputs[].id`, rendered dynamically below. Adding a new schema calculator needs no new signal.
+  const [schemaValues, setSchemaValues] = createSignal<Record<string, string>>({});
+  const setSchemaValue = (id: string, fieldValue: string): void => {
+    setSchemaValues((previous) => ({ ...previous, [id]: fieldValue }));
+  };
+  // A <select> shows its first <option> by default without firing onChange, so the reactive store never
+  // learns that value on its own — without this, submitting before touching every dropdown reports the
+  // untouched ones as missing. Reset to each select input's first option whenever the calculator changes.
+  createEffect(() => {
+    const schema = CALCULATOR_SCHEMA_BY_ID.get(props.definition.id);
+    if (!schema) return;
+    const defaults: Record<string, string> = {};
+    for (const input of schema.inputs) {
+      if (input.options?.[0]) {
+        defaults[input.id] = String(input.options[0].value);
+      }
+    }
+    setSchemaValues(defaults);
+  });
   const [bpdCm, setBpdCm] = createSignal('');
   const [hcCm, setHcCm] = createSignal('');
   const [acCm, setAcCm] = createSignal('');
   const [flCm, setFlCm] = createSignal('');
-  const [dilationScore, setDilationScore] = createSignal('0');
-  const [effacementScore, setEffacementScore] = createSignal('0');
-  const [stationScore, setStationScore] = createSignal('0');
-  const [consistencyScore, setConsistencyScore] = createSignal('0');
-  const [positionScore, setPositionScore] = createSignal('0');
 
   const changeFamily = (next: QuantityFamily): void => {
     const units = unitsForFamily(next);
@@ -363,6 +353,37 @@ function CalculatorForm(props: {
   const submit = (): void => {
     let result: StoredCalculationResult;
     let inputSummary: string;
+
+    // Any calculator with a declarative schema (CALCULATOR_SCHEMA_BY_ID) renders and submits through this
+    // one generic path — no per-calculator case below. See calculator-schema-catalog.ts to add one.
+    const schema = CALCULATOR_SCHEMA_BY_ID.get(props.definition.id);
+    if (schema) {
+      const evaluation = evaluateCalculatorSchema(schema, schemaValues());
+      if (!evaluation.ok) {
+        props.onMessage(evaluation.error);
+        return;
+      }
+      result = toStoredCalculationResult(evaluation);
+      inputSummary = schema.inputs
+        .map((input) => {
+          const raw = schemaValues()[input.id];
+          if (raw === undefined || raw === '') return null;
+          const optionLabel = input.options?.find((option) => String(option.value) === raw)?.label;
+          return `${input.label} ${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
+        })
+        .filter((part): part is string => part !== null)
+        .join(', ');
+      const record = createCalculationRecord({
+        calculatorId: props.definition.id,
+        subjectLabel: subjectLabel(),
+        inputSummary,
+        result,
+      });
+      saveCalculationRecord(record);
+      props.onRecord(record);
+      props.onMessage('Расчёт сохранён локально.');
+      return;
+    }
 
     switch (props.definition.id) {
       case 'unit-conversion': {
@@ -389,159 +410,6 @@ function CalculatorForm(props: {
         inputSummary = `${value()} ${fromUnit()} → ${toUnit()}`;
         break;
       }
-      case 'body-surface-area-mosteller': {
-        const calculation = calculateMostellerBsa({
-          heightCm: parseNumber(heightCm()),
-          weightKg: parseNumber(weightKg()),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `рост ${heightCm()} см, масса ${weightKg()} кг`;
-        break;
-      }
-      case 'adult-egfr-ckd-epi-2021': {
-        const calculation = calculateAdultEgfrCkdEpi2021({
-          ageYears: parseNumber(ageYears()),
-          sex: sex(),
-          creatinine: parseNumber(creatinine()),
-          creatinineUnit: creatinineUnit(),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `возраст ${ageYears()} лет, пол ${sex() === 'female' ? 'женский' : 'мужской'}, креатинин ${creatinine()} ${creatinineUnit() === 'umol/l' ? 'мкмоль/л' : 'мг/дл'}`;
-        break;
-      }
-      case 'pediatric-egfr-schwartz-2009': {
-        const calculation = calculatePediatricEgfrSchwartz2009({
-          ageYears: parseNumber(ageYears()),
-          heightCm: parseNumber(heightCm()),
-          creatinine: parseNumber(creatinine()),
-          creatinineUnit: creatinineUnit(),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `возраст ${ageYears()} лет, рост ${heightCm()} см, креатинин ${creatinine()} ${creatinineUnit() === 'umol/l' ? 'мкмоль/л' : 'мг/дл'}`;
-        break;
-      }
-      case 'pediatric-maintenance-fluids': {
-        const calculation = calculatePediatricMaintenanceFluids({
-          weightKg: parseNumber(weightKg()),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `масса ${weightKg()} кг`;
-        break;
-      }
-      case 'obstetric-edd-lmp': {
-        const calculation = calculateEddByLmp({ lmpDate: lmpDate() });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `последняя менструация ${lmpDate()}`;
-        break;
-      }
-      case 'obstetric-edd-ultrasound': {
-        const calculation = calculateEddByUltrasound({
-          examDate: examDate(),
-          gaWeeks: parseNumber(gaWeeks()),
-          gaDays: parseNumber(gaDays()),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `УЗИ ${examDate()}, срок ${gaWeeks()} нед ${gaDays()} дн`;
-        break;
-      }
-      case 'obstetric-edd-conception': {
-        const calculation = calculateEddByConception({ conceptionDate: conceptionDate() });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `дата зачатия ${conceptionDate()}`;
-        break;
-      }
-      case 'obstetric-edd-quickening': {
-        const calculation = calculateEddByQuickening({
-          quickeningDate: quickeningDate(),
-          parity: parity(),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `первое шевеление ${quickeningDate()}, ${parity() === 'primigravida' ? 'первобеременная' : 'повторнобеременная'}`;
-        break;
-      }
-      case 'obstetric-edd-given-date': {
-        const calculation = calculateEddForGivenDate({
-          referenceDate: referenceDate(),
-          gaWeeks: parseNumber(gaWeeks()),
-          gaDays: parseNumber(gaDays()),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `дата ${referenceDate()}, срок ${gaWeeks()} нед ${gaDays()} дн`;
-        break;
-      }
-      case 'obstetric-ga-from-edd': {
-        const calculation = calculateGestationalAgeFromEdd({
-          eddDate: eddDate(),
-          asOfDate: asOfDate() || undefined,
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `ПДР ${eddDate()}${asOfDate() ? `, на дату ${asOfDate()}` : ''}`;
-        break;
-      }
-      case 'obstetric-maternity-leave': {
-        const calculation = calculateMaternityLeaveTimeframe({
-          eddDate: eddDate(),
-          pregnancyType: pregnancyType(),
-          complicatedBirth: complicatedBirth(),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `ПДР ${eddDate()}, ${pregnancyType() === 'multiple' ? 'многоплодная' : 'одноплодная'} беременность`;
-        break;
-      }
-      case 'obstetric-ga-crl': {
-        const calculation = calculateGestationalAgeByCrl({ crlMm: parseNumber(crlMm()) });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `КТР ${crlMm()} мм`;
-        break;
-      }
       case 'obstetric-ga-biometry': {
         const calculation = calculateGestationalAgeByBiometry({
           bpdCm: bpdCm() ? parseNumber(bpdCm()) : undefined,
@@ -564,22 +432,6 @@ function CalculatorForm(props: {
           .join(', ');
         break;
       }
-      case 'obstetric-bishop-score': {
-        const calculation = calculateBishopScore({
-          dilationScore: parseNumber(dilationScore()),
-          effacementScore: parseNumber(effacementScore()),
-          stationScore: parseNumber(stationScore()),
-          consistencyScore: parseNumber(consistencyScore()),
-          positionScore: parseNumber(positionScore()),
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = `раскрытие ${dilationScore()}, сглаживание ${effacementScore()}, станция ${stationScore()}, консистенция ${consistencyScore()}, позиция ${positionScore()}`;
-        break;
-      }
       default:
         props.onMessage('Этот калькулятор пока недоступен.');
         return;
@@ -595,30 +447,6 @@ function CalculatorForm(props: {
     props.onRecord(record);
     props.onMessage('Расчёт сохранён локально.');
   };
-
-  const creatinineFields = () => (
-    <>
-      <label>
-        <span>Креатинин</span>
-        <input
-          inputmode="decimal"
-          value={creatinine()}
-          onInput={(event) => setCreatinine(event.currentTarget.value)}
-        />
-      </label>
-      <label>
-        <span>Единицы креатинина</span>
-        <select
-          class="calculator-form__select"
-          value={creatinineUnit()}
-          onChange={(event) => setCreatinineUnit(event.currentTarget.value as CreatinineUnit)}
-        >
-          <option value="umol/l">мкмоль/л</option>
-          <option value="mg/dl">мг/дл</option>
-        </select>
-      </label>
-    </>
-  );
 
   return (
     <form
@@ -688,240 +516,54 @@ function CalculatorForm(props: {
         </label>
       </Show>
 
-      <Show when={props.definition.id === 'body-surface-area-mosteller'}>
-        <label>
-          <span>Рост, см</span>
-          <input
-            inputmode="decimal"
-            value={heightCm()}
-            onInput={(event) => setHeightCm(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Масса, кг</span>
-          <input
-            inputmode="decimal"
-            value={weightKg()}
-            onInput={(event) => setWeightKg(event.currentTarget.value)}
-          />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'adult-egfr-ckd-epi-2021'}>
-        <label>
-          <span>Возраст, лет</span>
-          <input
-            inputmode="decimal"
-            value={ageYears()}
-            onInput={(event) => setAgeYears(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Пол в формуле</span>
-          <select
-            class="calculator-form__select"
-            value={sex()}
-            onChange={(event) => setSex(event.currentTarget.value as 'female' | 'male')}
-          >
-            <option value="female">Женский</option>
-            <option value="male">Мужской</option>
-          </select>
-        </label>
-        {creatinineFields()}
-      </Show>
-
-      <Show when={props.definition.id === 'pediatric-egfr-schwartz-2009'}>
-        <label>
-          <span>Возраст, лет</span>
-          <input
-            inputmode="decimal"
-            value={ageYears()}
-            onInput={(event) => setAgeYears(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Рост, см</span>
-          <input
-            inputmode="decimal"
-            value={heightCm()}
-            onInput={(event) => setHeightCm(event.currentTarget.value)}
-          />
-        </label>
-        {creatinineFields()}
-      </Show>
-
-      <Show when={props.definition.id === 'pediatric-maintenance-fluids'}>
-        <label>
-          <span>Масса, кг</span>
-          <input
-            inputmode="decimal"
-            value={weightKg()}
-            onInput={(event) => setWeightKg(event.currentTarget.value)}
-          />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-edd-lmp'}>
-        <label>
-          <span>Дата последней менструации</span>
-          <input
-            type="date"
-            value={lmpDate()}
-            onInput={(event) => setLmpDate(event.currentTarget.value)}
-          />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-edd-ultrasound'}>
-        <label>
-          <span>Дата УЗИ</span>
-          <input
-            type="date"
-            value={examDate()}
-            onInput={(event) => setExamDate(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Срок на дату УЗИ, недели</span>
-          <input
-            inputmode="numeric"
-            value={gaWeeks()}
-            onInput={(event) => setGaWeeks(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Срок на дату УЗИ, дни</span>
-          <input
-            inputmode="numeric"
-            value={gaDays()}
-            onInput={(event) => setGaDays(event.currentTarget.value)}
-          />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-edd-conception'}>
-        <label>
-          <span>Дата зачатия</span>
-          <input
-            type="date"
-            value={conceptionDate()}
-            onInput={(event) => setConceptionDate(event.currentTarget.value)}
-          />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-edd-quickening'}>
-        <label>
-          <span>Дата первого шевеления</span>
-          <input
-            type="date"
-            value={quickeningDate()}
-            onInput={(event) => setQuickeningDate(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Беременность</span>
-          <select
-            class="calculator-form__select"
-            value={parity()}
-            onChange={(event) => setParity(event.currentTarget.value as Parity)}
-          >
-            <option value="primigravida">Первобеременная</option>
-            <option value="multigravida">Повторнобеременная</option>
-          </select>
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-edd-given-date'}>
-        <label>
-          <span>Дата отсчёта</span>
-          <input
-            type="date"
-            value={referenceDate()}
-            onInput={(event) => setReferenceDate(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Срок на эту дату, недели</span>
-          <input
-            inputmode="numeric"
-            value={gaWeeks()}
-            onInput={(event) => setGaWeeks(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Срок на эту дату, дни</span>
-          <input
-            inputmode="numeric"
-            value={gaDays()}
-            onInput={(event) => setGaDays(event.currentTarget.value)}
-          />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-ga-from-edd'}>
-        <label>
-          <span>Предполагаемая дата родов</span>
-          <input
-            type="date"
-            value={eddDate()}
-            onInput={(event) => setEddDate(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Дата расчёта — необязательно, по умолчанию сегодня</span>
-          <input
-            type="date"
-            value={asOfDate()}
-            onInput={(event) => setAsOfDate(event.currentTarget.value)}
-          />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-maternity-leave'}>
-        <label>
-          <span>Предполагаемая дата родов</span>
-          <input
-            type="date"
-            value={eddDate()}
-            onInput={(event) => setEddDate(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>Беременность</span>
-          <select
-            class="calculator-form__select"
-            value={pregnancyType()}
-            onChange={(event) => setPregnancyType(event.currentTarget.value as PregnancyType)}
-          >
-            <option value="single">Одноплодная</option>
-            <option value="multiple">Многоплодная</option>
-          </select>
-        </label>
-        <Show when={pregnancyType() === 'single'}>
-          <label>
-            <span>Осложнённые роды (+16 дней)</span>
-            <select
-              class="calculator-form__select"
-              value={complicatedBirth() ? 'yes' : 'no'}
-              onChange={(event) => setComplicatedBirth(event.currentTarget.value === 'yes')}
-            >
-              <option value="no">Нет</option>
-              <option value="yes">Да</option>
-            </select>
-          </label>
-        </Show>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-ga-crl'}>
-        <label>
-          <span>КТР (копчико-теменной размер), мм</span>
-          <input
-            inputmode="decimal"
-            value={crlMm()}
-            onInput={(event) => setCrlMm(event.currentTarget.value)}
-          />
-        </label>
+      {/* Every declarative calculator (CALCULATOR_SCHEMA_BY_ID) renders its form here from
+         schema.inputs — no hand-coded fields per calculator. Add one to calculator-schema-catalog.ts
+         and it appears with no changes to this component. */}
+      <Show when={CALCULATOR_SCHEMA_BY_ID.get(props.definition.id)}>
+        {(schema) => (
+          <For each={schema().inputs}>
+            {(input) => (
+              <label>
+                <span>
+                  {input.label}
+                  {input.unit ? `, ${input.unit}` : ''}
+                  {input.note ? ` — ${input.note}` : ''}
+                </span>
+                <Show
+                  when={(input.options?.length ?? 0) > 0}
+                  fallback={
+                    <Show
+                      when={input.kind === 'date'}
+                      fallback={
+                        <input
+                          inputmode="decimal"
+                          value={schemaValues()[input.id] ?? ''}
+                          onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                        />
+                      }
+                    >
+                      <input
+                        type="date"
+                        value={schemaValues()[input.id] ?? ''}
+                        onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                      />
+                    </Show>
+                  }
+                >
+                  <select
+                    class="calculator-form__select"
+                    value={schemaValues()[input.id] ?? String(input.options?.[0]?.value ?? '')}
+                    onChange={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                  >
+                    <For each={input.options ?? []}>
+                      {(option) => <option value={String(option.value)}>{option.label}</option>}
+                    </For>
+                  </select>
+                </Show>
+              </label>
+            )}
+          </For>
+        )}
       </Show>
 
       <Show when={props.definition.id === 'obstetric-ga-biometry'}>
@@ -956,72 +598,6 @@ function CalculatorForm(props: {
             value={flCm()}
             onInput={(event) => setFlCm(event.currentTarget.value)}
           />
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-bishop-score'}>
-        <label>
-          <span>Раскрытие шейки матки</span>
-          <select
-            class="calculator-form__select"
-            value={dilationScore()}
-            onChange={(event) => setDilationScore(event.currentTarget.value)}
-          >
-            <option value="0">Закрыта (0)</option>
-            <option value="1">1–2 см (1)</option>
-            <option value="2">3–4 см (2)</option>
-            <option value="3">≥5 см (3)</option>
-          </select>
-        </label>
-        <label>
-          <span>Сглаживание шейки матки</span>
-          <select
-            class="calculator-form__select"
-            value={effacementScore()}
-            onChange={(event) => setEffacementScore(event.currentTarget.value)}
-          >
-            <option value="0">0–30% (0)</option>
-            <option value="1">40–50% (1)</option>
-            <option value="2">60–70% (2)</option>
-            <option value="3">≥80% (3)</option>
-          </select>
-        </label>
-        <label>
-          <span>Положение головки (станция)</span>
-          <select
-            class="calculator-form__select"
-            value={stationScore()}
-            onChange={(event) => setStationScore(event.currentTarget.value)}
-          >
-            <option value="0">−3 (0)</option>
-            <option value="1">−2 (1)</option>
-            <option value="2">−1 / 0 (2)</option>
-            <option value="3">+1 / +2 (3)</option>
-          </select>
-        </label>
-        <label>
-          <span>Консистенция шейки матки</span>
-          <select
-            class="calculator-form__select"
-            value={consistencyScore()}
-            onChange={(event) => setConsistencyScore(event.currentTarget.value)}
-          >
-            <option value="0">Плотная (0)</option>
-            <option value="1">Средняя (1)</option>
-            <option value="2">Мягкая (2)</option>
-          </select>
-        </label>
-        <label>
-          <span>Позиция шейки матки</span>
-          <select
-            class="calculator-form__select"
-            value={positionScore()}
-            onChange={(event) => setPositionScore(event.currentTarget.value)}
-          >
-            <option value="0">Кзади (0)</option>
-            <option value="1">Срединное положение (1)</option>
-            <option value="2">Кпереди (2)</option>
-          </select>
         </label>
       </Show>
 
@@ -1255,7 +831,13 @@ export function CalculatorsView(): JSX.Element {
     readonly title: string;
   } | null>(null);
   const refresh = (): void => {
-    setRoute(currentRoute());
+    const next = currentRoute();
+    // Every root tab shares one global location.hash, and this view stays mounted (hidden, not
+    // unmounted) while another tab is active — a hashchange for a different tab is not our concern.
+    // Reacting to it would null out `selected()` and unmount the open CalculatorForm, silently
+    // discarding whatever the user had already typed in.
+    if (next !== '' && !next.startsWith('calculators')) return;
+    setRoute(next);
   };
   const refreshInstallation = (): void => {
     setInstallation(loadCalculatorInstallationState());

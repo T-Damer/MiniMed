@@ -139,6 +139,12 @@ export function AssessmentsView(): JSX.Element {
     setInstallation(loadAssessmentInstallationState(ASSESSMENT_CATALOG));
   };
   const handleHashChange = (): void => {
+    const route = window.location.hash.replace(/^#\/?/u, '');
+    // Every root tab shares one global location.hash, and this view stays mounted (hidden, not
+    // unmounted) while another tab is active — a hashchange for a different tab is not our concern.
+    // Reacting to it would reset `route()` to the index and unmount the open questionnaire page,
+    // silently discarding whatever answers the user had already entered.
+    if (route !== '' && route !== 'assessments' && !route.startsWith('assessments/')) return;
     setRoute(readRoute());
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'instant' });

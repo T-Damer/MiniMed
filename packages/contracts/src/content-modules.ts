@@ -87,6 +87,9 @@ export const ContentModuleDocumentVersionSchema = z.object({
   status: z.enum(['active', 'superseded', 'historical']),
   indexArtifactId: z.string().min(1),
   sourceAssetArtifactId: z.string().min(1).nullable().default(null),
+  // Human-readable title for catalog/help-dialog display before the module is installed (so a document
+  // row never falls back to showing its raw id). Sourced from the document's own front matter.
+  title: z.string().min(1).nullable().default(null),
 });
 
 export const CoreCatalogRelationStubSchema = z.object({

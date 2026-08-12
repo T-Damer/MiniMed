@@ -29,7 +29,11 @@ const REGULATORY_DATABASE_NAME = 'regulatory.db';
 const REFERENCE_DATABASE_NAME = 'reference.db';
 const PACK_ASSET_PATH = `public/content/${PACK_DATABASE_NAME}`;
 const BUILT_IN_REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
-const BUILT_IN_REFERENCE_MODULE_ID = 'minimed.reference.ru';
+// Must match the catalog id of the downloadable module built from the same source content
+// (minimed.reference.pediatrics.ru in catalog.preview.json) — otherwise this guard fails to skip the
+// built-in reference.db companion once that module is installed, and both mounts report the same
+// content-pack ID, tripping MultiMedicalStore's "Duplicate active content-pack ID" validation.
+const BUILT_IN_REFERENCE_MODULE_ID = 'minimed.reference.pediatrics.ru';
 const BUILT_IN_AMBULATORY_MODULE_ID = 'minimed.ambulatory.v1';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;

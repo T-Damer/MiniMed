@@ -22,3 +22,23 @@
   box-shadow: var(--theme-card-hover-shadow);
   font-family: var(--font-sans);
 }
+
+/* sonner's default close button sits at the toast's top-left (--toast-close-button-start: 0). Move it
+   to the top-right and give it real contrast against --normal-bg instead of blending into it, so it
+   reads as a deliberate circular control rather than a stray dot. */
+[data-sonner-toast][data-styled="true"].app-notification [data-close-button] {
+  top: 0;
+  right: 0;
+  left: unset;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  border-color: color-mix(in srgb, var(--theme-accent) 55%, black);
+  transform: translate(35%, -35%);
+}
+
+[data-sonner-toast][data-styled="true"].app-notification:hover [data-close-button]:hover {
+  background: color-mix(in srgb, var(--theme-accent) 88%, white);
+  border-color: color-mix(in srgb, var(--theme-accent) 55%, black);
+}

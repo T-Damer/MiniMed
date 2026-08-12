@@ -10,6 +10,7 @@ import {
   Show,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
+import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
@@ -90,11 +91,16 @@ function medicationSearchText(product: MedicationProduct): string {
   ].join(' ');
 }
 
+// Allmed source markdown always opens with a "Карточка препарата" section whose body is just the
+// trade name and Latin name again — already shown in the header above and the page hero. Drop it
+// instead of rendering a section that duplicates the title.
+const REDUNDANT_TITLE_SECTION = 'Карточка препарата';
+
 function MedicationSourceContent(props: { readonly sourceDocument: MedicalDocument }): JSX.Element {
   const sections = orderDocumentSections(
     props.sourceDocument.sections,
     props.sourceDocument.sourceType,
-  ).filter((section) => section.chunks.length > 0);
+  ).filter((section) => section.chunks.length > 0 && section.title !== REDUNDANT_TITLE_SECTION);
   const scrollToSection = (anchor: string): void => {
     document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -398,7 +404,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
             )}
           </Show>
           <div class="medication-grid">
-            <For each={visibleProducts()}>
+            <WindowVirtualizer data={visibleProducts()} bufferSize={500}>
               {(product) => {
                 const variants = () => productVariants(product);
                 const description = () =>
@@ -421,7 +427,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                   </button>
                 );
               }}
-            </For>
+            </WindowVirtualizer>
           </div>
         </section>
       </Show>

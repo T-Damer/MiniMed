@@ -397,6 +397,37 @@
   color: var(--theme-danger);
 }
 
+.document-overlay-paper__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.document-overlay-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid var(--paper-line);
+  border-radius: 0.375rem;
+  background: var(--paper-light);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.document-overlay-action-button:hover {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent);
+}
+
+.document-overlay-action-button__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
 .document-inline-link {
   display: inline;
   padding: 0;
@@ -443,8 +474,10 @@
 }
 
 .document-library-grid {
+  /* Single column: WindowVirtualizer positions items in one absolutely-positioned vertical
+     flow and cannot measure a multi-column (auto-fit) grid, so virtualizing this list
+     (previously an unvirtualized multi-column grid) means giving up the extra columns. */
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: 0.75rem;
   padding-bottom: 2.5rem;
 }

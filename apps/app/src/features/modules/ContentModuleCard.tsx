@@ -21,6 +21,7 @@ interface ContentModuleCardProps {
   readonly task?: ContentModuleDownloadTask | undefined;
   readonly retryScheduled?: boolean | undefined;
   readonly fallbackError?: string | null | undefined;
+  readonly connecting?: boolean | undefined;
   readonly onInspect: () => void;
   readonly onOpenError: (message: string) => void;
   readonly onInstall: () => void;
@@ -89,14 +90,16 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
           )}
         </Show>
       </div>
-      <Show when={props.task || installError()}>
+      <Show when={props.task || installError() || props.connecting}>
         <ModuleTaskStatus
           label={
             props.retryScheduled
               ? 'Повторим автоматически'
-              : MODULE_TASK_LABELS[props.task?.state ?? 'failed']
+              : !props.task && props.connecting
+                ? 'Подключаем к поиску…'
+                : MODULE_TASK_LABELS[props.task?.state ?? 'failed']
           }
-          progress={progress()}
+          progress={props.task ? progress() : null}
           errorMessage={installError()}
           onOpenError={() => props.onOpenError(installError() ?? 'Не удалось скачать набор.')}
         />

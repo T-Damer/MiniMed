@@ -4,6 +4,38 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.15] - 2026-08-12
+
+### Added
+
+- Added a declarative calculator schema (`packages/contracts/calculator-schema.ts`) with a safe,
+  hand-rolled expression language (no `eval`/`new Function`) so calculators can be authored as data —
+  including date arithmetic, assertions, and threshold interpretations. Migrated 13 calculators
+  (Mosteller BSA, CKD-EPI, Schwartz, Holliday-Segar, and 9 obstetric calculators) onto it, rendered by
+  one generic schema-driven form.
+- Published the `minimed.reference.pediatrics.ru` content module (WHO growth/BMI/BP references, adult
+  and pediatric eGFR reference sheets, the Order No. 330 standard-diet system, and 6 Pevzner diet
+  tables), with print/share support and explicit bidirectional cross-links between diet tables and the
+  standard-diet system.
+
+### Fixed
+
+- Fixed a "Duplicate active content-pack ID" error when installing the reference module: a stale
+  built-in module-id guard let the bundled and downloaded copies of the same content mount twice.
+- Fixed navigating between the app's 5 main sections (documents, calculators, assessments, notes,
+  search) discarding the open sub-page, scroll position, and in-progress calculator/questionnaire
+  input; each section's own hash-routing no longer reacts to another section's navigation.
+- Fixed a severe scroll stall on the medication list and the "Ядро" document library: both were
+  rendering their full (~4,700 / ~4,800 item) lists unvirtualized behind a `hidden` toggle, which
+  forced a full relayout on every return visit. Both now use windowed virtualization, and the "Ядро"
+  document browser is a real page instead of a modal.
+- Fixed several UI issues in the medications/modules reader surfaces: raw content-pack IDs leaking into
+  document titles, a redundant "Карточка препарата" section duplicating the medication name, oversized
+  outer margins on the medication reader card, and a toast close button positioned on the wrong side
+  without theme styling.
+- Improved the root-navigation transition so the outgoing section visibly slides away under the
+  incoming one instead of the incoming section fading in over empty space.
+
 ## [0.6.10] - 2026-07-29
 
 ### Added
