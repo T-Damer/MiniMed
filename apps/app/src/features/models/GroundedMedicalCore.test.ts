@@ -15,9 +15,10 @@ import {
 } from '@/features/models/GroundedMedicalCore';
 import type { LocalModelStructuredRequest } from '@/features/models/types';
 
-// Stage 2 (citation-checked rerank) now runs in the background after search() resolves with the
-// deterministic order — tests wait for the phase it settles into instead of reading it off the
-// return value.
+// The model's job is narrow: understand the query (query-plan) and give a coarse relevance-based
+// reorder of already-retrieved sources — no citation extraction, no diagnosis/dose claims. Both
+// run in the background after search() resolves with the deterministic order, so tests wait for
+// the phase the background enhancement settles into instead of reading it off the return value.
 function waitForPhase(
   core: GroundedMedicalCore,
   phase: GroundedAssistantPhase,
@@ -149,6 +150,9 @@ function baseCore(response: SearchResponse = deterministicResponse): MedicalCore
   } as MedicalCore;
 }
 
+// The responder returns an object for JSON tasks (query-plan) or a plain string for the
+// relevance task's "1:H 2:M" text format — completeStructuredTask mirrors real sessions by only
+// populating parsedJson for the object case.
 function modelController(
   responder: (request: LocalModelStructuredRequest) => unknown,
   ready = true,
@@ -156,42 +160,40 @@ function modelController(
   return {
     canRunStructuredTasks: () => ready,
     getState: () => ({ activeModelId: ready ? 'model-a' : null }),
-    completeStructuredTask: vi.fn(async (task: LocalModelStructuredRequest) => ({
-      task: task.task,
-      rawText: JSON.stringify(responder(task)),
-      parsedJson: responder(task),
-      generationMs: 10,
-    })),
+    completeStructuredTask: vi.fn(async (task: LocalModelStructuredRequest) => {
+      const result = responder(task);
+      const isText = typeof result === 'string';
+      return {
+        task: task.task,
+        rawText: isText ? result : JSON.stringify(result),
+        parsedJson: isText ? null : result,
+        generationMs: 10,
+      };
+    }),
   } as unknown as LocalModelController;
 }
 
-function validResponse(task: LocalModelStructuredRequest): Readonly<Record<string, unknown>> {
-  if (task.task === 'query-plan') {
-    return {
-      intent: 'поиск источников о причине кашля и лихорадки',
-      terms: ['кашель', 'лихорадка'],
-      clarifyingQuestions: ['Каков возраст пациента?'],
-      exclusions: [],
-    };
-  }
+function validQueryPlan(): Readonly<Record<string, unknown>> {
   return {
-    orderedIds: ['chunk-b', 'chunk-a'],
-    diagnosisCandidates: [],
-    doseEvidence: [],
-    missingInformation: ['Возраст пациента'],
+    intent: 'поиск источников о причине кашля и лихорадки',
+    terms: ['кашель', 'лихорадка'],
+    clarifyingQuestions: ['Каков возраст пациента?'],
+    exclusions: [],
   };
 }
 
 describe('GroundedMedicalCore', () => {
-  it('reorders only deterministic candidate ids after valid structured output', async () => {
-    const core = new GroundedMedicalCore(baseCore(), modelController(validResponse));
+  it('reorders deterministic candidates by relevance labels and understands the query', async () => {
+    const core = new GroundedMedicalCore(
+      baseCore(),
+      modelController((task) => (task.task === 'query-plan' ? validQueryPlan() : '1:L 2:H')),
+    );
 
     const result = await core.search(request);
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    // search() itself always resolves with the deterministic order — the background enhancement
-    // is never awaited here.
+    // search() itself always resolves with the deterministic order.
     expect(result.value.groups.map((group) => group.documentId)).toEqual(['doc-a', 'doc-b']);
 
     const applied = await waitForPhase(core, 'applied');
@@ -202,12 +204,12 @@ describe('GroundedMedicalCore', () => {
     expect(applied).toMatchObject({
       modelId: 'model-a',
       terms: ['кашель', 'лихорадка'],
-      missingInformation: ['Возраст пациента'],
+      clarifyingQuestions: ['Каков возраст пациента?'],
       rerankedCandidates: 2,
     });
   });
 
-  it('keeps the ranking prompt inside the compact-model candidate budget', async () => {
+  it('keeps the relevance prompt inside the compact-model candidate budget', async () => {
     const group = deterministicResponse.groups[0];
     if (!group) throw new Error('Test requires one result group.');
     const manyResults = Array.from({ length: 10 }, (_, index) =>
@@ -219,338 +221,80 @@ describe('GroundedMedicalCore', () => {
       ...deterministicResponse,
       groups: [{ ...group, results: manyResults }],
     };
-    let candidates: readonly { readonly snippet: string }[] = [];
-    let rankingPromptText = '';
+    let relevancePromptText = '';
     const core = new GroundedMedicalCore(
       baseCore(response),
       modelController((task) => {
-        if (task.task === 'query-plan') return validResponse(task);
-        // Stage 1's relevance prompt is plain text, not JSON — only the real rerank call below
-        // should feed these assertions.
-        if (task.task === 'relevance') return {};
-        rankingPromptText = task.userPrompt;
-        candidates = (
-          JSON.parse(task.userPrompt) as {
-            readonly candidates: readonly { readonly snippet: string }[];
-          }
-        ).candidates;
-        return {
-          orderedIds: [],
-          diagnosisCandidates: [],
-          doseEvidence: [],
-          missingInformation: [],
-        };
+        if (task.task === 'query-plan') return validQueryPlan();
+        relevancePromptText = task.userPrompt;
+        return '1:H';
       }),
     );
 
     await core.search(request);
     await waitForPhase(core, 'applied');
 
-    expect(candidates).toHaveLength(6);
-    expect(candidates.every((candidate) => candidate.snippet.length <= 280)).toBe(true);
-    expect(rankingPromptText.length).toBeLessThanOrEqual(5_000);
-    expect(rankingPromptText).not.toContain('\n');
+    const candidateLines = relevancePromptText.split('\n').filter((line) => /^\d+\.\s/.test(line));
+    expect(candidateLines).toHaveLength(6);
+    expect(relevancePromptText.length).toBeLessThanOrEqual(4_000);
   });
 
-  it('accepts a diagnosis candidate only with an exact retrieved excerpt and citation', async () => {
+  it('ignores an out-of-range relevance index instead of crashing', async () => {
     const core = new GroundedMedicalCore(
       baseCore(),
-      modelController((task) => {
-        if (task.task === 'query-plan') return validResponse(task);
-        return {
-          ...validResponse(task),
-          diagnosisCandidates: [
-            {
-              label: 'Документ B',
-              sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
-              citationIds: ['chunk-b'],
-            },
-          ],
-        };
-      }),
+      modelController((task) => (task.task === 'query-plan' ? validQueryPlan() : '9:H 2:H')),
     );
 
     const result = await core.search(request);
     expect(result.ok).toBe(true);
 
     const applied = await waitForPhase(core, 'applied');
-    expect(applied.diagnosisCandidates).toEqual([
-      {
-        label: 'Документ B',
-        sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
-        citations: [
-          {
-            chunkId: 'chunk-b',
-            documentId: 'doc-b',
-            anchor: 'doc-b/section#chunk-b',
-            title: 'Документ B',
-            sectionPath: ['Диагностика'],
-          },
-        ],
-      },
-    ]);
-  });
-
-  it('rejects a diagnosis assembled from different cited chunks', async () => {
-    const core = new GroundedMedicalCore(
-      baseCore(),
-      modelController((task) => {
-        if (task.task === 'query-plan') return validResponse(task);
-        return {
-          ...validResponse(task),
-          diagnosisCandidates: [
-            {
-              label: 'Документ A',
-              sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
-              citationIds: ['chunk-a', 'chunk-b'],
-            },
-          ],
-        };
-      }),
-    );
-
-    const result = await core.search(request);
-    expect(result.ok).toBe(true);
-
-    const fallback = await waitForPhase(core, 'fallback');
-    expect(fallback.diagnosisCandidates).toEqual([]);
-  });
-
-  it('rejects a dose claim without an exact regimen in a treatment fragment', async () => {
-    const core = new GroundedMedicalCore(
-      baseCore(),
-      modelController((task) => {
-        if (task.task === 'query-plan') return validResponse(task);
-        return {
-          ...validResponse(task),
-          doseEvidence: [
-            {
-              label: 'Документ B',
-              sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
-              citationIds: ['chunk-b'],
-              missingInputs: ['Масса тела'],
-            },
-          ],
-        };
-      }),
-    );
-
-    const result = await core.search(request);
-    expect(result.ok).toBe(true);
-
-    const fallback = await waitForPhase(core, 'fallback');
-    expect(fallback.doseEvidence).toEqual([]);
-    expect(fallback.error).toMatch(/не подтверждена точным режимом/u);
-  });
-
-  it('accepts only a verbatim dose regimen from a treatment fragment', async () => {
-    const doseSnippet = 'Препарат X: 10 мг/кг/сут в 2 приёма.';
-    const treatmentResponse: SearchResponse = {
-      ...deterministicResponse,
-      groups: deterministicResponse.groups.map((group) =>
-        group.documentId === 'doc-b'
-          ? {
-              ...group,
-              categories: ['treatment'],
-              results: [
-                searchResult('chunk-b', 'doc-b', 'Препарат X', {
-                  snippet: doseSnippet,
-                  sectionType: 'treatment',
-                  category: 'treatment',
-                }),
-              ],
-            }
-          : group,
-      ),
-    };
-    const core = new GroundedMedicalCore(
-      baseCore(treatmentResponse),
-      modelController((task) => {
-        if (task.task === 'query-plan') return validResponse(task);
-        return {
-          ...validResponse(task),
-          doseEvidence: [
-            {
-              label: 'Препарат X',
-              sourceExcerpt: doseSnippet,
-              citationIds: ['chunk-b'],
-              missingInputs: ['Масса тела'],
-            },
-          ],
-        };
-      }),
-    );
-
-    const result = await core.search(request);
-    expect(result.ok).toBe(true);
-
-    const applied = await waitForPhase(core, 'applied');
-    expect(applied.doseEvidence).toMatchObject([
-      {
-        label: 'Препарат X',
-        sourceExcerpt: doseSnippet,
-        missingInputs: ['Масса тела'],
-      },
-    ]);
-  });
-
-  it('rejects dose evidence assembled from different cited chunks', async () => {
-    const doseSnippet = '10 мг/кг/сут в 2 приёма.';
-    const firstGroup = deterministicResponse.groups[0];
-    const secondGroup = deterministicResponse.groups[1];
-    if (!firstGroup || !secondGroup) throw new Error('Test requires two result groups.');
-    const treatmentResponse: SearchResponse = {
-      ...deterministicResponse,
-      groups: [
-        {
-          ...firstGroup,
-          results: [searchResult('chunk-a', 'doc-a', 'Препарат X')],
-        },
-        {
-          ...secondGroup,
-          categories: ['treatment'],
-          results: [
-            searchResult('chunk-b', 'doc-b', 'Документ B', {
-              snippet: doseSnippet,
-              sectionType: 'treatment',
-              category: 'treatment',
-            }),
-          ],
-        },
-      ],
-    };
-    const core = new GroundedMedicalCore(
-      baseCore(treatmentResponse),
-      modelController((task) => {
-        if (task.task === 'query-plan') return validResponse(task);
-        return {
-          ...validResponse(task),
-          doseEvidence: [
-            {
-              label: 'Препарат X',
-              sourceExcerpt: doseSnippet,
-              citationIds: ['chunk-a', 'chunk-b'],
-              missingInputs: ['Масса тела'],
-            },
-          ],
-        };
-      }),
-    );
-
-    const result = await core.search(request);
-    expect(result.ok).toBe(true);
-
-    const fallback = await waitForPhase(core, 'fallback');
-    expect(fallback.doseEvidence).toEqual([]);
-  });
-
-  it('returns the untouched deterministic order when the model invents a candidate id', async () => {
-    const core = new GroundedMedicalCore(
-      baseCore(),
-      modelController((task) => {
-        if (task.task === 'query-plan') return validResponse(task);
-        return { orderedIds: ['invented-id'] };
-      }),
-    );
-
-    const result = await core.search(request);
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.value.groups.map((group) => group.documentId)).toEqual(['doc-a', 'doc-b']);
-
-    const fallback = await waitForPhase(core, 'fallback');
-    expect(fallback.error).toMatch(/не было среди кандидатов/u);
-  });
-
-  it('publishes a fast relevance-based reorder before the slower citation pass finishes', async () => {
-    let releaseRanking: (() => void) | undefined;
-    const rankingGate = new Promise<void>((resolve) => {
-      releaseRanking = resolve;
-    });
-    const controller = {
-      canRunStructuredTasks: () => true,
-      getState: () => ({ activeModelId: 'model-a' }),
-      completeStructuredTask: vi.fn(async (task: LocalModelStructuredRequest) => {
-        if (task.task === 'relevance') {
-          // Candidate 1 is chunk-a (doc-a), candidate 2 is chunk-b (doc-b): flip their order.
-          return { task: task.task, rawText: '1:L 2:H', parsedJson: null, generationMs: 5 };
-        }
-        if (task.task === 'query-plan') {
-          return {
-            task: task.task,
-            rawText: JSON.stringify(validResponse(task)),
-            parsedJson: validResponse(task),
-            generationMs: 5,
-          };
-        }
-        await rankingGate;
-        return {
-          task: task.task,
-          rawText: JSON.stringify(validResponse(task)),
-          parsedJson: validResponse(task),
-          generationMs: 5,
-        };
-      }),
-    } as unknown as LocalModelController;
-
-    const core = new GroundedMedicalCore(baseCore(), controller);
-    await core.search(request);
-
-    const fastState = await new Promise<GroundedAssistantState>((resolve) => {
-      let unsubscribe: (() => void) | undefined;
-      unsubscribe = core.subscribeAssistant((state) => {
-        if (state.phase !== 'running' || !state.enhancedResponse) return;
-        unsubscribe?.();
-        resolve(state);
-      });
-    });
-    expect(fastState.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
+    // "9:H" has no matching candidate and is skipped; "2:H" (doc-b) is still applied.
+    expect(applied.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
       'doc-b',
       'doc-a',
     ]);
+    expect(applied.rerankedCandidates).toBe(1);
+  });
 
-    releaseRanking?.();
+  it('keeps the query understanding even when the relevance pass fails', async () => {
+    const core = new GroundedMedicalCore(
+      baseCore(),
+      modelController((task) => (task.task === 'query-plan' ? validQueryPlan() : 'not a label')),
+    );
+
+    const result = await core.search(request);
+    expect(result.ok).toBe(true);
+
+    const fallback = await waitForPhase(core, 'fallback');
+    expect(fallback.terms).toEqual(['кашель', 'лихорадка']);
+    expect(fallback.clarifyingQuestions).toEqual(['Каков возраст пациента?']);
+    expect(fallback.enhancedResponse).toBeNull();
+  });
+
+  it('still reorders by relevance when query understanding fails', async () => {
+    const core = new GroundedMedicalCore(
+      baseCore(),
+      modelController((task) => (task.task === 'query-plan' ? { malformed: true } : '1:L 2:H')),
+    );
+
+    const result = await core.search(request);
+    expect(result.ok).toBe(true);
+
     const applied = await waitForPhase(core, 'applied');
     expect(applied.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
       'doc-b',
       'doc-a',
     ]);
-  });
-
-  it('keeps the fast relevance reorder when the slower citation pass fails', async () => {
-    const controller = {
-      canRunStructuredTasks: () => true,
-      getState: () => ({ activeModelId: 'model-a' }),
-      completeStructuredTask: vi.fn(async (task: LocalModelStructuredRequest) => {
-        if (task.task === 'relevance') {
-          return { task: task.task, rawText: '1:L 2:H', parsedJson: null, generationMs: 5 };
-        }
-        if (task.task === 'query-plan') {
-          return {
-            task: task.task,
-            rawText: JSON.stringify(validResponse(task)),
-            parsedJson: validResponse(task),
-            generationMs: 5,
-          };
-        }
-        return { task: task.task, rawText: 'not json', parsedJson: null, generationMs: 5 };
-      }),
-    } as unknown as LocalModelController;
-
-    const core = new GroundedMedicalCore(baseCore(), controller);
-    await core.search(request);
-
-    const fallback = await waitForPhase(core, 'fallback');
-    expect(fallback.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
-      'doc-b',
-      'doc-a',
-    ]);
-    expect(fallback.message).toMatch(/Показан быстрый порядок/u);
+    expect(applied.terms).toEqual([]);
+    expect(applied.clarifyingQuestions).toEqual([]);
   });
 
   it('does not call the model when no validated session is ready', async () => {
-    const controller = modelController(validResponse, false);
+    const controller = modelController(
+      (task) => (task.task === 'query-plan' ? validQueryPlan() : '1:H'),
+      false,
+    );
     const complete = vi.spyOn(controller, 'completeStructuredTask');
     const core = new GroundedMedicalCore(baseCore(), controller);
 

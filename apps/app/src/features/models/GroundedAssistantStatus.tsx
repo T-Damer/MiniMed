@@ -3,7 +3,6 @@ import type {
   GroundedAssistantState,
   GroundedMedicalCore,
 } from '@/features/models/GroundedMedicalCore';
-import { openDocumentInArchive } from '@/state/document-navigation';
 
 interface GroundedAssistantStatusProps {
   readonly assistant: GroundedMedicalCore;
@@ -32,87 +31,18 @@ export function GroundedAssistantStatus(props: GroundedAssistantStatusProps): JS
           <div>
             <strong>
               {state().phase === 'running'
-                ? 'Локальная модель проверяет найденные источники'
+                ? 'Локальная модель разбирает запрос'
                 : state().phase === 'applied'
-                  ? 'Найденные источники проверены локально'
+                  ? 'Порядок источников уточнён локально'
                   : 'Использован обычный порядок источников'}
             </strong>
             <p>{state().message}</p>
           </div>
         </div>
 
-        <Show when={state().phase === 'applied'}>
-          <div class="grounded-clinical-output">
-            <Show when={state().diagnosisCandidates.length > 0}>
-              <section>
-                <h3>Диагностические кандидаты для проверки</h3>
-                <For each={state().diagnosisCandidates}>
-                  {(candidate) => (
-                    <article>
-                      <strong>{candidate.label}</strong>
-                      <p>«{candidate.sourceExcerpt}»</p>
-                      <div class="grounded-citations">
-                        <For each={candidate.citations}>
-                          {(citation) => (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openDocumentInArchive(citation.documentId, citation.anchor)
-                              }
-                            >
-                              {citation.title} · {citation.sectionPath.join(' → ')}
-                            </button>
-                          )}
-                        </For>
-                      </div>
-                    </article>
-                  )}
-                </For>
-              </section>
-            </Show>
-
-            <section>
-              <h3>Дозировки из установленных источников</h3>
-              <Show
-                when={state().doseEvidence.length > 0}
-                fallback={
-                  <p class="grounded-empty-evidence">
-                    Точный режим дозирования не найден. Модель не подставляет дозу из памяти и не
-                    рассчитывает её без источника.
-                  </p>
-                }
-              >
-                <For each={state().doseEvidence}>
-                  {(dose) => (
-                    <article>
-                      <strong>{dose.label}</strong>
-                      <p>«{dose.sourceExcerpt}»</p>
-                      <Show when={dose.missingInputs.length > 0}>
-                        <small>Нужно уточнить: {dose.missingInputs.join(', ')}.</small>
-                      </Show>
-                      <div class="grounded-citations">
-                        <For each={dose.citations}>
-                          {(citation) => (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openDocumentInArchive(citation.documentId, citation.anchor)
-                              }
-                            >
-                              {citation.title} · {citation.sectionPath.join(' → ')}
-                            </button>
-                          )}
-                        </For>
-                      </div>
-                    </article>
-                  )}
-                </For>
-              </Show>
-            </section>
-          </div>
-
+        <Show when={state().terms.length > 0 || state().clarifyingQuestions.length > 0}>
           <details>
-            <summary>Что учла локальная модель</summary>
+            <summary>Что понял локальный разбор запроса</summary>
             <div class="grounded-assistant-details">
               <Show when={state().terms.length > 0}>
                 <div>
@@ -132,17 +62,9 @@ export function GroundedAssistantStatus(props: GroundedAssistantStatusProps): JS
                   </ul>
                 </div>
               </Show>
-              <Show when={state().missingInformation.length > 0}>
-                <div>
-                  <span>Недостающие сведения</span>
-                  <ul>
-                    <For each={state().missingInformation}>{(item) => <li>{item}</li>}</For>
-                  </ul>
-                </div>
-              </Show>
               <small>
-                Диагностические кандидаты и дозировочные фрагменты показываются только как точные
-                выдержки из найденных источников. Это не итоговый диагноз и не назначение.
+                Модель только разбирает запрос и уточняет порядок уже найденных источников — она не
+                ставит диагноз и не извлекает дозировки.
               </small>
             </div>
           </details>

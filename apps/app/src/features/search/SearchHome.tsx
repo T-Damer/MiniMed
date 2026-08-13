@@ -211,7 +211,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                 aria-pressed={aiAssistEnabled()}
                 title={
                   aiAssistEnabled()
-                    ? 'Локальная модель включена: уточняет порядок источников и ищет точные цитаты'
+                    ? 'Локальная модель включена: разбирает запрос и уточняет порядок источников'
                     : 'Локальная модель выключена: обычный детерминированный поиск'
                 }
                 onClick={toggleAiAssist}

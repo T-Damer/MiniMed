@@ -1,8 +1,8 @@
 # Current state
 
-> Updated: 10 August 2026
-> Repository version: `0.6.10`
-> Active target: `0.6.10` public prerelease toward `1.0`
+> Updated: 13 August 2026
+> Repository version: `0.6.17`
+> Active target: `0.6.17` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -170,12 +170,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - A CLI `tester-box` builds a disposable full-corpus FTS index and compares the three catalog models
   across 20 clinician cases using direct and strict-JSON prompts, exact-quote/number validation,
   explicit dose-conflict detection, and one bounded repair attempt.
-- Optional compact query planning and reranking over at most six retrieved chunks.
-- Exact-source diagnostic candidate extraction.
-- Exact-source dose extraction only from a treatment chunk containing both a numeric dose and regimen.
-- Candidate-ID, text-length, exact-substring, category, and dose-pattern validation.
-- One cited chunk must independently support the label, exact excerpt, and treatment classification;
-  evidence cannot be assembled across unrelated citations.
+- Optional compact query planning and coarse relevance-based reranking over at most six retrieved
+  chunks, applied in the background without delaying deterministic results.
+- The runtime model does not extract diagnoses, doses, or citations; failed or unrecognized model
+  output leaves the deterministic result order unchanged.
 - The default browser path uses the catalog's immutable upstream model asset rather than an unavailable
   release mirror.
 
