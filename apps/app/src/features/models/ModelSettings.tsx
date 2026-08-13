@@ -3,6 +3,7 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { LocalModelController } from '@/features/models/controller';
+import { runtimeAvailableForDevice } from '@/features/models/model-runtime-availability';
 import type { LocalModelDescriptor, LocalModelState } from '@/features/models/types';
 
 interface ModelSettingsProps {
@@ -121,14 +122,8 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
     busyPhase() ? (busyModelId() ?? state().selectedModelId ?? null) : null;
 
   const runtimeAvailable = (model: LocalModelDescriptor): boolean => {
-    const platform = state().device?.platform;
-    if (!platform) return false;
-    return model.artifacts.some(
-      (artifact) =>
-        artifact.published &&
-        artifact.runtime === 'wllama-web' &&
-        artifact.platforms.includes(platform),
-    );
+    const device = state().device;
+    return device !== null && runtimeAvailableForDevice(model, device);
   };
 
   const testModel = async (model: LocalModelDescriptor): Promise<void> => {
@@ -197,24 +192,26 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
             </Show>
           }
         >
-          <div class="model-download-status-header">
-            <strong>{PHASE_LABELS[state().phase]}</strong>
-            <button type="button" class="model-download-cancel" onClick={cancelLoad}>
-              Отменить
-            </button>
-          </div>
-          <span>{state().message}</span>
-          <Show when={state().progress !== null}>
-            <div
-              class="model-download-status-progress"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round((state().progress ?? 0) * 100)}
-            >
-              <i style={{ width: `${Math.round((state().progress ?? 0) * 100)}%` }} />
+          <div class="model-download-body">
+            <div class="model-download-status-header">
+              <strong>{PHASE_LABELS[state().phase]}</strong>
+              <button type="button" class="model-download-cancel" onClick={cancelLoad}>
+                Отменить
+              </button>
             </div>
-          </Show>
+            <span>{state().message}</span>
+            <Show when={state().progress !== null}>
+              <div
+                class="model-download-status-progress"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round((state().progress ?? 0) * 100)}
+              >
+                <i style={{ width: `${Math.round((state().progress ?? 0) * 100)}%` }} />
+              </div>
+            </Show>
+          </div>
         </Show>
       </div>
 

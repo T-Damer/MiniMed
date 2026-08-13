@@ -38,6 +38,16 @@ import {
   type SearchReplayDetail,
 } from '@/state/search-history';
 
+/**
+ * A minimal, core-agnostic view of a `GroundedMedicalCore`-style background enhancement, so this
+ * component can upgrade its results in place without importing model-feature types directly.
+ */
+export interface SearchEnhancementState {
+  readonly phase: 'running' | 'applied' | 'fallback';
+  readonly query: string | null;
+  readonly enhancedResponse: SearchResponse | null;
+}
+
 interface SearchWorkspaceProps {
   readonly core: MedicalCore;
   readonly scope: SearchScope;
@@ -48,6 +58,16 @@ interface SearchWorkspaceProps {
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
   /** Collapse to a single-line bar until focused or typed into; used when embedded above a scrollable list. */
   readonly compact?: boolean;
+  /** Rendered between the search form and the results list — e.g. local-model assistant status. */
+  readonly resultsHeader?: JSX.Element;
+  /** Rendered in the query-actions row alongside "Очистить"/"Найти сейчас" — e.g. an AI-assist toggle. */
+  readonly queryActionsExtra?: JSX.Element;
+  /**
+   * Reactive accessor for a background model enhancement of the current results. Deterministic
+   * results are always shown first; when this reports a matching query and a reorder, it is
+   * merged in place instead of blocking the initial render.
+   */
+  readonly enhancement?: () => SearchEnhancementState | undefined;
 }
 
 const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
@@ -226,6 +246,24 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     searchWasAllowed = allowed;
   });
 
+  // Deterministic results render immediately; when a background model enhancement reports a
+  // reorder for the query currently on screen, swap it in without re-running the search.
+  createEffect(() => {
+    const enhancement = props.enhancement?.();
+    if (!enhancement?.enhancedResponse) return;
+    if (enhancement.query !== response()?.analysis.originalQuery) return;
+    setResponse(enhancement.enhancedResponse);
+  });
+
+  const aiRefining = createMemo(() => {
+    const enhancement = props.enhancement?.();
+    return Boolean(
+      enhancement &&
+        enhancement.phase === 'running' &&
+        enhancement.query === response()?.analysis.originalQuery,
+    );
+  });
+
   createEffect(() => {
     if (expanded() && textarea) resizeTextarea(textarea);
   });
@@ -276,6 +314,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (analysisTimer) clearTimeout(analysisTimer);
     const trimmed = value.trim();
     if (trimmed.length < 2) {
+      lastAnalyzedQuery = '';
+      setDraftAnalysis(undefined);
+      setAnalysisLoading(false);
+      return;
+    }
+    // The "Разбор запроса" panel (facts, suggestions, intent) is a clinical-case-parsing feature.
+    // A drug-name lookup in the medications scope has no use for it, and running the clinical NLP
+    // pipeline here duplicates the analysis search() already does internally — pure wasted latency
+    // between the doctor typing and the medication results appearing.
+    if (props.scope === 'medications') {
       lastAnalyzedQuery = '';
       setDraftAnalysis(undefined);
       setAnalysisLoading(false);
@@ -512,6 +560,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 </strong>
               </Show>
               <div class="query-buttons">
+                {props.queryActionsExtra}
                 <Show when={query().length > 0}>
                   <button class="text-button clear-query-button" type="button" onClick={clearQuery}>
                     <AppGlyph name="trash" />
@@ -630,6 +679,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             </section>
           )}
         </Show>
+
+        {props.resultsHeader}
 
         <Show when={props.searchAllowed !== false && !response() && query().length === 0}>
           <SearchExamples
@@ -781,6 +832,22 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   }}
                 </WindowVirtualizer>
               </div>
+              <Show when={aiRefining()}>
+                <div
+                  class="search-results-skeleton search-results-skeleton--inline"
+                  role="status"
+                  aria-label="Локальная модель уточняет порядок источников"
+                >
+                  <div class="search-results-skeleton__row">
+                    <span class="search-results-skeleton__marker" aria-hidden="true" />
+                    <div class="search-results-skeleton__copy">
+                      <span class="search-results-skeleton__line search-results-skeleton__line--long" />
+                      <span class="search-results-skeleton__line" />
+                    </div>
+                    <span class="search-results-skeleton__tail" aria-hidden="true" />
+                  </div>
+                </div>
+              </Show>
               <Show when={searchResponse().groups.length > INITIAL_DOCUMENT_LIMIT}>
                 <button
                   class="results-more"
@@ -865,6 +932,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </div>
         </Show>
       </aside>
+
+      <Show when={aiRefining()}>
+        <div class="ai-refine-toast" role="status" aria-live="polite">
+          <span class="ai-refine-toast__spinner" aria-hidden="true" />
+          Локальная модель уточняет порядок источников…
+        </div>
+      </Show>
     </section>
   );
 }

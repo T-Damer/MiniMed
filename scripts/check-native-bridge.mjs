@@ -17,6 +17,10 @@ const files = {
   typescriptPlugin: 'packages/storage-capacitor/src/plugin.ts',
   database: 'apps/app/public/content/core-demo.db',
   report: 'apps/app/public/content/core-demo-report.json',
+  androidLlamaPlugin:
+    'apps/app/android/app/src/main/java/dev/localmed/search/LlamaInferencePlugin.kt',
+  androidLlamaCmake: 'apps/app/android/app/src/main/cpp/CMakeLists.txt',
+  typescriptLlamaPlugin: 'apps/app/src/features/models/llama-plugin.ts',
 };
 
 const entries = await Promise.all(
@@ -48,6 +52,16 @@ requireText('iosProject', 'LocalMedDatabasePlugin.swift in Sources');
 requireText('iosProject', 'LocalMedBridgeViewController.swift in Sources');
 requireText('iosProject', 'libsqlite3.tbd in Frameworks');
 requireText('storyboard', 'customClass="LocalMedBridgeViewController"');
+
+for (const method of ['ensureModel', 'initializeModel', 'complete', 'unload']) {
+  requireText('typescriptLlamaPlugin', `${method}(`);
+  requireText('androidLlamaPlugin', `fun ${method}(`);
+}
+requireText('typescriptLlamaPlugin', "registerPlugin<LlamaInferencePlugin>('LlamaInference')");
+requireText('androidLlamaPlugin', '@CapacitorPlugin(name = "LlamaInference")');
+requireText('androidActivity', 'registerPlugin(LlamaInferencePlugin.class)');
+requireText('androidLlamaPlugin', 'expectedSha256');
+requireText('androidLlamaCmake', 'add_subdirectory(${LLAMA_SRC} build-llama)');
 
 for (const native of ['androidPlugin', 'iosPlugin']) {
   requireText(native, 'PRAGMA quick_check');

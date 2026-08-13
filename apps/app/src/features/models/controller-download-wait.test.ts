@@ -38,6 +38,45 @@ vi.mock('@/features/models/browser-runtime', () => ({
   },
 }));
 
+vi.mock('@/features/models/llama-runtime', () => ({
+  LlamaNativeRuntime: class {
+    public readonly kind = 'llama-native';
+    public async isAvailable(profile: {
+      readonly platform: string;
+      readonly nativeContainer: boolean;
+    }): Promise<boolean> {
+      return profile.platform === 'android' && profile.nativeContainer;
+    }
+    public async load(
+      model: { readonly id: string },
+      artifact: { readonly id: string },
+      _profile: unknown,
+      callbacks: { readonly onProgress: (loaded: number, total: number) => void },
+    ) {
+      callbacks.onProgress(1, 2);
+      callbacks.onProgress(2, 2);
+      return {
+        modelId: model.id,
+        artifactId: artifact.id,
+        async benchmark() {
+          return {
+            modelId: model.id,
+            artifactId: artifact.id,
+            runtime: 'llama-native',
+            generationMs: 1,
+            outputCharacters: 20,
+            validStructuredOutput: true,
+          };
+        },
+        async completeStructured() {
+          throw new Error('not used');
+        },
+        async unload() {},
+      };
+    }
+  },
+}));
+
 describe('local model download coordination', () => {
   beforeEach(() => {
     const storage = new Map<string, string>();
@@ -72,6 +111,29 @@ describe('local model download coordination', () => {
     try {
       await controller.start();
       expect(controller.getState().phase).toBe('ready');
+    } finally {
+      await controller.dispose();
+    }
+  });
+
+  it('prefers the native llama.cpp runtime over wllama on a native Android device', async () => {
+    (window as unknown as { Capacitor: unknown }).Capacitor = {
+      isNativePlatform: () => true,
+      getPlatform: () => 'android',
+    };
+    const controller = new LocalModelController({
+      remoteCatalogUrl: '',
+      mirrorBaseUrl: '',
+      allowUpstreamFallback: false,
+      allowAutomationDownloads: true,
+      defaultAutoLoad: true,
+    });
+
+    try {
+      await controller.start();
+      const state = controller.getState();
+      expect(state.phase).toBe('ready');
+      expect(state.benchmark?.runtime).toBe('llama-native');
     } finally {
       await controller.dispose();
     }

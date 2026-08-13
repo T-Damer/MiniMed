@@ -137,6 +137,14 @@
   padding: 0.75rem 0.875rem;
 }
 
+.model-download-body {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .model-download-status-header {
   display: flex;
   align-items: center;
@@ -349,12 +357,20 @@
   padding: 0.5rem 0.6875rem;
   border: 1px solid rgb(72 59 34 / 30%);
   color: #4f432b;
-  background: rgb(249 241 220 / 38%);
+  background: rgb(249 241 220 / 88%);
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.model-settings-controls button:disabled,
+.model-option-action:disabled {
+  border-color: rgb(72 59 34 / 16%);
+  color: rgb(79 67 43 / 55%);
+  background: rgb(249 241 220 / 32%);
+  cursor: not-allowed;
 }
 
 .model-settings-controls button.active {

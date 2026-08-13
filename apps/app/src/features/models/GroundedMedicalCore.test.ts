@@ -8,8 +8,28 @@ import type {
 import { describe, expect, it, vi } from 'vitest';
 
 import type { LocalModelController } from '@/features/models/controller';
-import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
+import {
+  type GroundedAssistantPhase,
+  type GroundedAssistantState,
+  GroundedMedicalCore,
+} from '@/features/models/GroundedMedicalCore';
 import type { LocalModelStructuredRequest } from '@/features/models/types';
+
+// Stage 2 (citation-checked rerank) now runs in the background after search() resolves with the
+// deterministic order — tests wait for the phase it settles into instead of reading it off the
+// return value.
+function waitForPhase(
+  core: GroundedMedicalCore,
+  phase: GroundedAssistantPhase,
+): Promise<GroundedAssistantState> {
+  return new Promise((resolve) => {
+    const unsubscribe = core.subscribeAssistant((state) => {
+      if (state.phase !== phase) return;
+      unsubscribe();
+      resolve(state);
+    });
+  });
+}
 
 const analysis: QueryAnalysis = {
   originalQuery: 'кашель и лихорадка',
@@ -170,9 +190,16 @@ describe('GroundedMedicalCore', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.groups.map((group) => group.documentId)).toEqual(['doc-b', 'doc-a']);
-    expect(core.getAssistantState()).toMatchObject({
-      phase: 'applied',
+    // search() itself always resolves with the deterministic order — the background enhancement
+    // is never awaited here.
+    expect(result.value.groups.map((group) => group.documentId)).toEqual(['doc-a', 'doc-b']);
+
+    const applied = await waitForPhase(core, 'applied');
+    expect(applied.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
+      'doc-b',
+      'doc-a',
+    ]);
+    expect(applied).toMatchObject({
       modelId: 'model-a',
       terms: ['кашель', 'лихорадка'],
       missingInformation: ['Возраст пациента'],
@@ -198,6 +225,9 @@ describe('GroundedMedicalCore', () => {
       baseCore(response),
       modelController((task) => {
         if (task.task === 'query-plan') return validResponse(task);
+        // Stage 1's relevance prompt is plain text, not JSON — only the real rerank call below
+        // should feed these assertions.
+        if (task.task === 'relevance') return {};
         rankingPromptText = task.userPrompt;
         candidates = (
           JSON.parse(task.userPrompt) as {
@@ -214,6 +244,7 @@ describe('GroundedMedicalCore', () => {
     );
 
     await core.search(request);
+    await waitForPhase(core, 'applied');
 
     expect(candidates).toHaveLength(6);
     expect(candidates.every((candidate) => candidate.snippet.length <= 280)).toBe(true);
@@ -240,9 +271,10 @@ describe('GroundedMedicalCore', () => {
     );
 
     const result = await core.search(request);
-
     expect(result.ok).toBe(true);
-    expect(core.getAssistantState().diagnosisCandidates).toEqual([
+
+    const applied = await waitForPhase(core, 'applied');
+    expect(applied.diagnosisCandidates).toEqual([
       {
         label: 'Документ B',
         sourceExcerpt: 'Документ B: клинический фрагмент для проверки порядка.',
@@ -278,10 +310,10 @@ describe('GroundedMedicalCore', () => {
     );
 
     const result = await core.search(request);
-
     expect(result.ok).toBe(true);
-    expect(core.getAssistantState().phase).toBe('fallback');
-    expect(core.getAssistantState().diagnosisCandidates).toEqual([]);
+
+    const fallback = await waitForPhase(core, 'fallback');
+    expect(fallback.diagnosisCandidates).toEqual([]);
   });
 
   it('rejects a dose claim without an exact regimen in a treatment fragment', async () => {
@@ -304,11 +336,11 @@ describe('GroundedMedicalCore', () => {
     );
 
     const result = await core.search(request);
-
     expect(result.ok).toBe(true);
-    expect(core.getAssistantState().phase).toBe('fallback');
-    expect(core.getAssistantState().doseEvidence).toEqual([]);
-    expect(core.getAssistantState().error).toMatch(/не подтверждена точным режимом/u);
+
+    const fallback = await waitForPhase(core, 'fallback');
+    expect(fallback.doseEvidence).toEqual([]);
+    expect(fallback.error).toMatch(/не подтверждена точным режимом/u);
   });
 
   it('accepts only a verbatim dose regimen from a treatment fragment', async () => {
@@ -350,10 +382,10 @@ describe('GroundedMedicalCore', () => {
     );
 
     const result = await core.search(request);
-
     expect(result.ok).toBe(true);
-    expect(core.getAssistantState().phase).toBe('applied');
-    expect(core.getAssistantState().doseEvidence).toMatchObject([
+
+    const applied = await waitForPhase(core, 'applied');
+    expect(applied.doseEvidence).toMatchObject([
       {
         label: 'Препарат X',
         sourceExcerpt: doseSnippet,
@@ -406,10 +438,10 @@ describe('GroundedMedicalCore', () => {
     );
 
     const result = await core.search(request);
-
     expect(result.ok).toBe(true);
-    expect(core.getAssistantState().phase).toBe('fallback');
-    expect(core.getAssistantState().doseEvidence).toEqual([]);
+
+    const fallback = await waitForPhase(core, 'fallback');
+    expect(fallback.doseEvidence).toEqual([]);
   });
 
   it('returns the untouched deterministic order when the model invents a candidate id', async () => {
@@ -426,8 +458,95 @@ describe('GroundedMedicalCore', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.groups.map((group) => group.documentId)).toEqual(['doc-a', 'doc-b']);
-    expect(core.getAssistantState().phase).toBe('fallback');
-    expect(core.getAssistantState().error).toMatch(/не было среди кандидатов/u);
+
+    const fallback = await waitForPhase(core, 'fallback');
+    expect(fallback.error).toMatch(/не было среди кандидатов/u);
+  });
+
+  it('publishes a fast relevance-based reorder before the slower citation pass finishes', async () => {
+    let releaseRanking: (() => void) | undefined;
+    const rankingGate = new Promise<void>((resolve) => {
+      releaseRanking = resolve;
+    });
+    const controller = {
+      canRunStructuredTasks: () => true,
+      getState: () => ({ activeModelId: 'model-a' }),
+      completeStructuredTask: vi.fn(async (task: LocalModelStructuredRequest) => {
+        if (task.task === 'relevance') {
+          // Candidate 1 is chunk-a (doc-a), candidate 2 is chunk-b (doc-b): flip their order.
+          return { task: task.task, rawText: '1:L 2:H', parsedJson: null, generationMs: 5 };
+        }
+        if (task.task === 'query-plan') {
+          return {
+            task: task.task,
+            rawText: JSON.stringify(validResponse(task)),
+            parsedJson: validResponse(task),
+            generationMs: 5,
+          };
+        }
+        await rankingGate;
+        return {
+          task: task.task,
+          rawText: JSON.stringify(validResponse(task)),
+          parsedJson: validResponse(task),
+          generationMs: 5,
+        };
+      }),
+    } as unknown as LocalModelController;
+
+    const core = new GroundedMedicalCore(baseCore(), controller);
+    await core.search(request);
+
+    const fastState = await new Promise<GroundedAssistantState>((resolve) => {
+      let unsubscribe: (() => void) | undefined;
+      unsubscribe = core.subscribeAssistant((state) => {
+        if (state.phase !== 'running' || !state.enhancedResponse) return;
+        unsubscribe?.();
+        resolve(state);
+      });
+    });
+    expect(fastState.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
+      'doc-b',
+      'doc-a',
+    ]);
+
+    releaseRanking?.();
+    const applied = await waitForPhase(core, 'applied');
+    expect(applied.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
+      'doc-b',
+      'doc-a',
+    ]);
+  });
+
+  it('keeps the fast relevance reorder when the slower citation pass fails', async () => {
+    const controller = {
+      canRunStructuredTasks: () => true,
+      getState: () => ({ activeModelId: 'model-a' }),
+      completeStructuredTask: vi.fn(async (task: LocalModelStructuredRequest) => {
+        if (task.task === 'relevance') {
+          return { task: task.task, rawText: '1:L 2:H', parsedJson: null, generationMs: 5 };
+        }
+        if (task.task === 'query-plan') {
+          return {
+            task: task.task,
+            rawText: JSON.stringify(validResponse(task)),
+            parsedJson: validResponse(task),
+            generationMs: 5,
+          };
+        }
+        return { task: task.task, rawText: 'not json', parsedJson: null, generationMs: 5 };
+      }),
+    } as unknown as LocalModelController;
+
+    const core = new GroundedMedicalCore(baseCore(), controller);
+    await core.search(request);
+
+    const fallback = await waitForPhase(core, 'fallback');
+    expect(fallback.enhancedResponse?.groups.map((group) => group.documentId)).toEqual([
+      'doc-b',
+      'doc-a',
+    ]);
+    expect(fallback.message).toMatch(/Показан быстрый порядок/u);
   });
 
   it('does not call the model when no validated session is ready', async () => {

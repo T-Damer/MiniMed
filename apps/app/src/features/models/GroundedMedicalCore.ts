@@ -21,6 +21,7 @@ import type {
 } from '@localmed/contracts';
 
 import type { LocalModelController } from '@/features/models/controller';
+import { withoutThinking } from '@/features/models/structured-output';
 
 export type GroundedAssistantPhase = 'idle' | 'running' | 'applied' | 'fallback';
 
@@ -58,6 +59,13 @@ export interface GroundedAssistantState {
   readonly rerankedCandidates: number;
   readonly generationMs: number | null;
   readonly error: string | null;
+  /**
+   * The best available reordering of the deterministic response, published as soon as either
+   * stage of the background enhancement produces one. `search()` itself always resolves with the
+   * deterministic order — the UI picks this up via `subscribeAssistant` to upgrade in place once
+   * it is ready, instead of blocking the initial results on model latency.
+   */
+  readonly enhancedResponse: SearchResponse | null;
 }
 
 export type GroundedAssistantListener = (state: GroundedAssistantState) => void;
@@ -99,6 +107,7 @@ const INITIAL_STATE: GroundedAssistantState = {
   rerankedCandidates: 0,
   generationMs: null,
   error: null,
+  enhancedResponse: null,
 };
 
 // ponytail: fits current 2K-token browser sessions; add tokenizer-aware packing for larger contexts.
@@ -415,6 +424,69 @@ function rankingPrompt(query: string, candidates: readonly CandidatePayload[]): 
   });
 }
 
+const RELEVANCE_WEIGHTS: Readonly<Record<string, number>> = { H: 2, M: 1, L: 0 };
+
+// A cheap first-pass reorder: a coarse per-candidate relevance letter instead of the full
+// citation-checked JSON in `rankingPrompt`. Carries no clinical claim (it never asserts a
+// diagnosis or dose), so it can safely stay applied even if the slower, stricter pass below fails.
+function relevancePrompt(query: string, candidates: readonly CandidatePayload[]): string {
+  const lines = candidates
+    .map(
+      (candidate, index) =>
+        `${index + 1}. [${candidate.category}] ${candidate.title}: ${candidate.snippet}`,
+    )
+    .join('\n');
+  return [
+    `Запрос: ${query}`,
+    '',
+    'Кандидаты (раздел источника указан в квадратных скобках):',
+    lines,
+    '',
+    'Оценивай релевантность как источник для разбора клинического случая, а не по совпадению отдельных слов.',
+    'Разделы clinical-picture, differential-diagnosis и diagnostics обычно важнее для диагностики.',
+    'Раздел treatment и карточки конкретных препаратов релевантны только если запрос явно про лечение или дозировку — иначе их релевантность низкая, даже если упомянут тот же симптом.',
+    'Для каждого кандидата укажи одну букву релевантности запросу: H — высокая, M — средняя, L — низкая.',
+    'Ответь только строкой вида "1:H 2:M 3:L" без пояснений и без повтора текста кандидатов.',
+  ].join('\n');
+}
+
+function parseRelevanceLabels(
+  rawText: string,
+  candidates: readonly CandidatePayload[],
+): ReadonlyMap<string, number> {
+  const cleaned = withoutThinking(rawText);
+  const weights = new Map<string, number>();
+  const pattern = /(\d{1,2})\s*[:.-]\s*([HMLhml])\b/gu;
+  for (const match of cleaned.matchAll(pattern)) {
+    const index = Number(match[1]) - 1;
+    const candidate = candidates[index];
+    const letter = match[2]?.toUpperCase();
+    if (!candidate || !letter || weights.has(candidate.id)) continue;
+    weights.set(candidate.id, RELEVANCE_WEIGHTS[letter] ?? 0);
+  }
+  return weights;
+}
+
+function applyRelevanceWeights(
+  response: SearchResponse,
+  weights: ReadonlyMap<string, number>,
+): SearchResponse {
+  const weightOf = (chunkId: string): number => weights.get(chunkId) ?? -1;
+  const groups: SearchResultGroup[] = response.groups.map((group) => ({
+    ...group,
+    results: [...group.results].sort(
+      (left, right) =>
+        weightOf(right.chunkId) - weightOf(left.chunkId) || right.finalScore - left.finalScore,
+    ),
+  }));
+  groups.sort((left, right) => {
+    const leftWeight = Math.max(-1, ...left.results.map((result) => weightOf(result.chunkId)));
+    const rightWeight = Math.max(-1, ...right.results.map((result) => weightOf(result.chunkId)));
+    return rightWeight - leftWeight || right.bestScore - left.bestScore;
+  });
+  return { ...response, groups };
+}
+
 export class GroundedMedicalCore implements MedicalCore {
   private readonly listeners = new Set<GroundedAssistantListener>();
   private state: GroundedAssistantState = INITIAL_STATE;
@@ -472,7 +544,7 @@ export class GroundedMedicalCore implements MedicalCore {
       phase: 'running',
       query: request.query,
       modelId,
-      message: 'Локальная модель уточняет формулировку и порядок найденных источников…',
+      message: 'Локальная модель уточняет порядок найденных источников…',
       terms: [],
       clarifyingQuestions: [],
       diagnosisCandidates: [],
@@ -481,35 +553,77 @@ export class GroundedMedicalCore implements MedicalCore {
       rerankedCandidates: 0,
       generationMs: null,
       error: null,
+      enhancedResponse: null,
     });
 
+    // search() always resolves with the deterministic order — the UI never blocks on model
+    // latency. The (much slower) model-assisted reorder and citation extraction are published
+    // afterward through the assistant state, so results appear immediately and are upgraded in
+    // place once ready.
+    void this.enhance(generation, request.query, deterministic.value, candidates, modelId);
+    return deterministic;
+  }
+
+  private async enhance(
+    generation: number,
+    query: string,
+    deterministic: SearchResponse,
+    candidates: readonly CandidatePayload[],
+    modelId: string | null,
+  ): Promise<void> {
+    // Stage 1: a cheap coarse relevance label per candidate — a few tokens of output instead of a
+    // full JSON object, so it finishes long before stage 2 and gives an early, better-than-nothing
+    // reorder. It never asserts a diagnosis or dose, so it stays applied even if stage 2 fails.
+    try {
+      const relevanceResponse = await this.controller.completeStructuredTask({
+        task: 'relevance',
+        systemPrompt:
+          'Ты оцениваешь совпадение уже найденных фрагментов с запросом. Не добавляй факты и не пиши ничего, кроме меток.',
+        userPrompt: relevancePrompt(query, candidates),
+        maxTokens: 64,
+      });
+      if (generation !== this.searchGeneration) return;
+      const weights = parseRelevanceLabels(relevanceResponse.rawText, candidates);
+      if (weights.size > 0) {
+        this.updateAssistant({
+          enhancedResponse: applyRelevanceWeights(deterministic, weights),
+          message: 'Быстрый порядок готов, локальная модель уточняет точные цитаты…',
+        });
+      }
+    } catch {
+      // Best effort — stage 2 below remains authoritative for the final phase/message.
+    }
+    if (generation !== this.searchGeneration) return;
+
+    // Stage 2: the slower, citation-checked rerank — unchanged from before, just no longer gates
+    // search()'s return value.
     try {
       const planResponse = await this.controller.completeStructuredTask({
         task: 'query-plan',
         systemPrompt:
           'Ты модуль планирования медицинского поиска. Не ставь диагноз, не назначай лечение и не добавляй медицинские факты. Верни только JSON по заданной схеме.',
-        userPrompt: planPrompt(request.query, deterministic.value.analysis),
+        userPrompt: planPrompt(query, deterministic.analysis),
         maxTokens: 240,
       });
-      if (generation !== this.searchGeneration) return deterministic;
+      if (generation !== this.searchGeneration) return;
       const rankingResponse = await this.controller.completeStructuredTask({
         task: 'rerank',
         systemPrompt:
           'Ты извлекаешь данные только из уже найденных фрагментов медицинских источников. Не создавай новые факты, источники, назначения или расчёты. Клинический текст копируй дословно и связывай только с доступными id. Верни только JSON по заданной схеме.',
-        userPrompt: rankingPrompt(request.query, candidates),
+        userPrompt: rankingPrompt(query, candidates),
         maxTokens: 512,
       });
-      if (generation !== this.searchGeneration) return deterministic;
+      if (generation !== this.searchGeneration) return;
       const plan = parseQueryPlan(planResponse.parsedJson);
       const ranking = parseRanking(rankingResponse.parsedJson, candidates);
       const orderedIds = completeOrder(
         ranking,
         candidates.map((candidate) => candidate.id),
       );
-      const reranked = reorderResponse(deterministic.value, orderedIds);
+      const reranked = reorderResponse(deterministic, orderedIds);
       this.updateAssistant({
         phase: 'applied',
-        query: request.query,
+        query,
         modelId,
         message: `Локальная модель уточнила порядок ${candidates.length} источников.`,
         terms: plan.terms,
@@ -519,17 +633,22 @@ export class GroundedMedicalCore implements MedicalCore {
         missingInformation: ranking.missingInformation,
         rerankedCandidates: candidates.length,
         generationMs: planResponse.generationMs + rankingResponse.generationMs,
+        enhancedResponse: reranked,
         error: null,
       });
-      return { ok: true, value: reranked };
     } catch (cause) {
-      if (generation !== this.searchGeneration) return deterministic;
+      if (generation !== this.searchGeneration) return;
       const error = cause instanceof Error ? cause.message : 'Неизвестная ошибка локальной модели.';
+      // A stage-1 reorder carries no clinical claim, so keep it visible even when the stricter
+      // citation pass below fails — only the citation-derived fields fall back fully.
+      const fastOrder = this.state.query === query ? this.state.enhancedResponse : null;
       this.updateAssistant({
         phase: 'fallback',
-        query: request.query,
+        query,
         modelId,
-        message: 'Показан обычный порядок источников: локальная модель не прошла проверку.',
+        message: fastOrder
+          ? 'Показан быстрый порядок источников: точные цитаты не прошли проверку.'
+          : 'Показан обычный порядок источников: локальная модель не прошла проверку.',
         terms: [],
         clarifyingQuestions: [],
         diagnosisCandidates: [],
@@ -537,9 +656,9 @@ export class GroundedMedicalCore implements MedicalCore {
         missingInformation: [],
         rerankedCandidates: 0,
         generationMs: null,
+        enhancedResponse: fastOrder,
         error,
       });
-      return deterministic;
     }
   }
 

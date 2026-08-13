@@ -1,16 +1,20 @@
 import type { MedicalCore } from '@localmed/contracts';
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
-import type { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
+import type {
+  GroundedAssistantState,
+  GroundedMedicalCore,
+} from '@/features/models/GroundedMedicalCore';
 import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
-import { SearchWorkspace } from '@/features/search/SearchWorkspace';
+import { type SearchEnhancementState, SearchWorkspace } from '@/features/search/SearchWorkspace';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 
@@ -60,6 +64,24 @@ const SEARCH_SCOPES: readonly SearchScopeOption[] = [
   },
 ] as const;
 
+const AI_ASSIST_KEY = 'minimed.diagnosis-ai-assist.v1';
+
+function loadAiAssistPreference(): boolean {
+  try {
+    return window.localStorage.getItem(AI_ASSIST_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+function saveAiAssistPreference(enabled: boolean): void {
+  try {
+    window.localStorage.setItem(AI_ASSIST_KEY, enabled ? 'on' : 'off');
+  } catch {
+    // Best effort — the toggle still works for the current session.
+  }
+}
+
 export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [scope, setScope] = createSignal<SearchScope>();
   const [documentCountsLoaded, setDocumentCountsLoaded] = createSignal(false);
@@ -71,6 +93,29 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     all: 0,
   });
   const [helpOpen, setHelpOpen] = createSignal(false);
+  const [aiAssistEnabled, setAiAssistEnabled] = createSignal(loadAiAssistPreference());
+  const [assistantState, setAssistantState] = createSignal<GroundedAssistantState>();
+
+  const toggleAiAssist = (): void => {
+    setAiAssistEnabled((previous) => {
+      const next = !previous;
+      saveAiAssistPreference(next);
+      return next;
+    });
+  };
+
+  onMount(() => {
+    if (!props.assistantCore) return;
+    const unsubscribe = props.assistantCore.subscribeAssistant(setAssistantState);
+    onCleanup(unsubscribe);
+  });
+
+  const enhancement = createMemo((): SearchEnhancementState | undefined => {
+    if (!aiAssistEnabled() || scope() !== 'diagnosis') return undefined;
+    const state = assistantState();
+    if (!state || state.phase === 'idle' || !state.query) return undefined;
+    return { phase: state.phase, query: state.query, enhancedResponse: state.enhancedResponse };
+  });
 
   const refreshDocumentCounts = (): void => {
     void props.baseCore.listDocuments().then((result) => {
@@ -101,9 +146,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
 
   const scopedCore = createMemo(() => {
     const selected = scope();
-    return selected
-      ? new ScopedMedicalCore(props.baseCore, props.assistantCore, selected)
-      : undefined;
+    const assistant = aiAssistEnabled() ? props.assistantCore : undefined;
+    return selected ? new ScopedMedicalCore(props.baseCore, assistant, selected) : undefined;
   });
   const selectedScopeUnavailable = createMemo(() => {
     const selected = scope();
@@ -148,13 +192,37 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       </Show>
 
       <div class="search-workspace-main">
-        <Show when={scope() === 'diagnosis' && props.assistantCore}>
-          <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
-        </Show>
         <SearchWorkspace
           core={scopedCore() ?? props.baseCore}
           scope={scope() ?? 'all'}
           searchAllowed={Boolean(scope()) && !selectedScopeUnavailable()}
+          enhancement={enhancement}
+          resultsHeader={
+            <Show when={scope() === 'diagnosis' && aiAssistEnabled() && props.assistantCore}>
+              <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
+            </Show>
+          }
+          queryActionsExtra={
+            <Show when={scope() === 'diagnosis' && props.assistantCore}>
+              <button
+                type="button"
+                class="ai-assist-toggle"
+                classList={{ active: aiAssistEnabled() }}
+                aria-pressed={aiAssistEnabled()}
+                title={
+                  aiAssistEnabled()
+                    ? 'Локальная модель включена: уточняет порядок источников и ищет точные цитаты'
+                    : 'Локальная модель выключена: обычный детерминированный поиск'
+                }
+                onClick={toggleAiAssist}
+              >
+                <AppGlyph name="brain" />
+                <span class="sr-only">
+                  {aiAssistEnabled() ? 'Выключить локальную модель' : 'Включить локальную модель'}
+                </span>
+              </button>
+            </Show>
+          }
           placeholder={
             scope()
               ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'

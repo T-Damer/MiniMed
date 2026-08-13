@@ -96,6 +96,18 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['first', 'second']);
   });
 
+  it('ranks the exact drug name above a similarly named drug that only mentions it in passing', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('cefazolin', 'Цефазолин, порошок для приготовления раствора для инъекций', 1.4),
+        group('ceftriaxone', 'Цефтриаксон, порошок для приготовления раствора для инъекций', 0.6),
+      ],
+      'Цефтриаксон',
+    );
+
+    expect(ranked.map((item) => item.documentId)).toEqual(['ceftriaxone', 'cefazolin']);
+  });
+
   it('recognizes compact and hyphenated document numbers as the same reference', () => {
     expect(
       queryGroupRelevanceBoost(

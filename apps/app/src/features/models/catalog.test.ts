@@ -3,15 +3,11 @@ import { parseLocalModelCatalog } from '@/features/models/catalog';
 import rawCatalog from '@/features/models/catalog.preview.json';
 
 describe('local model catalog', () => {
-  it('loads the six curated startup candidates', () => {
+  it('loads the two curated startup candidates', () => {
     const catalog = parseLocalModelCatalog(rawCatalog);
     expect(catalog.models.map((model) => model.id)).toEqual([
       'vikhr-qwen2.5-0.5b-q4',
-      'qwen3-0.6b-q8',
-      'gemma3-1b-it-q4',
       'qvikhr-3-1.7b-q4',
-      'qwen3-1.7b-q8',
-      'llama-3.2-3b-instruct-q4',
     ]);
     expect(catalog.models.every((model) => model.artifacts.length > 0)).toBe(true);
   });
@@ -80,8 +76,23 @@ describe('local model catalog', () => {
   });
 
   it('keeps license acceptance explicit for gated families', () => {
-    const catalog = parseLocalModelCatalog(rawCatalog);
+    // The bundled catalog currently offers only Apache-2.0 models (no acceptance required), so this
+    // exercises the gating mechanism itself via a synthetic fixture rather than a real entry.
+    const withGatedFixture = structuredClone(rawCatalog);
+    const firstModel = withGatedFixture.models.at(0);
+    if (!firstModel) throw new Error('Catalog test requires one model fixture.');
+    withGatedFixture.models.push({
+      ...structuredClone(firstModel),
+      id: 'gated-fixture-model',
+      license: {
+        id: 'gated-fixture-license',
+        name: 'Gated Fixture License',
+        url: 'https://example.com/license',
+        requiresAcceptance: true,
+      },
+    });
+    const catalog = parseLocalModelCatalog(withGatedFixture);
     const gated = catalog.models.filter((model) => model.license.requiresAcceptance);
-    expect(gated.map((model) => model.id)).toEqual(['gemma3-1b-it-q4', 'llama-3.2-3b-instruct-q4']);
+    expect(gated.map((model) => model.id)).toEqual(['gated-fixture-model']);
   });
 });

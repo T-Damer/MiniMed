@@ -4,6 +4,37 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.16] - 2026-08-13
+
+### Added
+
+- Added a native `llama.cpp` inference runtime for Android (NDK/CMake build, JNI bridge, Capacitor
+  plugin), so the local model runs as real compiled ARM64 code instead of only through the browser
+  WebAssembly path — same GGUF artifacts, native speed. An earlier attempt at native inference via the
+  Cactus Compute SDK was rolled back after discovering it cannot load MiniMed's own GGUF models.
+- The diagnosis search's local-model step is now progressive: deterministic results render immediately,
+  and the model's reordering (a fast relevance pass, followed by the existing citation-checked rerank)
+  is applied in place afterward, with a status toast and placeholder row while it works. Previously the
+  whole search waited on the model before showing anything.
+- Added a toggle next to the search buttons to turn the local-model step off entirely for diagnosis
+  search, falling back to plain deterministic search.
+
+### Changed
+
+- Trimmed the bundled local-model catalog to the two Russian-tuned candidates (Vikhr Qwen 2.5 0.5B,
+  QVikhr 3 1.7B); the generic Qwen3/Gemma/Llama control models showed no advantage over them and added
+  maintenance weight without benefit.
+- Improved medication-name search so an exact or full-title match ranks first instead of a similarly
+  named but less relevant drug, and removed a redundant clinical-analysis pass that slowed down
+  medication-scope search.
+
+### Fixed
+
+- Fixed the local-model download page's layout during the download/loading state and low-contrast
+  buttons in dark theme.
+- Fixed the local-model status banner rendering above the entire search form instead of between the
+  form and results.
+
 ## [0.6.15] - 2026-08-12
 
 ### Added

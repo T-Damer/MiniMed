@@ -11,7 +11,12 @@ import type {
 } from '@/features/models/types';
 
 const CACHE_KEY = 'minimed.local-model-catalog.preview.v1';
-const RUNTIMES = new Set<LocalModelRuntimeKind>(['wllama-web', 'litert-native', 'cactus-native']);
+const RUNTIMES = new Set<LocalModelRuntimeKind>([
+  'wllama-web',
+  'litert-native',
+  'cactus-native',
+  'llama-native',
+]);
 const PLATFORMS = new Set<LocalModelPlatform>(['browser', 'android', 'ios']);
 const TIERS = new Set<LocalModelTier>(['compact', 'balanced', 'quality']);
 const MODEL_HOSTS = new Set(['huggingface.co', 'github.com']);

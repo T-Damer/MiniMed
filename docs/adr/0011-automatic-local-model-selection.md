@@ -3,6 +3,8 @@
 - Status: accepted for experimental implementation
 - Date: 2026-07-22
 - Amended: 2026-07-24
+- Amended: 2026-08-13
+- Amended: 2026-08-13 (catalog trim)
 
 The runtime and selection decision remains active. Decision 12 described the original runtime-only
 slice; model output is now connected to bounded reranking and exact-source diagnostic/dose extraction
@@ -101,7 +103,8 @@ negation, population, omission, contradiction, and dangerous-advice benchmark co
 - browser memory reporting is approximate and browser storage quotas vary;
 - WebAssembly model initialization can still fail despite the lightweight probe;
 - model artefact SHA-256 verification needs a streaming downloader/native installer before this path
-  can be promoted from experimental;
+  can be promoted from experimental — this now exists for the `llama-native` runtime specifically
+  (see the 2026-08-13 amendment below), but still not for the `wllama-web` browser/WebView path;
 - licence-gated models cannot participate in first-run automatic selection until their terms have
   been accepted;
 - native acceleration requires follow-up adapters and physical-device benchmarks;
@@ -131,3 +134,32 @@ separate runtime artifacts rather than inferred from browser capability.
 Real compact-model CPU loading is covered by a non-blocking weekly/manual CI workflow. GPU/NPU claims
 cannot be merge-gated on generic hosted runners; they require a physical-device lane after the native
 adapter is implemented.
+
+## Native llama.cpp adapter amendment (Android)
+
+Decision 9's "LiteRT-LM and Cactus remain separate native adapters" is superseded: a native GGUF
+adapter now exists for Android via `LlamaNativeRuntime`
+(`apps/app/src/features/models/llama-runtime.ts`), wrapping a vendored, natively-compiled
+`llama.cpp` (not Cactus or LiteRT-LM) — see `docs/adr/0014-native-llama-cpp-android-runtime.md` and
+the "Android native behavior" section of `docs/LOCAL_MODELS.md`. A first attempt used the Cactus
+Compute SDK; it was rolled back after discovering its post-v1 releases only load models from
+Cactus's own hosted catalog, not MiniMed's own GGUF artifacts, without a paid plan. LiteRT-LM and iOS
+native support remain undone.
+
+This is also the first place in the app with real SHA-256 verification of a downloaded model
+artifact (the native plugin streams the download straight to disk and verifies the checksum before
+installing it) — the browser/`wllama-web` path still only validates that the catalog's `sha256`
+field looks like a hash, not that the downloaded bytes match it.
+
+## Catalog trim amendment
+
+The generic Qwen3/Gemma/Llama controls described in Context (six small models) served their purpose:
+on-device testing during the native llama.cpp work (see the amendment above) never found a case where
+a generic control outperformed the paired Russian-tuned Vikhr model at the same tier for MiniMed's
+actual clinical queries, and Gemma/Llama never shipped a published artifact in the first place. Keeping
+them in the catalog cost real maintenance weight — a larger `catalog.preview.json`, more test fixture
+surface in `catalog.test.ts`/`selection.test.ts`, and a longer on-device benchmark list — with no
+demonstrated benefit, so they were dropped. The bundled catalog now carries only Vikhr Qwen 2.5 0.5B
+and QVikhr 3 1.7B. Decision 13's reasoning (keep large 8B-class Russian models out of the mobile
+automatic tier) and Decision 9 (provider-neutral runtime contracts) are unaffected — this amendment
+only narrows which models populate the catalog, not how selection or runtimes work.

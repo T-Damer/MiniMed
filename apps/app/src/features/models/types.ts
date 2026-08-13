@@ -1,5 +1,9 @@
 export type LocalModelPlatform = 'browser' | 'android' | 'ios';
-export type LocalModelRuntimeKind = 'wllama-web' | 'litert-native' | 'cactus-native';
+export type LocalModelRuntimeKind =
+  | 'wllama-web'
+  | 'litert-native'
+  | 'cactus-native'
+  | 'llama-native';
 export type LocalModelTier = 'compact' | 'balanced' | 'quality';
 export type LocalModelPhase =
   | 'idle'
@@ -11,7 +15,7 @@ export type LocalModelPhase =
   | 'benchmarking'
   | 'ready'
   | 'error';
-export type LocalModelStructuredTaskKind = 'query-plan' | 'rerank';
+export type LocalModelStructuredTaskKind = 'query-plan' | 'rerank' | 'relevance';
 
 export interface LocalModelLicense {
   readonly id: string;

@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 import groovy.json.JsonSlurper
 
@@ -7,6 +8,9 @@ def releaseMetadata = new JsonSlurper().parse(file('../../../../release.json'))
 android {
     namespace = "dev.localmed.search"
     compileSdk = rootProject.ext.compileSdkVersion
+    // Pinned to the NDK actually installed for this project — see
+    // docs/adr/0015-native-llama-cpp-android-runtime.md.
+    ndkVersion "27.3.13750724"
     defaultConfig {
         applicationId "dev.localmed.search"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -19,12 +23,32 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc4ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        ndk {
+            // The vendored llama.cpp build only targets arm64-v8a (see src/main/cpp/CMakeLists.txt)
+            // — no GPU backend is built for Android, and 32-bit devices are out of scope.
+            abiFilters 'arm64-v8a'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+                targets "ai-chat"
+            }
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+    kotlinOptions {
+        jvmTarget = "21"
     }
 }
 
@@ -44,6 +68,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
 }
 
 apply from: 'capacitor.build.gradle'

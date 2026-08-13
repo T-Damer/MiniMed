@@ -1,6 +1,7 @@
 import { BrowserWllamaRuntime } from '@/features/models/browser-runtime';
 import { loadLocalModelCatalog, parseLocalModelCatalog } from '@/features/models/catalog';
 import bundledCatalog from '@/features/models/catalog.preview.json';
+import { LlamaNativeRuntime } from '@/features/models/llama-runtime';
 import { buildLocalModelLoadPlan, selectLocalModel } from '@/features/models/selection';
 import type {
   LocalModelBenchmark,
@@ -360,6 +361,9 @@ export class LocalModelController {
         mirrorBaseUrl: this.options.mirrorBaseUrl,
         allowUpstreamFallback: this.options.allowUpstreamFallback,
       }),
+      // Its own isAvailable() gates it to native Android — safe to construct unconditionally on
+      // web, same as BrowserWllamaRuntime above.
+      new LlamaNativeRuntime({ mirrorBaseUrl: this.options.mirrorBaseUrl }),
     ];
   }
 

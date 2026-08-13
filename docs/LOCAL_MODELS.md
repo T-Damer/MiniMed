@@ -8,10 +8,12 @@ remain available when the model is absent, downloading, unloaded, unsupported, o
 The experimental slice implements:
 
 - a validated remote/cache/bundled model catalog;
-- six curated logical candidates, including two Russian-specific Vikhr models;
+- two curated Russian-specific Vikhr candidates (compact and balanced tiers);
 - a lightweight startup device probe;
 - deterministic automatic recommendation;
 - browser/Android-WebView GGUF loading through a dynamically imported wllama runtime;
+- native Android GGUF loading through a vendored llama.cpp compiled via NDK/CMake (Android only —
+  see "Android native behavior" below and `docs/adr/0014-native-llama-cpp-android-runtime.md`);
 - a short Russian constrained-output warm-up benchmark;
 - cached benchmark results and temporary failure suppression;
 - one smaller-candidate fallback;
@@ -22,9 +24,10 @@ The experimental slice implements:
 It does **not** yet:
 
 - use generated text in medical search or answers;
-- implement native LiteRT-LM or Cactus inference;
+- implement a native LiteRT-LM adapter, or native inference on iOS;
 - prove that any candidate improves the Russian clinical benchmark;
-- validate model SHA-256 through a streaming browser installer;
+- validate model SHA-256 through a streaming browser installer (the native Android download path
+  does this now; the browser/WebView `wllama-web` path still does not);
 - publish mirrored model assets in a MiniMed GitHub Release;
 - support iOS inference.
 
@@ -34,19 +37,22 @@ The bundled preview catalog contains:
 
 | Model | Initial tier | Smallest current artifact | Current runtime path |
 | --- | --- | ---: | --- |
-| Vikhr Qwen 2.5 0.5B Q4 | compact/Russian | about 398 MB | browser/Android WebView GGUF |
-| Qwen3 0.6B Q8 | compact/control | about 639 MB | browser/Android WebView GGUF |
-| Gemma 3 1B IT | balanced | about 584 MB LiteRT; 806 MB GGUF | GGUF now; LiteRT declared for follow-up |
-| QVikhr 3 1.7B Q4 | balanced/Russian | about 1.11 GB | browser/Android WebView GGUF |
-| Qwen3 1.7B Q8 | balanced/control | about 1.83 GB | browser/Android WebView GGUF |
-| Llama 3.2 3B Instruct Q4 | quality/experimental | about 2.02 GB | native Cactus declared for follow-up |
+| Vikhr Qwen 2.5 0.5B Q4 | compact/Russian | about 398 MB | browser/Android WebView GGUF; native llama.cpp on Android |
+| QVikhr 3 1.7B Q4 | balanced/Russian | about 1.11 GB | browser/Android WebView GGUF; native llama.cpp on Android |
+
+The catalog was deliberately trimmed to these two Russian-tuned models — every other candidate
+(Qwen3 0.6B/1.7B, Gemma 3 1B IT, Llama 3.2 3B) was a control/experimental entry with no real
+advantage over these two for MiniMed's Russian-first use case, and kept the catalog and its test
+fixtures larger than necessary.
 
 The displayed tier is not a clinical-quality claim. The Russian-tuned models receive a higher initial
 Russian priority because they are instruction-tuned specifically for Russian, but they still have to
 pass MiniMed's own extraction, structured-output, negation, omission, and retrieval benchmarks.
 
-The generic Qwen models remain in the catalog as controls. This lets the benchmark determine whether
-Russian fine-tuning helps our actual physician queries instead of assuming that it does.
+Generic Qwen/Gemma/Llama controls were carried in the catalog through the initial survey, to let the
+benchmark determine whether Russian fine-tuning helps our actual physician queries instead of assuming
+that it does. Once that comparison confirmed no advantage over the two Russian-tuned models above, the
+controls were dropped to keep the catalog and its test fixtures minimal.
 
 ## Russian model survey
 
@@ -133,12 +139,39 @@ Clinical quality metrics remain in the repository benchmark suite rather than th
 The first adapter uses wllama loaded at runtime from a catalog-controlled ESM and WASM URL. It runs
 GGUF through WebAssembly workers with a conservative context limit. wllama 3.5 is CPU-only; it does not provide WebGPU acceleration.
 
-In a Capacitor Android WebView, the same adapter is the current fallback. The catalog already carries
-`litert-native` and `cactus-native` artifact entries so a later Capacitor plugin can take precedence
-without changing selection or UI contracts.
+In a Capacitor Android WebView, the same adapter is the fallback whenever the native llama.cpp
+runtime is unavailable. The catalog still carries `litert-native` and `cactus-native` artifact
+entries so a later LiteRT-LM Capacitor plugin (or a fixed Cactus integration) can take precedence
+without changing selection or UI contracts; neither has a runtime implementation today.
 
 Automated browsers expose `navigator.webdriver`; MiniMed performs selection but does not download a
 large model in that environment.
+
+## Android native behavior
+
+`LlamaNativeRuntime` (`apps/app/src/features/models/llama-runtime.ts`) wraps a `LlamaInference`
+Capacitor plugin (Kotlin, `apps/app/android/app/src/main/java/dev/localmed/search/LlamaInferencePlugin.kt`)
+built on a vendored, natively-compiled `llama.cpp` (see `apps/app/android/app/src/main/cpp/` and
+`docs/adr/0014-native-llama-cpp-android-runtime.md`), and is only reported available
+(`isAvailable()`) when `platform === 'android' && nativeContainer` — i.e. inside the real Capacitor
+Android app, never the browser or the Android WebView-without-the-native-shell case. `selection.ts`
+already scores `llama-native` above `wllama-web` on native devices, so it becomes the automatic
+choice on Android without any UI change once the artifact download succeeds.
+
+Unlike the browser/`wllama-web` path (which downloads model bytes into memory and never verifies
+SHA-256 against the catalog's recorded checksum), the native plugin streams the download straight to
+`context.filesDir/localmed/models/`, verifies SHA-256 before installing the file, and only then
+initializes the native engine. This is the first place in the app with real, enforced checksum
+verification of a downloaded model artifact.
+
+The native path loads the exact same GGUF files `wllama-web` already downloads — no conversion step,
+unlike the earlier Cactus attempt this superseded (see ADR 0014's Context section).
+
+Streaming token-by-token output is not wired in this pass — `completeStructured()` returns a single
+result, matching the existing wllama session, since model output isn't shown to the user directly yet.
+
+iOS native support is a deliberate follow-up, not implemented here — it needs its own Xcode
+project-file tooling and CMake wiring.
 
 ## Distribution
 
@@ -152,12 +185,7 @@ repository main branch
 
 GitHub Release: local-models-preview
   vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf
-  qwen3-0.6b-q8_0.gguf
-  gemma3-1b-it-q4_k_m.gguf
-  gemma3-1b-it-int4.litertlm
   qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf
-  qwen3-1.7b-q8_0.gguf
-  llama-3.2-3b-instruct-q4_k_m.gguf
 ```
 
 Configuration:
@@ -203,14 +231,14 @@ not increase the score of a wllama artifact and `n_gpu_layers` is fixed to zero.
 
 GPU and NPU execution require a native LiteRT-LM adapter and a compatible `.litertlm` artifact. Backend
 availability must be measured per model and device; an accelerator being present does not imply that it
-is faster than CPU for a particular prompt or decoder workload. Gemma 3 1B is the first declared model
-for that native comparison.
+is faster than CPU for a particular prompt or decoder workload. No catalog model currently ships a
+`.litertlm` artifact — this is deferred until a native comparison candidate is chosen.
 
 ## CI and physical-device benchmarks
 
 The normal pull-request suite validates catalog trust, selection, fallback, strict output contracts and
 application packaging without downloading model weights. A weekly/manual `Local model CPU smoke`
-workflow downloads the two compact Apache-licensed GGUF candidates, verifies SHA-256, loads each in real
+workflow downloads both bundled Apache-licensed GGUF candidates, verifies SHA-256, loads each in real
 Chromium/wllama, and requires the fixed Russian probe to produce a valid structured result.
 
 Hosted GitHub runners do not establish Android GPU/NPU support or useful mobile performance numbers.

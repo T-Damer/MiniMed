@@ -39,6 +39,7 @@ function artifactFor(
     .toSorted((left, right) => {
       const runtimePreference = (artifact: LocalModelArtifact): number => {
         if (profile.nativeContainer && artifact.runtime === 'litert-native') return 30;
+        if (profile.nativeContainer && artifact.runtime === 'llama-native') return 25;
         if (profile.nativeContainer && artifact.runtime === 'cactus-native') return 20;
         if (artifact.runtime === 'wllama-web') return 10;
         return 0;
@@ -98,6 +99,9 @@ function candidateScore(
   if (artifact.runtime === 'litert-native') {
     score += 9;
     reasons.push('нативный LiteRT runtime');
+  } else if (artifact.runtime === 'llama-native') {
+    score += 7;
+    reasons.push('нативный llama.cpp runtime');
   } else if (artifact.runtime === 'cactus-native') {
     score += 5;
     reasons.push('нативный GGUF runtime');

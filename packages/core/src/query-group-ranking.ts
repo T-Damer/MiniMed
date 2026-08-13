@@ -87,6 +87,26 @@ function editionStatusBoost(query: string, text: string): number {
   return 0;
 }
 
+/**
+ * A document whose title literally is (or contains) the searched term must outrank a document that
+ * merely mentions that term in passing (e.g. an interactions section of an unrelated drug). None of
+ * the other boosts below are strong enough to guarantee this on their own, since they are tuned for
+ * legal/clinical phrase matches rather than an exact product/document name lookup.
+ */
+function exactTitleMatchBoost(query: string, title: string): number {
+  const normalizedQuery = normalizeSurfaceText(query).trim();
+  if (!normalizedQuery) return 0;
+  const normalizedTitle = normalizeSurfaceText(title).trim();
+  if (normalizedTitle === normalizedQuery) return 4;
+
+  const queryTerms = tokenize(normalizedQuery);
+  if (queryTerms.length === 0) return 0;
+  const titleTerms = new Set(tokenize(normalizedTitle));
+  const allTermsInTitle = queryTerms.every((term) => titleTerms.has(term));
+  if (!allTermsInTitle) return 0;
+  return normalizedTitle.startsWith(normalizedQuery) ? 3.5 : 3;
+}
+
 export function queryGroupRelevanceBoost(query: string, text: string): number {
   const queryReferences = legalReferences(query);
   const textReferences = legalReferences(text);
@@ -119,7 +139,10 @@ export function rankSearchGroupsByQuery(
     .map((group, index) => ({
       group,
       index,
-      score: group.bestScore + queryGroupRelevanceBoost(query, groupRankingText(group)),
+      score:
+        group.bestScore +
+        queryGroupRelevanceBoost(query, groupRankingText(group)) +
+        exactTitleMatchBoost(query, group.title),
     }))
     .toSorted((left, right) => right.score - left.score || left.index - right.index)
     .map((entry) => entry.group);

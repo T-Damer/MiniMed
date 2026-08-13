@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  compact-models:
+  catalog-models:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     strategy:
@@ -25,11 +25,11 @@ jobs:
             file: vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf
             url: https://huggingface.co/Vikhrmodels/Vikhr-Qwen-2.5-0.5B-instruct-GGUF/resolve/a2bc2797ec4dd39dd99f20a92f7a05a71c8122bf/Vikhr-Qwen-2.5-0.5B-instruct-Q4_K_M.gguf
             sha256: 8f45f00da2bcd70205461639e978db7c8245e205c8604cfe2ab7f5430506bf32
-          - id: qwen3-0.6b-q8
-            name: Qwen3 0.6B
-            file: qwen3-0.6b-q8_0.gguf
-            url: https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf
-            sha256: 9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031
+          - id: qvikhr-3-1.7b-q4
+            name: QVikhr 3 1.7B
+            file: qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf
+            url: https://huggingface.co/Vikhrmodels/QVikhr-3-1.7B-Instruction-noreasoning-GGUF/resolve/f110f16bba76d25148374ca017e659343defe583/QVikhr-3-1.7B-Instruction-noreasoning-Q4_K_M.gguf
+            sha256: 425495de8462e63c98aae4e18561fa1fc7e153fa218e3067a5b39753258b48f2
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
