@@ -174,7 +174,7 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await expect(overlay.locator('mark').first()).toHaveText(/тахипноэ/iu);
 });
 
-test('limits the initial document list and reveals remaining sources', async ({ page }) => {
+test('renders the complete virtualized document list', async ({ page }) => {
   await mountBuiltApp(page);
   await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
@@ -182,13 +182,7 @@ test('limits the initial document list and reveals remaining sources', async ({ 
 
   const groups = page.locator('.result-group');
   await expect(groups).toHaveCount(5);
-  const showMore = page.getByRole('button', { name: /Показать ещё/u });
-  await expect(showMore).toHaveAttribute('aria-expanded', 'false');
-  await showMore.click();
-  await expect(page.getByRole('button', { name: 'Скрыть остальные документы' })).toHaveAttribute(
-    'aria-expanded',
-    'true',
-  );
+  await expect(page.getByRole('button', { name: /Показать ещё/u })).toHaveCount(0);
 });
 
 test('preserves the active search while navigating between mounted routes', async ({ page }) => {
@@ -338,7 +332,7 @@ test('asks before activating an installed application update', async ({ page }) 
     window.dispatchEvent(new CustomEvent('minimed:app-update-ready', { detail: { worker } }));
   });
 
-  const update = page.getByRole('button', { name: 'Обновить приложение' });
+  const update = page.locator('.app-update-pill');
   await expect(update).toBeVisible();
   await update.click();
   await expect(page.getByRole('button', { name: 'Обновляем приложение…' })).toBeDisabled();
