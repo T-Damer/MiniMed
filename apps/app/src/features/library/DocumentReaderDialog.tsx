@@ -61,6 +61,15 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
 
   onMount(() => {
     if (window.matchMedia('(min-width: 761px)').matches) setOutlineOpen(true);
+    requestAnimationFrame(() => {
+      const anchor = props.initialAnchor;
+      const target = anchor ? document.getElementById(anchor) : null;
+      if (target) {
+        target.scrollIntoView({ behavior: 'instant', block: 'start' });
+      } else {
+        paper?.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    });
   });
 
   const availableIds = createMemo(
@@ -80,7 +89,8 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
       props.document &&
         (isFullTextDocumentId(props.document.id) ||
           props.document.sourceType === 'clinical_recommendation' ||
-          props.document.sourceType === 'medical_reference'),
+          props.document.sourceType === 'medical_reference' ||
+          props.document.sourceType === 'rls_mkb_reference'),
     ),
   );
   const isClinicalSummary = createMemo(
@@ -153,7 +163,10 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
     setActiveAnchor(anchor);
     if (!window.matchMedia('(min-width: 761px)').matches) setOutlineOpen(false);
     requestAnimationFrame(() => {
-      document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById(anchor)?.scrollIntoView({
+        behavior: window.matchMedia('(min-width: 761px)').matches ? 'smooth' : 'instant',
+        block: 'start',
+      });
     });
   };
 

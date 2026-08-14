@@ -98,6 +98,30 @@ bun run content:lint:private
 bun run content:build:private
 ```
 
+Local ICD-10 reference pack:
+
+```bash
+bun run content:rebuild:mkb
+```
+
+The importer stores the complete RLS classification index and only explicitly requested detail
+pages (the cerebrovascular example is the default). Repeat `--detail-url` for additional code pages.
+For an explicit full detail crawl, use `bun run content:scrape:mkb:all`; `--detail-limit N` is available
+for a bounded smoke test. The full index itself does not need this crawl.
+The detail-page trade-name cards are enriched through the public `POST /api/table-change-packings`
+endpoint. Its rows are stored as one grouped trade-name card with MNN, form, dosage, package, and
+manufacturer fields; repeated desktop/mobile renderings are deduplicated. Trade-name aliases expand
+to MNN in search, and each detail document carries its MKB code in `icd10Codes`, so installed
+clinical recommendations can be found by the same code. The private RLS API is not required for
+this local-dev path. Full HTML is not retained; the compiled pack contains parsed text, tables,
+source URLs, checksums, and relations only. Detail cards use the dedicated `rls_mkb_reference`
+source type, so medication search includes only RLS cards that actually mention medicines, not every
+generic medical reference. Each detail and packing request gets three attempts. Failed detail URLs
+are written to `data/raw/rls-mkb/rls-mkb-failures.json`; successful intermediate detail state is
+retained, and `bun run content:retry:mkb` repeats only those failed URLs and rebuilds the pack. For
+an interrupted full crawl, use `bun run content:resume:mkb`: it skips completed detail state and
+continues the remaining index nodes.
+
 Official clinical snapshot:
 
 ```bash

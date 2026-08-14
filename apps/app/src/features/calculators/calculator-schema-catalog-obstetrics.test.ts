@@ -1,15 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  GYNECOLOGY_BREAST_CANCER_RISK_SCHEMA,
+  GYNECOLOGY_CERVICAL_CANCER_RISK_SCHEMA,
   OBSTETRIC_BISHOP_SCORE_SCHEMA,
   OBSTETRIC_EDD_CONCEPTION_SCHEMA,
   OBSTETRIC_EDD_GIVEN_DATE_SCHEMA,
   OBSTETRIC_EDD_LMP_SCHEMA,
   OBSTETRIC_EDD_QUICKENING_SCHEMA,
   OBSTETRIC_EDD_ULTRASOUND_SCHEMA,
+  OBSTETRIC_EFW_MATERNAL_ANTHROPOMETRY_SCHEMA,
+  OBSTETRIC_EFW_RUDAKOV_SCHEMA,
+  OBSTETRIC_FETAL_GROWTH_DOPPLER_SCHEMA,
   OBSTETRIC_GA_CRL_SCHEMA,
   OBSTETRIC_GA_FROM_EDD_SCHEMA,
   OBSTETRIC_MATERNITY_LEAVE_SCHEMA,
+  OBSTETRIC_VBAC_ADMISSION_SCHEMA,
+  OBSTETRIC_VBAC_ANTEPARTUM_SCHEMA,
 } from '@/features/calculators/calculator-schema-catalog-obstetrics';
 import {
   evaluateCalculatorSchema,
@@ -293,5 +300,121 @@ describe('maternity leave timeframe schema matches the hardcoded implementation'
     expect(schemaStart).toBe(legacyStart);
     expect(schemaEnd).toBe(legacyEnd);
     expect(schemaDuration).toBe(legacyDuration);
+  });
+});
+
+describe('additional obstetrics and gynecology schemas', () => {
+  it('calculates the growth and fetal-weight indices with explicit limitations', () => {
+    const growth = evaluateCalculatorSchema(OBSTETRIC_FETAL_GROWTH_DOPPLER_SCHEMA, {
+      gaWeeks: 32,
+      gaDays: 0,
+      efwG: 1800,
+      efwPercentile: 35,
+      umbilicalArteryPi: 1.2,
+      middleCerebralArteryPi: 1.8,
+      uterineArteryPiRight: 0.7,
+      uterineArteryPiLeft: 0.9,
+    });
+    expect(growth.ok).toBe(true);
+    if (!growth.ok) throw new Error('unreachable');
+    expect(growth.outputs.find((output) => output.label.includes('ЦПС'))).toMatchObject({
+      value: 1.5,
+    });
+
+    const anthropometry = evaluateCalculatorSchema(OBSTETRIC_EFW_MATERNAL_ANTHROPOMETRY_SCHEMA, {
+      gaWeeks: 39,
+      gaDays: 0,
+      fetalSex: 0,
+      maternalHeightCm: 165,
+      maternalWeightAt26Kg: 70,
+      thirdTrimesterWeightGainKg: 5,
+      parity: 0,
+    });
+    const rudakov = evaluateCalculatorSchema(OBSTETRIC_EFW_RUDAKOV_SCHEMA, {
+      gaWeeks: 39,
+      abdominalCircumferenceCm: 100,
+      fundalHeightCm: 35,
+    });
+    expect(anthropometry.ok).toBe(true);
+    expect(rudakov.ok).toBe(true);
+    if (!rudakov.ok) throw new Error('unreachable');
+    expect(rudakov.outputs.find((output) => output.label.includes('масса'))).toMatchObject({
+      value: 3500,
+    });
+  });
+
+  it('evaluates both Grobman VBAC models and keeps the result in probability bounds', () => {
+    const antepartum = evaluateCalculatorSchema(OBSTETRIC_VBAC_ANTEPARTUM_SCHEMA, {
+      ageYears: 30,
+      bmi: 25,
+      race: 'other',
+      anyPriorVaginal: 'yes',
+      priorVbac: 'no',
+      indication: 'nonrecurring',
+    });
+    const admission = evaluateCalculatorSchema(OBSTETRIC_VBAC_ADMISSION_SCHEMA, {
+      ageYears: 30,
+      bmi: 25,
+      race: 'other',
+      anyPriorVaginal: 'yes',
+      priorVbac: 'no',
+      indication: 'nonrecurring',
+      gaWeeks: 39,
+      hypertensiveDisease: 'no',
+      effacement: 80,
+      dilation: 5,
+      station: 0,
+      laborInduction: 'no',
+    });
+    expect(antepartum.ok).toBe(true);
+    expect(admission.ok).toBe(true);
+    for (const result of [antepartum, admission]) {
+      if (!result.ok) throw new Error('unreachable');
+      const output = result.outputs[0];
+      if (output?.kind !== 'number') throw new Error('expected probability output');
+      expect(output.value).toBeGreaterThan(0);
+      expect(output.value).toBeLessThan(100);
+    }
+  });
+
+  it('calculates Gail risk and labels cervical screening as a pathway band', () => {
+    const lowRisk = evaluateCalculatorSchema(GYNECOLOGY_BREAST_CANCER_RISK_SCHEMA, {
+      ageYears: 45,
+      race: 'white',
+      biopsiesCategory: 0,
+      menarcheCategory: 0,
+      firstBirthCategory: 0,
+      relativesCategory: 0,
+      atypicalHyperplasia: 0,
+    });
+    const highRisk = evaluateCalculatorSchema(GYNECOLOGY_BREAST_CANCER_RISK_SCHEMA, {
+      ageYears: 45,
+      race: 'white',
+      biopsiesCategory: 2,
+      menarcheCategory: 2,
+      firstBirthCategory: 3,
+      relativesCategory: 2,
+      atypicalHyperplasia: 1,
+    });
+    const cervical = evaluateCalculatorSchema(GYNECOLOGY_CERVICAL_CANCER_RISK_SCHEMA, {
+      ageYears: 35,
+      cytology: 'hsil',
+      hpvStatus: 'positive',
+      hpv16Or18: 'yes',
+      priorCin2Plus: 'unknown',
+      immunosuppressed: 'no',
+    });
+    expect(lowRisk.ok).toBe(true);
+    expect(highRisk.ok).toBe(true);
+    expect(cervical.ok).toBe(true);
+    if (!lowRisk.ok || !highRisk.ok || !cervical.ok) throw new Error('unreachable');
+    const low = lowRisk.outputs[0];
+    const high = highRisk.outputs[0];
+    const band = cervical.outputs[0];
+    if (low?.kind !== 'number' || high?.kind !== 'number' || band?.kind !== 'number') {
+      throw new Error('expected numeric outputs');
+    }
+    expect(high.value).toBeGreaterThan(low.value);
+    expect(band.value).toBe(3);
   });
 });

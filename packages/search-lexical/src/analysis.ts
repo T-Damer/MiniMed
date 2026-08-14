@@ -816,10 +816,39 @@ function ftsToken(term: string): string {
   return `"${escaped}"*`;
 }
 
-function termsWithStems(values: readonly string[]): readonly string[] {
+const ICD10_CODE_PATTERN =
+  /(?<![A-ZА-Я0-9])(?<code>[A-ZА-Я]?\s*\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])/giu;
+
+function icd10CodeFragments(values: readonly string[]): ReadonlySet<string> {
+  const fragments = new Set<string>();
+  for (const value of values) {
+    for (const match of value.matchAll(ICD10_CODE_PATTERN)) {
+      for (const token of tokenize(match[0])) fragments.add(token);
+    }
+  }
+  return fragments;
+}
+
+function icd10SearchTerms(values: readonly string[]): readonly string[] {
   const terms = new Set<string>();
   for (const value of values) {
+    for (const match of value.matchAll(ICD10_CODE_PATTERN)) {
+      const compact = match.groups?.['code']?.replace(/[.\-\s]/gu, '').toLowerCase();
+      if (!compact || compact.length < 3) continue;
+      terms.add(compact);
+      const numeric = compact.replace(/^[a-zа-я]/u, '');
+      if (numeric.length >= 3) terms.add(numeric);
+    }
+  }
+  return [...terms];
+}
+
+function termsWithStems(values: readonly string[]): readonly string[] {
+  const terms = new Set<string>();
+  const icd10Fragments = icd10CodeFragments(values);
+  for (const value of values) {
     for (const token of tokenize(value)) {
+      if (icd10Fragments.has(token)) continue;
       if (/^\d+$/u.test(token) || STRUCTURAL_TERMS.has(token)) continue;
       terms.add(token);
       terms.add(lightStemRussian(token));
@@ -829,6 +858,7 @@ function termsWithStems(values: readonly string[]): readonly string[] {
       }
     }
   }
+  for (const term of icd10SearchTerms(values)) terms.add(term);
   return [...terms].filter((term) => term.length >= 2).slice(0, MAX_FTS_TERMS);
 }
 

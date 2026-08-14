@@ -35,9 +35,11 @@ import {
   APP_UPDATE_READY_EVENT,
   type AppUpdateReadyDetail,
   activateAppUpdate,
+  checkNativeApkUpdate,
 } from '@/state/app-update';
 import { notifyContentChanged } from '@/state/content-events';
 import { installButtonHaptics } from '@/state/haptics';
+import { installAndroidApk } from '@/state/native-update';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 
 type View = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes';
@@ -122,6 +124,7 @@ export function App(): JSX.Element {
   const [dueReminderCount, setDueReminderCount] = createSignal(0);
   const [showScrollTop, setShowScrollTop] = createSignal(false);
   const [appUpdateWorker, setAppUpdateWorker] = createSignal<ServiceWorker>();
+  const [availableApkUrl, setAvailableApkUrl] = createSignal<string>();
   const [appUpdating, setAppUpdating] = createSignal(false);
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
@@ -226,7 +229,7 @@ export function App(): JSX.Element {
       if (!changed) {
         moveToRootView(next);
         window.history.replaceState({ view: next }, '', `#/${next}`);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'instant' });
         return;
       }
       snapshotCurrentRoute();
@@ -259,6 +262,21 @@ export function App(): JSX.Element {
     setAppUpdateWorker((event as CustomEvent<AppUpdateReadyDetail>).detail.worker);
   };
 
+  const activateAvailableUpdate = (): void => {
+    if (appUpdating()) return;
+    setAppUpdating(true);
+    const apkUrl = availableApkUrl();
+    if (apkUrl) {
+      void installAndroidApk(apkUrl)
+        .catch(() => undefined)
+        .finally(() => setAppUpdating(false));
+      return;
+    }
+    const worker = appUpdateWorker();
+    if (worker) activateAppUpdate(worker);
+    else setAppUpdating(false);
+  };
+
   const connectInstalledModules = async (): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
@@ -284,6 +302,17 @@ export function App(): JSX.Element {
 
   onMount(async () => {
     stopButtonHaptics = installButtonHaptics();
+    document.documentElement.classList.toggle(
+      'platform-android',
+      Capacitor.getPlatform() === 'android',
+    );
+    if (Capacitor.getPlatform() === 'android') {
+      void checkNativeApkUpdate()
+        .then((url) => {
+          if (url) setAvailableApkUrl(url);
+        })
+        .catch(() => undefined);
+    }
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -352,6 +381,7 @@ export function App(): JSX.Element {
   });
 
   onCleanup(() => {
+    document.documentElement.classList.remove('platform-android');
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
@@ -437,6 +467,9 @@ export function App(): JSX.Element {
                   baseCore={searchCore() ?? state().core}
                   assistantCore={assistantCore()}
                   onOpenKnowledgeBase={() => navigate('modules')}
+                  appUpdateReady={Boolean(appUpdateWorker() || availableApkUrl())}
+                  appUpdating={appUpdating()}
+                  onActivateAppUpdate={activateAvailableUpdate}
                 />
               </section>
               <section
@@ -476,21 +509,16 @@ export function App(): JSX.Element {
         {(state) => (
           <>
             <div class="floating-system-status" aria-live="polite">
-              <Show when={appUpdateWorker()}>
-                {(worker) => (
-                  <button
-                    class="content-download-pill app-update-pill"
-                    type="button"
-                    disabled={appUpdating()}
-                    onClick={() => {
-                      setAppUpdating(true);
-                      activateAppUpdate(worker());
-                    }}
-                  >
-                    <AppGlyph name="refresh" />
-                    <span>{appUpdating() ? 'Обновляем приложение…' : 'Обновить приложение'}</span>
-                  </button>
-                )}
+              <Show when={appUpdateWorker() || availableApkUrl()}>
+                <button
+                  class="content-download-pill app-update-pill"
+                  type="button"
+                  disabled={appUpdating()}
+                  onClick={activateAvailableUpdate}
+                >
+                  <AppGlyph name="refresh" />
+                  <span>{appUpdating() ? 'Обновляем приложение…' : 'Обновить приложение'}</span>
+                </button>
               </Show>
               <ContentDownloadStatus floating />
             </div>

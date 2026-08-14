@@ -793,6 +793,1040 @@ export const OBSTETRIC_MATERNITY_LEAVE_SCHEMA: CalculatorSchema = CalculatorSche
   ],
 });
 
+export const OBSTETRIC_FETAL_GROWTH_DOPPLER_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.parse(
+  {
+    schemaVersion: 1,
+    id: 'obstetric-fetal-growth-doppler',
+    slug: 'obstetric-fetal-growth-doppler',
+    title: 'Рост плода и допплерометрия',
+    shortTitle: 'Рост и допплер',
+    aliases: ['fetal growth', 'Doppler', 'ЦПС', 'церебро-плацентарное отношение', 'ПИ артерий'],
+    summary: 'Расчёт ЦПС и среднего ПИ маточных артерий по данным протокола УЗИ.',
+    audience: 'adult',
+    category: 'obstetrics',
+    clinical: true,
+    formulaDisplay:
+      'ЦПС = ПИ средней мозговой артерии / ПИ пуповинной артерии; средний ПИ маточных артерий = (правый + левый) / 2',
+    population: 'Беременность 20–42 недели при наличии показателей допплерометрии в протоколе УЗИ.',
+    limitations: [
+      'Калькулятор считает индексы, но не определяет норму: пороги зависят от срока, методики и референсных таблиц учреждения.',
+      'Процентиль массы вводится из протокола УЗИ и не рассчитывается без полного набора биометрии и выбранного стандарта.',
+    ],
+    inputs: [
+      {
+        id: 'gaWeeks',
+        label: 'Срок беременности',
+        unit: 'нед',
+        kind: 'number',
+        integer: true,
+        minimum: 20,
+        maximum: 42,
+        required: true,
+      },
+      {
+        id: 'gaDays',
+        label: 'Дополнительные дни',
+        unit: 'дн',
+        kind: 'number',
+        integer: true,
+        minimum: 0,
+        maximum: 6,
+        required: true,
+      },
+      {
+        id: 'efwG',
+        label: 'Расчётная масса плода из протокола',
+        unit: 'г',
+        kind: 'number',
+        minimum: 100,
+        maximum: 6000,
+        required: true,
+      },
+      {
+        id: 'efwPercentile',
+        label: 'Процентиль массы из протокола',
+        unit: '%',
+        kind: 'number',
+        minimum: 0.1,
+        maximum: 99.9,
+        required: true,
+      },
+      {
+        id: 'umbilicalArteryPi',
+        label: 'ПИ пуповинной артерии',
+        kind: 'number',
+        minimum: 0.01,
+        maximum: 10,
+        required: true,
+      },
+      {
+        id: 'middleCerebralArteryPi',
+        label: 'ПИ средней мозговой артерии',
+        kind: 'number',
+        minimum: 0.01,
+        maximum: 10,
+        required: true,
+      },
+      {
+        id: 'uterineArteryPiRight',
+        label: 'ПИ правой маточной артерии',
+        kind: 'number',
+        minimum: 0,
+        maximum: 10,
+        required: true,
+      },
+      {
+        id: 'uterineArteryPiLeft',
+        label: 'ПИ левой маточной артерии',
+        kind: 'number',
+        minimum: 0,
+        maximum: 10,
+        required: true,
+      },
+    ],
+    steps: [
+      {
+        id: 'gaExact',
+        label: 'Срок беременности',
+        unit: 'нед',
+        expression: 'gaWeeks + gaDays / 7',
+        displayPrecision: 2,
+      },
+      {
+        id: 'cerebroPlacentalRatio',
+        label: 'Церебро-плацентарное отношение (ЦПС)',
+        unit: 'отношение',
+        expression: 'middleCerebralArteryPi / umbilicalArteryPi',
+        displayPrecision: 2,
+        isOutput: true,
+      },
+      {
+        id: 'meanUterinePi',
+        label: 'Средний ПИ маточных артерий',
+        unit: 'индекс',
+        expression: '(uterineArteryPiRight + uterineArteryPiLeft) / 2',
+        displayPrecision: 2,
+        isOutput: true,
+      },
+      {
+        id: 'reportedEfw',
+        label: 'Масса плода из протокола',
+        unit: 'г',
+        expression: 'efwG',
+        displayPrecision: 0,
+        isOutput: true,
+      },
+      {
+        id: 'reportedEfwPercentile',
+        label: 'Процентиль массы из протокола',
+        unit: '%',
+        expression: 'efwPercentile',
+        displayPrecision: 1,
+        isOutput: true,
+      },
+    ],
+    warnings: [
+      {
+        code: 'reference-charts-required',
+        message:
+          'Индексы нельзя интерпретировать без срока беременности и референсных таблиц, принятых в конкретном учреждении.',
+      },
+    ],
+    sources: [
+      {
+        title: 'ISUOG Practice Guidelines: use of Doppler velocimetry in obstetrics',
+        publisher: 'International Society of Ultrasound in Obstetrics and Gynecology',
+        version: '2020',
+        url: 'https://www.isuog.org/clinical-resources/isuog-guidelines.html',
+        reviewedAt: '2026-08-14',
+      },
+    ],
+  },
+);
+
+export const OBSTETRIC_EFW_MATERNAL_ANTHROPOMETRY_SCHEMA: CalculatorSchema =
+  CalculatorSchemaSchema.parse({
+    schemaVersion: 1,
+    id: 'obstetric-efw-maternal-anthropometry',
+    slug: 'obstetric-efw-maternal-anthropometry',
+    title: 'Предполагаемая масса плода по антропометрии матери',
+    shortTitle: 'Масса по антропометрии',
+    aliases: ['EFW maternal anthropometry', 'масса плода по матери', 'масса при рождении'],
+    summary:
+      'Антропометрическая оценка ожидаемой массы при рождении по сроку и прибавке массы матери.',
+    audience: 'adult',
+    category: 'obstetrics',
+    clinical: true,
+    formulaDisplay:
+      'Масса (г) = срок (дни) × [9,36 + 0,262 × пол + 0,000237 × рост × масса на 26-й неделе + 4,81 × скорость прибавки × (паритет + 1)]',
+    population:
+      'Одноплодная беременность III триместра; антропометрическая оценка ожидаемой массы при рождении.',
+    limitations: [
+      'Это модель массы при рождении, а не сонографическая оценка текущей массы плода; она не заменяет УЗИ.',
+      'Точность зависит от популяции, качества данных о массе на 26-й неделе и скорости прибавки.',
+    ],
+    inputs: [
+      {
+        id: 'gaWeeks',
+        label: 'Срок беременности',
+        unit: 'нед',
+        kind: 'number',
+        integer: true,
+        minimum: 28,
+        maximum: 42,
+        required: true,
+      },
+      {
+        id: 'gaDays',
+        label: 'Дополнительные дни',
+        unit: 'дн',
+        kind: 'number',
+        integer: true,
+        minimum: 0,
+        maximum: 6,
+        required: true,
+      },
+      {
+        id: 'fetalSex',
+        label: 'Пол плода',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: -1, label: 'Женский' },
+          { value: 0, label: 'Неизвестен' },
+          { value: 1, label: 'Мужской' },
+        ],
+      },
+      {
+        id: 'maternalHeightCm',
+        label: 'Рост матери',
+        unit: 'см',
+        kind: 'number',
+        minimum: 100,
+        maximum: 220,
+        required: true,
+      },
+      {
+        id: 'maternalWeightAt26Kg',
+        label: 'Масса матери на 26-й неделе',
+        unit: 'кг',
+        kind: 'number',
+        minimum: 35,
+        maximum: 180,
+        required: true,
+      },
+      {
+        id: 'thirdTrimesterWeightGainKg',
+        label: 'Прибавка массы в III триместре',
+        unit: 'кг',
+        kind: 'number',
+        minimum: 0,
+        maximum: 30,
+        required: true,
+      },
+      {
+        id: 'parity',
+        label: 'Предыдущие роды после 20 недель',
+        unit: 'раз',
+        kind: 'number',
+        integer: true,
+        minimum: 0,
+        maximum: 10,
+        required: true,
+      },
+    ],
+    steps: [
+      {
+        id: 'gaDaysTotal',
+        label: 'Срок беременности',
+        unit: 'дней',
+        expression: 'gaWeeks * 7 + gaDays',
+        displayPrecision: 0,
+      },
+      {
+        id: 'thirdTrimesterDays',
+        label: 'Дни наблюдаемого III триместра',
+        unit: 'дней',
+        expression: 'gaDaysTotal - 196',
+        displayPrecision: 0,
+      },
+      {
+        id: 'weightGainRate',
+        label: 'Скорость прибавки массы',
+        unit: 'кг/день',
+        expression: 'thirdTrimesterWeightGainKg / thirdTrimesterDays',
+        displayPrecision: 3,
+      },
+      {
+        id: 'estimatedBirthWeight',
+        label: 'Ожидаемая масса при рождении',
+        unit: 'г',
+        expression:
+          'gaDaysTotal * (9.36 + 0.262 * fetalSex + 0.000237 * maternalHeightCm * maternalWeightAt26Kg + 4.81 * weightGainRate * (parity + 1))',
+        displayPrecision: 0,
+        isOutput: true,
+      },
+    ],
+    warnings: [
+      {
+        code: 'birthweight-model',
+        message:
+          'Результат относится к ожидаемой массе при рождении по антропометрической модели и не является текущей массой плода.',
+      },
+    ],
+    sources: [
+      {
+        title: 'Reliability of a clinical method in estimating foetal weight',
+        publisher: 'PMC',
+        version: '2021',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8517749/',
+        reviewedAt: '2026-08-14',
+      },
+    ],
+  });
+
+export const OBSTETRIC_EFW_RUDAKOV_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.parse({
+  schemaVersion: 1,
+  id: 'obstetric-efw-rudakov',
+  slug: 'obstetric-efw-rudakov',
+  title: 'Предполагаемая масса плода по Рудакову',
+  shortTitle: 'Масса по Рудакову',
+  aliases: ['Rudakov', 'Рудаков масса плода', 'OJ VDM'],
+  summary: 'Упрощённая bedside-оценка массы по окружности живота и высоте дна матки.',
+  audience: 'adult',
+  category: 'obstetrics',
+  clinical: true,
+  formulaDisplay: 'Упрощённая оценка: масса (г) ≈ окружность живота (см) × высота дна матки (см)',
+  population: 'Беременность III триместра при измерении окружности живота и высоты дна матки.',
+  limitations: [
+    'Полная методика Рудакова использует пальпаторные полуокружности и таблицу; здесь реализована распространённая упрощённая оценка без таблицы.',
+    'Результат чувствителен к положению плода, ожирению, многоводию, многоплодию и ошибке измерения.',
+  ],
+  inputs: [
+    {
+      id: 'gaWeeks',
+      label: 'Срок беременности',
+      unit: 'нед',
+      kind: 'number',
+      integer: true,
+      minimum: 28,
+      maximum: 42,
+      required: true,
+    },
+    {
+      id: 'abdominalCircumferenceCm',
+      label: 'Окружность живота',
+      unit: 'см',
+      kind: 'number',
+      minimum: 50,
+      maximum: 160,
+      required: true,
+    },
+    {
+      id: 'fundalHeightCm',
+      label: 'Высота дна матки',
+      unit: 'см',
+      kind: 'number',
+      minimum: 20,
+      maximum: 45,
+      required: true,
+    },
+  ],
+  steps: [
+    {
+      id: 'rudakovIndex',
+      label: 'Индекс ОЖ × ВДМ',
+      unit: 'см²',
+      expression: 'abdominalCircumferenceCm * fundalHeightCm',
+      displayPrecision: 0,
+    },
+    {
+      id: 'estimatedFetalWeight',
+      label: 'Предполагаемая масса плода',
+      unit: 'г',
+      expression: 'rudakovIndex',
+      displayPrecision: 0,
+      isOutput: true,
+    },
+  ],
+  warnings: [
+    {
+      code: 'simplified-rudakov',
+      message:
+        'Использована упрощённая формула ОЖ × ВДМ; для клинического решения нужна полная методика и сопоставление с УЗИ.',
+    },
+  ],
+  sources: [
+    {
+      title: 'Сравнение методов оценки массы плода',
+      publisher: 'Arutunyan Doctor',
+      version: 'онлайн-методика',
+      url: 'https://arutunyan.doctor/tools/fetal-weight-comparison',
+      reviewedAt: '2026-08-14',
+    },
+    {
+      title: 'Reliability of a clinical method in estimating foetal weight',
+      publisher: 'PMC',
+      version: '2021',
+      url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8517749/',
+      reviewedAt: '2026-08-14',
+    },
+  ],
+});
+
+export const OBSTETRIC_VBAC_ANTEPARTUM_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.parse({
+  schemaVersion: 1,
+  id: 'obstetric-vbac-antepartum',
+  slug: 'obstetric-vbac-antepartum',
+  title: 'Вероятность успешных родов после кесарева — при постановке на учёт',
+  shortTitle: 'VBAC при постановке на учёт',
+  aliases: ['VBAC antepartum', 'TOLAC Grobman 2007', 'родоразрешение после кесарева'],
+  summary:
+    'Прогностическая модель MFMU для оценки вероятности VBAC по данным первого дородового визита.',
+  audience: 'adult',
+  category: 'obstetrics',
+  clinical: true,
+  formulaDisplay:
+    'Grobman 2007: p = exp(w) / (1 + exp(w)), логит w включает возраст, ИМТ, анамнез вагинальных родов и показание к кесареву',
+  population:
+    'Кандидаты на TOLAC с одним предшествующим кесаревым сечением при отсутствии противопоказаний к вагинальным родам.',
+  limitations: [
+    'Это прогностическая модель, а не решение о допустимости TOLAC и не гарантия исхода.',
+    'Коэффициенты расы исторические и не должны использоваться как самостоятельный клинический признак; результат требует очной оценки акушером.',
+  ],
+  inputs: [
+    {
+      id: 'ageYears',
+      label: 'Возраст',
+      unit: 'лет',
+      kind: 'number',
+      minimum: 18,
+      maximum: 50,
+      required: true,
+    },
+    {
+      id: 'bmi',
+      label: 'ИМТ до беременности',
+      unit: 'кг/м²',
+      kind: 'number',
+      minimum: 15,
+      maximum: 60,
+      required: true,
+    },
+    {
+      id: 'race',
+      label: 'Группа модели',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'other', label: 'Другая / не указана' },
+        { value: 'african-american', label: 'African-American' },
+        { value: 'hispanic', label: 'Hispanic' },
+      ],
+    },
+    {
+      id: 'anyPriorVaginal',
+      label: 'Были вагинальные роды',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'no', label: 'Нет' },
+        { value: 'yes', label: 'Да' },
+      ],
+    },
+    {
+      id: 'priorVbac',
+      label: 'Был VBAC после кесарева',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'no', label: 'Нет' },
+        { value: 'yes', label: 'Да' },
+      ],
+    },
+    {
+      id: 'indication',
+      label: 'Показание к предыдущему кесареву',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'nonrecurring', label: 'Неповторяющееся' },
+        { value: 'recurring', label: 'Повторяющееся' },
+      ],
+    },
+  ],
+  steps: [
+    {
+      id: 'africanAmerican',
+      label: 'Коэффициент African-American',
+      unit: 'коэфф.',
+      expression: 'cond(race == "african-american", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'hispanic',
+      label: 'Коэффициент Hispanic',
+      unit: 'коэфф.',
+      expression: 'cond(race == "hispanic", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'priorVaginal',
+      label: 'Коэффициент предыдущих вагинальных родов',
+      unit: 'коэфф.',
+      expression: 'cond(anyPriorVaginal == "yes", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'priorVbacValue',
+      label: 'Коэффициент предыдущего VBAC',
+      unit: 'коэфф.',
+      expression: 'cond(priorVbac == "yes", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'recurringIndication',
+      label: 'Коэффициент повторяющегося показания',
+      unit: 'коэфф.',
+      expression: 'cond(indication == "recurring", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'logit',
+      label: 'Логит модели',
+      unit: 'логит',
+      expression:
+        '3.766 - 0.039 * ageYears - 0.060 * bmi - 0.671 * africanAmerican - 0.680 * hispanic + 0.888 * priorVaginal + 1.003 * priorVbacValue - 0.632 * recurringIndication',
+      displayPrecision: 3,
+    },
+    {
+      id: 'successProbability',
+      label: 'Расчётная вероятность успешного VBAC',
+      unit: '%',
+      expression: '100 * exp(logit) / (1 + exp(logit))',
+      displayPrecision: 1,
+      isOutput: true,
+    },
+  ],
+  warnings: [
+    {
+      code: 'vbac-model',
+      message:
+        'Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку.',
+    },
+  ],
+  sources: [
+    {
+      title: 'Prediction of vaginal birth after cesarean delivery',
+      publisher: 'PMC / MFMU Network',
+      version: 'Grobman 2007',
+      url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4372471/',
+      reviewedAt: '2026-08-14',
+    },
+  ],
+});
+
+export const OBSTETRIC_VBAC_ADMISSION_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.parse({
+  schemaVersion: 1,
+  id: 'obstetric-vbac-admission',
+  slug: 'obstetric-vbac-admission',
+  title: 'Вероятность успешных родов после кесарева — при поступлении',
+  shortTitle: 'VBAC при поступлении',
+  aliases: ['VBAC admission', 'TOLAC Grobman 2009', 'VBAC calculator admission'],
+  summary: 'Модель MFMU с данными, доступными при поступлении в родильный стационар.',
+  audience: 'adult',
+  category: 'obstetrics',
+  clinical: true,
+  formulaDisplay:
+    'Grobman 2009: логистическая модель с возрастом, ИМТ, анамнезом, сроком, состоянием шейки и индукцией',
+  population: 'Кандидаты на TOLAC при поступлении для родоразрешения.',
+  limitations: [
+    'Модель не определяет показания или противопоказания к TOLAC и не учитывает все клинические обстоятельства.',
+    'Коэффициенты расы исторические; результат нельзя использовать как единственное основание для выбора способа родоразрешения.',
+  ],
+  inputs: [
+    {
+      id: 'ageYears',
+      label: 'Возраст',
+      unit: 'лет',
+      kind: 'number',
+      minimum: 18,
+      maximum: 50,
+      required: true,
+    },
+    {
+      id: 'bmi',
+      label: 'ИМТ до беременности',
+      unit: 'кг/м²',
+      kind: 'number',
+      minimum: 15,
+      maximum: 60,
+      required: true,
+    },
+    {
+      id: 'race',
+      label: 'Группа модели',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'other', label: 'Другая / не указана' },
+        { value: 'african-american', label: 'African-American' },
+        { value: 'hispanic', label: 'Hispanic' },
+      ],
+    },
+    {
+      id: 'anyPriorVaginal',
+      label: 'Были вагинальные роды',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'no', label: 'Нет' },
+        { value: 'yes', label: 'Да' },
+      ],
+    },
+    {
+      id: 'priorVbac',
+      label: 'Был VBAC после кесарева',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'no', label: 'Нет' },
+        { value: 'yes', label: 'Да' },
+      ],
+    },
+    {
+      id: 'indication',
+      label: 'Показание к предыдущему кесареву',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'nonrecurring', label: 'Неповторяющееся' },
+        { value: 'recurring', label: 'Повторяющееся' },
+      ],
+    },
+    {
+      id: 'gaWeeks',
+      label: 'Срок при поступлении',
+      unit: 'нед',
+      kind: 'number',
+      minimum: 34,
+      maximum: 42,
+      required: true,
+    },
+    {
+      id: 'hypertensiveDisease',
+      label: 'Гипертензивное заболевание беременности',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'no', label: 'Нет' },
+        { value: 'yes', label: 'Да' },
+      ],
+    },
+    {
+      id: 'effacement',
+      label: 'Сглаживание шейки',
+      unit: '%',
+      kind: 'number',
+      minimum: 0,
+      maximum: 100,
+      required: true,
+    },
+    {
+      id: 'dilation',
+      label: 'Раскрытие шейки',
+      unit: 'см',
+      kind: 'number',
+      minimum: 0,
+      maximum: 10,
+      required: true,
+    },
+    {
+      id: 'station',
+      label: 'Станция головки',
+      unit: 'станция',
+      kind: 'number',
+      minimum: -3,
+      maximum: 3,
+      required: true,
+    },
+    {
+      id: 'laborInduction',
+      label: 'Индукция родов',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'no', label: 'Нет' },
+        { value: 'yes', label: 'Да' },
+      ],
+    },
+  ],
+  steps: [
+    {
+      id: 'africanAmerican',
+      label: 'Коэффициент African-American',
+      unit: 'коэфф.',
+      expression: 'cond(race == "african-american", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'hispanic',
+      label: 'Коэффициент Hispanic',
+      unit: 'коэфф.',
+      expression: 'cond(race == "hispanic", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'priorVaginal',
+      label: 'Коэффициент предыдущих вагинальных родов',
+      unit: 'коэфф.',
+      expression: 'cond(anyPriorVaginal == "yes", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'priorVbacValue',
+      label: 'Коэффициент предыдущего VBAC',
+      unit: 'коэфф.',
+      expression: 'cond(priorVbac == "yes", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'recurringIndication',
+      label: 'Коэффициент повторяющегося показания',
+      unit: 'коэфф.',
+      expression: 'cond(indication == "recurring", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'hypertensiveValue',
+      label: 'Коэффициент гипертензивного заболевания',
+      unit: 'коэфф.',
+      expression: 'cond(hypertensiveDisease == "yes", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'inductionValue',
+      label: 'Коэффициент индукции',
+      unit: 'коэфф.',
+      expression: 'cond(laborInduction == "yes", 1, 0)',
+      displayPrecision: 0,
+    },
+    {
+      id: 'logit',
+      label: 'Логит модели',
+      unit: 'логит',
+      expression:
+        '7.059 - 0.037 * ageYears - 0.044 * bmi - 0.460 * africanAmerican - 0.761 * hispanic + 0.955 * priorVaginal + 0.851 * priorVbacValue - 0.655 * recurringIndication - 0.109 * gaWeeks - 0.499 * hypertensiveValue + 0.044 * effacement + 0.109 * dilation + 0.082 * station - 0.452 * inductionValue',
+      displayPrecision: 3,
+    },
+    {
+      id: 'successProbability',
+      label: 'Расчётная вероятность успешного VBAC',
+      unit: '%',
+      expression: '100 * exp(logit) / (1 + exp(logit))',
+      displayPrecision: 1,
+      isOutput: true,
+    },
+  ],
+  warnings: [
+    {
+      code: 'vbac-model',
+      message:
+        'Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку.',
+    },
+  ],
+  sources: [
+    {
+      title: 'Development of a nomogram for prediction of vaginal birth after cesarean delivery',
+      publisher: 'Thieme / MFMU Network',
+      version: 'Grobman 2009',
+      url: 'https://www.thieme-connect.com/products/ejournals/html/10.1055/s-0029-1239494',
+      reviewedAt: '2026-08-14',
+    },
+  ],
+});
+
+export const GYNECOLOGY_BREAST_CANCER_RISK_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.parse({
+  schemaVersion: 1,
+  id: 'gynecology-breast-cancer-risk',
+  slug: 'gynecology-breast-cancer-risk',
+  title: 'Риск рака молочной железы — модель Gail/BCRAT',
+  shortTitle: 'Риск молочной железы',
+  aliases: ['Gail model', 'BCRAT', 'breast cancer risk', 'модель Гейла'],
+  summary: 'Пятилетний и оставшийся до 90 лет риск инвазивного рака по модели NCI BCRAT.',
+  audience: 'adult',
+  category: 'gynecology',
+  clinical: true,
+  formulaDisplay:
+    'NCI Breast Cancer Risk Assessment Tool: относительный риск × возрастные базовые частоты SEER/NCHS с конкурирующей смертностью',
+  population: 'Женщины 20–89 лет без ранее диагностированного инвазивного рака или DCIS.',
+  limitations: [
+    'Модель разработана на американских популяционных данных и не заменяет оценку наследственных синдромов (BRCA, BRCAPRO, Tyrer–Cuzick).',
+    'Результат нельзя сравнивать напрямую с популяциями, для которых базовые частоты и валидность модели отличаются.',
+  ],
+  inputs: [
+    {
+      id: 'ageYears',
+      label: 'Возраст',
+      unit: 'лет',
+      kind: 'number',
+      integer: true,
+      minimum: 20,
+      maximum: 89,
+      required: true,
+    },
+    {
+      id: 'race',
+      label: 'Группа модели',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 'white', label: 'White' },
+        { value: 'black', label: 'Black' },
+        { value: 'hispanic', label: 'Hispanic' },
+        { value: 'asian', label: 'Asian' },
+        { value: 'other', label: 'Другая / не указана' },
+      ],
+    },
+    {
+      id: 'biopsiesCategory',
+      label: 'Количество биопсий молочной железы',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 0, label: '0' },
+        { value: 1, label: '1' },
+        { value: 2, label: '2 и более' },
+      ],
+    },
+    {
+      id: 'menarcheCategory',
+      label: 'Возраст менархе',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 0, label: '14 лет и старше' },
+        { value: 1, label: '12–13 лет' },
+        { value: 2, label: 'Младше 12 лет' },
+      ],
+    },
+    {
+      id: 'firstBirthCategory',
+      label: 'Возраст при первых родах',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 0, label: 'До 20 лет или не было родов' },
+        { value: 1, label: '20–24 года' },
+        { value: 2, label: '25–29 лет' },
+        { value: 3, label: '30 лет и старше' },
+      ],
+    },
+    {
+      id: 'relativesCategory',
+      label: 'Родственницы первой линии с раком молочной железы',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 0, label: '0' },
+        { value: 1, label: '1' },
+        { value: 2, label: '2 и более' },
+      ],
+    },
+    {
+      id: 'atypicalHyperplasia',
+      label: 'Атипическая гиперплазия в биопсии',
+      kind: 'select',
+      required: true,
+      options: [
+        { value: 0, label: 'Нет' },
+        { value: 1, label: 'Да' },
+      ],
+    },
+  ],
+  steps: [
+    {
+      id: 'fiveYearRisk',
+      label: 'Риск инвазивного рака за 5 лет',
+      unit: '%',
+      expression:
+        'gailRisk(ageYears, 5, race, biopsiesCategory, menarcheCategory, firstBirthCategory, relativesCategory, atypicalHyperplasia)',
+      displayPrecision: 2,
+      isOutput: true,
+    },
+    {
+      id: 'lifetimeRisk',
+      label: 'Риск до 90 лет',
+      unit: '%',
+      expression:
+        'gailRisk(ageYears, 90, race, biopsiesCategory, menarcheCategory, firstBirthCategory, relativesCategory, atypicalHyperplasia)',
+      displayPrecision: 2,
+      isOutput: true,
+    },
+  ],
+  warnings: [
+    {
+      code: 'bcrat-population',
+      message:
+        'Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга.',
+    },
+  ],
+  sources: [
+    {
+      title: 'About the Breast Cancer Risk Assessment Tool',
+      publisher: 'National Cancer Institute',
+      version: 'BCRAT',
+      url: 'https://bcrisktool.cancer.gov/about.html',
+      reviewedAt: '2026-08-14',
+    },
+    {
+      title: 'Breast Cancer Risk Assessment (BCRA)',
+      publisher: 'National Cancer Institute',
+      version: 'R package 2.0',
+      url: 'https://dceg.cancer.gov/tools/risk-assessment/bcra',
+      reviewedAt: '2026-08-14',
+    },
+  ],
+});
+
+export const GYNECOLOGY_CERVICAL_CANCER_RISK_SCHEMA: CalculatorSchema =
+  CalculatorSchemaSchema.parse({
+    schemaVersion: 1,
+    id: 'gynecology-cervical-cancer-risk',
+    slug: 'gynecology-cervical-cancer-risk',
+    title: 'Скрининг шейки матки — ASCCP',
+    shortTitle: 'Риск шейки матки',
+    aliases: ['cervical cancer risk', 'ASCCP', 'ВПЧ и цитология', 'скрининг шейки матки'],
+    summary: 'Справочная стратификация маршрута по общим сочетаниям ВПЧ, цитологии и анамнеза.',
+    audience: 'adult',
+    category: 'gynecology',
+    clinical: true,
+    formulaDisplay:
+      'ASCCP risk-based management: уровень 1–3 для навигации по общему маршруту, не абсолютный риск рака',
+    population: 'Пациентки скринингового возраста с результатами ВПЧ-теста и цитологии.',
+    limitations: [
+      'Это не числовой калькулятор риска рака: точные риски CIN3+ требуют полной таблицы ASCCP, предыдущих результатов и дат.',
+      'Иммунодефицит, беременность, возраст до 25 лет и лечение CIN2+ меняют маршрут; окончательное решение принимает врач.',
+    ],
+    inputs: [
+      {
+        id: 'ageYears',
+        label: 'Возраст',
+        unit: 'лет',
+        kind: 'number',
+        integer: true,
+        minimum: 21,
+        maximum: 100,
+        required: true,
+      },
+      {
+        id: 'cytology',
+        label: 'Цитология',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: 'negative', label: 'NILM / без интраэпителиального поражения' },
+          { value: 'ascus', label: 'ASC-US' },
+          { value: 'lsil', label: 'LSIL' },
+          { value: 'hsil', label: 'HSIL' },
+          { value: 'agc', label: 'AGC' },
+        ],
+      },
+      {
+        id: 'hpvStatus',
+        label: 'Высокоонкогенный ВПЧ',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: 'negative', label: 'Отрицательный' },
+          { value: 'positive', label: 'Положительный' },
+        ],
+      },
+      {
+        id: 'hpv16Or18',
+        label: 'ВПЧ 16/18',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: 'no', label: 'Нет / не выявлен' },
+          { value: 'yes', label: 'Да' },
+        ],
+      },
+      {
+        id: 'priorCin2Plus',
+        label: 'Анамнез CIN2+ или неизвестен',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: 'negative', label: 'Нет' },
+          { value: 'unknown', label: 'Неизвестен' },
+          { value: 'yes', label: 'Да' },
+        ],
+      },
+      {
+        id: 'immunosuppressed',
+        label: 'Иммуносупрессия',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: 'no', label: 'Нет' },
+          { value: 'yes', label: 'Да' },
+        ],
+      },
+    ],
+    steps: [
+      {
+        id: 'asccpBand',
+        label: 'Справочный уровень маршрута ASCCP',
+        unit: 'уровень 1–3',
+        expression:
+          'asccpRiskBand(ageYears, cytology, hpvStatus, hpv16Or18, priorCin2Plus, immunosuppressed)',
+        displayPrecision: 0,
+        isOutput: true,
+      },
+    ],
+    interpretations: [
+      {
+        when: 'asccpBand >= 3',
+        message:
+          'Высокий уровень: нужна очная оценка и проверка актуального маршрута ASCCP; при некоторых сочетаниях показана кольпоскопия или ускоренная диагностика.',
+      },
+      {
+        when: 'asccpBand >= 2',
+        message:
+          'Промежуточный уровень: маршрут зависит от предыдущих результатов и сроков; сверяйте полную таблицу ASCCP.',
+      },
+      {
+        when: 'asccpBand == 1',
+        message:
+          'Низкий уровень в этой упрощённой навигации; соблюдайте возрастной скрининг и локальный протокол.',
+      },
+    ],
+    warnings: [
+      {
+        code: 'asccp-not-absolute-risk',
+        message:
+          'Уровень не является процентом риска и не заменяет официальный ASCCP risk-based calculator.',
+      },
+    ],
+    sources: [
+      {
+        title: 'Management Guidelines',
+        publisher: 'ASCCP',
+        version: 'Risk-based management',
+        url: 'https://www.asccp.org/management-guidelines',
+        reviewedAt: '2026-08-14',
+      },
+      {
+        title: 'Updated Guidelines for Management of Cervical Cancer Screening Abnormalities',
+        publisher: 'ACOG',
+        version: '2020',
+        url: 'https://www.acog.org/clinical/clinical-guidance/practice-advisory/articles/2020/10/updated-guidelines-for-management-of-cervical-cancer-screening-abnormalities',
+        reviewedAt: '2026-08-14',
+      },
+    ],
+  });
+
 export const OBSTETRIC_SCHEMA_CATALOG: readonly CalculatorSchema[] = [
   OBSTETRIC_BISHOP_SCORE_SCHEMA,
   OBSTETRIC_GA_CRL_SCHEMA,
@@ -803,4 +1837,11 @@ export const OBSTETRIC_SCHEMA_CATALOG: readonly CalculatorSchema[] = [
   OBSTETRIC_EDD_GIVEN_DATE_SCHEMA,
   OBSTETRIC_GA_FROM_EDD_SCHEMA,
   OBSTETRIC_MATERNITY_LEAVE_SCHEMA,
+  OBSTETRIC_FETAL_GROWTH_DOPPLER_SCHEMA,
+  OBSTETRIC_EFW_MATERNAL_ANTHROPOMETRY_SCHEMA,
+  OBSTETRIC_EFW_RUDAKOV_SCHEMA,
+  OBSTETRIC_VBAC_ANTEPARTUM_SCHEMA,
+  OBSTETRIC_VBAC_ADMISSION_SCHEMA,
+  GYNECOLOGY_BREAST_CANCER_RISK_SCHEMA,
+  GYNECOLOGY_CERVICAL_CANCER_RISK_SCHEMA,
 ];

@@ -2,6 +2,7 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { hapticFeedback } from '@/state/haptics';
 import {
   clearSearchHistory,
@@ -10,6 +11,7 @@ import {
   SEARCH_HISTORY_EVENT,
   type SearchHistoryEntry,
 } from '@/state/search-history';
+import { RELEASE_VERSION } from '../../../../../release';
 
 const HISTORY_LIMIT = 12;
 const CLOSE_DURATION_MS = 180;
@@ -73,7 +75,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
       swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
       return;
     }
-    if (event.clientX > 36 || !event.target.closest('.search-home')) return;
+    if (event.clientX > 52 || !event.target.closest('.search-home')) return;
     swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
   };
   const handlePointerMove = (event: PointerEvent): void => {
@@ -213,6 +215,10 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   </button>
                 </Show>
               </div>
+              <footer class="search-history-panel-footer">
+                <ReleaseLinks />
+                <span>v{RELEASE_VERSION}</span>
+              </footer>
             </aside>
           </div>
         </Portal>

@@ -56,8 +56,8 @@
 .overlay-dialog__close-button,
 .document-overlay-outline-toggle {
   display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid rgb(246 238 219 / 25%);
@@ -65,8 +65,13 @@
   color: #fff8e7;
   background: transparent;
   cursor: pointer;
-  font-size: 1.625rem;
+  font-size: 1rem;
   line-height: 1;
+}
+
+.overlay-dialog__button-icon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .document-overlay-outline-toggle__icon,
@@ -114,6 +119,21 @@
 
 .document-overlay-outline--hidden {
   display: none;
+}
+
+.document-overlay-outline--open {
+  animation: document-outline-open 180ms ease-out both;
+}
+
+@keyframes document-outline-open {
+  from {
+    opacity: 0;
+    transform: translateX(-0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .document-overlay-outline-header,
@@ -471,6 +491,16 @@
 .knowledge-graph-card,
 .document-library-grid {
   width: 100%;
+}
+
+.core-library-page .document-library-grid {
+  width: 100%;
+  padding-inline: 0;
+}
+
+.core-library-page .document-library-card {
+  width: 100%;
+  border-radius: var(--theme-radius-panel);
 }
 
 .document-library-grid {
@@ -881,11 +911,12 @@
     padding-top: calc(1rem + var(--safe-top));
     border: 0;
     transform: translateX(-100%);
-    transition: transform 180ms ease;
+    transition: none;
   }
 
   .document-overlay-outline--open {
     transform: translateX(0);
+    animation: none;
   }
 
   .document-overlay-outline-header {
@@ -900,14 +931,19 @@
   .document-overlay-outline-toggle,
   .overlay-dialog__close-button {
     display: grid;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2rem;
+    height: 2rem;
     place-items: center;
     padding: 0;
     border: 1px solid var(--theme-border);
     border-radius: 50%;
     color: var(--theme-text);
     background: var(--theme-surface-raised);
+  }
+
+  .overlay-dialog__button-icon {
+    width: 0.875rem;
+    height: 0.875rem;
   }
 
   .document-overlay-outline-backdrop {

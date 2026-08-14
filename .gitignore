@@ -47,6 +47,9 @@ apps/app/public/content/ambulatory.db
 # time (see .github/workflows/landing-pages.yml). Do not commit the full file here.
 apps/app/public/content/medications.db
 
+# Local-dev ICD-10 reference pack built from RLS HTML.
+apps/app/public/content/mkb.db
+
 # Personal medical study library (12GB+, not app source)
 Med/
 

@@ -376,9 +376,8 @@
 }
 
 .recommendation-row-compact .recommendation-row-actions {
-  position: absolute;
-  top: 0.625rem;
-  right: 0.625rem;
+  position: static;
+  align-self: center;
 }
 
 .document-library-grid {

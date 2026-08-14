@@ -112,7 +112,7 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
     }
     @page { size: A4; margin: var(--print-page-margin); }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--print-body-font); color: var(--print-ink); font-size: 10pt; line-height: 1.42; }
+    body { max-width: 190mm; margin: 0 auto; padding: 0 4mm; font-family: var(--print-body-font); color: var(--print-ink); font-size: 10pt; line-height: 1.42; }
     .doc-print__kicker { font-family: var(--print-body-font); font-size: 8pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--print-accent); margin: 0 0 2mm; }
     .doc-print__title { font-family: var(--print-title-font); font-size: 20pt; line-height: 1.15; margin: 0 0 1mm; border-bottom: 1.4pt solid var(--print-accent); padding-bottom: 3mm; }
     .doc-print__meta { font-size: 8pt; color: var(--print-ink-muted); margin: 2mm 0 6mm; }
@@ -159,6 +159,7 @@ export function printDocument(document: MedicalDocument): boolean {
   popup.document.open();
   popup.document.write(printableDocumentHtml(document, window.location.href));
   popup.document.close();
+  popup.onafterprint = () => popup.close();
   window.setTimeout(() => {
     popup.focus();
     popup.print();
