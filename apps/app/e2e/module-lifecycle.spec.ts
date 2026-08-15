@@ -19,6 +19,10 @@ function regulatoryCard(page: Page): Locator {
   return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
 }
 
+function regulatorySection(page: Page): Locator {
+  return page.locator('article[aria-label="Открыть набор «Законы и нормативные акты»"]').first();
+}
+
 async function hideBuiltInRegulatoryPack(page: Page): Promise<void> {
   await page.route('**/content/regulatory.db', (route) =>
     route.fulfill({
@@ -67,11 +71,11 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /^Законы и нормативные акты/u }).click();
+  await regulatorySection(page).click();
 
   const card = regulatoryCard(page);
-  await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible();
-  await card.getByRole('button', { name: 'Скачать документы' }).click();
+  await expect(card.getByRole('button', { name: 'Скачать' })).toBeVisible();
+  await card.getByRole('button', { name: 'Скачать' }).click();
   await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
   await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
 
@@ -90,10 +94,10 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /^Законы и нормативные акты/u }).click();
+  await regulatorySection(page).click();
   page.once('dialog', (dialog) => dialog.accept());
   await card.getByRole('button', { name: 'Удалить с устройства' }).click();
-  await expect(card.getByRole('button', { name: 'Скачать документы' })).toBeVisible({
+  await expect(card.getByRole('button', { name: 'Скачать' })).toBeVisible({
     timeout: 15_000,
   });
 
@@ -142,12 +146,12 @@ test('shows the real download state and resumes automatically when the network r
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /^Законы и нормативные акты/u }).click();
+  await regulatorySection(page).click();
 
   await context.setOffline(true);
   const card = regulatoryCard(page);
-  await card.getByRole('button', { name: 'Скачать документы' }).click();
-  await expect(card.getByRole('button', { name: 'Скачать документы' })).toHaveCount(0);
+  await card.getByRole('button', { name: 'Скачать' }).click();
+  await expect(card.getByRole('button', { name: 'Скачать' })).toHaveCount(0);
   await page.locator('.content-download-pill').click();
   const manager = page.locator('.content-download-status.floating');
   await expect(manager).toContainText('Нет сети');

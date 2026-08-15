@@ -1,9 +1,15 @@
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, relative, resolve } from 'node:path';
 import type { Page, Route } from '@playwright/test';
 
 export const E2E_ASSET_ORIGIN = 'https://localmed-assets.example.com';
 const DIST_ROOT = resolve(import.meta.dirname, '../dist');
+const PUBLIC_CONTENT_ROOT = resolve(import.meta.dirname, '../public/content');
+
+export function hasLocalCompanionPack(name: string): boolean {
+  return existsSync(join(PUBLIC_CONTENT_ROOT, name));
+}
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.css': 'text/css; charset=utf-8',

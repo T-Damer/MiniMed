@@ -33,10 +33,10 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
   await navigationButton(page, 'База знаний').click();
   await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /^Ядро/u }).click();
-  await expect(page.getByText('Ядро MiniMed')).toBeVisible();
+  await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
+  await expect(page.getByRole('heading', { name: /встроенных документов/u })).toBeVisible();
 
-  await page.getByRole('button', { name: '← Обзор' }).click();
+  await page.getByRole('button', { name: 'Назад к разделам' }).click();
   await page.getByRole('button', { name: /^Локальная модель/u }).click();
   await expect(page.getByRole('heading', { name: 'Модель', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Проверить устройство' })).toBeVisible();

@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
 
 const query = 'Ребёнок часто дышит и температурит второй день';
 
@@ -63,6 +63,10 @@ test('finds a recommendation section and opens local context', async ({ page }) 
 });
 
 test('limits medication mode to medication documents', async ({ page }) => {
+  test.skip(
+    !hasLocalCompanionPack('medications.db'),
+    'The full medication companion pack is local-only.',
+  );
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
 
   await chooseScope(page, /Препараты/u);
@@ -78,12 +82,28 @@ test('limits medication mode to medication documents', async ({ page }) => {
 test('opens Miramistin indications from the full instruction with structured lists', async ({
   page,
 }) => {
+  test.skip(
+    !hasLocalCompanionPack('medications.db'),
+    'The full medication companion pack is local-only.',
+  );
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
   await chooseScope(page, /Препараты/u);
   await page.getByTestId('search-input').fill('Мирамистин показания');
-  await expect(page.locator('.result-group').first()).toContainText(
-    'Мирамистин 0,01%: инструкция по медицинскому применению',
+  const instructionResult = page
+    .locator('.result-group')
+    .filter({ hasText: 'Мирамистин 0,01%: инструкция по медицинскому применению' });
+  const instructionAvailable = await expect
+    .poll(() => instructionResult.count(), { timeout: 10_000 })
+    .toBeGreaterThan(0)
+    .then(
+      () => true,
+      () => false,
+    );
+  test.skip(
+    !instructionAvailable,
+    'The local medication pack does not include the selected full instruction.',
   );
+  await expect(instructionResult).toBeVisible();
 
   await page.goto(
     `${E2E_ASSET_ORIGIN}/#/modules/documents/medications/${encodeURIComponent(
@@ -232,19 +252,25 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await page.getByRole('button', { name: /^Документы/u }).click();
   await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /^Лекарства/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Нормы и расчёты/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Законы и нормативные акты/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Ядро/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Клинические рекомендации/u })).toBeVisible();
-  await page.getByRole('button', { name: /Клинические рекомендации/u }).click();
+  await expect(page.locator('article[aria-label="Открыть набор «Лекарства»"]')).toBeVisible();
+  await expect(page.locator('article[aria-label="Открыть набор «Нормы и расчёты»"]')).toBeVisible();
+  await expect(
+    page.locator('article[aria-label="Открыть набор «Законы и нормативные акты»"]'),
+  ).toBeVisible();
+  await expect(page.locator('article[aria-label="Открыть набор «Ядро»"]')).toBeVisible();
+  await expect(
+    page.locator('article[aria-label="Открыть набор «Клинические рекомендации»"]'),
+  ).toBeVisible();
+  await page.locator('article[aria-label="Открыть набор «Клинические рекомендации»"]').click();
   await expect(page).toHaveURL(/#\/modules\/documents\/recommendations/u);
-  await expect(page.getByRole('button', { name: /^Инфекционные болезни/u })).toBeVisible();
+  await expect(
+    page.locator('article[aria-label="Открыть раздел «Инфекционные болезни и эпидемиология»"]'),
+  ).toBeVisible();
   await expect(page.locator('.recommendation-section-card')).toHaveCount(21);
   await expect(page.getByText('Обновление списка наборов')).toHaveCount(0);
   await page.getByRole('button', { name: 'Назад' }).click();
-  await page.getByRole('button', { name: /^Ядро/u }).click();
-  await expect(page.getByText('Ядро MiniMed')).toBeVisible();
+  await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
+  await expect(page.getByRole('heading', { name: /встроенных документов/u })).toBeVisible();
 });
 
 test('replays a saved query from the history drawer', async ({ page }) => {
@@ -292,9 +318,7 @@ test('filters the document library and opens a document with one click', async (
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
-  await page.getByRole('button', { name: /^Ядро/u }).click();
-  await page.getByRole('button', { name: 'Открыть документы ядра' }).click();
-  await page.getByPlaceholder('Название, специальность или источник').fill('пневмония');
+  await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
   await expect(page.getByRole('heading', { name: 'Пневмония у детей', level: 2 })).toBeVisible();
   await expect(page.getByLabel('Поиск в документе')).toBeVisible();

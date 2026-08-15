@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
 
 async function chooseScope(page: Page, name: RegExp): Promise<void> {
   await page.getByRole('radio', { name }).click();
@@ -36,6 +36,7 @@ test('searches the built-in current adult primary-care regulation', async ({ pag
 });
 
 test('searches the built-in MKB reference by code', async ({ page }) => {
+  test.skip(!hasLocalCompanionPack('mkb.db'), 'The full MKB companion pack is local-only.');
   await mountBuiltApp(page, { includeMkbCompanionPack: true });
   await chooseScope(page, /В клин\. рекомендациях/u);
 
