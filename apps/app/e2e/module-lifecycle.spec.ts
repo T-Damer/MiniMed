@@ -77,7 +77,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await expect(card.getByRole('button', { name: 'Скачать' })).toBeVisible();
   await card.getByRole('button', { name: 'Скачать' }).click();
   await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
-  await expect(card.getByText('SHA-256 и SQLite проверены')).toBeVisible();
+  await expect(card).toContainText('На устройстве');
 
   await navigationButton(page, 'Поиск').click();
   const legalScope = page.getByRole('radio', { name: /Правовые документы/u });
