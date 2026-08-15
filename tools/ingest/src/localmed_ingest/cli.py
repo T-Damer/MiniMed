@@ -20,6 +20,7 @@ from .knowledge import (
     load_knowledge_workspace,
     load_workspace_documents,
 )
+from .mkb_reference_upgrade import upgrade_mkb_reference_database, write_upgrade_report
 from .pdf_import import import_pdf
 from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
 from .source_registry import prepare_registry
@@ -301,6 +302,19 @@ def build(
         include_embeddings=not lexical_only,
     )
     typer.echo(json.dumps(build_report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("upgrade-mkb-reference")
+def upgrade_mkb_reference_command(
+    source: Annotated[Path, typer.Option("--source", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    report: Annotated[Path | None, typer.Option("--report")] = None,
+) -> None:
+    """Apply the MKB reference-tier upgrade to an existing SQLite pack."""
+    upgrade_report = upgrade_mkb_reference_database(source, output)
+    if report:
+        write_upgrade_report(report, upgrade_report)
+    typer.echo(json.dumps(upgrade_report, ensure_ascii=False, indent=2))
 
 
 @app.command("compose")

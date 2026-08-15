@@ -59,6 +59,7 @@
     "content:resume:mkb": "bun run content:scrape:mkb -- --all-details --resume && bun run content:build:mkb && bun run content:publish:mkb",
     "content:retry:mkb": "bun run content:scrape:mkb -- --retry-failures && bun run content:build:mkb && bun run content:publish:mkb",
     "content:build:mkb": "uv run --project tools/ingest medbase build --input data/intermediate/rls-mkb --output data/build/mkb.db --report data/build/mkb-report.json --lexical-only",
+    "content:upgrade:mkb": "uv run --project tools/ingest medbase upgrade-mkb-reference --source data/build/mkb.db --output data/build/mkb-professional-reference.db --report data/build/mkb-professional-reference-upgrade.json",
     "content:publish:mkb": "bun scripts/publish-mkb-pack.mjs",
     "content:rebuild:mkb": "bun run content:scrape:mkb && bun run content:build:mkb && bun run content:publish:mkb",
     "content:ocr:ambulatory": "python3 scripts/vision_ocr_batch.py",
