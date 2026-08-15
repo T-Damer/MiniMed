@@ -38,6 +38,9 @@ interface SearchHomeProps {
   readonly active: boolean;
   readonly onOpenKnowledgeBase: () => void;
   readonly onOpenModelSettings: () => void;
+  readonly appUpdateReady?: boolean;
+  readonly appUpdating?: boolean;
+  readonly onActivateAppUpdate?: () => void;
 }
 
 interface SearchScopeOption {
@@ -226,6 +229,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       <div class="search-mode-tools">
         <Show when={props.active}>
           <SearchHistoryPanel onReplay={replayHistory} />
+        </Show>
+        <Show when={props.appUpdateReady}>
+          <button
+            class="search-update-status"
+            type="button"
+            disabled={props.appUpdating}
+            aria-label={props.appUpdating ? 'Обновляем приложение' : 'Обновить приложение'}
+            title={props.appUpdating ? 'Обновляем приложение' : 'Обновить приложение'}
+            onClick={props.onActivateAppUpdate}
+          >
+            <AppGlyph name="refresh" class="search-update-status__icon" />
+            <span>{props.appUpdating ? 'Проверка…' : 'Обновить'}</span>
+          </button>
         </Show>
         <button
           class="search-mode-help"

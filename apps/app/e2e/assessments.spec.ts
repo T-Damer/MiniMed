@@ -15,8 +15,14 @@ test('completes a psychology questionnaire and writes the result to a patient no
 
   await page.getByTestId('assessment-specialty-psychology').click();
   await expect(page).toHaveURL(/#\/assessments\/psychology$/u);
-  await page.getByTestId('assessment-install-braverman-behavioral-profile').click();
-  await expect(page.getByText('Опросник подключён на устройстве.')).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Открыть раздел «Самооценка и личностный профиль»' })
+    .click();
+  const installSection = page.getByTestId('assessment-section-self-reflection');
+  if (await installSection.count()) {
+    await installSection.click();
+    await expect(page.getByText('Раздел опросников скачан на устройство.')).toBeVisible();
+  }
   await page.getByTestId('assessment-open-braverman-behavioral-profile').click();
   await expect(
     page.getByRole('heading', { name: 'Тест Бравермана — поведенческий профиль' }),
@@ -36,7 +42,8 @@ test('completes a psychology questionnaire and writes the result to a patient no
   await expect(page.getByText('Результат сохранён локально')).toBeVisible();
   await expect(page.locator('.assessment-score-list')).toBeVisible();
   await page.getByTestId('assessment-save-note').click();
-  await page.getByRole('button', { name: 'Записать результат' }).click();
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+  await expect(page.getByText('Результат записан в карточку пациента.')).toBeVisible();
 
   await page
     .locator('.app-bottom-nav')

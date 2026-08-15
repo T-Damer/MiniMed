@@ -11,6 +11,7 @@ import {
   SEARCH_HISTORY_EVENT,
   type SearchHistoryEntry,
 } from '@/state/search-history';
+import { RELEASE_VERSION } from '../../../../../release';
 
 const HISTORY_LIMIT = 12;
 const CLOSE_DURATION_MS = 180;
@@ -74,7 +75,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
       swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
       return;
     }
-    if (event.clientX > 36 || !event.target.closest('.search-home')) return;
+    if (event.clientX > 52 || !event.target.closest('.search-home')) return;
     swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
   };
   const handlePointerMove = (event: PointerEvent): void => {
@@ -216,6 +217,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
               </div>
               <nav class="search-history-panel-footer" aria-label="Ссылки приложения">
                 <ReleaseLinks linkClass="search-history-panel-footer__link" />
+                <span>v{RELEASE_VERSION}</span>
               </nav>
             </aside>
           </div>

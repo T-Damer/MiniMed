@@ -21,6 +21,7 @@ from .knowledge import (
     load_workspace_documents,
 )
 from .pdf_import import import_pdf
+from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
 from .source_registry import prepare_registry
 from .source_sync import sync_source_manifest
 from .sqlite_composer import compose_sqlite_packs
@@ -87,6 +88,39 @@ def import_command(
     else:
         raise typer.BadParameter("--format must be auto, pdf, text, or markdown")
     typer.echo(str(output))
+
+
+@app.command("scrape-rls-mkb")
+def scrape_rls_mkb_command(
+    output: Annotated[Path, typer.Option("--output")],
+    raw_output: Annotated[Path, typer.Option("--raw-output")],
+    classification_url: Annotated[str, typer.Option("--classification-url")] = RLS_MKB_INDEX_URL,
+    detail_urls: Annotated[list[str] | None, typer.Option("--detail-url")] = None,
+    all_details: Annotated[bool, typer.Option("--all-details")] = False,
+    detail_limit: Annotated[int | None, typer.Option("--detail-limit", min=1)] = None,
+    built_at: Annotated[str | None, typer.Option("--built-at")] = None,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 60.0,
+    retry_failures: Annotated[bool, typer.Option("--retry-failures")] = False,
+    failures_file: Annotated[Path | None, typer.Option("--failures-file")] = None,
+    resume: Annotated[bool, typer.Option("--resume")] = False,
+) -> None:
+    """Prepare a local-dev MKB workspace from RLS HTML pages."""
+    report = scrape_rls_mkb(
+        output,
+        raw_output=raw_output,
+        classification_url=classification_url,
+        detail_urls=detail_urls or ([] if all_details else [RLS_MKB_DETAIL_URL]),
+        all_details=all_details,
+        detail_limit=detail_limit,
+        built_at=built_at,
+        timeout_seconds=timeout_seconds,
+        retry_failures=retry_failures,
+        failures_file=failures_file,
+        resume=resume,
+    )
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+    if report.failures:
+        raise typer.Exit(code=1)
 
 
 @app.command("sync")

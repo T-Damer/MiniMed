@@ -51,6 +51,17 @@ describe('lexical query planning', () => {
     expect(normalizeForIndex('Ребёнок с пневмонией')).toContain('ребенок');
   });
 
+  it.each(['I679', 'I67-9', 'I67 9', '679', '67 9', '67.9', '67-9'])(
+    'normalizes ICD-10 spelling %s to the same search terms',
+    (query) => {
+      const plan = buildLexicalQueryPlan(query, []);
+      expect(plan.terms).toContain('679');
+      if (/^i/iu.test(query)) expect(plan.terms).toContain('i679');
+      expect(plan.terms).not.toContain('i67');
+      expect(plan.ftsQuery).toContain('AND');
+    },
+  );
+
   it('adds canonical terms from a colloquial alias', () => {
     const plan = buildLexicalQueryPlan('Ребёнок часто дышит второй день', aliases);
     expect(plan.terms).toContain('тахипноэ');

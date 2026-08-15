@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 15 August 2026
-> Repository version: `0.6.17`
-> Active target: `0.6.17` public prerelease toward `1.0`
+> Repository version: `0.6.19`
+> Active target: `0.6.19` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -21,15 +21,16 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Search is hidden until the user selects a scope; scopes with no installed documents are disabled.
 - Query analysis and deterministic retrieval run in a Web Worker, and long result sets are window
   virtualized.
-- Results are grouped by document; collapsed groups show only their document header, while expanded
-  groups expose exact fragments, surrounding context, and full-document navigation.
-- Document readers keep the outline control in the fixed dialog header; scrolling pins the current
-  section heading, marks its outline entry, and keeps that entry centered.
+- Results are grouped by document and window-virtualized; compact result cards show numbered matches,
+  source/category metadata, up to four snippet lines, and open the exact fragment without expanding
+  the result group.
+- Document readers keep the outline control in the fixed dialog header; desktop outline changes are
+  animated, mobile outline changes are immediate, and scrolling pins the current section heading,
+  marks its outline entry, and keeps that entry centered.
 - Search-result context remaps stale pilot-summary chunks to installed full-text siblings and falls back
   to the readable document when an exact chunk cannot be resolved.
 - Within-document ranking uses query intent to prefer the relevant diagnostic, routing, or treatment
   section; the public benchmark currently has perfect section retrieval and top-section accuracy.
-- Initial results are limited to five documents with an accessible control to reveal the rest.
 - Search scopes cover diagnosis support, clinical recommendations, medications, legal documents, and
   deterministic search across all installed sources.
 - Only diagnosis scope may call the optional grounded local-model wrapper; the other scopes constrain
@@ -45,7 +46,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   view overlays the stationary outgoing view with a strictly horizontal CSS slide and temporary page
   shadow, without an opacity transition, while the status-bar blur remains between the old and new views.
   The bottom navigation remains fixed and interactive. Rapid tab changes
-  do not wait on View Transition snapshots; document, note, and local-model subroutes remain instant. The scroll-to-top control
+  do not wait on View Transition snapshots; document, note, and local-model subroutes remain instant. The
+  scroll-to-top control
   reserves the bottom-navigation band on long pages, and the notes add control mounts only while the
   notes root is active.
 - Root navigation snapshots the route that was left, not the already-updated hash, so returning from a
@@ -118,10 +120,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   and opens `modules/model` when the model is not loaded yet.
 - GitHub release links use a rolling `android-latest` APK asset, and the search history drawer shows
   text links to the repository and current Android build at its bottom.
-- The document library uses a live adaptive multi-column grid so filtered and newly listed items keep
-  their CSS-grid placement; embedded library toolbars put search on the left and view modes on the
-  right. Product routes expose the source document title, outline, and readable sections inline
-  alongside the selected package details.
+- The document library uses a virtualized full-width list; the embedded core view exposes only the
+  list/map controls, with the graph opened in a modal. Product routes expose the source document title,
+  outline, and readable sections inline alongside the selected package details.
 - Allmed reference preparation converts known HTML fragments in medication sections and production
   metadata to readable Markdown while preserving the source SQLite snapshot unchanged.
 - Assessment tests and medical calculators are grouped into downloadable sections. Catalog cards show
@@ -134,6 +135,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Installed tools keep their offline-use state across reloads. Incomplete assessment attempts are
   also stored in the existing device-local results store, restored by their history entry with an
   `incomplete` tag and answered-count, and replaced by the completed result when submitted.
+- The obstetrics/gynecology calculator catalog now covers the full ObCalc list: EDD/gestational-age
+  tools, fetal growth and Doppler indices, maternal/Rudakov fetal-weight estimates, both Grobman
+  VBAC models, NCI Gail/BCRAT breast-risk estimation, and an ASCCP cervical-screening pathway band.
+  All are offline schema-driven calculators with cited formulas and explicit population/limitation
+  text; ASCCP is intentionally a route band rather than a fabricated absolute cancer-risk percentage.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
   queued, and the selected model always receives its own download slot. A single document runtime
@@ -145,7 +151,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Model settings distinguish always-available offline search from the optional local model and expose
   model size, requirements, advantages, limitations, and model selection.
 - Browser application updates install in the background but wait for explicit approval in the shared
-  floating system-status area before the new service worker activates and reloads the page.
+  floating system-status area before the new service worker activates and reloads the page. Android
+  checks the latest GitHub release and downloads a newer APK through a native Capacitor bridge before
+  handing it to the system installer.
 - The paper workspace follows the device light/dark preference without adding an application toggle.
 - Shared `Button` and `Card` primitives cover new tool/module surfaces; card readers open from the
   whole card, destructive actions use confirmation dialogs, and icon-only trash controls keep secondary
@@ -164,6 +172,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   primary navigation, and destructive actions without another native plugin.
 - Native print actions use an in-app preview with a non-printing Back header, so Android does not leave
   the application for a browser tab and hardware Back can exit the preview.
+- Capacitor Haptics supplies native light/medium/heavy impact feedback, with Web Vibration as the
+  browser fallback.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
@@ -246,6 +256,16 @@ ordinary search response when validation fails.
   search. Medication-indication queries prefer the full instruction and its treatment sections over
   the registry identity card. The reader reconstructs bullet and numbered lists from their preserved
   PDF markers and source-block indentation.
+- Optional local-dev `mkb.db` companion (`minimed.mkb.ru`) contains the full RLS MKB index (9,841
+  nodes) plus the default `I67.9` detail page, 138 grouped trade-name cards, 4,956 unique MNN/form/
+  dosage/package/manufacturer rows, stable medication brand/substance IDs, trade-name→MNN aliases,
+  exact evidence, and proposed code-to-medicine relations. RLS detail cards use the dedicated
+  `rls_mkb_reference` source type, so medication search sees only cards that mention medicines;
+  generic medical references remain outside that scope. Clinical-catalog `icd10Codes` metadata is
+  projected into FTS with punctuation-free variants so installed recommendations are found by
+  `I67.9`, `I679`, `I67-9`, `I67 9`, `679`, `67-9`, or `67 9`. Three-attempt failures are saved to
+  `rls-mkb-failures.json`; `bun run content:retry:mkb` repeats only those detail URLs. Build with
+  `bun run content:rebuild:mkb`.
 - Optional local `ambulatory.db` companion (`minimed.ambulatory.v1`) mounts private textbook/handbook
   extracts for site/call use. Build via `bun run content:rebuild:ambulatory` (anydoc text-layer +
   macOS Vision OCR). Pack is gitignored — copyrighted sources stay local; GroundedMedicalCore already
@@ -332,6 +352,10 @@ review-required intermediate draft. Neither pilot has been run with provider cre
   establish a verified regimen.
 - `medications.db` is a one-drug pipeline proof, not a medication corpus. Similar products, normalized
   dosing facts, ATC classification, and additional dosage forms remain absent.
+- The MKB companion is a local-dev reference pack: the full-detail crawl is network-heavy and must be
+  explicitly requested, while its code-to-medicine relations remain proposed/reference-only rather
+  than treatment guidance. The public AJAX endpoint is used for forms and manufacturers; raw HTML is
+  not bundled.
 - The published corpus still lacks complete verified drug instructions, legal/normative material,
   vaccination calendars, nutrition, growth, development, and calculation-rule sources. The complete
   clinical-recommendation snapshot is not yet a complete physician knowledge base.

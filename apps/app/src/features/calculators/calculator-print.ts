@@ -61,13 +61,13 @@ export function printCalculationRecord(record: CalculationRecord): void {
 body{font-family:system-ui,-apple-system,sans-serif;max-width:800px;margin:40px auto;padding:0 24px;line-height:1.45;color:#111}
 pre{white-space:pre-wrap;font:inherit;border:1px solid #bbb;border-radius:12px;padding:20px}
 small{color:#555}
-@media print{body{margin:0;max-width:none}button{display:none}}
+@media print{body{margin:0 auto;max-width:190mm;padding:0 4mm}button{display:none}}
 </style>
 </head>
 <body>
 <pre>${escapeHtml(text)}</pre>
 <small>MiniMed · локальный расчёт</small>
-<script>window.addEventListener('load',()=>window.print())</script>
+<script>window.addEventListener('afterprint',()=>window.close());window.addEventListener('load',()=>window.print())</script>
 </body>
 </html>`;
   if (printHtmlInNativeShell(html, title)) return;

@@ -29,7 +29,6 @@ import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
-import { documentCountLabel } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import {
@@ -98,7 +97,6 @@ const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
   ],
 };
 
-const INITIAL_DOCUMENT_LIMIT = 5;
 const SEARCH_QUERY_EMPTY_ERROR = 'Search query has no searchable terms.';
 
 const CATEGORY_LABELS: Readonly<Record<SearchResultCategory, string>> = {
@@ -197,8 +195,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
   const [response, setResponse] = createSignal<SearchResponse>();
   const [context, setContext] = createSignal<ChunkContext>();
-  const [expandedGroups, setExpandedGroups] = createSignal<readonly string[]>([]);
-  const [showAllGroups, setShowAllGroups] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
   const [contextLoading, setContextLoading] = createSignal(false);
@@ -224,10 +220,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const resultCount = createMemo(
     () => response()?.groups.reduce((total, group) => total + group.results.length, 0) ?? 0,
   );
-  const visibleGroups = createMemo(() => {
-    const groups = response()?.groups ?? [];
-    return showAllGroups() ? groups : groups.slice(0, INITIAL_DOCUMENT_LIMIT);
-  });
+  const visibleGroups = createMemo(() => response()?.groups ?? []);
 
   const visibleContextChunks = createMemo(() => {
     const resolved = context();
@@ -277,7 +270,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       lastSearchedQuery = replayQuery.trim();
       setResponse(replay.detail.cachedResponse);
       setDraftAnalysis(replay.detail.cachedResponse.analysis);
-      setExpandedGroups([]);
     }
     requestAnimationFrame(() => {
       if (textarea) resizeTextarea(textarea);
@@ -352,7 +344,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       searchGeneration += 1;
       lastSearchedQuery = '';
       setResponse(undefined);
-      setShowAllGroups(false);
       setLoading(false);
       return;
     }
@@ -367,7 +358,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (response()?.analysis.originalQuery !== value.trim()) {
       setResponse(undefined);
       setContext(undefined);
-      setShowAllGroups(false);
     }
     scheduleAnalysis(value);
     if (debounce) scheduleSearch(value);
@@ -388,7 +378,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setLoading(true);
     setError(undefined);
     setContext(undefined);
-    setShowAllGroups(false);
 
     const result = await props.core.search({
       query: trimmed,
@@ -408,7 +397,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     lastSearchedQuery = trimmed;
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
-    setExpandedGroups([]);
     if (recordHistory) appendSearchHistory(trimmed, props.scope, result.value);
   }
 
@@ -455,8 +443,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setDraftAnalysis(undefined);
     setResponse(undefined);
     setContext(undefined);
-    setExpandedGroups([]);
-    setShowAllGroups(false);
     setError(undefined);
     setLoading(false);
     requestAnimationFrame(() => {
@@ -471,14 +457,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       event.preventDefault();
       void runSearch(query(), true);
     }
-  }
-
-  function toggleGroup(documentId: string): void {
-    setExpandedGroups((current) =>
-      current.includes(documentId)
-        ? current.filter((id) => id !== documentId)
-        : [...current, documentId],
-    );
   }
 
   function closeContext(): void {
@@ -760,22 +738,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               >
                 <WindowVirtualizer data={visibleGroups()} bufferSize={400}>
                   {(group, groupIndex) => {
-                    const expanded = () => expandedGroups().includes(group.documentId);
-                    const visibleResults = () => (expanded() ? group.results.slice(0, 5) : []);
                     return (
-                      <section class="result-group" classList={{ expanded: expanded() }}>
+                      <section class="result-group">
                         <div class="result-group-header">
-                          <button
-                            class="result-group-header-button"
-                            type="button"
-                            aria-expanded={expanded()}
-                            onClick={() => toggleGroup(group.documentId)}
-                          >
+                          <div class="result-group-header-button">
                             <span class="file-number">
                               {String(groupIndex() + 1).padStart(2, '0')}
                             </span>
                             <div>
-                              <small>ДОКУМЕНТ</small>
+                              <small>
+                                <AppGlyph name="book-open" /> ИСТОЧНИК
+                              </small>
                               <strong>{group.title}</strong>
                               <p class="result-minimal-note">
                                 {group.results[0]?.sectionPath.join(' / ') ??
@@ -783,10 +756,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                               </p>
                             </div>
                             <span class="group-count">{group.results.length} совп.</span>
-                          </button>
+                          </div>
                         </div>
-                        <For each={visibleResults()}>
-                          {(result) => {
+                        <For each={group.results}>
+                          {(result, resultIndex) => {
                             const visual = CATEGORY_VISUALS[result.category];
                             const pathSuffix = supplementalSectionPath(
                               result.category,
@@ -803,6 +776,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                   data-testid="search-result"
                                   onClick={() => void openResult(result)}
                                 >
+                                  <span class="result-number" aria-hidden="true">
+                                    {String(resultIndex() + 1).padStart(2, '0')}
+                                  </span>
                                   <span class="result-category-line">
                                     <span
                                       class={`result-category-icon tone-${visual.tone}`}
@@ -817,7 +793,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                       <span class="result-path">{pathSuffix}</span>
                                     </Show>
                                   </span>
-                                  <p>
+                                  <p class="result-snippet">
                                     <HighlightedText
                                       text={result.snippet}
                                       ranges={result.highlightedRanges}
@@ -848,20 +824,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     <span class="search-results-skeleton__tail" aria-hidden="true" />
                   </div>
                 </div>
-              </Show>
-              <Show when={searchResponse().groups.length > INITIAL_DOCUMENT_LIMIT}>
-                <button
-                  class="results-more"
-                  type="button"
-                  aria-expanded={showAllGroups()}
-                  onClick={() => setShowAllGroups((current) => !current)}
-                >
-                  {showAllGroups()
-                    ? 'Скрыть остальные документы'
-                    : `Показать ещё ${documentCountLabel(
-                        searchResponse().groups.length - INITIAL_DOCUMENT_LIMIT,
-                      )}`}
-                </button>
               </Show>
             </>
           )}

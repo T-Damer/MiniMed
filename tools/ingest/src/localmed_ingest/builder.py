@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -15,12 +16,18 @@ from .embedding import PORTABLE_HASH_PROFILE, build_chunk_embedding
 from .knowledge import apply_search_projection, knowledge_summary, write_knowledge_sqlite
 from .knowledge_modules import load_knowledge_modules
 from .markdown_parser import parse_markdown_document
-from .models import Alias, BuildReport, ContentPack, PackManifest
+from .models import Alias, BuildReport, ContentPack, PackDocument, PackManifest
+from .normalization import normalize_for_index
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
 from .text_encoding import (
     expects_russian_clinical_text,
     lint_english_dominant_russian_text,
     lint_garbled_russian_text,
+)
+
+_ICD10_CODE_PATTERN = re.compile(
+    r"(?<![A-ZА-Я0-9])(?P<code>[A-ZА-Я]?\s*\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])",
+    re.IGNORECASE,
 )
 
 
@@ -38,6 +45,36 @@ def calculate_pack_checksum(input_dir: Path) -> str:
             digest.update(path.name.encode("utf-8"))
             digest.update(path.read_bytes())
     return f"sha256:{digest.hexdigest()}"
+
+
+def apply_icd10_search_projection(documents: list[PackDocument]) -> None:
+    for document in documents:
+        raw_codes = document.metadata.get("icd10Codes")
+        if not isinstance(raw_codes, list):
+            continue
+        codes = [code.strip() for code in raw_codes if isinstance(code, str) and code.strip()]
+        if not codes:
+            continue
+        compact_codes: list[str] = []
+        for code in codes:
+            for match in _ICD10_CODE_PATTERN.finditer(code):
+                compact = re.sub(r"[.\-\s]", "", match.group("code")).casefold()
+                numeric = re.sub(r"^[a-zа-я]", "", compact)
+                if len(compact) >= 3:
+                    compact_codes.append(compact)
+                if len(numeric) >= 3:
+                    compact_codes.append(numeric)
+        projection = " ".join(dict.fromkeys(compact_codes))
+        if not projection:
+            continue
+        for section in document.sections:
+            for chunk in section.chunks:
+                chunk.normalized_text = " ".join(
+                    value
+                    for value in [chunk.normalized_text, normalize_for_index(projection)]
+                    if value
+                )
+                chunk.metadata["icd10Codes"] = codes
 
 
 def load_content_pack(input_dir: Path, *, include_embeddings: bool = True) -> ContentPack:
@@ -61,6 +98,7 @@ def load_content_pack(input_dir: Path, *, include_embeddings: bool = True) -> Co
 
     knowledge = load_knowledge_modules(input_dir, documents)
     apply_search_projection(documents, knowledge)
+    apply_icd10_search_projection(documents)
 
     embeddings = (
         [

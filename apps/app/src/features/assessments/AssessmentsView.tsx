@@ -7,7 +7,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-
+import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
@@ -445,7 +445,10 @@ export function AssessmentsView(): JSX.Element {
               ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
               selected().bankLabel
             }
-            onBack={() => navigate('#/assessments')}
+            onBack={() => {
+              if (window.history.state?.view === 'modules') window.history.back();
+              else navigate('#/assessments');
+            }}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
             onSaved={(saved) => {
@@ -482,6 +485,7 @@ export function AssessmentsView(): JSX.Element {
                 type="button"
                 onClick={() => installDefinition(selected().id)}
               >
+                <AppGlyph name="download" />
                 Скачать только этот тест
               </button>
               <button

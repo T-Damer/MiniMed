@@ -11,6 +11,7 @@ describe('builtInCompanionMounts', () => {
   it('uses the packaged regulatory database when no downloaded replacement exists', () => {
     const mounts = builtInCompanionMounts(
       {
+        mkbStore: store(),
         medicationsStore: store(),
         ambulatoryStore: store(),
         regulatoryStore: store(),
@@ -20,6 +21,7 @@ describe('builtInCompanionMounts', () => {
     );
 
     expect(mounts.map((mount) => mount.moduleId)).toEqual([
+      'minimed.mkb.ru',
       'minimed.medications.ru',
       'minimed.ambulatory.v1',
       'minimed.regulatory.pediatrics.ru',
@@ -30,6 +32,7 @@ describe('builtInCompanionMounts', () => {
   it('does not mount the packaged regulatory copy beside an installed replacement', () => {
     const mounts = builtInCompanionMounts(
       {
+        mkbStore: store(),
         medicationsStore: store(),
         ambulatoryStore: store(),
         regulatoryStore: store(),
@@ -39,6 +42,7 @@ describe('builtInCompanionMounts', () => {
     );
 
     expect(mounts.map((mount) => mount.moduleId)).toEqual([
+      'minimed.mkb.ru',
       'minimed.medications.ru',
       'minimed.ambulatory.v1',
       'minimed.reference.pediatrics.ru',
@@ -48,6 +52,7 @@ describe('builtInCompanionMounts', () => {
   it('does not mount the packaged reference copy beside an installed replacement', () => {
     const mounts = builtInCompanionMounts(
       {
+        mkbStore: store(),
         medicationsStore: store(),
         ambulatoryStore: store(),
         regulatoryStore: store(),
@@ -57,6 +62,7 @@ describe('builtInCompanionMounts', () => {
     );
 
     expect(mounts.map((mount) => mount.moduleId)).toEqual([
+      'minimed.mkb.ru',
       'minimed.medications.ru',
       'minimed.ambulatory.v1',
       'minimed.regulatory.pediatrics.ru',

@@ -81,6 +81,10 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
   const navigateBack = (): void => {
     const route = window.location.hash.replace(/^#\/?/u, '');
+    if (route.startsWith('modules/documents/') && window.history.state?.view === 'modules') {
+      window.history.back();
+      return;
+    }
     const backHash = knowledgeDocumentBackHash(route);
     if (backHash) {
       window.location.hash = backHash;

@@ -58,7 +58,7 @@
 
 @keyframes root-view-enter-forward {
   from {
-    transform: translate3d(clamp(1rem, 4vw, 3rem), 0, 0);
+    transform: translate3d(clamp(5rem, 18vw, 12rem), 0, 0);
     box-shadow: -1.25rem 0 1.75rem rgb(18 15 10 / 28%);
   }
 
@@ -70,13 +70,19 @@
 
 @keyframes root-view-enter-backward {
   from {
-    transform: translate3d(clamp(-3rem, -4vw, -1rem), 0, 0);
+    transform: translate3d(clamp(-12rem, -18vw, -5rem), 0, 0);
     box-shadow: 1.25rem 0 1.75rem rgb(18 15 10 / 28%);
   }
 
   to {
     transform: none;
     box-shadow: 0 0 0 rgb(18 15 10 / 0%);
+  }
+}
+
+@keyframes root-view-exit-backward {
+  to {
+    transform: translate3d(clamp(5rem, 18vw, 12rem), 0, 0);
   }
 }
 
@@ -181,6 +187,8 @@
   width: 2.5rem;
   height: 2.5rem;
   flex: 0 0 auto;
+  align-self: flex-start;
+  margin-left: auto;
   place-items: center;
   padding: 0;
   border: 1px solid rgb(72 59 34 / 34%);
@@ -208,6 +216,36 @@
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+.search-update-status {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--theme-floating-border);
+  border-radius: 999px;
+  color: var(--theme-floating-text);
+  background: var(--theme-floating-surface);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  text-transform: uppercase;
+}
+
+.search-update-status__icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.platform-android .search-mode-tools {
+  align-items: flex-start;
+  padding-top: calc(var(--safe-top) + 0.45rem);
+}
+
+.platform-android .search-mode-tools::before {
+  inset: calc(-1 * var(--safe-top)) 0 -1.25rem;
 }
 
 .search-mode-picker {
@@ -588,10 +626,59 @@
   padding: 0.5rem 0.6875rem 0.5625rem;
 }
 
-.search-workspace-main .result-open > p {
+.search-workspace-main .result-snippet {
   margin: 0.3125rem 0;
   font-size: 0.875rem;
   line-height: 1.4;
+}
+
+.search-workspace-main .result-group-header {
+  border-radius: 0.55rem 0.55rem 0 0;
+}
+
+.search-workspace-main .result-group-header-button {
+  cursor: default;
+}
+
+.search-workspace-main .result-group-header-button .group-count::after {
+  display: none;
+}
+
+.search-workspace-main .result-card {
+  margin: 0.35rem 0.35rem 0;
+  border: 1px solid var(--paper-line);
+  border-radius: 0.55rem;
+}
+
+.search-workspace-main .result-card::after {
+  display: none;
+}
+
+.search-workspace-main .result-number {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  display: grid;
+  width: 1.8rem;
+  height: 1.35rem;
+  place-items: center;
+  border: 1px solid var(--paper-line);
+  border-radius: 0.35rem;
+  color: var(--stamp);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.search-workspace-main .result-open {
+  min-height: 7rem;
+  padding: 0.65rem 0.75rem 0.7rem 2.75rem;
+}
+
+.search-workspace-main .result-snippet {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
 }
 
 /* Compact history beside search */
@@ -1202,6 +1289,10 @@
     transform 140ms ease;
 }
 
+.platform-android .search-history-fab {
+  top: calc(var(--safe-top) + 0.45rem);
+}
+
 .search-history-fab:hover {
   color: #f8f0dd;
   transform: scale(1.05);
@@ -1275,6 +1366,19 @@
   gap: 0.625rem;
   padding: max(1rem, calc(1rem + var(--safe-top))) 0.875rem 0.75rem;
   border-bottom: 1px solid rgb(72 59 34 / 18%);
+}
+
+.search-history-panel-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem calc(0.75rem + var(--safe-bottom));
+  border-top: 1px solid var(--paper-line);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+}
+
+.search-history-panel-footer a {
+  color: var(--theme-link);
 }
 
 .search-history-panel-header > div,
@@ -2477,6 +2581,18 @@ html.native-print-active #root {
   .native-print-preview__header {
     display: none;
   }
+}
+
+.knowledge-base-page,
+.patient-notes-view {
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%),
+    linear-gradient(180deg, var(--folder-light), var(--folder));
+}
+
+.knowledge-base-page > .module-page {
+  min-height: calc(100dvh + 4.875rem + var(--safe-bottom));
+  padding-bottom: calc(6rem + var(--safe-bottom));
 }
 
 .knowledge-back-button {
