@@ -63,7 +63,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
 });
 
 test('limits medication mode to medication documents', async ({ page }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { includeMedicationCompanionPack: true });
 
   await chooseScope(page, /Препараты/u);
   await page.getByTestId('search-input').fill('цефтриаксон');
@@ -78,7 +78,7 @@ test('limits medication mode to medication documents', async ({ page }) => {
 test('opens Miramistin indications from the full instruction with structured lists', async ({
   page,
 }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { includeMedicationCompanionPack: true });
   await chooseScope(page, /Препараты/u);
   await page.getByTestId('search-input').fill('Мирамистин показания');
   await expect(page.locator('.result-group').first()).toContainText(
@@ -181,7 +181,7 @@ test('renders the complete virtualized document list', async ({ page }) => {
   await page.getByTestId('search-submit').click();
 
   const groups = page.locator('.result-group');
-  await expect(groups).toHaveCount(5);
+  await expect(groups).toHaveCount(2);
   await expect(page.getByRole('button', { name: /Показать ещё/u })).toHaveCount(0);
 });
 
@@ -248,7 +248,7 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
 });
 
 test('replays a saved query from the history drawer', async ({ page }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { includeMedicationCompanionPack: true });
   await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();

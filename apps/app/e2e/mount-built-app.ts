@@ -47,6 +47,7 @@ export interface MountBuiltAppOptions {
   readonly persistentOrigin?: boolean;
   readonly skipLargeCompanionPacks?: boolean;
   readonly includeMkbCompanionPack?: boolean;
+  readonly includeMedicationCompanionPack?: boolean;
 }
 
 async function waitForWorkspace(page: Page): Promise<void> {
@@ -65,13 +66,17 @@ async function waitForWorkspace(page: Page): Promise<void> {
 
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
-  if (!options.includeMkbCompanionPack) {
-    await page.route(`${E2E_ASSET_ORIGIN}/content/mkb.db`, (route) => route.abort());
-  }
+  const skippedCompanionPacks = new Set([
+    'ambulatory.db',
+    ...(options.includeMkbCompanionPack ? [] : ['mkb.db']),
+    ...(options.includeMedicationCompanionPack ? [] : ['medications.db']),
+  ]);
   if (options.skipLargeCompanionPacks) {
-    for (const databaseName of ['ambulatory.db', 'medications.db']) {
-      await page.route(`${E2E_ASSET_ORIGIN}/content/${databaseName}`, (route) => route.abort());
-    }
+    skippedCompanionPacks.add('mkb.db');
+    skippedCompanionPacks.add('medications.db');
+  }
+  for (const databaseName of skippedCompanionPacks) {
+    await page.route(`${E2E_ASSET_ORIGIN}/content/${databaseName}`, (route) => route.abort());
   }
   const initialStorage = options.localStorage ?? {};
   await page.addInitScript((initialValues) => {

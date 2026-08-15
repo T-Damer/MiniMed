@@ -819,6 +819,24 @@ function ftsToken(term: string): string {
 const ICD10_CODE_PATTERN =
   /(?<![A-ZА-Я0-9])(?<code>[A-ZА-Я]?\s*\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])/giu;
 
+function icd10LegacyFtsQueries(value: string): readonly string[] {
+  const queries = new Set<string>();
+  for (const match of value.matchAll(ICD10_CODE_PATTERN)) {
+    const compact = match.groups?.['code']?.replace(/[.\-\s]/gu, '').toLowerCase();
+    const numeric = compact?.replace(/^[a-zа-я]/u, '');
+    if (!numeric || numeric.length < 3) continue;
+    const prefix = numeric.slice(0, 2);
+    const suffix = numeric.slice(2);
+    queries.add(`(${ftsToken(prefix)} AND ${ftsToken(suffix)})`);
+    queries.add(`(${ftsToken(`i${prefix}`)} AND ${ftsToken(suffix)})`);
+  }
+  return [...queries];
+}
+
+function buildFtsQuery(query: string, terms: readonly string[]): string {
+  return [...new Set([...terms.map(ftsToken), ...icd10LegacyFtsQueries(query)])].join(' OR ');
+}
+
 function icd10CodeFragments(values: readonly string[]): ReadonlySet<string> {
   const fragments = new Set<string>();
   for (const value of values) {
@@ -880,7 +898,7 @@ function makeBranch(
     normalizedQuery: normalizeSurfaceText(query),
     terms,
     weight,
-    ftsQuery: terms.map(ftsToken).join(' OR '),
+    ftsQuery: buildFtsQuery(query, terms),
   };
 }
 

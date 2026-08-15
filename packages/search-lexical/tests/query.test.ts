@@ -58,6 +58,7 @@ describe('lexical query planning', () => {
       expect(plan.terms).toContain('679');
       if (/^i/iu.test(query)) expect(plan.terms).toContain('i679');
       expect(plan.terms).not.toContain('i67');
+      expect(plan.ftsQuery).toContain('AND');
     },
   );
 
