@@ -32,7 +32,48 @@
 }
 
 .module-card.installed {
-  border-color: var(--theme-accent);
+  border-color: color-mix(in srgb, var(--theme-accent) 42%, var(--theme-border));
+  border-inline-start: 0.25rem solid var(--theme-accent);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 65%),
+    0 0.5rem 1rem rgb(34 31 25 / 12%);
+}
+
+.module-card.installed .module-state.state-installed {
+  border-radius: var(--theme-radius-control);
+}
+
+.module-card.installed .doctor-module-facts span {
+  border-color: var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
+}
+
+.module-card.installed .module-card-actions {
+  justify-content: flex-end;
+}
+
+.module-card.installed .module-card-actions .module-remove-button {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--theme-danger) 48%, transparent);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 10%, var(--theme-surface-raised));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
+}
+
+.module-card.installed .module-card-actions .module-remove-button:hover {
+  border-color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 18%, var(--theme-surface-raised));
+  box-shadow: none;
+  transform: none;
 }
 
 .doctor-module-facts {

@@ -15,6 +15,7 @@ import { WindowVirtualizer } from 'virtua/solid';
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
 import { DocumentText } from '@/components/DocumentText';
+import { QueryHighlightedText } from '@/components/HighlightedText';
 import { stripKnownHtmlMarkupInline } from '@/components/html-markup';
 import { SearchField } from '@/components/SearchField';
 import {
@@ -53,6 +54,7 @@ interface PackageVariant {
 }
 
 const ROUTE_PREFIX = 'modules/documents/medications/';
+const STICKY_BLUR_OFFSET_PX = 12;
 
 function selectedRegistrationFromLocation(): string | null {
   const route = window.location.hash.replace(/^#\/?/u, '');
@@ -96,26 +98,104 @@ function medicationSearchText(product: MedicationProduct): string {
 // instead of rendering a section that duplicates the title.
 const REDUNDANT_TITLE_SECTION = 'Карточка препарата';
 
-function MedicationSourceContent(props: { readonly sourceDocument: MedicalDocument }): JSX.Element {
+function MedicationSourceContent(props: {
+  readonly sourceDocument: MedicalDocument;
+  readonly searchQuery: string;
+}): JSX.Element {
   const sections = orderDocumentSections(
     props.sourceDocument.sections,
     props.sourceDocument.sourceType,
   ).filter((section) => section.chunks.length > 0 && section.title !== REDUNDANT_TITLE_SECTION);
+  const sourceQuery = createMemo(() => normalizeSearch(props.searchQuery));
+  const [activeMatch, setActiveMatch] = createSignal(0);
+  const [matchCount, setMatchCount] = createSignal(0);
+  let sourceRoot: HTMLElement | undefined;
+  const matchElements = (): HTMLElement[] =>
+    sourceRoot
+      ? Array.from(sourceRoot.querySelectorAll<HTMLElement>('.medication-source__match'))
+      : [];
+
+  createEffect(() => {
+    sourceQuery();
+    setActiveMatch(0);
+  });
+  createEffect(() => {
+    sourceQuery();
+    const requestedIndex = activeMatch();
+    const matches = matchElements();
+    setMatchCount(matches.length);
+    const nextIndex = matches.length > 0 ? Math.min(requestedIndex, matches.length - 1) : 0;
+    if (nextIndex !== requestedIndex) {
+      setActiveMatch(nextIndex);
+      return;
+    }
+    matches.forEach((match, index) => {
+      match.classList.toggle('medication-source__match--active', index === nextIndex);
+    });
+  });
+
+  const moveMatch = (direction: -1 | 1): void => {
+    const matches = matchElements();
+    if (matches.length === 0) return;
+    const nextIndex = (activeMatch() + direction + matches.length) % matches.length;
+    setActiveMatch(nextIndex);
+    matches[nextIndex]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
   const scrollToSection = (anchor: string): void => {
     document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
-    <section class="medication-source paper-card">
+    <section ref={sourceRoot} class="medication-source paper-card">
       <header class="medication-source__header">
         <Show when={sourceTypeReaderLabel(props.sourceDocument.sourceType)}>
           {(label) => <p class="medication-source__label">{label()}</p>}
         </Show>
-        <h2 class="medication-source__title">{displayDocumentTitle(props.sourceDocument)}</h2>
+        <h2 class="medication-source__title">
+          <QueryHighlightedText
+            text={displayDocumentTitle(props.sourceDocument)}
+            query={sourceQuery()}
+            exact
+            matchClass="medication-source__match"
+          />
+        </h2>
         <Show when={displayDocumentSubtitle(props.sourceDocument)}>
           {(subtitle) => <p class="medication-source__subtitle">{subtitle()}</p>}
         </Show>
       </header>
+
+      <Show when={sourceQuery()}>
+        <div class="medication-source__find-toolbar">
+          <span class="medication-source__find-count" aria-live="polite">
+            {matchCount() > 0 ? `${activeMatch() + 1} из ${matchCount()}` : '0 совпадений'}
+          </span>
+          <div class="medication-source__find-actions">
+            <button
+              type="button"
+              class="medication-source__find-button"
+              aria-label="Предыдущее совпадение"
+              title="Предыдущее совпадение"
+              disabled={matchCount() === 0}
+              onClick={() => moveMatch(-1)}
+            >
+              <AppGlyph name="arrow-up" class="medication-source__find-icon" />
+            </button>
+            <button
+              type="button"
+              class="medication-source__find-button"
+              aria-label="Следующее совпадение"
+              title="Следующее совпадение"
+              disabled={matchCount() === 0}
+              onClick={() => moveMatch(1)}
+            >
+              <AppGlyph
+                name="arrow-up"
+                class="medication-source__find-icon medication-source__find-icon--down"
+              />
+            </button>
+          </div>
+        </div>
+      </Show>
 
       <details class="medication-source__outline" open>
         <summary class="medication-source__outline-summary">Оглавление</summary>
@@ -139,19 +219,33 @@ function MedicationSourceContent(props: { readonly sourceDocument: MedicalDocume
 
       <div class="medication-source__sections">
         <For each={sections}>
-          {(section) => (
-            <section class="medication-source__section" id={section.anchor}>
+          {(section, index) => (
+            <section
+              class="medication-source__section"
+              classList={{
+                'medication-source__section--separated': index() > 0 && section.depth === 0,
+              }}
+              id={section.anchor}
+            >
               <Dynamic
                 component={documentSectionHeadingTag(section.depth, 2)}
                 class={`medication-source__section-title medication-source__section-title--${documentSectionHeadingTag(section.depth, 2)}`}
               >
-                {section.title}
+                <QueryHighlightedText
+                  text={section.title}
+                  query={sourceQuery()}
+                  exact
+                  matchClass="medication-source__match"
+                />
               </Dynamic>
               <For each={section.chunks}>
                 {(chunk) => (
                   <DocumentText
                     text={chunk.originalText}
                     paragraphClass="medication-source__paragraph"
+                    query={sourceQuery()}
+                    exactQuery
+                    highlightClass="medication-source__match"
                   />
                 )}
               </For>
@@ -242,6 +336,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const initialSelectedRegistration = selectedRegistrationFromLocation();
   const [products, setProducts] = createSignal<readonly MedicationProduct[]>([]);
   const [searchQuery, setSearchQuery] = createSignal('');
+  const [sourceSearchQuery, setSourceSearchQuery] = createSignal('');
   const [selectedRegistration, setSelectedRegistration] = createSignal(initialSelectedRegistration);
   const [catalogVisited, setCatalogVisited] = createSignal(initialSelectedRegistration === null);
   const [selectedVariant, setSelectedVariant] = createSignal(0);
@@ -251,6 +346,64 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal<string>();
   let sourceDocumentId = '';
+  let medicationPageRoot: HTMLElement | undefined;
+  let stickyLayoutFrame: number | undefined;
+
+  const updateStickyLayout = (): void => {
+    const root = medicationPageRoot;
+    if (!root) return;
+    const routeHeading = root.querySelector<HTMLElement>('.medication-route-heading');
+    if (!routeHeading) return;
+
+    const routeHeight = Math.ceil(routeHeading.offsetHeight);
+    const sourceHeader = root.querySelector<HTMLElement>('.medication-source__header');
+    const sourceHeight = sourceHeader ? Math.ceil(sourceHeader.offsetHeight) : 0;
+    const sectionTitles = Array.from(
+      root.querySelectorAll<HTMLElement>('.medication-source__section-title'),
+    );
+    root.style.setProperty('--medication-source-header-top', `${routeHeight}px`);
+    root.style.setProperty('--medication-section-title-top', `${routeHeight + sourceHeight}px`);
+
+    const stickyElements = [
+      routeHeading,
+      ...(sourceHeader ? [sourceHeader] : []),
+      ...sectionTitles,
+    ];
+    const stickyStates = stickyElements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      const stickyTop = Number.parseFloat(getComputedStyle(element).top);
+      return {
+        element,
+        isSticky:
+          window.scrollY > 1 && Number.isFinite(stickyTop) && Math.abs(rect.top - stickyTop) <= 1,
+        bottom: rect.bottom,
+      };
+    });
+    routeHeading.classList.toggle('sticky-surface--stuck', stickyStates[0]?.isSticky ?? false);
+    stickyStates.forEach((state, index) => {
+      const hasStickyAbove = stickyStates.slice(0, index).some((candidate) => candidate.isSticky);
+      state.element.classList.toggle(
+        'medication-page__sticky-item--stacked',
+        state.isSticky && hasStickyAbove,
+      );
+    });
+    const stickyBottoms = stickyStates
+      .filter((state) => state.isSticky)
+      .map((state) => state.bottom);
+    const blurHeight = stickyBottoms.length
+      ? Math.max(...stickyBottoms) + STICKY_BLUR_OFFSET_PX
+      : 0;
+    root.style.setProperty('--medication-sticky-blur-height', `${Math.ceil(blurHeight)}px`);
+    root.style.setProperty('--medication-sticky-blur-opacity', stickyBottoms.length ? '1' : '0');
+  };
+
+  const scheduleStickyLayout = (): void => {
+    if (stickyLayoutFrame !== undefined) cancelAnimationFrame(stickyLayoutFrame);
+    stickyLayoutFrame = requestAnimationFrame(() => {
+      stickyLayoutFrame = undefined;
+      updateStickyLayout();
+    });
+  };
 
   const refresh = async (): Promise<void> => {
     setLoading(true);
@@ -277,16 +430,28 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     setSelectedRegistration(nextRegistration);
     if (nextRegistration === null) setCatalogVisited(true);
     setSelectedVariant(0);
+    setSourceSearchQuery('');
   };
 
   onMount(() => {
     void refresh();
     window.addEventListener('hashchange', syncRoute);
     window.addEventListener(CONTENT_CHANGED_EVENT, refresh);
+    window.addEventListener('scroll', scheduleStickyLayout, { passive: true });
+    window.addEventListener('resize', scheduleStickyLayout);
+    scheduleStickyLayout();
+    if (medicationPageRoot && typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(scheduleStickyLayout);
+      resizeObserver.observe(medicationPageRoot);
+      onCleanup(() => resizeObserver.disconnect());
+    }
   });
   onCleanup(() => {
     window.removeEventListener('hashchange', syncRoute);
     window.removeEventListener(CONTENT_CHANGED_EVENT, refresh);
+    window.removeEventListener('scroll', scheduleStickyLayout);
+    window.removeEventListener('resize', scheduleStickyLayout);
+    if (stickyLayoutFrame !== undefined) cancelAnimationFrame(stickyLayoutFrame);
   });
 
   const selectedProduct = createMemo(() =>
@@ -335,6 +500,11 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
       });
   });
 
+  createEffect(() => {
+    sourceDocument();
+    scheduleStickyLayout();
+  });
+
   const openProduct = (product: MedicationProduct): void => {
     window.location.hash = `#/modules/documents/medications/${encodeURIComponent(
       product.registrationNumber,
@@ -349,7 +519,8 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   };
 
   return (
-    <section class="medication-page">
+    <section ref={medicationPageRoot} class="medication-page">
+      <div class="medication-page__sticky-blur masked-backdrop-blur" aria-hidden="true" />
       <div class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading">
         <button
           type="button"
@@ -363,6 +534,15 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
           <h1 class="medication-route-heading__title knowledge-subroute-heading__control">
             {selectedProduct()?.tradeName}
           </h1>
+          <SearchField
+            class="route-search medication-route-heading__search knowledge-subroute-heading__control"
+            value={sourceSearchQuery()}
+            onInput={setSourceSearchQuery}
+            id="medication-source-search"
+            label="Поиск в карточке препарата"
+            hideLabel
+            placeholder="Поиск в карточке"
+          />
         </Show>
         <Show when={!selectedRegistration()}>
           <SearchField
@@ -503,7 +683,12 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                 )}
               </Show>
               <Show when={sourceDocument()}>
-                {(document) => <MedicationSourceContent sourceDocument={document()} />}
+                {(document) => (
+                  <MedicationSourceContent
+                    sourceDocument={document()}
+                    searchQuery={sourceSearchQuery()}
+                  />
+                )}
               </Show>
 
               <section class="medication-section">

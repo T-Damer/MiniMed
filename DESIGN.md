@@ -160,6 +160,17 @@ touch and trackpad horizontal input remain native. At the strip edge the page ma
 Depth uses a mixed strategy: tonal shifts for the desk/paper relationship and warm tinted shadows for
 floating cards and navigation. Borders remain hairlines and are never the only error signal.
 
+### Эффект «целлофанового пакета»
+
+- Warm page surfaces may use the reusable `page-grain` layer from
+  `apps/app/src/styles/mobile-shell.css` to add a low-opacity fractal-noise film.
+- The grain separates the paper page from the desk without introducing another color, visible grid, or
+  texture on cards and text.
+- The shared fractal-noise family lives in `--page-grain-image` and `--masked-grain-image`: page
+  surfaces use the finer density, while masked sticky blur keeps a slightly coarser film for legibility.
+- Sticky grain/blur is conditional: it remains transparent until the owning header is actually stuck,
+  so the texture never dirties the page at rest.
+
 ### Primary Obsidian extraction
 
 MiniMed borrows the Primary Obsidian theme's functional principles, not its brand assets: lower

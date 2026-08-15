@@ -89,7 +89,6 @@ html.calculator-route-open body {
   max-width: 42rem;
 }
 
-.calculator-search span,
 .calculator-form label span,
 .calculator-note-panel label span {
   font-size: 0.78rem;
@@ -98,7 +97,6 @@ html.calculator-route-open body {
   text-transform: uppercase;
 }
 
-.calculator-search input,
 .calculator-form input,
 .calculator-note-panel__input {
   width: 100%;
@@ -386,6 +384,14 @@ html.calculator-route-open body {
   min-height: 0;
 }
 
+.calculator-card--disabled {
+  opacity: 1;
+}
+
+.calculator-card__muted {
+  opacity: 0.68;
+}
+
 .calculator-card h2,
 .calculator-card p,
 .calculator-result h2,
@@ -409,6 +415,44 @@ html.calculator-route-open body {
 .calculator-card > small {
   margin-top: auto;
   color: var(--theme-text-muted);
+}
+
+.calculator-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.calculator-card__download {
+  position: relative;
+  z-index: 3;
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 45%, transparent);
+  border-radius: 0.55rem;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  cursor: pointer;
+  line-height: 0;
+  transition:
+    border-color var(--theme-motion-control),
+    background-color var(--theme-motion-control),
+    transform var(--theme-motion-control);
+}
+
+.calculator-card__download:hover {
+  border-color: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-accent) 86%, black);
+  transform: translateY(-1px);
+}
+
+.calculator-card__download-icon {
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .calculator-card-meta {
@@ -474,6 +518,21 @@ html.calculator-route-open body {
 .calculator-result {
   display: grid;
   gap: 1rem;
+}
+
+.calculator-step-preview {
+  display: grid;
+  gap: 0.75rem;
+  grid-column: 1 / -1;
+  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--theme-surface-raised) 88%, var(--theme-accent));
+}
+
+.calculator-step-preview__title {
+  margin: 0;
+  font-weight: 800;
 }
 
 .calculator-output-list {

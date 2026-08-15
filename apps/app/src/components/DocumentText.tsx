@@ -16,6 +16,8 @@ import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-li
 function LinkedPlainText(props: {
   readonly text: string;
   readonly query?: string | undefined;
+  readonly exactQuery?: boolean | undefined;
+  readonly highlightClass?: string | undefined;
 }): JSX.Element {
   return (
     <For each={segmentTextWithToolLinks(props.text)}>
@@ -25,6 +27,8 @@ function LinkedPlainText(props: {
             <QueryHighlightedText
               text={segment.value.replace(/^#/u, '')}
               query={props.query ?? ''}
+              exact={props.exactQuery}
+              matchClass={props.highlightClass}
             />
           );
         }
@@ -39,7 +43,12 @@ function LinkedPlainText(props: {
           >
             <AppGlyph name={assessment ? 'list-checks' : 'calculator'} />
             <span>
-              <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
+              <QueryHighlightedText
+                text={segment.value}
+                query={props.query ?? ''}
+                exact={props.exactQuery}
+                matchClass={props.highlightClass}
+              />
             </span>
           </button>
         );
@@ -54,6 +63,8 @@ function InlineDocumentText(props: {
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
   readonly query?: string | undefined;
+  readonly exactQuery?: boolean | undefined;
+  readonly highlightClass?: string | undefined;
 }): JSX.Element {
   const parts = () => props.text.split(/(\*\*|#[\p{L}\p{M}-]+|\([A-ZА-Я0-9]{4,8}\))/gu);
   return (
@@ -69,7 +80,12 @@ function InlineDocumentText(props: {
             class="document-inline-reference"
             onClick={() => props.onReference?.(reference)}
           >
-            <QueryHighlightedText text={hashtag ?? part} query={props.query ?? ''} />
+            <QueryHighlightedText
+              text={hashtag ?? part}
+              query={props.query ?? ''}
+              exact={props.exactQuery}
+              matchClass={props.highlightClass}
+            />
           </button>
         ) : (
           <For each={segmentTextWithMedicationLinks(part, props.documentLinks ?? [])}>
@@ -83,7 +99,12 @@ function InlineDocumentText(props: {
                   <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
                 </button>
               ) : (
-                <LinkedPlainText text={segment.value} query={props.query} />
+                <LinkedPlainText
+                  text={segment.value}
+                  query={props.query}
+                  exactQuery={props.exactQuery}
+                  highlightClass={props.highlightClass}
+                />
               )
             }
           </For>
@@ -118,6 +139,8 @@ export function DocumentText(props: {
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
   readonly query?: string | undefined;
+  readonly exactQuery?: boolean | undefined;
+  readonly highlightClass?: string | undefined;
 }): JSX.Element {
   const groups = () =>
     groupBlocks(parseDocumentText(stripKnownHtmlMarkup(props.text), props.sourceSpans));
@@ -128,6 +151,8 @@ export function DocumentText(props: {
       onDocumentLink={props.onDocumentLink}
       onReference={props.onReference}
       query={props.query}
+      exactQuery={props.exactQuery}
+      highlightClass={props.highlightClass}
     />
   );
 

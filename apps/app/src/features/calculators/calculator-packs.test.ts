@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculatorIdsInSection,
+  installCalculator,
   installCalculatorSection,
   isCalculatorSectionComplete,
   isCalculatorSectionCore,
@@ -32,6 +33,16 @@ describe('calculator packs', () => {
     expect(isCalculatorSectionCore('unit-conversion', CALCULATOR_REGISTRY)).toBe(true);
     expect(isCalculatorSectionComplete('unit-conversion', state, CALCULATOR_REGISTRY)).toBe(true);
     expect(isCalculatorSectionCore('renal', CALCULATOR_REGISTRY)).toBe(false);
+  });
+
+  it('installs one calculator without installing the whole section', () => {
+    const ids = calculatorIdsInSection('renal', CALCULATOR_REGISTRY);
+    const first = installCalculator(ids[0] ?? '', CALCULATOR_REGISTRY);
+
+    expect(first.sectionIds.has('renal')).toBe(false);
+    expect(first.installedIds.has(ids[0] ?? '')).toBe(true);
+    expect(first.installedIds.has(ids[1] ?? '')).toBe(false);
+    expect(isCalculatorSectionComplete('renal', first, CALCULATOR_REGISTRY)).toBe(false);
   });
 
   it('does not install a section that has no available calculators', () => {

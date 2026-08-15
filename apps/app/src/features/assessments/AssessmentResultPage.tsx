@@ -196,7 +196,7 @@ export function AssessmentResultPage(props: {
           Поделиться
         </Button>
         <Button
-          variant="quiet"
+          variant="secondary"
           icon={<AppGlyph name="notes" />}
           data-testid="assessment-save-note"
           onClick={() => setNotePanelOpen((value) => !value)}

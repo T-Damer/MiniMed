@@ -10,10 +10,14 @@ import {
   dueReminderNotes,
   enrichPatientNote,
   injectColleagueNote,
+  loadPatientNoteDraft,
   loadPatientNotes,
+  loadPreviousPatientNoteRevision,
   PATIENT_NOTES_KEY,
   removePatientCard,
   removePatientNote,
+  removePatientNoteDraft,
+  savePatientNoteDraft,
   searchPatientNotes,
   setNoteReminder,
   updatePatientNote,
@@ -190,6 +194,29 @@ describe('patient notes store', () => {
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
     updatePatientNote(noteId, '   ');
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
+  });
+
+  it('keeps an autosaved draft separate from the previous stable revision', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'первая версия');
+    const noteId = loadPatientNotes().notes[0]?.id ?? '';
+
+    savePatientNoteDraft({
+      noteId,
+      text: 'черновик версии',
+      reminderDate: '',
+      reminderTime: '',
+      savedAt: '2026-08-15T10:00:00.000Z',
+    });
+    expect(loadPatientNoteDraft(noteId)?.text).toBe('черновик версии');
+
+    updatePatientNote(noteId, 'стабильная новая версия');
+    expect(loadPreviousPatientNoteRevision(noteId)?.text).toBe('первая версия');
+    expect(loadPatientNotes().notes[0]?.text).toBe('стабильная новая версия');
+
+    removePatientNoteDraft(noteId);
+    expect(loadPatientNoteDraft(noteId)).toBeNull();
   });
 
   it('keeps only sources matching more than one meaningful term', async () => {

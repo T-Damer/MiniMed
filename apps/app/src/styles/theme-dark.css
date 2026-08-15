@@ -61,9 +61,21 @@
   }
 
   .app-bottom-nav .app-nav-button--active {
-    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    border-color: transparent;
     color: var(--theme-accent-contrast);
-    background: var(--theme-accent);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .app-bottom-nav__bubble {
+    border-color: color-mix(in srgb, var(--theme-accent) 65%, var(--theme-border));
+    background:
+      radial-gradient(circle at 35% 18%, rgb(255 255 255 / 18%), transparent 58%),
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--theme-surface-raised) 90%, #fff 10%),
+        var(--theme-surface-raised)
+      );
   }
 
   .app-nav-button:hover {
@@ -73,7 +85,7 @@
 
   .app-bottom-nav .app-nav-button--active:hover {
     color: var(--theme-accent-contrast);
-    background: var(--theme-accent);
+    background: transparent;
   }
 
   body {

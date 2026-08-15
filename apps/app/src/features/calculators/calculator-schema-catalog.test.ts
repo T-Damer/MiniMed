@@ -7,6 +7,7 @@ import {
   CALCULATOR_SCHEMA_CATALOG,
   PEDIATRIC_EGFR_SCHWARTZ_2009_SCHEMA,
   PEDIATRIC_MAINTENANCE_FLUIDS_SCHEMA,
+  PEDIATRIC_ORAL_REHYDRATION_SCHEMA,
 } from '@/features/calculators/calculator-schema-catalog';
 import type {
   CalculatorSchemaNumberOutput,
@@ -34,6 +35,7 @@ describe('calculator schema catalog', () => {
         'body-surface-area-mosteller',
         'pediatric-egfr-schwartz-2009',
         'pediatric-maintenance-fluids',
+        'pediatric-oral-rehydration',
         'obstetric-bishop-score',
         'obstetric-ga-crl',
         'obstetric-edd-lmp',
@@ -198,5 +200,36 @@ describe('pediatric maintenance fluids (Holliday-Segar) schema matches the hardc
       expect(schemaResult.outputs[index].value).toBeCloseTo(expected.value, 8);
       expect(schemaResult.outputs[index].unit).toBe(expected.unit);
     });
+  });
+});
+
+describe('pediatric oral rehydration schema stages inputs and ongoing losses', () => {
+  it('shows the base plan before requiring loss counts, then recalculates them', () => {
+    const base = evaluateCalculatorSchema(
+      PEDIATRIC_ORAL_REHYDRATION_SCHEMA,
+      {
+        ageYears: 1.5,
+        weightKg: 10,
+      },
+      { maxStep: 0 },
+    );
+    expect(base.ok).toBe(true);
+    if (!base.ok) throw new Error('unreachable');
+    expect(base.outputs.some((output) => output.label.includes('ОРС при клинической'))).toBe(true);
+    expect(base.outputs.some((output) => output.label.includes('жидким стулом'))).toBe(false);
+
+    const complete = evaluateCalculatorSchema(PEDIATRIC_ORAL_REHYDRATION_SCHEMA, {
+      ageYears: 1.5,
+      weightKg: 10,
+      diarrheaEpisodes: 3,
+      vomitingEpisodes: 2,
+    });
+    expect(complete.ok).toBe(true);
+    if (!complete.ok) throw new Error('unreachable');
+    const ongoing = complete.outputs.find((output) =>
+      output.label.includes('Продолжающиеся потери'),
+    );
+    expectNumberOutput(ongoing);
+    expect(ongoing.value).toBe(340);
   });
 });

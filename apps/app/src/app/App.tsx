@@ -1,12 +1,11 @@
 import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
-import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Toaster } from 'solid-sonner';
 
 import { nativeBackAction } from '@/app/native-back';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
-import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { createBrowserCore } from '@/composition/create-browser-core';
 import {
   type InitializedMedicalCore,
@@ -37,7 +36,7 @@ import {
   activateAppUpdate,
 } from '@/state/app-update';
 import { notifyContentChanged } from '@/state/content-events';
-import { installButtonHaptics } from '@/state/haptics';
+import { hapticFeedback, installButtonHaptics } from '@/state/haptics';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 
 type View = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes';
@@ -47,6 +46,36 @@ interface RootNavigationMotion {
   readonly from: View;
   readonly to: View;
   readonly direction: RootNavigationDirection;
+}
+
+interface BottomNavBubblePosition {
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+interface BottomNavBubbleMotion {
+  readonly origin: 'center' | 'left' | 'right';
+  readonly scaleX: number;
+  readonly scaleY: number;
+  readonly rotate: number;
+}
+
+interface BottomNavBubbleTravel {
+  readonly edge: -1 | 0 | 1;
+  readonly overscroll: number;
+}
+
+interface BottomNavGesture {
+  readonly pointerId: number;
+  readonly startX: number;
+  readonly startY: number;
+  readonly startIndex: number;
+  lastX: number;
+  lastTime: number;
+  lastDirection: number;
+  moved: boolean;
 }
 
 const VIEWS: readonly {
@@ -111,7 +140,7 @@ function createLocalModelController(): LocalModelController {
 }
 
 export function App(): JSX.Element {
-  const showBrowserFooter = !('Capacitor' in window);
+  const isNativeShell = Capacitor.getPlatform() !== 'web';
   const [view, setView] = createSignal<View>(viewFromLocation());
   const [rootNavigationMotion, setRootNavigationMotion] = createSignal<RootNavigationMotion>();
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
@@ -123,6 +152,16 @@ export function App(): JSX.Element {
   const [showScrollTop, setShowScrollTop] = createSignal(false);
   const [appUpdateWorker, setAppUpdateWorker] = createSignal<ServiceWorker>();
   const [appUpdating, setAppUpdating] = createSignal(false);
+  const [bottomNavBubble, setBottomNavBubble] = createSignal<BottomNavBubblePosition>();
+  const [bottomNavBubbleMotion, setBottomNavBubbleMotion] = createSignal<BottomNavBubbleMotion>({
+    origin: 'center',
+    scaleX: 1,
+    scaleY: 1,
+    rotate: 0,
+  });
+  const [bottomNavDragIndex, setBottomNavDragIndex] = createSignal<number>();
+  const [bottomNavPressed, setBottomNavPressed] = createSignal(false);
+  const [bottomNavDragging, setBottomNavDragging] = createSignal(false);
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
@@ -133,6 +172,10 @@ export function App(): JSX.Element {
   let stopButtonHaptics: (() => void) | undefined;
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let rootNavigationMotionTimer: ReturnType<typeof setTimeout> | undefined;
+  let bottomNav: HTMLElement | undefined;
+  let bottomNavGesture: BottomNavGesture | undefined;
+  let bottomNavBubbleFrame: number | undefined;
+  let suppressNavClickUntil = 0;
   const rootNavigationQueue: Array<{ readonly next: View; readonly commit: () => void }> = [];
   // Each of the 5 root views stays mounted (hidden, never unmounted — see the `hidden={view() !== X}`
   // sections below), so its own component state (open document, calculator inputs, etc.) already
@@ -143,9 +186,9 @@ export function App(): JSX.Element {
   // Remembering the last hash and scroll offset per view and restoring them on return fixes both.
   const lastRouteByView = new Map<View, string>();
   const scrollByView = new Map<View, number>();
-  const snapshotCurrentRoute = (): void => {
+  const snapshotCurrentRoute = (hash = window.location.hash): void => {
     scrollByView.set(view(), window.scrollY);
-    lastRouteByView.set(view(), window.location.hash || `#/${view()}`);
+    lastRouteByView.set(view(), hash || `#/${view()}`);
   };
   const restoreScrollFor = (target: View): void => {
     const top = scrollByView.get(target) ?? 0;
@@ -211,8 +254,8 @@ export function App(): JSX.Element {
     };
   };
 
-  // While a root-nav transition is running, the outgoing view stays visible (not `hidden`) so it can
-  // slide away underneath the incoming one instead of vanishing before the animation even starts.
+  // While a root-nav transition is running, the outgoing view stays visible (not `hidden`) so the
+  // incoming view can overlay it instead of leaving an empty frame during the animation.
   const isViewVisible = (target: View): boolean => {
     const motion = rootNavigationMotion();
     return view() === target || motion?.from === target;
@@ -241,11 +284,19 @@ export function App(): JSX.Element {
     });
   };
 
-  const handleHashChange = (): void => {
+  const handleHashChange = (event: HashChangeEvent): void => {
     const next = viewFromLocation();
     if (next === view()) return;
     transitionToRootView(next, () => {
-      snapshotCurrentRoute();
+      let previousHash: string | undefined;
+      if (event.oldURL) {
+        try {
+          previousHash = new URL(event.oldURL, window.location.href).hash || undefined;
+        } catch {
+          previousHash = undefined;
+        }
+      }
+      snapshotCurrentRoute(previousHash ?? lastRouteByView.get(view()) ?? `#/${view()}`);
       moveToRootView(next);
       restoreScrollFor(next);
     });
@@ -254,6 +305,173 @@ export function App(): JSX.Element {
   const handleScroll = (): void => {
     setShowScrollTop(window.scrollY > 48);
   };
+
+  const navButtons = (): readonly HTMLButtonElement[] =>
+    bottomNav ? Array.from(bottomNav.querySelectorAll<HTMLButtonElement>('.app-nav-button')) : [];
+
+  const scheduleBottomNavBubble = (): void => {
+    if (bottomNavBubbleFrame !== undefined) cancelAnimationFrame(bottomNavBubbleFrame);
+    bottomNavBubbleFrame = requestAnimationFrame(() => {
+      bottomNavBubbleFrame = undefined;
+      const nav = bottomNav;
+      const activeIndex = VIEW_ORDER.get(view()) ?? 0;
+      const button = navButtons()[activeIndex];
+      if (!nav || !button) return;
+      const navRect = nav.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
+      setBottomNavBubble({
+        left: buttonRect.left - navRect.left,
+        top: buttonRect.top - navRect.top,
+        width: buttonRect.width,
+        height: buttonRect.height,
+      });
+    });
+  };
+
+  const navIndexAtX = (clientX: number): number => {
+    const buttons = navButtons();
+    let closestIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+    buttons.forEach((button, index) => {
+      const rect = button.getBoundingClientRect();
+      const distance = Math.abs(clientX - (rect.left + rect.width / 2));
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    });
+    return closestIndex;
+  };
+
+  const moveBottomNavBubbleTo = (clientX: number): BottomNavBubbleTravel => {
+    const nav = bottomNav;
+    const current = bottomNavBubble();
+    const buttons = navButtons();
+    const first = buttons[0];
+    const last = buttons[buttons.length - 1];
+    if (!nav || !current || !first || !last) return { edge: 0, overscroll: 0 };
+    const navRect = nav.getBoundingClientRect();
+    const firstRect = first.getBoundingClientRect();
+    const lastRect = last.getBoundingClientRect();
+    const minCenter = firstRect.left - navRect.left + firstRect.width / 2;
+    const maxCenter = lastRect.left - navRect.left + lastRect.width / 2;
+    const relativeX = clientX - navRect.left;
+    const edge: -1 | 0 | 1 = relativeX < 0 ? -1 : relativeX > navRect.width ? 1 : 0;
+    const outsideDistance = edge === -1 ? -relativeX : edge === 1 ? relativeX - navRect.width : 0;
+    const overscroll = Math.min(1, outsideDistance / Math.max(1, navRect.width * 0.35));
+    const center = Math.max(minCenter, Math.min(maxCenter, relativeX));
+    const left =
+      edge === -1 ? 0 : edge === 1 ? navRect.width - current.width : center - current.width / 2;
+    setBottomNavBubble({ ...current, left });
+    return { edge, overscroll };
+  };
+
+  const bubbleStyle = (position: BottomNavBubblePosition): string => {
+    const motion = bottomNavBubbleMotion();
+    const pressScale = bottomNavPressed() ? 0.92 : 1;
+    return `left:${position.left}px;top:${position.top}px;width:${position.width}px;height:${position.height}px;transform-origin:${motion.origin} center;transform:scaleX(${motion.scaleX * pressScale}) scaleY(${motion.scaleY * pressScale}) rotate(${motion.rotate}deg)`;
+  };
+
+  const finishBottomNavGesture = (event: PointerEvent | undefined, commit = true): void => {
+    const gesture = bottomNavGesture;
+    if (!gesture || (event && gesture.pointerId !== event.pointerId)) return;
+    const targetIndex = bottomNavDragIndex() ?? gesture.startIndex;
+    const target = VIEWS[targetIndex];
+    if (gesture.moved && commit) {
+      suppressNavClickUntil = performance.now() + 350;
+      if (target && target.id !== view()) {
+        hapticFeedback('medium');
+        navigate(target.id);
+      }
+    }
+    bottomNavGesture = undefined;
+    setBottomNavPressed(false);
+    setBottomNavDragging(false);
+    setBottomNavBubbleMotion({ origin: 'center', scaleX: 1, scaleY: 1, rotate: 0 });
+    setBottomNavDragIndex(undefined);
+    if (event && bottomNav?.hasPointerCapture(event.pointerId)) {
+      bottomNav.releasePointerCapture(event.pointerId);
+    }
+    scheduleBottomNavBubble();
+  };
+
+  const handleBottomNavPointerDown = (event: PointerEvent): void => {
+    if (!bottomNav || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    const startIndex = navIndexAtX(event.clientX);
+    const now = performance.now();
+    bottomNavGesture = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startIndex,
+      lastX: event.clientX,
+      lastTime: now,
+      lastDirection: 0,
+      moved: false,
+    };
+    setBottomNavDragIndex(startIndex);
+    setBottomNavPressed(true);
+    setBottomNavBubbleMotion({ origin: 'center', scaleX: 1, scaleY: 1, rotate: 0 });
+    moveBottomNavBubbleTo(event.clientX);
+  };
+
+  const handleBottomNavPointerMove = (event: PointerEvent): void => {
+    const gesture = bottomNavGesture;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    const deltaX = event.clientX - gesture.startX;
+    const deltaY = event.clientY - gesture.startY;
+    if (!gesture.moved) {
+      if (Math.hypot(deltaX, deltaY) < 8) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        finishBottomNavGesture(event, false);
+        return;
+      }
+      bottomNav?.setPointerCapture(event.pointerId);
+      gesture.moved = true;
+      setBottomNavDragging(true);
+      suppressNavClickUntil = performance.now() + 350;
+    }
+    event.preventDefault();
+    const now = performance.now();
+    const elapsed = Math.max(8, now - gesture.lastTime);
+    const deltaSinceLastMove = event.clientX - gesture.lastX;
+    if (deltaSinceLastMove !== 0) gesture.lastDirection = Math.sign(deltaSinceLastMove);
+    const velocity = Math.min(1, Math.abs(deltaSinceLastMove) / elapsed / 0.8);
+    gesture.lastX = event.clientX;
+    gesture.lastTime = now;
+    const travel = moveBottomNavBubbleTo(event.clientX);
+    setBottomNavBubbleMotion({
+      origin: travel.edge === -1 ? 'left' : travel.edge === 1 ? 'right' : 'center',
+      scaleX: Math.max(0.38, 1 + velocity * 0.72 - travel.overscroll * 0.62),
+      scaleY: 1 - velocity * 0.18 + travel.overscroll * 0.12,
+      rotate: gesture.lastDirection * (velocity * 8 + travel.overscroll * 2),
+    });
+    const nextIndex = navIndexAtX(event.clientX);
+    if (nextIndex !== bottomNavDragIndex()) hapticFeedback('light');
+    setBottomNavDragIndex(nextIndex);
+  };
+
+  const handleBottomNavClick = (next: View): void => {
+    if (performance.now() < suppressNavClickUntil) {
+      suppressNavClickUntil = 0;
+      return;
+    }
+    navigate(next);
+  };
+
+  const cancelBottomNavGesture = (event: PointerEvent): void => {
+    finishBottomNavGesture(event, false);
+  };
+
+  const cancelBottomNavOnWindowBlur = (): void => {
+    if (bottomNavGesture) finishBottomNavGesture(undefined, false);
+  };
+
+  createEffect(() => {
+    if (!ready() || bottomNavDragIndex() !== undefined) return;
+    view();
+    scheduleBottomNavBubble();
+  });
 
   const handleAppUpdate = (event: Event): void => {
     setAppUpdateWorker((event as CustomEvent<AppUpdateReadyDetail>).detail.worker);
@@ -280,17 +498,40 @@ export function App(): JSX.Element {
   const refreshDueReminders = (): void => {
     setDueReminderCount(dueReminderNotes(loadPatientNotes()).length);
   };
+  const handleSearchShortcut = (event: KeyboardEvent): void => {
+    if (event.key.toLowerCase() !== 'f' || (!event.ctrlKey && !event.metaKey) || event.altKey)
+      return;
+    const target = Array.from(
+      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+        '[data-search-focus-target]',
+      ),
+    ).find(
+      (element) =>
+        !element.disabled &&
+        element.getClientRects().length > 0 &&
+        getComputedStyle(element).visibility !== 'hidden',
+    );
+    if (!target) return;
+    event.preventDefault();
+    target.focus({ preventScroll: true });
+  };
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
 
   onMount(async () => {
     stopButtonHaptics = installButtonHaptics();
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', scheduleBottomNavBubble);
+    window.addEventListener('pointerup', finishBottomNavGesture);
+    window.addEventListener('pointercancel', cancelBottomNavGesture);
+    window.addEventListener('blur', cancelBottomNavOnWindowBlur);
+    window.addEventListener('keydown', handleSearchShortcut);
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.addEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     refreshDueReminders();
     reminderTimer = setInterval(refreshDueReminders, 30_000);
     handleScroll();
+    scheduleBottomNavBubble();
     if (Capacitor.getPlatform() === 'android') {
       nativeBackListener = await NativeApp.addListener('backButton', ({ canGoBack }) => {
         const openDialogs = document.querySelectorAll<HTMLElement>('[aria-modal="true"]');
@@ -305,6 +546,13 @@ export function App(): JSX.Element {
         }
         if (document.querySelector('.search-history-drawer-backdrop, .reader-column.open')) {
           window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+          return;
+        }
+        const nativePrintBack = document.querySelector<HTMLButtonElement>(
+          '[data-native-print-back]',
+        );
+        if (nativePrintBack) {
+          nativePrintBack.click();
           return;
         }
         const route = window.location.hash.replace(/^#\/?/u, '');
@@ -354,11 +602,17 @@ export function App(): JSX.Element {
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener('resize', scheduleBottomNavBubble);
+    window.removeEventListener('pointerup', finishBottomNavGesture);
+    window.removeEventListener('pointercancel', cancelBottomNavGesture);
+    window.removeEventListener('blur', cancelBottomNavOnWindowBlur);
+    window.removeEventListener('keydown', handleSearchShortcut);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     if (reminderTimer) clearInterval(reminderTimer);
     if (bootTimer) clearTimeout(bootTimer);
     if (rootNavigationMotionTimer) clearTimeout(rootNavigationMotionTimer);
+    if (bottomNavBubbleFrame !== undefined) cancelAnimationFrame(bottomNavBubbleFrame);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     void nativeBackListener?.remove();
@@ -370,7 +624,10 @@ export function App(): JSX.Element {
   });
 
   return (
-    <div class="app-shell archive-app" classList={{ 'app-shell--booting': !ready() }}>
+    <div
+      class="app-shell archive-app"
+      classList={{ 'app-shell--booting': !ready(), 'app-shell--native': isNativeShell }}
+    >
       <Toaster
         class="app-notification-host"
         position="top-center"
@@ -436,7 +693,12 @@ export function App(): JSX.Element {
                 <SearchHome
                   baseCore={searchCore() ?? state().core}
                   assistantCore={assistantCore()}
+                  localModelController={modelController}
+                  active={view() === 'search'}
                   onOpenKnowledgeBase={() => navigate('modules')}
+                  onOpenModelSettings={() => {
+                    window.location.hash = '#/modules/model';
+                  }}
                 />
               </section>
               <section
@@ -462,11 +724,6 @@ export function App(): JSX.Element {
               >
                 <NotesView core={searchCore() ?? state().core} active={view() === 'notes'} />
               </section>
-              <Show when={showBrowserFooter}>
-                <footer class="app-footer">
-                  <ReleaseLinks />
-                </footer>
-              </Show>
             </>
           )}
         </Show>
@@ -503,8 +760,32 @@ export function App(): JSX.Element {
       </Show>
 
       <Show when={ready()}>
-        <nav class="app-bottom-nav" aria-label="Разделы приложения">
-          {VIEWS.map((item) => {
+        <nav
+          ref={(element) => {
+            bottomNav = element;
+          }}
+          class="app-bottom-nav"
+          classList={{
+            'app-bottom-nav--dragging': bottomNavDragging(),
+            'app-bottom-nav--pressed': bottomNavPressed(),
+          }}
+          aria-label="Разделы приложения"
+          onPointerDown={handleBottomNavPointerDown}
+          onPointerMove={handleBottomNavPointerMove}
+          onPointerUp={finishBottomNavGesture}
+          onPointerCancel={cancelBottomNavGesture}
+        >
+          <Show when={bottomNavBubble()}>
+            {(position) => (
+              <span
+                class="app-bottom-nav__bubble"
+                style={bubbleStyle(position())}
+                aria-hidden="true"
+              />
+            )}
+          </Show>
+          {VIEWS.map((item, index) => {
+            const selected = () => (bottomNavDragIndex() ?? VIEW_ORDER.get(view()) ?? 0) === index;
             const label = () => {
               if (item.id === 'modules') {
                 return `${item.label}, доступно: ${availableModuleCount()}, загружено: ${downloadedModuleCount()}`;
@@ -521,16 +802,16 @@ export function App(): JSX.Element {
                 </Show>
                 <button
                   class="app-nav-button"
-                  classList={{ 'app-nav-button--active': view() === item.id }}
+                  classList={{ 'app-nav-button--active': selected() }}
                   type="button"
                   aria-label={label()}
                   aria-current={view() === item.id ? 'page' : undefined}
                   title={label()}
-                  onClick={() => navigate(item.id)}
+                  onClick={() => handleBottomNavClick(item.id)}
                 >
                   <AppGlyph
                     name={item.icon}
-                    class={`app-nav-button__icon${view() === item.id ? ' app-nav-button__icon--active' : ''}`}
+                    class={`app-nav-button__icon${selected() ? ' app-nav-button__icon--active' : ''}`}
                   />
                   <Show when={item.id === 'modules' && availableModuleCount() > 0}>
                     <span class="app-nav-badge app-nav-badge--available" aria-hidden="true">

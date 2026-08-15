@@ -19,6 +19,7 @@ ReviewStatus = Literal["proposed", "reviewed", "rejected"]
 AuthorityTier = Literal[
     "official-registry",
     "official-label",
+    "professional-reference",
     "clinical-guideline",
     "formulary",
     "peer-reviewed",
@@ -31,6 +32,7 @@ AuthorityTier = Literal[
 AUTHORITY_DEFAULTS: dict[AuthorityTier, float] = {
     "official-registry": 0.95,
     "official-label": 1.0,
+    "professional-reference": 0.88,
     "clinical-guideline": 0.95,
     "formulary": 0.88,
     "peer-reviewed": 0.82,
@@ -319,6 +321,8 @@ def authority_tier_for_document(document: PackDocument) -> AuthorityTier:
         return "synthetic-fixture"
     if "official_registry" in source_type or "state_registry" in source_type:
         return "official-registry"
+    if "rls_mkb_reference" in source_type:
+        return "professional-reference"
     if any(
         value in source_type for value in ("official_label", "official_instruction", "drug_label")
     ):
@@ -601,7 +605,7 @@ def apply_search_projection(documents: list[PackDocument], workspace: KnowledgeW
             projections[evidence.chunk_id].update(str(value) for value in fact.population.values())
 
     for relation in workspace.relations:
-        if relation.review_status != "reviewed":
+        if not is_search_indexable_relation(relation):
             continue
         for evidence in relation.evidence:
             add_entity(evidence.chunk_id, relation.subject_entity_id)
@@ -631,6 +635,14 @@ def apply_search_projection(documents: list[PackDocument], workspace: KnowledgeW
         )
         chunk.metadata["knowledgeProjectionVersion"] = 1
         chunk.metadata["knowledgeProjectionText"] = projection_text
+
+
+def is_search_indexable_relation(relation: KnowledgeRelation) -> bool:
+    """Allow exact professional-reference links into search without editorial promotion."""
+    return relation.review_status == "reviewed" or (
+        relation.authority_tier == "professional-reference"
+        and relation.relation_status == "reference-only"
+    )
 
 
 def _json(value: object) -> str:
@@ -800,7 +812,7 @@ def write_knowledge_sqlite(path: Path, workspace: KnowledgeWorkspace) -> None:
                 if fact.review_status == "reviewed":
                     reviewed_facts[fact.entity_id].extend([fact.fact_type, fact.text])
             for relation in workspace.relations:
-                if relation.review_status != "reviewed":
+                if not is_search_indexable_relation(relation):
                     continue
                 subject = entity_map[relation.subject_entity_id]
                 obj = entity_map[relation.object_entity_id]

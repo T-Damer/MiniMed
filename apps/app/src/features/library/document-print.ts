@@ -4,6 +4,7 @@ import * as QRCode from 'qrcode';
 import { documentSectionHeadingTag } from '@/features/library/document-display';
 import { parseDocumentText } from '@/features/library/document-medication-links';
 import { readDocumentRenderBlock } from '@/features/library/document-rich-block-data';
+import { printHtmlInNativeShell } from '@/features/printing/native-print';
 
 function escapeHtml(value: string): string {
   return value
@@ -153,11 +154,13 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
 }
 
 export function printDocument(document: MedicalDocument): boolean {
+  const html = printableDocumentHtml(document, window.location.href);
+  if (printHtmlInNativeShell(html, document.title)) return true;
   const popup = window.open('', '_blank');
   if (!popup) return false;
   popup.opener = null;
   popup.document.open();
-  popup.document.write(printableDocumentHtml(document, window.location.href));
+  popup.document.write(html);
   popup.document.close();
   window.setTimeout(() => {
     popup.focus();

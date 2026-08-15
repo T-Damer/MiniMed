@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from .knowledge import KnowledgeWorkspace, validate_knowledge_workspace
+from .knowledge import KnowledgeWorkspace, authority_tier_for_document, validate_knowledge_workspace
 from .models import PackDocument
 
 _COLLECTION_KEYS = ("entities", "facts", "relations", "documentLinks", "reviewTasks")
@@ -68,5 +68,18 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
 
     combined: dict[str, object] = {**collections, "schemaVersion": schema_version or 1}
     workspace = KnowledgeWorkspace.model_validate(combined)
+    document_by_id = {document.id: document for document in documents}
+    for relation in workspace.relations:
+        if relation.authority_tier != "third-party" or relation.relation_status != "reference-only":
+            continue
+        if relation.predicate != "listed-on-rls-mkb-page":
+            continue
+        if any(
+            authority_tier_for_document(document_by_id[evidence.document_id])
+            == "professional-reference"
+            for evidence in relation.evidence
+            if evidence.document_id in document_by_id
+        ):
+            relation.authority_tier = "professional-reference"
     validate_knowledge_workspace(workspace, documents)
     return workspace

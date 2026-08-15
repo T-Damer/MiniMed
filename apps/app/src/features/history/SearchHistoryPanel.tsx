@@ -2,6 +2,7 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { hapticFeedback } from '@/state/haptics';
 import {
   clearSearchHistory,
@@ -213,6 +214,9 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   </button>
                 </Show>
               </div>
+              <nav class="search-history-panel-footer" aria-label="Ссылки приложения">
+                <ReleaseLinks linkClass="search-history-panel-footer__link" />
+              </nav>
             </aside>
           </div>
         </Portal>

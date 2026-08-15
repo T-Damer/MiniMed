@@ -22,6 +22,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { CountBadge } from '@/components/CountBadge';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
+import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_CATALOG } from '@/features/assessments/assessment-catalog';
 import {
   CALCULATOR_SECTION_CATEGORY_IDS,
@@ -175,6 +176,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   let refreshedOnce = false;
   let unsubscribeTask: (() => void) | undefined;
   let reconnectPending = false;
+  let moduleCatalogHeading: HTMLDivElement | undefined;
+
+  useStickySurface(() => moduleCatalogHeading);
 
   const bindRuntime = (nextCatalog: ContentModuleCatalog): void => {
     unsubscribeTask?.();
@@ -608,7 +612,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   });
 
   return (
-    <section class="module-page" classList={{ 'page-surface': !props.embedded }}>
+    <section
+      class="module-page"
+      classList={{ 'page-surface': !props.embedded, 'page-grain': !props.embedded }}
+    >
       <Show when={!props.embedded}>
         <header class="subpage-heading module-heading">
           <div>
@@ -634,7 +641,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </header>
       </Show>
       <Show when={props.embedded}>
-        <div class="knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading">
+        <div
+          ref={moduleCatalogHeading}
+          class="knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading"
+        >
           <button
             type="button"
             class="knowledge-back-button knowledge-subroute-heading__control"

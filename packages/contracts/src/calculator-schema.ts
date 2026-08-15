@@ -53,6 +53,8 @@ export const CalculatorInputSchema = z.object({
   /** Evaluated only when `required: false` and the field is left blank — e.g. `today()` for an optional
    *  "as of" date. Evaluated in the scope of already-collected inputs only, not other defaults/steps. */
   defaultExpression: z.string().min(1).optional(),
+  /** Form stage at which this input becomes visible and required, starting at 0. */
+  step: z.number().int().min(0).default(0),
 });
 
 export const CalculatorWarningSchema = z.object({
@@ -74,6 +76,8 @@ export const CalculatorStepSchema = z.object({
    *  formatted text output and are not traced as a numeric step (CalculationTraceStep.value is always
    *  a number) — use a separate 'number' step to trace the underlying day-count if that matters. */
   valueKind: z.enum(['number', 'date']).default('number'),
+  /** Form stage at which this derived value becomes available, starting at 0. */
+  stepRequired: z.number().int().min(0).default(0),
 });
 
 export const CalculatorInterpretationSchema = z.object({

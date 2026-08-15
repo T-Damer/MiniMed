@@ -4,7 +4,8 @@ MiniMed keeps three representations of medical content, each with a different jo
 
 1. **Immutable source documents and chunks** preserve what the publisher actually said.
 2. **Structured SQLite knowledge** stores drug identities, pediatric/safety facts, weighted relations, and review state.
-3. **FTS/vector projections** make reviewed knowledge searchable without generating an answer at runtime.
+3. **FTS/vector projections** make reviewed knowledge and exact professional-reference links searchable
+   without generating an answer at runtime.
 
 The relational layer is the source of truth for structured drug data. Vectors are a replaceable retrieval projection, not the database of record.
 
@@ -121,7 +122,10 @@ bun run content:knowledge:lint -- --input data/intermediate/private-pilot
 bun run content:build:private
 ```
 
-`medbase build` now loads optional `knowledge.yaml`, validates every evidence pointer, adds reviewed terms to the linked chunk’s FTS/vector projection, and writes the complete graph into SQLite. Proposed/rejected facts stay in the relational audit layer but do not enter search projections.
+`medbase build` now loads optional `knowledge.yaml`, validates every evidence pointer, adds reviewed terms
+and exact `professional-reference` links to the linked chunk’s FTS projection, and writes the complete graph
+into SQLite. Proposed/rejected facts and unrelated proposed relations stay in the relational audit layer but
+do not enter search projections.
 
 ## Relational model
 
@@ -137,7 +141,7 @@ Migration `003_knowledge.sql` adds:
 | `knowledge_evidence` | Exact source quote and document/version/section/chunk provenance for every fact/relation |
 | `knowledge_document_links` | Explicit links from an entity to existing clinical recommendations or other documents |
 | `knowledge_review_tasks` | Missing fields, conflicts, stale material, and reviewer questions |
-| `knowledge_fts` | Reviewed-only structured lookup index |
+| `knowledge_fts` | Reviewed and exact professional-reference structured lookup index |
 
 `structured_json` and `population_json` preserve extensibility while stable columns cover high-value filters. A pediatric dose can carry age/weight/gestational-age constraints, route, frequency, duration, maximum dose, approval status, and jurisdiction without flattening everything into prose.
 

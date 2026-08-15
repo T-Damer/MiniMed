@@ -89,11 +89,19 @@
   inset: 0 -1rem -1.25rem;
   z-index: 0;
   content: "";
-  -webkit-backdrop-filter: blur(0.875rem);
-  backdrop-filter: blur(0.875rem);
+  background-image: var(--masked-grain-image);
+  background-size: 12.5rem 12.5rem;
+  opacity: 0;
+  -webkit-backdrop-filter: blur(0.25rem);
+  backdrop-filter: blur(0.25rem);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
   mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
   pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.knowledge-subroute-heading--blurred.sticky-surface--stuck::before {
+  opacity: 1;
 }
 
 .knowledge-subroute-heading__control {
@@ -236,6 +244,7 @@
 .recommendation-section-document-list {
   display: grid;
   gap: 0.25rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--theme-border);
 }
 

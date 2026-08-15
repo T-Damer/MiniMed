@@ -213,12 +213,22 @@ async function createOptionalPackagedStore(
 }
 
 async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
-  const [medicationsStore, ambulatoryStore, regulatoryStore, referenceStore] = await Promise.all([
-    createOptionalPackagedStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
-    createOptionalPackagedStore(contentBaseUrl, AMBULATORY_DATABASE_NAME),
-    createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
-    createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
-  ]);
+  // Open the large optional packs one at a time. Opening the 420 MB medication pack alongside the
+  // 227 MB ambulatory pack briefly duplicates both byte buffers in WebView/WASM memory and can
+  // make the companion mounts fail before the catalog gets a chance to render.
+  const medicationsStore = await createOptionalPackagedStore(
+    contentBaseUrl,
+    MEDICATIONS_DATABASE_NAME,
+  );
+  const ambulatoryStore = await createOptionalPackagedStore(
+    contentBaseUrl,
+    AMBULATORY_DATABASE_NAME,
+  );
+  const regulatoryStore = await createOptionalPackagedStore(
+    contentBaseUrl,
+    REGULATORY_DATABASE_NAME,
+  );
+  const referenceStore = await createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME);
   return {
     ...(medicationsStore ? { medicationsStore } : {}),
     ...(ambulatoryStore ? { ambulatoryStore } : {}),

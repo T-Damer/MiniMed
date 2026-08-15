@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 13 August 2026
+> Updated: 15 August 2026
 > Repository version: `0.6.17`
 > Active target: `0.6.17` public prerelease toward `1.0`
 
@@ -39,12 +39,19 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ### Browser workspace
 
-- Three primary sections in a compact bottom navigation bubble: search, knowledge base, and personal
-  notes. Root navigation commits immediately and uses a short CSS transform/opacity slide, while the
-  bottom navigation remains fixed and interactive. Rapid tab changes do not wait on View Transition
-  snapshots; document, note, and local-model subroutes remain instant. The scroll-to-top control
+- Five primary sections use a compact bottom navigation with a floating glass bubble that follows the
+  selected item and horizontal pointer/touch swipes, stretching with drag velocity and compressing
+  into the bar edge when the pointer is pulled outside it. Root navigation commits immediately; the incoming
+  view overlays the stationary outgoing view with a strictly horizontal CSS slide and temporary page
+  shadow, without an opacity transition, while the status-bar blur remains between the old and new views.
+  The bottom navigation remains fixed and interactive. Rapid tab changes
+  do not wait on View Transition snapshots; document, note, and local-model subroutes remain instant. The scroll-to-top control
   reserves the bottom-navigation band on long pages, and the notes add control mounts only while the
   notes root is active.
+- Root navigation snapshots the route that was left, not the already-updated hash, so returning from a
+  questionnaire or nested tool restores the same Documents subroute. Restored scroll positions are
+  applied immediately, and route surfaces extend below the navigation band instead of exposing the desk
+  background at the end of the page.
 - The bottom navigation is mounted only after the asynchronous MedicalCore bootstrap completes;
   loading and error states therefore do not expose a menu whose routes are not ready yet. Tests and
   calculators remain directly renderable while the search core loads.
@@ -63,7 +70,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   beside extracted facts as a compact category inside the analysis details.
 - The paper/archive design uses one top-level semantic color palette in light and dark modes, a
   shared 65-character page measure, compact cards, controls, result rows, responsive spacing, and
-  consistent hover/focus feedback for cards, buttons, and fields. The document uses one
+  consistent hover/focus feedback for cards, buttons, and fields. Warm page surfaces share a reusable
+  low-opacity fine fractal-grain layer; sticky blur uses a coarser variant, while cards and text remain
+  untextured. The document uses one
   native page scrollbar without a second application-owned scroller.
 - Reusable view components now own confirmation dialogs, horizontal search examples, module cards,
   and module task states; their parent pages retain routing, persistence, and orchestration.
@@ -71,8 +80,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   from a floating add button. Card timelines and dated-record editors use nested note routes; card
   edit/delete actions are compact icon controls. Record editors guard unsaved drafts, accept image
   attachments by file selection or drag-and-drop, and keep tags, reminders, images, and related
-  sources in distinct blocks. On first launch, an editable colleague card and record introduce the
-  local notes workflow; once removed, they stay removed.
+  sources in distinct blocks. The previous-revision control is enabled only when the stored revision
+  differs from the current draft; its review mode is shown inside the editor card with dashed borders,
+  disabled text/image inputs, hidden reminders/related sources, and disabled back/delete actions. On
+  first launch, an editable colleague card and record introduce the local notes workflow; once removed,
+  they stay removed.
 - Local-model detection is user-initiated; its CPU probe runs in a Worker and model choices stay
   collapsed until requested.
 - The knowledge-base overview reports the model and corpus state, then opens dedicated document and
@@ -92,6 +104,20 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   route header.
 - Medication catalog cards use a responsive two-column layout and live rendering so progressive
   batches populate both columns; its route header uses the shared compact catalog search field.
+- Medication detail source cards stay within the readable 65ch column, keep all source text mounted,
+  and provide exact-match highlighting/count/navigation while the medication heading and section
+  headings remain sticky with JS-measured stacked offsets and one shared masked blur layer.
+- The personal notes index has local full-text filtering, and Ctrl/Cmd+F focuses the first visible
+  app search field without opening the browser find bar.
+- Search history and diagnostic help controls share one sticky top toolbar on the search home, with
+  the menu on the left and `?` on the right aligned by `justify-content: space-between`.
+- Search, module-catalog, medication-catalog, and document-outline sticky headers use transparent,
+  page-width masked backdrop blur with a subtle grain layer that stays hidden until the header is
+  actually stuck; outgoing root views isolate their fixed overlays below the incoming navigation surface.
+- The diagnosis search actions expose the local-model control on the left; it toggles a ready model
+  and opens `modules/model` when the model is not loaded yet.
+- GitHub release links use a rolling `android-latest` APK asset, and the search history drawer shows
+  text links to the repository and current Android build at its bottom.
 - The document library uses a live adaptive multi-column grid so filtered and newly listed items keep
   their CSS-grid placement; embedded library toolbars put search on the left and view modes on the
   right. Product routes expose the source document title, outline, and readable sections inline
@@ -99,8 +125,12 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Allmed reference preparation converts known HTML fragments in medication sections and production
   metadata to readable Markdown while preserving the source SQLite snapshot unchanged.
 - Assessment tests and medical calculators are grouped into downloadable sections. Catalog cards show
-  what is on the device, direct tool routes explain which section is missing, and installed tools keep
-  specialty section cards open dedicated sub-routes containing the section's full assessment grid.
+  what is on the device, calculator catalog search uses the shared icon field and Ctrl/Cmd+F focus
+  target, section cards show an explicit disabled state for unavailable tools and allow individual
+  calculator downloads with confirmation, direct tool routes explain which section is missing, and
+  installed tools keep specialty section cards open dedicated sub-routes containing the full grid.
+  Schema calculators support staged inputs via `step`/`stepRequired`; the fluids section includes a
+  two-stage paediatric ORS calculator that adds measured vomiting and stool episodes to the base plan.
   Installed tools keep their offline-use state across reloads. Incomplete assessment attempts are
   also stored in the existing device-local results store, restored by their history entry with an
   `incomplete` tag and answered-count, and replaced by the completed result when submitted.
@@ -110,7 +140,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   survives catalog refreshes; transient failures release their slot before an automatic retry so one
   broken source cannot starve the queue.
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
-  medication, legal, and personal-note sources.
+  medication, legal, and personal-note sources; its canvas supports wheel zoom, pan, and two-finger
+  pinch zoom on touch devices.
 - Model settings distinguish always-available offline search from the optional local model and expose
   model size, requirements, advantages, limitations, and model selection.
 - Browser application updates install in the background but wait for explicit approval in the shared
@@ -118,17 +149,21 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - The paper workspace follows the device light/dark preference without adding an application toggle.
 - Shared `Button` and `Card` primitives cover new tool/module surfaces; card readers open from the
   whole card, destructive actions use confirmation dialogs, and icon-only trash controls keep secondary
-  actions compact. Modal state adds one navigator-history entry so Back closes the active modal first.
+  actions compact; set-level destructive actions use explicit text and red danger treatment. Modal state
+  adds one navigator-history entry so Back closes the active modal first.
 - Assessment methodology and calculator formula/limitation details use dialogs instead of primary-page
   accordions. Patient names are suggested from locally stored patient cards, and external/manual test
   results can be saved into the same local result history.
 - Vertical mouse-wheel delta is translated into horizontal movement for the shared overflowing-strip
   component, including mixed diagonal wheel input; touch and trackpad scrolling remain native.
 - Android draws the page background beneath its transparent status bar while safe-area padding keeps
-  controls below it; system-bar icon contrast follows the device theme. Hardware Back closes the
+  controls below it; a native-only transparent masked backdrop-blur layer blends the page behind the
+  status bar, and system-bar icon contrast follows the device theme. Hardware Back closes the
   active dialog or drawer, returns through nested routes and root sections, then minimizes the app at
   the search root. Standard WebView vibration supplies light, medium, and heavy feedback for controls,
   primary navigation, and destructive actions without another native plugin.
+- Native print actions use an in-app preview with a non-printing Back header, so Android does not leave
+  the application for a browser tab and hardware Back can exit the preview.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
@@ -219,6 +254,9 @@ ordinary search response when validation fails.
 - Public Russian starter pack: seven clinical navigation cards and eight medication-registry identity
   cards.
 - Structured knowledge tables support proposed facts, exact evidence links, relations, and review tasks.
+- Exact RLS MKB links use the dedicated `professional-reference` authority tier. They remain
+  `reference-only` rather than treatment recommendations, but are included in the lexical knowledge
+  index because their evidence points directly to the RLS MKB page.
 - Interrupted module downloads persist partial bytes in IndexedDB. Failed/interrupted installs remain
   in a durable local queue, recover after restart or catalog refresh, and retry transient failures,
   including temporarily missing release assets, without prompting. Retries use a bounded attempt,

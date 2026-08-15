@@ -14,12 +14,14 @@ export interface CalculatorSectionDefinition {
 
 export interface CalculatorInstallationState {
   readonly sectionIds: ReadonlySet<CalculatorSectionId>;
+  readonly calculatorIds: ReadonlySet<string>;
   readonly installedIds: ReadonlySet<string>;
 }
 
 interface StoredCalculatorInstallationSnapshot {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 1 | 2;
   readonly sectionIds: readonly CalculatorSectionId[];
+  readonly calculatorIds?: readonly string[];
 }
 
 const STORAGE_KEY = 'minimed.calculator-packs.v1';
@@ -79,7 +81,7 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
   {
     id: 'fluids',
     title: 'Жидкость и инфузии',
-    description: 'Исходная оценка поддерживающей жидкости у детей.',
+    description: 'Поддерживающая жидкость и пероральная регидратация у детей.',
   },
   {
     id: 'medication',
@@ -119,7 +121,11 @@ function availableDefinitions(
 function sectionIdsFromSnapshot(value: unknown): readonly CalculatorSectionId[] {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
   const snapshot = value as Partial<StoredCalculatorInstallationSnapshot>;
-  if (snapshot.schemaVersion !== 1 || !Array.isArray(snapshot.sectionIds)) return [];
+  if (
+    (snapshot.schemaVersion !== 1 && snapshot.schemaVersion !== 2) ||
+    !Array.isArray(snapshot.sectionIds)
+  )
+    return [];
   return [
     ...new Set(
       snapshot.sectionIds.filter(
@@ -130,8 +136,16 @@ function sectionIdsFromSnapshot(value: unknown): readonly CalculatorSectionId[] 
   ].toSorted();
 }
 
+function calculatorIdsFromSnapshot(value: unknown): readonly string[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
+  const snapshot = value as Partial<StoredCalculatorInstallationSnapshot>;
+  if (snapshot.schemaVersion !== 2 || !Array.isArray(snapshot.calculatorIds)) return [];
+  return [...new Set(snapshot.calculatorIds.filter((id): id is string => typeof id === 'string'))];
+}
+
 function installedIdsFromSections(
   sectionIds: ReadonlySet<CalculatorSectionId>,
+  calculatorIds: ReadonlySet<string>,
   definitions: readonly CalculatorDefinition[],
 ): ReadonlySet<string> {
   return new Set(
@@ -139,7 +153,9 @@ function installedIdsFromSections(
       .filter(
         (definition) =>
           definition.state === 'available' &&
-          (CORE_CALCULATOR_IDS.has(definition.id) || sectionIds.has(definition.category)),
+          (CORE_CALCULATOR_IDS.has(definition.id) ||
+            sectionIds.has(definition.category) ||
+            calculatorIds.has(definition.id)),
       )
       .map((definition) => definition.id),
   );
@@ -148,11 +164,20 @@ function installedIdsFromSections(
 function stateFromSectionIds(
   sectionIds: readonly CalculatorSectionId[],
   definitions: readonly CalculatorDefinition[],
+  calculatorIds: readonly string[] = [],
 ): CalculatorInstallationState {
   const selected = new Set(sectionIds);
+  const selectedCalculators = new Set(
+    definitions
+      .filter(
+        (definition) => definition.state === 'available' && calculatorIds.includes(definition.id),
+      )
+      .map((definition) => definition.id),
+  );
   return {
     sectionIds: selected,
-    installedIds: installedIdsFromSections(selected, definitions),
+    calculatorIds: selectedCalculators,
+    installedIds: installedIdsFromSections(selected, selectedCalculators, definitions),
   };
 }
 
@@ -161,7 +186,12 @@ export function loadCalculatorInstallationState(
 ): CalculatorInstallationState {
   try {
     const raw = storage()?.getItem(STORAGE_KEY);
-    return stateFromSectionIds(raw ? sectionIdsFromSnapshot(JSON.parse(raw)) : [], definitions);
+    const snapshot = raw ? JSON.parse(raw) : null;
+    return stateFromSectionIds(
+      sectionIdsFromSnapshot(snapshot),
+      definitions,
+      calculatorIdsFromSnapshot(snapshot),
+    );
   } catch {
     return stateFromSectionIds([], definitions);
   }
@@ -206,16 +236,18 @@ export function isCalculatorSectionCore(
 
 function persist(
   sectionIds: ReadonlySet<CalculatorSectionId>,
+  calculatorIds: ReadonlySet<string>,
   definitions: readonly CalculatorDefinition[],
 ): CalculatorInstallationState {
   const snapshot: StoredCalculatorInstallationSnapshot = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     sectionIds: [...sectionIds].toSorted(),
+    calculatorIds: [...calculatorIds].toSorted(),
   };
   try {
     storage()?.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch {}
-  const next = stateFromSectionIds(snapshot.sectionIds, definitions);
+  const next = stateFromSectionIds(snapshot.sectionIds, definitions, snapshot.calculatorIds);
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(CALCULATOR_PACKS_EVENT));
   return next;
 }
@@ -229,8 +261,37 @@ export function installCalculatorSection(
   }
   const current = loadCalculatorInstallationState(definitions);
   const sectionIds = new Set(current.sectionIds);
+  const calculatorIds = new Set(current.calculatorIds);
   sectionIds.add(sectionId);
-  return persist(sectionIds, definitions);
+  for (const definition of availableDefinitions(definitions, sectionId)) {
+    calculatorIds.delete(definition.id);
+  }
+  return persist(sectionIds, calculatorIds, definitions);
+}
+
+export function installCalculator(
+  calculatorId: string,
+  definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
+): CalculatorInstallationState {
+  const definition = definitions.find(
+    (candidate) => candidate.id === calculatorId && candidate.state === 'available',
+  );
+  if (!definition) return loadCalculatorInstallationState(definitions);
+
+  const current = loadCalculatorInstallationState(definitions);
+  const sectionIds = new Set(current.sectionIds);
+  const calculatorIds = new Set(current.calculatorIds);
+  calculatorIds.add(definition.id);
+  const available = availableDefinitions(definitions, definition.category);
+  if (
+    available.every(
+      (candidate) => current.installedIds.has(candidate.id) || candidate.id === definition.id,
+    )
+  ) {
+    sectionIds.add(definition.category);
+    for (const candidate of available) calculatorIds.delete(candidate.id);
+  }
+  return persist(sectionIds, calculatorIds, definitions);
 }
 
 export function removeCalculatorSection(
@@ -239,6 +300,10 @@ export function removeCalculatorSection(
 ): CalculatorInstallationState {
   const current = loadCalculatorInstallationState(definitions);
   const sectionIds = new Set(current.sectionIds);
+  const calculatorIds = new Set(current.calculatorIds);
   sectionIds.delete(sectionId);
-  return persist(sectionIds, definitions);
+  for (const definition of availableDefinitions(definitions, sectionId)) {
+    calculatorIds.delete(definition.id);
+  }
+  return persist(sectionIds, calculatorIds, definitions);
 }

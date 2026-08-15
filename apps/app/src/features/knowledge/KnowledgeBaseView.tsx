@@ -109,7 +109,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
   });
 
   return (
-    <section class="knowledge-base-page page-surface">
+    <section class="knowledge-base-page page-surface page-grain">
       <Show when={route() === 'overview'}>
         <header class="subpage-heading knowledge-base-heading">
           <div>

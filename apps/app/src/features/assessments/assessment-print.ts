@@ -8,6 +8,7 @@ import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { printHtmlInNativeShell } from '@/features/printing/native-print';
 
 function escapeHtml(value: string): string {
   return value
@@ -88,11 +89,13 @@ function printableHtml(title: string, text: string, pageLink: string): string {
 }
 
 export function printText(title: string, text: string): boolean {
+  const html = printableHtml(title, text, window.location.href);
+  if (printHtmlInNativeShell(html, title)) return true;
   const popup = window.open('', '_blank');
   if (!popup) return false;
   popup.opener = null;
   popup.document.open();
-  popup.document.write(printableHtml(title, text, window.location.href));
+  popup.document.write(html);
   popup.document.close();
   window.setTimeout(() => {
     popup.focus();

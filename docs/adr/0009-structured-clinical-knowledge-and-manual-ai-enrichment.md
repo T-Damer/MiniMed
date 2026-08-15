@@ -17,7 +17,8 @@ Search also needs to distinguish a clinical case from a treatment request, medic
 2. Add a generic relational knowledge graph to SQLite, with an optional medication profile and typed population/safety facts.
 3. Require exact chunk evidence for every AI-proposed fact and relation.
 4. Force all ChatGPT imports to `proposed` and derive authority from source metadata; only an explicit human-review command can set `reviewed`.
-5. Project only reviewed knowledge into chunk FTS/vector text and the structured `knowledge_fts` index.
+5. Project reviewed knowledge and exact `professional-reference` links from source-preserving reference
+   packs into lexical FTS; only reviewed knowledge enters vector projections.
 6. Represent missing clinical fields as review tasks; never infer pediatric dosing, contraindications, or prescription rules from absence/context/model memory.
 7. Store authority tier and relation status separately from a deterministic ranking weight.
 8. Reuse the existing checksum/ETag/cache source sync through a rights-aware drug-source catalog; do not add crawler/scraper behavior.

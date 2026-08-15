@@ -488,10 +488,14 @@ def _rebuild_knowledge_fts(connection: sqlite3.Connection) -> None:
         )
     }
     relations: dict[str, list[str]] = defaultdict(list)
-    for subject, predicate, object_id, status in connection.execute(
-        "SELECT subject_entity_id, predicate, object_entity_id, relation_status "
-        "FROM knowledge_relations WHERE review_status = 'reviewed' ORDER BY id"
+    for subject, predicate, object_id, status, authority_tier, review_status in connection.execute(
+        "SELECT subject_entity_id, predicate, object_entity_id, relation_status, "
+        "authority_tier, review_status FROM knowledge_relations ORDER BY id"
     ):
+        if review_status != "reviewed" and not (
+            authority_tier == "professional-reference" and status == "reference-only"
+        ):
+            continue
         text = " ".join(
             [
                 canonical_names[str(subject)],

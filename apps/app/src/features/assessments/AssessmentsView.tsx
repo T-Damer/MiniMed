@@ -312,7 +312,7 @@ export function AssessmentsView(): JSX.Element {
   };
 
   return (
-    <section class="assessments-page page-surface" aria-label="Тесты и опросники">
+    <section class="assessments-page page-surface page-grain" aria-label="Тесты и опросники">
       <Show when={message()}>
         {(value) => (
           <div class="assessment-message" role="status">

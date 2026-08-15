@@ -161,6 +161,68 @@ export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
     ],
   },
   {
+    id: 'pediatric-oral-rehydration',
+    slug: 'pediatric-oral-rehydration',
+    state: 'available',
+    title: 'Пероральная регидратация у детей',
+    shortTitle: 'ОРС при потерях',
+    aliases: ['Регидрон детям', 'регидратация детям', 'рвота понос', 'ОРС', 'oral rehydration'],
+    summary:
+      'Двухэтапный расчёт: возраст и масса задают исходную схему, затем рвота и жидкий стул добавляются как продолжающиеся потери.',
+    audience: 'pediatric',
+    category: 'fluids',
+    clinical: true,
+    formula:
+      'ОРС при клинической дегидратации: 50 мл/кг за 4 ч; продолжающиеся потери: 10 мл/кг за жидкий стул и 2 мл/кг за эпизод рвоты; поддержка 100/50/20.',
+    population: 'Дети от 1 месяца до 18 лет, если ребёнок может получать жидкость энтерально.',
+    limitations: [
+      '50 мл/кг за 4 часа — ориентир для регидратации при клинической дегидратации, а не универсальный домашний объём.',
+      'Расчёт не определяет степень обезвоживания, не заменяет осмотр и не предназначен для шока, нарушений электролитов или невозможности пить.',
+      'Для замещения потерь используется готовый низкоосмолярный раствор ОРС; вода не заменяет электролиты.',
+    ],
+    inputs: [
+      { input: 'ageYears', unit: 'лет', required: true, minimum: 1 / 12, maximum: 18 },
+      { input: 'weightKg', unit: 'кг', required: true, minimum: 0.5, maximum: 200 },
+      {
+        input: 'diarrheaEpisodes',
+        unit: 'за текущий период',
+        required: true,
+        minimum: 0,
+        maximum: 100,
+      },
+      {
+        input: 'vomitingEpisodes',
+        unit: 'за текущий период',
+        required: true,
+        minimum: 0,
+        maximum: 100,
+      },
+    ],
+    sources: [
+      {
+        title: 'Diarrhoea and vomiting caused by gastroenteritis in under 5s',
+        publisher: 'NICE',
+        version: 'CG84',
+        url: 'https://www.nice.org.uk/guidance/cg84/chapter/Recommendations',
+        reviewedAt: '2026-08-15',
+      },
+      {
+        title: 'Managing Acute Gastroenteritis Among Children',
+        publisher: 'CDC',
+        version: 'MMWR RR-16',
+        url: 'https://www.cdc.gov/mmwr/preview/mmwrhtml/rr5216a1.htm',
+        reviewedAt: '2026-08-15',
+      },
+      {
+        title: 'Readings on diarrhoea: oral rehydration guidance',
+        publisher: 'World Health Organization',
+        version: 'WHO 9241544449',
+        url: 'https://iris.who.int/bitstream/10665/40343/1/9241544449.pdf',
+        reviewedAt: '2026-08-15',
+      },
+    ],
+  },
+  {
     id: 'pediatric-anthropometry',
     state: 'planned',
     title: 'Антропометрия детей',

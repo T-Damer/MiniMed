@@ -199,7 +199,11 @@ export function AssessmentCatalogPage(props: {
                       </div>
                       <button
                         type="button"
-                        class="assessment-section-header__button assessment-section-header__button--primary"
+                        class="assessment-section-header__button"
+                        classList={{
+                          'assessment-section-header__button--primary': !complete(),
+                          'assessment-section-header__button--danger': complete(),
+                        }}
                         data-testid={`assessment-section-${group.section.id}`}
                         onClick={() =>
                           complete()

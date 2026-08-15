@@ -53,7 +53,7 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
   onCleanup(() => window.removeEventListener(SEARCH_HISTORY_EVENT, refresh));
 
   return (
-    <section class="history-view page-surface" aria-label="История поиска">
+    <section class="history-view page-surface page-grain" aria-label="История поиска">
       <header class="subpage-heading">
         <div>
           <p class="archive-kicker">Локальный журнал</p>

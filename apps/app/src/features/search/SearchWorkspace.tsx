@@ -535,6 +535,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             }}
             id="clinical-query"
             data-testid="search-input"
+            data-search-focus-target="true"
             value={query()}
             onInput={(event) => {
               updateQuery(event.currentTarget.value);

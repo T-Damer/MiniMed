@@ -147,6 +147,11 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let panY = 0;
   let pointerStart: Point | null = null;
   let pointerLast: Point | null = null;
+  const activePointers = new Map<number, Point>();
+  let pinchStartDistance: number | null = null;
+  let pinchStartCenter: Point | null = null;
+  let pinchStartWorld: Point | null = null;
+  let pinchStartScale = 1;
   let draggedNode: GraphNode | null = null;
   let hoveredNodeId: string | null = null;
   let moved = false;
@@ -355,6 +360,34 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     return { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) };
   };
 
+  const clampScale = (value: number): number => Math.max(0.55, Math.min(2.4, value));
+  const endPointer = (event: PointerEvent): void => {
+    activePointers.delete(event.pointerId);
+    if (pinchStartDistance !== null) {
+      pinchStartDistance = null;
+      pinchStartCenter = null;
+      pinchStartWorld = null;
+      pointerStart = null;
+      pointerLast = null;
+      draggedNode = null;
+      if (canvas?.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      wakeSimulation();
+      draw();
+      return;
+    }
+    const point = pointFromEvent(event);
+    if (!moved) {
+      const node = hitTest(point);
+      if (node?.documentId) props.onSelect(node.documentId);
+    }
+    if (draggedNode) draggedNode.fixed = false;
+    draggedNode = null;
+    pointerStart = null;
+    pointerLast = null;
+    if (canvas?.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    wakeSimulation();
+  };
+
   return (
     <section class="knowledge-graph-card paper-card" aria-labelledby="knowledge-graph-title">
       <header>
@@ -376,6 +409,28 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           if (!canvas) return;
           canvas.setPointerCapture(event.pointerId);
           const point = pointFromEvent(event);
+          activePointers.set(event.pointerId, point);
+          if (activePointers.size === 2) {
+            if (draggedNode) draggedNode.fixed = false;
+            draggedNode = null;
+            pointerStart = null;
+            pointerLast = null;
+            const points = [...activePointers.values()];
+            const first = points[0];
+            const second = points[1];
+            if (first && second) {
+              pinchStartDistance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+              pinchStartCenter = {
+                x: (first.x + second.x) / 2,
+                y: (first.y + second.y) / 2,
+              };
+              pinchStartWorld = screenToWorld(pinchStartCenter);
+              pinchStartScale = scale;
+              moved = true;
+            }
+            wakeSimulation();
+            return;
+          }
           pointerStart = point;
           pointerLast = point;
           draggedNode = hitTest(point);
@@ -385,6 +440,30 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
         }}
         onPointerMove={(event) => {
           const point = pointFromEvent(event);
+          activePointers.set(event.pointerId, point);
+          if (
+            activePointers.size >= 2 &&
+            pinchStartDistance !== null &&
+            pinchStartCenter &&
+            pinchStartWorld
+          ) {
+            event.preventDefault();
+            const points = [...activePointers.values()];
+            const first = points[0];
+            const second = points[1];
+            if (!first || !second) return;
+            const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+            const center = {
+              x: (first.x + second.x) / 2,
+              y: (first.y + second.y) / 2,
+            };
+            scale = clampScale(pinchStartScale * (distance / pinchStartDistance));
+            panX = center.x - width / 2 - pinchStartWorld.x * scale;
+            panY = center.y - height / 2 - pinchStartWorld.y * scale;
+            wakeSimulation();
+            draw();
+            return;
+          }
           const hit = hitTest(point);
           const nextHoveredNodeId = hit?.id ?? null;
           if (nextHoveredNodeId !== hoveredNodeId) {
@@ -415,21 +494,8 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           wakeSimulation();
           draw();
         }}
-        onPointerUp={(event) => {
-          if (!canvas) return;
-          const point = pointFromEvent(event);
-          if (!moved) {
-            const node = hitTest(point);
-            if (node?.documentId) props.onSelect(node.documentId);
-          }
-          if (draggedNode) draggedNode.fixed = false;
-          draggedNode = null;
-          pointerStart = null;
-          pointerLast = null;
-          if (canvas.hasPointerCapture(event.pointerId))
-            canvas.releasePointerCapture(event.pointerId);
-          wakeSimulation();
-        }}
+        onPointerUp={endPointer}
+        onPointerCancel={endPointer}
         onPointerLeave={() => {
           if (pointerLast) return;
           hoveredNodeId = null;
@@ -438,7 +504,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
         onWheel={(event) => {
           event.preventDefault();
           const factor = event.deltaY > 0 ? 0.9 : 1.1;
-          scale = Math.max(0.55, Math.min(2.4, scale * factor));
+          scale = clampScale(scale * factor);
           wakeSimulation();
           draw();
         }}

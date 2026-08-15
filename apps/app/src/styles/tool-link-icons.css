@@ -113,6 +113,17 @@
   font-weight: 700;
 }
 
+.assessment-section-header > .assessment-section-header__button--danger {
+  border-color: color-mix(in srgb, var(--theme-danger) 48%, transparent);
+  color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 10%, transparent);
+}
+
+.assessment-section-header > .assessment-section-header__button--danger:hover {
+  border-color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 18%, transparent);
+}
+
 .assessment-section-header > button svg,
 .assessment-card-actions button svg {
   width: 1.05rem;

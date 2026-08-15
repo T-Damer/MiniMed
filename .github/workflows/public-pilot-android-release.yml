@@ -35,6 +35,7 @@ jobs:
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v$version" >> "$GITHUB_ENV"
           echo "APK_NAME=MiniMed-$version-rf-public-pilot-debug.apk" >> "$GITHUB_ENV"
+          echo "APK_LATEST_NAME=MiniMed-android.apk" >> "$GITHUB_ENV"
       - uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.0"
@@ -77,11 +78,13 @@ jobs:
           mkdir -p release-output
           apk_source="apps/app/android/app/build/outputs/apk/debug/app-debug.apk"
           apk="release-output/${APK_NAME}"
+          apk_latest="release-output/${APK_LATEST_NAME}"
           original_db="data/build/rf-public-pilot.db"
           extracted_db="$RUNNER_TEMP/rf-public-pilot-from-apk.db"
 
           test -s "$apk_source"
           cp "$apk_source" "$apk"
+          cp "$apk" "$apk_latest"
           unzip -l "$apk" | tee release-output/APK-CONTENTS.txt
           embedded_path="$(unzip -Z1 "$apk" | awk '/(^|\/)core-demo\.db$/ { print; exit }')"
           test -n "$embedded_path"
@@ -254,6 +257,7 @@ jobs:
         run: |
           set -euo pipefail
           apk="release-output/${APK_NAME}"
+          apk_latest="release-output/${APK_LATEST_NAME}"
           notes=$(cat <<EOF
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
@@ -282,7 +286,12 @@ jobs:
           EOF
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$apk" --clobber
+            gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" --clobber
           else
-            gh release create "$RELEASE_TAG" "$apk" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
+            gh release create "$RELEASE_TAG" "$apk" "$apk_latest" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
+          fi
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release upload android-latest "$apk_latest" --clobber
+          else
+            gh release create android-latest "$apk_latest" --title "MiniMed Android latest" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
           fi

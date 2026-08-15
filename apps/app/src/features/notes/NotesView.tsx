@@ -1,11 +1,22 @@
 import { TextField } from '@kobalte/core/text-field';
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
-import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { SearchField } from '@/components/SearchField';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -24,7 +35,9 @@ import {
   hydratePatientNotesFromIndexedDb,
   injectColleagueNote,
   isReminderDue,
+  loadPatientNoteDraft,
   loadPatientNotes,
+  loadPreviousPatientNoteRevision,
   type NoteReminder,
   PATIENT_NOTES_EVENT,
   type PatientCard,
@@ -32,6 +45,9 @@ import {
   type PatientNotesSnapshot,
   removePatientCard,
   removePatientNote,
+  removePatientNoteDraft,
+  savePatientNoteDraft,
+  searchPatientNotes,
   setNoteReminder,
   updatePatientCard,
   updatePatientNote,
@@ -143,13 +159,21 @@ function NoteTextArea(props: {
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly placeholder?: string;
+  readonly disabled?: boolean;
 }): JSX.Element {
   return (
-    <TextField name={props.name} value={props.value} onChange={props.onChange}>
+    <TextField
+      name={props.name}
+      value={props.value}
+      onChange={props.onChange}
+      {...(props.disabled ? { disabled: true } : {})}
+    >
       <TextField.Label class="visually-hidden">{props.label}</TextField.Label>
       <TextField.TextArea
+        class="patient-note-form__textarea"
         autoResize
         aria-label={props.label}
+        disabled={props.disabled}
         placeholder={props.placeholder}
         rows={4}
       />
@@ -186,8 +210,10 @@ function ReminderFields(props: {
   );
 }
 
-function deferEnrichment(noteId: string, core: MedicalCore): void {
-  window.setTimeout(() => void enrichPatientNote(noteId, core), 0);
+function deferEnrichment(noteId: string, core: MedicalCore, onSettled?: () => void): void {
+  window.setTimeout(() => {
+    void enrichPatientNote(noteId, core).finally(() => onSettled?.());
+  }, 0);
 }
 
 export function NotesView(props: {
@@ -203,6 +229,7 @@ export function NotesView(props: {
   const [reminderNoteId, setReminderNoteId] = createSignal<string | null>(null);
   const [cardTitleDraft, setCardTitleDraft] = createSignal('');
   const [cardSummaryDraft, setCardSummaryDraft] = createSignal('');
+  const [notesSearchQuery, setNotesSearchQuery] = createSignal('');
   const [noteDraft, setNoteDraft] = createSignal('');
   const [reminderDate, setReminderDate] = createSignal('');
   const [reminderTime, setReminderTime] = createSignal('');
@@ -214,41 +241,13 @@ export function NotesView(props: {
   const [imagesTick, setImagesTick] = createSignal(0);
   const [pendingImages, setPendingImages] = createSignal<readonly File[]>([]);
   const [imageError, setImageError] = createSignal('');
+  const [draftRecovered, setDraftRecovered] = createSignal(false);
+  const [showPreviousRevision, setShowPreviousRevision] = createSignal(false);
+  const [relatedDocumentsLoading, setRelatedDocumentsLoading] = createSignal(false);
   const [completionDraft, setCompletionDraft] = createSignal('');
   const [clock, setClock] = createSignal(Date.now());
   let editorKey = '';
-  let allowEditorExit = false;
-  let restoringEditorRoute = false;
-
-  const editorRoutePath = (): string | null => {
-    const current = route();
-    if (current.kind === 'new-record') return notesPath(current.cardId, 'new');
-    if (current.kind === 'record') return notesPath(current.cardId, current.noteId);
-    return null;
-  };
-  const hasUnsavedEditorChanges = (): boolean => {
-    const current = route();
-    if (current.kind !== 'new-record' && current.kind !== 'record') return false;
-    const note =
-      current.kind === 'record'
-        ? (snapshot().notes.find(
-            (candidate) => candidate.id === current.noteId && candidate.cardId === current.cardId,
-          ) ?? null)
-        : null;
-    const reminder = reminderInputValues(note?.reminder);
-    return (
-      noteDraft() !== (note?.text ?? '') ||
-      pendingImages().length > 0 ||
-      reminderDate() !== reminder.date ||
-      reminderTime() !== reminder.time
-    );
-  };
-  const confirmEditorExit = (): boolean => {
-    if (allowEditorExit || !hasUnsavedEditorChanges()) return true;
-    const confirmed = window.confirm('Несохранённые изменения будут потеряны. Покинуть страницу?');
-    if (confirmed) allowEditorExit = true;
-    return confirmed;
-  };
+  let editorReadyKey = '';
 
   const refresh = (): void => {
     setSnapshot(loadPatientNotes());
@@ -259,29 +258,15 @@ export function NotesView(props: {
     });
   };
   const handleHashChange = (): void => {
-    if (restoringEditorRoute) {
-      restoringEditorRoute = false;
-      return;
-    }
-    const editorPath = editorRoutePath();
-    if (editorPath && window.location.hash !== editorPath && !confirmEditorExit()) {
-      const rejectedUrl = window.location.href;
-      window.history.replaceState(window.history.state, '', editorPath);
-      restoringEditorRoute = true;
-      window.dispatchEvent(
-        new HashChangeEvent('hashchange', {
-          oldURL: rejectedUrl,
-          newURL: window.location.href,
-        }),
-      );
-      return;
-    }
-    allowEditorExit = false;
+    commitEditor();
     setRoute(readNotesRoute());
     setEditingCard(false);
     setReminderNoteId(null);
     setPendingImages([]);
     setImageError('');
+    setDraftRecovered(false);
+    setShowPreviousRevision(false);
+    setRelatedDocumentsLoading(false);
   };
   const refreshImages = (): void => {
     setImagesTick((tick) => tick + 1);
@@ -294,18 +279,6 @@ export function NotesView(props: {
       .then(setNoteImages)
       .catch(() => setImageError('Не удалось загрузить изображения.'));
   };
-  const handleNavigationClick = (event: MouseEvent): void => {
-    const target = event.target instanceof Element ? event.target : null;
-    if (!target?.closest('.app-bottom-nav') || confirmEditorExit()) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  };
-  const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
-    if (!hasUnsavedEditorChanges()) return;
-    event.preventDefault();
-    event.returnValue = '';
-  };
-
   let clockTimer: ReturnType<typeof setInterval> | undefined;
   onMount(() => {
     refresh();
@@ -320,8 +293,6 @@ export function NotesView(props: {
     window.addEventListener(PATIENT_NOTES_EVENT, refresh);
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     window.addEventListener(NOTE_IMAGES_EVENT, refreshImages);
-    document.addEventListener('click', handleNavigationClick, true);
-    window.addEventListener('beforeunload', handleBeforeUnload);
     clockTimer = setInterval(() => setClock(Date.now()), 30_000);
   });
   onCleanup(() => {
@@ -329,8 +300,6 @@ export function NotesView(props: {
     window.removeEventListener(PATIENT_NOTES_EVENT, refresh);
     window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     window.removeEventListener(NOTE_IMAGES_EVENT, refreshImages);
-    document.removeEventListener('click', handleNavigationClick, true);
-    window.removeEventListener('beforeunload', handleBeforeUnload);
     if (clockTimer) clearInterval(clockTimer);
   });
 
@@ -349,6 +318,18 @@ export function NotesView(props: {
       ) ?? null
     );
   };
+  const previousRevision = createMemo(() => {
+    const note = activeNote();
+    return note ? loadPreviousPatientNoteRevision(note.id) : null;
+  });
+  const previousRevisionDiffers = createMemo(() => {
+    const revision = previousRevision();
+    const note = activeNote();
+    return Boolean(revision && note && revision.text !== noteDraft().trim());
+  });
+  const viewingPreviousRevision = createMemo(
+    () => showPreviousRevision() && previousRevisionDiffers(),
+  );
   const editorCard = (): PatientCard | null => {
     const card = activeCard();
     if (!card) return null;
@@ -394,19 +375,24 @@ export function NotesView(props: {
       return right.updatedAt.localeCompare(left.updatedAt);
     });
   };
+  const visibleCards = createMemo(() => {
+    const cards = sortedCards();
+    const query = notesSearchQuery().trim();
+    if (!query) return cards;
+    const matchingCardIds = new Set(
+      searchPatientNotes(query, Number.MAX_SAFE_INTEGER).map((match) => match.card.id),
+    );
+    return cards.filter((card) => matchingCardIds.has(card.id));
+  });
 
   const navigate = (path: string): void => {
-    if (path !== editorRoutePath() && !confirmEditorExit()) return;
     window.location.hash = path;
   };
   const confirmDelete = (): void => {
     const target = deleteTarget();
     if (!target) return;
     if (target.kind === 'card') removePatientCard(target.id);
-    else {
-      allowEditorExit = true;
-      removePatientNote(target.id);
-    }
+    else removePatientNote(target.id);
     if (target.returnPath) navigate(target.returnPath);
     setDeleteTarget(null);
   };
@@ -443,39 +429,145 @@ export function NotesView(props: {
     return value;
   };
 
+  const persistEditorImages = (noteId: string, files: readonly File[]): void => {
+    if (files.length === 0) return;
+    void addNoteImages(noteId, files)
+      .then(() => {
+        if (activeNote()?.id === noteId) refreshImages();
+      })
+      .catch((cause) => {
+        setImageError(cause instanceof Error ? cause.message : 'Не удалось сохранить изображения.');
+      });
+  };
+
+  function commitEditor(): void {
+    const current = route();
+    if (current.kind !== 'new-record' && current.kind !== 'record') return;
+    const card = activeCard();
+    const text = noteDraft().trim();
+    const reminder = reminderValue();
+    const files = pendingImages();
+    if (!card) return;
+
+    if (current.kind === 'record') {
+      const note = activeNote();
+      if (!note) return;
+      if (text && note.text !== text) {
+        updatePatientNote(note.id, text);
+        deferEnrichment(note.id, props.core, () => setRelatedDocumentsLoading(false));
+      }
+      if (
+        reminder &&
+        (!note.reminder ||
+          note.reminder.dueAt !== reminder.dueAt ||
+          note.reminder.allDay !== reminder.allDay)
+      ) {
+        setNoteReminder(
+          note.id,
+          reminder.dueAt,
+          reminder.allDay,
+          note.reminder?.notificationEnabled,
+        );
+      }
+      removePatientNoteDraft(note.id);
+      setPendingImages([]);
+      persistEditorImages(note.id, files);
+      return;
+    }
+
+    if (!text) return;
+    const next = addPatientNote(card.id, text);
+    const created = next.notes.at(-1);
+    if (!created) return;
+    if (reminder) setNoteReminder(created.id, reminder.dueAt, reminder.allDay);
+    removePatientNoteDraft(`new:${card.id}`);
+    setPendingImages([]);
+    persistEditorImages(created.id, files);
+    deferEnrichment(created.id, props.core);
+  }
+
+  const restorePreviousRevision = (): void => {
+    const revision = previousRevision();
+    if (!revision) return;
+    setNoteDraft(revision.text);
+    setDraftRecovered(false);
+    setShowPreviousRevision(false);
+    setRelatedDocumentsLoading(true);
+  };
+
   createEffect(() => {
     const current = route();
     if (current.kind === 'new-record') {
       const key = `new:${current.cardId}`;
       if (editorKey === key) return;
       editorKey = key;
-      setNoteDraft('');
-      setReminderDate('');
-      setReminderTime('');
+      const draft = loadPatientNoteDraft(key);
+      const useDraft = Boolean(
+        draft && (draft.text.trim() || draft.reminderDate || draft.reminderTime),
+      );
+      if (draft && !useDraft) removePatientNoteDraft(key);
+      setNoteDraft(useDraft && draft ? draft.text : '');
+      setReminderDate(useDraft && draft ? draft.reminderDate : '');
+      setReminderTime(useDraft && draft ? draft.reminderTime : '');
       setNotificationMessage('');
       setNoteImages([]);
       setPendingImages([]);
+      setDraftRecovered(useDraft);
+      setShowPreviousRevision(false);
+      setRelatedDocumentsLoading(false);
+      editorReadyKey = key;
       return;
     }
     if (current.kind === 'record') {
       const note = activeNote();
       if (!note || editorKey === note.id) return;
       editorKey = note.id;
-      setNoteDraft(note.text);
+      const draft = loadPatientNoteDraft(note.id);
       const reminder = reminderInputValues(note.reminder);
-      setReminderDate(reminder.date);
-      setReminderTime(reminder.time);
+      const useDraft = Boolean(
+        draft?.text.trim() &&
+          (draft.text !== note.text ||
+            draft.reminderDate !== reminder.date ||
+            draft.reminderTime !== reminder.time),
+      );
+      if (draft && !useDraft) removePatientNoteDraft(note.id);
+      setNoteDraft(useDraft && draft ? draft.text : note.text);
+      setReminderDate(useDraft && draft ? draft.reminderDate : reminder.date);
+      setReminderTime(useDraft && draft ? draft.reminderTime : reminder.time);
       setNotificationMessage('');
       setPendingImages([]);
+      setDraftRecovered(useDraft);
+      setShowPreviousRevision(false);
+      setRelatedDocumentsLoading(false);
       refreshImages();
+      editorReadyKey = note.id;
       return;
     }
     editorKey = '';
+    editorReadyKey = '';
     setNoteImages([]);
   });
 
+  createEffect(() => {
+    const current = route();
+    const noteId =
+      current.kind === 'record'
+        ? current.noteId
+        : current.kind === 'new-record'
+          ? `new:${current.cardId}`
+          : null;
+    if (!noteId || editorReadyKey !== noteId) return;
+    savePatientNoteDraft({
+      noteId,
+      text: noteDraft(),
+      reminderDate: reminderDate(),
+      reminderTime: reminderTime(),
+      savedAt: new Date().toISOString(),
+    });
+  });
+
   return (
-    <section class="patient-notes-view page-surface" aria-label="Личные заметки">
+    <section class="patient-notes-view page-surface page-grain" aria-label="Личные заметки">
       <Show when={props.active && route().kind === 'index'}>
         <header class="patient-notes-heading">
           <div>
@@ -483,19 +575,28 @@ export function NotesView(props: {
             <h1>Заметки</h1>
           </div>
         </header>
+        <SearchField
+          class="notes-search"
+          id="notes-search"
+          value={notesSearchQuery()}
+          onInput={setNotesSearchQuery}
+          label="Поиск по заметкам"
+          hideLabel
+          placeholder="Поиск по заметкам"
+        />
 
         <Show
-          when={snapshot().cards.length > 0}
+          when={visibleCards().length > 0}
           fallback={
             <p class="patient-notes-empty paper-card">
-              Пока нет карточек.
-              <br />
-              Создайте первую, чтобы вести записи по пациенту.
+              {notesSearchQuery().trim()
+                ? 'По запросу ничего не найдено.'
+                : 'Пока нет карточек. Создайте первую, чтобы вести записи по пациенту.'}
             </p>
           }
         >
           <div class="patient-card-list">
-            <For each={sortedCards()}>
+            <For each={visibleCards()}>
               {(card) => {
                 const notes = () => notesForCard(card.id);
                 const due = () =>
@@ -692,35 +793,63 @@ export function NotesView(props: {
               <>
                 <header class="notes-route-heading">
                   <button
-                    class="knowledge-back-button"
+                    class="notes-route-heading__back knowledge-back-button"
                     type="button"
                     aria-label="Назад к записям"
+                    disabled={viewingPreviousRevision()}
                     onClick={() => navigate(notesPath(card().id))}
                   >
                     <AppGlyph name="arrow-left" />
                   </button>
                   <div>
-                    <p class="archive-kicker">{card().title}</p>
-                    <h1>{editing() ? 'Редактировать запись' : 'Новая запись'}</h1>
+                    <p class="notes-route-heading__eyebrow">
+                      {editing() ? 'Редактировать запись' : 'Новая запись'}
+                    </p>
+                    <h1 class="notes-route-heading__title">{card().title}</h1>
                   </div>
                   <Show when={note()}>
                     {(currentNote) => (
-                      <button
-                        class="patient-record-delete patient-card-icon-action danger"
-                        type="button"
-                        aria-label="Удалить запись"
-                        title="Удалить запись"
-                        onClick={() =>
-                          setDeleteTarget({
-                            kind: 'note',
-                            id: currentNote().id,
-                            title: currentNote().text.slice(0, 80),
-                            returnPath: notesPath(card().id),
-                          })
-                        }
-                      >
-                        <AppGlyph name="trash" class="patient-card-icon-action__icon" />
-                      </button>
+                      <div class="notes-route-heading__actions">
+                        <button
+                          class="notes-route-heading__previous patient-card-icon-action"
+                          classList={{
+                            'notes-route-heading__previous--active': viewingPreviousRevision(),
+                          }}
+                          type="button"
+                          aria-label={
+                            viewingPreviousRevision()
+                              ? 'Скрыть предыдущую редакцию'
+                              : 'Показать предыдущую редакцию'
+                          }
+                          aria-expanded={viewingPreviousRevision()}
+                          title={
+                            viewingPreviousRevision()
+                              ? 'Скрыть предыдущую редакцию'
+                              : 'Предыдущая редакция'
+                          }
+                          disabled={!previousRevisionDiffers()}
+                          onClick={() => setShowPreviousRevision((visible) => !visible)}
+                        >
+                          <AppGlyph name="share-fat" class="notes-route-heading__previous-icon" />
+                        </button>
+                        <button
+                          class="notes-route-heading__delete patient-record-delete patient-card-icon-action danger"
+                          type="button"
+                          aria-label="Удалить запись"
+                          title="Удалить запись"
+                          disabled={viewingPreviousRevision()}
+                          onClick={() =>
+                            setDeleteTarget({
+                              kind: 'note',
+                              id: currentNote().id,
+                              title: currentNote().text.slice(0, 80),
+                              returnPath: notesPath(card().id),
+                            })
+                          }
+                        >
+                          <AppGlyph name="trash" class="patient-card-icon-action__icon" />
+                        </button>
+                      </div>
                     )}
                   </Show>
                 </header>
@@ -734,62 +863,34 @@ export function NotesView(props: {
                     </div>
                   )}
                 </Show>
-                <form
+                <div
                   class="patient-note-form patient-record-editor paper-card"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    void (async () => {
-                      const existing = note();
-                      const reminder = existing ? null : reminderValue();
-                      const notificationGranted = reminder
-                        ? await enableReminderNotification()
-                        : false;
-                      let savedNoteId = existing?.id;
-                      if (existing) {
-                        updatePatientNote(existing.id, noteDraft());
-                        deferEnrichment(existing.id, props.core);
-                      } else {
-                        const next = addPatientNote(card().id, noteDraft());
-                        const created = next.notes.at(-1);
-                        if (created) {
-                          savedNoteId = created.id;
-                          if (reminder) {
-                            setNoteReminder(
-                              created.id,
-                              reminder.dueAt,
-                              reminder.allDay,
-                              notificationGranted,
-                            );
-                          }
-                          deferEnrichment(created.id, props.core);
-                        }
-                      }
-                      if (!savedNoteId) return;
-                      try {
-                        await addNoteImages(savedNoteId, pendingImages());
-                      } catch (cause) {
-                        setImageError(
-                          cause instanceof Error
-                            ? cause.message
-                            : 'Не удалось сохранить изображения.',
-                        );
-                        if (!existing) {
-                          allowEditorExit = true;
-                          navigate(notesPath(card().id, savedNoteId));
-                        }
-                        return;
-                      }
-                      allowEditorExit = true;
-                      navigate(notesPath(card().id));
-                    })();
+                  classList={{
+                    'patient-record-editor--previous-revision': viewingPreviousRevision(),
                   }}
                 >
+                  <Show when={viewingPreviousRevision()}>
+                    <div class="patient-note-previous-revision__banner">
+                      <span class="patient-note-previous-revision__label">Предыдущая редакция</span>
+                      <span class="patient-note-previous-revision__mode">Только просмотр</span>
+                    </div>
+                  </Show>
+                  <Show when={draftRecovered() && !viewingPreviousRevision()}>
+                    <p class="patient-note-autosave-status" role="status">
+                      Черновик восстановлен
+                    </p>
+                  </Show>
                   <NoteTextArea
                     name="text"
                     label={editing() ? 'Текст записи' : `Новая заметка для ${card().title}`}
-                    value={noteDraft()}
+                    value={
+                      viewingPreviousRevision()
+                        ? (previousRevision()?.text ?? noteDraft())
+                        : noteDraft()
+                    }
                     onChange={setNoteDraft}
                     placeholder="Осмотр, назначение, динамика"
+                    disabled={viewingPreviousRevision()}
                   />
                   <NoteImagePicker
                     files={pendingImages()}
@@ -797,6 +898,7 @@ export function NotesView(props: {
                     error={imageError()}
                     onFilesChange={setPendingImages}
                     onError={setImageError}
+                    disabled={viewingPreviousRevision()}
                   />
                   <Show when={!editing()}>
                     <ReminderFields
@@ -807,14 +909,31 @@ export function NotesView(props: {
                       onTimeChange={setReminderTime}
                     />
                   </Show>
-                  <div class="patient-note-form-actions">
-                    <button type="submit" disabled={!noteDraft().trim()}>
-                      {editing() ? 'Сохранить' : 'Добавить запись'}
-                    </button>
-                  </div>
-                </form>
+                  <Show when={!viewingPreviousRevision()}>
+                    <p class="patient-note-autosave-status">Сохраняется автоматически</p>
+                  </Show>
+                </div>
 
-                <Show when={note()}>
+                <Show when={viewingPreviousRevision()}>
+                  <div class="patient-note-previous-revision__restore">
+                    <Button
+                      class="patient-note-previous-revision__restore-button"
+                      type="button"
+                      variant="primary"
+                      icon={
+                        <AppGlyph
+                          name="share-fat"
+                          class="patient-note-previous-revision__restore-icon"
+                        />
+                      }
+                      onClick={restorePreviousRevision}
+                    >
+                      Вернуть прошлую редакцию
+                    </Button>
+                  </div>
+                </Show>
+
+                <Show when={!viewingPreviousRevision() ? note() : null}>
                   {(currentNote) => (
                     <div class="patient-record-editor-aside">
                       <div class="record-reminder-editor paper-card">
@@ -842,8 +961,10 @@ export function NotesView(props: {
                           onDateChange={setReminderDate}
                           onTimeChange={setReminderTime}
                         />
-                        <button
+                        <Button
+                          class="patient-note-action patient-note-action--primary"
                           type="button"
+                          variant="primary"
                           disabled={reminderValue() === null}
                           onClick={() => {
                             const reminder = reminderValue();
@@ -859,21 +980,34 @@ export function NotesView(props: {
                           }}
                         >
                           {currentNote().reminder ? 'Сохранить' : 'Установить'}
-                        </button>
+                        </Button>
                       </div>
-                      <Show when={relatedDocuments(currentNote()).length > 0}>
+                      <Show
+                        when={
+                          relatedDocumentsLoading() || relatedDocuments(currentNote()).length > 0
+                        }
+                      >
                         <div class="patient-note-related paper-card">
                           <span>По теме:</span>
-                          <For each={relatedDocuments(currentNote())}>
-                            {(document) => (
-                              <button
-                                type="button"
-                                onClick={() => openDocumentOverlay(document.id)}
-                              >
-                                {document.title}
-                              </button>
-                            )}
-                          </For>
+                          <Show
+                            when={!relatedDocumentsLoading()}
+                            fallback={
+                              <span class="patient-note-related__loading" role="status">
+                                Подбираем документы по теме…
+                              </span>
+                            }
+                          >
+                            <For each={relatedDocuments(currentNote())}>
+                              {(document) => (
+                                <button
+                                  type="button"
+                                  onClick={() => openDocumentOverlay(document.id)}
+                                >
+                                  {document.title}
+                                </button>
+                              )}
+                            </For>
+                          </Show>
                         </div>
                       </Show>
                     </div>

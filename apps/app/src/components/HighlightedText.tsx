@@ -34,6 +34,21 @@ function segments(text: string, ranges: readonly TextRange[]): readonly Segment[
   return output;
 }
 
+function exactQueryRanges(text: string, query: string): readonly TextRange[] {
+  const normalizedText = text.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
+  const normalizedQuery = query.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
+  if (!normalizedQuery) return [];
+  const ranges: TextRange[] = [];
+  let cursor = 0;
+  while (cursor < normalizedText.length) {
+    const start = normalizedText.indexOf(normalizedQuery, cursor);
+    if (start < 0) break;
+    ranges.push({ start, end: start + normalizedQuery.length });
+    cursor = start + normalizedQuery.length;
+  }
+  return ranges;
+}
+
 export function HighlightedText(props: HighlightedTextProps): JSX.Element {
   return (
     <For each={segments(props.text, props.ranges)}>
@@ -45,12 +60,21 @@ export function HighlightedText(props: HighlightedTextProps): JSX.Element {
 export function QueryHighlightedText(props: {
   readonly text: string;
   readonly query: string;
+  readonly exact?: boolean | undefined;
+  readonly matchClass?: string | undefined;
 }): JSX.Element {
   const ranges = () => {
+    if (props.exact) return exactQueryRanges(props.text, props.query);
     const phrase = props.query.trim();
     if (!phrase) return [];
     const terms = [phrase, ...phrase.split(/[^\p{L}\p{N}-]+/gu).filter((term) => term.length >= 2)];
     return buildSnippet(props.text, terms, Number.MAX_SAFE_INTEGER).ranges;
   };
-  return <HighlightedText text={props.text} ranges={ranges()} />;
+  return (
+    <For each={segments(props.text, ranges())}>
+      {(segment) =>
+        segment.highlighted ? <mark class={props.matchClass}>{segment.text}</mark> : segment.text
+      }
+    </For>
+  );
 }

@@ -167,13 +167,13 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
               when={state().phase === 'ready'}
               fallback={
                 <>
-                  <div>
+                  <div class="model-current-state__copy">
                     <span>Текущее состояние</span>
                     <strong>{state().message}</strong>
                   </div>
                   <button
                     type="button"
-                    class="model-device-check"
+                    class="model-current-state__action model-current-state__action--primary model-device-check"
                     disabled={busyPhase()}
                     onClick={() => void props.controller.useAutomaticSelection()}
                   >
@@ -182,11 +182,15 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                 </>
               }
             >
-              <div>
+              <div class="model-current-state__copy">
                 <span>Используется</span>
                 <strong>{props.controller.modelById(state().activeModelId)?.name}</strong>
               </div>
-              <button type="button" onClick={() => void props.controller.unload()}>
+              <button
+                type="button"
+                class="model-current-state__action model-current-state__action--danger"
+                onClick={() => void props.controller.unload()}
+              >
                 Остановить
               </button>
             </Show>
@@ -263,22 +267,20 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                         <h3>{model.name}</h3>
                         <span class="model-tier-chip">{TIER_LABELS[model.tier]}</span>
                       </div>
-                      <Show when={statusLabel()}>
-                        {(label) => (
-                          <span
-                            class="model-option-status"
-                            classList={{
-                              active: active(),
-                              recommended: recommended(),
-                              warning:
-                                available() && deviceFitsModel(model, deviceMemoryGb()) === false,
-                              loading: loading(),
-                            }}
-                          >
-                            {label()}
-                          </span>
-                        )}
-                      </Show>
+                      <span
+                        class="model-option-status"
+                        classList={{
+                          active: active(),
+                          recommended: recommended(),
+                          warning:
+                            available() && deviceFitsModel(model, deviceMemoryGb()) === false,
+                          loading: loading(),
+                          'model-option-status--empty': !statusLabel(),
+                        }}
+                        aria-hidden={statusLabel() ? undefined : 'true'}
+                      >
+                        {statusLabel() ?? '\u00a0'}
+                      </span>
                     </div>
                     <div class="model-option-row">
                       <dl class="model-option-specs">

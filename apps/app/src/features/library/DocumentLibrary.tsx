@@ -62,7 +62,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   return (
     <section
       class="archive-page"
-      classList={{ 'page-surface': !props.embedded }}
+      classList={{ 'page-surface': !props.embedded, 'page-grain': !props.embedded }}
       aria-label="Архив документов"
     >
       <Show when={!props.embedded}>

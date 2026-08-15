@@ -10,12 +10,14 @@ export function NoteImagePicker(props: {
   readonly error: string;
   readonly onFilesChange: (files: readonly File[]) => void;
   readonly onError: (message: string) => void;
+  readonly disabled?: boolean;
 }): JSX.Element {
   const [dragging, setDragging] = createSignal(false);
   const [previews, setPreviews] = createSignal<
     readonly { readonly name: string; readonly url: string }[]
   >([]);
   const appendFiles = (files: FileList | null): void => {
+    if (props.disabled) return;
     if (files?.length) props.onFilesChange([...props.files, ...Array.from(files)]);
   };
 
@@ -28,7 +30,10 @@ export function NoteImagePicker(props: {
   });
 
   return (
-    <div class="record-images-editor paper-card">
+    <div
+      class="record-images-editor paper-card"
+      classList={{ 'record-images-editor--disabled': props.disabled }}
+    >
       <HorizontalScroller
         class="note-images-scroller"
         controls
@@ -38,14 +43,18 @@ export function NoteImagePicker(props: {
         <div class="note-image-row">
           <label
             class="note-image-picker"
-            classList={{ dragging: dragging() }}
+            classList={{ dragging: dragging(), 'note-image-picker--disabled': props.disabled }}
             onDragEnter={(event) => {
+              if (props.disabled) return;
               event.preventDefault();
               setDragging(true);
             }}
-            onDragOver={(event) => event.preventDefault()}
+            onDragOver={(event) => {
+              if (!props.disabled) event.preventDefault();
+            }}
             onDragLeave={() => setDragging(false)}
             onDrop={(event) => {
+              if (props.disabled) return;
               event.preventDefault();
               setDragging(false);
               appendFiles(event.dataTransfer?.files ?? null);
@@ -56,6 +65,7 @@ export function NoteImagePicker(props: {
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               multiple
+              disabled={props.disabled}
               onChange={(event) => {
                 appendFiles(event.currentTarget.files);
                 event.currentTarget.value = '';
@@ -79,6 +89,7 @@ export function NoteImagePicker(props: {
                       aria-label={`Удалить изображение «${image.name}»`}
                       title="Удалить изображение"
                       data-haptic="heavy"
+                      disabled={props.disabled}
                       onClick={() =>
                         void deleteNoteImage(image.id).catch(() =>
                           props.onError('Не удалось удалить изображение.'),

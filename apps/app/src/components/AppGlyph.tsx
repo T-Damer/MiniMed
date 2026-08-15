@@ -19,6 +19,7 @@ import minusBold from '@phosphor-icons/core/assets/bold/minus-bold.svg?raw';
 import noteBold from '@phosphor-icons/core/assets/bold/note-bold.svg?raw';
 import pencilSimpleBold from '@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
+import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
 import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
 import stackBold from '@phosphor-icons/core/assets/bold/stack-bold.svg?raw';
 import trashBold from '@phosphor-icons/core/assets/bold/trash-bold.svg?raw';
@@ -50,6 +51,7 @@ export type AppGlyphName =
   | 'trash'
   | 'printer'
   | 'share'
+  | 'share-fat'
   | 'binoculars'
   | 'arrow-square-up-right';
 
@@ -82,6 +84,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   trash: svgBody(trashBold),
   printer: svgBody(printerBold),
   share: svgBody(shareNetworkBold),
+  'share-fat': svgBody(shareFatBold),
   binoculars: svgBody(binocularsBold),
   'arrow-square-up-right': svgBody(arrowSquareUpRightBold),
 };
@@ -92,7 +95,7 @@ export function AppGlyph(props: {
 }): JSX.Element {
   return (
     <svg
-      class={props.class}
+      class={`app-glyph${props.class ? ` ${props.class}` : ''}`}
       viewBox="0 0 256 256"
       aria-hidden="true"
       fill="currentColor"

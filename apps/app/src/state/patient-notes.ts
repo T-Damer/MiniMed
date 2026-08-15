@@ -51,6 +51,20 @@ export interface PatientNotesSnapshot {
   readonly notes: readonly PatientNote[];
 }
 
+export interface PatientNoteDraft {
+  readonly noteId: string;
+  readonly text: string;
+  readonly reminderDate: string;
+  readonly reminderTime: string;
+  readonly savedAt: string;
+}
+
+export interface PatientNoteRevision {
+  readonly noteId: string;
+  readonly text: string;
+  readonly savedAt: string;
+}
+
 export interface PatientNoteMatch {
   readonly card: PatientCard;
   /** Absent when the card itself matched rather than one of its notes. */
@@ -60,6 +74,8 @@ export interface PatientNoteMatch {
 }
 
 export const PATIENT_NOTES_KEY = 'minimed.patient-notes.v1';
+export const PATIENT_NOTE_DRAFTS_KEY = 'minimed.patient-note-drafts.v1';
+export const PATIENT_NOTE_REVISIONS_KEY = 'minimed.patient-note-revisions.v1';
 export const PATIENT_NOTES_EVENT = 'minimed:patient-notes-changed';
 
 const MAX_SNIPPET_LENGTH = 180;
@@ -71,6 +87,89 @@ const COLLEAGUE_CARD_ID = 'card-colleague-welcome';
 const COLLEAGUE_NOTE_ID = 'note-colleague-welcome';
 const COLLEAGUE_NOTE_TEXT =
   'Я сделал это приложение, чтобы тебе было удобно искать документы и записывать информацию о пациентах. Здесь же можно создавать напоминания — они появятся прямо в этом разделе. Для полноценной работы рекомендую скачать локальную ИИ-модель и всю базу знаний: так всё нужное останется под рукой, даже если пропадёт интернет.';
+
+function isPatientNoteDraft(value: unknown): value is PatientNoteDraft {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<PatientNoteDraft>;
+  return (
+    typeof candidate.noteId === 'string' &&
+    typeof candidate.text === 'string' &&
+    typeof candidate.reminderDate === 'string' &&
+    typeof candidate.reminderTime === 'string' &&
+    typeof candidate.savedAt === 'string'
+  );
+}
+
+function isPatientNoteRevision(value: unknown): value is PatientNoteRevision {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<PatientNoteRevision>;
+  return (
+    typeof candidate.noteId === 'string' &&
+    typeof candidate.text === 'string' &&
+    typeof candidate.savedAt === 'string'
+  );
+}
+
+function readNoteStorage(key: string): Record<string, unknown> {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return {};
+    const value: unknown = JSON.parse(raw);
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return value as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function writeNoteStorage(key: string, value: Record<string, unknown>): void {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // The main note remains available even when browser draft storage is unavailable.
+  }
+}
+
+export function loadPatientNoteDraft(noteId: string): PatientNoteDraft | null {
+  const value = readNoteStorage(PATIENT_NOTE_DRAFTS_KEY)[noteId];
+  return isPatientNoteDraft(value) ? value : null;
+}
+
+export function savePatientNoteDraft(draft: PatientNoteDraft): void {
+  if (!draft.noteId) return;
+  const drafts = readNoteStorage(PATIENT_NOTE_DRAFTS_KEY);
+  drafts[draft.noteId] = draft;
+  writeNoteStorage(PATIENT_NOTE_DRAFTS_KEY, drafts);
+}
+
+export function removePatientNoteDraft(noteId: string): void {
+  const drafts = readNoteStorage(PATIENT_NOTE_DRAFTS_KEY);
+  if (!(noteId in drafts)) return;
+  delete drafts[noteId];
+  writeNoteStorage(PATIENT_NOTE_DRAFTS_KEY, drafts);
+}
+
+export function loadPreviousPatientNoteRevision(noteId: string): PatientNoteRevision | null {
+  const value = readNoteStorage(PATIENT_NOTE_REVISIONS_KEY)[noteId];
+  return isPatientNoteRevision(value) ? value : null;
+}
+
+function savePreviousPatientNoteRevision(note: PatientNote): void {
+  const revisions = readNoteStorage(PATIENT_NOTE_REVISIONS_KEY);
+  revisions[note.id] = {
+    noteId: note.id,
+    text: note.text,
+    savedAt: new Date().toISOString(),
+  } satisfies PatientNoteRevision;
+  writeNoteStorage(PATIENT_NOTE_REVISIONS_KEY, revisions);
+}
+
+function removePatientNoteRevision(noteId: string): void {
+  const revisions = readNoteStorage(PATIENT_NOTE_REVISIONS_KEY);
+  if (!(noteId in revisions)) return;
+  delete revisions[noteId];
+  writeNoteStorage(PATIENT_NOTE_REVISIONS_KEY, revisions);
+}
 
 function isCard(value: unknown): value is PatientCard {
   if (!value || typeof value !== 'object') return false;
@@ -314,9 +413,16 @@ export function updatePatientCard(
 /** Removes a card together with every note beneath it: a card is the retention boundary. */
 export function removePatientCard(cardId: string): PatientNotesSnapshot {
   const current = loadPatientNotes();
-  void deleteNoteImagesForNotes(
-    current.notes.filter((note) => note.cardId === cardId).map((note) => note.id),
-  ).catch(() => console.warn('Не удалось удалить изображения карточки.'));
+  const doomedNoteIds = current.notes
+    .filter((note) => note.cardId === cardId)
+    .map((note) => note.id);
+  for (const noteId of doomedNoteIds) {
+    removePatientNoteDraft(noteId);
+    removePatientNoteRevision(noteId);
+  }
+  void deleteNoteImagesForNotes(doomedNoteIds).catch(() =>
+    console.warn('Не удалось удалить изображения карточки.'),
+  );
   return persist({
     cards: current.cards.filter((card) => card.id !== cardId),
     notes: current.notes.filter((note) => note.cardId !== cardId),
@@ -349,7 +455,9 @@ export function addPatientNote(
 export function updatePatientNote(noteId: string, text: string): PatientNotesSnapshot {
   const trimmed = text.trim();
   const current = loadPatientNotes();
-  if (!trimmed) return current;
+  const existing = current.notes.find((note) => note.id === noteId);
+  if (!trimmed || !existing || existing.text === trimmed) return current;
+  savePreviousPatientNoteRevision(existing);
   const now = new Date().toISOString();
   return persist({
     cards: current.cards,
@@ -406,6 +514,10 @@ export function removePatientNote(noteId: string): PatientNotesSnapshot {
         grew = true;
       }
     }
+  }
+  for (const doomedNoteId of doomed) {
+    removePatientNoteDraft(doomedNoteId);
+    removePatientNoteRevision(doomedNoteId);
   }
   void deleteNoteImagesForNotes([...doomed]).catch(() =>
     console.warn('Не удалось удалить изображения записи.'),

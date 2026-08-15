@@ -207,6 +207,28 @@ test('preserves the active search while navigating between mounted routes', asyn
   await expect(pneumoniaResult(page)).toBeVisible();
 });
 
+test('returns to the documents route after opening a questionnaire', async ({ page }) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+
+  await page.evaluate(() => {
+    window.location.hash = '#/modules/documents';
+  });
+  await expect(page).toHaveURL(/#\/modules\/documents$/u);
+  await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
+
+  await page.evaluate(() => {
+    window.location.hash = '#/assessments/braverman-behavioral-profile';
+  });
+  await expect(page).toHaveURL(/#\/assessments\/braverman-behavioral-profile$/u);
+  await expect(
+    page.getByRole('heading', { name: 'Тест Бравермана — поведенческий профиль' }),
+  ).toBeVisible();
+
+  await navigationButton(page, 'База знаний').click();
+  await expect(page).toHaveURL(/#\/modules\/documents$/u);
+  await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
+});
+
 test('queues rapid primary navigation without blocking the bottom bar', async ({ page }) => {
   await mountBuiltApp(page);
 
@@ -228,6 +250,48 @@ test('queues rapid primary navigation without blocking the bottom bar', async ({
   await expect(page).toHaveURL(/#\/search$/u, { timeout: 3_000 });
   await expect(navigationButton(page, 'Поиск')).toHaveClass(/active/u);
   await expect(page.locator('html')).not.toHaveClass(/using-root-view-transition/u);
+});
+
+test('swipes the bottom navigation to another section', async ({ page }) => {
+  await mountBuiltApp(page);
+
+  const from = await navigationButton(page, 'Поиск').boundingBox();
+  const to = await navigationButton(page, 'Заметки').boundingBox();
+  if (!from || !to) throw new Error('Bottom navigation buttons are not visible.');
+
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+  await expect(page.locator('.app-bottom-nav')).toHaveClass(/app-bottom-nav--dragging/u);
+  await page.mouse.up();
+
+  await expect(page).toHaveURL(/#\/notes$/u);
+  await expect(navigationButton(page, 'Заметки')).toHaveAttribute('aria-current', 'page');
+});
+
+test('finishes a swipe released outside the bottom navigation', async ({ page }) => {
+  await mountBuiltApp(page);
+
+  const nav = page.locator('.app-bottom-nav');
+  const from = await navigationButton(page, 'Поиск').boundingBox();
+  const navBounds = await nav.boundingBox();
+  const viewport = await page.evaluate(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+  if (!from || !navBounds) throw new Error('Bottom navigation is not visible.');
+
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(
+    Math.min(viewport.width - 4, navBounds.x + navBounds.width + 180),
+    from.y + from.height / 2,
+    { steps: 8 },
+  );
+  await page.mouse.up();
+
+  await expect(page).toHaveURL(/#\/notes$/u);
+  await expect(nav).not.toHaveClass(/app-bottom-nav--dragging/u);
 });
 
 test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {

@@ -454,6 +454,233 @@ export const PEDIATRIC_MAINTENANCE_FLUIDS_SCHEMA: CalculatorSchema = CalculatorS
   ],
 });
 
+export const PEDIATRIC_ORAL_REHYDRATION_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.parse({
+  schemaVersion: 1,
+  id: 'pediatric-oral-rehydration',
+  slug: 'pediatric-oral-rehydration',
+  title: 'Пероральная регидратация у детей',
+  shortTitle: 'ОРС при потерях',
+  aliases: ['Регидрон детям', 'регидратация детям', 'рвота понос', 'ОРС', 'oral rehydration'],
+  summary:
+    'Двухэтапный расчёт: возраст и масса задают исходную схему, затем рвота и жидкий стул добавляются как продолжающиеся потери.',
+  audience: 'pediatric',
+  category: 'fluids',
+  clinical: true,
+  formulaDisplay:
+    'ОРС при клинической дегидратации: 50 мл/кг за 4 ч; продолжающиеся потери: 10 мл/кг за жидкий стул и 2 мл/кг за эпизод рвоты; поддержка 100/50/20.',
+  population: 'Дети от 1 месяца до 18 лет, если ребёнок может получать жидкость энтерально.',
+  limitations: [
+    '50 мл/кг за 4 часа — ориентир для регидратации при клинической дегидратации, а не универсальный домашний объём.',
+    'Расчёт не определяет степень обезвоживания, не заменяет осмотр и не предназначен для шока, нарушений электролитов или невозможности пить.',
+    'Для замещения потерь используется готовый низкоосмолярный раствор ОРС (например, Регидрон, приготовленный строго по инструкции); вода не заменяет электролиты.',
+  ],
+  inputs: [
+    {
+      id: 'ageYears',
+      label: 'Возраст',
+      unit: 'лет',
+      kind: 'number',
+      minimum: 1 / 12,
+      maximum: 18,
+      required: true,
+      step: 0,
+      note: 'влияет на начальный темп маленьких порций',
+    },
+    {
+      id: 'weightKg',
+      label: 'Масса',
+      unit: 'кг',
+      kind: 'number',
+      minimum: 0.5,
+      maximum: 200,
+      required: true,
+      step: 0,
+    },
+    {
+      id: 'diarrheaEpisodes',
+      label: 'Эпизоды жидкого стула',
+      unit: 'за текущий период',
+      kind: 'number',
+      minimum: 0,
+      maximum: 100,
+      integer: true,
+      required: true,
+      step: 1,
+    },
+    {
+      id: 'vomitingEpisodes',
+      label: 'Эпизоды рвоты',
+      unit: 'за текущий период',
+      kind: 'number',
+      minimum: 0,
+      maximum: 100,
+      integer: true,
+      required: true,
+      step: 1,
+    },
+  ],
+  steps: [
+    {
+      id: 'firstTen',
+      label: 'Первые 10 кг',
+      unit: 'кг',
+      expression: 'min(weightKg, 10)',
+      displayPrecision: 2,
+      stepRequired: 0,
+    },
+    {
+      id: 'secondTen',
+      label: 'Вторые 10 кг',
+      unit: 'кг',
+      expression: 'min(max(weightKg - 10, 0), 10)',
+      displayPrecision: 2,
+      stepRequired: 0,
+    },
+    {
+      id: 'remaining',
+      label: 'Масса свыше 20 кг',
+      unit: 'кг',
+      expression: 'max(weightKg - 20, 0)',
+      displayPrecision: 2,
+      stepRequired: 0,
+    },
+    {
+      id: 'maintenanceDaily',
+      label: 'Суточная поддерживающая потребность',
+      unit: 'мл/сут',
+      expression: 'firstTen * 100 + secondTen * 50 + remaining * 20',
+      displayPrecision: 0,
+      isOutput: true,
+      stepRequired: 0,
+    },
+    {
+      id: 'maintenanceHourly421',
+      label: 'Почасовая скорость 4–2–1',
+      unit: 'мл/ч',
+      expression: 'firstTen * 4 + secondTen * 2 + remaining',
+      displayPrecision: 1,
+      isOutput: true,
+      stepRequired: 0,
+    },
+    {
+      id: 'initialOrs',
+      label: 'ОРС при клинической дегидратации за 4 часа',
+      unit: 'мл',
+      expression: 'weightKg * 50',
+      displayPrecision: 0,
+      isOutput: true,
+      stepRequired: 0,
+    },
+    {
+      id: 'initialOrsHourly',
+      label: 'Средняя скорость ОРС на эти 4 часа',
+      unit: 'мл/ч',
+      expression: 'initialOrs / 4',
+      displayPrecision: 1,
+      isOutput: true,
+      stepRequired: 0,
+    },
+    {
+      id: 'startingSip',
+      label: 'Начальная порция при отпаивании',
+      unit: 'мл',
+      expression: 'cond(ageYears < 2, 5, 10)',
+      displayPrecision: 0,
+      isOutput: true,
+      stepRequired: 0,
+    },
+    {
+      id: 'stoolLoss',
+      label: 'Оценка потерь с жидким стулом',
+      unit: 'мл ОРС',
+      expression: 'weightKg * 10 * diarrheaEpisodes',
+      displayPrecision: 0,
+      isOutput: true,
+      stepRequired: 1,
+    },
+    {
+      id: 'vomitLoss',
+      label: 'Оценка потерь с рвотой',
+      unit: 'мл ОРС',
+      expression: 'weightKg * 2 * vomitingEpisodes',
+      displayPrecision: 0,
+      isOutput: true,
+      stepRequired: 1,
+    },
+    {
+      id: 'ongoingLosses',
+      label: 'Продолжающиеся потери по введённым эпизодам',
+      unit: 'мл ОРС',
+      expression: 'stoolLoss + vomitLoss',
+      displayPrecision: 0,
+      isOutput: true,
+      stepRequired: 1,
+    },
+    {
+      id: 'replacementWithRecordedLosses',
+      label: 'Базовый ОРС плюс введённые потери',
+      unit: 'мл ОРС',
+      expression: 'initialOrs + ongoingLosses',
+      displayPrecision: 0,
+      isOutput: true,
+      stepRequired: 1,
+    },
+  ],
+  warnings: [
+    {
+      code: 'ors-preparation',
+      message:
+        'Используйте готовый низкоосмолярный раствор ОРС (например, Регидрон), разводите строго по инструкции. Не заменяйте объём замещения потерь одной водой.',
+    },
+    {
+      code: 'small-frequent-sips',
+      message:
+        'Отпаивайте часто и малыми порциями: после рвоты подождите 10 минут, затем возобновите медленнее; для детей младше 2 лет ориентир — около 5 мл каждые 1–2 минуты.',
+    },
+    {
+      code: 'urgent-review',
+      message:
+        'При шоке, вялости или нарушении сознания, отсутствии мочи, крови или зелёной рвоте, невозможности пить либо сохраняющейся рвоте нужна срочная очная медицинская помощь.',
+    },
+  ],
+  interpretations: [
+    {
+      when: 'ageYears < 1',
+      message:
+        'Возраст младше 1 года повышает риск обезвоживания; нужна более ранняя очная оценка, особенно при повторной рвоте или частом жидком стуле.',
+    },
+    {
+      when: 'vomitingEpisodes > 2',
+      message:
+        'Более двух эпизодов рвоты за 24 часа — фактор повышенного риска обезвоживания; контролируйте переносимость ОРС и обратитесь за медицинской помощью при ухудшении.',
+    },
+  ],
+  assertions: [],
+  sources: [
+    {
+      title: 'Diarrhoea and vomiting caused by gastroenteritis in under 5s: recommendations',
+      publisher: 'NICE',
+      version: 'CG84',
+      url: 'https://www.nice.org.uk/guidance/cg84/chapter/Recommendations',
+      reviewedAt: '2026-08-15',
+    },
+    {
+      title: 'Managing Acute Gastroenteritis Among Children',
+      publisher: 'CDC',
+      version: 'MMWR RR-16',
+      url: 'https://www.cdc.gov/mmwr/preview/mmwrhtml/rr5216a1.htm',
+      reviewedAt: '2026-08-15',
+    },
+    {
+      title: 'Readings on diarrhoea: oral rehydration guidance',
+      publisher: 'World Health Organization',
+      version: 'WHO 9241544449',
+      url: 'https://iris.who.int/bitstream/10665/40343/1/9241544449.pdf',
+      reviewedAt: '2026-08-15',
+    },
+  ],
+});
+
 /**
  * The whole schema-driven catalog, keyed by id. Adding a calculator: append a `CalculatorSchemaSchema`
  * instance above (or load one from JSON that passed `bun run content:lint:calculator`), add it here, and
@@ -464,6 +691,7 @@ export const CALCULATOR_SCHEMA_CATALOG: readonly CalculatorSchema[] = [
   ADULT_EGFR_CKD_EPI_2021_SCHEMA,
   PEDIATRIC_EGFR_SCHWARTZ_2009_SCHEMA,
   PEDIATRIC_MAINTENANCE_FLUIDS_SCHEMA,
+  PEDIATRIC_ORAL_REHYDRATION_SCHEMA,
   ...OBSTETRIC_SCHEMA_CATALOG,
 ];
 

@@ -1,4 +1,5 @@
 import { findCalculator } from '@/features/calculators/calculator-registry';
+import { printHtmlInNativeShell } from '@/features/printing/native-print';
 import type { CalculationRecord } from '@/state/calculation-history';
 
 function escapeHtml(value: string): string {
@@ -50,13 +51,12 @@ export function formatCalculationRecord(record: CalculationRecord): string {
 
 export function printCalculationRecord(record: CalculationRecord): void {
   const text = formatCalculationRecord(record);
-  const popup = window.open('', '_blank', 'noopener,noreferrer');
-  if (!popup) throw new Error('Не удалось открыть окно печати.');
-  popup.document.write(`<!doctype html>
+  const title = findCalculator(record.calculatorId)?.title ?? 'Расчёт MiniMed';
+  const html = `<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>${escapeHtml(findCalculator(record.calculatorId)?.title ?? 'Расчёт MiniMed')}</title>
+<title>${escapeHtml(title)}</title>
 <style>
 body{font-family:system-ui,-apple-system,sans-serif;max-width:800px;margin:40px auto;padding:0 24px;line-height:1.45;color:#111}
 pre{white-space:pre-wrap;font:inherit;border:1px solid #bbb;border-radius:12px;padding:20px}
@@ -69,7 +69,11 @@ small{color:#555}
 <small>MiniMed · локальный расчёт</small>
 <script>window.addEventListener('load',()=>window.print())</script>
 </body>
-</html>`);
+</html>`;
+  if (printHtmlInNativeShell(html, title)) return;
+  const popup = window.open('', '_blank', 'noopener,noreferrer');
+  if (!popup) throw new Error('Не удалось открыть окно печати.');
+  popup.document.write(html);
   popup.document.close();
 }
 

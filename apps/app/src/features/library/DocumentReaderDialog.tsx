@@ -52,6 +52,7 @@ function statusLabel(status: string): string {
 export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Element {
   const [query, setQuery] = createSignal('');
   const [outlineOpen, setOutlineOpen] = createSignal(false);
+  const [outlineSearchStuck, setOutlineSearchStuck] = createSignal(false);
   const [activeAnchor, setActiveAnchor] = createSignal(props.initialAnchor ?? '');
   const [fullTextPending, setFullTextPending] = createSignal(false);
   const [fullTextError, setFullTextError] = createSignal<string | null>(null);
@@ -61,6 +62,12 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
 
   onMount(() => {
     if (window.matchMedia('(min-width: 761px)').matches) setOutlineOpen(true);
+    const updateOutlineSearchSticky = (): void => {
+      setOutlineSearchStuck((outline?.scrollTop ?? 0) > 1);
+    };
+    outline?.addEventListener('scroll', updateOutlineSearchSticky, { passive: true });
+    updateOutlineSearchSticky();
+    onCleanup(() => outline?.removeEventListener('scroll', updateOutlineSearchSticky));
   });
 
   const availableIds = createMemo(
@@ -240,7 +247,7 @@ export function DocumentReaderDialog(props: DocumentReaderDialogProps): JSX.Elem
                 </button>
               </header>
               <SearchField
-                class="document-overlay-search-slot"
+                class={`document-overlay-search-slot${outlineSearchStuck() ? ' document-overlay-search-slot--stuck' : ''}`}
                 label="Поиск в документе"
                 value={query()}
                 onInput={setQuery}

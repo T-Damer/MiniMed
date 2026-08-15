@@ -29,6 +29,13 @@ and [classic palette](https://github.com/primary-theme/obsidian/blob/main/src/sc
   brighter accent state. Dark shadows are deeper than light shadows, but remain layered rather than
   becoming one opaque outline.
 
+## Action semantics
+
+- Actions that affect a set or section use explicit text labels, such as `Удалить раздел`.
+- Actions that affect one entity use a compact icon-only control with an accessible label and title.
+- Every destructive delete action requires an explicit confirmation before changing local data,
+  whether it targets a set, a single entity, or a saved result.
+
 ## MiniMed mapping
 
 ### Applies now

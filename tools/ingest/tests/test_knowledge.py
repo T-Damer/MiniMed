@@ -136,6 +136,12 @@ def test_only_reviewed_knowledge_enters_chunk_projection() -> None:
     proposed_chunk = proposed_documents[0].sections[0].chunks[0]
     assert "knowledgeProjectionVersion" not in proposed_chunk.metadata
 
+    reference_documents = documents()
+    reference_workspace = workspace("proposed")
+    reference_workspace.relations[0].authority_tier = "professional-reference"
+    apply_search_projection(reference_documents, reference_workspace)
+    assert reference_documents[0].sections[0].chunks[0].metadata["knowledgeProjectionVersion"] == 1
+
 
 def test_structured_knowledge_is_written_beside_vector_content(tmp_path: Path) -> None:
     database = tmp_path / "knowledge.db"

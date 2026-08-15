@@ -51,6 +51,11 @@ export interface CalculatorSchemaFailure {
 
 export type CalculatorSchemaResult = CalculatorSchemaEvaluation | CalculatorSchemaFailure;
 
+export interface CalculatorSchemaEvaluationOptions {
+  /** Evaluate only inputs and derived values available through this form stage. */
+  readonly maxStep?: number;
+}
+
 function failure(error: string): CalculatorSchemaFailure {
   return { ok: false, error };
 }
@@ -79,19 +84,23 @@ function formatStepError(step: CalculatorStepDefinition, error: unknown): string
 }
 
 /**
- * Validates raw input values against the schema's declared inputs, evaluates every step in declared
- * order, then checks `assertions` (fail the whole calculation on a derived-value guard, e.g. "gestational
- * age at this date exceeds 40 weeks") and `interpretations` (append a threshold-based message, e.g.
- * Bishop score's favorable/intermediate/unfavorable bands) — the same "refuse to calculate when required
- * data are missing or implausible" contract the existing hardcoded calculators follow (CALCULATORS.md).
+ * Validates raw input values against the schema's declared inputs, evaluates the available steps in
+ * declared order, then checks `assertions` (fail the whole calculation on a derived-value guard, e.g.
+ * "gestational age at this date exceeds 40 weeks") and `interpretations` (append a threshold-based
+ * message, e.g. Bishop score's favorable/intermediate/unfavorable bands) on a final evaluation — the
+ * same "refuse to calculate when required data are missing or implausible" contract the existing
+ * hardcoded calculators follow (CALCULATORS.md).
  */
 export function evaluateCalculatorSchema(
   schema: CalculatorSchema,
   rawInputs: Readonly<Record<string, string | number>>,
+  options: CalculatorSchemaEvaluationOptions = {},
 ): CalculatorSchemaResult {
   const scope: Record<string, CalculatorValue> = {};
+  const maxStep = options.maxStep ?? Number.MAX_SAFE_INTEGER;
 
   for (const input of schema.inputs) {
+    if (input.step > maxStep) continue;
     const raw = rawInputs[input.id];
     const blank = raw === undefined || raw === '';
     if (blank) {
@@ -148,6 +157,7 @@ export function evaluateCalculatorSchema(
   const outputs: CalculatorSchemaOutput[] = [];
 
   for (const step of schema.steps) {
+    if (step.stepRequired > maxStep) continue;
     let node: ExpressionNode;
     try {
       node = parseCalculatorExpression(step.expression);
@@ -192,27 +202,30 @@ export function evaluateCalculatorSchema(
 
   if (outputs.length === 0) return failure('Калькулятор не определил ни одного результата.');
 
-  for (const assertion of schema.assertions) {
-    let triggered: CalculatorValue;
-    try {
-      triggered = evaluateCalculatorExpression(assertion.when, scope as CalculatorScope);
-    } catch (error) {
-      return failure(formatExpressionError('Проверка результата', error));
-    }
-    if (triggered === 1) return failure(assertion.error);
-  }
-
   const warnings: CalculatorWarning[] = [...schema.warnings];
-  for (const interpretation of schema.interpretations) {
-    let matched: CalculatorValue;
-    try {
-      matched = evaluateCalculatorExpression(interpretation.when, scope as CalculatorScope);
-    } catch (error) {
-      return failure(formatExpressionError('Интерпретация результата', error));
+  // Partial stages intentionally defer cross-step guards and interpretations until the final
+  // evaluation, when all declared inputs/derived values are available in scope.
+  if (options.maxStep === undefined) {
+    for (const assertion of schema.assertions) {
+      let triggered: CalculatorValue;
+      try {
+        triggered = evaluateCalculatorExpression(assertion.when, scope as CalculatorScope);
+      } catch (error) {
+        return failure(formatExpressionError('Проверка результата', error));
+      }
+      if (triggered === 1) return failure(assertion.error);
     }
-    if (matched === 1) {
-      warnings.push({ code: 'interpretation', message: interpretation.message });
-      break;
+    for (const interpretation of schema.interpretations) {
+      let matched: CalculatorValue;
+      try {
+        matched = evaluateCalculatorExpression(interpretation.when, scope as CalculatorScope);
+      } catch (error) {
+        return failure(formatExpressionError('Интерпретация результата', error));
+      }
+      if (matched === 1) {
+        warnings.push({ code: 'interpretation', message: interpretation.message });
+        break;
+      }
     }
   }
 
