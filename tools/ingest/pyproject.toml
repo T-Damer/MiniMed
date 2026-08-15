@@ -5,7 +5,7 @@ description = "Deterministic LocalMed content-pack builder"
 requires-python = ">=3.12"
 dependencies = [
   "pydantic==2.13.4",
-  "pymupdf==1.28.0",
+  "pymupdf==1.28.2",
   "pyyaml==6.0.3",
   "typer==0.27.0",
 ]
