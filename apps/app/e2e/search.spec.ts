@@ -225,7 +225,7 @@ test('queues rapid primary navigation without blocking the bottom bar', async ({
 });
 
 test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { includeMedicationCompanionPack: true });
   await navigationButton(page, 'База знаний').click();
 
   await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
