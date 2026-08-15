@@ -105,8 +105,8 @@
 .model-status-view {
   min-height: calc(100dvh + var(--safe-top));
   margin-top: calc(-1 * var(--safe-top));
-  padding: calc(clamp(0.875rem, 2vw, 1.5rem) + var(--safe-top))
-    clamp(0.625rem, 2vw, 1.5rem) calc(1.5rem + var(--safe-bottom));
+  padding: calc(clamp(0.875rem, 2vw, 1.5rem) + var(--safe-top)) clamp(0.625rem, 2vw, 1.5rem)
+    calc(1.5rem + var(--safe-bottom));
 }
 
 .subpage-heading {
@@ -210,8 +210,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   margin: calc(-1 * var(--safe-top)) 0 0.375rem;
-  padding: calc(var(--safe-top) + 0.75rem) clamp(0.625rem, 1.7vw, 1.375rem)
-    0.5rem;
+  padding: calc(var(--safe-top) + 0.75rem) clamp(0.625rem, 1.7vw, 1.375rem) 0.5rem;
   background: transparent;
   box-shadow: none;
   -webkit-backdrop-filter: none;
@@ -2347,10 +2346,7 @@ fieldset.search-mode-picker {
   z-index: 60;
   right: max(
     1.25rem,
-    calc(
-      (100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem +
-        var(--safe-right)
-    )
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
   );
   bottom: max(
     var(--theme-bottom-nav-clearance),
@@ -2371,20 +2367,14 @@ fieldset.search-mode-picker {
 .scroll-top-button {
   right: max(
     0.875rem,
-    calc(
-      (100vw - min(100vw, var(--page-content-width))) / 2 + 0.875rem +
-        var(--safe-right)
-    )
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.875rem + var(--safe-right))
   );
 }
 
 .scroll-top-button--notes {
   right: max(
     1.25rem,
-    calc(
-      (100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem +
-        var(--safe-right)
-    )
+    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
   );
   bottom: max(
     var(--theme-bottom-nav-secondary-clearance),
@@ -2954,8 +2944,7 @@ html.native-print-active #root {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0 0 0.625rem;
-  border-bottom: 1px dashed
-    color-mix(in srgb, var(--theme-accent) 58%, transparent);
+  border-bottom: 1px dashed color-mix(in srgb, var(--theme-accent) 58%, transparent);
 }
 
 .patient-note-previous-revision__label,
