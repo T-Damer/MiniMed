@@ -97,7 +97,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await page.getByRole('button', { name: /^Документы/u }).click();
   await regulatorySection(page).click();
   page.once('dialog', (dialog) => dialog.accept());
-  await card.getByRole('button', { name: 'Удалить с устройства' }).click();
+  await card.getByRole('button', { name: /^Удалить/u }).click();
   await expect(card.getByRole('button', { name: 'Скачать' })).toBeVisible({
     timeout: 15_000,
   });
