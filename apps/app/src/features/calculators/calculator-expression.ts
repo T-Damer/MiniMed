@@ -4,6 +4,14 @@
  * schema can never gain arbitrary code execution — only the operations declared below are reachable.
  */
 
+import {
+  type CervicalCytology,
+  type CervicalHpvStatus,
+  calculateCervicalRiskBand,
+  calculateGailRisk,
+  type GailRace,
+} from '@/features/calculators/calculator-models';
+
 export type CalculatorValue = number | string;
 export type CalculatorScope = Readonly<Record<string, CalculatorValue>>;
 
@@ -102,10 +110,13 @@ const KNOWN_FUNCTIONS: Readonly<Record<string, number>> = {
   round: 1,
   floor: 1,
   pow: 2,
+  exp: 1,
   cond: 3,
   today: 0,
   addDays: 2,
   daysBetween: 2,
+  gailRisk: 8,
+  asccpRiskBand: 6,
 };
 
 class Parser {
@@ -252,6 +263,13 @@ function asNumber(value: CalculatorValue): number {
   return value;
 }
 
+function asString(value: CalculatorValue): string {
+  if (typeof value !== 'string') {
+    throw new CalculatorExpressionError(`Expected a string, got a number (${value}).`);
+  }
+  return value;
+}
+
 export function evaluateExpressionNode(
   node: ExpressionNode,
   scope: CalculatorScope,
@@ -381,6 +399,30 @@ function evaluateCall(
     const to = parseIsoDateValue(evaluateExpressionNode(toArg, scope), 'daysBetween');
     return Math.round((to.getTime() - from.getTime()) / DAY_MS);
   }
+  if (name === 'gailRisk') {
+    const values = args.map((arg) => evaluateExpressionNode(arg, scope));
+    return calculateGailRisk(
+      asNumber(values[0] ?? NaN),
+      asNumber(values[1] ?? NaN),
+      asString(values[2] ?? '') as GailRace,
+      asNumber(values[3] ?? NaN),
+      asNumber(values[4] ?? NaN),
+      asNumber(values[5] ?? NaN),
+      asNumber(values[6] ?? NaN),
+      asNumber(values[7] ?? NaN),
+    );
+  }
+  if (name === 'asccpRiskBand') {
+    const values = args.map((arg) => evaluateExpressionNode(arg, scope));
+    return calculateCervicalRiskBand(
+      asNumber(values[0] ?? NaN),
+      asString(values[1] ?? '') as CervicalCytology,
+      asString(values[2] ?? '') as CervicalHpvStatus,
+      asString(values[3] ?? '') as 'no' | 'yes',
+      asString(values[4] ?? '') as 'unknown' | 'negative' | 'yes',
+      asString(values[5] ?? '') as 'no' | 'yes',
+    );
+  }
   const values = args.map((arg) => asNumber(evaluateExpressionNode(arg, scope)));
   switch (name) {
     case 'min':
@@ -397,6 +439,8 @@ function evaluateCall(
       return Math.floor(values[0] ?? NaN);
     case 'pow':
       return (values[0] ?? NaN) ** (values[1] ?? NaN);
+    case 'exp':
+      return Math.exp(values[0] ?? NaN);
     default:
       throw new CalculatorExpressionError(`Unknown function "${name}".`);
   }

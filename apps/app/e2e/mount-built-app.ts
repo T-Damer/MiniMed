@@ -1,9 +1,15 @@
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, relative, resolve } from 'node:path';
 import type { Page, Route } from '@playwright/test';
 
 export const E2E_ASSET_ORIGIN = 'https://localmed-assets.example.com';
 const DIST_ROOT = resolve(import.meta.dirname, '../dist');
+const PUBLIC_CONTENT_ROOT = resolve(import.meta.dirname, '../public/content');
+
+export function hasLocalCompanionPack(name: string): boolean {
+  return existsSync(join(PUBLIC_CONTENT_ROOT, name));
+}
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.css': 'text/css; charset=utf-8',
@@ -46,6 +52,8 @@ export interface MountBuiltAppOptions {
   readonly localStorage?: Readonly<Record<string, string>>;
   readonly persistentOrigin?: boolean;
   readonly skipLargeCompanionPacks?: boolean;
+  readonly includeMkbCompanionPack?: boolean;
+  readonly includeMedicationCompanionPack?: boolean;
 }
 
 async function waitForWorkspace(page: Page): Promise<void> {
@@ -64,10 +72,17 @@ async function waitForWorkspace(page: Page): Promise<void> {
 
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
+  const skippedCompanionPacks = new Set([
+    'ambulatory.db',
+    ...(options.includeMkbCompanionPack ? [] : ['mkb.db']),
+    ...(options.includeMedicationCompanionPack ? [] : ['medications.db']),
+  ]);
   if (options.skipLargeCompanionPacks) {
-    for (const databaseName of ['ambulatory.db', 'medications.db']) {
-      await page.route(`${E2E_ASSET_ORIGIN}/content/${databaseName}`, (route) => route.abort());
-    }
+    skippedCompanionPacks.add('mkb.db');
+    skippedCompanionPacks.add('medications.db');
+  }
+  for (const databaseName of skippedCompanionPacks) {
+    await page.route(`${E2E_ASSET_ORIGIN}/content/${databaseName}`, (route) => route.abort());
   }
   const initialStorage = options.localStorage ?? {};
   await page.addInitScript((initialValues) => {

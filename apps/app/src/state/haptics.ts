@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+
 export type HapticStrength = 'light' | 'medium' | 'heavy';
 
 const PATTERNS: Readonly<Record<HapticStrength, number | readonly number[]>> = {
@@ -11,6 +14,16 @@ export function hapticPattern(strength: HapticStrength): number | readonly numbe
 }
 
 export function hapticFeedback(strength: HapticStrength): boolean {
+  if (Capacitor.isNativePlatform()) {
+    const style =
+      strength === 'heavy'
+        ? ImpactStyle.Heavy
+        : strength === 'medium'
+          ? ImpactStyle.Medium
+          : ImpactStyle.Light;
+    void Haptics.impact({ style }).catch(() => undefined);
+    return true;
+  }
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return false;
   return navigator.vibrate(hapticPattern(strength) as VibratePattern);
 }

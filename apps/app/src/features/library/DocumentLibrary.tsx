@@ -4,6 +4,7 @@ import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGlyph';
+import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
@@ -97,14 +98,6 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
 
       <Show when={props.embedded}>
         <div class="library-embedded-toolbar">
-          <SearchField
-            class="route-search library-embedded-search"
-            value={filter()}
-            onInput={setFilter}
-            label="Поиск по документам"
-            hideLabel
-            placeholder="Название, специальность или источник"
-          />
           <fieldset class="library-mode-tabs">
             <legend class="sr-only">Представление библиотеки</legend>
             <button
@@ -144,11 +137,30 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
 
       <Show when={mode() === 'graph'}>
-        <KnowledgeGraph
-          documents={filteredDocuments()}
-          selectedId={undefined}
-          onSelect={(id) => openDocumentOverlay(id)}
-        />
+        <Show
+          when={props.embedded}
+          fallback={
+            <KnowledgeGraph
+              documents={filteredDocuments()}
+              selectedId={undefined}
+              onSelect={(id) => openDocumentOverlay(id)}
+            />
+          }
+        >
+          <OverlayDialog
+            open
+            title="Карта связей"
+            subtitle={`${filteredDocuments().length} документов`}
+            class="knowledge-graph-dialog"
+            onClose={() => setMode('list')}
+          >
+            <KnowledgeGraph
+              documents={filteredDocuments()}
+              selectedId={undefined}
+              onSelect={(id) => openDocumentOverlay(id)}
+            />
+          </OverlayDialog>
+        </Show>
       </Show>
 
       <Show when={mode() === 'list'}>

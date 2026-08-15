@@ -22,6 +22,9 @@ interface SearchHomeProps {
   readonly baseCore: MedicalCore;
   readonly assistantCore?: GroundedMedicalCore | undefined;
   readonly onOpenKnowledgeBase: () => void;
+  readonly appUpdateReady?: boolean;
+  readonly appUpdating?: boolean;
+  readonly onActivateAppUpdate?: () => void;
 }
 
 interface SearchScopeOption {
@@ -167,6 +170,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     <section class="search-home" aria-label="Поиск MiniMed">
       <div class="search-mode-tools">
         <SearchHistoryPanel onReplay={replayHistory} />
+        <Show when={props.appUpdateReady}>
+          <button
+            class="search-update-status"
+            type="button"
+            disabled={props.appUpdating}
+            aria-label={props.appUpdating ? 'Обновляем приложение' : 'Обновить приложение'}
+            title={props.appUpdating ? 'Обновляем приложение' : 'Обновить приложение'}
+            onClick={props.onActivateAppUpdate}
+          >
+            <AppGlyph name="refresh" class="search-update-status__icon" />
+            <span>{props.appUpdating ? 'Проверка…' : 'Обновить'}</span>
+          </button>
+        </Show>
         <Show when={scope() === 'diagnosis'}>
           <button
             class="search-mode-help"
@@ -211,7 +227,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                 aria-pressed={aiAssistEnabled()}
                 title={
                   aiAssistEnabled()
-                    ? 'Локальная модель включена: уточняет порядок источников и ищет точные цитаты'
+                    ? 'Локальная модель включена: разбирает запрос и уточняет порядок источников'
                     : 'Локальная модель выключена: обычный детерминированный поиск'
                 }
                 onClick={toggleAiAssist}

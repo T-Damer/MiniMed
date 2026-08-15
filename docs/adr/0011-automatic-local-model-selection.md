@@ -5,10 +5,12 @@
 - Amended: 2026-07-24
 - Amended: 2026-08-13
 - Amended: 2026-08-13 (catalog trim)
+- Amended: 2026-08-13 (search-assistant scope narrowed)
 
 The runtime and selection decision remains active. Decision 12 described the original runtime-only
-slice; model output is now connected to bounded reranking and exact-source diagnostic/dose extraction
-under the validation rules in `docs/GROUNDED_LOCAL_ASSISTANT.md`.
+slice; model output is now connected to query understanding and a coarse relevance-based reorder of
+already-retrieved sources under `docs/GROUNDED_LOCAL_ASSISTANT.md` — an earlier citation/dose
+extraction design was tried and dropped (see the search-assistant scope amendment below).
 
 ## Context
 
@@ -163,3 +165,23 @@ demonstrated benefit, so they were dropped. The bundled catalog now carries only
 and QVikhr 3 1.7B. Decision 13's reasoning (keep large 8B-class Russian models out of the mobile
 automatic tier) and Decision 9 (provider-neutral runtime contracts) are unaffected — this amendment
 only narrows which models populate the catalog, not how selection or runtimes work.
+
+## Search-assistant scope amendment
+
+`GroundedMedicalCore` originally asked the model for two things per search: a query-understanding
+pass, and a citation-checked rerank that could also surface diagnosis candidates and dose evidence
+(each claim required an exact-substring citation back to a retrieved chunk — see the now-rewritten
+`docs/GROUNDED_LOCAL_ASSISTANT.md`). On-device testing (native `llama-native` runtime, real QVikhr
+1.7B generation) showed that JSON completion to be the actual latency bottleneck — tens of minutes on
+a software-emulated device, and still meaningfully slower than the rest of the pipeline on real
+hardware — for a feature whose citation-matching logic was solving a harder problem than the product
+needed. The model's real value in this flow is nudging result order toward the more clinically
+relevant source, not extracting verifiable clinical claims.
+
+The pipeline was narrowed to exactly two steps: query understanding (unchanged, still just search
+terms and clarifying questions) and a coarse per-candidate relevance label (`H`/`M`/`L`, a few tokens
+of output instead of a full JSON object). `GroundedDiagnosisCandidate`, `GroundedDoseEvidence`, the
+citation-matching parser, and their UI in `GroundedAssistantStatus` were deleted rather than kept
+dormant. If citation-grounded clinical extraction is revisited later, it should be scoped and tested
+as a deliberately opt-in, separately-paced feature rather than bundled into every search's default
+path.

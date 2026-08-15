@@ -4,7 +4,11 @@ import hashlib
 import sqlite3
 from pathlib import Path
 
-from localmed_ingest.builder import build_content_pack, load_content_pack
+from localmed_ingest.builder import (
+    apply_icd10_search_projection,
+    build_content_pack,
+    load_content_pack,
+)
 from localmed_ingest.markdown_parser import parse_markdown_document
 from localmed_ingest.normalization import light_stem_russian, normalize_for_index
 
@@ -65,6 +69,18 @@ Second recommendation.
 
     assert len(anchors) == len(set(anchors))
     assert len(chunk_ids) == len(set(chunk_ids))
+
+
+def test_icd10_metadata_is_projected_into_fts_text() -> None:
+    document = parse_markdown_document(fixture_dir() / "pneumonia.md", "2026-07-16T00:00:00Z")
+    document.metadata["icd10Codes"] = ["I67.9"]
+
+    apply_icd10_search_projection([document])
+
+    chunk = document.sections[0].chunks[0]
+    assert "i679" in chunk.normalized_text
+    assert "679" in chunk.normalized_text
+    assert chunk.metadata["icd10Codes"] == ["I67.9"]
 
 
 def test_build_is_deterministic_and_searchable(tmp_path: Path) -> None:

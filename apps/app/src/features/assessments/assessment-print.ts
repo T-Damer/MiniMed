@@ -64,7 +64,7 @@ function printableHtml(title: string, text: string, pageLink: string): string {
     }
     @page { size: A4; margin: var(--print-page-margin); }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; color: var(--print-ink-color); font-size: var(--print-body-size); line-height: var(--print-leading); }
+    body { max-width: 190mm; margin: 0 auto; padding: 0 4mm; font-family: system-ui, -apple-system, sans-serif; color: var(--print-ink-color); font-size: var(--print-body-size); line-height: var(--print-leading); }
     h1 { font-size: var(--print-title-size); margin: 0 0 var(--print-title-gap); }
     .document { white-space: pre-wrap; font-size: var(--print-body-size); }
     .document div { break-inside: avoid; }
@@ -94,6 +94,7 @@ export function printText(title: string, text: string): boolean {
   popup.document.open();
   popup.document.write(printableHtml(title, text, window.location.href));
   popup.document.close();
+  popup.onafterprint = () => popup.close();
   window.setTimeout(() => {
     popup.focus();
     popup.print();

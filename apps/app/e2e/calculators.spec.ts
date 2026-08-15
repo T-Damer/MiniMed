@@ -11,8 +11,15 @@ test('calculates body surface area and writes the result to a patient note', asy
     .getByRole('button', { name: 'Калькуляторы', exact: true })
     .click();
   await expect(page).toHaveURL(/#\/calculators$/u);
-  await expect(page.getByRole('heading', { name: 'Медицинские калькуляторы' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Калькуляторы' })).toBeVisible();
 
+  await page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
+  const anthropometryDownload = page.getByRole('button', {
+    name: 'Скачать раздел «Антропометрия»',
+  });
+  if (await anthropometryDownload.count()) {
+    await anthropometryDownload.click();
+  }
   await page.getByTestId('calculator-open-body-surface-area-mosteller').click();
   await expect(
     page.getByRole('heading', { name: 'Площадь поверхности тела — Mosteller' }),

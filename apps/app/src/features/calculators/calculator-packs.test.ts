@@ -34,9 +34,11 @@ describe('calculator packs', () => {
     expect(isCalculatorSectionCore('renal', CALCULATOR_REGISTRY)).toBe(false);
   });
 
-  it('does not install a section that has no available calculators', () => {
+  it('installs the gynecology section once its calculators are available', () => {
     const installed = installCalculatorSection('gynecology', CALCULATOR_REGISTRY);
 
-    expect(installed.sectionIds.has('gynecology')).toBe(false);
+    expect(installed.sectionIds.has('gynecology')).toBe(true);
+    expect(installed.installedIds.has('gynecology-breast-cancer-risk')).toBe(true);
+    expect(installed.installedIds.has('gynecology-cervical-cancer-risk')).toBe(true);
   });
 });

@@ -5,14 +5,13 @@ export type RootView = 'search' | 'modules' | 'assessments' | 'calculators' | 'n
 export function nativeBackAction(
   route: string,
   currentView: RootView,
-  canGoBack: boolean,
+  _canGoBack: boolean,
 ): NativeBackAction {
   if (
-    (route.startsWith('modules/') ||
-      route.startsWith('notes/') ||
-      route.startsWith('assessments/') ||
-      route.startsWith('calculators/')) &&
-    canGoBack
+    route.startsWith('modules/') ||
+    route.startsWith('notes/') ||
+    route.startsWith('assessments/') ||
+    route.startsWith('calculators/')
   ) {
     return 'history';
   }

@@ -43,6 +43,13 @@ describe('calculator schema catalog', () => {
         'obstetric-edd-given-date',
         'obstetric-ga-from-edd',
         'obstetric-maternity-leave',
+        'obstetric-fetal-growth-doppler',
+        'obstetric-efw-maternal-anthropometry',
+        'obstetric-efw-rudakov',
+        'obstetric-vbac-antepartum',
+        'obstetric-vbac-admission',
+        'gynecology-breast-cancer-risk',
+        'gynecology-cervical-cancer-risk',
       ].toSorted(),
     );
   });

@@ -281,6 +281,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const activeCategory = createMemo(() =>
     catalog().categories.find((category) => category.id === recommendationCategory()),
   );
+  const activeCategoryComplete = (): boolean => {
+    const category = activeCategory();
+    return Boolean(
+      category &&
+        (() => {
+          const stats = recommendationCategoryStats(
+            recommendationModules(),
+            category,
+            installedModuleIds(),
+          );
+          return stats.installedCount > 0 && stats.pendingCount === 0;
+        })(),
+    );
+  };
   const browsingSection = createMemo(
     () => Boolean(recommendationCategory()) && !catalogQuery().trim(),
   );
@@ -633,7 +647,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           </Show>
         </header>
       </Show>
-      <Show when={props.embedded}>
+      <Show when={props.embedded && !coreLibraryOpen()}>
         <div class="knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading">
           <button
             type="button"
@@ -1026,18 +1040,23 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <button
                     type="button"
                     class="recommendation-list-actions__download"
-                    aria-label="Скачать все"
-                    title="Скачать все"
+                    aria-label={activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}
+                    title={activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}
                     disabled={isCategoryBusy(recommendationCategory())}
-                    onClick={() => void installCategory()}
+                    onClick={() =>
+                      void (activeCategoryComplete() ? removeCategory() : installCategory())
+                    }
                   >
                     <Show
                       when={!isCategoryBusy(recommendationCategory())}
                       fallback={<span class="module-action-spinner" />}
                     >
-                      <AppGlyph name="download" class="recommendation-list-actions__icon" />
+                      <AppGlyph
+                        name={activeCategoryComplete() ? 'trash' : 'download'}
+                        class="recommendation-list-actions__icon"
+                      />
                     </Show>
-                    <span>Скачать все</span>
+                    <span>{activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}</span>
                   </button>
                 </div>
               </div>

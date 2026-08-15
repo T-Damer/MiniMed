@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
 
 async function chooseScope(page: Page, name: RegExp): Promise<void> {
   await page.getByRole('radio', { name }).click();
@@ -32,5 +32,19 @@ test('searches the built-in current adult primary-care regulation', async ({ pag
   await expect(page.getByTestId('search-results')).toContainText(
     'Первичная медико-санитарная помощь взрослым — приказ № 202н',
     { timeout: 10_000 },
+  );
+});
+
+test('searches the built-in MKB reference by code', async ({ page }) => {
+  test.skip(!hasLocalCompanionPack('mkb.db'), 'The full MKB companion pack is local-only.');
+  await mountBuiltApp(page, { includeMkbCompanionPack: true });
+  await chooseScope(page, /В клин\. рекомендациях/u);
+
+  await page.getByTestId('search-input').fill('I67.9');
+  await page.getByTestId('search-submit').click();
+
+  await expect(page.getByTestId('search-results')).toContainText(
+    'I67.9 Цереброваскулярная болезнь неуточненная, МКБ-10',
+    { timeout: 30_000 },
   );
 });

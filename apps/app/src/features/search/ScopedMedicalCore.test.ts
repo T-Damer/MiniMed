@@ -167,6 +167,7 @@ describe('ScopedMedicalCore', () => {
     document('guideline', 'clinical_recommendation'),
     document('guideline-summary', 'clinical_recommendation_summary'),
     document('reference', 'medical_reference'),
+    document('mkb', 'rls_mkb_reference'),
     document('drug', 'official_drug_instruction'),
     document('registry', 'official_registry_summary'),
     document('allmed', 'allmed_reference'),
@@ -184,6 +185,7 @@ describe('ScopedMedicalCore', () => {
     expect(base.search).toHaveBeenCalledOnce();
     expect(assistant.search).not.toHaveBeenCalled();
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
+      'mkb',
       'drug',
       'registry',
       'allmed',
@@ -221,6 +223,7 @@ describe('ScopedMedicalCore', () => {
       'guideline',
       'guideline-summary',
       'reference',
+      'mkb',
     ]);
   });
 

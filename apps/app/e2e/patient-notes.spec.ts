@@ -57,8 +57,8 @@ test('keeps patient note records local, editable in nested routes, and findable 
   await page.getByLabel('Назад к записям').click();
   await navigationButton(page, 'Поиск').click();
   await navigationButton(page, 'Заметки').click();
-  await expect(page.getByRole('heading', { name: 'Заметки' })).toBeVisible();
-  await card.click();
+  await expect(page).toHaveURL(/#\/notes\/.+/u);
+  await expect(page.locator('.patient-note-record')).toContainText('Назначен цефтриаксон');
 
   // The note survives a reload, because it lives on this device only.
   await page.reload();

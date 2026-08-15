@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.17] - 2026-08-13
+
+### Changed
+
+- Narrowed the optional local search assistant to query understanding and a short H/M/L relevance
+  pass over already-retrieved sources. Removed the slow citation/dose extraction completion and its
+  clinical-output UI; deterministic search still renders immediately and remains the fallback.
+
 ## [0.6.16] - 2026-08-13
 
 ### Added

@@ -33,11 +33,13 @@ const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<st
     'clinical_recommendation',
     'clinical_recommendation_summary',
     'medical_reference',
+    'rls_mkb_reference',
   ]),
   medications: new Set([
     'allmed_reference',
     'official_drug_instruction',
     'official_registry_summary',
+    'rls_mkb_reference',
   ]),
   legal: new Set(['regulatory_act', 'regulatory_act_summary']),
 };

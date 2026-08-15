@@ -13,6 +13,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(LocalMedDatabasePlugin.class);
         registerPlugin(LlamaInferencePlugin.class);
+        registerPlugin(LocalMedUpdatePlugin.class);
         super.onCreate(savedInstanceState);
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);

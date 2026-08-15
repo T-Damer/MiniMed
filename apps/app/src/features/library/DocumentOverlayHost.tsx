@@ -120,11 +120,6 @@ export function DocumentOverlayHost(props: DocumentOverlayHostProps): JSX.Elemen
           anchor: request.anchor ?? null,
         },
       ]);
-      if (request.anchor) {
-        requestAnimationFrame(() => {
-          window.document.getElementById(request.anchor ?? '')?.scrollIntoView({ block: 'center' });
-        });
-      }
     } catch (cause) {
       setOpenError(cause instanceof Error ? cause.message : 'Не удалось открыть документ.');
     } finally {

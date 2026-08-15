@@ -14,6 +14,7 @@ interface PackBuildReport {
 }
 
 interface CompanionStores {
+  readonly mkbStore?: MedicalStore;
   readonly medicationsStore?: MedicalStore;
   readonly ambulatoryStore?: MedicalStore;
   readonly regulatoryStore?: MedicalStore;
@@ -23,6 +24,7 @@ interface CompanionStores {
 const QUERY_EMBEDDER = new PortableHashEmbedder();
 
 const PACK_DATABASE_NAME = 'core-demo.db';
+const MKB_DATABASE_NAME = 'mkb.db';
 const MEDICATIONS_DATABASE_NAME = 'medications.db';
 const AMBULATORY_DATABASE_NAME = 'ambulatory.db';
 const REGULATORY_DATABASE_NAME = 'regulatory.db';
@@ -35,6 +37,7 @@ const BUILT_IN_REGULATORY_MODULE_ID = 'minimed.regulatory.pediatrics.ru';
 // content-pack ID, tripping MultiMedicalStore's "Duplicate active content-pack ID" validation.
 const BUILT_IN_REFERENCE_MODULE_ID = 'minimed.reference.pediatrics.ru';
 const BUILT_IN_AMBULATORY_MODULE_ID = 'minimed.ambulatory.v1';
+const BUILT_IN_MKB_MODULE_ID = 'minimed.mkb.ru';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
@@ -134,6 +137,15 @@ export function builtInCompanionMounts(
   installedModuleIds: ReadonlySet<string>,
 ): readonly MedicalStoreMount[] {
   const mounts: MedicalStoreMount[] = [];
+  if (companions.mkbStore && !installedModuleIds.has(BUILT_IN_MKB_MODULE_ID)) {
+    mounts.push({
+      moduleId: BUILT_IN_MKB_MODULE_ID,
+      store: companions.mkbStore,
+      required: true,
+      enabled: true,
+      searchWeight: 1.05,
+    });
+  }
   if (companions.medicationsStore) {
     mounts.push({
       moduleId: 'minimed.medications.ru',
@@ -213,13 +225,16 @@ async function createOptionalPackagedStore(
 }
 
 async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
-  const [medicationsStore, ambulatoryStore, regulatoryStore, referenceStore] = await Promise.all([
-    createOptionalPackagedStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
-    createOptionalPackagedStore(contentBaseUrl, AMBULATORY_DATABASE_NAME),
-    createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
-    createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
-  ]);
+  const [mkbStore, medicationsStore, ambulatoryStore, regulatoryStore, referenceStore] =
+    await Promise.all([
+      createOptionalPackagedStore(contentBaseUrl, MKB_DATABASE_NAME),
+      createOptionalPackagedStore(contentBaseUrl, MEDICATIONS_DATABASE_NAME),
+      createOptionalPackagedStore(contentBaseUrl, AMBULATORY_DATABASE_NAME),
+      createOptionalPackagedStore(contentBaseUrl, REGULATORY_DATABASE_NAME),
+      createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME),
+    ]);
   return {
+    ...(mkbStore ? { mkbStore } : {}),
     ...(medicationsStore ? { medicationsStore } : {}),
     ...(ambulatoryStore ? { ambulatoryStore } : {}),
     ...(regulatoryStore ? { regulatoryStore } : {}),

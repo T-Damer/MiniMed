@@ -267,6 +267,9 @@
 .assessment-submit-panel__button,
 .assessment-not-found__button,
 .assessment-pack-required__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   min-height: 2.6rem;
   padding: 0.6rem 0.85rem;
   border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
@@ -386,6 +389,17 @@
 
 .assessment-methodology-dialog {
   width: min(50rem, 100%);
+}
+
+.assessment-pack-required {
+  width: 100%;
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.assessment-pack-required__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
 .assessment-toolbar {
@@ -781,18 +795,31 @@
 
 @media (max-width: 760px) {
   .assessment-methodology-dialog {
-    width: min(50rem, calc(100% - 2rem));
-    min-height: auto;
-    max-height: calc(100dvh - 2rem);
-    justify-self: center;
-    align-self: center;
-    border: var(--theme-border-hairline) solid
-      color-mix(in srgb, var(--theme-border) 72%, transparent);
-    border-radius: var(--theme-radius-panel);
+    width: 100%;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
   }
 
   .assessments-page {
     padding-inline: var(--theme-space-3);
+  }
+
+  .assessment-workspace,
+  .assessment-result-page {
+    width: 100%;
+    padding-inline: 0.125rem;
+  }
+
+  .assessment-next-button {
+    right: max(0.75rem, var(--safe-right));
+    bottom: max(5.25rem, calc(5.25rem + var(--safe-bottom)));
+  }
+
+  .assessment-scroll-top--secondary {
+    right: max(0.75rem, var(--safe-right));
+    bottom: max(9.25rem, calc(9.25rem + var(--safe-bottom)));
   }
 
   .assessment-progress {
