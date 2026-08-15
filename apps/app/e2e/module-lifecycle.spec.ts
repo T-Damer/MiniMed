@@ -93,6 +93,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await expect(page.locator('.error-card')).toHaveCount(0);
 
   await navigationButton(page, 'База знаний').click();
+  await navigationButton(page, 'База знаний').click();
   await page.getByRole('button', { name: /^Документы/u }).click();
   await regulatorySection(page).click();
   page.once('dialog', (dialog) => dialog.accept());
