@@ -228,7 +228,11 @@ export function App(): JSX.Element {
       // instead of restoring a remembered sub-route.
       if (!changed) {
         moveToRootView(next);
+        const oldURL = window.location.href;
         window.history.replaceState({ view: next }, '', `#/${next}`);
+        window.dispatchEvent(
+          new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
+        );
         window.scrollTo({ top: 0, behavior: 'instant' });
         return;
       }

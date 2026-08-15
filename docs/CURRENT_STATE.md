@@ -44,7 +44,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   notes. Root navigation commits immediately and uses a longer CSS transform slide without opacity
   fading, while the
   bottom navigation remains fixed and interactive. Rapid tab changes do not wait on View Transition
-  snapshots; document, note, and local-model subroutes remain instant. The scroll-to-top control
+  snapshots; tapping the active tab resets its nested route to the section root, while document,
+  note, and local-model subroutes remain instant. The scroll-to-top control
   reserves the bottom-navigation band on long pages, and the notes add control mounts only while the
   notes root is active.
 - The bottom navigation is mounted only after the asynchronous MedicalCore bootstrap completes;

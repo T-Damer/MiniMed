@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
 
 function navigationButton(page: import('@playwright/test').Page, name: string) {
-  return page.locator('.app-bottom-nav').getByRole('button', { name, exact: true });
+  return page.locator('.app-bottom-nav').getByRole('button', { name: new RegExp(`^${name}`, 'u') });
 }
 
 test('shows localized specialty labels in the document library', async ({ page }) => {
