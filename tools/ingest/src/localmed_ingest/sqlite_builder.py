@@ -30,7 +30,7 @@ def int8_blob(values: list[int]) -> bytes:
     return bytes(value if value >= 0 else value + 256 for value in values)
 
 
-def write_sqlite_pack(pack: ContentPack, output: Path) -> None:
+def write_sqlite_pack(pack: ContentPack, output: Path, *, vacuum: bool = True) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_suffix(f"{output.suffix}.tmp")
     temporary.unlink(missing_ok=True)
@@ -123,13 +123,11 @@ def write_sqlite_pack(pack: ContentPack, output: Path) -> None:
                     )
                     for index, chunk in enumerate(ordered_chunks)
                 }
+                section_rows = []
+                chunk_rows = []
+                fts_rows = []
                 for section in sorted(document.sections, key=lambda item: item.order_index):
-                    connection.execute(
-                        """INSERT INTO sections(
-                            id, document_version_id, parent_section_id, title, normalized_title,
-                            section_type, depth, order_index, page_start, page_end, anchor,
-                            path_json
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    section_rows.append(
                         (
                             section.id,
                             document.version.id,
@@ -145,16 +143,11 @@ def write_sqlite_pack(pack: ContentPack, output: Path) -> None:
                             json.dumps(
                                 section.section_path, ensure_ascii=False, separators=(",", ":")
                             ),
-                        ),
+                        )
                     )
                     for chunk in sorted(section.chunks, key=lambda item: item.order_index):
                         previous_id, next_id = neighbors[chunk.id]
-                        connection.execute(
-                            """INSERT INTO chunks(
-                                id, document_version_id, section_id, order_index, original_text,
-                                normalized_text, page_start, page_end, char_start, char_end,
-                                previous_chunk_id, next_chunk_id, anchor, metadata_json
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        chunk_rows.append(
                             (
                                 chunk.id,
                                 document.version.id,
@@ -172,13 +165,9 @@ def write_sqlite_pack(pack: ContentPack, output: Path) -> None:
                                 json.dumps(
                                     chunk.metadata, ensure_ascii=False, separators=(",", ":")
                                 ),
-                            ),
+                            )
                         )
-                        connection.execute(
-                            """INSERT INTO chunks_fts(
-                                chunk_id, document_id, document_version_id, section_id, anchor,
-                                title, section_path, normalized_text
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        fts_rows.append(
                             (
                                 chunk.id,
                                 document.id,
@@ -188,29 +177,57 @@ def write_sqlite_pack(pack: ContentPack, output: Path) -> None:
                                 document.title,
                                 " ".join(section.section_path),
                                 chunk.normalized_text,
-                            ),
+                            )
                         )
-            for alias in sorted(pack.aliases, key=lambda item: item.id):
-                connection.execute(
-                    """INSERT INTO aliases(id, canonical_term, alias, category, weight)
-                    VALUES (?, ?, ?, ?, ?)""",
-                    (alias.id, alias.canonical_term, alias.alias, alias.category, alias.weight),
+                connection.executemany(
+                    """INSERT INTO sections(
+                        id, document_version_id, parent_section_id, title, normalized_title,
+                        section_type, depth, order_index, page_start, page_end, anchor,
+                        path_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    section_rows,
                 )
-            for embedding in sorted(
-                pack.embeddings, key=lambda item: (item.profile_id, item.chunk_id)
-            ):
-                connection.execute(
-                    """INSERT INTO chunk_embeddings(
-                        profile_id, chunk_id, vector, vector_norm
-                    ) VALUES (?, ?, ?, ?)""",
+                connection.executemany(
+                    """INSERT INTO chunks(
+                        id, document_version_id, section_id, order_index, original_text,
+                        normalized_text, page_start, page_end, char_start, char_end,
+                        previous_chunk_id, next_chunk_id, anchor, metadata_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    chunk_rows,
+                )
+                connection.executemany(
+                    """INSERT INTO chunks_fts(
+                        chunk_id, document_id, document_version_id, section_id, anchor,
+                        title, section_path, normalized_text
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    fts_rows,
+                )
+            connection.executemany(
+                """INSERT INTO aliases(id, canonical_term, alias, category, weight)
+                VALUES (?, ?, ?, ?, ?)""",
+                [
+                    (alias.id, alias.canonical_term, alias.alias, alias.category, alias.weight)
+                    for alias in sorted(pack.aliases, key=lambda item: item.id)
+                ],
+            )
+            connection.executemany(
+                """INSERT INTO chunk_embeddings(
+                    profile_id, chunk_id, vector, vector_norm
+                ) VALUES (?, ?, ?, ?)""",
+                [
                     (
                         embedding.profile_id,
                         embedding.chunk_id,
                         int8_blob(embedding.values),
                         embedding.norm,
-                    ),
-                )
-        connection.execute("VACUUM")
+                    )
+                    for embedding in sorted(
+                        pack.embeddings, key=lambda item: (item.profile_id, item.chunk_id)
+                    )
+                ],
+            )
+        if vacuum:
+            connection.execute("VACUUM")
     finally:
         connection.close()
     temporary.replace(output)

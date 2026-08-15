@@ -13,7 +13,12 @@ from .edition_manifest import (
     write_edition_manifest,
 )
 from .embedding import PORTABLE_HASH_PROFILE, build_chunk_embedding
-from .knowledge import apply_search_projection, knowledge_summary, write_knowledge_sqlite
+from .knowledge import (
+    KnowledgeWorkspace,
+    apply_search_projection,
+    knowledge_summary,
+    write_knowledge_sqlite,
+)
 from .knowledge_modules import load_knowledge_modules
 from .markdown_parser import parse_markdown_document
 from .models import Alias, BuildReport, ContentPack, PackDocument, PackManifest
@@ -77,7 +82,9 @@ def apply_icd10_search_projection(documents: list[PackDocument]) -> None:
                 chunk.metadata["icd10Codes"] = codes
 
 
-def load_content_pack(input_dir: Path, *, include_embeddings: bool = True) -> ContentPack:
+def _load_content_pack(
+    input_dir: Path, *, include_embeddings: bool = True
+) -> tuple[ContentPack, KnowledgeWorkspace]:
     manifest_data = read_yaml_mapping(input_dir / "manifest.yaml")
     manifest_data["checksum"] = calculate_pack_checksum(input_dir)
     manifest = PackManifest.model_validate(manifest_data)
@@ -130,6 +137,11 @@ def load_content_pack(input_dir: Path, *, include_embeddings: bool = True) -> Co
         embeddings=embeddings,
     )
     validate_pack_publication(pack)
+    return pack, knowledge
+
+
+def load_content_pack(input_dir: Path, *, include_embeddings: bool = True) -> ContentPack:
+    pack, _knowledge = _load_content_pack(input_dir, include_embeddings=include_embeddings)
     return pack
 
 
@@ -219,12 +231,11 @@ def build_content_pack(
     edition_manifest_output: Path | None = None,
     include_embeddings: bool = True,
 ) -> tuple[ContentPack, BuildReport]:
-    pack = load_content_pack(input_dir, include_embeddings=include_embeddings)
+    pack, knowledge = _load_content_pack(input_dir, include_embeddings=include_embeddings)
     errors = lint_content_pack(pack)
     if errors:
         raise ValueError("Content lint failed:\n" + "\n".join(errors))
-    write_sqlite_pack(pack, output)
-    knowledge = load_knowledge_modules(input_dir, pack.documents)
+    write_sqlite_pack(pack, output, vacuum=False)
     write_knowledge_sqlite(output, knowledge)
     integrity, foreign_keys, chunk_count, fts_rows, profile_count, embedding_count = (
         inspect_integrity(output)

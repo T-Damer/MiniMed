@@ -265,7 +265,8 @@ ordinary search response when validation fails.
   projected into FTS with punctuation-free variants so installed recommendations are found by
   `I67.9`, `I679`, `I67-9`, `I67 9`, `679`, `67-9`, or `67 9`. Three-attempt failures are saved to
   `rls-mkb-failures.json`; `bun run content:retry:mkb` repeats only those detail URLs. Build with
-  `bun run content:rebuild:mkb`.
+  `bun run content:rebuild:mkb`; the builder reuses the validated knowledge workspace, batches
+  SQLite writes, and performs one final compaction pass.
 - Optional local `ambulatory.db` companion (`minimed.ambulatory.v1`) mounts private textbook/handbook
   extracts for site/call use. Build via `bun run content:rebuild:ambulatory` (anydoc text-layer +
   macOS Vision OCR). Pack is gitignored — copyrighted sources stay local; GroundedMedicalCore already
