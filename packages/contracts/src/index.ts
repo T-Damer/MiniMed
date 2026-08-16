@@ -7,3 +7,4 @@ export * from './errors';
 export * from './result';
 export * from './search';
 export * from './semantic';
+export * from './tool-modules';

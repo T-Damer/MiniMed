@@ -74,9 +74,13 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
       <p>{props.module.description}</p>
       <div class="module-facts doctor-module-facts">
         <span>
-          {props.module.previewDocumentCount || props.module.documents.length
-            ? documentCountLabel(props.module.previewDocumentCount || props.module.documents.length)
-            : 'Список документов уточняется'}
+          {props.module.toolCount
+            ? `${props.module.toolCount} инструмент${props.module.toolCount === 1 ? '' : 'а'}`
+            : props.module.previewDocumentCount || props.module.documents.length
+              ? documentCountLabel(
+                  props.module.previewDocumentCount || props.module.documents.length,
+                )
+              : 'Список документов уточняется'}
         </span>
         <Show
           when={props.installed}

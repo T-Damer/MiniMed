@@ -61430,6 +61430,227 @@
         }
       ],
       "previewDocumentCount": 1
+    },
+    {
+      "id": "minimed.tools.gastroenterology.ru",
+      "version": "0.1.0-preview.1",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Инструменты гастроэнтерологии",
+      "description": "Скачиваемый пакет клинических опросников и калькуляторов с привязками к литературе и клиническим рекомендациям.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "gastroenterology",
+        "pediatrics"
+      ],
+      "populations": [
+        "Дети"
+      ],
+      "tags": [
+        "tool-pack",
+        "assessment",
+        "gastroenterology",
+        "pediatrics"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:ea41e8b71f8af2b98f164b42b08cc02c4bab47ebdb652da1c909d17d3bb5cdb3",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 319488,
+        "installedBytes": 319488,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      },
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "artifacts": [
+        {
+          "id": "minimed.tools.gastroenterology.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-gastroenterology-0.1.0-preview.1.db",
+          "sha256": "sha256:11bfc91a90c321c5ab449d900bbc2496a032857d865fae289cc2eadb042e72e6",
+          "sizeBytes": 319488,
+          "compression": "none",
+          "sourceSetDigest": "sha256:ea41e8b71f8af2b98f164b42b08cc02c4bab47ebdb652da1c909d17d3bb5cdb3"
+        }
+      ],
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "assessment",
+        "calculator"
+      ],
+      "toolCount": 3
+    },
+    {
+      "id": "minimed.tools.neonatology.ru",
+      "version": "0.1.0-preview.1",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Инструменты неонатологии",
+      "description": "Скачиваемый пакет клинических калькуляторов с привязками к литературе и клиническим рекомендациям.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "neonatology",
+        "pediatrics",
+        "emergency"
+      ],
+      "populations": [
+        "Дети",
+        "Новорожденные"
+      ],
+      "tags": [
+        "tool-pack",
+        "calculator",
+        "neonatology",
+        "pediatrics"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:ac63856025ccbd80c5ab6d75036953fe2c587ffeb89d0919bc9dc53e0ebe1f2c",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 364544,
+        "installedBytes": 364544,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      },
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "artifacts": [
+        {
+          "id": "minimed.tools.neonatology.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-neonatology-0.1.0-preview.1.db",
+          "sha256": "sha256:97e381d4a0825005624de56fa2d8588745ee19c5a70a8953c9660f2a831775ce",
+          "sizeBytes": 364544,
+          "compression": "none",
+          "sourceSetDigest": "sha256:ac63856025ccbd80c5ab6d75036953fe2c587ffeb89d0919bc9dc53e0ebe1f2c"
+        }
+      ],
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "calculator",
+        "assessment"
+      ],
+      "toolCount": 6
+    },
+    {
+      "id": "minimed.tools.core-clinical.ru",
+      "version": "0.1.0-preview.1",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Базовые клинические расчёты",
+      "description": "Устанавливаемый пакет расчётов для почек, электролитов, кислотно-основного состояния, печени и гематологии.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "emergency",
+        "cardiology",
+        "gastroenterology",
+        "hematology",
+        "nephrology",
+        "pediatrics"
+      ],
+      "populations": [
+        "Дети",
+        "Взрослые"
+      ],
+      "tags": [
+        "tool-pack",
+        "calculator",
+        "emergency",
+        "renal",
+        "gastroenterology",
+        "hematology"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:3f31fb84112177311269afeb59ff29f0ae701b222bea887262bc7aeae86fe47a",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 376832,
+        "installedBytes": 376832,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      },
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "artifacts": [
+        {
+          "id": "minimed.tools.core-clinical.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-core-clinical-0.1.0-preview.1.db",
+          "sha256": "sha256:21890fb21babde61d76e114cd6eb00bccc1f31aef64a98e97c6f18b769a692d4",
+          "sizeBytes": 376832,
+          "compression": "none",
+          "sourceSetDigest": "sha256:3f31fb84112177311269afeb59ff29f0ae701b222bea887262bc7aeae86fe47a"
+        }
+      ],
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "calculator"
+      ],
+      "toolCount": 17
     }
   ]
 }

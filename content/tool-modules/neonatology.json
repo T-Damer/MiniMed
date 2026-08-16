@@ -1,0 +1,1299 @@
+{
+  "id": "minimed.tools.neonatology.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Инструменты неонатологии",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-15T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.calculator.neonatal-glucose-infusion-rate",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "neonatal-glucose-infusion-rate",
+      "title": "Неонатология — GIR (скорость инфузии глюкозы)",
+      "shortTitle": "GIR",
+      "aliases": [
+        "GIR",
+        "Glucose Infusion Rate",
+        "скорость инфузии глюкозы новорожденным",
+        "глюкоза новорожденным"
+      ],
+      "bankId": "neonatology",
+      "bankLabel": "Неонатология",
+      "category": "neonatology",
+      "description": "Расчёт скорости инфузии глюкозы для неонатальной гипогликемии.",
+      "estimatedMinutes": 1,
+      "audience": "Новорождённые с гипогликемией; применять только врачом в рамках клинического маршрута",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.neonatal-glucose-infusion-rate",
+        "slug": "neonatal-glucose-infusion-rate",
+        "title": "Неонатология — GIR (скорость инфузии глюкозы)",
+        "shortTitle": "GIR",
+        "aliases": [
+          "GIR",
+          "Glucose Infusion Rate",
+          "скорость инфузии глюкозы новорожденным",
+          "глюкоза новорожденным"
+        ],
+        "summary": "GIR рассчитывается для коррекции гипогликемии новорожденного при внутривенном введении глюкозы.",
+        "audience": "pediatric",
+        "category": "neonatology",
+        "clinical": true,
+        "formulaDisplay": "GIR (мг/кг/мин) = (% глюкозы × скорость инфузии, мл/ч) / (6 × масса, кг)",
+        "population": "Новорождённые в неонатальной практике на ПВ/переходных этапах лечения гипогликемии; без рота/метаболических корректировок формула не применима.",
+        "limitations": [
+          "Формула относится к внутривенной инфузии глюкозы и не заменяет решение по маршрутизации (наблюдение, перевод в NICU, проверку причин гипогликемии).",
+          "Используйте конценрацию раствора в единицах % (D10W = 10, D12.5W = 12.5). Неправильное указание единиц даёт неверный GIR.",
+          "Не применяйте для непрерывных кормлений, пероральной терапии или для расчёта внутриклеточного/перорального глюкозного режима без отдельной формулы."
+        ],
+        "inputs": [
+          {
+            "id": "bodyWeightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0.25,
+            "maximum": 8,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "glucosePercent",
+            "label": "Концентрация глюкозы раствора",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 2,
+            "maximum": 50,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "infusionRateMlPerHour",
+            "label": "Скорость инфузии",
+            "unit": "мл/ч",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 200,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "gir",
+            "label": "GIR, мг/кг/мин",
+            "unit": "мг/кг/мин",
+            "expression": "(glucosePercent * infusionRateMlPerHour) / (6 * bodyWeightKg)",
+            "displayPrecision": 1,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "neonatal-gir-clinical-judgment",
+            "message": "Счётчик GIR проверяйте клинически: цель и допустимые пороги зависят от возраста, срока гестации, симптомов и сопутствующих патологий."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Neonatal Glucose Assessment and Clinical Management",
+            "publisher": "Department of Pediatric Newborn Medicine, Brigham and Women’s Hospital",
+            "version": "Revised Dec 2016",
+            "url": "https://www.brighamandwomens.org/assets/bwh/pediatric-newborn-medicine/pdfs/dpnm-hypoglycemia-revised-12-19-16.pdf",
+            "page": "P4, section GIR (line 121-122)",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "gir-bwh-2016",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Neonatal Glucose Assessment and Clinical Management",
+          "url": "https://www.brighamandwomens.org/assets/bwh/pediatric-newborn-medicine/pdfs/dpnm-hypoglycemia-revised-12-19-16.pdf",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "gir-neonatology-222n",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Порядок оказания помощи по профилю неонатология — приказ Минздрава РФ № 222н",
+          "moduleId": "minimed.clinical.recommendation.222_2",
+          "documentId": "kr.rf.222_2",
+          "url": "https://publication.pravo.gov.ru/document/0001202506030010",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.silverman-andersen-respiratory-distress",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "silverman-andersen-respiratory-distress",
+      "title": "Неонатология — шкала Silverman–Andersen",
+      "shortTitle": "Silverman–Andersen",
+      "aliases": [
+        "Silverman",
+        "Silverman–Andersen",
+        "оценка дыхательной недостаточности",
+        "неонатальная тахипноэ",
+        "неонатальный респираторный дистресс"
+      ],
+      "bankId": "neonatology",
+      "bankLabel": "Неонатология",
+      "category": "neonatal-respiratory",
+      "description": "Шкала наблюдения дыхательной работы у новорожденных, 6 пунктов с суммарным баллом 0–10.",
+      "estimatedMinutes": 1,
+      "audience": "Медицинский персонал неонатальных отделений; интерпретирует лечащий врач.",
+      "definition": {
+        "id": "minimed.assessment.silverman-andersen-respiratory-distress",
+        "slug": "silverman-andersen-respiratory-distress",
+        "title": "Неонатология — шкала Silverman–Andersen",
+        "shortTitle": "Silverman–Andersen",
+        "aliases": [
+          "Silverman",
+          "Silverman–Andersen",
+          "оценка дыхательной недостаточности",
+          "неонатальная тахипноэ",
+          "неонатальный респираторный дистресс"
+        ],
+        "bankId": "neonatology",
+        "bankLabel": "Неонатология",
+        "category": "neonatal-respiratory",
+        "description": "Шкала наблюдения дыхательной работы у новорожденных, 6 пунктов с суммарным баллом 0–10.",
+        "estimatedMinutes": 1,
+        "audience": "Медицинский персонал неонатальных отделений; интерпретирует лечащий врач.",
+        "population": "Новорожденные в раннем после родовом периоде и в отделениях интенсивной терапии; применяется как инструмент serial monitoring, включая доношенных и недоношенных при респираторном дистрессе.",
+        "limitations": [
+          "Не заменяет pH/лактат, рентгенографию, кислородный статус или решение о респираторной поддержке.",
+          "Интерпретация зависит от клинического контекста и состояния на момент осмотра; не использовать как единственный критерий инвазивной вентиляции.",
+          "Точность ниже при анемии/холодном сердце, после инвазивных процедур или при выраженной тахипноэ от немедикаментозных причин."
+        ],
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "0 баллов"
+          },
+          {
+            "value": 1,
+            "label": "1 балл"
+          },
+          {
+            "value": 2,
+            "label": "2 балла"
+          }
+        ],
+        "scales": [
+          {
+            "id": "silverman-andersen-total",
+            "label": "Итоговый балл по шкале Silverman–Andersen",
+            "shortLabel": "SAS",
+            "description": "Сумма 6 клинических пунктов, диапазон 0–10."
+          }
+        ],
+        "questions": [
+          {
+            "id": "silverman-chest-syncing",
+            "prompt": "Вовлечение верхних ребер грудной клетки",
+            "scaleId": "silverman-andersen-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "В умеренной степени"
+              },
+              {
+                "value": 2,
+                "label": "Выраженное"
+              }
+            ]
+          },
+          {
+            "id": "silverman-chest-lower-retractions",
+            "prompt": "Вовлечение нижних реберной дуги",
+            "scaleId": "silverman-andersen-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Легкая выраженность на выдохе"
+              },
+              {
+                "value": 2,
+                "label": "Выраженное"
+              }
+            ]
+          },
+          {
+            "id": "silverman-xiphoid",
+            "prompt": "Втяжение яремно-грудинной области",
+            "scaleId": "silverman-andersen-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет втяжения"
+              },
+              {
+                "value": 1,
+                "label": "Только при вдохе"
+              },
+              {
+                "value": 2,
+                "label": "Постоянное"
+              }
+            ]
+          },
+          {
+            "id": "silverman-nasal-flaring",
+            "prompt": "Экспираторное расширение ноздрей",
+            "scaleId": "silverman-andersen-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Незначительное"
+              },
+              {
+                "value": 2,
+                "label": "Явное"
+              }
+            ]
+          },
+          {
+            "id": "silverman-grunt",
+            "prompt": "Грудинный стон",
+            "scaleId": "silverman-andersen-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "При выслушивании"
+              },
+              {
+                "value": 2,
+                "label": "Явный/слышен на расстоянии"
+              }
+            ]
+          },
+          {
+            "id": "silverman-cyanosis",
+            "prompt": "Цианоз",
+            "scaleId": "silverman-andersen-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Только акроцианоз"
+              },
+              {
+                "value": 2,
+                "label": "Центральный цианоз"
+              }
+            ]
+          }
+        ],
+        "disclaimer": "Шкала — ориентировочный инструмент ранней оценки дыхательной работы, не заменяет объективную диагностику респираторной недостаточности и не определяет показания к конкретной терапии без клинической оценки.",
+        "evidenceNote": "Сумма 6 пунктов даёт диапазон 0–10; по стандартной интерпретации 0–4 обычно соответствует лёгкому/умеренно лёгкому дистрессу, 5–6 — умеренному, 7–10 — тяжёлому респираторному дистрессу и необходимости срочного пересмотра тактики респираторной поддержки.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Silverman–Andersen Respiratory Distress Score описана в профессиональной литературе по неонатологии; MiniMed использует формулировки источника без изменения методики.",
+          "sourceUrl": "https://newbornwhocc.org/pdf/Approach-to-Respiratory-Distress-in-the-Newborn.pdf"
+        },
+        "sources": [
+          {
+            "title": "Approach to Respiratory Distress in the Newborn",
+            "publisher": "newbornwhocc",
+            "url": "https://newbornwhocc.org/pdf/Approach-to-Respiratory-Distress-in-the-Newborn.pdf",
+            "section": "Table 14.2",
+            "page": "PDF pages 6–8, Table 14.2",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "silverman-andersen-newbornwhocc",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Approach to Respiratory Distress in the Newborn",
+          "url": "https://newbornwhocc.org/pdf/Approach-to-Respiratory-Distress-in-the-Newborn.pdf",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "silverman-andersen-222n",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Порядок оказания помощи по профилю неонатология — приказ Минздрава РФ № 222н",
+          "moduleId": "minimed.clinical.recommendation.222_2",
+          "documentId": "kr.rf.222_2",
+          "url": "https://publication.pravo.gov.ru/document/0001202506030010",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.downes-vidyasagar-respiratory-distress",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "downes-vidyasagar-respiratory-distress",
+      "title": "Неонатология — шкала Downes–Vidyasagar",
+      "shortTitle": "Downes–Vidyasagar",
+      "aliases": [
+        "Downes",
+        "Downes–Vidyasagar",
+        "оценка дыхания новорожденного",
+        "неонатальная респираторная недостаточность",
+      "таблица Downes"
+      ],
+      "bankId": "neonatology",
+      "bankLabel": "Неонатология",
+      "category": "neonatal-respiratory",
+      "description": "Шкала оценки дыхательной недостаточности у новорожденных на основе 5 клинических параметров с суммарным баллом 0–10.",
+      "estimatedMinutes": 1,
+      "audience": "Медицинский персонал неонатальных отделений; интерпретирует лечащий врач.",
+      "definition": {
+        "id": "minimed.assessment.downes-vidyasagar-respiratory-distress",
+        "slug": "downes-vidyasagar-respiratory-distress",
+        "title": "Неонатология — шкала Downes–Vidyasagar",
+        "shortTitle": "Downes–Vidyasagar",
+        "aliases": [
+          "Downes",
+          "Downes–Vidyasagar",
+          "оценка дыхания новорожденного",
+          "неонатальная респираторная недостаточность",
+      "таблица Downes"
+        ],
+        "bankId": "neonatology",
+        "bankLabel": "Неонатология",
+        "category": "neonatal-respiratory",
+        "description": "Шкала оценки дыхательной недостаточности у новорожденных на основе 5 клинических параметров с суммарным баллом 0–10.",
+        "estimatedMinutes": 1,
+        "audience": "pediatric",
+        "clinical": true,
+    "formulaDisplay": "Сумма значений по 5 пунктам (0–2), итоговый балл 0–10; по источнику: 0–3 — лёгкий, 4–7 — умеренный, 8–10 — тяжёлый респираторный дистресс.",
+    "population": "Новорожденные в раннем постнатальном периоде/неонатальной практике; применяется для последовательного мониторинга, включая доношенных и недоношенных детей при признаках респираторного дистресса.",
+        "limitations": [
+          "Не заменяет инструментальную диагностику (газовый анализ, пульсоксиметрию), рентген и клиническое решение по поддержке дыхания.",
+          "Интерпретация зависит от возраста гестации, температуры, уровня кислородной терапии и условий измерения; возможны ошибки при гипоперфузии.",
+          "Не применяется как единственный критерий для решения о респираторной поддержке без комплекса клинических данных."
+        ],
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "0 баллов"
+          },
+          {
+            "value": 1,
+            "label": "1 балл"
+          },
+          {
+            "value": 2,
+            "label": "2 балла"
+          }
+        ],
+        "scales": [
+          {
+            "id": "downes-vidyasagar-total",
+            "label": "Итоговый балл по шкале Downes–Vidyasagar",
+            "shortLabel": "DVS",
+            "description": "Сумма 5 клинических пунктов, диапазон 0–10."
+          }
+        ],
+        "questions": [
+          {
+            "id": "downes-cyanosis",
+            "prompt": "Цианоз",
+            "scaleId": "downes-vidyasagar-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "В комнате"
+              },
+              {
+                "value": 2,
+                "label": "На 40% O2"
+              }
+            ]
+          },
+          {
+            "id": "downes-retractions",
+            "prompt": "Втяжение грудной клетки",
+            "scaleId": "downes-vidyasagar-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Слабое/умеренное"
+              },
+              {
+                "value": 2,
+                "label": "Тяжёлое/выраженное"
+              }
+            ]
+          },
+      {
+        "id": "downes-grunting",
+        "prompt": "Экспираторный стон",
+            "scaleId": "downes-vidyasagar-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Слышно со стетоскопа"
+              },
+              {
+                "value": 2,
+                "label": "Слышно без стетоскопа"
+              }
+            ]
+          },
+          {
+            "id": "downes-air-entry",
+            "prompt": "Воздушный поток",
+            "scaleId": "downes-vidyasagar-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нормальный"
+              },
+              {
+                "value": 1,
+                "label": "Сниженный"
+              },
+              {
+                "value": 2,
+                "label": "Только выслушивается с трудом"
+              }
+            ]
+          },
+          {
+            "id": "downes-respiratory-rate",
+            "prompt": "Частота дыхания",
+            "scaleId": "downes-vidyasagar-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "< 60 (нет апноэ)"
+              },
+              {
+                "value": 1,
+                "label": "60–80"
+              },
+              {
+                "value": 2,
+                "label": "> 80 или апноэ"
+              }
+            ]
+          }
+        ],
+    "disclaimer": "Шкала применяется как ориентировочный bedside-мониторинг, не подменяет диагностику причины острого респираторного дистресса и не используется без клинической оценки состояния, SpO2 и газов при возможности.",
+        "evidenceNote": "Сумма 5 пунктов даёт 0–10; согласно AIIMS Protocols in Neonatology, <5 — легкий, 5–7 — умеренный, >7 — тяжелый/опасный уровень дистресса и риск респираторной недостаточности.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Downes-Vidyasagar respiratory distress score приводится в AIIMS Protocols in Neonatology; в MiniMed используется формулировка и структура шкалы из источника без изменения методики.",
+          "sourceUrl": "https://newbornwhocc.org/pdf/Respiratory_System_2019.pdf"
+        },
+        "sources": [
+          {
+            "title": "Respiratory Distress in Neonates",
+            "publisher": "AIIMS Protocols in Neonatology",
+            "url": "https://newbornwhocc.org/pdf/Respiratory_System_2019.pdf",
+            "page": "Section 15, Table 15.4",
+            "section": "Respiratory Distress  > Severity grading",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "downes-vidyasagar-aiims-2019",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Respiratory Distress in Neonates",
+          "url": "https://newbornwhocc.org/pdf/Respiratory_System_2019.pdf",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "downes-vidyasagar-neonatology-clinical-222n",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Порядок оказания помощи по профилю неонатология — приказ Минздрава РФ № 222н",
+          "moduleId": "minimed.clinical.recommendation.222_2",
+          "documentId": "kr.rf.222_2",
+          "url": "https://publication.pravo.gov.ru/document/0001202506030010",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.neonatal-physiologic-weight-loss",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "neonatal-physiologic-weight-loss",
+      "title": "Неонатология — физиологическая потеря массы тела",
+      "shortTitle": "Потеря массы у новорождённого",
+      "aliases": [
+        "weight loss",
+        "weight loss newborn",
+        "потеря веса новорожденного",
+        "клиническая оценка веса новорождённого"
+      ],
+      "bankId": "neonatology",
+      "bankLabel": "Неонатология",
+      "category": "neonatology",
+      "description": "Процентная потеря веса по сравнению с массой при рождении и ориентировочные пороги оценки риска.",
+      "estimatedMinutes": 1,
+      "audience": "Медицинский специалист, оценивающий ранние потери массы у новорождённых на раннем постнатальном этапе",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.neonatal-physiologic-weight-loss",
+        "slug": "neonatal-physiologic-weight-loss",
+        "title": "Неонатология — физиологическая потеря массы тела",
+        "shortTitle": "Потеря массы у новорождённого",
+        "aliases": [
+          "weight loss",
+          "weight loss newborn",
+          "потеря веса новорожденного",
+          "клиническая оценка веса новорождённого"
+        ],
+        "summary": "Рассчитывается процентная потеря от массы при рождении и выделяются пороговые диапазоны для дальнейшей оценки.",
+        "audience": "pediatric",
+        "category": "neonatology",
+        "clinical": true,
+        "formulaDisplay": "(Масса при рождении − текущая масса) / Масса при рождении × 100%",
+        "population": "Доношенные новорождённые на раннем постнатальном этапе; для недоношенных и клинически нестабильных детей применяйте отдельный протокол наблюдения.",
+        "limitations": [
+          "Формула не подставляет оценку ожирения/обезвоживания по другим параметрам (лактат, натрий, диурез, клиническое состояние, билирубин).",
+          "У недоношенных и детей с перинатальной патологией граничные пороги могут быть иными.",
+          "Результат — только ориентир для триажа; не заменяет очную клиническую оценку и решение о дообследовании."
+        ],
+        "inputs": [
+          {
+            "id": "birthWeightKg",
+            "label": "Масса тела при рождении",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0.25,
+            "maximum": 8,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "currentWeightKg",
+            "label": "Текущая масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0.25,
+            "maximum": 8,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "ageDays",
+            "label": "Возраст жизни",
+            "unit": "дней",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 30,
+            "required": false,
+            "integer": true,
+            "defaultExpression": "0"
+          }
+        ],
+        "steps": [
+          {
+            "id": "weightLossPercent",
+            "label": "Потеря массы тела",
+            "unit": "%",
+            "expression": "((birthWeightKg - currentWeightKg) / birthWeightKg) * 100",
+            "displayPrecision": 1,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "neonatal-weight-loss-clinical",
+            "message": "Потеря >10% массы в первые дни жизни требует проверки гидратации, питания и билирубинового статуса (вместе с клинической картиной)."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "weightLossPercent <= 10",
+            "message": "Потеря в пределах часто встречающегося физиологического окна для доношенных в первые дни; при жалобах/симптомах требуется повторная оценка."
+          },
+          {
+            "when": "weightLossPercent > 10",
+            "message": "Потеря более 10% массы тела требует более детальной оценки и неотложного решения о дообследовании/наблюдении."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "First Office Visit, 3-5 Days",
+            "publisher": "American Academy of Pediatrics",
+            "version": "Updated 02/13/2026",
+            "url": "https://www.aap.org/en/patient-care/newborn-infant-and-early-childhood-nutrition/newborn-and-infant-health-assessment-and-promotion/first-office-visit-3-5-days/",
+            "section": "Calculations / head circumference, weight, and length",
+            "page": "line 195 states '>10% of birth weight requires further evaluation'",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "weight-loss-aap-2026",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "First Office Visit, 3-5 Days",
+          "url": "https://www.aap.org/en/patient-care/newborn-infant-and-early-childhood-nutrition/newborn-and-infant-health-assessment-and-promotion/first-office-visit-3-5-days/",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "weight-loss-neonatology-clinical-222n",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Порядок оказания помощи по профилю неонатология — приказ Минздрава РФ № 222н",
+          "moduleId": "minimed.clinical.recommendation.222_2",
+          "documentId": "kr.rf.222_2",
+          "url": "https://publication.pravo.gov.ru/document/0001202506030010",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.ballard-neonatal-gestational-age",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "ballard-neonatal-gestational-age",
+      "title": "Неонатология — New Ballard: гестационный возраст",
+      "shortTitle": "New Ballard",
+      "aliases": [
+        "Ballard",
+        "New Ballard",
+        "гестационный возраст по Ballard",
+        "неонатальный возраст",
+        "нейромышечный и физический зрелость новорождённого"
+      ],
+      "bankId": "neonatology",
+      "bankLabel": "Неонатология",
+      "category": "neonatology",
+      "description": "Расчёт гестационного возраста по 12 признакам шкалы New Ballard (6 нейромышечных + 6 физико-морфологических критериев).",
+      "estimatedMinutes": 3,
+      "audience": "Врач неонатолог / неонатальный персонал, применяющий шкалу на практике.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.ballard-neonatal-gestational-age",
+        "slug": "ballard-neonatal-gestational-age",
+        "title": "Неонатология — New Ballard: гестационный возраст",
+        "shortTitle": "New Ballard",
+        "aliases": [
+          "Ballard",
+          "New Ballard",
+          "гестационный возраст по Ballard",
+          "неонатальный возраст",
+          "нейромышечный и физический зрелость новорождённого"
+        ],
+        "summary": "Суммируются баллы по таблице New Ballard, затем переводятся в неделе беременности по официальной сетке, с интерполяцией между узловыми значениями.",
+        "audience": "pediatric",
+        "category": "neonatology",
+        "clinical": true,
+        "formulaDisplay": "Ограничьте сумму баллов к диапазону -10..50, затем GA = 20 + 2*floor((totalScoreClamped + 10)/5) + floor(0.4*(totalScoreClamped - (5*floor((totalScoreClamped + 10)/5) - 10))",
+        "population": "Новорождённые при первичной оценке постнатального гестационного возраста, особенно при неясной менструальной дате/отсутствующем точном УЗ‑датировании.",
+        "limitations": [
+          "Оценка — клинический инструмент, а не абсолютный источник датировки; всегда сопоставляется с МНК, УЗИ и клиническим контекстом.",
+          "Снижение точности возможно при фетальном/постнатальном стрессе, физиологической нестабильности и при некоторых состояниях, не относящихся к зрелости.",
+          "Рекомендуемая точность — около ±2 недель; для очень недоношенных <26 недель лучше проводить в первые 24 ч жизни."
+        ],
+        "inputs": [
+          {
+            "id": "posture",
+            "label": "Поза",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
+              { "value": 0, "label": "0" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" },
+              { "value": 4, "label": "4" },
+              { "value": 5, "label": "5" }
+            ]
+          },
+          {
+            "id": "squareWindow",
+            "label": "Квадратное окно",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
+              { "value": 0, "label": "0" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" },
+              { "value": 4, "label": "4" },
+              { "value": 5, "label": "5" }
+            ]
+          },
+          {
+            "id": "armRecoil",
+            "label": "Реакция сгибания (Arm recoil)",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
+              { "value": 0, "label": "0" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" },
+              { "value": 4, "label": "4" },
+              { "value": 5, "label": "5" }
+            ]
+          },
+          {
+            "id": "poplitealAngle",
+            "label": "Угол поплитеального сгибания",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
+              { "value": 0, "label": "0" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" },
+              { "value": 4, "label": "4" },
+              { "value": 5, "label": "5" }
+            ]
+          },
+          {
+            "id": "scarfSign",
+            "label": "Скарф-сигнал",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
+              { "value": 0, "label": "0" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" },
+              { "value": 4, "label": "4" },
+              { "value": 5, "label": "5" }
+            ]
+          },
+          {
+            "id": "heelToEar",
+            "label": "Пятка к уху (heel-to-ear)",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 (ухо)" },
+              { "value": 0, "label": "0 (нос)" },
+              { "value": 1, "label": "1 (подбородок)" },
+              { "value": 2, "label": "2 (грудная линия)" },
+              { "value": 3, "label": "3 (пупочная область)" },
+              { "value": 4, "label": "4 (паховая складка)" },
+              { "value": 5, "label": "5 (выраженно отведается)" }
+            ]
+          },
+          {
+            "id": "skin",
+            "label": "Кожа",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 — прозрачная/клейкая" },
+              { "value": 0, "label": "0 — желатинозная, красная, прозрачная" },
+              { "value": 1, "label": "1 — розовая с видимыми венами" },
+              { "value": 2, "label": "2 — поверхностная шелушащаяся/сыпь, редкие вены" },
+              { "value": 3, "label": "3 — трещины, бледные зоны, редкие вены" },
+              { "value": 4, "label": "4 — плотная, глубокие трещины, без сосудов" },
+              { "value": 5, "label": "5 — кожистая, треснувшая, морщинистая" }
+            ]
+          },
+          {
+            "id": "lanugo",
+            "label": "Лануго",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 — отсутствует/очень мало" },
+              { "value": 0, "label": "0" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" },
+              { "value": 4, "label": "4" },
+              { "value": 5, "label": "5" }
+            ]
+          },
+          {
+            "id": "plantarSurface",
+            "label": "Плантарная поверхность",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -2, "label": "−2 — <40 мм" },
+              { "value": -1, "label": "−1 — 40–50 мм" },
+              { "value": 0, "label": "0 — >50 мм, без складок" },
+              { "value": 1, "label": "1 — лёгкие красные штрихи/складки" },
+              { "value": 2, "label": "2 — передние поперечные складки" },
+              { "value": 3, "label": "3 — складки по 2/3 стопы" },
+              { "value": 4, "label": "4 — полные складки всей подошвы" },
+              { "value": 5, "label": "5 — глубокие складки всей подошвы" }
+            ]
+          },
+          {
+            "id": "breastTissue",
+            "label": "Молочные железы",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 — не определяется" },
+              { "value": 0, "label": "0 — едва заметен" },
+              { "value": 1, "label": "1 — едва заметная ареола, без бугорка" },
+              { "value": 2, "label": "2 — пятно/лёгкий бугорок 1–2 мм" },
+              { "value": 3, "label": "3 — выраженная ареола, бугорок 3–4 мм" },
+              { "value": 4, "label": "4 — плотная ареола/бугорок 5–10 мм" },
+              { "value": 5, "label": "5 — зрелая ткань соска" }
+            ]
+          },
+          {
+            "id": "eyeEar",
+            "label": "Глаза и уши",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 — плотное слитное сложение век" },
+              { "value": 0, "label": "0 — не полностью открыты/хрупкие" },
+              { "value": 1, "label": "1 — открываются частично" },
+              { "value": 2, "label": "2 — открылся край, хрящевая пластинка мягкая" },
+              { "value": 3, "label": "3 — ушная раковина упругая, быстро возвращается" },
+              { "value": 4, "label": "4 — хорошо сформированный ушной хрящ" },
+              { "value": 5, "label": "5 — сформированные контуры, быстрый рефлекс" }
+            ]
+          },
+          {
+            "id": "genitals",
+            "label": "Половые органы",
+            "kind": "select",
+            "required": true,
+            "step": 0,
+            "options": [
+              { "value": -1, "label": "−1 — минимальное половое развитие для срока" },
+              { "value": 0, "label": "0" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" },
+              { "value": 4, "label": "4" },
+              { "value": 5, "label": "5" }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "neuromuscularScore",
+            "label": "Баллы нейромышечного блока",
+            "unit": "баллы",
+            "expression": "posture + squareWindow + armRecoil + poplitealAngle + scarfSign + heelToEar",
+            "displayPrecision": 0,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "physicalScore",
+            "label": "Баллы физического блока",
+            "unit": "баллы",
+            "expression": "skin + lanugo + plantarSurface + breastTissue + eyeEar + genitals",
+            "displayPrecision": 0,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "totalScore",
+            "label": "Суммарный балл New Ballard",
+            "unit": "баллы",
+            "expression": "neuromuscularScore + physicalScore",
+            "displayPrecision": 0,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "totalScoreClamped",
+            "label": "Суммарный балл (ограничение модели)",
+            "unit": "баллы",
+            "expression": "cond(totalScore < -10, -10, cond(totalScore > 50, 50, totalScore))",
+            "displayPrecision": 0,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "ballardScoreBand",
+            "label": "Блок валидации на сетке",
+            "unit": "единицы",
+            "expression": "floor((totalScoreClamped + 10) / 5)",
+            "displayPrecision": 0,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "scoreOffset",
+            "label": "Сдвиг внутри блока",
+            "unit": "единицы",
+            "expression": "totalScoreClamped - (ballardScoreBand * 5 - 10)",
+            "displayPrecision": 0,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gestationalAgeByScoreWeeks",
+            "label": "Срок по New Ballard",
+            "unit": "недели",
+            "expression": "cond(totalScoreClamped <= -10, 20, cond(totalScoreClamped >= 50, 44, 20 + 2 * ballardScoreBand + floor(0.4 * scoreOffset)))",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "ballard-score-limitations",
+            "message": "Ballard остаётся клинической оценкой и не заменяет надёжное датирование по ранней УЗ‑датировке и клиническую интерпретацию."
+          },
+          {
+            "code": "ballard-score-extreme-preterm",
+            "message": "При подозрении на экстремально ранний срок (<26 недель) оценку лучше проводить до 24 часов жизни и учитывать возможное смещение."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "gestationalAgeByScoreWeeks < 26",
+            "message": "Результат попадает в зону очень раннего срока; нужна клиническая верификация по всем доступным данным."
+          },
+          {
+            "when": "cond(gestationalAgeByScoreWeeks >= 26, cond(gestationalAgeByScoreWeeks <= 38, 1, 0), 0)",
+            "message": "Срок в пределах доношенного-раннего посттерминального окна; итог всегда проверяйте в контексте состояния и датирования."
+          },
+          {
+            "when": "gestationalAgeByScoreWeeks >= 39",
+            "message": "Срок ≥39 недель; при клинической подозрительности на более поздний гестационный возраст учитывайте и перинатальные данные."
+          }
+        ],
+        "assertions": [
+          {
+            "when": "totalScore < -10",
+            "error": "Итоговый балл ниже валидируемого диапазона New Ballard. Проверьте корректность введённых пунктов; ожидается диапазон -10..50."
+          },
+          {
+            "when": "totalScore > 50",
+            "error": "Итоговый балл выше валидируемого диапазона New Ballard. Проверьте корректность введённых пунктов; ожидается диапазон -10..50."
+          }
+        ],
+        "sources": [
+          {
+            "title": "The New Ballard Score scoresheet",
+            "publisher": "Ballard Score",
+            "version": "Score sheet",
+            "url": "https://www.ballardscore.com/files/BallardScore_scoresheet.pdf",
+            "page": "Scoring grid and section layout (NEURO‑MUSCULAR and physical maturity, score-to-week map)",
+            "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "FAQ Ballard Score",
+            "publisher": "Ballard Score",
+            "version": "2026-08-15",
+            "url": "https://www.ballardscore.com/CatalogView/FAQ",
+            "section": "Calculation standard: interpolation and age-mismatch interpretation",
+            "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "New Ballard Score. Newborn examination training manual",
+            "publisher": "Centers for Disease Control and Prevention",
+            "version": "Module V",
+            "url": "https://stacks.cdc.gov/view/cdc/36626/cdc_36626_DS8.pdf",
+            "section": "V. The New Ballard Score",
+            "page": "p. 34–52",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "ballard-score-sheet",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "The New Ballard Score scoresheet",
+          "url": "https://www.ballardscore.com/files/BallardScore_scoresheet.pdf",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "ballard-score-faq",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "FAQ Ballard Score",
+          "url": "https://www.ballardscore.com/CatalogView/FAQ",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "ballard-score-cdc",
+          "kind": "guideline",
+          "relation": "clinical-context",
+          "title": "New Ballard Score — Newborn examination training manual",
+          "url": "https://stacks.cdc.gov/view/cdc/36626/cdc_36626_DS8.pdf",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "ballard-score-neonatology-clinical-222n",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Порядок оказания помощи по профилю неонатология — приказ Минздрава РФ № 222н",
+          "moduleId": "minimed.clinical.recommendation.222_2",
+          "documentId": "kr.rf.222_2",
+          "url": "https://publication.pravo.gov.ru/document/0001202506030010",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.nips-neonatal-infant-pain-scale",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "neonatal-infant-pain-scale",
+      "title": "Неонатальная шкала боли NIPS",
+      "shortTitle": "NIPS",
+      "aliases": [
+        "NIPS",
+        "Neonatal Infant Pain Scale",
+        "неонатальная боль",
+        "оценка боли новорожденного",
+        "шкала боли у новорожденного"
+      ],
+      "bankId": "neonatology",
+      "bankLabel": "Неонатология",
+      "category": "neonatal-pain",
+      "description": "Шкала оценки боли у новорожденных: 6 поведенческих признаков (0–7 баллов), суммарный пороговый скрининг боли.",
+      "estimatedMinutes": 1,
+      "audience": "Медицинский персонал неонатологических отделений; интерпретация и тактика — врачом в рамках локального протокола.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.assessment.nips-neonatal-infant-pain-scale",
+        "slug": "neonatal-infant-pain-scale",
+        "title": "Неонатальная шкала боли NIPS",
+        "shortTitle": "NIPS",
+        "aliases": [
+          "NIPS",
+          "Neonatal Infant Pain Scale",
+          "неонатальная боль",
+          "оценка боли новорожденного",
+          "шкала боли у новорожденного"
+        ],
+        "bankId": "neonatology",
+        "bankLabel": "Неонатология",
+        "category": "neonatal-pain",
+        "description": "Клинический поведенческий инструмент NIPS для оценки острого болевого ответа у новорожденных.",
+        "estimatedMinutes": 1,
+        "audience": "pediatric",
+        "clinical": true,
+        "formulaDisplay": "Сумма баллов 6 пунктов (всего 0–7): 0–1 — без боли, 2 — лёгкая, 3–4 — умеренная, 5–7 — выраженная боль.",
+        "population": "Новорожденные и дети в педиатрических/неонатальных отделениях. Применяется для краткосрочного поведения боли при процедурах и наблюдении.",
+        "limitations": [
+          "Не заменяет диагностическое заключение и не задаёт тактику лечения автоматически; решение принимает лечащий специалист по клиническому контексту.",
+          "Точность снижается при выраженной дыхательной терапии, седации/неотчетливой мимике и при очень сложных клинических состояниях; нужен пересмотр по локальному протоколу при пограничных значениях.",
+          "NIPS ориентирована на поведенческие признаки, не включает все физиологические маркеры боли и не подходит как единственный источник для длительной оценки боли в реанимации."
+        ],
+        "responseOptions": [
+          { "value": 0, "label": "0" },
+          { "value": 1, "label": "1" },
+          { "value": 2, "label": "2" }
+        ],
+        "scales": [
+          {
+            "id": "nips-total",
+            "label": "Суммарный балл NIPS",
+            "shortLabel": "NIPS",
+            "description": "Сумма 6 поведенческих пунктов; диапазон 0–7."
+          }
+        ],
+        "questions": [
+          {
+            "id": "nips-facial-expression",
+            "prompt": "Выражение лица",
+            "scaleId": "nips-total",
+            "responseOptions": [
+              { "value": 0, "label": "Расслабленные мышцы, спокойное лицо" },
+              { "value": 1, "label": "Гримаса" }
+            ]
+          },
+          {
+            "id": "nips-cry",
+            "prompt": "Плач",
+            "scaleId": "nips-total",
+            "responseOptions": [
+              { "value": 0, "label": "Отсутствует" },
+              { "value": 1, "label": "Хныканье, мягкий прерывистый плач" },
+              { "value": 2, "label": "Сильный/напряжённый плач или беззвучный плач по движению рта и лица" }
+            ]
+          },
+          {
+            "id": "nips-breathing",
+            "prompt": "Дыхание",
+            "scaleId": "nips-total",
+            "responseOptions": [
+              { "value": 0, "label": "Расслабленное, обычное для ребенка" },
+              { "value": 1, "label": "Изменение дыхания: нерегулярное, учащённое, глотательные движения" }
+            ]
+          },
+          {
+            "id": "nips-arms",
+            "prompt": "Положение рук",
+            "scaleId": "nips-total",
+            "responseOptions": [
+              { "value": 0, "label": "Рука расслаблена" },
+              { "value": 1, "label": "Сгибание/разгибание, ригидность, быстрые выпрямления" }
+            ]
+          },
+          {
+            "id": "nips-legs",
+            "prompt": "Положение ног",
+            "scaleId": "nips-total",
+            "responseOptions": [
+              { "value": 0, "label": "Ноги расслаблены" },
+              { "value": 1, "label": "Сгибание/разгибание, ригидность, быстрые выпрямления" }
+            ]
+          },
+          {
+            "id": "nips-arousal",
+            "prompt": "Состояние возбуждения",
+            "scaleId": "nips-total",
+            "responseOptions": [
+              { "value": 0, "label": "Спокоен: сон/бодрствование без беспокойства" },
+              { "value": 1, "label": "Беспокойный/тревожный, беспорядочные движения" }
+            ]
+          }
+        ],
+        "disclaimer": "NIPS — скрининговый инструмент оценки поведения; она не заменяет диагностику причины боли и клиническую оценку состояния ребёнка.",
+        "evidenceNote": "Неонатальная шкала боли построена как поведенческий инструмент для доношенных и недоношенных детей; валидирована в исходной публикации Lawrence et al., 1993.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Скала NIPS описана в публикации Lawrence et al. и последующих клинических методических материалах; используем формулировки и пороги по источникам без изменений.",
+          "sourceUrl": "https://www.ncbi.nlm.nih.gov/books/NBK615330/table/ch14.tab4/"
+        },
+        "interpretations": [
+          {
+            "when": "totalScore <= 1",
+            "message": "0–1 балл: признаков боли по NIPS обычно не требуется, продолжайте рутинное наблюдение и локальную оценку состояния."
+          },
+          {
+            "when": "totalScore == 2",
+            "message": "2 балла: умеренная острая болезненная реакция по NIPS; оцените необходимость немедленной анальгезии/укороченного вмешательства согласно протоколу."
+          },
+          {
+            "when": "totalScore >= 3 && totalScore <= 4",
+            "message": "3–4 балла: умеренная боль по NIPS. Требуется повторная оценка и коррекция обезболивания согласно локальному протоколу."
+          },
+          {
+            "when": "totalScore >= 5",
+            "message": "5–7 баллов: выраженная боль по NIPS; показано срочное клиническое решение по локальному протоколу ведения боли."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Neonatal Infant Pain Scale (NIPS) Table",
+            "publisher": "National Center for Biotechnology Information",
+            "version": "NCBI Bookshelf, Table 14.5d",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK615330/table/ch14.tab4/",
+            "section": "Neonatal Infant Pain Scale Criteria",
+            "page": "NIPS score interpretation",
+            "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Neonatal pain guidance appendix",
+            "publisher": "КонсультантПлюс / СудАкт",
+            "version": "Приложение Г1",
+            "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-bolevoi-sindrom-bs-u-detei",
+            "section": "Приложение Г1",
+            "page": "Параметры и суммарный балл NIPS",
+            "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "The development of a tool to assess neonatal pain",
+            "publisher": "PubMed",
+            "version": "Lawrence et al. 1993",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/8413140/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "nips-ncbi-table",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Neonatal Infant Pain Scale (NIPS) criteria",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK615330/table/ch14.tab4/",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "nips-sudact",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации: Болевой синдром (БС) у детей, нуждающихся в паллиативной медицинской помощи",
+          "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-bolevoi-sindrom-bs-u-detei",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "nips-lawrence-1993",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "The development of a tool to assess neonatal pain",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/8413140/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    }
+  ]
+}

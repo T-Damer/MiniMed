@@ -3,6 +3,7 @@ import type {
   ContentModuleCatalogEntry,
   ContentModuleDownloadTask,
   InstalledContentModule,
+  ToolDefinitionRecord,
 } from '@localmed/contracts';
 import {
   type ContentModuleArtifactBackend,
@@ -561,6 +562,27 @@ export class BrowserContentModuleRuntime {
 
   public listTasks(): readonly ContentModuleDownloadTask[] {
     return this.installer.listTasks();
+  }
+
+  public async listInstalledToolDefinitions(): Promise<readonly ToolDefinitionRecord[]> {
+    const definitions: ToolDefinitionRecord[] = [];
+    for (const installed of this.listInstalled()) {
+      const descriptor = this.catalog.modules.find(
+        (module) => module.id === installed.moduleId && module.version === installed.version,
+      );
+      if (descriptor?.kind !== 'tool') continue;
+      const bytes = await this.backend.readIndexBytes(installed.moduleId, installed.version);
+      if (!bytes)
+        throw new Error(`Установленный модуль инструментов потерян: ${installed.moduleId}.`);
+      const store = await SqliteMedicalStore.createFromBytes(bytes);
+      try {
+        await store.initialize();
+        definitions.push(...(await store.listToolDefinitions()));
+      } finally {
+        await store.close();
+      }
+    }
+    return definitions;
   }
 
   public subscribe(listener: (task: ContentModuleDownloadTask) => void): () => void {

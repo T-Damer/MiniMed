@@ -9,6 +9,7 @@ export const ContentModuleKindSchema = z.enum([
   'medication',
   'regulatory',
   'reference',
+  'tool',
   'personal',
 ]);
 
@@ -133,6 +134,8 @@ export const ContentModuleCatalogEntrySchema = z
     artifacts: z.array(ContentModuleArtifactSchema).default([]),
     documents: z.array(ContentModuleDocumentVersionSchema).default([]),
     previewDocumentCount: z.number().int().nonnegative().default(0),
+    toolKinds: z.array(z.enum(['calculator', 'assessment'])).optional(),
+    toolCount: z.number().int().nonnegative().optional(),
   })
   .superRefine((module, context) => {
     if (module.kind === 'core' && !module.required) {

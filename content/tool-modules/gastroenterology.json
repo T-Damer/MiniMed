@@ -1,0 +1,437 @@
+{
+  "id": "minimed.tools.gastroenterology.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Инструменты гастроэнтерологии",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-15T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.assessment.pucai",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "pediatric-ulcerative-colitis-activity-index",
+      "title": "PUCAI — индекс активности язвенного колита у детей",
+      "shortTitle": "PUCAI",
+      "aliases": [
+        "PUCAI",
+        "Paediatric Ulcerative Colitis Activity Index",
+        "индекс активности язвенного колита",
+        "язвенный колит дети"
+      ],
+      "bankId": "gastroenterology",
+      "bankLabel": "Гастроэнтерология",
+      "category": "pediatric-gastroenterology",
+      "description": "Шесть клинических пунктов для оценки активности язвенного колита у ребёнка за последние 48 часов.",
+      "estimatedMinutes": 3,
+      "audience": "Дети и подростки с язвенным колитом; заполняет медицинский специалист",
+      "definition": {
+        "id": "minimed.assessment.pucai",
+        "slug": "pediatric-ulcerative-colitis-activity-index",
+        "title": "PUCAI — индекс активности язвенного колита у детей",
+        "shortTitle": "PUCAI",
+        "aliases": [
+          "PUCAI",
+          "Paediatric Ulcerative Colitis Activity Index",
+          "индекс активности язвенного колита",
+          "язвенный колит дети"
+        ],
+        "bankId": "gastroenterology",
+        "bankLabel": "Гастроэнтерология",
+        "category": "pediatric-gastroenterology",
+        "description": "Шесть клинических пунктов для оценки активности язвенного колита у ребёнка за последние 48 часов.",
+        "estimatedMinutes": 3,
+        "audience": "Дети и подростки с язвенным колитом; заполняет медицинский специалист",
+        "responseOptions": [
+          { "value": 0, "label": "0" },
+          { "value": 5, "label": "5" },
+          { "value": 10, "label": "10" }
+        ],
+        "scales": [
+          {
+            "id": "pucai-total",
+            "label": "Активность язвенного колита",
+            "shortLabel": "PUCAI",
+            "description": "Суммарный балл шести клинических пунктов; диапазон 0–85."
+          }
+        ],
+        "questions": [
+          {
+            "id": "pucai-abdominal-pain",
+            "prompt": "Боль в животе за последние 48 часов",
+            "scaleId": "pucai-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет боли" },
+              { "value": 5, "label": "Боль можно игнорировать" },
+              { "value": 10, "label": "Боль нельзя игнорировать" }
+            ]
+          },
+          {
+            "id": "pucai-rectal-bleeding",
+            "prompt": "Ректальное кровотечение за последние 48 часов",
+            "scaleId": "pucai-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет крови" },
+              { "value": 10, "label": "Небольшое количество крови менее чем в половине стула" },
+              { "value": 20, "label": "Небольшое количество крови более чем в половине стула" },
+              { "value": 30, "label": "Большое количество крови" }
+            ]
+          },
+          {
+            "id": "pucai-stool-consistency",
+            "prompt": "Консистенция большинства стулов",
+            "scaleId": "pucai-total",
+            "responseOptions": [
+              { "value": 0, "label": "Оформленный стул" },
+              { "value": 5, "label": "Частично оформленный стул" },
+              { "value": 10, "label": "Полностью неоформленный стул" }
+            ]
+          },
+          {
+            "id": "pucai-stool-frequency",
+            "prompt": "Количество стулов за 24 часа",
+            "scaleId": "pucai-total",
+            "responseOptions": [
+              { "value": 0, "label": "0–2" },
+              { "value": 5, "label": "3–5" },
+              { "value": 10, "label": "6–8" },
+              { "value": 15, "label": "Более 8" }
+            ]
+          },
+          {
+            "id": "pucai-nocturnal-stools",
+            "prompt": "Ночные пробуждения из-за необходимости дефекации",
+            "scaleId": "pucai-total",
+            "responseOptions": [{ "value": 0, "label": "Нет" }, { "value": 10, "label": "Да" }]
+          },
+          {
+            "id": "pucai-activity",
+            "prompt": "Уровень активности ребёнка",
+            "scaleId": "pucai-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет ограничений" },
+              { "value": 5, "label": "Иногда ограничена" },
+              { "value": 10, "label": "Сильно ограничена" }
+            ]
+          }
+        ],
+        "disclaimer": "PUCAI — индекс активности, а не самостоятельный диагноз и не замена осмотру, лабораторной оценке или эндоскопии. Интерпретируйте результат вместе с клинической картиной и действующей рекомендацией.",
+        "evidenceNote": "Индекс разработан и валидирован для неинвазивной оценки активности язвенного колита у детей; шесть пунктов оценивают последние 48 часов.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Используется с атрибуцией оригинальной публикации Turner et al.; MiniMed не является правообладателем инструмента.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/17681163/"
+        }
+      },
+      "sources": [
+        {
+          "id": "pucai-turner-2007",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Development, validation, and evaluation of a pediatric ulcerative colitis activity index",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/17681163/",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "pucai-kr-391-3",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации: Язвенный колит, дети (КР 391_3)",
+          "moduleId": "minimed.clinical.recommendation.391_3",
+          "documentId": "kr.rf.391_3",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.pediatric-ors-ongoing-losses",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "pediatric-ors-ongoing-losses",
+      "title": "ОРС у детей — продолжающиеся потери",
+      "shortTitle": "ОРС и потери",
+      "aliases": [
+        "Регидрон детям",
+        "рвота понос",
+        "продолжающиеся потери",
+        "оральная регидратация"
+      ],
+      "bankId": "gastroenterology",
+      "bankLabel": "Гастроэнтерология",
+      "category": "fluids",
+      "description": "Расчёт ориентировочного объёма раствора ОРС на продолжающиеся потери после ввода массы, жидкого стула и эпизодов рвоты.",
+      "estimatedMinutes": 2,
+      "audience": "Дети; используется медицинским специалистом вместе с оценкой обезвоживания",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.pediatric-ors-ongoing-losses",
+        "slug": "pediatric-ors-ongoing-losses",
+        "title": "ОРС у детей — продолжающиеся потери",
+        "shortTitle": "ОРС и потери",
+        "aliases": [
+          "Регидрон детям",
+          "рвота понос",
+          "продолжающиеся потери",
+          "оральная регидратация"
+        ],
+        "summary": "Расчёт ориентировочного объёма раствора ОРС на продолжающиеся потери после ввода массы, жидкого стула и эпизодов рвоты.",
+        "audience": "pediatric",
+        "category": "fluids",
+        "clinical": true,
+        "formulaDisplay": "10 мл/кг за эпизод жидкого стула; 2 мл/кг за эпизод рвоты; поддерживающая потребность 100/50/20 и ориентир 50 мл/кг за 4 часа при дегидратации.",
+        "population": "Дети, которые могут получать жидкость энтерально; масса 0,5–200 кг.",
+        "limitations": [
+          "Не определяет степень обезвоживания и не предназначен для шока, нарушения сознания или невозможности пить.",
+          "Используйте готовый низкоосмолярный раствор ОРС; вода не заменяет электролиты.",
+          "Тактика и скорость отпаивания требуют клинической коррекции и наблюдения."
+        ],
+        "inputs": [
+          {
+            "id": "weightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0.5,
+            "maximum": 200,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "diarrheaEpisodes",
+            "label": "Эпизоды жидкого стула",
+            "unit": "за текущий период",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 50,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "vomitingEpisodes",
+            "label": "Эпизоды рвоты",
+            "unit": "за текущий период",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 50,
+            "integer": true,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "stoolReplacement",
+            "label": "На жидкий стул",
+            "unit": "мл",
+            "expression": "weightKg * 10 * diarrheaEpisodes",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "vomitingReplacement",
+            "label": "На рвоту",
+            "unit": "мл",
+            "expression": "weightKg * 2 * vomitingEpisodes",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "ongoingLosses",
+            "label": "ОРС на продолжающиеся потери",
+            "unit": "мл",
+            "expression": "stoolReplacement + vomitingReplacement",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "maintenanceDaily",
+            "label": "Поддерживающая потребность за сутки",
+            "unit": "мл/сут",
+            "expression": "cond(weightKg <= 10, weightKg * 100, cond(weightKg <= 20, 1000 + (weightKg - 10) * 50, 1500 + (weightKg - 20) * 20))",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "rehydrationFourHours",
+            "label": "Ориентир регидратации за 4 часа",
+            "unit": "мл",
+            "expression": "weightKg * 50",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "clinical-review",
+            "message": "Расчёт не заменяет оценку обезвоживания, электролитов, диуреза и способности ребёнка пить."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Diarrhoea management in children",
+            "publisher": "World Health Organization",
+            "version": "WHO/CAH/03.7",
+            "url": "https://www.who.int/publications/i/item/9241593180",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "ors-who-2005",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Diarrhoea management in children",
+          "url": "https://www.who.int/publications/i/item/9241593180",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "ors-kr-pediatrics",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации по острой диарее у детей",
+          "moduleId": "minimed.clinical.recommendation.925_1",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.bristol-stool-form-scale",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "bristol-stool-form-scale",
+      "title": "Bristol Stool Form Scale",
+      "shortTitle": "Bristol (BSS)",
+      "aliases": [
+        "Bristol Stool Form Scale",
+        "Bristol",
+        "BSS",
+        "Шкала Бристоля"
+      ],
+      "bankId": "gastroenterology",
+      "bankLabel": "Гастроэнтерология",
+      "category": "gastroenterology",
+      "description": "Оценка формы стула по 7-ти типовой шкале и её ориентировочная клиническая трактовка.",
+      "estimatedMinutes": 1,
+      "audience": "Взрослые и дети; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.bristol-stool-form-scale",
+        "slug": "bristol-stool-form-scale",
+        "title": "Bristol Stool Form Scale",
+        "shortTitle": "Bristol (BSS)",
+        "aliases": [
+          "Bristol Stool Form Scale",
+          "Bristol",
+          "BSS",
+          "Шкала Бристоля"
+        ],
+        "summary": "Переключитесь на тип стула по 7-сегментной шкале Бристоля и получите интерпретацию по типичному диапазону консистенции.",
+        "audience": "all",
+        "category": "gastroenterology",
+        "clinical": true,
+        "formulaDisplay": "Интерпретация зависит от выбранного типа по Bristol Stool Form Scale.",
+        "population": "Взрослые и дети при оценке консистенции стула; подходит для симптомной оценки запора/поноса в динамике.",
+        "limitations": [
+          "Это инструмент оценки формы стула и не даёт самостоятельного диагноза.",
+          "Не применяйте как единственный критерий для выбора терапии; учитывайте частоту стула, боли, рвоту, лихорадку и общесоматический статус.",
+          "Результат не заменяет клиническую оценку тяжести, признаков обезвоживания, кровопотери или кровотечения.",
+          "Валидность применима к практической и клинической оценке, но не к оценке неформатированных/неотражающих данных из дневников без контроля качества.",
+          "В неонатальном возрасте интерпретация и пороги отличаются; используйте профиль неонатологии по показаниям."
+        ],
+        "inputs": [
+          {
+            "id": "bristolType",
+            "label": "Тип стула по шкале Бристоля",
+            "unit": "тип",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 1, "label": "1 — отдельные твёрдые комочки (орехи)" },
+              { "value": 2, "label": "2 — колбасообразный, комковатый стул" },
+              { "value": 3, "label": "3 — отдельные мягкие комочки с трещинами" },
+              { "value": 4, "label": "4 — комок/колбаса, гладкая поверхность" },
+              { "value": 5, "label": "5 — мягкие фрагменты с рыхлой структурой" },
+              { "value": 6, "label": "6 — мягкий кашицеобразный" },
+              { "value": 7, "label": "7 — кашица без твёрдых кусочков" }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "selectedBristolType",
+            "label": "Выбранный тип по Bristol",
+            "unit": "тип",
+            "expression": "bristolType",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "clinical-review",
+            "message": "Интерпретация Bristol — только ориентир формы стула; клинические выводы выполняйте вместе с жалобами, длительностью, признаками декомпенсации и лабораторной картиной."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "selectedBristolType <= 2",
+            "message": "Типы 1–2 соответствуют запорной/очень плотной консистенции. При затяжной картине чаще оценивают хронический запор и целесообразность дообследования"
+          },
+          {
+            "when": "selectedBristolType >= 6",
+            "message": "Типы 6–7 соответствуют жидкому или водянисто-рыхлому стулу и чаще ассоциированы с диареей/ускоренным транзитом кишечника"
+          },
+          {
+            "when": "cond(selectedBristolType >= 3, cond(selectedBristolType <= 5, 1, 0), 0)",
+            "message": "Типы 3–5 обычно соответствуют сформированному/нормальному диапазону формы стула."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Bristol Stool Form Scale",
+            "publisher": "Rome Foundation",
+            "version": "Rome Foundation BSS card (2021)",
+            "url": "https://theromefoundation.org/wp-content/uploads/Bristol-Stool-Form-Scale-Card-2021.pdf",
+            "page": "page 1",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "bristol-rome-2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Bristol Stool Form Scale",
+          "url": "https://theromefoundation.org/wp-content/uploads/Bristol-Stool-Form-Scale-Card-2021.pdf",
+          "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "constipation-kr-274-3",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации: Запор",
+          "moduleId": "minimed.clinical.gastro-hepatology.ru",
+          "documentId": "kr.rf.274_3",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    }
+  ]
+}

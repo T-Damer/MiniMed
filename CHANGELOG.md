@@ -4,6 +4,22 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.21] - 2026-08-16
+
+### Added
+
+- Added downloadable tool modules `minimed.tools.neonatology.ru`, `minimed.tools.gastroenterology.ru`, and
+  `minimed.tools.core-clinical.ru` with validated calculator metadata, source links, and offline installables.
+
+### Changed
+
+- Updated release artifacts to publish new calculator modules (`core-clinical`, `gastroenterology`, `neonatology`).
+
+### Technical
+
+- Added tool-module ingestion and install-path plumbing (`004_tools.sql`, `medbase build-tool-module`, and runtime/schema
+  bindings) to keep downloaded calculators in the same offline module framework as documents.
+
 ## [0.6.20] - 2026-08-16
 
 ### Added

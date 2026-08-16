@@ -259,6 +259,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       core: 'Ядро',
       reference: 'Нормы и расчёты',
       regulatory: 'Законы и нормативные акты',
+      tool: 'Калькуляторы и опросники',
     })[section] ?? collectionLabel(section);
   const installedModuleIds = createMemo(
     () => new Set(installed().map((module) => module.moduleId)),
@@ -769,7 +770,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <section class="module-collection">
             <div class="module-collection-heading">
               <h2 class="module-collection-heading__title">Наборы документов</h2>
-              <CountBadge value={5} />
+              <CountBadge value={5 + (regularSectionModules('tool').length > 0 ? 1 : 0)} />
             </div>
             <div class="recommendation-section-grid recommendation-section-grid-compact">
               <Show
@@ -794,7 +795,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   </div>
                 </article>
               </Show>
-              <For each={['reference', 'regulatory']}>
+              <For each={['reference', 'regulatory', 'tool']}>
                 {(section) => {
                   const modules = () => regularSectionModules(section);
                   const installedCount = () =>

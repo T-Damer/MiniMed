@@ -1,3 +1,4 @@
+import { AssessmentDefinitionSchema, type ToolDefinitionRecord } from '@localmed/contracts';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
 export type AssessmentCategory = AssessmentDefinition['category'];
@@ -266,13 +267,68 @@ const ASSESSMENT_LOADERS: Readonly<Record<string, AssessmentLoader>> = {
 };
 
 const definitionPromises = new Map<string, Promise<AssessmentDefinition>>();
+const downloadedAssessments = new Map<string, AssessmentDefinition>();
+
+export function clearDownloadedAssessments(): void {
+  downloadedAssessments.clear();
+  for (const id of definitionPromises.keys()) {
+    if (!ASSESSMENT_CATALOG.some((entry) => entry.id === id)) definitionPromises.delete(id);
+  }
+}
+
+export function getAssessmentCatalog(): readonly AssessmentCatalogEntry[] {
+  return [
+    ...ASSESSMENT_CATALOG.filter((entry) => !downloadedAssessments.has(entry.id)),
+    ...[...downloadedAssessments.values()].map((definition) => ({
+      id: definition.id,
+      slug: definition.slug,
+      title: definition.title,
+      shortTitle: definition.shortTitle,
+      aliases: definition.aliases,
+      bankId: definition.bankId,
+      bankLabel: definition.bankLabel,
+      category: definition.category,
+      description: definition.description,
+      estimatedMinutes: definition.estimatedMinutes,
+      audience: definition.audience,
+    })),
+  ];
+}
+
+export function registerDownloadedAssessment(record: ToolDefinitionRecord): void {
+  if (record.kind !== 'assessment') return;
+  const parsed = AssessmentDefinitionSchema.parse(record.definition);
+  if (parsed.id !== record.id) throw new Error(`Assessment payload does not match ${record.id}.`);
+  const definition: AssessmentDefinition = {
+    ...parsed,
+    license: {
+      kind: parsed.license.kind,
+      notice: parsed.license.notice,
+      ...(parsed.license.sourceUrl ? { sourceUrl: parsed.license.sourceUrl } : {}),
+    },
+    questions: parsed.questions.map((question) => ({
+      id: question.id,
+      prompt: question.prompt,
+      scaleId: question.scaleId,
+      ...(question.reverse === true ? { reverse: true as const } : {}),
+      ...(question.responseOptions ? { responseOptions: question.responseOptions } : {}),
+    })),
+    sourceLinks: record.sources,
+  };
+  downloadedAssessments.set(record.id, definition);
+  definitionPromises.delete(record.id);
+}
 
 export function findAssessmentById(id: string): AssessmentCatalogEntry | undefined {
+  const downloaded = downloadedAssessments.get(id);
+  if (downloaded) {
+    return getAssessmentCatalog().find((assessment) => assessment.id === downloaded.id);
+  }
   return ASSESSMENT_CATALOG.find((assessment) => assessment.id === id);
 }
 
 export function findAssessmentBySlug(slug: string): AssessmentCatalogEntry | undefined {
-  return ASSESSMENT_CATALOG.find((assessment) => assessment.slug === slug);
+  return getAssessmentCatalog().find((assessment) => assessment.slug === slug);
 }
 
 function normalized(value: string): string {
@@ -298,6 +354,12 @@ export function loadAssessmentDefinition(idOrSlug: string): Promise<AssessmentDe
   if (!entry) return Promise.reject(new Error(`Unknown assessment: ${idOrSlug}.`));
   const existing = definitionPromises.get(entry.id);
   if (existing) return existing;
+  const downloaded = downloadedAssessments.get(entry.id);
+  if (downloaded) {
+    const promise = Promise.resolve(validateLoadedDefinition(entry, downloaded));
+    definitionPromises.set(entry.id, promise);
+    return promise;
+  }
   const loader = ASSESSMENT_LOADERS[entry.id];
   if (!loader) return Promise.reject(new Error(`Assessment payload is unavailable: ${entry.id}.`));
   const promise = loader()
@@ -316,9 +378,10 @@ export async function preloadAssessmentDefinitions(ids: readonly string[]): Prom
 
 export function searchAssessments(query: string): readonly AssessmentCatalogEntry[] {
   const needle = normalized(query);
-  if (!needle) return ASSESSMENT_CATALOG;
+  const catalog = getAssessmentCatalog();
+  if (!needle) return catalog;
   const tokens = needle.split(/\s+/u).filter((token) => token.length >= 2);
-  return ASSESSMENT_CATALOG.filter((assessment) => {
+  return catalog.filter((assessment) => {
     const haystack = normalized(
       [assessment.title, assessment.shortTitle, assessment.description, ...assessment.aliases].join(
         ' ',

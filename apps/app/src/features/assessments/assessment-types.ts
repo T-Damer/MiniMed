@@ -1,4 +1,6 @@
-export type AssessmentResponseValue = 0 | 1 | 2 | 3 | 4 | 5;
+import type { ToolSourceLink } from '@localmed/contracts';
+
+export type AssessmentResponseValue = number;
 
 export interface AssessmentResponseOption {
   readonly value: AssessmentResponseValue;
@@ -44,14 +46,7 @@ export interface AssessmentDefinition {
   readonly aliases: readonly string[];
   readonly bankId: string;
   readonly bankLabel: string;
-  readonly category:
-    | 'self-reflection'
-    | 'work-style'
-    | 'team-role'
-    | 'temperament'
-    | 'newborn-screening'
-    | 'perinatal-mood'
-    | 'gynecologic-endocrinology';
+  readonly category: string;
   readonly description: string;
   readonly estimatedMinutes: number;
   readonly audience: string;
@@ -61,6 +56,7 @@ export interface AssessmentDefinition {
   readonly disclaimer: string;
   readonly evidenceNote: string;
   readonly license: AssessmentLicense;
+  readonly sourceLinks?: readonly ToolSourceLink[];
 }
 
 export interface AssessmentScaleScore {

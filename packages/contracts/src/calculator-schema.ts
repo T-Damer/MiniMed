@@ -19,6 +19,10 @@ export const CalculatorCategorySchema = z.enum([
   'screening',
   'obstetrics',
   'gynecology',
+  'emergency',
+  'cardiology',
+  'gastroenterology',
+  'hematology',
 ]);
 
 export const CalculatorSourceReferenceSchema = z.object({

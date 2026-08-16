@@ -1,4 +1,4 @@
-import type { CalculatorSchema } from '@localmed/contracts';
+import type { CalculatorSchema, ToolDefinitionRecord } from '@localmed/contracts';
 import { CalculatorSchemaSchema } from '@localmed/contracts';
 
 import { OBSTETRIC_SCHEMA_CATALOG } from '@/features/calculators/calculator-schema-catalog-obstetrics';
@@ -698,3 +698,25 @@ export const CALCULATOR_SCHEMA_CATALOG: readonly CalculatorSchema[] = [
 export const CALCULATOR_SCHEMA_BY_ID: ReadonlyMap<string, CalculatorSchema> = new Map(
   CALCULATOR_SCHEMA_CATALOG.map((schema) => [schema.id, schema]),
 );
+
+const DOWNLOADED_CALCULATOR_SCHEMAS = new Map<string, CalculatorSchema>();
+
+export function clearDownloadedCalculatorSchemas(): void {
+  DOWNLOADED_CALCULATOR_SCHEMAS.clear();
+}
+
+export function registerDownloadedCalculatorSchema(
+  record: ToolDefinitionRecord,
+): CalculatorSchema | null {
+  if (record.kind !== 'calculator') return null;
+  const schema = CalculatorSchemaSchema.parse(record.definition);
+  if (schema.id !== record.id || schema.slug !== record.slug) {
+    throw new Error(`Calculator payload does not match ${record.id}.`);
+  }
+  DOWNLOADED_CALCULATOR_SCHEMAS.set(record.id, schema);
+  return schema;
+}
+
+export function getCalculatorSchema(id: string): CalculatorSchema | undefined {
+  return DOWNLOADED_CALCULATOR_SCHEMAS.get(id) ?? CALCULATOR_SCHEMA_BY_ID.get(id);
+}

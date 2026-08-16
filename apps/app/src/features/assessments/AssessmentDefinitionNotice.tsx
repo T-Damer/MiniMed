@@ -70,6 +70,32 @@ export function AssessmentDefinitionNotice(props: {
               </a>
             )}
           </Show>
+          <Show when={props.definition.sourceLinks?.length}>
+            <div class="assessment-methodology-body__sources">
+              <strong>Связанные источники</strong>
+              <ul class="assessment-methodology-body__source-list">
+                <For each={props.definition.sourceLinks}>
+                  {(source) => (
+                    <li>
+                      <span>{source.title}</span>
+                      <Show when={source.url}>
+                        {(url) => (
+                          <a
+                            class="assessment-methodology-body__link"
+                            href={url()}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Открыть источник
+                          </a>
+                        )}
+                      </Show>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </div>
+          </Show>
         </div>
       </OverlayDialog>
     </>

@@ -14,12 +14,14 @@ import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQu
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
 import { AssessmentSpecialtyIndexPage } from '@/features/assessments/AssessmentSpecialtyIndexPage';
 import {
-  ASSESSMENT_CATALOG,
   assessmentsInSpecialty,
+  clearDownloadedAssessments,
   findAssessmentBySlug,
   findAssessmentSpecialty,
+  getAssessmentCatalog,
   loadAssessmentDefinition,
   preloadAssessmentDefinitions,
+  registerDownloadedAssessment,
   searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
@@ -40,6 +42,8 @@ import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import {
   ASSESSMENT_RESULTS_EVENT,
   ASSESSMENT_RESULTS_KEY,
@@ -110,8 +114,9 @@ export function AssessmentsView(): JSX.Element {
   const [records, setRecords] = createSignal<readonly AssessmentRecord[]>([]);
   const [notes, setNotes] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [installation, setInstallation] = createSignal<AssessmentInstallationState>(
-    loadAssessmentInstallationState(ASSESSMENT_CATALOG),
+    loadAssessmentInstallationState(getAssessmentCatalog()),
   );
+  const [assessmentCatalog, setAssessmentCatalog] = createSignal(getAssessmentCatalog());
   const [loadedDefinition, setLoadedDefinition] = createSignal<AssessmentDefinition>();
   const [definitionLoading, setDefinitionLoading] = createSignal(false);
   const [definitionError, setDefinitionError] = createSignal('');
@@ -128,6 +133,7 @@ export function AssessmentsView(): JSX.Element {
     readonly title: string;
   } | null>(null);
   let definitionRequest = 0;
+  let unsubscribeToolTasks: (() => void) | undefined;
 
   const refreshRecords = (): void => {
     setRecords(loadAssessmentRecords());
@@ -136,7 +142,15 @@ export function AssessmentsView(): JSX.Element {
     setNotes(loadPatientNotes());
   };
   const refreshPacks = (): void => {
-    setInstallation(loadAssessmentInstallationState(ASSESSMENT_CATALOG));
+    setInstallation(loadAssessmentInstallationState(assessmentCatalog()));
+  };
+  const refreshDownloadedTools = async (): Promise<void> => {
+    const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    const definitions = await runtime.listInstalledToolDefinitions();
+    clearDownloadedAssessments();
+    definitions.forEach(registerDownloadedAssessment);
+    setAssessmentCatalog(getAssessmentCatalog());
+    refreshPacks();
   };
   const handleHashChange = (): void => {
     const route = window.location.hash.replace(/^#\/?/u, '');
@@ -146,6 +160,7 @@ export function AssessmentsView(): JSX.Element {
     // silently discarding whatever answers the user had already entered.
     if (route !== '' && route !== 'assessments' && !route.startsWith('assessments/')) return;
     setRoute(readRoute());
+    void refreshDownloadedTools();
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
@@ -163,10 +178,19 @@ export function AssessmentsView(): JSX.Element {
     window.addEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
     window.addEventListener(PATIENT_NOTES_EVENT, refreshNotes);
     window.addEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
+    unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
+      if (task.state === 'completed') void refreshDownloadedTools();
+    });
+    void refreshDownloadedTools().catch((cause: unknown) => {
+      setMessage(
+        cause instanceof Error ? cause.message : 'Не удалось прочитать скачанные инструменты.',
+      );
+    });
   });
 
   onCleanup(() => {
     definitionRequest += 1;
+    unsubscribeToolTasks?.();
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('storage', handleStorage);
     window.removeEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
@@ -246,12 +270,12 @@ export function AssessmentsView(): JSX.Element {
   const installDefinition = (id: string): void => {
     void installIds(
       [id],
-      () => installAssessmentIds([id], ASSESSMENT_CATALOG),
+      () => installAssessmentIds([id], assessmentCatalog()),
       'Опросник скачан на устройство.',
     );
   };
   const removeDefinition = (id: string): void => {
-    const next = removeAssessmentIds([id], ASSESSMENT_CATALOG);
+    const next = removeAssessmentIds([id], assessmentCatalog());
     setInstallation(next);
     const requiredBy = assessmentRequiredByModules(id, next);
     setMessage(
@@ -261,22 +285,22 @@ export function AssessmentsView(): JSX.Element {
     );
   };
   const installSection = (sectionId: AssessmentSectionId): void => {
-    const ids = assessmentIdsInSection(sectionId, ASSESSMENT_CATALOG);
+    const ids = assessmentIdsInSection(sectionId, assessmentCatalog());
     void installIds(
       ids,
-      () => installAssessmentSection(sectionId, ASSESSMENT_CATALOG),
+      () => installAssessmentSection(sectionId, assessmentCatalog()),
       'Раздел опросников скачан на устройство.',
     );
   };
   const removeSection = (sectionId: AssessmentSectionId): void => {
-    const next = removeAssessmentSection(sectionId, ASSESSMENT_CATALOG);
+    const next = removeAssessmentSection(sectionId, assessmentCatalog());
     setInstallation(next);
     setMessage(
       'Раздел удалён с устройства. Отдельно скачанные и необходимые базе знаний опросники сохранены.',
     );
   };
   const requestDeleteDefinition = (id: string): void => {
-    const title = ASSESSMENT_CATALOG.find((definition) => definition.id === id)?.shortTitle ?? id;
+    const title = assessmentCatalog().find((definition) => definition.id === id)?.shortTitle ?? id;
     setPendingDeletion({ kind: 'assessment', id, title });
   };
   const requestDeleteSection = (sectionId: AssessmentSectionId): void => {
@@ -331,7 +355,7 @@ export function AssessmentsView(): JSX.Element {
 
       <Show when={route().kind === 'index'}>
         <AssessmentSpecialtyIndexPage
-          definitions={ASSESSMENT_CATALOG}
+          definitions={assessmentCatalog()}
           matches={query().trim() ? searchAssessments(query()) : []}
           installation={installation()}
           query={query()}

@@ -3,6 +3,8 @@ import {
   ContentPackSeedSchema,
   type EmbeddingProfile,
   type SearchFilters,
+  type ToolDefinitionRecord,
+  ToolDefinitionRecordSchema,
 } from '@localmed/contracts';
 import {
   type AliasRecord,
@@ -739,6 +741,57 @@ export class SqliteMedicalStore implements MedicalStore {
       ),
       embeddingCount: Number(this.database.selectValue('SELECT count(*) FROM chunk_embeddings')),
     };
+  }
+
+  public async listToolDefinitions(): Promise<readonly ToolDefinitionRecord[]> {
+    this.assertInitialized();
+    const sourcesByTool = new Map<string, ToolDefinitionRecord['sources'][number][]>();
+    for (const row of queryRows(
+      this.database,
+      `SELECT id, tool_id, source_kind, relation, title, module_id, document_id, url, reviewed_at
+       FROM tool_sources ORDER BY tool_id, id`,
+    )) {
+      const toolId = readString(row, 'tool_id');
+      const sources = sourcesByTool.get(toolId) ?? [];
+      sources.push({
+        id: readString(row, 'id'),
+        kind: readString(row, 'source_kind') as ToolDefinitionRecord['sources'][number]['kind'],
+        relation: readString(
+          row,
+          'relation',
+        ) as ToolDefinitionRecord['sources'][number]['relation'],
+        title: readString(row, 'title'),
+        moduleId: readNullableString(row, 'module_id'),
+        documentId: readNullableString(row, 'document_id'),
+        url: readNullableString(row, 'url'),
+        reviewedAt: readString(row, 'reviewed_at'),
+      });
+      sourcesByTool.set(toolId, sources);
+    }
+    return queryRows(
+      this.database,
+      `SELECT id, kind, version, slug, title, short_title, aliases_json, bank_id, bank_label,
+              category, description, estimated_minutes, audience, definition_json
+       FROM tool_definitions ORDER BY title, id`,
+    ).map((row) =>
+      ToolDefinitionRecordSchema.parse({
+        id: readString(row, 'id'),
+        kind: readString(row, 'kind'),
+        version: readString(row, 'version'),
+        slug: readString(row, 'slug'),
+        title: readString(row, 'title'),
+        shortTitle: readString(row, 'short_title'),
+        aliases: parseJsonStringArray(readString(row, 'aliases_json')),
+        bankId: readString(row, 'bank_id'),
+        bankLabel: readString(row, 'bank_label'),
+        category: readString(row, 'category'),
+        description: readString(row, 'description'),
+        estimatedMinutes: readNullableNumber(row, 'estimated_minutes'),
+        audience: readString(row, 'audience'),
+        definition: JSON.parse(readString(row, 'definition_json')) as Record<string, unknown>,
+        sources: sourcesByTool.get(readString(row, 'id')) ?? [],
+      }),
+    );
   }
 
   public async close(): Promise<void> {

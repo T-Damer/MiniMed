@@ -34,9 +34,19 @@ const SECTION_IDS = new Set<CalculatorSectionId>([
   'screening',
   'obstetrics',
   'gynecology',
+  'emergency',
+  'cardiology',
+  'gastroenterology',
+  'hematology',
 ]);
 
 export const CALCULATOR_PACKS_EVENT = 'minimed:calculator-packs-changed';
+let databaseCalculatorIds: ReadonlySet<string> = new Set();
+
+export function setDatabaseCalculatorIds(ids: readonly string[]): void {
+  databaseCalculatorIds = new Set(ids);
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(CALCULATOR_PACKS_EVENT));
+}
 
 /**
  * Calculators with no specialty tie (unlike renal/obstetrics/etc.) that stay usable without an
@@ -60,6 +70,10 @@ export const CALCULATOR_SECTION_CATEGORY_IDS: Readonly<
   screening: [],
   obstetrics: ['minimed.clinical.obstetrics-gynecology.ru'],
   gynecology: ['minimed.clinical.obstetrics-gynecology.ru'],
+  emergency: ['minimed.clinical.pediatrics.surgery-trauma'],
+  cardiology: [],
+  gastroenterology: ['minimed.clinical.pediatrics.gastro-nutrition'],
+  hematology: [],
 };
 
 export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
@@ -97,6 +111,26 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
     id: 'gynecology',
     title: 'Гинекология',
     description: 'Онкологический скрининг и другие гинекологические расчёты.',
+  },
+  {
+    id: 'emergency',
+    title: 'Неотложная помощь',
+    description: 'Электролиты, кислотно-основное состояние, шок и ожоговая травма.',
+  },
+  {
+    id: 'cardiology',
+    title: 'Кардиология',
+    description: 'Риск инсульта при фибрилляции предсердий и коррекция QT.',
+  },
+  {
+    id: 'gastroenterology',
+    title: 'Гастроэнтерология',
+    description: 'Неинвазивные индексы фиброза и оценка функции печени.',
+  },
+  {
+    id: 'hematology',
+    title: 'Гематология',
+    description: 'Базовые расчёты нейтрофилов, ретикулоцитов и эритроцитарных индексов.',
   },
 ];
 
@@ -155,7 +189,8 @@ function installedIdsFromSections(
           definition.state === 'available' &&
           (CORE_CALCULATOR_IDS.has(definition.id) ||
             sectionIds.has(definition.category) ||
-            calculatorIds.has(definition.id)),
+            calculatorIds.has(definition.id) ||
+            databaseCalculatorIds.has(definition.id)),
       )
       .map((definition) => definition.id),
   );

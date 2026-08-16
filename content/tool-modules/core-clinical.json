@@ -1,0 +1,1881 @@
+{
+  "id": "minimed.tools.core-clinical.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Базовые клинические расчёты",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-15T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.calculator.cockcroft-gault",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "cockcroft-gault-creatinine-clearance",
+      "title": "Клиренс креатинина — Cockcroft–Gault",
+      "shortTitle": "Cockcroft–Gault",
+      "aliases": ["Cockcroft-Gault", "клиренс креатинина", "CrCl"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "renal",
+      "description": "Оценка клиренса креатинина по формуле Cockcroft–Gault у взрослых.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые; применяется специалистом с учётом массы тела и инструкции препарата",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.cockcroft-gault",
+        "slug": "cockcroft-gault-creatinine-clearance",
+        "title": "Клиренс креатинина — Cockcroft–Gault",
+        "shortTitle": "Cockcroft–Gault",
+        "aliases": ["Cockcroft-Gault", "клиренс креатинина", "CrCl"],
+        "summary": "Оценка клиренса креатинина по формуле Cockcroft–Gault у взрослых.",
+        "audience": "adult",
+        "category": "renal",
+        "clinical": true,
+        "formulaDisplay": "((140 − возраст) × масса) / (72 × Scr) × 0,85 для женщин",
+        "population": "Взрослые со стабильным креатинином; масса вводится в килограммах, креатинин — в мг/дл или мкмоль/л.",
+        "limitations": [
+          "Это оценка клиренса, а не измеренный клиренс и не индексированная СКФ.",
+          "При быстро меняющемся креатинине, крайних значениях массы и отёках выбор массы тела требует клинического решения.",
+          "Для дозирования используйте формулу и популяцию из инструкции конкретного препарата."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 400,
+            "required": true
+          },
+          {
+            "id": "creatinine",
+            "label": "Креатинин",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 30,
+            "required": true
+          },
+          {
+            "id": "creatinineUnit",
+            "label": "Единица креатинина",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": "mg/dl", "label": "мг/дл" },
+              { "value": "umol/l", "label": "мкмоль/л" }
+            ]
+          },
+          {
+            "id": "sex",
+            "label": "Пол",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": "male", "label": "Мужской" },
+              { "value": "female", "label": "Женский" }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "scrMgDl",
+            "label": "Креатинин в единицах формулы",
+            "unit": "мг/дл",
+            "expression": "cond(creatinineUnit == \"mg/dl\", creatinine, creatinine / 88.4)",
+            "displayPrecision": 2
+          },
+          {
+            "id": "sexFactor",
+            "label": "Поправка по полу",
+            "unit": "безразмерно",
+            "expression": "cond(sex == \"female\", 0.85, 1)",
+            "displayPrecision": 2
+          },
+          {
+            "id": "creatinineClearance",
+            "label": "Расчётный клиренс креатинина",
+            "unit": "мл/мин",
+            "expression": "((140 - ageYears) * weightKg / (72 * scrMgDl)) * sexFactor",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "not-egfr",
+            "message": "Клиренс Cockcroft–Gault не равен индексированной СКФ CKD-EPI."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Prediction of creatinine clearance from serum creatinine",
+            "publisher": "Nephron / PubMed",
+            "version": "Cockcroft–Gault 1976",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1244564/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "cockcroft-gault-1976",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Prediction of creatinine clearance from serum creatinine",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/1244564/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.fractional-excretion-sodium",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "fractional-excretion-sodium",
+      "title": "Фракционная экскреция натрия",
+      "shortTitle": "FeNa",
+      "aliases": ["FeNa", "FENa", "фракционная экскреция натрия"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "renal",
+      "description": "Расчёт FeNa по парным образцам плазмы и мочи.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые и дети; интерпретация зависит от клинического контекста и диуретиков",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.fractional-excretion-sodium",
+        "slug": "fractional-excretion-sodium",
+        "title": "Фракционная экскреция натрия",
+        "shortTitle": "FeNa",
+        "aliases": ["FeNa", "FENa", "фракционная экскреция натрия"],
+        "summary": "Расчёт FeNa по парным образцам плазмы и мочи.",
+        "audience": "all",
+        "category": "renal",
+        "clinical": true,
+        "formulaDisplay": "FeNa = (UᵥNa × PᵥCr) / (PᵥNa × UᵥCr) × 100%",
+        "population": "Пациенты с парными измерениями натрия и креатинина в плазме и моче.",
+        "limitations": [
+          "Диуретики, ХБП, контраст, обструкция и сепсис меняют интерпретацию.",
+          "Один индекс не устанавливает причину острого повреждения почек.",
+          "Единицы натрия и креатинина должны быть одинаковыми в соответствующих парах."
+        ],
+        "inputs": [
+          {
+            "id": "urineSodium",
+            "label": "Натрий мочи",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 1000,
+            "required": true
+          },
+          {
+            "id": "plasmaSodium",
+            "label": "Натрий плазмы",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 300,
+            "required": true
+          },
+          {
+            "id": "urineCreatinine",
+            "label": "Креатинин мочи",
+            "unit": "единица лаборатории",
+            "kind": "number",
+            "minimum": 0.001,
+            "required": true
+          },
+          {
+            "id": "plasmaCreatinine",
+            "label": "Креатинин плазмы",
+            "unit": "та же единица",
+            "kind": "number",
+            "minimum": 0.001,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "fena",
+            "label": "Фракционная экскреция натрия",
+            "unit": "%",
+            "expression": "urineSodium * plasmaCreatinine / (plasmaSodium * urineCreatinine) * 100",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "context",
+            "message": "Не используйте пороги FeNa без учёта диуретиков и клинического контекста."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Fractional excretion of sodium in hepatorenal syndrome",
+            "publisher": "PubMed",
+            "version": "Clinical context review",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/28008340/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "fena-context",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Fractional excretion of sodium in hepatorenal syndrome",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28008340/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.fractional-excretion-urea",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "fractional-excretion-urea",
+      "title": "Фракционная экскреция мочевины",
+      "shortTitle": "FeUrea",
+      "aliases": ["FeUrea", "FE мочевины", "фракционная экскреция мочевины"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "renal",
+      "description": "Расчёт FeUrea по парным образцам мочи и плазмы.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые и дети; интерпретация требует оценки причин острого повреждения почек",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.fractional-excretion-urea",
+        "slug": "fractional-excretion-urea",
+        "title": "Фракционная экскреция мочевины",
+        "shortTitle": "FeUrea",
+        "aliases": ["FeUrea", "FE мочевины", "фракционная экскреция мочевины"],
+        "summary": "Расчёт FeUrea по парным образцам мочи и плазмы.",
+        "audience": "all",
+        "category": "renal",
+        "clinical": true,
+        "formulaDisplay": "FeUrea = (UᵥUrea × PᵥCr) / (PᵥUrea × UᵥCr) × 100%",
+        "population": "Пациенты с парными измерениями мочевины и креатинина в плазме и моче.",
+        "limitations": [
+          "Не заменяет клиническую оценку острого повреждения почек.",
+          "Диуретики, питание, катаболизм и ХБП влияют на результат.",
+          "Единицы мочевины и креатинина должны быть одинаковыми в соответствующих парах."
+        ],
+        "inputs": [
+          {
+            "id": "urineUrea",
+            "label": "Мочевина мочи",
+            "unit": "единица лаборатории",
+            "kind": "number",
+            "minimum": 0.001,
+            "required": true
+          },
+          {
+            "id": "plasmaUrea",
+            "label": "Мочевина плазмы",
+            "unit": "та же единица",
+            "kind": "number",
+            "minimum": 0.001,
+            "required": true
+          },
+          {
+            "id": "urineCreatinine",
+            "label": "Креатинин мочи",
+            "unit": "единица лаборатории",
+            "kind": "number",
+            "minimum": 0.001,
+            "required": true
+          },
+          {
+            "id": "plasmaCreatinine",
+            "label": "Креатинин плазмы",
+            "unit": "та же единица",
+            "kind": "number",
+            "minimum": 0.001,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "feurea",
+            "label": "Фракционная экскреция мочевины",
+            "unit": "%",
+            "expression": "urineUrea * plasmaCreatinine / (plasmaUrea * urineCreatinine) * 100",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "context",
+            "message": "Пороговые значения FeUrea не являются самостоятельным диагнозом."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Fractional excretion indices in acute kidney injury",
+            "publisher": "National Kidney Foundation",
+            "version": "Clinical reference",
+            "url": "https://www.kidney.org/atoz/content/acutekidneyinjury",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "feurea-aki",
+          "kind": "guideline",
+          "relation": "clinical-context",
+          "title": "Acute kidney injury clinical reference",
+          "url": "https://www.kidney.org/atoz/content/acutekidneyinjury",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.pediatric-urine-output",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "pediatric-urine-output",
+      "title": "Диурез по массе",
+      "shortTitle": "Диурез",
+      "aliases": ["диурез мл кг час", "почасовой диурез", "urine output"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "fluids",
+      "description": "Пересчёт измеренного объёма мочи на массу тела и время наблюдения.",
+      "estimatedMinutes": 1,
+      "audience": "Дети и взрослые; особенно полезно при наблюдении в стационаре",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.pediatric-urine-output",
+        "slug": "pediatric-urine-output",
+        "title": "Диурез по массе",
+        "shortTitle": "Диурез",
+        "aliases": ["диурез мл кг час", "почасовой диурез", "urine output"],
+        "summary": "Пересчёт измеренного объёма мочи на массу тела и время наблюдения.",
+        "audience": "all",
+        "category": "fluids",
+        "clinical": true,
+        "formulaDisplay": "Диурез = объём мочи / (масса × часы наблюдения)",
+        "population": "Пациенты с измеренным объёмом мочи, массой и длительностью наблюдения.",
+        "limitations": [
+          "Оценка зависит от точности измерения и полноты сбора мочи.",
+          "Порог олигурии зависит от возраста, состояния и протокола.",
+          "Результат не заменяет оценку перфузии и функции почек."
+        ],
+        "inputs": [
+          {
+            "id": "urineVolumeMl",
+            "label": "Объём мочи",
+            "unit": "мл",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 100000,
+            "required": true
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 500,
+            "required": true
+          },
+          {
+            "id": "hours",
+            "label": "Период наблюдения",
+            "unit": "ч",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 720,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "urineOutput",
+            "label": "Диурез",
+            "unit": "мл/кг/ч",
+            "expression": "urineVolumeMl / (weightKg * hours)",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "clinical-threshold",
+            "message": "Пороговые значения олигурии и анурии выбираются по возрасту и клиническому протоколу."
+          }
+        ],
+        "sources": [
+          {
+            "title": "KDIGO Clinical Practice Guideline for Acute Kidney Injury",
+            "publisher": "KDIGO",
+            "version": "2012",
+            "url": "https://kdigo.org/guidelines/acute-kidney-injury/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "kdigo-aki-urine-output",
+          "kind": "guideline",
+          "relation": "clinical-context",
+          "title": "KDIGO Clinical Practice Guideline for Acute Kidney Injury",
+          "url": "https://kdigo.org/guidelines/acute-kidney-injury/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.anion-gap",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "anion-gap-albumin-corrected",
+      "title": "Анионная разница с поправкой на альбумин",
+      "shortTitle": "Anion gap",
+      "aliases": ["anion gap", "анионный разрыв", "анионная разница", "AG"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "emergency",
+      "description": "Расчёт обычной и альбумин-корректированной анионной разницы без калия.",
+      "estimatedMinutes": 2,
+      "audience": "Дети и взрослые; анализ кислотно-основного состояния специалистом",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.anion-gap",
+        "slug": "anion-gap-albumin-corrected",
+        "title": "Анионная разница с поправкой на альбумин",
+        "shortTitle": "Anion gap",
+        "aliases": ["anion gap", "анионный разрыв", "анионная разница", "AG"],
+        "summary": "Расчёт обычной и альбумин-корректированной анионной разницы без калия.",
+        "audience": "all",
+        "category": "emergency",
+        "clinical": true,
+        "formulaDisplay": "AG = Na − Cl − HCO₃; AGcorr = AG + 2,5 × (4 − альбумин в г/дл)",
+        "population": "Пациенты с одновременными значениями натрия, хлорида, бикарбоната и альбумина.",
+        "limitations": [
+          "Используйте единицы ммоль/л для электролитов и г/дл для альбумина.",
+          "Поправка не заменяет полный анализ кислотно-основного состояния.",
+          "Референсный диапазон зависит от лабораторного метода."
+        ],
+        "inputs": [
+          {
+            "id": "sodium",
+            "label": "Натрий",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 250,
+            "required": true
+          },
+          {
+            "id": "chloride",
+            "label": "Хлорид",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 200,
+            "required": true
+          },
+          {
+            "id": "bicarbonate",
+            "label": "Бикарбонат",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "required": true
+          },
+          {
+            "id": "albumin",
+            "label": "Альбумин",
+            "unit": "г/дл",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 10,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "anionGap",
+            "label": "Анионная разница",
+            "unit": "ммоль/л",
+            "expression": "sodium - chloride - bicarbonate",
+            "displayPrecision": 1
+          },
+          {
+            "id": "correctedAnionGap",
+            "label": "Анионная разница с поправкой на альбумин",
+            "unit": "ммоль/л",
+            "expression": "anionGap + 2.5 * (4 - albumin)",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "acid-base",
+            "message": "Анионная разница — часть оценки кислотно-основного состояния, а не самостоятельный диагноз."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Correction of the anion gap for albumin in order to detect occult tissue anions in shock",
+            "publisher": "Archives of Disease in Childhood / PubMed",
+            "version": "2002",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/12456555/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "anion-gap-albumin-2002",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Correction of the anion gap for albumin in order to detect occult tissue anions in shock",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12456555/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.corrected-sodium-hyperglycemia",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "corrected-sodium-hyperglycemia",
+      "title": "Скорректированный натрий при гипергликемии",
+      "shortTitle": "Натрий при гипергликемии",
+      "aliases": ["corrected sodium", "скорректированный натрий", "гипергликемия натрий"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "emergency",
+      "description": "Оценка натрия с поправкой на гипергликемию по коэффициенту Hillier.",
+      "estimatedMinutes": 2,
+      "audience": "Дети и взрослые; используется вместе с оценкой осмолярности и состояния пациента",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.corrected-sodium-hyperglycemia",
+        "slug": "corrected-sodium-hyperglycemia",
+        "title": "Скорректированный натрий при гипергликемии",
+        "shortTitle": "Натрий при гипергликемии",
+        "aliases": ["corrected sodium", "скорректированный натрий", "гипергликемия натрий"],
+        "summary": "Оценка натрия с поправкой на гипергликемию по коэффициенту Hillier.",
+        "audience": "all",
+        "category": "emergency",
+        "clinical": true,
+        "formulaDisplay": "Na корр. = Na измеренный + 0,024 × (глюкоза мг/дл − 100)",
+        "population": "Пациенты с измеренными натрием и глюкозой; глюкоза вводится в мг/дл или ммоль/л.",
+        "limitations": [
+          "Поправочный коэффициент может отличаться в разных протоколах.",
+          "Не определяет объём и скорость инфузии.",
+          "При тяжёлой гипергликемии необходимы частые повторные измерения и клинический мониторинг."
+        ],
+        "inputs": [
+          {
+            "id": "sodium",
+            "label": "Натрий",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 250,
+            "required": true
+          },
+          {
+            "id": "glucose",
+            "label": "Глюкоза",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 2000,
+            "required": true
+          },
+          {
+            "id": "glucoseUnit",
+            "label": "Единица глюкозы",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": "mg/dl", "label": "мг/дл" },
+              { "value": "mmol/l", "label": "ммоль/л" }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "glucoseMgDl",
+            "label": "Глюкоза в мг/дл",
+            "unit": "мг/дл",
+            "expression": "cond(glucoseUnit == \"mg/dl\", glucose, glucose * 18)",
+            "displayPrecision": 0
+          },
+          {
+            "id": "correctedSodium",
+            "label": "Скорректированный натрий",
+            "unit": "ммоль/л",
+            "expression": "sodium + 0.024 * (glucoseMgDl - 100)",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "coefficient",
+            "message": "Использован коэффициент 2,4 ммоль/л на каждые 100 мг/дл глюкозы сверх 100; другие протоколы могут использовать иной коэффициент."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Hyponatremia: evaluating the correction factor for hyperglycemia",
+            "publisher": "American Journal of Medicine / PubMed",
+            "version": "Hillier 1999",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/10225241/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "hillier-sodium-1999",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Hyponatremia: evaluating the correction factor for hyperglycemia",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10225241/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.effective-osmolality",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "effective-plasma-osmolality",
+      "title": "Эффективная и расчётная осмолярность",
+      "shortTitle": "Осмолярность",
+      "aliases": ["effective osmolality", "осмолярность плазмы", "тоничность"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "emergency",
+      "description": "Расчёт эффективной осмолярности и осмолярности по натрию, глюкозе и мочевине.",
+      "estimatedMinutes": 2,
+      "audience": "Дети и взрослые; оценка гиперосмолярных состояний специалистом",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.effective-osmolality",
+        "slug": "effective-plasma-osmolality",
+        "title": "Эффективная и расчётная осмолярность",
+        "shortTitle": "Осмолярность",
+        "aliases": ["effective osmolality", "осмолярность плазмы", "тоничность"],
+        "summary": "Расчёт эффективной осмолярности и осмолярности по натрию, глюкозе и мочевине.",
+        "audience": "all",
+        "category": "emergency",
+        "clinical": true,
+        "formulaDisplay": "Эффективная = 2 × Na + глюкоза/18; расчётная = 2 × Na + глюкоза/18 + BUN/2,8",
+        "population": "Пациенты с натрием в ммоль/л, глюкозой и BUN в мг/дл.",
+        "limitations": [
+          "Единицы глюкозы и BUN должны быть мг/дл.",
+          "Эффективная осмолярность исключает вклад мочевины и отражает тоничность приблизительно.",
+          "При необычных осмотически активных веществах формула неполна."
+        ],
+        "inputs": [
+          {
+            "id": "sodium",
+            "label": "Натрий",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 250,
+            "required": true
+          },
+          {
+            "id": "glucose",
+            "label": "Глюкоза",
+            "unit": "мг/дл",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 2000,
+            "required": true
+          },
+          {
+            "id": "bun",
+            "label": "BUN / азот мочевины",
+            "unit": "мг/дл",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 500,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "effectiveOsmolality",
+            "label": "Эффективная осмолярность",
+            "unit": "мОсм/кг",
+            "expression": "2 * sodium + glucose / 18",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "calculatedOsmolality",
+            "label": "Расчётная осмолярность",
+            "unit": "мОсм/кг",
+            "expression": "effectiveOsmolality + bun / 2.8",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "tonicity",
+            "message": "Эффективная осмолярность — ориентир тоничности; клиническая интерпретация зависит от симптомов и динамики."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Hyperosmolar hyperglycemic state in adults",
+            "publisher": "American Diabetes Association",
+            "version": "Clinical practice reference",
+            "url": "https://diabetesjournals.org/care/article/27/suppl_1/s94/23995/Hyperglycemic-Crises-in-Diabetes",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "osmolality-diabetes-reference",
+          "kind": "guideline",
+          "relation": "clinical-context",
+          "title": "Hyperglycemic crises in diabetes",
+          "url": "https://diabetesjournals.org/care/article/27/suppl_1/s94/23995/Hyperglycemic-Crises-in-Diabetes",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.winter-formula",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "winters-formula-metabolic-acidosis",
+      "title": "Формула Winter для метаболического ацидоза",
+      "shortTitle": "Winter",
+      "aliases": ["Winter's formula", "формула Винтера", "компенсация ацидоза"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "emergency",
+      "description": "Ожидаемый PaCO₂ при метаболическом ацидозе по концентрации бикарбоната.",
+      "estimatedMinutes": 1,
+      "audience": "Дети и взрослые; интерпретация газов крови специалистом",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.winter-formula",
+        "slug": "winters-formula-metabolic-acidosis",
+        "title": "Формула Winter для метаболического ацидоза",
+        "shortTitle": "Winter",
+        "aliases": ["Winter's formula", "формула Винтера", "компенсация ацидоза"],
+        "summary": "Ожидаемый PaCO₂ при метаболическом ацидозе по концентрации бикарбоната.",
+        "audience": "all",
+        "category": "emergency",
+        "clinical": true,
+        "formulaDisplay": "Ожидаемый PaCO₂ = 1,5 × HCO₃ + 8 ± 2 мм рт. ст.",
+        "population": "Пациенты с метаболическим ацидозом и измеренным бикарбонатом.",
+        "limitations": [
+          "Формула не подтверждает тип расстройства без анализа pH, PaCO₂ и клинических данных.",
+          "При смешанных нарушениях ожидаемый диапазон может не описывать реальную компенсацию."
+        ],
+        "inputs": [
+          {
+            "id": "bicarbonate",
+            "label": "Бикарбонат",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 50,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "expectedPco2",
+            "label": "Ожидаемый PaCO₂",
+            "unit": "мм рт. ст.",
+            "expression": "1.5 * bicarbonate + 8",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "lowerRange",
+            "label": "Нижняя граница",
+            "unit": "мм рт. ст.",
+            "expression": "expectedPco2 - 2",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "upperRange",
+            "label": "Верхняя граница",
+            "unit": "мм рт. ст.",
+            "expression": "expectedPco2 + 2",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "blood-gas",
+            "message": "Сопоставьте результат с pH, фактическим PaCO₂ и клинической картиной."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Clinical physiology of metabolic acidosis",
+            "publisher": "PubMed",
+            "version": "Metabolic acidosis physiology",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/14007617/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "winters-acid-base",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Clinical physiology of metabolic acidosis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14007617/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.fib-4",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "fib-4-liver-fibrosis-index",
+      "title": "FIB-4 — индекс фиброза печени",
+      "shortTitle": "FIB-4",
+      "aliases": ["FIB4", "FIB-4", "индекс фиброза"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "gastroenterology",
+      "description": "Неинвазивный индекс, рассчитанный по возрасту, AST, ALT и тромбоцитам.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые; оценка риска фиброза при заболеваниях печени",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.fib-4",
+        "slug": "fib-4-liver-fibrosis-index",
+        "title": "FIB-4 — индекс фиброза печени",
+        "shortTitle": "FIB-4",
+        "aliases": ["FIB4", "FIB-4", "индекс фиброза"],
+        "summary": "Неинвазивный индекс, рассчитанный по возрасту, AST, ALT и тромбоцитам.",
+        "audience": "adult",
+        "category": "gastroenterology",
+        "clinical": true,
+        "formulaDisplay": "FIB-4 = возраст × AST / (тромбоциты × √ALT)",
+        "population": "Взрослые с лабораторными значениями AST и ALT в Ед/л и тромбоцитов в 10⁹/л.",
+        "limitations": [
+          "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
+          "Возраст и острое воспаление могут существенно влиять на результат.",
+          "Пороговые значения зависят от популяции и клинической задачи."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true
+          },
+          {
+            "id": "ast",
+            "label": "AST / АСТ",
+            "unit": "Ед/л",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 10000,
+            "required": true
+          },
+          {
+            "id": "alt",
+            "label": "ALT / АЛТ",
+            "unit": "Ед/л",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 10000,
+            "required": true
+          },
+          {
+            "id": "platelets",
+            "label": "Тромбоциты",
+            "unit": "10⁹/л",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 2000,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "fib4",
+            "label": "Индекс FIB-4",
+            "unit": "балла",
+            "expression": "ageYears * ast / (platelets * sqrt(alt))",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "not-diagnosis",
+            "message": "FIB-4 — стратификационный индекс, а не диагноз цирроза или фиброза."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Development of a simple noninvasive index to predict significant fibrosis",
+            "publisher": "Hepatology / PubMed",
+            "version": "Sterling 2006",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16729309/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "fib4-sterling-2006",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Development of a simple noninvasive index to predict significant fibrosis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16729309/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.apri",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "apri-liver-fibrosis-index",
+      "title": "APRI — индекс AST к тромбоцитам",
+      "shortTitle": "APRI",
+      "aliases": ["APRI", "AST platelet ratio index", "индекс APRI"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "gastroenterology",
+      "description": "Неинвазивный индекс по AST, верхней границе нормы AST и тромбоцитам.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые; оценка риска фиброза при заболеваниях печени",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.apri",
+        "slug": "apri-liver-fibrosis-index",
+        "title": "APRI — индекс AST к тромбоцитам",
+        "shortTitle": "APRI",
+        "aliases": ["APRI", "AST platelet ratio index", "индекс APRI"],
+        "summary": "Неинвазивный индекс по AST, верхней границе нормы AST и тромбоцитам.",
+        "audience": "adult",
+        "category": "gastroenterology",
+        "clinical": true,
+        "formulaDisplay": "APRI = (AST / верхняя граница AST) × 100 / тромбоциты",
+        "population": "Взрослые с AST и верхней границей нормы в одинаковых единицах, тромбоциты в 10⁹/л.",
+        "limitations": [
+          "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
+          "Верхняя граница нормы зависит от лаборатории.",
+          "Острое воспаление и тромбоцитопения другой причины искажают результат."
+        ],
+        "inputs": [
+          {
+            "id": "ast",
+            "label": "AST / АСТ",
+            "unit": "Ед/л",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 10000,
+            "required": true
+          },
+          {
+            "id": "astUpperLimit",
+            "label": "Верхняя граница AST",
+            "unit": "Ед/л",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 1000,
+            "required": true
+          },
+          {
+            "id": "platelets",
+            "label": "Тромбоциты",
+            "unit": "10⁹/л",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 2000,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "apri",
+            "label": "Индекс APRI",
+            "unit": "балла",
+            "expression": "ast / astUpperLimit * 100 / platelets",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "not-diagnosis",
+            "message": "APRI — стратификационный индекс, а не диагноз цирроза или фиброза."
+          }
+        ],
+        "sources": [
+          {
+            "title": "A simple noninvasive index can predict both significant fibrosis and cirrhosis",
+            "publisher": "Hepatology / PubMed",
+            "version": "Wai 2003",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/12883497/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "apri-wai-2003",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "A simple noninvasive index can predict both significant fibrosis and cirrhosis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12883497/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.absolute-neutrophil-count",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "absolute-neutrophil-count",
+      "title": "Абсолютное число нейтрофилов",
+      "shortTitle": "ANC",
+      "aliases": ["ANC", "absolute neutrophil count", "абсолютные нейтрофилы"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "hematology",
+      "description": "Пересчёт общего числа лейкоцитов и доли сегментоядерных и палочкоядерных форм в ANC.",
+      "estimatedMinutes": 1,
+      "audience": "Дети и взрослые; оценка нейтропении специалистом",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.absolute-neutrophil-count",
+        "slug": "absolute-neutrophil-count",
+        "title": "Абсолютное число нейтрофилов",
+        "shortTitle": "ANC",
+        "aliases": ["ANC", "absolute neutrophil count", "абсолютные нейтрофилы"],
+        "summary": "Пересчёт общего числа лейкоцитов и доли сегментоядерных и палочкоядерных форм в ANC.",
+        "audience": "all",
+        "category": "hematology",
+        "clinical": true,
+        "formulaDisplay": "ANC = лейкоциты × (сегментоядерные + палочкоядерные) / 100",
+        "population": "Пациенты с лейкоцитами в 10⁹/л и дифференциалом в процентах.",
+        "limitations": [
+          "Единицы должны соответствовать указанным в форме.",
+          "Степень риска инфекции зависит от глубины и длительности нейтропении и клинического состояния.",
+          "При расхождении с абсолютными значениями лаборатории проверьте исходный анализ."
+        ],
+        "inputs": [
+          {
+            "id": "whiteBloodCells",
+            "label": "Лейкоциты",
+            "unit": "10⁹/л",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 500,
+            "required": true
+          },
+          {
+            "id": "neutrophilsPercent",
+            "label": "Сегментоядерные нейтрофилы",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "required": true
+          },
+          {
+            "id": "bandsPercent",
+            "label": "Палочкоядерные нейтрофилы",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "anc",
+            "label": "Абсолютное число нейтрофилов",
+            "unit": "10⁹/л",
+            "expression": "whiteBloodCells * (neutrophilsPercent + bandsPercent) / 100",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "infection-risk",
+            "message": "ANC не заменяет клиническую оценку лихорадки и инфекции."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Neutropenia: evaluation and management",
+            "publisher": "American Society of Hematology",
+            "version": "Clinical reference",
+            "url": "https://www.hematology.org/education/patients/anemia/neutropenia",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "anc-hematology-reference",
+          "kind": "guideline",
+          "relation": "clinical-context",
+          "title": "Neutropenia: evaluation and management",
+          "url": "https://www.hematology.org/education/patients/anemia/neutropenia",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.mentzer-index",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "mentzer-index-microcytosis",
+      "title": "Индекс Ментцера",
+      "shortTitle": "Mentzer",
+      "aliases": ["Mentzer index", "индекс Ментцера", "микроцитоз"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "hematology",
+      "description": "Скрининговый индекс для первичной ориентации при микроцитозе по MCV и числу эритроцитов.",
+      "estimatedMinutes": 1,
+      "audience": "Дети и взрослые; только первичная лабораторная ориентация",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.mentzer-index",
+        "slug": "mentzer-index-microcytosis",
+        "title": "Индекс Ментцера",
+        "shortTitle": "Mentzer",
+        "aliases": ["Mentzer index", "индекс Ментцера", "микроцитоз"],
+        "summary": "Скрининговый индекс для первичной ориентации при микроцитозе по MCV и числу эритроцитов.",
+        "audience": "all",
+        "category": "hematology",
+        "clinical": true,
+        "formulaDisplay": "Индекс Ментцера = MCV / число эритроцитов",
+        "population": "Пациенты с MCV в фл и количеством эритроцитов в 10¹²/л.",
+        "limitations": [
+          "Индекс не различает причины анемии надёжно и не заменяет ферритин, электрофорез гемоглобина и мазок крови.",
+          "Пороговые значения зависят от популяции и клинической задачи.",
+          "Не используйте его вне контекста общего анализа крови."
+        ],
+        "inputs": [
+          {
+            "id": "mcv",
+            "label": "MCV",
+            "unit": "фл",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 200,
+            "required": true
+          },
+          {
+            "id": "redBloodCells",
+            "label": "Эритроциты",
+            "unit": "10¹²/л",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 20,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "mentzer",
+            "label": "Индекс Ментцера",
+            "unit": "безразмерно",
+            "expression": "mcv / redBloodCells",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "mentzer < 13",
+            "message": "Результат ниже 13: возможна талассемическая черта; подтвердите лабораторными исследованиями."
+          },
+          {
+            "when": "mentzer >= 13",
+            "message": "Результат 13 или выше: возможен железодефицит; подтвердите лабораторными исследованиями."
+          }
+        ],
+        "warnings": [
+          {
+            "code": "screening-only",
+            "message": "Интерпретация индекса не является диагнозом и не заменяет клиническое обследование."
+          }
+        ],
+        "sources": [
+          {
+            "title": "A simple mathematical index for differentiating iron deficiency anemia from thalassemia trait",
+            "publisher": "PubMed",
+            "version": "Mentzer index",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/9587328/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "mentzer-index-source",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "A simple mathematical index for differentiating iron deficiency anemia from thalassemia trait",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9587328/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.qtc-correction",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "qtc-bazett-fridericia",
+      "title": "Коррекция QT — Bazett и Fridericia",
+      "shortTitle": "QTc",
+      "aliases": ["QTc", "QTc Bazett", "QTc Fridericia", "корригированный QT"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "cardiology",
+      "description": "Расчёт QTc по формулам Bazett и Fridericia из QT и RR на ЭКГ.",
+      "estimatedMinutes": 2,
+      "audience": "Дети и взрослые; измерения ЭКГ и интерпретация специалистом",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.qtc-correction",
+        "slug": "qtc-bazett-fridericia",
+        "title": "Коррекция QT — Bazett и Fridericia",
+        "shortTitle": "QTc",
+        "aliases": ["QTc", "QTc Bazett", "QTc Fridericia", "корригированный QT"],
+        "summary": "Расчёт QTc по формулам Bazett и Fridericia из QT и RR на ЭКГ.",
+        "audience": "all",
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "QTcB = QT / √RR; QTcF = QT / ∛RR (QT и RR в секундах)",
+        "population": "Пациенты с измеренными интервалами QT в миллисекундах и RR в секундах.",
+        "limitations": [
+          "Точность зависит от качества измерения QT и выбора представительного цикла.",
+          "Bazett может завышать QTc при тахикардии; Fridericia также требует клинической интерпретации.",
+          "Не используйте число отдельно от ЭКГ, лекарств, электролитов и клинической ситуации."
+        ],
+        "inputs": [
+          {
+            "id": "qtMs",
+            "label": "Интервал QT",
+            "unit": "мс",
+            "kind": "number",
+            "minimum": 100,
+            "maximum": 1000,
+            "required": true
+          },
+          {
+            "id": "rrSeconds",
+            "label": "Интервал RR",
+            "unit": "с",
+            "kind": "number",
+            "minimum": 0.2,
+            "maximum": 3,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "qtSeconds",
+            "label": "QT в секундах",
+            "unit": "с",
+            "expression": "qtMs / 1000",
+            "displayPrecision": 3
+          },
+          {
+            "id": "qtcBazett",
+            "label": "QTc Bazett",
+            "unit": "мс",
+            "expression": "qtSeconds / sqrt(rrSeconds) * 1000",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "qtcFridericia",
+            "label": "QTc Fridericia",
+            "unit": "мс",
+            "expression": "qtSeconds / pow(rrSeconds, 0.3333333333) * 1000",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "ecg-interpretation",
+            "message": "Порог удлинения QTc зависит от пола, возраста, метода измерения, ритма и клинического контекста."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Optimal QT interval correction formula in sinus tachycardia",
+            "publisher": "PubMed",
+            "version": "2015",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/26552754/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "qtc-correction-2015",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Optimal QT interval correction formula in sinus tachycardia",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26552754/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.cha2ds2-vasc",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "cha2ds2-vasc-stroke-risk",
+      "title": "CHA₂DS₂-VASc",
+      "shortTitle": "CHA₂DS₂-VASc",
+      "aliases": ["CHA2DS2-VASc", "фибрилляция предсердий", "риск инсульта при ФП"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "cardiology",
+      "description": "Балльная оценка факторов риска инсульта при неклапанной фибрилляции предсердий.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с фибрилляцией предсердий; не является автоматическим назначением антикоагулянта",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.cha2ds2-vasc",
+        "slug": "cha2ds2-vasc-stroke-risk",
+        "title": "CHA₂DS₂-VASc",
+        "shortTitle": "CHA₂DS₂-VASc",
+        "aliases": ["CHA2DS2-VASc", "фибрилляция предсердий", "риск инсульта при ФП"],
+        "summary": "Балльная оценка факторов риска инсульта при неклапанной фибрилляции предсердий.",
+        "audience": "adult",
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Сердечная недостаточность + гипертензия + возраст + диабет + инсульт/ТИА/ТЭ + сосудистая болезнь + пол",
+        "population": "Взрослые с неклапанной фибрилляцией предсердий.",
+        "limitations": [
+          "Шкала не заменяет оценку типа ФП, клапанных заболеваний, противопоказаний и предпочтений пациента.",
+          "Не превращайте балл автоматически в назначение или отмену антикоагуляции.",
+          "Используйте актуальную клиническую рекомендацию по ФП."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true
+          },
+          {
+            "id": "heartFailure",
+            "label": "Сердечная недостаточность / дисфункция ЛЖ",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "hypertension",
+            "label": "Артериальная гипертензия",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "diabetes",
+            "label": "Сахарный диабет",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "strokeTia",
+            "label": "Инсульт, ТИА или тромбоэмболия в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "vascularDisease",
+            "label": "Сосудистое заболевание",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "femaleSex",
+            "label": "Женский пол",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "CHA₂DS₂-VASc",
+            "unit": "балла",
+            "expression": "heartFailure + hypertension + cond(ageYears >= 75, 2, cond(ageYears >= 65, 1, 0)) + diabetes + strokeTia * 2 + vascularDisease + femaleSex",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте балл как часть совместного клинического решения, а не как самостоятельное назначение лечения."
+          }
+        ],
+        "sources": [
+          {
+            "title": "The CHA2DS2-VASc score identifies those patients with atrial fibrillation",
+            "publisher": "PubMed",
+            "version": "2012",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/23018151/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "cha2ds2-vasc-validation",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "The CHA2DS2-VASc score identifies those patients with atrial fibrillation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23018151/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.has-bled",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "has-bled-bleeding-risk",
+      "title": "HAS-BLED",
+      "shortTitle": "HAS-BLED",
+      "aliases": ["HAS BLED", "риск кровотечения", "фибрилляция предсердий кровотечение"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "cardiology",
+      "description": "Балльная оценка модифицируемых факторов риска кровотечения при ФП.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с фибрилляцией предсердий; нужен для коррекции факторов риска, а не запрета терапии",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.has-bled",
+        "slug": "has-bled-bleeding-risk",
+        "title": "HAS-BLED",
+        "shortTitle": "HAS-BLED",
+        "aliases": ["HAS BLED", "риск кровотечения", "фибрилляция предсердий кровотечение"],
+        "summary": "Балльная оценка модифицируемых факторов риска кровотечения при ФП.",
+        "audience": "adult",
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Гипертензия + функция почек/печени + инсульт + кровотечение + лабильный INR + возраст + препараты/алкоголь",
+        "population": "Взрослые с фибрилляцией предсердий, для которых оценивается риск кровотечения.",
+        "limitations": [
+          "Высокий балл не является автоматическим противопоказанием к антикоагуляции.",
+          "Почечная и печёночная дисфункция могут приносить по одному баллу каждая; уточните определения в действующей рекомендации.",
+          "Используйте результат для устранения модифицируемых факторов и наблюдения."
+        ],
+        "inputs": [
+          {
+            "id": "hypertension",
+            "label": "Неконтролируемая гипертензия",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "abnormalRenal",
+            "label": "Нарушение функции почек",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "abnormalLiver",
+            "label": "Нарушение функции печени",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "stroke",
+            "label": "Инсульт в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "bleeding",
+            "label": "Кровотечение или предрасположенность",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "labileInr",
+            "label": "Лабильный INR",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "ageOver65",
+            "label": "Возраст старше 65 лет",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          },
+          {
+            "id": "drugsAlcohol",
+            "label": "Препараты, повышающие риск, или алкоголь",
+            "kind": "select",
+            "required": true,
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "HAS-BLED",
+            "unit": "балла",
+            "expression": "hypertension + abnormalRenal + abnormalLiver + stroke + bleeding + labileInr + ageOver65 + drugsAlcohol",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "modifiable-risk",
+            "message": "Высокий HAS-BLED требует контроля факторов риска и наблюдения, но сам по себе не запрещает антикоагуляцию."
+          }
+        ],
+        "sources": [
+          {
+            "title": "A novel user-friendly score (HAS-BLED) to assess 1-year risk of major bleeding",
+            "publisher": "Chest / PubMed",
+            "version": "Pisters 2010",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/20299623/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "has-bled-pisters-2010",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "A novel user-friendly score (HAS-BLED) to assess 1-year risk of major bleeding",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20299623/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.child-pugh",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "child-pugh-liver-function",
+      "title": "Child–Pugh",
+      "shortTitle": "Child–Pugh",
+      "aliases": ["Child Pugh", "Child-Turcotte-Pugh", "класс тяжести цирроза"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "gastroenterology",
+      "description": "Балльная оценка пяти компонентов классификации Child–Pugh.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые с хроническим заболеванием печени; заполняет специалист",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.child-pugh",
+        "slug": "child-pugh-liver-function",
+        "title": "Child–Pugh",
+        "shortTitle": "Child–Pugh",
+        "aliases": ["Child Pugh", "Child-Turcotte-Pugh", "класс тяжести цирроза"],
+        "summary": "Балльная оценка пяти компонентов классификации Child–Pugh.",
+        "audience": "adult",
+        "category": "gastroenterology",
+        "clinical": true,
+        "formulaDisplay": "Сумма баллов билирубина, альбумина, INR/протромбинового времени, асцита и энцефалопатии",
+        "population": "Взрослые с хроническим заболеванием печени, у которых доступны пять клинических и лабораторных компонентов.",
+        "limitations": [
+          "Для билиарных заболеваниях пороги билирубина могут отличаться от классической шкалы.",
+          "Выбор балла должен соответствовать действующей локальной версии классификации.",
+          "Класс не заменяет оценку MELD, осложнений и клинического статуса."
+        ],
+        "inputs": [
+          {
+            "id": "bilirubinPoints",
+            "label": "Билирубин: баллы по принятой шкале",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" }
+            ]
+          },
+          {
+            "id": "albuminPoints",
+            "label": "Альбумин: баллы по принятой шкале",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" }
+            ]
+          },
+          {
+            "id": "coagulationPoints",
+            "label": "Коагуляция: баллы по принятой шкале",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" }
+            ]
+          },
+          {
+            "id": "ascitesPoints",
+            "label": "Асцит: баллы по принятой шкале",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" }
+            ]
+          },
+          {
+            "id": "encephalopathyPoints",
+            "label": "Энцефалопатия: баллы по принятой шкале",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2" },
+              { "value": 3, "label": "3" }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "Child–Pugh",
+            "unit": "балла",
+            "expression": "bilirubinPoints + albuminPoints + coagulationPoints + ascitesPoints + encephalopathyPoints",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "interpretations": [
+          { "when": "score <= 6", "message": "Сумма 5–6: класс A по классической градации." },
+          { "when": "score <= 9", "message": "Сумма 7–9: класс B по классической градации." },
+          { "when": "score >= 10", "message": "Сумма 10–15: класс C по классической градации." }
+        ],
+        "warnings": [
+          {
+            "code": "classification",
+            "message": "Вводите именно баллы выбранной валидированной версии Child–Pugh; приложение не подменяет клиническую оценку компонентов."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Superiority of the Child-Pugh classification to quantitative liver function tests",
+            "publisher": "PubMed",
+            "version": "1989",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/2734585/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "child-pugh-1989",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Superiority of the Child-Pugh classification to quantitative liver function tests",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/2734585/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.parkland-burn-resuscitation",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "parkland-burn-resuscitation",
+      "title": "Parkland — расчёт жидкости при ожоге",
+      "shortTitle": "Parkland",
+      "aliases": ["Parkland formula", "формула Паркланда", "ожоговая инфузия"],
+      "bankId": "core-clinical",
+      "bankLabel": "Базовые клинические расчёты",
+      "category": "emergency",
+      "description": "Ориентировочный объём кристаллоида на первые 24 часа и распределение по времени после ожога.",
+      "estimatedMinutes": 2,
+      "audience": "Дети и взрослые с ожогами; только как стартовый ориентир для команды лечения ожогов",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.parkland-burn-resuscitation",
+        "slug": "parkland-burn-resuscitation",
+        "title": "Parkland — расчёт жидкости при ожоге",
+        "shortTitle": "Parkland",
+        "aliases": ["Parkland formula", "формула Паркланда", "ожоговая инфузия"],
+        "summary": "Ориентировочный объём кристаллоида на первые 24 часа и распределение по времени после ожога.",
+        "audience": "all",
+        "category": "emergency",
+        "clinical": true,
+        "formulaDisplay": "4 мл × масса (кг) × площадь ожога (%TBSA); половина за первые 8 часов",
+        "population": "Пациенты с ожогом, для которых команда уже оценила площадь ожога по TBSA.",
+        "limitations": [
+          "Не рассчитывает TBSA и не учитывает ингаляционную травму, возраст, сопутствующие состояния или выбранный протокол.",
+          "Время отсчитывается от момента ожога, а введённый ранее объём нужно вычесть по локальному протоколу.",
+          "Скорость титруют по клиническому ответу и диурезу; формула не заменяет лечение в ожоговом центре."
+        ],
+        "inputs": [
+          {
+            "id": "weightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 400,
+            "required": true
+          },
+          {
+            "id": "tbsaPercent",
+            "label": "Площадь ожога",
+            "unit": "% TBSA",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "required": true
+          },
+          {
+            "id": "hoursSinceBurn",
+            "label": "Часов с момента ожога",
+            "unit": "ч",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 24,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "totalVolume",
+            "label": "Ориентир на первые 24 часа",
+            "unit": "мл",
+            "expression": "4 * weightKg * tbsaPercent",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "firstHalfVolume",
+            "label": "Половина объёма на первые 8 часов",
+            "unit": "мл",
+            "expression": "totalVolume / 2",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "hoursRemainingFirstHalf",
+            "label": "Оставшееся время первого 8-часового периода",
+            "unit": "ч",
+            "expression": "max(0, 8 - hoursSinceBurn)",
+            "displayPrecision": 1
+          },
+          {
+            "id": "firstHalfRate",
+            "label": "Ориентировочная скорость до 8 часов",
+            "unit": "мл/ч",
+            "expression": "firstHalfVolume / max(hoursRemainingFirstHalf, 0.1)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "secondHalfRate",
+            "label": "Ориентировочная скорость с 8 до 24 часов",
+            "unit": "мл/ч",
+            "expression": "firstHalfVolume / 16",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "burn-center",
+            "message": "Это стартовая формула, а не готовое назначение; необходимы оценка ожога, мониторинг и титрация по протоколу ожоговой помощи."
+          }
+        ],
+        "sources": [
+          {
+            "title": "The comparison of early fluid therapy in extensive flame burns",
+            "publisher": "PubMed",
+            "version": "Parkland reference",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/9882069/",
+            "reviewedAt": "2026-08-15"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "parkland-burns-reference",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "The comparison of early fluid therapy in extensive flame burns",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9882069/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    }
+  ]
+}

@@ -32,6 +32,7 @@ import {
   isCalculatorSectionCore,
   loadCalculatorInstallationState,
   removeCalculatorSection,
+  setDatabaseCalculatorIds,
 } from '@/features/calculators/calculator-packs';
 import {
   formatCalculationRecord,
@@ -40,10 +41,13 @@ import {
 } from '@/features/calculators/calculator-print';
 import {
   CALCULATOR_REGISTRY,
+  clearDownloadedCalculators,
   findCalculator,
+  getCalculatorRegistry,
+  registerDownloadedCalculator,
   searchCalculators,
 } from '@/features/calculators/calculator-registry';
-import { CALCULATOR_SCHEMA_BY_ID } from '@/features/calculators/calculator-schema-catalog';
+import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import {
   type CalculatorSchemaEvaluation,
   evaluateCalculatorSchema,
@@ -61,6 +65,7 @@ import {
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import {
   type CalculationRecord,
   createCalculationRecord,
@@ -351,7 +356,7 @@ function CalculatorForm(props: {
   const [schemaStep, setSchemaStep] = createSignal(0);
   const [schemaPreview, setSchemaPreview] = createSignal<CalculatorSchemaEvaluation>();
   const schemaHasNextStep = (): boolean => {
-    const schema = CALCULATOR_SCHEMA_BY_ID.get(props.definition.id);
+    const schema = getCalculatorSchema(props.definition.id);
     return schema !== undefined && schemaStep() < maxSchemaStep(schema);
   };
   const setSchemaValue = (id: string, fieldValue: string): void => {
@@ -361,7 +366,7 @@ function CalculatorForm(props: {
   // learns that value on its own — without this, submitting before touching every dropdown reports the
   // untouched ones as missing. Reset to each select input's first option whenever the calculator changes.
   createEffect(() => {
-    const schema = CALCULATOR_SCHEMA_BY_ID.get(props.definition.id);
+    const schema = getCalculatorSchema(props.definition.id);
     if (!schema) return;
     const defaults: Record<string, string> = {};
     for (const input of schema.inputs) {
@@ -391,7 +396,7 @@ function CalculatorForm(props: {
 
     // Any calculator with a declarative schema (CALCULATOR_SCHEMA_BY_ID) renders and submits through this
     // one generic path — no per-calculator case below. See calculator-schema-catalog.ts to add one.
-    const schema = CALCULATOR_SCHEMA_BY_ID.get(props.definition.id);
+    const schema = getCalculatorSchema(props.definition.id);
     if (schema) {
       const isFinalStep = schemaStep() >= maxSchemaStep(schema);
       const evaluation = isFinalStep
@@ -564,7 +569,7 @@ function CalculatorForm(props: {
       {/* Every declarative calculator (CALCULATOR_SCHEMA_BY_ID) renders its form here from
          schema.inputs — no hand-coded fields per calculator. Add one to calculator-schema-catalog.ts
          and it appears with no changes to this component. */}
-      <Show when={CALCULATOR_SCHEMA_BY_ID.get(props.definition.id)}>
+      <Show when={getCalculatorSchema(props.definition.id)}>
         {(schema) => (
           <For each={schema().inputs.filter((input) => input.step <= schemaStep())}>
             {(input) => (
@@ -903,8 +908,9 @@ export function CalculatorsView(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
   const [query, setQuery] = createSignal('');
   const [installation, setInstallation] = createSignal<CalculatorInstallationState>(
-    loadCalculatorInstallationState(),
+    loadCalculatorInstallationState(CALCULATOR_REGISTRY),
   );
+  const [calculatorRegistry, setCalculatorRegistry] = createSignal(CALCULATOR_REGISTRY);
   const [history, setHistory] = createSignal<readonly CalculationRecord[]>(
     loadCalculationHistory(),
   );
@@ -926,10 +932,26 @@ export function CalculatorsView(): JSX.Element {
     // discarding whatever the user had already typed in.
     if (next !== '' && !next.startsWith('calculators')) return;
     setRoute(next);
+    void refreshDownloadedTools();
   };
   const refreshInstallation = (): void => {
-    setInstallation(loadCalculatorInstallationState());
+    setInstallation(loadCalculatorInstallationState(calculatorRegistry()));
   };
+  const refreshDownloadedTools = async (): Promise<void> => {
+    const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    const definitions = await runtime.listInstalledToolDefinitions();
+    clearDownloadedCalculators();
+    definitions.forEach(registerDownloadedCalculator);
+    const next = getCalculatorRegistry();
+    setCalculatorRegistry(next);
+    setDatabaseCalculatorIds(
+      definitions
+        .filter((definition) => definition.kind === 'calculator')
+        .map((definition) => definition.id),
+    );
+    setInstallation(loadCalculatorInstallationState(next));
+  };
+  let unsubscribeToolTasks: (() => void) | undefined;
   const handleStorage = (event: StorageEvent): void => {
     if (!event.key || event.key === 'minimed.calculator-packs.v1') refreshInstallation();
   };
@@ -937,10 +959,15 @@ export function CalculatorsView(): JSX.Element {
     window.addEventListener('hashchange', refresh);
     window.addEventListener('storage', handleStorage);
     window.addEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation);
+    unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
+      if (task.state === 'completed') void refreshDownloadedTools();
+    });
+    void refreshDownloadedTools();
   });
   onCleanup(() => window.removeEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('storage', handleStorage));
   onCleanup(() => window.removeEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation));
+  onCleanup(() => unsubscribeToolTasks?.());
   const notify = (text: string): void => {
     toast(text, { duration: 3200 });
   };
@@ -976,7 +1003,7 @@ export function CalculatorsView(): JSX.Element {
   };
 
   const installSection = (sectionId: CalculatorSectionId): void => {
-    const hasAvailableCalculator = calculatorsInSection(sectionId, CALCULATOR_REGISTRY).some(
+    const hasAvailableCalculator = calculatorsInSection(sectionId, calculatorRegistry()).some(
       (definition) => definition.state === 'available',
     );
     if (!hasAvailableCalculator) return;
@@ -1086,7 +1113,7 @@ export function CalculatorsView(): JSX.Element {
                             <CalculatorSectionCard
                               section={section}
                               installation={installation()}
-                              definitions={CALCULATOR_REGISTRY}
+                              definitions={calculatorRegistry()}
                               onOpenSection={openSection}
                               onInstall={installSection}
                               onRemove={removeSection}
@@ -1160,7 +1187,7 @@ export function CalculatorsView(): JSX.Element {
               <CalculatorSectionPage
                 section={section()}
                 installation={installation()}
-                definitions={CALCULATOR_REGISTRY}
+                definitions={calculatorRegistry()}
                 onOpen={openCalculator}
                 onBack={backToCatalog}
                 onInstall={installSection}

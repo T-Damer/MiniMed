@@ -8,7 +8,11 @@ export type CalculatorCategory =
   | 'medication'
   | 'screening'
   | 'obstetrics'
-  | 'gynecology';
+  | 'gynecology'
+  | 'emergency'
+  | 'cardiology'
+  | 'gastroenterology'
+  | 'hematology';
 
 export interface CalculatorSourceReference {
   readonly title: string;

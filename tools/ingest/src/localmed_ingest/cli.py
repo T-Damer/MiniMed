@@ -27,8 +27,19 @@ from .source_registry import prepare_registry
 from .source_sync import sync_source_manifest
 from .sqlite_composer import compose_sqlite_packs
 from .text_import import import_text
+from .tool_modules import build_tool_module
 
 app = typer.Typer(no_args_is_help=True, help="Build and inspect LocalMed content packs.")
+
+
+@app.command("build-tool-module")
+def build_tool_module_command(
+    source: Annotated[Path, typer.Option("--source", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Build a validated SQLite module containing downloadable calculators and assessments."""
+    report = build_tool_module(source, output)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
 
 
 @app.command("export-allmed-reference")

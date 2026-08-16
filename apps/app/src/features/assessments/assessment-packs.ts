@@ -99,6 +99,11 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     description:
       'Шкалы для оценки признаков гиперандрогении и сопутствующих эндокринных нарушений.',
   },
+  {
+    id: 'pediatric-gastroenterology',
+    title: 'Педиатрическая гастроэнтерология',
+    description: 'Шкалы активности воспалительных заболеваний кишечника у детей.',
+  },
 ];
 
 const SECTION_IDS = new Set(ASSESSMENT_SECTIONS.map((section) => section.id));

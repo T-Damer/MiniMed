@@ -145,6 +145,36 @@ function whooleyInterpretation(scores: readonly AssessmentScaleScore[]): Clinica
   };
 }
 
+function pucaiInterpretation(scores: readonly AssessmentScaleScore[]): ClinicalInterpretation {
+  const raw = scores.find((score) => score.scaleId === 'pucai-total')?.rawScore ?? 0;
+  if (raw < 10) {
+    return {
+      headline: `Клиническая ремиссия по PUCAI: ${raw} из 85`,
+      summary:
+        'Менее 10 баллов соответствует ремиссии по принятой градации PUCAI. Индекс не заменяет клиническое наблюдение и оценку других данных.',
+    };
+  }
+  if (raw < 35) {
+    return {
+      headline: `Лёгкая активность по PUCAI: ${raw} из 85`,
+      summary:
+        '10–34 балла соответствуют лёгкой активности язвенного колита по принятой градации PUCAI.',
+    };
+  }
+  if (raw < 65) {
+    return {
+      headline: `Умеренная активность по PUCAI: ${raw} из 85`,
+      summary:
+        '35–64 балла соответствуют умеренной активности язвенного колита по принятой градации PUCAI.',
+    };
+  }
+  return {
+    headline: `Тяжёлая активность по PUCAI: ${raw} из 85`,
+    summary:
+      '65–85 баллов соответствуют тяжёлой активности язвенного колита по принятой градации PUCAI; нужна клиническая оценка срочности помощи по действующему протоколу.',
+  };
+}
+
 const CLINICAL_INTERPRETERS: Readonly<
   Record<
     string,
@@ -155,6 +185,7 @@ const CLINICAL_INTERPRETERS: Readonly<
   'postnatal-mood-epds': (scores, answers) => epdsInterpretation(scores, answers),
   'ferriman-gallwey-hirsutism': (scores) => ferrimanGallweyInterpretation(scores),
   'perinatal-mood-whooley': (scores) => whooleyInterpretation(scores),
+  'pediatric-ulcerative-colitis-activity-index': (scores) => pucaiInterpretation(scores),
 };
 
 function buildSummary(
