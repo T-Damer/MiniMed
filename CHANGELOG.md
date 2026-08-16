@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.20] - 2026-08-16
+
+### Added
+
+- Kept interim version cadence and updated release metadata root source (`release.json`) for an intermediate public prerelease train.
+
+
 ## [0.6.17] - 2026-08-13
 
 ### Changed

@@ -1,8 +1,8 @@
 # Current state
 
-> Updated: 15 August 2026
-> Repository version: `0.6.19`
-> Active target: `0.6.19` public prerelease toward `1.0`
+> Updated: 16 August 2026
+> Repository version: `0.6.20`
+> Active target: `0.6.20` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -135,6 +135,15 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Installed tools keep their offline-use state across reloads. Incomplete assessment attempts are
   also stored in the existing device-local results store, restored by their history entry with an
   `incomplete` tag and answered-count, and replaced by the completed result when submitted.
+  Tool modules now use the SQLite content-module installer as their offline source of truth. The first
+  preview package is the gastroenterology module with PUCAI, paediatric ORS-loss calculator, and
+  Bristol Stool Form Scale,
+  including normalized links to literature and clinical recommendations; the core clinical preview
+  package adds 17 source-linked calculations for renal, emergency/acid-base, cardiology, hepatology,
+  and hematology workflows. Source JSON lives in `content/tool-modules/` and is rebuilt into the
+  installed database. A second package (`minimed.tools.neonatology.ru`, now 6 tools: 4 calculations + 2
+  assessments) was then added with GIR, physiologic weight-loss, Silverman–Andersen, Downes,
+  NIPS, and New Ballard review links.
 - The obstetrics/gynecology calculator catalog now covers the full ObCalc list: EDD/gestational-age
   tools, fetal growth and Doppler indices, maternal/Rudakov fetal-weight estimates, both Grobman
   VBAC models, NCI Gail/BCRAT breast-risk estimation, and an ASCCP cervical-screening pathway band.
