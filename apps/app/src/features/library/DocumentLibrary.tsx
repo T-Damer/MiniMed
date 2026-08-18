@@ -21,7 +21,7 @@ import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { browserI18n } from '@/i18n/browser-i18n';
 import { sourceTypeLibraryLabel, specialtyLabels } from '@/i18n/labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
-import { matchesFuzzyQuery } from '@/state/fuzzy-text';
+import { fuzzyQueryScore } from '@/state/fuzzy-text';
 
 interface DocumentLibraryProps {
   readonly core: MedicalCore;
@@ -56,9 +56,15 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   const filteredDocuments = createMemo(() => {
     const query = activeQuery().trim();
     if (!query) return documents();
-    return documents().filter((document) =>
-      matchesFuzzyQuery(query, documentSearchValues(document)),
-    );
+    return documents()
+      .map((document, index) => ({
+        document,
+        index,
+        score: fuzzyQueryScore(query, documentSearchValues(document)),
+      }))
+      .filter((entry) => entry.score > 0)
+      .toSorted((left, right) => right.score - left.score || left.index - right.index)
+      .map((entry) => entry.document);
   });
 
   onMount(() => {

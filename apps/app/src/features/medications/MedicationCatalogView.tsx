@@ -32,10 +32,7 @@ import {
   shouldHideMedicationCatalog,
   shouldPreserveMedicationCatalog,
 } from '@/features/medications/medication-loading';
-import {
-  medicationSearchText,
-  rankMedicationCatalog,
-} from '@/features/medications/medication-catalog-search';
+import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
 import {
   type MedicationProduct,
   medicationDocumentRegistration,
@@ -443,13 +440,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const selectedProduct = createMemo(() =>
     products().find((product) => product.registrationNumber === selectedRegistration()),
   );
-  const visibleProducts = createMemo(() => {
-    const query = normalizeSearch(searchQuery());
-    if (!query) return products();
-    return products().filter((product) =>
-      normalizeSearch(medicationSearchText(product)).includes(query),
-    );
-  });
+  const visibleProducts = createMemo(() => rankMedicationCatalog(products(), searchQuery()));
 
   createEffect(() => {
     selectedProduct();
