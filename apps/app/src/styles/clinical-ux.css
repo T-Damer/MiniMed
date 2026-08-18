@@ -172,7 +172,7 @@
 
 .scroll-top-button {
   position: fixed;
-  z-index: 60;
+  z-index: var(--z-graph);
   right: max(0.875rem, var(--safe-right));
   bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom)));
   display: grid;
@@ -239,6 +239,13 @@
 .knowledge-base-page {
   width: 100%;
   padding-bottom: 3rem;
+}
+
+.knowledge-base-page.page-grain::before,
+.document-page.page-grain::before {
+  left: 0;
+  width: 100%;
+  transform: none;
 }
 
 .knowledge-base-heading {

@@ -3,7 +3,11 @@ import * as QRCode from 'qrcode';
 
 import { documentSectionHeadingTag } from '@/features/library/document-display';
 import { parseDocumentText } from '@/features/library/document-medication-links';
-import { readDocumentRenderBlock } from '@/features/library/document-rich-block-data';
+import {
+  type DocumentRenderBlock,
+  resolveDocumentChunkItems,
+  visibleImageCaption,
+} from '@/features/library/document-rich-block-data';
 import { printHtmlInNativeShell } from '@/features/printing/native-print';
 
 function escapeHtml(value: string): string {
@@ -59,12 +63,10 @@ function renderTextBlocks(text: string): string {
   return html.join('');
 }
 
-function renderRichBlockHtml(metadata: Readonly<Record<string, unknown>> | undefined): string {
-  const block = readDocumentRenderBlock(metadata);
-  if (!block) return '';
+function renderRichBlockHtml(block: DocumentRenderBlock): string {
   if (block.kind === 'image') {
-    const caption = block.title || block.alt;
-    return `<figure class="doc-print__figure"><img src="${escapeHtml(block.dataUrl)}" alt="${escapeHtml(block.alt)}" />${
+    const caption = visibleImageCaption(block.alt, block.title);
+    return `<figure class="doc-print__figure"><img src="${escapeHtml(block.dataUrl)}" alt="${escapeHtml(caption || block.alt)}" />${
       caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''
     }</figure>`;
   }
@@ -87,8 +89,12 @@ function renderRichBlockHtml(metadata: Readonly<Record<string, unknown>> | undef
 
 function renderSectionHtml(section: MedicalSection): string {
   const tag = documentSectionHeadingTag(section.depth);
-  const body = section.chunks
-    .map((chunk) => renderRichBlockHtml(chunk.metadata) || renderTextBlocks(chunk.originalText))
+  const body = resolveDocumentChunkItems(section.chunks)
+    .map((item) =>
+      item.kind === 'rich'
+        ? renderRichBlockHtml(item.block)
+        : renderTextBlocks(item.chunk.originalText),
+    )
     .join('');
   return `<section class="doc-print__section"><${tag}>${escapeHtml(section.title)}</${tag}>${body}</section>`;
 }

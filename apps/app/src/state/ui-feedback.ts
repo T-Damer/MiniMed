@@ -16,6 +16,7 @@ const SCROLL_TOP_SELECTOR = '.scroll-top-button';
 const PATIENT_NOTES_FAB_SELECTOR = '.patient-notes-fab';
 const CLOSE_SELECTOR = '[aria-label="Закрыть историю"], [aria-label="Закрыть источник"]';
 const NOTE_IMAGE_PICKER_SELECTOR = '.note-image-picker';
+const NOTE_REMINDER_CONTROL_SELECTOR = '.note-reminder-fields__control';
 
 const radiosCheckedOnPointerDown = new WeakSet<Element>();
 
@@ -47,7 +48,7 @@ function resolveButtonHaptic(button: HTMLButtonElement): HapticStrength {
   if (explicit === 'heavy' || button.matches(DELETE_SELECTOR)) return 'heavy';
   if (
     explicit === 'medium' ||
-    button.matches('.app-nav-button, .search-button, .content-download-pill')
+    button.matches('.app-nav-button, .search-button, .content-download-nav__pie')
   ) {
     return 'medium';
   }
@@ -110,6 +111,9 @@ export function sonifiedControl(target: Element): Element | null {
   const imagePicker = target.closest(NOTE_IMAGE_PICKER_SELECTOR);
   if (imagePicker && !isNoteImagePickerDisabled(imagePicker)) return imagePicker;
 
+  const reminderControl = target.closest(NOTE_REMINDER_CONTROL_SELECTOR);
+  if (reminderControl && !isDisabledControl(reminderControl)) return reminderControl;
+
   const button = target.closest('button, [role=button], summary');
   if (button instanceof Element && !isDisabledControl(button)) return button;
 
@@ -144,6 +148,7 @@ export function feedbackForClick(target: Element): ClickFeedback | null {
 
   if (control.tagName === 'A') return { cue: 'forward', haptic: 'light' };
   if (control.matches(NOTE_IMAGE_PICKER_SELECTOR)) return { cue: 'open', haptic: 'light' };
+  if (control.matches(NOTE_REMINDER_CONTROL_SELECTOR)) return { cue: 'select', haptic: 'light' };
   if (control instanceof HTMLInputElement && control.type === 'range') return null;
 
   const radio = radioControl(control);
@@ -175,8 +180,15 @@ export function installUiFeedback(root: Document = document): () => void {
   };
 
   const handlePointerDown = (event: PointerEvent): void => {
+    root.documentElement.classList.add('ui-using-pointer');
     if (!(event.target instanceof Element)) return;
     noteControlPointerDown(event.target);
+  };
+
+  const handleKeyboardFocus = (event: KeyboardEvent): void => {
+    if (event.key === 'Tab' || event.key.startsWith('Arrow')) {
+      root.documentElement.classList.remove('ui-using-pointer');
+    }
   };
 
   const handleClick = (event: MouseEvent): void => {
@@ -213,6 +225,7 @@ export function installUiFeedback(root: Document = document): () => void {
   root.addEventListener('pointerdown', handlePointerDown, { capture: true });
   root.addEventListener('pointerdown', unlock, { capture: true });
   root.addEventListener('keydown', unlock, { capture: true });
+  root.addEventListener('keydown', handleKeyboardFocus, { capture: true });
   root.addEventListener('click', handleClick);
   root.addEventListener('input', handleInput);
   root.addEventListener('pointerover', handlePointerOver);
@@ -222,6 +235,7 @@ export function installUiFeedback(root: Document = document): () => void {
     root.removeEventListener('pointerdown', handlePointerDown, { capture: true });
     root.removeEventListener('pointerdown', unlock, { capture: true });
     root.removeEventListener('keydown', unlock, { capture: true });
+    root.removeEventListener('keydown', handleKeyboardFocus, { capture: true });
     root.removeEventListener('click', handleClick);
     root.removeEventListener('input', handleInput);
     root.removeEventListener('pointerover', handlePointerOver);

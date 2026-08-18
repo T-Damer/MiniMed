@@ -23,13 +23,7 @@ import type {
 import { rankSearchGroupsByQuery } from '@localmed/core';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
-export type SearchScope =
-  | 'diagnosis'
-  | 'guidelines'
-  | 'medications'
-  | 'legal'
-  | 'all'
-  | 'personal';
+export type SearchScope = 'diagnosis' | 'guidelines' | 'medications' | 'legal' | 'all' | 'personal';
 export type SearchAudience = 'children' | 'adults';
 
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';

@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 18 August 2026
-> Repository version: `0.6.22`
-> Active target: `0.6.22` public prerelease toward `1.0`
+> Repository version: `0.6.23`
+> Active target: `0.6.23` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -27,21 +27,37 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Results are grouped by document and window-virtualized; compact result cards show numbered matches,
   source/category metadata, up to four snippet lines, and open the exact fragment without expanding
   the result group. The document group header opens the full document. Retrieval stats and search mode
-  sit inside the expandable query-analysis details panel. The source preview is a body-level overlay above navigation chrome, vertically
+  sit inside the expandable query-analysis details panel, whose collapsed row is a hoverable card
+  with a details badge and centered summary text. The source preview is a body-level overlay above navigation chrome, vertically
   centered in the viewport, with the shared primary button to open the full document; opening the full
   document closes the preview overlay first.
 - Official and personal full documents open as hash-router pages under `#/modules/documents/…`
   inside `<main>` with Kobalte breadcrumbs (origin → nested documents). Official: `#/modules/documents/d/<token>`;
-  personal: `#/modules/documents/user/<id>` (optional `/p/<page>`). The reader keeps the outline control in sticky page chrome;
-  desktop outline changes are animated, mobile outline changes are immediate, and scrolling pins the
-  current section heading, marks its outline entry, and keeps that entry centered. Section headings copy
+  personal: `#/modules/documents/user/<id>` (optional `/p/<page>`). On tablet and desktop the outline
+  is a full-viewport left column; sticky chrome and paper sit in the right column so the page header
+  cannot overlap the TOC. Mobile TOC is a full-height drawer above the bottom nav.   Nested headings in the document body keep a full-width sticky bar for in-text
+  `h1`/`h2` only; the paper document title is not pinned. Sticky heading fill matches the paper
+  and extends through the page padding so scrolling content cannot show gaps beside the title.
+  Print and clinical full-text sit in one paper-title
+  row; full-text is a primary button with in-button loading instead of a page overlay. Outline
+  desktop changes are animated, mobile outline changes are immediate, and scrolling pins the
+  current section heading, marks its outline entry, and keeps that entry centered.
+  Section headings copy
   a deep link to `#/modules/documents/d/<token>`; legacy `?o=` / `dialog`+`section` and `#/read/…` migrate
-  to that hash on load. Outline sections are paper blocks in default, hover, and active states. Initial open and
-  full-text upgrade use the same page chrome with an inner spinner instead of swapping to a smaller
-  loading dialog. Nested document links navigate to another documents hash page and append a breadcrumb
+  to that hash on load. Opening a large official document no longer freezes the main thread:
+  inline cross-links use a prefix-bucket matcher compiled once per document, assessment/calculator
+  links reuse a singleton matcher, and paper sections mount in idle batches.   Outline sections are paper blocks in default, hover, and active states. Initial open keeps the
+  same page chrome with an inner paper spinner; clinical full-text loading stays inside the primary
+  button. Nested document links navigate to another documents hash page and append a breadcrumb
   instead of stacking reader dialogs.
 - Search-result context remaps stale pilot-summary chunks to installed full-text siblings and falls back
   to the readable document when an exact chunk cannot be resolved.
+- Поиск по полному документу работает как поиск на странице: он точно сопоставляет введённую фразу
+  без учёта регистра, включая название и заголовки разделов, подсвечивает только эти диапазоны и
+  прокручивает совпадения кнопками «предыдущее/следующее»; диапазоны сохраняются через списки,
+  markdown-ссылки, ссылки на инструменты, таблицы и подписи к изображениям.
+- В режиме поиска по полному документу и длинному источнику кнопка «Назад» превращается в «×» и
+  закрывает поиск; обычные поиски по карточкам сохраняют навигацию назад.
 - Within-document ranking uses query intent to prefer the relevant diagnostic, routing, or treatment
   section; the public benchmark currently has perfect section retrieval and top-section accuracy.
 - Search scopes cover diagnosis support, clinical recommendations, medications, legal documents,
@@ -54,12 +70,17 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ### Browser workspace
 
+- Pointer clicks do not show the system blue tap flash or leftover focus rings; keyboard Tab/arrow
+  focus rings stay.
 - Six primary sections — search, knowledge base, assessments, calculators, notes, and settings — use
   a compact bottom navigation with a floating glass bubble that follows the
+  selected item and horizontal pointer/touch swipes. `App.tsx` only wires shell hooks and root
+  view sections; routing, session bootstrap, find shortcut, native back, and nav gestures live beside it.
   selected item and horizontal pointer/touch swipes. The bubble deforms from travel speed on both
   drag and ordinary tab clicks, then settles back to a circle, and compresses into the bar edge when
   the pointer is pulled outside it. In dark mode the bar stays a warm dark surface; only the active
-  icon uses the accent green. Hover changes only the icon color, not the button fill. Root navigation commits immediately; the incoming
+  icon uses a darker accent green on a subdued cream bubble. Hover changes only the icon color, not
+  the button fill. Root navigation commits immediately; the incoming
   view overlays the stationary outgoing view with a strictly horizontal CSS slide and temporary page
   shadow, without an opacity transition, while the status-bar blur remains between the old and new views.
   The bottom navigation remains fixed and interactive. Root tab slide animation is not suppressed by
@@ -76,7 +97,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   when the enter animation ends so neither page jumps; sticky chrome (catalog search, search tools,
   medication headings) stays in its header slot during the slide because the enter animation uses
   `top`/`margin-left` rather than `transform`, and the overlay keeps the centered page measure on
-  wide screens. Route surfaces extend below the navigation band
+  wide screens. Intra-route hash listeners skip `scrollTo(0)` while a root-tab transition is active so
+  the bottom nav does not ride up from a scrolled destination page. Page grain and stuck-chrome blur
+  fill the content column rather than a narrower centered strip. Route surfaces extend below the navigation band
   instead of exposing the desk background at the end of the page. The enter motion ends on
   `animationend` (with a timeout fallback) rather than a fixed 60fps timer.
 - The bottom navigation is mounted only after the asynchronous MedicalCore bootstrap completes;
@@ -114,7 +137,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Shared `Button` and `Switch` primitives use BEM classes with colocated CSS; root theming loads
   `theme.css`, `theme-dark.css`, and `animations.css` before feature styles. Official full documents
   open in `OfficialDocumentReader` with shared `document-reader-chrome.tsx` and
-  `document-reader-outline.ts`; user PDFs/OCR stay in `UserDocumentReader`.
+  `document-reader-outline.ts`; user PDFs/OCR stay in `UserDocumentReader`. Opening large official
+  documents no longer freezes the main thread on per-chunk regex compilation or full synchronous mount.
 - Personal cards use a responsive three-column sticker board and a focused creation dialog opened
   from a floating add button. Card timelines and dated-record editors use nested note routes; card
   edit/delete actions are compact icon controls. Record editors guard unsaved drafts, accept image
@@ -145,39 +169,53 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   route header.
 - Medication catalog cards use a responsive two-column layout and live rendering so progressive
   batches populate both columns; its route header uses the shared compact catalog search field.
-- Medication detail source cards stay within the readable 65ch column, keep all source text mounted,
-  and provide exact-match highlighting/count/navigation while the medication heading and section
-  headings remain sticky with JS-measured stacked offsets and one shared masked blur layer.
+  Catalog cards open the official document reader (`#/modules/documents/d/<token>`); legacy
+  `medications/<registration>` hashes redirect there after catalog lookup, and the Allmed
+  «Карточка препарата» section is omitted in the reader as a duplicate of the document title.
 - The personal notes index has local full-text filtering, and Ctrl/Cmd+F focuses the visible
-  search field with the highest stacking order (the field inside the topmost dialog when one is open)
-  without opening the browser find bar.
+  search field with the highest stacking order (the field inside the topmost dialog when one is open).
+  A second Ctrl/Cmd+F within 700ms does not intercept, so the browser find bar can open.
 - Search history and diagnostic help controls share one sticky top toolbar on the search home, with
   the menu on the left, an optional compact app-update control immediately to its right (progress
   percent while an APK downloads), and `?` on the far right. There is no second floating app-update pill.
-- Search, module-catalog, medication-catalog, and document-outline sticky headers use transparent,
+- Search, module-catalog, and medication-catalog sticky headers use transparent,
   page-width masked backdrop blur with a subtle grain layer that stays hidden until the header is
-  actually stuck. On native Android that blur also covers the status bar, but only while a visible
-  root view has sticky chrome (`:has(.app-view:not([hidden]) …)`). Outgoing root views isolate their
-  fixed overlays below the incoming navigation surface. Hover styles use `@media (hover: hover)`.
+  actually stuck. Document reader chrome stays opaque; in-text `h1`/`h2` sticky offsets are measured
+  from the real chrome (the paper title is not pinned). On native Android the remaining route blur also covers
+  the status bar, but only while a visible root view has sticky chrome (`:has(.app-view:not([hidden]) …)`).
+  Outgoing root views isolate their fixed overlays below the incoming navigation surface. Hover styles
+  use `@media (hover: hover)`.
 - The diagnosis search actions expose the local-model control on the left; it toggles a ready model
   and opens Settings when the model is not loaded yet.
 - GitHub release links use a rolling `android-latest` APK asset, and the search history drawer shows
   text links to the repository and current Android build at its bottom.
 - The document library uses a virtualized full-width list. The embedded core library reuses the
   sticky catalog search (this page only) and a primary «Карта связей» control; the list/map toggle is
-  gone there. Catalog collection cards put size at the bottom and omit empty meta; the bundled core
-  card shows size only. «Скачать всё» is scoped to the open page and hides when that page is complete.
+  gone there. Catalog collection cards show live document counts and size at the bottom and omit
+  empty meta; they do not use pack fractions such as `0/1`. The bundled core card still prefers size
+  and adds a count when documents are mounted. «Скачать всё» is scoped to the open page and hides when that page is complete.
   Module cards keep a stable outer size after install (one version, one size chip). In-app and native
   back climb the documents/assessments/calculators tree instead of `history.back()`; an open user
   document returns to `#/modules/documents/user`. Cross-section jumps
   (search → model, document → test) remember an origin and expose a second return control. Document
-  outline close animates like open; in-reader search highlights matches. Catalog search fields use
-  fuzzy matching; hover and focus paint the control wrapper in accent green rather than the inner input.
+  outline close animates like open; in-document find lives in the reader header as a surface search
+  button on the right, not an accent-filled control. Opening it turns Back into × and replaces the
+  rest of chrome with the shared catalog search field plus previous/next, then `1/N` or `0/0` after those
+  buttons; × or Escape closes find before leaving the document. Matching is exact by default and
+  always runs in a worker when Worker is available; the outline column is table of contents only.
+  Find is debounced, stops the spinner when the current query finishes, and does not keep
+  scrolling the page after that result is shown. Searching does not hide the rest of the document.
+  Catalog search fields use fuzzy matching; hover and focus paint the control wrapper in accent
+  green rather than the inner input.
 - Allmed reference preparation converts known HTML fragments in medication sections and production
   metadata to readable Markdown while preserving the source SQLite snapshot unchanged.
-- Assessment tests and medical calculators are grouped into downloadable sections. Catalog cards show
+- Assessment tests and medical calculators are grouped into downloadable sections. The assessments
+  home search filters specialty cards (hiding empty or unavailable sections while searching) instead of
+  replacing the grid with a flat test list; catalog, calculator, and assessment empty queries share
+  the binoculars empty state.   Catalog cards show
   what is on the device, calculator catalog search uses the shared icon field and Ctrl/Cmd+F focus
-  target, section cards show an explicit disabled state for unavailable tools and allow individual
+  target, calculator result save-to-note uses the primary button theme, and catalog rows stay content-sized instead of stretching to fill the viewport when only
+  one section is present. Section cards show an explicit disabled state for unavailable tools and allow individual
   calculator downloads that install immediately with toast feedback, direct tool routes explain which section
   is missing, in-app back from an open calculator returns to its section catalog, open tests and
   calculators use Kobalte breadcrumbs (`Тесты` / specialty / section, `Калькуляторы` / section) instead
@@ -192,14 +230,18 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   `incomplete` tag and answered-count, and replaced by the completed result when submitted. The
   questionnaire next control stacks under scroll-to-top on long forms, scrolls to the next unanswered
   question with a brief highlight, and the remaining-count badge
-  animates on change. When a saved return destination exists, questionnaire and missing-test screens
+  animates on change. Response cards hide the radio; the score sits as a bold background numeral,
+  the answer is centered in body text, and long labels scroll inside the card. When a saved return destination exists, questionnaire and missing-test screens
   show one back control that opens a destination chooser (catalog vs saved route). Questionnaire URLs
   are `#/assessments/{specialty}/{slug}` so Back returns to the
   owning section rather than the assessments root; a test may later appear in several sections via tags.
   Runtime TypeScript keeps only `unit-conversion` in `CALCULATOR_REGISTRY`; every other calculator
   schema and all assessments live in `content/tool-modules/*.json`, build to
-  `apps/app/public/content/modules/minimed-tools-*.db`, and install offline through
-  `ContentModuleRuntime.install` when the user downloads a section. Section-to-module mapping is in
+  `apps/app/public/content/modules/minimed-tools-*.db`, and are auto-installed from those local
+  artifacts during browser-dev boot (`VITE_USE_LOCAL_MODULE_ARTIFACTS`, on by default). Once a tool
+  pack is on the device, every questionnaire and calculator in it is available immediately — there is
+  no second per-item download/remove toggle. Production builds without local artifacts still install
+  a pack through `ContentModuleRuntime.install`. Section-to-module mapping is in
   `CALCULATOR_SECTION_MODULE_IDS` and `ASSESSMENT_SECTION_MODULE_IDS`. Published packs:
   `minimed.tools.core-clinical.ru` preview.2 (the original 17 renal/emergency/cardiology/hepatology/
   hematology calculators plus BSA, CKD-EPI 2021, Schwartz 2009, maintenance fluids, and paediatric
@@ -211,25 +253,34 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   CalculatorSchema in `minimed.tools.obstetrics-gynecology.ru` preview.2; the expression language has
   `present(name)` so optional biometric inputs can be averaged. Search query analysis still runs in a
   Web Worker after downloaded modules are installed (`createBrowserWorkerCore` remounts IndexedDB packs).
-  Intra-route calculator hash changes (catalog → section → tool)
-  reset window scroll to top, matching assessments; root-tab scroll restore is unchanged. Unit tests
+  Intra-route calculator, assessment, and document-catalog hash changes (catalog → collection,
+  section, or tool) reset window scroll to top; root-tab scroll restore is unchanged. Unit tests
   evaluate every tool-module calculator schema across each input’s domain and assert the engine never
   throws.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
-  queued, and the selected model always receives its own download slot. A single document runtime
+  queued, and the selected model always receives its own download slot. Content-pack progress is a pie
+  on the top-right of the Settings icon while a pack is queued, transferring, or installing; failed or
+  idle packs hide that pie. The manager lives at `#/settings/downloads` rather than a
+  floating pill. A single document runtime
   survives catalog refreshes; transient failures release their slot before an automatic retry so one
   broken source cannot starve the queue.
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
   medication, legal, and personal-note sources; its canvas supports wheel zoom, pan, and two-finger
   pinch zoom on touch devices. The embedded graph dialog is 95dvh tall.
 - Model settings live in Settings (`#/settings`); the optional local model loader indicator sits on
-  the settings nav icon. Model settings use the shared paper theme tokens, and the available-models
-  row uses a chevron disclosure. They distinguish always-available offline search from the optional
-  local model and expose model size, requirements, advantages, limitations, and model selection.
+  the settings nav icon when no content-pack download pie is covering that corner. Settings sections
+  use paper-sheet cards with headed icons. The downloads card is a whole-card link to
+  `#/settings/downloads`; hover uses the accent border, and an idle card reads «Тут будут ваши загрузки».
+  Model settings use the shared paper theme tokens, and the
+  available-models row uses a chevron disclosure. They distinguish always-available offline search
+  from the optional local model and expose model size, requirements, advantages, limitations, and
+  model selection.
 - Device preferences in Settings persist vibration on/off (default on), remember-search-mode
   (default off), and zen-pack UI sound volume (default 20%; zero mutes and stops playback).
-  GitHub and Android APK links at the bottom of Settings use `--theme-link` in both themes.
+  The Settings heading shows the MiniMed app icon above the title. Android, iOS, and browser
+  favicons use the same mark; replace `branding/app-icon-source.png` and run `bun run icons:generate`
+  to rebuild every size. GitHub and Android APK links at the bottom of Settings use `--theme-link` in both themes.
 - Haptics: Android uses `performHapticFeedback` via `LocalMedHaptics` (selection/light/medium/heavy);
   iOS uses Capacitor Haptics impact/selection; web does not call `navigator.vibrate`.
 - Zen-pack UI sounds go through one `UiSoundController`: cards, buttons, sliders, links, horizontal
@@ -253,7 +304,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   compact; set-level destructive actions use explicit text and red danger treatment. Modal state adds
   one navigator-history entry so Back closes the active modal first.
 - Assessment methodology and calculator formula/limitation details use dialogs instead of primary-page
-  accordions. When a questionnaire was opened from another section, a single back control asks where
+  accordions.   Questionnaire chrome keeps methodology and blank-print as circular icon buttons on the
+  right of the header at all widths including tablet. The saved-result page uses the same
+  tablet board as the questionnaire (`--layout-cols`), with the score card beside actions. When a questionnaire was opened from another section, a single back control asks where
   to go and shows route cards for the test catalog and the previous place. Patient names are suggested from locally stored patient cards, and external/manual test
   results can be saved into the same local result history.
 - Vertical mouse-wheel delta is translated into horizontal movement for the shared overflowing-strip
@@ -296,10 +349,13 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   scrollable row with explicit previous/next controls. Previews enlarge in-place, delete from an
   icon with confirmation, and support long-press multi-select.
 - Personal matches appear in search with an explicit personal-source label and outside the official
-  result container, so they cannot be mistaken for installed medical content. The block can collapse
-  like an accordion; note and uploaded-book hits use themed cards, and books carry a notepad icon.
+  result container, so they cannot be mistaken for installed medical content. The block collapses by
+  default, shows up to five combined note and book hits sorted by score, and can expand like an
+  accordion; note and uploaded-book hits use themed cards, and books carry a notepad icon.
   The «Ваши данные» scope
   searches only personal notes and user-uploaded books and never queries the official SQLite corpus.
+  Personal hits require every distinctive query stem (inflected forms still count); a shared leftover
+  such as «дети» or «мг» no longer surfaces a book or note that does not contain the specific term.
 - User-uploaded PDFs, images, and text-like files live in IndexedDB as a personal overlay: visual
   pages render immediately while throttled tesseract.js WASM OCR runs in a background worker; only
   extracted text is indexed for personal search, never written into official content packs.
@@ -312,6 +368,12 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Document text links installed medications, recommendations, and laws into nested
   `#/modules/documents/d/…` pages and
   show kind icons beside each link, with a traveling wavy underline on hover.
+  Links skip the open document and its family (summary, full text, revision, or topic card such as
+  `kr.rf.281_3` → `kr.rf.281_3.uti`), so an abbreviation defined in a recommendation does not open
+  that same work again or add a duplicate breadcrumb.
+- Official JSON figures keep a nearby `Рис.`/`Fig.`/`Таблица` paragraph as the caption instead of
+  the CMS filename (`image.png`). Already installed packs get the same pairing in the reader
+  without a rebuild.
 - A clinical-summary reader installs the matching individual JSON recommendation on request, then
   reconnects the local corpus and replaces that same reader with the full document.
 
@@ -356,17 +418,21 @@ ordinary search response when validation fails.
   with the source ZIP, edition, and checksums retained locally.
 - Current official instruction synchronization covers nine pilot medications; eight text-layer PDFs
   build into a 147-chunk SQLite pack and the oseltamivir scan remains explicitly blocked on OCR.
-- The bundled `medications.db` vertical pilot contains one current Miramistin GRLS registration,
-  eight official package variants, the complete official patient leaflet, six traceable entities,
-  seven proposed relations, and four document links. The app exposes the same database through the
-  medication catalog, product detail route, document reader, catalog search, and main medication
-  search. Medication-indication queries prefer the full instruction and its treatment sections over
-  the registry identity card. The reader reconstructs bullet and numbered lists from their preserved
-  PDF markers and source-block indentation.
-- Browser sqlite-wasm boot opens only Core plus small packaged companions (`regulatory.db`,
-  `reference.db`). Local-dev `mkb.db` / `medications.db` / `ambulatory.db` are not deserialized into
-  the WASM heap (they OOM with SQLITE_NOMEM); they remain on disk for tooling and can be installed as
-  content modules.
+- The local Allmed companion `apps/app/public/content/medications.db` (~421 MB, 4,708
+  `allmed_reference` cards) is the full drug catalog for local/dev use. Browser sqlite-wasm no longer
+  deserializes that file into the WASM heap (that path OOM'd). It streams the pack into an OPFS SAH
+  pool and opens it from disk; the first boot copies ~421 MB into origin-private storage, later boots
+  reuse it. A truncated, empty, or legacy OPFS copy is discarded and re-imported instead of failing
+  MultiMedicalStore composition and blocking app boot; OPFS virtual filenames use the required
+  absolute-path form. On browsers
+  where `FileSystemFileHandle.prototype.createSyncAccessHandle` is unavailable
+  on the window thread (Safari and some Chromium builds), the main thread opens the pack in a
+  dedicated worker with pool name `minimed-sah-pack` and proxies it as a `MedicalStore`; the search
+  worker still opens OPFS directly (`minimed-sah-worker`) because it already runs in a dedicated
+  worker. `mkb.db` / `ambulatory.db` still stay closed unless
+  `VITE_OPEN_UNSAFE_WASM_COMPANIONS` names them. Core still contributes eight
+  `source_linked_summary` registry cards. The 560 KB `data/build/medications.db` GRLS pilot is a
+  separate one-drug pipeline artifact, not this catalog.
 - Optional local-dev `mkb.db` companion (`minimed.mkb.ru`) contains the full RLS MKB index (9,841
   nodes) plus the default `I67.9` detail page, 138 grouped trade-name cards, 4,956 unique MNN/form/
   dosage/package/manufacturer rows, stable medication brand/substance IDs, trade-name→MNN aliases,
@@ -465,8 +531,10 @@ review-required intermediate draft. Neither pilot has been run with provider cre
   complex layouts still require reviewed structure extraction before publication.
 - Medication registry cards establish identity, form, strength, and registration status; they do not
   establish a verified regimen.
-- `medications.db` is a one-drug pipeline proof, not a medication corpus. Similar products, normalized
-  dosing facts, ATC classification, and additional dosage forms remain absent.
+- The GRLS `data/build/medications.db` pipeline proof is still one-drug; it is not the local Allmed
+  catalog. Allmed cards are reference snapshots, not verified dosing. Similar products, normalized
+  dosing facts, ATC classification, and additional dosage forms remain absent from the official
+  instruction pack.
 - The MKB companion is a local-dev reference pack: the full-detail crawl is network-heavy and must be
   explicitly requested, while its code-to-medicine relations remain proposed/reference-only rather
   than treatment guidance. The public AJAX endpoint is used for forms and manufacturers; raw HTML is

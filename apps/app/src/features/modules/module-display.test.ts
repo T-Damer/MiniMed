@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatModuleCollectionSubtitle } from './module-display';
+import { formatModuleCollectionSubtitle, formatOverviewCollectionSubtitle } from './module-display';
 
 describe('formatModuleCollectionSubtitle', () => {
   const MB = 1024 * 1024;
@@ -49,5 +49,45 @@ describe('formatModuleCollectionSubtitle', () => {
 
   it('omits duplicate catalog size when it matches installed bytes during partial install', () => {
     expect(formatModuleCollectionSubtitle(1, 3, 12 * MB, 12 * MB)).toBe('1/3 · загружено 12 МБ');
+  });
+});
+
+describe('formatOverviewCollectionSubtitle', () => {
+  const MB = 1024 * 1024;
+
+  it('does not show pack fractions', () => {
+    expect(
+      formatOverviewCollectionSubtitle({
+        documentCountLabel: '8 документов',
+        downloadBytes: 12 * MB,
+        installedBytes: 0,
+      }),
+    ).toBe('8 документов · 12 МБ');
+    expect(
+      formatOverviewCollectionSubtitle({
+        downloadBytes: 0,
+        installedBytes: 0,
+      }),
+    ).toBeNull();
+  });
+
+  it('shows document count alone when pack size is unknown', () => {
+    expect(
+      formatOverviewCollectionSubtitle({
+        documentCountLabel: '4708 документов',
+        downloadBytes: 0,
+        installedBytes: 0,
+      }),
+    ).toBe('4708 документов');
+  });
+
+  it('prefers on-device size when present', () => {
+    expect(
+      formatOverviewCollectionSubtitle({
+        documentCountLabel: '12 документов',
+        downloadBytes: 15 * MB,
+        installedBytes: 12 * MB,
+      }),
+    ).toBe('12 документов · 12 МБ');
   });
 });

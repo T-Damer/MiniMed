@@ -17,14 +17,25 @@
     calc(6.5rem + var(--safe-bottom));
 }
 
-.assessments-heading p,
-.calculators-heading p,
-.assessment-workspace,
-.assessment-result-page,
-.calculator-workspace {
+.assessments-heading p:not(.archive-kicker),
+.calculators-heading p:not(.archive-kicker) {
   width: 100%;
   max-width: var(--page-measure);
-  margin-inline: auto;
+  margin-inline: 0;
+}
+
+.assessments-heading .archive-kicker,
+.calculators-heading .archive-kicker {
+  width: auto;
+  max-width: none;
+  margin-inline: 0;
+  text-align: start;
+}
+
+.assessment-result-page {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
 }
 
 .assessment-catalog-grid,
@@ -90,8 +101,8 @@
   .search-mode-tools,
   .knowledge-subroute-heading,
   .module-catalog-heading,
-  .medication-route-heading,
-  .document-page__chrome {
+  .module-catalog-toolbar,
+  .medication-route-heading {
     box-sizing: border-box;
     width: min(100%, var(--page-board-width));
     max-width: var(--page-board-width);
@@ -99,14 +110,21 @@
     padding-inline: var(--page-inline-padding);
   }
 
+  .module-catalog-heading--in-toolbar {
+    width: auto;
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
   .assessment-subpage-header,
   .calculator-subpage-header,
   .subpage-heading.assessments-heading,
   .subpage-heading.calculators-heading {
     box-sizing: border-box;
-    width: min(100%, var(--page-measure));
-    max-width: var(--page-measure);
-    margin-inline: auto;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
     padding-inline: 0;
   }
 }

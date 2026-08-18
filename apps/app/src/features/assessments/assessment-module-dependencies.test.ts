@@ -133,6 +133,7 @@ describe('assessment module dependencies', () => {
   });
 
   it('falls back to content scanning when a declaration is missing', async () => {
+    psychologyCatalog();
     const getChunksByDocument = vi.fn(async () => [
       chunk('one', 'Для оценки можно использовать тест Бравермана.'),
       chunk('two', 'Также допустима личная эгограмма.'),
@@ -152,6 +153,7 @@ describe('assessment module dependencies', () => {
   });
 
   it('reports an invalid declaration and safely falls back to text', async () => {
+    psychologyCatalog();
     const onDeclarationError = vi.fn();
     const store = {
       getHealth: async () => health(['clinical.invalid']),

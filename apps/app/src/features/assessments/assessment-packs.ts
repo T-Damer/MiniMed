@@ -60,6 +60,12 @@ const STORAGE_KEY = 'minimed.assessment-packs.v2';
 const LEGACY_STORAGE_KEY = 'minimed.assessment-packs.v1';
 const MODULE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,127}$/u;
 const MAX_VERSION_LENGTH = 128;
+let databaseAssessmentIds: ReadonlySet<string> = new Set();
+
+export function setDatabaseAssessmentIds(ids: readonly string[]): void {
+  databaseAssessmentIds = new Set(ids);
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(ASSESSMENT_PACKS_EVENT));
+}
 
 export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
   {
@@ -287,6 +293,10 @@ function installedIdsFromSnapshot(
   const installed = new Set(snapshot.manualIds);
   const excluded = new Set(snapshot.excludedIds);
   for (const definition of definitions) {
+    if (databaseAssessmentIds.has(definition.id)) {
+      installed.add(definition.id);
+      continue;
+    }
     if (snapshot.sectionIds.includes(definition.category) && !excluded.has(definition.id)) {
       installed.add(definition.id);
     }
@@ -374,9 +384,19 @@ export function isAssessmentSectionComplete(
   state: AssessmentInstallationState,
   definitions: readonly AssessmentCatalogEntry[],
 ): boolean {
-  if (!state.sectionIds.has(sectionId)) return false;
   const assessmentIds = assessmentIdsInSection(sectionId, definitions);
-  return assessmentIds.length > 0 && assessmentIds.every((id) => !state.excludedIds.has(id));
+  if (assessmentIds.length === 0) return false;
+  if (assessmentIds.every((id) => databaseAssessmentIds.has(id))) return true;
+  if (!state.sectionIds.has(sectionId)) return false;
+  return assessmentIds.every((id) => !state.excludedIds.has(id));
+}
+
+export function isAssessmentSectionFromDatabase(
+  sectionId: AssessmentSectionId,
+  definitions: readonly AssessmentCatalogEntry[],
+): boolean {
+  const assessmentIds = assessmentIdsInSection(sectionId, definitions);
+  return assessmentIds.length > 0 && assessmentIds.every((id) => databaseAssessmentIds.has(id));
 }
 
 export function assessmentRequiredByModules(

@@ -8,12 +8,52 @@ from typing import cast
 import yaml
 
 from localmed_ingest.builder import build_content_pack
+from localmed_ingest.clinical_json_import import extract_clinical_json
 from localmed_ingest.models import RegistryPack, RegistrySource, SourceRegistry
 from localmed_ingest.source_registry import prepare_registry
 
 _ONE_PIXEL_PNG = (
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl2sAAAAASUVORK5CYII="
 )
+
+
+def test_official_json_attaches_adjacent_figure_captions(tmp_path: Path) -> None:
+    source = tmp_path / "281_3.json"
+    caption = "Рис. 1. Активность ПМП против штаммов S. pneumoniae в РФ (n=540)"
+    source.write_text(
+        json.dumps(
+            {
+                "id": "281_3",
+                "name": "Инфекция мочевых путей",
+                "obj": {
+                    "sections": [
+                        {"id": "doc_whole", "content": "duplicate"},
+                        {
+                            "id": "s1",
+                            "title": "1. Диагностика",
+                            "content": (
+                                f'<img src="data:image/png;base64,{_ONE_PIXEL_PNG}" '
+                                f'alt="image.png"><p>{caption}</p>'
+                            ),
+                        },
+                    ]
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    extracted = extract_clinical_json(source)
+    blocks = extracted.pages[0].blocks
+    images = [block for block in blocks if block.kind == "image"]
+    render = cast(dict[str, object], images[0].metadata["renderBlock"])
+
+    assert images[0].text == caption
+    assert render["alt"] == caption
+    assert render["title"] == caption
+    assert not any(block.text == "image.png" for block in blocks)
+    assert not any(block.kind == "paragraph" and block.text == caption for block in blocks)
 
 
 def test_official_json_preserves_tables_and_embedded_images(tmp_path: Path) -> None:

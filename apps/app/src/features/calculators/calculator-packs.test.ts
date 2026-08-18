@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   calculatorIdsInSection,
@@ -6,8 +6,10 @@ import {
   installCalculatorSection,
   isCalculatorSectionComplete,
   isCalculatorSectionCore,
+  isCalculatorSectionFromDatabase,
   loadCalculatorInstallationState,
   removeCalculatorSection,
+  setDatabaseCalculatorIds,
 } from '@/features/calculators/calculator-packs';
 import {
   CALCULATOR_REGISTRY,
@@ -27,6 +29,8 @@ function registerObstetricsCalculators(): void {
     if (record.kind === 'calculator') registerDownloadedCalculator(record);
   }
 }
+
+afterEach(() => setDatabaseCalculatorIds([]));
 
 describe('calculator packs', () => {
   it('installs a complete section and removes its tools together', () => {
@@ -77,5 +81,16 @@ describe('calculator packs', () => {
     expect(installed.sectionIds.has('gynecology')).toBe(true);
     expect(installed.installedIds.has('gynecology-breast-cancer-risk')).toBe(true);
     expect(installed.installedIds.has('gynecology-cervical-cancer-risk')).toBe(true);
+  });
+
+  it('treats module-backed calculators as already installed without a download flag', () => {
+    registerCoreClinicalCalculators();
+    const registry = getCalculatorRegistry();
+    const ids = calculatorIdsInSection('renal', registry);
+    setDatabaseCalculatorIds(ids);
+    const state = loadCalculatorInstallationState(registry);
+    expect(ids.every((id) => state.installedIds.has(id))).toBe(true);
+    expect(isCalculatorSectionFromDatabase('renal', registry)).toBe(true);
+    expect(isCalculatorSectionComplete('renal', state, registry)).toBe(true);
   });
 });

@@ -27,6 +27,7 @@ import { DocumentText } from '@/components/DocumentText';
 import { HighlightedText } from '@/components/HighlightedText';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
+import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
@@ -586,9 +587,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           {(analysis) => (
             <section class="query-index" aria-label="Разбор запроса">
               <Show when={analysis().suggestions.length > 0}>
-                <div class="index-row suggestions-row query-index__suggestions">
+                <div class="index-row query-index__suggestions">
                   <div class="index-label query-index__label">
-                    <span>Полезно уточнить</span>
+                    <span class="index-label__title">Полезно уточнить</span>
                     <small class="index-label__hint">не блокирует диагнозы</small>
                   </div>
                   <div class="suggestion-strip">
@@ -610,15 +611,25 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
               <Show when={analysis().warnings.length > 0}>
                 <div class="query-warning-list">
-                  <For each={analysis().warnings}>{(warning) => <p>{warning}</p>}</For>
+                  <For each={analysis().warnings}>
+                    {(warning) => <p class="query-warning-list__item">{warning}</p>}
+                  </For>
                 </div>
               </Show>
 
-              <details class="analysis-details">
-                <summary>
-                  {analysisLoading()
-                    ? 'Обновляем разбор…'
-                    : `Распознано ${analysis().facts.length} полей · показать детали`}
+              <details class="analysis-details query-index__details">
+                <summary class="analysis-details__summary query-index__summary">
+                  <span class="query-index__summary-main">
+                    <span class="query-index__badge">Детали</span>
+                    <span class="query-index__text">
+                      {analysisLoading()
+                        ? 'Обновляем разбор…'
+                        : `Распознано ${analysis().facts.length} полей · показать детали`}
+                    </span>
+                    <span class="query-index__badge query-index__badge--spacer" aria-hidden="true">
+                      Детали
+                    </span>
+                  </span>
                 </summary>
                 <Show when={response()}>
                   {(searchResponse) => (
@@ -668,7 +679,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       <span
                         class="fact-tag"
                         classList={{
-                          negative: fact.polarity === 'negative',
                           'fact-tag--negative': fact.polarity === 'negative',
                         }}
                         title={fact.label}
@@ -683,7 +693,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   </Show>
                 </div>
                 <div class="branch-ledger">
-                  <span>Поисковые ветки</span>
+                  <span class="branch-ledger__label">Поисковые ветки</span>
                   <For each={analysis().branches}>
                     {(branch, index) => (
                       <span class="branch-ticket">
@@ -727,12 +737,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
 
         <Show when={error() === SEARCH_QUERY_EMPTY_ERROR}>
-          <div class="search-empty-state paper-card" role="status">
-            <AppGlyph name="binoculars" class="search-empty-state__icon" />
-            <p class="search-empty-state__text">
-              Search has not enough data, please provide more info
-            </p>
-          </div>
+          <QueryEmptyState message="Недостаточно данных для поиска. Уточните запрос." />
         </Show>
         <Show when={error() && error() !== SEARCH_QUERY_EMPTY_ERROR}>
           {(message) => <div class="error-card">{message()}</div>}

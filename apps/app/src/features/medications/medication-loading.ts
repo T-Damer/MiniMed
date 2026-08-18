@@ -6,17 +6,6 @@ function yieldToEventLoop(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-export function shouldPreserveMedicationCatalog(
-  hasVisitedCatalog: boolean,
-  selectedRegistration: string | null,
-): boolean {
-  return hasVisitedCatalog || selectedRegistration === null;
-}
-
-export function shouldHideMedicationCatalog(selectedRegistration: string | null): boolean {
-  return selectedRegistration !== null;
-}
-
 export function documentFromSummary(summary: MedicalDocumentSummary): MedicalDocument | null {
   if (!summary.metadata) return null;
   return { ...summary, metadata: summary.metadata, sections: [] };

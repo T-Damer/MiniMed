@@ -68,7 +68,7 @@ function createNode(
       if (selector.includes('Удалить') || selector.includes('.danger')) {
         return matchesDeleteSelector(this);
       }
-      if (selector === '.app-nav-button, .search-button, .content-download-pill') {
+      if (selector === '.app-nav-button, .search-button, .content-download-nav__pie') {
         return (
           this.className?.includes('app-nav-button') === true || this.className === 'search-button'
         );
@@ -167,6 +167,8 @@ function nodeMatchesSelector(node: MockNode, selector: string): boolean {
   if (selector === '.scroll-top-button') return node.className === 'scroll-top-button';
   if (selector === '.patient-notes-fab') return node.className === 'patient-notes-fab';
   if (selector === '.note-image-picker') return node.className === 'note-image-picker';
+  if (selector === '.note-reminder-fields__control')
+    return node.className === 'note-reminder-fields__control';
   if (selector === '[aria-label="Очистить историю"]') return node.ariaLabel === 'Очистить историю';
   if (selector === '[aria-label="Закрыть историю"]') return node.ariaLabel === 'Закрыть историю';
   if (selector === '[aria-label="Закрыть источник"]') return node.ariaLabel === 'Закрыть источник';
@@ -258,6 +260,19 @@ describe('feedbackForClick', () => {
   it('maps note image picker to open feedback', () => {
     const picker = createNode('label', null, { className: 'note-image-picker' });
     expect(feedbackForClick(asElement(picker))).toEqual({ cue: 'open', haptic: 'light' });
+  });
+
+  it('maps reminder date and time fields to select feedback', () => {
+    const date = createNode('input', null, {
+      inputType: 'date',
+      className: 'note-reminder-fields__control',
+    });
+    const time = createNode('input', null, {
+      inputType: 'time',
+      className: 'note-reminder-fields__control',
+    });
+    expect(feedbackForClick(asElement(date))).toEqual({ cue: 'select', haptic: 'light' });
+    expect(feedbackForClick(asElement(time))).toEqual({ cue: 'select', haptic: 'light' });
   });
 
   it('maps print controls to send feedback', () => {

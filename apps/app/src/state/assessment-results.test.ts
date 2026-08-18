@@ -1,8 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { loadAssessmentDefinition } from '@/features/assessments/assessment-catalog';
+import {
+  clearDownloadedAssessments,
+  loadAssessmentDefinition,
+  registerDownloadedAssessment,
+} from '@/features/assessments/assessment-catalog';
 import { scoreAssessment } from '@/features/assessments/assessment-engine';
 import type { AssessmentAnswers } from '@/features/assessments/assessment-types';
+import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
 import {
   ASSESSMENT_RESULTS_KEY,
   createCompletedAssessmentRecord,
@@ -21,6 +26,13 @@ beforeEach(() => {
     },
     dispatchEvent: vi.fn(),
   });
+  for (const record of loadToolModuleRecords(['content/tool-modules/psychology.json'])) {
+    if (record.kind === 'assessment') registerDownloadedAssessment(record);
+  }
+});
+
+afterEach(() => {
+  clearDownloadedAssessments();
 });
 
 describe('assessment result persistence', () => {

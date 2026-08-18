@@ -4,6 +4,36 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.23] - 2026-08-18
+
+### Added
+
+- In-document find lives in the reader header: exact match, worker search, previous/next, `1/N` or
+  `0/0`, and Back becomes × to close find.
+- Large local `medications.db` opens through OPFS SAH (and a dedicated worker when the window thread
+  lacks sync access handles) instead of deserializing into the SQLite WASM heap.
+- Document-catalog overview cards show live document counts plus size, not pack fractions such as
+  `0/1`.
+- Medication catalog cards open the official document reader; legacy `medications/<registration>`
+  hashes redirect there.
+- Regenerated app icon, favicons, and launcher mipmaps from `branding/app-icon-source.png`.
+
+### Changed
+
+- Packaged companion modules and local tool packs are treated as already installed at boot.
+- Assessment response cards hide the radio; the score is a background numeral and long labels scroll
+  inside the card.
+- Download progress for active packs stays on the Settings tab pie and the nav indicator.
+
+### Fixed
+
+- In-document find no longer retriggers after it finishes, which had blocked scrolling and kept the
+  spinner twitching.
+- An optional medications pack with a truncated OPFS copy no longer fails boot on a missing schema
+  version.
+- Document assessment links rebuild after downloaded questionnaires are registered, instead of
+  staying empty from the first import.
+
 ## [0.6.22] - 2026-08-18
 
 ### Added

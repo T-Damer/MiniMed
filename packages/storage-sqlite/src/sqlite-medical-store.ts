@@ -33,6 +33,12 @@ import sqlite3InitModule, {
 
 import { SCHEMA_SQL } from './generated/schema';
 import {
+  createStreamChunkImporter,
+  opfsVfsFileName,
+  parseContentSchemaVersion,
+  sahPoolContextName,
+} from './opfs-pack';
+import {
   readBlob,
   readNullableNumber,
   readNullableString,
@@ -41,11 +47,102 @@ import {
   type SqlRow,
 } from './row-readers';
 
+type SahPool = Awaited<ReturnType<Sqlite3Static['installOpfsSAHPoolVfs']>>;
+
 let sqliteModulePromise: Promise<Sqlite3Static> | undefined;
+const sahPoolPromises = new Map<string, Promise<SahPool>>();
 
 async function getSqliteModule(): Promise<Sqlite3Static> {
   sqliteModulePromise ??= sqlite3InitModule();
   return sqliteModulePromise;
+}
+
+async function getSahPool(sqlite: Sqlite3Static, poolName: string): Promise<SahPool> {
+  const existing = sahPoolPromises.get(poolName);
+  if (existing) return existing;
+  const created = sqlite.installOpfsSAHPoolVfs({
+    name: poolName,
+    directory: `.${poolName}`,
+    initialCapacity: 6,
+  });
+  sahPoolPromises.set(poolName, created);
+  try {
+    return await created;
+  } catch (cause) {
+    sahPoolPromises.delete(poolName);
+    throw cause;
+  }
+}
+
+interface StoreHealthHints {
+  readonly persistent: boolean;
+  readonly installation: StorageHealth['installation'];
+  readonly sizeBytes: number | null;
+}
+
+const MEMORY_HEALTH: StoreHealthHints = {
+  persistent: false,
+  installation: 'memory',
+  sizeBytes: null,
+};
+
+async function fetchPack(url: string, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Unable to load compiled content pack (${response.status}).`);
+    }
+    return response;
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === 'AbortError') {
+      throw new Error(`Unable to load ${url}: request timed out.`);
+    }
+    throw cause;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function readPackSchemaVersion(database: Database): number {
+  try {
+    return parseContentSchemaVersion(
+      database.selectValue("SELECT value FROM app_metadata WHERE key = 'schema_version'"),
+    );
+  } catch {
+    return parseContentSchemaVersion(
+      database.selectValue('SELECT schema_version FROM content_packs ORDER BY id LIMIT 1'),
+    );
+  }
+}
+
+async function importOpfsPack(
+  pool: SahPool,
+  url: string,
+  databaseName: string,
+  vfsName: string,
+  fetchTimeoutMs: number,
+): Promise<void> {
+  const response = await fetchPack(url, fetchTimeoutMs);
+  if (!response.body) throw new Error(`Unable to stream ${databaseName}.`);
+  await pool.importDb(vfsName, createStreamChunkImporter(response.body));
+}
+
+async function fetchPackByteLength(url: string, timeoutMs: number): Promise<number | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { method: 'HEAD', signal: controller.signal });
+    if (!response.ok) return null;
+    const raw = response.headers.get('content-length');
+    const byteLength = raw ? Number(raw) : Number.NaN;
+    return Number.isFinite(byteLength) ? byteLength : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function queryRows(database: Database, sql: string, bind?: BindingSpec): SqlRow[] {
@@ -207,6 +304,7 @@ export class SqliteMedicalStore implements MedicalStore {
   private constructor(
     private readonly database: Database,
     private readonly sqliteVersion: string,
+    private readonly healthHints: StoreHealthHints = MEMORY_HEALTH,
   ) {}
 
   public static async create(): Promise<SqliteMedicalStore> {
@@ -240,6 +338,47 @@ export class SqliteMedicalStore implements MedicalStore {
       throw new Error(`Unable to deserialize SQLite content pack (code ${resultCode}).`);
     }
     return new SqliteMedicalStore(database, sqlite.version.libVersion);
+  }
+
+  public static async createFromOpfsUrl(
+    url: string,
+    databaseName: string,
+    options: { readonly fetchTimeoutMs?: number; readonly poolName?: string } = {},
+  ): Promise<SqliteMedicalStore> {
+    const sqlite = await getSqliteModule();
+    const poolName = options.poolName ?? sahPoolContextName();
+    const pool = await getSahPool(sqlite, poolName);
+    const fetchTimeoutMs = options.fetchTimeoutMs ?? 180_000;
+    const byteLength = await fetchPackByteLength(url, fetchTimeoutMs);
+    const vfsName = opfsVfsFileName(databaseName, byteLength);
+    const legacyVfsName =
+      byteLength === null ? databaseName : `${databaseName}.${String(byteLength)}`;
+    const alreadyImported = pool.getFileNames().includes(vfsName);
+    const open = (installation: StoreHealthHints['installation']): SqliteMedicalStore => {
+      const database = new pool.OpfsSAHPoolDb(vfsName);
+      try {
+        readPackSchemaVersion(database);
+      } catch (cause) {
+        database.close();
+        throw cause;
+      }
+      return new SqliteMedicalStore(database, sqlite.version.libVersion, {
+        persistent: true,
+        installation,
+        sizeBytes: byteLength,
+      });
+    };
+
+    if (alreadyImported) {
+      try {
+        return open('reused');
+      } catch {
+        pool.unlink(vfsName);
+      }
+    }
+    await importOpfsPack(pool, url, databaseName, vfsName, fetchTimeoutMs);
+    if (legacyVfsName !== vfsName) pool.unlink(legacyVfsName);
+    return open('copied');
   }
 
   public async initialize(untrustedSeed?: ContentPackSeed): Promise<StorageHealth> {
@@ -461,9 +600,7 @@ export class SqliteMedicalStore implements MedicalStore {
   public async getHealth(): Promise<StorageHealth> {
     this.assertInitialized();
     return {
-      schemaVersion: Number(
-        this.database.selectValue("SELECT value FROM app_metadata WHERE key = 'schema_version'"),
-      ),
+      schemaVersion: readPackSchemaVersion(this.database),
       sqliteVersion: this.sqliteVersion,
       fts5Available:
         Number(
@@ -476,9 +613,9 @@ export class SqliteMedicalStore implements MedicalStore {
       ),
       documentCount: Number(this.database.selectValue('SELECT count(*) FROM documents')),
       backend: 'sqlite-wasm',
-      persistent: false,
-      installation: 'memory',
-      sizeBytes: null,
+      persistent: this.healthHints.persistent,
+      installation: this.healthHints.installation,
+      sizeBytes: this.healthHints.sizeBytes,
     };
   }
 

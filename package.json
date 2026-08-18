@@ -110,6 +110,7 @@
     "native:sync": "bun run --filter @localmed/app cap:sync",
     "native:sync:android": "bun run --filter @localmed/app cap:sync:android",
     "native:sync:ios": "bun run --filter @localmed/app cap:sync:ios",
+    "icons:generate": "uv run --with pillow python3 scripts/generate-app-icons.py",
     "verify": "bun scripts/verify.mjs",
     "verify:all": "bun scripts/verify.mjs && bun run test:e2e",
     "secrets:check": "bun scripts/no-secrets.mjs",

@@ -1,13 +1,17 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { knowledgeDocumentBackHash } from '@/features/knowledge/knowledge-routing';
+import {
+  knowledgeDocumentBackHash,
+  shouldResetKnowledgeCatalogScroll,
+} from '@/features/knowledge/knowledge-routing';
 import { UserLibraryPage } from '@/features/library/UserLibraryPage';
 import {
   isUserLibraryCatalogRoute,
   migrateLegacyUserDocumentHash,
 } from '@/features/library/user-library-routing';
 import { MedicationCatalogView } from '@/features/medications/MedicationCatalogView';
+import { isMedicationCatalogRoute } from '@/features/medications/medication-routing';
 import { ModuleCatalogView } from '@/features/modules/ModuleCatalogView';
 
 type KnowledgeRoute = 'documents' | 'medications';
@@ -21,11 +25,7 @@ interface KnowledgeBaseViewProps {
 }
 
 function routeFromLocation(): KnowledgeRoute {
-  const route = window.location.hash.replace(/^#\/?/u, '');
-  if (
-    route === 'modules/documents/medications' ||
-    route.startsWith('modules/documents/medications/')
-  ) {
+  if (isMedicationCatalogRoute(window.location.hash)) {
     return 'medications';
   }
   return 'documents';
@@ -54,8 +54,13 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
   const handleHashChange = (): void => {
     migrateLegacyUserDocumentHash();
     canonicalizeDocumentsHash();
+    const nextHash = window.location.hash;
+    if (!shouldResetKnowledgeCatalogScroll(nextHash)) return;
     setRoute(routeFromLocation());
     setDocumentsRoute(documentsRouteFromLocation());
+    if (!document.documentElement.classList.contains('using-root-view-transition')) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   };
 
   onMount(() => {

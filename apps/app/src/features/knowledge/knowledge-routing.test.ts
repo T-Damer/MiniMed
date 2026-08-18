@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { knowledgeDocumentBackHash } from './knowledge-routing';
+import { knowledgeDocumentBackHash, shouldResetKnowledgeCatalogScroll } from './knowledge-routing';
 
 describe('knowledgeDocumentBackHash', () => {
   it('returns the recommendations browser for recommendation categories', () => {
@@ -15,6 +15,7 @@ describe('knowledgeDocumentBackHash', () => {
     expect(knowledgeDocumentBackHash('modules/documents/recommendations')).toBe(
       '#/modules/documents',
     );
+    expect(knowledgeDocumentBackHash('modules/documents/medications')).toBe('#/modules/documents');
     expect(knowledgeDocumentBackHash('modules/documents/collection/reference')).toBe(
       '#/modules/documents',
     );
@@ -52,5 +53,24 @@ describe('knowledgeDocumentBackHash', () => {
 
   it('returns no document target outside the document catalog', () => {
     expect(knowledgeDocumentBackHash('modules')).toBeNull();
+  });
+});
+
+describe('shouldResetKnowledgeCatalogScroll', () => {
+  it('resets scroll for document catalog subroutes', () => {
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents')).toBe(true);
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/collection/regulatory')).toBe(
+      true,
+    );
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/core-library')).toBe(true);
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/recommendations')).toBe(true);
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/user')).toBe(true);
+  });
+
+  it('does not reset scroll for other root tabs or document readers', () => {
+    expect(shouldResetKnowledgeCatalogScroll('#/search')).toBe(false);
+    expect(shouldResetKnowledgeCatalogScroll('#/assessments')).toBe(false);
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/d/token')).toBe(false);
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/user/user-doc-1')).toBe(false);
   });
 });

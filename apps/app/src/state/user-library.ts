@@ -1,4 +1,8 @@
-import { lightStemRussian, tokenize } from '@localmed/search-lexical';
+import {
+  personalMatchScore,
+  personalQueryStems,
+  wordMatchesQueryStem,
+} from '@/state/personal-stem-match';
 
 export type UserLibraryOcrStatus = 'inspecting' | 'ready' | 'ocr' | 'failed';
 
@@ -176,16 +180,9 @@ function createDocumentId(): string {
   return `user-doc-${crypto.randomUUID()}`;
 }
 
-function stems(value: string): readonly string[] {
-  return tokenize(value).map(lightStemRussian);
-}
-
 function snippetFor(text: string, queryStems: readonly string[]): string {
   const words = text.split(/\s+/u);
-  const hitIndex = words.findIndex((word) => {
-    const stem = lightStemRussian(tokenize(word)[0] ?? '');
-    return stem.length > 0 && queryStems.includes(stem);
-  });
+  const hitIndex = words.findIndex((word) => wordMatchesQueryStem(word, queryStems));
   if (hitIndex < 0) {
     return text.length <= MAX_SNIPPET_LENGTH ? text : `${text.slice(0, MAX_SNIPPET_LENGTH - 1)}…`;
   }
@@ -550,7 +547,7 @@ export async function searchUserLibrary(
   query: string,
   limit = 8,
 ): Promise<readonly UserLibraryMatch[]> {
-  const queryStems = [...new Set(stems(query))];
+  const queryStems = personalQueryStems(query);
   if (queryStems.length === 0) return [];
   const documents = await listUserLibraryDocuments();
   const documentsById = new Map(documents.map((document) => [document.id, document]));
@@ -559,10 +556,7 @@ export async function searchUserLibrary(
     const pages = await readAllPages(database);
     const matches: UserLibraryMatch[] = [];
 
-    const scoreOf = (text: string): number => {
-      const textStems = new Set(stems(text));
-      return queryStems.filter((stem) => textStems.has(stem)).length;
-    };
+    const scoreOf = (text: string): number => personalMatchScore(queryStems, text);
 
     for (const document of documents) {
       const titleScore = scoreOf(`${document.title} ${document.fileName}`);

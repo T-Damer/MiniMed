@@ -7,10 +7,12 @@ import {
   documentSectionHeadingTag,
   hasFullTextSibling,
   isFullTextDocumentId,
+  nestDocumentSections,
   orderDocumentSections,
   preferReadableDocuments,
   resolveReadableDocumentId,
   summaryDocumentId,
+  visibleReaderSections,
 } from '@/features/library/document-display';
 
 const section = (title: string): MedicalSection => ({
@@ -52,6 +54,17 @@ describe('document-display', () => {
     expect(documentSectionHeadingTag(1, 2)).toBe('h3');
   });
 
+  it('nests sections so parent sticky headings contain their children', () => {
+    const sections = [1, 2, 3, 2, 1].map((depth, index) => ({
+      ...section(`section-${index}`),
+      depth,
+    }));
+    const tree = nestDocumentSections(sections);
+    expect(tree.map((node) => node.section.title)).toEqual(['section-0', 'section-4']);
+    expect(tree[0]?.children.map((node) => node.section.title)).toEqual(['section-1', 'section-3']);
+    expect(tree[0]?.children[0]?.children.map((node) => node.section.title)).toEqual(['section-2']);
+  });
+
   it('uses INN for registry drug titles', () => {
     expect(
       displayDocumentTitle({
@@ -82,6 +95,23 @@ describe('document-display', () => {
       'Регистрационная запись',
       'Ограничения',
     ]);
+  });
+
+  it('drops empty sections and the redundant Allmed medication card section', () => {
+    const emptySection = { ...section('Пустой'), chunks: [] };
+    const visible = visibleReaderSections(
+      [section('Карточка препарата'), emptySection, section('Показания')],
+      'allmed_reference',
+    );
+    expect(visible.map((item) => item.title)).toEqual(['Показания']);
+  });
+
+  it('keeps a Карточка препарата heading on non-medication documents', () => {
+    const visible = visibleReaderSections(
+      [section('Карточка препарата'), section('Показания')],
+      'clinical_recommendation',
+    );
+    expect(visible.map((item) => item.title)).toEqual(['Карточка препарата', 'Показания']);
   });
 
   it('exposes registry form as subtitle', () => {

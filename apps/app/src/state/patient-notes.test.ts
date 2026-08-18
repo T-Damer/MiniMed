@@ -176,6 +176,13 @@ describe('patient notes store', () => {
     expect(searchPatientNotes('   ')).toHaveLength(0);
   });
 
+  it('does not match a drug query from a leftover generic word in the note', () => {
+    createPatientCard('Иванов И., 3 года, 20 кг');
+    const cardId = cardIdOf('Иванов И., 3 года, 20 кг');
+    addPatientNote(cardId, 'осмотр ребёнка, вес 20 кг, доза в мг');
+    expect(searchPatientNotes('парацетамол детям')).toHaveLength(0);
+  });
+
   it('ranks the note with more query terms first', () => {
     createPatientCard('Иванов И.');
     const cardId = cardIdOf('Иванов И.');

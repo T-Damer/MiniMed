@@ -1,3 +1,14 @@
+import { isDocumentReadRoute } from '@/state/document-route';
+
+/** Intra-catalog hashes that should reset window scroll without touching root-tab restore. */
+export function shouldResetKnowledgeCatalogScroll(hash: string): boolean {
+  const route = hash.replace(/^#\/?/u, '');
+  if (isDocumentReadRoute(hash)) return false;
+  return (
+    route === 'modules' || route === 'modules/documents' || route.startsWith('modules/documents/')
+  );
+}
+
 export function knowledgeDocumentBackHash(route: string): string | null {
   if (route.startsWith('modules/documents/category/')) {
     return '#/modules/documents/recommendations';

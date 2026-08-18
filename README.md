@@ -56,6 +56,9 @@ Local servers must bind to `127.0.0.1`. Run app, test, and build processes from 
 that does not inherit provider credentials, release tokens, private-corpus paths, or upload targets.
 Local-model downloads are optional and disabled in browser automation unless explicitly enabled.
 
+Replace `branding/app-icon-source.png` and run `bun run icons:generate` to rebuild web favicons,
+the Settings mark, Android mipmaps, and the iOS App Store icon.
+
 ## Verification
 
 ```bash
@@ -108,6 +111,7 @@ content/                  Public authored and synthetic fixture sources
 tools/ingest/             Deterministic content pipeline
 tools/benchmarks/         Retrieval and clinical-case benchmarks
 docs/                     Product, architecture, and operating contracts
+branding/                 App-icon master (`app-icon-source.png`)
 ```
 
 Dependency direction is:

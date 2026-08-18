@@ -1,3 +1,4 @@
+import type { TextRange } from '@localmed/contracts';
 import * as pdfjs from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
@@ -15,7 +16,9 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
-import { SearchField } from '@/components/SearchField';
+import { QueryHighlightedText } from '@/components/HighlightedText';
+import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
+import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import { printHtml } from '@/features/library/document-print';
 import {
   DocumentReaderChromeShell,
@@ -24,10 +27,8 @@ import {
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
-  filterOutlineItems,
   pageAnchorId,
   pageCanvasId,
-  textMatchesDocumentQuery,
 } from '@/features/library/user-document-reader-helpers';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
 import type { DocumentTrail } from '@/state/document-trail';
@@ -54,6 +55,14 @@ interface UserDocumentReaderProps {
   readonly onNavigate?: (href: string) => void;
   readonly onTitle?: (title: string) => void;
 }
+
+const emptyFindState: DocumentFindResultState = {
+  query: '',
+  mode: 'exact',
+  matches: [],
+  activeIndex: 0,
+  loading: false,
+};
 
 function statusBanner(libraryDocument: UserLibraryDocument): string {
   if (libraryDocument.status === 'inspecting') {
@@ -99,29 +108,39 @@ function navigateHref(props: UserDocumentReaderProps, href: string): void {
   window.location.hash = href;
 }
 
+function wordUnitId(pageAnchor: string, wordIndex: number): string {
+  return `${pageAnchor}:${wordIndex}`;
+}
+
 function WordOverlay(props: {
+  readonly pageAnchor: string;
   readonly words: readonly UserLibraryWordBox[];
-  readonly query: () => string;
+  readonly hitUnitIds: () => ReadonlySet<string>;
+  readonly activeUnitId: () => string | undefined;
 }): JSX.Element {
   return (
     <div class="user-document-reader__word-layer">
       <For each={props.words}>
-        {(word) => (
-          <span
-            class="user-document-reader__word"
-            classList={{
-              'user-document-reader__word--hit': textMatchesDocumentQuery(word.text, props.query()),
-            }}
-            style={{
-              left: String(word.x * 100) + '%',
-              top: String(word.y * 100) + '%',
-              width: String(word.w * 100) + '%',
-              height: String(word.h * 100) + '%',
-            }}
-          >
-            {word.text}
-          </span>
-        )}
+        {(word, index) => {
+          const unitId = () => wordUnitId(props.pageAnchor, index());
+          return (
+            <span
+              class="user-document-reader__word"
+              classList={{
+                'user-document-reader__word--hit': props.hitUnitIds().has(unitId()),
+                'user-document-reader__word--current': props.activeUnitId() === unitId(),
+              }}
+              style={{
+                left: String(word.x * 100) + '%',
+                top: String(word.y * 100) + '%',
+                width: String(word.w * 100) + '%',
+                height: String(word.h * 100) + '%',
+              }}
+            >
+              {word.text}
+            </span>
+          );
+        }}
       </For>
     </div>
   );
@@ -134,7 +153,8 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const [pdfBlob, setPdfBlob] = createSignal<Blob | null>(null);
   const [imageUrl, setImageUrl] = createSignal<string | null>(null);
   const [loadError, setLoadError] = createSignal<string | null>(null);
-  const [query, setQuery] = createSignal('');
+  const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
+  const [findOpen, setFindOpen] = createSignal(false);
 
   const meta = (): UserLibraryDocument | null => libraryDocument();
 
@@ -150,12 +170,98 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     );
   });
 
-  const matchingOutlineItems = createMemo(() => filterOutlineItems(outlineItems(), query()));
-
   const chrome = useDocumentReaderChrome({
     sectionSelector: '[data-user-doc-anchor]',
     outlineItemAttr: 'data-outline-anchor',
-    scrollSpyWhen: () => Boolean(meta()) && matchingOutlineItems().length > 0,
+    scrollSpyWhen: () => Boolean(meta()) && outlineItems().length > 0,
+  });
+
+  const findUnits = createMemo((): readonly DocumentFindUnit[] => {
+    const current = meta();
+    if (!current) return [];
+    const titleUnit: DocumentFindUnit = { id: current.id, text: current.title };
+    if (isUserLibraryTextLikeMime(current.mimeType)) {
+      return [
+        titleUnit,
+        ...pages().map((page) => ({
+          id: pageAnchorId(page.documentId, page.pageIndex),
+          text: page.text,
+        })),
+      ];
+    }
+    if (isUserLibraryPdfMime(current.mimeType) || isUserLibraryImageMime(current.mimeType)) {
+      const units: DocumentFindUnit[] = [titleUnit];
+      const pageIndexes =
+        isUserLibraryPdfMime(current.mimeType) && pdfPageCount() > 0
+          ? Array.from({ length: pdfPageCount() }, (_, index) => index)
+          : [0];
+      for (const pageIndex of pageIndexes) {
+        const anchor = pageAnchorId(current.id, pageIndex);
+        const page = pages().find((item) => item.pageIndex === pageIndex);
+        const words = page?.words ?? [];
+        words.forEach((word, wordIndex) => {
+          units.push({ id: wordUnitId(anchor, wordIndex), text: word.text });
+        });
+      }
+      return units;
+    }
+    return [titleUnit];
+  });
+
+  const rangesByUnit = createMemo(() => {
+    const map = new Map<string, TextRange[]>();
+    for (const match of findState().matches) {
+      const existing = map.get(match.unitId) ?? [];
+      existing.push({ start: match.start, end: match.end });
+      map.set(match.unitId, existing);
+    }
+    return map;
+  });
+
+  const hitUnitIds = createMemo(() => new Set(findState().matches.map((match) => match.unitId)));
+
+  const activeMatch = createMemo(() => {
+    const matches = findState().matches;
+    const state = findState();
+    return matches[state.activeIndex];
+  });
+  let lastScrolledMatchKey = '';
+
+  createEffect(() => {
+    const match = activeMatch();
+    const state = findState();
+    if (!match || state.loading) {
+      if (state.loading) lastScrolledMatchKey = '';
+      return;
+    }
+    const key = `${match.unitId}:${String(match.start)}:${String(state.activeIndex)}`;
+    if (key === lastScrolledMatchKey) return;
+    lastScrolledMatchKey = key;
+    requestAnimationFrame(() => {
+      const current = meta();
+      if (!current) return;
+      if (isUserLibraryTextLikeMime(current.mimeType)) {
+        const paper = globalThis.document.querySelector<HTMLElement>(
+          '.user-document-reader__paper',
+        );
+        const mark = paper?.querySelector<HTMLElement>(
+          `[data-document-find-unit="${CSS.escape(match.unitId)}"][data-document-find-start="${String(match.start)}"]`,
+        );
+        if (mark) {
+          mark.scrollIntoView({ behavior: 'auto', block: 'center' });
+        } else {
+          globalThis.document.getElementById(match.unitId)?.scrollIntoView({
+            behavior: 'auto',
+            block: 'center',
+          });
+        }
+        return;
+      }
+      const word = globalThis.document.querySelector<HTMLElement>(
+        '.user-document-reader__word--current',
+      );
+      word?.scrollIntoView({ behavior: 'auto', block: 'center' });
+    });
   });
 
   const refresh = async (reloadFile = false): Promise<void> => {
@@ -232,18 +338,6 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     });
   });
 
-  createEffect(() => {
-    const trimmed = query().trim();
-    if (!trimmed) return;
-    const first = matchingOutlineItems()[0];
-    if (!first) return;
-    const currentAnchor = first.anchor;
-    requestAnimationFrame(() => {
-      if (query().trim() !== trimmed) return;
-      chrome.scrollTo(currentAnchor);
-    });
-  });
-
   const banner = (): string => {
     const current = meta();
     return current ? statusBanner(current) : '';
@@ -295,20 +389,13 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const pageByIndex = (pageIndex: number): UserLibraryPage | undefined =>
     pages().find((item) => item.pageIndex === pageIndex);
 
-  const textPageClass = (text: string): string => {
-    const base = 'user-document-reader__text';
-    if (!query().trim()) return base;
-    return textMatchesDocumentQuery(text, query())
-      ? base + ' user-document-reader__text--hit'
-      : base;
-  };
-
   return (
     <DocumentReaderChromeShell
       ariaLabel={meta()?.title ?? 'Личный документ'}
       class="document-page user-document-reader page-surface page-grain"
       chromeClass="document-page__chrome sticky-surface route-sticky-chrome"
       chrome={chrome}
+      searchOpen={findOpen}
       trail={props.trail ?? null}
       onNavigate={(href) => navigateHref(props, href)}
       breadcrumbs={
@@ -330,24 +417,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         </Show>
       }
       headerSearchSlot={
-        <SearchField
+        <DocumentFindBar
           class="document-page__header-search"
-          label="Поиск в документе"
-          value={query()}
-          onInput={setQuery}
-          placeholder="Слово или фраза"
-          hideLabel
-        />
-      }
-      printButton={
-        <Button
-          type="button"
-          variant="icon"
-          class="document-page__print overlay-dialog__print-button"
-          aria-label="Печать документа"
-          title="Печать документа"
-          onClick={printDocument}
-          icon={<AppGlyph name="printer" class="overlay-dialog__button-icon" />}
+          units={findUnits}
+          onOpenChange={setFindOpen}
+          onResult={setFindState}
         />
       }
       bodyError={
@@ -378,7 +452,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       }
       outlineNav={
         <Show
-          when={matchingOutlineItems().length > 0}
+          when={outlineItems().length > 0}
           fallback={
             <p class="document-overlay-outline-empty">
               {meta()?.status === 'inspecting'
@@ -387,7 +461,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             </p>
           }
         >
-          <For each={matchingOutlineItems()}>
+          <For each={outlineItems()}>
             {(item) => (
               <button
                 type="button"
@@ -409,15 +483,51 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       }
       content={
         <article ref={chrome.setPaper} class="document-overlay-paper user-document-reader__paper">
+          <Show when={meta()}>
+            {(current) => (
+              <>
+                <h1 class="document-overlay-paper__title">
+                  <QueryHighlightedText
+                    text={current().title}
+                    query={findState().query}
+                    exact={findState().mode === 'exact'}
+                    fuzzy={findState().mode === 'similar'}
+                    ranges={rangesForFindUnit(rangesByUnit(), current().id, findState().query)}
+                    unitId={current().id}
+                    activeStart={
+                      activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined
+                    }
+                    matchClass="document-overlay-match"
+                  />
+                </h1>
+                <header class="document-overlay-paper__header">
+                  <div class="document-overlay-paper__actions">
+                    <Button
+                      type="button"
+                      class="document-overlay-action-button"
+                      aria-label="Распечатать документ"
+                      onClick={printDocument}
+                      icon={
+                        <AppGlyph name="printer" class="document-overlay-action-button__icon" />
+                      }
+                    >
+                      Распечатать
+                    </Button>
+                  </div>
+                </header>
+              </>
+            )}
+          </Show>
           <Show when={isPdf()}>
             <div class="user-document-reader__pages">
               <For each={visualPageIndexes()}>
                 {(pageIndex) => {
                   const page = (): UserLibraryPage | undefined => pageByIndex(pageIndex);
                   const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
+                  const anchor = () => pageAnchorId(props.documentId, pageIndex);
                   return (
                     <section
-                      id={pageAnchorId(props.documentId, pageIndex)}
+                      id={anchor()}
                       data-user-doc-anchor=""
                       class="user-document-reader__page"
                     >
@@ -427,7 +537,12 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                           class="user-document-reader__canvas"
                         />
                         <Show when={words().length > 0}>
-                          <WordOverlay words={words()} query={query} />
+                          <WordOverlay
+                            pageAnchor={anchor()}
+                            words={words()}
+                            hitUnitIds={hitUnitIds}
+                            activeUnitId={() => activeMatch()?.unitId}
+                          />
                         </Show>
                       </div>
                     </section>
@@ -454,7 +569,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   )}
                 </Show>
                 <Show when={pageByIndex(0)?.words}>
-                  {(wordBoxes) => <WordOverlay words={wordBoxes()} query={query} />}
+                  {(wordBoxes) => (
+                    <WordOverlay
+                      pageAnchor={pageAnchorId(props.documentId, 0)}
+                      words={wordBoxes()}
+                      hitUnitIds={hitUnitIds}
+                      activeUnitId={() => activeMatch()?.unitId}
+                    />
+                  )}
                 </Show>
               </div>
             </section>
@@ -463,15 +585,32 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           <Show when={isTextLike()}>
             <div class="user-document-reader__text-pages">
               <For each={pages()}>
-                {(page) => (
-                  <section
-                    id={pageAnchorId(page.documentId, page.pageIndex)}
-                    data-user-doc-anchor=""
-                    class="user-document-reader__text-section"
-                  >
-                    <pre class={textPageClass(page.text)}>{page.text}</pre>
-                  </section>
-                )}
+                {(page) => {
+                  const anchor = () => pageAnchorId(page.documentId, page.pageIndex);
+                  const state = () => findState();
+                  const activeStart = () =>
+                    activeMatch()?.unitId === anchor() ? activeMatch()?.start : undefined;
+                  return (
+                    <section
+                      id={anchor()}
+                      data-user-doc-anchor=""
+                      class="user-document-reader__text-section"
+                    >
+                      <pre class="user-document-reader__text">
+                        <QueryHighlightedText
+                          text={page.text}
+                          query={state().query}
+                          exact={state().mode === 'exact'}
+                          fuzzy={state().mode === 'similar'}
+                          ranges={rangesForFindUnit(rangesByUnit(), anchor(), state().query)}
+                          unitId={anchor()}
+                          activeStart={activeStart()}
+                          matchClass="document-overlay-match"
+                        />
+                      </pre>
+                    </section>
+                  );
+                }}
               </For>
             </div>
           </Show>

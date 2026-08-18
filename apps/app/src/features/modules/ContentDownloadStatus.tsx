@@ -1,8 +1,12 @@
 import type { ContentModuleDownloadTask } from '@localmed/contracts';
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
+import {
+  aggregateDownloadProgress,
+  downloadProgressFraction,
+  latestVisibleDownloadTasks,
+} from '@/features/modules/content-download-progress';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
@@ -11,12 +15,12 @@ import {
   subscribeContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
 
-interface ContentDownloadStatusProps {
-  readonly floating?: boolean;
-}
-
 interface TaskMetrics {
   readonly speedBytesPerSecond: number | null;
+}
+
+interface ContentDownloadStatusProps {
+  readonly compact?: boolean;
 }
 
 const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> = {
@@ -28,21 +32,6 @@ const TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['state'], string>> 
   failed: 'Загрузка прервана',
   cancelled: 'Загрузка отменена',
 };
-
-function latestVisibleTasks(
-  tasks: readonly ContentModuleDownloadTask[],
-): readonly ContentModuleDownloadTask[] {
-  const seen = new Set<string>();
-  const latest: ContentModuleDownloadTask[] = [];
-  for (const task of [...tasks].reverse()) {
-    if (task.state === 'completed' || task.state === 'cancelled') continue;
-    const key = `${task.moduleId}@${task.version}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    latest.push(task);
-  }
-  return latest.reverse();
-}
 
 function formatBytes(value: number): string {
   if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)} ГБ`;
@@ -97,26 +86,11 @@ function describeTask(
   return sanitizeErrorMessage(task.errorMessage) ?? '';
 }
 
-function aggregateProgress(tasks: readonly ContentModuleDownloadTask[]): number | null {
-  let downloaded = 0;
-  let total = 0;
-  for (const task of tasks) {
-    if (!task.totalBytes || task.totalBytes <= 0) continue;
-    downloaded += task.downloadedBytes;
-    total += task.totalBytes;
-  }
-  if (total <= 0) return null;
-  return Math.max(0, Math.min(1, downloaded / total));
-}
-
 export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): JSX.Element {
   const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
   const [metrics, setMetrics] = createSignal<Readonly<Record<string, TaskMetrics>>>({});
   const [online, setOnline] = createSignal(navigator.onLine);
   const [managerError, setManagerError] = createSignal('');
-  // The floating card starts as a compact pill: downloads run on their own, so the expanded panel
-  // is only worth screen space when the doctor asks for it.
-  const [collapsed, setCollapsed] = createSignal(Boolean(props.floating));
   let currentRuntime: BrowserContentModuleRuntime | undefined;
   let unsubscribeTasks: (() => void) | undefined;
   let unsubscribeRuntime: (() => void) | undefined;
@@ -182,7 +156,9 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
     window.removeEventListener('offline', handleOffline);
   });
 
-  const visibleTasks = () => latestVisibleTasks(tasks());
+  const visibleTasks = () => latestVisibleDownloadTasks(tasks());
+  const aggregateProgress = () => aggregateDownloadProgress(visibleTasks());
+  const progressFraction = () => downloadProgressFraction(visibleTasks());
   const activeTasks = () =>
     visibleTasks().filter((task) => !['completed', 'failed', 'cancelled'].includes(task.state));
   const failedTasks = () => visibleTasks().filter((task) => task.state === 'failed');
@@ -206,7 +182,7 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
       queued > 0 ? `${queued} в очереди` : '',
       failedTasks().length > 0 ? `${failedTasks().length} требует внимания` : '',
     ].filter(Boolean);
-    return parts.join(' · ') || 'Проверяем и подключаем загруженные документы.';
+    return parts.join(' · ') || 'Тут будут ваши загрузки';
   };
 
   const moduleTitle = (task: ContentModuleDownloadTask): string =>
@@ -216,164 +192,206 @@ export function ContentDownloadStatus(props: ContentDownloadStatusProps = {}): J
       ?.title ?? task.moduleId;
 
   return (
-    <Show when={visibleTasks().length > 0}>
-      <Show when={!props.floating || !collapsed()}>
-        <section
-          class="content-download-status"
-          classList={{ floating: Boolean(props.floating) }}
-          aria-label="Загрузка наборов документов"
-          data-testid="content-download-status"
-        >
-          <header class="content-download-status-heading">
-            <div>
-              <h3>Загрузка наборов</h3>
-              <p>{summary()}</p>
-            </div>
-            <Show when={!props.floating}>
-              <span class="content-download-count">{visibleTasks().length}</span>
-            </Show>
-          </header>
-          <Show when={activeTasks().length > 0 || failedTasks().length > 0}>
-            <div class="content-download-status-actions">
-              <Show when={failedTasks().length > 0}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setManagerError('');
-                    try {
-                      currentRuntime?.retryFailed();
-                    } catch (cause) {
-                      setManagerError(
-                        cause instanceof Error ? cause.message : 'Не удалось повторить загрузки.',
-                      );
-                    }
-                  }}
-                >
-                  Повторить ошибки
-                </button>
-              </Show>
-              <Show when={activeTasks().length > 0}>
-                <button type="button" onClick={() => currentRuntime?.cancelAll()}>
-                  Отменить все
-                </button>
-              </Show>
-            </div>
-          </Show>
-          <Show when={managerError()}>
-            <p class="content-download-manager-error" role="alert">
-              {managerError()}
-            </p>
-          </Show>
-          <div class="content-download-scroll">
-            <ul>
-              <For each={visibleTasks()}>
-                {(task) => {
-                  const progress = () => contentModuleTaskProgress(task);
-                  return (
-                    <li
-                      classList={{
-                        failed: task.state === 'failed' && !retryScheduled(task),
-                        retrying: retryScheduled(task),
-                      }}
-                    >
-                      <div class="content-download-status-row">
-                        <div>
-                          <strong title={task.moduleId}>{moduleTitle(task)}</strong>
-                          <small>Версия {task.version}</small>
-                        </div>
-                        <span>{taskLabel(task)}</span>
-                      </div>
-                      <Show when={progress() !== null}>
-                        <div
-                          class="content-download-status-progress"
-                          role="progressbar"
-                          aria-valuemin="0"
-                          aria-valuemax="100"
-                          aria-valuenow={Math.round((progress() ?? 0) * 100)}
-                        >
-                          <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
-                        </div>
-                      </Show>
-                      <small class="content-download-status-detail">
-                        {describeTask(
-                          task,
-                          metrics()[task.id],
-                          retryScheduled(task),
-                          queuePosition(task),
-                        )}
-                      </small>
-                      <Show when={retryScheduled(task) ? null : task.errorMessage}>
-                        {(message) => (
-                          <small class="content-download-status-error">
-                            {sanitizeErrorMessage(message())}
-                          </small>
-                        )}
-                      </Show>
-                      <div class="content-download-task-actions">
-                        <Show when={!['completed', 'failed', 'cancelled'].includes(task.state)}>
-                          <button type="button" onClick={() => currentRuntime?.cancel(task.id)}>
-                            Отменить
-                          </button>
-                        </Show>
-                        <Show when={task.state === 'failed'}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setManagerError('');
-                              try {
-                                currentRuntime?.retry(task.id);
-                              } catch (cause) {
-                                setManagerError(
-                                  cause instanceof Error
-                                    ? cause.message
-                                    : 'Не удалось повторить загрузку.',
-                                );
-                              }
-                            }}
-                          >
-                            Повторить сейчас
-                          </button>
-                          <Show when={retryScheduled(task)}>
-                            <button type="button" onClick={() => currentRuntime?.cancel(task.id)}>
-                              Не загружать
-                            </button>
-                          </Show>
-                        </Show>
-                      </div>
-                    </li>
-                  );
-                }}
-              </For>
-            </ul>
+    <section
+      class="content-download-status"
+      classList={{
+        'content-download-status--compact': props.compact,
+        'paper-card': !props.compact,
+      }}
+      aria-label="Загрузка наборов документов"
+      data-testid="content-download-status"
+    >
+      <Show when={!props.compact}>
+        <header class="content-download-status__heading">
+          <div class="content-download-status__heading-text">
+            <h2 class="content-download-status__title">Загрузка наборов</h2>
+            <p class="content-download-status__summary">{summary()}</p>
           </div>
-        </section>
+          <Show when={visibleTasks().length > 0}>
+            <span class="content-download-status__count">{visibleTasks().length}</span>
+          </Show>
+        </header>
       </Show>
-      <Show when={props.floating}>
-        <button
-          type="button"
-          class="content-download-pill"
-          data-testid="content-download-status"
-          aria-expanded={!collapsed()}
-          aria-label={
-            collapsed()
-              ? `Загрузка наборов: ${visibleTasks().length}. Показать детали`
-              : 'Свернуть панель загрузок'
-          }
-          onClick={() => setCollapsed((value) => !value)}
-        >
-          <span
-            class="content-download-ring"
-            style={{
-              background: `conic-gradient(#e8c654 ${Math.round(
-                (aggregateProgress(visibleTasks()) ?? 0.08) * 100,
-              )}%, rgb(246 238 219 / 18%) 0)`,
-            }}
-            aria-hidden="true"
-          >
-            <AppGlyph name={collapsed() ? 'download' : 'minus'} />
-          </span>
-        </button>
+      <Show
+        when={props.compact}
+        fallback={
+          <>
+            <Show when={activeTasks().length > 0 || failedTasks().length > 0}>
+              <div class="content-download-status__actions">
+                <Show when={failedTasks().length > 0}>
+                  <button
+                    type="button"
+                    class="content-download-status__action"
+                    onClick={() => {
+                      setManagerError('');
+                      try {
+                        currentRuntime?.retryFailed();
+                      } catch (cause) {
+                        setManagerError(
+                          cause instanceof Error ? cause.message : 'Не удалось повторить загрузки.',
+                        );
+                      }
+                    }}
+                  >
+                    Повторить ошибки
+                  </button>
+                </Show>
+                <Show when={activeTasks().length > 0}>
+                  <button
+                    type="button"
+                    class="content-download-status__action"
+                    onClick={() => currentRuntime?.cancelAll()}
+                  >
+                    Отменить все
+                  </button>
+                </Show>
+              </div>
+            </Show>
+            <Show when={managerError()}>
+              <p class="content-download-status__manager-error" role="alert">
+                {managerError()}
+              </p>
+            </Show>
+            <Show
+              when={visibleTasks().length > 0}
+              fallback={<p class="content-download-status__empty">Тут будут ваши загрузки</p>}
+            >
+              <div class="content-download-status__scroll">
+                <ul class="content-download-status__list">
+                  <For each={visibleTasks()}>
+                    {(item) => {
+                      const progress = () => contentModuleTaskProgress(item);
+                      return (
+                        <li
+                          class="content-download-status__item"
+                          classList={{
+                            'content-download-status__item--failed':
+                              item.state === 'failed' && !retryScheduled(item),
+                            'content-download-status__item--retrying': retryScheduled(item),
+                          }}
+                        >
+                          <div class="content-download-status__row">
+                            <div class="content-download-status__identity">
+                              <strong class="content-download-status__name" title={item.moduleId}>
+                                {moduleTitle(item)}
+                              </strong>
+                              <small class="content-download-status__version">
+                                Версия {item.version}
+                              </small>
+                            </div>
+                            <span class="content-download-status__state">{taskLabel(item)}</span>
+                          </div>
+                          <Show when={progress() !== null}>
+                            <div
+                              class="content-download-status__progress"
+                              role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              aria-valuenow={Math.round((progress() ?? 0) * 100)}
+                            >
+                              <span
+                                class="content-download-status__progress-fill"
+                                style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }}
+                              />
+                            </div>
+                          </Show>
+                          <small class="content-download-status__detail">
+                            {describeTask(
+                              item,
+                              metrics()[item.id],
+                              retryScheduled(item),
+                              queuePosition(item),
+                            )}
+                          </small>
+                          <Show when={retryScheduled(item) ? null : item.errorMessage}>
+                            {(message) => (
+                              <small class="content-download-status__error">
+                                {sanitizeErrorMessage(message())}
+                              </small>
+                            )}
+                          </Show>
+                          <div class="content-download-status__task-actions">
+                            <Show when={!['completed', 'failed', 'cancelled'].includes(item.state)}>
+                              <button
+                                type="button"
+                                class="content-download-status__action"
+                                onClick={() => currentRuntime?.cancel(item.id)}
+                              >
+                                Отменить
+                              </button>
+                            </Show>
+                            <Show when={item.state === 'failed'}>
+                              <button
+                                type="button"
+                                class="content-download-status__action"
+                                onClick={() => {
+                                  setManagerError('');
+                                  try {
+                                    currentRuntime?.retry(item.id);
+                                  } catch (cause) {
+                                    setManagerError(
+                                      cause instanceof Error
+                                        ? cause.message
+                                        : 'Не удалось повторить загрузку.',
+                                    );
+                                  }
+                                }}
+                              >
+                                Повторить сейчас
+                              </button>
+                              <Show when={retryScheduled(item)}>
+                                <button
+                                  type="button"
+                                  class="content-download-status__action"
+                                  onClick={() => currentRuntime?.cancel(item.id)}
+                                >
+                                  Не загружать
+                                </button>
+                              </Show>
+                            </Show>
+                          </div>
+                        </li>
+                      );
+                    }}
+                  </For>
+                </ul>
+              </div>
+            </Show>
+          </>
+        }
+      >
+        <div class="content-download-status__compact-body">
+          <div class="content-download-status__compact-row">
+            <span class="content-download-status__compact-summary">{summary()}</span>
+            <Show when={visibleTasks().length > 0}>
+              <span class="content-download-status__compact-value">
+                {aggregateProgress() === null
+                  ? 'Идёт загрузка'
+                  : `${Math.round((aggregateProgress() ?? 0) * 100)}%`}
+              </span>
+            </Show>
+          </div>
+          <Show when={visibleTasks().length > 0}>
+            <div
+              class="content-download-status__compact-progress"
+              role="progressbar"
+              aria-label="Прогресс загрузки наборов"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={
+                aggregateProgress() === null
+                  ? undefined
+                  : Math.round((aggregateProgress() ?? 0) * 100)
+              }
+            >
+              <span
+                class="content-download-status__compact-progress-fill"
+                style={{ width: `${Math.round(progressFraction() * 100)}%` }}
+              />
+            </div>
+          </Show>
+        </div>
       </Show>
-    </Show>
+    </section>
   );
 }

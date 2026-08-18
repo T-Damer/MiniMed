@@ -110,10 +110,9 @@ test('opens Miramistin indications from the full instruction with structured lis
       'ЛП-№(005744)-(РГ-RU)',
     )}`,
   );
-  await page.getByRole('button', { name: 'Открыть инструкцию' }).click();
   await expect(
     page.locator('.document-page__chrome > .document-overlay-outline-toggle'),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 30_000 });
 
   const indications = page
     .locator('.document-overlay-section')
@@ -190,8 +189,11 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await toggle.click();
   await expect(outline).toHaveClass(/document-overlay-outline--open/u);
 
+  await overlay.getByRole('button', { name: 'Поиск в документе' }).click();
   await overlay.getByRole('searchbox', { name: 'Поиск в документе' }).fill('тахипноэ');
+  await expect(overlay.locator('mark').first()).toBeVisible({ timeout: 3000 });
   await expect(overlay.locator('mark').first()).toHaveText(/тахипноэ/iu);
+  await expect(overlay.getByText(/\d+\s*\/\s*\d+/)).toBeVisible();
 });
 
 test('renders the complete virtualized document list', async ({ page }) => {
@@ -381,7 +383,7 @@ test('filters the document library and opens a document with one click', async (
   await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
   await expect(page.getByRole('heading', { name: 'Пневмония у детей', level: 2 })).toBeVisible();
-  await expect(page.getByLabel('Поиск в документе')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Поиск в документе' })).toBeVisible();
 });
 
 test('opens only the exact fragment without surrounding source context', async ({ page }) => {

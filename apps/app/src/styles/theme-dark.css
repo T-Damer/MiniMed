@@ -69,16 +69,16 @@
 
   .app-bottom-nav .app-nav-button--active {
     border-color: transparent;
-    color: var(--theme-accent);
+    color: #3d5246;
     background: transparent;
     box-shadow: none;
   }
 
   .app-bottom-nav__bubble {
-    border-color: color-mix(in srgb, #f8f0dd 72%, rgb(255 255 255 / 28%));
+    border-color: color-mix(in srgb, #d4cbb4 72%, rgb(255 255 255 / 28%));
     background:
-      radial-gradient(circle at 35% 18%, rgb(255 255 255 / 42%), transparent 58%),
-      linear-gradient(145deg, #fff9e8, #f8f0dd);
+      radial-gradient(circle at 35% 18%, rgb(255 255 255 / 32%), transparent 58%),
+      linear-gradient(145deg, #e8e0cc, #d4cbb4);
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -91,7 +91,7 @@
     }
 
     .app-bottom-nav .app-nav-button--active:hover {
-      color: var(--theme-accent);
+      color: #3d5246;
     }
   }
 
@@ -305,21 +305,29 @@
   }
 
   .analysis-details {
-    border-color: var(--theme-border);
-    background: var(--theme-surface-muted);
+    border-color: transparent;
+    background: transparent;
   }
 
-  .analysis-details summary {
+  .analysis-details__summary {
     color: var(--theme-text-muted);
   }
 
-  .analysis-details[open] summary {
+  .analysis-details[open] .analysis-details__summary {
     border-bottom-color: var(--theme-border);
   }
 
-  .query-index__suggestions {
+  .query-index {
     border-color: var(--theme-border);
     background: var(--theme-surface-muted);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 6%),
+      0 0.25rem 0.75rem rgb(0 0 0 / 22%);
+  }
+
+  .query-index__suggestions {
+    border-color: transparent;
+    background: transparent;
   }
 
   .index-row {
@@ -339,7 +347,6 @@
     border-color: var(--theme-border);
     color: var(--theme-text);
     background: var(--theme-surface-raised);
-    box-shadow: none;
   }
 
   .fact-tag__label {
@@ -357,12 +364,16 @@
   }
 
   .suggestion-strip__button {
-    border-color: var(--theme-text-faint);
+    border-color: var(--theme-border);
     color: var(--theme-text);
+    background: var(--theme-surface-raised);
   }
 
-  .suggestion-strip__button:hover {
-    background: var(--theme-surface-raised);
+  @media (hover: hover) and (pointer: fine) {
+    .suggestion-strip__button:hover {
+      border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+      background: var(--theme-accent-soft);
+    }
   }
 
   .branch-ledger {
@@ -371,7 +382,7 @@
 
   .branch-ticket {
     border-left-color: var(--theme-accent);
-    background: rgb(255 255 255 / 4%);
+    background: var(--theme-surface-raised);
   }
 
   .module-page .module-catalog-version span,
@@ -470,7 +481,14 @@
   }
 
   .document-overlay-match {
-    background-color: rgb(200 162 42 / 88%);
+    color: #1c1408;
+    background: #e0b03a;
+  }
+
+  .document-overlay-match--current {
+    color: #1c1408;
+    background: #f0a020;
+    outline-color: #c47a12;
   }
 
   .patient-card {
@@ -584,6 +602,7 @@
   }
 
   .document-overlay-paper {
+    --document-paper-fill: var(--theme-surface);
     color: var(--theme-text);
     background:
       repeating-linear-gradient(
@@ -592,7 +611,7 @@
         transparent 1.9375rem,
         rgb(255 255 255 / 3%) 2rem
       ),
-      var(--theme-surface);
+      var(--document-paper-fill);
   }
 
   .document-overlay-paper__header,
@@ -608,13 +627,6 @@
   .document-overlay-lead,
   .document-overlay-section__paragraph {
     color: var(--theme-text-muted);
-  }
-
-  .document-overlay-full-text,
-  .document-overlay-full-text-inline {
-    border-color: var(--theme-border);
-    color: var(--theme-link);
-    background: var(--theme-surface-raised);
   }
 
   .document-overlay-outline-backdrop {

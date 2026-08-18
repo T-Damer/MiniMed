@@ -193,12 +193,14 @@ function ReminderFields(props: {
       <span>Напомнить</span>
       <input
         type="date"
+        class="note-reminder-fields__control"
         aria-label="Дата напоминания"
         value={props.date}
         onInput={(event) => props.onDateChange(event.currentTarget.value)}
       />
       <input
         type="time"
+        class="note-reminder-fields__control"
         aria-label="Время напоминания"
         value={props.time}
         onInput={(event) => props.onTimeChange(event.currentTarget.value)}
@@ -735,6 +737,7 @@ export function NotesView(props: {
                       <article class="patient-note-record">
                         <button
                           type="button"
+                          class="patient-note-record__open"
                           onClick={() => navigate(notesPath(card().id, note.id))}
                         >
                           <small>{formatDate(note.createdAt)}</small>

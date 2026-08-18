@@ -5,6 +5,7 @@ import { registerAppServiceWorker } from '@/state/app-update';
 import { startReminderNotifications } from '@/state/reminder-notifications';
 import 'overlayscrollbars/overlayscrollbars.css';
 import '@/styles/theme.css';
+import '@/styles/zIndex.css';
 import '@/styles/animations.css';
 import '@/styles/breakpoints.css';
 import '@/styles/global.css';

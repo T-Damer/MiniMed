@@ -13,6 +13,8 @@ export interface SearchFieldProps {
   readonly tone?: 'default' | 'inverse';
   readonly class?: string;
   readonly autocomplete?: string;
+  readonly inputRef?: (element: HTMLInputElement) => void;
+  readonly onKeyDown?: JSX.EventHandlerUnion<HTMLInputElement, KeyboardEvent>;
 }
 
 export function SearchField(props: SearchFieldProps): JSX.Element {
@@ -27,6 +29,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
     'tone',
     'class',
     'autocomplete',
+    'inputRef',
   ]);
 
   const fieldId = () => local.id ?? 'archive-search-input';
@@ -47,6 +50,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
         <input
           {...rest}
           id={fieldId()}
+          ref={local.inputRef}
           class="archive-search__input"
           data-fuzzy="true"
           data-search-focus-target="true"

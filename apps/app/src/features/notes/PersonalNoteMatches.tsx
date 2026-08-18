@@ -11,13 +11,21 @@ import {
 import { AppGlyph } from '@/components/AppGlyph';
 import { openUserLibraryDocument } from '@/features/library/user-library-routing';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
-import { PATIENT_NOTES_EVENT, searchPatientNotes } from '@/state/patient-notes';
+import {
+  PATIENT_NOTES_EVENT,
+  type PatientNoteMatch,
+  searchPatientNotes,
+} from '@/state/patient-notes';
 import {
   listUserLibraryDocuments,
   searchUserLibrary,
   USER_LIBRARY_EVENT,
   type UserLibraryMatch,
 } from '@/state/user-library';
+
+type PersonalHit =
+  | { readonly kind: 'note'; readonly match: PatientNoteMatch }
+  | { readonly kind: 'library'; readonly match: UserLibraryMatch };
 
 interface PersonalNoteMatchesProps {
   readonly query: string;
@@ -32,7 +40,7 @@ interface PersonalNoteMatchesProps {
  */
 export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Element {
   const [revision, setRevision] = createSignal(0);
-  const [collapsed, setCollapsed] = createSignal(false);
+  const [collapsed, setCollapsed] = createSignal(true);
   const [hasUserLibrary, setHasUserLibrary] = createSignal(false);
   const [libraryMatches, setLibraryMatches] = createSignal<readonly UserLibraryMatch[]>([]);
 
@@ -63,13 +71,18 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
   const trimmedQuery = createMemo(() => props.query.trim());
 
   createEffect(() => {
+    trimmedQuery();
+    setCollapsed(true);
+  });
+
+  createEffect(() => {
     revision();
     const query = trimmedQuery();
     if (query.length <= 1) {
       setLibraryMatches([]);
       return;
     }
-    void searchUserLibrary(query)
+    void searchUserLibrary(query, 5)
       .then(setLibraryMatches)
       .catch((cause) => {
         setLibraryMatches([]);
@@ -80,12 +93,20 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
   const noteMatches = createMemo(() => {
     revision();
     const query = trimmedQuery();
-    return query.length > 1 ? searchPatientNotes(query) : [];
+    return query.length > 1 ? searchPatientNotes(query, 5) : [];
+  });
+
+  const combinedMatches = createMemo((): readonly PersonalHit[] => {
+    const hits: PersonalHit[] = [
+      ...noteMatches().map((match) => ({ kind: 'note' as const, match })),
+      ...libraryMatches().map((match) => ({ kind: 'library' as const, match })),
+    ];
+    return hits.toSorted((left, right) => right.match.score - left.match.score).slice(0, 5);
   });
 
   const showSection = createMemo(() => {
     if (props.scope === 'personal') return trimmedQuery().length > 1;
-    return noteMatches().length > 0 || libraryMatches().length > 0;
+    return combinedMatches().length > 0;
   });
 
   const sectionLabel = createMemo(() =>
@@ -132,60 +153,57 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
           class="personal-note-matches__panel"
           hidden={collapsed()}
         >
-          <Show
-            when={
-              noteMatches().length > 0 || libraryMatches().length > 0 || props.scope !== 'personal'
-            }
-          >
+          <Show when={combinedMatches().length > 0 || props.scope !== 'personal'}>
             <ul class="personal-note-matches__list">
-              <For each={noteMatches()}>
-                {(match) => (
+              <For each={combinedMatches()}>
+                {(hit) => (
                   <li class="personal-note-matches__item">
-                    <article class="personal-note-matches__card">
-                      <AppGlyph name="notes" class="personal-note-matches__icon" />
-                      <div class="personal-note-matches__body">
-                        <span class="personal-note-badge personal-note-badge--inline">
-                          Личные записи
-                        </span>
-                        <strong class="personal-note-matches__title">{match.card.title}</strong>
-                        <p class="personal-note-matches__snippet">{match.snippet}</p>
-                        <Show when={match.note === null}>
-                          <small class="personal-note-matches__meta">
-                            Совпадение в описании карточки
-                          </small>
-                        </Show>
-                      </div>
-                    </article>
-                  </li>
-                )}
-              </For>
-              <For each={libraryMatches()}>
-                {(match) => (
-                  <li class="personal-note-matches__item">
-                    <button
-                      type="button"
-                      class="personal-note-matches__card personal-note-matches__card--hit"
-                      onClick={() =>
-                        openUserLibraryDocument({
-                          documentId: match.document.id,
-                          pageIndex: match.pageIndex,
-                        })
-                      }
-                    >
-                      <AppGlyph name="notepad" class="personal-note-matches__icon" />
-                      <div class="personal-note-matches__body">
-                        <span class="personal-note-badge personal-note-badge--inline">
-                          Личная книга
-                        </span>
-                        <strong class="personal-note-matches__title">{match.document.title}</strong>
-                        <p class="personal-note-matches__snippet">{match.snippet}</p>
-                        <Show when={match.document.pageCount > 1}>
-                          <small class="personal-note-matches__meta">
-                            Страница {match.pageIndex + 1}
-                          </small>
-                        </Show>
-                      </div>
-                    </button>
+                    {hit.kind === 'note' ? (
+                      <article class="personal-note-matches__card">
+                        <AppGlyph name="notes" class="personal-note-matches__icon" />
+                        <div class="personal-note-matches__body">
+                          <span class="personal-note-badge personal-note-badge--inline">
+                            Личные записи
+                          </span>
+                          <strong class="personal-note-matches__title">
+                            {hit.match.card.title}
+                          </strong>
+                          <p class="personal-note-matches__snippet">{hit.match.snippet}</p>
+                          <Show when={hit.match.note === null}>
+                            <small class="personal-note-matches__meta">
+                              Совпадение в описании карточки
+                            </small>
+                          </Show>
+                        </div>
+                      </article>
+                    ) : (
+                      <button
+                        type="button"
+                        class="personal-note-matches__card personal-note-matches__card--hit"
+                        onClick={() =>
+                          openUserLibraryDocument({
+                            documentId: hit.match.document.id,
+                            pageIndex: hit.match.pageIndex,
+                          })
+                        }
+                      >
+                        <AppGlyph name="notepad" class="personal-note-matches__icon" />
+                        <div class="personal-note-matches__body">
+                          <span class="personal-note-badge personal-note-badge--inline">
+                            Личная книга
+                          </span>
+                          <strong class="personal-note-matches__title">
+                            {hit.match.document.title}
+                          </strong>
+                          <p class="personal-note-matches__snippet">{hit.match.snippet}</p>
+                          <Show when={hit.match.document.pageCount > 1}>
+                            <small class="personal-note-matches__meta">
+                              Страница {hit.match.pageIndex + 1}
+                            </small>
+                          </Show>
+                        </div>
+                      </button>
+                    )}
                   </li>
                 )}
               </For>
@@ -196,8 +214,7 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
             when={
               props.scope === 'personal' &&
               trimmedQuery().length > 1 &&
-              noteMatches().length === 0 &&
-              libraryMatches().length === 0
+              combinedMatches().length === 0
             }
           >
             <p class="personal-note-matches__empty">В личных данных ничего не найдено.</p>

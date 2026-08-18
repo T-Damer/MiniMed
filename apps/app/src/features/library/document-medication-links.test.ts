@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDocumentLinkPhrases,
   buildMedicationLinkPhrases,
+  createDocumentLinkMatcher,
   parseDocumentText,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
@@ -22,6 +23,15 @@ const medication = (
   versionId: 'v1',
   versionLabel: 'registry',
   effectiveFrom: null,
+});
+
+const recommendation = (
+  id: string,
+  title: string,
+  shortTitle: string | null = null,
+): MedicalDocumentSummary => ({
+  ...medication(id, title, shortTitle),
+  sourceType: 'clinical_recommendation_summary',
 });
 
 describe('document-medication-links', () => {
@@ -118,5 +128,91 @@ describe('document-medication-links', () => {
     expect(links.find((link) => link.documentId === 'clinical.pneumonia')?.kind).toBe(
       'recommendation',
     );
+  });
+
+  it('does not link a recommendation to its own topic card or title', () => {
+    const documents: MedicalDocumentSummary[] = [
+      recommendation('kr.rf.281_3', 'Инфекция мочевых путей', 'ИМП'),
+      recommendation('kr.rf.281_3.uti', 'Инфекция мочевых путей', 'ИМП у детей'),
+      recommendation('clinical.pneumonia', 'Пневмония у детей', 'Пневмония у детей'),
+    ];
+
+    const links = buildDocumentLinkPhrases(documents, 'kr.rf.281_3');
+    expect(links.map((link) => link.documentId)).toEqual(['clinical.pneumonia']);
+
+    const segments = segmentTextWithMedicationLinks(
+      'ИМП — инфекция мочевых путей. См. также пневмония у детей.',
+      links,
+    );
+    expect(segments).toEqual([
+      { kind: 'text', value: 'ИМП — инфекция мочевых путей. См. также ' },
+      {
+        kind: 'link',
+        value: 'пневмония у детей',
+        documentId: 'clinical.pneumonia',
+        linkKind: 'recommendation',
+      },
+      { kind: 'text', value: '.' },
+    ]);
+  });
+
+  it('does not link a phrase inside a longer word', () => {
+    const segments = segmentTextWithMedicationLinks('цефтриаксонный раствор', [
+      { phrase: 'цефтриаксон', documentId: 'drug.rf.ceftriaxone', kind: 'medication' },
+    ]);
+    expect(segments).toEqual([{ kind: 'text', value: 'цефтриаксонный раствор' }]);
+  });
+
+  it('matches flexible whitespace and ё/е', () => {
+    const segments = segmentTextWithMedicationLinks('Пневмония   у   детёй.', [
+      {
+        phrase: 'Пневмония у детей',
+        documentId: 'clinical.pneumonia',
+        kind: 'recommendation',
+      },
+    ]);
+    expect(segments).toEqual([
+      {
+        kind: 'link',
+        value: 'Пневмония   у   детёй',
+        documentId: 'clinical.pneumonia',
+        linkKind: 'recommendation',
+      },
+      { kind: 'text', value: '.' },
+    ]);
+  });
+
+  it('indexes a large phrase list without compiling a catalog-sized regex', () => {
+    const links = Array.from({ length: 4000 }, (_, index) => ({
+      phrase: `препарат-${index}`,
+      documentId: `drug.rf.example-${index}`,
+      kind: 'medication' as const,
+    }));
+    links[42] = {
+      phrase: 'цефтриаксон',
+      documentId: 'drug.rf.ceftriaxone.injection-1g',
+      kind: 'medication',
+    };
+
+    const indexedAt = performance.now();
+    const matcher = createDocumentLinkMatcher(links);
+    expect(performance.now() - indexedAt).toBeLessThan(50);
+
+    const paragraphs = Array.from(
+      { length: 350 },
+      (_, index) =>
+        `Раздел ${index + 1}. При тяжёлом течении назначают цефтриаксон внутримышечно. Контроль состояния обязателен.`,
+    );
+
+    const started = performance.now();
+    let hits = 0;
+    for (const paragraph of paragraphs) {
+      const segments = matcher.segment(paragraph);
+      if (segments.some((segment) => segment.kind === 'link')) hits += 1;
+    }
+    const elapsed = performance.now() - started;
+
+    expect(hits).toBe(paragraphs.length);
+    expect(elapsed).toBeLessThan(800);
   });
 });

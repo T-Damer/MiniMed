@@ -12,12 +12,7 @@
       "slug": "obstetric-bishop-score",
       "title": "Шкала Бишопа (готовность шейки матки)",
       "shortTitle": "Шкала Бишопа",
-      "aliases": [
-        "Bishop score",
-        "зрелость шейки матки",
-        "готовность к родам",
-        "индукция родов"
-      ],
+      "aliases": ["Bishop score", "зрелость шейки матки", "готовность к родам", "индукция родов"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -30,12 +25,7 @@
         "slug": "obstetric-bishop-score",
         "title": "Шкала Бишопа (готовность шейки матки)",
         "shortTitle": "Шкала Бишопа",
-        "aliases": [
-          "Bishop score",
-          "зрелость шейки матки",
-          "готовность к родам",
-          "индукция родов"
-        ],
+        "aliases": ["Bishop score", "зрелость шейки матки", "готовность к родам", "индукция родов"],
         "summary": "Сумма баллов по раскрытию, сглаживанию, положению головки, консистенции и позиции шейки матки.",
         "audience": "adult",
         "category": "obstetrics",
@@ -578,11 +568,7 @@
       "slug": "obstetric-edd-lmp",
       "title": "ПДР по дате последней менструации — правило Негеле",
       "shortTitle": "ПДР по ЛМП",
-      "aliases": [
-        "Naegele",
-        "правило Негеле",
-        "ПДР по менструации"
-      ],
+      "aliases": ["Naegele", "правило Негеле", "ПДР по менструации"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -595,20 +581,14 @@
         "slug": "obstetric-edd-lmp",
         "title": "ПДР по дате последней менструации — правило Негеле",
         "shortTitle": "ПДР по ЛМП",
-        "aliases": [
-          "Naegele",
-          "правило Негеле",
-          "ПДР по менструации"
-        ],
+        "aliases": ["Naegele", "правило Негеле", "ПДР по менструации"],
         "summary": "Предполагаемая дата родов и текущий срок беременности по дате последней менструации.",
         "audience": "adult",
         "category": "obstetrics",
         "clinical": true,
         "formulaDisplay": "Правило Негеле: ПДР = дата последней менструации + 280 дней (40 нед)",
         "population": "Беременные с известной и достоверной датой последней менструации.",
-        "limitations": [
-          "Формула предполагает регулярный менструальный цикл длиной 28 дней."
-        ],
+        "limitations": ["Формула предполагает регулярный менструальный цикл длиной 28 дней."],
         "inputs": [
           {
             "id": "lmpDate",
@@ -708,10 +688,7 @@
       "slug": "obstetric-edd-ultrasound",
       "title": "ПДР по УЗИ",
       "shortTitle": "ПДР по УЗИ",
-      "aliases": [
-        "ПДР по сроку УЗИ",
-        "дата родов по УЗИ"
-      ],
+      "aliases": ["ПДР по сроку УЗИ", "дата родов по УЗИ"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -724,10 +701,7 @@
         "slug": "obstetric-edd-ultrasound",
         "title": "ПДР по УЗИ",
         "shortTitle": "ПДР по УЗИ",
-        "aliases": [
-          "ПДР по сроку УЗИ",
-          "дата родов по УЗИ"
-        ],
+        "aliases": ["ПДР по сроку УЗИ", "дата родов по УЗИ"],
         "summary": "Предполагаемая дата родов по известному сроку беременности на дату УЗИ.",
         "audience": "adult",
         "category": "obstetrics",
@@ -843,9 +817,7 @@
       "slug": "obstetric-edd-conception",
       "title": "ПДР по дате зачатия",
       "shortTitle": "ПДР по зачатию",
-      "aliases": [
-        "дата зачатия ПДР"
-      ],
+      "aliases": ["дата зачатия ПДР"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -858,18 +830,14 @@
         "slug": "obstetric-edd-conception",
         "title": "ПДР по дате зачатия",
         "shortTitle": "ПДР по зачатию",
-        "aliases": [
-          "дата зачатия ПДР"
-        ],
+        "aliases": ["дата зачатия ПДР"],
         "summary": "Предполагаемая дата родов по известной дате зачатия.",
         "audience": "adult",
         "category": "obstetrics",
         "clinical": true,
         "formulaDisplay": "ПДР = дата зачатия + 266 дней (38 нед от зачатия)",
         "population": "Беременные с точно известной датой зачатия (например, ЭКО).",
-        "limitations": [
-          "Применимо только при точно известной дате зачатия."
-        ],
+        "limitations": ["Применимо только при точно известной дате зачатия."],
         "inputs": [
           {
             "id": "conceptionDate",
@@ -935,10 +903,7 @@
       "slug": "obstetric-edd-quickening",
       "title": "ПДР по первому шевелению",
       "shortTitle": "ПДР по шевелению",
-      "aliases": [
-        "первое шевеление плода",
-        "quickening"
-      ],
+      "aliases": ["первое шевеление плода", "quickening"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -951,10 +916,7 @@
         "slug": "obstetric-edd-quickening",
         "title": "ПДР по первому шевелению",
         "shortTitle": "ПДР по шевелению",
-        "aliases": [
-          "первое шевеление плода",
-          "quickening"
-        ],
+        "aliases": ["первое шевеление плода", "quickening"],
         "summary": "Предполагаемая дата родов по дате первого ощущаемого шевеления плода.",
         "audience": "adult",
         "category": "obstetrics",
@@ -1060,9 +1022,7 @@
       "slug": "obstetric-edd-given-date",
       "title": "ПДР по известному сроку на заданную дату",
       "shortTitle": "ПДР по известному сроку",
-      "aliases": [
-        "срок на дату ПДР"
-      ],
+      "aliases": ["срок на дату ПДР"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -1075,18 +1035,14 @@
         "slug": "obstetric-edd-given-date",
         "title": "ПДР по известному сроку на заданную дату",
         "shortTitle": "ПДР по известному сроку",
-        "aliases": [
-          "срок на дату ПДР"
-        ],
+        "aliases": ["срок на дату ПДР"],
         "summary": "Предполагаемая дата родов, если срок беременности известен на произвольную дату.",
         "audience": "adult",
         "category": "obstetrics",
         "clinical": true,
         "formulaDisplay": "ПДР = заданная дата + (280 − известный срок на эту дату, дней)",
         "population": "Случаи, когда срок беременности задокументирован на дату, отличную от УЗИ/ЛМП.",
-        "limitations": [
-          "Достоверность результата зависит от точности исходного известного срока."
-        ],
+        "limitations": ["Достоверность результата зависит от точности исходного известного срока."],
         "inputs": [
           {
             "id": "referenceDate",
@@ -1189,10 +1145,7 @@
       "slug": "obstetric-ga-from-edd",
       "title": "Срок беременности по известной ПДР",
       "shortTitle": "Срок по ПДР",
-      "aliases": [
-        "срок беременности сегодня",
-        "текущий срок по ПДР"
-      ],
+      "aliases": ["срок беременности сегодня", "текущий срок по ПДР"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -1205,10 +1158,7 @@
         "slug": "obstetric-ga-from-edd",
         "title": "Срок беременности по известной ПДР",
         "shortTitle": "Срок по ПДР",
-        "aliases": [
-          "срок беременности сегодня",
-          "текущий срок по ПДР"
-        ],
+        "aliases": ["срок беременности сегодня", "текущий срок по ПДР"],
         "summary": "Текущий срок беременности на заданную дату (или сегодня) по известной ПДР.",
         "audience": "adult",
         "category": "obstetrics",
@@ -1321,11 +1271,7 @@
       "slug": "obstetric-maternity-leave",
       "title": "Сроки отпуска по беременности и родам",
       "shortTitle": "Декретный отпуск",
-      "aliases": [
-        "декретный отпуск",
-        "больничный лист по беременности",
-        "ст 255 ТК РФ"
-      ],
+      "aliases": ["декретный отпуск", "больничный лист по беременности", "ст 255 ТК РФ"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -1338,11 +1284,7 @@
         "slug": "obstetric-maternity-leave",
         "title": "Сроки отпуска по беременности и родам",
         "shortTitle": "Декретный отпуск",
-        "aliases": [
-          "декретный отпуск",
-          "больничный лист по беременности",
-          "ст 255 ТК РФ"
-        ],
+        "aliases": ["декретный отпуск", "больничный лист по беременности", "ст 255 ТК РФ"],
         "summary": "Начало, окончание и продолжительность отпуска по беременности и родам по известной ПДР.",
         "audience": "adult",
         "category": "obstetrics",
@@ -1496,13 +1438,7 @@
       "slug": "obstetric-fetal-growth-doppler",
       "title": "Рост плода и допплерометрия",
       "shortTitle": "Рост и допплер",
-      "aliases": [
-        "fetal growth",
-        "Doppler",
-        "ЦПС",
-        "церебро-плацентарное отношение",
-        "ПИ артерий"
-      ],
+      "aliases": ["fetal growth", "Doppler", "ЦПС", "церебро-плацентарное отношение", "ПИ артерий"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -1700,11 +1636,7 @@
       "slug": "obstetric-efw-maternal-anthropometry",
       "title": "Предполагаемая масса плода по антропометрии матери",
       "shortTitle": "Масса по антропометрии",
-      "aliases": [
-        "EFW maternal anthropometry",
-        "масса плода по матери",
-        "масса при рождении"
-      ],
+      "aliases": ["EFW maternal anthropometry", "масса плода по матери", "масса при рождении"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -1717,11 +1649,7 @@
         "slug": "obstetric-efw-maternal-anthropometry",
         "title": "Предполагаемая масса плода по антропометрии матери",
         "shortTitle": "Масса по антропометрии",
-        "aliases": [
-          "EFW maternal anthropometry",
-          "масса плода по матери",
-          "масса при рождении"
-        ],
+        "aliases": ["EFW maternal anthropometry", "масса плода по матери", "масса при рождении"],
         "summary": "Антропометрическая оценка ожидаемой массы при рождении по сроку и прибавке массы матери.",
         "audience": "adult",
         "category": "obstetrics",
@@ -1896,11 +1824,7 @@
       "slug": "obstetric-efw-rudakov",
       "title": "Предполагаемая масса плода по Рудакову",
       "shortTitle": "Масса по Рудакову",
-      "aliases": [
-        "Rudakov",
-        "Рудаков масса плода",
-        "OJ VDM"
-      ],
+      "aliases": ["Rudakov", "Рудаков масса плода", "OJ VDM"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -1913,11 +1837,7 @@
         "slug": "obstetric-efw-rudakov",
         "title": "Предполагаемая масса плода по Рудакову",
         "shortTitle": "Масса по Рудакову",
-        "aliases": [
-          "Rudakov",
-          "Рудаков масса плода",
-          "OJ VDM"
-        ],
+        "aliases": ["Rudakov", "Рудаков масса плода", "OJ VDM"],
         "summary": "Упрощённая bedside-оценка массы по окружности живота и высоте дна матки.",
         "audience": "adult",
         "category": "obstetrics",
@@ -2034,11 +1954,7 @@
       "slug": "obstetric-vbac-antepartum",
       "title": "Вероятность успешных родов после кесарева — при постановке на учёт",
       "shortTitle": "VBAC при постановке на учёт",
-      "aliases": [
-        "VBAC antepartum",
-        "TOLAC Grobman 2007",
-        "родоразрешение после кесарева"
-      ],
+      "aliases": ["VBAC antepartum", "TOLAC Grobman 2007", "родоразрешение после кесарева"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -2051,11 +1967,7 @@
         "slug": "obstetric-vbac-antepartum",
         "title": "Вероятность успешных родов после кесарева — при постановке на учёт",
         "shortTitle": "VBAC при постановке на учёт",
-        "aliases": [
-          "VBAC antepartum",
-          "TOLAC Grobman 2007",
-          "родоразрешение после кесарева"
-        ],
+        "aliases": ["VBAC antepartum", "TOLAC Grobman 2007", "родоразрешение после кесарева"],
         "summary": "Прогностическая модель MFMU для оценки вероятности VBAC по данным первого дородового визита.",
         "audience": "adult",
         "category": "obstetrics",
@@ -2268,11 +2180,7 @@
       "slug": "obstetric-vbac-admission",
       "title": "Вероятность успешных родов после кесарева — при поступлении",
       "shortTitle": "VBAC при поступлении",
-      "aliases": [
-        "VBAC admission",
-        "TOLAC Grobman 2009",
-        "VBAC calculator admission"
-      ],
+      "aliases": ["VBAC admission", "TOLAC Grobman 2009", "VBAC calculator admission"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство",
       "category": "obstetrics",
@@ -2285,11 +2193,7 @@
         "slug": "obstetric-vbac-admission",
         "title": "Вероятность успешных родов после кесарева — при поступлении",
         "shortTitle": "VBAC при поступлении",
-        "aliases": [
-          "VBAC admission",
-          "TOLAC Grobman 2009",
-          "VBAC calculator admission"
-        ],
+        "aliases": ["VBAC admission", "TOLAC Grobman 2009", "VBAC calculator admission"],
         "summary": "Модель MFMU с данными, доступными при поступлении в родильный стационар.",
         "audience": "adult",
         "category": "obstetrics",
@@ -2596,12 +2500,7 @@
       "slug": "gynecology-breast-cancer-risk",
       "title": "Риск рака молочной железы — модель Gail/BCRAT",
       "shortTitle": "Риск молочной железы",
-      "aliases": [
-        "Gail model",
-        "BCRAT",
-        "breast cancer risk",
-        "модель Гейла"
-      ],
+      "aliases": ["Gail model", "BCRAT", "breast cancer risk", "модель Гейла"],
       "bankId": "gynecology",
       "bankLabel": "Гинекология",
       "category": "gynecology",
@@ -2614,12 +2513,7 @@
         "slug": "gynecology-breast-cancer-risk",
         "title": "Риск рака молочной железы — модель Gail/BCRAT",
         "shortTitle": "Риск молочной железы",
-        "aliases": [
-          "Gail model",
-          "BCRAT",
-          "breast cancer risk",
-          "модель Гейла"
-        ],
+        "aliases": ["Gail model", "BCRAT", "breast cancer risk", "модель Гейла"],
         "summary": "Пятилетний и оставшийся до 90 лет риск инвазивного рака по модели NCI BCRAT.",
         "audience": "adult",
         "category": "gynecology",
@@ -2850,12 +2744,7 @@
       "slug": "gynecology-cervical-cancer-risk",
       "title": "Скрининг шейки матки — ASCCP",
       "shortTitle": "Риск шейки матки",
-      "aliases": [
-        "cervical cancer risk",
-        "ASCCP",
-        "ВПЧ и цитология",
-        "скрининг шейки матки"
-      ],
+      "aliases": ["cervical cancer risk", "ASCCP", "ВПЧ и цитология", "скрининг шейки матки"],
       "bankId": "gynecology",
       "bankLabel": "Гинекология",
       "category": "gynecology",
@@ -2868,12 +2757,7 @@
         "slug": "gynecology-cervical-cancer-risk",
         "title": "Скрининг шейки матки — ASCCP",
         "shortTitle": "Риск шейки матки",
-        "aliases": [
-          "cervical cancer risk",
-          "ASCCP",
-          "ВПЧ и цитология",
-          "скрининг шейки матки"
-        ],
+        "aliases": ["cervical cancer risk", "ASCCP", "ВПЧ и цитология", "скрининг шейки матки"],
         "summary": "Справочная стратификация маршрута по общим сочетаниям ВПЧ, цитологии и анамнеза.",
         "audience": "adult",
         "category": "gynecology",
@@ -3074,12 +2958,7 @@
       "slug": "apgar-newborn-score",
       "title": "Шкала Апгар — оценка новорождённого",
       "shortTitle": "Шкала Апгар",
-      "aliases": [
-        "Апгар",
-        "Apgar score",
-        "оценка новорождённого",
-        "шкала Апгар"
-      ],
+      "aliases": ["Апгар", "Apgar score", "оценка новорождённого", "шкала Апгар"],
       "bankId": "obstetrics",
       "bankLabel": "Акушерство и гинекология",
       "category": "newborn-screening",
@@ -3091,12 +2970,7 @@
         "slug": "apgar-newborn-score",
         "title": "Шкала Апгар — оценка новорождённого",
         "shortTitle": "Шкала Апгар",
-        "aliases": [
-          "Апгар",
-          "Apgar score",
-          "оценка новорождённого",
-          "шкала Апгар"
-        ],
+        "aliases": ["Апгар", "Apgar score", "оценка новорождённого", "шкала Апгар"],
         "bankId": "obstetrics",
         "bankLabel": "Акушерство и гинекология",
         "category": "newborn-screening",

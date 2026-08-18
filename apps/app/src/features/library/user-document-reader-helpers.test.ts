@@ -101,8 +101,14 @@ describe('user-document-reader-helpers', () => {
     expect(html).not.toContain('<test>');
   });
 
-  it('matches document query with fuzzy text helper', () => {
-    expect(textMatchesDocumentQuery('Гипертоническая болезнь', 'гиперт')).toBe(true);
+  it('matches document query exactly by default', () => {
+    expect(textMatchesDocumentQuery('Гипертоническая болезнь', 'диабет')).toBe(false);
+    expect(textMatchesDocumentQuery('Гипертоническая болезнь', 'болезнь')).toBe(true);
     expect(textMatchesDocumentQuery('Диабет', 'гиперт')).toBe(false);
+  });
+
+  it('matches document query with similar words when enabled', () => {
+    expect(textMatchesDocumentQuery('Гипертоническая болезнь', 'гиперт', true)).toBe(true);
+    expect(textMatchesDocumentQuery('Диабет', 'гиперт', true)).toBe(false);
   });
 });

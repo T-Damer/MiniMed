@@ -15,9 +15,7 @@ export function Button(props: ButtonProps): JSX.Element {
 
   return (
     <button {...button} class={`ui-button ui-button--${variant()} ${local.class ?? ''}`.trim()}>
-      <Show when={local.icon}>
-        {(icon) => <span class="ui-button__icon">{icon()}</span>}
-      </Show>
+      <Show when={local.icon}>{(icon) => <span class="ui-button__icon">{icon()}</span>}</Show>
       <Show when={variant() !== 'icon'}>
         <span class="ui-button__label">{local.children}</span>
       </Show>

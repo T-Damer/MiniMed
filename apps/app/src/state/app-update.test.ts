@@ -30,17 +30,17 @@ describe('Android APK update selection', () => {
     expect(
       selectLatestApkUpdate([
         {
-          tag_name: 'v0.6.18',
+          tag_name: 'v9.0.0',
           draft: false,
           assets: [{ browser_download_url: 'https://example.test/old.apk' }],
         },
         {
-          tag_name: 'v0.6.20',
+          tag_name: 'v9.0.2',
           draft: false,
           assets: [{ browser_download_url: 'https://example.test/new.apk' }],
         },
         {
-          tag_name: 'v0.6.21',
+          tag_name: 'v9.0.3',
           draft: true,
           assets: [{ browser_download_url: 'https://example.test/draft.apk' }],
         },

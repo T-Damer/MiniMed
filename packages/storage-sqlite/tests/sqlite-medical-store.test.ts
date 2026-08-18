@@ -13,6 +13,12 @@ afterEach(async () => {
 });
 
 describe('SqliteMedicalStore', () => {
+  it('rejects an empty database that has no schema_version metadata', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await expect(store.initialize()).rejects.toThrow('schema_version is invalid');
+  });
+
   it('loads the compiled content seed and verifies FTS5 integrity', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
@@ -45,6 +51,7 @@ describe('SqliteMedicalStore', () => {
     const health = await store.initialize();
     const documents = await store.listDocuments();
     expect(health.documentCount).toBe(report.documents);
+    expect(health.schemaVersion).toBe(2);
     expect(documents).toHaveLength(report.documents);
     expect(documents.every((document) => document.title.length > 0)).toBe(true);
   });

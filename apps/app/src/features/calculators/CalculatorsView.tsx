@@ -18,6 +18,7 @@ import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import type {
   CalculatorInstallationState,
@@ -32,6 +33,7 @@ import {
   installCalculatorSection,
   isCalculatorSectionComplete,
   isCalculatorSectionCore,
+  isCalculatorSectionFromDatabase,
   loadCalculatorInstallationState,
   moduleIdForCalculatorSection,
   removeCalculatorSection,
@@ -205,6 +207,8 @@ function CalculatorSectionCard(props: {
   const complete = () =>
     isCalculatorSectionComplete(props.section.id, props.installation, props.definitions);
   const core = () => isCalculatorSectionCore(props.section.id, props.definitions);
+  const bundled = () =>
+    core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions);
 
   return (
     <section
@@ -225,13 +229,13 @@ function CalculatorSectionCard(props: {
           <small>
             {availableCount() === 0
               ? 'Доступных инструментов пока нет · источники и правила ещё проверяются'
-              : core()
+              : core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions)
                 ? 'Всегда доступно, без скачивания'
                 : `${installedCount()}/${availableCount()} скачано на устройство`}
           </small>
         </div>
         <div class="calculator-section-actions">
-          <Show when={availableCount() > 0 && !core()}>
+          <Show when={availableCount() > 0 && !bundled()}>
             <Button
               type="button"
               variant="icon"
@@ -276,6 +280,8 @@ function CalculatorSectionPage(props: {
   const complete = () =>
     isCalculatorSectionComplete(props.section.id, props.installation, props.definitions);
   const core = () => isCalculatorSectionCore(props.section.id, props.definitions);
+  const bundled = () =>
+    core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions);
 
   return (
     <section class="calculator-section-page">
@@ -296,7 +302,7 @@ function CalculatorSectionPage(props: {
           <h1>{props.section.title}</h1>
           <p>{props.section.description}</p>
         </div>
-        <Show when={!core() && availableCount() > 0}>
+        <Show when={!bundled() && availableCount() > 0}>
           <Button
             type="button"
             variant="icon"
@@ -642,6 +648,7 @@ function CalculatorForm(props: {
       <Button
         class="calculator-submit"
         type="submit"
+        variant="primary"
         data-testid="calculator-submit"
         icon={<AppGlyph name="calculator" />}
       >
@@ -725,27 +732,28 @@ function CalculationResultPanel(props: {
         </For>
       </div>
 
-      <Button
-        variant="secondary"
-        icon={<AppGlyph name="list" />}
-        onClick={() => setDetailsOpen('formula')}
-      >
-        Формула и шаги
-      </Button>
+      <div class="calculator-result-details">
+        <Button
+          variant="secondary"
+          icon={<AppGlyph name="list" />}
+          onClick={() => setDetailsOpen('formula')}
+        >
+          Формула и шаги
+        </Button>
+        <Button
+          variant="quiet"
+          icon={<AppGlyph name="book-open" />}
+          onClick={() => setDetailsOpen('sources')}
+        >
+          Источники и ограничения
+        </Button>
+      </div>
 
       <Show when={props.record.result.warnings.length > 0}>
         <div class="calculator-warnings">
           <For each={props.record.result.warnings}>{(warning) => <p>{warning.message}</p>}</For>
         </div>
       </Show>
-
-      <Button
-        variant="quiet"
-        icon={<AppGlyph name="book-open" />}
-        onClick={() => setDetailsOpen('sources')}
-      >
-        Источники и ограничения
-      </Button>
 
       <div class="calculator-result-actions">
         <Button
@@ -769,7 +777,7 @@ function CalculationResultPanel(props: {
           Поделиться
         </Button>
         <Button
-          variant="quiet"
+          variant="primary"
           icon={<AppGlyph name="notes" />}
           data-testid="calculator-save-note"
           onClick={() => setNoteOpen((open) => !open)}
@@ -846,7 +854,12 @@ function CalculationResultPanel(props: {
               />
             </label>
           </Show>
-          <Button type="button" onClick={saveToNote}>
+          <Button
+            type="button"
+            class="calculator-note-panel__save"
+            variant="primary"
+            onClick={saveToNote}
+          >
             Записать результат
           </Button>
         </div>
@@ -878,7 +891,9 @@ export function CalculatorsView(): JSX.Element {
     // Reacting to it would null out `selected()` and unmount the open CalculatorForm, silently
     // discarding whatever the user had already typed in.
     if (next !== '' && !next.startsWith('calculators')) return;
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (!document.documentElement.classList.contains('using-root-view-transition')) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
     setRoute(next);
     void refreshDownloadedTools();
   };
@@ -887,6 +902,7 @@ export function CalculatorsView(): JSX.Element {
   };
   const refreshDownloadedTools = async (): Promise<void> => {
     const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    await runtime.whenLocalPackagedModulesReady();
     const definitions = await runtime.listInstalledToolDefinitions();
     clearDownloadedCalculators();
     definitions.forEach(registerDownloadedCalculator);
@@ -1078,10 +1094,7 @@ export function CalculatorsView(): JSX.Element {
                       placeholder="Например: СКФ, 4-2-1, ППТ"
                     />
 
-                    <Show
-                      when={filtered().length > 0}
-                      fallback={<p>По этому запросу ничего не найдено.</p>}
-                    >
+                    <Show when={filtered().length > 0} fallback={<QueryEmptyState />}>
                       <div class="calculator-section-list">
                         <For
                           each={CALCULATOR_SECTIONS.filter(

@@ -344,12 +344,7 @@
       "slug": "bristol-stool-form-scale",
       "title": "Bristol Stool Form Scale",
       "shortTitle": "Bristol (BSS)",
-      "aliases": [
-        "Bristol Stool Form Scale",
-        "Bristol",
-        "BSS",
-        "Шкала Бристоля"
-      ],
+      "aliases": ["Bristol Stool Form Scale", "Bristol", "BSS", "Шкала Бристоля"],
       "bankId": "gastroenterology",
       "bankLabel": "Гастроэнтерология",
       "category": "gastroenterology",
@@ -362,12 +357,7 @@
         "slug": "bristol-stool-form-scale",
         "title": "Bristol Stool Form Scale",
         "shortTitle": "Bristol (BSS)",
-        "aliases": [
-          "Bristol Stool Form Scale",
-          "Bristol",
-          "BSS",
-          "Шкала Бристоля"
-        ],
+        "aliases": ["Bristol Stool Form Scale", "Bristol", "BSS", "Шкала Бристоля"],
         "summary": "Переключитесь на тип стула по 7-сегментной шкале Бристоля и получите интерпретацию по типичному диапазону консистенции.",
         "audience": "all",
         "category": "gastroenterology",
@@ -558,80 +548,56 @@
             "label": "Артралгия",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           },
           {
             "id": "uveitis",
             "label": "Увеит",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           },
           {
             "id": "erythemaNodosum",
             "label": "Узловатая эритема",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           },
           {
             "id": "aphthousUlcers",
             "label": "Афтозные язвы",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           },
           {
             "id": "pyodermaGangrenosum",
             "label": "Пиодермия гангренозная",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           },
           {
             "id": "analFissure",
             "label": "Анальная трещина",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           },
           {
             "id": "newFistula",
             "label": "Новый свищ",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           },
           {
             "id": "abscess",
             "label": "Абсцесс",
             "kind": "select",
             "required": true,
-            "options": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да" }
-            ]
+            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
           }
         ],
         "steps": [
@@ -726,12 +692,7 @@
       "slug": "vesikari-gastroenteritis",
       "title": "Шкала Vesikari (гастроэнтерит у детей)",
       "shortTitle": "Vesikari",
-      "aliases": [
-        "Vesikari score",
-        "Vesikari",
-        "шкала Весикари",
-        "острый гастроэнтерит дети"
-      ],
+      "aliases": ["Vesikari score", "Vesikari", "шкала Весикари", "острый гастроэнтерит дети"],
       "bankId": "gastroenterology",
       "bankLabel": "Гастроэнтерология",
       "category": "pediatric-gastroenterology",
@@ -743,12 +704,7 @@
         "slug": "vesikari-gastroenteritis",
         "title": "Шкала Vesikari (гастроэнтерит у детей)",
         "shortTitle": "Vesikari",
-        "aliases": [
-          "Vesikari score",
-          "Vesikari",
-          "шкала Весикари",
-          "острый гастроэнтерит дети"
-        ],
+        "aliases": ["Vesikari score", "Vesikari", "шкала Весикари", "острый гастроэнтерит дети"],
         "bankId": "gastroenterology",
         "bankLabel": "Гастроэнтерология",
         "category": "pediatric-gastroenterology",
@@ -903,12 +859,7 @@
       "slug": "partial-mayo-score",
       "title": "Частичный индекс Mayo (без эндоскопии)",
       "shortTitle": "Partial Mayo",
-      "aliases": [
-        "Partial Mayo score",
-        "pMayo",
-        "частичный Mayo",
-        "язвенный колит активность"
-      ],
+      "aliases": ["Partial Mayo score", "pMayo", "частичный Mayo", "язвенный колит активность"],
       "bankId": "gastroenterology",
       "bankLabel": "Гастроэнтерология",
       "category": "gastroenterology",
@@ -920,12 +871,7 @@
         "slug": "partial-mayo-score",
         "title": "Частичный индекс Mayo (без эндоскопии)",
         "shortTitle": "Partial Mayo",
-        "aliases": [
-          "Partial Mayo score",
-          "pMayo",
-          "частичный Mayo",
-          "язвенный колит активность"
-        ],
+        "aliases": ["Partial Mayo score", "pMayo", "частичный Mayo", "язвенный колит активность"],
         "bankId": "gastroenterology",
         "bankLabel": "Гастроэнтерология",
         "category": "gastroenterology",

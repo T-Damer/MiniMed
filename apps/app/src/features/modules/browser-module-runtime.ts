@@ -29,7 +29,11 @@ import {
   removeAssessmentModuleDependencies,
   setAssessmentModuleDependencies,
 } from '@/features/assessments/assessment-packs';
-import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
+import {
+  resolveContentModuleArtifactUrl,
+  usesLocalModuleArtifacts,
+} from '@/features/modules/artifact-url';
+import { localPackagedModulesToInstall } from '@/features/modules/local-packaged-modules';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
   dequeuePendingModuleInstall,
@@ -355,6 +359,7 @@ export class BrowserContentModuleRuntime {
   private readonly assessmentDependencyScans = new Map<string, Promise<void>>();
   private readonly assessmentDependencyGenerations = new Map<string, number>();
   private disposed = false;
+  private readonly localPackagedModulesReady: Promise<void>;
   private readonly handleOnline = (): void => {
     for (const timer of this.retryTimers.values()) window.clearTimeout(timer);
     this.retryTimers.clear();
@@ -407,6 +412,47 @@ export class BrowserContentModuleRuntime {
       new Set(this.listInstalled().map((module) => module.moduleId)),
     );
     this.reconcileAssessmentDependencies();
+    this.localPackagedModulesReady = this.ensureLocalPackagedModules();
+  }
+
+  public whenLocalPackagedModulesReady(): Promise<void> {
+    return this.localPackagedModulesReady;
+  }
+
+  private async localArtifactReachable(url: string): Promise<boolean> {
+    try {
+      const head = await fetch(url, { method: 'HEAD' });
+      if (head.ok) return true;
+      if (head.status !== 405) return false;
+      const probe = await fetch(url, { method: 'GET', headers: { Range: 'bytes=0-0' } });
+      return probe.ok || probe.status === 206;
+    } catch {
+      return false;
+    }
+  }
+
+  private async ensureLocalPackagedModules(): Promise<void> {
+    const candidates = localPackagedModulesToInstall(
+      this.catalog,
+      new Set(this.listInstalled().map((module) => module.moduleId)),
+      usesLocalModuleArtifacts,
+    );
+    for (const module of candidates) {
+      if (this.disposed) return;
+      const artifact = module.artifacts.find((entry) => entry.kind === 'index' && entry.url);
+      if (!artifact?.url) continue;
+      const reachable = await this.localArtifactReachable(
+        resolveContentModuleArtifactUrl(artifact.url),
+      );
+      if (!reachable) continue;
+      if (this.listInstalled().some((installed) => installed.moduleId === module.id)) continue;
+      try {
+        const task = this.install(module);
+        await this.wait(task.id);
+      } catch (cause) {
+        console.warn(`Local packaged module ${module.id} could not be installed.`, cause);
+      }
+    }
   }
 
   private retryKey(moduleId: string, version: string): string {

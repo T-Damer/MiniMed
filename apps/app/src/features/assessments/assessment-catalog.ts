@@ -1,5 +1,6 @@
 import { AssessmentDefinitionSchema, type ToolDefinitionRecord } from '@localmed/contracts';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
+import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
 export type AssessmentCategory = AssessmentDefinition['category'];
 
@@ -71,6 +72,22 @@ export function assessmentsInSpecialty(
   definitions: readonly AssessmentCatalogEntry[],
 ): readonly AssessmentCatalogEntry[] {
   return definitions.filter((definition) => definition.bankId === specialtyId);
+}
+
+export function visibleAssessmentSpecialties(
+  query: string,
+  catalog: readonly AssessmentCatalogEntry[],
+  matches: readonly AssessmentCatalogEntry[],
+): readonly AssessmentSpecialty[] {
+  const trimmed = query.trim();
+  if (!trimmed) return ASSESSMENT_SPECIALTIES;
+  return ASSESSMENT_SPECIALTIES.filter((specialty) => {
+    const specialtyCatalog = assessmentsInSpecialty(specialty.id, catalog);
+    if (specialtyCatalog.length === 0) return false;
+    const specialtyMatches = assessmentsInSpecialty(specialty.id, matches);
+    if (specialtyMatches.length > 0) return true;
+    return matchesFuzzyQuery(trimmed, [specialty.title, specialty.description]);
+  });
 }
 
 export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [];

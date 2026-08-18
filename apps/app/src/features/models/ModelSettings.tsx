@@ -146,15 +146,19 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
 
   return (
     <section class="model-settings paper-sheet" aria-labelledby="local-model-heading">
-      <header class="model-settings-heading">
-        <div>
-          <p class="archive-kicker">Помощник на устройстве</p>
-          <h2 id="local-model-heading">
-            <AppGlyph name="brain" /> Локальная модель
-          </h2>
-          <p>
-            Модель работает на устройстве без отправки запроса на сервер. Поиск доступен и без неё.
-          </p>
+      <header class="model-settings-heading settings-section__heading">
+        <div class="settings-section__heading-main">
+          <AppGlyph name="brain" class="settings-section__icon" />
+          <div class="settings-section__heading-copy">
+            <p class="archive-kicker">Помощник на устройстве</p>
+            <h2 id="local-model-heading" class="settings-section__title">
+              Локальная модель
+            </h2>
+            <p class="settings-section__description">
+              Модель работает на устройстве без отправки запроса на сервер. Поиск доступен и без
+              неё.
+            </p>
+          </div>
         </div>
         <span class={`model-state-badge ${state().phase}`}>{PHASE_LABELS[state().phase]}</span>
       </header>

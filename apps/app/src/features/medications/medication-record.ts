@@ -38,6 +38,7 @@ interface MedicationMetadata extends Readonly<Record<string, unknown>> {
   readonly holder?: unknown;
   readonly manufacturer?: unknown;
   readonly registrationDate?: unknown;
+  readonly sourceReviewedAt?: unknown;
   readonly pharmacotherapeuticGroups?: unknown;
   readonly presentations?: unknown;
   readonly description?: unknown;
@@ -87,35 +88,78 @@ function parsePresentations(value: unknown): readonly MedicationPresentation[] {
   });
 }
 
-export function parseMedicationProduct(
+function parseSourceLinkedRegistryProduct(
   document: MedicalDocument,
   instructionDocumentId: string | null,
 ): MedicationProduct | null {
   const metadata = document.metadata as MedicationMetadata;
-  if (metadata.contentMode !== 'registry-normalized') return null;
   const registrationNumber = stringValue(metadata.registrationNumber);
-  const tradeName = stringValue(metadata.tradeName);
-  const inn = stringValue(metadata.inn);
-  const registrationStatus = stringValue(metadata.registrationStatus);
-  const presentations = parsePresentations(metadata.presentations);
-  if (!registrationNumber || !tradeName || !inn || !registrationStatus || !presentations.length) {
-    return null;
-  }
+  if (!registrationNumber) return null;
+  const title = document.shortTitle?.trim() || document.title;
+  const separator = title.indexOf('—');
+  const tradeName = (separator >= 0 ? title.slice(0, separator) : title).trim();
+  const form = (separator >= 0 ? title.slice(separator + 1) : '').trim();
+  if (!tradeName) return null;
+  const dosageForm = form || 'Форма не указана';
   return {
     sourceKind: 'registry',
     registrationDocumentId: document.id,
     instructionDocumentId,
     registrationNumber,
     tradeName,
-    inn,
-    registrationStatus,
+    inn: stringValue(metadata.inn) ?? tradeName,
+    registrationStatus: stringValue(metadata.registrationStatus) ?? 'Государственный реестр',
     prescriptionStatus: stringValue(metadata.prescriptionStatus),
     holder: stringValue(metadata.holder),
     manufacturer: stringValue(metadata.manufacturer),
-    registrationDate: stringValue(metadata.registrationDate),
+    registrationDate:
+      stringValue(metadata.registrationDate) ?? stringValue(metadata.sourceReviewedAt),
     pharmacotherapeuticGroups: stringList(metadata.pharmacotherapeuticGroups),
-    presentations,
+    presentations: [
+      {
+        dosageForm,
+        strength: stringValue(metadata.strength),
+        route: stringValue(metadata.route),
+        packages: [{ description: dosageForm, prescriptionStatus: null }],
+      },
+    ],
   };
+}
+
+export function parseMedicationProduct(
+  document: MedicalDocument,
+  instructionDocumentId: string | null,
+): MedicationProduct | null {
+  const metadata = document.metadata as MedicationMetadata;
+  if (metadata.contentMode === 'registry-normalized') {
+    const registrationNumber = stringValue(metadata.registrationNumber);
+    const tradeName = stringValue(metadata.tradeName);
+    const inn = stringValue(metadata.inn);
+    const registrationStatus = stringValue(metadata.registrationStatus);
+    const presentations = parsePresentations(metadata.presentations);
+    if (!registrationNumber || !tradeName || !inn || !registrationStatus || !presentations.length) {
+      return null;
+    }
+    return {
+      sourceKind: 'registry',
+      registrationDocumentId: document.id,
+      instructionDocumentId,
+      registrationNumber,
+      tradeName,
+      inn,
+      registrationStatus,
+      prescriptionStatus: stringValue(metadata.prescriptionStatus),
+      holder: stringValue(metadata.holder),
+      manufacturer: stringValue(metadata.manufacturer),
+      registrationDate: stringValue(metadata.registrationDate),
+      pharmacotherapeuticGroups: stringList(metadata.pharmacotherapeuticGroups),
+      presentations,
+    };
+  }
+  if (document.sourceType === 'official_registry_summary') {
+    return parseSourceLinkedRegistryProduct(document, instructionDocumentId);
+  }
+  return null;
 }
 
 export function parseAllmedMedicationProduct(document: MedicalDocument): MedicationProduct | null {
@@ -153,4 +197,8 @@ export function parseAllmedMedicationProduct(document: MedicalDocument): Medicat
 
 export function medicationDocumentRegistration(document: MedicalDocument): string | null {
   return stringValue((document.metadata as MedicationMetadata).registrationNumber);
+}
+
+export function readableMedicationDocumentId(product: MedicationProduct): string | null {
+  return product.instructionDocumentId ?? product.registrationDocumentId ?? null;
 }

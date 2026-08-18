@@ -150,8 +150,9 @@ test('shows the real download state and resumes automatically when the network r
   const card = regulatoryCard(page);
   await card.getByRole('button', { name: 'Скачать' }).click();
   await expect(card.getByRole('button', { name: 'Скачать' })).toHaveCount(0);
-  await page.locator('.content-download-pill').click();
-  const manager = page.locator('.content-download-status.floating');
+  await page.getByTestId('content-download-nav').click();
+  await expect(page).toHaveURL(/#\/settings\/downloads/u);
+  const manager = page.getByTestId('content-download-status');
   await expect(manager).toContainText('Нет сети');
   await expect(manager.getByRole('button', { name: 'Отменить', exact: true })).toBeVisible();
 

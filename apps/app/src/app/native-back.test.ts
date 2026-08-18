@@ -63,6 +63,10 @@ describe('nativeBackAction', () => {
     expect(nativeBackAction('notes/card/records/note', 'notes', true)).toEqual({ type: 'history' });
     expect(nativeBackAction('notes', 'notes', false)).toEqual({ type: 'search' });
     expect(nativeBackAction('settings', 'settings', false)).toEqual({ type: 'search' });
+    expect(nativeBackAction('settings/downloads', 'settings', false)).toEqual({
+      type: 'parent',
+      hash: '#/settings',
+    });
     expect(nativeBackAction('search', 'search', false)).toEqual({ type: 'minimize' });
   });
 

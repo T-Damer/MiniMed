@@ -6,6 +6,10 @@ import type {
 import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import {
+  catalogModuleHidesInstallAction,
+  catalogModuleHidesRemoveAction,
+} from '@/features/modules/local-packaged-modules';
 import { ModuleTaskStatus } from '@/features/modules/ModuleTaskStatus';
 import {
   contentModuleTaskProgress,
@@ -118,7 +122,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
           <Show
             when={props.installed}
             fallback={
-              <Show when={!working()}>
+              <Show when={!working() && !catalogModuleHidesInstallAction(props.module)}>
                 <button
                   type="button"
                   class="module-card-actions__primary"
@@ -131,7 +135,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
               </Show>
             }
           >
-            <Show when={updateAvailable()}>
+            <Show when={updateAvailable() && !catalogModuleHidesInstallAction(props.module)}>
               <button
                 type="button"
                 class="module-card-actions__primary"
@@ -142,15 +146,17 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
                 Обновить
               </button>
             </Show>
-            <button
-              type="button"
-              class="module-remove-button module-card-actions__remove"
-              aria-label={`Удалить «${props.module.title}»`}
-              title="Удалить"
-              onClick={props.onRemove}
-            >
-              <AppGlyph name="trash" class="module-card-actions__icon" />
-            </button>
+            <Show when={!catalogModuleHidesRemoveAction(props.module)}>
+              <button
+                type="button"
+                class="module-remove-button module-card-actions__remove"
+                aria-label={`Удалить «${props.module.title}»`}
+                title="Удалить"
+                onClick={props.onRemove}
+              >
+                <AppGlyph name="trash" class="module-card-actions__icon" />
+              </button>
+            </Show>
           </Show>
         </div>
       </Show>

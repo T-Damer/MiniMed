@@ -3,6 +3,7 @@ import {
   fullDocumentCandidateId,
   fullDocumentCandidateIds,
   hasFullTextSibling,
+  isSameDocumentFamily,
   isSupersededSummaryDocument,
   resolveReadableDocumentId,
   summaryDocumentId,
@@ -15,10 +16,21 @@ const REGISTRY_SECTION_PATTERN = /регистрационн|ограничен/
 
 export type DocumentSectionHeadingTag = 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
+export interface DocumentSectionTree {
+  readonly section: MedicalSection;
+  readonly children: readonly DocumentSectionTree[];
+}
+
+type MutableDocumentSectionTree = {
+  readonly section: MedicalSection;
+  readonly children: DocumentSectionTree[];
+};
+
 export {
   fullDocumentCandidateId,
   fullDocumentCandidateIds,
   hasFullTextSibling,
+  isSameDocumentFamily,
   isSupersededSummaryDocument,
   resolveReadableDocumentId,
   summaryDocumentId,
@@ -67,6 +79,33 @@ export function documentSectionHeadingTag(
   }
 }
 
+export function nestDocumentSections(
+  sections: readonly MedicalSection[],
+): readonly DocumentSectionTree[] {
+  const roots: DocumentSectionTree[] = [];
+  const stack: Array<{ depth: number; node: MutableDocumentSectionTree }> = [];
+
+  for (const section of sections) {
+    const node: MutableDocumentSectionTree = {
+      section,
+      children: [],
+    };
+    let parent = stack.at(-1);
+    while (parent && parent.depth >= section.depth) {
+      stack.pop();
+      parent = stack.at(-1);
+    }
+    if (parent) {
+      parent.node.children.push(node);
+    } else {
+      roots.push(node);
+    }
+    stack.push({ depth: section.depth, node });
+  }
+
+  return roots;
+}
+
 export function orderDocumentSections(
   sections: readonly MedicalSection[],
   sourceType: string,
@@ -75,6 +114,26 @@ export function orderDocumentSections(
   const primary = sections.filter((section) => !REGISTRY_SECTION_PATTERN.test(section.title));
   const administrative = sections.filter((section) => REGISTRY_SECTION_PATTERN.test(section.title));
   return [...primary, ...administrative];
+}
+
+const REDUNDANT_MEDICATION_SECTION_TITLE = 'Карточка препарата';
+const MEDICATION_READER_SOURCE_TYPES = new Set([
+  'allmed_reference',
+  'official_drug_instruction',
+  'official_registry_summary',
+]);
+
+export function visibleReaderSections(
+  sections: readonly MedicalSection[],
+  sourceType: string,
+): readonly MedicalSection[] {
+  return orderDocumentSections(sections, sourceType).filter((section) => {
+    if (section.chunks.length === 0) return false;
+    return !(
+      MEDICATION_READER_SOURCE_TYPES.has(sourceType) &&
+      section.title === REDUNDANT_MEDICATION_SECTION_TITLE
+    );
+  });
 }
 
 export function isFullTextDocumentId(documentId: string): boolean {

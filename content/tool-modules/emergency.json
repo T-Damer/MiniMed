@@ -12,12 +12,7 @@
       "slug": "glasgow-coma-scale",
       "title": "Шкала комы Глазго (GCS)",
       "shortTitle": "GCS",
-      "aliases": [
-        "Glasgow Coma Scale",
-        "GCS",
-        "шкала комы Глазго",
-        "Глазго"
-      ],
+      "aliases": ["Glasgow Coma Scale", "GCS", "шкала комы Глазго", "Глазго"],
       "bankId": "emergency",
       "bankLabel": "Неотложная помощь",
       "category": "neurology-emergency",
@@ -29,21 +24,14 @@
         "slug": "glasgow-coma-scale",
         "title": "Шкала комы Глазго (GCS)",
         "shortTitle": "GCS",
-        "aliases": [
-          "Glasgow Coma Scale",
-          "GCS",
-          "шкала комы Глазго",
-          "Глазго"
-        ],
+        "aliases": ["Glasgow Coma Scale", "GCS", "шкала комы Глазго", "Глазго"],
         "bankId": "emergency",
         "bankLabel": "Неотложная помощь",
         "category": "neurology-emergency",
         "description": "Три компонента (открывание глаз, речь, движения) для оценки уровня сознания у взрослых и детей старше 4 лет.",
         "estimatedMinutes": 2,
         "audience": "Взрослые и дети старше 4 лет; применяется медицинским специалистом при оценке нарушения сознания",
-        "responseOptions": [
-          { "value": 0, "label": "0" }
-        ],
+        "responseOptions": [{ "value": 0, "label": "0" }],
         "scales": [
           {
             "id": "gcs-total",
@@ -147,12 +135,7 @@
       "slug": "alvarado-appendicitis",
       "title": "Балл Alvarado (MANTRELS)",
       "shortTitle": "Alvarado",
-      "aliases": [
-        "Alvarado score",
-        "MANTRELS",
-        "балл Альварадо",
-        "аппендицит скрининг"
-      ],
+      "aliases": ["Alvarado score", "MANTRELS", "балл Альварадо", "аппендицит скрининг"],
       "bankId": "emergency",
       "bankLabel": "Неотложная помощь",
       "category": "abdominal-emergency",
@@ -164,22 +147,14 @@
         "slug": "alvarado-appendicitis",
         "title": "Балл Alvarado (MANTRELS)",
         "shortTitle": "Alvarado",
-        "aliases": [
-          "Alvarado score",
-          "MANTRELS",
-          "балл Альварадо",
-          "аппендицит скрининг"
-        ],
+        "aliases": ["Alvarado score", "MANTRELS", "балл Альварадо", "аппендицит скрининг"],
         "bankId": "emergency",
         "bankLabel": "Неотложная помощь",
         "category": "abdominal-emergency",
         "description": "Восемь клинико-лабораторных признаков (MANTRELS) для оценки вероятности острого аппендицита.",
         "estimatedMinutes": 3,
         "audience": "Взрослые и дети; применяется врачом при подозрении на аппендицит",
-        "responseOptions": [
-          { "value": 0, "label": "Нет" },
-          { "value": 1, "label": "Да" }
-        ],
+        "responseOptions": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }],
         "scales": [
           {
             "id": "alvarado-total",
@@ -319,12 +294,7 @@
       "slug": "shock-index",
       "title": "Индекс шока (Shock Index)",
       "shortTitle": "Shock Index",
-      "aliases": [
-        "Shock Index",
-        "SI",
-        "индекс шока",
-        "ЧСС/АД"
-      ],
+      "aliases": ["Shock Index", "SI", "индекс шока", "ЧСС/АД"],
       "bankId": "emergency",
       "bankLabel": "Неотложная помощь",
       "category": "emergency",
@@ -337,12 +307,7 @@
         "slug": "shock-index",
         "title": "Индекс шока (Shock Index)",
         "shortTitle": "Shock Index",
-        "aliases": [
-          "Shock Index",
-          "SI",
-          "индекс шока",
-          "ЧСС/АД"
-        ],
+        "aliases": ["Shock Index", "SI", "индекс шока", "ЧСС/АД"],
         "summary": "SI = ЧСС (уд/мин) / систолическое АД (мм рт. ст.) как быстрый прикроватный ориентир тяжести гемодинамического нарушения.",
         "audience": "adult",
         "category": "emergency",

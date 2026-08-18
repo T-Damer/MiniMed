@@ -1,12 +1,11 @@
 import type { TextRange } from '@localmed/contracts';
-import {
-  buildSnippet,
-  isCloseToken,
-  MIN_FUZZY_TOKEN_LENGTH,
-  normalizeSurfaceText,
-  normalizeSurfaceTextWithOffsets,
-} from '@localmed/search-lexical';
 import { For, type JSX } from 'solid-js';
+
+import {
+  exactQueryRanges,
+  fuzzyQueryRanges,
+  legacyQueryRanges,
+} from '@/features/library/document-find';
 
 export interface HighlightedTextProps {
   readonly text: string;
@@ -16,6 +15,7 @@ export interface HighlightedTextProps {
 interface Segment {
   readonly text: string;
   readonly highlighted: boolean;
+  readonly start?: number;
 }
 
 function segments(text: string, ranges: readonly TextRange[]): readonly Segment[] {
@@ -29,9 +29,11 @@ function segments(text: string, ranges: readonly TextRange[]): readonly Segment[
     if (range.start > cursor)
       output.push({ text: text.slice(cursor, range.start), highlighted: false });
     if (range.end > cursor) {
+      const start = Math.max(cursor, range.start);
       output.push({
-        text: text.slice(Math.max(cursor, range.start), range.end),
+        text: text.slice(start, range.end),
         highlighted: true,
+        start,
       });
       cursor = range.end;
     }
@@ -40,82 +42,16 @@ function segments(text: string, ranges: readonly TextRange[]): readonly Segment[
   return output;
 }
 
-function mergeRanges(ranges: readonly TextRange[]): readonly TextRange[] {
-  const sorted = ranges.toSorted((left, right) => left.start - right.start);
-  const merged: TextRange[] = [];
-  for (const range of sorted) {
-    const previous = merged.at(-1);
-    if (previous && range.start <= previous.end) {
-      merged[merged.length - 1] = { start: previous.start, end: Math.max(previous.end, range.end) };
-    } else {
-      merged.push(range);
-    }
-  }
-  return merged;
-}
-
-function queryTokens(query: string): readonly string[] {
-  return normalizeSurfaceText(query)
-    .split(/[^\p{L}\p{N}]+/u)
-    .filter((token) => token.length > 0);
-}
-
-function tokenMatches(queryToken: string, hayToken: string): boolean {
-  if (hayToken.includes(queryToken) || (queryToken.length >= 3 && queryToken.includes(hayToken))) {
-    return true;
-  }
-  if (queryToken.length < MIN_FUZZY_TOKEN_LENGTH && hayToken.length < MIN_FUZZY_TOKEN_LENGTH) {
-    return queryToken === hayToken;
-  }
-  return isCloseToken(queryToken, hayToken);
-}
-
-function fuzzyQueryRanges(text: string, query: string): readonly TextRange[] {
-  const normalizedWithOffsets = normalizeSurfaceTextWithOffsets(text);
-  const normalized = normalizedWithOffsets.text;
-  const tokens = queryTokens(query);
-  if (tokens.length === 0) return [];
-  const ranges: TextRange[] = [];
-
-  for (const queryToken of tokens) {
-    let cursor = 0;
-    while (cursor < normalized.length) {
-      const index = normalized.indexOf(queryToken, cursor);
-      if (index < 0) break;
-      const firstOffset = normalizedWithOffsets.offsets[index];
-      const lastOffset = normalizedWithOffsets.offsets[index + queryToken.length - 1];
-      if (firstOffset && lastOffset) {
-        ranges.push({ start: firstOffset.start, end: lastOffset.end });
-      }
-      cursor = index + queryToken.length;
-    }
-
-    const wordPattern = /[\p{L}\p{N}-]+/gu;
-    for (const match of text.matchAll(wordPattern)) {
-      const word = match[0];
-      const start = match.index ?? 0;
-      const normalizedWord = normalizeSurfaceText(word);
-      if (!tokenMatches(queryToken, normalizedWord)) continue;
-      ranges.push({ start, end: start + word.length });
-    }
-  }
-
-  return mergeRanges(ranges);
-}
-
-function exactQueryRanges(text: string, query: string): readonly TextRange[] {
-  const normalizedText = text.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
-  const normalizedQuery = query.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
-  if (!normalizedQuery) return [];
-  const ranges: TextRange[] = [];
-  let cursor = 0;
-  while (cursor < normalizedText.length) {
-    const start = normalizedText.indexOf(normalizedQuery, cursor);
-    if (start < 0) break;
-    ranges.push({ start, end: start + normalizedQuery.length });
-    cursor = start + normalizedQuery.length;
-  }
-  return ranges;
+function localRanges(
+  ranges: readonly TextRange[],
+  offset: number,
+  length: number,
+): readonly TextRange[] {
+  return ranges.flatMap((range) => {
+    const start = Math.max(0, range.start - offset);
+    const end = Math.min(length, range.end - offset);
+    return end > start ? [{ start, end }] : [];
+  });
 }
 
 export function HighlightedText(props: HighlightedTextProps): JSX.Element {
@@ -132,27 +68,42 @@ export function QueryHighlightedText(props: {
   readonly exact?: boolean | undefined;
   readonly fuzzy?: boolean | undefined;
   readonly matchClass?: string | undefined;
+  readonly ranges?: readonly TextRange[] | undefined;
+  readonly unitId?: string | undefined;
+  readonly activeStart?: number | undefined;
+  readonly rangeOffset?: number | undefined;
 }): JSX.Element {
+  const rangeOffset = () => props.rangeOffset ?? 0;
   const ranges = () => {
+    if (props.ranges !== undefined) {
+      return localRanges(props.ranges, rangeOffset(), props.text.length);
+    }
     if (props.exact) return exactQueryRanges(props.text, props.query);
     if (props.fuzzy) return fuzzyQueryRanges(props.text, props.query);
-    const phrase = props.query.trim();
-    if (!phrase) return [];
-    const terms = [phrase, ...phrase.split(/[^\p{L}\p{N}-]+/gu).filter((term) => term.length >= 2)];
-    return buildSnippet(props.text, terms, Number.MAX_SAFE_INTEGER).ranges;
+    return legacyQueryRanges(props.text, props.query);
   };
   const queryKey = () => props.query.trim();
+  const matchClass = () => props.matchClass ?? '';
   return (
     <For each={segments(props.text, ranges())}>
-      {(segment) =>
-        segment.highlighted ? (
-          <mark class={props.matchClass} data-overlay-query={queryKey() || undefined}>
+      {(segment) => {
+        if (!segment.highlighted) return segment.text;
+        const start = segment.start ?? 0;
+        return (
+          <mark
+            class={matchClass()}
+            classList={{
+              [`${matchClass()}--current`]:
+                props.activeStart !== undefined && start + rangeOffset() === props.activeStart,
+            }}
+            data-overlay-query={queryKey() || undefined}
+            data-document-find-unit={props.unitId}
+            data-document-find-start={start + rangeOffset()}
+          >
             {segment.text}
           </mark>
-        ) : (
-          segment.text
-        )
-      }
+        );
+      }}
     </For>
   );
 }

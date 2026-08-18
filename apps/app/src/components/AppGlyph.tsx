@@ -11,6 +11,7 @@ import bookOpenBold from '@phosphor-icons/core/assets/bold/book-open-bold.svg?ra
 import brainBold from '@phosphor-icons/core/assets/bold/brain-bold.svg?raw';
 import calculatorBold from '@phosphor-icons/core/assets/bold/calculator-bold.svg?raw';
 import caretDownBold from '@phosphor-icons/core/assets/bold/caret-down-bold.svg?raw';
+import caretUpBold from '@phosphor-icons/core/assets/bold/caret-up-bold.svg?raw';
 import checkBold from '@phosphor-icons/core/assets/bold/check-bold.svg?raw';
 import clockCounterClockwiseBold from '@phosphor-icons/core/assets/bold/clock-counter-clockwise-bold.svg?raw';
 import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
@@ -28,6 +29,7 @@ import notepadBold from '@phosphor-icons/core/assets/bold/notepad-bold.svg?raw';
 import pencilSimpleBold from '@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw';
 import pillBold from '@phosphor-icons/core/assets/bold/pill-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
+import questionMarkBold from '@phosphor-icons/core/assets/bold/question-mark-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
 import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
 import stackBold from '@phosphor-icons/core/assets/bold/stack-bold.svg?raw';
@@ -54,6 +56,7 @@ export type AppGlyphName =
   | 'arrow-up'
   | 'book-open'
   | 'caret-down'
+  | 'caret-up'
   | 'refresh'
   | 'download'
   | 'folder-open'
@@ -64,6 +67,7 @@ export type AppGlyphName =
   | 'edit'
   | 'trash'
   | 'printer'
+  | 'question'
   | 'share'
   | 'share-fat'
   | 'binoculars'
@@ -96,6 +100,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'arrow-up': svgBody(arrowUpBold),
   'book-open': svgBody(bookOpenBold),
   'caret-down': svgBody(caretDownBold),
+  'caret-up': svgBody(caretUpBold),
   refresh: svgBody(arrowsClockwiseBold),
   download: svgBody(downloadSimpleBold),
   'folder-open': svgBody(folderOpenBold),
@@ -106,6 +111,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   edit: svgBody(pencilSimpleBold),
   trash: svgBody(trashBold),
   printer: svgBody(printerBold),
+  question: svgBody(questionMarkBold),
   share: svgBody(shareNetworkBold),
   'share-fat': svgBody(shareFatBold),
   binoculars: svgBody(binocularsBold),

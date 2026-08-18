@@ -1,3 +1,5 @@
+import { isSameDocumentFamily } from '@localmed/core';
+
 import {
   buildOfficialDocumentHash,
   buildUserDocumentHash,
@@ -51,7 +53,14 @@ function normalizeHash(hash: string): string {
 export function viewFromHash(hash: string): DocumentTrailOriginView {
   const value = hash.replace(/^#\/?/u, '');
   if (value === 'documents') return 'modules';
-  if (value === 'settings' || value === 'modules/model' || value === 'status') return 'settings';
+  if (
+    value === 'settings' ||
+    value.startsWith('settings/') ||
+    value === 'modules/model' ||
+    value === 'status'
+  ) {
+    return 'settings';
+  }
   if (value.startsWith('modules/')) return 'modules';
   if (value === 'assessments' || value.startsWith('assessments/')) return 'assessments';
   if (value === 'calculators' || value.startsWith('calculators/')) return 'calculators';
@@ -72,6 +81,12 @@ export function originLabelForView(view: DocumentTrailOriginView, hash: string):
   const route = hash.replace(/^#\/?/u, '');
   if (route === 'modules/documents/user' || route.startsWith('modules/documents/user/')) {
     return 'Ваши документы';
+  }
+  if (
+    route === 'modules/documents/medications' ||
+    route.startsWith('modules/documents/medications/')
+  ) {
+    return 'Препараты';
   }
   if (route.startsWith('modules/documents')) return 'Документы';
   return 'Документы';
@@ -165,7 +180,7 @@ export function appendDocumentCrumb(
     href,
   };
   const existingIndex = trail.crumbs.findIndex(
-    (item) => item.kind === crumb.kind && item.id === crumb.id,
+    (item) => item.kind === crumb.kind && isSameDocumentFamily(item.id, crumb.id),
   );
   const crumbs =
     existingIndex >= 0

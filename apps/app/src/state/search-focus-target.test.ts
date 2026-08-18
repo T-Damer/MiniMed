@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { pickSearchFocusTarget } from '@/state/search-focus-target';
+import {
+  createFindShortcutGate,
+  isFindShortcut,
+  NATIVE_FIND_DOUBLE_PRESS_MS,
+  pickSearchFocusTarget,
+} from '@/state/search-focus-target';
 
 type MockElement = {
   disabled: boolean;
@@ -65,6 +70,36 @@ function stubClientRects(element: MockElement): void {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe('isFindShortcut', () => {
+  it('matches Ctrl/Cmd+F without Alt', () => {
+    expect(isFindShortcut({ key: 'f', ctrlKey: true, metaKey: false, altKey: false })).toBe(true);
+    expect(isFindShortcut({ key: 'F', ctrlKey: false, metaKey: true, altKey: false })).toBe(true);
+    expect(isFindShortcut({ key: 'f', ctrlKey: true, metaKey: false, altKey: true })).toBe(false);
+    expect(isFindShortcut({ key: 'g', ctrlKey: true, metaKey: false, altKey: false })).toBe(false);
+  });
+});
+
+describe('createFindShortcutGate', () => {
+  it('lets a second Ctrl/Cmd+F through within the double-press window', () => {
+    const gate = createFindShortcutGate();
+    expect(gate.shouldIntercept(1_000)).toBe(true);
+    expect(gate.shouldIntercept(1_000 + NATIVE_FIND_DOUBLE_PRESS_MS)).toBe(false);
+  });
+
+  it('intercepts again after the double-press window', () => {
+    const gate = createFindShortcutGate();
+    expect(gate.shouldIntercept(1_000)).toBe(true);
+    expect(gate.shouldIntercept(1_001 + NATIVE_FIND_DOUBLE_PRESS_MS)).toBe(true);
+  });
+
+  it('intercepts a third press after a native-find pass-through', () => {
+    const gate = createFindShortcutGate(100);
+    expect(gate.shouldIntercept(0)).toBe(true);
+    expect(gate.shouldIntercept(50)).toBe(false);
+    expect(gate.shouldIntercept(80)).toBe(true);
+  });
 });
 
 describe('pickSearchFocusTarget', () => {

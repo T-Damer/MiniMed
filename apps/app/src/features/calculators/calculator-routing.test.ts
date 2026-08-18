@@ -11,7 +11,8 @@ import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-h
 
 beforeAll(() => {
   const record = loadToolModuleRecords(['content/tool-modules/core-clinical.json']).find(
-    (candidate) => candidate.kind === 'calculator' && candidate.slug === 'body-surface-area-mosteller',
+    (candidate) =>
+      candidate.kind === 'calculator' && candidate.slug === 'body-surface-area-mosteller',
   );
   if (record?.kind === 'calculator') registerDownloadedCalculator(record);
 });

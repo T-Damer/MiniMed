@@ -24,7 +24,7 @@
 
 .module-card-open-hit-area {
   position: absolute;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   inset: 0;
   width: 100%;
   min-height: 0;
@@ -37,7 +37,7 @@
 .module-card__status,
 .module-card__versions {
   position: relative;
-  z-index: 3;
+  z-index: var(--z-raised-3);
 }
 
 .module-card-actions {
@@ -93,7 +93,7 @@
 
 .calculator-card-open-hit-area {
   position: absolute;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   inset: 0;
   width: 100%;
   min-height: 0;
@@ -116,7 +116,7 @@
 
 .calculator-card > :not(.calculator-card-open-hit-area) {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
 }
 
 .calculator-section {
@@ -125,7 +125,7 @@
 
 .calculator-section-open-hit-area {
   position: absolute;
-  z-index: 0;
+  z-index: var(--z-base);
   inset: 0;
   width: 100%;
   min-height: 0;
@@ -137,12 +137,12 @@
 
 .calculator-section > :not(.calculator-section-open-hit-area) {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
 }
 
 .calculator-section-actions {
   position: absolute;
-  z-index: 3;
+  z-index: var(--z-raised-3);
   top: 0;
   right: 0;
   pointer-events: auto;
@@ -154,7 +154,7 @@
 
 .assessment-card-open-hit-area {
   position: absolute;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   inset: 0;
   width: 100%;
   min-height: 0;
@@ -166,16 +166,16 @@
 
 .assessment-card > :not(.assessment-card-open-hit-area) {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
 }
 
 .assessment-card > .assessment-card-topline {
-  z-index: 3;
+  z-index: var(--z-raised-3);
 }
 
 .assessment-card-icon-actions {
   position: relative;
-  z-index: 3;
+  z-index: var(--z-raised-3);
   flex: 0 0 auto;
   display: flex;
   gap: 0.4rem;
@@ -329,12 +329,16 @@
   min-width: 0;
 }
 
-.recommendation-section-card--category > .recommendation-section-card-header .recommendation-section-card-title {
+.recommendation-section-card--category
+  > .recommendation-section-card-header
+  .recommendation-section-card-title {
   grid-column: 1;
   grid-row: 1;
 }
 
-.recommendation-section-card--category > .recommendation-section-card-header .recommendation-section-card-meta {
+.recommendation-section-card--category
+  > .recommendation-section-card-header
+  .recommendation-section-card-meta {
   grid-column: 1;
   grid-row: 2;
 }

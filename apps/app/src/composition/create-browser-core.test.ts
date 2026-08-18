@@ -86,9 +86,19 @@ describe('hasSqliteHeader', () => {
 
 describe('shouldOpenPackagedWasmCompanion', () => {
   it('refuses local-dev packs that cannot fit in sqlite-wasm memory', () => {
-    expect(shouldOpenPackagedWasmCompanion('mkb.db')).toBe(false);
-    expect(shouldOpenPackagedWasmCompanion('medications.db')).toBe(false);
-    expect(shouldOpenPackagedWasmCompanion('ambulatory.db')).toBe(false);
+    expect(shouldOpenPackagedWasmCompanion('mkb.db', undefined, new Set())).toBe(false);
+    expect(shouldOpenPackagedWasmCompanion('medications.db', undefined, new Set())).toBe(false);
+    expect(shouldOpenPackagedWasmCompanion('ambulatory.db', undefined, new Set())).toBe(false);
+  });
+
+  it('allows an unsafe companion when it is explicitly allowlisted', () => {
+    expect(
+      shouldOpenPackagedWasmCompanion(
+        'medications.db',
+        421 * 1024 * 1024,
+        new Set(['medications.db']),
+      ),
+    ).toBe(true);
   });
 
   it('allows small packaged companions below the WASM size cap', () => {

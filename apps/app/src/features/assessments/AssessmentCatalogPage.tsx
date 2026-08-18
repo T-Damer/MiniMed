@@ -4,6 +4,7 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
+import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import type {
   AssessmentSpecialty,
@@ -16,6 +17,7 @@ import {
   assessmentRequiredByModules,
   groupAssessmentsBySection,
   isAssessmentSectionComplete,
+  isAssessmentSectionFromDatabase,
 } from '@/features/assessments/assessment-packs';
 import { assessmentCatalogCrumbs } from '@/features/assessments/assessment-routing';
 
@@ -167,10 +169,7 @@ export function AssessmentCatalogPage(props: {
         onInput={props.onQuery}
       />
 
-      <Show
-        when={props.definitions.length > 0}
-        fallback={<p>По этому запросу ничего не найдено.</p>}
-      >
+      <Show when={props.definitions.length > 0} fallback={<QueryEmptyState />}>
         <div class="assessment-section-list">
           <For each={groupAssessmentsBySection(props.definitions)}>
             {(group) => {
@@ -184,6 +183,8 @@ export function AssessmentCatalogPage(props: {
                   props.installation,
                   props.definitions,
                 );
+              const fromDatabase = () =>
+                isAssessmentSectionFromDatabase(group.section.id, props.definitions);
               return (
                 <Show when={!props.sectionId || props.sectionId === group.section.id}>
                   <section
@@ -214,32 +215,37 @@ export function AssessmentCatalogPage(props: {
                           {group.section.description}
                         </p>
                         <small class="assessment-section-header__meta">
-                          {installedCount()}/{sectionAssessmentIds().length} тестов на устройстве ·{' '}
-                          {complete() ? 'раздел скачан' : 'раздел не скачан'}
+                          {fromDatabase()
+                            ? `${sectionAssessmentIds().length} тестов на устройстве`
+                            : `${installedCount()}/${sectionAssessmentIds().length} тестов на устройстве · ${
+                                complete() ? 'раздел скачан' : 'раздел не скачан'
+                              }`}
                         </small>
                       </div>
-                      <Button
-                        type="button"
-                        class="assessment-section-header__button"
-                        classList={{
-                          'assessment-section-header__button--primary': !complete(),
-                          'assessment-section-header__button--danger': complete(),
-                        }}
-                        data-testid={`assessment-section-${group.section.id}`}
-                        onClick={() =>
-                          complete()
-                            ? props.onRemoveSection(group.section.id)
-                            : props.onInstallSection(group.section.id)
-                        }
-                        icon={
-                          <AppGlyph
-                            name={complete() ? 'trash' : 'download'}
-                            class="assessment-section-header__icon"
-                          />
-                        }
-                      >
-                        {complete() ? 'Удалить' : 'Скачать'}
-                      </Button>
+                      <Show when={!fromDatabase()}>
+                        <Button
+                          type="button"
+                          class="assessment-section-header__button"
+                          classList={{
+                            'assessment-section-header__button--primary': !complete(),
+                            'assessment-section-header__button--danger': complete(),
+                          }}
+                          data-testid={`assessment-section-${group.section.id}`}
+                          onClick={() =>
+                            complete()
+                              ? props.onRemoveSection(group.section.id)
+                              : props.onInstallSection(group.section.id)
+                          }
+                          icon={
+                            <AppGlyph
+                              name={complete() ? 'trash' : 'download'}
+                              class="assessment-section-header__icon"
+                            />
+                          }
+                        >
+                          {complete() ? 'Удалить' : 'Скачать'}
+                        </Button>
+                      </Show>
                     </header>
 
                     <Show when={props.sectionId === group.section.id}>
@@ -249,9 +255,10 @@ export function AssessmentCatalogPage(props: {
                             const requiredModules = () =>
                               assessmentRequiredByModules(definition.id, props.installation);
                             const hasUserManagedSource = () =>
-                              props.installation.manualIds.has(definition.id) ||
-                              (props.installation.sectionIds.has(definition.category) &&
-                                !props.installation.excludedIds.has(definition.id));
+                              !fromDatabase() &&
+                              (props.installation.manualIds.has(definition.id) ||
+                                (props.installation.sectionIds.has(definition.category) &&
+                                  !props.installation.excludedIds.has(definition.id)));
                             return (
                               <AssessmentCard
                                 definition={definition}

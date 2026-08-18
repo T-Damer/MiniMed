@@ -7,6 +7,7 @@ import {
   loadAssessmentDefinition,
   registerDownloadedAssessment,
   searchAssessments,
+  visibleAssessmentSpecialties,
 } from '@/features/assessments/assessment-catalog';
 import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
 
@@ -82,5 +83,27 @@ describe('assessment catalog', () => {
     expect(
       definitions.every((definition) => definition.scales.every((scale) => scale.description)),
     ).toBe(true);
+  });
+
+  it('filters visible specialties by query and catalog availability', () => {
+    registerPsychologyAssessments();
+    const catalog = getAssessmentCatalog();
+    expect(visibleAssessmentSpecialties('', catalog, []).map((specialty) => specialty.id)).toEqual(
+      expect.arrayContaining(['psychology', 'pediatrics']),
+    );
+
+    const pediatricsQuery = visibleAssessmentSpecialties(
+      'педиатрия',
+      catalog,
+      searchAssessments('педиатрия'),
+    );
+    expect(pediatricsQuery.some((specialty) => specialty.id === 'pediatrics')).toBe(false);
+
+    const belbinQuery = visibleAssessmentSpecialties(
+      'Белбин',
+      catalog,
+      searchAssessments('Белбин'),
+    );
+    expect(belbinQuery.map((specialty) => specialty.id)).toEqual(['psychology']);
   });
 });

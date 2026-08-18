@@ -150,6 +150,9 @@ describe('user-library storage', () => {
     expect(matches.length).toBeGreaterThan(0);
     expect(matches[0]?.document.id).toBe(created.id);
 
+    const genericHits = await searchUserLibrary('парацетамол детям');
+    expect(genericHits).toHaveLength(0);
+
     const searchable = await userLibrarySearchableCount();
     expect(searchable).toBe(1);
 

@@ -1,15 +1,17 @@
+import type { RootView } from '@/app/root-view';
 import { assessmentParentHash } from '@/features/assessments/assessment-routing';
 import { calculatorParentHash } from '@/features/calculators/calculator-routing';
 import { knowledgeDocumentBackHash } from '@/features/knowledge/knowledge-routing';
+import { settingsParentHash } from '@/features/settings/settings-routing';
 import { isDocumentReadRoute } from '@/state/document-route';
+
+export type { RootView };
 
 export type NativeBackAction =
   | { readonly type: 'parent'; readonly hash: string }
   | { readonly type: 'history' }
   | { readonly type: 'search' }
   | { readonly type: 'minimize' };
-
-export type RootView = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes' | 'settings';
 
 export function hierarchicalParentHash(route: string): string | null {
   const documentParent = knowledgeDocumentBackHash(route);
@@ -18,7 +20,7 @@ export function hierarchicalParentHash(route: string): string | null {
   if (assessmentParent) return assessmentParent;
   const calculatorParent = calculatorParentHash(route);
   if (calculatorParent) return calculatorParent;
-  return null;
+  return settingsParentHash(route);
 }
 
 export function nativeBackAction(

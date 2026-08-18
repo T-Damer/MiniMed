@@ -1,3 +1,4 @@
+import { findRangesInText } from '@/features/library/document-find';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import {
   isUserLibraryTextLikeMime,
@@ -128,8 +129,9 @@ export function buildUserDocumentPrintHtml(
 </html>`;
 }
 
-export function textMatchesDocumentQuery(text: string, query: string): boolean {
+export function textMatchesDocumentQuery(text: string, query: string, similar = false): boolean {
   const trimmed = query.trim();
   if (!trimmed) return false;
-  return matchesFuzzyQuery(trimmed, [text]);
+  if (similar) return matchesFuzzyQuery(trimmed, [text]);
+  return findRangesInText(text, trimmed, 'exact').length > 0;
 }

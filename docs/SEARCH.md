@@ -18,6 +18,12 @@ long free-form case
 
 No generative model participates in this path. When vectors are unavailable or incompatible, the complete lexical path remains active.
 
+## Personal overlay
+
+Notes and uploaded books are searched outside SQLite. A hit requires every distinctive query stem
+(length ≥ 5 after light stemming), with bounded-edit inflected forms. Short leftovers (`мг`, `500`,
+`вес`) only matter when the query has no distinctive stem. One shared generic word is not a match.
+
 ## Deterministic case analysis
 
 `packages/search-lexical` currently recognizes:

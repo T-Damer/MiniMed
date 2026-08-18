@@ -24,8 +24,7 @@ function installComputedStyleMock(): void {
   vi.stubGlobal('getComputedStyle', (element: Element) => {
     const value = (element as MockRoot).cssVarValue ?? '';
     return {
-      getPropertyValue: (name: string) =>
-        name === '--root-view-enter-to-scroll' ? value : '',
+      getPropertyValue: (name: string) => (name === '--root-view-enter-to-scroll' ? value : ''),
     } as CSSStyleDeclaration;
   });
 }

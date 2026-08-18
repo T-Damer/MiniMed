@@ -12,11 +12,7 @@
       "slug": "cockcroft-gault-creatinine-clearance",
       "title": "Клиренс креатинина — Cockcroft–Gault",
       "shortTitle": "Cockcroft–Gault",
-      "aliases": [
-        "Cockcroft-Gault",
-        "клиренс креатинина",
-        "CrCl"
-      ],
+      "aliases": ["Cockcroft-Gault", "клиренс креатинина", "CrCl"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "renal",
@@ -29,11 +25,7 @@
         "slug": "cockcroft-gault-creatinine-clearance",
         "title": "Клиренс креатинина — Cockcroft–Gault",
         "shortTitle": "Cockcroft–Gault",
-        "aliases": [
-          "Cockcroft-Gault",
-          "клиренс креатинина",
-          "CrCl"
-        ],
+        "aliases": ["Cockcroft-Gault", "клиренс креатинина", "CrCl"],
         "summary": "Оценка клиренса креатинина по формуле Cockcroft–Gault у взрослых.",
         "audience": "adult",
         "category": "renal",
@@ -163,11 +155,7 @@
       "slug": "fractional-excretion-sodium",
       "title": "Фракционная экскреция натрия",
       "shortTitle": "FeNa",
-      "aliases": [
-        "FeNa",
-        "FENa",
-        "фракционная экскреция натрия"
-      ],
+      "aliases": ["FeNa", "FENa", "фракционная экскреция натрия"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "renal",
@@ -180,11 +168,7 @@
         "slug": "fractional-excretion-sodium",
         "title": "Фракционная экскреция натрия",
         "shortTitle": "FeNa",
-        "aliases": [
-          "FeNa",
-          "FENa",
-          "фракционная экскреция натрия"
-        ],
+        "aliases": ["FeNa", "FENa", "фракционная экскреция натрия"],
         "summary": "Расчёт FeNa по парным образцам плазмы и мочи.",
         "audience": "all",
         "category": "renal",
@@ -276,11 +260,7 @@
       "slug": "fractional-excretion-urea",
       "title": "Фракционная экскреция мочевины",
       "shortTitle": "FeUrea",
-      "aliases": [
-        "FeUrea",
-        "FE мочевины",
-        "фракционная экскреция мочевины"
-      ],
+      "aliases": ["FeUrea", "FE мочевины", "фракционная экскреция мочевины"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "renal",
@@ -293,11 +273,7 @@
         "slug": "fractional-excretion-urea",
         "title": "Фракционная экскреция мочевины",
         "shortTitle": "FeUrea",
-        "aliases": [
-          "FeUrea",
-          "FE мочевины",
-          "фракционная экскреция мочевины"
-        ],
+        "aliases": ["FeUrea", "FE мочевины", "фракционная экскреция мочевины"],
         "summary": "Расчёт FeUrea по парным образцам мочи и плазмы.",
         "audience": "all",
         "category": "renal",
@@ -387,11 +363,7 @@
       "slug": "pediatric-urine-output",
       "title": "Диурез по массе",
       "shortTitle": "Диурез",
-      "aliases": [
-        "диурез мл кг час",
-        "почасовой диурез",
-        "urine output"
-      ],
+      "aliases": ["диурез мл кг час", "почасовой диурез", "urine output"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "fluids",
@@ -404,11 +376,7 @@
         "slug": "pediatric-urine-output",
         "title": "Диурез по массе",
         "shortTitle": "Диурез",
-        "aliases": [
-          "диурез мл кг час",
-          "почасовой диурез",
-          "urine output"
-        ],
+        "aliases": ["диурез мл кг час", "почасовой диурез", "urine output"],
         "summary": "Пересчёт измеренного объёма мочи на массу тела и время наблюдения.",
         "audience": "all",
         "category": "fluids",
@@ -493,12 +461,7 @@
       "slug": "anion-gap-albumin-corrected",
       "title": "Анионная разница с поправкой на альбумин",
       "shortTitle": "Anion gap",
-      "aliases": [
-        "anion gap",
-        "анионный разрыв",
-        "анионная разница",
-        "AG"
-      ],
+      "aliases": ["anion gap", "анионный разрыв", "анионная разница", "AG"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "emergency",
@@ -511,12 +474,7 @@
         "slug": "anion-gap-albumin-corrected",
         "title": "Анионная разница с поправкой на альбумин",
         "shortTitle": "Anion gap",
-        "aliases": [
-          "anion gap",
-          "анионный разрыв",
-          "анионная разница",
-          "AG"
-        ],
+        "aliases": ["anion gap", "анионный разрыв", "анионная разница", "AG"],
         "summary": "Расчёт обычной и альбумин-корректированной анионной разницы без калия.",
         "audience": "all",
         "category": "emergency",
@@ -617,11 +575,7 @@
       "slug": "corrected-sodium-hyperglycemia",
       "title": "Скорректированный натрий при гипергликемии",
       "shortTitle": "Натрий при гипергликемии",
-      "aliases": [
-        "corrected sodium",
-        "скорректированный натрий",
-        "гипергликемия натрий"
-      ],
+      "aliases": ["corrected sodium", "скорректированный натрий", "гипергликемия натрий"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "emergency",
@@ -634,11 +588,7 @@
         "slug": "corrected-sodium-hyperglycemia",
         "title": "Скорректированный натрий при гипергликемии",
         "shortTitle": "Натрий при гипергликемии",
-        "aliases": [
-          "corrected sodium",
-          "скорректированный натрий",
-          "гипергликемия натрий"
-        ],
+        "aliases": ["corrected sodium", "скорректированный натрий", "гипергликемия натрий"],
         "summary": "Оценка натрия с поправкой на гипергликемию по коэффициенту Hillier.",
         "audience": "all",
         "category": "emergency",
@@ -736,11 +686,7 @@
       "slug": "effective-plasma-osmolality",
       "title": "Эффективная и расчётная осмолярность",
       "shortTitle": "Осмолярность",
-      "aliases": [
-        "effective osmolality",
-        "осмолярность плазмы",
-        "тоничность"
-      ],
+      "aliases": ["effective osmolality", "осмолярность плазмы", "тоничность"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "emergency",
@@ -753,11 +699,7 @@
         "slug": "effective-plasma-osmolality",
         "title": "Эффективная и расчётная осмолярность",
         "shortTitle": "Осмолярность",
-        "aliases": [
-          "effective osmolality",
-          "осмолярность плазмы",
-          "тоничность"
-        ],
+        "aliases": ["effective osmolality", "осмолярность плазмы", "тоничность"],
         "summary": "Расчёт эффективной осмолярности и осмолярности по натрию, глюкозе и мочевине.",
         "audience": "all",
         "category": "emergency",
@@ -850,11 +792,7 @@
       "slug": "winters-formula-metabolic-acidosis",
       "title": "Формула Winter для метаболического ацидоза",
       "shortTitle": "Winter",
-      "aliases": [
-        "Winter's formula",
-        "формула Винтера",
-        "компенсация ацидоза"
-      ],
+      "aliases": ["Winter's formula", "формула Винтера", "компенсация ацидоза"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "emergency",
@@ -867,11 +805,7 @@
         "slug": "winters-formula-metabolic-acidosis",
         "title": "Формула Winter для метаболического ацидоза",
         "shortTitle": "Winter",
-        "aliases": [
-          "Winter's formula",
-          "формула Винтера",
-          "компенсация ацидоза"
-        ],
+        "aliases": ["Winter's formula", "формула Винтера", "компенсация ацидоза"],
         "summary": "Ожидаемый PaCO₂ при метаболическом ацидозе по концентрации бикарбоната.",
         "audience": "all",
         "category": "emergency",
@@ -953,11 +887,7 @@
       "slug": "fib-4-liver-fibrosis-index",
       "title": "FIB-4 — индекс фиброза печени",
       "shortTitle": "FIB-4",
-      "aliases": [
-        "FIB4",
-        "FIB-4",
-        "индекс фиброза"
-      ],
+      "aliases": ["FIB4", "FIB-4", "индекс фиброза"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "gastroenterology",
@@ -970,11 +900,7 @@
         "slug": "fib-4-liver-fibrosis-index",
         "title": "FIB-4 — индекс фиброза печени",
         "shortTitle": "FIB-4",
-        "aliases": [
-          "FIB4",
-          "FIB-4",
-          "индекс фиброза"
-        ],
+        "aliases": ["FIB4", "FIB-4", "индекс фиброза"],
         "summary": "Неинвазивный индекс, рассчитанный по возрасту, AST, ALT и тромбоцитам.",
         "audience": "adult",
         "category": "gastroenterology",
@@ -1068,11 +994,7 @@
       "slug": "apri-liver-fibrosis-index",
       "title": "APRI — индекс AST к тромбоцитам",
       "shortTitle": "APRI",
-      "aliases": [
-        "APRI",
-        "AST platelet ratio index",
-        "индекс APRI"
-      ],
+      "aliases": ["APRI", "AST platelet ratio index", "индекс APRI"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "gastroenterology",
@@ -1085,11 +1007,7 @@
         "slug": "apri-liver-fibrosis-index",
         "title": "APRI — индекс AST к тромбоцитам",
         "shortTitle": "APRI",
-        "aliases": [
-          "APRI",
-          "AST platelet ratio index",
-          "индекс APRI"
-        ],
+        "aliases": ["APRI", "AST platelet ratio index", "индекс APRI"],
         "summary": "Неинвазивный индекс по AST, верхней границе нормы AST и тромбоцитам.",
         "audience": "adult",
         "category": "gastroenterology",
@@ -1174,11 +1092,7 @@
       "slug": "absolute-neutrophil-count",
       "title": "Абсолютное число нейтрофилов",
       "shortTitle": "ANC",
-      "aliases": [
-        "ANC",
-        "absolute neutrophil count",
-        "абсолютные нейтрофилы"
-      ],
+      "aliases": ["ANC", "absolute neutrophil count", "абсолютные нейтрофилы"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "hematology",
@@ -1191,11 +1105,7 @@
         "slug": "absolute-neutrophil-count",
         "title": "Абсолютное число нейтрофилов",
         "shortTitle": "ANC",
-        "aliases": [
-          "ANC",
-          "absolute neutrophil count",
-          "абсолютные нейтрофилы"
-        ],
+        "aliases": ["ANC", "absolute neutrophil count", "абсолютные нейтрофилы"],
         "summary": "Пересчёт общего числа лейкоцитов и доли сегментоядерных и палочкоядерных форм в ANC.",
         "audience": "all",
         "category": "hematology",
@@ -1280,11 +1190,7 @@
       "slug": "mentzer-index-microcytosis",
       "title": "Индекс Ментцера",
       "shortTitle": "Mentzer",
-      "aliases": [
-        "Mentzer index",
-        "индекс Ментцера",
-        "микроцитоз"
-      ],
+      "aliases": ["Mentzer index", "индекс Ментцера", "микроцитоз"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "hematology",
@@ -1297,11 +1203,7 @@
         "slug": "mentzer-index-microcytosis",
         "title": "Индекс Ментцера",
         "shortTitle": "Mentzer",
-        "aliases": [
-          "Mentzer index",
-          "индекс Ментцера",
-          "микроцитоз"
-        ],
+        "aliases": ["Mentzer index", "индекс Ментцера", "микроцитоз"],
         "summary": "Скрининговый индекс для первичной ориентации при микроцитозе по MCV и числу эритроцитов.",
         "audience": "all",
         "category": "hematology",
@@ -1387,12 +1289,7 @@
       "slug": "qtc-bazett-fridericia",
       "title": "Коррекция QT — Bazett и Fridericia",
       "shortTitle": "QTc",
-      "aliases": [
-        "QTc",
-        "QTc Bazett",
-        "QTc Fridericia",
-        "корригированный QT"
-      ],
+      "aliases": ["QTc", "QTc Bazett", "QTc Fridericia", "корригированный QT"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "cardiology",
@@ -1405,12 +1302,7 @@
         "slug": "qtc-bazett-fridericia",
         "title": "Коррекция QT — Bazett и Fridericia",
         "shortTitle": "QTc",
-        "aliases": [
-          "QTc",
-          "QTc Bazett",
-          "QTc Fridericia",
-          "корригированный QT"
-        ],
+        "aliases": ["QTc", "QTc Bazett", "QTc Fridericia", "корригированный QT"],
         "summary": "Расчёт QTc по формулам Bazett и Fridericia из QT и RR на ЭКГ.",
         "audience": "all",
         "category": "cardiology",
@@ -1501,11 +1393,7 @@
       "slug": "cha2ds2-vasc-stroke-risk",
       "title": "CHA₂DS₂-VASc",
       "shortTitle": "CHA₂DS₂-VASc",
-      "aliases": [
-        "CHA2DS2-VASc",
-        "фибрилляция предсердий",
-        "риск инсульта при ФП"
-      ],
+      "aliases": ["CHA2DS2-VASc", "фибрилляция предсердий", "риск инсульта при ФП"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "cardiology",
@@ -1518,11 +1406,7 @@
         "slug": "cha2ds2-vasc-stroke-risk",
         "title": "CHA₂DS₂-VASc",
         "shortTitle": "CHA₂DS₂-VASc",
-        "aliases": [
-          "CHA2DS2-VASc",
-          "фибрилляция предсердий",
-          "риск инсульта при ФП"
-        ],
+        "aliases": ["CHA2DS2-VASc", "фибрилляция предсердий", "риск инсульта при ФП"],
         "summary": "Балльная оценка факторов риска инсульта при неклапанной фибрилляции предсердий.",
         "audience": "adult",
         "category": "cardiology",
@@ -1685,11 +1569,7 @@
       "slug": "has-bled-bleeding-risk",
       "title": "HAS-BLED",
       "shortTitle": "HAS-BLED",
-      "aliases": [
-        "HAS BLED",
-        "риск кровотечения",
-        "фибрилляция предсердий кровотечение"
-      ],
+      "aliases": ["HAS BLED", "риск кровотечения", "фибрилляция предсердий кровотечение"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "cardiology",
@@ -1702,11 +1582,7 @@
         "slug": "has-bled-bleeding-risk",
         "title": "HAS-BLED",
         "shortTitle": "HAS-BLED",
-        "aliases": [
-          "HAS BLED",
-          "риск кровотечения",
-          "фибрилляция предсердий кровотечение"
-        ],
+        "aliases": ["HAS BLED", "риск кровотечения", "фибрилляция предсердий кровотечение"],
         "summary": "Балльная оценка модифицируемых факторов риска кровотечения при ФП.",
         "audience": "adult",
         "category": "cardiology",
@@ -1892,11 +1768,7 @@
       "slug": "child-pugh-liver-function",
       "title": "Child–Pugh",
       "shortTitle": "Child–Pugh",
-      "aliases": [
-        "Child Pugh",
-        "Child-Turcotte-Pugh",
-        "класс тяжести цирроза"
-      ],
+      "aliases": ["Child Pugh", "Child-Turcotte-Pugh", "класс тяжести цирроза"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "gastroenterology",
@@ -1909,11 +1781,7 @@
         "slug": "child-pugh-liver-function",
         "title": "Child–Pugh",
         "shortTitle": "Child–Pugh",
-        "aliases": [
-          "Child Pugh",
-          "Child-Turcotte-Pugh",
-          "класс тяжести цирроза"
-        ],
+        "aliases": ["Child Pugh", "Child-Turcotte-Pugh", "класс тяжести цирроза"],
         "summary": "Балльная оценка пяти компонентов классификации Child–Pugh.",
         "audience": "adult",
         "category": "gastroenterology",
@@ -2085,11 +1953,7 @@
       "slug": "parkland-burn-resuscitation",
       "title": "Parkland — расчёт жидкости при ожоге",
       "shortTitle": "Parkland",
-      "aliases": [
-        "Parkland formula",
-        "формула Паркланда",
-        "ожоговая инфузия"
-      ],
+      "aliases": ["Parkland formula", "формула Паркланда", "ожоговая инфузия"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "emergency",
@@ -2102,11 +1966,7 @@
         "slug": "parkland-burn-resuscitation",
         "title": "Parkland — расчёт жидкости при ожоге",
         "shortTitle": "Parkland",
-        "aliases": [
-          "Parkland formula",
-          "формула Паркланда",
-          "ожоговая инфузия"
-        ],
+        "aliases": ["Parkland formula", "формула Паркланда", "ожоговая инфузия"],
         "summary": "Ориентировочный объём кристаллоида на первые 24 часа и распределение по времени после ожога.",
         "audience": "all",
         "category": "emergency",
@@ -2222,12 +2082,7 @@
       "slug": "body-surface-area-mosteller",
       "title": "Площадь поверхности тела — Mosteller",
       "shortTitle": "ППТ Mosteller",
-      "aliases": [
-        "площадь поверхности тела",
-        "ППТ",
-        "BSA",
-        "Mosteller"
-      ],
+      "aliases": ["площадь поверхности тела", "ППТ", "BSA", "Mosteller"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "anthropometry",
@@ -2240,12 +2095,7 @@
         "slug": "body-surface-area-mosteller",
         "title": "Площадь поверхности тела — Mosteller",
         "shortTitle": "ППТ Mosteller",
-        "aliases": [
-          "площадь поверхности тела",
-          "ППТ",
-          "BSA",
-          "Mosteller"
-        ],
+        "aliases": ["площадь поверхности тела", "ППТ", "BSA", "Mosteller"],
         "summary": "ППТ по росту и массе с отображением исходной формулы и промежуточных шагов.",
         "audience": "all",
         "category": "anthropometry",
@@ -2346,12 +2196,7 @@
       "slug": "adult-egfr-ckd-epi-2021",
       "title": "Расчётная СКФ у взрослых — CKD-EPI 2021",
       "shortTitle": "СКФ CKD-EPI 2021",
-      "aliases": [
-        "CKD-EPI 2021",
-        "СКФ взрослые",
-        "eGFR adult",
-        "креатинин СКФ"
-      ],
+      "aliases": ["CKD-EPI 2021", "СКФ взрослые", "eGFR adult", "креатинин СКФ"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "renal",
@@ -2364,12 +2209,7 @@
         "slug": "adult-egfr-ckd-epi-2021",
         "title": "Расчётная СКФ у взрослых — CKD-EPI 2021",
         "shortTitle": "СКФ CKD-EPI 2021",
-        "aliases": [
-          "CKD-EPI 2021",
-          "СКФ взрослые",
-          "eGFR adult",
-          "креатинин СКФ"
-        ],
+        "aliases": ["CKD-EPI 2021", "СКФ взрослые", "eGFR adult", "креатинин СКФ"],
         "summary": "Креатининовая CKD-EPI 2021 без расового коэффициента, с мг/дл и мкмоль/л.",
         "audience": "adult",
         "category": "renal",
@@ -2591,12 +2431,7 @@
       "slug": "pediatric-egfr-schwartz-2009",
       "title": "Расчётная СКФ у детей — bedside CKiD 2009",
       "shortTitle": "СКФ Schwartz 2009",
-      "aliases": [
-        "формула Шварца",
-        "Schwartz bedside",
-        "СКФ дети",
-        "CKiD 0.413"
-      ],
+      "aliases": ["формула Шварца", "Schwartz bedside", "СКФ дети", "CKiD 0.413"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "renal",
@@ -2609,12 +2444,7 @@
         "slug": "pediatric-egfr-schwartz-2009",
         "title": "Расчётная СКФ у детей — bedside CKiD 2009",
         "shortTitle": "СКФ Schwartz 2009",
-        "aliases": [
-          "формула Шварца",
-          "Schwartz bedside",
-          "СКФ дети",
-          "CKiD 0.413"
-        ],
+        "aliases": ["формула Шварца", "Schwartz bedside", "СКФ дети", "CKiD 0.413"],
         "summary": "Bedside-формула 0,413 × рост / креатинин с явными возрастными ограничениями.",
         "audience": "pediatric",
         "category": "renal",
@@ -2750,12 +2580,7 @@
       "slug": "pediatric-maintenance-fluids",
       "title": "Поддерживающая жидкость у детей — Holliday–Segar",
       "shortTitle": "Жидкость 100/50/20",
-      "aliases": [
-        "Holliday Segar",
-        "4-2-1",
-        "100 50 20",
-        "поддерживающая инфузия детям"
-      ],
+      "aliases": ["Holliday Segar", "4-2-1", "100 50 20", "поддерживающая инфузия детям"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "fluids",
@@ -2768,12 +2593,7 @@
         "slug": "pediatric-maintenance-fluids",
         "title": "Поддерживающая жидкость у детей — Holliday–Segar",
         "shortTitle": "Жидкость 100/50/20",
-        "aliases": [
-          "Holliday Segar",
-          "4-2-1",
-          "100 50 20",
-          "поддерживающая инфузия детям"
-        ],
+        "aliases": ["Holliday Segar", "4-2-1", "100 50 20", "поддерживающая инфузия детям"],
         "summary": "Суточная схема 100/50/20 и почасовое приближение 4–2–1 с отдельными результатами.",
         "audience": "pediatric",
         "category": "fluids",
@@ -2903,13 +2723,7 @@
       "slug": "pediatric-oral-rehydration",
       "title": "Пероральная регидратация у детей",
       "shortTitle": "ОРС при потерях",
-      "aliases": [
-        "Регидрон детям",
-        "регидратация детям",
-        "рвота понос",
-        "ОРС",
-        "oral rehydration"
-      ],
+      "aliases": ["Регидрон детям", "регидратация детям", "рвота понос", "ОРС", "oral rehydration"],
       "bankId": "core-clinical",
       "bankLabel": "Базовые клинические расчёты",
       "category": "fluids",

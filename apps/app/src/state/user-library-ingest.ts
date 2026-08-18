@@ -148,7 +148,7 @@ async function extractPdfPageContent(
       'height' in item && typeof item.height === 'number' && item.height > 0 ? item.height : 1;
     const x = (transform[4] ?? 0) / viewport.width;
     const y = ((transform[5] ?? 0) - fontHeight) / viewport.height;
-    const w = ((item.width * scaleX) / itemHeight) / viewport.width;
+    const w = (item.width * scaleX) / itemHeight / viewport.width;
     const h = fontHeight / viewport.height;
     boxes.push({ text: item.str, x, y, w, h });
   }

@@ -98,6 +98,22 @@ a:focus-visible {
   transform: rotate(-1.6deg);
 }
 
+.brand-mark-image {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  transform: none;
+  object-fit: contain;
+}
+
+.brand-mark.brand-mark-image {
+  border: 0;
+  transform: none;
+}
+
 .brand-title {
   display: flex;
   min-width: 0;

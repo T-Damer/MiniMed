@@ -8,6 +8,22 @@ import {
 export type DocumentToolKind = 'assessment' | 'calculator';
 export type DocumentToolTextSegment = ToolLinkSegment<DocumentToolKind>;
 
+let cachedMatcher: ReturnType<typeof buildMatcher> | undefined;
+let cachedCatalogSignature = '';
+
+function catalogSignature(): string {
+  const assessments = getAssessmentCatalog()
+    .map((assessment) => assessment.id)
+    .toSorted()
+    .join(',');
+  const calculators = getCalculatorRegistry()
+    .filter((calculator) => calculator.state === 'available')
+    .map((calculator) => calculator.id)
+    .toSorted()
+    .join(',');
+  return `${assessments}|${calculators}`;
+}
+
 function buildMatcher() {
   return createToolLinkMatcher<DocumentToolKind>([
     ...getAssessmentCatalog().map((assessment) => ({
@@ -27,14 +43,20 @@ function buildMatcher() {
   ]);
 }
 
-export function ambiguousDocumentToolPhrases(): readonly string[] {
-  return buildMatcher().ambiguousPhrases;
+function getMatcher() {
+  const signature = catalogSignature();
+  if (cachedMatcher && cachedCatalogSignature === signature) return cachedMatcher;
+  cachedMatcher = buildMatcher();
+  cachedCatalogSignature = signature;
+  return cachedMatcher;
 }
 
-export const AMBIGUOUS_DOCUMENT_TOOL_PHRASES = ambiguousDocumentToolPhrases();
+export function ambiguousDocumentToolPhrases(): readonly string[] {
+  return getMatcher().ambiguousPhrases;
+}
 
 export function segmentTextWithToolLinks(text: string): readonly DocumentToolTextSegment[] {
-  return buildMatcher().segment(text);
+  return getMatcher().segment(text);
 }
 
 export function assessmentIdsReferencedInText(text: string): readonly string[] {

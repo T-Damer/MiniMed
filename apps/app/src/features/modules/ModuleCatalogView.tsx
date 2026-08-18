@@ -34,12 +34,14 @@ import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { openUserLibraryCatalog } from '@/features/library/user-library-routing';
 import { ContentModuleCard } from '@/features/modules/ContentModuleCard';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
+import { mergePreinstalledModules } from '@/features/modules/local-packaged-modules';
 import { ModuleTaskStatus } from '@/features/modules/ModuleTaskStatus';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import {
   contentModuleTaskProgress,
   formatModuleBytes,
   formatModuleCollectionSubtitle,
+  formatOverviewCollectionSubtitle,
   MODULE_RELEASE_LABELS,
   MODULE_TASK_LABELS,
   primaryModuleDocumentId,
@@ -49,6 +51,11 @@ import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
+import {
+  countDocumentsByOverviewBucket,
+  type DocumentOverviewBucket,
+  EMPTY_OVERVIEW_DOCUMENT_COUNTS,
+} from '@/features/modules/overview-document-counts';
 import {
   moduleCollectionStats,
   modulesInCategory,
@@ -60,6 +67,7 @@ import {
   removeInstalledCategoryModules,
 } from '@/features/modules/recommendation-category-operations';
 import { collectionLabel, documentCountLabel, recommendationCountLabel } from '@/i18n/labels';
+import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import {
@@ -180,6 +188,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     window.localStorage.getItem(AUTO_UPDATES_PAUSED_KEY) === 'true',
   );
   const [returnTo, setReturnTo] = createSignal(peekReturnTo());
+  const [overviewDocumentCounts, setOverviewDocumentCounts] = createSignal(
+    EMPTY_OVERVIEW_DOCUMENT_COUNTS,
+  );
   let refreshedOnce = false;
   let unsubscribeTask: (() => void) | undefined;
   let reconnectPending = false;
@@ -233,10 +244,31 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     window.location.hash = '#/modules/documents/medications';
   };
 
+  const refreshOverviewDocumentCounts = (): void => {
+    void props.core.listDocuments().then((result) => {
+      if (!result.ok) return;
+      setOverviewDocumentCounts(countDocumentsByOverviewBucket(result.value));
+    });
+  };
+
+  const overviewSubtitle = (
+    bucket: DocumentOverviewBucket | null,
+    stats: { readonly downloadBytes: number; readonly installedBytes: number },
+  ): string | null => {
+    const documentCount = bucket ? overviewDocumentCounts()[bucket] : 0;
+    return formatOverviewCollectionSubtitle({
+      documentCountLabel: documentCount > 0 ? documentCountLabel(documentCount) : null,
+      downloadBytes: stats.downloadBytes,
+      installedBytes: stats.installedBytes,
+    });
+  };
+
   onMount(() => {
     bindRuntime(catalog());
     syncSelectionFromLocation();
+    refreshOverviewDocumentCounts();
     window.addEventListener('hashchange', syncSelectionFromLocation);
+    window.addEventListener(CONTENT_CHANGED_EVENT, refreshOverviewDocumentCounts);
     const syncReturnTo = () => {
       setReturnTo(peekReturnTo());
     };
@@ -246,6 +278,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   onCleanup(() => {
     unsubscribeTask?.();
     window.removeEventListener('hashchange', syncSelectionFromLocation);
+    window.removeEventListener(CONTENT_CHANGED_EVENT, refreshOverviewDocumentCounts);
   });
 
   const recommendationModules = createMemo(() =>
@@ -266,11 +299,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       regulatory: 'Законы и нормативные акты',
       tool: 'Калькуляторы и опросники',
     })[section] ?? collectionLabel(section);
+  const installedWithBundled = createMemo(() => mergePreinstalledModules(catalog(), installed()));
   const installedById = createMemo(
-    () => new Map(installed().map((module) => [module.moduleId, module])),
+    () => new Map(installedWithBundled().map((module) => [module.moduleId, module])),
   );
   const installedModuleIds = createMemo(
-    () => new Set(installed().map((module) => module.moduleId)),
+    () => new Set(installedWithBundled().map((module) => module.moduleId)),
   );
   const medicationCatalogModules = createMemo(() =>
     catalog().modules.filter((module) => module.kind === 'medication'),
@@ -444,7 +478,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   };
 
   const installedModule = (moduleId: string): InstalledContentModule | undefined =>
-    installed().find((item) => item.moduleId === moduleId);
+    installedById().get(moduleId);
   const moduleTask = (moduleId: string): ContentModuleDownloadTask | undefined => {
     const latest = tasks()
       .filter((task) => task.moduleId === moduleId)
@@ -692,88 +726,90 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       <Show when={props.embedded}>
         <div
           ref={moduleCatalogHeading}
-          class="knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading"
+          class="module-catalog-toolbar knowledge-subroute-heading--blurred route-sticky-chrome"
         >
-          <Show
-            when={coreLibraryOpen() || recommendationBrowserOpen() || Boolean(regularCollection())}
-          >
-            <NavBackWithReturnTo
-              catalogLabel="Назад"
-              catalogDetail="К предыдущему разделу"
-              catalogAriaLabel="Назад"
-              buttonClass="knowledge-back-button knowledge-subroute-heading__control"
-              onBackToCatalog={() => (coreLibraryOpen() ? closeCoreLibrary() : props.onBack?.())}
-            />
-          </Show>
-          <Show when={returnTo()}>
-            {(location) => (
-              <Show
-                when={
-                  !coreLibraryOpen() && !recommendationBrowserOpen() && !regularCollection()
-                }
-              >
-                <Button
-                  type="button"
-                  variant="icon"
-                  class="knowledge-back-button return-navigation-button knowledge-subroute-heading__control"
-                  aria-label={returnToControlLabel(location())}
-                  title={returnToControlLabel(location())}
-                  onClick={() => consumeAndRestoreReturnTo()}
-                  icon={<AppGlyph name={returnToControlIcon(location())} />}
-                />
-              </Show>
-            )}
-          </Show>
-          <SearchField
-            class="route-search knowledge-subroute-heading__control"
-            value={catalogQuery()}
-            onInput={setCatalogQuery}
-            label="Поиск по текущему разделу"
-            hideLabel
-            placeholder="Поиск в текущем разделе"
-          />
-        </div>
-        <Show when={!coreLibraryOpen()}>
-          <div class="module-catalog-actions module-catalog-actions--heading">
-            <Show when={pendingDownloadCount() > 0 && !recommendationCategory()}>
-              <button
-                type="button"
-                aria-label={`${bulkDownloadLabel()}: ${pendingDownloadCount()}`}
-                class="module-download-all"
-                disabled={installingAll()}
-                onClick={() => void installAllAvailable()}
-              >
-                <AppGlyph name="download" />
-                <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
-              </button>
-            </Show>
+          <div class="knowledge-subroute-heading module-catalog-heading module-catalog-heading--in-toolbar">
             <Show
               when={
-                !recommendationBrowserOpen() &&
-                !browsingSection() &&
-                !browsingSearch() &&
-                !regularCollection()
+                coreLibraryOpen() || recommendationBrowserOpen() || Boolean(regularCollection())
               }
             >
-              <button
-                type="button"
-                class="module-auto-update-toggle"
-                classList={{ paused: autoUpdatesPaused() }}
-                aria-label={
-                  autoUpdatesPaused()
-                    ? 'Возобновить автообновление'
-                    : 'Приостановить автообновление'
-                }
-                onClick={toggleAutoUpdates}
-              >
-                <AppGlyph name="refresh" />
-                <span>
-                  {autoUpdatesPaused() ? 'Автообновление выключено' : 'Автообновление включено'}
-                </span>
-              </button>
+              <NavBackWithReturnTo
+                catalogLabel="Назад"
+                catalogDetail="К предыдущему разделу"
+                catalogAriaLabel="Назад"
+                buttonClass="knowledge-back-button knowledge-subroute-heading__control"
+                onBackToCatalog={() => (coreLibraryOpen() ? closeCoreLibrary() : props.onBack?.())}
+              />
             </Show>
+            <Show when={returnTo()}>
+              {(location) => (
+                <Show
+                  when={!coreLibraryOpen() && !recommendationBrowserOpen() && !regularCollection()}
+                >
+                  <Button
+                    type="button"
+                    variant="icon"
+                    class="knowledge-back-button return-navigation-button knowledge-subroute-heading__control"
+                    aria-label={returnToControlLabel(location())}
+                    title={returnToControlLabel(location())}
+                    onClick={() => consumeAndRestoreReturnTo()}
+                    icon={<AppGlyph name={returnToControlIcon(location())} />}
+                  />
+                </Show>
+              )}
+            </Show>
+            <SearchField
+              class="route-search knowledge-subroute-heading__control"
+              value={catalogQuery()}
+              onInput={setCatalogQuery}
+              label="Поиск по текущему разделу"
+              hideLabel
+              placeholder="Поиск в текущем разделе"
+            />
           </div>
-        </Show>
+          <Show when={!coreLibraryOpen()}>
+            <div class="module-catalog-actions module-catalog-actions--heading module-catalog-actions--toolbar">
+              <Show when={pendingDownloadCount() > 0 && !recommendationCategory()}>
+                <button
+                  type="button"
+                  aria-label={`${bulkDownloadLabel()}: ${pendingDownloadCount()}`}
+                  class="module-download-all"
+                  disabled={installingAll()}
+                  onClick={() => void installAllAvailable()}
+                >
+                  <AppGlyph name="download" />
+                  <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
+                </button>
+              </Show>
+              <Show
+                when={
+                  !recommendationBrowserOpen() &&
+                  !browsingSection() &&
+                  !browsingSearch() &&
+                  !regularCollection()
+                }
+              >
+                <button
+                  type="button"
+                  class="module-auto-update-toggle"
+                  classList={{ paused: autoUpdatesPaused() }}
+                  aria-label={
+                    autoUpdatesPaused()
+                      ? 'Возобновить автообновление'
+                      : 'Приостановить автообновление'
+                  }
+                  onClick={toggleAutoUpdates}
+                >
+                  <AppGlyph name="refresh" />
+                  <span>
+                    {autoUpdatesPaused() ? 'Автообновление выключено' : 'Автообновление включено'}
+                  </span>
+                </button>
+              </Show>
+            </div>
+          </Show>
+        </div>
       </Show>
 
       {/* Active reconnects show an inline loader on the card that triggered them (ContentModuleCard's
@@ -869,14 +905,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 >
                   <AppGlyph name="notes" class="recommendation-section-card-icon" />
                   <strong class="recommendation-section-card-title">Лекарства</strong>
-                  <Show
-                    when={formatModuleCollectionSubtitle(
-                      medicationCollectionStats().installedCount,
-                      medicationCollectionStats().moduleCount,
-                      medicationCollectionStats().downloadBytes,
-                      medicationCollectionStats().installedBytes,
-                    )}
-                  >
+                  <Show when={overviewSubtitle('medications', medicationCollectionStats())}>
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
@@ -887,6 +916,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 {(section) => {
                   const modules = () => regularSectionModules(section);
                   const stats = () => moduleCollectionStats(modules(), installedById());
+                  const overviewBucket = (): DocumentOverviewBucket | null => {
+                    if (section === 'reference') return 'reference';
+                    if (section === 'regulatory') return 'regulatory';
+                    return null;
+                  };
                   return (
                     <Show
                       when={matchesCatalogQuery(catalogQuery(), [regularSectionLabel(section)])}
@@ -913,14 +947,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <strong class="recommendation-section-card-title">
                           {regularSectionLabel(section)}
                         </strong>
-                        <Show
-                          when={formatModuleCollectionSubtitle(
-                            stats().installedCount,
-                            stats().moduleCount,
-                            stats().downloadBytes,
-                            stats().installedBytes,
-                          )}
-                        >
+                        <Show when={overviewSubtitle(overviewBucket(), stats())}>
                           {(subtitle) => (
                             <span class="recommendation-section-card-meta">{subtitle()}</span>
                           )}
@@ -944,14 +971,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <strong class="recommendation-section-card-title">
                     Клинические рекомендации
                   </strong>
-                  <Show
-                    when={formatModuleCollectionSubtitle(
-                      recommendationCollectionStats().installedCount,
-                      recommendationCollectionStats().moduleCount,
-                      recommendationCollectionStats().downloadBytes,
-                      recommendationCollectionStats().installedBytes,
-                    )}
-                  >
+                  <Show when={overviewSubtitle('clinical', recommendationCollectionStats())}>
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
@@ -970,15 +990,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 >
                   <AppGlyph name="modules" class="recommendation-section-card-icon" />
                   <strong class="recommendation-section-card-title">Ядро</strong>
-                  <Show
-                    when={formatModuleCollectionSubtitle(
-                      coreCollectionStats().installedCount,
-                      coreCollectionStats().moduleCount,
-                      coreCollectionStats().downloadBytes,
-                      coreCollectionStats().installedBytes,
-                      { variant: 'core' },
-                    )}
-                  >
+                  <Show when={overviewSubtitle('core', coreCollectionStats())}>
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}

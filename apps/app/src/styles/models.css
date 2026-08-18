@@ -1,6 +1,6 @@
 .local-model-toast {
   position: fixed;
-  z-index: 160;
+  z-index: var(--z-models);
   right: max(0.875rem, var(--safe-right, 0px));
   bottom: max(0.875rem, calc(var(--safe-bottom, 0px) + 0.625rem));
   display: grid;
@@ -216,68 +216,6 @@
   height: 100%;
   background: var(--theme-accent);
   transition: width 120ms linear;
-}
-
-.content-download-status {
-  width: 100%;
-  margin: 0 0 1.125rem;
-  padding: 0.875rem 1rem;
-}
-
-.content-download-status h3 {
-  margin: 0 0 0.625rem;
-  font-size: 0.8125rem;
-}
-
-.content-download-status ul {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.content-download-status-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.content-download-status-row strong {
-  overflow: hidden;
-  font-size: 0.6875rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.content-download-status-row span {
-  color: var(--ink-soft);
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  text-transform: uppercase;
-}
-
-.content-download-status-progress {
-  height: 0.1875rem;
-  margin-top: 0.375rem;
-  overflow: hidden;
-  border-radius: 0.5625rem;
-  background: var(--theme-accent-soft);
-}
-
-.content-download-status-progress i {
-  display: block;
-  height: 100%;
-  background: var(--theme-accent);
-}
-
-.content-download-status small {
-  display: block;
-  margin-top: 0.25rem;
-  color: #9f3f34;
-  font-size: 0.625rem;
 }
 
 .model-settings-heading p:last-child {

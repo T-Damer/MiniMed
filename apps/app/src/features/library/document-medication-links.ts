@@ -1,4 +1,5 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
+import { isSameDocumentFamily } from '@localmed/core';
 
 export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
 
@@ -111,17 +112,131 @@ export function parseDocumentText(
   return blocks;
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+export interface DocumentLinkMatcher {
+  segment(text: string): readonly LinkedTextSegment[];
 }
 
-function findPhraseIndex(text: string, phrase: string): number {
-  if (!phrase) return -1;
-  const pattern = new RegExp(`(?:^|[^0-9a-zа-я])(${escapeRegExp(phrase)})(?![0-9a-zа-я])`, 'iu');
-  const match = pattern.exec(text);
-  const matchedPhrase = match?.[1];
-  if (!match || !matchedPhrase) return -1;
-  return match.index + match[0].length - matchedPhrase.length;
+const WORD_CHAR = /[\p{L}\p{M}\p{N}_]/u;
+
+function isBoundaryChar(ch: string | undefined): boolean {
+  return ch === undefined || !WORD_CHAR.test(ch);
+}
+
+function foldChar(ch: string): string {
+  const lower = ch.toLocaleLowerCase('ru-RU');
+  return lower === 'ё' ? 'е' : lower;
+}
+
+function foldPhrase(value: string): string {
+  return normalizePhrase(value).replace(/\s+/gu, ' ');
+}
+
+const PREFIX_LENGTH = 4;
+
+function foldedPrefixAt(text: string, start: number): string | null {
+  if (start + PREFIX_LENGTH > text.length) return null;
+  let prefix = '';
+  for (let offset = 0; offset < PREFIX_LENGTH; offset += 1) {
+    const ch = text[start + offset];
+    if (ch === undefined) return null;
+    prefix += foldChar(ch);
+  }
+  return prefix;
+}
+
+interface IndexedDocumentLink {
+  readonly documentId: string;
+  readonly linkKind: DocumentInlineLinkKind;
+  readonly folded: string;
+}
+
+function matchFoldedPhraseAt(text: string, start: number, folded: string): number {
+  let textIndex = start;
+  let phraseIndex = 0;
+  while (phraseIndex < folded.length) {
+    const phraseChar = folded[phraseIndex];
+    if (phraseChar === ' ') {
+      const current = text[textIndex];
+      if (current === undefined || !/\s/u.test(current)) return -1;
+      while (textIndex < text.length && /\s/u.test(text[textIndex] ?? '')) {
+        textIndex += 1;
+      }
+      phraseIndex += 1;
+      continue;
+    }
+    const textChar = text[textIndex];
+    if (textChar === undefined || foldChar(textChar) !== phraseChar) return -1;
+    textIndex += 1;
+    phraseIndex += 1;
+  }
+  if (!isBoundaryChar(text[textIndex])) return -1;
+  return textIndex;
+}
+
+export function createDocumentLinkMatcher(
+  links: readonly DocumentLinkPhrase[],
+): DocumentLinkMatcher {
+  const buckets = new Map<string, IndexedDocumentLink[]>();
+  for (const link of links) {
+    const folded = foldPhrase(link.phrase);
+    if (folded.length < PREFIX_LENGTH) continue;
+    const prefix = folded.slice(0, PREFIX_LENGTH);
+    const bucket = buckets.get(prefix) ?? [];
+    bucket.push({
+      documentId: link.documentId,
+      linkKind: link.kind,
+      folded,
+    });
+    buckets.set(prefix, bucket);
+  }
+  for (const bucket of buckets.values()) {
+    bucket.sort((left, right) => right.folded.length - left.folded.length);
+  }
+
+  return {
+    segment(text: string): readonly LinkedTextSegment[] {
+      if (!text || buckets.size === 0) return [{ kind: 'text', value: text }];
+      const segments: LinkedTextSegment[] = [];
+      let cursor = 0;
+      let index = 0;
+      while (index < text.length) {
+        if (index > 0 && !isBoundaryChar(text[index - 1])) {
+          index += 1;
+          continue;
+        }
+        const prefix = foldedPrefixAt(text, index);
+        const candidates = prefix ? buckets.get(prefix) : undefined;
+        let best: { readonly end: number; readonly link: IndexedDocumentLink } | null = null;
+        if (candidates) {
+          for (const link of candidates) {
+            const end = matchFoldedPhraseAt(text, index, link.folded);
+            if (end < 0) continue;
+            best = { end, link };
+            break;
+          }
+        }
+        if (best) {
+          if (index > cursor) {
+            segments.push({ kind: 'text', value: text.slice(cursor, index) });
+          }
+          segments.push({
+            kind: 'link',
+            value: text.slice(index, best.end),
+            documentId: best.link.documentId,
+            linkKind: best.link.linkKind,
+          });
+          cursor = best.end;
+          index = best.end;
+          continue;
+        }
+        index += 1;
+      }
+      if (cursor < text.length) {
+        segments.push({ kind: 'text', value: text.slice(cursor) });
+      }
+      return segments.length > 0 ? segments : [{ kind: 'text', value: text }];
+    },
+  };
 }
 
 export function buildMedicationLinkPhrases(
@@ -148,6 +263,16 @@ export function buildMedicationLinkPhrases(
   return phrases.toSorted((left, right) => right.phrase.length - left.phrase.length);
 }
 
+function documentPhraseCandidates(document: MedicalDocumentSummary): readonly string[] {
+  const title = document.title
+    .replace(/^клинические рекомендации\s*[—:.-]\s*/iu, '')
+    .replace(/\s*\([^)]*\)\s*$/u, '')
+    .trim();
+  return [document.shortTitle?.trim() ?? '', title.split('—')[0]?.trim() ?? ''].filter(
+    (value) => value.length >= 5,
+  );
+}
+
 export function buildDocumentLinkPhrases(
   documents: readonly MedicalDocumentSummary[],
   currentDocumentId?: string,
@@ -161,21 +286,26 @@ export function buildDocumentLinkPhrases(
   ]);
   const phrases: DocumentLinkPhrase[] = [];
   const seen = new Set<string>();
+  const currentDocument = documents.find((document) => document.id === currentDocumentId);
+  const blockedPhrases = new Set(
+    (currentDocument
+      ? [currentDocument.shortTitle?.trim() ?? '', currentDocument.title.trim()]
+      : []
+    )
+      .map(normalizePhrase)
+      .filter((value) => value.length > 0),
+  );
 
   for (const document of documents) {
-    if (document.id === currentDocumentId || !linkableSourceTypes.has(document.sourceType))
+    if (
+      (currentDocumentId && isSameDocumentFamily(document.id, currentDocumentId)) ||
+      !linkableSourceTypes.has(document.sourceType)
+    ) {
       continue;
-    const title = document.title
-      .replace(/^клинические рекомендации\s*[—:.-]\s*/iu, '')
-      .replace(/\s*\([^)]*\)\s*$/u, '')
-      .trim();
-    const candidates = [
-      document.shortTitle?.trim() ?? '',
-      title.split('—')[0]?.trim() ?? '',
-    ].filter((value) => value.length >= 5);
-    for (const phrase of candidates) {
+    }
+    for (const phrase of documentPhraseCandidates(document)) {
       const key = normalizePhrase(phrase);
-      if (!key || seen.has(key)) continue;
+      if (!key || seen.has(key) || blockedPhrases.has(key)) continue;
       seen.add(key);
       phrases.push({
         phrase,
@@ -192,56 +322,5 @@ export function segmentTextWithMedicationLinks(
   text: string,
   links: readonly DocumentLinkPhrase[],
 ): readonly LinkedTextSegment[] {
-  if (!text || links.length === 0) return [{ kind: 'text', value: text }];
-
-  const normalizedText = normalizePhrase(text);
-  const segments: LinkedTextSegment[] = [];
-  let cursor = 0;
-
-  while (cursor < text.length) {
-    let bestMatch: {
-      readonly start: number;
-      readonly end: number;
-      readonly documentId: string;
-      readonly linkKind: DocumentInlineLinkKind;
-    } | null = null;
-
-    for (const link of links) {
-      const normalizedPhrase = normalizePhrase(link.phrase);
-      const start = findPhraseIndex(normalizedText.slice(cursor), normalizedPhrase);
-      if (start < 0) continue;
-      const absoluteStart = cursor + start;
-      const absoluteEnd = absoluteStart + link.phrase.length;
-      if (
-        !bestMatch ||
-        absoluteStart < bestMatch.start ||
-        (absoluteStart === bestMatch.start && link.phrase.length > bestMatch.end - bestMatch.start)
-      ) {
-        bestMatch = {
-          start: absoluteStart,
-          end: absoluteEnd,
-          documentId: link.documentId,
-          linkKind: link.kind,
-        };
-      }
-    }
-
-    if (!bestMatch) {
-      segments.push({ kind: 'text', value: text.slice(cursor) });
-      break;
-    }
-
-    if (bestMatch.start > cursor) {
-      segments.push({ kind: 'text', value: text.slice(cursor, bestMatch.start) });
-    }
-    segments.push({
-      kind: 'link',
-      value: text.slice(bestMatch.start, bestMatch.end),
-      documentId: bestMatch.documentId,
-      linkKind: bestMatch.linkKind,
-    });
-    cursor = bestMatch.end;
-  }
-
-  return segments;
+  return createDocumentLinkMatcher(links).segment(text);
 }

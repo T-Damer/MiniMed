@@ -295,6 +295,17 @@ export function isCalculatorSectionCore(
   );
 }
 
+export function isCalculatorSectionFromDatabase(
+  sectionId: CalculatorSectionId,
+  definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
+): boolean {
+  const available = availableDefinitions(definitions, sectionId);
+  return (
+    available.length > 0 &&
+    available.every((definition) => databaseCalculatorIds.has(definition.id))
+  );
+}
+
 function persist(
   sectionIds: ReadonlySet<CalculatorSectionId>,
   calculatorIds: ReadonlySet<string>,

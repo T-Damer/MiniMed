@@ -2,6 +2,11 @@ import type { MedicalCore } from '@localmed/contracts';
 import { lightStemRussian, tokenize } from '@localmed/search-lexical';
 
 import { deleteNoteImagesForNotes } from '@/state/note-images';
+import {
+  personalMatchScore,
+  personalQueryStems,
+  wordMatchesQueryStem,
+} from '@/state/personal-stem-match';
 
 /**
  * Local patient cards and their nested notes.
@@ -610,16 +615,9 @@ export function childNotes(
     .toSorted((left, right) => left.createdAt.localeCompare(right.createdAt));
 }
 
-function stems(value: string): readonly string[] {
-  return tokenize(value).map(lightStemRussian);
-}
-
 function snippetFor(text: string, queryStems: readonly string[]): string {
   const words = text.split(/\s+/u);
-  const hitIndex = words.findIndex((word) => {
-    const stem = lightStemRussian(tokenize(word)[0] ?? '');
-    return stem.length > 0 && queryStems.includes(stem);
-  });
+  const hitIndex = words.findIndex((word) => wordMatchesQueryStem(word, queryStems));
   if (hitIndex < 0) {
     return text.length <= MAX_SNIPPET_LENGTH ? text : `${text.slice(0, MAX_SNIPPET_LENGTH - 1)}…`;
   }
@@ -631,20 +629,17 @@ function snippetFor(text: string, queryStems: readonly string[]): string {
 }
 
 /**
- * Matches personal records for a query. Deliberately simple stem overlap: personal collections are
- * small, and a doctor needs predictable recall of their own wording rather than ranking subtleties.
+ * Matches personal records for a query. Distinctive stems must all appear (inflected forms count);
+ * a shared generic leftover like «мг» or «дети» is not enough when the query names a specific term.
  */
 export function searchPatientNotes(query: string, limit = 8): readonly PatientNoteMatch[] {
-  const queryStems = [...new Set(stems(query))];
+  const queryStems = personalQueryStems(query);
   if (queryStems.length === 0) return [];
   const snapshot = loadPatientNotes();
   const cardsById = new Map(snapshot.cards.map((card) => [card.id, card]));
   const matches: PatientNoteMatch[] = [];
 
-  const scoreOf = (text: string): number => {
-    const textStems = new Set(stems(text));
-    return queryStems.filter((stem) => textStems.has(stem)).length;
-  };
+  const scoreOf = (text: string): number => personalMatchScore(queryStems, text);
 
   for (const card of snapshot.cards) {
     const score = scoreOf(`${card.title} ${card.summary}`);

@@ -52,7 +52,7 @@ body {
   --masked-backdrop-blur-radius: 0.25rem;
   position: fixed;
   /* Keep the status-bar blur above the outgoing view but below the incoming root view. */
-  z-index: 1;
+  z-index: var(--z-raised);
   top: 0;
   right: 0;
   left: 0;
@@ -118,15 +118,16 @@ body {
 )::before,
 .app-shell--native:has(
   .app-view:not([hidden]) .medication-route-heading.sticky-surface--stuck
-)::before,
-.app-shell--native:has(.app-view:not([hidden]) .route-sticky-chrome.sticky-surface--stuck)::before {
+)::before {
   display: block;
   opacity: 1;
+  left: max(var(--safe-left), calc((100% - min(100%, var(--page-content-width))) / 2));
+  right: max(var(--safe-right), calc((100% - min(100%, var(--page-content-width))) / 2));
 }
 
 .app-topbar {
   position: sticky;
-  z-index: 60;
+  z-index: var(--z-graph);
   top: 0;
   display: flex;
   overflow: visible;
@@ -208,7 +209,7 @@ body {
   position: absolute;
   top: 0.125rem;
   right: 0.125rem;
-  z-index: 3;
+  z-index: var(--z-raised-3);
   pointer-events: none;
 }
 
@@ -265,7 +266,7 @@ body {
 }
 
 .app-nav-button--active {
-  z-index: 2;
+  z-index: var(--z-raised-2);
   height: calc(var(--nav-tab-rest-height) + var(--nav-tab-notch-depth));
   margin-bottom: calc(-1 * (var(--nav-tab-active-overhang) + var(--nav-tab-notch-depth)));
   padding: 0 0 calc(var(--nav-tab-notch-depth) - 1px);
@@ -282,7 +283,7 @@ body {
   position: absolute;
   inset: 0;
   bottom: calc(-1 * var(--nav-tab-active-overhang));
-  z-index: 0;
+  z-index: var(--z-base);
   background: var(--nav-tab-active-shape) center bottom / 100% 100% no-repeat;
   filter: drop-shadow(0 0.1875rem 0.5rem rgb(25 22 18 / 18%));
   pointer-events: none;
@@ -294,7 +295,7 @@ body {
 
 .app-nav-button__icon--active {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
   transform: translateY(-0.125rem);
 }
 
@@ -353,7 +354,7 @@ body {
 
 .page-grain::before {
   position: absolute;
-  z-index: 0;
+  z-index: var(--z-base);
   top: 0;
   bottom: 0;
   left: 50%;
@@ -367,9 +368,16 @@ body {
   transform: translateX(-50%);
 }
 
+.app-view.page-grain::before,
+.app-view .page-grain::before {
+  left: 0;
+  width: 100%;
+  transform: none;
+}
+
 .page-grain > * {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
 }
 
 .subpage-heading {
@@ -467,46 +475,43 @@ body {
   padding: 0.625rem 0.75rem 0.625rem 3rem;
 }
 
-.query-index {
+.query-index__suggestions {
+  background: transparent;
+}
+
+.analysis-details {
+  margin: 0;
+  padding-bottom: 0;
   border: 0;
   background: transparent;
 }
 
-.query-index__suggestions {
-  margin-top: 0.875rem;
-  border: 1px dashed rgb(78 65 37 / 31%);
-  background: rgb(242 233 211 / 42%);
-}
-
-.analysis-details {
-  margin-top: 0.625rem;
-  margin-bottom: 0.375rem;
-  padding-bottom: 0.75rem;
-  border: 1px solid rgb(78 65 37 / 24%);
-  background: rgb(242 233 211 / 28%);
-}
-
-.analysis-details summary {
+.analysis-details__summary {
   padding: 0.625rem 0.75rem;
-  color: #574b31;
+  color: var(--theme-text-muted);
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 0.5rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+  list-style: none;
+}
+
+.analysis-details__summary::-webkit-details-marker {
+  display: none;
 }
 
 .analysis-details[open] {
   padding-bottom: 0.75rem;
 }
 
-.analysis-details[open] summary {
-  border-bottom: 1px solid rgb(78 65 37 / 18%);
+.analysis-details[open] .analysis-details__summary {
+  border-bottom: 1px solid var(--theme-border);
 }
 
 .reader-column {
   position: fixed;
-  z-index: 90;
+  z-index: var(--z-reader-column);
   inset: 0;
   display: none;
   min-height: 100dvh;
@@ -525,7 +530,7 @@ body {
 
 .reader-column .source-tab {
   position: fixed;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   top: calc(0.75rem + var(--safe-top));
   left: max(1rem, var(--safe-left));
   border-top: 1px solid #2e2c28;

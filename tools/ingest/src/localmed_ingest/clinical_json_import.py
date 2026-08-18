@@ -4,7 +4,7 @@ import base64
 import hashlib
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import cast
@@ -27,10 +27,78 @@ _IMAGE_DATA_URL_PATTERN = re.compile(
 )
 _IGNORED_TAGS = {"script", "style", "noscript", "svg", "nav", "footer", "form", "button"}
 _BLOCK_TAGS = {"p", "li", "figcaption", "h1", "h2", "h3", "h4", "h5", "h6"}
+_FILENAME_LABEL = re.compile(
+    r"^(?:[a-z0-9][a-z0-9._-]*)\.(?:png|jpe?g|gif|webp|bmp|svg)$",
+    re.IGNORECASE,
+)
+_FIGURE_CAPTION = re.compile(
+    r"^(рис(?:унок)?|fig(?:ure)?|табл(?:ица)?)\.?\s*\d+",
+    re.IGNORECASE,
+)
 
 
 def _clean_text(value: str) -> str:
     return _SPACE_PATTERN.sub(" ", value.replace("\xa0", " ")).strip()
+
+
+def _usable_image_label(value: str) -> str:
+    cleaned = _clean_text(value)
+    if not cleaned or _FILENAME_LABEL.fullmatch(cleaned):
+        return ""
+    return cleaned
+
+
+def _is_figure_caption_text(value: str) -> bool:
+    return bool(_FIGURE_CAPTION.match(_clean_text(value)))
+
+
+def _render_block(block: _ParsedBlock) -> dict[str, object] | None:
+    render = block.metadata.get("renderBlock")
+    return render if isinstance(render, dict) else None
+
+
+def _block_needs_caption(block: _ParsedBlock) -> bool:
+    render = _render_block(block)
+    if render is None:
+        return False
+    if render.get("kind") == "image":
+        return not _usable_image_label(str(render.get("title") or "")) and not _usable_image_label(
+            str(render.get("alt") or "")
+        )
+    if render.get("kind") == "table":
+        return not _clean_text(str(render.get("caption") or ""))
+    return False
+
+
+def _with_caption(block: _ParsedBlock, caption: str) -> _ParsedBlock:
+    render = dict(_render_block(block) or {})
+    if render.get("kind") == "image":
+        render["title"] = caption
+        if not _usable_image_label(str(render.get("alt") or "")):
+            render["alt"] = caption
+        return replace(block, text=caption, metadata={"renderBlock": render})
+    if render.get("kind") == "table":
+        render["caption"] = caption
+        return replace(block, metadata={**block.metadata, "renderBlock": render})
+    return block
+
+
+def _attach_adjacent_figure_captions(blocks: list[_ParsedBlock]) -> list[_ParsedBlock]:
+    consumed: set[int] = set()
+    attached = list(blocks)
+    for index, block in enumerate(blocks):
+        if not _block_needs_caption(block):
+            continue
+        for neighbor in (index + 1, index - 1):
+            if neighbor < 0 or neighbor >= len(blocks) or neighbor in consumed:
+                continue
+            candidate = blocks[neighbor]
+            if candidate.kind != "paragraph" or not _is_figure_caption_text(candidate.text):
+                continue
+            attached[index] = _with_caption(block, candidate.text)
+            consumed.add(neighbor)
+            break
+    return [block for index, block in enumerate(attached) if index not in consumed]
 
 
 def _attribute(attrs: list[tuple[str, str | None]], name: str) -> str:
@@ -127,7 +195,9 @@ class _StructuredHtmlParser(HTMLParser):
                 if image is not None:
                     cast(list[dict[str, object]], self._table_cell["images"]).append(image)
                     self._table_cell_parts.append(
-                        cast(str, image["alt"]) or cast(str, image["title"]) or "Иллюстрация"
+                        _usable_image_label(cast(str, image["alt"]))
+                        or _usable_image_label(cast(str, image["title"]))
+                        or "Иллюстрация"
                     )
             return
         if lowered == "img":
@@ -201,7 +271,9 @@ class _StructuredHtmlParser(HTMLParser):
         self.blocks.append(
             _ParsedBlock(
                 kind="image",
-                text=cast(str, image["alt"]) or cast(str, image["title"]) or "Иллюстрация",
+                text=_usable_image_label(cast(str, image["alt"]))
+                or _usable_image_label(cast(str, image["title"]))
+                or "Иллюстрация",
                 metadata={"renderBlock": image},
             )
         )
@@ -219,8 +291,8 @@ class _StructuredHtmlParser(HTMLParser):
             self.warnings.append("An invalid embedded image was discarded.")
             return None
         mime_type = f"image/{match.group(1).lower()}"
-        alt = _clean_text(_attribute(attrs, "alt"))
-        title = _clean_text(_attribute(attrs, "title"))
+        alt = _usable_image_label(_attribute(attrs, "alt"))
+        title = _usable_image_label(_attribute(attrs, "title"))
         return {
             "kind": "image",
             "dataUrl": f"data:{mime_type};base64,{encoded}",
@@ -323,7 +395,16 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
         parser.feed(section.content or "")
         parser.close()
         warnings.extend(f"{section.id}: {warning}" for warning in parser.warnings)
-        for parsed in parser.blocks:
+        for parsed in _attach_adjacent_figure_captions(parser.blocks):
+            render = parsed.metadata.get("renderBlock")
+            if (
+                isinstance(render, dict)
+                and render.get("kind") == "image"
+                and _block_needs_caption(parsed)
+            ):
+                warnings.append(
+                    f"{section.id}: A figure had no nearby caption; the source alt was a filename."
+                )
             blocks.append(
                 ExtractedBlock(
                     id=f"json-b{order + 1}",

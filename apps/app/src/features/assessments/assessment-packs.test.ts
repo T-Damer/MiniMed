@@ -11,12 +11,14 @@ import {
   installAssessmentIds,
   installAssessmentSection,
   isAssessmentSectionComplete,
+  isAssessmentSectionFromDatabase,
   loadAssessmentInstallationState,
   pruneAssessmentModuleDependencies,
   removeAssessmentIds,
   removeAssessmentModuleDependencies,
   removeAssessmentSection,
   setAssessmentModuleDependencies,
+  setDatabaseAssessmentIds,
 } from '@/features/assessments/assessment-packs';
 import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
 
@@ -55,7 +57,10 @@ function installStorage(initial: Readonly<Record<string, string>> = {}): Install
   return { values, dispatchEvent };
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  setDatabaseAssessmentIds([]);
+  vi.unstubAllGlobals();
+});
 
 describe('questionnaire packs', () => {
   it('groups every catalog item into a named section', () => {
@@ -181,5 +186,15 @@ describe('questionnaire packs', () => {
     const installed = installAssessmentIds([id], catalog);
     expect(installed.installedIds.has(id)).toBe(true);
     expect(loadAssessmentInstallationState(catalog).installedIds.size).toBe(0);
+  });
+
+  it('treats module-backed questionnaires as already installed without a download flag', () => {
+    installStorage();
+    const catalog = psychologyCatalog();
+    setDatabaseAssessmentIds(catalog.map((definition) => definition.id));
+    const state = loadAssessmentInstallationState(catalog);
+    expect(state.installedIds.size).toBe(catalog.length);
+    expect(isAssessmentSectionFromDatabase('self-reflection', catalog)).toBe(true);
+    expect(isAssessmentSectionComplete('self-reflection', state, catalog)).toBe(true);
   });
 });

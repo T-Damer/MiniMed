@@ -3,7 +3,7 @@
 }
 
 [data-sonner-toaster].app-notification-host {
-  z-index: 700;
+  z-index: var(--z-toast);
   --normal-bg: var(--theme-surface-raised);
   --normal-border: var(--theme-border);
   --normal-text: var(--theme-text);

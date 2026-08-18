@@ -3,7 +3,7 @@ const GITHUB_RELEASE_PATTERN =
 
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
-const useLocalModuleArtifacts =
+export const usesLocalModuleArtifacts =
   import.meta.env.DEV && import.meta.env.VITE_USE_LOCAL_MODULE_ARTIFACTS !== 'false';
 
 function resolveRelativeModulePath(path: string): string {
@@ -43,7 +43,7 @@ export function resolveContentModuleArtifactUrl(url: string): string {
   }
 
   const rawGithubModulePrefix = `${RAW_GITHUB_MODULE_BASE}/`;
-  if (trimmed.startsWith(rawGithubModulePrefix) && useLocalModuleArtifacts) {
+  if (trimmed.startsWith(rawGithubModulePrefix) && usesLocalModuleArtifacts) {
     const localUrl = localModuleArtifactUrl(trimmed.slice(rawGithubModulePrefix.length));
     if (localUrl) return localUrl;
   }
@@ -56,14 +56,14 @@ export function resolveContentModuleArtifactUrl(url: string): string {
     const fileName = releaseMatch[4] ?? '';
     if (owner === 'T-Damer' && repo === 'MiniMed' && fileName.length > 0 && releaseTag.length > 0) {
       if (fileName.startsWith('clinical-') && fileName.endsWith('.db')) {
-        if (useLocalModuleArtifacts && typeof window !== 'undefined') {
+        if (usesLocalModuleArtifacts && typeof window !== 'undefined') {
           return resolveRelativeModulePath(
             `./content/releases/${encodeURIComponent(releaseTag)}/${encodeURIComponent(fileName)}`,
           );
         }
         return clinicalDatasetsBranchUrl(owner, repo, releaseTag, fileName);
       }
-      if (useLocalModuleArtifacts) {
+      if (usesLocalModuleArtifacts) {
         const localUrl = localModuleArtifactUrl(fileName);
         if (localUrl) return localUrl;
       }

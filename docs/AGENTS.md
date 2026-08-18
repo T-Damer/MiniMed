@@ -26,7 +26,10 @@ roadmap ideas.
   settings. Personal notes are their own section, and personal matches in search render outside the
   official results container so a local record can never pass as installed content — in the DOM or on
   screen.
-- The download status card floats above the views, so progress stays visible on every tab.
+- The download status page lives at `#/settings/downloads`. Active content-pack downloads (queued,
+  transferring, or installing) show a pie on the top-right of the Settings tab; tapping it opens that
+  page. Failed-only or idle packs hide the pie. Progress stays visible on every tab through the nav
+  indicator, not a floating card.
 - Keep the layout compact: prefer expandable blocks over tall cards, and do not reintroduce large
   padding around central blocks.
 - Sizes are rem-based (16px root): write new CSS in rem. Hairline 1px borders, the 999px

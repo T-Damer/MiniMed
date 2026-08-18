@@ -8,10 +8,11 @@ export interface NavBackProps
   readonly onClick: () => void;
   readonly 'aria-label': string;
   readonly class?: string;
+  readonly icon?: JSX.Element;
 }
 
 export function NavBack(props: NavBackProps): JSX.Element {
-  const { onClick, 'aria-label': ariaLabel, class: className, ...buttonProps } = props;
+  const { onClick, class: className, icon, ...buttonProps } = props;
 
   return (
     <Button
@@ -19,9 +20,9 @@ export function NavBack(props: NavBackProps): JSX.Element {
       type="button"
       variant="icon"
       class={className ?? 'knowledge-back-button'}
-      aria-label={ariaLabel}
+      aria-label={props['aria-label']}
       onClick={onClick}
-      icon={<AppGlyph name="arrow-left" />}
+      icon={icon ?? <AppGlyph name="arrow-left" />}
     />
   );
 }

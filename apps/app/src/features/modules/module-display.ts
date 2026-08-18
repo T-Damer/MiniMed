@@ -31,6 +31,12 @@ export interface ModuleCollectionSubtitleOptions {
   readonly variant?: ModuleCollectionSubtitleVariant;
 }
 
+export interface OverviewCollectionSubtitleInput {
+  readonly documentCountLabel?: string | null;
+  readonly downloadBytes: number;
+  readonly installedBytes: number;
+}
+
 function formatKnownBytes(bytes: number): string | null {
   if (bytes <= 0) return null;
   return formatModuleBytes(bytes);
@@ -84,6 +90,16 @@ export function formatModuleCollectionSubtitle(
     }
   }
 
+  if (segments.length === 0) return null;
+  return segments.join(' · ');
+}
+
+export function formatOverviewCollectionSubtitle(
+  input: OverviewCollectionSubtitleInput,
+): string | null {
+  const size = formatKnownBytes(input.installedBytes) ?? formatKnownBytes(input.downloadBytes);
+  const countLabel = input.documentCountLabel?.trim() || null;
+  const segments = [countLabel, size].filter((segment): segment is string => Boolean(segment));
   if (segments.length === 0) return null;
   return segments.join(' · ');
 }

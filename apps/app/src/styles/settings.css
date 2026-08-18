@@ -1,24 +1,110 @@
 .settings-page {
   display: grid;
   gap: 1rem;
+  align-content: start;
 }
 
-.settings-page__heading {
+.settings-page__heading--subroute {
   display: flex;
+  width: 100%;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 0.75rem;
 }
 
-.settings-page__heading-main {
+.settings-section {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.settings-page .model-settings {
+  margin: 0;
+}
+
+.settings-section__heading {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-section__heading-main {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.settings-section__heading-copy {
   min-width: 0;
 }
 
+.settings-section__icon {
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.125rem;
+  color: var(--theme-link);
+}
+
+.settings-section__title {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4vw, 2.125rem);
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.settings-section__description {
+  margin: 0.375rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.settings-section--downloads {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .settings-section--downloads:hover {
+    border-color: var(--theme-accent);
+  }
+}
+
+.settings-page__heading-main {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 0.35rem;
+}
+
+.settings-page__logo {
+  display: block;
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+}
+
 .settings-page__title {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
   margin: 0;
   font-size: 1.5rem;
   font-weight: 750;
   line-height: 1.15;
+}
+
+.settings-page__back-icon.app-glyph {
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .settings-page__return {
@@ -46,18 +132,6 @@
   .settings-page__link:hover {
     color: color-mix(in srgb, var(--theme-link) 72%, var(--theme-text));
   }
-}
-
-.settings-group {
-  display: grid;
-  gap: 0.875rem;
-  padding: 1rem;
-}
-
-.settings-group__title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
 }
 
 .settings-row {

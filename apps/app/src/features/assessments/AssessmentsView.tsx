@@ -39,6 +39,7 @@ import {
   moduleIdForAssessmentSpecialty,
   removeAssessmentIds,
   removeAssessmentSection,
+  setDatabaseAssessmentIds,
 } from '@/features/assessments/assessment-packs';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
 import {
@@ -74,14 +75,18 @@ function filterAssessments(query: string): ReturnType<typeof searchAssessments> 
   const catalog = getAssessmentCatalog();
   const trimmed = query.trim();
   if (!trimmed) return catalog;
-  return catalog.filter((assessment) =>
-    matchesFuzzyQuery(trimmed, [
+  return catalog.filter((assessment) => {
+    const specialty = findAssessmentSpecialty(assessment.bankId);
+    const section = ASSESSMENT_SECTIONS.find((item) => item.id === assessment.category);
+    return matchesFuzzyQuery(trimmed, [
       assessment.title,
       assessment.shortTitle,
       assessment.description,
       ...assessment.aliases,
-    ]),
-  );
+      ...(specialty ? [specialty.title, specialty.description] : []),
+      ...(section ? [section.title, section.description] : []),
+    ]);
+  });
 }
 
 export function AssessmentsView(): JSX.Element {
@@ -122,10 +127,16 @@ export function AssessmentsView(): JSX.Element {
   };
   const refreshDownloadedTools = async (): Promise<void> => {
     const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    await runtime.whenLocalPackagedModulesReady();
     const definitions = await runtime.listInstalledToolDefinitions();
     clearDownloadedAssessments();
     definitions.forEach(registerDownloadedAssessment);
     setAssessmentCatalog(getAssessmentCatalog());
+    setDatabaseAssessmentIds(
+      definitions
+        .filter((definition) => definition.kind === 'assessment')
+        .map((definition) => definition.id),
+    );
     refreshPacks();
   };
   const handleHashChange = (): void => {
@@ -138,7 +149,9 @@ export function AssessmentsView(): JSX.Element {
     setRoute(readAssessmentRoute());
     void refreshDownloadedTools();
     setMessage('');
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (!document.documentElement.classList.contains('using-root-view-transition')) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   };
   const handleStorage = (event: StorageEvent): void => {
     if (!event.key || event.key.startsWith('minimed.assessment-packs.')) refreshPacks();
@@ -366,7 +379,6 @@ export function AssessmentsView(): JSX.Element {
           recentRecords={records().slice(0, 8)}
           onQuery={setQuery}
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
-          onOpen={(selected) => navigate(assessmentPath(selected.bankId, selected.slug))}
           onOpenRecord={(selected, selectedRecord) =>
             navigate(
               selectedRecord.kind === 'incomplete'
@@ -374,9 +386,6 @@ export function AssessmentsView(): JSX.Element {
                 : resultPath(selected.bankId, selected.slug, selectedRecord.id),
             )
           }
-          onInstall={(selected) => installDefinition(selected.id)}
-          onRemove={(selected) => requestDeleteDefinition(selected.id)}
-          onPrint={(selected) => printDefinition(selected.id)}
         />
       </Show>
 

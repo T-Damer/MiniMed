@@ -149,7 +149,7 @@
 
 .document-overlay-search-slot {
   position: sticky;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   top: var(--safe-top, 0px);
   width: calc(100% + 1.75rem);
   box-sizing: border-box;
@@ -162,7 +162,7 @@
 
 .document-overlay-search-slot::before {
   position: absolute;
-  z-index: -1;
+  z-index: var(--z-behind);
   inset: 0 0 -1.25rem;
   content: "";
   background-image: var(--masked-grain-image);

@@ -46,6 +46,10 @@ describe('document-trail', () => {
     expect(viewFromHash('#/modules/documents/medications')).toBe('modules');
     expect(originLabelForView('search', '#/search')).toBe('Поиск');
     expect(originLabelForView('modules', '#/modules/documents')).toBe('Документы');
+    expect(originLabelForView('modules', '#/modules/documents/medications')).toBe('Препараты');
+    expect(originLabelForView('modules', '#/modules/documents/medications/allmed:12')).toBe(
+      'Препараты',
+    );
     expect(originLabelForView('modules', '#/modules/documents/user')).toBe('Ваши документы');
     expect(originLabelForView('modules', '#/modules/documents/user/user-doc-1')).toBe(
       'Ваши документы',
@@ -72,6 +76,22 @@ describe('document-trail', () => {
     trail = appendDocumentCrumb(trail, { kind: 'official', id: 'doc-a', title: 'Doc A again' });
     expect(trail.crumbs).toHaveLength(1);
     expect(trail.crumbs[0]?.title).toBe('Doc A again');
+  });
+
+  it('does not stack a topic card from the same clinical recommendation', () => {
+    let trail = beginDocumentTrail('official');
+    trail = appendDocumentCrumb(trail, {
+      kind: 'official',
+      id: 'kr.rf.281_3',
+      title: 'ИМП',
+    });
+    trail = appendDocumentCrumb(trail, {
+      kind: 'official',
+      id: 'kr.rf.281_3.uti',
+      title: 'ИМП у детей',
+    });
+    expect(trail.crumbs).toHaveLength(1);
+    expect(trail.crumbs[0]?.id).toBe('kr.rf.281_3.uti');
   });
 
   it('slices to crumbs and origin', () => {

@@ -5,6 +5,7 @@ import {
   displayDocumentTitle,
   resolveReadableDocumentId,
 } from '@/features/library/document-display';
+import { shouldReloadOfficialDocument } from '@/features/library/document-page-load';
 import { OfficialDocumentReader } from '@/features/library/OfficialDocumentReader';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
@@ -55,14 +56,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     readonly MedicalDocumentSummary[]
   >([]);
   const [openError, setOpenError] = createSignal<string | null>(null);
-  let loadingRouteKey: string | null = null;
-
-  const routeKey = (value: DocumentReadRoute): string => {
-    if (value.kind === 'user') {
-      return `user:${value.documentId}:${value.pageIndex ?? ''}`;
-    }
-    return `official:${value.documentId}:${value.section ?? ''}`;
-  };
+  let loadingDocumentId: string | null = null;
+  let loadedOfficialRequestId: string | null = null;
 
   const syncTrail = (parsed: DocumentReadRoute): DocumentTrail => {
     let current = loadDocumentTrail();
@@ -104,30 +99,43 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   };
 
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
-    const key = routeKey(parsed);
-    loadingRouteKey = key;
+    const documentId = parsed.documentId;
+    setInitialAnchor(parsed.section ?? null);
+
+    if (
+      !shouldReloadOfficialDocument(
+        loadedOfficialRequestId ?? document()?.id,
+        documentId,
+        loadingDocumentId,
+      )
+    ) {
+      return;
+    }
+
+    loadingDocumentId = documentId;
+    loadedOfficialRequestId = null;
     setOpenError(null);
     setDocument(undefined);
     setPendingTitle('Открываем документ');
-    setInitialAnchor(parsed.section ?? null);
 
     const core = props.getCore();
     if (!core) {
+      loadingDocumentId = null;
       setOpenError('Локальный поиск ещё не готов.');
       return;
     }
 
     const preferSummaryId = consumePreferSummaryDocumentId();
-    const preferSummary = preferSummaryId === parsed.documentId;
+    const preferSummary = preferSummaryId === documentId;
 
     try {
       const listed = await listDocuments(core);
-      if (loadingRouteKey !== key) return;
+      if (loadingDocumentId !== documentId) return;
       setAvailableDocuments(listed);
       const availableIds = new Set(listed.map((item) => item.id));
       const readableId = preferSummary
-        ? parsed.documentId
-        : resolveReadableDocumentId(parsed.documentId, availableIds);
+        ? documentId
+        : resolveReadableDocumentId(documentId, availableIds);
       const summary = listed.find((item) => item.id === readableId);
       if (summary) {
         setPendingTitle(displayDocumentTitle(summary));
@@ -147,16 +155,17 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           return;
         }
         const refreshedId = preferSummary
-          ? parsed.documentId
-          : resolveReadableDocumentId(parsed.documentId, availableIds);
+          ? documentId
+          : resolveReadableDocumentId(documentId, availableIds);
         result = await refreshedCore.getDocument(refreshedId);
       }
-      if (loadingRouteKey !== key) return;
+      if (loadingDocumentId !== documentId) return;
       if (!result.ok) {
         setOpenError(userFacingOpenError(result.error.message));
         return;
       }
       setDocument(result.value);
+      loadedOfficialRequestId = documentId;
       setPendingTitle(undefined);
       let currentTrail = trail();
       if (currentTrail) {
@@ -164,8 +173,12 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         setTrail(currentTrail);
       }
     } catch (cause) {
-      if (loadingRouteKey !== key) return;
+      if (loadingDocumentId !== documentId) return;
       setOpenError(cause instanceof Error ? cause.message : 'Не удалось открыть документ.');
+    } finally {
+      if (loadingDocumentId === documentId) {
+        loadingDocumentId = null;
+      }
     }
   };
 
@@ -225,6 +238,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     if (!result.ok) throw new Error(userFacingOpenError(result.error.message));
     setAvailableDocuments(documents);
     setDocument(result.value);
+    loadedOfficialRequestId = fullDocumentId;
     setInitialAnchor(null);
 
     let currentTrail = trail();
@@ -248,7 +262,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const parsed = parseDocumentReadRoute(window.location.hash);
     setRoute(parsed);
     if (!parsed) {
-      loadingRouteKey = null;
+      loadingDocumentId = null;
+      loadedOfficialRequestId = null;
       setDocument(undefined);
       setPendingTitle(undefined);
       setOpenError(null);
@@ -262,6 +277,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       return;
     }
     setDocument(undefined);
+    loadedOfficialRequestId = null;
     setPendingTitle(undefined);
     setOpenError(null);
     const userTitle =

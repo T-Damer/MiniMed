@@ -3,9 +3,10 @@ import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { type MedicalStore, type MedicalStoreMount, MultiMedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
-import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { hasOpfsSahPoolApis, SqliteMedicalStore } from '@localmed/storage-sqlite';
 
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
+import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
 
 interface PackBuildReport {
@@ -39,6 +40,7 @@ const BUILT_IN_AMBULATORY_MODULE_ID = 'minimed.ambulatory.v1';
 const BUILT_IN_MKB_MODULE_ID = 'minimed.mkb.ru';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
+const OPFS_PACK_FETCH_TIMEOUT_MS = 180_000;
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
 // sqlite-wasm deserializes the whole file into the WASM heap. Local-dev companions such as
 // mkb.db (~1.4 GB) and medications.db (~420 MB) cannot fit; opening them yields SQLITE_NOMEM.
@@ -120,10 +122,23 @@ async function createNativeStore(): Promise<CapacitorMedicalStore> {
   return store;
 }
 
+export function parseUnsafeWasmCompanionAllowlist(
+  raw = String(import.meta.env['VITE_OPEN_UNSAFE_WASM_COMPANIONS'] ?? ''),
+): ReadonlySet<string> {
+  return new Set(
+    raw
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0),
+  );
+}
+
 export function shouldOpenPackagedWasmCompanion(
   databaseName: string,
   byteLength?: number,
+  allowlist: ReadonlySet<string> = parseUnsafeWasmCompanionAllowlist(),
 ): boolean {
+  if (allowlist.has(databaseName)) return true;
   if (WASM_UNSAFE_COMPANION_DATABASES.has(databaseName)) return false;
   if (byteLength !== undefined && byteLength > WASM_PACKAGED_COMPANION_MAX_BYTES) return false;
   return true;
@@ -174,7 +189,7 @@ export function builtInCompanionMounts(
     mounts.push({
       moduleId: 'minimed.medications.ru',
       store: companions.medicationsStore,
-      required: true,
+      required: false,
       enabled: true,
       searchWeight: 1.15,
     });
@@ -248,20 +263,63 @@ async function createOptionalPackagedStore(
   }
 }
 
+async function createOptionalOpfsStore(
+  contentBaseUrl: string,
+  databaseName: string,
+): Promise<MedicalStore | undefined> {
+  try {
+    const url = new URL(`content/${databaseName}`, contentBaseUrl).href;
+    if (hasOpfsSahPoolApis()) {
+      const store = await SqliteMedicalStore.createFromOpfsUrl(url, databaseName, {
+        fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
+      });
+      await withTimeout(store.initialize(), OPFS_PACK_FETCH_TIMEOUT_MS, `Opening ${databaseName}`);
+      return store;
+    }
+    if (typeof Worker !== 'undefined') {
+      return await WorkerOpfsMedicalStore.open({
+        url,
+        databaseName,
+        fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
+        poolName: 'minimed-sah-pack',
+      });
+    }
+    throw new Error('OPFS SAH APIs and Web Workers are unavailable.');
+  } catch (cause) {
+    console.warn(`Optional OPFS content ${databaseName} is unavailable.`, cause);
+    return undefined;
+  }
+}
+
 async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
   const companions: CompanionStores = {};
-  // Do not fetch mkb/medications/ambulatory into sqlite-wasm — those files are hundreds of MB to
-  // gigabytes on disk and abort boot with SQLITE_NOMEM. They remain installable content modules.
+  const allowlist = parseUnsafeWasmCompanionAllowlist();
+  // Small companions deserialize into the WASM heap. The Allmed medications pack (~420 MB) is opened
+  // through OPFS so it is not copied into memory. mkb/ambulatory stay skipped unless allowlisted.
   const wasmCompanions = [
     ['regulatoryStore', REGULATORY_DATABASE_NAME],
     ['referenceStore', REFERENCE_DATABASE_NAME],
+    ...(allowlist.has(MKB_DATABASE_NAME) ? ([['mkbStore', MKB_DATABASE_NAME]] as const) : []),
+    ...(allowlist.has(AMBULATORY_DATABASE_NAME)
+      ? ([['ambulatoryStore', AMBULATORY_DATABASE_NAME]] as const)
+      : []),
+    ...(allowlist.has(MEDICATIONS_DATABASE_NAME)
+      ? ([['medicationsStore', MEDICATIONS_DATABASE_NAME]] as const)
+      : []),
   ] as const;
   for (const [key, databaseName] of wasmCompanions) {
-    if (!shouldOpenPackagedWasmCompanion(databaseName)) continue;
+    if (!shouldOpenPackagedWasmCompanion(databaseName, undefined, allowlist)) continue;
     const store = await createOptionalPackagedStore(contentBaseUrl, databaseName);
     if (store) {
       companions[key] = store;
     }
+  }
+  if (!companions.medicationsStore) {
+    const medicationsStore = await createOptionalOpfsStore(
+      contentBaseUrl,
+      MEDICATIONS_DATABASE_NAME,
+    );
+    if (medicationsStore) companions.medicationsStore = medicationsStore;
   }
   return companions;
 }

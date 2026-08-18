@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   fullDocumentCandidateId,
   fullDocumentCandidateIds,
+  isSameDocumentFamily,
   isSupersededSummaryDocument,
   resolveReadableDocumentId,
 } from '../src/document-siblings';
@@ -30,5 +31,13 @@ describe('document-siblings', () => {
       'kr.rf.714_2.pneumonia.full',
     ]);
     expect(resolveReadableDocumentId('kr.rf.714_2.pneumonia', available)).toBe('kr.rf.714_2');
+  });
+
+  it('treats a recommendation, its topic card, and full-text sibling as one family', () => {
+    expect(isSameDocumentFamily('kr.rf.281_3', 'kr.rf.281_3.uti')).toBe(true);
+    expect(isSameDocumentFamily('kr.rf.281', 'kr.rf.281_3.uti')).toBe(true);
+    expect(isSameDocumentFamily('kr.rf.281_3.uti', 'kr.rf.281_3.uti.full')).toBe(true);
+    expect(isSameDocumentFamily('kr.rf.281_3.uti', 'kr.rf.714_2.pneumonia')).toBe(false);
+    expect(isSameDocumentFamily('kr.rf.28', 'kr.rf.281_3')).toBe(false);
   });
 });

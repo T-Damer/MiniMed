@@ -24,6 +24,34 @@ function maxAncestorZIndex(element: Element, root: ParentNode): number {
   return maxZ;
 }
 
+export const NATIVE_FIND_DOUBLE_PRESS_MS = 700;
+
+export function isFindShortcut(event: {
+  readonly key: string;
+  readonly ctrlKey: boolean;
+  readonly metaKey: boolean;
+  readonly altKey: boolean;
+  readonly repeat?: boolean;
+}): boolean {
+  return event.key.toLowerCase() === 'f' && (event.ctrlKey || event.metaKey) && !event.altKey;
+}
+
+export function createFindShortcutGate(windowMs: number = NATIVE_FIND_DOUBLE_PRESS_MS): {
+  shouldIntercept(nowMs: number): boolean;
+} {
+  let lastInterceptAtMs: number | undefined;
+  return {
+    shouldIntercept(nowMs: number): boolean {
+      if (lastInterceptAtMs !== undefined && nowMs - lastInterceptAtMs <= windowMs) {
+        lastInterceptAtMs = undefined;
+        return false;
+      }
+      lastInterceptAtMs = nowMs;
+      return true;
+    },
+  };
+}
+
 export function pickSearchFocusTarget(root: ParentNode = document): SearchFocusElement | undefined {
   const candidates = Array.from(
     root.querySelectorAll<SearchFocusElement>('[data-search-focus-target]'),

@@ -1,18 +1,15 @@
 import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
-import { AssessmentCard } from '@/features/assessments/AssessmentCatalogPage';
 import {
-  ASSESSMENT_SPECIALTIES,
   assessmentsInSpecialty,
   findAssessmentById,
   type searchAssessments,
+  visibleAssessmentSpecialties,
 } from '@/features/assessments/assessment-catalog';
-import {
-  type AssessmentInstallationState,
-  assessmentRequiredByModules,
-} from '@/features/assessments/assessment-packs';
+import type { AssessmentInstallationState } from '@/features/assessments/assessment-packs';
 import type { AssessmentRecord } from '@/features/assessments/assessment-types';
 
 function formatDate(value: string): string {
@@ -32,17 +29,15 @@ export function AssessmentSpecialtyIndexPage(props: {
   readonly recentRecords: readonly AssessmentRecord[];
   readonly onQuery: (value: string) => void;
   readonly onOpenSpecialty: (specialtyId: string) => void;
-  readonly onOpen: (definition: ReturnType<typeof searchAssessments>[number]) => void;
   readonly onOpenRecord: (
     definition: ReturnType<typeof searchAssessments>[number],
     record: AssessmentRecord,
   ) => void;
-  readonly onInstall: (definition: ReturnType<typeof searchAssessments>[number]) => void;
-  readonly onRemove: (definition: ReturnType<typeof searchAssessments>[number]) => void;
-  readonly onPrint: (definition: ReturnType<typeof searchAssessments>[number]) => void;
 }): JSX.Element {
   const installed = (id: string): boolean => props.installation.installedIds.has(id);
   const hasQuery = () => props.query.trim().length > 0;
+  const visibleSpecialties = () =>
+    visibleAssessmentSpecialties(props.query, props.definitions, props.matches);
 
   return (
     <>
@@ -54,8 +49,8 @@ export function AssessmentSpecialtyIndexPage(props: {
             <h1>Тесты и опросники</h1>
           </div>
           <p class="assessments-heading__description">
-            Выберите раздел медицины, скачайте нужные тесты на устройство и проходите их без сети.
-            Результаты сохраняются локально и не отправляются в интернет.
+            Выберите раздел медицины и проходите тесты без сети. Результаты сохраняются локально и
+            не отправляются в интернет.
           </p>
         </div>
       </header>
@@ -69,67 +64,39 @@ export function AssessmentSpecialtyIndexPage(props: {
         onInput={props.onQuery}
       />
 
-      <Show
-        when={hasQuery()}
-        fallback={
-          <div class="assessment-specialty-grid">
-            <For each={ASSESSMENT_SPECIALTIES}>
-              {(specialty) => {
-                const specialtyDefinitions = () =>
-                  assessmentsInSpecialty(specialty.id, props.definitions);
-                const installedCount = () =>
-                  specialtyDefinitions().filter((definition) => installed(definition.id)).length;
-                const empty = () => specialtyDefinitions().length === 0;
-                return (
-                  <button
-                    type="button"
-                    class="assessment-specialty-card paper-card"
-                    classList={{ 'assessment-specialty-card--empty': empty() }}
-                    disabled={empty()}
-                    data-testid={`assessment-specialty-${specialty.id}`}
-                    onClick={() => props.onOpenSpecialty(specialty.id)}
-                  >
-                    <p class="archive-kicker assessment-specialty-card__kicker">Раздел тестов</p>
-                    <h2 class="assessment-specialty-card__title">{specialty.title}</h2>
-                    <p class="assessment-specialty-card__description">{specialty.description}</p>
-                    <small class="assessment-specialty-card__meta">
-                      {empty()
-                        ? 'Тесты появятся позже'
+      <Show when={!hasQuery() || visibleSpecialties().length > 0} fallback={<QueryEmptyState />}>
+        <div class="assessment-specialty-grid">
+          <For each={visibleSpecialties()}>
+            {(specialty) => {
+              const specialtyDefinitions = () =>
+                assessmentsInSpecialty(specialty.id, props.definitions);
+              const installedCount = () =>
+                specialtyDefinitions().filter((definition) => installed(definition.id)).length;
+              const empty = () => specialtyDefinitions().length === 0;
+              return (
+                <button
+                  type="button"
+                  class="assessment-specialty-card paper-card"
+                  classList={{ 'assessment-specialty-card--empty': empty() }}
+                  disabled={empty()}
+                  data-testid={`assessment-specialty-${specialty.id}`}
+                  onClick={() => props.onOpenSpecialty(specialty.id)}
+                >
+                  <p class="archive-kicker assessment-specialty-card__kicker">Раздел тестов</p>
+                  <h2 class="assessment-specialty-card__title">{specialty.title}</h2>
+                  <p class="assessment-specialty-card__description">{specialty.description}</p>
+                  <small class="assessment-specialty-card__meta">
+                    {empty()
+                      ? 'Тесты появятся позже'
+                      : installedCount() === specialtyDefinitions().length
+                        ? `${specialtyDefinitions().length} тестов`
                         : `${installedCount()}/${specialtyDefinitions().length} тестов на устройстве`}
-                    </small>
-                  </button>
-                );
-              }}
-            </For>
-          </div>
-        }
-      >
-        <Show when={props.matches.length > 0} fallback={<p>По этому запросу ничего не найдено.</p>}>
-          <div class="assessment-catalog-grid">
-            <For each={props.matches}>
-              {(definition) => {
-                const requiredModules = () =>
-                  assessmentRequiredByModules(definition.id, props.installation);
-                const hasUserManagedSource = () =>
-                  props.installation.manualIds.has(definition.id) ||
-                  (props.installation.sectionIds.has(definition.category) &&
-                    !props.installation.excludedIds.has(definition.id));
-                return (
-                  <AssessmentCard
-                    definition={definition}
-                    installed={installed(definition.id)}
-                    canDelete={hasUserManagedSource()}
-                    requiredModules={requiredModules()}
-                    onOpen={props.onOpen}
-                    onInstall={props.onInstall}
-                    onRemove={props.onRemove}
-                    onPrint={props.onPrint}
-                  />
-                );
-              }}
-            </For>
-          </div>
-        </Show>
+                  </small>
+                </button>
+              );
+            }}
+          </For>
+        </div>
       </Show>
 
       <Show when={props.recentRecords.length > 0}>

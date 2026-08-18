@@ -43,7 +43,7 @@ html.using-root-view-transition .app-main {
   left: calc((100% - min(100%, var(--page-content-width))) / 2);
   width: min(100%, var(--page-content-width));
   margin-inline: 0;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   transform: none;
   animation-duration: 320ms;
   animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -53,7 +53,7 @@ html.using-root-view-transition .app-main {
 .app-view.root-view-exit-forward,
 .app-view.root-view-exit-backward {
   position: relative;
-  z-index: 0;
+  z-index: var(--z-base);
   isolation: isolate;
   animation: none;
   opacity: 1;
@@ -151,7 +151,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .search-home__backdrop-blur {
   position: fixed;
-  z-index: 10;
+  z-index: var(--z-sticky-local);
   top: 0;
   left: 50%;
   width: min(100%, var(--page-content-width));
@@ -208,7 +208,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .search-mode-tools {
   position: sticky;
-  z-index: 30;
+  z-index: var(--z-float);
   top: 0;
   display: flex;
   min-height: 2.5rem;
@@ -511,21 +511,22 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   background: var(--theme-info-soft);
 }
 
-.search-workspace-main .query-index > .suggestions-row {
+.search-workspace-main .query-index {
   margin-top: 0.4375rem;
+  margin-bottom: 0.75rem;
 }
 
 .search-workspace-main .clinical-plan-card,
-.search-workspace-main .analysis-details {
-  margin-top: 0.4375rem;
-  margin-bottom: 0.375rem;
+.search-workspace-main .query-index__details {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
-.search-workspace-main .analysis-details {
+.search-workspace-main .query-index__details {
   padding-bottom: 0.75rem;
 }
 
-.search-workspace-main .analysis-details[open] {
+.search-workspace-main .query-index__details[open] {
   padding-bottom: 0.75rem;
 }
 
@@ -534,8 +535,8 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   transform: none;
 }
 
-.search-workspace-main .suggestions-row,
-.search-workspace-main .analysis-details summary {
+.search-workspace-main .query-index__suggestions,
+.search-workspace-main .analysis-details__summary {
   padding-block: 0.4375rem;
 }
 
@@ -1062,7 +1063,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .app-bottom-nav {
   position: fixed;
-  z-index: 70;
+  z-index: var(--z-bottom-nav);
   bottom: max(0.625rem, calc(0.625rem + var(--safe-bottom)));
   left: 50%;
   display: flex;
@@ -1081,7 +1082,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .app-bottom-nav .app-nav-item {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
   display: grid;
   flex: 0 0 auto;
   min-width: auto;
@@ -1090,7 +1091,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .app-bottom-nav__bubble {
   position: absolute;
-  z-index: 0;
+  z-index: var(--z-base);
   border: 1px solid color-mix(in srgb, var(--theme-accent) 72%, #fff 28%);
   border-radius: 50%;
   background:
@@ -1187,12 +1188,14 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 /* The loading ring joins the badge family: same size and corner offsets as the counters, so it
    reads as part of the settings tab instead of floating beside the pill. */
-.app-bottom-nav .model-nav-indicator {
+.app-bottom-nav .model-nav-indicator,
+.app-bottom-nav .content-download-nav {
   top: -0.3125rem;
   right: -0.3125rem;
 }
 
-.app-bottom-nav .model-nav-indicator-pie {
+.app-bottom-nav .model-nav-indicator-pie,
+.app-bottom-nav .content-download-nav__pie {
   width: 1rem;
   height: 1rem;
   border-color: rgb(61 50 27 / 55%);
@@ -1201,7 +1204,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .app-nav-badge {
   position: absolute;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   display: grid;
   min-width: 1rem;
   height: 1rem;
@@ -1279,7 +1282,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .search-history-drawer-backdrop {
   position: fixed;
-  z-index: 210;
+  z-index: var(--z-history-fab);
   inset: 0;
   background: rgb(35 33 29 / 38%);
   backdrop-filter: blur(0.1875rem);
@@ -1392,29 +1395,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   overflow: auto;
 }
 
-.content-download-status.floating {
-  position: fixed;
-  z-index: 65;
-  right: max(0.75rem, calc(0.75rem + var(--safe-right)));
-  bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom)));
-  width: min(26.875rem, calc(100vw - 1.5rem));
-  max-height: min(46dvh, 26.25rem);
-  overflow: auto;
-  box-shadow: 0 0.75rem 2.125rem rgb(47 38 24 / 22%);
-}
-
-.content-download-status-detail {
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  line-height: 1.35;
-}
-
-.content-download-status-error {
-  color: #7e4c3d;
-  line-height: 1.35;
-}
-
 .knowledge-base-tabs {
   display: inline-flex;
   gap: 0.25rem;
@@ -1468,10 +1448,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
     width: 2.375rem;
     height: 2.375rem;
     aspect-ratio: 1;
-  }
-
-  .content-download-status.floating {
-    bottom: max(3.875rem, calc(3.875rem + var(--safe-bottom)));
   }
 }
 
@@ -1865,93 +1841,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   }
 }
 
-/* Downloads live in the dark-bubble family, not on paper: they are transient system chrome, and on
-   the paper scheme the panel read as page content. */
-.content-download-pill {
-  position: fixed;
-  z-index: 65;
-  right: max(0.75rem, calc(0.75rem + var(--safe-right)));
-  bottom: max(0.625rem, calc(0.625rem + var(--safe-bottom)));
-  display: flex;
-  align-items: center;
-  gap: 0.4375rem;
-  padding: 0.4375rem 0.8125rem;
-  border: 1px solid var(--theme-floating-border);
-  border-radius: 999px;
-  color: var(--theme-floating-text);
-  background: var(--theme-floating-surface);
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 8%) inset,
-    0 0.625rem 1.875rem rgb(20 25 21 / 38%);
-  cursor: pointer;
-  backdrop-filter: blur(1rem);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-}
-
-.content-download-pill i {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: #e8c654;
-  animation: local-model-pulse 1.1s ease-in-out infinite;
-}
-
-.content-download-pill i.failed {
-  background: #b4574d;
-  animation: none;
-}
-
-.content-download-status.floating {
-  border: 1px solid rgb(54 47 36 / 45%);
-  border-radius: 0.75rem;
-  color: #ece4d1;
-  background: rgb(48 47 42 / 96%);
-  backdrop-filter: blur(1rem);
-}
-
-.content-download-status.floating .content-download-status-heading h3 {
-  color: #f6eedb;
-}
-
-.content-download-status.floating .content-download-status-heading p,
-.content-download-status.floating .content-download-status-detail {
-  color: #b3ab97;
-}
-
-.content-download-status.floating .content-download-status-heading button {
-  flex: none;
-  padding: 0.1875rem 0.625rem;
-  border: 1px solid rgb(246 238 219 / 24%);
-  border-radius: 999px;
-  color: #d5cdbc;
-  background: transparent;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-}
-
-.content-download-status.floating li {
-  border-color: rgb(246 238 219 / 14%);
-}
-
-.content-download-status.floating .content-download-status-row strong {
-  color: #f0e8d5;
-}
-
-.content-download-status.floating .content-download-status-row small,
-.content-download-status.floating .content-download-status-row span {
-  color: #b3ab97;
-}
-
-.content-download-status.floating .content-download-status-progress {
-  background: rgb(246 238 219 / 16%);
-}
-
-.content-download-status.floating .content-download-status-progress i {
-  background: #e8c654;
-}
-
 /* Composer layout: everything hangs off one compact block — scope chips, a thin selected-mode
    strip, then the query sheet — instead of five tall cards above a second hero header. */
 .search-mode-heading > div > p:last-child {
@@ -2070,7 +1959,7 @@ fieldset.search-mode-picker {
   text-transform: uppercase;
 }
 
-.note-reminder-fields input {
+.note-reminder-fields__control {
   width: auto;
   padding: 0.1875rem 0.375rem;
   border: 1px solid rgb(103 92 68 / 30%);
@@ -2247,7 +2136,7 @@ fieldset.search-mode-picker {
 
 .patient-notes-fab {
   position: fixed;
-  z-index: 60;
+  z-index: var(--z-graph);
   right: max(
     1.25rem,
     calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
@@ -2289,7 +2178,7 @@ fieldset.search-mode-picker {
 }
 
 .search-history-drawer-backdrop {
-  z-index: 300;
+  z-index: var(--z-notes-image);
 }
 
 .patient-notes-fab__icon {
@@ -2570,6 +2459,10 @@ html.native-print-active #root {
     transform: none;
     box-shadow: none;
   }
+
+  .patient-card.paper-card:hover {
+    box-shadow: var(--shadow-paper);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -2584,7 +2477,7 @@ html.native-print-active #root {
 
 .patient-card-corner-actions {
   position: absolute;
-  z-index: 2;
+  z-index: var(--z-raised-2);
   top: 0.625rem;
   right: 0.625rem;
   display: flex;
@@ -2666,12 +2559,9 @@ html.native-print-active #root {
   border: 1px solid var(--theme-border);
   border-radius: 0.625rem;
   background: var(--theme-note);
-  transition:
-    box-shadow 140ms ease,
-    transform 140ms ease;
 }
 
-.patient-note-record > button:first-child {
+.patient-note-record__open {
   display: grid;
   min-width: 0;
   flex: 1;
@@ -2684,7 +2574,7 @@ html.native-print-active #root {
   text-align: left;
 }
 
-.patient-note-record > button:first-child p {
+.patient-note-record__open p {
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
@@ -2708,14 +2598,13 @@ html.native-print-active #root {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .patient-note-record > button:first-child:not(:disabled):hover {
+  .patient-note-record__open:not(:disabled):hover {
     transform: none;
     box-shadow: none;
   }
 
   .patient-note-record:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--theme-control-hover-shadow);
+    border-color: var(--theme-accent);
   }
 }
 
@@ -3193,7 +3082,7 @@ html.native-print-active #root {
 
 .note-image-preview__zoom {
   position: fixed;
-  z-index: 520;
+  z-index: var(--z-overlay-chrome);
   inset: 0;
   display: grid;
   place-items: center;
@@ -3212,7 +3101,7 @@ html.native-print-active #root {
 
 .note-image-preview__zoom-image {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
   display: block;
   width: auto;
   max-width: min(100%, 48rem);
@@ -3258,7 +3147,7 @@ html.native-print-active #root {
 
 .confirmation-alert-overlay {
   position: fixed;
-  z-index: 550;
+  z-index: var(--z-note-preview);
   inset: 0;
   background: rgb(20 19 17 / 72%);
   backdrop-filter: blur(0.375rem);
@@ -3266,7 +3155,7 @@ html.native-print-active #root {
 
 .confirmation-alert {
   position: fixed;
-  z-index: 551;
+  z-index: var(--z-note-preview-ui);
   top: 50%;
   left: 50%;
   display: grid;

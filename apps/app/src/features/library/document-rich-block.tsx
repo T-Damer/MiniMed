@@ -1,13 +1,25 @@
+import type { TextRange } from '@localmed/contracts';
 import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
+import { QueryHighlightedText } from '@/components/HighlightedText';
 import { printHtml } from '@/features/library/document-print';
-import type {
-  DocumentRenderBlock,
-  DocumentTableBlock,
-  DocumentTableRow,
+import {
+  type DocumentRenderBlock,
+  type DocumentTableBlock,
+  type DocumentTableRow,
+  visibleImageCaption,
 } from '@/features/library/document-rich-block-data';
+
+interface RichBlockHighlightProps {
+  readonly query?: string | undefined;
+  readonly exact?: boolean | undefined;
+  readonly fuzzy?: boolean | undefined;
+  readonly ranges?: readonly TextRange[] | undefined;
+  readonly unitId?: string | undefined;
+  readonly activeStart?: number | undefined;
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -68,7 +80,7 @@ function buildImagePrintHtml(image: {
   readonly alt: string;
   readonly title?: string;
 }): string {
-  const caption = image.title || image.alt;
+  const caption = visibleImageCaption(image.alt, image.title);
   const figure = `<figure><img src="${escapeHtml(image.dataUrl)}" alt="${escapeHtml(image.alt)}" />${
     caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''
   }</figure>`;
@@ -142,29 +154,61 @@ function MediaViewer(props: {
 function RichTableMarkup(props: {
   readonly block: DocumentTableBlock;
   readonly tableClass: string;
+  readonly highlight?: RichBlockHighlightProps | undefined;
 }): JSX.Element {
+  let offset = props.block.caption ? props.block.caption.length + 1 : 0;
   return (
     <table class={props.tableClass}>
-      <Show when={props.block.caption}>{(caption) => <caption>{caption()}</caption>}</Show>
+      <Show when={props.block.caption}>
+        {(caption) => (
+          <caption>
+            <QueryHighlightedText
+              text={caption()}
+              query={props.highlight?.query ?? ''}
+              exact={props.highlight?.exact}
+              fuzzy={props.highlight?.fuzzy}
+              ranges={props.highlight?.ranges}
+              unitId={props.highlight?.unitId}
+              activeStart={props.highlight?.activeStart}
+            />
+          </caption>
+        )}
+      </Show>
       <tbody>
         <For each={props.block.rows}>
           {(row: DocumentTableRow) => (
             <tr>
               <For each={row.cells}>
-                {(cell) => (
-                  <Show
-                    when={cell.header}
-                    fallback={
-                      <td rowSpan={cell.rowSpan} colSpan={cell.colSpan}>
-                        {cell.text}
-                      </td>
-                    }
-                  >
-                    <th rowSpan={cell.rowSpan} colSpan={cell.colSpan}>
-                      {cell.text}
-                    </th>
-                  </Show>
-                )}
+                {(cell) => {
+                  const rangeOffset = offset;
+                  offset += cell.text.length + 1;
+                  const text = (
+                    <QueryHighlightedText
+                      text={cell.text}
+                      query={props.highlight?.query ?? ''}
+                      exact={props.highlight?.exact}
+                      fuzzy={props.highlight?.fuzzy}
+                      ranges={props.highlight?.ranges}
+                      unitId={props.highlight?.unitId}
+                      activeStart={props.highlight?.activeStart}
+                      rangeOffset={rangeOffset}
+                    />
+                  );
+                  return (
+                    <Show
+                      when={cell.header}
+                      fallback={
+                        <td rowSpan={cell.rowSpan} colSpan={cell.colSpan}>
+                          {text}
+                        </td>
+                      }
+                    >
+                      <th rowSpan={cell.rowSpan} colSpan={cell.colSpan}>
+                        {text}
+                      </th>
+                    </Show>
+                  );
+                }}
               </For>
             </tr>
           )}
@@ -176,6 +220,7 @@ function RichTableMarkup(props: {
 
 function ZoomableImage(props: {
   readonly image: { readonly dataUrl: string; readonly alt: string; readonly title?: string };
+  readonly highlight?: RichBlockHighlightProps | undefined;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   return (
@@ -189,14 +234,14 @@ function ZoomableImage(props: {
         <img
           class="document-rich-image__image"
           src={props.image.dataUrl}
-          alt={props.image.alt}
+          alt={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
           loading="lazy"
           decoding="async"
         />
       </button>
       <MediaViewer
         open={open()}
-        title={props.image.title || props.image.alt || 'Изображение'}
+        title={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
         printHtmlContent={buildImagePrintHtml(props.image)}
         onClose={() => setOpen(false)}
       >
@@ -204,11 +249,23 @@ function ZoomableImage(props: {
           <img
             class="media-viewer__image"
             src={props.image.dataUrl}
-            alt={props.image.alt}
+            alt={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
             decoding="async"
           />
-          <Show when={props.image.title || props.image.alt}>
-            {(caption) => <figcaption class="media-viewer__caption">{caption()}</figcaption>}
+          <Show when={visibleImageCaption(props.image.alt, props.image.title)}>
+            {(caption) => (
+              <figcaption class="media-viewer__caption">
+                <QueryHighlightedText
+                  text={caption()}
+                  query={props.highlight?.query ?? ''}
+                  exact={props.highlight?.exact}
+                  fuzzy={props.highlight?.fuzzy}
+                  ranges={props.highlight?.ranges}
+                  unitId={props.highlight?.unitId}
+                  activeStart={props.highlight?.activeStart}
+                />
+              </figcaption>
+            )}
           </Show>
         </figure>
       </MediaViewer>
@@ -216,7 +273,10 @@ function ZoomableImage(props: {
   );
 }
 
-function ZoomableTable(props: { readonly block: DocumentTableBlock }): JSX.Element {
+function ZoomableTable(props: {
+  readonly block: DocumentTableBlock;
+  readonly highlight?: RichBlockHighlightProps | undefined;
+}): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const title = () => props.block.caption || 'Таблица из клинической рекомендации';
 
@@ -234,7 +294,11 @@ function ZoomableTable(props: { readonly block: DocumentTableBlock }): JSX.Eleme
         </button>
       </div>
       <div class="document-rich-table__scroller">
-        <RichTableMarkup block={props.block} tableClass="document-rich-table__table" />
+        <RichTableMarkup
+          block={props.block}
+          tableClass="document-rich-table__table"
+          highlight={props.highlight}
+        />
       </div>
       <MediaViewer
         open={open()}
@@ -243,24 +307,43 @@ function ZoomableTable(props: { readonly block: DocumentTableBlock }): JSX.Eleme
         onClose={() => setOpen(false)}
       >
         <div class="media-viewer__table-wrap">
-          <RichTableMarkup block={props.block} tableClass="media-viewer__table" />
+          <RichTableMarkup
+            block={props.block}
+            tableClass="media-viewer__table"
+            highlight={props.highlight}
+          />
         </div>
       </MediaViewer>
     </section>
   );
 }
 
-export function DocumentRichBlock(props: { readonly block: DocumentRenderBlock }): JSX.Element {
+export function DocumentRichBlock(props: {
+  readonly block: DocumentRenderBlock;
+  readonly highlight?: RichBlockHighlightProps | undefined;
+}): JSX.Element {
   if (props.block.kind === 'image') {
-    const caption = props.block.title || props.block.alt;
+    const caption = visibleImageCaption(props.block.alt, props.block.title);
     return (
       <figure class="document-rich-image">
-        <ZoomableImage image={props.block} />
+        <ZoomableImage image={props.block} highlight={props.highlight} />
         <Show when={caption}>
-          {(value) => <figcaption class="document-rich-image__caption">{value()}</figcaption>}
+          {(value) => (
+            <figcaption class="document-rich-image__caption">
+              <QueryHighlightedText
+                text={value()}
+                query={props.highlight?.query ?? ''}
+                exact={props.highlight?.exact}
+                fuzzy={props.highlight?.fuzzy}
+                ranges={props.highlight?.ranges}
+                unitId={props.highlight?.unitId}
+                activeStart={props.highlight?.activeStart}
+              />
+            </figcaption>
+          )}
         </Show>
       </figure>
     );
   }
-  return <ZoomableTable block={props.block} />;
+  return <ZoomableTable block={props.block} highlight={props.highlight} />;
 }

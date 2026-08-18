@@ -90,7 +90,7 @@ export function AssessmentResultPage(props: {
 
   return (
     <article class="assessment-result-page">
-      <header class="assessment-subpage-header">
+      <header class="assessment-subpage-header assessment-result-page__header">
         <div class="assessment-subpage-header-actions assessment-subpage-header-actions--leading">
           <NavBack class="knowledge-back-button" aria-label="К тесту" onClick={props.onBack} />
         </div>
@@ -109,11 +109,7 @@ export function AssessmentResultPage(props: {
             aria-label="Методика и ограничения"
             title="Методика и ограничения"
             onClick={() => setMethodologyOpen(true)}
-            icon={
-              <span class="assessment-help-button__label" aria-hidden="true">
-                ?
-              </span>
-            }
+            icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
           />
         </div>
       </header>
@@ -174,7 +170,11 @@ export function AssessmentResultPage(props: {
 
       <Show when={shareMessage()}>
         {(message) => (
-          <p class="assessment-result-share-status" role="status" aria-live="polite">
+          <p
+            class="assessment-result-share-status assessment-result-page__full"
+            role="status"
+            aria-live="polite"
+          >
             {message()}
           </p>
         )}
@@ -182,12 +182,14 @@ export function AssessmentResultPage(props: {
 
       <div class="assessment-result-actions paper-card">
         <Button
+          class="assessment-result-actions__button"
           icon={<AppGlyph name="printer" />}
           onClick={() => printAssessmentRecord(props.definition, props.record)}
         >
           Распечатать
         </Button>
         <Button
+          class="assessment-result-actions__button"
           icon={<AppGlyph name="share" />}
           onClick={() => {
             setShareMessage('Подготавливаем результат…');
@@ -203,6 +205,7 @@ export function AssessmentResultPage(props: {
           Поделиться
         </Button>
         <Button
+          class="assessment-result-actions__button"
           variant="secondary"
           icon={<AppGlyph name="notes" />}
           data-testid="assessment-save-note"
@@ -210,13 +213,18 @@ export function AssessmentResultPage(props: {
         >
           Записать
         </Button>
-        <Button variant="danger" icon={<AppGlyph name="trash" />} onClick={props.onDelete}>
+        <Button
+          class="assessment-result-actions__button"
+          variant="danger"
+          icon={<AppGlyph name="trash" />}
+          onClick={props.onDelete}
+        >
           Удалить
         </Button>
       </div>
 
       <Show when={notePanelOpen()}>
-        <section class="assessment-note-panel paper-card">
+        <section class="assessment-note-panel paper-card assessment-result-page__full">
           <h2 class="assessment-note-panel__heading">Сохранить в карточку пациента</h2>
           <label class="assessment-note-panel__field">
             <span class="assessment-note-panel__label">Существующая карточка</span>

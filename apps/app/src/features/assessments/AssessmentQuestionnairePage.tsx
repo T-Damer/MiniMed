@@ -121,8 +121,18 @@ export function AssessmentQuestionnairePage(props: {
           saveDraft(nextAnswers);
         }}
       />
-      <span class="assessment-response-options__value">{option.value}</span>
-      <small class="assessment-response-options__label">{option.label}</small>
+      <span
+        class="assessment-response-options__value"
+        classList={{
+          'assessment-response-options__value--selected': answers()[questionId] === option.value,
+        }}
+        aria-hidden="true"
+      >
+        {option.value}
+      </span>
+      <small class="assessment-response-options__label">
+        <span class="assessment-response-options__text">{option.label}</span>
+      </small>
     </label>
   );
 
@@ -145,11 +155,11 @@ export function AssessmentQuestionnairePage(props: {
           <Button
             type="button"
             variant="icon"
-            class="knowledge-back-button assessment-print-button"
+            class="knowledge-back-button assessment-questionnaire-print"
             aria-label="Распечатать бланк теста"
             title="Распечатать бланк теста"
             onClick={() => printBlankAssessment(props.definition)}
-            icon={<AppGlyph name="printer" />}
+            icon={<AppGlyph name="printer" class="assessment-questionnaire-print__icon" />}
           />
           <Button
             type="button"
@@ -158,11 +168,7 @@ export function AssessmentQuestionnairePage(props: {
             aria-label="Методика и ограничения"
             title="Методика и ограничения"
             onClick={() => setMethodologyOpen(true)}
-            icon={
-              <span class="assessment-help-button__label" aria-hidden="true">
-                ?
-              </span>
-            }
+            icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
           />
         </div>
       </header>
