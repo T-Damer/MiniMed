@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { matchesFuzzyQuery } from './fuzzy-text';
+import { fuzzyQueryScore, matchesFuzzyQuery } from './fuzzy-text';
 
 describe('matchesFuzzyQuery', () => {
   it('matches an empty query', () => {
@@ -18,5 +18,11 @@ describe('matchesFuzzyQuery', () => {
 
   it('does not fuzzy-expand a short abbreviation', () => {
     expect(matchesFuzzyQuery('ОАК', ['ОАЭ документ'])).toBe(false);
+  });
+
+  it('scores an exact title above a later mention', () => {
+    expect(fuzzyQueryScore('парацетамол', ['Парацетамол', 'инструкция'])).toBeGreaterThan(
+      fuzzyQueryScore('парацетамол', ['Колдрекс', 'содержит парацетамол']),
+    );
   });
 });
