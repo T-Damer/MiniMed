@@ -18,6 +18,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   missing-field prompts; the symptom lexicon recognizes nosebleed phrases such as `кровотечение из
   носа` and expands them to searchable `носовое кровотечение`/`эпистаксис` terms.
 - Search after 500 ms of inactivity with stale-response cancellation.
+- Short name lookups promote a document or medication whose title/trade name *is* the query
+  (for example `Парацетамол`) above combinations and sources that only mention the term. The
+  medications catalog sorts those hits by the same name-first rule instead of alphabetically.
 - Search is hidden until the user selects a scope; scopes with no installed documents are disabled.
 - Query analysis and deterministic retrieval run in a Web Worker, and long result sets are window
   virtualized.

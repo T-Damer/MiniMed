@@ -76,6 +76,10 @@ lexical evidence and adds only a capped corroboration bonus from additional bran
 a known failure mode of plain reciprocal-rank summation, where one weak chunk can win merely by
 appearing in several nearly duplicated branches.
 
+After grouping by document, a name-lookup boost prefers a title that *is* the query (or is that
+name plus a dosage form) over a combination product and over a document that only mentions the
+term in body text.
+
 Small transparent section boosts are applied only when branch intent matches section type, for
 example investigation → diagnostics and medication → treatment. Each result exposes:
 

@@ -47,7 +47,7 @@ function queryStemsMatch(field: string, queryStems: readonly string[]): boolean 
 }
 
 function isCombinationName(value: string): boolean {
-  return /[+\/]|(\sи\s)|(\sс\s)/u.test(normalizeSurfaceText(value));
+  return /[+/]|(\sи\s)|(\sс\s)/u.test(normalizeSurfaceText(value));
 }
 
 export function medicationCatalogMatchScore(product: MedicationProduct, query: string): number {
@@ -60,21 +60,29 @@ export function medicationCatalogMatchScore(product: MedicationProduct, query: s
   const trade = normalizeSurfaceText(product.tradeName);
   const inn = normalizeSurfaceText(product.inn);
   if (trade === normalizedQuery) return 100;
-  if (inn === normalizedQuery) return 92;
 
   const tradeHead = fieldStartsWithQuery(product.tradeName, normalizedQuery);
   const innHead = fieldStartsWithQuery(product.inn, normalizedQuery);
   if (tradeHead && !isCombinationName(product.tradeName)) return 88;
-  if (innHead && !isCombinationName(product.inn)) return 84;
-  if (tradeHead) return 55;
-  if (innHead) return 50;
+  if (tradeHead) return 62;
+  if (inn === normalizedQuery) return 48;
+  if (
+    innHead &&
+    !isCombinationName(product.inn) &&
+    stems(product.inn).length === queryStems.length
+  ) {
+    return 46;
+  }
+  if (innHead) return 38;
 
   if (queryStemsMatch(product.tradeName, queryStems) && !isCombinationName(product.tradeName)) {
     return 70;
   }
-  if (queryStemsMatch(product.inn, queryStems) && !isCombinationName(product.inn)) return 66;
+  if (queryStemsMatch(product.inn, queryStems) && stems(product.inn).length === queryStems.length) {
+    return 44;
+  }
   if (queryStemsMatch(product.tradeName, queryStems) || queryStemsMatch(product.inn, queryStems)) {
-    return 40;
+    return 36;
   }
 
   const haystack = normalizeSurfaceText(medicationSearchText(product));

@@ -153,7 +153,7 @@ function isFormOrStrengthToken(token: string): boolean {
 }
 
 function isCombinationTitle(title: string, leftoverTerms: readonly string[]): boolean {
-  if (/[+\/]|(\sи\s)|(\sс\s)/u.test(title)) return true;
+  if (/[+/]|(\sи\s)|(\sс\s)/u.test(title)) return true;
   return leftoverTerms.some((term) => !isFormOrStrengthToken(term));
 }
 

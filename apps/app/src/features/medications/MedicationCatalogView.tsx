@@ -26,13 +26,13 @@ import {
   orderDocumentSections,
   sourceTypeReaderLabel,
 } from '@/features/library/document-display';
+import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
 import {
   documentFromSummary,
   processMedicationSummariesInBatches,
   shouldHideMedicationCatalog,
   shouldPreserveMedicationCatalog,
 } from '@/features/medications/medication-loading';
-import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
 import {
   type MedicationProduct,
   medicationDocumentRegistration,
