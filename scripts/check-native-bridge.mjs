@@ -8,6 +8,7 @@ const files = {
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedDatabasePlugin.java',
   androidActivity: 'apps/app/android/app/src/main/java/dev/localmed/search/MainActivity.java',
   androidManifest: 'apps/app/android/app/src/main/AndroidManifest.xml',
+  androidGradle: 'apps/app/android/app/build.gradle',
   androidBackupRules: 'apps/app/android/app/src/main/res/xml/backup_rules.xml',
   androidExtractionRules: 'apps/app/android/app/src/main/res/xml/data_extraction_rules.xml',
   iosPlugin: 'apps/app/ios/App/App/LocalMedDatabasePlugin.swift',
@@ -77,6 +78,30 @@ requireText('iosPlugin', 'SQLITE_OPEN_READONLY');
 requireText('iosPlugin', 'isExcludedFromBackup = true');
 requireText('androidManifest', 'android:fullBackupContent="@xml/backup_rules"');
 requireText('androidManifest', 'android:dataExtractionRules="@xml/data_extraction_rules"');
+
+const ignoreAssetsPattern = content.androidGradle
+  .split('\n')
+  .find((line) => line.includes('ignoreAssetsPattern ='));
+if (!ignoreAssetsPattern) {
+  throw new Error(`${files.androidGradle} is missing ignoreAssetsPattern`);
+}
+if (/(?:^|:)[*][.]db(?::|$)/u.test(ignoreAssetsPattern.replaceAll(/\s/gu, ''))) {
+  throw new Error(
+    'ignoreAssetsPattern must not ignore all database files; aapt has no keep exception and that omits core-demo.db',
+  );
+}
+if (ignoreAssetsPattern.includes('core-demo.db')) {
+  throw new Error('ignoreAssetsPattern must keep core-demo.db in the APK');
+}
+for (const companion of [
+  'medications.db',
+  'mkb.db',
+  'ambulatory.db',
+  'regulatory.db',
+  'reference.db',
+]) {
+  requireText('androidGradle', companion);
+}
 requireText('androidBackupRules', 'path="localmed/content/"');
 requireText('androidExtractionRules', 'path="localmed/content/"');
 

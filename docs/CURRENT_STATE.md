@@ -294,8 +294,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   reloads the page. Android checks the latest GitHub release and downloads a newer APK through a native
   Capacitor bridge with progress events before handing it to the system installer. The packaged web
   assets include only the Core SQLite (`core-demo.db`); companion databases stay optional local-dev
-  files and are stripped from `dist` / Android assets (Android keeps `core-demo.db`, strips other
-  `*.db`). If the core pack cannot open, boot throws `Не удалось открыть ядро MiniMed`; there is no
+  files and are stripped from `dist`. Android aapt ignores those companion filenames explicitly —
+  a blanket database glob would also drop the bundled core pack, because aapt `!` only silences skip
+  warnings. If the core pack cannot open, boot throws `Не удалось открыть ядро MiniMed`; there is no
   embedded JSON seed fallback in `create-browser-core.ts` (`DEMO_CONTENT_PACK` remains for unit tests
   and benchmarks only).
 - The paper workspace follows the device light/dark preference without adding an application toggle.

@@ -88,14 +88,23 @@ jobs:
           # Info-ZIP exits 1 when warnings occurred but the operation succeeded. Aligned APKs
           # routinely trigger that, and pipefail would abort before corpus checks.
           unzip_apk() {
-            unzip "$@" && return 0
+            set +e
+            unzip "$@"
             local status=$?
-            [ "$status" -eq 1 ] && return 0
+            set -e
+            if [ "$status" -eq 0 ] || [ "$status" -eq 1 ]; then
+              return 0
+            fi
             return "$status"
           }
           unzip_apk -l "$apk" | tee release-output/APK-CONTENTS.txt
-          embedded_path="$(unzip_apk -Z1 "$apk" | awk '/(^|\/)core-demo\.db$/ { print; exit }')"
-          test -n "$embedded_path"
+          # Parse the listing file instead of `unzip -Z1 | awk … exit`, which SIGPIPEs on a
+          # 490-file APK when the core pack is not last.
+          embedded_path="$(awk '/(^|[[:space:]])core-demo\.db$/ { print $NF; exit }' release-output/APK-CONTENTS.txt)"
+          if [ -z "$embedded_path" ]; then
+            echo "APK is missing embedded core-demo.db" >&2
+            exit 1
+          fi
           printf '%s\n' "$embedded_path" | tee release-output/EMBEDDED-DB-PATH.txt
           unzip_apk -p "$apk" "$embedded_path" > "$extracted_db"
           cmp "$original_db" "$extracted_db"

@@ -18,7 +18,10 @@ All notable changes are documented here. The project follows Semantic Versioning
 - Live Pages smoke uses the bottom navigation for tests and calculators, waits for DOMContentLoaded
   instead of network idle, and does not require downloaded calculator modules.
 - Android APK verification treats Info-ZIP warning exit code 1 as success so aligned APKs can finish
-  corpus checks.
+  corpus checks, and it fails with a clear error when `core-demo.db` is missing.
+- Android packaging ignores companion database filenames instead of every `*.db` file, so the bundled
+  core pack is actually present in the APK. aapt `!` only silences skip warnings and cannot keep
+  `core-demo.db` after a blanket database ignore.
 
 ## [0.6.23] - 2026-08-18
 
