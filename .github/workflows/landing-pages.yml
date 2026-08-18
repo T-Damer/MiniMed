@@ -50,9 +50,11 @@ jobs:
         run: |
           version="$(bun -p "require('./release.json').version")"
           mkdir -p apps/app/public/content
+          # Matching tag is created later by the Android release job; ship without the
+          # optional companion packs when this version is not published yet.
           gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
-            --pattern medications.db --dir apps/app/public/content --clobber
-          # Optional private ambulatory pack — skip cleanly if not on this release.
+            --pattern medications.db --dir apps/app/public/content --clobber \
+            || echo "medications.db not on v$version; Pages ships without it"
           gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
             --pattern ambulatory.db --dir apps/app/public/content --clobber \
             || echo "ambulatory.db not on v$version; Pages ships without it"

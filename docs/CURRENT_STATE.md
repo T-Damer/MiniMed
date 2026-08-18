@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 18 August 2026
-> Repository version: `0.6.23`
-> Active target: `0.6.23` public prerelease toward `1.0`
+> Repository version: `0.6.24`
+> Active target: `0.6.24` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -324,7 +324,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
   source-grounded, and does not replace clinical responsibility.
 - The landing page and browser app are built together for GitHub Pages; the application is published
-  below the site at `/app/`.
+  below the site at `/app/`. Pages builds regulatory and reference databases in CI and treats
+  `medications.db` / `ambulatory.db` as optional GitHub-release companions so a matching tag is not
+  required before deploy.
 - Release labels, tags, APK URLs, Android version metadata, and workflow artifact names derive from
   the root `release.json`; only that file and the independently built corpus manifest are release
   version sources.

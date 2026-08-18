@@ -4,6 +4,19 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.24] - 2026-08-18
+
+### Changed
+
+- JavaScript, ingest, and GitHub Actions patch/minor updates from Dependabot, with `bun.lock` and
+  `uv.lock` regenerated so frozen CI installs stay in sync.
+
+### Fixed
+
+- GitHub Pages no longer fails when `medications.db` is missing from the matching GitHub release;
+  the Android job publishes that tag after Pages starts.
+- Live Pages smoke uses the bottom navigation for tests and calculators.
+
 ## [0.6.23] - 2026-08-18
 
 ### Added

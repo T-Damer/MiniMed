@@ -9,18 +9,24 @@ test.describe('published MiniMed prototype', () => {
   test('exposes questionnaires and calculators on GitHub Pages', async ({ page }) => {
     await page.goto(LIVE_URL as string, { waitUntil: 'networkidle', timeout: 60_000 });
 
-    const assessments = page.getByRole('button', { name: 'Открыть тесты и опросники' });
-    await expect(assessments).toBeVisible({ timeout: 30_000 });
-    await assessments.click();
+    const nav = page.locator('.app-bottom-nav');
+    await expect(nav.getByRole('button', { name: 'Тесты', exact: true })).toBeVisible({
+      timeout: 30_000,
+    });
+    await nav.getByRole('button', { name: 'Тесты', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Тесты и опросники' })).toBeVisible();
     await expect(page.getByText('Психология и психодиагностика').first()).toBeVisible();
-    await page.getByRole('button', { name: 'Закрыть тесты' }).click();
 
-    const calculators = page.getByRole('button', { name: 'Открыть медицинские калькуляторы' });
-    await expect(calculators).toBeVisible();
-    await calculators.click();
-    await expect(page.getByRole('heading', { name: 'Медицинские калькуляторы' })).toBeVisible();
+    await nav.getByRole('button', { name: 'Калькуляторы', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Калькуляторы' })).toBeVisible();
 
+    await page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
+    const anthropometryDownload = page.getByRole('button', {
+      name: 'Скачать раздел «Антропометрия»',
+    });
+    if (await anthropometryDownload.count()) {
+      await anthropometryDownload.click();
+    }
     await page.getByTestId('calculator-open-body-surface-area-mosteller').click();
     await page.getByLabel('Рост, см').fill('170');
     await page.getByLabel('Масса, кг').fill('70');
