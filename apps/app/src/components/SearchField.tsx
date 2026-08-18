@@ -48,6 +48,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
           {...rest}
           id={fieldId()}
           class="archive-search__input"
+          data-fuzzy="true"
           data-search-focus-target="true"
           type={local.type ?? 'search'}
           value={local.value}

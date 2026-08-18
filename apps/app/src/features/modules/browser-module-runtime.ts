@@ -20,7 +20,7 @@ import {
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
 import {
-  ASSESSMENT_CATALOG,
+  getAssessmentCatalog,
   preloadAssessmentDefinitions,
 } from '@/features/assessments/assessment-catalog';
 import { findAssessmentDependenciesInStore } from '@/features/assessments/assessment-module-dependencies';
@@ -475,14 +475,14 @@ export class BrowserContentModuleRuntime {
     const installed = new Map(
       this.listInstalled().map((module) => [module.moduleId, module.version] as const),
     );
-    const state = pruneAssessmentModuleDependencies(installed, ASSESSMENT_CATALOG);
+    const state = pruneAssessmentModuleDependencies(installed, getAssessmentCatalog());
     for (const [moduleId, version] of installed) {
       const descriptor = this.catalog.modules.find(
         (module) => module.id === moduleId && module.version === version,
       );
       if (descriptor?.kind !== 'clinical') {
         this.invalidateAssessmentDependencyScans(moduleId);
-        removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+        removeAssessmentModuleDependencies(moduleId, getAssessmentCatalog());
         continue;
       }
       if (state.moduleDependencies[moduleId]?.version === version) continue;
@@ -519,14 +519,14 @@ export class BrowserContentModuleRuntime {
     );
     if (descriptor?.kind !== 'clinical') {
       if (this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) {
-        removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+        removeAssessmentModuleDependencies(moduleId, getAssessmentCatalog());
       }
       return;
     }
     const bytes = await this.backend.readIndexBytes(moduleId, version);
     if (!bytes) {
       if (this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) {
-        removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+        removeAssessmentModuleDependencies(moduleId, getAssessmentCatalog());
       }
       return;
     }
@@ -542,7 +542,7 @@ export class BrowserContentModuleRuntime {
         });
       }
       if (!this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) return;
-      setAssessmentModuleDependencies(moduleId, version, assessmentIds, ASSESSMENT_CATALOG);
+      setAssessmentModuleDependencies(moduleId, version, assessmentIds, getAssessmentCatalog());
     } finally {
       await store?.close().catch(() => undefined);
     }
@@ -679,7 +679,7 @@ export class BrowserContentModuleRuntime {
         () => this.registry.remove(moduleId),
         () => this.backend.remove(moduleId),
       );
-      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      removeAssessmentModuleDependencies(moduleId, getAssessmentCatalog());
     } catch (cause) {
       this.restoreAssessmentDependencyScan(moduleId);
       throw cause;
@@ -704,7 +704,7 @@ export class BrowserContentModuleRuntime {
       await this.syncAssessmentDependencies(moduleId, installed.version);
     } catch (cause) {
       this.invalidateAssessmentDependencyScans(moduleId);
-      removeAssessmentModuleDependencies(moduleId, ASSESSMENT_CATALOG);
+      removeAssessmentModuleDependencies(moduleId, getAssessmentCatalog());
       console.warn(
         `Unable to resolve questionnaire dependencies after rolling back ${moduleId}.`,
         cause,

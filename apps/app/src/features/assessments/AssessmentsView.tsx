@@ -7,9 +7,10 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-import { AppGlyph } from '@/components/AppGlyph';
+
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
+import { AssessmentMissingPage } from '@/features/assessments/AssessmentMissingPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
 import { AssessmentSpecialtyIndexPage } from '@/features/assessments/AssessmentSpecialtyIndexPage';
@@ -22,7 +23,7 @@ import {
   loadAssessmentDefinition,
   preloadAssessmentDefinitions,
   registerDownloadedAssessment,
-  searchAssessments,
+  type searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
   ASSESSMENT_PACKS_EVENT,
@@ -34,10 +35,22 @@ import {
   installAssessmentIds,
   installAssessmentSection,
   loadAssessmentInstallationState,
+  moduleIdForAssessmentSection,
+  moduleIdForAssessmentSpecialty,
   removeAssessmentIds,
   removeAssessmentSection,
 } from '@/features/assessments/assessment-packs';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
+import {
+  type AssessmentRoute,
+  assessmentHomePath,
+  assessmentPath,
+  readAssessmentRoute,
+  resultPath,
+  resumePath,
+  sectionPath,
+  specialtyPath,
+} from '@/features/assessments/assessment-routing';
 import type {
   AssessmentDefinition,
   AssessmentRecord,
@@ -50,66 +63,29 @@ import {
   loadAssessmentRecords,
   removeAssessmentRecord,
 } from '@/state/assessment-results';
+import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import {
   loadPatientNotes,
   PATIENT_NOTES_EVENT,
   type PatientNotesSnapshot,
 } from '@/state/patient-notes';
 
-type AssessmentRoute =
-  | { readonly kind: 'index' }
-  | { readonly kind: 'specialty'; readonly specialtyId: string }
-  | {
-      readonly kind: 'section';
-      readonly specialtyId: string;
-      readonly sectionId: AssessmentSectionId;
-    }
-  | { readonly kind: 'assessment'; readonly slug: string; readonly recordId?: string }
-  | { readonly kind: 'result'; readonly slug: string; readonly recordId: string };
-
-function readRoute(): AssessmentRoute {
-  const parts = window.location.hash.replace(/^#\/?/u, '').split('/');
-  if (parts[0] !== 'assessments' || !parts[1]) return { kind: 'index' };
-  try {
-    const slug = decodeURIComponent(parts[1]);
-    if (findAssessmentSpecialty(slug)) {
-      const candidateSectionId = parts[2] ? decodeURIComponent(parts[2]) : undefined;
-      const section = ASSESSMENT_SECTIONS.find((item) => item.id === candidateSectionId);
-      if (section) {
-        return { kind: 'section', specialtyId: slug, sectionId: section.id };
-      }
-      return { kind: 'specialty', specialtyId: slug };
-    }
-    if (parts[2] === 'results' && parts[3]) {
-      return { kind: 'result', slug, recordId: decodeURIComponent(parts[3]) };
-    }
-    if (parts[2] === 'resume' && parts[3]) {
-      return { kind: 'assessment', slug, recordId: decodeURIComponent(parts[3]) };
-    }
-    return { kind: 'assessment', slug };
-  } catch {
-    return { kind: 'index' };
-  }
-}
-
-function assessmentPath(slug: string): string {
-  return `#/assessments/${encodeURIComponent(slug)}`;
-}
-
-function specialtyPath(specialtyId: string): string {
-  return `#/assessments/${encodeURIComponent(specialtyId)}`;
-}
-
-function sectionPath(specialtyId: string, sectionId: AssessmentSectionId): string {
-  return `${specialtyPath(specialtyId)}/${encodeURIComponent(sectionId)}`;
-}
-
-function resultPath(slug: string, recordId: string): string {
-  return `${assessmentPath(slug)}/results/${encodeURIComponent(recordId)}`;
+function filterAssessments(query: string): ReturnType<typeof searchAssessments> {
+  const catalog = getAssessmentCatalog();
+  const trimmed = query.trim();
+  if (!trimmed) return catalog;
+  return catalog.filter((assessment) =>
+    matchesFuzzyQuery(trimmed, [
+      assessment.title,
+      assessment.shortTitle,
+      assessment.description,
+      ...assessment.aliases,
+    ]),
+  );
 }
 
 export function AssessmentsView(): JSX.Element {
-  const [route, setRoute] = createSignal<AssessmentRoute>(readRoute());
+  const [route, setRoute] = createSignal<AssessmentRoute>(readAssessmentRoute());
   const [query, setQuery] = createSignal('');
   const [records, setRecords] = createSignal<readonly AssessmentRecord[]>([]);
   const [notes, setNotes] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
@@ -159,7 +135,7 @@ export function AssessmentsView(): JSX.Element {
     // Reacting to it would reset `route()` to the index and unmount the open questionnaire page,
     // silently discarding whatever answers the user had already entered.
     if (route !== '' && route !== 'assessments' && !route.startsWith('assessments/')) return;
-    setRoute(readRoute());
+    setRoute(readAssessmentRoute());
     void refreshDownloadedTools();
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -252,13 +228,29 @@ export function AssessmentsView(): JSX.Element {
     window.location.hash = hash;
   };
 
+  const installToolModule = async (moduleId: string | undefined): Promise<void> => {
+    if (!moduleId) return;
+    const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    if (runtime.listInstalled().some((item) => item.moduleId === moduleId)) return;
+    const module = MODULE_CATALOG.modules.find((entry) => entry.id === moduleId);
+    if (!module) throw new Error('Модуль инструментов не найден в каталоге.');
+    const task = runtime.install(module);
+    const completed = await runtime.wait(task.id);
+    if (completed.state !== 'completed') {
+      throw new Error('Не удалось скачать модуль инструментов.');
+    }
+    await refreshDownloadedTools();
+  };
+
   const installIds = async (
     ids: readonly string[],
     commit: () => AssessmentInstallationState,
     successMessage: string,
+    moduleId?: string,
   ): Promise<void> => {
     setMessage('Скачиваем опросник…');
     try {
+      await installToolModule(moduleId);
       await preloadAssessmentDefinitions(ids);
       setInstallation(commit());
       setMessage(successMessage);
@@ -268,10 +260,16 @@ export function AssessmentsView(): JSX.Element {
   };
 
   const installDefinition = (id: string): void => {
+    const entry = assessmentCatalog().find((definition) => definition.id === id);
+    const moduleId = entry
+      ? (moduleIdForAssessmentSection(entry.category) ??
+        moduleIdForAssessmentSpecialty(entry.bankId))
+      : undefined;
     void installIds(
       [id],
       () => installAssessmentIds([id], assessmentCatalog()),
       'Опросник скачан на устройство.',
+      moduleId,
     );
   };
   const removeDefinition = (id: string): void => {
@@ -285,12 +283,18 @@ export function AssessmentsView(): JSX.Element {
     );
   };
   const installSection = (sectionId: AssessmentSectionId): void => {
-    const ids = assessmentIdsInSection(sectionId, assessmentCatalog());
-    void installIds(
-      ids,
-      () => installAssessmentSection(sectionId, assessmentCatalog()),
-      'Раздел опросников скачан на устройство.',
-    );
+    void (async () => {
+      setMessage('Скачиваем опросник…');
+      try {
+        await installToolModule(moduleIdForAssessmentSection(sectionId));
+        const ids = assessmentIdsInSection(sectionId, assessmentCatalog());
+        await preloadAssessmentDefinitions(ids);
+        setInstallation(installAssessmentSection(sectionId, assessmentCatalog()));
+        setMessage('Раздел опросников скачан на устройство.');
+      } catch (cause) {
+        setMessage(cause instanceof Error ? cause.message : 'Не удалось скачать опросник.');
+      }
+    })();
   };
   const removeSection = (sectionId: AssessmentSectionId): void => {
     const next = removeAssessmentSection(sectionId, assessmentCatalog());
@@ -356,18 +360,18 @@ export function AssessmentsView(): JSX.Element {
       <Show when={route().kind === 'index'}>
         <AssessmentSpecialtyIndexPage
           definitions={assessmentCatalog()}
-          matches={query().trim() ? searchAssessments(query()) : []}
+          matches={query().trim() ? filterAssessments(query()) : []}
           installation={installation()}
           query={query()}
           recentRecords={records().slice(0, 8)}
           onQuery={setQuery}
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
-          onOpen={(selected) => navigate(assessmentPath(selected.slug))}
+          onOpen={(selected) => navigate(assessmentPath(selected.bankId, selected.slug))}
           onOpenRecord={(selected, selectedRecord) =>
             navigate(
               selectedRecord.kind === 'incomplete'
-                ? `${assessmentPath(selected.slug)}/resume/${encodeURIComponent(selectedRecord.id)}`
-                : resultPath(selected.slug, selectedRecord.id),
+                ? resumePath(selected.bankId, selected.slug, selectedRecord.id)
+                : resultPath(selected.bankId, selected.slug, selectedRecord.id),
             )
           }
           onInstall={(selected) => installDefinition(selected.id)}
@@ -386,7 +390,7 @@ export function AssessmentsView(): JSX.Element {
         {(specialty) => (
           <AssessmentCatalogPage
             specialty={specialty()}
-            definitions={assessmentsInSpecialty(specialty().id, searchAssessments(query()))}
+            definitions={assessmentsInSpecialty(specialty().id, filterAssessments(query()))}
             installation={installation()}
             query={query()}
             onQuery={setQuery}
@@ -395,7 +399,7 @@ export function AssessmentsView(): JSX.Element {
               navigate('#/assessments');
             }}
             onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
-            onOpen={(selected) => navigate(assessmentPath(selected.slug))}
+            onOpen={(selected) => navigate(assessmentPath(specialty().id, selected.slug))}
             onInstall={(selected) => installDefinition(selected.id)}
             onRemove={(selected) => requestDeleteDefinition(selected.id)}
             onPrint={(selected) => printDefinition(selected.id)}
@@ -416,7 +420,7 @@ export function AssessmentsView(): JSX.Element {
           <AssessmentCatalogPage
             specialty={specialty()}
             sectionId={(route() as { sectionId: AssessmentSectionId }).sectionId}
-            definitions={assessmentsInSpecialty(specialty().id, searchAssessments(query()))}
+            definitions={assessmentsInSpecialty(specialty().id, filterAssessments(query()))}
             installation={installation()}
             query={query()}
             onQuery={setQuery}
@@ -425,7 +429,7 @@ export function AssessmentsView(): JSX.Element {
               navigate(specialtyPath(specialty().id));
             }}
             onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
-            onOpen={(selected) => navigate(assessmentPath(selected.slug))}
+            onOpen={(selected) => navigate(assessmentPath(specialty().id, selected.slug))}
             onInstall={(selected) => installDefinition(selected.id)}
             onRemove={(selected) => requestDeleteDefinition(selected.id)}
             onPrint={(selected) => printDefinition(selected.id)}
@@ -469,15 +473,12 @@ export function AssessmentsView(): JSX.Element {
               ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
               selected().bankLabel
             }
-            onBack={() => {
-              if (window.history.state?.view === 'modules') window.history.back();
-              else navigate('#/assessments');
-            }}
+            onBack={() => navigate(assessmentHomePath(selected().slug))}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
             onSaved={(saved) => {
               refreshRecords();
-              navigate(resultPath(selected().slug, saved.id));
+              navigate(resultPath(selected().bankId, selected().slug, saved.id));
             }}
           />
         )}
@@ -493,34 +494,15 @@ export function AssessmentsView(): JSX.Element {
         }
       >
         {(selected) => (
-          <section class="assessment-pack-required paper-card">
-            <p class="assessment-pack-required__kicker archive-kicker">
-              {ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
-                selected().bankLabel}
-            </p>
-            <h1 class="assessment-pack-required__title">{selected().title}</h1>
-            <p class="assessment-pack-required__text">
-              Этот тест входит в скачиваемый раздел. Сначала скачайте раздел, чтобы пройти его без
-              сети.
-            </p>
-            <div class="assessment-pack-required__actions">
-              <button
-                class="assessment-pack-required__button"
-                type="button"
-                onClick={() => installDefinition(selected().id)}
-              >
-                <AppGlyph name="download" />
-                Скачать только этот тест
-              </button>
-              <button
-                class="assessment-pack-required__button"
-                type="button"
-                onClick={() => navigate('#/assessments')}
-              >
-                К разделам
-              </button>
-            </div>
-          </section>
+          <AssessmentMissingPage
+            sectionTitle={
+              ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
+              selected().bankLabel
+            }
+            title={selected().title}
+            onBack={() => navigate(assessmentHomePath(selected().slug))}
+            onInstall={() => installDefinition(selected().id)}
+          />
         )}
       </Show>
 
@@ -532,7 +514,9 @@ export function AssessmentsView(): JSX.Element {
                 definition={selectedDefinition()}
                 record={selectedRecord()}
                 notes={notes()}
-                onBack={() => navigate(assessmentPath(selectedDefinition().slug))}
+                onBack={() =>
+                  navigate(assessmentPath(selectedDefinition().bankId, selectedDefinition().slug))
+                }
                 onMessage={setMessage}
                 onNotesChanged={setNotes}
                 onDelete={() =>

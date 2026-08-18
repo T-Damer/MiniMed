@@ -23,6 +23,7 @@ export const CalculatorCategorySchema = z.enum([
   'cardiology',
   'gastroenterology',
   'hematology',
+  'neonatology',
 ]);
 
 export const CalculatorSourceReferenceSchema = z.object({

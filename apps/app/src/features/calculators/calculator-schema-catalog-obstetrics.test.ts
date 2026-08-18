@@ -1,23 +1,33 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  GYNECOLOGY_BREAST_CANCER_RISK_SCHEMA,
-  GYNECOLOGY_CERVICAL_CANCER_RISK_SCHEMA,
-  OBSTETRIC_BISHOP_SCORE_SCHEMA,
-  OBSTETRIC_EDD_CONCEPTION_SCHEMA,
-  OBSTETRIC_EDD_GIVEN_DATE_SCHEMA,
-  OBSTETRIC_EDD_LMP_SCHEMA,
-  OBSTETRIC_EDD_QUICKENING_SCHEMA,
-  OBSTETRIC_EDD_ULTRASOUND_SCHEMA,
-  OBSTETRIC_EFW_MATERNAL_ANTHROPOMETRY_SCHEMA,
-  OBSTETRIC_EFW_RUDAKOV_SCHEMA,
-  OBSTETRIC_FETAL_GROWTH_DOPPLER_SCHEMA,
-  OBSTETRIC_GA_CRL_SCHEMA,
-  OBSTETRIC_GA_FROM_EDD_SCHEMA,
-  OBSTETRIC_MATERNITY_LEAVE_SCHEMA,
-  OBSTETRIC_VBAC_ADMISSION_SCHEMA,
-  OBSTETRIC_VBAC_ANTEPARTUM_SCHEMA,
-} from '@/features/calculators/calculator-schema-catalog-obstetrics';
+import { calculatorSchemaFromModules } from '@/features/calculators/tool-module-test-helpers';
+
+const OBSTETRIC_BISHOP_SCORE_SCHEMA = calculatorSchemaFromModules('obstetric-bishop-score');
+const OBSTETRIC_GA_CRL_SCHEMA = calculatorSchemaFromModules('obstetric-ga-crl');
+const OBSTETRIC_GA_BIOMETRY_SCHEMA = calculatorSchemaFromModules('obstetric-ga-biometry');
+const OBSTETRIC_EDD_LMP_SCHEMA = calculatorSchemaFromModules('obstetric-edd-lmp');
+const OBSTETRIC_EDD_ULTRASOUND_SCHEMA = calculatorSchemaFromModules('obstetric-edd-ultrasound');
+const OBSTETRIC_EDD_CONCEPTION_SCHEMA = calculatorSchemaFromModules('obstetric-edd-conception');
+const OBSTETRIC_EDD_QUICKENING_SCHEMA = calculatorSchemaFromModules('obstetric-edd-quickening');
+const OBSTETRIC_EDD_GIVEN_DATE_SCHEMA = calculatorSchemaFromModules('obstetric-edd-given-date');
+const OBSTETRIC_GA_FROM_EDD_SCHEMA = calculatorSchemaFromModules('obstetric-ga-from-edd');
+const OBSTETRIC_MATERNITY_LEAVE_SCHEMA = calculatorSchemaFromModules('obstetric-maternity-leave');
+const OBSTETRIC_FETAL_GROWTH_DOPPLER_SCHEMA = calculatorSchemaFromModules(
+  'obstetric-fetal-growth-doppler',
+);
+const OBSTETRIC_EFW_MATERNAL_ANTHROPOMETRY_SCHEMA = calculatorSchemaFromModules(
+  'obstetric-efw-maternal-anthropometry',
+);
+const OBSTETRIC_EFW_RUDAKOV_SCHEMA = calculatorSchemaFromModules('obstetric-efw-rudakov');
+const OBSTETRIC_VBAC_ANTEPARTUM_SCHEMA = calculatorSchemaFromModules('obstetric-vbac-antepartum');
+const OBSTETRIC_VBAC_ADMISSION_SCHEMA = calculatorSchemaFromModules('obstetric-vbac-admission');
+const GYNECOLOGY_BREAST_CANCER_RISK_SCHEMA = calculatorSchemaFromModules(
+  'gynecology-breast-cancer-risk',
+);
+const GYNECOLOGY_CERVICAL_CANCER_RISK_SCHEMA = calculatorSchemaFromModules(
+  'gynecology-cervical-cancer-risk',
+);
+
 import {
   evaluateCalculatorSchema,
   toStoredCalculationResult,
@@ -29,6 +39,7 @@ import {
   calculateEddByQuickening,
   calculateEddByUltrasound,
   calculateEddForGivenDate,
+  calculateGestationalAgeByBiometry,
   calculateGestationalAgeByCrl,
   calculateGestationalAgeFromEdd,
   calculateMaternityLeaveTimeframe,
@@ -119,6 +130,45 @@ describe('gestational age by CRL (Robinson-Fleming) schema matches the hardcoded
       expect(output.value).toBe(expected.value);
       expect(output.unit).toBe(expected.unit);
     }
+  });
+});
+
+describe('gestational age by biometry (Hadlock) schema matches the hardcoded implementation', () => {
+  it('matches BPD-only input at 5 cm', () => {
+    const input = { bpdCm: 5 };
+    const legacy = calculateGestationalAgeByBiometry(input);
+    const schemaResult = evaluateCalculatorSchema(OBSTETRIC_GA_BIOMETRY_SCHEMA, input);
+    expect(legacy.ok).toBe(true);
+    expect(schemaResult.ok).toBe(true);
+    if (!legacy.ok || !schemaResult.ok || !('values' in legacy)) throw new Error('unreachable');
+    for (const [index, expected] of legacy.values.entries()) {
+      const output = schemaResult.outputs[index];
+      if (output?.kind !== 'number') throw new Error('expected a numeric output');
+      expect(output.value).toBe(expected.value);
+      expect(output.unit).toBe(expected.unit);
+    }
+  });
+
+  it('matches all four parameters at mid-range values', () => {
+    const input = { bpdCm: 6.25, hcCm: 23, acCm: 23, flCm: 4.75 };
+    const legacy = calculateGestationalAgeByBiometry(input);
+    const schemaResult = evaluateCalculatorSchema(OBSTETRIC_GA_BIOMETRY_SCHEMA, input);
+    expect(legacy.ok).toBe(true);
+    expect(schemaResult.ok).toBe(true);
+    if (!legacy.ok || !schemaResult.ok || !('values' in legacy)) throw new Error('unreachable');
+    for (const [index, expected] of legacy.values.entries()) {
+      const output = schemaResult.outputs[index];
+      if (output?.kind !== 'number') throw new Error('expected a numeric output');
+      expect(output.value).toBe(expected.value);
+      expect(output.unit).toBe(expected.unit);
+    }
+  });
+
+  it('rejects empty inputs via assertion, same as the hardcoded implementation', () => {
+    const legacy = calculateGestationalAgeByBiometry({});
+    const schemaResult = evaluateCalculatorSchema(OBSTETRIC_GA_BIOMETRY_SCHEMA, {});
+    expect(legacy.ok).toBe(false);
+    expect(schemaResult.ok).toBe(false);
   });
 });
 

@@ -1,7 +1,7 @@
 import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 import type { MedicalStore } from '@localmed/storage';
 
-import { ASSESSMENT_CATALOG } from '@/features/assessments/assessment-catalog';
+import { getAssessmentCatalog } from '@/features/assessments/assessment-catalog';
 import { resolveDeclaredAssessmentDependencies } from '@/features/assessments/assessment-module-manifest';
 import { getActiveContentModuleCatalog } from '@/features/modules/catalog-service';
 import { assessmentIdsReferencedInText } from '@/features/tool-links/document-tool-links';
@@ -16,7 +16,10 @@ export interface AssessmentDependencyScanOptions {
 }
 
 const MAX_PARALLEL_DOCUMENT_READS = 4;
-const KNOWN_ASSESSMENT_COUNT = ASSESSMENT_CATALOG.length;
+
+function knownAssessmentCount(): number {
+  return getAssessmentCatalog().length;
+}
 
 function collectAssessmentIds(text: string, target: Set<string>): void {
   for (const id of assessmentIdsReferencedInText(text)) target.add(id);
@@ -58,7 +61,7 @@ async function declaredDependencies(
   if (descriptor?.kind !== 'clinical') return null;
 
   try {
-    return resolveDeclaredAssessmentDependencies(descriptor.tags, ASSESSMENT_CATALOG);
+    return resolveDeclaredAssessmentDependencies(descriptor.tags, getAssessmentCatalog());
   } catch (cause) {
     reportDeclarationError(options, moduleId, cause);
     return null;
@@ -78,17 +81,21 @@ export async function findAssessmentDependenciesInStore(
   for (const document of documents) {
     collectAssessmentIds([document.title, document.shortTitle ?? ''].join('\n'), assessmentIds);
   }
-  if (assessmentIds.size >= KNOWN_ASSESSMENT_COUNT) return [...assessmentIds].toSorted();
+  if (knownAssessmentCount() > 0 && assessmentIds.size >= knownAssessmentCount()) {
+    return [...assessmentIds].toSorted();
+  }
 
   let nextDocumentIndex = 0;
   const scanDocuments = async (): Promise<void> => {
-    while (nextDocumentIndex < documents.length && assessmentIds.size < KNOWN_ASSESSMENT_COUNT) {
+    const targetCount = knownAssessmentCount();
+    while (nextDocumentIndex < documents.length) {
+      if (targetCount > 0 && assessmentIds.size >= targetCount) return;
       const document = documents[nextDocumentIndex++];
       if (!document) return;
       const chunks = await store.getChunksByDocument(document.id);
       for (const chunk of chunks) {
         collectAssessmentIds(chunk.originalText, assessmentIds);
-        if (assessmentIds.size >= KNOWN_ASSESSMENT_COUNT) return;
+        if (targetCount > 0 && assessmentIds.size >= targetCount) return;
       }
     }
   };

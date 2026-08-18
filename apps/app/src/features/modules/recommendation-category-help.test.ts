@@ -29,6 +29,7 @@ describe('recommendation-category-help', () => {
         installedCount: 5,
         pendingCount: 32,
         downloadBytes: 12_000_000,
+        installedBytes: 4_000_000,
       },
       (value) => `${value} B`,
     );

@@ -1,8 +1,11 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 
+export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
+
 export interface DocumentLinkPhrase {
   readonly phrase: string;
   readonly documentId: string;
+  readonly kind: DocumentInlineLinkKind;
 }
 
 export type MedicationLinkPhrase = DocumentLinkPhrase;
@@ -14,7 +17,29 @@ export type DocumentTextBlock =
 
 export type LinkedTextSegment =
   | { readonly kind: 'text'; readonly value: string }
-  | { readonly kind: 'link'; readonly value: string; readonly documentId: string };
+  | {
+      readonly kind: 'link';
+      readonly value: string;
+      readonly documentId: string;
+      readonly linkKind: DocumentInlineLinkKind;
+    };
+
+function linkKindForSourceType(
+  sourceType: MedicalDocumentSummary['sourceType'],
+): DocumentInlineLinkKind {
+  switch (sourceType) {
+    case 'official_registry_summary':
+      return 'medication';
+    case 'clinical_recommendation_summary':
+      return 'recommendation';
+    case 'regulatory_act':
+    case 'medical_reference':
+    case 'rls_mkb_reference':
+      return 'document';
+    default:
+      return 'document';
+  }
+}
 
 function sourceSpanLeft(sourceSpans: unknown, index: number): number | undefined {
   if (!Array.isArray(sourceSpans)) return undefined;
@@ -116,7 +141,7 @@ export function buildMedicationLinkPhrases(
       const key = normalizePhrase(phrase);
       if (!key || seen.has(key)) continue;
       seen.add(key);
-      phrases.push({ phrase, documentId: document.id });
+      phrases.push({ phrase, documentId: document.id, kind: 'medication' });
     }
   }
 
@@ -152,7 +177,11 @@ export function buildDocumentLinkPhrases(
       const key = normalizePhrase(phrase);
       if (!key || seen.has(key)) continue;
       seen.add(key);
-      phrases.push({ phrase, documentId: document.id });
+      phrases.push({
+        phrase,
+        documentId: document.id,
+        kind: linkKindForSourceType(document.sourceType),
+      });
     }
   }
 
@@ -174,6 +203,7 @@ export function segmentTextWithMedicationLinks(
       readonly start: number;
       readonly end: number;
       readonly documentId: string;
+      readonly linkKind: DocumentInlineLinkKind;
     } | null = null;
 
     for (const link of links) {
@@ -191,6 +221,7 @@ export function segmentTextWithMedicationLinks(
           start: absoluteStart,
           end: absoluteEnd,
           documentId: link.documentId,
+          linkKind: link.kind,
         };
       }
     }
@@ -207,6 +238,7 @@ export function segmentTextWithMedicationLinks(
       kind: 'link',
       value: text.slice(bestMatch.start, bestMatch.end),
       documentId: bestMatch.documentId,
+      linkKind: bestMatch.linkKind,
     });
     cursor = bestMatch.end;
   }

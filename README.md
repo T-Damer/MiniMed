@@ -25,6 +25,8 @@ official medication-registry identity records. These cards are enough to test re
 not complete clinical sources. In particular, the installed pilot does not contain verified dosing
 regimens.
 
+[![GitHub Releases](https://img.shields.io/badge/GitHub%20Releases-Check%20latest-181717?logo=github&style=for-the-badge&logoColor=white)](https://github.com/T-Damer/MiniMed/releases)
+
 See [PRODUCT.md](docs/PRODUCT.md) for the product contract,
 [CURRENT_STATE.md](docs/CURRENT_STATE.md) for implemented status, and
 [TECHNICAL_PLAN.md](docs/TECHNICAL_PLAN.md) for the ordered plan.

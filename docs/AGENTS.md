@@ -7,8 +7,9 @@ roadmap ideas.
 
 - Primary browser navigation: search, knowledge base/documents, settings.
 - Search history belongs beside search, not in a separate top-level page.
-- Search task scopes: diagnosis, clinical recommendations, medications, legal documents, and all
-  sources without diagnostic model assistance.
+- Search task scopes: diagnosis, clinical recommendations, medications, legal documents, all sources
+  without diagnostic model assistance, and personal («Ваши данные») for local notes and uploaded
+  books only.
 - Deterministic local search remains complete without a model. Only diagnosis may use the optional
   grounded local-model wrapper.
 - Personal notes and future transcription are a separate local trust layer; never present them as an
@@ -21,14 +22,21 @@ roadmap ideas.
 - The knowledge-base button carries two counters: available documents (yellow, top left) and
   installed documents (green, bottom right). Neither resets on view change.
 - Search history opens from a floating button as a drawer, never as a route or a side column.
-- There are four sections: search, knowledge base, notes, settings. Personal notes are their own
-  section, and personal matches in search render outside the official results container so a
-  local record can never pass as installed content — in the DOM or on screen.
+- There are six primary sections: search, knowledge base, assessments, calculators, notes, and
+  settings. Personal notes are their own section, and personal matches in search render outside the
+  official results container so a local record can never pass as installed content — in the DOM or on
+  screen.
 - The download status card floats above the views, so progress stays visible on every tab.
 - Keep the layout compact: prefer expandable blocks over tall cards, and do not reintroduce large
   padding around central blocks.
 - Sizes are rem-based (16px root): write new CSS in rem. Hairline 1px borders, the 999px
   fully-round radius sentinel, and media-query breakpoints stay in px.
+- Put `:hover` styles only inside `@media (hover: hover) and (pointer: fine)` so touch taps do
+  not leave a lingering hover wash on controls.
+- Native routes with sticky blurred chrome (search tools, document/medication headings, document read
+  breadcrumbs) extend blur under the status bar via `.app-shell--native:has(...)` on existing markers such as
+  `.route-sticky-chrome.sticky-surface--stuck`, `.module-catalog-heading.sticky-surface--stuck`,
+  `.medication-route-heading.sticky-surface--stuck`, and `.search-home__backdrop-blur--visible`.
 
 ## Downloads and models
 

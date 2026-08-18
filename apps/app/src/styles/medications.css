@@ -1,9 +1,9 @@
 .medication-page {
-  --medication-source-header-top: calc(var(--safe-top) + 3.5rem);
-  --medication-section-title-top: calc(var(--safe-top) + 6.375rem);
+  --medication-source-header-top: calc(var(--safe-top) + 3.75rem);
+  --medication-section-title-top: calc(var(--safe-top) + 6.625rem);
   --medication-sticky-blur-height: 7rem;
-  min-height: calc(100dvh - 3.25rem - var(--safe-top) - var(--safe-bottom));
-  padding-bottom: calc(1.5rem + var(--safe-bottom));
+  min-height: 0;
+  padding-bottom: 0;
   color: var(--theme-text);
 }
 
@@ -25,11 +25,16 @@
   z-index: 20;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 0.625rem 0.875rem;
-  padding-top: calc(var(--safe-top) + 0.5rem);
+  gap: 0.625rem 0.75rem;
+  margin-top: calc(-1 * var(--safe-top));
+  padding-top: calc(var(--safe-top) + 0.75rem);
   padding-bottom: 0.5rem;
   padding-inline: 0.15rem;
   border-radius: var(--theme-radius-panel);
+}
+
+.platform-android .medication-route-heading {
+  padding-top: calc(var(--safe-top) + 0.45rem);
 }
 
 .medication-page__sticky-item--stacked {
@@ -41,7 +46,9 @@
 }
 
 .medication-route-heading__title {
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 42%;
   margin: 0;
   overflow: hidden;
   color: var(--theme-text);
@@ -54,7 +61,8 @@
 }
 
 .medication-route-heading__search {
-  flex: 1 1 16rem;
+  flex: 2 1 10rem;
+  min-width: 0;
 }
 
 .medication-catalog-section,
@@ -73,13 +81,11 @@
 }
 
 .medication-grid {
-  /* Single column: WindowVirtualizer positions items in one absolutely-positioned vertical flow and
-     cannot measure a multi-column grid. Without virtualizing, unhiding this ~4700-card list (kept
-     mounted-but-hidden behind the detail view for instant "back" navigation) forced a full relayout
-     of every card at once, which was the actual source of the navigation lag. */
+  /* WindowVirtualizer cannot measure CSS multi-column grids, so rows are chunked in
+     LayoutVirtualizedGrid using --layout-cols from breakpoints.css. */
   display: grid;
   min-width: 0;
-  gap: 0.75rem;
+  gap: var(--layout-gap);
 }
 
 .medication-product-card {
@@ -501,16 +507,8 @@
 }
 
 @media (max-width: 640px) {
-  .medication-route-heading {
-    flex-wrap: wrap;
-  }
-
   .medication-route-heading__title {
-    flex: 1 1 auto;
-  }
-
-  .medication-route-heading__search {
-    flex-basis: 100%;
+    max-width: 38%;
   }
 
   .medication-variant-grid,

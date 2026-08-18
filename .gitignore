@@ -50,6 +50,19 @@ apps/app/public/content/medications.db
 # Local-dev ICD-10 reference pack built from RLS HTML.
 apps/app/public/content/mkb.db
 
+# Optional companion databases and module packs must not ship in dist/APK builds.
+apps/app/dist/content/medications.db
+apps/app/dist/content/mkb.db
+apps/app/dist/content/ambulatory.db
+apps/app/dist/content/regulatory.db
+apps/app/dist/content/reference.db
+apps/app/dist/content/reference-report.json
+apps/app/dist/content/regulatory-report.json
+apps/app/dist/content/modules/
+
+# Tesseract traineddata downloaded locally for same-origin OCR (see apps/app/vite.config.ts)
+apps/app/public/tessdata/*.gz
+
 # Personal medical study library (12GB+, not app source)
 Med/
 

@@ -69,8 +69,34 @@ function defaultFetcher(
   return fetch(url, { headers: init.headers });
 }
 
-function messageFromCause(cause: unknown): string {
-  return cause instanceof Error ? cause.message : 'Не удалось обновить каталог модулей.';
+export function catalogLoadWarningFromCause(cause: unknown): string {
+  if (isCatalogValidationFailure(cause)) {
+    return 'Удалённый каталог не прошёл проверку; используется встроенный.';
+  }
+  if (cause instanceof Error && cause.message.trim().length > 0) {
+    if (looksLikeSerializedZodIssues(cause.message)) {
+      return 'Удалённый каталог не прошёл проверку; используется встроенный.';
+    }
+    return cause.message;
+  }
+  return 'Не удалось обновить каталог модулей.';
+}
+
+function isCatalogValidationFailure(cause: unknown): boolean {
+  return (
+    typeof cause === 'object' &&
+    cause !== null &&
+    'name' in cause &&
+    (cause as { name: unknown }).name === 'ZodError' &&
+    'issues' in cause &&
+    Array.isArray((cause as { issues: unknown }).issues)
+  );
+}
+
+function looksLikeSerializedZodIssues(message: string): boolean {
+  const trimmed = message.trim();
+  if (!trimmed.startsWith('[')) return false;
+  return trimmed.includes('"code"') && trimmed.includes('"path"');
 }
 
 function catalogIsNewer(candidate: ContentModuleCatalog, baseline: ContentModuleCatalog): boolean {
@@ -131,7 +157,7 @@ export async function loadContentModuleCatalog(
       warning: remoteIsOlder ? 'Удалённый каталог устарел; используется встроенный.' : null,
     };
   } catch (cause) {
-    const warning = messageFromCause(cause);
+    const warning = catalogLoadWarningFromCause(cause);
     if (cached) {
       return {
         catalog: cached.catalog,

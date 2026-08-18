@@ -24,7 +24,9 @@ const MAX_HISTORY = 40;
 const responseCache = new Map<string, SearchResponse>();
 
 function isScope(value: unknown): value is SearchScope {
-  return ['diagnosis', 'guidelines', 'medications', 'legal', 'all'].includes(String(value));
+  return ['diagnosis', 'guidelines', 'medications', 'legal', 'all', 'personal'].includes(
+    String(value),
+  );
 }
 
 function isHistoryEntry(value: unknown): value is SearchHistoryEntry {

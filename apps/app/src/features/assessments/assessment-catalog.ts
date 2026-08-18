@@ -50,6 +50,16 @@ export const ASSESSMENT_SPECIALTIES: readonly AssessmentSpecialty[] = [
     title: 'Гастроэнтерология',
     description: 'Опросники симптомов и качества жизни при заболеваниях ЖКТ.',
   },
+  {
+    id: 'neonatology',
+    title: 'Неонатология',
+    description: 'Шкалы наблюдения и оценки состояния новорождённых.',
+  },
+  {
+    id: 'emergency',
+    title: 'Неотложная помощь',
+    description: 'Краткие шкалы для первичной оценки в неотложных состояниях.',
+  },
 ];
 
 export function findAssessmentSpecialty(id: string): AssessmentSpecialty | undefined {
@@ -63,256 +73,62 @@ export function assessmentsInSpecialty(
   return definitions.filter((definition) => definition.bankId === specialtyId);
 }
 
-type AssessmentLoader = () => Promise<AssessmentDefinition>;
-
-export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [
-  {
-    id: 'minimed.assessment.braverman-behavioral',
-    slug: 'braverman-behavioral-profile',
-    title: 'Тест Бравермана — поведенческий профиль',
-    shortTitle: 'Профиль Бравермана',
-    aliases: [
-      'тест Бравермана',
-      'Braverman test',
-      'нейромедиаторный профиль',
-      'дофамин серотонин ГАМК ацетилхолин',
-    ],
-    bankId: 'psychology',
-    bankLabel: 'Психология и психодиагностика',
-    category: 'self-reflection',
-    description:
-      'Образовательный самоопросник по популярной модели Бравермана и её четырём поведенческим кластерам: дофамин, ацетилхолин, ГАМК и серотонин.',
-    estimatedMinutes: 6,
-    audience: 'Взрослые; образовательная саморефлексия',
-  },
-  {
-    id: 'minimed.assessment.egogram',
-    slug: 'personal-egogram',
-    title: 'Личная эгопрограмма',
-    shortTitle: 'Эгопрограмма',
-    aliases: [
-      'личная эгограмма',
-      'эгограмма',
-      'эго-состояния Берна',
-      'Родитель Взрослый Ребёнок',
-      'transactional analysis egogram',
-    ],
-    bankId: 'psychology',
-    bankLabel: 'Психология и психодиагностика',
-    category: 'self-reflection',
-    description:
-      'Самооценка пяти функциональных эго-состояний транзактного анализа: Критический Родитель, Заботливый Родитель, Взрослый, Свободный Ребёнок и Адаптированный Ребёнок.',
-    estimatedMinutes: 7,
-    audience: 'Взрослые; саморефлексия и обсуждение с психологом',
-  },
-  {
-    id: 'minimed.assessment.paei',
-    slug: 'paei-work-style',
-    title: 'PAEI — профиль рабочего стиля',
-    shortTitle: 'PAEI',
-    aliases: [
-      'PAEI',
-      'стили Адизеса',
-      'Producer Administrator Entrepreneur Integrator',
-      'стиль управления',
-    ],
-    bankId: 'psychology',
-    bankLabel: 'Психология и психодиагностика',
-    category: 'work-style',
-    description:
-      'Неформальный профиль по управленческой рамке Адизеса и четырём рабочим функциям: достижение результата, администрирование, предпринимательское изменение и интеграция людей.',
-    estimatedMinutes: 6,
-    audience: 'Взрослые; работа, обучение и управление',
-  },
-  {
-    id: 'minimed.assessment.team-roles',
-    slug: 'team-role-profile',
-    title: 'Командные роли — профиль в духе Белбина',
-    shortTitle: 'Командные роли',
-    aliases: [
-      'тест Белбина',
-      'роли Белбина',
-      'Belbin',
-      'командные роли',
-      'генератор идей координатор аналитик',
-    ],
-    bankId: 'psychology',
-    bankLabel: 'Психология и психодиагностика',
-    category: 'team-role',
-    description:
-      'Неформальный профиль девяти способов участия в команде, сопоставленных с моделью командных ролей Белбина. Он помогает обсудить вклад человека, но не является официальным Belbin Self-Perception Inventory.',
-    estimatedMinutes: 9,
-    audience: 'Взрослые; команды, обучение и управление',
-  },
-  {
-    id: 'minimed.assessment.temperament',
-    slug: 'temperament-profile',
-    title: 'Тест на темперамент',
-    shortTitle: 'Темперамент',
-    aliases: [
-      'тест на темперамент',
-      'сангвиник холерик флегматик меланхолик',
-      'темперамент Айзенка',
-      'extraversion emotional stability',
-    ],
-    bankId: 'psychology',
-    bankLabel: 'Психология и психодиагностика',
-    category: 'temperament',
-    description:
-      'Краткий профиль по двум измерениям — экстраверсии и эмоциональной устойчивости. Для привычного языка результат дополнительно сопоставляется с четырьмя классическими темпераментами.',
-    estimatedMinutes: 5,
-    audience: 'Подростки старшего возраста и взрослые; образовательная саморефлексия',
-  },
-  {
-    id: 'minimed.assessment.apgar',
-    slug: 'apgar-newborn-score',
-    title: 'Шкала Апгар — оценка новорождённого',
-    shortTitle: 'Шкала Апгар',
-    aliases: ['Апгар', 'Apgar score', 'оценка новорождённого', 'шкала Апгар'],
-    bankId: 'obstetrics',
-    bankLabel: 'Акушерство и гинекология',
-    category: 'newborn-screening',
-    description:
-      'Стандартная клиническая шкала Вирджинии Апгар (1952) для быстрой оценки состояния новорождённого сразу после рождения по пяти признакам.',
-    estimatedMinutes: 1,
-    audience: 'Для медицинского персонала; оценивает врач или акушерка, а не пациент(ка)',
-  },
-  {
-    id: 'minimed.assessment.epds',
-    slug: 'postnatal-mood-epds',
-    title: 'Эдинбургская шкала послеродовой депрессии (EPDS)',
-    shortTitle: 'Шкала EPDS',
-    aliases: [
-      'EPDS',
-      'Edinburgh Postnatal Depression Scale',
-      'эдинбургская шкала',
-      'послеродовая депрессия',
-      'перинатальная депрессия',
-    ],
-    bankId: 'obstetrics',
-    bankLabel: 'Акушерство и гинекология',
-    category: 'perinatal-mood',
-    description:
-      'Стандартный скрининговый опросник из 10 пунктов для выявления признаков депрессии у женщин во время беременности и после родов, основанный на самочувствии за последние 7 дней.',
-    estimatedMinutes: 4,
-    audience: 'Женщины в период беременности и в первый год после родов',
-  },
-  {
-    id: 'minimed.assessment.ferriman-gallwey',
-    slug: 'ferriman-gallwey-hirsutism',
-    title: 'Модифицированная шкала Ферримана–Голлвея (гирсутизм)',
-    shortTitle: 'Шкала Ферримана–Голлвея',
-    aliases: [
-      'Ferriman-Gallwey',
-      'шкала гирсутизма',
-      'модифицированная шкала Ферримана-Голлвея',
-      'оценка гирсутизма',
-    ],
-    bankId: 'obstetrics',
-    bankLabel: 'Акушерство и гинекология',
-    category: 'gynecologic-endocrinology',
-    description:
-      'Стандартная клиническая шкала для оценки выраженности гирсутизма по девяти областям тела; используется в диагностике синдрома поликистозных яичников и других причин гиперандрогении.',
-    estimatedMinutes: 3,
-    audience: 'Для медицинского персонала; оценивает врач по результатам осмотра',
-  },
-  {
-    id: 'minimed.assessment.whooley',
-    slug: 'perinatal-mood-whooley',
-    title: 'Скрининг настроения Whooley (2 вопроса)',
-    shortTitle: 'Скрининг Whooley',
-    aliases: [
-      'Whooley questions',
-      'вопросы Whooley',
-      'краткий скрининг депрессии',
-      'скрининг настроения',
-    ],
-    bankId: 'obstetrics',
-    bankLabel: 'Акушерство и гинекология',
-    category: 'perinatal-mood',
-    description:
-      'Сверхкороткий скрининг из двух вопросов для быстрой первичной оценки сниженного настроения во время беременности и после родов.',
-    estimatedMinutes: 1,
-    audience: 'Женщины в период беременности и в первый год после родов',
-  },
-];
-
-const ASSESSMENT_LOADERS: Readonly<Record<string, AssessmentLoader>> = {
-  'minimed.assessment.braverman-behavioral': () =>
-    import('@/features/assessments/braverman-assessment').then(
-      (module) => module.BRAVERMAN_ASSESSMENT,
-    ),
-  'minimed.assessment.egogram': () =>
-    import('@/features/assessments/egogram-assessment').then((module) => module.EGOGRAM_ASSESSMENT),
-  'minimed.assessment.paei': () =>
-    import('@/features/assessments/paei-assessment').then((module) => module.PAEI_ASSESSMENT),
-  'minimed.assessment.team-roles': () =>
-    import('@/features/assessments/team-roles-assessment').then(
-      (module) => module.TEAM_ROLES_ASSESSMENT,
-    ),
-  'minimed.assessment.temperament': () =>
-    import('@/features/assessments/temperament-assessment').then(
-      (module) => module.TEMPERAMENT_ASSESSMENT,
-    ),
-  'minimed.assessment.apgar': () =>
-    import('@/features/assessments/apgar-assessment').then((module) => module.APGAR_ASSESSMENT),
-  'minimed.assessment.epds': () =>
-    import('@/features/assessments/epds-assessment').then((module) => module.EPDS_ASSESSMENT),
-  'minimed.assessment.ferriman-gallwey': () =>
-    import('@/features/assessments/ferriman-gallwey-assessment').then(
-      (module) => module.FERRIMAN_GALLWEY_ASSESSMENT,
-    ),
-  'minimed.assessment.whooley': () =>
-    import('@/features/assessments/whooley-assessment').then((module) => module.WHOOLEY_ASSESSMENT),
-};
+export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [];
 
 const definitionPromises = new Map<string, Promise<AssessmentDefinition>>();
 const downloadedAssessments = new Map<string, AssessmentDefinition>();
 
 export function clearDownloadedAssessments(): void {
   downloadedAssessments.clear();
-  for (const id of definitionPromises.keys()) {
-    if (!ASSESSMENT_CATALOG.some((entry) => entry.id === id)) definitionPromises.delete(id);
-  }
+  definitionPromises.clear();
 }
 
 export function getAssessmentCatalog(): readonly AssessmentCatalogEntry[] {
-  return [
-    ...ASSESSMENT_CATALOG.filter((entry) => !downloadedAssessments.has(entry.id)),
-    ...[...downloadedAssessments.values()].map((definition) => ({
-      id: definition.id,
-      slug: definition.slug,
-      title: definition.title,
-      shortTitle: definition.shortTitle,
-      aliases: definition.aliases,
-      bankId: definition.bankId,
-      bankLabel: definition.bankLabel,
-      category: definition.category,
-      description: definition.description,
-      estimatedMinutes: definition.estimatedMinutes,
-      audience: definition.audience,
-    })),
-  ];
+  return [...downloadedAssessments.values()].map((definition) => ({
+    id: definition.id,
+    slug: definition.slug,
+    title: definition.title,
+    shortTitle: definition.shortTitle,
+    aliases: definition.aliases,
+    bankId: definition.bankId,
+    bankLabel: definition.bankLabel,
+    category: definition.category,
+    description: definition.description,
+    estimatedMinutes: definition.estimatedMinutes,
+    audience: definition.audience,
+  }));
 }
 
 export function registerDownloadedAssessment(record: ToolDefinitionRecord): void {
   if (record.kind !== 'assessment') return;
   const parsed = AssessmentDefinitionSchema.parse(record.definition);
   if (parsed.id !== record.id) throw new Error(`Assessment payload does not match ${record.id}.`);
+  const { interpretations, license, questions, ...rest } = parsed;
   const definition: AssessmentDefinition = {
-    ...parsed,
+    ...rest,
     license: {
-      kind: parsed.license.kind,
-      notice: parsed.license.notice,
-      ...(parsed.license.sourceUrl ? { sourceUrl: parsed.license.sourceUrl } : {}),
+      kind: license.kind,
+      notice: license.notice,
+      ...(license.sourceUrl ? { sourceUrl: license.sourceUrl } : {}),
     },
-    questions: parsed.questions.map((question) => ({
+    questions: questions.map((question) => ({
       id: question.id,
       prompt: question.prompt,
       scaleId: question.scaleId,
       ...(question.reverse === true ? { reverse: true as const } : {}),
       ...(question.responseOptions ? { responseOptions: question.responseOptions } : {}),
     })),
+    ...(interpretations
+      ? {
+          interpretations: interpretations.map((band) => ({
+            minScore: band.minScore,
+            maxScore: band.maxScore,
+            headline: band.headline,
+            message: band.message,
+            ...(band.scaleId ? { scaleId: band.scaleId } : {}),
+          })),
+        }
+      : {}),
     sourceLinks: record.sources,
   };
   downloadedAssessments.set(record.id, definition);
@@ -320,11 +136,7 @@ export function registerDownloadedAssessment(record: ToolDefinitionRecord): void
 }
 
 export function findAssessmentById(id: string): AssessmentCatalogEntry | undefined {
-  const downloaded = downloadedAssessments.get(id);
-  if (downloaded) {
-    return getAssessmentCatalog().find((assessment) => assessment.id === downloaded.id);
-  }
-  return ASSESSMENT_CATALOG.find((assessment) => assessment.id === id);
+  return getAssessmentCatalog().find((assessment) => assessment.id === id);
 }
 
 export function findAssessmentBySlug(slug: string): AssessmentCatalogEntry | undefined {
@@ -355,19 +167,10 @@ export function loadAssessmentDefinition(idOrSlug: string): Promise<AssessmentDe
   const existing = definitionPromises.get(entry.id);
   if (existing) return existing;
   const downloaded = downloadedAssessments.get(entry.id);
-  if (downloaded) {
-    const promise = Promise.resolve(validateLoadedDefinition(entry, downloaded));
-    definitionPromises.set(entry.id, promise);
-    return promise;
+  if (!downloaded) {
+    return Promise.reject(new Error(`Assessment payload is unavailable: ${entry.id}.`));
   }
-  const loader = ASSESSMENT_LOADERS[entry.id];
-  if (!loader) return Promise.reject(new Error(`Assessment payload is unavailable: ${entry.id}.`));
-  const promise = loader()
-    .then((definition) => validateLoadedDefinition(entry, definition))
-    .catch((cause: unknown) => {
-      definitionPromises.delete(entry.id);
-      throw cause;
-    });
+  const promise = Promise.resolve(validateLoadedDefinition(entry, downloaded));
   definitionPromises.set(entry.id, promise);
   return promise;
 }

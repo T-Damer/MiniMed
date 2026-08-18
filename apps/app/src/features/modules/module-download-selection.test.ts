@@ -45,18 +45,76 @@ function module(id: string): ContentModuleCatalogEntry {
   };
 }
 
-describe('selectBulkDownloadModules', () => {
-  it('selects recommendation modules when the recommendation browser is open', () => {
-    const recommendations = [module('recommendation')];
-    const regular = [module('regular')];
+function baseInput(
+  overrides: Partial<Parameters<typeof selectBulkDownloadModules>[0]> = {},
+): Parameters<typeof selectBulkDownloadModules>[0] {
+  const recommendations = [module('recommendation')];
+  const regular = [module('regular')];
+  return {
+    coreLibraryOpen: false,
+    regularCollection: '',
+    recommendationBrowserOpen: false,
+    recommendationCategory: '',
+    catalogQuery: '',
+    recommendationModules: recommendations,
+    regularModules: regular,
+    filteredRecommendationModules: recommendations,
+    regularSectionModules: (section) =>
+      section === 'reference' ? [module('reference-section')] : regular,
+    categoryModules: (categoryId) =>
+      categoryId === 'cardiology' ? [module('cardiology')] : recommendations,
+    ...overrides,
+  };
+}
 
-    expect(selectBulkDownloadModules(true, recommendations, regular)).toBe(recommendations);
+describe('selectBulkDownloadModules', () => {
+  it('returns nothing on the core library page', () => {
+    expect(selectBulkDownloadModules(baseInput({ coreLibraryOpen: true }))).toEqual([]);
   });
 
-  it('selects regular modules outside the recommendation browser', () => {
-    const recommendations = [module('recommendation')];
-    const regular = [module('regular')];
+  it('scopes to the open regular collection', () => {
+    const scoped = selectBulkDownloadModules(baseInput({ regularCollection: 'reference' }));
+    expect(scoped.map((entry) => entry.id)).toEqual(['reference-section']);
+  });
 
-    expect(selectBulkDownloadModules(false, recommendations, regular)).toBe(regular);
+  it('scopes to all recommendation modules on the recommendations overview', () => {
+    const recommendations = [module('recommendation-a'), module('recommendation-b')];
+    expect(
+      selectBulkDownloadModules(
+        baseInput({
+          recommendationBrowserOpen: true,
+          recommendationModules: recommendations,
+        }),
+      ),
+    ).toBe(recommendations);
+  });
+
+  it('scopes to the active recommendation category', () => {
+    const scoped = selectBulkDownloadModules(
+      baseInput({
+        recommendationBrowserOpen: true,
+        recommendationCategory: 'cardiology',
+      }),
+    );
+    expect(scoped.map((entry) => entry.id)).toEqual(['cardiology']);
+  });
+
+  it('scopes to filtered recommendation search results', () => {
+    const filtered = [module('search-hit')];
+    expect(
+      selectBulkDownloadModules(
+        baseInput({
+          recommendationBrowserOpen: true,
+          recommendationCategory: 'cardiology',
+          catalogQuery: 'angina',
+          filteredRecommendationModules: filtered,
+        }),
+      ),
+    ).toBe(filtered);
+  });
+
+  it('scopes to regular modules on the documents overview', () => {
+    const regular = [module('regular')];
+    expect(selectBulkDownloadModules(baseInput({ regularModules: regular }))).toBe(regular);
   });
 });

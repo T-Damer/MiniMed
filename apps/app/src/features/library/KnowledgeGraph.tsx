@@ -1,5 +1,5 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
-import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
+import { createEffect, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { type GraphTone, graphToneForSourceType } from '@/features/library/graph-tones';
 import { browserI18n } from '@/i18n/browser-i18n';
@@ -9,6 +9,8 @@ interface KnowledgeGraphProps {
   readonly documents: readonly MedicalDocumentSummary[];
   readonly selectedId: string | undefined;
   readonly onSelect: (id: string) => void;
+  readonly variant?: 'standalone' | 'dialog';
+  readonly simulationActive?: boolean;
 }
 
 type GraphNodeKind = 'domain' | 'document';
@@ -40,13 +42,32 @@ interface Point {
 
 const OTHER_DOCUMENTS_DOMAIN = '__other_documents__';
 
-const TONES: Readonly<Record<GraphTone, { readonly fill: string; readonly stroke: string }>> = {
-  clinical: { fill: '#d9e6d2', stroke: '#4d755a' },
-  drug: { fill: '#d9e8ed', stroke: '#3d7282' },
-  legal: { fill: '#f1dfc4', stroke: '#986e35' },
-  notes: { fill: '#ead9e5', stroke: '#925a78' },
-  other: { fill: '#fbf7ea', stroke: '#655e51' },
+interface GraphTheme {
+  readonly text: string;
+  readonly graphStroke: string;
+  readonly danger: string;
+}
+
+const TONES: Readonly<Record<GraphTone, { readonly fill: string }>> = {
+  clinical: { fill: '#d9e6d2' },
+  drug: { fill: '#d9e8ed' },
+  legal: { fill: '#f1dfc4' },
+  notes: { fill: '#ead9e5' },
+  other: { fill: '#fbf7ea' },
 };
+
+function readCssVar(element: Element, name: string, fallback: string): string {
+  const value = getComputedStyle(element).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+function readGraphTheme(canvas: HTMLCanvasElement): GraphTheme {
+  return {
+    text: readCssVar(canvas, '--theme-text', '#292720'),
+    graphStroke: readCssVar(canvas, '--theme-graph-stroke', '#817a6d'),
+    danger: readCssVar(canvas, '--theme-danger', '#87453c'),
+  };
+}
 
 /* Every medical area gets its own fill; a document in several areas is drawn as a pie of them.
    The palette is muted to sit on the paper theme, and the color is chosen by hashing the specialty
@@ -156,10 +177,14 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let hoveredNodeId: string | null = null;
   let moved = false;
   let simulationActive = true;
+  let animationFrameActive = true;
 
   const wakeSimulation = (): void => {
     simulationActive = true;
   };
+
+  const shouldSimulate = (): boolean =>
+    animationFrameActive && props.simulationActive !== false && simulationActive;
 
   const resize = (): void => {
     if (!canvas) return;
@@ -261,6 +286,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     if (!canvas) return;
     const context = canvas.getContext('2d');
     if (!context) return;
+    const theme = readGraphTheme(canvas);
     context.clearRect(0, 0, width, height);
     context.save();
     context.translate(width / 2 + panX, height / 2 + panY);
@@ -268,7 +294,8 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
 
     const byId = new Map(nodes.map((node) => [node.id, node] as const));
     context.lineWidth = 1 / scale;
-    context.strokeStyle = 'rgba(72, 68, 58, 0.24)';
+    context.strokeStyle = theme.graphStroke;
+    context.globalAlpha = 0.35;
     for (const edge of edges) {
       const from = byId.get(edge.from);
       const to = byId.get(edge.to);
@@ -278,6 +305,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       context.lineTo(to.x, to.y);
       context.stroke();
     }
+    context.globalAlpha = 1;
 
     for (const node of nodes) {
       const selected = node.documentId === props.selectedId;
@@ -307,14 +335,14 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
 
       context.beginPath();
       context.arc(node.x, node.y, radius, 0, Math.PI * 2);
-      context.strokeStyle = selected ? '#87453c' : tone.stroke;
+      context.strokeStyle = selected ? theme.danger : theme.graphStroke;
       context.lineWidth = (selected || hovered ? 2.8 : 1.35) / scale;
       context.stroke();
 
       context.textAlign = 'center';
       context.textBaseline = 'top';
       context.font = `${node.kind === 'domain' ? 600 : 500} ${node.kind === 'domain' ? 12 : 11}px Arial`;
-      context.fillStyle = '#292720';
+      context.fillStyle = theme.text;
       context.fillText(
         shortLabel(node.label, node.kind === 'domain' ? 26 : 32),
         node.x,
@@ -326,10 +354,15 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   };
 
   const animate = (): void => {
-    if (simulationActive) simulationActive = stepSimulation();
+    if (shouldSimulate()) simulationActive = stepSimulation();
     draw();
     frame = requestAnimationFrame(animate);
   };
+
+  createEffect(() => {
+    animationFrameActive = props.simulationActive !== false;
+    if (animationFrameActive) wakeSimulation();
+  });
 
   createEffect(() => {
     const graph = buildGraph(props.documents);
@@ -389,15 +422,21 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   };
 
   return (
-    <section class="knowledge-graph-card paper-card" aria-labelledby="knowledge-graph-title">
-      <header>
-        <div>
-          <p class="archive-kicker">{browserI18n.getMessage('graph_kicker')}</p>
-          <h2 id="knowledge-graph-title">{browserI18n.getMessage('graph_title')}</h2>
-          <p>{browserI18n.getMessage('graph_hint')}</p>
-        </div>
-        <span>{documentCountLabel(props.documents.length)}</span>
-      </header>
+    <section
+      class="knowledge-graph-card paper-card"
+      classList={{ 'knowledge-graph-card--dialog': props.variant === 'dialog' }}
+      aria-label={browserI18n.getMessage('graph_aria_label')}
+    >
+      <Show when={props.variant !== 'dialog'}>
+        <header>
+          <div>
+            <p class="archive-kicker">{browserI18n.getMessage('graph_kicker')}</p>
+            <h2 id="knowledge-graph-title">{browserI18n.getMessage('graph_title')}</h2>
+            <p>{browserI18n.getMessage('graph_hint')}</p>
+          </div>
+          <span>{documentCountLabel(props.documents.length)}</span>
+        </header>
+      </Show>
 
       <canvas
         ref={(element) => {

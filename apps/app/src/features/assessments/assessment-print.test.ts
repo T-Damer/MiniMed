@@ -1,10 +1,23 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { loadAssessmentDefinition } from '@/features/assessments/assessment-catalog';
+import {
+  loadAssessmentDefinition,
+  registerDownloadedAssessment,
+} from '@/features/assessments/assessment-catalog';
 import {
   printBlankAssessment,
   shareAssessmentRecord,
 } from '@/features/assessments/assessment-print';
+import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
+
+beforeAll(() => {
+  for (const record of loadToolModuleRecords([
+    'content/tool-modules/psychology.json',
+    'content/tool-modules/obstetrics-gynecology.json',
+  ])) {
+    if (record.kind === 'assessment') registerDownloadedAssessment(record);
+  }
+});
 
 describe('assessment print layout', () => {
   afterEach(() => vi.unstubAllGlobals());

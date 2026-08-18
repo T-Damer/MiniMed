@@ -143,6 +143,22 @@ describe('content module catalog contracts', () => {
     expect(result.success).toBe(false);
   });
 
+  it('accepts tool kind modules', () => {
+    const value = moduleFixture();
+    const result = ContentModuleCatalogEntrySchema.safeParse({
+      ...value,
+      id: 'minimed.tools.gastroenterology.ru',
+      kind: 'tool' as const,
+      collection: 'tool',
+      title: 'Инструменты гастроэнтерологии',
+      required: false,
+      releaseState: 'planned' as const,
+      toolCount: 3,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it('requires downloadable checksummed index artifacts for published modules', () => {
     const value = moduleFixture();
     const result = ContentModuleCatalogEntrySchema.safeParse({

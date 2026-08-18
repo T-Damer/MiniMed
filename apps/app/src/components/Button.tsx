@@ -1,5 +1,7 @@
 import { type JSX, Show, splitProps } from 'solid-js';
 
+import '@/components/Button.css';
+
 export type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'danger' | 'icon';
 
 export interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -12,12 +14,12 @@ export function Button(props: ButtonProps): JSX.Element {
   const variant = (): ButtonVariant => local.variant ?? 'secondary';
 
   return (
-    <button {...button} class={`ui-button ui-button-${variant()} ${local.class ?? ''}`.trim()}>
+    <button {...button} class={`ui-button ui-button--${variant()} ${local.class ?? ''}`.trim()}>
       <Show when={local.icon}>
-        <span class="ui-button-icon">{local.icon}</span>
+        {(icon) => <span class="ui-button__icon">{icon()}</span>}
       </Show>
       <Show when={variant() !== 'icon'}>
-        <span class="ui-button-label">{local.children}</span>
+        <span class="ui-button__label">{local.children}</span>
       </Show>
     </button>
   );

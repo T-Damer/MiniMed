@@ -14,6 +14,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LocalMedDatabasePlugin.class);
         registerPlugin(LlamaInferencePlugin.class);
         registerPlugin(LocalMedUpdatePlugin.class);
+        registerPlugin(LocalMedHapticsPlugin.class);
         super.onCreate(savedInstanceState);
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);

@@ -24,15 +24,27 @@
   overflow-x: clip;
 }
 
+html.using-root-view-transition .app-main {
+  overflow-x: visible;
+}
+
 /* Keep the outgoing view in normal flow while the incoming view overlays it during the motion window.
-   App.tsx toggles `hidden` off for both so the old screen stays visually still underneath the new one. */
+   App.tsx toggles `hidden` off for both so the old screen stays visually still underneath the new one.
+   `--root-view-enter-scroll-shift` pre-offsets the overlay to the incoming page's saved scroll while
+   `window.scrollY` still belongs to the outgoing page. Do not use transform — it creates a sticky
+   containing block and makes header chrome jump out of its slot. Center the overlay with an explicit
+   left/width (not left:0 + right:auto, which pins the 65ch measure to the viewport edge) and slide
+   with margin-left so the box stays the page measure on wide screens. */
 .app-view.root-view-enter-forward,
 .app-view.root-view-enter-backward {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
+  top: var(--root-view-enter-scroll-shift, 0px);
+  right: auto;
+  left: calc((100% - min(100%, var(--page-content-width))) / 2);
+  width: min(100%, var(--page-content-width));
+  margin-inline: 0;
   z-index: 2;
+  transform: none;
   animation-duration: 320ms;
   animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
   animation-fill-mode: both;
@@ -48,42 +60,36 @@
   transform: none;
 }
 
+html.using-root-view-transition .app-view.root-view-exit-forward .sticky-surface,
+html.using-root-view-transition .app-view.root-view-exit-forward .route-sticky-chrome,
+html.using-root-view-transition
+  .app-view.root-view-exit-forward
+  .knowledge-subroute-heading--blurred,
+html.using-root-view-transition
+  .app-view.root-view-exit-forward
+  .search-home__backdrop-blur--visible,
+html.using-root-view-transition .app-view.root-view-exit-forward .module-catalog-heading,
+html.using-root-view-transition .app-view.root-view-exit-forward .medication-route-heading,
+html.using-root-view-transition .app-view.root-view-exit-backward .sticky-surface,
+html.using-root-view-transition .app-view.root-view-exit-backward .route-sticky-chrome,
+html.using-root-view-transition
+  .app-view.root-view-exit-backward
+  .knowledge-subroute-heading--blurred,
+html.using-root-view-transition
+  .app-view.root-view-exit-backward
+  .search-home__backdrop-blur--visible,
+html.using-root-view-transition .app-view.root-view-exit-backward .module-catalog-heading,
+html.using-root-view-transition .app-view.root-view-exit-backward .medication-route-heading {
+  position: relative;
+  top: auto;
+}
+
 .app-view.root-view-enter-forward {
   animation-name: root-view-enter-forward;
 }
 
 .app-view.root-view-enter-backward {
   animation-name: root-view-enter-backward;
-}
-
-@keyframes root-view-enter-forward {
-  from {
-    transform: translate3d(clamp(5rem, 18vw, 12rem), 0, 0);
-    box-shadow: -1.25rem 0 1.75rem rgb(18 15 10 / 28%);
-  }
-
-  to {
-    transform: none;
-    box-shadow: 0 0 0 rgb(18 15 10 / 0%);
-  }
-}
-
-@keyframes root-view-enter-backward {
-  from {
-    transform: translate3d(clamp(-12rem, -18vw, -5rem), 0, 0);
-    box-shadow: 1.25rem 0 1.75rem rgb(18 15 10 / 28%);
-  }
-
-  to {
-    transform: none;
-    box-shadow: 0 0 0 rgb(18 15 10 / 0%);
-  }
-}
-
-@keyframes root-view-exit-backward {
-  to {
-    transform: translate3d(clamp(5rem, 18vw, 12rem), 0, 0);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -207,7 +213,7 @@
   display: flex;
   min-height: 2.5rem;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.5rem;
   margin: calc(-1 * var(--safe-top)) 0 0.375rem;
   padding: calc(var(--safe-top) + 0.75rem) clamp(0.625rem, 1.7vw, 1.375rem) 0.5rem;
@@ -215,6 +221,11 @@
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+.search-history-fab,
+.search-update-status {
+  flex: 0 0 auto;
 }
 
 .search-update-status {
@@ -507,6 +518,15 @@
 .search-workspace-main .clinical-plan-card,
 .search-workspace-main .analysis-details {
   margin-top: 0.4375rem;
+  margin-bottom: 0.375rem;
+}
+
+.search-workspace-main .analysis-details {
+  padding-bottom: 0.75rem;
+}
+
+.search-workspace-main .analysis-details[open] {
+  padding-bottom: 0.75rem;
 }
 
 .search-workspace-main .clinical-plan-card {
@@ -553,7 +573,7 @@
   padding-inline: 0.5rem;
 }
 
-.search-workspace-main .example-scroll-content > button {
+.search-workspace-main .example-scroll-content__chip {
   min-width: max-content;
   min-height: 2.125rem;
   flex: none;
@@ -571,54 +591,22 @@
 
 .search-workspace-main .result-summary {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0.625rem 0 0.4375rem;
+  margin: 0;
 }
 
-.search-workspace-main .result-summary > div {
+.search-workspace-main .result-summary__cell {
   min-height: 2.625rem;
   padding: 0.4375rem 0.5625rem;
 }
 
-.search-workspace-main .results-list {
-  gap: 0.375rem;
-}
-
-.search-workspace-main .result-group {
-  margin-bottom: 0.375rem;
-  border-radius: 0.3125rem;
-  transform-origin: center;
-  transition: transform 160ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  button.result-group-header-button:not(:disabled):hover {
-    transform: none;
-    box-shadow: none;
-  }
-}
-
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .search-workspace-main .result-group:hover {
-    z-index: 2;
-    transform: scale(1.012);
-  }
-}
-
-.search-workspace-main .result-group-header-button {
-  min-height: 3rem;
-  padding: 0.4375rem 0.625rem;
-}
-
-.search-workspace-main .result-group-header-button strong {
+.search-workspace-main .result-group-header__title {
   font-size: clamp(0.9375rem, 1.4vw, 1.125rem);
 }
 
-.search-workspace-main .result-minimal-note {
+.search-workspace-main .result-minimal-note,
+.search-workspace-main .result-group-header__note {
   margin-top: 0.125rem;
-  overflow: hidden;
   font-size: 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .search-workspace-main .result-open {
@@ -631,46 +619,9 @@
   line-height: 1.4;
 }
 
-.search-workspace-main .result-group-header {
-  border-radius: 0.55rem 0.55rem 0 0;
-}
-
-.search-workspace-main .result-group-header-button {
-  cursor: default;
-}
-
-.search-workspace-main .result-group-header-button .group-count::after {
-  display: none;
-}
-
-.search-workspace-main .result-card {
-  margin: 0.35rem 0.35rem 0;
-  border: 1px solid var(--paper-line);
-  border-radius: 0.55rem;
-}
-
-.search-workspace-main .result-card::after {
-  display: none;
-}
-
-.search-workspace-main .result-number {
-  position: absolute;
-  top: 0.55rem;
-  left: 0.55rem;
-  display: grid;
-  width: 1.8rem;
-  height: 1.35rem;
-  place-items: center;
-  border: 1px solid var(--paper-line);
-  border-radius: 0.35rem;
-  color: var(--stamp);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-}
-
 .search-workspace-main .result-open {
   min-height: 7rem;
-  padding: 0.65rem 0.75rem 0.7rem 2.75rem;
+  padding: 0.65rem 0.75rem 0.7rem;
 }
 
 .search-workspace-main .result-snippet {
@@ -687,10 +638,10 @@
   max-height: calc(100dvh - 4.25rem - var(--safe-top) - var(--safe-bottom));
   margin-right: clamp(0.3125rem, 1vw, 0.75rem);
   overflow: auto;
-  border: 1px solid rgb(72 59 34 / 27%);
+  border: 1px solid color-mix(in srgb, var(--theme-border) 72%, transparent);
   border-radius: 0.375rem;
-  background: rgb(244 235 212 / 72%);
-  box-shadow: 0 0.4375rem 1.25rem rgb(58 46 24 / 12%);
+  background: color-mix(in srgb, var(--theme-surface-raised) 72%, transparent);
+  box-shadow: 0 0.4375rem 1.25rem color-mix(in srgb, var(--theme-background) 12%, transparent);
 }
 
 .search-history-panel summary {
@@ -795,7 +746,7 @@
   padding: 0;
   border: 0;
   border-left: 1px solid var(--theme-border);
-  color: var(--theme-text-faint);
+  color: var(--theme-danger);
   background: transparent;
   cursor: pointer;
 }
@@ -805,17 +756,30 @@
   height: 0.875rem;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .search-history-panel-remove:hover {
+    background: color-mix(in srgb, var(--theme-danger) 14%, transparent);
+  }
+}
+
 .search-history-panel-clear {
   width: 100%;
   margin-top: 0.3125rem;
   padding: 0.375rem;
-  border: 0;
-  color: #6b5f48;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.25rem;
+  color: var(--theme-accent);
   background: transparent;
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 0.4375rem;
   text-transform: uppercase;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-history-panel-clear:hover {
+    background: var(--theme-accent-soft);
+  }
 }
 
 .search-history-panel-empty {
@@ -837,13 +801,20 @@
   border-top: 1px solid var(--theme-border);
 }
 
-.search-history-panel-footer__link {
+.search-history-panel-footer__link,
+.search-history-panel-footer__link:visited {
   color: var(--theme-link);
   font-family: var(--font-mono);
   font-size: 0.5rem;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-history-panel-footer__link:hover {
+    color: color-mix(in srgb, var(--theme-link) 72%, var(--theme-text));
+  }
 }
 
 .diagnosis-help-copy {
@@ -896,19 +867,19 @@
   padding: 0.6875rem 0.75rem;
 }
 
-.module-card h3 {
+.module-card__title {
   margin: 0.5rem 0 0.25rem;
   font-size: 1.125rem;
 }
 
-.module-card > p {
-  min-height: 0;
+.module-card__description {
+  min-height: calc(0.8125rem * 1.35 * 3);
   margin-bottom: 0.5rem;
   font-size: 0.8125rem;
   line-height: 1.35;
 }
 
-.module-facts {
+.module-card__facts {
   gap: 0.1875rem;
   margin-bottom: 0.4375rem;
 }
@@ -955,8 +926,8 @@
 }
 
 .model-card-grid {
-  grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
+  gap: var(--layout-gap);
 }
 
 .model-option-card {
@@ -1067,9 +1038,9 @@
   }
 }
 
-/* 1.0 shell: controls stay reachable without spending vertical space on a header. */
+/* 1.0 shell: bottom nav is a floating overlay; route surfaces extend behind it via negative margin. */
 .app-shell {
-  padding-bottom: calc(4.875rem + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
 }
 
 /* While booting there's no bottom nav to reserve space for, and the boot card alone should
@@ -1111,6 +1082,10 @@
 .app-bottom-nav .app-nav-item {
   position: relative;
   z-index: 1;
+  display: grid;
+  flex: 0 0 auto;
+  min-width: auto;
+  place-items: center;
 }
 
 .app-bottom-nav__bubble {
@@ -1144,18 +1119,25 @@
 }
 
 .app-bottom-nav .app-nav-button {
-  width: 2.75rem;
+  display: grid;
+  grid-template: 1fr / 1fr;
+  width: 2.625rem;
   height: 2.625rem;
   margin: 0;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 50%;
+  aspect-ratio: 1;
   color: #d5cdbc;
   background: transparent;
   box-shadow: none;
+  line-height: 0;
+  place-items: center;
+  place-content: center;
 }
 
 .app-bottom-nav .app-nav-button--active {
+  width: 2.625rem;
   height: 2.625rem;
   margin: 0;
   padding: 0;
@@ -1170,18 +1152,31 @@
   content: none;
 }
 
-.app-nav-button__icon--active {
+.app-bottom-nav .app-nav-button__icon,
+.app-bottom-nav .app-nav-button__icon--active {
+  display: block;
+  grid-area: 1 / 1;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  color: inherit;
+  fill: currentColor;
+  place-self: center;
   transform: none;
 }
 
-.app-bottom-nav .app-nav-button:hover {
-  color: #fff9e9;
-  background: rgb(255 255 255 / 10%);
-}
+@media (hover: hover) and (pointer: fine) {
+  .app-bottom-nav .app-nav-button:hover {
+    transform: none;
+    color: var(--theme-accent);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
 
-.app-bottom-nav .app-nav-button--active:hover {
-  color: var(--theme-accent);
-  background: transparent;
+  .app-bottom-nav .app-nav-button--active:hover {
+    color: var(--theme-accent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1244,26 +1239,6 @@
 
 .overlay-dialog {
   animation: overlay-panel-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-@keyframes overlay-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes overlay-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.625rem) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 /* Same material as the bottom bubble, so the two floating controls read as one system. */
@@ -1332,30 +1307,9 @@
   overflow: hidden;
   border: 0;
   border-radius: 0 0.75rem 0.75rem 0;
-  background: #f4ebd8;
-  box-shadow: 0.75rem 0 2.25rem rgb(33 28 20 / 28%);
+  background: var(--theme-surface-raised);
+  box-shadow: 0.75rem 0 2.25rem color-mix(in srgb, var(--theme-background) 28%, transparent);
   animation: history-drawer-in 180ms ease-out both;
-}
-
-@keyframes history-drawer-in {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes history-drawer-out {
-  to {
-    transform: translateX(-100%);
-  }
-}
-
-@keyframes overlay-fade-out {
-  to {
-    opacity: 0;
-  }
 }
 
 .search-history-panel-header {
@@ -1417,9 +1371,20 @@
   place-items: center;
   padding: 0;
   border: 0;
-  color: var(--ink-soft);
   background: transparent;
   cursor: pointer;
+}
+
+.search-history-panel-header__close {
+  color: var(--theme-link);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-history-panel-header__close:hover {
+    color: color-mix(in srgb, var(--theme-link) 72%, var(--theme-text));
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 .search-history-panel-body {
@@ -1480,7 +1445,8 @@
 .model-settings-heading h2 svg {
   width: 1.5rem;
   height: 1.5rem;
-  color: #4c5d50;
+  color: var(--theme-link);
+  fill: currentColor;
 }
 
 .knowledge-graph-legend i.clinical {
@@ -1497,13 +1463,11 @@
 }
 
 @media (max-width: 640px) {
-  .app-bottom-nav .app-nav-button {
+  .app-bottom-nav .app-nav-button,
+  .app-bottom-nav .app-nav-button--active {
     width: 2.375rem;
     height: 2.375rem;
-  }
-
-  .app-nav-button--active {
-    height: 2.375rem;
+    aspect-ratio: 1;
   }
 
   .content-download-status.floating {
@@ -1696,8 +1660,10 @@
   text-transform: uppercase;
 }
 
-.patient-note-actions button:hover {
-  border-color: var(--stamp);
+@media (hover: hover) and (pointer: fine) {
+  .patient-note-actions button:hover {
+    border-color: var(--stamp);
+  }
 }
 
 /* AppGlyph takes its size from the surrounding control, and these buttons are smaller than any
@@ -1766,68 +1732,6 @@
 .patient-note-form-actions button[type="button"]:not(.ui-button) {
   color: var(--ink-soft);
   background: transparent;
-}
-
-.personal-note-matches {
-  margin: 0 0 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px dashed #925a78;
-  border-radius: 0.5rem;
-  background: rgb(234 217 229 / 34%);
-}
-
-.personal-note-matches header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.3125rem;
-}
-
-.personal-note-badge {
-  padding: 1px 0.4375rem;
-  border-radius: 0.3125rem;
-  color: #f6eef5;
-  background: #925a78;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.personal-note-matches header small {
-  color: #6b5460;
-  font-size: 0.6875rem;
-}
-
-.personal-note-matches ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.personal-note-matches li {
-  padding: 0.1875rem 0;
-  font-size: 0.8125rem;
-}
-
-.personal-note-matches li strong {
-  font-size: 0.8125rem;
-}
-
-.personal-note-matches li p {
-  margin: 1px 0 0;
-  line-height: 1.4;
-}
-
-.personal-note-matches li small {
-  color: #6b5460;
-  font-size: 0.6875rem;
-}
-
-.personal-note-matches > button {
-  margin-top: 0.3125rem;
-  padding: 0.125rem 0.5625rem;
-  font-size: 0.75rem;
 }
 
 /* Compact pass: page headers and the document list took most of a phone screen before any content. */
@@ -2103,7 +2007,7 @@ fieldset.search-mode-picker {
   border-radius: 0.75rem;
 }
 
-.workspace .example-scroll-content > button {
+.workspace .example-scroll-content__chip {
   min-height: 1.75rem;
   padding: 0.25rem 0.6875rem;
   border-radius: 999px;
@@ -2425,22 +2329,36 @@ fieldset.search-mode-picker {
   align-items: center;
   gap: 0.625rem;
   padding: 0.75rem 0;
+  list-style: none;
+  color: var(--theme-text);
+  cursor: pointer;
   font-weight: 600;
 }
 
+.model-catalog-details > summary::-webkit-details-marker,
+.model-catalog-details > summary::marker {
+  display: none;
+  content: none;
+}
+
 .model-catalog-expand-hint {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
   justify-self: end;
+  color: var(--theme-text-muted);
 }
 
 .model-catalog-expand-hint::before {
-  color: var(--theme-link);
-  content: "Развернуть ↓";
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
+  content: "⌄";
+  font-size: 0.875rem;
+  line-height: 1;
+  transition: transform 130ms ease;
 }
 
 .model-catalog-details[open] .model-catalog-expand-hint::before {
-  content: "Свернуть ↑";
+  transform: rotate(180deg);
 }
 
 .model-catalog-details > summary > span {
@@ -2484,8 +2402,6 @@ fieldset.search-mode-picker {
   background: transparent;
   cursor: pointer;
   font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
 }
 
 .reader-card,
@@ -2513,12 +2429,20 @@ fieldset.search-mode-picker {
 /* Full-height local surfaces keep the desk background inside the active route. */
 .page-surface,
 .knowledge-base-page,
+.settings-page,
 .patient-notes-view,
 .search-home {
   min-height: calc(100dvh + 4.875rem + var(--safe-bottom));
   margin-bottom: calc(-4.875rem - var(--safe-bottom));
   padding-bottom: calc(6rem + var(--safe-bottom));
   scroll-padding-bottom: calc(6rem + var(--safe-bottom));
+}
+
+.knowledge-base-page > .module-page,
+.knowledge-base-page > .medication-page {
+  min-height: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .patient-notes-view {
@@ -2580,11 +2504,6 @@ html.native-print-active #root {
     linear-gradient(180deg, var(--folder-light), var(--folder));
 }
 
-.knowledge-base-page > .module-page {
-  min-height: calc(100dvh + 4.875rem + var(--safe-bottom));
-  padding-bottom: calc(6rem + var(--safe-bottom));
-}
-
 .knowledge-back-button {
   display: grid;
   width: 2.5rem;
@@ -2600,9 +2519,11 @@ html.native-print-active #root {
   line-height: 0;
 }
 
-.knowledge-back-button:hover {
-  border-color: var(--theme-accent);
-  background: var(--theme-accent-soft);
+@media (hover: hover) and (pointer: fine) {
+  .knowledge-back-button:hover {
+    border-color: var(--theme-accent);
+    background: var(--theme-accent-soft);
+  }
 }
 
 .knowledge-back-button svg {
@@ -2613,20 +2534,14 @@ html.native-print-active #root {
 
 /* Flat sticker cards open into a focused timeline instead of expanding the whole grid. */
 .patient-card-list,
-.module-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.patient-card-list {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
+.module-grid,
 .recommendation-section-grid-compact {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
+  gap: var(--layout-gap);
 }
 
 .module-grid.module-grid-two-columns {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(min(2, var(--layout-cols)), minmax(0, 1fr));
 }
 
 .patient-card {
@@ -2885,10 +2800,12 @@ html.native-print-active #root {
   box-shadow: none;
 }
 
-.notes-route-heading__back:hover,
-.notes-route-heading__previous:hover,
-.notes-route-heading__delete:hover {
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .notes-route-heading__back:hover,
+  .notes-route-heading__previous:hover,
+  .notes-route-heading__delete:hover {
+    box-shadow: none;
+  }
 }
 
 .notes-route-heading__actions {
@@ -3043,7 +2960,7 @@ html.native-print-active #root {
   box-shadow: inset 0 0.05rem 0 0 rgb(255 255 255 / 18%);
 }
 
-.patient-note-previous-revision__restore-button .ui-button-icon {
+.patient-note-previous-revision__restore-button .ui-button__icon {
   display: inline-flex;
   width: 1.25rem;
   height: 1.25rem;
@@ -3144,7 +3061,7 @@ html.native-print-active #root {
 
 .note-image-picker:focus-within {
   outline: 2px solid var(--theme-accent);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 
 .note-image-picker--disabled {
@@ -3158,52 +3075,19 @@ html.native-print-active #root {
   font-size: 0.6875rem;
 }
 
-.note-image-previews {
-  min-width: max-content;
+.note-image-selection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
-.note-image-previews figure {
-  position: relative;
-  width: var(--note-image-card-size);
-  height: var(--note-image-card-size);
-  flex: 0 0 var(--note-image-card-size);
-  overflow: hidden;
-  margin: 0;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.625rem;
-  background: var(--theme-surface-muted);
+.note-image-selection__count {
+  flex: 1;
+  color: var(--theme-text-muted);
 }
 
-.note-image-previews a,
-.note-image-previews img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.note-image-previews img {
-  object-fit: cover;
-}
-
-.note-image-previews figcaption {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  margin: 0;
-  padding: 0.25rem 0.375rem;
-  color: #fff;
-  background: rgb(20 19 17 / 72%);
-  font-size: 0.625rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.note-image-previews button {
-  position: absolute;
-  top: 0.375rem;
-  right: 0.375rem;
+.note-image-selection__delete {
   display: grid;
   width: 1.75rem;
   height: 1.75rem;
@@ -3216,9 +3100,146 @@ html.native-print-active #root {
   cursor: pointer;
 }
 
-.note-image-previews button svg {
+.note-image-previews {
+  min-width: max-content;
+}
+
+.note-image-preview {
+  position: relative;
+  width: var(--note-image-card-size);
+  height: var(--note-image-card-size);
+  flex: 0 0 var(--note-image-card-size);
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.625rem;
+  background: var(--theme-surface-muted);
+}
+
+.note-image-preview--selected {
+  border-color: var(--theme-accent);
+  box-shadow: 0 0 0 1px var(--theme-accent);
+}
+
+.note-image-preview__open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.note-image-preview__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.note-image-preview__caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0.25rem 0.375rem;
+  color: #fff;
+  background: rgb(20 19 17 / 72%);
+  font-size: 0.625rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.note-image-preview__remove,
+.note-image-preview__check {
+  position: absolute;
+  top: 0.375rem;
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.note-image-preview__remove {
+  right: 0.375rem;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-danger);
+}
+
+.note-image-preview__check {
+  left: 0.375rem;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-raised);
+}
+
+.note-image-preview__check--selected {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.note-image-preview__icon {
   width: 0.875rem;
   height: 0.875rem;
+}
+
+.note-image-preview__zoom {
+  position: fixed;
+  z-index: 520;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  pointer-events: auto;
+}
+
+.note-image-preview__zoom-backdrop {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: rgb(35 33 29 / 82%);
+  cursor: zoom-out;
+}
+
+.note-image-preview__zoom-image {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  max-width: min(100%, 48rem);
+  max-height: min(100%, calc(100vh - 2rem));
+  object-fit: contain;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note-image-preview__open:hover {
+    opacity: 0.92;
+  }
+
+  .note-image-selection__delete:hover {
+    filter: brightness(1.05);
+  }
+
+  .note-image-preview__remove:hover {
+    filter: brightness(1.05);
+  }
+
+  .note-image-preview__check:hover {
+    background: var(--theme-surface);
+  }
+
+  .note-image-preview__check--selected:hover {
+    filter: brightness(1.05);
+  }
 }
 
 .note-image-error {
@@ -3337,8 +3358,9 @@ html.native-print-active #root {
   font-weight: 600;
 }
 
-.module-card-actions button,
-.module-card > button,
+.module-card-actions__primary,
+.module-card-actions__remove,
+.module-card__version-button,
 .recommendation-row-actions__remove,
 .recommendation-row-download-button,
 .recommendation-section-actions__remove,
@@ -3350,8 +3372,7 @@ html.native-print-active #root {
   gap: 0.375rem;
 }
 
-.module-card-actions svg,
-.module-card > button svg,
+.module-card-actions__icon,
 .recommendation-row-actions__icon,
 .recommendation-row-download-button__icon,
 .recommendation-section-actions__icon,
@@ -3373,27 +3394,9 @@ html.native-print-active #root {
   display: block;
 }
 
-@media (max-width: 980px) {
-  .patient-card-list,
-  .module-grid,
-  .recommendation-section-grid-compact {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 640px) {
-  .patient-card-list,
-  .module-grid,
-  .recommendation-section-grid-compact {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .patient-note-record {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .module-grid.module-grid-two-columns {
-    grid-template-columns: minmax(0, 1fr);
   }
 }

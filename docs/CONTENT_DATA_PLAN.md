@@ -7,6 +7,8 @@ below has its own detailed doc; this file is the cross-category priority list re
 Rule for every category: grow the bank before spending more effort on retrieval/model work on top of it —
 see the discussion that produced this doc. A thin, well-sourced bank beats a fast search over an empty one.
 
+Detailed shortlist from the private library and OCR inventory: [CONTENT_BACKLOG.md](CONTENT_BACKLOG.md).
+
 ## Categories
 
 | Category | Status | Source strategy | Detail doc |
@@ -14,8 +16,8 @@ see the discussion that produced this doc. A thin, well-sourced bank beats a fas
 | Clinical recommendations | 744 official recommendations synced, largest existing asset | Ministry API, official structured JSON | [CURRENT_STATE.md](CURRENT_STATE.md) |
 | Regulatory acts | 32 drafted, `publicationState: local-dev`, unpublished | Official RF orders/laws | [REGULATORY_PILOT.md](REGULATORY_PILOT.md) |
 | Pediatric norms / growth | WHO standards reference-carded but no calculator yet; private textbooks surveyed | WHO Child Growth Standards + cited textbook pages | [LITERATURE_BANK.md](LITERATURE_BANK.md), [CALCULATORS.md](CALCULATORS.md) |
-| Calculators | 5 available (prototype set); z-score/percentile spec written, not built | Authoritative source or cited book page | [CALCULATORS.md](CALCULATORS.md) |
-| Assessments/questionnaires | 5 available, psychology-only | Independent authored questions or validated instrument | [ASSESSMENTS.md](ASSESSMENTS.md) |
+| Calculators | Built-in `unit-conversion` plus seven downloadable DB modules (core-clinical, obstetrics-gynecology, psychology, gastroenterology, neonatology, pediatrics, emergency); Hadlock biometry stays TS-only; z-score/percentile spec written, not built | Authoritative source or cited book page | [CALCULATORS.md](CALCULATORS.md) |
+| Assessments/questionnaires | Schema-defined clinical scales and psychology/obstetric instruments in downloadable tool modules only | Independent authored questions or validated instrument | [ASSESSMENTS.md](ASSESSMENTS.md) |
 | Medications | one-drug pipeline proof (Miramistin), 9 pilot instructions syncing | Official GRLS + instruction PDFs | [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md) |
 | Diets (лечебные столы) | №1/5/7/8/9/15 + standard-diet-system drafted, `local-dev`, pediatric scope not reviewed | `reference` category (`content/reference-rf-pilot/`); relaxed sourcing (web/clinic sites), see below | this doc |
 | Vaccination calendars | referenced by `order-1122n-vaccination-calendars.md` (regulatory pilot), not a standalone reference/calculator | Official immunization schedule order | [REGULATORY_PILOT.md](REGULATORY_PILOT.md) |
@@ -84,7 +86,7 @@ card above — can now be printed and shared from the reader, per explicit reque
   same pattern as `assessment-print.ts`.
 - Share reuses the established Web Share API / clipboard-fallback pattern (`shareDocument`), returns
   `'shared' | 'copied'` exactly like `shareAssessmentRecord`/`shareCalculationRecord`.
-- Wired into `DocumentReaderDialog.tsx`: two buttons in the paper header, gated to
+- Wired into `OfficialDocumentReader.tsx`: two buttons in the paper header, gated to
   `sourceType === 'medical_reference'` (not shown on every document type — clinical-recommendation
   documents can be very long; printing those wasn't asked for and isn't verified safe to popup-render in
   one shot).
@@ -104,7 +106,7 @@ documents before today:
 
 - `linkableSourceTypes` in `document-medication-links.ts:130-135` — didn't include `medical_reference` as a
   valid *link target* type. Fixed: added it.
-- `showDocumentLinks()` in `DocumentReaderDialog.tsx:76-83` — didn't allow a `medical_reference` document to
+- `showDocumentLinks()` in `OfficialDocumentReader.tsx:76-83` — didn't allow a `medical_reference` document to
   *show* outgoing links at all. Fixed: added the same condition.
 
 **A real content bug surfaced and got fixed while verifying this**: Russian grammatical case broke the
@@ -195,9 +197,14 @@ EDD-by-LMP (date arithmetic + today()-relative gestational age), maternity leave
 outputs through the same text-rendering adapter), and the UZI assertion correctly rejecting >40 weeks with
 a toast instead of a false result.
 
-Wiring calculator schemas into the real download/install pipeline (same mechanism as the reference module
-above) is still deferred until the format is proven further or an LLM-authored catalog makes that actually
-worth doing.
+The downloadable tool modules are wired through the same SQLite installer as document modules:
+`content/tool-modules/*.json` is the reviewable source of truth, `004_tools.sql` stores validated
+definitions and normalized literature/KR links, and the generated DB is installed and read offline.
+Runtime TypeScript keeps only `unit-conversion`; seven published tool modules cover core-clinical
+preview.2 (22 calculators), obstetrics-gynecology (ObCalc plus perinatal assessments), psychology,
+gastroenterology preview.2, neonatology, pediatrics, and emergency. Hadlock biometry
+(`obstetric-ga-biometry`) remains TS-only. Further tools should be migrated in small, source-reviewed
+batches rather than copied into the app bundle again.
 
-Verification: `bun run typecheck` (all packages) and the full repo test suite (76 files, 442 tests) pass
-with zero regressions.
+Verification: `bun run typecheck` (all packages) and the full repo test suite (81 Vitest files, 477
+tests, and 115 Python tests) pass with zero regressions.

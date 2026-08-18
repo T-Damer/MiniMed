@@ -38,6 +38,7 @@ const SECTION_IDS = new Set<CalculatorSectionId>([
   'cardiology',
   'gastroenterology',
   'hematology',
+  'neonatology',
 ]);
 
 export const CALCULATOR_PACKS_EVENT = 'minimed:calculator-packs-changed';
@@ -53,6 +54,25 @@ export function setDatabaseCalculatorIds(ids: readonly string[]): void {
  * explicit section download. Keep this list short and only add calculators nothing else depends on.
  */
 export const CORE_CALCULATOR_IDS: ReadonlySet<string> = new Set(['unit-conversion']);
+
+/** Maps calculator sections to downloadable tool-module catalog ids. */
+export const CALCULATOR_SECTION_MODULE_IDS: Readonly<Partial<Record<CalculatorSectionId, string>>> =
+  {
+    anthropometry: 'minimed.tools.core-clinical.ru',
+    renal: 'minimed.tools.core-clinical.ru',
+    fluids: 'minimed.tools.core-clinical.ru',
+    cardiology: 'minimed.tools.core-clinical.ru',
+    hematology: 'minimed.tools.core-clinical.ru',
+    gastroenterology: 'minimed.tools.gastroenterology.ru',
+    emergency: 'minimed.tools.emergency.ru',
+    neonatology: 'minimed.tools.neonatology.ru',
+    obstetrics: 'minimed.tools.obstetrics-gynecology.ru',
+    gynecology: 'minimed.tools.obstetrics-gynecology.ru',
+  };
+
+export function moduleIdForCalculatorSection(sectionId: CalculatorSectionId): string | undefined {
+  return CALCULATOR_SECTION_MODULE_IDS[sectionId];
+}
 
 /**
  * Links a calculator section to the clinical-recommendation categories (real ids from
@@ -74,6 +94,7 @@ export const CALCULATOR_SECTION_CATEGORY_IDS: Readonly<
   cardiology: [],
   gastroenterology: ['minimed.clinical.pediatrics.gastro-nutrition'],
   hematology: [],
+  neonatology: ['minimed.clinical.neonatology.ru'],
 };
 
 export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
@@ -131,6 +152,11 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
     id: 'hematology',
     title: 'Гематология',
     description: 'Базовые расчёты нейтрофилов, ретикулоцитов и эритроцитарных индексов.',
+  },
+  {
+    id: 'neonatology',
+    title: 'Неонатология',
+    description: 'Инфузия глюкозы, физиологическая убыль массы и гестационный возраст.',
   },
 ];
 

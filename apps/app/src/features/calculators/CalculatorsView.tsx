@@ -11,10 +11,12 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import type {
@@ -31,6 +33,7 @@ import {
   isCalculatorSectionComplete,
   isCalculatorSectionCore,
   loadCalculatorInstallationState,
+  moduleIdForCalculatorSection,
   removeCalculatorSection,
   setDatabaseCalculatorIds,
 } from '@/features/calculators/calculator-packs';
@@ -47,6 +50,11 @@ import {
   registerDownloadedCalculator,
   searchCalculators,
 } from '@/features/calculators/calculator-registry';
+import {
+  calculatorSectionCrumbs,
+  calculatorSectionPath,
+  calculatorWorkspaceCrumbs,
+} from '@/features/calculators/calculator-routing';
 import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import {
   type CalculatorSchemaEvaluation,
@@ -58,7 +66,6 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
-import { calculateGestationalAgeByBiometry } from '@/features/calculators/obstetric-calculations';
 import {
   convertQuantity,
   type QuantityFamily,
@@ -158,8 +165,9 @@ function CalculatorCard(props: {
       {definition.state === 'available' ? (
         !props.installed ? (
           <div class="calculator-card__actions">
-            <button
+            <Button
               type="button"
+              variant="icon"
               class="calculator-card__download"
               aria-label={`Скачать «${definition.title}»`}
               title={`Скачать «${definition.title}»`}
@@ -167,9 +175,8 @@ function CalculatorCard(props: {
                 const available = availableDefinition();
                 if (available) props.onInstall(available);
               }}
-            >
-              <AppGlyph class="calculator-card__download-icon" name="download" />
-            </button>
+              icon={<AppGlyph class="calculator-card__download-icon" name="download" />}
+            />
           </div>
         ) : null
       ) : (
@@ -225,8 +232,9 @@ function CalculatorSectionCard(props: {
         </div>
         <div class="calculator-section-actions">
           <Show when={availableCount() > 0 && !core()}>
-            <button
+            <Button
               type="button"
+              variant="icon"
               class="calculator-section-action"
               classList={{ 'calculator-section-remove': complete() }}
               aria-label={
@@ -238,12 +246,13 @@ function CalculatorSectionCard(props: {
               onClick={() =>
                 complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
               }
-            >
-              <AppGlyph
-                class="calculator-section-action-icon"
-                name={complete() ? 'trash' : 'download'}
-              />
-            </button>
+              icon={
+                <AppGlyph
+                  class="calculator-section-action-icon"
+                  name={complete() ? 'trash' : 'download'}
+                />
+              }
+            />
           </Show>
         </div>
       </header>
@@ -271,23 +280,26 @@ function CalculatorSectionPage(props: {
   return (
     <section class="calculator-section-page">
       <header class="calculator-section-page-header">
-        <button
-          type="button"
+        <NavBack
           class="calculator-section-back"
           aria-label="К разделам калькуляторов"
           title="К разделам"
           onClick={props.onBack}
-        >
-          <AppGlyph class="calculator-section-back-icon" name="arrow-left" />
-        </button>
+        />
         <div>
-          <p class="archive-kicker">Раздел инструментов</p>
+          <AppBreadcrumbs
+            items={calculatorSectionCrumbs(props.section.title)}
+            onNavigate={(href) => {
+              window.location.hash = href;
+            }}
+          />
           <h1>{props.section.title}</h1>
           <p>{props.section.description}</p>
         </div>
         <Show when={!core() && availableCount() > 0}>
-          <button
+          <Button
             type="button"
+            variant="icon"
             class="calculator-section-action"
             classList={{ 'calculator-section-remove': complete() }}
             aria-label={
@@ -299,12 +311,13 @@ function CalculatorSectionPage(props: {
             onClick={() =>
               complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
             }
-          >
-            <AppGlyph
-              class="calculator-section-action-icon"
-              name={complete() ? 'trash' : 'download'}
-            />
-          </button>
+            icon={
+              <AppGlyph
+                class="calculator-section-action-icon"
+                name={complete() ? 'trash' : 'download'}
+              />
+            }
+          />
         </Show>
       </header>
       <Show when={availableCount() === 0}>
@@ -378,11 +391,6 @@ function CalculatorForm(props: {
     setSchemaStep(0);
     setSchemaPreview(undefined);
   });
-  const [bpdCm, setBpdCm] = createSignal('');
-  const [hcCm, setHcCm] = createSignal('');
-  const [acCm, setAcCm] = createSignal('');
-  const [flCm, setFlCm] = createSignal('');
-
   const changeFamily = (next: QuantityFamily): void => {
     const units = unitsForFamily(next);
     setFamily(next);
@@ -458,28 +466,6 @@ function CalculatorForm(props: {
           warnings: [],
         };
         inputSummary = `${value()} ${fromUnit()} → ${toUnit()}`;
-        break;
-      }
-      case 'obstetric-ga-biometry': {
-        const calculation = calculateGestationalAgeByBiometry({
-          bpdCm: bpdCm() ? parseNumber(bpdCm()) : undefined,
-          hcCm: hcCm() ? parseNumber(hcCm()) : undefined,
-          acCm: acCm() ? parseNumber(acCm()) : undefined,
-          flCm: flCm() ? parseNumber(flCm()) : undefined,
-        });
-        if (!calculation.ok) {
-          props.onMessage(calculation.error);
-          return;
-        }
-        result = calculation;
-        inputSummary = [
-          bpdCm() && `БПР ${bpdCm()} см`,
-          hcCm() && `ОГ ${hcCm()} см`,
-          acCm() && `ОЖ ${acCm()} см`,
-          flCm() && `ДБ ${flCm()} см`,
-        ]
-          .filter(Boolean)
-          .join(', ');
         break;
       }
       default:
@@ -651,41 +637,6 @@ function CalculatorForm(props: {
             </Show>
           </section>
         )}
-      </Show>
-
-      <Show when={props.definition.id === 'obstetric-ga-biometry'}>
-        <label>
-          <span>БПР (бипариетальный размер), см — необязательно</span>
-          <input
-            inputmode="decimal"
-            value={bpdCm()}
-            onInput={(event) => setBpdCm(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>ОГ (окружность головы), см — необязательно</span>
-          <input
-            inputmode="decimal"
-            value={hcCm()}
-            onInput={(event) => setHcCm(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>ОЖ (окружность живота), см — необязательно</span>
-          <input
-            inputmode="decimal"
-            value={acCm()}
-            onInput={(event) => setAcCm(event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <span>ДБ (длина бедра), см — необязательно</span>
-          <input
-            inputmode="decimal"
-            value={flCm()}
-            onInput={(event) => setFlCm(event.currentTarget.value)}
-          />
-        </label>
       </Show>
 
       <Button
@@ -895,9 +846,9 @@ function CalculationResultPanel(props: {
               />
             </label>
           </Show>
-          <button type="button" onClick={saveToNote}>
+          <Button type="button" onClick={saveToNote}>
             Записать результат
-          </button>
+          </Button>
         </div>
       </Show>
     </section>
@@ -920,10 +871,6 @@ export function CalculatorsView(): JSX.Element {
     readonly id: string;
     readonly title: string;
   } | null>(null);
-  const [pendingInstallation, setPendingInstallation] = createSignal<{
-    readonly id: string;
-    readonly title: string;
-  } | null>(null);
   const refresh = (): void => {
     const next = currentRoute();
     // Every root tab shares one global location.hash, and this view stays mounted (hidden, not
@@ -931,6 +878,7 @@ export function CalculatorsView(): JSX.Element {
     // Reacting to it would null out `selected()` and unmount the open CalculatorForm, silently
     // discarding whatever the user had already typed in.
     if (next !== '' && !next.startsWith('calculators')) return;
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setRoute(next);
     void refreshDownloadedTools();
   };
@@ -997,33 +945,64 @@ export function CalculatorsView(): JSX.Element {
     window.location.hash = '#/calculators';
   };
 
+  const backFromCalculator = (): void => {
+    const definition = selected();
+    setActiveRecord(undefined);
+    if (definition?.state === 'available') {
+      window.location.hash = calculatorSectionPath(definition.category);
+      return;
+    }
+    backToCatalog();
+  };
+
   const openSection = (sectionId: CalculatorSectionId): void => {
     setQuery('');
-    window.location.hash = `#/calculators/section/${sectionId}`;
+    window.location.hash = calculatorSectionPath(sectionId);
+  };
+
+  const installToolModule = async (moduleId: string | undefined): Promise<void> => {
+    if (!moduleId) return;
+    const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    if (runtime.listInstalled().some((item) => item.moduleId === moduleId)) return;
+    const module = MODULE_CATALOG.modules.find((entry) => entry.id === moduleId);
+    if (!module) throw new Error('Модуль инструментов не найден в каталоге.');
+    const task = runtime.install(module);
+    const completed = await runtime.wait(task.id);
+    if (completed.state !== 'completed') {
+      throw new Error('Не удалось скачать модуль инструментов.');
+    }
+    await refreshDownloadedTools();
   };
 
   const installSection = (sectionId: CalculatorSectionId): void => {
-    const hasAvailableCalculator = calculatorsInSection(sectionId, calculatorRegistry()).some(
+    const moduleId = moduleIdForCalculatorSection(sectionId);
+    const hasBundledCalculator = calculatorsInSection(sectionId, calculatorRegistry()).some(
       (definition) => definition.state === 'available',
     );
-    if (!hasAvailableCalculator) return;
-    setInstallation(installCalculatorSection(sectionId));
-    const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
-    notify(`«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`);
+    if (!moduleId && !hasBundledCalculator) return;
+    void (async () => {
+      try {
+        notify('Скачиваем модуль…');
+        await installToolModule(moduleId);
+        setInstallation(installCalculatorSection(sectionId));
+        const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
+        notify(`«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`);
+      } catch (cause) {
+        notify(cause instanceof Error ? cause.message : 'Не удалось скачать раздел.');
+      }
+    })();
   };
   const requestInstallCalculator = (definition: AvailableCalculatorDefinition): void => {
-    setPendingInstallation({
-      id: definition.id,
-      title: definition.title,
-    });
-  };
-
-  const confirmInstallation = (): void => {
-    const pending = pendingInstallation();
-    setPendingInstallation(null);
-    if (!pending) return;
-    setInstallation(installCalculator(pending.id));
-    notify(`«${pending.title}» скачан. Инструмент доступен офлайн.`);
+    void (async () => {
+      try {
+        notify('Скачиваем модуль…');
+        await installToolModule(moduleIdForCalculatorSection(definition.category));
+        setInstallation(installCalculator(definition.id));
+        notify(`«${definition.title}» скачан. Инструмент доступен офлайн.`);
+      } catch (cause) {
+        notify(cause instanceof Error ? cause.message : 'Не удалось скачать инструмент.');
+      }
+    })();
   };
 
   const removeSection = (sectionId: CalculatorSectionId): void => {
@@ -1201,22 +1180,24 @@ export function CalculatorsView(): JSX.Element {
         {(definition) => (
           <div class="calculator-workspace">
             <header class="calculator-subpage-header">
-              <button
-                type="button"
+              <NavBack
                 class="knowledge-back-button"
                 aria-label="К каталогу калькуляторов"
-                onClick={backToCatalog}
-              >
-                <AppGlyph name="arrow-left" />
-              </button>
+                onClick={backFromCalculator}
+              />
               <div class="calculator-subpage-header__content">
-                <p class="archive-kicker">
-                  {
-                    CALCULATOR_SECTIONS.find((section) => section.id === definition().category)
-                      ?.title
-                  }
-                  {' · скачано на устройство'}
-                </p>
+                <AppBreadcrumbs
+                  items={calculatorWorkspaceCrumbs({
+                    title: definition().title,
+                    sectionId: definition().category,
+                    sectionTitle:
+                      CALCULATOR_SECTIONS.find((section) => section.id === definition().category)
+                        ?.title ?? 'Раздел калькуляторов',
+                  })}
+                  onNavigate={(href) => {
+                    window.location.hash = href;
+                  }}
+                />
                 <h1 class="calculator-subpage-title">{definition().title}</h1>
                 <p class="calculator-subpage-summary">{definition().summary}</p>
               </div>
@@ -1256,16 +1237,6 @@ export function CalculatorsView(): JSX.Element {
         onConfirm={confirmDeletion}
         onOpenChange={(open) => {
           if (!open) setPendingDeletion(null);
-        }}
-      />
-      <ConfirmationDialog
-        open={pendingInstallation() !== null}
-        title="Скачать калькулятор?"
-        description={`«${pendingInstallation()?.title ?? ''}» будет скачан для офлайн-работы.`}
-        confirmLabel="Скачать"
-        onConfirm={confirmInstallation}
-        onOpenChange={(open) => {
-          if (!open) setPendingInstallation(null);
         }}
       />
     </section>

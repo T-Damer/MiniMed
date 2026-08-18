@@ -1,0 +1,436 @@
+{
+  "id": "minimed.tools.emergency.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Инструменты неотложной помощи",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-17T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.assessment.glasgow-coma-scale",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "glasgow-coma-scale",
+      "title": "Шкала комы Глазго (GCS)",
+      "shortTitle": "GCS",
+      "aliases": [
+        "Glasgow Coma Scale",
+        "GCS",
+        "шкала комы Глазго",
+        "Глазго"
+      ],
+      "bankId": "emergency",
+      "bankLabel": "Неотложная помощь",
+      "category": "neurology-emergency",
+      "description": "Три компонента (открывание глаз, речь, движения) для оценки уровня сознания у взрослых и детей старше 4 лет.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые и дети старше 4 лет; применяется медицинским специалистом при оценке нарушения сознания",
+      "definition": {
+        "id": "minimed.assessment.glasgow-coma-scale",
+        "slug": "glasgow-coma-scale",
+        "title": "Шкала комы Глазго (GCS)",
+        "shortTitle": "GCS",
+        "aliases": [
+          "Glasgow Coma Scale",
+          "GCS",
+          "шкала комы Глазго",
+          "Глазго"
+        ],
+        "bankId": "emergency",
+        "bankLabel": "Неотложная помощь",
+        "category": "neurology-emergency",
+        "description": "Три компонента (открывание глаз, речь, движения) для оценки уровня сознания у взрослых и детей старше 4 лет.",
+        "estimatedMinutes": 2,
+        "audience": "Взрослые и дети старше 4 лет; применяется медицинским специалистом при оценке нарушения сознания",
+        "responseOptions": [
+          { "value": 0, "label": "0" }
+        ],
+        "scales": [
+          {
+            "id": "gcs-total",
+            "label": "Суммарный балл GCS",
+            "shortLabel": "GCS",
+            "description": "Сумма трёх компонентов; диапазон 3–15."
+          }
+        ],
+        "questions": [
+          {
+            "id": "gcs-eye-opening",
+            "prompt": "Открывание глаз (E)",
+            "scaleId": "gcs-total",
+            "responseOptions": [
+              { "value": 1, "label": "Нет открывания глаз" },
+              { "value": 2, "label": "Открывание на боль" },
+              { "value": 3, "label": "Открывание на речь" },
+              { "value": 4, "label": "Спонтанное открывание глаз" }
+            ]
+          },
+          {
+            "id": "gcs-verbal-response",
+            "prompt": "Вербальный ответ (V)",
+            "scaleId": "gcs-total",
+            "responseOptions": [
+              { "value": 1, "label": "Нет ответа" },
+              { "value": 2, "label": "Нечленораздельные звуки" },
+              { "value": 3, "label": "Отдельные слова" },
+              { "value": 4, "label": "Смазанная речь" },
+              { "value": 5, "label": "Ориентирован, отвечает на вопросы" }
+            ]
+          },
+          {
+            "id": "gcs-motor-response",
+            "prompt": "Двигательный ответ (M)",
+            "scaleId": "gcs-total",
+            "responseOptions": [
+              { "value": 1, "label": "Нет движений" },
+              { "value": 2, "label": "Патологическое разгибание на боль (декортикация)" },
+              { "value": 3, "label": "Патологическое сгибание на боль (децеребрация)" },
+              { "value": 4, "label": "Отдергивание на боль" },
+              { "value": 5, "label": "Локализация боли" },
+              { "value": 6, "label": "Выполнение команд" }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 13,
+            "maxScore": 15,
+            "scaleId": "gcs-total",
+            "headline": "Лёгкая черепно-мозговая травма (GCS 13–15)",
+            "message": "13–15 баллов соответствуют лёгкой ЧМТ по классификации NICE NG232. Оценивайте вместе с механизмом травмы, фокальными симптомами и динамикой."
+          },
+          {
+            "minScore": 9,
+            "maxScore": 12,
+            "scaleId": "gcs-total",
+            "headline": "Умеренная черепно-мозговая травма (GCS 9–12)",
+            "message": "9–12 баллов соответствуют умеренной ЧМТ по классификации NICE NG232. Требуется тщательный мониторинг и решение о нейровизуализации по протоколу."
+          },
+          {
+            "minScore": 3,
+            "maxScore": 8,
+            "scaleId": "gcs-total",
+            "headline": "Тяжёлая черепно-мозговая травма (GCS 3–8)",
+            "message": "3–8 баллов соответствуют тяжёлой ЧМТ по классификации NICE NG232. Обычно требуется срочная нейровизуализация и интенсивный мониторинг."
+          }
+        ],
+        "disclaimer": "GCS — ориентир уровня сознания, а не самостоятельный диагноз. У детей младше 4 лет и при интубации вербальный компонент оценивается иначе; педиатрическая модификация GCS не включена в этот инструмент.",
+        "evidenceNote": "Три компонента (E 1–4, V 1–5, M 1–6) суммируются в диапазон 3–15 по Teasdale & Jennett 1974; градации тяжести ЧМТ — по NICE NG232.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Шкала комы Глазго описана в оригинальной публикации Teasdale & Jennett; MiniMed не является правообладателем инструмента.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/4436844/"
+        }
+      },
+      "sources": [
+        {
+          "id": "gcs-teasdale-1974",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Assessment of coma and impaired consciousness. A practical scale",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/4436844/",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "gcs-nice-ng232",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "Head injury: assessment and early management (NICE NG232)",
+          "url": "https://www.nice.org.uk/guidance/ng232",
+          "reviewedAt": "2026-08-17"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.alvarado-appendicitis",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "alvarado-appendicitis",
+      "title": "Балл Alvarado (MANTRELS)",
+      "shortTitle": "Alvarado",
+      "aliases": [
+        "Alvarado score",
+        "MANTRELS",
+        "балл Альварадо",
+        "аппендицит скрининг"
+      ],
+      "bankId": "emergency",
+      "bankLabel": "Неотложная помощь",
+      "category": "abdominal-emergency",
+      "description": "Восемь клинико-лабораторных признаков (MANTRELS) для оценки вероятности острого аппендицита.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые и дети; применяется врачом при подозрении на аппендицит",
+      "definition": {
+        "id": "minimed.assessment.alvarado-appendicitis",
+        "slug": "alvarado-appendicitis",
+        "title": "Балл Alvarado (MANTRELS)",
+        "shortTitle": "Alvarado",
+        "aliases": [
+          "Alvarado score",
+          "MANTRELS",
+          "балл Альварадо",
+          "аппендицит скрининг"
+        ],
+        "bankId": "emergency",
+        "bankLabel": "Неотложная помощь",
+        "category": "abdominal-emergency",
+        "description": "Восемь клинико-лабораторных признаков (MANTRELS) для оценки вероятности острого аппендицита.",
+        "estimatedMinutes": 3,
+        "audience": "Взрослые и дети; применяется врачом при подозрении на аппендицит",
+        "responseOptions": [
+          { "value": 0, "label": "Нет" },
+          { "value": 1, "label": "Да" }
+        ],
+        "scales": [
+          {
+            "id": "alvarado-total",
+            "label": "Суммарный балл Alvarado",
+            "shortLabel": "Alvarado",
+            "description": "Сумма восьми пунктов MANTRELS; диапазон 0–10."
+          }
+        ],
+        "questions": [
+          {
+            "id": "alvarado-migration",
+            "prompt": "Migration — миграция боли в правую подвздошную область (M)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да (1 балл)" }
+            ]
+          },
+          {
+            "id": "alvarado-anorexia",
+            "prompt": "Anorexia — анорексия (A)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да (1 балл)" }
+            ]
+          },
+          {
+            "id": "alvarado-nausea",
+            "prompt": "Nausea/vomiting — тошнота или рвота (N)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да (1 балл)" }
+            ]
+          },
+          {
+            "id": "alvarado-rlq-tenderness",
+            "prompt": "Tenderness in right lower quadrant — болезненность в правой подвздошной области (T)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 2, "label": "Да (2 балла)" }
+            ]
+          },
+          {
+            "id": "alvarado-rebound",
+            "prompt": "Rebound tenderness — симптом Щёткина–Блюмберга (R)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да (1 балл)" }
+            ]
+          },
+          {
+            "id": "alvarado-fever",
+            "prompt": "Elevated temperature — повышение температуры ≥37,3 °C (E)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да (1 балл)" }
+            ]
+          },
+          {
+            "id": "alvarado-leukocytosis",
+            "prompt": "Leukocytosis — лейкоцитоз >10 000/мм³ (L)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 2, "label": "Да (2 балла)" }
+            ]
+          },
+          {
+            "id": "alvarado-shift",
+            "prompt": "Shift to the left — сдвиг влево >75% нейтрофилов (S)",
+            "scaleId": "alvarado-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да (1 балл)" }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 4,
+            "scaleId": "alvarado-total",
+            "headline": "Аппендицит маловероятен (0–4 балла)",
+            "message": "0–4 балла соответствуют низкой вероятности острого аппендицита по исходной валидации Alvarado 1986."
+          },
+          {
+            "minScore": 5,
+            "maxScore": 6,
+            "scaleId": "alvarado-total",
+            "headline": "Промежуточная вероятность (5–6 баллов)",
+            "message": "5–6 баллов соответствуют промежуточной вероятности аппендицита по исходной валидации Alvarado 1986; решение о дообследовании принимается клинически."
+          },
+          {
+            "minScore": 7,
+            "maxScore": 10,
+            "scaleId": "alvarado-total",
+            "headline": "Аппендицит вероятен (7–10 баллов)",
+            "message": "7–10 баллов соответствуют высокой вероятности острого аппендицита по исходной валидации Alvarado 1986."
+          }
+        ],
+        "disclaimer": "Балл Alvarado — вспомогательный скрининг, а не замена клинического осмотра, визуализации и хирургического решения. Не применяйте изолированно у беременных, детей младшего возраста и при атипичной локализации червеобразного отростка.",
+        "evidenceNote": "Восемь пунктов MANTRELS с оригинальными весами (T и L — по 2 балла); суммарный диапазон 0–10 по Alvarado 1986.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Балл Alvarado описан в оригинальной публикации Alvarado A.; MiniMed не является правообладателем инструмента.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/3946867/"
+        }
+      },
+      "sources": [
+        {
+          "id": "alvarado-1986",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "A practical score for the early diagnosis of acute appendicitis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/3946867/",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "alvarado-1986-interpretation",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "A practical score for the early diagnosis of acute appendicitis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/3946867/",
+          "reviewedAt": "2026-08-17"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.shock-index",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "shock-index",
+      "title": "Индекс шока (Shock Index)",
+      "shortTitle": "Shock Index",
+      "aliases": [
+        "Shock Index",
+        "SI",
+        "индекс шока",
+        "ЧСС/АД"
+      ],
+      "bankId": "emergency",
+      "bankLabel": "Неотложная помощь",
+      "category": "emergency",
+      "description": "Отношение частоты сердечных сокращений к систолическому артериальному давлению как ориентир гемодинамической нестабильности.",
+      "estimatedMinutes": 1,
+      "audience": "Взрослые; применяется специалистом при оценке острой кровопотери и шока",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.shock-index",
+        "slug": "shock-index",
+        "title": "Индекс шока (Shock Index)",
+        "shortTitle": "Shock Index",
+        "aliases": [
+          "Shock Index",
+          "SI",
+          "индекс шока",
+          "ЧСС/АД"
+        ],
+        "summary": "SI = ЧСС (уд/мин) / систолическое АД (мм рт. ст.) как быстрый прикроватный ориентир тяжести гемодинамического нарушения.",
+        "audience": "adult",
+        "category": "emergency",
+        "clinical": true,
+        "formulaDisplay": "SI = ЧСС / систолическое АД",
+        "population": "Взрослые с измеренными ЧСС и систолическим АД; не заменяет оценку перфузии, лактата и объёма кровопотери.",
+        "limitations": [
+          "Не учитывает возраст, беременность, аритмию, приём бета-блокаторов и хроническую гипертензию.",
+          "Пороговые значения зависят от клинического контекста и не являются самостоятельным критерием трансфузии.",
+          "У детей и подростков применяйте отдельные протоколы; этот калькулятор рассчитан на взрослых."
+        ],
+        "inputs": [
+          {
+            "id": "heartRateBpm",
+            "label": "Частота сердечных сокращений",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "integer": true,
+            "required": true
+          },
+          {
+            "id": "systolicBpMmHg",
+            "label": "Систолическое артериальное давление",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 30,
+            "maximum": 300,
+            "integer": true,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "shockIndex",
+            "label": "Индекс шока",
+            "unit": "безразмерно",
+            "expression": "heartRateBpm / systolicBpMmHg",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "clinical-context",
+            "message": "Индекс шока — ориентир, а не диагноз; интерпретируйте вместе с клинической картиной, объёмом кровопотери и ответом на инфузию."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "shockIndex >= 0.9",
+            "message": "SI ≥0,9 ассоциирован с повышенной потребностью в массивной гемотрансфузии по данным Rady et al. 1992; требуется усиленный гемодинамический мониторинг."
+          },
+          {
+            "when": "shockIndex < 0.9",
+            "message": "SI <0,9 не исключает гемодинамическую нестабильность; оценивайте перфузию, сознание, диурез и динамику АД."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Shock index revisited: a fast guide to transfusion requirement?",
+            "publisher": "PubMed",
+            "version": "Rady et al. 1992",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1554081/",
+            "reviewedAt": "2026-08-17"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "shock-index-rady-1992",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Shock index revisited: a fast guide to transfusion requirement?",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/1554081/",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "shock-index-rady-1992-interpretation",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Shock index revisited: a fast guide to transfusion requirement?",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/1554081/",
+          "reviewedAt": "2026-08-17"
+        }
+      ]
+    }
+  ]
+}

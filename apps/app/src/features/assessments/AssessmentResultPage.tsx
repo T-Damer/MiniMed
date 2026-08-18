@@ -2,6 +2,7 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { NavBack } from '@/components/NavBack';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import { formatAssessmentRecord } from '@/features/assessments/assessment-engine';
 import {
@@ -91,14 +92,7 @@ export function AssessmentResultPage(props: {
     <article class="assessment-result-page">
       <header class="assessment-subpage-header">
         <div class="assessment-subpage-header-actions assessment-subpage-header-actions--leading">
-          <button
-            type="button"
-            class="knowledge-back-button"
-            aria-label="К тесту"
-            onClick={props.onBack}
-          >
-            <AppGlyph name="arrow-left" />
-          </button>
+          <NavBack class="knowledge-back-button" aria-label="К тесту" onClick={props.onBack} />
         </div>
         <div class="assessment-subpage-header__content">
           <p class="archive-kicker">Результат сохранён локально</p>
@@ -108,17 +102,19 @@ export function AssessmentResultPage(props: {
           </p>
         </div>
         <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
-          <button
+          <Button
             type="button"
+            variant="icon"
             class="knowledge-back-button assessment-help-button"
             aria-label="Методика и ограничения"
             title="Методика и ограничения"
             onClick={() => setMethodologyOpen(true)}
-          >
-            <span class="assessment-help-button__label" aria-hidden="true">
-              ?
-            </span>
-          </button>
+            icon={
+              <span class="assessment-help-button__label" aria-hidden="true">
+                ?
+              </span>
+            }
+          />
         </div>
       </header>
 
@@ -136,24 +132,34 @@ export function AssessmentResultPage(props: {
       >
         {(result) => (
           <section class="assessment-result-summary paper-card">
-            <h2 class="assessment-result-summary__heading">{result().headline}</h2>
-            <p class="assessment-result-summary__text">{result().summary}</p>
-            <div class="assessment-score-list">
-              <For each={result().scores}>
-                {(score) => (
-                  <div class="assessment-score-list__row">
-                    <span class="assessment-score-list__label">
-                      <strong>{score.label}</strong>
-                      <small class="assessment-score-list__detail">
-                        {score.rawScore} / {score.maximumScore}
-                      </small>
-                    </span>
-                    <progress class="assessment-score-list__bar" value={score.percent} max={100} />
-                    <b class="assessment-score-list__value">{score.percent}%</b>
-                  </div>
-                )}
-              </For>
-            </div>
+            <Show when={result().headline.trim()}>
+              <h2 class="assessment-result-summary__heading">{result().headline}</h2>
+            </Show>
+            <Show when={result().summary.trim()}>
+              <p class="assessment-result-summary__text">{result().summary}</p>
+            </Show>
+            <Show when={result().scores.length > 0}>
+              <div class="assessment-score-list">
+                <For each={result().scores}>
+                  {(score) => (
+                    <div class="assessment-score-list__row">
+                      <span class="assessment-score-list__label">
+                        <strong>{score.label}</strong>
+                        <small class="assessment-score-list__detail">
+                          {score.rawScore} / {score.maximumScore}
+                        </small>
+                      </span>
+                      <progress
+                        class="assessment-score-list__bar"
+                        value={score.percent}
+                        max={100}
+                      />
+                      <b class="assessment-score-list__value">{score.percent}%</b>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </Show>
             <p class="assessment-disclaimer">{props.definition.disclaimer}</p>
           </section>
         )}
@@ -162,6 +168,7 @@ export function AssessmentResultPage(props: {
       <AssessmentDefinitionNotice
         definition={props.definition}
         open={methodologyOpen()}
+        showTrigger={false}
         onOpenChange={setMethodologyOpen}
       />
 

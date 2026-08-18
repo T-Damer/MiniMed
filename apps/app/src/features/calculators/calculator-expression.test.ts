@@ -73,6 +73,17 @@ describe('calculator expression parser/evaluator', () => {
     );
   });
 
+  it('tests variable presence with present() without evaluating absent variables', () => {
+    expect(evaluateCalculatorExpression('present(x)', {})).toBe(0);
+    expect(evaluateCalculatorExpression('present(x)', { x: 5 })).toBe(1);
+    expect(evaluateCalculatorExpression('present(x)', { x: 0 })).toBe(1);
+    expect(evaluateCalculatorExpression('cond(present(x), x + 1, 0)', {})).toBe(0);
+    expect(() => evaluateCalculatorExpression('present(1)', {})).toThrow(CalculatorExpressionError);
+    expect(() => evaluateCalculatorExpression('present(x + 1)', {})).toThrow(
+      CalculatorExpressionError,
+    );
+  });
+
   it('never reaches JS eval/Function — a string containing JS syntax just fails to parse', () => {
     expect(() => evaluateCalculatorExpression('require("node:fs")', {})).toThrow(
       CalculatorExpressionError,

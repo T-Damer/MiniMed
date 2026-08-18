@@ -10,8 +10,10 @@ interface OverlayDialogProps {
   readonly labelledBy?: string;
   readonly class?: string;
   readonly bodyClass?: string;
-  readonly historyKey?: string;
+  /** When false, the dialog does not push a browser history entry (document overlays manage URL elsewhere). */
+  readonly tracksHistory?: boolean;
   readonly headerStart?: JSX.Element;
+  readonly headerEnd?: JSX.Element;
   readonly onClose: () => void;
   readonly children: JSX.Element;
 }
@@ -22,6 +24,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let panel: HTMLElement | undefined;
   let historyEntryPushed = false;
   const titleId = props.labelledBy ?? `overlay-dialog-title-${++nextOverlayDialogId}`;
+  const tracksHistory = () => props.tracksHistory !== false;
 
   const closeDialog = (): void => {
     if (historyEntryPushed) {
@@ -39,22 +42,21 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
 
   createEffect(() => {
     if (!props.open) return;
-    const historyKey = props.historyKey ?? props.title;
-    const url = new URL(window.location.href);
-    const restoreUrl = new URL(url);
+    const restoreUrl = window.location.href;
     const restoreState = window.history.state;
-    if (url.searchParams.get('dialog') !== historyKey) {
-      url.searchParams.set('dialog', historyKey);
+    if (tracksHistory()) {
       window.history.pushState(
-        { ...(window.history.state as object | null), dialog: historyKey },
+        { ...(window.history.state as object | null), overlay: true },
         '',
-        url,
+        restoreUrl,
       );
       historyEntryPushed = true;
     }
     const releaseScroll = lockBodyScroll();
     const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') closeDialog();
+      if (event.key !== 'Escape') return;
+      if (document.querySelector('.media-viewer')) return;
+      closeDialog();
     };
     const handlePopState = (): void => {
       if (!isTopmostDialog()) return;
@@ -68,10 +70,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
-      if (
-        historyEntryPushed &&
-        new URL(window.location.href).searchParams.get('dialog') === historyKey
-      ) {
+      if (historyEntryPushed && window.location.href === restoreUrl) {
         window.history.replaceState(restoreState, '', restoreUrl);
         historyEntryPushed = false;
       }
@@ -108,6 +107,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
                   {(subtitle) => <p class="overlay-dialog__subtitle">{subtitle()}</p>}
                 </Show>
               </div>
+              {props.headerEnd}
               <button
                 type="button"
                 class="overlay-dialog__close-button"

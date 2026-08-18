@@ -1,6 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { activateAppUpdate, selectLatestApkUpdate } from '@/state/app-update';
+import { activateAppUpdate, formatAppUpdateLabel, selectLatestApkUpdate } from '@/state/app-update';
+
+describe('app update label', () => {
+  it('shows percent while downloading', () => {
+    expect(formatAppUpdateLabel(true, { phase: 'download', loaded: 512, total: 1024 })).toBe('50%');
+  });
+
+  it('shows activation copy for service worker updates', () => {
+    expect(formatAppUpdateLabel(true, { phase: 'activate' })).toBe('Активация…');
+  });
+});
 
 describe('app update activation', () => {
   it('waits for the user action before asking the worker to activate', () => {

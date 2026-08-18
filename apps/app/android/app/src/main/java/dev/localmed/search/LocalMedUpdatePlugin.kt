@@ -40,8 +40,22 @@ class LocalMedUpdatePlugin : Plugin() {
                 if (connection.responseCode !in 200..299) {
                     throw IllegalStateException("APK download failed: HTTP ${connection.responseCode}")
                 }
+                val totalBytes = connection.contentLengthLong.coerceAtLeast(0L)
+                val buffer = ByteArray(64 * 1024)
                 connection.inputStream.use { input ->
-                    FileOutputStream(target).use { output -> input.copyTo(output, 64 * 1024) }
+                    FileOutputStream(target).use { output ->
+                        var loaded = 0L
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read < 0) break
+                            output.write(buffer, 0, read)
+                            loaded += read
+                            val event = JSObject()
+                            event.put("loaded", loaded)
+                            event.put("total", if (totalBytes > 0L) totalBytes else loaded)
+                            notifyListeners("downloadProgress", event)
+                        }
+                    }
                 }
                 connection.disconnect()
 

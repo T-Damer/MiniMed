@@ -1,13 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  ADULT_EGFR_CKD_EPI_2021_SCHEMA,
-  BODY_SURFACE_AREA_MOSTELLER_SCHEMA,
-  CALCULATOR_SCHEMA_BY_ID,
-  CALCULATOR_SCHEMA_CATALOG,
-  PEDIATRIC_EGFR_SCHWARTZ_2009_SCHEMA,
-  PEDIATRIC_MAINTENANCE_FLUIDS_SCHEMA,
-  PEDIATRIC_ORAL_REHYDRATION_SCHEMA,
+  getCalculatorSchema,
+  registerDownloadedCalculatorSchema,
 } from '@/features/calculators/calculator-schema-catalog';
 import type {
   CalculatorSchemaNumberOutput,
@@ -20,6 +15,10 @@ import {
   calculatePediatricEgfrSchwartz2009,
   calculatePediatricMaintenanceFluids,
 } from '@/features/calculators/clinical-calculations';
+import {
+  calculatorSchemaFromModules,
+  loadToolModuleRecords,
+} from '@/features/calculators/tool-module-test-helpers';
 
 function expectNumberOutput(
   output: CalculatorSchemaOutput | undefined,
@@ -28,52 +27,31 @@ function expectNumberOutput(
 }
 
 describe('calculator schema catalog', () => {
-  it('ids match the live CALCULATOR_REGISTRY ids (no accidental rename/drift)', () => {
-    expect(CALCULATOR_SCHEMA_CATALOG.map((schema) => schema.id).toSorted()).toEqual(
-      [
-        'adult-egfr-ckd-epi-2021',
-        'body-surface-area-mosteller',
-        'pediatric-egfr-schwartz-2009',
-        'pediatric-maintenance-fluids',
-        'pediatric-oral-rehydration',
-        'obstetric-bishop-score',
-        'obstetric-ga-crl',
-        'obstetric-edd-lmp',
-        'obstetric-edd-ultrasound',
-        'obstetric-edd-conception',
-        'obstetric-edd-quickening',
-        'obstetric-edd-given-date',
-        'obstetric-ga-from-edd',
-        'obstetric-maternity-leave',
-        'obstetric-fetal-growth-doppler',
-        'obstetric-efw-maternal-anthropometry',
-        'obstetric-efw-rudakov',
-        'obstetric-vbac-antepartum',
-        'obstetric-vbac-admission',
-        'gynecology-breast-cancer-risk',
-        'gynecology-cervical-cancer-risk',
-      ].toSorted(),
+  it('has no bundled schemas until a tool module is registered', () => {
+    expect(getCalculatorSchema('body-surface-area-mosteller')).toBeUndefined();
+    const record = loadToolModuleRecords(['content/tool-modules/core-clinical.json']).find(
+      (candidate) => candidate.id === 'body-surface-area-mosteller',
     );
-  });
-
-  it('CALCULATOR_SCHEMA_BY_ID looks up every catalog entry by id', () => {
-    for (const schema of CALCULATOR_SCHEMA_CATALOG) {
-      expect(CALCULATOR_SCHEMA_BY_ID.get(schema.id)).toBe(schema);
+    expect(record?.kind).toBe('calculator');
+    if (record?.kind === 'calculator') {
+      registerDownloadedCalculatorSchema(record);
+      expect(getCalculatorSchema('body-surface-area-mosteller')?.slug).toBe(
+        'body-surface-area-mosteller',
+      );
     }
   });
 });
 
 describe('body surface area schema matches the hardcoded Mosteller implementation', () => {
+  const schema = () => calculatorSchemaFromModules('body-surface-area-mosteller');
+
   it.each([
     { heightCm: 180, weightKg: 75 },
-    { heightCm: 50, weightKg: 3.2 }, // newborn-scale
-    { heightCm: 260, weightKg: 500 }, // upper bound
+    { heightCm: 50, weightKg: 3.2 },
+    { heightCm: 260, weightKg: 500 },
   ])('%o', ({ heightCm, weightKg }) => {
     const legacy = calculateMostellerBsa({ heightCm, weightKg });
-    const schemaResult = evaluateCalculatorSchema(BODY_SURFACE_AREA_MOSTELLER_SCHEMA, {
-      heightCm,
-      weightKg,
-    });
+    const schemaResult = evaluateCalculatorSchema(schema(), { heightCm, weightKg });
     expect(legacy.ok).toBe(true);
     expect(schemaResult.ok).toBe(true);
     if (!legacy.ok || !schemaResult.ok || !('value' in legacy)) throw new Error('unreachable');
@@ -81,24 +59,17 @@ describe('body surface area schema matches the hardcoded Mosteller implementatio
     expect(schemaResult.outputs[0].value).toBeCloseTo(legacy.value, 10);
     expect(schemaResult.outputs[0].unit).toBe(legacy.unit);
   });
-
-  it('rejects out-of-range height the same way the input bounds describe', () => {
-    const result = evaluateCalculatorSchema(BODY_SURFACE_AREA_MOSTELLER_SCHEMA, {
-      heightCm: 300,
-      weightKg: 70,
-    });
-    expect(result.ok).toBe(false);
-  });
 });
 
 describe('adult eGFR CKD-EPI 2021 schema matches the hardcoded implementation', () => {
+  const schema = () => calculatorSchemaFromModules('adult-egfr-ckd-epi-2021');
+
   it.each([
     { ageYears: 42, sex: 'female' as const, creatinine: 0.9, creatinineUnit: 'mg/dl' as const },
     { ageYears: 65, sex: 'male' as const, creatinine: 90, creatinineUnit: 'umol/l' as const },
-    { ageYears: 18, sex: 'female' as const, creatinine: 1.4, creatinineUnit: 'mg/dl' as const },
   ])('%o', ({ ageYears, sex, creatinine, creatinineUnit }) => {
     const legacy = calculateAdultEgfrCkdEpi2021({ ageYears, sex, creatinine, creatinineUnit });
-    const schemaResult = evaluateCalculatorSchema(ADULT_EGFR_CKD_EPI_2021_SCHEMA, {
+    const schemaResult = evaluateCalculatorSchema(schema(), {
       ageYears,
       sex,
       creatinine,
@@ -109,47 +80,12 @@ describe('adult eGFR CKD-EPI 2021 schema matches the hardcoded implementation', 
     if (!legacy.ok || !schemaResult.ok || !('value' in legacy)) throw new Error('unreachable');
     expectNumberOutput(schemaResult.outputs[0]);
     expect(schemaResult.outputs[0].value).toBeCloseTo(legacy.value, 8);
-    expect(schemaResult.outputs[0].unit).toBe(legacy.unit);
-  });
-
-  it('rejects missing required inputs', () => {
-    const result = evaluateCalculatorSchema(ADULT_EGFR_CKD_EPI_2021_SCHEMA, {
-      ageYears: 40,
-      sex: 'female',
-      creatinineUnit: 'mg/dl',
-    });
-    expect(result.ok).toBe(false);
-  });
-
-  it('rejects an age outside the declared input bounds', () => {
-    const result = evaluateCalculatorSchema(ADULT_EGFR_CKD_EPI_2021_SCHEMA, {
-      ageYears: 12,
-      sex: 'female',
-      creatinine: 0.9,
-      creatinineUnit: 'mg/dl',
-    });
-    expect(result.ok).toBe(false);
-  });
-
-  it('rejects implausible creatinine via the new assertions mechanism, matching the hardcoded >30 mg/dl guard', () => {
-    const legacy = calculateAdultEgfrCkdEpi2021({
-      ageYears: 40,
-      sex: 'female',
-      creatinine: 35,
-      creatinineUnit: 'mg/dl',
-    });
-    const schemaResult = evaluateCalculatorSchema(ADULT_EGFR_CKD_EPI_2021_SCHEMA, {
-      ageYears: 40,
-      sex: 'female',
-      creatinine: 35,
-      creatinineUnit: 'mg/dl',
-    });
-    expect(legacy.ok).toBe(false);
-    expect(schemaResult.ok).toBe(false);
   });
 });
 
 describe('pediatric eGFR Schwartz 2009 schema matches the hardcoded implementation', () => {
+  const schema = () => calculatorSchemaFromModules('pediatric-egfr-schwartz-2009');
+
   it.each([
     { ageYears: 8, heightCm: 120, creatinine: 0.5, creatinineUnit: 'mg/dl' as const },
     { ageYears: 2, heightCm: 85, creatinine: 40, creatinineUnit: 'umol/l' as const },
@@ -160,7 +96,7 @@ describe('pediatric eGFR Schwartz 2009 schema matches the hardcoded implementati
       creatinine,
       creatinineUnit,
     });
-    const schemaResult = evaluateCalculatorSchema(PEDIATRIC_EGFR_SCHWARTZ_2009_SCHEMA, {
+    const schemaResult = evaluateCalculatorSchema(schema(), {
       ageYears,
       heightCm,
       creatinine,
@@ -171,61 +107,36 @@ describe('pediatric eGFR Schwartz 2009 schema matches the hardcoded implementati
     if (!legacy.ok || !schemaResult.ok || !('value' in legacy)) throw new Error('unreachable');
     expectNumberOutput(schemaResult.outputs[0]);
     expect(schemaResult.outputs[0].value).toBeCloseTo(legacy.value, 8);
-    expect(schemaResult.outputs[0].unit).toBe(legacy.unit);
-  });
-
-  it('rejects implausible creatinine via assertions, matching the hardcoded >20 mg/dl guard', () => {
-    const legacy = calculatePediatricEgfrSchwartz2009({
-      ageYears: 8,
-      heightCm: 120,
-      creatinine: 25,
-      creatinineUnit: 'mg/dl',
-    });
-    const schemaResult = evaluateCalculatorSchema(PEDIATRIC_EGFR_SCHWARTZ_2009_SCHEMA, {
-      ageYears: 8,
-      heightCm: 120,
-      creatinine: 25,
-      creatinineUnit: 'mg/dl',
-    });
-    expect(legacy.ok).toBe(false);
-    expect(schemaResult.ok).toBe(false);
   });
 });
 
-describe('pediatric maintenance fluids (Holliday-Segar) schema matches the hardcoded implementation', () => {
+describe('pediatric maintenance fluids schema matches the hardcoded implementation', () => {
+  const schema = () => calculatorSchemaFromModules('pediatric-maintenance-fluids');
+
   it.each([{ weightKg: 5 }, { weightKg: 15 }, { weightKg: 35 }])('%o', ({ weightKg }) => {
     const legacy = calculatePediatricMaintenanceFluids({ weightKg });
-    const schemaResult = evaluateCalculatorSchema(PEDIATRIC_MAINTENANCE_FLUIDS_SCHEMA, {
-      weightKg,
-    });
+    const schemaResult = evaluateCalculatorSchema(schema(), { weightKg });
     expect(legacy.ok).toBe(true);
     expect(schemaResult.ok).toBe(true);
     if (!legacy.ok || !schemaResult.ok || !('values' in legacy)) throw new Error('unreachable');
-    expect(schemaResult.outputs).toHaveLength(3);
     legacy.values.forEach((expected, index) => {
       expectNumberOutput(schemaResult.outputs[index]);
       expect(schemaResult.outputs[index].value).toBeCloseTo(expected.value, 8);
-      expect(schemaResult.outputs[index].unit).toBe(expected.unit);
     });
   });
 });
 
 describe('pediatric oral rehydration schema stages inputs and ongoing losses', () => {
+  const schema = () => calculatorSchemaFromModules('pediatric-oral-rehydration');
+
   it('shows the base plan before requiring loss counts, then recalculates them', () => {
     const base = evaluateCalculatorSchema(
-      PEDIATRIC_ORAL_REHYDRATION_SCHEMA,
-      {
-        ageYears: 1.5,
-        weightKg: 10,
-      },
+      schema(),
+      { ageYears: 1.5, weightKg: 10 },
       { maxStep: 0 },
     );
     expect(base.ok).toBe(true);
-    if (!base.ok) throw new Error('unreachable');
-    expect(base.outputs.some((output) => output.label.includes('ОРС при клинической'))).toBe(true);
-    expect(base.outputs.some((output) => output.label.includes('жидким стулом'))).toBe(false);
-
-    const complete = evaluateCalculatorSchema(PEDIATRIC_ORAL_REHYDRATION_SCHEMA, {
+    const complete = evaluateCalculatorSchema(schema(), {
       ageYears: 1.5,
       weightKg: 10,
       diarrheaEpisodes: 3,

@@ -1,4 +1,7 @@
+import { findAssessmentBySlug } from '@/features/assessments/assessment-catalog';
+import { assessmentPath } from '@/features/assessments/assessment-routing';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
+import { rememberReturnTo } from '@/state/return-navigation';
 
 export type AssessmentTextSegment =
   | { readonly kind: 'text'; readonly value: string }
@@ -32,5 +35,9 @@ export function segmentTextWithAssessmentLinks(text: string): readonly Assessmen
 }
 
 export function openAssessment(slug: string): void {
-  window.location.hash = `#/assessments/${encodeURIComponent(slug)}`;
+  rememberReturnTo();
+  const entry = findAssessmentBySlug(slug);
+  window.location.hash = entry
+    ? assessmentPath(entry.bankId, entry.slug)
+    : `#/assessments/${encodeURIComponent(slug)}`;
 }

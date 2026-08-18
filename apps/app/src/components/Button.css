@@ -1,0 +1,88 @@
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.6rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.65rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0.05rem 0 0 rgb(255 255 255 / 10%),
+    0 0.14rem 0 0 color-mix(in srgb, currentColor 28%, transparent),
+    0 0.25rem 0.5rem rgb(0 0 0 / 22%);
+  transition:
+    box-shadow var(--theme-motion-control, 140ms ease-out),
+    transform var(--theme-motion-control, 140ms ease-out);
+}
+
+.ui-button:active {
+  box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 18%);
+  transform: translateY(0.1rem);
+}
+
+.ui-button--primary {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  box-shadow:
+    inset 0 0.05rem 0 0 rgb(255 255 255 / 18%),
+    0 0.14rem 0 0 color-mix(in srgb, var(--theme-accent) 55%, black),
+    0 0.25rem 0.5rem rgb(0 0 0 / 22%);
+}
+
+.ui-button--primary:active {
+  box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 25%);
+}
+
+.ui-button--danger {
+  border-color: color-mix(in srgb, var(--theme-danger) 45%, transparent);
+  color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 12%, var(--theme-surface-raised));
+}
+
+.ui-button--quiet {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-button--quiet:active {
+  transform: none;
+}
+
+.ui-button__icon {
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+}
+
+.ui-button--icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  min-width: 2.6rem;
+  min-height: 2.6rem;
+  aspect-ratio: 1;
+  padding: 0;
+}
+
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ui-button:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-button--danger:hover {
+    background: color-mix(in srgb, var(--theme-danger) 20%, var(--theme-surface-raised));
+  }
+}

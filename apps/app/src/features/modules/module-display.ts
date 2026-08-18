@@ -25,6 +25,69 @@ export function formatModuleBytes(value: number | null): string {
   return `${(value / 1024 / 1024).toFixed(value >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
 }
 
+export type ModuleCollectionSubtitleVariant = 'default' | 'core';
+
+export interface ModuleCollectionSubtitleOptions {
+  readonly variant?: ModuleCollectionSubtitleVariant;
+}
+
+function formatKnownBytes(bytes: number): string | null {
+  if (bytes <= 0) return null;
+  return formatModuleBytes(bytes);
+}
+
+export function formatModuleCollectionSubtitle(
+  installedCount: number,
+  moduleCount: number,
+  downloadBytes: number,
+  installedBytes: number,
+  options?: ModuleCollectionSubtitleOptions,
+): string | null {
+  const variant = options?.variant ?? 'default';
+
+  if (variant === 'core') {
+    if (installedCount > 0) {
+      return formatKnownBytes(installedBytes);
+    }
+    return formatKnownBytes(downloadBytes);
+  }
+
+  const fullyInstalled = moduleCount > 0 && installedCount > 0 && installedCount === moduleCount;
+  const nothingInstalled = installedCount === 0;
+  const segments: string[] = [];
+
+  if (moduleCount > 0 && !fullyInstalled) {
+    segments.push(`${installedCount}/${moduleCount}`);
+  }
+
+  if (nothingInstalled) {
+    const downloadLabel = formatKnownBytes(downloadBytes);
+    if (downloadLabel) segments.push(downloadLabel);
+  } else if (fullyInstalled) {
+    const installedLabel = formatKnownBytes(installedBytes);
+    const catalogLabel = formatKnownBytes(downloadBytes);
+    if (installedLabel && catalogLabel && installedLabel === catalogLabel) {
+      segments.push(installedLabel);
+    } else if (installedLabel) {
+      segments.push(installedLabel);
+    } else if (catalogLabel) {
+      segments.push(catalogLabel);
+    }
+  } else {
+    const installedLabel = formatKnownBytes(installedBytes);
+    const catalogLabel = formatKnownBytes(downloadBytes);
+    if (installedLabel) {
+      segments.push(`загружено ${installedLabel}`);
+    }
+    if (catalogLabel && catalogLabel !== installedLabel) {
+      segments.push(catalogLabel);
+    }
+  }
+
+  if (segments.length === 0) return null;
+  return segments.join(' · ');
+}
+
 export function contentModuleTaskProgress(task: ContentModuleDownloadTask): number | null {
   if (!task.totalBytes || task.totalBytes <= 0) return null;
   return Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));

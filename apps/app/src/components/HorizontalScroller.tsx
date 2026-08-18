@@ -6,6 +6,8 @@ import { createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { translateVerticalWheelToHorizontal } from '@/features/search/horizontal-wheel-scroll';
+import { hapticFeedback } from '@/state/haptics';
+import { uiSounds } from '@/state/ui-sounds';
 
 interface HorizontalScrollerProps {
   readonly class: string;
@@ -18,6 +20,7 @@ interface HorizontalScrollerProps {
 
 export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element {
   let scroller: OverlayScrollbarsComponentRef | undefined;
+  let lastScrollLeft = 0;
   const [canScrollPrevious, setCanScrollPrevious] = createSignal(false);
   const [canScrollNext, setCanScrollNext] = createSignal(false);
   const updateControls = (instance = scroller?.osInstance()): void => {
@@ -26,6 +29,18 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
     const maximum = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
     setCanScrollPrevious(viewport.scrollLeft > 2);
     setCanScrollNext(viewport.scrollLeft < maximum - 2);
+  };
+  const handleScroll = (instance = scroller?.osInstance()): void => {
+    const viewport = instance?.elements().viewport;
+    if (viewport) {
+      const delta = Math.abs(viewport.scrollLeft - lastScrollLeft);
+      if (delta >= 28) {
+        lastScrollLeft = viewport.scrollLeft;
+        uiSounds.play('swipe');
+        hapticFeedback('selection');
+      }
+    }
+    updateControls(instance);
   };
   const scroll = (direction: -1 | 1): void => {
     const viewport = scroller?.osInstance()?.elements().viewport;
@@ -63,9 +78,12 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
           scrollbars: { autoHide: props.hideScrollbar ? 'scroll' : 'never' },
         }}
         events={{
-          initialized: updateControls,
+          initialized: (instance) => {
+            lastScrollLeft = instance.elements().viewport?.scrollLeft ?? 0;
+            updateControls(instance);
+          },
           updated: updateControls,
-          scroll: updateControls,
+          scroll: handleScroll,
         }}
         defer
         onWheel={(event) => {

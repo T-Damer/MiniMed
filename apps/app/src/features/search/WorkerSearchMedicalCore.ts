@@ -20,7 +20,6 @@ import type {
 } from '@localmed/contracts';
 
 import { getPackagedContentBaseUrl } from '@/composition/create-browser-core';
-import { peekContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import type {
   SearchWorkerRequest,
   SearchWorkerResponse,
@@ -43,14 +42,6 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   private workerEligibility: Promise<boolean> | undefined;
 
   public constructor(private readonly base: MedicalCore) {
-    // Downloaded modules are mounted into the freshly composed application core. Keep that exact
-    // composition on the direct path instead of asking an independently booted Worker to rediscover
-    // IndexedDB state during a live install/remove transition. Recreating this wrapper after the last
-    // downloaded module is removed enables background search again.
-    if ((peekContentModuleRuntime()?.listInstalled().length ?? 0) > 0) {
-      this.disableWorker();
-      return;
-    }
     if (!this.worker) return;
     this.worker.onmessage = (event: MessageEvent<SearchWorkerResponse>) => {
       const pending = this.pending.get(event.data.id);

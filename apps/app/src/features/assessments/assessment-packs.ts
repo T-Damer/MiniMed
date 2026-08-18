@@ -108,6 +108,37 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
 
 const SECTION_IDS = new Set(ASSESSMENT_SECTIONS.map((section) => section.id));
 
+/** Maps assessment sections to downloadable tool-module catalog ids. */
+export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSectionId, string>>> =
+  {
+    'self-reflection': 'minimed.tools.psychology.ru',
+    'work-style': 'minimed.tools.psychology.ru',
+    'team-role': 'minimed.tools.psychology.ru',
+    temperament: 'minimed.tools.psychology.ru',
+    'newborn-screening': 'minimed.tools.obstetrics-gynecology.ru',
+    'perinatal-mood': 'minimed.tools.obstetrics-gynecology.ru',
+    'gynecologic-endocrinology': 'minimed.tools.obstetrics-gynecology.ru',
+    'pediatric-gastroenterology': 'minimed.tools.gastroenterology.ru',
+  };
+
+export function moduleIdForAssessmentSection(sectionId: AssessmentSectionId): string | undefined {
+  return ASSESSMENT_SECTION_MODULE_IDS[sectionId];
+}
+
+/** Maps assessment specialty banks to downloadable tool-module catalog ids. */
+export const ASSESSMENT_SPECIALTY_MODULE_IDS: Readonly<Record<string, string>> = {
+  psychology: 'minimed.tools.psychology.ru',
+  obstetrics: 'minimed.tools.obstetrics-gynecology.ru',
+  neonatology: 'minimed.tools.neonatology.ru',
+  gastroenterology: 'minimed.tools.gastroenterology.ru',
+  emergency: 'minimed.tools.emergency.ru',
+  pediatrics: 'minimed.tools.pediatrics.ru',
+};
+
+export function moduleIdForAssessmentSpecialty(specialtyId: string): string | undefined {
+  return ASSESSMENT_SPECIALTY_MODULE_IDS[specialtyId];
+}
+
 function storage(): Storage | null {
   if (typeof window === 'undefined') return null;
   try {

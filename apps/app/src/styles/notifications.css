@@ -3,6 +3,7 @@
 }
 
 [data-sonner-toaster].app-notification-host {
+  z-index: 700;
   --normal-bg: var(--theme-surface-raised);
   --normal-border: var(--theme-border);
   --normal-text: var(--theme-text);
@@ -27,9 +28,9 @@
    to the top-right and give it real contrast against --normal-bg instead of blending into it, so it
    reads as a deliberate circular control rather than a stray dot. */
 [data-sonner-toast][data-styled="true"].app-notification [data-close-button] {
-  top: 0;
-  right: 0;
-  left: unset;
+  top: 0 !important;
+  right: 0 !important;
+  left: auto !important;
   width: 1.375rem;
   height: 1.375rem;
   color: var(--theme-accent-contrast);

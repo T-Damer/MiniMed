@@ -16,7 +16,7 @@ Runtime names, database engines, schema versions, raw timings and implementation
 
 ## Documents
 
-A complete document opens outside tab navigation in a shared overlay or dedicated document route. Search and archive pages should not permanently reserve half of the screen for long source text.
+Official and personal full documents open as hash-router pages under `#/modules/documents/…` with Kobalte breadcrumbs, not as stacked modal dialogs. Official documents use `#/modules/documents/d/<token>`; personal books use `#/modules/documents/user/<id>`. One-level `OverlayDialog` remains for the knowledge graph («Карта связей»), search short-card/context preview, help, confirmations, and module details. Search and archive pages should not permanently reserve half of the screen for long source text.
 
 The reader should:
 
@@ -24,7 +24,7 @@ The reader should:
 - provide document search and an outline;
 - open at the exact source anchor;
 - keep source/version details available in a disclosure;
-- preserve the search or archive workspace behind the overlay.
+- preserve breadcrumb navigation back to the origin section (Поиск, Документы, and so on).
 
 ## Search explanations
 
@@ -45,7 +45,7 @@ Models downloaded by public builds come from a MiniMed GitHub Release mirror and
 
 ## Reusable components
 
-Use one overlay shell for documents, errors and future focused workflows. Reuse the same document reader regardless of whether the document was opened from search, archive, graph or a source citation.
+Use `OverlayDialog` only for one-level focused workflows: knowledge graph, search context preview, help, confirmations, chooser dialogs, and module details. Reuse the same document page reader regardless of whether the document was opened from search, archive, graph, or a source citation. Opening a document from the graph closes the graph overlay first, then navigates to `#/modules/documents/d/…`.
 
 ## Graph
 

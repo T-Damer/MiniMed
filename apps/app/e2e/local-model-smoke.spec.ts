@@ -25,9 +25,8 @@ test('downloads, loads and benchmarks the selected compact CPU model', async ({ 
 
   await page
     .locator('.app-bottom-nav')
-    .getByRole('button', { name: /^База знаний/u })
+    .getByRole('button', { name: /^Настройки/u })
     .click();
-  await page.getByRole('button', { name: /Настроить модель/u }).click();
   await page.getByText('Доступные модели').click();
   const modelCard = page.locator('.model-option-card').filter({ hasText: modelName });
   await modelCard.getByRole('button', { name: /Скачать/u }).click();

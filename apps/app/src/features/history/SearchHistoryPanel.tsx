@@ -32,6 +32,7 @@ const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
   medications: 'Препараты',
   legal: 'Право',
   all: 'Все источники',
+  personal: 'Ваши данные',
 };
 
 function formatDate(value: string): string {
@@ -156,8 +157,13 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   </span>
                   <small>{entries().length}</small>
                 </div>
-                <button type="button" aria-label="Закрыть историю" onClick={close}>
-                  <AppGlyph name="close" />
+                <button
+                  type="button"
+                  class="search-history-panel-header__close"
+                  aria-label="Закрыть историю"
+                  onClick={close}
+                >
+                  <AppGlyph name="close" class="search-history-panel-header__close-icon" />
                 </button>
               </header>
 

@@ -136,8 +136,8 @@ html.calculator-route-open body {
 
 .calculator-catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
+  gap: var(--layout-gap);
 }
 
 .calculator-section-list {
@@ -545,12 +545,18 @@ html.calculator-route-open body {
   display: grid;
   gap: 0.25rem;
   padding: 0.85rem;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border: 1px solid var(--theme-border);
   border-radius: 0.7rem;
-  background: color-mix(in srgb, var(--theme-surface-raised) 85%, var(--theme-accent));
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+}
+
+.calculator-output-list span {
+  color: var(--theme-text-muted);
 }
 
 .calculator-output-list strong {
+  color: var(--theme-text);
   font-size: clamp(1.25rem, 4vw, 2rem);
 }
 

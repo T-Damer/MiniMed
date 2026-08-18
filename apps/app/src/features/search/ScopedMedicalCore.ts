@@ -23,7 +23,13 @@ import type {
 import { rankSearchGroupsByQuery } from '@localmed/core';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
-export type SearchScope = 'diagnosis' | 'guidelines' | 'medications' | 'legal' | 'all';
+export type SearchScope =
+  | 'diagnosis'
+  | 'guidelines'
+  | 'medications'
+  | 'legal'
+  | 'all'
+  | 'personal';
 export type SearchAudience = 'children' | 'adults';
 
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
@@ -42,12 +48,14 @@ const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<st
     'rls_mkb_reference',
   ]),
   legal: new Set(['regulatory_act', 'regulatory_act_summary']),
+  personal: new Set<string>(),
 };
 
 export function documentMatchesSearchScope(
   document: Pick<MedicalDocumentSummary, 'sourceType'>,
   scope: SearchScope,
 ): boolean {
+  if (scope === 'personal') return false;
   const sourceTypes = SOURCE_TYPES_BY_SCOPE[scope];
   return sourceTypes ? sourceTypes.has(document.sourceType) : true;
 }

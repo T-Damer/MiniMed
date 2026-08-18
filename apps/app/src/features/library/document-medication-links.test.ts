@@ -83,7 +83,12 @@ describe('document-medication-links', () => {
 
     expect(segments).toEqual([
       { kind: 'text', value: 'При тяжёлом течении назначают ' },
-      { kind: 'link', value: 'цефтриаксон', documentId: 'drug.rf.ceftriaxone.injection-1g' },
+      {
+        kind: 'link',
+        value: 'цефтриаксон',
+        documentId: 'drug.rf.ceftriaxone.injection-1g',
+        linkKind: 'medication',
+      },
       { kind: 'text', value: ' внутримышечно.' },
     ]);
   });
@@ -107,5 +112,11 @@ describe('document-medication-links', () => {
       'Пневмония у детей',
       '323-ФЗ',
     ]);
+
+    const links = buildDocumentLinkPhrases(documents);
+    expect(links.find((link) => link.documentId === 'law.323-fz')?.kind).toBe('document');
+    expect(links.find((link) => link.documentId === 'clinical.pneumonia')?.kind).toBe(
+      'recommendation',
+    );
   });
 });

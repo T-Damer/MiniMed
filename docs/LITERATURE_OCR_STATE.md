@@ -21,6 +21,14 @@ it yet — treat as "OCR pipeline didn't visibly break," not "content is correct
 | `pdb.kapitan.merged.ocr-draft.json` (4 parts) | 458 | $1.83 | automated-clean only | **issues-open** — 1036 tables not hand-checked; part 4 (renal norms) is highest-value, review first |
 | **Subtotal** | **743** | **$2.97** | | |
 
+## Qwen post-pass 2026-08-16 (OpenRouter chat-vision re-checks, local files only)
+
+| File set | Pages | Cost | Quality | Status |
+| --- | ---: | ---: | --- | --- |
+| `/tmp/minimed-ocr-qwen-neon/qwen-neon-*.json` | 82 | $0.2121943 | automated-clean (per-page JSON, raw OCR artifacts only) | **issues-open** — same blockers remain for Baby growth/Fenton, bilirubin-phototherapy thresholds, and neonatal lab references; these pages are not hand-verified yet |
+| `/tmp/minimed-ocr-qwen-neon/qwen-neon-{391,395-404,406-409,411-450,504-510}-qwen2p5.json` | 62 | $0.2736052 | automated-clean (per-page JSON, raw OCR artifacts only); `data.page` почти всегда смещён на +1 относительно запрошенного номера | **issues-open** — same blockers remain; OCR artifacts now present and ready for `hand-verified` review |
+| **Subtotal** | **144** | **$0.4857995** | | |
+
 ## Pre-existing batch, found 2026-08-09 (not run this session — predates this investigation)
 
 Cost not confirmed via the Replicate API used in this session (these predictions do not appear in that
@@ -30,7 +38,7 @@ same $0.004/page fast-mode rate; treat as approximate until the actual billing s
 | File | Pages | Est. cost | Quality | Status |
 | --- | ---: | ---: | --- | --- |
 | `neo.volodin_nr.ocr-draft.json` | 750 | ~$3.00 | automated-clean only | not reviewed |
-| `neo.shabalov.ocr-draft.json` | 704 | ~$2.82 | automated-clean only | not reviewed |
+| `neo.shabalov.ocr-draft.json` | 704 | ~$2.82 | automated-clean only | issues-open — Fenton, bilirubin/phototherapy, and neonatal lab-reference tables are not machine-readable in this draft |
 | `ft.moiseev_t1.ocr-draft.json` | 960 | ~$3.84 | automated-clean only | not reviewed |
 | `trauma.kotelnikov.ocr-draft.json` | 560 | ~$2.24 | automated-clean only | not reviewed |
 | `lor.bogomilsky.ocr-draft.json` | 432 | ~$1.73 | automated-clean only | not reviewed |
@@ -40,8 +48,9 @@ same $0.004/page fast-mode rate; treat as approximate until the actual billing s
 
 ## Running total
 
-- **Pages OCR'd across all files: 4,456**
-- **Cost: $2.97 confirmed (this session) + ~$14.85 estimated (pre-existing batch) ≈ $17.82 total**
+- **Pages OCR'd across all files: 4,518**
+  - +82 + 62 additional local Qwen pass pages (non-authoritative, partially duplicated against `neo.shabalov.ocr-draft.json`) were used for targeted validation checks.
+- **Cost: $2.97 confirmed (this session) + ~$14.85 estimated (pre-existing batch) + ~$0.49 Qwen local = ≈ $18.31 total**
 - **Hand-verified: 5 pages** (the bake-off sample). Everything else is only automated-scanned — clean of
   garbled text, but no numeric value from any of these files is confirmed correct against its source scan.
 - **Nothing here is "ideal" yet in the sense of ready-to-use** — "automated-clean" only means the OCR

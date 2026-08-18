@@ -1,7 +1,7 @@
 import type { MedicalDocument } from '@localmed/contracts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { printDocument, shareDocument } from '@/features/library/document-print';
+import { printDocument, printHtml, shareDocument } from '@/features/library/document-print';
 
 function buildDocument(): MedicalDocument {
   return {
@@ -102,6 +102,28 @@ describe('document print layout', () => {
       open: vi.fn(() => null),
     });
     expect(printDocument(buildDocument())).toBe(false);
+  });
+
+  it('prints arbitrary HTML through the shared popup helper', () => {
+    const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
+    const popup = { document: popupDocument, opener: undefined, focus: vi.fn(), print: vi.fn() };
+    vi.stubGlobal('window', {
+      open: vi.fn(() => popup),
+      setTimeout: (callback: () => void) => {
+        callback();
+        return 0;
+      },
+    });
+
+    expect(printHtml('<html><body><p>Test</p></body></html>', 'Test page')).toBe(true);
+
+    const markup = popupDocument.write.mock.calls[0]?.[0] as string;
+    expect(markup).toContain('<p>Test</p>');
+  });
+
+  it('returns false when printHtml popup is blocked', () => {
+    vi.stubGlobal('window', { open: vi.fn(() => null) });
+    expect(printHtml('<html></html>', 'Blocked')).toBe(false);
   });
 
   it('shares a title/summary/link and falls back to clipboard', async () => {

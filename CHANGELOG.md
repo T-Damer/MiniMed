@@ -4,6 +4,22 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.22] - 2026-08-18
+
+### Added
+
+- Moved Hadlock gestational-age-by-biometry into the obstetrics-gynecology tool module schema pack,
+  including optional BPD/HC/AC/FL inputs and a `present()` expression helper.
+- Full-document pages show chrome and outline immediately with a paper loader, plus a back arrow.
+
+### Changed
+
+- Search stays on the Web Worker after content modules are installed.
+- Dark theme uses surface tokens for document outline, chrome, spinner overlay, search history,
+  search scopes, and example chips; the bottom-nav bubble is pale so the active icon stays readable.
+- Tablet-width page headers share the board measure; module installed badges sit inside card padding;
+  root-tab transitions no longer leave a split page when sticky chrome meets a scroll offset.
+
 ## [0.6.21] - 2026-08-16
 
 ### Added

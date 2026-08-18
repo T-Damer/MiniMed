@@ -112,7 +112,7 @@ test('opens Miramistin indications from the full instruction with structured lis
   );
   await page.getByRole('button', { name: 'Открыть инструкцию' }).click();
   await expect(
-    page.locator('.overlay-dialog-header > .document-overlay-outline-toggle'),
+    page.locator('.document-page__chrome > .document-overlay-outline-toggle'),
   ).toBeVisible();
 
   const indications = page
@@ -169,7 +169,7 @@ test('toggles the document outline on desktop and highlights exact reader matche
   const toggle = overlay.locator('.document-overlay-outline-toggle');
   await expect(outline).toBeVisible();
   await toggle.click();
-  await expect(outline).toBeHidden();
+  await expect(outline).toHaveAttribute('aria-hidden', 'true');
   await expect(overlay.locator('.document-overlay-layout')).toHaveClass(
     /document-overlay-layout--outline-hidden/u,
   );
@@ -213,8 +213,7 @@ test('preserves the active search while navigating between mounted routes', asyn
   await expect(pneumoniaResult(page)).toBeVisible();
 
   await navigationButton(page, 'База знаний').click();
-  await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Документы/u })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
   await navigationButton(page, 'Поиск').click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
@@ -312,8 +311,6 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
   await navigationButton(page, 'База знаний').click();
 
-  await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
-  await page.getByRole('button', { name: /^Документы/u }).click();
   await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toHaveCount(0);
   await expect(page.locator('article[aria-label="Открыть набор «Лекарства»"]')).toBeVisible();
@@ -381,7 +378,6 @@ test('autosearch leaves the typed text untouched, including trailing space', asy
 test('filters the document library and opens a document with one click', async ({ page }) => {
   await mountBuiltApp(page);
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('button', { name: /^Документы/u }).click();
   await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
   await expect(page.getByRole('heading', { name: 'Пневмония у детей', level: 2 })).toBeVisible();
@@ -420,10 +416,10 @@ test('asks before activating an installed application update', async ({ page }) 
     window.dispatchEvent(new CustomEvent('minimed:app-update-ready', { detail: { worker } }));
   });
 
-  const update = page.locator('.app-update-pill');
+  const update = page.locator('.search-update-status');
   await expect(update).toBeVisible();
   await update.click();
-  await expect(page.getByRole('button', { name: 'Обновляем приложение…' })).toBeDisabled();
+  await expect(update).toBeDisabled();
   await expect
     .poll(() =>
       page.evaluate(

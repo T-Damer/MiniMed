@@ -21,8 +21,14 @@ export function SearchExamples(props: SearchExamplesProps): JSX.Element {
         <div class="example-scroll-content">
           <For each={props.examples}>
             {(example, index) => (
-              <button type="button" onClick={() => props.onSelect(example)}>
-                <span>{String(index() + 1).padStart(2, '0')}</span>
+              <button
+                type="button"
+                class="example-scroll-content__chip"
+                onClick={() => props.onSelect(example)}
+              >
+                <span class="example-scroll-content__chip-index">
+                  {String(index() + 1).padStart(2, '0')}
+                </span>
                 {example}
               </button>
             )}

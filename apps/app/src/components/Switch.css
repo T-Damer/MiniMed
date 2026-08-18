@@ -1,0 +1,52 @@
+.ui-switch {
+  --ui-switch-track: color-mix(in srgb, var(--theme-text) 16%, transparent);
+  --ui-switch-shift: 0;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ui-switch--on {
+  --ui-switch-track: var(--theme-accent);
+  --ui-switch-shift: 1.125rem;
+}
+
+.ui-switch__track {
+  display: block;
+  position: relative;
+  width: 2.75rem;
+  height: 1.625rem;
+  border-radius: 999px;
+  background: var(--ui-switch-track);
+  transition: background var(--theme-motion-control);
+}
+
+.ui-switch__thumb {
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.1875rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--theme-accent-contrast);
+  box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 18%);
+  transform: translateX(var(--ui-switch-shift));
+  transition: transform var(--theme-motion-control);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-switch:hover {
+    --ui-switch-track: color-mix(in srgb, var(--theme-text) 24%, transparent);
+    transform: none;
+    box-shadow: none;
+  }
+
+  .ui-switch--on:hover {
+    --ui-switch-track: color-mix(in srgb, var(--theme-accent) 88%, white);
+    transform: none;
+    box-shadow: none;
+  }
+}

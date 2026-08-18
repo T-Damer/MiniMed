@@ -47,9 +47,16 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         props.installed.version !== props.module.version &&
         props.module.releaseState === 'published',
     );
+  const sizeLabel = (): string =>
+    props.installed
+      ? formatModuleBytes(props.installed.installedSizeBytes)
+      : formatModuleBytes(props.module.sizes.downloadBytes);
 
   return (
-    <article class="module-card paper-card" classList={{ installed: Boolean(props.installed) }}>
+    <article
+      class="module-card paper-card"
+      classList={{ 'module-card--installed': Boolean(props.installed) }}
+    >
       <button
         type="button"
         class="module-card-open-hit-area"
@@ -60,20 +67,22 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         }
         onClick={props.module.required ? props.onOpenCore : props.onInspect}
       />
-      <div class="module-card-topline">
+      <div class="module-card__topline">
         <span
           class={`module-state ${
-            props.installed ? 'state-installed' : `state-${props.module.releaseState}`
+            props.installed
+              ? 'module-state--installed'
+              : `module-state--${props.module.releaseState}`
           }`}
         >
           {props.installed ? 'Установлено' : MODULE_RELEASE_LABELS[props.module.releaseState]}
         </span>
-        <small class="module-card-version">{props.module.version}</small>
+        <small class="module-card__version">{props.module.version}</small>
       </div>
-      <h3>{props.module.title}</h3>
-      <p>{props.module.description}</p>
-      <div class="module-facts doctor-module-facts">
-        <span>
+      <h3 class="module-card__title">{props.module.title}</h3>
+      <p class="module-card__description">{props.module.description}</p>
+      <div class="module-card__facts">
+        <span class="module-card__fact">
           {props.module.toolCount
             ? `${props.module.toolCount} инструмент${props.module.toolCount === 1 ? '' : 'а'}`
             : props.module.previewDocumentCount || props.module.documents.length
@@ -82,75 +91,80 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
                 )
               : 'Список документов уточняется'}
         </span>
-        <Show
-          when={props.installed}
-          fallback={<span>{formatModuleBytes(props.module.sizes.downloadBytes)}</span>}
-        >
-          {(installed) => (
-            <>
-              <span>Версия {installed().version}</span>
-              <span>На устройстве {formatModuleBytes(installed().installedSizeBytes)}</span>
-            </>
-          )}
+        <span class="module-card__fact">{sizeLabel()}</span>
+      </div>
+      <div class="module-card__status">
+        <Show when={props.task || installError() || props.connecting}>
+          <ModuleTaskStatus
+            label={
+              props.retryScheduled
+                ? 'Повторим автоматически'
+                : !props.task && props.connecting
+                  ? 'Подключаем к поиску…'
+                  : MODULE_TASK_LABELS[props.task?.state ?? 'failed']
+            }
+            progress={props.task ? progress() : null}
+            errorMessage={installError()}
+            onOpenError={() => props.onOpenError(installError() ?? 'Не удалось скачать набор.')}
+          />
         </Show>
       </div>
-      <Show when={props.task || installError() || props.connecting}>
-        <ModuleTaskStatus
-          label={
-            props.retryScheduled
-              ? 'Повторим автоматически'
-              : !props.task && props.connecting
-                ? 'Подключаем к поиску…'
-                : MODULE_TASK_LABELS[props.task?.state ?? 'failed']
-          }
-          progress={props.task ? progress() : null}
-          errorMessage={installError()}
-          onOpenError={() => props.onOpenError(installError() ?? 'Не удалось скачать набор.')}
-        />
-      </Show>
 
-      <Show when={!props.module.required} fallback={null}>
-        <Show
-          when={!props.installed}
-          fallback={
-            <div class="module-card-actions">
-              <Show when={updateAvailable()}>
-                <button type="button" disabled={working()} onClick={props.onInstall}>
-                  <AppGlyph name="refresh" />
-                  Обновить
+      <Show when={!props.module.required}>
+        <div
+          class="module-card-actions module-card-actions--reserved"
+          classList={{ 'module-card-actions--installed': Boolean(props.installed) }}
+        >
+          <Show
+            when={props.installed}
+            fallback={
+              <Show when={!working()}>
+                <button
+                  type="button"
+                  class="module-card-actions__primary"
+                  disabled={props.module.releaseState !== 'published'}
+                  onClick={props.onInstall}
+                >
+                  <AppGlyph name="download" class="module-card-actions__icon" />
+                  {props.module.releaseState === 'published' ? 'Скачать' : 'Пока недоступно'}
                 </button>
               </Show>
+            }
+          >
+            <Show when={updateAvailable()}>
               <button
                 type="button"
-                class="module-remove-button"
-                aria-label={`Удалить «${props.module.title}»`}
-                title="Удалить"
-                onClick={props.onRemove}
+                class="module-card-actions__primary"
+                disabled={working()}
+                onClick={props.onInstall}
               >
-                <AppGlyph name="trash" />
+                <AppGlyph name="refresh" class="module-card-actions__icon" />
+                Обновить
               </button>
-            </div>
-          }
-        >
-          <Show when={!working()}>
+            </Show>
             <button
               type="button"
-              disabled={props.module.releaseState !== 'published'}
-              onClick={props.onInstall}
+              class="module-remove-button module-card-actions__remove"
+              aria-label={`Удалить «${props.module.title}»`}
+              title="Удалить"
+              onClick={props.onRemove}
             >
-              <AppGlyph name="download" />
-              {props.module.releaseState === 'published' ? 'Скачать' : 'Пока недоступно'}
+              <AppGlyph name="trash" class="module-card-actions__icon" />
             </button>
           </Show>
-        </Show>
+        </div>
       </Show>
 
       <Show when={(props.installed?.previousVersions.length ?? 0) > 0}>
-        <div class="module-version-history">
-          <span>Старые версии</span>
+        <div class="module-card__versions">
+          <span class="module-card__versions-label">Старые версии</span>
           <For each={props.installed?.previousVersions ?? []}>
             {(version) => (
-              <button type="button" onClick={() => props.onActivateVersion(version)}>
+              <button
+                type="button"
+                class="module-card__version-button"
+                onClick={() => props.onActivateVersion(version)}
+              >
                 Версия {version}
               </button>
             )}

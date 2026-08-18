@@ -60,3 +60,22 @@ Every extracted table (length, mass, chest, head) has 7 real centile columns (3/
 a trailing empty 8th column in the OCR output. Likely a table-boundary artifact from the source scan
 rather than real data, but not verified against the original page image. **Decision needed**: confirm
 against the source PDF page before treating the 7-column reading as final.
+
+### `neo.shabalov.ocr-draft.json` — Fenton chart missing numeric data (requires OCR source recovery)
+
+`data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json` (Шабалов, неонатология, глава 8) contains references to
+`Таблица 8.1` and `Рис. 8.1` (Fenton I.R., 2002), but the OCR only provides descriptive text around the Fenton chart and
+no machine-readable point table of per-centile values. The existing table is Demентьева `Таблица 8.1`, with incompatible target
+format for Fenton/INTERGROWTH percentile logic.
+**Decision needed**: source one authoritative Fenton/INTERGROWTH extraction with explicit percentiles by week (3/10/50/90/97) before adding or revising any prematurity growth tool.
+Targeted Qwen extraction for `391,395–404,406–409,411–450` is now available in `/tmp/minimed-ocr-qwen-neon` (per-page `qwen-neon-*.json`) and is awaiting manual table normalization + verification for the final numeric grid format (3/10/50/90/97 per centile-by-week and sex split).
+
+### `neo.shabalov.ocr-draft.json` — neonatal bilirubin/phototherapy thresholds not machine-readable (requires OCR)
+
+`data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json` (Шабалов, неонатология, главы 8–9) includes readable clinical text about jaundice and phototherapy context but no machine-readable table for bilirubin thresholds by age-in-hours suitable for tool implementation.
+**Decision needed**: Qwen re-run for `504–510` is now available, but still needs manual extraction of a machine-readable layout-preserving matrix (age-in-hours × threshold bands). No tool should ship until this block is hand-verified.
+
+### `neo.shabalov.ocr-draft.json` — neonatal laboratory references not machine-readable (requires OCR)
+
+`data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json` (Шабалов, неонатология, главы 9–10) contains mentions of laboratory/biochemical markers in text, but no validated extraction of a complete, machine-readable reference-range block for neonatal norms.
+**Decision needed**: extraction artifacts were expanded to `411–450` and `504–510` pages via Qwen-local and are now present as per-page outputs; finalize by hand-validating and normalizing age-specific neonatal lab-reference tables before shipping any lab-reference calculator.

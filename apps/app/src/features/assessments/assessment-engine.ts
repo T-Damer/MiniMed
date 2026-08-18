@@ -188,12 +188,49 @@ const CLINICAL_INTERPRETERS: Readonly<
   'pediatric-ulcerative-colitis-activity-index': (scores) => pucaiInterpretation(scores),
 };
 
+function resolveScaleRawScore(
+  definition: AssessmentDefinition,
+  scores: readonly AssessmentScaleScore[],
+  scaleId?: string,
+): number | undefined {
+  const resolvedScaleId = scaleId ?? definition.scales[0]?.id;
+  if (!resolvedScaleId) return undefined;
+  return scores.find((score) => score.scaleId === resolvedScaleId)?.rawScore;
+}
+
+function schemaDrivenInterpretation(
+  definition: AssessmentDefinition,
+  scores: readonly AssessmentScaleScore[],
+): ClinicalInterpretation | undefined {
+  const interpretations = definition.interpretations;
+  if (!interpretations || interpretations.length === 0) return undefined;
+  for (const band of interpretations) {
+    const rawScore = resolveScaleRawScore(definition, scores, band.scaleId);
+    if (rawScore === undefined) continue;
+    if (rawScore >= band.minScore && rawScore <= band.maxScore) {
+      return { headline: band.headline, summary: band.message };
+    }
+  }
+  return undefined;
+}
+
+function resolveClinicalInterpretation(
+  definition: AssessmentDefinition,
+  scores: readonly AssessmentScaleScore[],
+  answers: AssessmentAnswers,
+): ClinicalInterpretation | undefined {
+  return (
+    schemaDrivenInterpretation(definition, scores) ??
+    CLINICAL_INTERPRETERS[definition.slug]?.(scores, answers)
+  );
+}
+
 function buildSummary(
   definition: AssessmentDefinition,
   scores: readonly AssessmentScaleScore[],
   answers: AssessmentAnswers,
 ): string {
-  const clinical = CLINICAL_INTERPRETERS[definition.slug]?.(scores, answers);
+  const clinical = resolveClinicalInterpretation(definition, scores, answers);
   if (clinical) return clinical.summary;
   const top = scores.slice(0, Math.min(3, scores.length));
   const scoreText = top.map((score) => `${score.shortLabel} — ${score.percent}%`).join('; ');
@@ -269,7 +306,7 @@ export function scoreAssessment(
     .filter((score) => highest - score.percent <= 5)
     .slice(0, 2)
     .map((score) => score.scaleId);
-  const clinical = CLINICAL_INTERPRETERS[definition.slug]?.(scores, answers);
+  const clinical = resolveClinicalInterpretation(definition, scores, answers);
   const headline =
     clinical?.headline ??
     (definition.slug === 'temperament-profile'

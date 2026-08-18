@@ -13,19 +13,29 @@ export function ModuleTaskStatus(props: ModuleTaskStatusProps): JSX.Element {
       when={props.errorMessage}
       fallback={
         <div class="module-task-status">
-          <strong>{props.label}</strong>
+          <strong class="module-task-status__label">{props.label}</strong>
           <Show when={props.progress !== null}>
             <div class="module-task-progress">
-              <i style={{ width: `${Math.round((props.progress ?? 0) * 100)}%` }} />
+              <span
+                class="module-task-progress__fill"
+                style={{ width: `${Math.round((props.progress ?? 0) * 100)}%` }}
+              />
             </div>
           </Show>
         </div>
       }
     >
-      <button type="button" class="module-task-status failed" onClick={props.onOpenError}>
-        <strong>Ошибка при загрузке</strong>
+      <button
+        type="button"
+        class="module-task-status module-task-status--failed"
+        onClick={props.onOpenError}
+      >
+        <strong class="module-task-status__label">Ошибка при загрузке</strong>
         <span class="module-task-progress">
-          <i style={{ width: '100%' }} />
+          <span
+            class="module-task-progress__fill module-task-progress__fill--failed"
+            style={{ width: '100%' }}
+          />
         </span>
       </button>
     </Show>

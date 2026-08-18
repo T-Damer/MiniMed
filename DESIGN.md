@@ -123,6 +123,13 @@ saved PDFs remain legible in light and dark browser themes.
   activation. Do not add a second `Открыть`, `Что входит`, or `Выжимка` button inside it. Buttons that
   perform another action (download/delete) stop propagation and retain their own accessible name.
 
+### Catalog card
+
+- **Layout stability**: downloading or installing a module or document must not change the card’s outer
+  size. Reserve action-row height and keep fact chips stable; only inner state (labels, colors, progress)
+  may change.
+- **Installed accent**: use inset box-shadow for the left accent so layout width stays constant.
+
 ### Count badge
 
 - **Structure**: `CountBadge` renders a short numeric label beside a collection heading.
@@ -168,6 +175,8 @@ floating cards and navigation. Borders remain hairlines and are never the only e
   texture on cards and text.
 - The shared fractal-noise family lives in `--page-grain-image` and `--masked-grain-image`: page
   surfaces use the finer density, while masked sticky blur keeps a slightly coarser film for legibility.
+  Dark theme replaces those tokens with black-alpha noise and multiply blending so the film stays a
+  dark speckle instead of a light wash.
 - Sticky grain/blur is conditional: it remains transparent until the owning header is actually stuck,
   so the texture never dirties the page at rest.
 

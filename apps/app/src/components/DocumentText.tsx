@@ -1,11 +1,12 @@
 import { For, type JSX } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { stripKnownHtmlMarkup } from '@/components/html-markup';
 import { openAssessment } from '@/features/assessments/assessment-links';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import {
+  type DocumentInlineLinkKind,
   type DocumentLinkPhrase,
   type DocumentTextBlock,
   parseDocumentText,
@@ -13,10 +14,68 @@ import {
 } from '@/features/library/document-medication-links';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
 
+const EXTERNAL_URL_PATTERN = /https?:\/\/[^\s<>"')\]]+/gu;
+
+type PlainTextSegment =
+  | { readonly kind: 'text'; readonly value: string }
+  | { readonly kind: 'url'; readonly value: string };
+
+function segmentTextWithExternalUrls(text: string): readonly PlainTextSegment[] {
+  const segments: PlainTextSegment[] = [];
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(EXTERNAL_URL_PATTERN)) {
+    const start = match.index ?? 0;
+    if (start > lastIndex) {
+      segments.push({ kind: 'text', value: text.slice(lastIndex, start) });
+    }
+    segments.push({ kind: 'url', value: match[0] });
+    lastIndex = start + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    segments.push({ kind: 'text', value: text.slice(lastIndex) });
+  }
+
+  return segments.length > 0 ? segments : [{ kind: 'text', value: text }];
+}
+
+function glyphForDocumentLinkKind(kind: DocumentInlineLinkKind): AppGlyphName {
+  switch (kind) {
+    case 'medication':
+      return 'pill';
+    case 'recommendation':
+      return 'book-open';
+    case 'document':
+      return 'file-text';
+  }
+}
+
+function HighlightedLabel(props: {
+  readonly text: string;
+  readonly query?: string | undefined;
+  readonly exactQuery?: boolean | undefined;
+  readonly fuzzyQuery?: boolean | undefined;
+  readonly highlightClass?: string | undefined;
+}): JSX.Element {
+  return (
+    <span class="document-inline-link__label">
+      <QueryHighlightedText
+        text={props.text}
+        query={props.query ?? ''}
+        exact={props.exactQuery}
+        fuzzy={props.fuzzyQuery}
+        matchClass={props.highlightClass}
+      />
+    </span>
+  );
+}
+
 function LinkedPlainText(props: {
   readonly text: string;
   readonly query?: string | undefined;
   readonly exactQuery?: boolean | undefined;
+  readonly fuzzyQuery?: boolean | undefined;
   readonly highlightClass?: string | undefined;
 }): JSX.Element {
   return (
@@ -24,12 +83,35 @@ function LinkedPlainText(props: {
       {(segment) => {
         if (segment.kind === 'text') {
           return (
-            <QueryHighlightedText
-              text={segment.value.replace(/^#/u, '')}
-              query={props.query ?? ''}
-              exact={props.exactQuery}
-              matchClass={props.highlightClass}
-            />
+            <For each={segmentTextWithExternalUrls(segment.value)}>
+              {(urlSegment) =>
+                urlSegment.kind === 'url' ? (
+                  <a
+                    class="document-inline-link"
+                    href={urlSegment.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <AppGlyph name="arrow-square-up-right" class="document-inline-link__icon" />
+                    <HighlightedLabel
+                      text={urlSegment.value}
+                      query={props.query}
+                      exactQuery={props.exactQuery}
+                      fuzzyQuery={props.fuzzyQuery}
+                      highlightClass={props.highlightClass}
+                    />
+                  </a>
+                ) : (
+                  <QueryHighlightedText
+                    text={urlSegment.value.replace(/^#/u, '')}
+                    query={props.query ?? ''}
+                    exact={props.exactQuery}
+                    fuzzy={props.fuzzyQuery}
+                    matchClass={props.highlightClass}
+                  />
+                )
+              }
+            </For>
           );
         }
         const assessment = segment.kind === 'assessment';
@@ -41,15 +123,17 @@ function LinkedPlainText(props: {
               assessment ? openAssessment(segment.slug) : openCalculator(segment.slug)
             }
           >
-            <AppGlyph name={assessment ? 'list-checks' : 'calculator'} />
-            <span>
-              <QueryHighlightedText
-                text={segment.value}
-                query={props.query ?? ''}
-                exact={props.exactQuery}
-                matchClass={props.highlightClass}
-              />
-            </span>
+            <AppGlyph
+              name={assessment ? 'list-checks' : 'calculator'}
+              class="document-inline-link__icon"
+            />
+            <HighlightedLabel
+              text={segment.value}
+              query={props.query}
+              exactQuery={props.exactQuery}
+              fuzzyQuery={props.fuzzyQuery}
+              highlightClass={props.highlightClass}
+            />
           </button>
         );
       }}
@@ -64,6 +148,7 @@ function InlineDocumentText(props: {
   readonly onReference?: ((reference: string) => void) | undefined;
   readonly query?: string | undefined;
   readonly exactQuery?: boolean | undefined;
+  readonly fuzzyQuery?: boolean | undefined;
   readonly highlightClass?: string | undefined;
 }): JSX.Element {
   const parts = () => props.text.split(/(\*\*|#[\p{L}\p{M}-]+|\([A-ZА-Я0-9]{4,8}\))/gu);
@@ -77,14 +162,16 @@ function InlineDocumentText(props: {
         return reference && props.onReference ? (
           <button
             type="button"
-            class="document-inline-reference"
+            class="document-inline-link document-inline-reference"
             onClick={() => props.onReference?.(reference)}
           >
-            <QueryHighlightedText
+            <AppGlyph name="notes" class="document-inline-link__icon" />
+            <HighlightedLabel
               text={hashtag ?? part}
-              query={props.query ?? ''}
-              exact={props.exactQuery}
-              matchClass={props.highlightClass}
+              query={props.query}
+              exactQuery={props.exactQuery}
+              fuzzyQuery={props.fuzzyQuery}
+              highlightClass={props.highlightClass}
             />
           </button>
         ) : (
@@ -96,13 +183,23 @@ function InlineDocumentText(props: {
                   class="document-inline-link"
                   onClick={() => props.onDocumentLink?.(segment.documentId)}
                 >
-                  <QueryHighlightedText text={segment.value} query={props.query ?? ''} />
+                  <AppGlyph
+                    name={glyphForDocumentLinkKind(segment.linkKind)}
+                    class="document-inline-link__icon"
+                  />
+                  <HighlightedLabel
+                    text={segment.value}
+                    query={props.query}
+                    fuzzyQuery={props.fuzzyQuery}
+                    highlightClass={props.highlightClass}
+                  />
                 </button>
               ) : (
                 <LinkedPlainText
                   text={segment.value}
                   query={props.query}
                   exactQuery={props.exactQuery}
+                  fuzzyQuery={props.fuzzyQuery}
                   highlightClass={props.highlightClass}
                 />
               )
@@ -140,6 +237,7 @@ export function DocumentText(props: {
   readonly onReference?: ((reference: string) => void) | undefined;
   readonly query?: string | undefined;
   readonly exactQuery?: boolean | undefined;
+  readonly fuzzyQuery?: boolean | undefined;
   readonly highlightClass?: string | undefined;
 }): JSX.Element {
   const groups = () =>
@@ -152,6 +250,7 @@ export function DocumentText(props: {
       onReference={props.onReference}
       query={props.query}
       exactQuery={props.exactQuery}
+      fuzzyQuery={props.fuzzyQuery}
       highlightClass={props.highlightClass}
     />
   );

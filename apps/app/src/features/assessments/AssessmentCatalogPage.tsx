@@ -1,18 +1,23 @@
 import { For, type JSX, Show } from 'solid-js';
 
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
+import { NavBack } from '@/components/NavBack';
 import { SearchField } from '@/components/SearchField';
 import type {
   AssessmentSpecialty,
   searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
+  ASSESSMENT_SECTIONS,
   type AssessmentInstallationState,
   type AssessmentSectionId,
   assessmentRequiredByModules,
   groupAssessmentsBySection,
   isAssessmentSectionComplete,
 } from '@/features/assessments/assessment-packs';
+import { assessmentCatalogCrumbs } from '@/features/assessments/assessment-routing';
 
 export type AssessmentCatalogEntry = ReturnType<typeof searchAssessments>[number];
 
@@ -53,43 +58,51 @@ export function AssessmentCard(props: {
             </span>
           </Show>
         </div>
-        <Show when={props.installed}>
-          <div class="assessment-card-icon-actions">
-            <button
+        <div class="assessment-card-icon-actions">
+          <Show when={!props.installed}>
+            <Button
               type="button"
+              variant="icon"
+              class="assessment-card-icon-button assessment-card-icon-button--download"
+              data-testid={`assessment-install-${props.definition.slug}`}
+              aria-label={`Скачать «${props.definition.shortTitle}»`}
+              title="Скачать"
+              onClick={(event) => {
+                event.stopPropagation();
+                props.onInstall(props.definition);
+              }}
+              icon={<AppGlyph name="download" class="assessment-card-icon-button__icon" />}
+            />
+          </Show>
+          <Show when={props.installed}>
+            <Button
+              type="button"
+              variant="icon"
               class="assessment-card-icon-button"
               aria-label={`Распечатать бланк «${props.definition.shortTitle}»`}
               title="Распечатать бланк"
-              onClick={() => props.onPrint(props.definition)}
-            >
-              <AppGlyph name="printer" class="assessment-card-icon-button__icon" />
-            </button>
+              onClick={(event) => {
+                event.stopPropagation();
+                props.onPrint(props.definition);
+              }}
+              icon={<AppGlyph name="printer" class="assessment-card-icon-button__icon" />}
+            />
             <Show when={props.canDelete}>
-              <button
+              <Button
                 type="button"
+                variant="icon"
                 class="assessment-card-icon-button assessment-card-icon-button-danger"
                 aria-label={`Удалить тест «${props.definition.shortTitle}»`}
                 title="Удалить тест"
-                onClick={() => props.onRemove(props.definition)}
-              >
-                <AppGlyph name="trash" class="assessment-card-icon-button__icon" />
-              </button>
+                onClick={(event) => {
+                  event.stopPropagation();
+                  props.onRemove(props.definition);
+                }}
+                icon={<AppGlyph name="trash" class="assessment-card-icon-button__icon" />}
+              />
             </Show>
-          </div>
-        </Show>
-        <Show when={!props.installed}>
-          <div class="assessment-card-actions">
-            <button
-              type="button"
-              class="assessment-card-actions__button assessment-card-actions__button--primary"
-              data-testid={`assessment-install-${props.definition.slug}`}
-              onClick={() => props.onInstall(props.definition)}
-            >
-              <AppGlyph name="download" class="assessment-card-action__icon" />
-              <span>Скачать</span>
-            </button>
-          </div>
-        </Show>
+          </Show>
+        </div>
       </div>
       <h3 class="assessment-card__title">{props.definition.title}</h3>
       <p class="assessment-card__description">{props.definition.description}</p>
@@ -119,16 +132,24 @@ export function AssessmentCatalogPage(props: {
   return (
     <>
       <header class="subpage-heading assessments-heading assessment-specialty-heading">
-        <button
-          type="button"
+        <NavBack
           class="knowledge-back-button"
           aria-label="К разделам тестов"
           onClick={props.onBack}
-        >
-          <AppGlyph name="arrow-left" />
-        </button>
+        />
         <div class="assessment-subpage-header__content">
-          <p class="archive-kicker">Раздел тестов</p>
+          <AppBreadcrumbs
+            items={assessmentCatalogCrumbs(
+              props.specialty.title,
+              props.specialty.id,
+              props.sectionId
+                ? ASSESSMENT_SECTIONS.find((section) => section.id === props.sectionId)?.title
+                : undefined,
+            )}
+            onNavigate={(href) => {
+              window.location.hash = href;
+            }}
+          />
           <div class="tool-page-title">
             <AppGlyph name="list-checks" />
             <h1>{props.specialty.title}</h1>
@@ -197,7 +218,7 @@ export function AssessmentCatalogPage(props: {
                           {complete() ? 'раздел скачан' : 'раздел не скачан'}
                         </small>
                       </div>
-                      <button
+                      <Button
                         type="button"
                         class="assessment-section-header__button"
                         classList={{
@@ -210,13 +231,15 @@ export function AssessmentCatalogPage(props: {
                             ? props.onRemoveSection(group.section.id)
                             : props.onInstallSection(group.section.id)
                         }
+                        icon={
+                          <AppGlyph
+                            name={complete() ? 'trash' : 'download'}
+                            class="assessment-section-header__icon"
+                          />
+                        }
                       >
-                        <AppGlyph
-                          name={complete() ? 'trash' : 'download'}
-                          class="assessment-section-header__icon"
-                        />
-                        <span>{complete() ? 'Удалить' : 'Скачать'}</span>
-                      </button>
+                        {complete() ? 'Удалить' : 'Скачать'}
+                      </Button>
                     </header>
 
                     <Show when={props.sectionId === group.section.id}>

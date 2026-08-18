@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.gastroenterology.ru",
-  "version": "0.1.0-preview.1",
+  "version": "0.1.0-preview.2",
   "title": "Инструменты гастроэнтерологии",
   "schemaVersion": 2,
   "builtAt": "2026-08-15T00:00:00Z",
@@ -114,8 +114,38 @@
             ]
           }
         ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 9,
+            "scaleId": "pucai-total",
+            "headline": "Клиническая ремиссия по PUCAI",
+            "message": "Менее 10 баллов соответствует клинической ремиссии по градации Turner et al. 2007. Индекс не заменяет клиническое наблюдение и оценку других данных."
+          },
+          {
+            "minScore": 10,
+            "maxScore": 34,
+            "scaleId": "pucai-total",
+            "headline": "Лёгкая активность по PUCAI",
+            "message": "10–34 балла соответствуют лёгкой активности язвенного колита по градации Turner et al. 2007."
+          },
+          {
+            "minScore": 35,
+            "maxScore": 64,
+            "scaleId": "pucai-total",
+            "headline": "Умеренная активность по PUCAI",
+            "message": "35–64 балла соответствуют умеренной активности язвенного колита по градации Turner et al. 2007."
+          },
+          {
+            "minScore": 65,
+            "maxScore": 85,
+            "scaleId": "pucai-total",
+            "headline": "Тяжёлая активность по PUCAI",
+            "message": "65–85 баллов соответствуют тяжёлой активности язвенного колита по градации Turner et al. 2007; нужна клиническая оценка срочности помощи."
+          }
+        ],
         "disclaimer": "PUCAI — индекс активности, а не самостоятельный диагноз и не замена осмотру, лабораторной оценке или эндоскопии. Интерпретируйте результат вместе с клинической картиной и действующей рекомендацией.",
-        "evidenceNote": "Индекс разработан и валидирован для неинвазивной оценки активности язвенного колита у детей; шесть пунктов оценивают последние 48 часов.",
+        "evidenceNote": "Индекс разработан и валидирован для неинвазивной оценки активности язвенного колита у детей; шесть пунктов оценивают последние 48 часов; градации активности — Turner et al. 2007.",
         "license": {
           "kind": "third-party-attributed",
           "notice": "Используется с атрибуцией оригинальной публикации Turner et al.; MiniMed не является правообладателем инструмента.",
@@ -430,6 +460,581 @@
           "moduleId": "minimed.clinical.gastro-hepatology.ru",
           "documentId": "kr.rf.274_3",
           "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.harvey-bradshaw-index",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "harvey-bradshaw-index",
+      "title": "Индекс Harvey–Bradshaw (HBI)",
+      "shortTitle": "HBI",
+      "aliases": [
+        "Harvey–Bradshaw Index",
+        "HBI",
+        "индекс Харви–Брэдшоу",
+        "активность болезни Крона"
+      ],
+      "bankId": "gastroenterology",
+      "bankLabel": "Гастроэнтерология",
+      "category": "gastroenterology",
+      "description": "Клинический индекс активности болезни Крона без лабораторных и эндоскопических компонентов.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые с болезнью Крона; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.harvey-bradshaw-index",
+        "slug": "harvey-bradshaw-index",
+        "title": "Индекс Harvey–Bradshaw (HBI)",
+        "shortTitle": "HBI",
+        "aliases": [
+          "Harvey–Bradshaw Index",
+          "HBI",
+          "индекс Харви–Брэдшоу",
+          "активность болезни Крона"
+        ],
+        "summary": "HBI = самочувствие + боль в животе + число жидкого стула за сутки + абдоминальная масса + осложнения (по 1 баллу).",
+        "audience": "adult",
+        "category": "gastroenterology",
+        "clinical": true,
+        "formulaDisplay": "HBI = самочувствие (0–4) + боль (0–3) + жидкий стул/сут (по 1 баллу) + масса (0–3) + осложнения (по 1 баллу)",
+        "population": "Взрослые пациенты с болезнью Крона для прикроватной оценки активности.",
+        "limitations": [
+          "Не включает лабораторные маркеры, эндоскопию и визуализацию.",
+          "Количество жидкого стула вводится как число за сутки; при нестабильном стуле оценивайте типичный день.",
+          "Не заменяет решение о смене терапии без клинического контекста и других данных."
+        ],
+        "inputs": [
+          {
+            "id": "generalWellbeing",
+            "label": "Общее самочувствие",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "0 — очень хорошо" },
+              { "value": 1, "label": "1 — слегка ниже нормы" },
+              { "value": 2, "label": "2 — плохо" },
+              { "value": 3, "label": "3 — очень плохо" },
+              { "value": 4, "label": "4 — ужасно" }
+            ]
+          },
+          {
+            "id": "abdominalPain",
+            "label": "Боль в животе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "0 — нет" },
+              { "value": 1, "label": "1 — лёгкая" },
+              { "value": 2, "label": "2 — умеренная" },
+              { "value": 3, "label": "3 — тяжёлая" }
+            ]
+          },
+          {
+            "id": "liquidStoolsPerDay",
+            "label": "Количество жидкого стула за сутки",
+            "unit": "раз/сут",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 50,
+            "integer": true,
+            "required": true
+          },
+          {
+            "id": "abdominalMass",
+            "label": "Абдоминальная масса",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "0 — нет" },
+              { "value": 1, "label": "1 — сомнительная" },
+              { "value": 2, "label": "2 — определённая" },
+              { "value": 3, "label": "3 — определённая и болезненная" }
+            ]
+          },
+          {
+            "id": "arthralgia",
+            "label": "Артралгия",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          },
+          {
+            "id": "uveitis",
+            "label": "Увеит",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          },
+          {
+            "id": "erythemaNodosum",
+            "label": "Узловатая эритема",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          },
+          {
+            "id": "aphthousUlcers",
+            "label": "Афтозные язвы",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          },
+          {
+            "id": "pyodermaGangrenosum",
+            "label": "Пиодермия гангренозная",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          },
+          {
+            "id": "analFissure",
+            "label": "Анальная трещина",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          },
+          {
+            "id": "newFistula",
+            "label": "Новый свищ",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          },
+          {
+            "id": "abscess",
+            "label": "Абсцесс",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "Да" }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "stoolComponent",
+            "label": "Компонент жидкого стула",
+            "unit": "балла",
+            "expression": "liquidStoolsPerDay",
+            "displayPrecision": 0
+          },
+          {
+            "id": "complicationsTotal",
+            "label": "Сумма осложнений",
+            "unit": "балла",
+            "expression": "arthralgia + uveitis + erythemaNodosum + aphthousUlcers + pyodermaGangrenosum + analFissure + newFistula + abscess",
+            "displayPrecision": 0
+          },
+          {
+            "id": "hbi",
+            "label": "Индекс Harvey–Bradshaw",
+            "unit": "балла",
+            "expression": "generalWellbeing + abdominalPain + stoolComponent + abdominalMass + complicationsTotal",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "clinical-review",
+            "message": "HBI — клинический индекс активности; тактика лечения определяется врачом с учётом всех данных."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "hbi < 5",
+            "message": "HBI <5 соответствует ремиссии (CDAI <150) по сопоставлению Best, 2006."
+          },
+          {
+            "when": "cond(hbi >= 5, cond(hbi <= 7, 1, 0), 0)",
+            "message": "HBI 5–7 соответствует лёгкой активности (CDAI 150–220) по сопоставлению Best, 2006."
+          },
+          {
+            "when": "cond(hbi >= 8, cond(hbi <= 16, 1, 0), 0)",
+            "message": "HBI 8–16 соответствует умеренной активности (CDAI 220–450) по сопоставлению Best, 2006."
+          },
+          {
+            "when": "hbi > 16",
+            "message": "HBI >16 соответствует тяжёлой активности (CDAI >450) по сопоставлению Best, 2006."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Simple index of Crohn's-disease activity",
+            "publisher": "The Lancet / PubMed",
+            "version": "Harvey & Bradshaw 1980",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7439768/",
+            "reviewedAt": "2026-08-17"
+          },
+          {
+            "title": "Predicting the Crohn's disease activity index from the Harvey-Bradshaw Index",
+            "publisher": "Inflammatory Bowel Diseases / PubMed",
+            "version": "Best 2006",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16670555/",
+            "reviewedAt": "2026-08-17"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "hbi-harvey-1980",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Simple index of Crohn's-disease activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/7439768/",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "hbi-best-2006-bands",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Predicting the Crohn's disease activity index from the Harvey-Bradshaw Index",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16670555/",
+          "reviewedAt": "2026-08-17"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.vesikari-gastroenteritis",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "vesikari-gastroenteritis",
+      "title": "Шкала Vesikari (гастроэнтерит у детей)",
+      "shortTitle": "Vesikari",
+      "aliases": [
+        "Vesikari score",
+        "Vesikari",
+        "шкала Весикари",
+        "острый гастроэнтерит дети"
+      ],
+      "bankId": "gastroenterology",
+      "bankLabel": "Гастроэнтерология",
+      "category": "pediatric-gastroenterology",
+      "description": "Семь клинических компонентов для оценки тяжести острого гастроэнтерита у детей; суммарный балл 0–20.",
+      "estimatedMinutes": 3,
+      "audience": "Дети с острым гастроэнтеритом; заполняет медицинский специалист",
+      "definition": {
+        "id": "minimed.assessment.vesikari-gastroenteritis",
+        "slug": "vesikari-gastroenteritis",
+        "title": "Шкала Vesikari (гастроэнтерит у детей)",
+        "shortTitle": "Vesikari",
+        "aliases": [
+          "Vesikari score",
+          "Vesikari",
+          "шкала Весикари",
+          "острый гастроэнтерит дети"
+        ],
+        "bankId": "gastroenterology",
+        "bankLabel": "Гастроэнтерология",
+        "category": "pediatric-gastroenterology",
+        "description": "Семь клинических компонентов для оценки тяжести острого гастроэнтерита у детей; суммарный балл 0–20.",
+        "estimatedMinutes": 3,
+        "audience": "Дети с острым гастроэнтеритом; заполняет медицинский специалист",
+        "responseOptions": [
+          { "value": 0, "label": "0" },
+          { "value": 1, "label": "1" },
+          { "value": 2, "label": "2" },
+          { "value": 3, "label": "3" }
+        ],
+        "scales": [
+          {
+            "id": "vesikari-total",
+            "label": "Суммарный балл Vesikari",
+            "shortLabel": "Vesikari",
+            "description": "Сумма семи компонентов; диапазон 0–20."
+          }
+        ],
+        "questions": [
+          {
+            "id": "vesikari-diarrhea-duration",
+            "prompt": "Продолжительность диареи",
+            "scaleId": "vesikari-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "1–4 дня" },
+              { "value": 2, "label": "5 дней" },
+              { "value": 3, "label": "≥6 дней" }
+            ]
+          },
+          {
+            "id": "vesikari-stool-frequency",
+            "prompt": "Максимальное число стулов за 24 часа",
+            "scaleId": "vesikari-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "1–3" },
+              { "value": 2, "label": "4–5" },
+              { "value": 3, "label": "≥6" }
+            ]
+          },
+          {
+            "id": "vesikari-vomiting-duration",
+            "prompt": "Продолжительность рвоты",
+            "scaleId": "vesikari-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "1 день" },
+              { "value": 2, "label": "2 дня" },
+              { "value": 3, "label": "≥3 дней" }
+            ]
+          },
+          {
+            "id": "vesikari-vomiting-frequency",
+            "prompt": "Максимальное число эпизодов рвоты за 24 часа",
+            "scaleId": "vesikari-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 1, "label": "1" },
+              { "value": 2, "label": "2–4" },
+              { "value": 3, "label": "≥5" }
+            ]
+          },
+          {
+            "id": "vesikari-fever",
+            "prompt": "Максимальная температура",
+            "scaleId": "vesikari-total",
+            "responseOptions": [
+              { "value": 0, "label": "<37,1 °C" },
+              { "value": 1, "label": "37,1–38,4 °C" },
+              { "value": 2, "label": "38,5–38,9 °C" },
+              { "value": 3, "label": "≥39,0 °C" }
+            ]
+          },
+          {
+            "id": "vesikari-dehydration",
+            "prompt": "Обезвоживание",
+            "scaleId": "vesikari-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет" },
+              { "value": 2, "label": "1–5% (лёгкое/умеренное)" },
+              { "value": 3, "label": "≥6% (тяжёлое)" }
+            ]
+          },
+          {
+            "id": "vesikari-treatment",
+            "prompt": "Лечение",
+            "scaleId": "vesikari-total",
+            "responseOptions": [
+              { "value": 0, "label": "Не требуется" },
+              { "value": 1, "label": "Регидратация" },
+              { "value": 2, "label": "Госпитализация" }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 6,
+            "scaleId": "vesikari-total",
+            "headline": "Лёгкий гастроэнтерит (Vesikari <7)",
+            "message": "Сумма <7 баллов соответствует лёгкому течению по 20-балльной шкале Ruuska–Vesikari (1990)."
+          },
+          {
+            "minScore": 7,
+            "maxScore": 10,
+            "scaleId": "vesikari-total",
+            "headline": "Умеренный гастроэнтерит (Vesikari 7–10)",
+            "message": "7–10 баллов соответствуют умеренному течению по 20-балльной шкале Ruuska–Vesikari (1990)."
+          },
+          {
+            "minScore": 11,
+            "maxScore": 20,
+            "scaleId": "vesikari-total",
+            "headline": "Тяжёлый гастроэнтерит (Vesikari ≥11)",
+            "message": "≥11 баллов соответствуют тяжёлому течению по 20-балльной шкале Ruuska–Vesikari (1990)."
+          }
+        ],
+        "disclaimer": "Шкала Vesikari — инструмент оценки тяжести, а не самостоятельный диагноз. Не заменяет оценку обезвоживания, электролитов и решение о госпитализации.",
+        "evidenceNote": "20-балльная шкала Ruuska–Vesikari (1990): семь компонентов, максимум 20 баллов; градации <7 / 7–10 / ≥11 используются в вакцинных исследованиях ротавируса.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Шкала Vesikari описана в оригинальной публикации Vesikari et al.; MiniMed не является правообладателем инструмента.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/2172984/"
+        }
+      },
+      "sources": [
+        {
+          "id": "vesikari-ruuska-1990",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Rotavirus disease in Finnish children: use of numerical scores for clinical severity of diarrhoeal episodes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/2172984/",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "vesikari-ruuska-1990-interpretation",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Rotavirus disease in Finnish children: use of numerical scores for clinical severity of diarrhoeal episodes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/2172984/",
+          "reviewedAt": "2026-08-17"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.partial-mayo-score",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "partial-mayo-score",
+      "title": "Частичный индекс Mayo (без эндоскопии)",
+      "shortTitle": "Partial Mayo",
+      "aliases": [
+        "Partial Mayo score",
+        "pMayo",
+        "частичный Mayo",
+        "язвенный колит активность"
+      ],
+      "bankId": "gastroenterology",
+      "bankLabel": "Гастроэнтерология",
+      "category": "gastroenterology",
+      "description": "Три клинических компонента индекса Mayo без эндоскопического подсчёта; суммарный балл 0–9.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с язвенным колитом; заполняет медицинский специалист",
+      "definition": {
+        "id": "minimed.assessment.partial-mayo-score",
+        "slug": "partial-mayo-score",
+        "title": "Частичный индекс Mayo (без эндоскопии)",
+        "shortTitle": "Partial Mayo",
+        "aliases": [
+          "Partial Mayo score",
+          "pMayo",
+          "частичный Mayo",
+          "язвенный колит активность"
+        ],
+        "bankId": "gastroenterology",
+        "bankLabel": "Гастроэнтерология",
+        "category": "gastroenterology",
+        "description": "Три клинических компонента индекса Mayo без эндоскопического подсчёта; суммарный балл 0–9.",
+        "estimatedMinutes": 2,
+        "audience": "Взрослые с язвенным колитом; заполняет медицинский специалист",
+        "responseOptions": [
+          { "value": 0, "label": "0" },
+          { "value": 1, "label": "1" },
+          { "value": 2, "label": "2" },
+          { "value": 3, "label": "3" }
+        ],
+        "scales": [
+          {
+            "id": "partial-mayo-total",
+            "label": "Частичный индекс Mayo",
+            "shortLabel": "pMayo",
+            "description": "Сумма трёх клинических компонентов; диапазон 0–9."
+          }
+        ],
+        "questions": [
+          {
+            "id": "partial-mayo-stool-frequency",
+            "prompt": "Частота стула (относительно обычной для пациента)",
+            "scaleId": "partial-mayo-total",
+            "responseOptions": [
+              { "value": 0, "label": "0 — нормальное число стулов" },
+              { "value": 1, "label": "1 — на 1–2 стула больше обычного" },
+              { "value": 2, "label": "2 — на 3–4 стула больше обычного" },
+              { "value": 3, "label": "3 — на 5 и более стулов больше обычного" }
+            ]
+          },
+          {
+            "id": "partial-mayo-rectal-bleeding",
+            "prompt": "Ректальное кровотечение",
+            "scaleId": "partial-mayo-total",
+            "responseOptions": [
+              { "value": 0, "label": "0 — нет крови" },
+              { "value": 1, "label": "1 — полосы крови менее чем в половине стула" },
+              { "value": 2, "label": "2 — явная кровь в большинстве стула" },
+              { "value": 3, "label": "3 — только кровь" }
+            ]
+          },
+          {
+            "id": "partial-mayo-physician-global",
+            "prompt": "Глобальная оценка врача",
+            "scaleId": "partial-mayo-total",
+            "responseOptions": [
+              { "value": 0, "label": "0 — норма" },
+              { "value": 1, "label": "1 — лёгкая болезнь" },
+              { "value": 2, "label": "2 — умеренная болезнь" },
+              { "value": 3, "label": "3 — тяжёлая болезнь" }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 1,
+            "scaleId": "partial-mayo-total",
+            "headline": "Ремиссия (Partial Mayo 0–1)",
+            "message": "0–1 балл соответствует ремиссии по валидированной градации Lewis et al. 2008."
+          },
+          {
+            "minScore": 2,
+            "maxScore": 4,
+            "scaleId": "partial-mayo-total",
+            "headline": "Лёгкая активность (Partial Mayo 2–4)",
+            "message": "2–4 балла соответствуют лёгкой активности по валидированной градации Lewis et al. 2008."
+          },
+          {
+            "minScore": 5,
+            "maxScore": 6,
+            "scaleId": "partial-mayo-total",
+            "headline": "Умеренная активность (Partial Mayo 5–6)",
+            "message": "5–6 баллов соответствуют умеренной активности по валидированной градации Lewis et al. 2008."
+          },
+          {
+            "minScore": 7,
+            "maxScore": 9,
+            "scaleId": "partial-mayo-total",
+            "headline": "Тяжёлая активность (Partial Mayo 7–9)",
+            "message": "7–9 баллов соответствуют тяжёлой активности по валидированной градации Lewis et al. 2008."
+          }
+        ],
+        "disclaimer": "Частичный Mayo — клинический индекс активности без эндоскопии; не заменяет полный индекс Mayo и не является самостоятельным диагнозом.",
+        "evidenceNote": "Три компонента по 0–3 балла; суммарный диапазон 0–9; градации активности валидированы Lewis et al. 2008.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Частичный индекс Mayo описан в публикации Lewis et al.; MiniMed не является правообладателем инструмента.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/18471528/"
+        }
+      },
+      "sources": [
+        {
+          "id": "partial-mayo-lewis-2008",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Use of the noninvasive components of the Mayo score to assess ulcerative colitis activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18471528/",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "partial-mayo-lewis-2008-interpretation",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Use of the noninvasive components of the Mayo score to assess ulcerative colitis activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18471528/",
+          "reviewedAt": "2026-08-17"
         }
       ]
     }

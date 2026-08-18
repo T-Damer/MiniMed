@@ -62,8 +62,12 @@ function failure(error: string): CalculatorSchemaFailure {
 
 const RU_LONG_DATE = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'long' });
 
-function formatDateRu(isoDate: string): string {
-  return RU_LONG_DATE.format(parseIsoDateValue(isoDate, 'date output'));
+function formatDateRu(isoDate: string): string | null {
+  try {
+    return RU_LONG_DATE.format(parseIsoDateValue(isoDate, 'date output'));
+  } catch {
+    return null;
+  }
 }
 
 function formatNumberOutputText(output: CalculatorSchemaNumberOutput): string {
@@ -95,6 +99,18 @@ export function evaluateCalculatorSchema(
   schema: CalculatorSchema,
   rawInputs: Readonly<Record<string, string | number>>,
   options: CalculatorSchemaEvaluationOptions = {},
+): CalculatorSchemaResult {
+  try {
+    return evaluateCalculatorSchemaInner(schema, rawInputs, options);
+  } catch (error) {
+    return failure(formatExpressionError('Калькулятор', error));
+  }
+}
+
+function evaluateCalculatorSchemaInner(
+  schema: CalculatorSchema,
+  rawInputs: Readonly<Record<string, string | number>>,
+  options: CalculatorSchemaEvaluationOptions,
 ): CalculatorSchemaResult {
   const scope: Record<string, CalculatorValue> = {};
   const maxStep = options.maxStep ?? Number.MAX_SAFE_INTEGER;
@@ -178,7 +194,11 @@ export function evaluateCalculatorSchema(
       scope[step.id] = value;
       // Date-valued steps are never traced: CalculationTraceStep.value is always a number.
       if (step.isOutput) {
-        outputs.push({ kind: 'text', label: step.label, text: formatDateRu(value) });
+        const formatted = formatDateRu(value);
+        if (formatted === null) {
+          return failure(`${step.label}: результат не является корректной датой.`);
+        }
+        outputs.push({ kind: 'text', label: step.label, text: formatted });
       }
       continue;
     }

@@ -2,8 +2,19 @@ import type { ChunkRecord, DocumentRecord } from '@localmed/domain';
 import type { StorageHealth } from '@localmed/storage';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ASSESSMENT_CATALOG } from '@/features/assessments/assessment-catalog';
+import {
+  getAssessmentCatalog,
+  registerDownloadedAssessment,
+} from '@/features/assessments/assessment-catalog';
 import { findAssessmentDependenciesInStore } from '@/features/assessments/assessment-module-dependencies';
+import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
+
+function psychologyCatalog() {
+  for (const record of loadToolModuleRecords(['content/tool-modules/psychology.json'])) {
+    if (record.kind === 'assessment') registerDownloadedAssessment(record);
+  }
+  return getAssessmentCatalog();
+}
 
 const document: DocumentRecord = {
   id: 'clinical-document',
@@ -73,7 +84,7 @@ function health(contentPackIds: readonly string[]): StorageHealth {
 
 describe('assessment module dependencies', () => {
   it('uses a valid declaration without scanning documents or chunks', async () => {
-    const assessmentId = ASSESSMENT_CATALOG[0]?.id ?? '';
+    const assessmentId = psychologyCatalog()[0]?.id ?? '';
     const listDocuments = vi.fn(async () => [document]);
     const getChunksByDocument = vi.fn(async () => [chunk('one', 'Личная эгограмма')]);
     const store = {
@@ -164,6 +175,7 @@ describe('assessment module dependencies', () => {
   });
 
   it('collects unique assessment references from installed module text', async () => {
+    psychologyCatalog();
     const store = {
       listDocuments: async () => [document],
       getChunksByDocument: async () => [
@@ -180,17 +192,18 @@ describe('assessment module dependencies', () => {
   });
 
   it('does not read chunks after every known questionnaire is found in document metadata', async () => {
+    const catalog = psychologyCatalog();
     const getChunksByDocument = vi.fn(async () => []);
     const store = {
       listDocuments: async () =>
-        ASSESSMENT_CATALOG.map((assessment, index) =>
+        catalog.map((assessment, index) =>
           documentWithTitle(`clinical-document-${index}`, assessment.title),
         ),
       getChunksByDocument,
     };
 
     await expect(findAssessmentDependenciesInStore(store)).resolves.toEqual(
-      ASSESSMENT_CATALOG.map((assessment) => assessment.id).toSorted(),
+      catalog.map((assessment) => assessment.id).toSorted(),
     );
     expect(getChunksByDocument).not.toHaveBeenCalled();
   });

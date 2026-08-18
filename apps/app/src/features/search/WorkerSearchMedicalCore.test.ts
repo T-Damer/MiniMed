@@ -90,4 +90,29 @@ describe('WorkerSearchMedicalCore', () => {
     await core.close();
     expect(terminate).toHaveBeenCalledOnce();
   });
+
+  it('keeps the worker alive when downloaded modules are already installed', async () => {
+    const postMessage = vi.fn();
+    const terminate = vi.fn();
+    vi.stubGlobal(
+      'Worker',
+      vi.fn(function FakeWorker(this: Record<string, unknown>) {
+        this['postMessage'] = postMessage;
+        this['terminate'] = terminate;
+      }),
+    );
+
+    const search = vi.fn(async () => RESPONSE);
+    const getCapabilities = vi.fn(async () => ({
+      ok: true as const,
+      value: { ...CAPABILITIES, searchExecution: 'worker-compatible' as const },
+    }));
+    const base = { search, getCapabilities } as unknown as MedicalCore;
+    const core = new WorkerSearchMedicalCore(base);
+
+    expect(terminate).not.toHaveBeenCalled();
+
+    await core.close();
+    expect(terminate).toHaveBeenCalledOnce();
+  });
 });

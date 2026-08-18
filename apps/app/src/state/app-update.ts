@@ -8,6 +8,25 @@ export interface AppUpdateReadyDetail {
   readonly worker: ServiceWorker;
 }
 
+export interface AppUpdateProgress {
+  readonly phase: 'download' | 'activate';
+  readonly loaded?: number;
+  readonly total?: number;
+}
+
+export function formatAppUpdateLabel(
+  updating: boolean,
+  progress: AppUpdateProgress | undefined,
+): string {
+  if (!updating) return 'Обновить';
+  if (!progress || progress.phase === 'activate') return 'Активация…';
+  if (progress.total && progress.total > 0) {
+    const percent = Math.min(100, Math.round(((progress.loaded ?? 0) / progress.total) * 100));
+    return `${percent}%`;
+  }
+  return 'Загрузка…';
+}
+
 interface GitHubReleasePayload {
   readonly tag_name?: unknown;
   readonly draft?: unknown;

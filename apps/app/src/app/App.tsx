@@ -2,6 +2,7 @@ import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
 import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { Toaster } from 'solid-sonner';
 
 import { nativeBackAction } from '@/app/native-back';
@@ -15,7 +16,8 @@ import {
 import { AssessmentsView } from '@/features/assessments/AssessmentsView';
 import { CalculatorsView } from '@/features/calculators/CalculatorsView';
 import { KnowledgeBaseView } from '@/features/knowledge/KnowledgeBaseView';
-import { DocumentOverlayHost } from '@/features/library/DocumentOverlayHost';
+import { DocumentPageHost } from '@/features/library/DocumentPageHost';
+import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
 import { LocalModelController } from '@/features/models/controller';
 import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
 import { ModelNavIndicator } from '@/features/models/ModelNavIndicator';
@@ -30,18 +32,32 @@ import {
 import { NotesView } from '@/features/notes/NotesView';
 import { SearchHome } from '@/features/search/SearchHome';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
+import { SettingsView } from '@/features/settings/SettingsView';
 import {
   APP_UPDATE_READY_EVENT,
+  type AppUpdateProgress,
   type AppUpdateReadyDetail,
   activateAppUpdate,
   checkNativeApkUpdate,
 } from '@/state/app-update';
 import { notifyContentChanged } from '@/state/content-events';
-import { hapticFeedback, installButtonHaptics } from '@/state/haptics';
+import {
+  isDocumentReadRoute,
+  migrateLegacyDocumentHash,
+  migrateLegacyOverlaySearch,
+  parseDocumentReadRoute,
+} from '@/state/document-route';
+import { beginDocumentTrail, clearDocumentTrail, loadDocumentTrail } from '@/state/document-trail';
+import { hapticFeedback } from '@/state/haptics';
 import { installAndroidApk } from '@/state/native-update';
+import { overlayFromLocationSearch, stripOrphanedOverlaySearch } from '@/state/overlay-route';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
+import { rememberReturnTo } from '@/state/return-navigation';
+import { pickSearchFocusTarget } from '@/state/search-focus-target';
+import { installUiFeedback } from '@/state/ui-feedback';
+import { ensureUserLibraryIngestRunning } from '@/state/user-library-ingest';
 
-type View = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes';
+type View = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes' | 'settings';
 type RootNavigationDirection = 'forward' | 'backward';
 
 interface RootNavigationMotion {
@@ -90,6 +106,7 @@ const VIEWS: readonly {
   { id: 'assessments', label: 'Тесты', icon: 'list-checks' },
   { id: 'calculators', label: 'Калькуляторы', icon: 'calculator' },
   { id: 'notes', label: 'Заметки', icon: 'notes' },
+  { id: 'settings', label: 'Настройки', icon: 'system' },
 ];
 const VIEW_ORDER = new Map(VIEWS.map((item, index) => [item.id, index]));
 
@@ -98,16 +115,36 @@ const DEFAULT_MODEL_CATALOG_URL =
 const DEFAULT_MODEL_ASSET_BASE_URL = '';
 const SLOW_BOOT_DELAY_MS = 10_000;
 const ROOT_NAVIGATION_MOTION_MS = 320;
+const DEFAULT_BOTTOM_NAV_BUBBLE: BottomNavBubblePosition = {
+  left: 0,
+  top: 0,
+  width: 42,
+  height: 42,
+};
 
-function viewFromLocation(): View {
-  const value = window.location.hash.replace(/^#\/?/u, '');
+function viewFromLocation(hash = window.location.hash): View {
+  if (isDocumentReadRoute(hash)) {
+    const trail = loadDocumentTrail();
+    if (trail) return trail.origin.view;
+    const parsed = parseDocumentReadRoute(hash);
+    return parsed?.kind === 'user' ? 'modules' : 'search';
+  }
+  const value = hash.replace(/^#\/?/u, '');
   if (value === 'documents') return 'modules';
-  if (value === 'status' || value.startsWith('modules/')) return 'modules';
+  if (value === 'settings' || value === 'modules/model' || value === 'status') return 'settings';
+  if (value.startsWith('modules/')) return 'modules';
   if (value === 'assessments' || value.startsWith('assessments/')) return 'assessments';
   if (value === 'calculators' || value.startsWith('calculators/')) return 'calculators';
   if (value.startsWith('notes/')) return 'notes';
   if (value === 'history') return 'search';
   return VIEWS.some((item) => item.id === value) ? (value as View) : 'search';
+}
+
+function redirectLegacySettingsRoutes(): void {
+  const value = window.location.hash.replace(/^#\/?/u, '');
+  if (value === 'modules/model' || value === 'status') {
+    window.history.replaceState({ view: 'settings' }, '', '#/settings');
+  }
 }
 
 function countAvailableModules(
@@ -141,9 +178,19 @@ function createLocalModelController(): LocalModelController {
   });
 }
 
+function bootstrapDocumentReadLocation(): void {
+  migrateLegacyDocumentHash();
+  migrateLegacyUserDocumentHash();
+  migrateLegacyOverlaySearch();
+}
+
 export function App(): JSX.Element {
+  bootstrapDocumentReadLocation();
   const isNativeShell = Capacitor.getPlatform() !== 'web';
   const [view, setView] = createSignal<View>(viewFromLocation());
+  const [documentReadActive, setDocumentReadActive] = createSignal(
+    isDocumentReadRoute(window.location.hash),
+  );
   const [rootNavigationMotion, setRootNavigationMotion] = createSignal<RootNavigationMotion>();
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
@@ -155,7 +202,9 @@ export function App(): JSX.Element {
   const [appUpdateWorker, setAppUpdateWorker] = createSignal<ServiceWorker>();
   const [availableApkUrl, setAvailableApkUrl] = createSignal<string>();
   const [appUpdating, setAppUpdating] = createSignal(false);
-  const [bottomNavBubble, setBottomNavBubble] = createSignal<BottomNavBubblePosition>();
+  const [appUpdateProgress, setAppUpdateProgress] = createSignal<AppUpdateProgress>();
+  const [bottomNavBubble, setBottomNavBubble] =
+    createSignal<BottomNavBubblePosition>(DEFAULT_BOTTOM_NAV_BUBBLE);
   const [bottomNavBubbleMotion, setBottomNavBubbleMotion] = createSignal<BottomNavBubbleMotion>({
     origin: 'center',
     scaleX: 1,
@@ -174,13 +223,19 @@ export function App(): JSX.Element {
   let nativeBackListener: Awaited<ReturnType<typeof NativeApp.addListener>> | undefined;
   let stopButtonHaptics: (() => void) | undefined;
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
-  let rootNavigationMotionTimer: ReturnType<typeof setTimeout> | undefined;
+  let rootNavigationMotionFallbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let rootNavigationMotionEndFrame: number | undefined;
+  let rootNavigationIncomingListener:
+    | { readonly element: HTMLElement; readonly handler: (event: AnimationEvent) => void }
+    | undefined;
   let bottomNav: HTMLElement | undefined;
+  let bottomNavResizeObserver: ResizeObserver | undefined;
   let bottomNavGesture: BottomNavGesture | undefined;
   let bottomNavBubbleFrame: number | undefined;
+  let bottomNavBubbleSettleTimer: ReturnType<typeof setTimeout> | undefined;
   let suppressNavClickUntil = 0;
   const rootNavigationQueue: Array<{ readonly next: View; readonly commit: () => void }> = [];
-  // Each of the 5 root views stays mounted (hidden, never unmounted — see the `hidden={view() !== X}`
+  // Each of the 6 root views stays mounted (hidden, never unmounted — see the `hidden={view() !== X}`
   // sections below), so its own component state (open document, calculator inputs, etc.) already
   // survives a tab switch. What used to erase it was this file: every root navigation collapsed the URL
   // to the bare `#/<view>` and reset scroll to 0, so a view's own hashchange listener (e.g.
@@ -190,34 +245,125 @@ export function App(): JSX.Element {
   const lastRouteByView = new Map<View, string>();
   const scrollByView = new Map<View, number>();
   const snapshotCurrentRoute = (hash = window.location.hash): void => {
-    scrollByView.set(view(), window.scrollY);
+    if (isDocumentReadRoute(hash)) return;
+    // During the overlay animation the window still belongs to the outgoing view. Saving
+    // `window.scrollY` onto the already-switched incoming view would overwrite its real offset.
+    if (!rootNavigationMotion()) {
+      scrollByView.set(view(), window.scrollY);
+    }
     lastRouteByView.set(view(), hash || `#/${view()}`);
   };
-  const restoreScrollFor = (target: View): void => {
+  const restoreScrollFor = (target: View, schedule = true): void => {
     const top = scrollByView.get(target) ?? 0;
-    requestAnimationFrame(() => window.scrollTo({ top, behavior: 'instant' }));
+    if (schedule) {
+      requestAnimationFrame(() => window.scrollTo({ top, behavior: 'instant' }));
+      return;
+    }
+    window.scrollTo({ top, behavior: 'instant' });
+  };
+  const setIncomingScrollShift = (fromScroll: number, toScroll: number): void => {
+    document.documentElement.style.setProperty(
+      '--root-view-enter-scroll-shift',
+      `${fromScroll - toScroll}px`,
+    );
+    document.documentElement.style.setProperty('--root-view-enter-to-scroll', `${toScroll}px`);
+  };
+  const clearIncomingScrollShift = (): void => {
+    document.documentElement.style.removeProperty('--root-view-enter-scroll-shift');
+    document.documentElement.style.removeProperty('--root-view-enter-to-scroll');
+  };
+
+  const cancelRootNavigationMotionEnd = (): void => {
+    if (rootNavigationMotionFallbackTimer) {
+      clearTimeout(rootNavigationMotionFallbackTimer);
+      rootNavigationMotionFallbackTimer = undefined;
+    }
+    if (rootNavigationMotionEndFrame !== undefined) {
+      cancelAnimationFrame(rootNavigationMotionEndFrame);
+      rootNavigationMotionEndFrame = undefined;
+    }
+    if (rootNavigationIncomingListener) {
+      rootNavigationIncomingListener.element.removeEventListener(
+        'animationend',
+        rootNavigationIncomingListener.handler,
+      );
+      rootNavigationIncomingListener = undefined;
+    }
+  };
+
+  const finishRootNavigationMotion = (target: View): void => {
+    cancelRootNavigationMotionEnd();
+    if (!rootNavigationMotion()) return;
+    setRootNavigationMotion(undefined);
+    document.documentElement.classList.remove('using-root-view-transition');
+    clearIncomingScrollShift();
+    // Commit window scroll in the same turn as dropping the overlay shift so the incoming page
+    // does not paint at the outgoing offset for a frame.
+    restoreScrollFor(target, false);
+  };
+
+  const finishRootNavigationMotionIfActive = (): void => {
+    const motion = rootNavigationMotion();
+    if (motion) finishRootNavigationMotion(motion.to);
+  };
+
+  const scheduleRootNavigationMotionEnd = (target: View): void => {
+    cancelRootNavigationMotionEnd();
+    rootNavigationMotionEndFrame = requestAnimationFrame(() => {
+      rootNavigationMotionEndFrame = undefined;
+      const incoming = document.querySelector<HTMLElement>(
+        '.app-view.root-view-enter-forward, .app-view.root-view-enter-backward',
+      );
+      if (!incoming) {
+        finishRootNavigationMotion(target);
+        return;
+      }
+      const onAnimationEnd = (event: AnimationEvent): void => {
+        if (event.target !== incoming) return;
+        if (!event.animationName.startsWith('root-view-enter-')) return;
+        finishRootNavigationMotion(target);
+      };
+      rootNavigationIncomingListener = { element: incoming, handler: onAnimationEnd };
+      incoming.addEventListener('animationend', onAnimationEnd);
+      rootNavigationMotionFallbackTimer = setTimeout(
+        () => finishRootNavigationMotion(target),
+        ROOT_NAVIGATION_MOTION_MS + 120,
+      );
+    });
   };
 
   const moveToRootView = (next: View): boolean => {
     const current = view();
     if (current === next) return false;
-    // With the animation off, the outgoing view would otherwise sit stacked on top of the incoming
-    // one for the full timer duration with nothing animating it away.
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduceMotion =
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      document.querySelector('.overlay-dialog') !== null;
+    const inFlight = rootNavigationMotion();
+    if (inFlight) {
+      finishRootNavigationMotion(inFlight.to);
+    } else {
+      cancelRootNavigationMotionEnd();
+    }
     if (!reduceMotion) {
+      setIncomingScrollShift(window.scrollY, scrollByView.get(next) ?? 0);
       setRootNavigationMotion({
         from: current,
         to: next,
         direction:
           (VIEW_ORDER.get(next) ?? 0) > (VIEW_ORDER.get(current) ?? 0) ? 'forward' : 'backward',
       });
-      if (rootNavigationMotionTimer) clearTimeout(rootNavigationMotionTimer);
-      rootNavigationMotionTimer = setTimeout(
-        () => setRootNavigationMotion(undefined),
-        ROOT_NAVIGATION_MOTION_MS,
-      );
+      document.documentElement.classList.add('using-root-view-transition');
+    } else {
+      setRootNavigationMotion(undefined);
+      document.documentElement.classList.remove('using-root-view-transition');
+      clearIncomingScrollShift();
     }
     setView(next);
+    if (reduceMotion) {
+      restoreScrollFor(next);
+    } else {
+      scheduleRootNavigationMotionEnd(next);
+    }
     return true;
   };
 
@@ -270,6 +416,11 @@ export function App(): JSX.Element {
       // Tapping the tab you're already on is a "go home" gesture: reset that section to its root
       // instead of restoring a remembered sub-route.
       if (!changed) {
+        if (documentReadActive()) {
+          const targetHash = lastRouteByView.get(next) ?? `#/${next}`;
+          window.location.hash = targetHash;
+          return;
+        }
         moveToRootView(next);
         const oldURL = window.location.href;
         window.history.replaceState({ view: next }, '', `#/${next}`);
@@ -287,11 +438,32 @@ export function App(): JSX.Element {
       window.dispatchEvent(
         new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
       );
-      restoreScrollFor(next);
     });
   };
 
+  const syncDocumentReadState = (): void => {
+    migrateLegacyDocumentHash();
+    migrateLegacyUserDocumentHash();
+    const overlayPending = overlayFromLocationSearch(window.location.search);
+    if (overlayPending && !isDocumentReadRoute(window.location.hash)) {
+      const trail = loadDocumentTrail();
+      if (!trail || trail.crumbs.length === 0) {
+        beginDocumentTrail('official');
+      }
+    }
+    migrateLegacyOverlaySearch();
+    const active = isDocumentReadRoute(window.location.hash);
+    setDocumentReadActive(active);
+    if (!active) clearDocumentTrail();
+    stripOrphanedOverlaySearch(active);
+  };
+
   const handleHashChange = (event: HashChangeEvent): void => {
+    if (event.isTrusted) {
+      finishRootNavigationMotionIfActive();
+    }
+    redirectLegacySettingsRoutes();
+    syncDocumentReadState();
     const next = viewFromLocation();
     if (next === view()) return;
     transitionToRootView(next, () => {
@@ -305,34 +477,74 @@ export function App(): JSX.Element {
       }
       snapshotCurrentRoute(previousHash ?? lastRouteByView.get(view()) ?? `#/${view()}`);
       moveToRootView(next);
-      restoreScrollFor(next);
     });
   };
 
   const handleScroll = (): void => {
     setShowScrollTop(window.scrollY > 48);
+    if (document.documentElement.classList.contains('using-root-view-transition')) {
+      finishRootNavigationMotionIfActive();
+    }
+  };
+
+  const handleVisibilityChange = (): void => {
+    finishRootNavigationMotionIfActive();
   };
 
   const navButtons = (): readonly HTMLButtonElement[] =>
     bottomNav ? Array.from(bottomNav.querySelectorAll<HTMLButtonElement>('.app-nav-button')) : [];
 
+  const settleBottomNavBubbleMotion = (): void => {
+    if (bottomNavBubbleSettleTimer) clearTimeout(bottomNavBubbleSettleTimer);
+    bottomNavBubbleSettleTimer = setTimeout(() => {
+      bottomNavBubbleSettleTimer = undefined;
+      if (bottomNavDragging()) return;
+      setBottomNavBubbleMotion({ origin: 'center', scaleX: 1, scaleY: 1, rotate: 0 });
+    }, 380);
+  };
+
   const scheduleBottomNavBubble = (): void => {
     if (bottomNavBubbleFrame !== undefined) cancelAnimationFrame(bottomNavBubbleFrame);
     bottomNavBubbleFrame = requestAnimationFrame(() => {
-      bottomNavBubbleFrame = undefined;
-      const nav = bottomNav;
-      const activeIndex = VIEW_ORDER.get(view()) ?? 0;
-      const button = navButtons()[activeIndex];
-      if (!nav || !button) return;
-      const navRect = nav.getBoundingClientRect();
-      const buttonRect = button.getBoundingClientRect();
-      setBottomNavBubble({
-        left: buttonRect.left - navRect.left,
-        top: buttonRect.top - navRect.top,
-        width: buttonRect.width,
-        height: buttonRect.height,
+      bottomNavBubbleFrame = requestAnimationFrame(() => {
+        bottomNavBubbleFrame = undefined;
+        const nav = bottomNav;
+        const activeIndex = VIEW_ORDER.get(view()) ?? 0;
+        const button = navButtons()[activeIndex];
+        if (!nav || !button) return;
+        const navRect = nav.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
+        if (buttonRect.width <= 0 || buttonRect.height <= 0) return;
+        const next = {
+          left: buttonRect.left - navRect.left,
+          top: buttonRect.top - navRect.top,
+          width: buttonRect.width,
+          height: buttonRect.height,
+        };
+        const previous = bottomNavBubble();
+        const dx = next.left - previous.left;
+        if (!bottomNavDragging() && Math.abs(dx) > 4) {
+          const speed = Math.min(1, Math.abs(dx) / 64);
+          const direction = Math.sign(dx);
+          setBottomNavBubbleMotion({
+            origin: direction > 0 ? 'left' : 'right',
+            scaleX: 1 + speed * 0.58,
+            scaleY: 1 - speed * 0.16,
+            rotate: direction * speed * 7,
+          });
+          settleBottomNavBubbleMotion();
+        }
+        setBottomNavBubble(next);
       });
     });
+  };
+
+  const bindBottomNavResizeObserver = (element: HTMLElement): void => {
+    bottomNav = element;
+    bottomNavResizeObserver?.disconnect();
+    bottomNavResizeObserver = new ResizeObserver(() => scheduleBottomNavBubble());
+    bottomNavResizeObserver.observe(element);
+    scheduleBottomNavBubble();
   };
 
   const navIndexAtX = (clientX: number): number => {
@@ -454,7 +666,7 @@ export function App(): JSX.Element {
       rotate: gesture.lastDirection * (velocity * 8 + travel.overscroll * 2),
     });
     const nextIndex = navIndexAtX(event.clientX);
-    if (nextIndex !== bottomNavDragIndex()) hapticFeedback('light');
+    if (nextIndex !== bottomNavDragIndex()) hapticFeedback('selection');
     setBottomNavDragIndex(nextIndex);
   };
 
@@ -487,16 +699,31 @@ export function App(): JSX.Element {
   const activateAvailableUpdate = (): void => {
     if (appUpdating()) return;
     setAppUpdating(true);
+    setAppUpdateProgress(undefined);
     const apkUrl = availableApkUrl();
     if (apkUrl) {
-      void installAndroidApk(apkUrl)
+      void installAndroidApk(apkUrl, (progress) => {
+        setAppUpdateProgress({
+          phase: 'download',
+          loaded: progress.loaded,
+          total: progress.total,
+        });
+      })
         .catch(() => undefined)
-        .finally(() => setAppUpdating(false));
+        .finally(() => {
+          setAppUpdating(false);
+          setAppUpdateProgress(undefined);
+        });
       return;
     }
     const worker = appUpdateWorker();
-    if (worker) activateAppUpdate(worker);
-    else setAppUpdating(false);
+    if (worker) {
+      setAppUpdateProgress({ phase: 'activate' });
+      activateAppUpdate(worker);
+      return;
+    }
+    setAppUpdating(false);
+    setAppUpdateProgress(undefined);
   };
 
   const connectInstalledModules = async (): Promise<void> => {
@@ -523,16 +750,7 @@ export function App(): JSX.Element {
   const handleSearchShortcut = (event: KeyboardEvent): void => {
     if (event.key.toLowerCase() !== 'f' || (!event.ctrlKey && !event.metaKey) || event.altKey)
       return;
-    const target = Array.from(
-      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
-        '[data-search-focus-target]',
-      ),
-    ).find(
-      (element) =>
-        !element.disabled &&
-        element.getClientRects().length > 0 &&
-        getComputedStyle(element).visibility !== 'hidden',
-    );
+    const target = pickSearchFocusTarget();
     if (!target) return;
     event.preventDefault();
     target.focus({ preventScroll: true });
@@ -540,7 +758,10 @@ export function App(): JSX.Element {
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
 
   onMount(async () => {
-    stopButtonHaptics = installButtonHaptics();
+    redirectLegacySettingsRoutes();
+    syncDocumentReadState();
+    setView(viewFromLocation());
+    stopButtonHaptics = installUiFeedback();
     document.documentElement.classList.toggle(
       'platform-android',
       Capacitor.getPlatform() === 'android',
@@ -554,6 +775,7 @@ export function App(): JSX.Element {
     }
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('resize', scheduleBottomNavBubble);
     window.addEventListener('pointerup', finishBottomNavGesture);
     window.addEventListener('pointercancel', cancelBottomNavGesture);
@@ -562,6 +784,7 @@ export function App(): JSX.Element {
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.addEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     refreshDueReminders();
+    ensureUserLibraryIngestRunning();
     reminderTimer = setInterval(refreshDueReminders, 30_000);
     handleScroll();
     scheduleBottomNavBubble();
@@ -590,9 +813,11 @@ export function App(): JSX.Element {
         }
         const route = window.location.hash.replace(/^#\/?/u, '');
         const action = nativeBackAction(route, view(), canGoBack);
-        if (action === 'history') {
+        if (action.type === 'parent') {
+          window.location.hash = action.hash;
+        } else if (action.type === 'history') {
           window.history.back();
-        } else if (action === 'search') {
+        } else if (action.type === 'search') {
           navigate('search');
         } else {
           void NativeApp.minimizeApp();
@@ -636,6 +861,7 @@ export function App(): JSX.Element {
     document.documentElement.classList.remove('platform-android');
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
     window.removeEventListener('resize', scheduleBottomNavBubble);
     window.removeEventListener('pointerup', finishBottomNavGesture);
     window.removeEventListener('pointercancel', cancelBottomNavGesture);
@@ -645,8 +871,10 @@ export function App(): JSX.Element {
     window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     if (reminderTimer) clearInterval(reminderTimer);
     if (bootTimer) clearTimeout(bootTimer);
-    if (rootNavigationMotionTimer) clearTimeout(rootNavigationMotionTimer);
+    cancelRootNavigationMotionEnd();
+    bottomNavResizeObserver?.disconnect();
     if (bottomNavBubbleFrame !== undefined) cancelAnimationFrame(bottomNavBubbleFrame);
+    if (bottomNavBubbleSettleTimer) clearTimeout(bottomNavBubbleSettleTimer);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     void nativeBackListener?.remove();
@@ -662,22 +890,24 @@ export function App(): JSX.Element {
       class="app-shell archive-app"
       classList={{ 'app-shell--booting': !ready(), 'app-shell--native': isNativeShell }}
     >
-      <Toaster
-        class="app-notification-host"
-        position="top-center"
-        closeButton
-        duration={4200}
-        containerAriaLabel="Уведомления"
-        toastOptions={{
-          className: 'app-notification',
-          closeButtonAriaLabel: 'Закрыть уведомление',
-        }}
-      />
+      <Portal>
+        <Toaster
+          class="app-notification-host"
+          position="top-center"
+          closeButton
+          duration={4200}
+          containerAriaLabel="Уведомления"
+          toastOptions={{
+            className: 'app-notification',
+            closeButtonAriaLabel: 'Закрыть уведомление',
+          }}
+        />
+      </Portal>
       <main class="app-main">
         <section
           class="app-view"
           classList={rootViewClasses('assessments')}
-          hidden={!isViewVisible('assessments')}
+          hidden={documentReadActive() || !isViewVisible('assessments')}
           aria-hidden={view() !== 'assessments'}
         >
           <AssessmentsView />
@@ -685,7 +915,7 @@ export function App(): JSX.Element {
         <section
           class="app-view"
           classList={rootViewClasses('calculators')}
-          hidden={!isViewVisible('calculators')}
+          hidden={documentReadActive() || !isViewVisible('calculators')}
           aria-hidden={view() !== 'calculators'}
         >
           <CalculatorsView />
@@ -721,7 +951,7 @@ export function App(): JSX.Element {
               <section
                 class="app-view"
                 classList={rootViewClasses('search')}
-                hidden={!isViewVisible('search')}
+                hidden={documentReadActive() || !isViewVisible('search')}
                 aria-hidden={view() !== 'search'}
               >
                 <SearchHome
@@ -731,23 +961,26 @@ export function App(): JSX.Element {
                   active={view() === 'search'}
                   onOpenKnowledgeBase={() => navigate('modules')}
                   onOpenModelSettings={() => {
-                    window.location.hash = '#/modules/model';
+                    rememberReturnTo();
+                    navigate('settings');
                   }}
                   appUpdateReady={Boolean(appUpdateWorker() || availableApkUrl())}
                   appUpdating={appUpdating()}
+                  {...(appUpdateProgress()
+                    ? { appUpdateProgress: appUpdateProgress() as AppUpdateProgress }
+                    : {})}
                   onActivateAppUpdate={activateAvailableUpdate}
                 />
               </section>
               <section
                 class="app-view"
                 classList={rootViewClasses('modules')}
-                hidden={!isViewVisible('modules')}
+                hidden={documentReadActive() || !isViewVisible('modules')}
                 aria-hidden={view() !== 'modules'}
               >
                 <KnowledgeBaseView
                   core={state().core}
                   status={state().status}
-                  controller={modelController}
                   active={view() === 'modules'}
                   onContentChanged={connectInstalledModules}
                   onAvailableUpdates={setAvailableModuleCount}
@@ -755,47 +988,42 @@ export function App(): JSX.Element {
               </section>
               <section
                 class="app-view"
+                classList={rootViewClasses('settings')}
+                hidden={documentReadActive() || !isViewVisible('settings')}
+                aria-hidden={view() !== 'settings'}
+              >
+                <SettingsView controller={modelController} status={state().status} />
+              </section>
+              <section
+                class="app-view"
                 classList={rootViewClasses('notes')}
-                hidden={!isViewVisible('notes')}
+                hidden={documentReadActive() || !isViewVisible('notes')}
                 aria-hidden={view() !== 'notes'}
               >
                 <NotesView core={searchCore() ?? state().core} active={view() === 'notes'} />
               </section>
+              <Show when={documentReadActive()}>
+                <section class="app-view app-view--document-read active" aria-hidden={false}>
+                  <DocumentPageHost
+                    getCore={() => state().core}
+                    reconnectContent={connectInstalledModules}
+                  />
+                </section>
+              </Show>
             </>
           )}
         </Show>
       </main>
 
       <Show when={ready()}>
-        {(state) => (
-          <>
-            <div class="floating-system-status" aria-live="polite">
-              <Show when={appUpdateWorker() || availableApkUrl()}>
-                <button
-                  class="content-download-pill app-update-pill"
-                  type="button"
-                  disabled={appUpdating()}
-                  onClick={activateAvailableUpdate}
-                >
-                  <AppGlyph name="refresh" />
-                  <span>{appUpdating() ? 'Обновляем приложение…' : 'Обновить приложение'}</span>
-                </button>
-              </Show>
-              <ContentDownloadStatus floating />
-            </div>
-            <DocumentOverlayHost
-              getCore={() => state().core}
-              reconnectContent={connectInstalledModules}
-            />
-          </>
-        )}
+        <div class="floating-system-status" aria-live="polite">
+          <ContentDownloadStatus floating />
+        </div>
       </Show>
 
       <Show when={ready()}>
         <nav
-          ref={(element) => {
-            bottomNav = element;
-          }}
+          ref={bindBottomNavResizeObserver}
           class="app-bottom-nav"
           classList={{
             'app-bottom-nav--dragging': bottomNavDragging(),
@@ -807,15 +1035,11 @@ export function App(): JSX.Element {
           onPointerUp={finishBottomNavGesture}
           onPointerCancel={cancelBottomNavGesture}
         >
-          <Show when={bottomNavBubble()}>
-            {(position) => (
-              <span
-                class="app-bottom-nav__bubble"
-                style={bubbleStyle(position())}
-                aria-hidden="true"
-              />
-            )}
-          </Show>
+          <span
+            class="app-bottom-nav__bubble"
+            style={bubbleStyle(bottomNavBubble())}
+            aria-hidden="true"
+          />
           {VIEWS.map((item, index) => {
             const selected = () => (bottomNavDragIndex() ?? VIEW_ORDER.get(view()) ?? 0) === index;
             const label = () => {
@@ -829,7 +1053,7 @@ export function App(): JSX.Element {
             };
             return (
               <div class="app-nav-item">
-                <Show when={item.id === 'modules'}>
+                <Show when={item.id === 'settings'}>
                   <ModelNavIndicator controller={modelController} />
                 </Show>
                 <button

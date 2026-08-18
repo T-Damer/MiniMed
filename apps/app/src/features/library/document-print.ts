@@ -153,9 +153,8 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
 </html>`;
 }
 
-export function printDocument(document: MedicalDocument): boolean {
-  const html = printableDocumentHtml(document, window.location.href);
-  if (printHtmlInNativeShell(html, document.title)) return true;
+export function printHtml(html: string, title: string): boolean {
+  if (printHtmlInNativeShell(html, title)) return true;
   const popup = window.open('', '_blank');
   if (!popup) return false;
   popup.opener = null;
@@ -168,6 +167,11 @@ export function printDocument(document: MedicalDocument): boolean {
     popup.print();
   }, 50);
   return true;
+}
+
+export function printDocument(document: MedicalDocument): boolean {
+  const html = printableDocumentHtml(document, window.location.href);
+  return printHtml(html, document.title);
 }
 
 function summaryText(document: MedicalDocument): string {

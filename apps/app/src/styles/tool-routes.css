@@ -1,7 +1,7 @@
 .assessments-page,
 .calculators-page {
   box-sizing: border-box;
-  width: min(100%, 65ch);
+  width: min(100%, var(--page-board-width));
   min-height: calc(100dvh + 4.875rem + var(--safe-bottom) + var(--safe-top));
   margin-inline: auto;
   margin-bottom: calc(-4.875rem - var(--safe-bottom));
@@ -23,7 +23,8 @@
 .assessment-result-page,
 .calculator-workspace {
   width: 100%;
-  max-width: 65ch;
+  max-width: var(--page-measure);
+  margin-inline: auto;
 }
 
 .assessment-catalog-grid,
@@ -81,8 +82,33 @@
 }
 
 .app-bottom-nav .app-nav-item {
-  min-width: 0;
+  min-width: auto;
   justify-content: center;
+}
+
+@media (min-width: 760px) {
+  .search-mode-tools,
+  .knowledge-subroute-heading,
+  .module-catalog-heading,
+  .medication-route-heading,
+  .document-page__chrome {
+    box-sizing: border-box;
+    width: min(100%, var(--page-board-width));
+    max-width: var(--page-board-width);
+    margin-inline: auto;
+    padding-inline: var(--page-inline-padding);
+  }
+
+  .assessment-subpage-header,
+  .calculator-subpage-header,
+  .subpage-heading.assessments-heading,
+  .subpage-heading.calculators-heading {
+    box-sizing: border-box;
+    width: min(100%, var(--page-measure));
+    max-width: var(--page-measure);
+    margin-inline: auto;
+    padding-inline: 0;
+  }
 }
 
 @media (max-width: 760px) {
@@ -92,8 +118,11 @@
     padding-inline: 0.75rem;
   }
 
-  .app-bottom-nav .app-nav-button {
-    width: clamp(2.25rem, 17vw, 3rem);
+  .app-bottom-nav .app-nav-button,
+  .app-bottom-nav .app-nav-button--active {
+    width: clamp(2rem, 13vw, 2.75rem);
+    height: clamp(2rem, 13vw, 2.75rem);
+    aspect-ratio: 1;
   }
 }
 

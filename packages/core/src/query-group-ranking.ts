@@ -1,5 +1,5 @@
 import type { SearchResultGroup } from '@localmed/contracts';
-import { normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
+import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
 const GENERIC_QUERY_TERMS = new Set([
   'какой',
@@ -87,24 +87,104 @@ function editionStatusBoost(query: string, text: string): number {
   return 0;
 }
 
+const TITLE_FORM_STEMS = new Set([
+  'таблетк',
+  'порошк',
+  'раствор',
+  'капсул',
+  'сироп',
+  'суппозитор',
+  'маз',
+  'гел',
+  'крем',
+  'капл',
+  'спре',
+  'инъекц',
+  'приготовлен',
+  'прием',
+  'внутрь',
+  'назальн',
+  'наружн',
+  'глазн',
+  'ректальн',
+  'лиофилизат',
+  'суспенз',
+  'гранул',
+  'пастил',
+  'шипуч',
+  'пленк',
+  'покрыт',
+  'оболочк',
+  'действующ',
+  'веществ',
+  'доз',
+  'мг',
+  'мл',
+  'шт',
+]);
+
+function stemToken(token: string): string {
+  return lightStemRussian(token);
+}
+
+function tokensMatch(queryToken: string, titleToken: string): boolean {
+  if (
+    titleToken === queryToken ||
+    titleToken.startsWith(queryToken) ||
+    queryToken.startsWith(titleToken)
+  ) {
+    return true;
+  }
+  const queryStem = stemToken(queryToken);
+  const titleStem = stemToken(titleToken);
+  return (
+    titleStem === queryStem || titleStem.startsWith(queryStem) || queryStem.startsWith(titleStem)
+  );
+}
+
+function isFormOrStrengthToken(token: string): boolean {
+  if (/^\d/.test(token) || token.length <= 2) return true;
+  const stem = stemToken(token);
+  if (TITLE_FORM_STEMS.has(stem)) return true;
+  for (const formStem of TITLE_FORM_STEMS) {
+    if (stem.startsWith(formStem) || formStem.startsWith(stem)) return true;
+  }
+  return false;
+}
+
+function isCombinationTitle(title: string, leftoverTerms: readonly string[]): boolean {
+  if (/[+\/]|(\sи\s)|(\sс\s)/u.test(title)) return true;
+  return leftoverTerms.some((term) => !isFormOrStrengthToken(term));
+}
+
 /**
- * A document whose title literally is (or contains) the searched term must outrank a document that
- * merely mentions that term in passing (e.g. an interactions section of an unrelated drug). None of
- * the other boosts below are strong enough to guarantee this on their own, since they are tuned for
- * legal/clinical phrase matches rather than an exact product/document name lookup.
+ * A document whose title is (or is headed by) the searched name must outrank a document that merely
+ * mentions that name in passing or lists it as one ingredient of a combination. Phrase boosts below
+ * are tuned for legal/clinical wording and are not strong enough to guarantee this on their own.
  */
 function exactTitleMatchBoost(query: string, title: string): number {
   const normalizedQuery = normalizeSurfaceText(query).trim();
   if (!normalizedQuery) return 0;
   const normalizedTitle = normalizeSurfaceText(title).trim();
-  if (normalizedTitle === normalizedQuery) return 4;
+  if (normalizedTitle === normalizedQuery) return 6;
 
   const queryTerms = tokenize(normalizedQuery);
   if (queryTerms.length === 0) return 0;
-  const titleTerms = new Set(tokenize(normalizedTitle));
-  const allTermsInTitle = queryTerms.every((term) => titleTerms.has(term));
-  if (!allTermsInTitle) return 0;
-  return normalizedTitle.startsWith(normalizedQuery) ? 3.5 : 3;
+  const titleTerms = tokenize(normalizedTitle);
+  if (titleTerms.length === 0) return 0;
+
+  const matchedTitleIndexes = queryTerms.map((queryTerm) =>
+    titleTerms.findIndex((titleTerm) => tokensMatch(queryTerm, titleTerm)),
+  );
+  if (matchedTitleIndexes.some((index) => index < 0)) return 0;
+
+  const leftoverTerms = titleTerms.filter((_, index) => !matchedTitleIndexes.includes(index));
+  const combination = isCombinationTitle(normalizedTitle, leftoverTerms);
+  const headedByQuery = matchedTitleIndexes[0] === 0;
+  if (combination) return headedByQuery ? 1.2 : 0.8;
+  if (normalizedTitle.startsWith(normalizedQuery)) return 5;
+  if (headedByQuery && leftoverTerms.every((term) => isFormOrStrengthToken(term))) return 5;
+  return headedByQuery ? 4.5 : 3.5;
 }
 
 export function queryGroupRelevanceBoost(query: string, text: string): number {

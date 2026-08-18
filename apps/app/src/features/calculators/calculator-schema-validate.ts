@@ -33,6 +33,21 @@ function referencedVariables(node: ExpressionNode, into: Set<string>): void {
   }
 }
 
+const CALCULATOR_CATEGORY_ALIASES = {
+  'neonatal-respiratory': 'neonatology',
+  'pediatric-gastroenterology': 'gastroenterology',
+} as const;
+
+function withCanonicalCategory(candidate: unknown): unknown {
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return candidate;
+  const category = 'category' in candidate ? candidate.category : undefined;
+  if (typeof category !== 'string' || !(category in CALCULATOR_CATEGORY_ALIASES)) return candidate;
+  return {
+    ...candidate,
+    category: CALCULATOR_CATEGORY_ALIASES[category as keyof typeof CALCULATOR_CATEGORY_ALIASES],
+  };
+}
+
 /**
  * Validates a candidate calculator definition: schema shape (Zod), then that every step's expression
  * actually parses under the restricted grammar, and that every variable it references is either a
@@ -42,7 +57,7 @@ function referencedVariables(node: ExpressionNode, into: Set<string>): void {
  * is ever evaluated.
  */
 export function validateCalculatorSchema(candidate: unknown): CalculatorSchemaValidation {
-  const parsed = CalculatorSchemaSchema.safeParse(candidate);
+  const parsed = CalculatorSchemaSchema.safeParse(withCanonicalCategory(candidate));
   if (!parsed.success) {
     return {
       ok: false,

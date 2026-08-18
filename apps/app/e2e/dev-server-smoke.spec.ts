@@ -31,14 +31,13 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 5_000 });
 
   await navigationButton(page, 'База знаний').click();
-  await expect(page.getByRole('heading', { name: 'База знаний и модель' })).toBeVisible();
-  await page.getByRole('button', { name: /^Документы/u }).click();
+  await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
   await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
   await expect(page.getByRole('heading', { name: /встроенных документов/u })).toBeVisible();
 
   await page.getByRole('button', { name: 'Назад к разделам' }).click();
-  await page.getByRole('button', { name: /^Локальная модель/u }).click();
-  await expect(page.getByRole('heading', { name: 'Модель', exact: true })).toBeVisible();
+  await navigationButton(page, 'Настройки').click();
+  await expect(page.getByRole('heading', { name: 'Локальная модель', level: 2 })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Проверить устройство' })).toBeVisible();
 });
 

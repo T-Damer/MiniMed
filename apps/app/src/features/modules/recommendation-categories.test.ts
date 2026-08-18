@@ -1,4 +1,8 @@
-import type { ContentModuleCatalogEntry, ContentModuleCategory } from '@localmed/contracts';
+import type {
+  ContentModuleCatalogEntry,
+  ContentModuleCategory,
+  InstalledContentModule,
+} from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -60,6 +64,25 @@ function module(
   };
 }
 
+function installedById(ids: readonly string[]): ReadonlyMap<string, InstalledContentModule> {
+  return new Map(
+    ids.map((id) => [
+      id,
+      {
+        moduleId: id,
+        version: '1.0.0',
+        state: 'installed',
+        enabled: true,
+        installedAt: '2026-01-01T00:00:00Z',
+        installedSizeBytes: 1_000_000,
+        activeSourceSetDigest: null,
+        previousVersions: [],
+        lastValidation: null,
+      },
+    ]),
+  );
+}
+
 describe('recommendation-categories', () => {
   it('matches modules by collection or category tag', () => {
     const modules = [
@@ -74,13 +97,14 @@ describe('recommendation-categories', () => {
   it('summarizes installed and pending category modules', () => {
     const modules = [module('a'), module('b'), module('c', { releaseState: 'planned' })];
 
-    const stats = recommendationCategoryStats(modules, category, new Set(['a']));
+    const stats = recommendationCategoryStats(modules, category, installedById(['a']));
 
     expect(stats).toEqual({
       publishedCount: 2,
       installedCount: 1,
       pendingCount: 1,
       downloadBytes: 2_000_000,
+      installedBytes: 1_000_000,
     });
   });
 

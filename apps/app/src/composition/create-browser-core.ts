@@ -4,7 +4,6 @@ import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { type MedicalStore, type MedicalStoreMount, MultiMedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
-import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
 
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
@@ -14,11 +13,11 @@ interface PackBuildReport {
 }
 
 interface CompanionStores {
-  readonly mkbStore?: MedicalStore;
-  readonly medicationsStore?: MedicalStore;
-  readonly ambulatoryStore?: MedicalStore;
-  readonly regulatoryStore?: MedicalStore;
-  readonly referenceStore?: MedicalStore;
+  mkbStore?: MedicalStore;
+  medicationsStore?: MedicalStore;
+  ambulatoryStore?: MedicalStore;
+  regulatoryStore?: MedicalStore;
+  referenceStore?: MedicalStore;
 }
 
 const QUERY_EMBEDDER = new PortableHashEmbedder();
@@ -41,6 +40,14 @@ const BUILT_IN_MKB_MODULE_ID = 'minimed.mkb.ru';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
+// sqlite-wasm deserializes the whole file into the WASM heap. Local-dev companions such as
+// mkb.db (~1.4 GB) and medications.db (~420 MB) cannot fit; opening them yields SQLITE_NOMEM.
+const WASM_UNSAFE_COMPANION_DATABASES: ReadonlySet<string> = new Set([
+  MKB_DATABASE_NAME,
+  MEDICATIONS_DATABASE_NAME,
+  AMBULATORY_DATABASE_NAME,
+]);
+const WASM_PACKAGED_COMPANION_MAX_BYTES = 32 * 1024 * 1024;
 
 export function getPackagedContentBaseUrl(): string {
   const configuredBaseUrl = import.meta.env.VITE_CONTENT_BASE_URL?.trim();
@@ -113,6 +120,15 @@ async function createNativeStore(): Promise<CapacitorMedicalStore> {
   return store;
 }
 
+export function shouldOpenPackagedWasmCompanion(
+  databaseName: string,
+  byteLength?: number,
+): boolean {
+  if (WASM_UNSAFE_COMPANION_DATABASES.has(databaseName)) return false;
+  if (byteLength !== undefined && byteLength > WASM_PACKAGED_COMPANION_MAX_BYTES) return false;
+  return true;
+}
+
 async function createPackagedWasmStore(
   contentBaseUrl: string,
   databaseName = PACK_DATABASE_NAME,
@@ -124,6 +140,14 @@ async function createPackagedWasmStore(
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (!hasSqliteHeader(bytes)) {
     throw new Error(`Unable to load compiled content pack (${databaseName} is not SQLite).`);
+  }
+  if (
+    databaseName !== PACK_DATABASE_NAME &&
+    !shouldOpenPackagedWasmCompanion(databaseName, bytes.byteLength)
+  ) {
+    throw new Error(
+      `Skipping ${databaseName}: too large to deserialize into SQLite WASM (${bytes.byteLength} bytes).`,
+    );
   }
   return withTimeout(
     SqliteMedicalStore.createFromBytes(bytes),
@@ -225,30 +249,21 @@ async function createOptionalPackagedStore(
 }
 
 async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
-  const mkbStore = await createOptionalPackagedStore(contentBaseUrl, MKB_DATABASE_NAME);
-  // Open the large optional packs one at a time. Opening the 420 MB medication pack alongside the
-  // 227 MB ambulatory pack briefly duplicates both byte buffers in WebView/WASM memory and can
-  // make the companion mounts fail before the catalog gets a chance to render.
-  const medicationsStore = await createOptionalPackagedStore(
-    contentBaseUrl,
-    MEDICATIONS_DATABASE_NAME,
-  );
-  const ambulatoryStore = await createOptionalPackagedStore(
-    contentBaseUrl,
-    AMBULATORY_DATABASE_NAME,
-  );
-  const regulatoryStore = await createOptionalPackagedStore(
-    contentBaseUrl,
-    REGULATORY_DATABASE_NAME,
-  );
-  const referenceStore = await createOptionalPackagedStore(contentBaseUrl, REFERENCE_DATABASE_NAME);
-  return {
-    ...(mkbStore ? { mkbStore } : {}),
-    ...(medicationsStore ? { medicationsStore } : {}),
-    ...(ambulatoryStore ? { ambulatoryStore } : {}),
-    ...(regulatoryStore ? { regulatoryStore } : {}),
-    ...(referenceStore ? { referenceStore } : {}),
-  };
+  const companions: CompanionStores = {};
+  // Do not fetch mkb/medications/ambulatory into sqlite-wasm — those files are hundreds of MB to
+  // gigabytes on disk and abort boot with SQLITE_NOMEM. They remain installable content modules.
+  const wasmCompanions = [
+    ['regulatoryStore', REGULATORY_DATABASE_NAME],
+    ['referenceStore', REFERENCE_DATABASE_NAME],
+  ] as const;
+  for (const [key, databaseName] of wasmCompanions) {
+    if (!shouldOpenPackagedWasmCompanion(databaseName)) continue;
+    const store = await createOptionalPackagedStore(contentBaseUrl, databaseName);
+    if (store) {
+      companions[key] = store;
+    }
+  }
+  return companions;
 }
 
 export async function createBrowserCore() {
@@ -285,20 +300,8 @@ export async function createBrowserCore() {
     const store = await withInstalledModules(coreStore, companions);
     return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
   } catch (error) {
-    console.warn('Compiled content pack unavailable; falling back to the embedded seed.', error);
-    const store = await SqliteMedicalStore.create();
-    const contentBaseUrl = getPackagedContentBaseUrl();
-    const composed = await withInstalledModules(
-      store,
-      await createPackagedCompanionStores(contentBaseUrl),
-      true,
-    );
-    return createMedicalCore({
-      store: composed,
-      seed: DEMO_CONTENT_PACK,
-      platform,
-      embedder: QUERY_EMBEDDER,
-    });
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Не удалось открыть ядро MiniMed: ${message}`, { cause: error });
   }
 }
 
@@ -311,18 +314,7 @@ export async function createBrowserWorkerCore(contentBaseUrl: string) {
     const store = await withInstalledModules(coreStore, companions);
     return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
   } catch (error) {
-    console.warn('Worker content pack unavailable; falling back to the embedded seed.', error);
-    const store = await SqliteMedicalStore.create();
-    const composed = await withInstalledModules(
-      store,
-      await createPackagedCompanionStores(contentBaseUrl),
-      true,
-    );
-    return createMedicalCore({
-      store: composed,
-      seed: DEMO_CONTENT_PACK,
-      platform: 'web',
-      embedder: QUERY_EMBEDDER,
-    });
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Не удалось открыть ядро MiniMed: ${message}`, { cause: error });
   }
 }

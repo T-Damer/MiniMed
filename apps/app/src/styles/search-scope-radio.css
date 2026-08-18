@@ -37,32 +37,35 @@ fieldset.search-mode-picker::-webkit-scrollbar {
   flex: none;
   align-items: center;
   padding: 0;
-  border: 1px solid rgb(70 58 35 / 30%);
+  border: 1px solid color-mix(in srgb, var(--theme-border) 72%, transparent);
   border-radius: 999px;
-  color: #4e432e;
-  background: rgb(250 242 221 / 58%);
+  color: var(--theme-text-muted);
+  background: color-mix(in srgb, var(--theme-surface-raised) 58%, transparent);
   cursor: pointer;
   text-align: left;
 }
 
-.search-mode-picker label:hover {
-  background: rgb(255 250 237 / 82%);
+@media (hover: hover) and (pointer: fine) {
+  .search-mode-picker label:hover {
+    background: color-mix(in srgb, var(--theme-surface-raised) 82%, var(--theme-accent-soft));
+  }
 }
 
 .search-mode-picker label.active {
-  border-color: #3f5548;
-  color: #f8f0dd;
-  background: #4c5d50;
-  box-shadow: 0 0.1875rem 0.625rem rgb(42 49 42 / 18%);
+  border-color: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  box-shadow: 0 0.1875rem 0.625rem color-mix(in srgb, var(--theme-accent) 24%, transparent);
 }
 
 .search-mode-picker label.active .search-mode-option-copy strong {
-  color: #fff;
+  color: inherit;
 }
 
 .search-mode-picker label.unavailable {
   cursor: not-allowed;
-  opacity: 0.48;
+  opacity: 0.62;
+  color: var(--theme-text-faint);
 }
 
 .search-mode-picker label.unavailable input {

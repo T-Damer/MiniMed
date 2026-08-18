@@ -1,0 +1,1205 @@
+{
+  "id": "minimed.tools.psychology.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Инструменты психологии и психодиагностики",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-18T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.assessment.braverman-behavioral",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "braverman-behavioral-profile",
+      "title": "Тест Бравермана — поведенческий профиль",
+      "shortTitle": "Профиль Бравермана",
+      "aliases": [
+        "тест Бравермана",
+        "Braverman test",
+        "нейромедиаторный профиль",
+        "дофамин серотонин ГАМК ацетилхолин"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "self-reflection",
+      "description": "Образовательный самоопросник по популярной модели Бравермана и её четырём поведенческим кластерам: дофамин, ацетилхолин, ГАМК и серотонин.",
+      "estimatedMinutes": 6,
+      "audience": "Взрослые; образовательная саморефлексия",
+      "definition": {
+        "id": "minimed.assessment.braverman-behavioral",
+        "slug": "braverman-behavioral-profile",
+        "title": "Тест Бравермана — поведенческий профиль",
+        "shortTitle": "Профиль Бравермана",
+        "aliases": [
+          "тест Бравермана",
+          "Braverman test",
+          "нейромедиаторный профиль",
+          "дофамин серотонин ГАМК ацетилхолин"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "self-reflection",
+        "description": "Образовательный самоопросник по популярной модели Бравермана и её четырём поведенческим кластерам: дофамин, ацетилхолин, ГАМК и серотонин.",
+        "estimatedMinutes": 6,
+        "audience": "Взрослые; образовательная саморефлексия",
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Совсем не похоже на меня"
+          },
+          {
+            "value": 2,
+            "label": "Скорее не похоже"
+          },
+          {
+            "value": 3,
+            "label": "Иногда / трудно сказать"
+          },
+          {
+            "value": 4,
+            "label": "Скорее похоже"
+          },
+          {
+            "value": 5,
+            "label": "Очень похоже на меня"
+          }
+        ],
+        "scales": [
+          {
+            "id": "dopamine",
+            "label": "Дофаминовый паттерн",
+            "shortLabel": "Дофамин",
+            "description": "Ориентация на цель, скорость решения, конкуренция и поиск результата."
+          },
+          {
+            "id": "acetylcholine",
+            "label": "Ацетилхолиновый паттерн",
+            "shortLabel": "Ацетилхолин",
+            "description": "Гибкость ассоциаций, любознательность, образность и генерация идей."
+          },
+          {
+            "id": "gaba",
+            "label": "ГАМК-паттерн",
+            "shortLabel": "ГАМК",
+            "description": "Потребность в порядке, надёжности, предсказуемости и завершённости."
+          },
+          {
+            "id": "serotonin",
+            "label": "Серотониновый паттерн",
+            "shortLabel": "Серотонин",
+            "description": "Социальная чувствительность, поддержка отношений и эмоциональная вовлечённость."
+          }
+        ],
+        "questions": [
+          {
+            "id": "braverman-behavioral-profile-01",
+            "scaleId": "dopamine",
+            "prompt": "Мне легче включиться, когда есть ясная цель и измеримый результат"
+          },
+          {
+            "id": "braverman-behavioral-profile-02",
+            "scaleId": "dopamine",
+            "prompt": "В ситуации неопределённости я быстро выбираю направление и начинаю действовать"
+          },
+          {
+            "id": "braverman-behavioral-profile-03",
+            "scaleId": "dopamine",
+            "prompt": "Соревнование обычно добавляет мне энергии"
+          },
+          {
+            "id": "braverman-behavioral-profile-04",
+            "scaleId": "dopamine",
+            "prompt": "Я готов брать ответственность за трудное решение"
+          },
+          {
+            "id": "braverman-behavioral-profile-05",
+            "scaleId": "dopamine",
+            "prompt": "Мне нравится разбивать большую задачу на конкретные достижения"
+          },
+          {
+            "id": "braverman-behavioral-profile-06",
+            "scaleId": "dopamine",
+            "prompt": "Я часто откладываю выбор, пока кто-то другой не определит направление",
+            "reverse": true
+          },
+          {
+            "id": "braverman-behavioral-profile-07",
+            "scaleId": "acetylcholine",
+            "prompt": "Новые идеи возникают у меня через неожиданные связи между разными темами"
+          },
+          {
+            "id": "braverman-behavioral-profile-08",
+            "scaleId": "acetylcholine",
+            "prompt": "Я люблю разбираться в незнакомых областях просто из любопытства"
+          },
+          {
+            "id": "braverman-behavioral-profile-09",
+            "scaleId": "acetylcholine",
+            "prompt": "Мне легко представить несколько альтернативных объяснений одного события"
+          },
+          {
+            "id": "braverman-behavioral-profile-10",
+            "scaleId": "acetylcholine",
+            "prompt": "Я часто замечаю образы, метафоры и необычные детали"
+          },
+          {
+            "id": "braverman-behavioral-profile-11",
+            "scaleId": "acetylcholine",
+            "prompt": "Мне нравится начинать проекты, где можно экспериментировать"
+          },
+          {
+            "id": "braverman-behavioral-profile-12",
+            "scaleId": "acetylcholine",
+            "prompt": "Я предпочитаю только знакомые способы и редко пробую новый подход",
+            "reverse": true
+          },
+          {
+            "id": "braverman-behavioral-profile-13",
+            "scaleId": "gaba",
+            "prompt": "Мне спокойнее, когда правила и ожидания сформулированы заранее"
+          },
+          {
+            "id": "braverman-behavioral-profile-14",
+            "scaleId": "gaba",
+            "prompt": "Я регулярно проверяю детали перед тем, как считать работу законченной"
+          },
+          {
+            "id": "braverman-behavioral-profile-15",
+            "scaleId": "gaba",
+            "prompt": "Мне удобно поддерживать устойчивый распорядок"
+          },
+          {
+            "id": "braverman-behavioral-profile-16",
+            "scaleId": "gaba",
+            "prompt": "Я хорошо замечаю несоответствия, пропуски и незавершённые пункты"
+          },
+          {
+            "id": "braverman-behavioral-profile-17",
+            "scaleId": "gaba",
+            "prompt": "Окружающие считают меня надёжным человеком"
+          },
+          {
+            "id": "braverman-behavioral-profile-18",
+            "scaleId": "gaba",
+            "prompt": "Я легко бросаю начатое, если появляется более интересная задача",
+            "reverse": true
+          },
+          {
+            "id": "braverman-behavioral-profile-19",
+            "scaleId": "serotonin",
+            "prompt": "Я быстро замечаю изменение настроения у собеседника"
+          },
+          {
+            "id": "braverman-behavioral-profile-20",
+            "scaleId": "serotonin",
+            "prompt": "Для меня важно, чтобы решение не разрушало отношения в группе"
+          },
+          {
+            "id": "braverman-behavioral-profile-21",
+            "scaleId": "serotonin",
+            "prompt": "Я охотно поддерживаю человека, которому трудно"
+          },
+          {
+            "id": "braverman-behavioral-profile-22",
+            "scaleId": "serotonin",
+            "prompt": "Мне легче работать, когда есть чувство принадлежности к команде"
+          },
+          {
+            "id": "braverman-behavioral-profile-23",
+            "scaleId": "serotonin",
+            "prompt": "Я стараюсь проговаривать благодарность и признание"
+          },
+          {
+            "id": "braverman-behavioral-profile-24",
+            "scaleId": "serotonin",
+            "prompt": "Чужие переживания обычно почти не влияют на мой выбор слов и действий",
+            "reverse": true
+          }
+        ],
+        "disclaimer": "Опросник не измеряет концентрацию нейромедиаторов и не позволяет диагностировать их «дефицит» или «доминирование». Результат описывает только ответы на поведенческие утверждения.",
+        "evidenceNote": "Модель Бравермана используется здесь как популярная метафора для саморефлексии. Клиническая валидность нейромедиаторной интерпретации не установлена.",
+        "license": {
+          "kind": "project-original",
+          "notice": "Формулировки и подсчёт подготовлены MiniMed как образовательная адаптация; это не официальный бланк Бравермана и не клиническая шкала."
+        }
+      },
+      "sources": []
+    },
+    {
+      "id": "minimed.assessment.egogram",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "personal-egogram",
+      "title": "Личная эгопрограмма",
+      "shortTitle": "Эгопрограмма",
+      "aliases": [
+        "личная эгограмма",
+        "эгограмма",
+        "эго-состояния Берна",
+        "Родитель Взрослый Ребёнок",
+        "transactional analysis egogram"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "self-reflection",
+      "description": "Самооценка пяти функциональных эго-состояний транзактного анализа: Критический Родитель, Заботливый Родитель, Взрослый, Свободный Ребёнок и Адаптированный Ребёнок.",
+      "estimatedMinutes": 7,
+      "audience": "Взрослые; саморефлексия и обсуждение с психологом",
+      "definition": {
+        "id": "minimed.assessment.egogram",
+        "slug": "personal-egogram",
+        "title": "Личная эгопрограмма",
+        "shortTitle": "Эгопрограмма",
+        "aliases": [
+          "личная эгограмма",
+          "эгограмма",
+          "эго-состояния Берна",
+          "Родитель Взрослый Ребёнок",
+          "transactional analysis egogram"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "self-reflection",
+        "description": "Самооценка пяти функциональных эго-состояний транзактного анализа: Критический Родитель, Заботливый Родитель, Взрослый, Свободный Ребёнок и Адаптированный Ребёнок.",
+        "estimatedMinutes": 7,
+        "audience": "Взрослые; саморефлексия и обсуждение с психологом",
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Совсем не похоже на меня"
+          },
+          {
+            "value": 2,
+            "label": "Скорее не похоже"
+          },
+          {
+            "value": 3,
+            "label": "Иногда / трудно сказать"
+          },
+          {
+            "value": 4,
+            "label": "Скорее похоже"
+          },
+          {
+            "value": 5,
+            "label": "Очень похоже на меня"
+          }
+        ],
+        "scales": [
+          {
+            "id": "critical-parent",
+            "label": "Критический Родитель",
+            "shortLabel": "КР",
+            "description": "Нормы, требования, контроль, оценка правильности и границ."
+          },
+          {
+            "id": "nurturing-parent",
+            "label": "Заботливый Родитель",
+            "shortLabel": "ЗР",
+            "description": "Поддержка, защита, сочувствие и готовность помогать."
+          },
+          {
+            "id": "adult",
+            "label": "Взрослый",
+            "shortLabel": "В",
+            "description": "Проверка фактов, выбор по текущей ситуации и реалистичное планирование."
+          },
+          {
+            "id": "free-child",
+            "label": "Свободный Ребёнок",
+            "shortLabel": "СР",
+            "description": "Спонтанность, игра, творчество и непосредственное выражение желаний."
+          },
+          {
+            "id": "adapted-child",
+            "label": "Адаптированный Ребёнок",
+            "shortLabel": "АР",
+            "description": "Приспособление к ожиданиям, осторожность, уступчивость или внутренний протест."
+          }
+        ],
+        "questions": [
+          {
+            "id": "personal-egogram-01",
+            "scaleId": "critical-parent",
+            "prompt": "Я легко замечаю, когда люди нарушают договорённости или принятые правила"
+          },
+          {
+            "id": "personal-egogram-02",
+            "scaleId": "critical-parent",
+            "prompt": "Мне важно прямо обозначать, что допустимо, а что нет"
+          },
+          {
+            "id": "personal-egogram-03",
+            "scaleId": "critical-parent",
+            "prompt": "Я часто думаю, как «следует» поступать в конкретной ситуации"
+          },
+          {
+            "id": "personal-egogram-04",
+            "scaleId": "critical-parent",
+            "prompt": "Когда работа выполнена плохо, мне трудно не указать на ошибку"
+          },
+          {
+            "id": "personal-egogram-05",
+            "scaleId": "critical-parent",
+            "prompt": "Я способен требовать соблюдения стандартов даже при недовольстве окружающих"
+          },
+          {
+            "id": "personal-egogram-06",
+            "scaleId": "nurturing-parent",
+            "prompt": "Я замечаю, когда человеку нужна поддержка, даже если он не просит"
+          },
+          {
+            "id": "personal-egogram-07",
+            "scaleId": "nurturing-parent",
+            "prompt": "Мне естественно успокаивать и подбадривать других"
+          },
+          {
+            "id": "personal-egogram-08",
+            "scaleId": "nurturing-parent",
+            "prompt": "Я стараюсь создать безопасные условия, прежде чем требовать результат"
+          },
+          {
+            "id": "personal-egogram-09",
+            "scaleId": "nurturing-parent",
+            "prompt": "Я умею заботиться, не решая за другого все его задачи"
+          },
+          {
+            "id": "personal-egogram-10",
+            "scaleId": "nurturing-parent",
+            "prompt": "Мне важно, чтобы люди рядом чувствовали себя принятыми"
+          },
+          {
+            "id": "personal-egogram-11",
+            "scaleId": "adult",
+            "prompt": "Перед решением я отделяю проверенные факты от предположений"
+          },
+          {
+            "id": "personal-egogram-12",
+            "scaleId": "adult",
+            "prompt": "Я могу изменить мнение, когда появляются новые данные"
+          },
+          {
+            "id": "personal-egogram-13",
+            "scaleId": "adult",
+            "prompt": "В конфликте я стараюсь понять текущую задачу, а не только искать виноватого"
+          },
+          {
+            "id": "personal-egogram-14",
+            "scaleId": "adult",
+            "prompt": "Я оцениваю ресурсы и последствия до того, как обещать результат"
+          },
+          {
+            "id": "personal-egogram-15",
+            "scaleId": "adult",
+            "prompt": "Даже при сильных эмоциях я могу вернуться к конкретным наблюдениям"
+          },
+          {
+            "id": "personal-egogram-16",
+            "scaleId": "free-child",
+            "prompt": "Я позволяю себе радоваться без особого повода"
+          },
+          {
+            "id": "personal-egogram-17",
+            "scaleId": "free-child",
+            "prompt": "Мне легко увлечься игрой, творчеством или импровизацией"
+          },
+          {
+            "id": "personal-egogram-18",
+            "scaleId": "free-child",
+            "prompt": "Я могу прямо сказать, чего хочу, не превращая это в требование"
+          },
+          {
+            "id": "personal-egogram-19",
+            "scaleId": "free-child",
+            "prompt": "Новые впечатления обычно вызывают у меня живой интерес"
+          },
+          {
+            "id": "personal-egogram-20",
+            "scaleId": "free-child",
+            "prompt": "Я часто нахожу нестандартный и приятный способ сделать обычное дело"
+          },
+          {
+            "id": "personal-egogram-21",
+            "scaleId": "adapted-child",
+            "prompt": "Я заранее пытаюсь угадать, чего от меня ждут"
+          },
+          {
+            "id": "personal-egogram-22",
+            "scaleId": "adapted-child",
+            "prompt": "Критика надолго заставляет меня сомневаться в себе"
+          },
+          {
+            "id": "personal-egogram-23",
+            "scaleId": "adapted-child",
+            "prompt": "Мне трудно отказать, когда просьба неудобна для меня"
+          },
+          {
+            "id": "personal-egogram-24",
+            "scaleId": "adapted-child",
+            "prompt": "В присутствии авторитетного человека я становлюсь заметно осторожнее"
+          },
+          {
+            "id": "personal-egogram-25",
+            "scaleId": "adapted-child",
+            "prompt": "Иногда я внешне соглашаюсь, но внутри сопротивляюсь и откладываю действие"
+          }
+        ],
+        "disclaimer": "Эгопрограмма не является диагнозом и не определяет «правильное» эго-состояние. Один человек использует разные состояния в зависимости от роли, контекста и уровня стресса.",
+        "evidenceNote": "Эгограмма описывает относительную выраженность эго-состояний в терминах транзактного анализа. Вопросы и пороги этой версии подготовлены MiniMed для саморефлексии и не заменяют валидированные инструменты.",
+        "license": {
+          "kind": "project-original",
+          "notice": "Формулировки и подсчёт подготовлены MiniMed как образовательная адаптация концепции эгограммы; это не коммерческий или валидированный бланк."
+        }
+      },
+      "sources": []
+    },
+    {
+      "id": "minimed.assessment.paei",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "paei-work-style",
+      "title": "PAEI — профиль рабочего стиля",
+      "shortTitle": "PAEI",
+      "aliases": [
+        "PAEI",
+        "стили Адизеса",
+        "Producer Administrator Entrepreneur Integrator",
+        "стиль управления"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "work-style",
+      "description": "Неформальный профиль по управленческой рамке Адизеса и четырём рабочим функциям: достижение результата, администрирование, предпринимательское изменение и интеграция людей.",
+      "estimatedMinutes": 6,
+      "audience": "Взрослые; работа, обучение и управление",
+      "definition": {
+        "id": "minimed.assessment.paei",
+        "slug": "paei-work-style",
+        "title": "PAEI — профиль рабочего стиля",
+        "shortTitle": "PAEI",
+        "aliases": [
+          "PAEI",
+          "стили Адизеса",
+          "Producer Administrator Entrepreneur Integrator",
+          "стиль управления"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "work-style",
+        "description": "Неформальный профиль по управленческой рамке Адизеса и четырём рабочим функциям: достижение результата, администрирование, предпринимательское изменение и интеграция людей.",
+        "estimatedMinutes": 6,
+        "audience": "Взрослые; работа, обучение и управление",
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Совсем не похоже на меня"
+          },
+          {
+            "value": 2,
+            "label": "Скорее не похоже"
+          },
+          {
+            "value": 3,
+            "label": "Иногда / трудно сказать"
+          },
+          {
+            "value": 4,
+            "label": "Скорее похоже"
+          },
+          {
+            "value": 5,
+            "label": "Очень похоже на меня"
+          }
+        ],
+        "scales": [
+          {
+            "id": "producer",
+            "label": "Производитель результата",
+            "shortLabel": "P",
+            "description": "Фокус на выполнении, пользе для клиента и достижении конкретного результата."
+          },
+          {
+            "id": "administrator",
+            "label": "Администратор",
+            "shortLabel": "A",
+            "description": "Процессы, последовательность, контроль качества и воспроизводимость."
+          },
+          {
+            "id": "entrepreneur",
+            "label": "Предприниматель",
+            "shortLabel": "E",
+            "description": "Возможности, направление изменений, риск и создание нового."
+          },
+          {
+            "id": "integrator",
+            "label": "Интегратор",
+            "shortLabel": "I",
+            "description": "Доверие, согласование интересов, командные связи и совместная ответственность."
+          }
+        ],
+        "questions": [
+          {
+            "id": "paei-work-style-01",
+            "scaleId": "producer",
+            "prompt": "В начале проекта я уточняю, какой конкретный результат должен быть получен"
+          },
+          {
+            "id": "paei-work-style-02",
+            "scaleId": "producer",
+            "prompt": "Мне проще оценивать работу по фактически завершённым задачам"
+          },
+          {
+            "id": "paei-work-style-03",
+            "scaleId": "producer",
+            "prompt": "При дефиците времени я умею выделить действие, которое даст основной эффект"
+          },
+          {
+            "id": "paei-work-style-04",
+            "scaleId": "producer",
+            "prompt": "Я регулярно довожу рабочие задачи до состояния, которым можно пользоваться"
+          },
+          {
+            "id": "paei-work-style-05",
+            "scaleId": "producer",
+            "prompt": "Меня мотивирует понятная польза результата для клиента или команды"
+          },
+          {
+            "id": "paei-work-style-06",
+            "scaleId": "producer",
+            "prompt": "Я могу долго обсуждать задачу, не переходя к выполнению",
+            "reverse": true
+          },
+          {
+            "id": "paei-work-style-07",
+            "scaleId": "administrator",
+            "prompt": "Я превращаю повторяющуюся работу в понятный процесс"
+          },
+          {
+            "id": "paei-work-style-08",
+            "scaleId": "administrator",
+            "prompt": "Мне важно заранее определить роли, сроки и критерии готовности"
+          },
+          {
+            "id": "paei-work-style-09",
+            "scaleId": "administrator",
+            "prompt": "Я фиксирую решения, чтобы команда не возвращалась к одной неопределённости"
+          },
+          {
+            "id": "paei-work-style-10",
+            "scaleId": "administrator",
+            "prompt": "Я замечаю риски, возникающие из-за отсутствия порядка или контроля"
+          },
+          {
+            "id": "paei-work-style-11",
+            "scaleId": "administrator",
+            "prompt": "Мне нравится улучшать систему так, чтобы она работала без постоянного ручного вмешательства"
+          },
+          {
+            "id": "paei-work-style-12",
+            "scaleId": "administrator",
+            "prompt": "Документация и последовательность обычно кажутся мне лишними",
+            "reverse": true
+          },
+          {
+            "id": "paei-work-style-13",
+            "scaleId": "entrepreneur",
+            "prompt": "Я быстро замечаю новые возможности в изменившихся условиях"
+          },
+          {
+            "id": "paei-work-style-14",
+            "scaleId": "entrepreneur",
+            "prompt": "Мне интересно проверять гипотезы, даже когда результат заранее неизвестен"
+          },
+          {
+            "id": "paei-work-style-15",
+            "scaleId": "entrepreneur",
+            "prompt": "Я умею предложить направление, которого ещё нет в текущем плане"
+          },
+          {
+            "id": "paei-work-style-16",
+            "scaleId": "entrepreneur",
+            "prompt": "Я готов отказаться от привычного решения, если оно перестало работать"
+          },
+          {
+            "id": "paei-work-style-17",
+            "scaleId": "entrepreneur",
+            "prompt": "Мне легко представить, как сегодняшнее изменение повлияет на будущее"
+          },
+          {
+            "id": "paei-work-style-18",
+            "scaleId": "entrepreneur",
+            "prompt": "Я избегаю инициатив, если нет подробной инструкции",
+            "reverse": true
+          },
+          {
+            "id": "paei-work-style-19",
+            "scaleId": "integrator",
+            "prompt": "Я стараюсь понять, чьи интересы затронет решение"
+          },
+          {
+            "id": "paei-work-style-20",
+            "scaleId": "integrator",
+            "prompt": "Мне удаётся помогать людям договориться без подавления разногласий"
+          },
+          {
+            "id": "paei-work-style-21",
+            "scaleId": "integrator",
+            "prompt": "Я создаю условия, в которых участники сами берут ответственность за общий результат"
+          },
+          {
+            "id": "paei-work-style-22",
+            "scaleId": "integrator",
+            "prompt": "Я замечаю неформальные связи и напряжение внутри команды"
+          },
+          {
+            "id": "paei-work-style-23",
+            "scaleId": "integrator",
+            "prompt": "Для меня важно, чтобы сотрудничество сохранялось и после завершения конкретной задачи"
+          },
+          {
+            "id": "paei-work-style-24",
+            "scaleId": "integrator",
+            "prompt": "Я предпочитаю принять решение в одиночку, даже когда нужна поддержка команды",
+            "reverse": true
+          }
+        ],
+        "disclaimer": "Это не официальный тест Adizes ALIS и не сертификационная диагностика. Профиль показывает предпочтения в ответах, а не профессиональную пригодность или неизменный тип личности.",
+        "evidenceNote": "Четыре функции P-A-E-I описывают организационную рамку Адизеса. Вопросы и подсчёт этой версии подготовлены MiniMed для саморефлексии и не являются сертификационной оценкой.",
+        "license": {
+          "kind": "project-original",
+          "notice": "Формулировки и подсчёт подготовлены MiniMed как образовательная адаптация; это не официальный Adizes Leadership Indicator Suite.",
+          "sourceUrl": "https://www.adizes.com/alis"
+        }
+      },
+      "sources": [
+        {
+          "id": "paei-work-style-paei-work-style",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "PAEI — профиль рабочего стиля",
+          "url": "https://www.adizes.com/alis",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.team-roles",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "team-role-profile",
+      "title": "Командные роли — профиль в духе Белбина",
+      "shortTitle": "Командные роли",
+      "aliases": [
+        "тест Белбина",
+        "роли Белбина",
+        "Belbin",
+        "командные роли",
+        "генератор идей координатор аналитик"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "team-role",
+      "description": "Неформальный профиль девяти способов участия в команде, сопоставленных с моделью командных ролей Белбина. Он помогает обсудить вклад человека, но не является официальным Belbin Self-Perception Inventory.",
+      "estimatedMinutes": 9,
+      "audience": "Взрослые; команды, обучение и управление",
+      "definition": {
+        "id": "minimed.assessment.team-roles",
+        "slug": "team-role-profile",
+        "title": "Командные роли — профиль в духе Белбина",
+        "shortTitle": "Командные роли",
+        "aliases": [
+          "тест Белбина",
+          "роли Белбина",
+          "Belbin",
+          "командные роли",
+          "генератор идей координатор аналитик"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "team-role",
+        "description": "Неформальный профиль девяти способов участия в команде, сопоставленных с моделью командных ролей Белбина. Он помогает обсудить вклад человека, но не является официальным Belbin Self-Perception Inventory.",
+        "estimatedMinutes": 9,
+        "audience": "Взрослые; команды, обучение и управление",
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Совсем не похоже на меня"
+          },
+          {
+            "value": 2,
+            "label": "Скорее не похоже"
+          },
+          {
+            "value": 3,
+            "label": "Иногда / трудно сказать"
+          },
+          {
+            "value": 4,
+            "label": "Скорее похоже"
+          },
+          {
+            "value": 5,
+            "label": "Очень похоже на меня"
+          }
+        ],
+        "scales": [
+          {
+            "id": "plant",
+            "label": "Генератор идей",
+            "shortLabel": "Идеи",
+            "description": "Предлагает оригинальные решения и новые концепции."
+          },
+          {
+            "id": "resource-investigator",
+            "label": "Исследователь возможностей",
+            "shortLabel": "Возможности",
+            "description": "Ищет контакты, ресурсы и внешние варианты."
+          },
+          {
+            "id": "coordinator",
+            "label": "Координатор",
+            "shortLabel": "Координатор",
+            "description": "Проясняет цели, распределяет внимание и вовлекает людей."
+          },
+          {
+            "id": "shaper",
+            "label": "Драйвер",
+            "shortLabel": "Драйвер",
+            "description": "Поддерживает темп, бросает вызов инерции и продвигает решение."
+          },
+          {
+            "id": "monitor-evaluator",
+            "label": "Аналитик",
+            "shortLabel": "Аналитик",
+            "description": "Сопоставляет аргументы, риски и последствия."
+          },
+          {
+            "id": "teamworker",
+            "label": "Объединитель",
+            "shortLabel": "Команда",
+            "description": "Снижает трение, поддерживает сотрудничество и слышит участников."
+          },
+          {
+            "id": "implementer",
+            "label": "Организатор исполнения",
+            "shortLabel": "Исполнение",
+            "description": "Превращает решение в практический план и устойчивую работу."
+          },
+          {
+            "id": "completer-finisher",
+            "label": "Контролёр завершения",
+            "shortLabel": "Завершение",
+            "description": "Проверяет детали, сроки и качество перед сдачей."
+          },
+          {
+            "id": "specialist",
+            "label": "Эксперт",
+            "shortLabel": "Эксперт",
+            "description": "Вносит глубокое предметное знание и профессиональные стандарты."
+          }
+        ],
+        "questions": [
+          {
+            "id": "team-role-profile-01",
+            "scaleId": "plant",
+            "prompt": "Когда группа застревает, я предлагаю вариант, который заметно отличается от уже обсуждавшихся"
+          },
+          {
+            "id": "team-role-profile-02",
+            "scaleId": "plant",
+            "prompt": "Мне нравится формулировать концепцию до того, как известны все детали"
+          },
+          {
+            "id": "team-role-profile-03",
+            "scaleId": "plant",
+            "prompt": "Я часто соединяю идеи из разных областей"
+          },
+          {
+            "id": "team-role-profile-04",
+            "scaleId": "plant",
+            "prompt": "В команде ко мне обращаются, когда нужен нестандартный ход"
+          },
+          {
+            "id": "team-role-profile-05",
+            "scaleId": "resource-investigator",
+            "prompt": "Я легко начинаю разговор с людьми, которые могут помочь проекту"
+          },
+          {
+            "id": "team-role-profile-06",
+            "scaleId": "resource-investigator",
+            "prompt": "Мне интересно узнавать, какие решения уже существуют вне нашей команды"
+          },
+          {
+            "id": "team-role-profile-07",
+            "scaleId": "resource-investigator",
+            "prompt": "Я быстро замечаю полезный контакт, инструмент или возможность сотрудничества"
+          },
+          {
+            "id": "team-role-profile-08",
+            "scaleId": "resource-investigator",
+            "prompt": "После встречи я обычно возвращаюсь с новыми вариантами и связями"
+          },
+          {
+            "id": "team-role-profile-09",
+            "scaleId": "coordinator",
+            "prompt": "Я помогаю группе договориться, что именно является общей целью"
+          },
+          {
+            "id": "team-role-profile-10",
+            "scaleId": "coordinator",
+            "prompt": "Я замечаю сильные стороны участников и предлагаю им подходящие задачи"
+          },
+          {
+            "id": "team-role-profile-11",
+            "scaleId": "coordinator",
+            "prompt": "На обсуждении я слежу, чтобы важные голоса не потерялись"
+          },
+          {
+            "id": "team-role-profile-12",
+            "scaleId": "coordinator",
+            "prompt": "Мне удаётся подвести группу к ясному решению без присвоения всей работы себе"
+          },
+          {
+            "id": "team-role-profile-13",
+            "scaleId": "shaper",
+            "prompt": "Когда темп падает, я прямо напоминаю о результате и сроках"
+          },
+          {
+            "id": "team-role-profile-14",
+            "scaleId": "shaper",
+            "prompt": "Я спокойно выдерживаю рабочее столкновение мнений"
+          },
+          {
+            "id": "team-role-profile-15",
+            "scaleId": "shaper",
+            "prompt": "Мне легче действовать под давлением, чем долго ждать полной определённости"
+          },
+          {
+            "id": "team-role-profile-16",
+            "scaleId": "shaper",
+            "prompt": "Я готов оспорить удобное решение, если оно не ведёт к цели"
+          },
+          {
+            "id": "team-role-profile-17",
+            "scaleId": "monitor-evaluator",
+            "prompt": "Перед выбором я сравниваю аргументы, а не только энтузиазм сторон"
+          },
+          {
+            "id": "team-role-profile-18",
+            "scaleId": "monitor-evaluator",
+            "prompt": "Я замечаю скрытые допущения и слабые места плана"
+          },
+          {
+            "id": "team-role-profile-19",
+            "scaleId": "monitor-evaluator",
+            "prompt": "Мне удаётся сохранять трезвую оценку, когда группа увлечена одной идеей"
+          },
+          {
+            "id": "team-role-profile-20",
+            "scaleId": "monitor-evaluator",
+            "prompt": "Я предпочитаю сначала проверить последствия, а затем поддерживать обещание"
+          },
+          {
+            "id": "team-role-profile-21",
+            "scaleId": "teamworker",
+            "prompt": "Я замечаю напряжение между участниками до открытого конфликта"
+          },
+          {
+            "id": "team-role-profile-22",
+            "scaleId": "teamworker",
+            "prompt": "Мне легко подстроить способ общения под разных людей"
+          },
+          {
+            "id": "team-role-profile-23",
+            "scaleId": "teamworker",
+            "prompt": "Я помогаю участнику вернуться в работу после ошибки или неудачи"
+          },
+          {
+            "id": "team-role-profile-24",
+            "scaleId": "teamworker",
+            "prompt": "Для меня естественно искать вариант, который сохраняет сотрудничество"
+          },
+          {
+            "id": "team-role-profile-25",
+            "scaleId": "implementer",
+            "prompt": "После решения я быстро превращаю его в последовательность конкретных шагов"
+          },
+          {
+            "id": "team-role-profile-26",
+            "scaleId": "implementer",
+            "prompt": "Мне нравится организовывать рабочий процесс и распределять ресурсы"
+          },
+          {
+            "id": "team-role-profile-27",
+            "scaleId": "implementer",
+            "prompt": "Я устойчиво выполняю план даже после того, как новизна проекта прошла"
+          },
+          {
+            "id": "team-role-profile-28",
+            "scaleId": "implementer",
+            "prompt": "Я предпочитаю практичное решение, которое можно внедрить сейчас"
+          },
+          {
+            "id": "team-role-profile-29",
+            "scaleId": "completer-finisher",
+            "prompt": "Перед сдачей я проверяю мелкие ошибки, ссылки, цифры и обязательные пункты"
+          },
+          {
+            "id": "team-role-profile-30",
+            "scaleId": "completer-finisher",
+            "prompt": "Я заранее замечаю, что может сорвать последний этап работы"
+          },
+          {
+            "id": "team-role-profile-31",
+            "scaleId": "completer-finisher",
+            "prompt": "Мне трудно назвать задачу завершённой, пока не проверены критерии качества"
+          },
+          {
+            "id": "team-role-profile-32",
+            "scaleId": "completer-finisher",
+            "prompt": "Я помню о сроках и незакрытых деталях, которые другие уже перестали замечать"
+          },
+          {
+            "id": "team-role-profile-33",
+            "scaleId": "specialist",
+            "prompt": "Я развиваю глубокую компетенцию в теме, важной для команды"
+          },
+          {
+            "id": "team-role-profile-34",
+            "scaleId": "specialist",
+            "prompt": "Мне нравится объяснять сложные профессиональные детали коллегам"
+          },
+          {
+            "id": "team-role-profile-35",
+            "scaleId": "specialist",
+            "prompt": "Я слежу за изменениями стандартов и методов в своей области"
+          },
+          {
+            "id": "team-role-profile-36",
+            "scaleId": "specialist",
+            "prompt": "В проекте я особенно полезен там, где нужна точность предметного знания"
+          }
+        ],
+        "disclaimer": "Профиль не определяет ценность человека и не назначает ему фиксированную роль. Реальный вклад зависит от задачи, состава команды, опыта и наблюдений коллег.",
+        "evidenceNote": "Названия ролей сопоставлены с моделью Белбина. Вопросы и подсчёт этой версии подготовлены MiniMed для обсуждения командного вклада; официальная методика Belbin включает лицензируемый SPI и, как правило, наблюдения коллег.",
+        "license": {
+          "kind": "project-original",
+          "notice": "Образовательная адаптация для обсуждения командных ролей; не воспроизводит, не переводит и не модифицирует Belbin Self-Perception Inventory.",
+          "sourceUrl": "https://www.belbin.com/about/copyright-and-trademarks"
+        }
+      },
+      "sources": [
+        {
+          "id": "team-role-profile-team-role-profile",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Командные роли — профиль в духе Белбина",
+          "url": "https://www.belbin.com/about/copyright-and-trademarks",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.temperament",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "temperament-profile",
+      "title": "Тест на темперамент",
+      "shortTitle": "Темперамент",
+      "aliases": [
+        "тест на темперамент",
+        "сангвиник холерик флегматик меланхолик",
+        "темперамент Айзенка",
+        "extraversion emotional stability"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "temperament",
+      "description": "Краткий профиль по двум измерениям — экстраверсии и эмоциональной устойчивости. Для привычного языка результат дополнительно сопоставляется с четырьмя классическими темпераментами.",
+      "estimatedMinutes": 5,
+      "audience": "Подростки старшего возраста и взрослые; образовательная саморефлексия",
+      "definition": {
+        "id": "minimed.assessment.temperament",
+        "slug": "temperament-profile",
+        "title": "Тест на темперамент",
+        "shortTitle": "Темперамент",
+        "aliases": [
+          "тест на темперамент",
+          "сангвиник холерик флегматик меланхолик",
+          "темперамент Айзенка",
+          "extraversion emotional stability"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "temperament",
+        "description": "Краткий профиль по двум измерениям — экстраверсии и эмоциональной устойчивости. Для привычного языка результат дополнительно сопоставляется с четырьмя классическими темпераментами.",
+        "estimatedMinutes": 5,
+        "audience": "Подростки старшего возраста и взрослые; образовательная саморефлексия",
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Совсем не похоже на меня"
+          },
+          {
+            "value": 2,
+            "label": "Скорее не похоже"
+          },
+          {
+            "value": 3,
+            "label": "Иногда / трудно сказать"
+          },
+          {
+            "value": 4,
+            "label": "Скорее похоже"
+          },
+          {
+            "value": 5,
+            "label": "Очень похоже на меня"
+          }
+        ],
+        "scales": [
+          {
+            "id": "extraversion",
+            "label": "Экстраверсия",
+            "shortLabel": "Экстраверсия",
+            "description": "Потребность во внешней стимуляции, общении и активном взаимодействии."
+          },
+          {
+            "id": "emotional-stability",
+            "label": "Эмоциональная устойчивость",
+            "shortLabel": "Устойчивость",
+            "description": "Склонность сохранять равновесие и быстрее восстанавливаться после напряжения."
+          }
+        ],
+        "questions": [
+          {
+            "id": "temperament-profile-01",
+            "scaleId": "extraversion",
+            "prompt": "Я чувствую себя оживлённо в компании людей"
+          },
+          {
+            "id": "temperament-profile-02",
+            "scaleId": "extraversion",
+            "prompt": "Мне легко первым начать разговор"
+          },
+          {
+            "id": "temperament-profile-03",
+            "scaleId": "extraversion",
+            "prompt": "Я охотно оказываюсь в центре общего внимания"
+          },
+          {
+            "id": "temperament-profile-04",
+            "scaleId": "extraversion",
+            "prompt": "Я быстро знакомлюсь с новыми людьми"
+          },
+          {
+            "id": "temperament-profile-05",
+            "scaleId": "extraversion",
+            "prompt": "После активного общения у меня обычно остаётся энергия"
+          },
+          {
+            "id": "temperament-profile-06",
+            "scaleId": "extraversion",
+            "prompt": "Я предпочитаю не привлекать к себе внимание",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-07",
+            "scaleId": "extraversion",
+            "prompt": "В незнакомой группе я чаще жду, пока ко мне обратятся",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-08",
+            "scaleId": "extraversion",
+            "prompt": "Мне трудно поддерживать разговор с малознакомым человеком",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-09",
+            "scaleId": "extraversion",
+            "prompt": "Большую часть свободного времени я предпочитаю проводить в одиночестве",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-10",
+            "scaleId": "extraversion",
+            "prompt": "На встречах я обычно говорю меньше большинства участников",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-11",
+            "scaleId": "emotional-stability",
+            "prompt": "После неприятного события я относительно быстро возвращаюсь к обычному состоянию"
+          },
+          {
+            "id": "temperament-profile-12",
+            "scaleId": "emotional-stability",
+            "prompt": "В напряжённой ситуации я способен сохранять ясность мыслей"
+          },
+          {
+            "id": "temperament-profile-13",
+            "scaleId": "emotional-stability",
+            "prompt": "Неопределённость редко полностью выбивает меня из рабочего ритма"
+          },
+          {
+            "id": "temperament-profile-14",
+            "scaleId": "emotional-stability",
+            "prompt": "Я могу отложить тревожную мысль и заняться текущей задачей"
+          },
+          {
+            "id": "temperament-profile-15",
+            "scaleId": "emotional-stability",
+            "prompt": "Моё настроение обычно достаточно устойчиво в течение дня"
+          },
+          {
+            "id": "temperament-profile-16",
+            "scaleId": "emotional-stability",
+            "prompt": "Я часто переживаю из-за возможных неудач",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-17",
+            "scaleId": "emotional-stability",
+            "prompt": "Небольшая критика может надолго испортить мне настроение",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-18",
+            "scaleId": "emotional-stability",
+            "prompt": "Под давлением я легко начинаю паниковать или теряться",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-19",
+            "scaleId": "emotional-stability",
+            "prompt": "Мне трудно расслабиться после напряжённого дня",
+            "reverse": true
+          },
+          {
+            "id": "temperament-profile-20",
+            "scaleId": "emotional-stability",
+            "prompt": "Я часто ощущаю внутреннее беспокойство без ясной причины",
+            "reverse": true
+          }
+        ],
+        "disclaimer": "Классические названия темпераментов являются упрощённой метафорой. Опросник не диагностирует тревожные, аффективные или личностные расстройства.",
+        "evidenceNote": "Пункты адаптированы и переведены MiniMed из обще-доступного подхода IPIP к измерению экстраверсии и эмоциональной стабильности. Это не валидированная русская клиническая шкала.",
+        "license": {
+          "kind": "public-domain-derived",
+          "notice": "Основано на public-domain item pool IPIP; русские формулировки являются адаптацией MiniMed.",
+          "sourceUrl": "https://ipip.ori.org"
+        }
+      },
+      "sources": [
+        {
+          "id": "temperament-profile-temperament-profile",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Тест на темперамент",
+          "url": "https://ipip.ori.org",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    }
+  ]
+}

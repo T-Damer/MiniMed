@@ -1,0 +1,14 @@
+---
+description: Codex-compatible AGENTS.md hierarchy for Cursor (global + nested)
+alwaysApply: true
+---
+
+# AGENTS.md hierarchy (Cursor)
+
+Cursor injects the repo-root `AGENTS.md`. Also apply Codex's extra layers:
+
+1. If `~/.codex/AGENTS.override.md` or `~/.codex/AGENTS.md` exists, read it as global defaults. Project files override it.
+2. Read every `AGENTS.md` from the repo root down to files you edit. Closer files win on conflict.
+3. In this repo, `docs/AGENTS.md` applies when working under `docs/`.
+4. Follow `@path` includes in those files. Do not scan `~/Library` or `/Volumes` to discover them.
+5. Add a nested `AGENTS.md` only when a folder has durable distinct ownership or workflow.

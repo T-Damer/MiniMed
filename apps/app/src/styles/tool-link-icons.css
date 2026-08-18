@@ -1,20 +1,8 @@
-.document-inline-tool-link {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.22em;
-  white-space: normal;
-}
-
-.document-inline-tool-link svg {
+.document-inline-link__icon {
   width: 0.95em;
   height: 0.95em;
   flex: 0 0 auto;
   transform: translateY(0.08em);
-}
-
-.document-inline-tool-link span {
-  text-decoration: underline;
-  text-underline-offset: 0.125rem;
 }
 
 .tool-page-title,
@@ -28,12 +16,14 @@
   margin: 0;
 }
 
+.tool-page-title .app-glyph,
 .tool-page-title svg,
 .calculators-heading h1::before {
   width: 1.65rem;
   height: 1.65rem;
   flex: 0 0 auto;
-  color: var(--accent, #2f5f55);
+  color: var(--theme-link);
+  fill: currentColor;
 }
 
 .calculators-heading h1::before {
@@ -90,10 +80,10 @@
   color: var(--muted-text, #666);
 }
 
-.assessment-section-header small {
+.assessment-section-header__meta {
   display: block;
   margin-top: 0.45rem;
-  color: var(--muted-text, #666);
+  color: color-mix(in srgb, var(--theme-text-muted) 70%, var(--theme-text));
 }
 
 .assessment-section-header > button,
@@ -141,7 +131,6 @@
 
 .assessment-card-unavailable {
   border-style: dashed;
-  opacity: 0.82;
 }
 
 .assessment-card-actions button {

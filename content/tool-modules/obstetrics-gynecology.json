@@ -1,0 +1,3777 @@
+{
+  "id": "minimed.tools.obstetrics-gynecology.ru",
+  "version": "0.1.0-preview.2",
+  "title": "Инструменты акушерства и гинекологии",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-18T00:00:00Z",
+  "tools": [
+    {
+      "id": "obstetric-bishop-score",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-bishop-score",
+      "title": "Шкала Бишопа (готовность шейки матки)",
+      "shortTitle": "Шкала Бишопа",
+      "aliases": [
+        "Bishop score",
+        "зрелость шейки матки",
+        "готовность к родам",
+        "индукция родов"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Сумма баллов по раскрытию, сглаживанию, положению головки, консистенции и позиции шейки матки.",
+      "estimatedMinutes": 2,
+      "audience": "Беременные перед плановой индукцией родов, когда оценивается зрелость шейки матки.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-bishop-score",
+        "slug": "obstetric-bishop-score",
+        "title": "Шкала Бишопа (готовность шейки матки)",
+        "shortTitle": "Шкала Бишопа",
+        "aliases": [
+          "Bishop score",
+          "зрелость шейки матки",
+          "готовность к родам",
+          "индукция родов"
+        ],
+        "summary": "Сумма баллов по раскрытию, сглаживанию, положению головки, консистенции и позиции шейки матки.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Bishop, 1964: сумма баллов по раскрытию, сглаживанию, положению головки, консистенции и позиции шейки матки",
+        "population": "Беременные при оценке готовности шейки матки к индукции родов.",
+        "limitations": [
+          "Оценка проводится врачом при влагалищном исследовании; калькулятор только суммирует уже выставленные баллы.",
+          "Не заменяет клиническое решение об индукции — учитываются и другие акушерские факторы."
+        ],
+        "inputs": [
+          {
+            "id": "dilationScore",
+            "label": "Раскрытие шейки матки",
+            "kind": "number",
+            "options": [
+              {
+                "value": 0,
+                "label": "Закрыта (0)"
+              },
+              {
+                "value": 1,
+                "label": "1–2 см (1)"
+              },
+              {
+                "value": 2,
+                "label": "3–4 см (2)"
+              },
+              {
+                "value": 3,
+                "label": "≥5 см (3)"
+              }
+            ],
+            "minimum": 0,
+            "maximum": 3,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "effacementScore",
+            "label": "Сглаживание шейки матки",
+            "kind": "number",
+            "options": [
+              {
+                "value": 0,
+                "label": "0–30% (0)"
+              },
+              {
+                "value": 1,
+                "label": "40–50% (1)"
+              },
+              {
+                "value": 2,
+                "label": "60–70% (2)"
+              },
+              {
+                "value": 3,
+                "label": "≥80% (3)"
+              }
+            ],
+            "minimum": 0,
+            "maximum": 3,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "stationScore",
+            "label": "Положение головки (станция)",
+            "kind": "number",
+            "options": [
+              {
+                "value": 0,
+                "label": "−3 (0)"
+              },
+              {
+                "value": 1,
+                "label": "−2 (1)"
+              },
+              {
+                "value": 2,
+                "label": "−1 / 0 (2)"
+              },
+              {
+                "value": 3,
+                "label": "+1 / +2 (3)"
+              }
+            ],
+            "minimum": 0,
+            "maximum": 3,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "consistencyScore",
+            "label": "Консистенция шейки матки",
+            "kind": "number",
+            "options": [
+              {
+                "value": 0,
+                "label": "Плотная (0)"
+              },
+              {
+                "value": 1,
+                "label": "Средняя (1)"
+              },
+              {
+                "value": 2,
+                "label": "Мягкая (2)"
+              }
+            ],
+            "minimum": 0,
+            "maximum": 2,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "positionScore",
+            "label": "Позиция шейки матки",
+            "kind": "number",
+            "options": [
+              {
+                "value": 0,
+                "label": "Кзади (0)"
+              },
+              {
+                "value": 1,
+                "label": "Срединное положение (1)"
+              },
+              {
+                "value": 2,
+                "label": "Кпереди (2)"
+              }
+            ],
+            "minimum": 0,
+            "maximum": 2,
+            "integer": true,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "total",
+            "label": "Сумма баллов Bishop",
+            "unit": "баллов",
+            "expression": "dilationScore + effacementScore + stationScore + consistencyScore + positionScore",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [],
+        "interpretations": [
+          {
+            "when": "total >= 8",
+            "message": "Сумма ≥ 8: шейка матки зрелая, вероятность успешного вагинального родоразрешения при индукции высокая."
+          },
+          {
+            "when": "total >= 6",
+            "message": "Сумма 6–7: промежуточная зрелость шейки матки, решение об индукции — по клинической ситуации."
+          },
+          {
+            "when": "1",
+            "message": "Сумма ≤ 5: шейка матки незрелая, может потребоваться преиндукция (подготовка шейки матки)."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Pelvic scoring for elective induction",
+            "publisher": "Obstetrics & Gynecology",
+            "version": "Bishop, 1964",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/14199536/",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-bishop-score-bishop-1964",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Pelvic scoring for elective induction",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14199536/",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-ga-crl",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-ga-crl",
+      "title": "Срок беременности по КТР — Robinson–Fleming",
+      "shortTitle": "Срок по КТР",
+      "aliases": [
+        "Robinson Fleming",
+        "КТР срок беременности",
+        "CRL gestational age",
+        "копчико-теменной размер"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Срок беременности по копчико-теменному размеру плода в I триместре.",
+      "estimatedMinutes": 2,
+      "audience": "Плод в I триместре с КТР 10–95 мм (примерно 6–14 недель).",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-ga-crl",
+        "slug": "obstetric-ga-crl",
+        "title": "Срок беременности по КТР — Robinson–Fleming",
+        "shortTitle": "Срок по КТР",
+        "aliases": [
+          "Robinson Fleming",
+          "КТР срок беременности",
+          "CRL gestational age",
+          "копчико-теменной размер"
+        ],
+        "summary": "Срок беременности по копчико-теменному размеру плода в I триместре.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Robinson–Fleming, 1975: срок (дни) = 8,052 × √(КТР, мм) + 23,73",
+        "population": "I триместр беременности, КТР 10–95 мм (примерно 6–14 недель).",
+        "limitations": [
+          "Формула валидна для КТР 10–95 мм. Вне этого диапазона используйте фетометрию II–III триместра."
+        ],
+        "inputs": [
+          {
+            "id": "crlMm",
+            "label": "КТР",
+            "unit": "мм",
+            "kind": "number",
+            "minimum": 10,
+            "maximum": 95,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "sqrtCrl",
+            "label": "Корень из КТР",
+            "unit": "мм^0.5",
+            "expression": "sqrt(crlMm)",
+            "displayPrecision": 3,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDaysExact",
+            "label": "Срок беременности (точно)",
+            "unit": "дней",
+            "expression": "8.052 * sqrtCrl + 23.73",
+            "displayPrecision": 1,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDays",
+            "label": "Срок беременности (округлённо)",
+            "unit": "дней",
+            "expression": "round(gaDaysExact)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "weeks",
+            "label": "Недели",
+            "unit": "нед",
+            "expression": "floor(gaDays / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "days",
+            "label": "Дни",
+            "unit": "дн",
+            "expression": "gaDays - weeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "first-trimester-only",
+            "message": "Формула валидна для КТР 10–95 мм (примерно 6–14 недель). Вне этого диапазона используйте фетометрию II–III триместра."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Fetal crown-rump length values",
+            "publisher": "BMJ / Robinson & Fleming",
+            "version": "1975",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-ga-crl-1975",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Fetal crown-rump length values",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-ga-biometry",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-ga-biometry",
+      "title": "Срок беременности по фетометрии — Hadlock",
+      "shortTitle": "Срок по фетометрии",
+      "aliases": [
+        "Hadlock biometry",
+        "фетометрия срок беременности",
+        "БПР ОГ ОЖ ДБ",
+        "gestational age biometry"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Срок беременности по фетометрии II–III триместра (БПР, ОГ, ОЖ, ДБ) — среднее по указанным параметрам.",
+      "estimatedMinutes": 2,
+      "audience": "Плод во II–III триместре с одним или несколькими параметрами фетометрии.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-ga-biometry",
+        "slug": "obstetric-ga-biometry",
+        "title": "Срок беременности по фетометрии — Hadlock",
+        "shortTitle": "Срок по фетометрии",
+        "aliases": [
+          "Hadlock biometry",
+          "фетометрия срок беременности",
+          "БПР ОГ ОЖ ДБ",
+          "gestational age biometry"
+        ],
+        "summary": "Срок беременности по фетометрии II–III триместра (БПР, ОГ, ОЖ, ДБ) — среднее по указанным параметрам.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Hadlock, 1984: отдельные регрессии по БПР/ОГ/ОЖ/ДБ (см), результат — среднее по указанным параметрам",
+        "population": "II–III триместр беременности с одним или несколькими параметрами фетометрии.",
+        "limitations": [
+          "Итог — среднее независимых однопараметрических оценок, а не совместная многопараметрическая регрессия.",
+          "Формулы наиболее точны во II триместре; в III триместре погрешность оценки возраста плода возрастает."
+        ],
+        "inputs": [
+          {
+            "id": "bpdCm",
+            "label": "БПР (бипариетальный размер)",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 2,
+            "maximum": 10.5,
+            "required": false,
+            "step": 0
+          },
+          {
+            "id": "hcCm",
+            "label": "ОГ (окружность головы)",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 8,
+            "maximum": 38,
+            "required": false,
+            "step": 0
+          },
+          {
+            "id": "acCm",
+            "label": "ОЖ (окружность живота)",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 6,
+            "maximum": 40,
+            "required": false,
+            "step": 0
+          },
+          {
+            "id": "flCm",
+            "label": "ДБ (длина бедра)",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 8.5,
+            "required": false,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "count",
+            "label": "Число указанных параметров",
+            "unit": "шт",
+            "expression": "present(bpdCm) + present(hcCm) + present(acCm) + present(flCm)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "bpdWeeks",
+            "label": "Срок по БПР",
+            "unit": "нед",
+            "expression": "cond(present(bpdCm), 9.54 + 1.482 * bpdCm + 0.1676 * pow(bpdCm, 2), 0)",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "hcWeeks",
+            "label": "Срок по ОГ",
+            "unit": "нед",
+            "expression": "cond(present(hcCm), 8.96 + 0.54 * hcCm + 0.0003 * pow(hcCm, 3), 0)",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "acWeeks",
+            "label": "Срок по ОЖ",
+            "unit": "нед",
+            "expression": "cond(present(acCm), 8.14 + 0.753 * acCm + 0.0036 * pow(acCm, 2), 0)",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "flWeeks",
+            "label": "Срок по ДБ",
+            "unit": "нед",
+            "expression": "cond(present(flCm), 10.35 + 2.46 * flCm + 0.17 * pow(flCm, 2), 0)",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "averageWeeks",
+            "label": "Средний срок по всем указанным параметрам",
+            "unit": "нед",
+            "expression": "cond(count > 0, (bpdWeeks + hcWeeks + acWeeks + flWeeks) / count, 0)",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDays",
+            "label": "Срок беременности (округлённо)",
+            "unit": "дней",
+            "expression": "round(averageWeeks * 7)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "weeks",
+            "label": "Недели",
+            "unit": "нед",
+            "expression": "floor(gaDays / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "days",
+            "label": "Дни",
+            "unit": "дн",
+            "expression": "gaDays - weeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "single-parameter-average",
+            "message": "Итог — среднее независимых однопараметрических оценок Hadlock 1984, а не совместная многопараметрическая регрессия. При расхождении оценок более чем на 1–2 недели используйте срок по данным I триместра."
+          },
+          {
+            "code": "second-trimester-preferred",
+            "message": "Формулы наиболее точны во II триместре; в III триместре погрешность оценки возраста плода возрастает."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [
+          {
+            "when": "count < 1",
+            "error": "Укажите хотя бы один параметр фетометрии (БПР, ОГ, ОЖ или ДБ)."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Estimating fetal age: computer-assisted analysis of multiple fetal growth parameters",
+            "publisher": "Radiology",
+            "version": "Hadlock, 1984",
+            "reviewedAt": "2026-08-18"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-ga-biometry-hadlock-1984",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Estimating fetal age: computer-assisted analysis of multiple fetal growth parameters",
+          "reviewedAt": "2026-08-18"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-edd-lmp",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-edd-lmp",
+      "title": "ПДР по дате последней менструации — правило Негеле",
+      "shortTitle": "ПДР по ЛМП",
+      "aliases": [
+        "Naegele",
+        "правило Негеле",
+        "ПДР по менструации"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Предполагаемая дата родов и текущий срок беременности по дате последней менструации.",
+      "estimatedMinutes": 2,
+      "audience": "Беременные с точно известной датой начала последней менструации и регулярным циклом.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-edd-lmp",
+        "slug": "obstetric-edd-lmp",
+        "title": "ПДР по дате последней менструации — правило Негеле",
+        "shortTitle": "ПДР по ЛМП",
+        "aliases": [
+          "Naegele",
+          "правило Негеле",
+          "ПДР по менструации"
+        ],
+        "summary": "Предполагаемая дата родов и текущий срок беременности по дате последней менструации.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Правило Негеле: ПДР = дата последней менструации + 280 дней (40 нед)",
+        "population": "Беременные с известной и достоверной датой последней менструации.",
+        "limitations": [
+          "Формула предполагает регулярный менструальный цикл длиной 28 дней."
+        ],
+        "inputs": [
+          {
+            "id": "lmpDate",
+            "label": "Дата последней менструации",
+            "kind": "date",
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "naegeleDays",
+            "label": "Добавление 280 дней к дате последней менструации",
+            "unit": "дней",
+            "expression": "280",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "edd",
+            "label": "Предполагаемая дата родов",
+            "unit": "дата",
+            "expression": "addDays(lmpDate, 280)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "date",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaToDateRaw",
+            "label": "Срок беременности на сегодня",
+            "unit": "дней",
+            "expression": "max(daysBetween(lmpDate, today()), 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "expression": "floor(gaToDateRaw / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "expression": "gaToDateRaw - gaWeeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "edd-estimate",
+            "message": "Предполагаемая дата родов — расчётный ориентир на основе среднего срока беременности 280 дней. Роды в срок ±2 недели от ПДР считаются нормой."
+          },
+          {
+            "code": "regular-cycle-assumption",
+            "message": "Формула предполагает регулярный менструальный цикл длиной 28 дней."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Naegele rule for estimated date of delivery",
+            "publisher": "ACOG",
+            "version": "Committee Opinion",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-edd-lmp-committee-opinion",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Naegele rule for estimated date of delivery",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-edd-ultrasound",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-edd-ultrasound",
+      "title": "ПДР по УЗИ",
+      "shortTitle": "ПДР по УЗИ",
+      "aliases": [
+        "ПДР по сроку УЗИ",
+        "дата родов по УЗИ"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Предполагаемая дата родов по известному сроку беременности на дату УЗИ.",
+      "estimatedMinutes": 2,
+      "audience": "Беременные с известным сроком по протоколу УЗИ (недели + дни).",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-edd-ultrasound",
+        "slug": "obstetric-edd-ultrasound",
+        "title": "ПДР по УЗИ",
+        "shortTitle": "ПДР по УЗИ",
+        "aliases": [
+          "ПДР по сроку УЗИ",
+          "дата родов по УЗИ"
+        ],
+        "summary": "Предполагаемая дата родов по известному сроку беременности на дату УЗИ.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "ПДР = дата УЗИ + (280 − срок на дату УЗИ, дней)",
+        "population": "Беременные с известным сроком по данным УЗИ.",
+        "limitations": [
+          "По принятой практике ПДР фиксируется по первому надёжному УЗИ и обычно не пересчитывается по более поздним сканированиям."
+        ],
+        "inputs": [
+          {
+            "id": "examDate",
+            "label": "Дата УЗИ",
+            "kind": "date",
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "gaWeeksAtExam",
+            "label": "Срок на дату УЗИ",
+            "unit": "нед",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 42,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "gaDaysAtExam",
+            "label": "Срок на дату УЗИ",
+            "unit": "дн",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 6,
+            "integer": true,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "gaAtExam",
+            "label": "Срок на дату УЗИ",
+            "unit": "дней",
+            "expression": "gaWeeksAtExam * 7 + gaDaysAtExam",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "remainder",
+            "label": "Остаток до 280 дней",
+            "unit": "дней",
+            "expression": "280 - gaAtExam",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "edd",
+            "label": "Предполагаемая дата родов",
+            "unit": "дата",
+            "expression": "addDays(examDate, remainder)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "date",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "edd-estimate",
+            "message": "Предполагаемая дата родов — расчётный ориентир на основе среднего срока беременности 280 дней. Роды в срок ±2 недели от ПДР считаются нормой."
+          },
+          {
+            "code": "first-accurate-scan",
+            "message": "По принятой практике ПДР фиксируется по первому надёжному УЗИ и обычно не пересчитывается по более поздним сканированиям."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [
+          {
+            "when": "gaAtExam > 280",
+            "error": "Срок беременности на дату УЗИ превышает 40 недель."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Methods for estimating the due date",
+            "publisher": "ACOG",
+            "version": "Committee Opinion No. 700",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-edd-ultrasound-committee-opinion-no-700",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Methods for estimating the due date",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-edd-conception",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-edd-conception",
+      "title": "ПДР по дате зачатия",
+      "shortTitle": "ПДР по зачатию",
+      "aliases": [
+        "дата зачатия ПДР"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Предполагаемая дата родов по известной дате зачатия.",
+      "estimatedMinutes": 2,
+      "audience": "Беременные с точно известной датой зачатия, овуляции или переноса эмбриона.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-edd-conception",
+        "slug": "obstetric-edd-conception",
+        "title": "ПДР по дате зачатия",
+        "shortTitle": "ПДР по зачатию",
+        "aliases": [
+          "дата зачатия ПДР"
+        ],
+        "summary": "Предполагаемая дата родов по известной дате зачатия.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "ПДР = дата зачатия + 266 дней (38 нед от зачатия)",
+        "population": "Беременные с точно известной датой зачатия (например, ЭКО).",
+        "limitations": [
+          "Применимо только при точно известной дате зачатия."
+        ],
+        "inputs": [
+          {
+            "id": "conceptionDate",
+            "label": "Дата зачатия",
+            "kind": "date",
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "postConceptionDays",
+            "label": "Добавление 266 дней к дате зачатия",
+            "unit": "дней",
+            "expression": "266",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "edd",
+            "label": "Предполагаемая дата родов",
+            "unit": "дата",
+            "expression": "addDays(conceptionDate, 266)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "date",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "edd-estimate",
+            "message": "Предполагаемая дата родов — расчётный ориентир на основе среднего срока беременности 280 дней. Роды в срок ±2 недели от ПДР считаются нормой."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Methods for estimating the due date",
+            "publisher": "ACOG",
+            "version": "Committee Opinion No. 700",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-edd-conception-committee-opinion-no-700",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Methods for estimating the due date",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-edd-quickening",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-edd-quickening",
+      "title": "ПДР по первому шевелению",
+      "shortTitle": "ПДР по шевелению",
+      "aliases": [
+        "первое шевеление плода",
+        "quickening"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Предполагаемая дата родов по дате первого ощущаемого шевеления плода.",
+      "estimatedMinutes": 2,
+      "audience": "Беременные без более точных данных (УЗИ, точная дата ЛМП или зачатия).",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-edd-quickening",
+        "slug": "obstetric-edd-quickening",
+        "title": "ПДР по первому шевелению",
+        "shortTitle": "ПДР по шевелению",
+        "aliases": [
+          "первое шевеление плода",
+          "quickening"
+        ],
+        "summary": "Предполагаемая дата родов по дате первого ощущаемого шевеления плода.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "ПДР = дата первого шевеления + 22 нед (первобеременные) или + 24 нед (повторнобеременные)",
+        "population": "Беременные без более точных данных о сроке (УЗИ I триместра недоступно).",
+        "limitations": [
+          "Дата первого шевеления — субъективный и ненадёжный ориентир. ACOG рекомендует УЗИ первого триместра как основной метод датирования беременности; используйте этот метод только при отсутствии более точных данных."
+        ],
+        "inputs": [
+          {
+            "id": "quickeningDate",
+            "label": "Дата первого шевеления",
+            "kind": "date",
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "parity",
+            "label": "Паритет",
+            "kind": "select",
+            "options": [
+              {
+                "value": "primigravida",
+                "label": "Первобеременная"
+              },
+              {
+                "value": "multigravida",
+                "label": "Повторнобеременная"
+              }
+            ],
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "weeksToAdd",
+            "label": "Недель до срока по паритету",
+            "unit": "нед",
+            "expression": "cond(parity == \"primigravida\", 22, 24)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "daysToAdd",
+            "label": "Дней до срока",
+            "unit": "дней",
+            "expression": "weeksToAdd * 7",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "edd",
+            "label": "Предполагаемая дата родов",
+            "unit": "дата",
+            "expression": "addDays(quickeningDate, daysToAdd)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "date",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "edd-estimate",
+            "message": "Предполагаемая дата родов — расчётный ориентир на основе среднего срока беременности 280 дней. Роды в срок ±2 недели от ПДР считаются нормой."
+          },
+          {
+            "code": "unreliable-method",
+            "message": "Дата первого шевеления — субъективный и ненадёжный ориентир. ACOG рекомендует УЗИ первого триместра как основной метод датирования беременности; используйте этот метод только при отсутствии более точных данных."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Methods for estimating the due date",
+            "publisher": "ACOG",
+            "version": "Committee Opinion No. 700",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-edd-quickening-committee-opinion-no-700",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Methods for estimating the due date",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-edd-given-date",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-edd-given-date",
+      "title": "ПДР по известному сроку на заданную дату",
+      "shortTitle": "ПДР по известному сроку",
+      "aliases": [
+        "срок на дату ПДР"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Предполагаемая дата родов, если срок беременности известен на произвольную дату.",
+      "estimatedMinutes": 2,
+      "audience": "Ситуации, когда срок беременности на конкретную дату уже известен (например, из выписки или направления), но ПДР нужно получить отдельно.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-edd-given-date",
+        "slug": "obstetric-edd-given-date",
+        "title": "ПДР по известному сроку на заданную дату",
+        "shortTitle": "ПДР по известному сроку",
+        "aliases": [
+          "срок на дату ПДР"
+        ],
+        "summary": "Предполагаемая дата родов, если срок беременности известен на произвольную дату.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "ПДР = заданная дата + (280 − известный срок на эту дату, дней)",
+        "population": "Случаи, когда срок беременности задокументирован на дату, отличную от УЗИ/ЛМП.",
+        "limitations": [
+          "Достоверность результата зависит от точности исходного известного срока."
+        ],
+        "inputs": [
+          {
+            "id": "referenceDate",
+            "label": "Дата отсчёта",
+            "kind": "date",
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "gaWeeksGiven",
+            "label": "Срок на заданную дату",
+            "unit": "нед",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 42,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "gaDaysGiven",
+            "label": "Срок на заданную дату",
+            "unit": "дн",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 6,
+            "integer": true,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "gaAtDate",
+            "label": "Срок на заданную дату",
+            "unit": "дней",
+            "expression": "gaWeeksGiven * 7 + gaDaysGiven",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "remainder",
+            "label": "Остаток до 280 дней",
+            "unit": "дней",
+            "expression": "280 - gaAtDate",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "edd",
+            "label": "Предполагаемая дата родов",
+            "unit": "дата",
+            "expression": "addDays(referenceDate, remainder)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "date",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "edd-estimate",
+            "message": "Предполагаемая дата родов — расчётный ориентир на основе среднего срока беременности 280 дней. Роды в срок ±2 недели от ПДР считаются нормой."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [
+          {
+            "when": "gaAtDate > 280",
+            "error": "Указанный срок беременности превышает 40 недель."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Methods for estimating the due date",
+            "publisher": "ACOG",
+            "version": "Committee Opinion No. 700",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-edd-given-date-committee-opinion-no-700",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Methods for estimating the due date",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-ga-from-edd",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-ga-from-edd",
+      "title": "Срок беременности по известной ПДР",
+      "shortTitle": "Срок по ПДР",
+      "aliases": [
+        "срок беременности сегодня",
+        "текущий срок по ПДР"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Текущий срок беременности на заданную дату (или сегодня) по известной ПДР.",
+      "estimatedMinutes": 2,
+      "audience": "Беременные с уже установленной ПДР, когда нужно быстро получить текущий срок.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-ga-from-edd",
+        "slug": "obstetric-ga-from-edd",
+        "title": "Срок беременности по известной ПДР",
+        "shortTitle": "Срок по ПДР",
+        "aliases": [
+          "срок беременности сегодня",
+          "текущий срок по ПДР"
+        ],
+        "summary": "Текущий срок беременности на заданную дату (или сегодня) по известной ПДР.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Срок беременности = (дата расчёта) − (ПДР − 280 дней)",
+        "population": "Беременные с уже установленной ПДР.",
+        "limitations": [
+          "Расчёт основан на среднем сроке 280 дней и не учитывает фактическую дату зачатия."
+        ],
+        "inputs": [
+          {
+            "id": "eddDate",
+            "label": "Предполагаемая дата родов",
+            "kind": "date",
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "asOfDate",
+            "label": "Дата расчёта",
+            "kind": "date",
+            "required": false,
+            "note": "По умолчанию — сегодня.",
+            "defaultExpression": "today()",
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "impliedLmp",
+            "label": "Условная дата последней менструации",
+            "unit": "дата",
+            "expression": "addDays(eddDate, -280)",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "date",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDays",
+            "label": "Срок беременности на дату расчёта",
+            "unit": "дней",
+            "expression": "daysBetween(impliedLmp, asOfDate)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "weeks",
+            "label": "Недели",
+            "unit": "нед",
+            "expression": "floor(gaDays / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "days",
+            "label": "Дни",
+            "unit": "дн",
+            "expression": "gaDays - weeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "edd-estimate",
+            "message": "Расчёт основан на среднем сроке 280 дней и не учитывает фактическую дату зачатия."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [
+          {
+            "when": "gaDays < 0",
+            "error": "Указанная дата расчёта раньше начала беременности по этому ПДР."
+          },
+          {
+            "when": "gaDays > 301",
+            "error": "Указанная дата расчёта более чем на 3 недели позже ПДР."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Methods for estimating the due date",
+            "publisher": "ACOG",
+            "version": "Committee Opinion No. 700",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-ga-from-edd-committee-opinion-no-700",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Methods for estimating the due date",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-maternity-leave",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-maternity-leave",
+      "title": "Сроки отпуска по беременности и родам",
+      "shortTitle": "Декретный отпуск",
+      "aliases": [
+        "декретный отпуск",
+        "больничный лист по беременности",
+        "ст 255 ТК РФ"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Начало, окончание и продолжительность отпуска по беременности и родам по известной ПДР.",
+      "estimatedMinutes": 2,
+      "audience": "Беременные, работающие по трудовому договору в РФ.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-maternity-leave",
+        "slug": "obstetric-maternity-leave",
+        "title": "Сроки отпуска по беременности и родам",
+        "shortTitle": "Декретный отпуск",
+        "aliases": [
+          "декретный отпуск",
+          "больничный лист по беременности",
+          "ст 255 ТК РФ"
+        ],
+        "summary": "Начало, окончание и продолжительность отпуска по беременности и родам по известной ПДР.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Ст. 255 ТК РФ: больничный лист выдаётся с 30 нед (28 нед при многоплодной беременности) на 140 дней (194 — многоплодная, 156 — осложнённые роды)",
+        "population": "Беременные, оформляющие отпуск по беременности и родам в РФ.",
+        "limitations": [
+          "Продолжительность и правила выдачи листка нетрудоспособности регулируются ст. 255 ТК РФ и Федеральным законом № 255-ФЗ; фактическая дата родов не изменяет длительность выданного листка, кроме случая осложнённых родов (+16 дней) или преждевременных родов.",
+          "Роды на сроке 22–30 недель оформляются отдельным листком нетрудоспособности на 156 дней от даты родов и не рассчитываются этим калькулятором."
+        ],
+        "inputs": [
+          {
+            "id": "eddDate",
+            "label": "Предполагаемая дата родов",
+            "kind": "date",
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "pregnancyType",
+            "label": "Тип беременности",
+            "kind": "select",
+            "options": [
+              {
+                "value": "single",
+                "label": "Одноплодная"
+              },
+              {
+                "value": "multiple",
+                "label": "Многоплодная"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "complicatedBirth",
+            "label": "Осложнённые роды",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "impliedLmp",
+            "label": "Условная дата последней менструации",
+            "unit": "дата",
+            "expression": "addDays(eddDate, -280)",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "date",
+            "stepRequired": 0
+          },
+          {
+            "id": "leaveStartWeeks",
+            "label": "Срок начала отпуска",
+            "unit": "нед от ЛМП",
+            "expression": "cond(pregnancyType == \"multiple\", 28, 30)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "leaveStartDays",
+            "label": "Срок начала отпуска, дней от ЛМП",
+            "unit": "дней от ЛМП",
+            "expression": "leaveStartWeeks * 7",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "leaveStart",
+            "label": "Начало отпуска по беременности и родам",
+            "unit": "дата",
+            "expression": "addDays(impliedLmp, leaveStartDays)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "date",
+            "stepRequired": 0
+          },
+          {
+            "id": "totalDays",
+            "label": "Продолжительность",
+            "unit": "календарных дней",
+            "expression": "cond(pregnancyType == \"multiple\", 194, cond(complicatedBirth == \"yes\", 156, 140))",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "leaveEnd",
+            "label": "Окончание отпуска (при выдаче единым листом)",
+            "unit": "дата",
+            "expression": "addDays(leaveStart, totalDays - 1)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "date",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "legal-reference",
+            "message": "Продолжительность и правила выдачи листка нетрудоспособности регулируются ст. 255 ТК РФ и Федеральным законом № 255-ФЗ; фактическая дата родов не изменяет длительность выданного листка, кроме случая осложнённых родов (+16 дней) или преждевременных родов."
+          },
+          {
+            "code": "preterm-not-covered",
+            "message": "Роды на сроке 22–30 недель оформляются отдельным листком нетрудоспособности на 156 дней от даты родов и не рассчитываются этим калькулятором."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Трудовой кодекс РФ, ст. 255",
+            "publisher": "Официальный интернет-портал правовой информации",
+            "version": "действующая редакция",
+            "reviewedAt": "2026-08-11"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-maternity-leave-source-1",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Трудовой кодекс РФ, ст. 255",
+          "reviewedAt": "2026-08-11"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-fetal-growth-doppler",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-fetal-growth-doppler",
+      "title": "Рост плода и допплерометрия",
+      "shortTitle": "Рост и допплер",
+      "aliases": [
+        "fetal growth",
+        "Doppler",
+        "ЦПС",
+        "церебро-плацентарное отношение",
+        "ПИ артерий"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Расчёт ЦПС и среднего ПИ маточных артерий по данным протокола УЗИ.",
+      "estimatedMinutes": 2,
+      "audience": "Беременность 20–42 недели при наличии показателей допплерометрии в протоколе УЗИ.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-fetal-growth-doppler",
+        "slug": "obstetric-fetal-growth-doppler",
+        "title": "Рост плода и допплерометрия",
+        "shortTitle": "Рост и допплер",
+        "aliases": [
+          "fetal growth",
+          "Doppler",
+          "ЦПС",
+          "церебро-плацентарное отношение",
+          "ПИ артерий"
+        ],
+        "summary": "Расчёт ЦПС и среднего ПИ маточных артерий по данным протокола УЗИ.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "ЦПС = ПИ средней мозговой артерии / ПИ пуповинной артерии; средний ПИ маточных артерий = (правый + левый) / 2",
+        "population": "Беременность 20–42 недели при наличии показателей допплерометрии в протоколе УЗИ.",
+        "limitations": [
+          "Калькулятор считает индексы, но не определяет норму: пороги зависят от срока, методики и референсных таблиц учреждения.",
+          "Процентиль массы вводится из протокола УЗИ и не рассчитывается без полного набора биометрии и выбранного стандарта."
+        ],
+        "inputs": [
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности",
+            "unit": "нед",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 42,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "gaDays",
+            "label": "Дополнительные дни",
+            "unit": "дн",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 6,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "efwG",
+            "label": "Расчётная масса плода из протокола",
+            "unit": "г",
+            "kind": "number",
+            "minimum": 100,
+            "maximum": 6000,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "efwPercentile",
+            "label": "Процентиль массы из протокола",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 99.9,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "umbilicalArteryPi",
+            "label": "ПИ пуповинной артерии",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 10,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "middleCerebralArteryPi",
+            "label": "ПИ средней мозговой артерии",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 10,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "uterineArteryPiRight",
+            "label": "ПИ правой маточной артерии",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "uterineArteryPiLeft",
+            "label": "ПИ левой маточной артерии",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "gaExact",
+            "label": "Срок беременности",
+            "unit": "нед",
+            "expression": "gaWeeks + gaDays / 7",
+            "displayPrecision": 2,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "cerebroPlacentalRatio",
+            "label": "Церебро-плацентарное отношение (ЦПС)",
+            "unit": "отношение",
+            "expression": "middleCerebralArteryPi / umbilicalArteryPi",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "meanUterinePi",
+            "label": "Средний ПИ маточных артерий",
+            "unit": "индекс",
+            "expression": "(uterineArteryPiRight + uterineArteryPiLeft) / 2",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "reportedEfw",
+            "label": "Масса плода из протокола",
+            "unit": "г",
+            "expression": "efwG",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "reportedEfwPercentile",
+            "label": "Процентиль массы из протокола",
+            "unit": "%",
+            "expression": "efwPercentile",
+            "displayPrecision": 1,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "reference-charts-required",
+            "message": "Индексы нельзя интерпретировать без срока беременности и референсных таблиц, принятых в конкретном учреждении."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "ISUOG Practice Guidelines: use of Doppler velocimetry in obstetrics",
+            "publisher": "International Society of Ultrasound in Obstetrics and Gynecology",
+            "version": "2020",
+            "url": "https://www.isuog.org/clinical-resources/isuog-guidelines.html",
+            "reviewedAt": "2026-08-14"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-fetal-growth-doppler-2020",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "ISUOG Practice Guidelines: use of Doppler velocimetry in obstetrics",
+          "url": "https://www.isuog.org/clinical-resources/isuog-guidelines.html",
+          "reviewedAt": "2026-08-14"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-efw-maternal-anthropometry",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-efw-maternal-anthropometry",
+      "title": "Предполагаемая масса плода по антропометрии матери",
+      "shortTitle": "Масса по антропометрии",
+      "aliases": [
+        "EFW maternal anthropometry",
+        "масса плода по матери",
+        "масса при рождении"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Антропометрическая оценка ожидаемой массы при рождении по сроку и прибавке массы матери.",
+      "estimatedMinutes": 2,
+      "audience": "Одноплодная беременность III триместра; антропометрическая оценка ожидаемой массы при рождении.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-efw-maternal-anthropometry",
+        "slug": "obstetric-efw-maternal-anthropometry",
+        "title": "Предполагаемая масса плода по антропометрии матери",
+        "shortTitle": "Масса по антропометрии",
+        "aliases": [
+          "EFW maternal anthropometry",
+          "масса плода по матери",
+          "масса при рождении"
+        ],
+        "summary": "Антропометрическая оценка ожидаемой массы при рождении по сроку и прибавке массы матери.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Масса (г) = срок (дни) × [9,36 + 0,262 × пол + 0,000237 × рост × масса на 26-й неделе + 4,81 × скорость прибавки × (паритет + 1)]",
+        "population": "Одноплодная беременность III триместра; антропометрическая оценка ожидаемой массы при рождении.",
+        "limitations": [
+          "Это модель массы при рождении, а не сонографическая оценка текущей массы плода; она не заменяет УЗИ.",
+          "Точность зависит от популяции, качества данных о массе на 26-й неделе и скорости прибавки."
+        ],
+        "inputs": [
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности",
+            "unit": "нед",
+            "kind": "number",
+            "minimum": 28,
+            "maximum": 42,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "gaDays",
+            "label": "Дополнительные дни",
+            "unit": "дн",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 6,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "fetalSex",
+            "label": "Пол плода",
+            "kind": "select",
+            "options": [
+              {
+                "value": -1,
+                "label": "Женский"
+              },
+              {
+                "value": 0,
+                "label": "Неизвестен"
+              },
+              {
+                "value": 1,
+                "label": "Мужской"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "maternalHeightCm",
+            "label": "Рост матери",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 100,
+            "maximum": 220,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "maternalWeightAt26Kg",
+            "label": "Масса матери на 26-й неделе",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 35,
+            "maximum": 180,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "thirdTrimesterWeightGainKg",
+            "label": "Прибавка массы в III триместре",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 30,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "parity",
+            "label": "Предыдущие роды после 20 недель",
+            "unit": "раз",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "integer": true,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "gaDaysTotal",
+            "label": "Срок беременности",
+            "unit": "дней",
+            "expression": "gaWeeks * 7 + gaDays",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "thirdTrimesterDays",
+            "label": "Дни наблюдаемого III триместра",
+            "unit": "дней",
+            "expression": "gaDaysTotal - 196",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "weightGainRate",
+            "label": "Скорость прибавки массы",
+            "unit": "кг/день",
+            "expression": "thirdTrimesterWeightGainKg / thirdTrimesterDays",
+            "displayPrecision": 3,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "estimatedBirthWeight",
+            "label": "Ожидаемая масса при рождении",
+            "unit": "г",
+            "expression": "gaDaysTotal * (9.36 + 0.262 * fetalSex + 0.000237 * maternalHeightCm * maternalWeightAt26Kg + 4.81 * weightGainRate * (parity + 1))",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "birthweight-model",
+            "message": "Результат относится к ожидаемой массе при рождении по антропометрической модели и не является текущей массой плода."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Reliability of a clinical method in estimating foetal weight",
+            "publisher": "PMC",
+            "version": "2021",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8517749/",
+            "reviewedAt": "2026-08-14"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-efw-maternal-anthropometry-2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Reliability of a clinical method in estimating foetal weight",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8517749/",
+          "reviewedAt": "2026-08-14"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-efw-rudakov",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-efw-rudakov",
+      "title": "Предполагаемая масса плода по Рудакову",
+      "shortTitle": "Масса по Рудакову",
+      "aliases": [
+        "Rudakov",
+        "Рудаков масса плода",
+        "OJ VDM"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Упрощённая bedside-оценка массы по окружности живота и высоте дна матки.",
+      "estimatedMinutes": 2,
+      "audience": "Беременность III триместра при измерении окружности живота и высоты дна матки.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-efw-rudakov",
+        "slug": "obstetric-efw-rudakov",
+        "title": "Предполагаемая масса плода по Рудакову",
+        "shortTitle": "Масса по Рудакову",
+        "aliases": [
+          "Rudakov",
+          "Рудаков масса плода",
+          "OJ VDM"
+        ],
+        "summary": "Упрощённая bedside-оценка массы по окружности живота и высоте дна матки.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Упрощённая оценка: масса (г) ≈ окружность живота (см) × высота дна матки (см)",
+        "population": "Беременность III триместра при измерении окружности живота и высоты дна матки.",
+        "limitations": [
+          "Полная методика Рудакова использует пальпаторные полуокружности и таблицу; здесь реализована распространённая упрощённая оценка без таблицы.",
+          "Результат чувствителен к положению плода, ожирению, многоводию, многоплодию и ошибке измерения."
+        ],
+        "inputs": [
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности",
+            "unit": "нед",
+            "kind": "number",
+            "minimum": 28,
+            "maximum": 42,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "abdominalCircumferenceCm",
+            "label": "Окружность живота",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 160,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "fundalHeightCm",
+            "label": "Высота дна матки",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 45,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "rudakovIndex",
+            "label": "Индекс ОЖ × ВДМ",
+            "unit": "см²",
+            "expression": "abdominalCircumferenceCm * fundalHeightCm",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "estimatedFetalWeight",
+            "label": "Предполагаемая масса плода",
+            "unit": "г",
+            "expression": "rudakovIndex",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "simplified-rudakov",
+            "message": "Использована упрощённая формула ОЖ × ВДМ; для клинического решения нужна полная методика и сопоставление с УЗИ."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Сравнение методов оценки массы плода",
+            "publisher": "Arutunyan Doctor",
+            "version": "онлайн-методика",
+            "url": "https://arutunyan.doctor/tools/fetal-weight-comparison",
+            "reviewedAt": "2026-08-14"
+          },
+          {
+            "title": "Reliability of a clinical method in estimating foetal weight",
+            "publisher": "PMC",
+            "version": "2021",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8517749/",
+            "reviewedAt": "2026-08-14"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-efw-rudakov-source-1",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Сравнение методов оценки массы плода",
+          "url": "https://arutunyan.doctor/tools/fetal-weight-comparison",
+          "reviewedAt": "2026-08-14"
+        },
+        {
+          "id": "obstetric-efw-rudakov-2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Reliability of a clinical method in estimating foetal weight",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8517749/",
+          "reviewedAt": "2026-08-14"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-vbac-antepartum",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-vbac-antepartum",
+      "title": "Вероятность успешных родов после кесарева — при постановке на учёт",
+      "shortTitle": "VBAC при постановке на учёт",
+      "aliases": [
+        "VBAC antepartum",
+        "TOLAC Grobman 2007",
+        "родоразрешение после кесарева"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Прогностическая модель MFMU для оценки вероятности VBAC по данным первого дородового визита.",
+      "estimatedMinutes": 2,
+      "audience": "Кандидаты на TOLAC с одним предшествующим кесаревым сечением при отсутствии противопоказаний к вагинальным родам.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-vbac-antepartum",
+        "slug": "obstetric-vbac-antepartum",
+        "title": "Вероятность успешных родов после кесарева — при постановке на учёт",
+        "shortTitle": "VBAC при постановке на учёт",
+        "aliases": [
+          "VBAC antepartum",
+          "TOLAC Grobman 2007",
+          "родоразрешение после кесарева"
+        ],
+        "summary": "Прогностическая модель MFMU для оценки вероятности VBAC по данным первого дородового визита.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Grobman 2007: p = exp(w) / (1 + exp(w)), логит w включает возраст, ИМТ, анамнез вагинальных родов и показание к кесареву",
+        "population": "Кандидаты на TOLAC с одним предшествующим кесаревым сечением при отсутствии противопоказаний к вагинальным родам.",
+        "limitations": [
+          "Это прогностическая модель, а не решение о допустимости TOLAC и не гарантия исхода.",
+          "Коэффициенты расы исторические и не должны использоваться как самостоятельный клинический признак; результат требует очной оценки акушером."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 50,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "bmi",
+            "label": "ИМТ до беременности",
+            "unit": "кг/м²",
+            "kind": "number",
+            "minimum": 15,
+            "maximum": 60,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "race",
+            "label": "Группа модели",
+            "kind": "select",
+            "options": [
+              {
+                "value": "other",
+                "label": "Другая / не указана"
+              },
+              {
+                "value": "african-american",
+                "label": "African-American"
+              },
+              {
+                "value": "hispanic",
+                "label": "Hispanic"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "anyPriorVaginal",
+            "label": "Были вагинальные роды",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "priorVbac",
+            "label": "Был VBAC после кесарева",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "indication",
+            "label": "Показание к предыдущему кесареву",
+            "kind": "select",
+            "options": [
+              {
+                "value": "nonrecurring",
+                "label": "Неповторяющееся"
+              },
+              {
+                "value": "recurring",
+                "label": "Повторяющееся"
+              }
+            ],
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "africanAmerican",
+            "label": "Коэффициент African-American",
+            "unit": "коэфф.",
+            "expression": "cond(race == \"african-american\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "hispanic",
+            "label": "Коэффициент Hispanic",
+            "unit": "коэфф.",
+            "expression": "cond(race == \"hispanic\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "priorVaginal",
+            "label": "Коэффициент предыдущих вагинальных родов",
+            "unit": "коэфф.",
+            "expression": "cond(anyPriorVaginal == \"yes\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "priorVbacValue",
+            "label": "Коэффициент предыдущего VBAC",
+            "unit": "коэфф.",
+            "expression": "cond(priorVbac == \"yes\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "recurringIndication",
+            "label": "Коэффициент повторяющегося показания",
+            "unit": "коэфф.",
+            "expression": "cond(indication == \"recurring\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "logit",
+            "label": "Логит модели",
+            "unit": "логит",
+            "expression": "3.766 - 0.039 * ageYears - 0.060 * bmi - 0.671 * africanAmerican - 0.680 * hispanic + 0.888 * priorVaginal + 1.003 * priorVbacValue - 0.632 * recurringIndication",
+            "displayPrecision": 3,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "unit": "%",
+            "expression": "100 * exp(logit) / (1 + exp(logit))",
+            "displayPrecision": 1,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "vbac-model",
+            "message": "Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Prediction of vaginal birth after cesarean delivery",
+            "publisher": "PMC / MFMU Network",
+            "version": "Grobman 2007",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4372471/",
+            "reviewedAt": "2026-08-14"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-vbac-antepartum-grobman-2007",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Prediction of vaginal birth after cesarean delivery",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4372471/",
+          "reviewedAt": "2026-08-14"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-vbac-admission",
+      "title": "Вероятность успешных родов после кесарева — при поступлении",
+      "shortTitle": "VBAC при поступлении",
+      "aliases": [
+        "VBAC admission",
+        "TOLAC Grobman 2009",
+        "VBAC calculator admission"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Модель MFMU с данными, доступными при поступлении в родильный стационар.",
+      "estimatedMinutes": 2,
+      "audience": "Кандидаты на TOLAC при поступлении для родоразрешения.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "obstetric-vbac-admission",
+        "slug": "obstetric-vbac-admission",
+        "title": "Вероятность успешных родов после кесарева — при поступлении",
+        "shortTitle": "VBAC при поступлении",
+        "aliases": [
+          "VBAC admission",
+          "TOLAC Grobman 2009",
+          "VBAC calculator admission"
+        ],
+        "summary": "Модель MFMU с данными, доступными при поступлении в родильный стационар.",
+        "audience": "adult",
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "Grobman 2009: логистическая модель с возрастом, ИМТ, анамнезом, сроком, состоянием шейки и индукцией",
+        "population": "Кандидаты на TOLAC при поступлении для родоразрешения.",
+        "limitations": [
+          "Модель не определяет показания или противопоказания к TOLAC и не учитывает все клинические обстоятельства.",
+          "Коэффициенты расы исторические; результат нельзя использовать как единственное основание для выбора способа родоразрешения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 50,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "bmi",
+            "label": "ИМТ до беременности",
+            "unit": "кг/м²",
+            "kind": "number",
+            "minimum": 15,
+            "maximum": 60,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "race",
+            "label": "Группа модели",
+            "kind": "select",
+            "options": [
+              {
+                "value": "other",
+                "label": "Другая / не указана"
+              },
+              {
+                "value": "african-american",
+                "label": "African-American"
+              },
+              {
+                "value": "hispanic",
+                "label": "Hispanic"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "anyPriorVaginal",
+            "label": "Были вагинальные роды",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "priorVbac",
+            "label": "Был VBAC после кесарева",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "indication",
+            "label": "Показание к предыдущему кесареву",
+            "kind": "select",
+            "options": [
+              {
+                "value": "nonrecurring",
+                "label": "Неповторяющееся"
+              },
+              {
+                "value": "recurring",
+                "label": "Повторяющееся"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "gaWeeks",
+            "label": "Срок при поступлении",
+            "unit": "нед",
+            "kind": "number",
+            "minimum": 34,
+            "maximum": 42,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "hypertensiveDisease",
+            "label": "Гипертензивное заболевание беременности",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "effacement",
+            "label": "Сглаживание шейки",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "dilation",
+            "label": "Раскрытие шейки",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "station",
+            "label": "Станция головки",
+            "unit": "станция",
+            "kind": "number",
+            "minimum": -3,
+            "maximum": 3,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "laborInduction",
+            "label": "Индукция родов",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "africanAmerican",
+            "label": "Коэффициент African-American",
+            "unit": "коэфф.",
+            "expression": "cond(race == \"african-american\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "hispanic",
+            "label": "Коэффициент Hispanic",
+            "unit": "коэфф.",
+            "expression": "cond(race == \"hispanic\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "priorVaginal",
+            "label": "Коэффициент предыдущих вагинальных родов",
+            "unit": "коэфф.",
+            "expression": "cond(anyPriorVaginal == \"yes\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "priorVbacValue",
+            "label": "Коэффициент предыдущего VBAC",
+            "unit": "коэфф.",
+            "expression": "cond(priorVbac == \"yes\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "recurringIndication",
+            "label": "Коэффициент повторяющегося показания",
+            "unit": "коэфф.",
+            "expression": "cond(indication == \"recurring\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "hypertensiveValue",
+            "label": "Коэффициент гипертензивного заболевания",
+            "unit": "коэфф.",
+            "expression": "cond(hypertensiveDisease == \"yes\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "inductionValue",
+            "label": "Коэффициент индукции",
+            "unit": "коэфф.",
+            "expression": "cond(laborInduction == \"yes\", 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "logit",
+            "label": "Логит модели",
+            "unit": "логит",
+            "expression": "7.059 - 0.037 * ageYears - 0.044 * bmi - 0.460 * africanAmerican - 0.761 * hispanic + 0.955 * priorVaginal + 0.851 * priorVbacValue - 0.655 * recurringIndication - 0.109 * gaWeeks - 0.499 * hypertensiveValue + 0.044 * effacement + 0.109 * dilation + 0.082 * station - 0.452 * inductionValue",
+            "displayPrecision": 3,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "unit": "%",
+            "expression": "100 * exp(logit) / (1 + exp(logit))",
+            "displayPrecision": 1,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "vbac-model",
+            "message": "Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Development of a nomogram for prediction of vaginal birth after cesarean delivery",
+            "publisher": "Thieme / MFMU Network",
+            "version": "Grobman 2009",
+            "url": "https://www.thieme-connect.com/products/ejournals/html/10.1055/s-0029-1239494",
+            "reviewedAt": "2026-08-14"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-vbac-admission-grobman-2009",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Development of a nomogram for prediction of vaginal birth after cesarean delivery",
+          "url": "https://www.thieme-connect.com/products/ejournals/html/10.1055/s-0029-1239494",
+          "reviewedAt": "2026-08-14"
+        }
+      ]
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "gynecology-breast-cancer-risk",
+      "title": "Риск рака молочной железы — модель Gail/BCRAT",
+      "shortTitle": "Риск молочной железы",
+      "aliases": [
+        "Gail model",
+        "BCRAT",
+        "breast cancer risk",
+        "модель Гейла"
+      ],
+      "bankId": "gynecology",
+      "bankLabel": "Гинекология",
+      "category": "gynecology",
+      "description": "Пятилетний и оставшийся до 90 лет риск инвазивного рака по модели NCI BCRAT.",
+      "estimatedMinutes": 2,
+      "audience": "Женщины 20–89 лет без ранее диагностированного инвазивного рака или DCIS.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "gynecology-breast-cancer-risk",
+        "slug": "gynecology-breast-cancer-risk",
+        "title": "Риск рака молочной железы — модель Gail/BCRAT",
+        "shortTitle": "Риск молочной железы",
+        "aliases": [
+          "Gail model",
+          "BCRAT",
+          "breast cancer risk",
+          "модель Гейла"
+        ],
+        "summary": "Пятилетний и оставшийся до 90 лет риск инвазивного рака по модели NCI BCRAT.",
+        "audience": "adult",
+        "category": "gynecology",
+        "clinical": true,
+        "formulaDisplay": "NCI Breast Cancer Risk Assessment Tool: относительный риск × возрастные базовые частоты SEER/NCHS с конкурирующей смертностью",
+        "population": "Женщины 20–89 лет без ранее диагностированного инвазивного рака или DCIS.",
+        "limitations": [
+          "Модель разработана на американских популяционных данных и не заменяет оценку наследственных синдромов (BRCA, BRCAPRO, Tyrer–Cuzick).",
+          "Результат нельзя сравнивать напрямую с популяциями, для которых базовые частоты и валидность модели отличаются."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 89,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "race",
+            "label": "Группа модели",
+            "kind": "select",
+            "options": [
+              {
+                "value": "white",
+                "label": "White"
+              },
+              {
+                "value": "black",
+                "label": "Black"
+              },
+              {
+                "value": "hispanic",
+                "label": "Hispanic"
+              },
+              {
+                "value": "asian",
+                "label": "Asian"
+              },
+              {
+                "value": "other",
+                "label": "Другая / не указана"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "biopsiesCategory",
+            "label": "Количество биопсий молочной железы",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2 и более"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "menarcheCategory",
+            "label": "Возраст менархе",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "14 лет и старше"
+              },
+              {
+                "value": 1,
+                "label": "12–13 лет"
+              },
+              {
+                "value": 2,
+                "label": "Младше 12 лет"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "firstBirthCategory",
+            "label": "Возраст при первых родах",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "До 20 лет или не было родов"
+              },
+              {
+                "value": 1,
+                "label": "20–24 года"
+              },
+              {
+                "value": 2,
+                "label": "25–29 лет"
+              },
+              {
+                "value": 3,
+                "label": "30 лет и старше"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "relativesCategory",
+            "label": "Родственницы первой линии с раком молочной железы",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2 и более"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "atypicalHyperplasia",
+            "label": "Атипическая гиперплазия в биопсии",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "unit": "%",
+            "expression": "gailRisk(ageYears, 5, race, biopsiesCategory, menarcheCategory, firstBirthCategory, relativesCategory, atypicalHyperplasia)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "unit": "%",
+            "expression": "gailRisk(ageYears, 90, race, biopsiesCategory, menarcheCategory, firstBirthCategory, relativesCategory, atypicalHyperplasia)",
+            "displayPrecision": 2,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "bcrat-population",
+            "message": "Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "About the Breast Cancer Risk Assessment Tool",
+            "publisher": "National Cancer Institute",
+            "version": "BCRAT",
+            "url": "https://bcrisktool.cancer.gov/about.html",
+            "reviewedAt": "2026-08-14"
+          },
+          {
+            "title": "Breast Cancer Risk Assessment (BCRA)",
+            "publisher": "National Cancer Institute",
+            "version": "R package 2.0",
+            "url": "https://dceg.cancer.gov/tools/risk-assessment/bcra",
+            "reviewedAt": "2026-08-14"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "gynecology-breast-cancer-risk-bcrat",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "About the Breast Cancer Risk Assessment Tool",
+          "url": "https://bcrisktool.cancer.gov/about.html",
+          "reviewedAt": "2026-08-14"
+        },
+        {
+          "id": "gynecology-breast-cancer-risk-r-package-2-0",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Breast Cancer Risk Assessment (BCRA)",
+          "url": "https://dceg.cancer.gov/tools/risk-assessment/bcra",
+          "reviewedAt": "2026-08-14"
+        }
+      ]
+    },
+    {
+      "id": "gynecology-cervical-cancer-risk",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "gynecology-cervical-cancer-risk",
+      "title": "Скрининг шейки матки — ASCCP",
+      "shortTitle": "Риск шейки матки",
+      "aliases": [
+        "cervical cancer risk",
+        "ASCCP",
+        "ВПЧ и цитология",
+        "скрининг шейки матки"
+      ],
+      "bankId": "gynecology",
+      "bankLabel": "Гинекология",
+      "category": "gynecology",
+      "description": "Справочная стратификация маршрута по общим сочетаниям ВПЧ, цитологии и анамнеза.",
+      "estimatedMinutes": 2,
+      "audience": "Пациентки скринингового возраста с результатами ВПЧ-теста и цитологии.",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "gynecology-cervical-cancer-risk",
+        "slug": "gynecology-cervical-cancer-risk",
+        "title": "Скрининг шейки матки — ASCCP",
+        "shortTitle": "Риск шейки матки",
+        "aliases": [
+          "cervical cancer risk",
+          "ASCCP",
+          "ВПЧ и цитология",
+          "скрининг шейки матки"
+        ],
+        "summary": "Справочная стратификация маршрута по общим сочетаниям ВПЧ, цитологии и анамнеза.",
+        "audience": "adult",
+        "category": "gynecology",
+        "clinical": true,
+        "formulaDisplay": "ASCCP risk-based management: уровень 1–3 для навигации по общему маршруту, не абсолютный риск рака",
+        "population": "Пациентки скринингового возраста с результатами ВПЧ-теста и цитологии.",
+        "limitations": [
+          "Это не числовой калькулятор риска рака: точные риски CIN3+ требуют полной таблицы ASCCP, предыдущих результатов и дат.",
+          "Иммунодефицит, беременность, возраст до 25 лет и лечение CIN2+ меняют маршрут; окончательное решение принимает врач."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 21,
+            "maximum": 100,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "cytology",
+            "label": "Цитология",
+            "kind": "select",
+            "options": [
+              {
+                "value": "negative",
+                "label": "NILM / без интраэпителиального поражения"
+              },
+              {
+                "value": "ascus",
+                "label": "ASC-US"
+              },
+              {
+                "value": "lsil",
+                "label": "LSIL"
+              },
+              {
+                "value": "hsil",
+                "label": "HSIL"
+              },
+              {
+                "value": "agc",
+                "label": "AGC"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "hpvStatus",
+            "label": "Высокоонкогенный ВПЧ",
+            "kind": "select",
+            "options": [
+              {
+                "value": "negative",
+                "label": "Отрицательный"
+              },
+              {
+                "value": "positive",
+                "label": "Положительный"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "hpv16Or18",
+            "label": "ВПЧ 16/18",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет / не выявлен"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "priorCin2Plus",
+            "label": "Анамнез CIN2+ или неизвестен",
+            "kind": "select",
+            "options": [
+              {
+                "value": "negative",
+                "label": "Нет"
+              },
+              {
+                "value": "unknown",
+                "label": "Неизвестен"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "immunosuppressed",
+            "label": "Иммуносупрессия",
+            "kind": "select",
+            "options": [
+              {
+                "value": "no",
+                "label": "Нет"
+              },
+              {
+                "value": "yes",
+                "label": "Да"
+              }
+            ],
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "asccpBand",
+            "label": "Справочный уровень маршрута ASCCP",
+            "unit": "уровень 1–3",
+            "expression": "asccpRiskBand(ageYears, cytology, hpvStatus, hpv16Or18, priorCin2Plus, immunosuppressed)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "asccp-not-absolute-risk",
+            "message": "Уровень не является процентом риска и не заменяет официальный ASCCP risk-based calculator."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "asccpBand >= 3",
+            "message": "Высокий уровень: нужна очная оценка и проверка актуального маршрута ASCCP; при некоторых сочетаниях показана кольпоскопия или ускоренная диагностика."
+          },
+          {
+            "when": "asccpBand >= 2",
+            "message": "Промежуточный уровень: маршрут зависит от предыдущих результатов и сроков; сверяйте полную таблицу ASCCP."
+          },
+          {
+            "when": "asccpBand == 1",
+            "message": "Низкий уровень в этой упрощённой навигации; соблюдайте возрастной скрининг и локальный протокол."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Management Guidelines",
+            "publisher": "ASCCP",
+            "version": "Risk-based management",
+            "url": "https://www.asccp.org/management-guidelines",
+            "reviewedAt": "2026-08-14"
+          },
+          {
+            "title": "Updated Guidelines for Management of Cervical Cancer Screening Abnormalities",
+            "publisher": "ACOG",
+            "version": "2020",
+            "url": "https://www.acog.org/clinical/clinical-guidance/practice-advisory/articles/2020/10/updated-guidelines-for-management-of-cervical-cancer-screening-abnormalities",
+            "reviewedAt": "2026-08-14"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "gynecology-cervical-cancer-risk-risk-based-management",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Management Guidelines",
+          "url": "https://www.asccp.org/management-guidelines",
+          "reviewedAt": "2026-08-14"
+        },
+        {
+          "id": "gynecology-cervical-cancer-risk-2020",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Updated Guidelines for Management of Cervical Cancer Screening Abnormalities",
+          "url": "https://www.acog.org/clinical/clinical-guidance/practice-advisory/articles/2020/10/updated-guidelines-for-management-of-cervical-cancer-screening-abnormalities",
+          "reviewedAt": "2026-08-14"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.apgar",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "apgar-newborn-score",
+      "title": "Шкала Апгар — оценка новорождённого",
+      "shortTitle": "Шкала Апгар",
+      "aliases": [
+        "Апгар",
+        "Apgar score",
+        "оценка новорождённого",
+        "шкала Апгар"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство и гинекология",
+      "category": "newborn-screening",
+      "description": "Стандартная клиническая шкала Вирджинии Апгар (1952) для быстрой оценки состояния новорождённого сразу после рождения по пяти признакам.",
+      "estimatedMinutes": 1,
+      "audience": "Для медицинского персонала; оценивает врач или акушерка, а не пациент(ка)",
+      "definition": {
+        "id": "minimed.assessment.apgar",
+        "slug": "apgar-newborn-score",
+        "title": "Шкала Апгар — оценка новорождённого",
+        "shortTitle": "Шкала Апгар",
+        "aliases": [
+          "Апгар",
+          "Apgar score",
+          "оценка новорождённого",
+          "шкала Апгар"
+        ],
+        "bankId": "obstetrics",
+        "bankLabel": "Акушерство и гинекология",
+        "category": "newborn-screening",
+        "description": "Стандартная клиническая шкала Вирджинии Апгар (1952) для быстрой оценки состояния новорождённого сразу после рождения по пяти признакам.",
+        "estimatedMinutes": 1,
+        "audience": "Для медицинского персонала; оценивает врач или акушерка, а не пациент(ка)",
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "0 баллов"
+          },
+          {
+            "value": 1,
+            "label": "1 балл"
+          },
+          {
+            "value": 2,
+            "label": "2 балла"
+          }
+        ],
+        "scales": [
+          {
+            "id": "apgar-total",
+            "label": "Итоговый балл по шкале Апгар",
+            "shortLabel": "Апгар",
+            "description": "Сумма баллов по пяти признакам (0–10)."
+          }
+        ],
+        "questions": [
+          {
+            "id": "apgar-newborn-score-01",
+            "scaleId": "apgar-total",
+            "prompt": "Окраска кожи",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Синюшность или бледность всего тела"
+              },
+              {
+                "value": 1,
+                "label": "Тело розовое, конечности синюшные"
+              },
+              {
+                "value": 2,
+                "label": "Розовая окраска всего тела и конечностей"
+              }
+            ]
+          },
+          {
+            "id": "apgar-newborn-score-02",
+            "scaleId": "apgar-total",
+            "prompt": "Частота сердечных сокращений",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Менее 100 уд/мин"
+              },
+              {
+                "value": 2,
+                "label": "100 уд/мин и более"
+              }
+            ]
+          },
+          {
+            "id": "apgar-newborn-score-03",
+            "scaleId": "apgar-total",
+            "prompt": "Рефлекторная возбудимость (реакция на раздражение)",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет реакции"
+              },
+              {
+                "value": 1,
+                "label": "Гримаса или слабый крик"
+              },
+              {
+                "value": 2,
+                "label": "Активный крик, кашель или чихание"
+              }
+            ]
+          },
+          {
+            "id": "apgar-newborn-score-04",
+            "scaleId": "apgar-total",
+            "prompt": "Мышечный тонус",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует, конечности вялые"
+              },
+              {
+                "value": 1,
+                "label": "Некоторое сгибание конечностей"
+              },
+              {
+                "value": 2,
+                "label": "Активные движения"
+              }
+            ]
+          },
+          {
+            "id": "apgar-newborn-score-05",
+            "scaleId": "apgar-total",
+            "prompt": "Дыхание",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Слабый крик, нерегулярное дыхание"
+              },
+              {
+                "value": 2,
+                "label": "Хороший крик, регулярное дыхание"
+              }
+            ]
+          }
+        ],
+        "disclaimer": "Шкала Апгар — инструмент быстрой клинической оценки, а не диагноз. Стандартный протокол предполагает оценку на 1-й и 5-й минутах жизни (при низких баллах — повторно на 10-й); эта карточка фиксирует один момент времени, для второй оценки создайте отдельную запись.",
+        "evidenceNote": "Пять признаков и баллы 0/1/2 соответствуют оригинальной шкале Апгар. Общепринятые ориентиры: 7–10 — норма, 4–6 — умеренное угнетение, 0–3 — выраженное угнетение, требующее немедленной помощи по протоколу реанимации новорождённых.",
+        "license": {
+          "kind": "public-domain-derived",
+          "notice": "Шкала предложена Вирджинией Апгар (Apgar V. A proposal for a new method of evaluation of the newborn infant. Curr Res Anesth Analg. 1953) и с тех пор используется повсеместно как стандартный клинический инструмент без ограничений на воспроизведение.",
+          "sourceUrl": "https://www.ncbi.nlm.nih.gov/books/NBK470569/"
+        }
+      },
+      "sources": [
+        {
+          "id": "apgar-newborn-score-apgar-newborn-score",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Шкала Апгар — оценка новорождённого",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK470569/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.epds",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "postnatal-mood-epds",
+      "title": "Эдинбургская шкала послеродовой депрессии (EPDS)",
+      "shortTitle": "Шкала EPDS",
+      "aliases": [
+        "EPDS",
+        "Edinburgh Postnatal Depression Scale",
+        "эдинбургская шкала",
+        "послеродовая депрессия",
+        "перинатальная депрессия"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство и гинекология",
+      "category": "perinatal-mood",
+      "description": "Стандартный скрининговый опросник из 10 пунктов для выявления признаков депрессии у женщин во время беременности и после родов, основанный на самочувствии за последние 7 дней.",
+      "estimatedMinutes": 4,
+      "audience": "Женщины в период беременности и в первый год после родов",
+      "definition": {
+        "id": "minimed.assessment.epds",
+        "slug": "postnatal-mood-epds",
+        "title": "Эдинбургская шкала послеродовой депрессии (EPDS)",
+        "shortTitle": "Шкала EPDS",
+        "aliases": [
+          "EPDS",
+          "Edinburgh Postnatal Depression Scale",
+          "эдинбургская шкала",
+          "послеродовая депрессия",
+          "перинатальная депрессия"
+        ],
+        "bankId": "obstetrics",
+        "bankLabel": "Акушерство и гинекология",
+        "category": "perinatal-mood",
+        "description": "Стандартный скрининговый опросник из 10 пунктов для выявления признаков депрессии у женщин во время беременности и после родов, основанный на самочувствии за последние 7 дней.",
+        "estimatedMinutes": 4,
+        "audience": "Женщины в период беременности и в первый год после родов",
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Вариант 1"
+          },
+          {
+            "value": 1,
+            "label": "Вариант 2"
+          },
+          {
+            "value": 2,
+            "label": "Вариант 3"
+          },
+          {
+            "value": 3,
+            "label": "Вариант 4"
+          }
+        ],
+        "scales": [
+          {
+            "id": "epds-total",
+            "label": "Итоговый балл EPDS",
+            "shortLabel": "EPDS",
+            "description": "Сумма баллов по 10 пунктам (0–30)."
+          }
+        ],
+        "questions": [
+          {
+            "id": "postnatal-mood-epds-01",
+            "scaleId": "epds-total",
+            "prompt": "Я могла смеяться и видеть смешную сторону вещей",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Как всегда"
+              },
+              {
+                "value": 1,
+                "label": "Немного меньше, чем обычно"
+              },
+              {
+                "value": 2,
+                "label": "Определённо меньше, чем обычно"
+              },
+              {
+                "value": 3,
+                "label": "Совсем нет"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-02",
+            "scaleId": "epds-total",
+            "prompt": "Я предвкушала что-то с удовольствием",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Как всегда"
+              },
+              {
+                "value": 1,
+                "label": "Немного меньше, чем раньше"
+              },
+              {
+                "value": 2,
+                "label": "Определённо меньше, чем раньше"
+              },
+              {
+                "value": 3,
+                "label": "Почти совсем нет"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-03",
+            "scaleId": "epds-total",
+            "prompt": "Я необоснованно винила себя, когда что-то шло не так",
+            "responseOptions": [
+              {
+                "value": 3,
+                "label": "Да, почти всегда"
+              },
+              {
+                "value": 2,
+                "label": "Да, иногда"
+              },
+              {
+                "value": 1,
+                "label": "Не очень часто"
+              },
+              {
+                "value": 0,
+                "label": "Нет, никогда"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-04",
+            "scaleId": "epds-total",
+            "prompt": "Я испытывала тревогу или беспокойство без особой причины",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет, совсем нет"
+              },
+              {
+                "value": 1,
+                "label": "Почти никогда"
+              },
+              {
+                "value": 2,
+                "label": "Да, иногда"
+              },
+              {
+                "value": 3,
+                "label": "Да, очень часто"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-05",
+            "scaleId": "epds-total",
+            "prompt": "Я чувствовала страх или панику без особой причины",
+            "responseOptions": [
+              {
+                "value": 3,
+                "label": "Да, довольно часто"
+              },
+              {
+                "value": 2,
+                "label": "Да, иногда"
+              },
+              {
+                "value": 1,
+                "label": "Не очень часто"
+              },
+              {
+                "value": 0,
+                "label": "Нет, совсем нет"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-06",
+            "scaleId": "epds-total",
+            "prompt": "Дела стали накапливаться и подавлять меня",
+            "responseOptions": [
+              {
+                "value": 3,
+                "label": "Да, почти всегда я совсем не справлялась"
+              },
+              {
+                "value": 2,
+                "label": "Да, иногда я справлялась хуже, чем обычно"
+              },
+              {
+                "value": 1,
+                "label": "Нет, в основном я справлялась хорошо"
+              },
+              {
+                "value": 0,
+                "label": "Нет, я справлялась так же хорошо, как всегда"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-07",
+            "scaleId": "epds-total",
+            "prompt": "Я была настолько несчастна, что у меня были проблемы со сном",
+            "responseOptions": [
+              {
+                "value": 3,
+                "label": "Да, почти всегда"
+              },
+              {
+                "value": 2,
+                "label": "Да, иногда"
+              },
+              {
+                "value": 1,
+                "label": "Не очень часто"
+              },
+              {
+                "value": 0,
+                "label": "Нет, совсем нет"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-08",
+            "scaleId": "epds-total",
+            "prompt": "Я чувствовала грусть или подавленность",
+            "responseOptions": [
+              {
+                "value": 3,
+                "label": "Да, почти всегда"
+              },
+              {
+                "value": 2,
+                "label": "Да, довольно часто"
+              },
+              {
+                "value": 1,
+                "label": "Не очень часто"
+              },
+              {
+                "value": 0,
+                "label": "Нет, совсем нет"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-09",
+            "scaleId": "epds-total",
+            "prompt": "Я была настолько несчастна, что плакала",
+            "responseOptions": [
+              {
+                "value": 3,
+                "label": "Да, почти всегда"
+              },
+              {
+                "value": 2,
+                "label": "Да, довольно часто"
+              },
+              {
+                "value": 1,
+                "label": "Только иногда"
+              },
+              {
+                "value": 0,
+                "label": "Нет, никогда"
+              }
+            ]
+          },
+          {
+            "id": "postnatal-mood-epds-10",
+            "scaleId": "epds-total",
+            "prompt": "Мысли о причинении себе вреда приходили мне в голову",
+            "responseOptions": [
+              {
+                "value": 3,
+                "label": "Да, довольно часто"
+              },
+              {
+                "value": 2,
+                "label": "Иногда"
+              },
+              {
+                "value": 1,
+                "label": "Почти никогда"
+              },
+              {
+                "value": 0,
+                "label": "Никогда"
+              }
+            ]
+          }
+        ],
+        "disclaimer": "EPDS — скрининговый инструмент, а не диагноз; депрессию диагностирует только врач. Ответ на 10-й пункт (мысли о причинении себе вреда) выше «Никогда» — повод как можно скорее обратиться к врачу; при непосредственной опасности для себя или ребёнка — немедленно вызвать скорую помощь.",
+        "evidenceNote": "Принятые ориентиры интерпретации: 13 баллов и более — высокая вероятность депрессивного эпизода; 10–12 — пограничный результат, требует повторной оценки или консультации; любой ответ выше «Никогда» на 10-й пункт — повод для немедленного внимания независимо от суммарного балла. Перевод пунктов на русский язык выполнен редакцией MiniMed и не является официальной валидированной локализацией.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Cox J.L., Holden J.M., Sagovsky R. Detection of postnatal depression: development of the 10-item Edinburgh Postnatal Depression Scale. British Journal of Psychiatry. 1987;150:782–786. Правообладатель (авторы и APA PsycTests) разрешает воспроизведение шкалы без отдельного разрешения при условии указания авторов, названия и источника публикации.",
+          "sourceUrl": "https://doi.org/10.1192/bjp.150.6.782"
+        }
+      },
+      "sources": [
+        {
+          "id": "postnatal-mood-epds-postnatal-mood-epds",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Эдинбургская шкала послеродовой депрессии (EPDS)",
+          "url": "https://doi.org/10.1192/bjp.150.6.782",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.ferriman-gallwey",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "ferriman-gallwey-hirsutism",
+      "title": "Модифицированная шкала Ферримана–Голлвея (гирсутизм)",
+      "shortTitle": "Шкала Ферримана–Голлвея",
+      "aliases": [
+        "Ferriman-Gallwey",
+        "шкала гирсутизма",
+        "модифицированная шкала Ферримана-Голлвея",
+        "оценка гирсутизма"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство и гинекология",
+      "category": "gynecologic-endocrinology",
+      "description": "Стандартная клиническая шкала для оценки выраженности гирсутизма по девяти областям тела; используется в диагностике синдрома поликистозных яичников и других причин гиперандрогении.",
+      "estimatedMinutes": 3,
+      "audience": "Для медицинского персонала; оценивает врач по результатам осмотра",
+      "definition": {
+        "id": "minimed.assessment.ferriman-gallwey",
+        "slug": "ferriman-gallwey-hirsutism",
+        "title": "Модифицированная шкала Ферримана–Голлвея (гирсутизм)",
+        "shortTitle": "Шкала Ферримана–Голлвея",
+        "aliases": [
+          "Ferriman-Gallwey",
+          "шкала гирсутизма",
+          "модифицированная шкала Ферримана-Голлвея",
+          "оценка гирсутизма"
+        ],
+        "bankId": "obstetrics",
+        "bankLabel": "Акушерство и гинекология",
+        "category": "gynecologic-endocrinology",
+        "description": "Стандартная клиническая шкала для оценки выраженности гирсутизма по девяти областям тела; используется в диагностике синдрома поликистозных яичников и других причин гиперандрогении.",
+        "estimatedMinutes": 3,
+        "audience": "Для медицинского персонала; оценивает врач по результатам осмотра",
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Нет заметных терминальных волос"
+          },
+          {
+            "value": 1,
+            "label": "Минимальный рост"
+          },
+          {
+            "value": 2,
+            "label": "Умеренный рост"
+          },
+          {
+            "value": 3,
+            "label": "Заметный рост"
+          },
+          {
+            "value": 4,
+            "label": "Выраженный рост"
+          }
+        ],
+        "scales": [
+          {
+            "id": "fg-total",
+            "label": "Итоговый балл по шкале Ферримана–Голлвея",
+            "shortLabel": "F–G",
+            "description": "Сумма баллов по девяти областям (0–36)."
+          }
+        ],
+        "questions": [
+          {
+            "id": "ferriman-gallwey-hirsutism-01",
+            "scaleId": "fg-total",
+            "prompt": "Верхняя губа"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-02",
+            "scaleId": "fg-total",
+            "prompt": "Подбородок"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-03",
+            "scaleId": "fg-total",
+            "prompt": "Грудь"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-04",
+            "scaleId": "fg-total",
+            "prompt": "Верхняя часть спины"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-05",
+            "scaleId": "fg-total",
+            "prompt": "Нижняя часть спины (поясница)"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-06",
+            "scaleId": "fg-total",
+            "prompt": "Верхняя часть живота"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-07",
+            "scaleId": "fg-total",
+            "prompt": "Нижняя часть живота"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-08",
+            "scaleId": "fg-total",
+            "prompt": "Плечо"
+          },
+          {
+            "id": "ferriman-gallwey-hirsutism-09",
+            "scaleId": "fg-total",
+            "prompt": "Бедро"
+          }
+        ],
+        "disclaimer": "Шкала описывает только выраженность волосяного покрова по осмотру и не является диагнозом. Интерпретируйте вместе с менструальным анамнезом, другими признаками гиперандрогении и при необходимости — лабораторными и инструментальными данными.",
+        "evidenceNote": "Девять областей и диапазон 0–4 балла на область соответствуют модифицированной версии шкалы Ферримана–Голлвея (Hatch et al., 1981), производной от оригинальной шкалы 1961 года. Порог 8 баллов и выше принят как ориентир клинического гирсутизма в большинстве исследованных популяций, но пороговые значения могут отличаться между этническими группами.",
+        "license": {
+          "kind": "public-domain-derived",
+          "notice": "Шкала предложена Ferriman D., Gallwey J.D. (1961) и модифицирована Hatch R. et al. (1981); с тех пор широко используется в клинической практике и литературе как стандартный инструмент без ограничений на воспроизведение.",
+          "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6320479/"
+        }
+      },
+      "sources": [
+        {
+          "id": "ferriman-gallwey-hirsutism-ferriman-gallwey-hirsutism",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Модифицированная шкала Ферримана–Голлвея (гирсутизм)",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6320479/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.whooley",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "perinatal-mood-whooley",
+      "title": "Скрининг настроения Whooley (2 вопроса)",
+      "shortTitle": "Скрининг Whooley",
+      "aliases": [
+        "Whooley questions",
+        "вопросы Whooley",
+        "краткий скрининг депрессии",
+        "скрининг настроения"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство и гинекология",
+      "category": "perinatal-mood",
+      "description": "Сверхкороткий скрининг из двух вопросов для быстрой первичной оценки сниженного настроения во время беременности и после родов.",
+      "estimatedMinutes": 1,
+      "audience": "Женщины в период беременности и в первый год после родов",
+      "definition": {
+        "id": "minimed.assessment.whooley",
+        "slug": "perinatal-mood-whooley",
+        "title": "Скрининг настроения Whooley (2 вопроса)",
+        "shortTitle": "Скрининг Whooley",
+        "aliases": [
+          "Whooley questions",
+          "вопросы Whooley",
+          "краткий скрининг депрессии",
+          "скрининг настроения"
+        ],
+        "bankId": "obstetrics",
+        "bankLabel": "Акушерство и гинекология",
+        "category": "perinatal-mood",
+        "description": "Сверхкороткий скрининг из двух вопросов для быстрой первичной оценки сниженного настроения во время беременности и после родов.",
+        "estimatedMinutes": 1,
+        "audience": "Женщины в период беременности и в первый год после родов",
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Нет"
+          },
+          {
+            "value": 1,
+            "label": "Да"
+          }
+        ],
+        "scales": [
+          {
+            "id": "whooley-total",
+            "label": "Результат скрининга Whooley",
+            "shortLabel": "Whooley",
+            "description": "Положительный ответ хотя бы на один из двух вопросов — положительный скрининг."
+          }
+        ],
+        "questions": [
+          {
+            "id": "perinatal-mood-whooley-01",
+            "scaleId": "whooley-total",
+            "prompt": "За последний месяц вас часто беспокоило подавленное настроение, тоска или чувство безнадёжности?"
+          },
+          {
+            "id": "perinatal-mood-whooley-02",
+            "scaleId": "whooley-total",
+            "prompt": "За последний месяц вас часто беспокоило заметно сниженное чувство интереса или удовольствия от дел?"
+          }
+        ],
+        "disclaimer": "Это сверхкороткий скрининг, а не диагноз. Положительный результат — повод для более подробного разговора и, при необходимости, развёрнутого инструмента (например, EPDS) или консультации специалиста.",
+        "evidenceNote": "Соответствует двум валидированным «вопросам Whooley» (Whooley M.A. et al., 1997) — короткому скринингу депрессии, широко используемому как первый шаг перед более развёрнутыми инструментами.",
+        "license": {
+          "kind": "public-domain-derived",
+          "notice": "Whooley M.A., Avins A.L., Miranda J., Browner W.S. Case-finding instruments for depression: two questions as good as many. J Gen Intern Med. 1997;12(7):439–445. Инструмент опубликован в открытой научной литературе и широко воспроизводится без ограничений в клинической и скрининговой практике.",
+          "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1497134/"
+        }
+      },
+      "sources": [
+        {
+          "id": "perinatal-mood-whooley-perinatal-mood-whooley",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Скрининг настроения Whooley (2 вопроса)",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1497134/",
+          "reviewedAt": "2026-08-15"
+        }
+      ]
+    }
+  ]
+}

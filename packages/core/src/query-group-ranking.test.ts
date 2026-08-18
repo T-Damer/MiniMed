@@ -108,6 +108,21 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['ceftriaxone', 'cefazolin']);
   });
 
+  it('ranks a dedicated paracetamol card above combinations and documents that only mention it', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('pneumonia', 'Внебольничная пневмония у детей', 1.45),
+        group('coldrex', 'Колдрекс ХотРем', 1.2),
+        group('combo', 'Парацетамол + римантадин', 1.1),
+        group('paracetamol', 'Парацетамол, таблетки 500 мг', 0.4),
+      ],
+      'Парацетамол',
+    );
+
+    expect(ranked[0]?.documentId).toBe('paracetamol');
+    expect(ranked.map((item) => item.documentId).slice(0, 2)).toEqual(['paracetamol', 'combo']);
+  });
+
   it('recognizes compact and hyphenated document numbers as the same reference', () => {
     expect(
       queryGroupRelevanceBoost(

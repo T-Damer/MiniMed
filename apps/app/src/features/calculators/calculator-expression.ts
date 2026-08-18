@@ -112,6 +112,7 @@ const KNOWN_FUNCTIONS: Readonly<Record<string, number>> = {
   pow: 2,
   exp: 1,
   cond: 3,
+  present: 1,
   today: 0,
   addDays: 2,
   daysBetween: 2,
@@ -377,6 +378,13 @@ function evaluateCall(
     const testValue = evaluateExpressionNode(test, scope);
     const chosen = testValue === 1 ? whenTrue : whenFalse;
     return evaluateExpressionNode(chosen, scope);
+  }
+  if (name === 'present') {
+    const arg = args[0];
+    if (arg?.kind !== 'variable') {
+      throw new CalculatorExpressionError('present() requires a variable name as its argument.');
+    }
+    return arg.name in scope ? 1 : 0;
   }
   if (name === 'today') {
     return formatIsoDateValue(new Date());

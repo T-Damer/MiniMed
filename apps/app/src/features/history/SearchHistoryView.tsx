@@ -25,6 +25,7 @@ const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
   medications: 'Препараты',
   legal: 'Право',
   all: 'Все источники',
+  personal: 'Ваши данные',
 };
 
 function formatDate(value: string): string {

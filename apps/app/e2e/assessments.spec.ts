@@ -24,6 +24,7 @@ test('completes a psychology questionnaire and writes the result to a patient no
     await expect(page.getByText('Раздел опросников скачан на устройство.')).toBeVisible();
   }
   await page.getByTestId('assessment-open-braverman-behavioral-profile').click();
+  await expect(page).toHaveURL(/#\/assessments\/psychology\/braverman-behavioral-profile$/u);
   await expect(
     page.getByRole('heading', { name: 'Тест Бравермана — поведенческий профиль' }),
   ).toBeVisible();

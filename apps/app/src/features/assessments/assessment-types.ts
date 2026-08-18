@@ -38,6 +38,14 @@ export interface AssessmentLicense {
   readonly sourceUrl?: string;
 }
 
+export interface AssessmentInterpretationBand {
+  readonly minScore: number;
+  readonly maxScore: number;
+  readonly scaleId?: string;
+  readonly headline: string;
+  readonly message: string;
+}
+
 export interface AssessmentDefinition {
   readonly id: string;
   readonly slug: string;
@@ -55,6 +63,7 @@ export interface AssessmentDefinition {
   readonly questions: readonly AssessmentQuestion[];
   readonly disclaimer: string;
   readonly evidenceNote: string;
+  readonly interpretations?: readonly AssessmentInterpretationBand[];
   readonly license: AssessmentLicense;
   readonly sourceLinks?: readonly ToolSourceLink[];
 }

@@ -1,0 +1,40 @@
+/* Phone is the default. Tablet is the widest layout; larger viewports keep that cap and center.
+   --bp-tablet is a documentation token only; @media cannot read custom properties. */
+:root {
+  --bp-tablet: 760px;
+  --layout-cols: 1;
+  --layout-gap: 0.25rem;
+  --page-measure: 65ch;
+  --page-board-width: 65ch;
+  --page-content-width: var(--page-board-width);
+}
+
+@media (min-width: 760px) {
+  :root {
+    --layout-cols: 2;
+    --layout-gap: 0.5rem;
+    --page-board-width: min(100% - 2rem, 72rem);
+    --page-inline-padding: clamp(0.875rem, 3vw, 1.5rem);
+  }
+}
+
+.layout-card-grid {
+  display: grid;
+  align-items: stretch;
+  grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
+  gap: var(--layout-gap);
+}
+
+.layout-card-row__gap {
+  height: var(--layout-gap);
+}
+
+.layout-page-measure {
+  width: min(100%, var(--page-measure));
+  max-width: var(--page-measure);
+}
+
+.layout-page-board {
+  width: min(100%, var(--page-board-width));
+  max-width: var(--page-board-width);
+}

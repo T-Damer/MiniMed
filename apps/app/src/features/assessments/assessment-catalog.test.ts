@@ -1,15 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   ASSESSMENT_CATALOG,
+  clearDownloadedAssessments,
+  getAssessmentCatalog,
   loadAssessmentDefinition,
+  registerDownloadedAssessment,
   searchAssessments,
 } from '@/features/assessments/assessment-catalog';
+import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
 
-const CATALOG_SIZE = 9;
-// Clinical scoring instruments (Apgar, EPDS, Ferriman-Gallwey, Whooley) are much shorter than the
-// project's original Likert-style personality batteries, so the question-count floor only applies
-// to the latter.
 const LIKERT_BATTERY_SLUGS = new Set([
   'braverman-behavioral-profile',
   'personal-egogram',
@@ -18,17 +18,31 @@ const LIKERT_BATTERY_SLUGS = new Set([
   'temperament-profile',
 ]);
 
+function registerPsychologyAssessments(): void {
+  for (const record of loadToolModuleRecords(['content/tool-modules/psychology.json'])) {
+    if (record.kind === 'assessment') registerDownloadedAssessment(record);
+  }
+}
+
+afterEach(() => {
+  clearDownloadedAssessments();
+});
+
 describe('assessment catalog', () => {
-  it('contains lightweight, uniquely identified catalog entries', () => {
-    expect(ASSESSMENT_CATALOG).toHaveLength(CATALOG_SIZE);
-    expect(new Set(ASSESSMENT_CATALOG.map((item) => item.id)).size).toBe(CATALOG_SIZE);
-    expect(new Set(ASSESSMENT_CATALOG.map((item) => item.slug)).size).toBe(CATALOG_SIZE);
-    expect(ASSESSMENT_CATALOG.every((item) => item.aliases.length > 0)).toBe(true);
+  it('starts empty and fills from downloaded tool modules', () => {
+    expect(ASSESSMENT_CATALOG).toHaveLength(0);
+    registerPsychologyAssessments();
+    const catalog = getAssessmentCatalog();
+    expect(catalog).toHaveLength(5);
+    expect(new Set(catalog.map((item) => item.id)).size).toBe(5);
+    expect(catalog.every((item) => item.aliases.length > 0)).toBe(true);
   });
 
-  it('loads complete definitions lazily and validates their identifiers', async () => {
+  it('loads complete definitions from downloaded modules and validates identifiers', async () => {
+    registerPsychologyAssessments();
+    const catalog = getAssessmentCatalog();
     const definitions = await Promise.all(
-      ASSESSMENT_CATALOG.map((entry) => loadAssessmentDefinition(entry.id)),
+      catalog.map((entry) => loadAssessmentDefinition(entry.id)),
     );
 
     for (const assessment of definitions) {
@@ -48,6 +62,7 @@ describe('assessment catalog', () => {
   });
 
   it('finds instruments by common names and aliases', () => {
+    registerPsychologyAssessments();
     expect(searchAssessments('Белбин')[0]?.slug).toBe('team-role-profile');
     expect(searchAssessments('нейромедиаторный профиль')[0]?.slug).toBe(
       'braverman-behavioral-profile',
@@ -56,8 +71,9 @@ describe('assessment catalog', () => {
   });
 
   it('attributes established instruments without branding them as MiniMed inventions', async () => {
+    registerPsychologyAssessments();
     const definitions = await Promise.all(
-      ASSESSMENT_CATALOG.map((entry) => loadAssessmentDefinition(entry.id)),
+      getAssessmentCatalog().map((entry) => loadAssessmentDefinition(entry.id)),
     );
     const egogram = definitions.find((definition) => definition.slug === 'personal-egogram');
     expect(egogram?.description).not.toContain('Авторский');

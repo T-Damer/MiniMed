@@ -17,8 +17,17 @@ import {
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
 import { type SearchEnhancementState, SearchWorkspace } from '@/features/search/SearchWorkspace';
+import {
+  getRememberSearchMode,
+  loadSearchScope,
+  saveSearchScope,
+  subscribeAppPreferences,
+} from '@/state/app-preferences';
+import { type AppUpdateProgress, formatAppUpdateLabel } from '@/state/app-update';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+import { loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
+import { USER_LIBRARY_EVENT, userLibrarySearchableCount } from '@/state/user-library';
 
 interface SearchHomeProps {
   readonly baseCore: MedicalCore;
@@ -29,6 +38,7 @@ interface SearchHomeProps {
   readonly onOpenModelSettings: () => void;
   readonly appUpdateReady?: boolean;
   readonly appUpdating?: boolean;
+  readonly appUpdateProgress?: AppUpdateProgress;
   readonly onActivateAppUpdate?: () => void;
 }
 
@@ -70,6 +80,13 @@ const SEARCH_SCOPES: readonly SearchScopeOption[] = [
     shortLabel: 'Все источники',
     description: 'Обычный локальный поиск по всем установленным источникам без генерации.',
   },
+  {
+    id: 'personal',
+    label: 'Ваши данные',
+    shortLabel: 'Ваши данные',
+    description:
+      'Поиск только в личных заметках и загруженных книгах на этом устройстве. Не официальный источник.',
+  },
 ] as const;
 
 const AI_ASSIST_KEY = 'minimed.diagnosis-ai-assist.v1';
@@ -99,6 +116,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     medications: 0,
     legal: 0,
     all: 0,
+    personal: 0,
   });
   const [helpOpen, setHelpOpen] = createSignal(false);
   const [aiAssistEnabled, setAiAssistEnabled] = createSignal(loadAiAssistPreference());
@@ -117,6 +135,16 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   };
 
   onMount(() => {
+    if (getRememberSearchMode()) {
+      const stored = loadSearchScope();
+      if (stored) setScope(stored);
+    }
+    const unsubscribePreferences = subscribeAppPreferences((preferences) => {
+      const selected = scope();
+      if (preferences.rememberSearchMode && selected) saveSearchScope(selected);
+    });
+    onCleanup(unsubscribePreferences);
+
     const updateSearchScroll = (): void => {
       setHasSearchScroll(window.scrollY > 1);
     };
@@ -145,11 +173,26 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     };
   });
 
+  const refreshPersonalCount = (): void => {
+    void userLibrarySearchableCount()
+      .then((libraryCount) => {
+        const snapshot = loadPatientNotes();
+        const noteCorpus = snapshot.cards.length + snapshot.notes.length;
+        let personal = libraryCount + noteCorpus;
+        if (snapshot.cards.length > 0 && personal === 0) personal = 1;
+        setDocumentCounts((current) => ({ ...current, personal }));
+      })
+      .catch((cause) => {
+        console.error('Не удалось посчитать личные источники.', cause);
+      });
+  };
+
   const refreshDocumentCounts = (): void => {
     void props.baseCore.listDocuments().then((result) => {
       if (result.ok) {
         const all = result.value.length;
-        setDocumentCounts({
+        setDocumentCounts((current) => ({
+          ...current,
           diagnosis: all,
           all,
           guidelines: result.value.filter((document) =>
@@ -160,17 +203,25 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           ).length,
           legal: result.value.filter((document) => documentMatchesSearchScope(document, 'legal'))
             .length,
-        });
+        }));
       }
       setDocumentCountsLoaded(true);
+      refreshPersonalCount();
     });
   };
 
   onMount(() => {
     refreshDocumentCounts();
+    refreshPersonalCount();
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts);
+    window.addEventListener(USER_LIBRARY_EVENT, refreshPersonalCount);
+    window.addEventListener(PATIENT_NOTES_EVENT, refreshPersonalCount);
   });
-  onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts));
+  onCleanup(() => {
+    window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts);
+    window.removeEventListener(USER_LIBRARY_EVENT, refreshPersonalCount);
+    window.removeEventListener(PATIENT_NOTES_EVENT, refreshPersonalCount);
+  });
 
   const scopedCore = createMemo(() => {
     const selected = scope();
@@ -179,11 +230,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
   const selectedScopeUnavailable = createMemo(() => {
     const selected = scope();
+    if (selected === 'personal') return false;
     return Boolean(selected && documentCountsLoaded() && documentCounts()[selected] === 0);
   });
 
   const selectScope = (next: SearchScope): void => {
     setScope(next);
+    if (getRememberSearchMode()) saveSearchScope(next);
   };
 
   const replayHistory = (entry: SearchHistoryEntry): void => {
@@ -212,7 +265,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             onClick={props.onActivateAppUpdate}
           >
             <AppGlyph name="refresh" class="search-update-status__icon" />
-            <span>{props.appUpdating ? 'Проверка…' : 'Обновить'}</span>
+            <span>{formatAppUpdateLabel(Boolean(props.appUpdating), props.appUpdateProgress)}</span>
           </button>
         </Show>
         <button

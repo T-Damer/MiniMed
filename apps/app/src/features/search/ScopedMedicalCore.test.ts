@@ -257,6 +257,17 @@ describe('ScopedMedicalCore', () => {
     ]);
   });
 
+  it('returns no official documents for the personal scope', async () => {
+    const base = coreWithDocuments(documents);
+    const scoped = new ScopedMedicalCore(base.core, undefined, 'personal');
+
+    await scoped.search(request());
+
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
+      '__minimed_empty_search_scope__',
+    ]);
+  });
+
   it('includes regulatory source cards and full acts in legal search', async () => {
     const base = coreWithDocuments(documents);
     const scoped = new ScopedMedicalCore(base.core, undefined, 'legal');

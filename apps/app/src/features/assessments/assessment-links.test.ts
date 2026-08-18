@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
+import { registerDownloadedAssessment } from '@/features/assessments/assessment-catalog';
 import { segmentTextWithAssessmentLinks } from '@/features/assessments/assessment-links';
+import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
+
+beforeAll(() => {
+  for (const record of loadToolModuleRecords(['content/tool-modules/psychology.json'])) {
+    if (record.kind === 'assessment') registerDownloadedAssessment(record);
+  }
+});
 
 describe('assessment document links', () => {
   it('links common questionnaire names without changing surrounding text', () => {

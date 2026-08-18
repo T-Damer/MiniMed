@@ -12,7 +12,8 @@ export type CalculatorCategory =
   | 'emergency'
   | 'cardiology'
   | 'gastroenterology'
-  | 'hematology';
+  | 'hematology'
+  | 'neonatology';
 
 export interface CalculatorSourceReference {
   readonly title: string;

@@ -2,6 +2,7 @@ import type {
   ContentModuleCatalogEntry,
   ContentModuleCategory,
   ContentModuleDownloadTask,
+  InstalledContentModule,
 } from '@localmed/contracts';
 
 export function modulesInCategory(
@@ -18,23 +19,67 @@ export interface RecommendationCategoryStats {
   readonly installedCount: number;
   readonly pendingCount: number;
   readonly downloadBytes: number;
+  readonly installedBytes: number;
+}
+
+export interface ModuleCollectionStats {
+  readonly moduleCount: number;
+  readonly installedCount: number;
+  readonly downloadBytes: number;
+  readonly installedBytes: number;
+}
+
+function sumCatalogDownloadBytes(modules: readonly ContentModuleCatalogEntry[]): number {
+  return modules.reduce((sum, module) => sum + (module.sizes.downloadBytes ?? 0), 0);
+}
+
+function sumInstalledModuleBytes(
+  modules: readonly ContentModuleCatalogEntry[],
+  installedById: ReadonlyMap<string, InstalledContentModule>,
+): number {
+  return modules.reduce((sum, module) => {
+    if (!installedById.has(module.id)) return sum;
+    const installedBytes = installedById.get(module.id)?.installedSizeBytes;
+    if (installedBytes !== null && installedBytes !== undefined) return sum + installedBytes;
+    if (module.sizes.installedBytes !== null) return sum + module.sizes.installedBytes;
+    return sum;
+  }, 0);
+}
+
+export function moduleCollectionStats(
+  modules: readonly ContentModuleCatalogEntry[],
+  installedById: ReadonlyMap<string, InstalledContentModule>,
+  options?: { readonly publishedOnly?: boolean },
+): ModuleCollectionStats {
+  const scoped = options?.publishedOnly
+    ? modules.filter((module) => module.releaseState === 'published')
+    : modules;
+  const installedCount = scoped.filter((module) => installedById.has(module.id)).length;
+
+  return {
+    moduleCount: scoped.length,
+    installedCount,
+    downloadBytes: sumCatalogDownloadBytes(scoped),
+    installedBytes: sumInstalledModuleBytes(scoped, installedById),
+  };
 }
 
 export function recommendationCategoryStats(
   modules: readonly ContentModuleCatalogEntry[],
   category: ContentModuleCategory,
-  installedModuleIds: ReadonlySet<string>,
+  installedById: ReadonlyMap<string, InstalledContentModule>,
 ): RecommendationCategoryStats {
   const published = modulesInCategory(modules, category.id).filter(
     (module) => module.releaseState === 'published',
   );
-  const installedCount = published.filter((module) => installedModuleIds.has(module.id)).length;
+  const stats = moduleCollectionStats(published, installedById);
 
   return {
-    publishedCount: published.length,
-    installedCount,
-    pendingCount: published.length - installedCount,
-    downloadBytes: published.reduce((sum, module) => sum + (module.sizes.downloadBytes ?? 0), 0),
+    publishedCount: stats.moduleCount,
+    installedCount: stats.installedCount,
+    pendingCount: stats.moduleCount - stats.installedCount,
+    downloadBytes: stats.downloadBytes,
+    installedBytes: stats.installedBytes,
   };
 }
 

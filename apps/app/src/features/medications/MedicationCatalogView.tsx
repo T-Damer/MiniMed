@@ -10,13 +10,14 @@ import {
   Show,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
-import { WindowVirtualizer } from 'virtua/solid';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
 import { DocumentText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { stripKnownHtmlMarkupInline } from '@/components/html-markup';
+import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
+import { NavBack } from '@/components/NavBack';
 import { SearchField } from '@/components/SearchField';
 import {
   displayDocumentSubtitle,
@@ -31,6 +32,10 @@ import {
   shouldHideMedicationCatalog,
   shouldPreserveMedicationCatalog,
 } from '@/features/medications/medication-loading';
+import {
+  medicationSearchText,
+  rankMedicationCatalog,
+} from '@/features/medications/medication-catalog-search';
 import {
   type MedicationProduct,
   medicationDocumentRegistration,
@@ -72,25 +77,6 @@ function packageTitle(description: string): string {
 
 function normalizeSearch(value: string): string {
   return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
-}
-
-function medicationSearchText(product: MedicationProduct): string {
-  return [
-    product.tradeName,
-    product.inn,
-    product.registrationNumber,
-    product.registrationStatus,
-    product.prescriptionStatus ?? '',
-    product.holder ?? '',
-    product.manufacturer ?? '',
-    ...product.pharmacotherapeuticGroups,
-    ...product.presentations.flatMap((presentation) => [
-      presentation.dosageForm,
-      presentation.strength ?? '',
-      presentation.route ?? '',
-      ...presentation.packages.flatMap((item) => [item.description, item.prescriptionStatus ?? '']),
-    ]),
-  ].join(' ');
 }
 
 // Allmed source markdown always opens with a "Карточка препарата" section whose body is just the
@@ -521,15 +507,12 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   return (
     <section ref={medicationPageRoot} class="medication-page">
       <div class="medication-page__sticky-blur masked-backdrop-blur" aria-hidden="true" />
-      <div class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading">
-        <button
-          type="button"
+      <div class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading route-sticky-chrome">
+        <NavBack
           class="knowledge-back-button knowledge-subroute-heading__control"
           aria-label="Назад"
           onClick={back}
-        >
-          <AppGlyph name="arrow-left" />
-        </button>
+        />
         <Show when={selectedRegistration()}>
           <h1 class="medication-route-heading__title knowledge-subroute-heading__control">
             {selectedProduct()?.tradeName}
@@ -584,7 +567,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
             )}
           </Show>
           <div class="medication-grid">
-            <WindowVirtualizer data={visibleProducts()} bufferSize={500}>
+            <LayoutVirtualizedGrid data={visibleProducts()} bufferSize={500}>
               {(product) => {
                 const variants = () => productVariants(product);
                 const description = () =>
@@ -607,7 +590,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                   </button>
                 );
               }}
-            </WindowVirtualizer>
+            </LayoutVirtualizedGrid>
           </div>
         </section>
       </Show>

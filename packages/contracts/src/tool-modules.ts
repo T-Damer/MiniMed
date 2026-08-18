@@ -40,6 +40,17 @@ export const AssessmentDefinitionSchema = z.object({
   ),
   disclaimer: z.string().min(1),
   evidenceNote: z.string().min(1),
+  interpretations: z
+    .array(
+      z.object({
+        minScore: z.number(),
+        maxScore: z.number(),
+        scaleId: z.string().min(1).optional(),
+        headline: z.string().min(1),
+        message: z.string().min(1),
+      }),
+    )
+    .optional(),
   license: z.object({
     kind: z.enum(['project-original', 'public-domain-derived', 'third-party-attributed']),
     notice: z.string().min(1),

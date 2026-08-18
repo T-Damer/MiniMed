@@ -70,7 +70,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('button', { name: /^Документы/u }).click();
   await regulatorySection(page).click();
 
   const card = regulatoryCard(page);
@@ -94,7 +93,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await navigationButton(page, 'База знаний').click();
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('button', { name: /^Документы/u }).click();
   await regulatorySection(page).click();
   await card.getByRole('button', { name: /^Удалить/u }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Удалить', exact: true }).click();
@@ -146,7 +144,6 @@ test('shows the real download state and resumes automatically when the network r
 
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'База знаний').click();
-  await page.getByRole('button', { name: /^Документы/u }).click();
   await regulatorySection(page).click();
 
   await context.setOffline(true);

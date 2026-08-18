@@ -2,6 +2,7 @@ import type { ContentModuleCatalog } from '@localmed/contracts';
 import {
   type ContentModuleCatalogCacheRecord,
   type ContentModuleCatalogResponse,
+  catalogLoadWarningFromCause,
   loadContentModuleCatalog,
 } from '@localmed/core';
 import { describe, expect, it, vi } from 'vitest';
@@ -90,6 +91,25 @@ function cache(initial: ContentModuleCatalogCacheRecord | null = null) {
 }
 
 const now = () => '2026-07-21T12:00:00Z';
+
+describe('catalogLoadWarningFromCause', () => {
+  it('hides Zod validation details behind a short Russian warning', () => {
+    expect(
+      catalogLoadWarningFromCause({
+        name: 'ZodError',
+        issues: [{ code: 'invalid_enum_value', path: ['modules', 0, 'kind'], message: 'Invalid' }],
+      }),
+    ).toBe('Удалённый каталог не прошёл проверку; используется встроенный.');
+
+    expect(
+      catalogLoadWarningFromCause(
+        new Error(
+          '[{"code":"invalid_enum_value","path":["modules",0,"kind"],"message":"Invalid enum value"}]',
+        ),
+      ),
+    ).toBe('Удалённый каталог не прошёл проверку; используется встроенный.');
+  });
+});
 
 describe('loadContentModuleCatalog', () => {
   it('keeps bundled catalog without warning when remote metadata matches bundled', async () => {

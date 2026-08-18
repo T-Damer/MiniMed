@@ -61433,7 +61433,7 @@
     },
     {
       "id": "minimed.tools.gastroenterology.ru",
-      "version": "0.1.0-preview.1",
+      "version": "0.1.0-preview.2",
       "kind": "tool",
       "collection": "tool",
       "title": "Инструменты гастроэнтерологии",
@@ -61445,7 +61445,8 @@
         "pediatrics"
       ],
       "populations": [
-        "Дети"
+        "Дети",
+        "Взрослые"
       ],
       "tags": [
         "tool-pack",
@@ -61459,7 +61460,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:ea41e8b71f8af2b98f164b42b08cc02c4bab47ebdb652da1c909d17d3bb5cdb3",
+      "sourceSetDigest": "sha256:18c921866fb511c678b4ec2675ddb3547f0d4350aa8f439c36a4035738d15e08",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61468,8 +61469,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 319488,
-        "installedBytes": 319488,
+        "downloadBytes": 344064,
+        "installedBytes": 344064,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -61484,14 +61485,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.gastroenterology.ru-index-0.1.0-preview.1",
+          "id": "minimed.tools.gastroenterology.ru-index-0.1.0-preview.2",
           "kind": "index",
           "required": true,
-          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-gastroenterology-0.1.0-preview.1.db",
-          "sha256": "sha256:11bfc91a90c321c5ab449d900bbc2496a032857d865fae289cc2eadb042e72e6",
-          "sizeBytes": 319488,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-gastroenterology-0.1.0-preview.2.db",
+          "sha256": "sha256:f2f2469aaa098cdddf0ad7d8821938a231be662a990f90dfae0417df3b2d2936",
+          "sizeBytes": 344064,
           "compression": "none",
-          "sourceSetDigest": "sha256:ea41e8b71f8af2b98f164b42b08cc02c4bab47ebdb652da1c909d17d3bb5cdb3"
+          "sourceSetDigest": "sha256:18c921866fb511c678b4ec2675ddb3547f0d4350aa8f439c36a4035738d15e08"
         }
       ],
       "documents": [],
@@ -61500,11 +61501,11 @@
         "assessment",
         "calculator"
       ],
-      "toolCount": 3
+      "toolCount": 6
     },
     {
       "id": "minimed.tools.neonatology.ru",
-      "version": "0.1.0-preview.1",
+      "version": "0.1.0-preview.2",
       "kind": "tool",
       "collection": "tool",
       "title": "Инструменты неонатологии",
@@ -61532,7 +61533,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:ac63856025ccbd80c5ab6d75036953fe2c587ffeb89d0919bc9dc53e0ebe1f2c",
+      "sourceSetDigest": "sha256:93f1b25a01647f2322a461ee84052f809bb799f9bee474a5731d018766a88151",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61541,8 +61542,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 364544,
-        "installedBytes": 364544,
+        "downloadBytes": 368640,
+        "installedBytes": 368640,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -61557,14 +61558,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.neonatology.ru-index-0.1.0-preview.1",
+          "id": "minimed.tools.neonatology.ru-index-0.1.0-preview.2",
           "kind": "index",
           "required": true,
-          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-neonatology-0.1.0-preview.1.db",
-          "sha256": "sha256:97e381d4a0825005624de56fa2d8588745ee19c5a70a8953c9660f2a831775ce",
-          "sizeBytes": 364544,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-neonatology-0.1.0-preview.2.db",
+          "sha256": "sha256:7da8d07240b4ad1d25da72163dd38855b419d8dc452121570f6f566a39a960d4",
+          "sizeBytes": 368640,
           "compression": "none",
-          "sourceSetDigest": "sha256:ac63856025ccbd80c5ab6d75036953fe2c587ffeb89d0919bc9dc53e0ebe1f2c"
+          "sourceSetDigest": "sha256:93f1b25a01647f2322a461ee84052f809bb799f9bee474a5731d018766a88151"
         }
       ],
       "documents": [],
@@ -61577,7 +61578,7 @@
     },
     {
       "id": "minimed.tools.core-clinical.ru",
-      "version": "0.1.0-preview.1",
+      "version": "0.1.0-preview.2",
       "kind": "tool",
       "collection": "tool",
       "title": "Базовые клинические расчёты",
@@ -61610,7 +61611,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:3f31fb84112177311269afeb59ff29f0ae701b222bea887262bc7aeae86fe47a",
+      "sourceSetDigest": "sha256:81ad0527fbc6e785cd7688894d6d6951c09fdb8714cb0262058c2dd732e0204f",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61619,8 +61620,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 376832,
-        "installedBytes": 376832,
+        "downloadBytes": 417792,
+        "installedBytes": 417792,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -61635,14 +61636,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.core-clinical.ru-index-0.1.0-preview.1",
+          "id": "minimed.tools.core-clinical.ru-index-0.1.0-preview.2",
           "kind": "index",
           "required": true,
-          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-core-clinical-0.1.0-preview.1.db",
-          "sha256": "sha256:21890fb21babde61d76e114cd6eb00bccc1f31aef64a98e97c6f18b769a692d4",
-          "sizeBytes": 376832,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-core-clinical-0.1.0-preview.2.db",
+          "sha256": "sha256:4829158b72ddaebcefa3379371f1bd135f5b3d734f4c7d04927a644b0d0948f1",
+          "sizeBytes": 417792,
           "compression": "none",
-          "sourceSetDigest": "sha256:3f31fb84112177311269afeb59ff29f0ae701b222bea887262bc7aeae86fe47a"
+          "sourceSetDigest": "sha256:81ad0527fbc6e785cd7688894d6d6951c09fdb8714cb0262058c2dd732e0204f"
         }
       ],
       "documents": [],
@@ -61650,7 +61651,291 @@
       "toolKinds": [
         "calculator"
       ],
-      "toolCount": 17
+      "toolCount": 22
+    },
+    {
+      "id": "minimed.tools.pediatrics.ru",
+      "version": "0.1.0-preview.1",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Инструменты педиатрии",
+      "description": "Скачиваемый пакет педиатрических опросников и калькуляторов с привязками к литературе.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "pediatrics",
+        "neonatology"
+      ],
+      "populations": [
+        "Дети",
+        "Новорожденные"
+      ],
+      "tags": [
+        "tool-pack",
+        "assessment",
+        "calculator",
+        "pediatrics"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:ef8a746fdd99af8d32ae9a346557c92a58890a1378563eb4421cdb25597a6b39",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 315392,
+        "installedBytes": 315392,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      },
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "artifacts": [
+        {
+          "id": "minimed.tools.pediatrics.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-pediatrics-0.1.0-preview.1.db",
+          "sha256": "sha256:94e0fb71719dafb447ea32f6b67fc98b7ce7d233a9267563f60eb99c096ef160",
+          "sizeBytes": 315392,
+          "compression": "none",
+          "sourceSetDigest": "sha256:ef8a746fdd99af8d32ae9a346557c92a58890a1378563eb4421cdb25597a6b39"
+        }
+      ],
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "assessment",
+        "calculator"
+      ],
+      "toolCount": 2
+    },
+    {
+      "id": "minimed.tools.emergency.ru",
+      "version": "0.1.0-preview.1",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Инструменты неотложной помощи",
+      "description": "Скачиваемый пакет шкал и расчётов для неотложной помощи с привязками к литературе.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "emergency"
+      ],
+      "populations": [
+        "Взрослые",
+        "Дети"
+      ],
+      "tags": [
+        "tool-pack",
+        "assessment",
+        "calculator",
+        "emergency"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:2440fef35905adec1069a2cf6e1f17c39f282bf826b70e73c3cc76f57f81b842",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 323584,
+        "installedBytes": 323584,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      },
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "artifacts": [
+        {
+          "id": "minimed.tools.emergency.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-emergency-0.1.0-preview.1.db",
+          "sha256": "sha256:e4cea6e028d51864f6ce5078f11e79550ce9fd157a0107a328af3e4dcf18f77c",
+          "sizeBytes": 323584,
+          "compression": "none",
+          "sourceSetDigest": "sha256:2440fef35905adec1069a2cf6e1f17c39f282bf826b70e73c3cc76f57f81b842"
+        }
+      ],
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "assessment",
+        "calculator"
+      ],
+      "toolCount": 3
+    },
+    {
+      "id": "minimed.tools.obstetrics-gynecology.ru",
+      "version": "0.1.0-preview.2",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Инструменты акушерства и гинекологии",
+      "description": "Скачиваемый пакет акушерских и гинекологических калькуляторов и опросников с привязками к литературе.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "obstetrics",
+        "gynecology"
+      ],
+      "populations": [
+        "Взрослые",
+        "Дети"
+      ],
+      "tags": [
+        "tool-pack",
+        "assessment",
+        "calculator",
+        "obstetrics",
+        "gynecology"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:2f6453041e481389d14ee76da1630b59d61948695cfbb4bbbaca77e8f77e093d",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "assessment",
+        "calculator"
+      ],
+      "toolCount": 21,
+      "artifacts": [
+        {
+          "id": "minimed.tools.obstetrics-gynecology.ru-index-0.1.0-preview.2",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-obstetrics-gynecology-0.1.0-preview.2.db",
+          "sha256": "sha256:bc8c7956b074ab36a2b11be7af45df12a40deea348487cc56566affe665192d6",
+          "sizeBytes": 430080,
+          "compression": "none",
+          "sourceSetDigest": "sha256:2f6453041e481389d14ee76da1630b59d61948695cfbb4bbbaca77e8f77e093d"
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 430080,
+        "installedBytes": 430080,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "minimed.tools.psychology.ru",
+      "version": "0.1.0-preview.1",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Инструменты психологии и психодиагностики",
+      "description": "Скачиваемый пакет психологических опросников для саморефлексии, рабочего стиля и командных ролей.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "psychology"
+      ],
+      "populations": [
+        "Взрослые"
+      ],
+      "tags": [
+        "tool-pack",
+        "assessment",
+        "psychology"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:f9acb539bc5c38bec811f2456622e40d6ad802e339c0eddc1c7a2fdbc0183afe",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "assessment"
+      ],
+      "toolCount": 5,
+      "artifacts": [
+        {
+          "id": "minimed.tools.psychology.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-psychology-0.1.0-preview.1.db",
+          "sha256": "sha256:b3f3f19102d6399bad0528f9c15f93133654e5e5fa2aab379e2717f5144d3848",
+          "sizeBytes": 356352,
+          "compression": "none",
+          "sourceSetDigest": "sha256:f9acb539bc5c38bec811f2456622e40d6ad802e339c0eddc1c7a2fdbc0183afe"
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 356352,
+        "installedBytes": 356352,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      }
     }
   ]
 }

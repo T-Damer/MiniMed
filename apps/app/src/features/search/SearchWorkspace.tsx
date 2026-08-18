@@ -18,13 +18,15 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-import { WindowVirtualizer } from 'virtua/solid';
+import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
 import { DocumentText } from '@/components/DocumentText';
 import { HighlightedText } from '@/components/HighlightedText';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
+import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
@@ -94,6 +96,11 @@ const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
     'Внебольничная пневмония у детей',
     'Цефтриаксон: официальная инструкция',
     'Порядок оказания медицинской помощи',
+  ],
+  personal: [
+    'Напоминание о контрольном осмотре',
+    'Мои записи о пневмонии',
+    'Загруженная книга: лечение отита',
   ],
 };
 
@@ -613,6 +620,37 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     ? 'Обновляем разбор…'
                     : `Распознано ${analysis().facts.length} полей · показать детали`}
                 </summary>
+                <Show when={response()}>
+                  {(searchResponse) => (
+                    <div
+                      class="result-summary result-summary--analysis"
+                      classList={{ 'results-refreshing': loading() }}
+                    >
+                      <div class="result-summary__cell">
+                        <span class="result-summary__label">РЕЗУЛЬТАТЫ</span>
+                        <strong class="result-summary__value">{resultCount()} фрагментов</strong>
+                      </div>
+                      <div class="result-summary__cell">
+                        <span class="result-summary__label">ДОКУМЕНТЫ</span>
+                        <strong class="result-summary__value">
+                          {searchResponse().groups.length}
+                        </strong>
+                      </div>
+                      <div class="result-summary__cell">
+                        <span class="result-summary__label">ВРЕМЯ</span>
+                        <strong class="result-summary__value">
+                          {searchResponse().elapsedMs.toFixed(1)} мс
+                        </strong>
+                      </div>
+                      <div class="result-summary__cell">
+                        <span class="result-summary__label">РЕЖИМ</span>
+                        <strong class="result-summary__value" data-testid="search-mode">
+                          {SEARCH_MODE_LABELS[searchResponse().modeUsed]}
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+                </Show>
                 <div class="fact-strip">
                   <Show when={analysis().intent}>
                     {(intent) => (
@@ -671,7 +709,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           />
         </Show>
 
-        <Show when={loading() && !response()}>
+        <Show when={loading() && !response() && props.scope !== 'personal'}>
           <div class="search-results-skeleton" role="status" aria-label="Loading search results">
             <For each={[0, 1, 2]}>
               {() => (
@@ -701,114 +739,92 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
 
         <Show when={response()}>
-          {(searchResponse) => (
+          {(_searchResponse) => (
             <>
-              <Show when={loading()}>
+              <Show when={loading() && props.scope !== 'personal'}>
                 <div class="results-refreshing-note" role="status">
                   Обновляем результаты по установленным документам…
                 </div>
               </Show>
-              <div class="result-summary" classList={{ 'results-refreshing': loading() }}>
-                <div>
-                  <span>РЕЗУЛЬТАТЫ</span>
-                  <strong>{resultCount()} фрагментов</strong>
-                </div>
-                <div>
-                  <span>ДОКУМЕНТЫ</span>
-                  <strong>{searchResponse().groups.length}</strong>
-                </div>
-                <div>
-                  <span>ВРЕМЯ</span>
-                  <strong>{searchResponse().elapsedMs.toFixed(1)} мс</strong>
-                </div>
-                <div>
-                  <span>РЕЖИМ</span>
-                  <strong data-testid="search-mode">
-                    {SEARCH_MODE_LABELS[searchResponse().modeUsed]}
-                  </strong>
-                </div>
-              </div>
 
-              <PersonalNoteMatches query={query()} />
+              <PersonalNoteMatches query={query()} scope={props.scope} />
 
-              <div
-                class="results-list"
-                classList={{ 'results-refreshing': loading() }}
-                data-testid="search-results"
-              >
-                <WindowVirtualizer data={visibleGroups()} bufferSize={400}>
-                  {(group, groupIndex) => {
-                    return (
+              <Show when={props.scope !== 'personal'}>
+                <div
+                  class="results-list"
+                  classList={{ 'results-refreshing': loading() }}
+                  data-testid="search-results"
+                >
+                  <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
+                    {(group, groupIndex) => (
                       <section class="result-group">
-                        <div class="result-group-header">
-                          <div class="result-group-header-button">
-                            <span class="file-number">
-                              {String(groupIndex() + 1).padStart(2, '0')}
+                        <button
+                          type="button"
+                          class="result-group-header"
+                          onClick={() => openDocumentInArchive(group.documentId)}
+                        >
+                          <span class="result-group-header__index" aria-hidden="true">
+                            {String(groupIndex + 1).padStart(2, '0')}
+                          </span>
+                          <span class="result-group-header__body">
+                            <strong class="result-group-header__title">{group.title}</strong>
+                            <span class="result-group-header__note result-minimal-note">
+                              {group.results[0]?.sectionPath.join(' / ') ?? 'Релевантный источник'}
                             </span>
-                            <div>
-                              <small>
-                                <AppGlyph name="book-open" /> ИСТОЧНИК
-                              </small>
-                              <strong>{group.title}</strong>
-                              <p class="result-minimal-note">
-                                {group.results[0]?.sectionPath.join(' / ') ??
-                                  'Релевантный источник'}
-                              </p>
-                            </div>
-                            <span class="group-count">{group.results.length} совп.</span>
-                          </div>
-                        </div>
-                        <For each={group.results}>
-                          {(result, resultIndex) => {
-                            const visual = CATEGORY_VISUALS[result.category];
-                            const pathSuffix = supplementalSectionPath(
-                              result.category,
-                              result.sectionPath,
-                            );
-                            return (
-                              <article
-                                class="result-card"
-                                classList={{ selected: context()?.focusChunkId === result.chunkId }}
-                              >
-                                <button
-                                  class="result-open"
-                                  type="button"
-                                  data-testid="search-result"
-                                  onClick={() => void openResult(result)}
+                          </span>
+                        </button>
+                        <div class="result-group__snippets">
+                          <For each={group.results}>
+                            {(result) => {
+                              const visual = CATEGORY_VISUALS[result.category];
+                              const pathSuffix = supplementalSectionPath(
+                                result.category,
+                                result.sectionPath,
+                              );
+                              return (
+                                <article
+                                  class="result-card"
+                                  classList={{
+                                    selected: context()?.focusChunkId === result.chunkId,
+                                  }}
                                 >
-                                  <span class="result-number" aria-hidden="true">
-                                    {String(resultIndex() + 1).padStart(2, '0')}
-                                  </span>
-                                  <span class="result-category-line">
-                                    <span
-                                      class={`result-category-icon tone-${visual.tone}`}
-                                      aria-hidden="true"
-                                    >
-                                      <ClinicalGlyph name={visual.icon} />
+                                  <button
+                                    class="result-open"
+                                    type="button"
+                                    data-testid="search-result"
+                                    onClick={() => void openResult(result)}
+                                  >
+                                    <span class="result-category-line">
+                                      <span
+                                        class={`result-category-icon tone-${visual.tone}`}
+                                        aria-hidden="true"
+                                      >
+                                        <ClinicalGlyph name={visual.icon} />
+                                      </span>
+                                      <span class={`category-stamp tone-${visual.tone}`}>
+                                        {CATEGORY_LABELS[result.category]}
+                                      </span>
+                                      <Show when={pathSuffix}>
+                                        <span class="result-path">{pathSuffix}</span>
+                                      </Show>
                                     </span>
-                                    <span class={`category-stamp tone-${visual.tone}`}>
-                                      {CATEGORY_LABELS[result.category]}
-                                    </span>
-                                    <Show when={pathSuffix}>
-                                      <span class="result-path">{pathSuffix}</span>
-                                    </Show>
-                                  </span>
-                                  <p class="result-snippet">
-                                    <HighlightedText
-                                      text={result.snippet}
-                                      ranges={result.highlightedRanges}
-                                    />
-                                  </p>
-                                </button>
-                              </article>
-                            );
-                          }}
-                        </For>
+                                    <p class="result-snippet">
+                                      <HighlightedText
+                                        text={result.snippet}
+                                        ranges={result.highlightedRanges}
+                                      />
+                                    </p>
+                                  </button>
+                                </article>
+                              );
+                            }}
+                          </For>
+                        </div>
                       </section>
-                    );
-                  }}
-                </WindowVirtualizer>
-              </div>
+                    )}
+                  </LayoutVirtualizedGrid>
+                </div>
+              </Show>
               <Show when={aiRefining()}>
                 <div
                   class="search-results-skeleton search-results-skeleton--inline"
@@ -830,71 +846,84 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
       </div>
 
-      <aside
-        class="reader-column source-folder"
-        classList={{ open: Boolean(context()) }}
-        aria-live="polite"
-        aria-hidden={!context()}
-      >
-        <Show when={context()}>
-          {(resolved) => (
-            <>
-              <article class="reader-card paper-sheet" data-testid="reader-context">
-                <header class="reader-header">
-                  <div class="reader-header__content">
-                    <p class="archive-kicker">В клинических рекомендациях</p>
-                    <h2 class="reader-header__title">{resolved().document.title}</h2>
+      <Show when={context() || contextLoading()}>
+        <Portal>
+          <aside
+            class="reader-column source-folder open"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Фрагмент источника"
+            onPointerDown={(event) => {
+              if (event.target === event.currentTarget) closeContext();
+            }}
+          >
+            <Show
+              when={context()}
+              fallback={
+                <article class="reader-card paper-card">
+                  <div class="reader-empty">
+                    <p class="archive-kicker">Контекст источника</p>
+                    <h2>Открываем источник…</h2>
                   </div>
-                  <div class="reader-header__actions">
-                    <button
-                      class="reader-header__open-document"
-                      type="button"
-                      onClick={() => openDocumentInArchive(resolved().document.id)}
-                    >
-                      Открыть полный документ
-                    </button>
-                    <button
-                      class="reader-header__close"
-                      type="button"
-                      aria-label="Закрыть источник"
-                      onClick={closeContext}
-                    >
-                      <AppGlyph name="close" class="reader-header__close-icon" />
-                    </button>
-                  </div>
-                </header>
-
-                <div class="document-text">
-                  <For each={visibleContextChunks()}>
-                    {(chunk) => (
-                      <div
-                        id={chunk.anchor}
-                        class="source-paragraph"
-                        classList={{ 'focus-chunk': chunk.id === resolved().focusChunkId }}
+                </article>
+              }
+            >
+              {(resolved) => (
+                <article class="reader-card paper-card" data-testid="reader-context">
+                  <header class="reader-header">
+                    <div class="reader-header__content">
+                      <p class="archive-kicker">В клинических рекомендациях</p>
+                      <h2 class="reader-header__title">{resolved().document.title}</h2>
+                    </div>
+                    <div class="reader-header__actions">
+                      <Button
+                        class="reader-header__open-document"
+                        variant="primary"
+                        type="button"
+                        onClick={() => {
+                          closeContext();
+                          openDocumentInArchive(resolved().document.id);
+                        }}
                       >
-                        <Show when={chunk.id === resolved().focusChunkId}>
-                          <span class="margin-note">НАЙДЕНО</span>
-                        </Show>
-                        <DocumentText
-                          text={chunk.originalText}
-                          paragraphClass="document-text__paragraph"
-                          onReference={searchReference}
-                        />
-                      </div>
-                    )}
-                  </For>
-                </div>
-              </article>
-            </>
-          )}
-        </Show>
-        <Show when={!context()}>
-          <div class="reader-empty">
-            <p class="archive-kicker">Контекст источника</p>
-            <h2>{contextLoading() ? 'Открываем источник…' : 'Выберите результат'}</h2>
-          </div>
-        </Show>
-      </aside>
+                        Открыть полный документ
+                      </Button>
+                      <button
+                        class="reader-header__close"
+                        type="button"
+                        aria-label="Закрыть источник"
+                        onClick={closeContext}
+                      >
+                        <AppGlyph name="close" class="reader-header__close-icon" />
+                      </button>
+                    </div>
+                  </header>
+
+                  <div class="document-text">
+                    <For each={visibleContextChunks()}>
+                      {(chunk) => (
+                        <div
+                          id={chunk.anchor}
+                          class="source-paragraph"
+                          classList={{ 'focus-chunk': chunk.id === resolved().focusChunkId }}
+                        >
+                          <Show when={chunk.id === resolved().focusChunkId}>
+                            <span class="margin-note">НАЙДЕНО</span>
+                          </Show>
+                          <DocumentText
+                            text={chunk.originalText}
+                            paragraphClass="document-text__paragraph"
+                            onReference={searchReference}
+                          />
+                        </div>
+                      )}
+                    </For>
+                  </div>
+                </article>
+              )}
+            </Show>
+          </aside>
+        </Portal>
+      </Show>
 
       <Show when={aiRefining()}>
         <div class="ai-refine-toast" role="status" aria-live="polite">

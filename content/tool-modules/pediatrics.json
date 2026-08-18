@@ -1,0 +1,290 @@
+{
+  "id": "minimed.tools.pediatrics.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Инструменты педиатрии",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-17T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.assessment.flacc-pain-scale",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "flacc-pain-scale",
+      "title": "FLACC — шкала оценки боли у детей",
+      "shortTitle": "FLACC",
+      "aliases": [
+        "FLACC",
+        "Face Legs Activity Cry Consolability",
+        "шкала FLACC",
+        "оценка боли у детей",
+        "поведенческая шкала боли"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatric-pain",
+      "description": "Поведенческая шкала оценки боли у детей, которые не могут вербализовать боль: 5 категорий по 0–2 балла, сумма 0–10.",
+      "estimatedMinutes": 2,
+      "audience": "Дети от 2 месяцев до 7 лет и другие невербальные пациенты; заполняет медицинский персонал при наблюдении",
+      "definition": {
+        "id": "minimed.assessment.flacc-pain-scale",
+        "slug": "flacc-pain-scale",
+        "title": "FLACC — шкала оценки боли у детей",
+        "shortTitle": "FLACC",
+        "aliases": [
+          "FLACC",
+          "Face Legs Activity Cry Consolability",
+          "шкала FLACC",
+          "оценка боли у детей",
+          "поведенческая шкала боли"
+        ],
+        "bankId": "pediatrics",
+        "bankLabel": "Педиатрия",
+        "category": "pediatric-pain",
+        "description": "Поведенческая шкала оценки боли у детей, которые не могут вербализовать боль: 5 категорий по 0–2 балла, сумма 0–10.",
+        "estimatedMinutes": 2,
+        "audience": "Дети от 2 месяцев до 7 лет и другие невербальные пациенты; заполняет медицинский персонал при наблюдении",
+        "population": "Дети 2 месяца — 7 лет в послеоперационном периоде и при процедурной боли; применяется как наблюдательный инструмент у невербальных или довербальных пациентов.",
+        "limitations": [
+          "Шкала оценивает поведенческие проявления и не заменяет клиническую оценку причины боли и выбор анальгезии.",
+          "Согласованность оценщиков может быть ниже для категорий «ноги» и «активность»; при пограничных значениях нужен повторный осмотр.",
+          "Не предназначена как единственный критерий для решения о вмешательстве без учёта контекста, седации и сопутствующих состояний."
+        ],
+        "responseOptions": [
+          { "value": 0, "label": "0 баллов" },
+          { "value": 1, "label": "1 балл" },
+          { "value": 2, "label": "2 балла" }
+        ],
+        "scales": [
+          {
+            "id": "flacc-total",
+            "label": "Суммарный балл FLACC",
+            "shortLabel": "FLACC",
+            "description": "Сумма пяти поведенческих категорий; диапазон 0–10."
+          }
+        ],
+        "questions": [
+          {
+            "id": "flacc-face",
+            "prompt": "Лицо (Face)",
+            "scaleId": "flacc-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет особого выражения или улыбка" },
+              {
+                "value": 1,
+                "label": "Случайная гримаса или хмурость, отстранённость, незаинтересованность"
+              },
+              { "value": 2, "label": "Частое или постоянное дрожание подбородка, сжатая челюсть" }
+            ]
+          },
+          {
+            "id": "flacc-legs",
+            "prompt": "Ноги (Legs)",
+            "scaleId": "flacc-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нормальное положение или расслаблены" },
+              { "value": 1, "label": "Беспокойны, напряжены, не находят покоя" },
+              { "value": 2, "label": "Пинание или ноги подтянуты" }
+            ]
+          },
+          {
+            "id": "flacc-activity",
+            "prompt": "Активность (Activity)",
+            "scaleId": "flacc-total",
+            "responseOptions": [
+              { "value": 0, "label": "Лежит спокойно, нормальное положение, легко двигается" },
+              { "value": 1, "label": "Извивается, переминается, напряжён" },
+              { "value": 2, "label": "Прогибается, ригиден или дёргается" }
+            ]
+          },
+          {
+            "id": "flacc-cry",
+            "prompt": "Плач (Cry)",
+            "scaleId": "flacc-total",
+            "responseOptions": [
+              { "value": 0, "label": "Нет плача (бодрствует или спит)" },
+              { "value": 1, "label": "Стоны или всхлипы, периодические жалобы" },
+              { "value": 2, "label": "Постоянный плач, крики или рыдания, частые жалобы" }
+            ]
+          },
+          {
+            "id": "flacc-consolability",
+            "prompt": "Успокаиваемость (Consolability)",
+            "scaleId": "flacc-total",
+            "responseOptions": [
+              { "value": 0, "label": "Спокоен, расслаблен" },
+              {
+                "value": 1,
+                "label": "Успокаивается от случайных прикосновений, объятий или разговора; отвлекается"
+              },
+              { "value": 2, "label": "Трудно успокоить или утешить" }
+            ]
+          }
+        ],
+        "disclaimer": "FLACC — поведенческий инструмент оценки боли, а не самостоятельный диагноз. Интерпретацию и тактику анальгезии определяет лечащий специалист с учётом клинического контекста.",
+        "evidenceNote": "Пять категорий (лицо, ноги, активность, плач, успокаиваемость) оцениваются по 0–2 балла; сумма 0–10, где более высокий балл отражает большее поведенческое выражение дискомфорта и боли (Merkel et al., 1997). Исходная публикация не задаёт пороговые зоны «лёгкая/умеренная/тяжёлая» боль.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Шкала FLACC описана Merkel S.I. et al. (Pediatric Nursing, 1997); MiniMed использует формулировки источника без изменения методики.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/9220806/"
+        }
+      },
+      "sources": [
+        {
+          "id": "flacc-merkel-1997",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "The FLACC: a behavioral scale for scoring postoperative pain in young children",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9220806/",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "flacc-voepel-lewis-2003",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Clinical validation of FLACC: preverbal patient pain scale",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12723828/",
+          "reviewedAt": "2026-08-17"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.preterm-corrected-age",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "preterm-corrected-age",
+      "title": "Корригированный возраст недоношенного",
+      "shortTitle": "Корр. возраст",
+      "aliases": [
+        "скорректированный возраст",
+        "adjusted age",
+        "corrected age",
+        "возраст недоношенного",
+        "коррекция на недоношенность"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "neonatology",
+      "description": "Расчёт корригированного (скорректированного) возраста недоношенного ребёнка по гестационному и хронологическому возрасту в неделях.",
+      "estimatedMinutes": 1,
+      "audience": "Недоношенные дети; используется медицинским специалистом при оценке развития и роста",
+      "definition": {
+        "schemaVersion": 1,
+        "id": "minimed.calculator.preterm-corrected-age",
+        "slug": "preterm-corrected-age",
+        "title": "Корригированный возраст недоношенного",
+        "shortTitle": "Корр. возраст",
+        "aliases": [
+          "скорректированный возраст",
+          "adjusted age",
+          "corrected age",
+          "возраст недоношенного",
+          "коррекция на недоношенность"
+        ],
+        "summary": "Корригированный возраст = хронологический возраст (нед.) − (40 − гестационный возраст при рождении в нед.).",
+        "audience": "pediatric",
+        "category": "neonatology",
+        "clinical": true,
+        "formulaDisplay": "Недель недоношенности = 40 − СГР (нед.); корригированный возраст (нед.) = хронологический возраст (нед.) − недель недоношенности.",
+        "population": "Недоношенные дети при оценке роста, питания и развития; полная коррекция возраста обычно применяется до 24 месяцев скорректированного возраста по рекомендациям AAP.",
+        "limitations": [
+          "Расчёт не заменяет клиническое суждение и не учитывает индивидуальную траекторию развития, сопутствующие заболевания или нейросенсорные нарушения.",
+          "Коррекция предназначена прежде всего для оценки развития, роста и питания недоношенных; AAP рекомендует корректировать возраст до 24 месяцев скорректированного возраста при скрининге развития и построении кривых роста.",
+          "При гестационном возрасте ≥37 недель (доношенный) коррекция по недоношенности обычно не показана."
+        ],
+        "inputs": [
+          {
+            "id": "gestationalAgeWeeks",
+            "label": "Гестационный возраст при рождении",
+            "unit": "нед.",
+            "kind": "number",
+            "minimum": 22,
+            "maximum": 42,
+            "integer": true,
+            "required": true,
+            "step": 0
+          },
+          {
+            "id": "chronologicalAgeWeeks",
+            "label": "Хронологический возраст",
+            "unit": "нед.",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 156,
+            "integer": true,
+            "required": true,
+            "step": 0
+          }
+        ],
+        "steps": [
+          {
+            "id": "weeksPremature",
+            "label": "Недель недоношенности",
+            "unit": "нед.",
+            "expression": "40 - gestationalAgeWeeks",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "correctedAgeWeeks",
+            "label": "Корригированный возраст",
+            "unit": "нед.",
+            "expression": "chronologicalAgeWeeks - weeksPremature",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          }
+        ],
+        "warnings": [
+          {
+            "code": "corrected-age-clinical-judgment",
+            "message": "Используйте корригированный возраст вместе с клинической картиной; после 24 месяцев скорректированного возраста коррекция обычно не применяется для оценки развития по AAP."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [
+          {
+            "when": "gestationalAgeWeeks >= 37",
+            "error": "При гестационном возрасте ≥37 недель (доношенный) коррекция возраста по недоношенности обычно не применяется."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Corrected Age For Preemies",
+            "publisher": "American Academy of Pediatrics (HealthyChildren.org)",
+            "version": "2018",
+            "url": "https://www.healthychildren.org/English/ages-stages/baby/preemie/pages/Corrected-Age-For-Preemies.aspx",
+            "reviewedAt": "2026-08-17"
+          },
+          {
+            "title": "An Evidentiary Review Regarding the Use of Chronological and Adjusted Age in the Assessment of Preterm Infants",
+            "publisher": "Pediatrics in Review",
+            "version": "2009",
+            "url": "https://doi.org/10.1111/j.1744-6155.2009.00215.x",
+            "reviewedAt": "2026-08-17"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "corrected-age-aap-healthychildren",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Corrected Age For Preemies",
+          "url": "https://www.healthychildren.org/English/ages-stages/baby/preemie/pages/Corrected-Age-For-Preemies.aspx",
+          "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "corrected-age-aap-evidentiary-review",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "An Evidentiary Review Regarding the Use of Chronological and Adjusted Age in the Assessment of Preterm Infants",
+          "url": "https://doi.org/10.1111/j.1744-6155.2009.00215.x",
+          "reviewedAt": "2026-08-17"
+        }
+      ]
+    }
+  ]
+}
