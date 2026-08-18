@@ -1,6 +1,8 @@
 version: 2
 updates:
-  - package-ecosystem: npm
+  # The npm ecosystem updates package.json without regenerating bun.lock,
+  # which makes every such pull request fail `bun install --frozen-lockfile`.
+  - package-ecosystem: bun
     directory: /
     schedule:
       interval: weekly
