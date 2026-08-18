@@ -11,27 +11,43 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#039;');
 }
 
-function formatNumber(value: number, precision: number): string {
+export function formatCalculatorNumber(value: number, precision: number): string {
   return new Intl.NumberFormat('ru-RU', {
     maximumFractionDigits: precision,
     minimumFractionDigits: 0,
   }).format(value);
 }
 
+export function calculationRecordOutputs(
+  record: CalculationRecord,
+): readonly { readonly label: string; readonly display: string }[] {
+  const result = record.result;
+  if ('textValues' in result) {
+    return result.textValues.map((item) => ({ label: item.label, display: item.text }));
+  }
+  if ('value' in result) {
+    return [
+      {
+        label: 'Результат',
+        display: `${formatCalculatorNumber(result.value, result.displayPrecision)} ${result.unit}`,
+      },
+    ];
+  }
+  return result.values.map((item) => ({
+    label: item.label,
+    display: `${formatCalculatorNumber(item.value, item.displayPrecision)} ${item.unit}`,
+  }));
+}
+
 export function formatCalculationRecord(record: CalculationRecord): string {
   const definition = findCalculator(record.calculatorId);
   const title = definition?.title ?? record.calculatorId;
   const outputs =
-    'textValues' in record.result
-      ? record.result.textValues.map((item) => `${item.label}: ${item.text}`).join('\n')
-      : 'value' in record.result
-        ? `${formatNumber(record.result.value, record.result.displayPrecision)} ${record.result.unit}`
-        : record.result.values
-            .map(
-              (item) =>
-                `${item.label}: ${formatNumber(item.value, item.displayPrecision)} ${item.unit}`,
-            )
-            .join('\n');
+    'textValues' in record.result || 'values' in record.result
+      ? calculationRecordOutputs(record)
+          .map((item) => `${item.label}: ${item.display}`)
+          .join('\n')
+      : (calculationRecordOutputs(record)[0]?.display ?? '');
   const warnings = record.result.warnings.map((warning) => `- ${warning.message}`).join('\n');
   const subject = record.subjectLabel ? `Пациент / случай: ${record.subjectLabel}\n` : '';
   return [

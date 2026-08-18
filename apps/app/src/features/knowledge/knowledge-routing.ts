@@ -13,6 +13,9 @@ export function knowledgeDocumentBackHash(route: string): string | null {
   if (route.startsWith('modules/documents/category/')) {
     return '#/modules/documents/recommendations';
   }
+  if (route.startsWith('modules/documents/laws/')) {
+    return '#/modules/documents/collection/regulatory';
+  }
   if (route === 'modules/documents/recommendations') {
     return '#/modules/documents';
   }

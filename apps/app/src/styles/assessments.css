@@ -360,7 +360,11 @@
   display: grid;
   gap: var(--theme-space-4);
   width: min(100%, var(--assessment-content-width));
+  max-width: 100%;
+  min-width: 0;
   margin-inline: auto;
+  overflow-x: clip;
+  box-sizing: border-box;
 }
 
 .assessment-result-page {
@@ -374,7 +378,26 @@
 }
 
 .assessment-subpage-header {
+  display: grid;
+  gap: var(--theme-space-2);
+  min-width: 0;
+}
+
+.assessment-subpage-header__nav {
   display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: var(--theme-space-2);
+}
+
+.assessment-subpage-header__nav .app-breadcrumbs {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.assessment-subpage-header__body {
+  display: flex;
+  min-width: 0;
   align-items: flex-start;
   gap: var(--theme-space-3);
 }
@@ -388,14 +411,22 @@
 }
 
 .assessment-subpage-header-actions--trailing {
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
+  gap: 0.35rem;
   margin-left: auto;
 }
 
 .assessment-subpage-header__content {
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.assessment-subpage-summary {
+  margin: 0.25rem 0 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.35;
 }
 
 .assessment-back-chooser {
@@ -664,6 +695,7 @@
   min-width: 0;
   margin: 0;
   padding: var(--theme-space-5) var(--theme-space-control) var(--theme-space-control);
+  overflow-x: clip;
   scroll-margin-top: calc(5.5rem + var(--safe-top));
 }
 
@@ -733,6 +765,8 @@
 
 .assessment-response-options-scroll {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin-top: var(--theme-space-3);
 }
 
@@ -762,6 +796,11 @@
   border-radius: var(--theme-radius-control);
   text-align: center;
   cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    outline-color 200ms ease,
+    color 200ms ease;
 }
 
 .assessment-response-options__option--selected {
@@ -832,6 +871,7 @@
   color: color-mix(in srgb, var(--theme-text) 28%, transparent);
   pointer-events: none;
   user-select: none;
+  transition: color 200ms ease;
 }
 
 .assessment-response-options__value--selected {

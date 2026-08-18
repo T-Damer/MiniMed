@@ -240,9 +240,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const allowed = props.searchAllowed !== false;
     const scopeChanged = activeScope !== props.scope;
     activeScope = props.scope;
-    if (allowed && (scopeChanged || !searchWasAllowed) && query().trim().length >= 2) {
-      lastSearchedQuery = '';
-      void runSearch(query(), false);
+    const trimmed = query().trim();
+    if (allowed && trimmed.length >= 2) {
+      const cached = response();
+      const hasMatchingCache = Boolean(
+        cached &&
+          cached.analysis.originalQuery === trimmed &&
+          cached.groups.length > 0 &&
+          !scopeChanged,
+      );
+      if (hasMatchingCache) {
+        lastSearchedQuery = trimmed;
+      } else if (scopeChanged || !searchWasAllowed) {
+        lastSearchedQuery = '';
+        void runSearch(query(), false);
+      }
     }
     searchWasAllowed = allowed;
   });

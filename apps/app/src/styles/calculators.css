@@ -390,6 +390,12 @@ html.calculator-route-open body {
   min-height: 0;
 }
 
+.calculator-workspace .calculator-card,
+.calculator-workspace .calculator-form {
+  width: 100%;
+  max-width: 100%;
+}
+
 .calculator-card--disabled {
   opacity: 1;
 }
@@ -401,7 +407,9 @@ html.calculator-route-open body {
 .calculator-card h2,
 .calculator-card p,
 .calculator-result h2,
-.calculator-result p {
+.calculator-result h3,
+.calculator-result p,
+.calculator-result__title {
   margin: 0;
 }
 

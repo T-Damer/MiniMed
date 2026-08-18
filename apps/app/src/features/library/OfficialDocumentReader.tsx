@@ -27,7 +27,11 @@ import {
   sourceTypeReaderLabel,
   visibleReaderSections,
 } from '@/features/library/document-display';
-import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
+import {
+  type DocumentFindUnit,
+  hasSearchableDocumentUnits,
+  rangesForFindUnit,
+} from '@/features/library/document-find';
 import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
@@ -195,6 +199,8 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     }
     return units;
   });
+
+  const findSearchable = createMemo(() => hasSearchableDocumentUnits(findUnits()));
 
   const rangesByUnit = createMemo(() => {
     const map = new Map<string, TextRange[]>();
@@ -369,6 +375,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
         <Show when={props.document}>
           <DocumentFindBar
             units={findUnits}
+            disabled={!findSearchable()}
             onOpenChange={setFindOpen}
             onResult={(next) => {
               setFindState((current) => {

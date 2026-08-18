@@ -1,4 +1,4 @@
-import { createWriteStream, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
 import { get } from 'node:https';
 import { join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
@@ -14,15 +14,11 @@ const releaseProxy = {
     path.replace(/^\/content\/releases\//u, '/T-Damer/MiniMed/releases/download/'),
 };
 
-const OPTIONAL_PUBLIC_ASSET_PATHS = [
+const LARGE_COMPANION_MIN_BYTES = 32 * 1024 * 1024;
+const LARGE_COMPANION_PATHS = [
   'content/medications.db',
   'content/mkb.db',
   'content/ambulatory.db',
-  'content/regulatory.db',
-  'content/reference.db',
-  'content/reference-report.json',
-  'content/regulatory-report.json',
-  'content/modules',
 ] as const;
 
 const TESSDATA_LANGS = ['eng', 'rus'] as const;
@@ -82,11 +78,14 @@ function excludeOptionalPublicAssets(): Plugin {
       outDir = config.build.outDir;
     },
     closeBundle() {
-      for (const relativePath of OPTIONAL_PUBLIC_ASSET_PATHS) {
+      const packageLarge = process.env['VITE_PACKAGE_LARGE_COMPANIONS'] === 'true';
+      const inCi = process.env['CI'] === 'true' || process.env['GITHUB_ACTIONS'] === 'true';
+      if (packageLarge || !inCi) return;
+      for (const relativePath of LARGE_COMPANION_PATHS) {
         const absolutePath = join(outDir, relativePath);
-        if (existsSync(absolutePath)) {
-          rmSync(absolutePath, { recursive: true, force: true });
-        }
+        if (!existsSync(absolutePath)) continue;
+        if (statSync(absolutePath).size < LARGE_COMPANION_MIN_BYTES) continue;
+        rmSync(absolutePath, { recursive: true, force: true });
       }
     },
   };

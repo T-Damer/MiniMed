@@ -195,12 +195,12 @@
   z-index: var(--z-sticky-chrome);
   margin-top: calc(-1 * var(--safe-top));
   margin-bottom: 0.75rem;
-  padding-top: calc(var(--safe-top) + 0.75rem);
+  padding-top: calc(var(--safe-top) + 0.25rem);
   padding-bottom: 0.5rem;
 }
 
 .platform-android .module-catalog-toolbar {
-  padding-top: calc(var(--safe-top) + 0.45rem);
+  padding-top: calc(var(--safe-top) + 0.2rem);
 }
 
 .module-catalog-heading {
@@ -212,13 +212,13 @@
   justify-content: space-between;
   gap: 0.75rem;
   margin-top: calc(-1 * var(--safe-top));
-  padding-top: calc(var(--safe-top) + 0.75rem);
+  padding-top: calc(var(--safe-top) + 0.25rem);
   padding-bottom: 0.5rem;
   border-radius: var(--theme-radius-panel);
 }
 
 .platform-android .module-catalog-heading {
-  padding-top: calc(var(--safe-top) + 0.45rem);
+  padding-top: calc(var(--safe-top) + 0.2rem);
 }
 
 .module-catalog-heading--in-toolbar {

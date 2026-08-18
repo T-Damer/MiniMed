@@ -1,18 +1,20 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
-import { formatAssessmentRecord } from '@/features/assessments/assessment-engine';
 import {
   printAssessmentRecord,
   shareAssessmentRecord,
 } from '@/features/assessments/assessment-print';
+import { assessmentWorkspaceCrumbs } from '@/features/assessments/assessment-routing';
 import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { snapshotAssessmentForNote } from '@/features/notes/note-attached-results';
 import {
   addPatientNote,
   createPatientCard,
@@ -77,9 +79,12 @@ export function AssessmentResultPage(props: {
       }
       setSelectedCardId(cardId);
     }
-    const text = formatAssessmentRecord(props.definition, props.record);
-    const next = addPatientNote(cardId, text);
-    if (!next.notes.some((note) => note.cardId === cardId && note.text === text)) {
+    const attachment = snapshotAssessmentForNote(props.definition, props.record);
+    const next = addPatientNote(cardId, '', null, { attachedResults: [attachment] });
+    const saved = next.notes
+      .filter((note) => note.cardId === cardId)
+      .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt))[0];
+    if (!saved?.attachedResults?.some((item) => item.recordId === attachment.recordId)) {
       props.onMessage('Не удалось записать результат в заметку.');
       return;
     }
@@ -91,26 +96,33 @@ export function AssessmentResultPage(props: {
   return (
     <article class="assessment-result-page">
       <header class="assessment-subpage-header assessment-result-page__header">
-        <div class="assessment-subpage-header-actions assessment-subpage-header-actions--leading">
+        <div class="assessment-subpage-header__nav">
           <NavBack class="knowledge-back-button" aria-label="К тесту" onClick={props.onBack} />
-        </div>
-        <div class="assessment-subpage-header__content">
-          <p class="archive-kicker">Результат сохранён локально</p>
-          <h1 class="assessment-subpage-title">{props.definition.title}</h1>
-          <p>
-            {props.record.subjectLabel || 'Без подписи'} · {formatDate(props.record.createdAt)}
-          </p>
-        </div>
-        <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
-          <Button
-            type="button"
-            variant="icon"
-            class="knowledge-back-button assessment-help-button"
-            aria-label="Методика и ограничения"
-            title="Методика и ограничения"
-            onClick={() => setMethodologyOpen(true)}
-            icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
+          <AppBreadcrumbs
+            items={assessmentWorkspaceCrumbs(props.definition)}
+            onNavigate={(href) => {
+              window.location.hash = href;
+            }}
           />
+        </div>
+        <div class="assessment-subpage-header__body">
+          <div class="assessment-subpage-header__content">
+            <h1 class="assessment-subpage-title">{props.definition.title}</h1>
+            <p class="assessment-subpage-summary">
+              {props.record.subjectLabel || 'Без подписи'} · {formatDate(props.record.createdAt)}
+            </p>
+          </div>
+          <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
+            <Button
+              type="button"
+              variant="icon"
+              class="knowledge-back-button assessment-help-button"
+              aria-label="Методика и ограничения"
+              title="Методика и ограничения"
+              onClick={() => setMethodologyOpen(true)}
+              icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
+            />
+          </div>
         </div>
       </header>
 

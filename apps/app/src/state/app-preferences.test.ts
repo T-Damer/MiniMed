@@ -63,6 +63,7 @@ describe('app-preferences', () => {
       vibrationEnabled: true,
       rememberSearchMode: false,
       soundVolume: 0.2,
+      bookReadingMode: false,
     });
   });
 
@@ -79,6 +80,7 @@ describe('app-preferences', () => {
       vibrationEnabled: true,
       rememberSearchMode: false,
       soundVolume: 1,
+      bookReadingMode: false,
     });
   });
 

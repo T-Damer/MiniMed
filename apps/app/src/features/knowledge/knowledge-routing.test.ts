@@ -11,6 +11,12 @@ describe('knowledgeDocumentBackHash', () => {
     ).toBe('#/modules/documents/recommendations');
   });
 
+  it('returns the regulatory collection for laws specialty pages', () => {
+    expect(knowledgeDocumentBackHash('modules/documents/laws/pediatrics')).toBe(
+      '#/modules/documents/collection/regulatory',
+    );
+  });
+
   it('returns the document catalog for recommendation lists and collections', () => {
     expect(knowledgeDocumentBackHash('modules/documents/recommendations')).toBe(
       '#/modules/documents',
@@ -64,7 +70,7 @@ describe('shouldResetKnowledgeCatalogScroll', () => {
     );
     expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/core-library')).toBe(true);
     expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/recommendations')).toBe(true);
-    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/user')).toBe(true);
+    expect(shouldResetKnowledgeCatalogScroll('#/modules/documents/laws/pediatrics')).toBe(true);
   });
 
   it('does not reset scroll for other root tabs or document readers', () => {

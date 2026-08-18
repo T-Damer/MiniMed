@@ -1,7 +1,13 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { createEffect, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { type GraphTone, graphToneForSourceType } from '@/features/library/graph-tones';
+import {
+  type GraphTone,
+  graphDomainColor,
+  graphToneForSourceType,
+  graphTonesForTheme,
+  readGraphThemeColors,
+} from '@/features/library/graph-tones';
 import { browserI18n } from '@/i18n/browser-i18n';
 import { documentCountLabel, specialtyLabel } from '@/i18n/labels';
 
@@ -46,56 +52,14 @@ interface GraphTheme {
   readonly text: string;
   readonly graphStroke: string;
   readonly danger: string;
+  readonly canvasFill: string;
+  readonly dark: boolean;
 }
 
-const TONES: Readonly<Record<GraphTone, { readonly fill: string }>> = {
-  clinical: { fill: '#d9e6d2' },
-  drug: { fill: '#d9e8ed' },
-  legal: { fill: '#f1dfc4' },
-  notes: { fill: '#ead9e5' },
-  other: { fill: '#fbf7ea' },
-};
-
-function readCssVar(element: Element, name: string, fallback: string): string {
-  const value = getComputedStyle(element).getPropertyValue(name).trim();
-  return value || fallback;
-}
-
-function readGraphTheme(canvas: HTMLCanvasElement): GraphTheme {
-  return {
-    text: readCssVar(canvas, '--theme-text', '#292720'),
-    graphStroke: readCssVar(canvas, '--theme-graph-stroke', '#817a6d'),
-    danger: readCssVar(canvas, '--theme-danger', '#87453c'),
-  };
-}
-
-/* Every medical area gets its own fill; a document in several areas is drawn as a pie of them.
-   The palette is muted to sit on the paper theme, and the color is chosen by hashing the specialty
-   key so an area keeps its color no matter which documents are installed. */
-const DOMAIN_PALETTE: readonly string[] = [
-  '#e3c6d2',
-  '#c4d9e4',
-  '#cfe0c2',
-  '#e8d8b0',
-  '#d5cde6',
-  '#c2ded6',
-  '#e6cbbd',
-  '#dee3b8',
-];
-
-function domainColor(specialty: string): string {
-  let hash = 0;
-  for (let index = 0; index < specialty.length; index += 1) {
-    hash = (hash * 31 + specialty.charCodeAt(index)) >>> 0;
-  }
-  return DOMAIN_PALETTE[hash % DOMAIN_PALETTE.length] ?? '#fbf7ea';
-}
-
-function shortLabel(value: string, limit: number): string {
-  return value.length <= limit ? value : `${value.slice(0, limit - 1)}…`;
-}
-
-function buildGraph(documents: readonly MedicalDocumentSummary[]): {
+function buildGraph(
+  documents: readonly MedicalDocumentSummary[],
+  dark: boolean,
+): {
   readonly nodes: GraphNode[];
   readonly edges: GraphEdge[];
 } {
@@ -115,7 +79,7 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
       label: document.shortTitle ?? document.title,
       documentId: document.id,
       tone: graphToneForSourceType(document.sourceType),
-      areaColors: specialties.map(domainColor),
+      areaColors: specialties.map((specialty) => graphDomainColor(specialty, dark)),
       x: Math.cos(angle) * 190,
       y: Math.sin(angle) * 150,
       vx: 0,
@@ -138,7 +102,7 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
               : specialtyLabel(specialty),
           documentId: null,
           tone: 'other',
-          areaColors: [domainColor(specialty)],
+          areaColors: [graphDomainColor(specialty, dark)],
           x: Math.cos(domainAngle) * 80,
           y: Math.sin(domainAngle) * 70,
           vx: 0,
@@ -153,6 +117,10 @@ function buildGraph(documents: readonly MedicalDocumentSummary[]): {
   });
 
   return { nodes, edges };
+}
+
+function shortLabel(value: string, limit: number): string {
+  return value.length <= limit ? value : `${value.slice(0, limit - 1)}…`;
 }
 
 export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
@@ -178,6 +146,8 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let moved = false;
   let simulationActive = true;
   let animationFrameActive = true;
+  let graphTheme: GraphTheme = readGraphThemeColors(document.documentElement);
+  let themeObserver: MutationObserver | undefined;
 
   const wakeSimulation = (): void => {
     simulationActive = true;
@@ -286,8 +256,10 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     if (!canvas) return;
     const context = canvas.getContext('2d');
     if (!context) return;
-    const theme = readGraphTheme(canvas);
-    context.clearRect(0, 0, width, height);
+    const theme = graphTheme;
+    const tones = graphTonesForTheme(theme.dark);
+    context.fillStyle = theme.canvasFill;
+    context.fillRect(0, 0, width, height);
     context.save();
     context.translate(width / 2 + panX, height / 2 + panY);
     context.scale(scale, scale);
@@ -310,7 +282,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     for (const node of nodes) {
       const selected = node.documentId === props.selectedId;
       const hovered = node.id === hoveredNodeId;
-      const tone = node.kind === 'domain' ? TONES.other : TONES[node.tone];
+      const tone = node.kind === 'domain' ? tones.other : tones[node.tone];
       const radius = node.kind === 'domain' ? 26 : 17;
       const colors = node.areaColors.length > 0 ? node.areaColors : [tone.fill];
 
@@ -365,7 +337,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   });
 
   createEffect(() => {
-    const graph = buildGraph(props.documents);
+    const graph = buildGraph(props.documents, graphTheme.dark);
     nodes = graph.nodes;
     edges = graph.edges;
     scale = 1;
@@ -375,10 +347,25 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     wakeSimulation();
   });
 
+  const refreshGraphTheme = (): void => {
+    if (!canvas) return;
+    graphTheme = readGraphThemeColors(canvas);
+    const graph = buildGraph(props.documents, graphTheme.dark);
+    nodes = graph.nodes;
+    edges = graph.edges;
+    draw();
+  };
+
   onMount(() => {
     if (!canvas) return;
     observer = new ResizeObserver(resize);
     observer.observe(canvas);
+    themeObserver = new MutationObserver(refreshGraphTheme);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme'],
+    });
+    refreshGraphTheme();
     resize();
     frame = requestAnimationFrame(animate);
   });
@@ -386,6 +373,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   onCleanup(() => {
     cancelAnimationFrame(frame);
     observer?.disconnect();
+    themeObserver?.disconnect();
   });
 
   const pointFromEvent = (event: PointerEvent): Point => {

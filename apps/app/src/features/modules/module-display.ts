@@ -1,5 +1,7 @@
 import type { ContentModuleCatalogEntry, ContentModuleDownloadTask } from '@localmed/contracts';
 
+import { documentCountLabel } from '@/i18n/labels';
+
 export const MODULE_RELEASE_LABELS: Readonly<
   Record<ContentModuleCatalogEntry['releaseState'], string>
 > = {
@@ -112,4 +114,13 @@ export function contentModuleTaskProgress(task: ContentModuleDownloadTask): numb
 export function primaryModuleDocumentId(module: ContentModuleCatalogEntry): string | null {
   const activeDocument = module.documents.find((document) => document.status === 'active');
   return activeDocument?.documentId ?? module.documents[0]?.documentId ?? null;
+}
+
+export function moduleListedDocumentCount(module: ContentModuleCatalogEntry): number {
+  return Math.max(module.previewDocumentCount ?? 0, module.documents.length);
+}
+
+export function moduleDocumentCountFact(module: ContentModuleCatalogEntry): string {
+  const count = moduleListedDocumentCount(module);
+  return count > 0 ? documentCountLabel(count) : 'Список документов уточняется';
 }

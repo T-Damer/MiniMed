@@ -17,6 +17,7 @@ import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
+import { NoteAttachedResults } from '@/features/notes/NoteAttachedResults';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -26,6 +27,7 @@ import {
   loadNoteImagesForNotes,
   NOTE_IMAGES_EVENT,
   type NoteImage,
+  noteImageListSrc,
 } from '@/state/note-images';
 import {
   addPatientNote,
@@ -744,11 +746,24 @@ export function NotesView(props: {
                           <Show when={(recordImages().get(note.id)?.length ?? 0) > 0}>
                             <div class="patient-note-record-thumbnails">
                               <For each={recordImages().get(note.id)}>
-                                {(image) => <img src={image.dataUrl} alt="" loading="lazy" />}
+                                {(image) => (
+                                  <img
+                                    src={noteImageListSrc(image)}
+                                    alt=""
+                                    loading="lazy"
+                                    decoding="async"
+                                  />
+                                )}
                               </For>
                             </div>
                           </Show>
-                          <p>{note.text}</p>
+                          <NoteAttachedResults
+                            results={note.attachedResults ?? []}
+                            variant="list"
+                          />
+                          <Show when={note.text.trim()}>
+                            <p>{note.text}</p>
+                          </Show>
                         </button>
                         <Show when={note.reminder}>
                           {(reminder) => (
@@ -882,6 +897,14 @@ export function NotesView(props: {
                     <p class="patient-note-autosave-status" role="status">
                       Черновик восстановлен
                     </p>
+                  </Show>
+                  <Show when={note()}>
+                    {(currentNote) => (
+                      <NoteAttachedResults
+                        results={currentNote().attachedResults ?? []}
+                        variant="editor"
+                      />
+                    )}
                   </Show>
                   <NoteTextArea
                     name="text"

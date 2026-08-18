@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatModuleCollectionSubtitle, formatOverviewCollectionSubtitle } from './module-display';
+import {
+  formatModuleCollectionSubtitle,
+  formatOverviewCollectionSubtitle,
+  moduleDocumentCountFact,
+  moduleListedDocumentCount,
+} from './module-display';
 
 describe('formatModuleCollectionSubtitle', () => {
   const MB = 1024 * 1024;
@@ -89,5 +94,20 @@ describe('formatOverviewCollectionSubtitle', () => {
         installedBytes: 12 * MB,
       }),
     ).toBe('12 документов · 12 МБ');
+  });
+});
+
+describe('moduleDocumentCountFact', () => {
+  it('uses preview counts when the document list is still empty', () => {
+    expect(
+      moduleDocumentCountFact({
+        previewDocumentCount: 3,
+        documents: [],
+      } as never),
+    ).toBe('3 документа');
+    expect(moduleListedDocumentCount({ previewDocumentCount: 0, documents: [] } as never)).toBe(0);
+    expect(moduleDocumentCountFact({ previewDocumentCount: 0, documents: [] } as never)).toBe(
+      'Список документов уточняется',
+    );
   });
 });

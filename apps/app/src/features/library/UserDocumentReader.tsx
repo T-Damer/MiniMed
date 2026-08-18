@@ -18,12 +18,18 @@ import { Button } from '@/components/Button';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
-import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
+import {
+  type DocumentFindUnit,
+  hasSearchableDocumentUnits,
+  rangesForFindUnit,
+} from '@/features/library/document-find';
 import { printHtml } from '@/features/library/document-print';
 import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
+import { useBookReadingModeActive } from '@/features/library/document-reading-mode';
+import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
@@ -170,12 +176,6 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     );
   });
 
-  const chrome = useDocumentReaderChrome({
-    sectionSelector: '[data-user-doc-anchor]',
-    outlineItemAttr: 'data-outline-anchor',
-    scrollSpyWhen: () => Boolean(meta()) && outlineItems().length > 0,
-  });
-
   const findUnits = createMemo((): readonly DocumentFindUnit[] => {
     const current = meta();
     if (!current) return [];
@@ -206,6 +206,15 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       return units;
     }
     return [titleUnit];
+  });
+
+  const findSearchable = createMemo(() => hasSearchableDocumentUnits(findUnits()));
+  const bookReadingMode = useBookReadingModeActive();
+
+  const chrome = useDocumentReaderChrome({
+    sectionSelector: '[data-user-doc-anchor]',
+    outlineItemAttr: 'data-outline-anchor',
+    scrollSpyWhen: () => Boolean(meta()) && outlineItems().length > 0,
   });
 
   const rangesByUnit = createMemo(() => {
@@ -393,6 +402,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     <DocumentReaderChromeShell
       ariaLabel={meta()?.title ?? 'Личный документ'}
       class="document-page user-document-reader page-surface page-grain"
+      classList={{ 'document-page--book': bookReadingMode() }}
       chromeClass="document-page__chrome sticky-surface route-sticky-chrome"
       chrome={chrome}
       searchOpen={findOpen}
@@ -420,6 +430,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         <DocumentFindBar
           class="document-page__header-search"
           units={findUnits}
+          disabled={!findSearchable()}
           onOpenChange={setFindOpen}
           onResult={setFindState}
         />
@@ -531,7 +542,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                       data-user-doc-anchor=""
                       class="user-document-reader__page"
                     >
-                      <div class="user-document-reader__page-surface">
+                      <PinchZoomSurface
+                        class="user-document-reader__page-pinch"
+                        contentClass="user-document-reader__page-surface"
+                      >
                         <canvas
                           id={pageCanvasId(props.documentId, pageIndex)}
                           class="user-document-reader__canvas"
@@ -544,7 +558,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                             activeUnitId={() => activeMatch()?.unitId}
                           />
                         </Show>
-                      </div>
+                      </PinchZoomSurface>
                     </section>
                   );
                 }}
@@ -558,7 +572,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
               data-user-doc-anchor=""
               class="user-document-reader__page"
             >
-              <div class="user-document-reader__page-surface">
+              <PinchZoomSurface
+                class="user-document-reader__page-pinch"
+                contentClass="user-document-reader__page-surface"
+              >
                 <Show when={imageUrl()}>
                   {(url) => (
                     <img
@@ -578,7 +595,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     />
                   )}
                 </Show>
-              </div>
+              </PinchZoomSurface>
             </section>
           </Show>
 

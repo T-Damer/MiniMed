@@ -75,6 +75,12 @@ jobs:
         run: |
           bun run build:landing
           bun run build:app
+          mkdir -p apps/app/dist/content
+          for pack in medications.db ambulatory.db; do
+            if [ -f "apps/app/public/content/$pack" ]; then
+              cp "apps/app/public/content/$pack" "apps/app/dist/content/$pack"
+            fi
+          done
           mkdir -p apps/landing/dist/app
           cp -R apps/app/dist/. apps/landing/dist/app/
           touch apps/landing/dist/.nojekyll

@@ -34,9 +34,20 @@ import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { openUserLibraryCatalog } from '@/features/library/user-library-routing';
 import { ContentModuleCard } from '@/features/modules/ContentModuleCard';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
-import { mergePreinstalledModules } from '@/features/modules/local-packaged-modules';
+import { LawsDocumentsView } from '@/features/modules/LawsDocumentsView';
+import {
+  isCompanionMedicationsMounted,
+  isPreinstalledCatalogModule,
+  mergePreinstalledModules,
+  type PreinstalledCatalogModuleOptions,
+} from '@/features/modules/local-packaged-modules';
 import { ModuleTaskStatus } from '@/features/modules/ModuleTaskStatus';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import {
+  catalogSelectionFromLocation,
+  lawsRouteForModule,
+  regulatoryModuleForSpecialty,
+} from '@/features/modules/module-catalog-routing';
 import {
   contentModuleTaskProgress,
   formatModuleBytes,
@@ -44,6 +55,8 @@ import {
   formatOverviewCollectionSubtitle,
   MODULE_RELEASE_LABELS,
   MODULE_TASK_LABELS,
+  moduleDocumentCountFact,
+  moduleListedDocumentCount,
   primaryModuleDocumentId,
 } from '@/features/modules/module-display';
 import { selectBulkDownloadModules } from '@/features/modules/module-download-selection';
@@ -95,34 +108,6 @@ interface ModuleLoadError {
 
 const INDIVIDUAL_RECOMMENDATION_TAG = 'individual-recommendation';
 const AUTO_UPDATES_PAUSED_KEY = 'minimed.module-auto-updates-paused.v1';
-
-function catalogSelectionFromLocation():
-  | { readonly kind: 'collection'; readonly id: string }
-  | { readonly kind: 'category'; readonly id: string }
-  | { readonly kind: 'recommendations' }
-  | { readonly kind: 'core-library' }
-  | null {
-  const route = window.location.hash.replace(/^#\/?/u, '');
-  const collectionPrefix = 'modules/documents/collection/';
-  const categoryPrefix = 'modules/documents/category/';
-  try {
-    if (route === 'modules/documents/recommendations') {
-      return { kind: 'recommendations' };
-    }
-    if (route === 'modules/documents/core-library') {
-      return { kind: 'core-library' };
-    }
-    if (route.startsWith(collectionPrefix)) {
-      return { kind: 'collection', id: decodeURIComponent(route.slice(collectionPrefix.length)) };
-    }
-    if (route.startsWith(categoryPrefix)) {
-      return { kind: 'category', id: decodeURIComponent(route.slice(categoryPrefix.length)) };
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
 
 function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter(
@@ -179,6 +164,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [loadErrorDetails, setLoadErrorDetails] = createSignal<ModuleLoadError | null>(null);
   const [installErrors, setInstallErrors] = createSignal<Readonly<Record<string, string>>>({});
   const [coreLibraryOpen, setCoreLibraryOpen] = createSignal(false);
+  const [lawsSpecialty, setLawsSpecialty] = createSignal('');
   const [pendingRemoval, setPendingRemoval] = createSignal<{
     readonly kind: 'module' | 'category';
     readonly id: string;
@@ -218,6 +204,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       selection?.kind === 'recommendations' || selection?.kind === 'category',
     );
     setCoreLibraryOpen(selection?.kind === 'core-library');
+    setLawsSpecialty(selection?.kind === 'laws' ? selection.specialty : '');
     setCatalogQuery('');
   };
   const openCollection = (collection: string): void => {
@@ -292,6 +279,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   );
   const regularSectionModules = (section: string): readonly ContentModuleCatalogEntry[] =>
     regularModules().filter((module) => module.kind === section || module.collection === section);
+  const activeLawsModule = createMemo(() => {
+    const specialty = lawsSpecialty();
+    if (!specialty) return null;
+    return regulatoryModuleForSpecialty(regularModules(), specialty) ?? null;
+  });
   const regularSectionLabel = (section: string): string =>
     ({
       core: 'Ядро',
@@ -299,7 +291,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       regulatory: 'Законы и нормативные акты',
       tool: 'Калькуляторы и опросники',
     })[section] ?? collectionLabel(section);
-  const installedWithBundled = createMemo(() => mergePreinstalledModules(catalog(), installed()));
+  const preinstallOptions = createMemo(
+    (): PreinstalledCatalogModuleOptions => ({
+      companionMedicationsMounted: isCompanionMedicationsMounted(overviewDocumentCounts()),
+    }),
+  );
+  const installedWithBundled = createMemo(() =>
+    mergePreinstalledModules(catalog(), installed(), preinstallOptions()),
+  );
   const installedById = createMemo(
     () => new Map(installedWithBundled().map((module) => [module.moduleId, module])),
   );
@@ -723,7 +722,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           </Show>
         </header>
       </Show>
-      <Show when={props.embedded}>
+      <Show when={props.embedded && !lawsSpecialty()}>
         <div
           ref={moduleCatalogHeading}
           class="module-catalog-toolbar knowledge-subroute-heading--blurred route-sticky-chrome"
@@ -834,6 +833,21 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         </div>
       </Show>
 
+      <Show when={activeLawsModule()}>
+        {(module) => (
+          <LawsDocumentsView
+            module={module()}
+            installed={Boolean(installedModule(module().id))}
+            documentTitle={moduleDocumentTitle}
+            documentDate={moduleDocumentDate}
+            onBack={() => {
+              window.location.hash = '#/modules/documents/collection/regulatory';
+              syncSelectionFromLocation();
+            }}
+          />
+        )}
+      </Show>
+
       <Show when={coreLibraryOpen()}>
         <section class="module-page core-library-page">
           <DocumentLibrary core={props.core} embedded query={catalogQuery()} />
@@ -843,6 +857,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       <Show
         when={
           !coreLibraryOpen() &&
+          !lawsSpecialty() &&
           !recommendationBrowserOpen() &&
           !browsingSection() &&
           !browsingSearch()
@@ -1018,7 +1033,16 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       retryScheduled={moduleRetryScheduled(module.id)}
                       fallbackError={installErrors()[module.id]}
                       connecting={reconnectingModuleId() === module.id && connecting()}
-                      onInspect={() => setDetailsModule(module)}
+                      preinstallOptions={preinstallOptions()}
+                      onInspect={() => {
+                        const route = lawsRouteForModule(module);
+                        if (route) {
+                          window.location.hash = route;
+                          syncSelectionFromLocation();
+                          return;
+                        }
+                        setDetailsModule(module);
+                      }}
                       onOpenError={(message) =>
                         setLoadErrorDetails({ title: module.title, message })
                       }
@@ -1038,6 +1062,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       <Show
         when={
           !coreLibraryOpen() &&
+          !lawsSpecialty() &&
           recommendationModules().length > 0 &&
           !regularCollection() &&
           recommendationBrowserOpen()
@@ -1392,25 +1417,25 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             <div class="recommendation-section-help-body">
               <p>{module().description}</p>
               <ul class="recommendation-section-help-facts">
-                <li>
-                  {module().previewDocumentCount || module().documents.length
-                    ? documentCountLabel(module().previewDocumentCount || module().documents.length)
-                    : 'Список документов уточняется'}
-                </li>
+                <li>{moduleDocumentCountFact(module())}</li>
                 <li>{formatModuleBytes(module().sizes.downloadBytes)}</li>
               </ul>
               <Show
                 when={module().documents.length > 0}
                 fallback={
-                  <p class="recommendation-section-help-note">
-                    Полный список документов появится здесь после публикации набора.
-                  </p>
+                  <Show when={moduleListedDocumentCount(module()) === 0}>
+                    <p class="recommendation-section-help-note">
+                      Полный список документов появится здесь после публикации набора.
+                    </p>
+                  </Show>
                 }
               >
                 <div class="recommendation-section-document-list">
                   <For each={module().documents}>
                     {(document) => {
-                      const canOpen = () => Boolean(installedModule(module().id));
+                      const canOpen = () =>
+                        isPreinstalledCatalogModule(module(), preinstallOptions()) ||
+                        Boolean(installedModule(module().id));
                       return (
                         <button
                           type="button"

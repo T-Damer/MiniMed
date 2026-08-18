@@ -30,20 +30,6 @@ body::before {
   display: none;
 }
 
-body::after {
-  position: fixed;
-  z-index: var(--z-safe-blur);
-  top: 0;
-  right: 0;
-  left: 0;
-  height: var(--safe-top);
-  content: "";
-  background: rgb(52 77 65 / 82%);
-  -webkit-backdrop-filter: blur(1rem);
-  backdrop-filter: blur(1rem);
-  pointer-events: none;
-}
-
 *,
 *::before,
 *::after {
@@ -462,9 +448,10 @@ main {
 
 .boot-screen {
   display: grid;
-  min-height: calc(100vh - 7.25rem);
+  min-height: 100dvh;
   place-items: center;
-  padding: 3.25rem 1.25rem;
+  padding: calc(1.25rem + var(--safe-top)) 1.25rem calc(1.25rem + var(--safe-bottom));
+  background: var(--paper-light);
 }
 
 .paper-sheet,
@@ -1986,6 +1973,12 @@ main {
 
 .document-outline nav button:hover {
   color: #fff8e8;
+}
+
+.document-outline nav button.document-outline-item--active,
+.document-outline nav button[aria-current="location"] {
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
 }
 
 .document-outline nav button span {

@@ -77,8 +77,10 @@ export function fuzzyQueryRanges(text: string, query: string): readonly TextRang
   const wordPattern = /[\p{L}\p{N}-]+/gu;
   for (const match of text.matchAll(wordPattern)) {
     const word = match[0];
+    if (!word.trim()) continue;
     const start = match.index ?? 0;
     const normalizedWord = normalizeSurfaceText(word);
+    if (!normalizedWord) continue;
     if (!tokens.some((queryToken) => tokenMatches(queryToken, normalizedWord))) continue;
     ranges.push({ start, end: start + word.length });
   }
@@ -110,18 +112,28 @@ export function findRangesInText(
   return fuzzyQueryRanges(text, query);
 }
 
+export function hasSearchableDocumentUnits(units: readonly DocumentFindUnit[]): boolean {
+  return units.some((unit) => unit.text.trim().length > 0);
+}
+
 export function findInUnits(
   units: readonly DocumentFindUnit[],
   query: string,
   mode: DocumentFindMode,
 ): readonly DocumentFindMatch[] {
   const trimmed = query.trim();
-  if (!trimmed) return [];
+  if (!trimmed || !hasSearchableDocumentUnits(units)) return [];
   const matches: DocumentFindMatch[] = [];
   for (const unit of units) {
-    const ranges = findRangesInText(unit.text, trimmed, mode);
-    for (const range of ranges) {
-      matches.push({ unitId: unit.id, start: range.start, end: range.end });
+    const text = unit.text ?? '';
+    if (!text.trim()) continue;
+    try {
+      const ranges = findRangesInText(text, trimmed, mode);
+      for (const range of ranges) {
+        matches.push({ unitId: unit.id, start: range.start, end: range.end });
+      }
+    } catch {
+      // Skip units that cannot be searched safely.
     }
   }
   return matches;

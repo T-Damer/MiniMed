@@ -4,6 +4,47 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.25] - 2026-08-18
+
+### Added
+
+- User documents can switch to a paper-free book-reading mode from a control above scroll-to-top.
+- Pinch-zoom works on document pages (including images) without opening a preview.
+- A horizontal swipe opens or hides the document outline.
+- Regulatory document lists are a documents sub-route (`#/modules/documents/laws/pediatrics`) with
+  in-page search, not a catalog dialog.
+- Notes store and render attached questionnaire and calculator result snapshots.
+- Uploaded note images keep a thumbnail for the list so returning to Notes does not decode every
+  original.
+- Print preview includes a second print control; on Android and iOS it uses the share sheet.
+- Regenerated favicons, Settings mark, and launcher icons from the new medical-folder master.
+
+### Changed
+
+- Native Android draws page surfaces under a translucent status bar; sticky chrome owns `--safe-top`
+  instead of sitting below a solid desk strip.
+- The in-app boot screen and Android splash fill the viewport with paper.
+- Local-model settings drop the extra helper copy and boxed download status; accordions use the
+  Phosphor chevron.
+- Questionnaire chrome matches other tool pages: back and breadcrumbs on one row, icon actions in a
+  column, and a color transition when an answer is selected.
+- Navigation cues are louder relative to go-back; calculator workspace forms use the full board width.
+- Document tables keep full height and scroll only horizontally; printing a table closes the zoom
+  overlay. The current outline section uses accent green.
+- Vite and Android packaging keep `regulatory.db` / `reference.db` in the app; only huge optional
+  companions stay out of CI APKs.
+
+### Fixed
+
+- The status bar no longer paints a solid olive overlay.
+- The bottom nav no longer drops and snaps back when Capacitor briefly reports a zero inset.
+- Sticky search and document chrome sat too low and overlapped page titles or list rows.
+- In-document find no longer crashes on uploads with no extractable text.
+- Opening Search with an existing query no longer re-runs retrieval on every navigation.
+- Questionnaire options no longer overflow the right edge.
+- The knowledge-graph canvas follows the dark theme instead of a light fill.
+- OCR ingest retries a failed language load and times out instead of staying at 0%.
+
 ## [0.6.24] - 2026-08-18
 
 ### Changed

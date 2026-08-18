@@ -36,6 +36,7 @@ export interface DocumentFindBarProps {
   readonly class?: string;
   readonly hideLabel?: boolean;
   readonly allowWorker?: boolean;
+  readonly disabled?: boolean;
   readonly onOpenChange?: (open: boolean) => void;
   readonly onResult: (state: DocumentFindResultState) => void;
 }
@@ -69,6 +70,7 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
   };
 
   const openFind = (): void => {
+    if (props.disabled) return;
     setOpen(true);
     props.onOpenChange?.(true);
   };
@@ -110,6 +112,21 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
   createEffect(
     on(debouncedQuery, (query) => {
       const currentMode = mode();
+      if (props.disabled) {
+        setMatches([]);
+        setActiveIndex(0);
+        setLoading(false);
+        untrack(() =>
+          props.onResult({
+            query: '',
+            mode: currentMode,
+            matches: [],
+            activeIndex: 0,
+            loading: false,
+          }),
+        );
+        return;
+      }
       if (!query.trim()) {
         setMatches([]);
         setActiveIndex(0);
@@ -168,7 +185,7 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
         closeFind();
         return;
       }
-      if (open() || event.repeat || !isFindShortcut(event)) return;
+      if (open() || event.repeat || !isFindShortcut(event) || props.disabled) return;
       event.preventDefault();
       openFind();
     };
@@ -198,6 +215,7 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
           variant="icon"
           class="document-find__toggle"
           aria-label="Поиск в документе"
+          disabled={props.disabled}
           onClick={openFind}
           icon={<AppGlyph name="search" class="document-find__toggle-icon" />}
         />

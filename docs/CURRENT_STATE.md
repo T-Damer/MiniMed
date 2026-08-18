@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 18 August 2026
-> Repository version: `0.6.24`
-> Active target: `0.6.24` public prerelease toward `1.0`
+> Repository version: `0.6.25`
+> Active target: `0.6.25` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -49,7 +49,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   links reuse a singleton matcher, and paper sections mount in idle batches.   Outline sections are paper blocks in default, hover, and active states. Initial open keeps the
   same page chrome with an inner paper spinner; clinical full-text loading stays inside the primary
   button. Nested document links navigate to another documents hash page and append a breadcrumb
-  instead of stacking reader dialogs.
+  instead of stacking reader dialogs. Own documents can switch to a paper-free book mode from a
+  control above scroll-to-top; pinch-zoom works on the page without opening preview, and a horizontal
+  swipe opens or hides the outline. Find is disabled when an upload has no extractable text.
 - Search-result context remaps stale pilot-summary chunks to installed full-text siblings and falls back
   to the readable document when an exact chunk cannot be resolved.
 - Поиск по полному документу работает как поиск на странице: он точно сопоставляет введённую фразу
@@ -161,6 +163,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   bulk download, background update pause on the documents root catalog only, rollback to retained older versions, and nested URLs for
   opened collections and sections. Leaf catalog download controls are icon-only and use primary accent
   when published; only unpublished rows stay muted.
+  Regulatory packs open as a documents sub-route (`#/modules/documents/laws/pediatrics`, alias
+  `paediatrics`) with in-page search, not a catalog dialog. The catalog sticky toolbar hides on that
+  route.
 - The medications catalog reads medication metadata from document summaries in bounded batches and
   coalesces concurrent summary reads, so direct and navigated catalog routes avoid materializing
   every document's sections/chunks on the main thread.
@@ -181,8 +186,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Search, module-catalog, and medication-catalog sticky headers use transparent,
   page-width masked backdrop blur with a subtle grain layer that stays hidden until the header is
   actually stuck. Document reader chrome stays opaque; in-text `h1`/`h2` sticky offsets are measured
-  from the real chrome (the paper title is not pinned). On native Android the remaining route blur also covers
-  the status bar, but only while a visible root view has sticky chrome (`:has(.app-view:not([hidden]) …)`).
+  from the real chrome (the paper title is not pinned). On native Android the page itself draws under a
+  translucent status bar (`.app-shell--native` has no top desk padding). Sticky chrome adds `--safe-top`
+  to its own padding instead of sitting below a solid olive strip. The bottom nav remembers the largest
+  observed bottom inset so hash navigation cannot drop it into the gesture bar and bounce it back.
   Outgoing root views isolate their fixed overlays below the incoming navigation surface. Hover styles
   use `@media (hover: hover)`.
 - The diagnosis search actions expose the local-model control on the left; it toggles a ready model
@@ -312,9 +319,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   results can be saved into the same local result history.
 - Vertical mouse-wheel delta is translated into horizontal movement for the shared overflowing-strip
   component, including mixed diagonal wheel input; touch and trackpad scrolling remain native.
-- Android draws the page background beneath its transparent status bar while safe-area padding keeps
-  controls below it; a native-only transparent masked backdrop-blur layer blends the page behind the
-  status bar, and system-bar icon contrast follows the device theme. Hardware Back closes the
+- Android draws the page background beneath its transparent status bar while sticky chrome and
+  page surfaces add `--safe-top` themselves; there is no solid desk-colored status-bar plate.
+  The launch splash and in-app boot screen fill the viewport with paper. System-bar icon contrast
+  follows the device theme. Hardware Back closes the
   active dialog or drawer, returns through nested routes and root sections, then minimizes the app at
   the search root. Native-like haptics respect the vibration preference and platform capabilities
   (see device preferences above).
@@ -327,7 +335,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - The landing page and browser app are built together for GitHub Pages; the application is published
   below the site at `/app/`. Pages builds regulatory and reference databases in CI and treats
   `medications.db` / `ambulatory.db` as optional GitHub-release companions so a matching tag is not
-  required before deploy.
+  required before deploy. Vite no longer strips `regulatory.db`, `reference.db`, or `content/modules`
+  from `dist`; Android packaging also keeps those files. Only the multi-hundred-megabyte companions
+  (`mkb.db`, `ambulatory.db`) stay out of the APK; `medications.db` is packed when a local copy is
+  present outside CI.
 - Release labels, tags, APK URLs, Android version metadata, and workflow artifact names derive from
   the root `release.json`; only that file and the independently built corpus manifest are release
   version sources.

@@ -45,12 +45,12 @@
 .document-page__chrome {
   position: sticky;
   z-index: var(--z-sticky-chrome);
-  top: var(--safe-top, 0);
+  top: 0;
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem var(--page-inline-padding, 1rem);
+  padding: calc(0.35rem + var(--safe-top, 0px)) var(--page-inline-padding, 1rem) 0.5rem;
   border-bottom: 1px solid var(--paper-line);
   background: var(--paper-surface, var(--theme-surface-raised));
 }

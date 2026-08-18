@@ -21,9 +21,10 @@ android {
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc4ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-             // aapt `!` only silences skip warnings; it does not keep a file. A blanket database
-             // glob would also drop the bundled core pack. Name companion databases instead.
-            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:medications.db:mkb.db:ambulatory.db:regulatory.db:reference.db:reference-report.json:regulatory-report.json'
+             // aapt `!` only silences skip warnings; it does not keep a file. Skip only the
+             // multi-hundred-megabyte optional companions (mkb.db, ambulatory.db). Keep
+             // medications.db, regulatory.db, and reference.db when those files are in www.
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:mkb.db:ambulatory.db'
         }
         ndk {
             // The vendored llama.cpp build only targets arm64-v8a (see src/main/cpp/CMakeLists.txt)

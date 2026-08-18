@@ -7,6 +7,7 @@ import {
   findInUnits,
   findRangesInText,
   fuzzyQueryRanges,
+  hasSearchableDocumentUnits,
   rangesForFindUnit,
   stepDocumentFindIndex,
 } from '@/features/library/document-find';
@@ -56,6 +57,21 @@ describe('findInUnits', () => {
 
   it('returns no matches for an empty query', () => {
     expect(findInUnits([{ id: 'a', text: 'текст' }], '   ', 'exact')).toEqual([]);
+  });
+
+  it('returns no matches when all units are empty', () => {
+    expect(
+      findInUnits(
+        [
+          { id: 'a', text: '' },
+          { id: 'b', text: '   ' },
+        ],
+        'текст',
+        'exact',
+      ),
+    ).toEqual([]);
+    expect(hasSearchableDocumentUnits([{ id: 'a', text: '' }])).toBe(false);
+    expect(hasSearchableDocumentUnits([{ id: 'a', text: 'глава' }])).toBe(true);
   });
 });
 

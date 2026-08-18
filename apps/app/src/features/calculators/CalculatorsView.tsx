@@ -40,7 +40,7 @@ import {
   setDatabaseCalculatorIds,
 } from '@/features/calculators/calculator-packs';
 import {
-  formatCalculationRecord,
+  calculationRecordOutputs,
   printCalculationRecord,
   shareCalculationRecord,
 } from '@/features/calculators/calculator-print';
@@ -75,6 +75,7 @@ import {
 } from '@/features/calculators/unit-conversion';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import { snapshotCalculationForNote } from '@/features/notes/note-attached-results';
 import {
   type CalculationRecord,
   createCalculationRecord,
@@ -672,24 +673,7 @@ function CalculationResultPanel(props: {
   const [selectedCardId, setSelectedCardId] = createSignal('');
   const [newCardTitle, setNewCardTitle] = createSignal('');
 
-  const outputs = (): readonly { readonly label: string; readonly display: string }[] => {
-    const result = props.record.result;
-    if ('textValues' in result) {
-      return result.textValues.map((item) => ({ label: item.label, display: item.text }));
-    }
-    if ('value' in result) {
-      return [
-        {
-          label: 'Результат',
-          display: `${formatNumber(result.value, result.displayPrecision)} ${result.unit}`,
-        },
-      ];
-    }
-    return result.values.map((item) => ({
-      label: item.label,
-      display: `${formatNumber(item.value, item.displayPrecision)} ${item.unit}`,
-    }));
-  };
+  const outputs = () => calculationRecordOutputs(props.record);
 
   const saveToNote = (): void => {
     let cardId = selectedCardId();
@@ -708,7 +692,16 @@ function CalculationResultPanel(props: {
       props.onMessage('Не удалось создать карточку пациента.');
       return;
     }
-    setNotes(addPatientNote(cardId, formatCalculationRecord(props.record)));
+    const attachment = snapshotCalculationForNote(props.record);
+    const next = addPatientNote(cardId, '', null, { attachedResults: [attachment] });
+    const saved = next.notes
+      .filter((note) => note.cardId === cardId)
+      .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt))[0];
+    if (!saved?.attachedResults?.some((item) => item.recordId === attachment.recordId)) {
+      props.onMessage('Не удалось записать расчёт в заметку.');
+      return;
+    }
+    setNotes(next);
     setNoteOpen(false);
     props.onMessage('Расчёт записан в карточку пациента.');
   };

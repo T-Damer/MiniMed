@@ -37,7 +37,8 @@ roadmap ideas.
 - Put `:hover` styles only inside `@media (hover: hover) and (pointer: fine)` so touch taps do
   not leave a lingering hover wash on controls.
 - Native routes with sticky blurred chrome (search tools, document/medication headings, document read
-  breadcrumbs) extend blur under the status bar via `.app-shell--native:has(...)` on existing markers such as
+  breadcrumbs) draw under a translucent status bar. `.app-shell--native` has no top padding; chrome
+  accounts for `--safe-top` itself. Status-bar blur still uses `.app-shell--native:has(...)` on
   `.route-sticky-chrome.sticky-surface--stuck`, `.module-catalog-heading.sticky-surface--stuck`,
   `.medication-route-heading.sticky-surface--stuck`, and `.search-home__backdrop-blur--visible`.
 

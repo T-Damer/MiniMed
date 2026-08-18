@@ -139,37 +139,39 @@ export function AssessmentQuestionnairePage(props: {
   return (
     <div class="assessment-workspace">
       <header class="assessment-subpage-header">
-        <div class="assessment-subpage-header-actions assessment-subpage-header-actions--leading">
+        <div class="assessment-subpage-header__nav">
           <AssessmentBackNav sectionTitle={props.sectionTitle} onBackToCatalog={props.onBack} />
-        </div>
-        <div class="assessment-subpage-header__content">
           <AppBreadcrumbs
             items={assessmentWorkspaceCrumbs(props.definition)}
             onNavigate={(href) => {
               window.location.hash = href;
             }}
           />
-          <h1 class="assessment-subpage-title">{props.definition.title}</h1>
         </div>
-        <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
-          <Button
-            type="button"
-            variant="icon"
-            class="knowledge-back-button assessment-questionnaire-print"
-            aria-label="Распечатать бланк теста"
-            title="Распечатать бланк теста"
-            onClick={() => printBlankAssessment(props.definition)}
-            icon={<AppGlyph name="printer" class="assessment-questionnaire-print__icon" />}
-          />
-          <Button
-            type="button"
-            variant="icon"
-            class="knowledge-back-button assessment-help-button"
-            aria-label="Методика и ограничения"
-            title="Методика и ограничения"
-            onClick={() => setMethodologyOpen(true)}
-            icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
-          />
+        <div class="assessment-subpage-header__body">
+          <div class="assessment-subpage-header__content">
+            <h1 class="assessment-subpage-title">{props.definition.title}</h1>
+          </div>
+          <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
+            <Button
+              type="button"
+              variant="icon"
+              class="knowledge-back-button assessment-questionnaire-print"
+              aria-label="Распечатать бланк теста"
+              title="Распечатать бланк теста"
+              onClick={() => printBlankAssessment(props.definition)}
+              icon={<AppGlyph name="printer" class="assessment-questionnaire-print__icon" />}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="knowledge-back-button assessment-help-button"
+              aria-label="Методика и ограничения"
+              title="Методика и ограничения"
+              onClick={() => setMethodologyOpen(true)}
+              icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
+            />
+          </div>
         </div>
       </header>
 

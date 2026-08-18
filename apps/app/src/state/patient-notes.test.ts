@@ -13,6 +13,8 @@ import {
   loadPatientNoteDraft,
   loadPatientNotes,
   loadPreviousPatientNoteRevision,
+  type NoteAttachedAssessmentResult,
+  type NoteAttachedCalculatorResult,
   PATIENT_NOTES_KEY,
   removePatientCard,
   removePatientNote,
@@ -201,6 +203,142 @@ describe('patient notes store', () => {
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
     updatePatientNote(noteId, '   ');
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
+  });
+
+  it('round-trips structured attachments through localStorage', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    const assessmentAttachment: NoteAttachedAssessmentResult = {
+      kind: 'assessment',
+      recordId: 'assessment-1',
+      assessmentId: 'demo',
+      slug: 'demo-scale',
+      specialtyId: 'psychiatry',
+      title: 'Тест Бравермана',
+      headline: 'Низкий риск',
+      summary: 'Продолжить наблюдение.',
+      scores: [{ label: 'Сумма', rawScore: 3, maximumScore: 10, percent: 30 }],
+      disclaimer: 'Не диагноз.',
+    };
+    const calculatorAttachment: NoteAttachedCalculatorResult = {
+      kind: 'calculator',
+      recordId: 'calc-1',
+      calculatorId: 'bsa',
+      slug: 'bsa',
+      title: 'Площадь поверхности тела',
+      inputSummary: 'Рост 170 см, масса 70 кг',
+      outputs: [{ label: 'Результат', display: '1,82 м²' }],
+      warnings: [],
+    };
+
+    addPatientNote(cardId, 'Опросник', null, { attachedResults: [assessmentAttachment] });
+    addPatientNote(cardId, '', null, { attachedResults: [calculatorAttachment] });
+
+    const raw = store.get(PATIENT_NOTES_KEY);
+    expect(raw).toBeTruthy();
+    const reloaded = loadPatientNotes();
+    expect(reloaded.notes[0]?.attachedResults?.[0]).toMatchObject({
+      kind: 'assessment',
+      recordId: 'assessment-1',
+      title: 'Тест Бравермана',
+    });
+    expect(reloaded.notes[1]?.text).toBe('');
+    expect(reloaded.notes[1]?.attachedResults?.[0]).toMatchObject({
+      kind: 'calculator',
+      outputs: [{ display: '1,82 м²' }],
+    });
+  });
+
+  it('drops malformed attached results on load', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'заметка');
+    const noteId = loadPatientNotes().notes[0]?.id ?? '';
+    store.set(
+      PATIENT_NOTES_KEY,
+      JSON.stringify({
+        cards: loadPatientNotes().cards,
+        notes: [
+          {
+            ...loadPatientNotes().notes[0],
+            attachedResults: [{ kind: 'assessment', recordId: 'broken' }, { kind: 'unknown' }],
+          },
+        ],
+      }),
+    );
+    const note = loadPatientNotes().notes.find((item) => item.id === noteId);
+    expect(note?.attachedResults).toBeUndefined();
+  });
+
+  it('allows empty text only when attachments are present', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    expect(addPatientNote(cardId, '   ').notes).toHaveLength(0);
+    const withAttachment = addPatientNote(cardId, '   ', null, {
+      attachedResults: [
+        {
+          kind: 'calculator',
+          recordId: 'calc-2',
+          calculatorId: 'bsa',
+          slug: 'bsa',
+          title: 'Площадь поверхности тела',
+          inputSummary: 'Рост 170 см',
+          outputs: [{ label: 'Результат', display: '1,82 м²' }],
+          warnings: [],
+        },
+      ],
+    });
+    expect(withAttachment.notes).toHaveLength(1);
+    expect(withAttachment.notes[0]?.text).toBe('');
+  });
+
+  it('preserves attachments when updating note text', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'подпись', null, {
+      attachedResults: [
+        {
+          kind: 'assessment',
+          recordId: 'assessment-2',
+          assessmentId: 'demo',
+          slug: 'demo-scale',
+          specialtyId: 'psychiatry',
+          title: 'Тест Бравермана',
+          headline: 'Низкий риск',
+          summary: 'Наблюдение.',
+          scores: [],
+        },
+      ],
+    });
+    const noteId = loadPatientNotes().notes[0]?.id ?? '';
+    updatePatientNote(noteId, '');
+    const note = loadPatientNotes().notes[0];
+    expect(note?.text).toBe('');
+    expect(note?.attachedResults?.[0]?.title).toBe('Тест Бравермана');
+  });
+
+  it('finds notes by attachment title or output even with a short caption', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'расчёт', null, {
+      attachedResults: [
+        {
+          kind: 'calculator',
+          recordId: 'calc-3',
+          calculatorId: 'edd',
+          slug: 'edd',
+          title: 'ПДР по УЗИ',
+          inputSummary: 'УЗИ 20 недель',
+          outputs: [{ label: 'ПДР', display: '5 февраля 2027 г.' }],
+          warnings: [],
+        },
+      ],
+    });
+
+    expect(searchPatientNotes('5 февраля 2027')[0]?.note?.attachedResults?.[0]?.kind).toBe(
+      'calculator',
+    );
+    expect(searchPatientNotes('ПДР по УЗИ')[0]?.note).toBeTruthy();
   });
 
   it('keeps an autosaved draft separate from the previous stable revision', () => {

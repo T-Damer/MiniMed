@@ -1,6 +1,7 @@
 import { render } from 'solid-js/web';
 
 import { App } from '@/app/App';
+import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { startReminderNotifications } from '@/state/reminder-notifications';
 import 'overlayscrollbars/overlayscrollbars.css';
@@ -38,8 +39,14 @@ const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
 render(() => <App />, root);
+const stopNativeSafeBottomLock = lockNativeSafeBottom();
 const stopReminderNotifications = startReminderNotifications();
-if (import.meta.hot) import.meta.hot.dispose(stopReminderNotifications);
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    stopNativeSafeBottomLock();
+    stopReminderNotifications();
+  });
+}
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   void registerAppServiceWorker().catch(() => {

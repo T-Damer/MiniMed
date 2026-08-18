@@ -24,13 +24,15 @@ pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const TEXT_CHUNK_SIZE = 1200;
 const OCR_RENDER_SCALE = 1.2;
-const OCR_PAGE_DELAY_MS = 4000;
+const OCR_PAGE_DELAY_MS = 600;
+const OCR_WORKER_INIT_TIMEOUT_MS = 20_000;
+const OCR_WORKER_INIT_MAX_ATTEMPTS = 2;
 const OCR_LANGUAGES = 'rus+eng';
 const OCR_OEM = 1;
 
 let ingestLoopRunning = false;
 let ocrWorker: Worker | undefined;
-let ocrWorkerInitFailed = false;
+let ocrWorkerInitAttempts = 0;
 
 function splitTextIntoPages(text: string): readonly string[] {
   const normalized = text.replace(/\r\n/gu, '\n');
@@ -99,6 +101,23 @@ async function yieldToEventLoop(): Promise<void> {
   await new Promise<void>((resolve) => {
     window.setTimeout(resolve, 0);
   });
+}
+
+async function withTimeout<T>(task: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      task,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`${label} заняла слишком много времени.`)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 async function waitForIdle(): Promise<void> {
@@ -236,19 +255,36 @@ function extractTesseractWords(
 }
 
 async function ensureOcrWorker(): Promise<Worker | null> {
-  if (ocrWorkerInitFailed) return null;
   if (ocrWorker) return ocrWorker;
+  if (ocrWorkerInitAttempts >= OCR_WORKER_INIT_MAX_ATTEMPTS) return null;
+
+  ocrWorkerInitAttempts += 1;
+  const langPath = new URL('tessdata/', `${window.location.origin}/`).href;
   try {
-    ocrWorker = await createWorker(OCR_LANGUAGES, OCR_OEM, {
-      workerPath,
-      corePath,
-      langPath: new URL('tessdata/', window.location.href).href,
-      workerBlobURL: false,
-    });
+    ocrWorker = await withTimeout(
+      createWorker(OCR_LANGUAGES, OCR_OEM, {
+        workerPath,
+        corePath,
+        langPath,
+        workerBlobURL: false,
+      }),
+      OCR_WORKER_INIT_TIMEOUT_MS,
+      'Инициализация OCR',
+    );
     return ocrWorker;
   } catch (cause) {
-    ocrWorkerInitFailed = true;
-    console.error('Не удалось инициализировать OCR.', cause);
+    ocrWorker = undefined;
+    console.error('Не удалось инициализировать OCR.', {
+      workerPath,
+      corePath,
+      langPath,
+      cause,
+    });
+    if (ocrWorkerInitAttempts >= OCR_WORKER_INIT_MAX_ATTEMPTS) {
+      await failAllOcrDocuments(
+        'Не удалось запустить распознавание текста на устройстве. Проверьте, что файлы tessdata доступны в сборке.',
+      );
+    }
     return null;
   }
 }
@@ -420,10 +456,7 @@ async function processNextOcrPage(): Promise<boolean> {
   }
 
   const worker = await ensureOcrWorker();
-  if (!worker) {
-    await failAllOcrDocuments('Не удалось запустить распознавание текста на устройстве.');
-    return false;
-  }
+  if (!worker) return false;
 
   try {
     let canvas: HTMLCanvasElement;

@@ -279,9 +279,25 @@
   gap: 0.375rem;
 }
 
-.user-document-reader__page-surface {
+.user-document-reader__page-pinch {
+  width: 100%;
+}
+
+.user-document-reader__page-pinch .user-document-reader__page-surface {
   position: relative;
   width: 100%;
+}
+
+.document-page--book .user-document-reader__paper.document-overlay-paper,
+.document-page--book .user-document-reader__text {
+  color: var(--theme-text);
+  background: var(--theme-background);
+}
+
+.document-page--book .user-document-reader__canvas,
+.document-page--book .user-document-reader__image {
+  border-color: var(--theme-border);
+  background: var(--theme-surface);
 }
 
 .user-document-reader__canvas,

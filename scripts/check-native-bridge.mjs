@@ -93,14 +93,15 @@ if (/(?:^|:)[*][.]db(?::|$)/u.test(ignoreAssetsPattern.replaceAll(/\s/gu, ''))) 
 if (ignoreAssetsPattern.includes('core-demo.db')) {
   throw new Error('ignoreAssetsPattern must keep core-demo.db in the APK');
 }
-for (const companion of [
-  'medications.db',
-  'mkb.db',
-  'ambulatory.db',
-  'regulatory.db',
-  'reference.db',
-]) {
-  requireText('androidGradle', companion);
+for (const kept of ['medications.db', 'regulatory.db', 'reference.db']) {
+  if (ignoreAssetsPattern.includes(kept)) {
+    throw new Error(`ignoreAssetsPattern must keep ${kept} in the APK`);
+  }
+}
+for (const skipped of ['mkb.db', 'ambulatory.db']) {
+  if (!ignoreAssetsPattern.includes(skipped)) {
+    throw new Error(`ignoreAssetsPattern must skip ${skipped}`);
+  }
 }
 requireText('androidBackupRules', 'path="localmed/content/"');
 requireText('androidExtractionRules', 'path="localmed/content/"');

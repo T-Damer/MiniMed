@@ -11,6 +11,7 @@ import {
   type DocumentTableRow,
   visibleImageCaption,
 } from '@/features/library/document-rich-block-data';
+import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
 
 interface RichBlockHighlightProps {
   readonly query?: string | undefined;
@@ -107,6 +108,7 @@ function MediaViewer(props: {
   });
 
   const handlePrint = (): void => {
+    props.onClose();
     if (!printHtml(props.printHtmlContent, props.title)) {
       toast.error('Не удалось открыть окно печати.');
     }
@@ -231,13 +233,18 @@ function ZoomableImage(props: {
         aria-label="Открыть изображение"
         onClick={() => setOpen(true)}
       >
-        <img
-          class="document-rich-image__image"
-          src={props.image.dataUrl}
-          alt={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
-          loading="lazy"
-          decoding="async"
-        />
+        <PinchZoomSurface
+          class="document-rich-image__pinch"
+          contentClass="document-rich-image__pinch-content"
+        >
+          <img
+            class="document-rich-image__image"
+            src={props.image.dataUrl}
+            alt={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
+            loading="lazy"
+            decoding="async"
+          />
+        </PinchZoomSurface>
       </button>
       <MediaViewer
         open={open()}
@@ -293,13 +300,18 @@ function ZoomableTable(props: {
           <AppGlyph name="arrows-out" class="document-rich-table__zoom-icon" />
         </button>
       </div>
-      <div class="document-rich-table__scroller">
-        <RichTableMarkup
-          block={props.block}
-          tableClass="document-rich-table__table"
-          highlight={props.highlight}
-        />
-      </div>
+      <PinchZoomSurface
+        class="document-rich-table__pinch"
+        contentClass="document-rich-table__pinch-content"
+      >
+        <div class="document-rich-table__scroller">
+          <RichTableMarkup
+            block={props.block}
+            tableClass="document-rich-table__table"
+            highlight={props.highlight}
+          />
+        </div>
+      </PinchZoomSurface>
       <MediaViewer
         open={open()}
         title={title()}

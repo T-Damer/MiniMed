@@ -9,6 +9,8 @@ import { AppGlyph } from '@/components/AppGlyph';
 import {
   catalogModuleHidesInstallAction,
   catalogModuleHidesRemoveAction,
+  isPreinstalledCatalogModule,
+  type PreinstalledCatalogModuleOptions,
 } from '@/features/modules/local-packaged-modules';
 import { ModuleTaskStatus } from '@/features/modules/ModuleTaskStatus';
 import {
@@ -16,8 +18,8 @@ import {
   formatModuleBytes,
   MODULE_RELEASE_LABELS,
   MODULE_TASK_LABELS,
+  moduleDocumentCountFact,
 } from '@/features/modules/module-display';
-import { documentCountLabel } from '@/i18n/labels';
 
 interface ContentModuleCardProps {
   readonly module: ContentModuleCatalogEntry;
@@ -32,6 +34,7 @@ interface ContentModuleCardProps {
   readonly onOpenCore: () => void;
   readonly onRemove: () => void;
   readonly onActivateVersion: (version: string) => void;
+  readonly preinstallOptions?: PreinstalledCatalogModuleOptions;
 }
 
 export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
@@ -51,6 +54,8 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         props.installed.version !== props.module.version &&
         props.module.releaseState === 'published',
     );
+  const installedLabel = (): boolean =>
+    Boolean(props.installed || isPreinstalledCatalogModule(props.module, props.preinstallOptions));
   const sizeLabel = (): string =>
     props.installed
       ? formatModuleBytes(props.installed.installedSizeBytes)
@@ -59,7 +64,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
   return (
     <article
       class="module-card paper-card"
-      classList={{ 'module-card--installed': Boolean(props.installed) }}
+      classList={{ 'module-card--installed': installedLabel() }}
     >
       <button
         type="button"
@@ -74,12 +79,12 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
       <div class="module-card__topline">
         <span
           class={`module-state ${
-            props.installed
+            installedLabel()
               ? 'module-state--installed'
               : `module-state--${props.module.releaseState}`
           }`}
         >
-          {props.installed ? 'Установлено' : MODULE_RELEASE_LABELS[props.module.releaseState]}
+          {installedLabel() ? 'Установлено' : MODULE_RELEASE_LABELS[props.module.releaseState]}
         </span>
         <small class="module-card__version">{props.module.version}</small>
       </div>
@@ -89,11 +94,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         <span class="module-card__fact">
           {props.module.toolCount
             ? `${props.module.toolCount} инструмент${props.module.toolCount === 1 ? '' : 'а'}`
-            : props.module.previewDocumentCount || props.module.documents.length
-              ? documentCountLabel(
-                  props.module.previewDocumentCount || props.module.documents.length,
-                )
-              : 'Список документов уточняется'}
+            : moduleDocumentCountFact(props.module)}
         </span>
         <span class="module-card__fact">{sizeLabel()}</span>
       </div>
@@ -117,12 +118,17 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
       <Show when={!props.module.required}>
         <div
           class="module-card-actions module-card-actions--reserved"
-          classList={{ 'module-card-actions--installed': Boolean(props.installed) }}
+          classList={{ 'module-card-actions--installed': installedLabel() }}
         >
           <Show
-            when={props.installed}
+            when={installedLabel()}
             fallback={
-              <Show when={!working() && !catalogModuleHidesInstallAction(props.module)}>
+              <Show
+                when={
+                  !working() &&
+                  !catalogModuleHidesInstallAction(props.module, props.preinstallOptions)
+                }
+              >
                 <button
                   type="button"
                   class="module-card-actions__primary"
@@ -135,7 +141,12 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
               </Show>
             }
           >
-            <Show when={updateAvailable() && !catalogModuleHidesInstallAction(props.module)}>
+            <Show
+              when={
+                updateAvailable() &&
+                !catalogModuleHidesInstallAction(props.module, props.preinstallOptions)
+              }
+            >
               <button
                 type="button"
                 class="module-card-actions__primary"
@@ -146,7 +157,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
                 Обновить
               </button>
             </Show>
-            <Show when={!catalogModuleHidesRemoveAction(props.module)}>
+            <Show when={!catalogModuleHidesRemoveAction(props.module, props.preinstallOptions)}>
               <button
                 type="button"
                 class="module-remove-button module-card-actions__remove"

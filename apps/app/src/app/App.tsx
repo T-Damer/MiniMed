@@ -14,6 +14,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { AssessmentsView } from '@/features/assessments/AssessmentsView';
 import { CalculatorsView } from '@/features/calculators/CalculatorsView';
 import { KnowledgeBaseView } from '@/features/knowledge/KnowledgeBaseView';
+import { DocumentBookModeButton } from '@/features/library/DocumentBookModeButton';
 import { DocumentPageHost } from '@/features/library/DocumentPageHost';
 import { NotesView } from '@/features/notes/NotesView';
 import { SearchHome } from '@/features/search/SearchHome';
@@ -151,6 +152,9 @@ export function App(): JSX.Element {
         />
       </Show>
 
+      <Show when={session.ready()}>
+        <DocumentBookModeButton />
+      </Show>
       <Show when={session.ready() && navigation.showScrollTop()}>
         <button
           class="scroll-top-button"

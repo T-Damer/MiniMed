@@ -24,6 +24,7 @@ import {
   pickActiveSectionAnchor,
   readerScrollBehavior,
 } from '@/features/library/document-reader-outline';
+import { useDocumentOutlineSwipe } from '@/features/library/use-document-outline-swipe';
 import type { DocumentTrail } from '@/state/document-trail';
 
 interface OverlayScrollbarsInstance {
@@ -259,6 +260,11 @@ export interface DocumentReaderChromeShellProps {
 export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps): JSX.Element {
   const chrome = props.chrome;
   const searchOpen = (): boolean => props.searchOpen?.() ?? false;
+  const outlineSwipe = useDocumentOutlineSwipe({
+    outlineOpen: chrome.outlineOpen,
+    openOutline: () => chrome.setOutlineOpen(true),
+    closeOutline: chrome.closeOutline,
+  });
 
   const handleBack = (): void => {
     const header = chrome.chromeElement();
@@ -325,7 +331,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
             </OverlayScrollbarsComponent>
             {props.outlineFooter}
           </aside>
-          <div class="document-page__main">
+          <div ref={outlineSwipe.ref} class="document-page__main">
             <header
               ref={chrome.setChromeElement}
               class={

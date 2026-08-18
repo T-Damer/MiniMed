@@ -4,6 +4,7 @@ export interface AppPreferences {
   readonly vibrationEnabled: boolean;
   readonly rememberSearchMode: boolean;
   readonly soundVolume: number;
+  readonly bookReadingMode: boolean;
 }
 
 export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
@@ -14,6 +15,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   vibrationEnabled: true,
   rememberSearchMode: false,
   soundVolume: 0.2,
+  bookReadingMode: false,
 };
 
 const VALID_SCOPES = new Set<SearchScope>([
@@ -36,6 +38,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly vibrationEnabled?: unknown;
     readonly rememberSearchMode?: unknown;
     readonly soundVolume?: unknown;
+    readonly bookReadingMode?: unknown;
   };
   return {
     vibrationEnabled:
@@ -51,6 +54,10 @@ function normalizePreferences(value: unknown): AppPreferences {
         ? candidate.soundVolume
         : DEFAULT_PREFERENCES.soundVolume,
     ),
+    bookReadingMode:
+      typeof candidate.bookReadingMode === 'boolean'
+        ? candidate.bookReadingMode
+        : DEFAULT_PREFERENCES.bookReadingMode,
   };
 }
 
@@ -108,6 +115,14 @@ export function getSoundVolume(): number {
 
 export function setSoundVolume(volume: number): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), soundVolume: clampVolume(volume) });
+}
+
+export function getBookReadingMode(): boolean {
+  return loadAppPreferences().bookReadingMode;
+}
+
+export function setBookReadingMode(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), bookReadingMode: enabled });
 }
 
 export function subscribeAppPreferences(

@@ -2,10 +2,13 @@ import type { ContentModuleCatalog, ContentModuleCatalogEntry } from '@localmed/
 import { describe, expect, it } from 'vitest';
 
 import {
+  CORE_MEDICATION_REGISTRY_CARD_COUNT,
   catalogModuleHidesInstallAction,
   catalogModuleHidesRemoveAction,
+  isCompanionMedicationsMounted,
   isPreinstalledCatalogModule,
   localPackagedModulesToInstall,
+  MEDICATIONS_COMPANION_MODULE_ID,
   mergePreinstalledModules,
 } from '@/features/modules/local-packaged-modules';
 
@@ -94,6 +97,13 @@ const catalog: ContentModuleCatalog = {
       required: false,
       releaseState: 'published',
     }),
+    module({
+      id: MEDICATIONS_COMPANION_MODULE_ID,
+      kind: 'medication',
+      required: false,
+      releaseState: 'preview',
+      previewDocumentCount: 4708,
+    }),
   ],
 };
 
@@ -142,5 +152,23 @@ describe('local packaged modules', () => {
     expect(
       localPackagedModulesToInstall(catalog, new Set(['minimed.tools.psychology.ru']), true),
     ).toEqual([]);
+  });
+
+  it('treats the medications companion as installed when mounted document counts exceed core cards', () => {
+    const medicationsModule = moduleById(MEDICATIONS_COMPANION_MODULE_ID);
+    expect(
+      isCompanionMedicationsMounted({
+        medications: CORE_MEDICATION_REGISTRY_CARD_COUNT + 1,
+        reference: 0,
+        regulatory: 0,
+        clinical: 0,
+        core: 0,
+      }),
+    ).toBe(true);
+    expect(
+      isPreinstalledCatalogModule(medicationsModule, { companionMedicationsMounted: true }),
+    ).toBe(true);
+    const merged = mergePreinstalledModules(catalog, [], { companionMedicationsMounted: true });
+    expect(merged.map((entry) => entry.moduleId)).toContain(MEDICATIONS_COMPANION_MODULE_ID);
   });
 });

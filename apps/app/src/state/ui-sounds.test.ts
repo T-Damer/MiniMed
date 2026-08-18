@@ -90,6 +90,7 @@ describe('UiSoundController', () => {
     uiSounds.play('select');
     expect(mockPlayer.unlock).toHaveBeenCalled();
     await Promise.resolve();
+    expect(mockPlayer.play).toHaveBeenCalledWith('select', { volume: 0.2 * 1.25 });
     expect(mockPlayer.preload).toHaveBeenCalledWith([
       'hover',
       'press',
@@ -118,7 +119,15 @@ describe('UiSoundController', () => {
     uiSounds.hover(button, 'mouse');
     uiSounds.hover(button, 'mouse');
     expect(mockPlayer.play).toHaveBeenCalledTimes(1);
-    expect(mockPlayer.play).toHaveBeenCalledWith('hover');
+    expect(mockPlayer.play).toHaveBeenCalledWith('hover', { volume: 0.2 });
+  });
+
+  it('applies per-cue gain relative to master volume', async () => {
+    const { uiSounds } = await import('@/state/ui-sounds');
+    uiSounds.play('press');
+    uiSounds.play('back');
+    expect(mockPlayer.play).toHaveBeenCalledWith('press', { volume: 0.2 * 1.35 });
+    expect(mockPlayer.play).toHaveBeenCalledWith('back', { volume: 0.2 * 0.85 });
   });
 
   it('skips hover for touch pointers', async () => {

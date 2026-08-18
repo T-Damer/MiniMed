@@ -38,6 +38,45 @@ export interface NoteReminder {
   readonly completionNote: string;
 }
 
+export interface NoteAttachedScore {
+  readonly label: string;
+  readonly rawScore: number;
+  readonly maximumScore: number;
+  readonly percent: number;
+}
+
+export interface NoteAttachedOutput {
+  readonly label: string;
+  readonly display: string;
+}
+
+export interface NoteAttachedAssessmentResult {
+  readonly kind: 'assessment';
+  readonly recordId: string;
+  readonly assessmentId: string;
+  readonly slug: string;
+  readonly specialtyId: string;
+  readonly title: string;
+  readonly headline: string;
+  readonly summary: string;
+  readonly scores: readonly NoteAttachedScore[];
+  readonly manualText?: string;
+  readonly disclaimer?: string;
+}
+
+export interface NoteAttachedCalculatorResult {
+  readonly kind: 'calculator';
+  readonly recordId: string;
+  readonly calculatorId: string;
+  readonly slug: string;
+  readonly title: string;
+  readonly inputSummary: string;
+  readonly outputs: readonly NoteAttachedOutput[];
+  readonly warnings: readonly string[];
+}
+
+export type NoteAttachedResult = NoteAttachedAssessmentResult | NoteAttachedCalculatorResult;
+
 export interface PatientNote {
   readonly id: string;
   readonly cardId: string;
@@ -48,6 +87,7 @@ export interface PatientNote {
   readonly updatedAt: string;
   readonly categories: readonly string[];
   readonly relatedDocumentIds: readonly string[];
+  readonly attachedResults?: readonly NoteAttachedResult[];
   readonly reminder?: NoteReminder;
 }
 
@@ -188,6 +228,63 @@ function isCard(value: unknown): value is PatientCard {
   );
 }
 
+function isNoteAttachedScore(value: unknown): value is NoteAttachedScore {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<NoteAttachedScore>;
+  return (
+    typeof candidate.label === 'string' &&
+    typeof candidate.rawScore === 'number' &&
+    typeof candidate.maximumScore === 'number' &&
+    typeof candidate.percent === 'number'
+  );
+}
+
+function isNoteAttachedOutput(value: unknown): value is NoteAttachedOutput {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<NoteAttachedOutput>;
+  return typeof candidate.label === 'string' && typeof candidate.display === 'string';
+}
+
+function isNoteAttachedAssessmentResult(value: unknown): value is NoteAttachedAssessmentResult {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<NoteAttachedAssessmentResult>;
+  return (
+    candidate.kind === 'assessment' &&
+    typeof candidate.recordId === 'string' &&
+    typeof candidate.assessmentId === 'string' &&
+    typeof candidate.slug === 'string' &&
+    typeof candidate.specialtyId === 'string' &&
+    typeof candidate.title === 'string' &&
+    typeof candidate.headline === 'string' &&
+    typeof candidate.summary === 'string' &&
+    Array.isArray(candidate.scores) &&
+    candidate.scores.every(isNoteAttachedScore) &&
+    (candidate.manualText === undefined || typeof candidate.manualText === 'string') &&
+    (candidate.disclaimer === undefined || typeof candidate.disclaimer === 'string')
+  );
+}
+
+function isNoteAttachedCalculatorResult(value: unknown): value is NoteAttachedCalculatorResult {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<NoteAttachedCalculatorResult>;
+  return (
+    candidate.kind === 'calculator' &&
+    typeof candidate.recordId === 'string' &&
+    typeof candidate.calculatorId === 'string' &&
+    typeof candidate.slug === 'string' &&
+    typeof candidate.title === 'string' &&
+    typeof candidate.inputSummary === 'string' &&
+    Array.isArray(candidate.outputs) &&
+    candidate.outputs.every(isNoteAttachedOutput) &&
+    Array.isArray(candidate.warnings) &&
+    candidate.warnings.every((warning): warning is string => typeof warning === 'string')
+  );
+}
+
+function isNoteAttachedResult(value: unknown): value is NoteAttachedResult {
+  return isNoteAttachedAssessmentResult(value) || isNoteAttachedCalculatorResult(value);
+}
+
 function isReminder(value: unknown): value is NoteReminder {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<NoteReminder>;
@@ -215,17 +312,54 @@ function isNote(value: unknown): value is PatientNote {
   );
 }
 
+function normalizedAttachedResults(value: unknown): readonly NoteAttachedResult[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const results = value.filter(isNoteAttachedResult);
+  return results.length > 0 ? results : undefined;
+}
+
+function noteAttachedSearchText(result: NoteAttachedResult): string {
+  if (result.kind === 'assessment') {
+    return [
+      result.title,
+      result.headline,
+      result.summary,
+      result.manualText,
+      ...result.scores.map(
+        (score) => `${score.label} ${score.rawScore} ${score.maximumScore} ${score.percent}`,
+      ),
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+  return [
+    result.title,
+    result.inputSummary,
+    ...result.outputs.map((output) => `${output.label} ${output.display}`),
+    ...result.warnings,
+  ].join(' ');
+}
+
+function noteSearchableText(text: string, attachedResults?: readonly NoteAttachedResult[]): string {
+  const attachmentText = (attachedResults ?? []).map(noteAttachedSearchText).join(' ');
+  return `${text} ${attachmentText}`.trim();
+}
+
 function normalizedNote(note: PatientNote): PatientNote {
+  const { attachedResults: rawAttachedResults, ...rest } = note;
+  const attachedResults = normalizedAttachedResults(rawAttachedResults);
+  const searchableText = noteSearchableText(note.text, attachedResults);
   const normalized = {
-    ...note,
+    ...rest,
     categories: Array.isArray(note.categories)
       ? note.categories.filter((category): category is string => typeof category === 'string')
-      : categorizeNoteText(note.text),
+      : categorizeNoteText(searchableText),
     relatedDocumentIds: Array.isArray(note.relatedDocumentIds)
       ? note.relatedDocumentIds.filter(
           (documentId): documentId is string => typeof documentId === 'string',
         )
       : [],
+    ...(attachedResults ? { attachedResults } : {}),
   };
   return note.reminder
     ? {
@@ -438,10 +572,15 @@ export function addPatientNote(
   cardId: string,
   text: string,
   parentNoteId: string | null = null,
+  options?: { readonly attachedResults?: readonly NoteAttachedResult[] },
 ): PatientNotesSnapshot {
   const trimmed = text.trim();
+  const attachedResults = normalizedAttachedResults(options?.attachedResults);
+  const hasAttachments = (attachedResults?.length ?? 0) > 0;
   const current = loadPatientNotes();
-  if (!trimmed || !current.cards.some((card) => card.id === cardId)) return current;
+  if ((!trimmed && !hasAttachments) || !current.cards.some((card) => card.id === cardId)) {
+    return current;
+  }
   if (parentNoteId && !current.notes.some((note) => note.id === parentNoteId)) return current;
   const now = new Date().toISOString();
   const note: PatientNote = {
@@ -451,8 +590,9 @@ export function addPatientNote(
     text: trimmed,
     createdAt: now,
     updatedAt: now,
-    categories: categorizeNoteText(trimmed),
+    categories: categorizeNoteText(noteSearchableText(trimmed, attachedResults)),
     relatedDocumentIds: [],
+    ...(attachedResults ? { attachedResults } : {}),
   };
   return persist({ cards: current.cards, notes: [...current.notes, note] });
 }
@@ -461,14 +601,22 @@ export function updatePatientNote(noteId: string, text: string): PatientNotesSna
   const trimmed = text.trim();
   const current = loadPatientNotes();
   const existing = current.notes.find((note) => note.id === noteId);
-  if (!trimmed || !existing || existing.text === trimmed) return current;
+  if (!existing) return current;
+  const hasAttachments = (existing.attachedResults?.length ?? 0) > 0;
+  if (!trimmed && !hasAttachments) return current;
+  if (existing.text === trimmed) return current;
   savePreviousPatientNoteRevision(existing);
   const now = new Date().toISOString();
   return persist({
     cards: current.cards,
     notes: current.notes.map((note) =>
       note.id === noteId
-        ? { ...note, text: trimmed, categories: categorizeNoteText(trimmed), updatedAt: now }
+        ? {
+            ...note,
+            text: trimmed,
+            categories: categorizeNoteText(noteSearchableText(trimmed, note.attachedResults)),
+            updatedAt: now,
+          }
         : note,
     ),
   });
@@ -478,15 +626,17 @@ export async function enrichPatientNote(noteId: string, core: MedicalCore): Prom
   const current = loadPatientNotes();
   const note = current.notes.find((item) => item.id === noteId);
   if (!note) return;
+  const query = noteSearchableText(note.text, note.attachedResults);
+  if (!query) return;
   const result = await core.search({
-    query: note.text,
+    query,
     mode: 'auto',
     filters: {},
     limit: 5,
     includeSuggestions: false,
   });
   if (!result.ok) return;
-  const meaningfulTerms = new Set(tokenize(note.text).map(lightStemRussian)).size;
+  const meaningfulTerms = new Set(tokenize(query).map(lightStemRussian)).size;
   const minimumMatches = meaningfulTerms >= 3 ? 2 : 1;
   const relatedDocumentIds = result.value.groups
     .filter((group) =>
@@ -656,9 +806,10 @@ export function searchPatientNotes(query: string, limit = 8): readonly PatientNo
   for (const note of snapshot.notes) {
     const card = cardsById.get(note.cardId);
     if (!card) continue;
-    const score = scoreOf(note.text);
+    const searchableText = noteSearchableText(note.text, note.attachedResults);
+    const score = scoreOf(searchableText);
     if (score > 0) {
-      matches.push({ card, note, score, snippet: snippetFor(note.text, queryStems) });
+      matches.push({ card, note, score, snippet: snippetFor(searchableText, queryStems) });
     }
   }
 

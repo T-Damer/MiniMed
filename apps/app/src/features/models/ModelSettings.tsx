@@ -145,25 +145,20 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
   };
 
   return (
-    <section class="model-settings paper-sheet" aria-labelledby="local-model-heading">
-      <header class="model-settings-heading settings-section__heading">
+    <section
+      class="settings-section settings-section--local-model paper-sheet model-settings"
+      aria-labelledby="local-model-heading"
+    >
+      <header class="settings-section__heading">
         <div class="settings-section__heading-main">
           <AppGlyph name="brain" class="settings-section__icon" />
-          <div class="settings-section__heading-copy">
-            <p class="archive-kicker">Помощник на устройстве</p>
-            <h2 id="local-model-heading" class="settings-section__title">
-              Локальная модель
-            </h2>
-            <p class="settings-section__description">
-              Модель работает на устройстве без отправки запроса на сервер. Поиск доступен и без
-              неё.
-            </p>
-          </div>
+          <h2 id="local-model-heading" class="settings-section__title">
+            Локальная модель
+          </h2>
         </div>
-        <span class={`model-state-badge ${state().phase}`}>{PHASE_LABELS[state().phase]}</span>
       </header>
 
-      <div class="model-current-state paper-card" aria-live="polite">
+      <div class="model-current-state" aria-live="polite">
         <Show
           when={busyPhase()}
           fallback={
@@ -200,17 +195,12 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
             </Show>
           }
         >
-          <div class="model-download-body">
-            <div class="model-download-status-header">
-              <strong>{PHASE_LABELS[state().phase]}</strong>
-              <button type="button" class="model-download-cancel" onClick={cancelLoad}>
-                Отменить
-              </button>
-            </div>
-            <span>{state().message}</span>
+          <div class="model-current-state__copy">
+            <span>{PHASE_LABELS[state().phase]}</span>
+            <strong>{state().message}</strong>
             <Show when={state().progress !== null}>
               <div
-                class="model-download-status-progress"
+                class="model-current-state__progress"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -220,6 +210,13 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
               </div>
             </Show>
           </div>
+          <button
+            type="button"
+            class="model-current-state__action model-current-state__action--secondary model-download-cancel"
+            onClick={cancelLoad}
+          >
+            Отменить
+          </button>
         </Show>
       </div>
 
@@ -228,10 +225,10 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
         fallback={<p class="model-settings-empty">Получаем список доступных моделей…</p>}
       >
         <details class="model-catalog-details">
-          <summary>
-            <strong>Доступные модели</strong>
-            <span>{models().length}</span>
-            <small class="model-catalog-expand-hint" aria-hidden="true" />
+          <summary class="model-catalog-details__summary">
+            <strong class="model-catalog-details__title">Доступные модели</strong>
+            <span class="model-catalog-details__count">{models().length}</span>
+            <AppGlyph name="caret-down" class="model-catalog-details__chevron" aria-hidden="true" />
           </summary>
           <div class="model-card-grid">
             <For each={models()}>

@@ -209,7 +209,16 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         <ModelSettings controller={props.controller} />
 
         <details class="system-technical-panel">
-          <summary>Техническая информация о приложении</summary>
+          <summary class="system-technical-panel__summary">
+            <span class="system-technical-panel__summary-text">
+              Техническая информация о приложении
+            </span>
+            <AppGlyph
+              name="caret-down"
+              class="system-technical-panel__chevron"
+              aria-hidden="true"
+            />
+          </summary>
           <section class="system-model-technical">
             <h3>Локальная модель</h3>
             <div class="model-settings-summary">

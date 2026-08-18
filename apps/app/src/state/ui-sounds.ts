@@ -29,6 +29,14 @@ const PRELOAD_CUES: readonly CueName[] = [
 
 const FINE_HOVER_QUERY = '(hover: hover) and (pointer: fine)';
 
+const CUE_GAIN: Partial<Record<CueName, number>> = {
+  press: 1.35,
+  forward: 1.35,
+  select: 1.25,
+  open: 1.2,
+  back: 0.85,
+};
+
 export class UiSoundController {
   private readonly player: UISFXPlayer;
   private unlocked = false;
@@ -66,9 +74,11 @@ export class UiSoundController {
 
   play(cue: CueName): void {
     this.ensurePreferences();
-    if (getSoundVolume() <= 0) return;
+    const master = getSoundVolume();
+    if (master <= 0) return;
     this.unlock();
-    void this.player.play(cue);
+    const gain = CUE_GAIN[cue] ?? 1;
+    void this.player.play(cue, { volume: master * gain });
   }
 
   hover(target: Element, pointerType?: string, cue: CueName = 'hover'): void {
