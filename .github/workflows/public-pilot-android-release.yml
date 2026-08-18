@@ -99,8 +99,10 @@ jobs:
           }
           unzip_apk -l "$apk" | tee release-output/APK-CONTENTS.txt
           # Parse the listing file instead of `unzip -Z1 | awk … exit`, which SIGPIPEs on a
-          # 490-file APK when the core pack is not last.
-          embedded_path="$(awk '/(^|[[:space:]])core-demo\.db$/ { print $NF; exit }' release-output/APK-CONTENTS.txt)"
+          # 490-file APK when the core pack is not last. unzip -l prints the full archive path
+          # as $NF (e.g. assets/public/content/core-demo.db), so match a path suffix, not a
+          # bare filename token.
+          embedded_path="$(awk '$(NF) ~ /(^|\/)core-demo\.db$/ { print $NF; exit }' release-output/APK-CONTENTS.txt)"
           if [ -z "$embedded_path" ]; then
             echo "APK is missing embedded core-demo.db" >&2
             exit 1
