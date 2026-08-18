@@ -15,7 +15,10 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 - GitHub Pages no longer fails when `medications.db` is missing from the matching GitHub release;
   the Android job publishes that tag after Pages starts.
-- Live Pages smoke uses the bottom navigation for tests and calculators.
+- Live Pages smoke uses the bottom navigation for tests and calculators, waits for DOMContentLoaded
+  instead of network idle, and does not require downloaded calculator modules.
+- Android APK verification treats Info-ZIP warning exit code 1 as success so aligned APKs can finish
+  corpus checks.
 
 ## [0.6.23] - 2026-08-18
 
