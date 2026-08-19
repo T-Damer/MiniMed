@@ -4,6 +4,7 @@ import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { hapticFeedback } from '@/state/haptics';
+import { createHorizontalGestureManager } from '@/state/horizontal-gesture';
 import {
   clearSearchHistory,
   loadSearchHistory,
@@ -15,6 +16,7 @@ import { RELEASE_VERSION } from '../../../../../release';
 
 const HISTORY_LIMIT = 12;
 const CLOSE_DURATION_MS = 180;
+const HISTORY_EDGE_WIDTH_PX = 52;
 
 interface SearchHistoryPanelProps {
   readonly onReplay: (entry: SearchHistoryEntry) => void;
@@ -50,10 +52,13 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
   const [entries, setEntries] = createSignal<readonly SearchHistoryEntry[]>([]);
   const [open, setOpen] = createSignal(false);
   const [closing, setClosing] = createSignal(false);
+  const swipe = createHorizontalGestureManager({
+    thresholdPx: 64,
+    axisLockPx: 9,
+    velocityThresholdPxPerMs: 0.5,
+  });
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
-  let swipeStart:
-    | { readonly pointerId: number; readonly x: number; readonly y: number }
-    | undefined;
+  let swipeMode: 'open' | 'close' | undefined;
 
   const refresh = (): void => {
     setEntries(loadSearchHistory().slice(0, HISTORY_LIMIT));
@@ -73,35 +78,40 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
     if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return;
     if (open()) {
       if (!event.target.closest('.search-history-panel')) return;
-      swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
-      return;
+      swipeMode = 'close';
+    } else {
+      if (event.clientX > HISTORY_EDGE_WIDTH_PX || !event.target.closest('.search-home')) return;
+      swipeMode = 'open';
     }
-    if (event.clientX > 52 || !event.target.closest('.search-home')) return;
-    swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    swipe.start(event.pointerId, event.clientX, event.clientY, event.timeStamp);
   };
   const handlePointerMove = (event: PointerEvent): void => {
-    const start = swipeStart;
-    if (!start || start.pointerId !== event.pointerId) return;
-    const deltaX = event.clientX - start.x;
-    const deltaY = Math.abs(event.clientY - start.y);
-    if (deltaY > Math.max(24, Math.abs(deltaX))) {
-      swipeStart = undefined;
+    if (!swipeMode) return;
+    const direction = swipe.move(
+      event.pointerId,
+      event.clientX,
+      event.clientY,
+      event.timeStamp,
+    );
+    if (!direction) {
+      if (!swipe.active()) swipeMode = undefined;
       return;
     }
-    if (open()) {
-      if (deltaX > -72) return;
-      swipeStart = undefined;
+    const mode = swipeMode;
+    swipeMode = undefined;
+    if (mode === 'close' && direction === 'left') {
       close();
       hapticFeedback('light');
       return;
     }
-    if (deltaX < 72) return;
-    swipeStart = undefined;
-    setOpen(true);
-    hapticFeedback('medium');
+    if (mode === 'open' && direction === 'right') {
+      setOpen(true);
+      hapticFeedback('medium');
+    }
   };
-  const clearSwipe = (): void => {
-    swipeStart = undefined;
+  const clearSwipe = (event?: PointerEvent): void => {
+    swipe.end(event?.pointerId);
+    swipeMode = undefined;
   };
 
   onMount(() => {
