@@ -1,0 +1,119 @@
+.app-context-menu__trigger {
+  position: relative;
+  min-width: 0;
+}
+
+.app-context-menu__more {
+  position: absolute;
+  z-index: var(--z-raised);
+  top: 0.55rem;
+  right: 0.55rem;
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: color-mix(in srgb, var(--theme-surface-raised) 92%, transparent);
+  box-shadow: 0 0.2rem 0.65rem rgb(34 31 25 / 12%);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 1;
+}
+
+.app-context-menu {
+  z-index: var(--z-overlay);
+  min-width: 12.5rem;
+  max-width: min(22rem, calc(100vw - 1.5rem));
+  padding: 0.35rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-card-hover-shadow);
+  transform-origin: var(--kb-menu-content-transform-origin);
+  animation: app-context-menu-in 120ms ease-out;
+}
+
+.app-context-menu--sub {
+  min-width: 11.5rem;
+}
+
+.app-context-menu__item {
+  display: grid;
+  min-height: 2.25rem;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  outline: 0;
+  color: var(--theme-text);
+  background: transparent;
+  cursor: default;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  user-select: none;
+}
+
+.app-context-menu__item[data-highlighted] {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.app-context-menu__item--danger {
+  color: var(--theme-danger);
+}
+
+.app-context-menu__item--danger[data-highlighted] {
+  color: var(--theme-personal-contrast);
+  background: var(--theme-danger);
+}
+
+.app-context-menu__item[data-disabled] {
+  opacity: 0.42;
+}
+
+.app-context-menu__item-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.app-context-menu__submenu-arrow {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  .app-context-menu__more {
+    opacity: 0;
+    transition: opacity var(--theme-motion-control);
+  }
+
+  .app-context-menu__trigger:hover .app-context-menu__more,
+  .app-context-menu__more:focus-visible {
+    opacity: 1;
+  }
+}
+
+@keyframes app-context-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(-0.15rem);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-context-menu {
+    animation: none;
+  }
+}
