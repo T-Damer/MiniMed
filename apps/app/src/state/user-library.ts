@@ -5,6 +5,7 @@ import {
 } from '@/state/personal-stem-match';
 
 export type UserLibraryOcrStatus = 'inspecting' | 'ready' | 'ocr' | 'failed';
+export type UserLibraryOcrQuality = 'fast' | 'balanced' | 'quality';
 
 export interface UserLibraryDocument {
   readonly id: string;
@@ -17,7 +18,19 @@ export interface UserLibraryDocument {
   readonly ocrDonePages: number;
   readonly ocrNeededPages: number;
   readonly status: UserLibraryOcrStatus;
+  readonly folderId?: string | null;
+  readonly hasImages?: boolean;
+  readonly ocrPriority?: number;
+  readonly ocrQuality?: UserLibraryOcrQuality;
   readonly errorMessage?: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface UserLibraryFolder {
+  readonly id: string;
+  readonly title: string;
+  readonly parentId: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -51,7 +64,9 @@ const DATABASE_NAME = 'minimed-user-library-v1';
 const DOCUMENTS_STORE = 'documents';
 const FILES_STORE = 'files';
 const PAGES_STORE = 'pages';
-const MAX_FILE_BYTES = 40 * 1024 * 1024;
+const FOLDERS_STORE = 'folders';
+const DATABASE_VERSION = 2;
+const MAX_FILE_BYTES = 128 * 1024 * 1024;
 const MAX_SNIPPET_LENGTH = 180;
 
 const PDF_MIME_TYPES = new Set(['application/pdf']);
@@ -72,6 +87,9 @@ const TEXT_LIKE_MIME_TYPES = new Set([
   'application/rtf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/msword',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.apple.pages',
   'text/html',
   'text/csv',
   'application/epub+zip',
@@ -92,6 +110,9 @@ const EXTENSION_MIME_MAP: Readonly<Record<string, string>> = {
   rtf: 'text/rtf',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   doc: 'application/msword',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  ppt: 'application/vnd.ms-powerpoint',
+  pages: 'application/vnd.apple.pages',
   html: 'text/html',
   htm: 'text/html',
   csv: 'text/csv',
@@ -180,6 +201,10 @@ function createDocumentId(): string {
   return `user-doc-${crypto.randomUUID()}`;
 }
 
+function createFolderId(): string {
+  return `user-folder-${crypto.randomUUID()}`;
+}
+
 function snippetFor(text: string, queryStems: readonly string[]): string {
   const words = text.split(/\s+/u);
   const hitIndex = words.findIndex((word) => wordMatchesQueryStem(word, queryStems));
@@ -191,6 +216,10 @@ function snippetFor(text: string, queryStems: readonly string[]): string {
   const prefix = start > 0 ? '…' : '';
   const suffix = start + 18 < words.length ? '…' : '';
   return `${prefix}${snippet}${suffix}`;
+}
+
+function isOcrQuality(value: unknown): value is UserLibraryOcrQuality {
+  return value === 'fast' || value === 'balanced' || value === 'quality';
 }
 
 function isDocument(value: unknown): value is UserLibraryDocument {
@@ -206,10 +235,26 @@ function isDocument(value: unknown): value is UserLibraryDocument {
     typeof candidate.nativeTextPages === 'number' &&
     typeof candidate.ocrDonePages === 'number' &&
     typeof candidate.ocrNeededPages === 'number' &&
+    (candidate.folderId === undefined || candidate.folderId === null || typeof candidate.folderId === 'string') &&
+    (candidate.hasImages === undefined || typeof candidate.hasImages === 'boolean') &&
+    (candidate.ocrPriority === undefined || typeof candidate.ocrPriority === 'number') &&
+    (candidate.ocrQuality === undefined || isOcrQuality(candidate.ocrQuality)) &&
     (candidate.status === 'inspecting' ||
       candidate.status === 'ready' ||
       candidate.status === 'ocr' ||
       candidate.status === 'failed')
+  );
+}
+
+function isFolder(value: unknown): value is UserLibraryFolder {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<UserLibraryFolder>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.title === 'string' &&
+    (candidate.parentId === null || typeof candidate.parentId === 'string') &&
+    typeof candidate.createdAt === 'string' &&
+    typeof candidate.updatedAt === 'string'
   );
 }
 
@@ -251,10 +296,10 @@ function normalizeMimeType(file: File): string {
 function validateFile(file: File): string {
   const mimeType = normalizeMimeType(file);
   if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-    throw new Error('Поддерживаются PDF, текст, Office, книги (EPUB/FB2) и изображения.');
+    throw new Error('Поддерживаются PDF, Markdown, Office, RTF, Pages, книги и изображения.');
   }
   if (file.size > MAX_FILE_BYTES) {
-    throw new Error('Размер файла не должен превышать 40 МБ.');
+    throw new Error('Размер файла не должен превышать 128 МБ.');
   }
   return mimeType;
 }
@@ -265,7 +310,7 @@ function emitLibraryChanged(): void {
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE_NAME, 1);
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
     request.onupgradeneeded = () => {
       const database = request.result;
       if (!database.objectStoreNames.contains(DOCUMENTS_STORE)) {
@@ -276,6 +321,9 @@ function openDatabase(): Promise<IDBDatabase> {
       }
       if (!database.objectStoreNames.contains(PAGES_STORE)) {
         database.createObjectStore(PAGES_STORE);
+      }
+      if (!database.objectStoreNames.contains(FOLDERS_STORE)) {
+        database.createObjectStore(FOLDERS_STORE, { keyPath: 'id' });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -290,11 +338,20 @@ async function readAllDocuments(database: IDBDatabase): Promise<readonly UserLib
       .transaction(DOCUMENTS_STORE, 'readonly')
       .objectStore(DOCUMENTS_STORE)
       .getAll() as IDBRequest<UserLibraryDocument[]>;
-    request.onsuccess = () => {
-      resolve(request.result.filter(isDocument));
-    };
+    request.onsuccess = () => resolve(request.result.filter(isDocument));
     request.onerror = () =>
       reject(request.error ?? new Error('Не удалось прочитать личные документы.'));
+  });
+}
+
+async function readAllFolders(database: IDBDatabase): Promise<readonly UserLibraryFolder[]> {
+  return new Promise((resolve, reject) => {
+    const request = database
+      .transaction(FOLDERS_STORE, 'readonly')
+      .objectStore(FOLDERS_STORE)
+      .getAll() as IDBRequest<UserLibraryFolder[]>;
+    request.onsuccess = () => resolve(request.result.filter(isFolder));
+    request.onerror = () => reject(request.error ?? new Error('Не удалось прочитать папки.'));
   });
 }
 
@@ -318,6 +375,18 @@ export async function listUserLibraryDocuments(): Promise<readonly UserLibraryDo
   try {
     const documents = await readAllDocuments(database);
     return documents.toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+  } finally {
+    database.close();
+  }
+}
+
+export async function listUserLibraryFolders(): Promise<readonly UserLibraryFolder[]> {
+  if (!('indexedDB' in globalThis) || !indexedDB) return [];
+  const database = await openDatabase();
+  try {
+    return (await readAllFolders(database)).toSorted((left, right) =>
+      left.title.localeCompare(right.title, 'ru-RU'),
+    );
   } finally {
     database.close();
   }
@@ -376,6 +445,118 @@ export async function listUserLibraryPages(
   }
 }
 
+export async function createUserLibraryFolder(
+  title: string,
+  parentId: string | null = null,
+): Promise<UserLibraryFolder> {
+  const trimmed = title.trim();
+  if (!trimmed) throw new Error('Введите название папки.');
+  const now = new Date().toISOString();
+  const folder: UserLibraryFolder = {
+    id: createFolderId(),
+    title: trimmed,
+    parentId,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(FOLDERS_STORE, 'readwrite');
+      transaction.objectStore(FOLDERS_STORE).put(folder);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось создать папку.'));
+    });
+  } finally {
+    database.close();
+  }
+  emitLibraryChanged();
+  return folder;
+}
+
+export async function renameUserLibraryFolder(id: string, title: string): Promise<void> {
+  const trimmed = title.trim();
+  if (!trimmed) return;
+  const folders = await listUserLibraryFolders();
+  const existing = folders.find((folder) => folder.id === id);
+  if (!existing) return;
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(FOLDERS_STORE, 'readwrite');
+      transaction.objectStore(FOLDERS_STORE).put({
+        ...existing,
+        title: trimmed,
+        updatedAt: new Date().toISOString(),
+      });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось переименовать папку.'));
+    });
+  } finally {
+    database.close();
+  }
+  emitLibraryChanged();
+}
+
+export async function moveUserLibraryFolder(id: string, parentId: string | null): Promise<void> {
+  if (id === parentId) return;
+  const folders = await listUserLibraryFolders();
+  const existing = folders.find((folder) => folder.id === id);
+  if (!existing) return;
+  let cursor = parentId;
+  while (cursor) {
+    if (cursor === id) throw new Error('Нельзя переместить папку внутрь самой себя.');
+    cursor = folders.find((folder) => folder.id === cursor)?.parentId ?? null;
+  }
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(FOLDERS_STORE, 'readwrite');
+      transaction.objectStore(FOLDERS_STORE).put({
+        ...existing,
+        parentId,
+        updatedAt: new Date().toISOString(),
+      });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось переместить папку.'));
+    });
+  } finally {
+    database.close();
+  }
+  emitLibraryChanged();
+}
+
+export async function removeUserLibraryFolder(id: string): Promise<void> {
+  const folders = await listUserLibraryFolders();
+  const folder = folders.find((item) => item.id === id);
+  if (!folder) return;
+  const documents = await listUserLibraryDocuments();
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction([FOLDERS_STORE, DOCUMENTS_STORE], 'readwrite');
+      const folderStore = transaction.objectStore(FOLDERS_STORE);
+      const documentStore = transaction.objectStore(DOCUMENTS_STORE);
+      folderStore.delete(id);
+      for (const child of folders.filter((candidate) => candidate.parentId === id)) {
+        folderStore.put({ ...child, parentId: folder.parentId, updatedAt: new Date().toISOString() });
+      }
+      for (const document of documents.filter((candidate) => candidate.folderId === id)) {
+        documentStore.put({
+          ...document,
+          folderId: folder.parentId,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось удалить папку.'));
+    });
+  } finally {
+    database.close();
+  }
+  emitLibraryChanged();
+}
+
 export async function renameUserLibraryDocument(id: string, title: string): Promise<void> {
   const trimmed = title.trim();
   if (!trimmed) return;
@@ -399,6 +580,12 @@ export async function renameUserLibraryDocument(id: string, title: string): Prom
   } finally {
     database.close();
   }
+}
+
+export async function moveUserLibraryDocument(id: string, folderId: string | null): Promise<void> {
+  const existing = await getUserLibraryDocument(id);
+  if (!existing) return;
+  await patchUserLibraryDocument(id, { folderId });
 }
 
 export async function removeUserLibraryDocument(id: string): Promise<void> {
@@ -453,6 +640,10 @@ export async function patchUserLibraryDocument(
       | 'ocrDonePages'
       | 'ocrNeededPages'
       | 'status'
+      | 'folderId'
+      | 'hasImages'
+      | 'ocrPriority'
+      | 'ocrQuality'
       | 'errorMessage'
     >
   >,
@@ -480,6 +671,44 @@ export async function patchUserLibraryDocument(
   }
 }
 
+export async function requestUserLibraryOcr(
+  id: string,
+  quality: UserLibraryOcrQuality = 'balanced',
+): Promise<void> {
+  const document = await getUserLibraryDocument(id);
+  if (!document) return;
+  const priority = Date.now();
+  if (document.status === 'inspecting') {
+    await patchUserLibraryDocument(id, { ocrPriority: priority, ocrQuality: quality });
+    return;
+  }
+  const pages = await listUserLibraryPages(id);
+  if (document.status !== 'ocr') {
+    for (const page of pages) {
+      await putUserLibraryPage({
+        documentId: page.documentId,
+        pageIndex: page.pageIndex,
+        kind: 'pending',
+        text: page.text,
+      });
+    }
+    await patchUserLibraryDocument(id, {
+      status: 'ocr',
+      ocrPriority: priority,
+      ocrQuality: quality,
+      ocrNeededPages: Math.max(document.pageCount, pages.length),
+      ocrDonePages: 0,
+      nativeTextPages: 0,
+      errorMessage: undefined,
+    });
+  } else {
+    await patchUserLibraryDocument(id, { ocrPriority: priority, ocrQuality: quality });
+  }
+  void import('@/state/user-library-ingest').then(({ ensureUserLibraryIngestRunning }) => {
+    ensureUserLibraryIngestRunning();
+  });
+}
+
 export async function findNextPendingOcrPage(): Promise<{
   readonly documentId: string;
   readonly pageIndex: number;
@@ -487,18 +716,23 @@ export async function findNextPendingOcrPage(): Promise<{
   const documents = await listUserLibraryDocuments();
   const ocrDocuments = documents
     .filter((document) => document.status === 'ocr')
-    .toSorted((left, right) => left.createdAt.localeCompare(right.createdAt));
+    .toSorted((left, right) => {
+      const priority = (right.ocrPriority ?? 0) - (left.ocrPriority ?? 0);
+      if (priority !== 0) return priority;
+      return left.createdAt.localeCompare(right.createdAt);
+    });
   for (const document of ocrDocuments) {
     const pages = await listUserLibraryPages(document.id);
     const pending = pages.find((page) => page.kind === 'pending');
-    if (pending) {
-      return { documentId: pending.documentId, pageIndex: pending.pageIndex };
-    }
+    if (pending) return { documentId: pending.documentId, pageIndex: pending.pageIndex };
   }
   return null;
 }
 
-export async function addUserLibraryFile(file: File): Promise<UserLibraryDocument> {
+export async function addUserLibraryFile(
+  file: File,
+  folderId: string | null = null,
+): Promise<UserLibraryDocument> {
   if (!('indexedDB' in globalThis) || !indexedDB) {
     throw new Error('Хранилище личных документов недоступно.');
   }
@@ -516,6 +750,9 @@ export async function addUserLibraryFile(file: File): Promise<UserLibraryDocumen
     ocrDonePages: 0,
     ocrNeededPages: 0,
     status: 'inspecting',
+    folderId,
+    hasImages: isUserLibraryVisualMime(mimeType),
+    ocrQuality: 'balanced',
     createdAt: now,
     updatedAt: now,
   };
@@ -601,9 +838,7 @@ export async function userLibrarySearchableCount(): Promise<number> {
   let searchable = 0;
   for (const document of documents) {
     const pages = await listUserLibraryPages(document.id);
-    if (pages.some((page) => page.text.trim().length > 0)) {
-      searchable += 1;
-    }
+    if (pages.some((page) => page.text.trim().length > 0)) searchable += 1;
   }
   return searchable;
 }
