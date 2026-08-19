@@ -1,0 +1,60 @@
+@media (min-width: 761px) {
+  .document-overlay-layout {
+    grid-template-columns: auto minmax(0, 1fr);
+    transition: none;
+  }
+
+  .document-overlay-outline {
+    width: clamp(13.5rem, 18vw, 16.5rem);
+    transition:
+      width 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      padding 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 160ms ease-out,
+      transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      border-color 160ms ease-out;
+    will-change: width, transform, opacity;
+  }
+
+  .document-overlay-outline--hidden {
+    width: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@media (max-width: 760px) {
+  .document-overlay-outline {
+    transition:
+      transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 180ms ease-out,
+      visibility 0s linear 220ms;
+    will-change: transform, opacity;
+  }
+
+  .document-overlay-outline--open {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .document-overlay-outline--hidden {
+    visibility: hidden;
+    transform: translateX(-105%);
+  }
+
+  .document-overlay-outline-backdrop {
+    opacity: 0;
+    transition: opacity 180ms ease-out;
+  }
+
+  .document-overlay-outline-backdrop--open {
+    opacity: 1;
+  }
+}
+
+.assessment-subpage-header__nav {
+  align-items: center;
+}
+
+.user-document-reader__paper {
+  --document-paper-fill: var(--theme-surface-raised);
+  background: var(--theme-surface-raised);
+}
