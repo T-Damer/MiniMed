@@ -116,6 +116,7 @@ export function App(): JSX.Element {
                   appUpdateReady={Boolean(session.appUpdateWorker() || session.availableApkUrl())}
                   appUpdating={session.appUpdating()}
                   appUpdateChecking={session.appUpdateChecking()}
+                  appUpdateUpToDate={session.appUpdateUpToDate()}
                   appUpdateProgress={session.appUpdateProgress()}
                   appUpdateError={session.appUpdateError()}
                   onCheckAppUpdate={session.checkAvailableUpdate}
