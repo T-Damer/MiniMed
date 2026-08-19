@@ -22,7 +22,7 @@ export function formatAppUpdateLabel(
   if (!progress || progress.phase === 'activate') return 'Активация…';
   if (progress.total && progress.total > 0) {
     const percent = Math.min(100, Math.round(((progress.loaded ?? 0) / progress.total) * 100));
-    return `${percent}%`;
+    return `Загрузка ${percent}%`;
   }
   return 'Загрузка…';
 }
@@ -87,12 +87,35 @@ function releaseApkUrl(release: GitHubReleasePayload): string | null {
   return typeof url === 'string' ? url : null;
 }
 
-export function selectLatestApkUpdate(releases: readonly GitHubReleasePayload[]): string | null {
+export interface AvailableApkUpdate {
+  readonly version: string;
+  readonly url: string;
+}
+
+export function appUpdateVersionFromWorker(
+  worker: { readonly scriptURL?: string } | undefined,
+): string | undefined {
+  if (!worker) return undefined;
+  const scriptURL = worker.scriptURL;
+  if (!scriptURL) return 'pending';
+  try {
+    const version = new URL(scriptURL, 'https://localmed.invalid').searchParams.get('v');
+    if (version?.trim()) return version.trim();
+  } catch {
+    return scriptURL;
+  }
+  return scriptURL;
+}
+
+export function selectLatestApkUpdate(
+  releases: readonly GitHubReleasePayload[],
+): AvailableApkUpdate | null {
   const current = parseVersion(RELEASE_VERSION);
   if (!current) return null;
 
   let selected: {
     readonly version: readonly [number, number, number];
+    readonly label: string;
     readonly url: string;
   } | null = null;
   for (const release of releases) {
@@ -101,13 +124,13 @@ export function selectLatestApkUpdate(releases: readonly GitHubReleasePayload[])
     const url = releaseApkUrl(release);
     if (!version || !url || compareVersions(version, current) <= 0) continue;
     if (!selected || compareVersions(version, selected.version) > 0) {
-      selected = { version, url };
+      selected = { version, label: release.tag_name.replace(/^v/u, ''), url };
     }
   }
-  return selected?.url ?? null;
+  return selected ? { version: selected.label, url: selected.url } : null;
 }
 
-export async function checkNativeApkUpdate(): Promise<string | null> {
+export async function checkNativeApkUpdate(): Promise<AvailableApkUpdate | null> {
   if (Capacitor.getPlatform() !== 'android' || !navigator.onLine) return null;
   const response = await fetch(
     'https://api.github.com/repos/T-Damer/MiniMed/releases?per_page=20',

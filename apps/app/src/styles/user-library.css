@@ -212,8 +212,9 @@
 }
 
 .user-document-reader.page-surface {
-  min-height: calc(100dvh - var(--bottom-nav-height, 4.5rem));
+  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
   margin-top: 0;
+  margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
   padding: var(--safe-top, 0px) 0 0;
 }
 

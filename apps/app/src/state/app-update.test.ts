@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   activateAppUpdate,
+  appUpdateVersionFromWorker,
   checkWebAppUpdate,
   formatAppUpdateCheckerStatus,
   formatAppUpdateLabel,
@@ -10,7 +11,13 @@ import {
 
 describe('app update label', () => {
   it('shows percent while downloading', () => {
-    expect(formatAppUpdateLabel(true, { phase: 'download', loaded: 512, total: 1024 })).toBe('50%');
+    expect(formatAppUpdateLabel(true, { phase: 'download', loaded: 512, total: 1024 })).toBe(
+      'Загрузка 50%',
+    );
+  });
+
+  it('keeps a loading label when the size is unknown', () => {
+    expect(formatAppUpdateLabel(true, { phase: 'download' })).toBe('Загрузка…');
   });
 
   it('shows activation copy for service worker updates', () => {
@@ -75,6 +82,16 @@ describe('web service worker update check', () => {
   });
 });
 
+describe('web service worker update identity', () => {
+  it('reads the waiting worker version from its script URL', () => {
+    expect(
+      appUpdateVersionFromWorker({ scriptURL: 'https://example.test/app/sw.js?v=0.6.29' }),
+    ).toBe('0.6.29');
+    expect(appUpdateVersionFromWorker({})).toBe('pending');
+    expect(appUpdateVersionFromWorker(undefined)).toBeUndefined();
+  });
+});
+
 describe('Android APK update selection', () => {
   it('selects the newest APK from prereleases', () => {
     expect(
@@ -95,6 +112,6 @@ describe('Android APK update selection', () => {
           assets: [{ browser_download_url: 'https://example.test/draft.apk' }],
         },
       ]),
-    ).toBe('https://example.test/new.apk');
+    ).toEqual({ version: '9.0.2', url: 'https://example.test/new.apk' });
   });
 });

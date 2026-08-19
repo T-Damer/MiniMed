@@ -407,10 +407,11 @@ test('shows neuroinfection clarifications without hiding search results', async 
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 3_000 });
 });
 
-test('asks before activating an installed application update', async ({ page }) => {
+test('opens settings from the home update notice without applying it', async ({ page }) => {
   await mountBuiltApp(page);
   await page.evaluate(() => {
     const worker = {
+      scriptURL: `${window.location.origin}/sw.js?v=0.6.29`,
       postMessage: (message: unknown) => {
         (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage = message;
       },
@@ -420,15 +421,17 @@ test('asks before activating an installed application update', async ({ page }) 
 
   const update = page.locator('.search-update-status');
   await expect(update).toBeVisible();
+  await expect(update).toHaveText(/Доступно обновление/u);
   await update.click();
-  await expect(update).toBeDisabled();
+  await expect(page.getByRole('heading', { name: 'Обновление приложения' })).toBeVisible();
+  await expect(page.locator('.search-update-status')).toHaveCount(0);
   await expect
     .poll(() =>
       page.evaluate(
         () => (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage,
       ),
     )
-    .toEqual({ type: 'SKIP_WAITING' });
+    .toBeUndefined();
 });
 
 test('shows a settings update checker and nav dot when a web update is waiting', async ({
@@ -437,6 +440,7 @@ test('shows a settings update checker and nav dot when a web update is waiting',
   await mountBuiltApp(page);
   await page.evaluate(() => {
     const worker = {
+      scriptURL: `${window.location.origin}/sw.js?v=0.6.29`,
       postMessage: (message: unknown) => {
         (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage = message;
       },

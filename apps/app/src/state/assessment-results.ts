@@ -144,3 +144,13 @@ export function removeAssessmentRecord(recordId: string): readonly AssessmentRec
 export function findAssessmentRecord(recordId: string): AssessmentRecord | undefined {
   return loadAssessmentRecords().find((record) => record.id === recordId);
 }
+
+export function latestIncompleteAssessmentRecord(
+  records: readonly AssessmentRecord[],
+  assessmentId: string,
+): IncompleteAssessmentRecord | undefined {
+  return records.find(
+    (record): record is IncompleteAssessmentRecord =>
+      record.kind === 'incomplete' && record.assessmentId === assessmentId,
+  );
+}

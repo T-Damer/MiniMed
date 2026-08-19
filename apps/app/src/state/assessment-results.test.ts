@@ -11,6 +11,7 @@ import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-h
 import {
   ASSESSMENT_RESULTS_KEY,
   createCompletedAssessmentRecord,
+  latestIncompleteAssessmentRecord,
   loadAssessmentRecords,
   saveIncompleteAssessmentRecord,
 } from '@/state/assessment-results';
@@ -63,5 +64,37 @@ describe('assessment result persistence', () => {
     expect(records).toHaveLength(1);
     expect(records[0]?.kind).toBe('completed');
     expect(storage.has(ASSESSMENT_RESULTS_KEY)).toBe(true);
+  });
+
+  it('picks the newest incomplete draft for an assessment', () => {
+    const older = saveIncompleteAssessmentRecord({
+      assessmentId: 'personal-egogram',
+      subjectLabel: 'Старый черновик',
+      answers: { q1: 1 },
+      totalQuestions: 10,
+    });
+    const newer = saveIncompleteAssessmentRecord({
+      assessmentId: 'personal-egogram',
+      subjectLabel: 'Новый черновик',
+      answers: { q1: 2 },
+      totalQuestions: 10,
+    });
+    saveIncompleteAssessmentRecord({
+      assessmentId: 'other-assessment',
+      subjectLabel: 'Другой тест',
+      answers: { q1: 0 },
+      totalQuestions: 5,
+    });
+
+    const records = loadAssessmentRecords();
+    expect(latestIncompleteAssessmentRecord(records, 'personal-egogram')?.id).toBe(newer.id);
+    expect(latestIncompleteAssessmentRecord(records, 'personal-egogram')?.subjectLabel).toBe(
+      'Новый черновик',
+    );
+    expect(latestIncompleteAssessmentRecord(records, 'other-assessment')?.subjectLabel).toBe(
+      'Другой тест',
+    );
+    expect(latestIncompleteAssessmentRecord(records, 'missing-assessment')).toBeUndefined();
+    expect(older.id).not.toBe(newer.id);
   });
 });

@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 19 August 2026
-> Repository version: `0.6.28`
-> Active target: `0.6.28` public prerelease toward `1.0`
+> Repository version: `0.6.29`
+> Active target: `0.6.29` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -164,8 +164,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   opened collections and sections. Leaf catalog download controls are icon-only and use primary accent
   when published; only unpublished rows stay muted.
   Regulatory packs open as a documents sub-route (`#/modules/documents/laws/pediatrics`, alias
-  `paediatrics`) with in-page search, not a catalog dialog. The catalog sticky toolbar hides on that
-  route.
+  `paediatrics`) with in-page search and the same transparent stuck-chrome blur as other knowledge
+  drilldowns, not a catalog dialog. The catalog sticky toolbar hides on that route.
 - The medications catalog reads medication metadata from document summaries in bounded batches and
   coalesces concurrent summary reads, so direct and navigated catalog routes avoid materializing
   every document's sections/chunks on the main thread.
@@ -181,19 +181,25 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   search field with the highest stacking order (the field inside the topmost dialog when one is open).
   A second Ctrl/Cmd+F within 700ms does not intercept, so the browser find bar can open.
 - Search history and diagnostic help controls share one sticky top toolbar on the search home, with
-  the menu on the left, an optional compact app-update control immediately to its right (progress
-  percent while an APK downloads), and `?` on the far right. There is no second floating app-update pill.
-  A green dot on the top-left of the Settings tab also marks a waiting application update, and Settings
+  the menu on the left, an optional `Доступно обновление` pill of the same 2.5rem height immediately
+  to its right, and `?` on the far right. Tapping the pill opens Settings and stores the offered
+  version in `localStorage` (`ignoreUpdate`); the pill returns only for a newer version. A green
+  dot on the top-left of the Settings tab also marks a waiting application update, and Settings
   contains an update-checker card (current version, check, and apply).
-- Search, module-catalog, and medication-catalog sticky headers use transparent,
+- Search, module-catalog, medication-catalog, and laws-document sticky headers use transparent,
   page-width masked backdrop blur with a subtle grain layer that stays hidden until the header is
   actually stuck. Document reader chrome stays opaque; in-text `h1`/`h2` sticky offsets are measured
   from the real chrome (the paper title is not pinned). On native Android the page itself draws under a
   translucent status bar (`.app-shell--native` has no top desk padding). Page surfaces keep a negative
   `--safe-top` margin so the folder paint sits under the bar, and double `--safe-top` padding so text
   starts below it. Sticky catalog/search chrome adds `--safe-top` only once stuck; blur layers animate
-  through opacity and stay under search fields and `/search` tools. The bottom nav remembers the largest
-  observed bottom inset so hash navigation cannot drop it into the gesture bar and bounce it back.
+  through opacity in the page stacking context and stay under search fields and `/search` tools (the
+  shell no longer mirrors that blur over header controls). Official and user document readers extend
+  the folder surface under the floating bottom nav with the same negative bottom margin as other
+  full-height page surfaces. The bottom nav is portaled to
+  `document.body` and uses only the locked `--nav-safe-bottom` inset (never a flickering
+  `--safe-bottom`), so route transitions cannot move it vertically. Page surfaces pin their extra
+  bottom clearance to that same locked inset.
   Outgoing root views isolate their fixed overlays below the incoming navigation surface. Hover styles
   use `@media (hover: hover)`.
 - The diagnosis search actions expose the local-model control on the left; it toggles a ready model,
@@ -239,12 +245,15 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   two-stage paediatric ORS calculator that adds measured vomiting and stool episodes to the base plan.
   Installed tools keep their offline-use state across reloads. Incomplete assessment attempts are
   also stored in the existing device-local results store, restored by their history entry with an
-  `incomplete` tag and answered-count, and replaced by the completed result when submitted. The
+  `incomplete` tag and answered-count, and replaced by the completed result when submitted. Leaving
+  a questionnaire and opening the same test again restores the latest incomplete draft. The
   questionnaire next control stacks under scroll-to-top on long forms, scrolls to the next unanswered
   question with a brief highlight, and the remaining-count badge
   animates on change. Response cards hide the radio; the score sits as a bold background numeral,
   the answer is centered in body text, and long labels scroll inside the card. When a saved return destination exists, questionnaire and missing-test screens
-  show one back control that opens a destination chooser (catalog vs saved route). Questionnaire URLs
+  show one back control that opens a destination chooser (catalog vs saved route). On mobile the
+  chooser sheet can be full-screen; the two destination cards stay about 2.5–3rem tall and do not
+  stretch with the sheet. Questionnaire URLs
   are `#/assessments/{specialty}/{slug}` so Back returns to the
   owning section rather than the assessments root; a test may later appear in several sections via tags.
   Runtime TypeScript keeps only `unit-conversion` in `CALCULATOR_REGISTRY`; every other calculator
@@ -323,7 +332,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   accordions.   Questionnaire chrome keeps methodology and blank-print as circular icon buttons on the
   right of the header at all widths including tablet. The saved-result page uses the same
   tablet board as the questionnaire (`--layout-cols`), with the score card beside actions. When a questionnaire was opened from another section, a single back control asks where
-  to go and shows route cards for the test catalog and the previous place. Patient names are suggested from locally stored patient cards, and external/manual test
+  to go and shows compact route cards for the test catalog and the previous place (they do not stretch to fill a full-screen mobile sheet). Patient names are suggested from locally stored patient cards, and external/manual test
   results can be saved into the same local result history.
 - Vertical mouse-wheel delta is translated into horizontal movement for the shared overflowing-strip
   component, including mixed diagonal wheel input; touch and trackpad scrolling remain native.
@@ -343,8 +352,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   opens the system share sheet through `LocalMedShare` (`ACTION_SEND`) instead of WebView
   `navigator.share` / `window.print()`, which do nothing there. Hardware Back can exit the preview.
 - In-document tables and images pinch-zoom 1–3× with an opaque fill, a dimmed lightbox, and a smooth
-  reset on scroll or a click beside the figure. The fullscreen media viewer has zoom controls on the
-  left of its toolbar. Clinical full-text install progress and local-model download progress show in
+  reset on scroll or a click beside the figure. The fullscreen media viewer zooms from the top-left
+  and grows its scrollport to the scaled size on both axes so every edge is reachable, with − / 100% /
+  + controls on the left of the toolbar (100% restores 1×). Clinical full-text install progress and local-model download progress show in
   the reader button and the diagnosis brain-download icon.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.

@@ -9,3 +9,8 @@ export function clampPinchScale(value: number): number {
 export function stepPinchScale(current: number, direction: 1 | -1): number {
   return clampPinchScale(current + direction * PINCH_ZOOM_STEP);
 }
+
+/** Layout size of a 1× box after scale, used to grow the scrollport. */
+export function pinchScaledScrollSize(natural: number, scale: number): number {
+  return Math.max(0, natural * clampPinchScale(scale));
+}

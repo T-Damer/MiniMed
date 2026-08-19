@@ -3,7 +3,7 @@
   --safe-right: max(var(--safe-area-inset-right, 0px), env(safe-area-inset-right, 0px));
   --safe-bottom: max(var(--safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
   --safe-left: max(var(--safe-area-inset-left, 0px), env(safe-area-inset-left, 0px));
-  --nav-safe-bottom: 0px;
+  --nav-safe-bottom: env(safe-area-inset-bottom, 0px);
   --shell-bar: #47453f;
   --shell-bar-text: #f2ead8;
   --nav-tab-active-bg: #fffef9;
@@ -36,7 +36,7 @@ body {
   min-height: 100dvh;
   padding-top: var(--safe-top);
   padding-right: var(--safe-right);
-  padding-bottom: var(--safe-bottom);
+  padding-bottom: var(--nav-safe-bottom);
   padding-left: var(--safe-left);
   background: var(--desk);
 }
@@ -110,18 +110,6 @@ body {
     height 180ms ease,
     opacity 180ms ease;
   will-change: height, opacity;
-}
-
-.app-shell--native:has(.app-view:not([hidden]) .search-home__backdrop-blur--visible)::before,
-.app-shell--native:has(
-  .app-view:not([hidden]) .module-catalog-toolbar.sticky-surface--stuck
-)::before,
-.app-shell--native:has(
-  .app-view:not([hidden]) .medication-route-heading.sticky-surface--stuck
-)::before {
-  opacity: 1;
-  left: max(var(--safe-left), calc((100% - min(100%, var(--page-content-width))) / 2));
-  right: max(var(--safe-right), calc((100% - min(100%, var(--page-content-width))) / 2));
 }
 
 .app-topbar {

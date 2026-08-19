@@ -96,7 +96,7 @@ function MediaViewer(props: {
   readonly onClose: () => void;
   readonly children: JSX.Element;
 }): JSX.Element {
-  const pinch = usePinchZoom();
+  const pinch = usePinchZoom({ expandScrollPort: true });
 
   createEffect(() => {
     if (!props.open) return;
@@ -144,6 +144,16 @@ function MediaViewer(props: {
                   onClick={() => pinch.zoomOut()}
                 >
                   <AppGlyph name="minus" class="media-viewer__toolbar-icon" />
+                </button>
+                <button
+                  type="button"
+                  class="media-viewer__toolbar-button media-viewer__zoom-reset"
+                  aria-label="Исходный масштаб"
+                  title="100%"
+                  disabled={pinch.scale() <= 1}
+                  onClick={() => pinch.reset()}
+                >
+                  <span class="media-viewer__zoom-reset-label">100%</span>
                 </button>
                 <button
                   type="button"

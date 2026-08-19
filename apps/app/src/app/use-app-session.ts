@@ -23,7 +23,9 @@ import {
   APP_UPDATE_READY_EVENT,
   type AppUpdateProgress,
   type AppUpdateReadyDetail,
+  type AvailableApkUpdate,
   activateAppUpdate,
+  appUpdateVersionFromWorker,
   checkNativeApkUpdate,
   checkWebAppUpdate,
 } from '@/state/app-update';
@@ -44,7 +46,7 @@ export function useAppSession() {
   const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
   const [dueReminderCount, setDueReminderCount] = createSignal(0);
   const [appUpdateWorker, setAppUpdateWorker] = createSignal<ServiceWorker>();
-  const [availableApkUrl, setAvailableApkUrl] = createSignal<string>();
+  const [availableApk, setAvailableApk] = createSignal<AvailableApkUpdate>();
   const [appUpdating, setAppUpdating] = createSignal(false);
   const [appUpdateChecking, setAppUpdateChecking] = createSignal(false);
   const [appUpdateProgress, setAppUpdateProgress] = createSignal<AppUpdateProgress>();
@@ -73,9 +75,9 @@ export function useAppSession() {
     setAppUpdateError();
     const pending =
       Capacitor.getPlatform() === 'android'
-        ? checkNativeApkUpdate().then((url) => {
-            setAvailableApkUrl(url ?? undefined);
-            return Boolean(url);
+        ? checkNativeApkUpdate().then((update) => {
+            setAvailableApk(update ?? undefined);
+            return Boolean(update);
           })
         : checkWebAppUpdate();
     void pending
@@ -92,7 +94,7 @@ export function useAppSession() {
     setAppUpdating(true);
     setAppUpdateProgress(undefined);
     setAppUpdateError();
-    const apkUrl = availableApkUrl();
+    const apkUrl = availableApk()?.url;
     if (apkUrl) {
       void installAndroidApk(apkUrl, (progress) => {
         setAppUpdateProgress({
@@ -150,8 +152,8 @@ export function useAppSession() {
     );
     if (Capacitor.getPlatform() === 'android') {
       void checkNativeApkUpdate()
-        .then((url) => {
-          if (url) setAvailableApkUrl(url);
+        .then((update) => {
+          if (update) setAvailableApk(update);
         })
         .catch((cause: unknown) => {
           setAppUpdateError(describeUpdateError(cause, 'Не удалось проверить обновление.'));
@@ -220,7 +222,9 @@ export function useAppSession() {
     downloadedModuleCount,
     dueReminderCount,
     appUpdateWorker,
-    availableApkUrl,
+    availableApkUrl: () => availableApk()?.url,
+    availableUpdateVersion: () =>
+      availableApk()?.version ?? appUpdateVersionFromWorker(appUpdateWorker()),
     appUpdating,
     appUpdateChecking,
     appUpdateProgress,

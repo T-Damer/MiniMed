@@ -4,6 +4,30 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.29] - 2026-08-19
+
+### Added
+
+- The search-home menu can show a same-height «Доступно обновление» pill; tapping it opens Settings
+  and hides that version until a newer one is offered.
+- The document media viewer has a 100% control between − and + that restores 1× zoom.
+- Leaving a questionnaire and opening the same test again restores the latest incomplete draft.
+
+### Changed
+
+- The bottom nav is portaled to `document.body` and uses a locked `--nav-safe-bottom` inset so it
+  does not jump during route changes. Settings hides «Проверить» while an APK downloads and the
+  apply button shows `Загрузка N%`.
+- Regulatory laws, search, and medications sticky chrome keep status-bar blur under header controls;
+  the laws sub-route no longer paints a solid paper block over the status bar.
+- Official and user document readers extend the folder surface under the floating bottom nav.
+
+### Fixed
+
+- Zoomed tables and images in the media viewer could not be scrolled far enough left to see the full
+  scaled content.
+- «Куда вернуться» destination cards stretched to the full height of the mobile sheet.
+
 ## [0.6.28] - 2026-08-19
 
 ### Changed

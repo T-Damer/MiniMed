@@ -53,14 +53,16 @@ export function AppUpdateChecker(props: {
       </Show>
 
       <div class="settings-update__actions">
-        <Button
-          type="button"
-          class="settings-update__check"
-          disabled={props.checking() || props.updating()}
-          onClick={props.onCheck}
-        >
-          {copy().checkLabel}
-        </Button>
+        <Show when={!props.updating()}>
+          <Button
+            type="button"
+            class="settings-update__check"
+            disabled={props.checking()}
+            onClick={props.onCheck}
+          >
+            {copy().checkLabel}
+          </Button>
+        </Show>
         <Show when={props.ready() || props.updating()}>
           <Button
             type="button"

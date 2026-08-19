@@ -27,7 +27,8 @@
     var(--document-heading-h5-height)
   );
   display: flex;
-  min-height: calc(100dvh - var(--bottom-nav-height, 4.5rem));
+  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
+  margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
   flex-direction: column;
 }
 

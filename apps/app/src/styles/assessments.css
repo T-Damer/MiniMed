@@ -436,14 +436,19 @@
 .assessment-back-chooser__cards {
   display: grid;
   gap: var(--theme-space-2);
+  align-content: start;
 }
 
 .assessment-back-chooser__card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.125rem var(--theme-space-2);
-  align-items: start;
-  padding: var(--theme-space-2) var(--theme-space-3);
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  max-height: 3rem;
+  align-items: center;
+  overflow: hidden;
+  padding: var(--theme-space-1) var(--theme-space-3);
   border: var(--theme-border-hairline) solid var(--theme-border);
   border-radius: var(--theme-radius-control);
   color: var(--theme-text);
@@ -460,13 +465,19 @@
 }
 
 .assessment-back-chooser__card-title {
+  overflow: hidden;
   font-size: 0.9375rem;
   font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .assessment-back-chooser__card-detail {
-  font-size: 0.75rem;
+  overflow: hidden;
+  font-size: 0.6875rem;
   color: var(--theme-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (hover: hover) and (pointer: fine) {

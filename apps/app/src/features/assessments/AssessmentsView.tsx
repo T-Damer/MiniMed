@@ -61,6 +61,7 @@ import { getContentModuleRuntime } from '@/features/modules/module-runtime-servi
 import {
   ASSESSMENT_RESULTS_EVENT,
   ASSESSMENT_RESULTS_KEY,
+  latestIncompleteAssessmentRecord,
   loadAssessmentRecords,
   removeAssessmentRecord,
 } from '@/state/assessment-results';
@@ -92,7 +93,7 @@ function filterAssessments(query: string): ReturnType<typeof searchAssessments> 
 export function AssessmentsView(): JSX.Element {
   const [route, setRoute] = createSignal<AssessmentRoute>(readAssessmentRoute());
   const [query, setQuery] = createSignal('');
-  const [records, setRecords] = createSignal<readonly AssessmentRecord[]>([]);
+  const [records, setRecords] = createSignal<readonly AssessmentRecord[]>(loadAssessmentRecords());
   const [notes, setNotes] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [installation, setInstallation] = createSignal<AssessmentInstallationState>(
     loadAssessmentInstallationState(getAssessmentCatalog()),
@@ -203,11 +204,16 @@ export function AssessmentsView(): JSX.Element {
   });
   const draftRecord = createMemo(() => {
     const current = route();
-    if (current.kind !== 'assessment' || !current.recordId) return undefined;
-    const candidate = records().find(
-      (entry) => entry.id === current.recordId && entry.assessmentId === catalogEntry()?.id,
-    );
-    return candidate?.kind === 'incomplete' ? candidate : undefined;
+    if (current.kind !== 'assessment') return undefined;
+    const assessmentId = catalogEntry()?.id;
+    if (!assessmentId) return undefined;
+    if (current.recordId) {
+      const candidate = records().find(
+        (entry) => entry.id === current.recordId && entry.assessmentId === assessmentId,
+      );
+      return candidate?.kind === 'incomplete' ? candidate : undefined;
+    }
+    return latestIncompleteAssessmentRecord(records(), assessmentId);
   });
 
   createEffect(() => {
@@ -408,7 +414,14 @@ export function AssessmentsView(): JSX.Element {
               navigate('#/assessments');
             }}
             onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
-            onOpen={(selected) => navigate(assessmentPath(specialty().id, selected.slug))}
+            onOpen={(selected) => {
+              const draft = latestIncompleteAssessmentRecord(records(), selected.id);
+              navigate(
+                draft
+                  ? resumePath(specialty().id, selected.slug, draft.id)
+                  : assessmentPath(specialty().id, selected.slug),
+              );
+            }}
             onInstall={(selected) => installDefinition(selected.id)}
             onRemove={(selected) => requestDeleteDefinition(selected.id)}
             onPrint={(selected) => printDefinition(selected.id)}
@@ -438,7 +451,14 @@ export function AssessmentsView(): JSX.Element {
               navigate(specialtyPath(specialty().id));
             }}
             onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
-            onOpen={(selected) => navigate(assessmentPath(specialty().id, selected.slug))}
+            onOpen={(selected) => {
+              const draft = latestIncompleteAssessmentRecord(records(), selected.id);
+              navigate(
+                draft
+                  ? resumePath(specialty().id, selected.slug, draft.id)
+                  : assessmentPath(specialty().id, selected.slug),
+              );
+            }}
             onInstall={(selected) => installDefinition(selected.id)}
             onRemove={(selected) => requestDeleteDefinition(selected.id)}
             onPrint={(selected) => printDefinition(selected.id)}

@@ -20,7 +20,7 @@
 
 .app-main {
   position: relative;
-  min-height: calc(100dvh - 3.25rem - var(--safe-top) - var(--safe-bottom));
+  min-height: calc(100dvh - 3.25rem - var(--safe-top) - var(--nav-safe-bottom));
   overflow-x: clip;
 }
 
@@ -166,6 +166,14 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   opacity: 1;
 }
 
+.search-home > .search-home__backdrop-blur {
+  z-index: var(--z-sticky-local);
+}
+
+.search-home > .search-mode-tools {
+  z-index: var(--z-search-tools);
+}
+
 .search-mode-heading {
   display: flex;
   align-items: flex-start;
@@ -241,23 +249,34 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 .search-update-status {
   display: inline-flex;
-  min-height: 2.25rem;
+  height: 2.5rem;
+  min-height: 2.5rem;
+  box-sizing: border-box;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0.55rem;
+  gap: 0.4rem;
+  padding: 0 0.85rem;
   border: 1px solid var(--theme-floating-border);
   border-radius: 999px;
   color: var(--theme-floating-text);
   background: var(--theme-floating-surface);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 8%) inset,
+    0 0.625rem 1.875rem rgb(20 25 21 / 38%);
   cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  text-transform: uppercase;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .search-update-status__icon {
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.search-update-status__label {
+  display: block;
 }
 
 .platform-android .search-mode-tools {
@@ -1063,7 +1082,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 
 /* 1.0 shell: bottom nav is a floating overlay; route surfaces extend behind it via negative margin. */
 .app-shell {
-  padding-bottom: var(--safe-bottom);
+  padding-bottom: var(--nav-safe-bottom);
 }
 
 /* While booting there's no bottom nav to reserve space for, and the boot card alone should
@@ -1088,9 +1107,12 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 .app-bottom-nav {
   position: fixed;
   z-index: var(--z-bottom-nav);
-  bottom: calc(0.625rem + max(var(--safe-bottom), var(--nav-safe-bottom, 0px)));
-  left: 50%;
+  right: 0;
+  bottom: calc(0.625rem + var(--nav-safe-bottom, 0px));
+  left: 0;
   display: flex;
+  width: max-content;
+  margin-inline: auto;
   gap: 0.25rem;
   padding: 0.3125rem;
   border: 1px solid var(--theme-accent);
@@ -1101,15 +1123,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   backdrop-filter: blur(1rem);
   isolation: isolate;
   touch-action: pan-y;
-  transform: translate3d(-50%, 0, 0);
-}
-
-.app-shell--native .app-bottom-nav {
-  bottom: calc(0.625rem + var(--nav-safe-bottom, 0px));
-}
-
-html.using-root-view-transition .app-bottom-nav {
-  contain: layout style;
 }
 
 .app-bottom-nav .app-nav-item {
@@ -2261,9 +2274,12 @@ fieldset.search-mode-picker {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.75rem;
   align-items: start;
+  padding: 0.35rem 0 0.75rem;
+}
+
+.laws-documents-page__header.sticky-surface--stuck {
   margin-top: calc(-1 * var(--safe-top));
-  padding: calc(0.35rem + var(--safe-top)) 1rem 0.75rem;
-  background: var(--paper-surface, var(--theme-surface-raised));
+  padding-top: calc(var(--safe-top) + 0.35rem);
 }
 
 .laws-documents-page__heading {
@@ -2287,7 +2303,7 @@ fieldset.search-mode-picker {
 .laws-documents-page__body {
   display: grid;
   gap: 0.75rem;
-  padding: 0 1rem 1.5rem;
+  padding: 0 0 1.5rem;
 }
 
 .laws-documents-page__list {
@@ -2437,10 +2453,10 @@ fieldset.search-mode-picker {
 .settings-page,
 .patient-notes-view,
 .search-home {
-  min-height: calc(100dvh + 4.875rem + var(--safe-bottom));
-  margin-bottom: calc(-4.875rem - var(--safe-bottom));
-  padding-bottom: calc(6rem + var(--safe-bottom));
-  scroll-padding-bottom: calc(6rem + var(--safe-bottom));
+  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
+  margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
+  padding-bottom: calc(6rem + var(--nav-safe-bottom));
+  scroll-padding-bottom: calc(6rem + var(--nav-safe-bottom));
 }
 
 .knowledge-base-page > .module-page,
@@ -2451,10 +2467,10 @@ fieldset.search-mode-picker {
 }
 
 .patient-notes-view {
-  min-height: calc(100dvh + 7rem + var(--safe-bottom));
-  margin-bottom: calc(-7rem - var(--safe-bottom));
-  padding-bottom: calc(7rem + var(--safe-bottom));
-  scroll-padding-bottom: calc(7rem + var(--safe-bottom));
+  min-height: calc(100dvh + 7rem + var(--nav-safe-bottom));
+  margin-bottom: calc(-7rem - var(--nav-safe-bottom));
+  padding-bottom: calc(7rem + var(--nav-safe-bottom));
+  scroll-padding-bottom: calc(7rem + var(--nav-safe-bottom));
 }
 
 .native-print-preview {

@@ -5,6 +5,7 @@ import {
   PINCH_ZOOM_MAX,
   PINCH_ZOOM_MIN,
   PINCH_ZOOM_STEP,
+  pinchScaledScrollSize,
   stepPinchScale,
 } from '@/features/library/pinch-zoom-math';
 
@@ -20,5 +21,12 @@ describe('pinch-zoom math', () => {
     expect(stepPinchScale(PINCH_ZOOM_MAX, 1)).toBe(PINCH_ZOOM_MAX);
     expect(stepPinchScale(1.25, -1)).toBe(1);
     expect(stepPinchScale(PINCH_ZOOM_MIN, -1)).toBe(PINCH_ZOOM_MIN);
+  });
+
+  it('grows the scrollport by clamped scale', () => {
+    expect(pinchScaledScrollSize(200, 2)).toBe(400);
+    expect(pinchScaledScrollSize(200, 0.5)).toBe(200);
+    expect(pinchScaledScrollSize(200, 4)).toBe(600);
+    expect(pinchScaledScrollSize(-10, 2)).toBe(0);
   });
 });

@@ -31,9 +31,9 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
 
   return (
     <section class="laws-documents-page" aria-label={props.module.title}>
-      <header class="laws-documents-page__header sticky-surface route-sticky-chrome">
+      <header class="laws-documents-page__header knowledge-subroute-heading knowledge-subroute-heading--blurred sticky-surface route-sticky-chrome">
         <NavBack
-          class="laws-documents-page__back"
+          class="laws-documents-page__back knowledge-back-button knowledge-subroute-heading__control"
           aria-label="Назад к наборам документов"
           onClick={props.onBack}
           icon={<AppGlyph name="arrow-left" class="laws-documents-page__back-icon" />}

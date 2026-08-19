@@ -19,7 +19,6 @@ import { DocumentPageHost } from '@/features/library/DocumentPageHost';
 import { NotesView } from '@/features/notes/NotesView';
 import { SearchHome } from '@/features/search/SearchHome';
 import { SettingsView } from '@/features/settings/SettingsView';
-import type { AppUpdateProgress } from '@/state/app-update';
 import { rememberReturnTo } from '@/state/return-navigation';
 
 export function App(): JSX.Element {
@@ -90,12 +89,13 @@ export function App(): JSX.Element {
                     rememberReturnTo();
                     navigation.navigate('settings');
                   }}
-                  appUpdateReady={Boolean(session.appUpdateWorker() || session.availableApkUrl())}
-                  appUpdating={session.appUpdating()}
-                  {...(session.appUpdateProgress()
-                    ? { appUpdateProgress: session.appUpdateProgress() as AppUpdateProgress }
+                  {...(session.availableUpdateVersion()
+                    ? { appUpdateVersion: session.availableUpdateVersion() as string }
                     : {})}
-                  onActivateAppUpdate={session.activateAvailableUpdate}
+                  onOpenAppUpdateSettings={() => {
+                    rememberReturnTo();
+                    navigation.navigate('settings');
+                  }}
                 />,
               )}
               {rootPane(
@@ -143,24 +143,26 @@ export function App(): JSX.Element {
       </main>
 
       <Show when={session.ready()}>
-        <AppBottomNav
-          view={navigation.view}
-          dragIndex={bottomNav.dragIndex}
-          dragging={bottomNav.dragging}
-          pressed={bottomNav.pressed}
-          availableModuleCount={session.availableModuleCount}
-          downloadedModuleCount={session.downloadedModuleCount}
-          dueReminderCount={session.dueReminderCount}
-          appUpdateReady={() => Boolean(session.appUpdateWorker() || session.availableApkUrl())}
-          modelController={session.modelController}
-          bubbleStyle={bottomNav.bubbleStyle}
-          bindNav={bottomNav.bindNav}
-          onPointerDown={bottomNav.handlePointerDown}
-          onPointerMove={bottomNav.handlePointerMove}
-          onPointerUp={bottomNav.handlePointerUp}
-          onPointerCancel={bottomNav.handlePointerCancel}
-          onItemClick={bottomNav.handleClick}
-        />
+        <Portal>
+          <AppBottomNav
+            view={navigation.view}
+            dragIndex={bottomNav.dragIndex}
+            dragging={bottomNav.dragging}
+            pressed={bottomNav.pressed}
+            availableModuleCount={session.availableModuleCount}
+            downloadedModuleCount={session.downloadedModuleCount}
+            dueReminderCount={session.dueReminderCount}
+            appUpdateReady={() => Boolean(session.appUpdateWorker() || session.availableApkUrl())}
+            modelController={session.modelController}
+            bubbleStyle={bottomNav.bubbleStyle}
+            bindNav={bottomNav.bindNav}
+            onPointerDown={bottomNav.handlePointerDown}
+            onPointerMove={bottomNav.handlePointerMove}
+            onPointerUp={bottomNav.handlePointerUp}
+            onPointerCancel={bottomNav.handlePointerCancel}
+            onItemClick={bottomNav.handleClick}
+          />
+        </Portal>
       </Show>
 
       <Show when={session.ready()}>

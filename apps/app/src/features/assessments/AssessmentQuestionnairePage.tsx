@@ -1,4 +1,4 @@
-import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import NumberFlow from 'solid-number-flow';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
@@ -38,7 +38,18 @@ export function AssessmentQuestionnairePage(props: {
   const [methodologyOpen, setMethodologyOpen] = createSignal(false);
   const [highlightedQuestionId, setHighlightedQuestionId] = createSignal<string | null>(null);
   let draftId = props.initialRecord?.id;
+  let hydratedFromInitial = false;
   let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+
+  createEffect(() => {
+    const initial = props.initialRecord;
+    if (!initial || hydratedFromInitial) return;
+    if (Object.keys(answers()).length > 0 || subjectLabel().trim().length > 0) return;
+    setAnswers(initial.answers);
+    setSubjectLabel(initial.subjectLabel);
+    draftId = initial.id;
+    hydratedFromInitial = true;
+  });
   const answered = () => answeredQuestionCount(props.definition, answers());
   const complete = () => answered() === props.definition.questions.length;
   const remaining = () => props.definition.questions.length - answered();

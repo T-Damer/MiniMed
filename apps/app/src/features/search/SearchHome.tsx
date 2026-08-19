@@ -25,8 +25,12 @@ import {
   saveSearchScope,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
-import { type AppUpdateProgress, formatAppUpdateLabel } from '@/state/app-update';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+import {
+  ignoreAppUpdate,
+  isHomeAppUpdateVisible,
+  loadIgnoredAppUpdates,
+} from '@/state/ignored-app-updates';
 import { loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 import { USER_LIBRARY_EVENT, userLibrarySearchableCount } from '@/state/user-library';
@@ -38,10 +42,8 @@ interface SearchHomeProps {
   readonly active: boolean;
   readonly onOpenKnowledgeBase: () => void;
   readonly onOpenModelSettings: () => void;
-  readonly appUpdateReady?: boolean;
-  readonly appUpdating?: boolean;
-  readonly appUpdateProgress?: AppUpdateProgress;
-  readonly onActivateAppUpdate?: () => void;
+  readonly appUpdateVersion?: string;
+  readonly onOpenAppUpdateSettings?: () => void;
 }
 
 interface SearchScopeOption {
@@ -130,6 +132,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     props.localModelController.getState(),
   );
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
+  const [ignoredAppUpdates, setIgnoredAppUpdates] = createSignal(loadIgnoredAppUpdates());
   let searchModeTools: HTMLElement | undefined;
   useStickySurface(() => searchModeTools);
 
@@ -274,17 +277,20 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         <Show when={props.active}>
           <SearchHistoryPanel onReplay={replayHistory} />
         </Show>
-        <Show when={props.appUpdateReady}>
+        <Show when={isHomeAppUpdateVisible(props.appUpdateVersion, ignoredAppUpdates())}>
           <button
             class="search-update-status"
             type="button"
-            disabled={props.appUpdating}
-            aria-label={props.appUpdating ? 'Обновляем приложение' : 'Обновить приложение'}
-            title={props.appUpdating ? 'Обновляем приложение' : 'Обновить приложение'}
-            onClick={props.onActivateAppUpdate}
+            aria-label="Доступно обновление"
+            title="Доступно обновление"
+            onClick={() => {
+              const version = props.appUpdateVersion;
+              if (version) setIgnoredAppUpdates(ignoreAppUpdate(version));
+              props.onOpenAppUpdateSettings?.();
+            }}
           >
             <AppGlyph name="refresh" class="search-update-status__icon" />
-            <span>{formatAppUpdateLabel(Boolean(props.appUpdating), props.appUpdateProgress)}</span>
+            <span class="search-update-status__label">Доступно обновление</span>
           </button>
         </Show>
         <button
