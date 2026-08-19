@@ -20,6 +20,7 @@ import {
   MODULE_TASK_LABELS,
   moduleDocumentCountFact,
 } from '@/features/modules/module-display';
+import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 
 interface ContentModuleCardProps {
   readonly module: ContentModuleCatalogEntry;
@@ -37,6 +38,11 @@ interface ContentModuleCardProps {
   readonly preinstallOptions?: PreinstalledCatalogModuleOptions;
 }
 
+function moduleInstallable(module: ContentModuleCatalogEntry): boolean {
+  if (module.releaseState === 'published') return true;
+  return module.releaseState === 'preview' && getExperimentalModulesEnabled();
+}
+
 export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
   const progress = (): number | null => (props.task ? contentModuleTaskProgress(props.task) : null);
   const installError = (): string | null =>
@@ -48,11 +54,10 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
       props.retryScheduled ||
         (props.task && !['completed', 'failed', 'cancelled'].includes(props.task.state)),
     );
+  const canInstall = (): boolean => moduleInstallable(props.module);
   const updateAvailable = (): boolean =>
     Boolean(
-      props.installed &&
-        props.installed.version !== props.module.version &&
-        props.module.releaseState === 'published',
+      props.installed && props.installed.version !== props.module.version && canInstall(),
     );
   const installedLabel = (): boolean =>
     Boolean(props.installed || isPreinstalledCatalogModule(props.module, props.preinstallOptions));
@@ -132,11 +137,15 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
                 <button
                   type="button"
                   class="module-card-actions__primary"
-                  disabled={props.module.releaseState !== 'published'}
+                  disabled={!canInstall()}
                   onClick={props.onInstall}
                 >
                   <AppGlyph name="download" class="module-card-actions__icon" />
-                  {props.module.releaseState === 'published' ? 'Скачать' : 'Пока недоступно'}
+                  {canInstall()
+                    ? props.module.releaseState === 'preview'
+                      ? 'Скачать Experimental'
+                      : 'Скачать'
+                    : 'Пока недоступно'}
                 </button>
               </Show>
             }
