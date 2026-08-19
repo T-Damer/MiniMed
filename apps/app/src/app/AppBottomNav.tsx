@@ -18,6 +18,7 @@ export function AppBottomNav(props: {
   readonly availableModuleCount: Accessor<number>;
   readonly downloadedModuleCount: Accessor<number>;
   readonly dueReminderCount: Accessor<number>;
+  readonly appUpdateReady: Accessor<boolean>;
   readonly modelController: LocalModelController;
   readonly bubbleStyle: () => string;
   readonly bindNav: (element: HTMLElement) => void;
@@ -52,6 +53,9 @@ export function AppBottomNav(props: {
           if (item.id === 'notes' && props.dueReminderCount() > 0) {
             return `${item.label}, напоминаний: ${props.dueReminderCount()}`;
           }
+          if (item.id === 'settings' && props.appUpdateReady()) {
+            return `${item.label}, доступно обновление приложения`;
+          }
           return item.label;
         };
         return (
@@ -73,6 +77,9 @@ export function AppBottomNav(props: {
                 name={item.icon}
                 class={`app-nav-button__icon${selected() ? ' app-nav-button__icon--active' : ''}`}
               />
+              <Show when={item.id === 'settings' && props.appUpdateReady()}>
+                <span class="app-nav-badge app-nav-badge--app-update" aria-hidden="true" />
+              </Show>
               <Show when={item.id === 'modules' && props.availableModuleCount() > 0}>
                 <span class="app-nav-badge app-nav-badge--available" aria-hidden="true">
                   {compactCount(props.availableModuleCount(), 99)}

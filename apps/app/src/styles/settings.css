@@ -162,3 +162,21 @@
   display: grid;
   gap: 0.5rem;
 }
+
+.settings-update__error {
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.settings-update__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.settings-update__check,
+.settings-update__apply {
+  min-width: 0;
+}

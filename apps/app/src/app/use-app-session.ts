@@ -25,6 +25,7 @@ import {
   type AppUpdateReadyDetail,
   activateAppUpdate,
   checkNativeApkUpdate,
+  checkWebAppUpdate,
 } from '@/state/app-update';
 import { notifyContentChanged } from '@/state/content-events';
 import { installAndroidApk } from '@/state/native-update';
@@ -45,7 +46,9 @@ export function useAppSession() {
   const [appUpdateWorker, setAppUpdateWorker] = createSignal<ServiceWorker>();
   const [availableApkUrl, setAvailableApkUrl] = createSignal<string>();
   const [appUpdating, setAppUpdating] = createSignal(false);
+  const [appUpdateChecking, setAppUpdateChecking] = createSignal(false);
   const [appUpdateProgress, setAppUpdateProgress] = createSignal<AppUpdateProgress>();
+  const [appUpdateError, setAppUpdateError] = createSignal<string>();
   const modelController = createLocalModelController();
   const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
@@ -61,10 +64,34 @@ export function useAppSession() {
     setAppUpdateWorker((event as CustomEvent<AppUpdateReadyDetail>).detail.worker);
   };
 
+  const describeUpdateError = (cause: unknown, fallback: string): string =>
+    cause instanceof Error ? cause.message : fallback;
+
+  const checkAvailableUpdate = (): void => {
+    if (appUpdateChecking() || appUpdating()) return;
+    setAppUpdateChecking(true);
+    setAppUpdateError();
+    const pending =
+      Capacitor.getPlatform() === 'android'
+        ? checkNativeApkUpdate().then((url) => {
+            setAvailableApkUrl(url ?? undefined);
+            return Boolean(url);
+          })
+        : checkWebAppUpdate();
+    void pending
+      .catch((cause: unknown) => {
+        setAppUpdateError(describeUpdateError(cause, 'Не удалось проверить обновление.'));
+      })
+      .finally(() => {
+        setAppUpdateChecking(false);
+      });
+  };
+
   const activateAvailableUpdate = (): void => {
     if (appUpdating()) return;
     setAppUpdating(true);
     setAppUpdateProgress(undefined);
+    setAppUpdateError();
     const apkUrl = availableApkUrl();
     if (apkUrl) {
       void installAndroidApk(apkUrl, (progress) => {
@@ -74,7 +101,9 @@ export function useAppSession() {
           total: progress.total,
         });
       })
-        .catch(() => undefined)
+        .catch((cause: unknown) => {
+          setAppUpdateError(describeUpdateError(cause, 'Не удалось загрузить обновление.'));
+        })
         .finally(() => {
           setAppUpdating(false);
           setAppUpdateProgress(undefined);
@@ -124,7 +153,9 @@ export function useAppSession() {
         .then((url) => {
           if (url) setAvailableApkUrl(url);
         })
-        .catch(() => undefined);
+        .catch((cause: unknown) => {
+          setAppUpdateError(describeUpdateError(cause, 'Не удалось проверить обновление.'));
+        });
     }
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.addEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
@@ -191,11 +222,14 @@ export function useAppSession() {
     appUpdateWorker,
     availableApkUrl,
     appUpdating,
+    appUpdateChecking,
     appUpdateProgress,
+    appUpdateError,
     modelController,
     assistantCore,
     searchCore,
     activateAvailableUpdate,
+    checkAvailableUpdate,
     connectInstalledModules,
   };
 }

@@ -430,3 +430,33 @@ test('asks before activating an installed application update', async ({ page }) 
     )
     .toEqual({ type: 'SKIP_WAITING' });
 });
+
+test('shows a settings update checker and nav dot when a web update is waiting', async ({
+  page,
+}) => {
+  await mountBuiltApp(page);
+  await page.evaluate(() => {
+    const worker = {
+      postMessage: (message: unknown) => {
+        (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage = message;
+      },
+    };
+    window.dispatchEvent(new CustomEvent('minimed:app-update-ready', { detail: { worker } }));
+  });
+
+  await expect(page.locator('.app-nav-badge--app-update')).toBeVisible();
+  await page
+    .locator('.app-bottom-nav')
+    .getByRole('button', { name: /Настройки/u })
+    .click();
+  await expect(page.getByRole('heading', { name: 'Обновление приложения' })).toBeVisible();
+  await expect(page.locator('.settings-update__apply')).toBeVisible();
+  await page.locator('.settings-update__apply').click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage,
+      ),
+    )
+    .toEqual({ type: 'SKIP_WAITING' });
+});

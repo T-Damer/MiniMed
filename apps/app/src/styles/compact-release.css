@@ -1237,6 +1237,18 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   background: #4d7657;
 }
 
+.app-nav-badge--app-update {
+  top: -0.1875rem;
+  right: auto;
+  left: -0.1875rem;
+  width: 0.5rem;
+  min-width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border-radius: 999px;
+  background: #4d7657;
+}
+
 .overlay-backdrop {
   animation: overlay-fade-in 150ms ease-out both;
 }

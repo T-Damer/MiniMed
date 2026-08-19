@@ -20,6 +20,8 @@ const files = {
   report: 'apps/app/public/content/core-demo-report.json',
   androidLlamaPlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LlamaInferencePlugin.kt',
+  androidUpdatePlugin:
+    'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedUpdatePlugin.kt',
   androidLlamaCmake: 'apps/app/android/app/src/main/cpp/CMakeLists.txt',
   typescriptLlamaPlugin: 'apps/app/src/features/models/llama-plugin.ts',
 };
@@ -63,6 +65,12 @@ requireText('androidLlamaPlugin', '@CapacitorPlugin(name = "LlamaInference")');
 requireText('androidActivity', 'registerPlugin(LlamaInferencePlugin.class)');
 requireText('androidLlamaPlugin', 'expectedSha256');
 requireText('androidLlamaCmake', 'add_subdirectory(${LLAMA_SRC} build-llama)');
+
+for (const method of ['prepareApkFile', 'appendApkChunk', 'installPreparedApk']) {
+  requireText('androidUpdatePlugin', `fun ${method}(`);
+}
+requireText('androidActivity', 'registerPlugin(LocalMedUpdatePlugin.class)');
+requireText('androidUpdatePlugin', '@CapacitorPlugin(name = "LocalMedUpdate")');
 
 for (const native of ['androidPlugin', 'iosPlugin']) {
   requireText(native, 'PRAGMA quick_check');

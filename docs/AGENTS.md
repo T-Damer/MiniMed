@@ -30,6 +30,9 @@ roadmap ideas.
   transferring, or installing) show a pie on the top-right of the Settings tab; tapping it opens that
   page. Failed-only or idle packs hide the pie. Progress stays visible on every tab through the nav
   indicator, not a floating card.
+- A waiting application update shows a green dot on the top-left of the Settings tab and a checker
+  card on the Settings index. Applying it reloads the waiting service worker on web, or fetches the
+  APK through `downloadWithRetry` and opens the system installer on Android.
 - Keep the layout compact: prefer expandable blocks over tall cards, and do not reintroduce large
   padding around central blocks.
 - Sizes are rem-based (16px root): write new CSS in rem. Hairline 1px borders, the 999px

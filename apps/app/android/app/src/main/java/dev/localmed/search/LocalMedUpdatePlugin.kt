@@ -1,6 +1,7 @@
 package dev.localmed.search
 
 import android.content.Intent
+import android.util.Base64
 import androidx.core.content.FileProvider
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -9,8 +10,6 @@ import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import java.io.File
 import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.Executors
 
 @CapacitorPlugin(name = "LocalMedUpdate")
@@ -18,47 +17,58 @@ class LocalMedUpdatePlugin : Plugin() {
     private val executor = Executors.newSingleThreadExecutor()
 
     @PluginMethod
-    fun installApk(call: PluginCall) {
-        val source = call.getString("url")
-        if (source == null || !source.startsWith("https://", ignoreCase = true)) {
-            call.reject("Only HTTPS APK URLs are allowed.")
+    fun prepareApkFile(call: PluginCall) {
+        executor.execute {
+            try {
+                val target = apkFile()
+                if (target.exists() && !target.delete()) {
+                    throw IllegalStateException("Unable to replace the previous update file.")
+                }
+                FileOutputStream(target).close()
+                activity.runOnUiThread {
+                    call.resolve(JSObject().put("path", target.absolutePath))
+                }
+            } catch (error: Exception) {
+                rejectOnUi(call, error)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun appendApkChunk(call: PluginCall) {
+        val chunk = call.getString("chunk")
+        if (chunk.isNullOrEmpty()) {
+            call.reject("APK chunk is required.")
             return
         }
 
         executor.execute {
             try {
-                val directory = File(context.filesDir, "localmed/updates")
-                if (!directory.isDirectory && !directory.mkdirs()) {
-                    throw IllegalStateException("Unable to create the update directory.")
+                val target = apkFile()
+                if (!target.isFile) {
+                    throw IllegalStateException("Prepare the APK file before appending chunks.")
                 }
-                val target = File(directory, "minimed-update.apk")
-                val connection = URL(source).openConnection() as HttpURLConnection
-                connection.connectTimeout = 20_000
-                connection.readTimeout = 60_000
-                connection.instanceFollowRedirects = true
-                connection.connect()
-                if (connection.responseCode !in 200..299) {
-                    throw IllegalStateException("APK download failed: HTTP ${connection.responseCode}")
+                val bytes = Base64.decode(chunk, Base64.DEFAULT)
+                FileOutputStream(target, true).use { output ->
+                    output.write(bytes)
                 }
-                val totalBytes = connection.contentLengthLong.coerceAtLeast(0L)
-                val buffer = ByteArray(64 * 1024)
-                connection.inputStream.use { input ->
-                    FileOutputStream(target).use { output ->
-                        var loaded = 0L
-                        while (true) {
-                            val read = input.read(buffer)
-                            if (read < 0) break
-                            output.write(buffer, 0, read)
-                            loaded += read
-                            val event = JSObject()
-                            event.put("loaded", loaded)
-                            event.put("total", if (totalBytes > 0L) totalBytes else loaded)
-                            notifyListeners("downloadProgress", event)
-                        }
-                    }
+                activity.runOnUiThread {
+                    call.resolve(JSObject().put("bytes", target.length()))
                 }
-                connection.disconnect()
+            } catch (error: Exception) {
+                rejectOnUi(call, error)
+            }
+        }
+    }
 
+    @PluginMethod
+    fun installPreparedApk(call: PluginCall) {
+        executor.execute {
+            try {
+                val target = apkFile()
+                if (!target.isFile || target.length() == 0L) {
+                    throw IllegalStateException("No downloaded APK is ready to install.")
+                }
                 val uri = FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.fileprovider",
@@ -74,10 +84,22 @@ class LocalMedUpdatePlugin : Plugin() {
                     call.resolve(JSObject().put("path", target.absolutePath))
                 }
             } catch (error: Exception) {
-                activity.runOnUiThread {
-                    call.reject(error.message ?: "Unable to install the APK.")
-                }
+                rejectOnUi(call, error)
             }
+        }
+    }
+
+    private fun apkFile(): File {
+        val directory = File(context.filesDir, "localmed/updates")
+        if (!directory.isDirectory && !directory.mkdirs()) {
+            throw IllegalStateException("Unable to create the update directory.")
+        }
+        return File(directory, "minimed-update.apk")
+    }
+
+    private fun rejectOnUi(call: PluginCall, error: Exception) {
+        activity.runOnUiThread {
+            call.reject(error.message ?: "Unable to install the APK.")
         }
     }
 }

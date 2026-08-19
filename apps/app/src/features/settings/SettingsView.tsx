@@ -10,6 +10,7 @@ import type { LocalModelController } from '@/features/models/controller';
 import { ModelSettings } from '@/features/models/ModelSettings';
 import type { LocalModelState } from '@/features/models/types';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
+import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import {
   readSettingsRoute,
   SETTINGS_DOWNLOADS_HASH,
@@ -26,6 +27,7 @@ import {
   setVibrationEnabled,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
+import type { AppUpdateProgress } from '@/state/app-update';
 import {
   consumeAndRestoreReturnTo,
   peekReturnTo,
@@ -37,6 +39,13 @@ import {
 interface SettingsViewProps {
   readonly controller: LocalModelController;
   readonly status: CoreStatus;
+  readonly appUpdateReady: boolean;
+  readonly appUpdating: boolean;
+  readonly appUpdateChecking: boolean;
+  readonly appUpdateProgress: AppUpdateProgress | undefined;
+  readonly appUpdateError: string | undefined;
+  readonly onCheckAppUpdate: () => void;
+  readonly onActivateAppUpdate: () => void;
 }
 
 export function SettingsView(props: SettingsViewProps): JSX.Element {
@@ -126,6 +135,16 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
             )}
           </Show>
         </header>
+
+        <AppUpdateChecker
+          ready={() => props.appUpdateReady}
+          checking={() => props.appUpdateChecking}
+          updating={() => props.appUpdating}
+          progress={() => props.appUpdateProgress}
+          error={() => props.appUpdateError}
+          onCheck={props.onCheckAppUpdate}
+          onActivate={props.onActivateAppUpdate}
+        />
 
         <section
           class="settings-section settings-section--interface paper-sheet"

@@ -4,6 +4,24 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.26] - 2026-08-19
+
+### Added
+
+- A green dot on the top-left of the Settings tab marks a waiting application update.
+- Settings includes an update-checker card: current version, check, and apply.
+
+### Changed
+
+- Applying a web update still activates the waiting service worker and reloads the page.
+- Android APK updates download through `fetch` / `downloadWithRetry` (native HTTP via CapacitorHttp),
+  then write the file in chunks to `LocalMedUpdate` before the system installer.
+
+### Fixed
+
+- Android packaging no longer fails on duplicate splash resources (`splash.xml` beside Capacitor's
+  `splash.png`). The splash theme uses the paper color.
+
 ## [0.6.25] - 2026-08-18
 
 ### Added

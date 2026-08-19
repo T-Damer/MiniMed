@@ -110,7 +110,17 @@ export function App(): JSX.Element {
               )}
               {rootPane(
                 'settings',
-                <SettingsView controller={session.modelController} status={state().status} />,
+                <SettingsView
+                  controller={session.modelController}
+                  status={state().status}
+                  appUpdateReady={Boolean(session.appUpdateWorker() || session.availableApkUrl())}
+                  appUpdating={session.appUpdating()}
+                  appUpdateChecking={session.appUpdateChecking()}
+                  appUpdateProgress={session.appUpdateProgress()}
+                  appUpdateError={session.appUpdateError()}
+                  onCheckAppUpdate={session.checkAvailableUpdate}
+                  onActivateAppUpdate={session.activateAvailableUpdate}
+                />,
               )}
               {rootPane(
                 'notes',
@@ -141,6 +151,7 @@ export function App(): JSX.Element {
           availableModuleCount={session.availableModuleCount}
           downloadedModuleCount={session.downloadedModuleCount}
           dueReminderCount={session.dueReminderCount}
+          appUpdateReady={() => Boolean(session.appUpdateWorker() || session.availableApkUrl())}
           modelController={session.modelController}
           bubbleStyle={bottomNav.bubbleStyle}
           bindNav={bottomNav.bindNav}

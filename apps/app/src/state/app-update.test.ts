@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { activateAppUpdate, formatAppUpdateLabel, selectLatestApkUpdate } from '@/state/app-update';
+import {
+  activateAppUpdate,
+  checkWebAppUpdate,
+  formatAppUpdateCheckerStatus,
+  formatAppUpdateLabel,
+  selectLatestApkUpdate,
+} from '@/state/app-update';
 
 describe('app update label', () => {
   it('shows percent while downloading', () => {
@@ -9,6 +15,33 @@ describe('app update label', () => {
 
   it('shows activation copy for service worker updates', () => {
     expect(formatAppUpdateLabel(true, { phase: 'activate' })).toBe('Активация…');
+  });
+});
+
+describe('app update checker copy', () => {
+  it('names the installed version until a newer build is ready', () => {
+    expect(
+      formatAppUpdateCheckerStatus({
+        version: '0.6.25',
+        ready: false,
+        checking: false,
+        updating: false,
+      }),
+    ).toEqual({
+      body: 'Установлена версия 0.6.25.',
+      checkLabel: 'Проверить обновления',
+    });
+  });
+
+  it('tells the doctor a newer build is waiting', () => {
+    expect(
+      formatAppUpdateCheckerStatus({
+        version: '0.6.25',
+        ready: true,
+        checking: false,
+        updating: false,
+      }).body,
+    ).toBe('Доступна новая версия приложения.');
   });
 });
 
@@ -22,6 +55,23 @@ describe('app update activation', () => {
 
     expect(addEventListener).toHaveBeenCalledWith('controllerchange', reload, { once: true });
     expect(postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' });
+  });
+});
+
+describe('web service worker update check', () => {
+  it('announces a waiting worker after registration.update()', async () => {
+    const waiting = {} as ServiceWorker;
+    const update = vi.fn(async () => undefined);
+    const dispatchReady = vi.fn();
+
+    const ready = await checkWebAppUpdate(
+      async () => ({ waiting, update }) as unknown as ServiceWorkerRegistration,
+      dispatchReady,
+    );
+
+    expect(update).toHaveBeenCalledTimes(1);
+    expect(ready).toBe(true);
+    expect(dispatchReady).toHaveBeenCalledWith(waiting);
   });
 });
 

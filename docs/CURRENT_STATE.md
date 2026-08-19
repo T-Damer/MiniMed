@@ -1,8 +1,8 @@
 # Current state
 
-> Updated: 18 August 2026
-> Repository version: `0.6.25`
-> Active target: `0.6.25` public prerelease toward `1.0`
+> Updated: 19 August 2026
+> Repository version: `0.6.26`
+> Active target: `0.6.26` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -183,6 +183,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Search history and diagnostic help controls share one sticky top toolbar on the search home, with
   the menu on the left, an optional compact app-update control immediately to its right (progress
   percent while an APK downloads), and `?` on the far right. There is no second floating app-update pill.
+  A green dot on the top-left of the Settings tab also marks a waiting application update, and Settings
+  contains an update-checker card (current version, check, and apply).
 - Search, module-catalog, and medication-catalog sticky headers use transparent,
   page-width masked backdrop blur with a subtle grain layer that stays hidden until the header is
   actually stuck. Document reader chrome stays opaque; in-text `h1`/`h2` sticky offsets are measured
@@ -297,9 +299,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   radio reselect, and overlay close to dedicated zen sounds; hover uses info on links, warning on
   delete, and snap on toggles.
 - Browser application updates install in the background but wait for explicit approval on the search
-  sticky toolbar (compact percent while an APK downloads) before the new service worker activates and
-  reloads the page. Android checks the latest GitHub release and downloads a newer APK through a native
-  Capacitor bridge with progress events before handing it to the system installer. The packaged web
+  sticky toolbar or the Settings checker (compact percent while an APK downloads) before the new
+  service worker activates and reloads the page. Android checks the latest GitHub release, downloads a
+  newer APK through `fetch` / `downloadWithRetry` (native HTTP via CapacitorHttp), writes it in chunks
+  through `LocalMedUpdate`, and hands the file to the system installer. The packaged web
   assets include only the Core SQLite (`core-demo.db`); companion databases stay optional local-dev
   files and are stripped from `dist`. Android aapt ignores those companion filenames explicitly —
   a blanket database glob would also drop the bundled core pack, because aapt `!` only silences skip
@@ -321,7 +324,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   component, including mixed diagonal wheel input; touch and trackpad scrolling remain native.
 - Android draws the page background beneath its transparent status bar while sticky chrome and
   page surfaces add `--safe-top` themselves; there is no solid desk-colored status-bar plate.
-  The launch splash and in-app boot screen fill the viewport with paper. System-bar icon contrast
+  The launch splash and in-app boot screen fill the viewport with paper (`@color/splashBackground`
+  on the splash theme; there is no second `drawable/splash.xml` beside Capacitor's `splash.png`). System-bar icon contrast
   follows the device theme. Hardware Back closes the
   active dialog or drawer, returns through nested routes and root sections, then minimizes the app at
   the search root. Native-like haptics respect the vibration preference and platform capabilities

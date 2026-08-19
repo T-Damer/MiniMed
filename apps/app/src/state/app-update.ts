@@ -27,6 +27,27 @@ export function formatAppUpdateLabel(
   return 'Загрузка…';
 }
 
+export function formatAppUpdateCheckerStatus(input: {
+  readonly version: string;
+  readonly ready: boolean;
+  readonly checking: boolean;
+  readonly updating: boolean;
+}): { readonly body: string; readonly checkLabel: string } {
+  if (input.updating) {
+    return { body: 'Загрузка обновления…', checkLabel: 'Проверить' };
+  }
+  if (input.checking) {
+    return { body: 'Проверяем наличие обновления…', checkLabel: 'Проверка…' };
+  }
+  if (input.ready) {
+    return { body: 'Доступна новая версия приложения.', checkLabel: 'Проверить ещё раз' };
+  }
+  return {
+    body: `Установлена версия ${input.version}.`,
+    checkLabel: 'Проверить обновления',
+  };
+}
+
 interface GitHubReleasePayload {
   readonly tag_name?: unknown;
   readonly draft?: unknown;
@@ -126,4 +147,17 @@ export function activateAppUpdate(
 ): void {
   serviceWorkers.addEventListener('controllerchange', reload, { once: true });
   worker.postMessage({ type: 'SKIP_WAITING' });
+}
+
+export async function checkWebAppUpdate(
+  getRegistration: () => Promise<ServiceWorkerRegistration | undefined> = () =>
+    navigator.serviceWorker.getRegistration(),
+  dispatchReady: (worker: ServiceWorker) => void = announceUpdate,
+): Promise<boolean> {
+  const registration = await getRegistration();
+  if (!registration) return false;
+  await registration.update();
+  if (!registration.waiting) return false;
+  dispatchReady(registration.waiting);
+  return true;
 }
