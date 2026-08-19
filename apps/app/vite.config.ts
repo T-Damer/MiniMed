@@ -35,6 +35,7 @@ const LARGE_COMPANION_PATHS = [
 const TESSDATA_LANGS = ['eng', 'rus'] as const;
 const TESSDATA_VERSION = '4.0.0';
 const TESSDATA_BASE = `https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/${TESSDATA_VERSION}/`;
+const PDFJS_STATIC_DIRECTORIES = ['wasm', 'standard_fonts', 'cmaps', 'iccs'] as const;
 
 function downloadFile(url: string, destination: string): Promise<void> {
   if (existsSync(destination)) return Promise.resolve();
@@ -80,19 +81,26 @@ function ensureTessdataAssets(): Plugin {
   };
 }
 
+function copyDirectoryFiles(sourceDir: string, targetDir: string): void {
+  mkdirSync(targetDir, { recursive: true });
+  for (const name of readdirSync(sourceDir)) {
+    const source = join(sourceDir, name);
+    if (!statSync(source).isFile()) continue;
+    copyFileSync(source, join(targetDir, name));
+  }
+}
+
 function ensurePdfJsAssets(): Plugin {
   const pdfBuildFile = require.resolve('pdfjs-dist/build/pdf.mjs');
   const pdfRoot = join(dirname(pdfBuildFile), '..');
-  const sourceWasmDir = join(pdfRoot, 'wasm');
-  const targetWasmDir = fileURLToPath(new URL('./public/pdfjs/wasm', import.meta.url));
+  const publicPdfRoot = fileURLToPath(new URL('./public/pdfjs', import.meta.url));
   return {
     name: 'ensure-pdfjs-assets',
     buildStart() {
-      mkdirSync(targetWasmDir, { recursive: true });
-      for (const name of readdirSync(sourceWasmDir)) {
-        const source = join(sourceWasmDir, name);
-        if (!statSync(source).isFile()) continue;
-        copyFileSync(source, join(targetWasmDir, name));
+      for (const directory of PDFJS_STATIC_DIRECTORIES) {
+        const sourceDir = join(pdfRoot, directory);
+        if (!existsSync(sourceDir)) continue;
+        copyDirectoryFiles(sourceDir, join(publicPdfRoot, directory));
       }
     },
   };
