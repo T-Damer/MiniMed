@@ -35,6 +35,7 @@ import '@/styles/notifications.css';
 import '@/styles/user-library.css';
 import '@/styles/theme-dark.css';
 import '@/styles/context-menu.css';
+import '@/styles/library-polish.css';
 import '@/styles/reader-polish.css';
 
 const root = document.getElementById('root');
