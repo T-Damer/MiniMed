@@ -13,6 +13,7 @@ import { RELEASE_VERSION } from '../../../../../release';
 export function AppUpdateChecker(props: {
   readonly ready: Accessor<boolean>;
   readonly checking: Accessor<boolean>;
+  readonly upToDate: Accessor<boolean>;
   readonly updating: Accessor<boolean>;
   readonly progress: Accessor<AppUpdateProgress | undefined>;
   readonly error: Accessor<string | undefined>;
@@ -24,7 +25,9 @@ export function AppUpdateChecker(props: {
       version: RELEASE_VERSION,
       ready: props.ready(),
       checking: props.checking(),
+      upToDate: props.upToDate(),
       updating: props.updating(),
+      dev: import.meta.env.DEV,
     });
 
   return (
