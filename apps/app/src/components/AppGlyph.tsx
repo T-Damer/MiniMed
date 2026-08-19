@@ -20,6 +20,7 @@ import folderOpenBold from '@phosphor-icons/core/assets/bold/folder-open-bold.sv
 import gearSixBold from '@phosphor-icons/core/assets/bold/gear-six-bold.svg?raw';
 import graphBold from '@phosphor-icons/core/assets/bold/graph-bold.svg?raw';
 import houseBold from '@phosphor-icons/core/assets/bold/house-bold.svg?raw';
+import imageSquareBold from '@phosphor-icons/core/assets/bold/image-square-bold.svg?raw';
 import listBold from '@phosphor-icons/core/assets/bold/list-bold.svg?raw';
 import listChecksBold from '@phosphor-icons/core/assets/bold/list-checks-bold.svg?raw';
 import magnifyingGlassBold from '@phosphor-icons/core/assets/bold/magnifying-glass-bold.svg?raw';
@@ -77,6 +78,7 @@ export type AppGlyphName =
   | 'house'
   | 'arrow-u-up-left'
   | 'file-text'
+  | 'image'
   | 'pill';
 
 function svgBody(asset: string): string {
@@ -122,6 +124,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   house: svgBody(houseBold),
   'arrow-u-up-left': svgBody(arrowUUpLeftBold),
   'file-text': svgBody(fileTextBold),
+  image: svgBody(imageSquareBold),
   pill: svgBody(pillBold),
 };
 
