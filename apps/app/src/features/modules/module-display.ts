@@ -7,7 +7,7 @@ export const MODULE_RELEASE_LABELS: Readonly<
 > = {
   bundled: 'Уже в приложении',
   published: 'Можно скачать',
-  preview: 'Готовится',
+  preview: 'Experimental',
   planned: 'Запланировано',
 };
 
