@@ -46,6 +46,7 @@ import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
+import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
 import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-navigation';
 import type { DocumentTrail } from '@/state/document-trail';
 
@@ -57,7 +58,10 @@ interface OfficialDocumentReaderProps {
   readonly trail: DocumentTrail | null;
   readonly openError?: string | null;
   readonly onNavigate: (href: string) => void;
-  readonly onRequestFullText: (document: MedicalDocument) => Promise<void>;
+  readonly onRequestFullText: (
+    document: MedicalDocument,
+    onProgress?: (fraction: number | null) => void,
+  ) => Promise<void>;
 }
 
 function normalize(value: string): string {
@@ -120,6 +124,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
   const [findOpen, setFindOpen] = createSignal(false);
   const [fullTextPending, setFullTextPending] = createSignal(false);
+  const [fullTextProgress, setFullTextProgress] = createSignal<number | null>(null);
   const [fullTextError, setFullTextError] = createSignal<string | null>(null);
   const [mountedSectionCount, setMountedSectionCount] = createSignal(0);
   let flashTimeout: number | undefined;
@@ -332,23 +337,25 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     const document = props.document;
     if (!document || fullTextPending()) return;
     setFullTextPending(true);
+    setFullTextProgress(null);
     setFullTextError(null);
     try {
-      await props.onRequestFullText(document);
+      await props.onRequestFullText(document, setFullTextProgress);
     } catch (cause) {
       setFullTextError(
         cause instanceof Error ? cause.message : 'Не удалось загрузить полную рекомендацию.',
       );
     } finally {
       setFullTextPending(false);
+      setFullTextProgress(null);
     }
   };
   const fullTextButtonLabel = (): string =>
-    fullTextPending()
-      ? 'Загружаем полную версию…'
-      : fullTextDocumentId()
-        ? 'Полный текст'
-        : 'Загрузить полный текст';
+    formatFullTextDownloadLabel(
+      fullTextPending(),
+      fullTextProgress(),
+      Boolean(fullTextDocumentId()),
+    );
 
   const pageTitle = (): string =>
     props.document

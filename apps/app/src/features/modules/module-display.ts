@@ -111,6 +111,16 @@ export function contentModuleTaskProgress(task: ContentModuleDownloadTask): numb
   return Math.max(0, Math.min(1, task.downloadedBytes / task.totalBytes));
 }
 
+export function formatFullTextDownloadLabel(
+  pending: boolean,
+  progress: number | null,
+  hasFullText: boolean,
+): string {
+  if (!pending) return hasFullText ? 'Полный текст' : 'Загрузить полный текст';
+  if (progress !== null) return `${Math.min(100, Math.round(progress * 100))}%`;
+  return 'Загружаем полную версию…';
+}
+
 export function primaryModuleDocumentId(module: ContentModuleCatalogEntry): string | null {
   const activeDocument = module.documents.find((document) => document.status === 'active');
   return activeDocument?.documentId ?? module.documents[0]?.documentId ?? null;

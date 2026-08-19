@@ -28,6 +28,7 @@ import noteBold from '@phosphor-icons/core/assets/bold/note-bold.svg?raw';
 import notepadBold from '@phosphor-icons/core/assets/bold/notepad-bold.svg?raw';
 import pencilSimpleBold from '@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw';
 import pillBold from '@phosphor-icons/core/assets/bold/pill-bold.svg?raw';
+import plusBold from '@phosphor-icons/core/assets/bold/plus-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
 import questionMarkBold from '@phosphor-icons/core/assets/bold/question-mark-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
@@ -61,6 +62,7 @@ export type AppGlyphName =
   | 'download'
   | 'folder-open'
   | 'minus'
+  | 'plus'
   | 'arrow-up-right'
   | 'arrows-out'
   | 'check'
@@ -105,6 +107,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   download: svgBody(downloadSimpleBold),
   'folder-open': svgBody(folderOpenBold),
   minus: svgBody(minusBold),
+  plus: svgBody(plusBold),
   'arrow-up-right': svgBody(arrowUpRightBold),
   'arrows-out': svgBody(arrowsOutBold),
   check: svgBody(checkBold),

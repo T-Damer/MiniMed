@@ -11,15 +11,15 @@
   align-items: center;
   flex-wrap: nowrap;
   gap: 0.625rem 0.75rem;
-  margin-top: calc(-1 * var(--safe-top));
-  padding-top: calc(var(--safe-top) + 0.25rem);
+  padding-top: 0.25rem;
   padding-bottom: 0.5rem;
   padding-inline: 0.15rem;
   border-radius: var(--theme-radius-panel);
 }
 
-.platform-android .medication-route-heading {
-  padding-top: calc(var(--safe-top) + 0.2rem);
+.medication-route-heading.sticky-surface--stuck {
+  margin-top: calc(-1 * var(--safe-top));
+  padding-top: calc(var(--safe-top) + 0.25rem);
 }
 
 .medication-catalog-section {

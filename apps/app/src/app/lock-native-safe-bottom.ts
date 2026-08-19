@@ -4,11 +4,17 @@ export function nextLockedInsetFloor(floorPx: number, observedPx: number): numbe
   return observedPx > floorPx ? observedPx : floorPx;
 }
 
+function readPx(value: string): number {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 function readSafeBottomPx(root: HTMLElement): number {
-  const raw = Number.parseFloat(
-    getComputedStyle(root).getPropertyValue('--safe-area-inset-bottom'),
+  const styles = getComputedStyle(root);
+  return Math.max(
+    readPx(styles.getPropertyValue('--safe-area-inset-bottom')),
+    readPx(styles.getPropertyValue('--safe-bottom')),
   );
-  return Number.isFinite(raw) ? raw : 0;
 }
 
 /** Keep the bottom nav from dropping when Capacitor briefly reports a 0 inset during navigation. */
@@ -24,8 +30,10 @@ export function lockNativeSafeBottom(root: HTMLElement = document.documentElemen
   const observer = new MutationObserver(sync);
   observer.observe(root, { attributes: true, attributeFilter: ['style'] });
   window.visualViewport?.addEventListener('resize', sync);
+  document.addEventListener('visibilitychange', sync);
   return () => {
     observer.disconnect();
     window.visualViewport?.removeEventListener('resize', sync);
+    document.removeEventListener('visibilitychange', sync);
   };
 }

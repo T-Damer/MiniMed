@@ -29,10 +29,7 @@ import {
   removeAssessmentModuleDependencies,
   setAssessmentModuleDependencies,
 } from '@/features/assessments/assessment-packs';
-import {
-  resolveContentModuleArtifactUrl,
-  usesLocalModuleArtifacts,
-} from '@/features/modules/artifact-url';
+import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 import { localPackagedModulesToInstall } from '@/features/modules/local-packaged-modules';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
@@ -419,13 +416,21 @@ export class BrowserContentModuleRuntime {
     return this.localPackagedModulesReady;
   }
 
+  private async probeArtifactRange(url: string): Promise<boolean> {
+    const probe = await fetch(url, { method: 'GET', headers: { Range: 'bytes=0-0' } });
+    return probe.ok || probe.status === 206;
+  }
+
   private async localArtifactReachable(url: string): Promise<boolean> {
     try {
       const head = await fetch(url, { method: 'HEAD' });
       if (head.ok) return true;
-      if (head.status !== 405) return false;
-      const probe = await fetch(url, { method: 'GET', headers: { Range: 'bytes=0-0' } });
-      return probe.ok || probe.status === 206;
+      if (head.status === 404 || head.status === 410) return false;
+    } catch {
+      // Some hosts reject HEAD; a ranged GET still proves the artifact is there.
+    }
+    try {
+      return await this.probeArtifactRange(url);
     } catch {
       return false;
     }
@@ -435,7 +440,6 @@ export class BrowserContentModuleRuntime {
     const candidates = localPackagedModulesToInstall(
       this.catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
-      usesLocalModuleArtifacts,
     );
     for (const module of candidates) {
       if (this.disposed) return;

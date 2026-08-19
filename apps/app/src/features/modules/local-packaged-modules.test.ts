@@ -144,13 +144,12 @@ describe('local packaged modules', () => {
     );
   });
 
-  it('selects local published tool packs only when local artifacts are enabled', () => {
-    expect(localPackagedModulesToInstall(catalog, new Set(), false)).toEqual([]);
+  it('selects published tool packs that are not already installed', () => {
+    expect(localPackagedModulesToInstall(catalog, new Set()).map((entry) => entry.id)).toEqual([
+      'minimed.tools.psychology.ru',
+    ]);
     expect(
-      localPackagedModulesToInstall(catalog, new Set(), true).map((entry) => entry.id),
-    ).toEqual(['minimed.tools.psychology.ru']);
-    expect(
-      localPackagedModulesToInstall(catalog, new Set(['minimed.tools.psychology.ru']), true),
+      localPackagedModulesToInstall(catalog, new Set(['minimed.tools.psychology.ru'])),
     ).toEqual([]);
   });
 

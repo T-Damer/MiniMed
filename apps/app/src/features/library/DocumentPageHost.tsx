@@ -1,4 +1,9 @@
-import type { MedicalCore, MedicalDocument, MedicalDocumentSummary } from '@localmed/contracts';
+import type {
+  ContentModuleDownloadTask,
+  MedicalCore,
+  MedicalDocument,
+  MedicalDocumentSummary,
+} from '@localmed/contracts';
 import { fullDocumentCandidateIds } from '@localmed/core';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import {
@@ -10,6 +15,7 @@ import { OfficialDocumentReader } from '@/features/library/OfficialDocumentReade
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
@@ -182,7 +188,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     }
   };
 
-  const requestFullText = async (summary: MedicalDocument): Promise<void> => {
+  const requestFullText = async (
+    summary: MedicalDocument,
+    onProgress?: (fraction: number | null) => void,
+  ): Promise<void> => {
     let core = props.getCore();
     if (!core) throw new Error('Локальный поиск ещё не готов.');
     let documents = await listDocuments(core);
@@ -212,7 +221,17 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         .some((item) => item.moduleId === module.id && item.version === module.version);
       if (!installed) {
         const task = runtime.install(module);
-        const completed = await runtime.wait(task.id);
+        onProgress?.(contentModuleTaskProgress(task));
+        const unsubscribe = runtime.subscribe((nextTask) => {
+          if (nextTask.moduleId !== module.id || nextTask.version !== module.version) return;
+          onProgress?.(contentModuleTaskProgress(nextTask));
+        });
+        let completed: ContentModuleDownloadTask;
+        try {
+          completed = await runtime.wait(task.id);
+        } finally {
+          unsubscribe();
+        }
         if (completed.state !== 'completed') {
           throw new Error(completed.errorMessage ?? 'Не удалось загрузить полную рекомендацию.');
         }

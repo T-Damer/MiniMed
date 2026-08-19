@@ -31,8 +31,9 @@ roadmap ideas.
   page. Failed-only or idle packs hide the pie. Progress stays visible on every tab through the nav
   indicator, not a floating card.
 - A waiting application update shows a green dot on the top-left of the Settings tab and a checker
-  card on the Settings index. Applying it reloads the waiting service worker on web, or fetches the
-  APK through `downloadWithRetry` and opens the system installer on Android.
+  card on the Settings index. Applying it reloads the waiting service worker on web, or downloads the
+  APK with an explicit `CapacitorHttp.get` (global CapacitorHttp fetch-patching stays off so content
+  modules keep using WebView `fetch`) and opens the system installer on Android.
 - Keep the layout compact: prefer expandable blocks over tall cards, and do not reintroduce large
   padding around central blocks.
 - Sizes are rem-based (16px root): write new CSS in rem. Hairline 1px borders, the 999px
@@ -42,14 +43,17 @@ roadmap ideas.
 - Native routes with sticky blurred chrome (search tools, document/medication headings, document read
   breadcrumbs) draw under a translucent status bar. `.app-shell--native` has no top padding; chrome
   accounts for `--safe-top` itself. Status-bar blur still uses `.app-shell--native:has(...)` on
-  `.route-sticky-chrome.sticky-surface--stuck`, `.module-catalog-heading.sticky-surface--stuck`,
+  `.route-sticky-chrome.sticky-surface--stuck`, `.module-catalog-toolbar.sticky-surface--stuck`,
   `.medication-route-heading.sticky-surface--stuck`, and `.search-home__backdrop-blur--visible`.
+  Blur layers animate through opacity only (never `display`).
 
 ## Downloads and models
 
 - Every artifact download — content modules and model weights alike — goes through
   `downloadWithRetry`. Never call `downloadWithResume` directly from a feature; the retry layer is
-  what keeps a flaky network from reaching the doctor as "network error".
+  what keeps a flaky network from reaching the doctor as "network error". Android APK updates are the
+  exception: GitHub release assets have no CORS, so they use explicit `CapacitorHttp.get`, not a
+  global fetch patch.
 - Partial bytes must be flushed with an awaited write before a failure propagates, otherwise an
   automatic retry races the write and restarts a multi-gigabyte download from zero.
 - The local model loads in the background automatically. There is no opt-in checkbox, and the only

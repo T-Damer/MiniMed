@@ -86,7 +86,10 @@
 
 .knowledge-subroute-heading--blurred::before {
   position: absolute;
-  inset: calc(-1 * var(--safe-top)) -1rem -1.25rem -1rem;
+  top: calc(-1 * var(--safe-top));
+  right: -1rem;
+  left: -1rem;
+  height: calc(var(--safe-top) + 1.25rem);
   z-index: var(--z-base);
   content: "";
   opacity: 0;
@@ -193,14 +196,14 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky-chrome);
-  margin-top: calc(-1 * var(--safe-top));
   margin-bottom: 0.75rem;
-  padding-top: calc(var(--safe-top) + 0.25rem);
+  padding-top: 0.25rem;
   padding-bottom: 0.5rem;
 }
 
-.platform-android .module-catalog-toolbar {
-  padding-top: calc(var(--safe-top) + 0.2rem);
+.module-catalog-toolbar.sticky-surface--stuck {
+  margin-top: calc(-1 * var(--safe-top));
+  padding-top: calc(var(--safe-top) + 0.25rem);
 }
 
 .module-catalog-heading {
@@ -211,14 +214,14 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: calc(-1 * var(--safe-top));
-  padding-top: calc(var(--safe-top) + 0.25rem);
+  padding-top: 0.25rem;
   padding-bottom: 0.5rem;
   border-radius: var(--theme-radius-panel);
 }
 
-.platform-android .module-catalog-heading {
-  padding-top: calc(var(--safe-top) + 0.2rem);
+.module-catalog-heading.sticky-surface--stuck {
+  margin-top: calc(-1 * var(--safe-top));
+  padding-top: calc(var(--safe-top) + 0.25rem);
 }
 
 .module-catalog-heading--in-toolbar {

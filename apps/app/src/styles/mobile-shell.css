@@ -50,15 +50,15 @@ body {
   --masked-backdrop-blur-fade-start: 62%;
   --masked-backdrop-blur-radius: 0.25rem;
   position: fixed;
-  /* Keep the status-bar blur above the outgoing view but below the incoming root view. */
-  z-index: var(--z-raised);
+  /* Keep the status-bar blur above page content but below sticky tools and root-view overlays. */
+  z-index: var(--z-sticky-local);
   top: 0;
   right: 0;
   left: 0;
   height: calc(5rem + var(--safe-top));
   pointer-events: none;
   content: "";
-  display: none;
+  display: block;
   opacity: 0;
   background-color: transparent;
   background-image: var(--masked-grain-image);
@@ -81,7 +81,8 @@ body {
 }
 
 .masked-backdrop-blur,
-.knowledge-subroute-heading--blurred::before {
+.knowledge-subroute-heading--blurred::before,
+.platform-android .search-mode-tools::before {
   --masked-backdrop-blur-fade-start: 62%;
   --masked-backdrop-blur-radius: 0.25rem;
   background-color: transparent;
@@ -113,12 +114,11 @@ body {
 
 .app-shell--native:has(.app-view:not([hidden]) .search-home__backdrop-blur--visible)::before,
 .app-shell--native:has(
-  .app-view:not([hidden]) .module-catalog-heading.sticky-surface--stuck
+  .app-view:not([hidden]) .module-catalog-toolbar.sticky-surface--stuck
 )::before,
 .app-shell--native:has(
   .app-view:not([hidden]) .medication-route-heading.sticky-surface--stuck
 )::before {
-  display: block;
   opacity: 1;
   left: max(var(--safe-left), calc((100% - min(100%, var(--page-content-width))) / 2));
   right: max(var(--safe-right), calc((100% - min(100%, var(--page-content-width))) / 2));

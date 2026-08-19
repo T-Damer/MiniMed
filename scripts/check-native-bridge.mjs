@@ -7,6 +7,7 @@ const files = {
   androidPlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedDatabasePlugin.java',
   androidActivity: 'apps/app/android/app/src/main/java/dev/localmed/search/MainActivity.java',
+  androidStyles: 'apps/app/android/app/src/main/res/values/styles.xml',
   androidManifest: 'apps/app/android/app/src/main/AndroidManifest.xml',
   androidGradle: 'apps/app/android/app/build.gradle',
   androidBackupRules: 'apps/app/android/app/src/main/res/xml/backup_rules.xml',
@@ -70,6 +71,8 @@ for (const method of ['prepareApkFile', 'appendApkChunk', 'installPreparedApk'])
   requireText('androidUpdatePlugin', `fun ${method}(`);
 }
 requireText('androidActivity', 'registerPlugin(LocalMedUpdatePlugin.class)');
+requireText('androidActivity', 'installSplashScreen');
+requireText('androidActivity', 'setDecorFitsSystemWindows');
 requireText('androidUpdatePlugin', '@CapacitorPlugin(name = "LocalMedUpdate")');
 
 for (const native of ['androidPlugin', 'iosPlugin']) {
@@ -113,6 +116,11 @@ for (const skipped of ['mkb.db', 'ambulatory.db']) {
 }
 requireText('androidBackupRules', 'path="localmed/content/"');
 requireText('androidExtractionRules', 'path="localmed/content/"');
+if (content.androidStyles.includes('windowFullscreen')) {
+  throw new Error(
+    `${files.androidStyles} must not use windowFullscreen; splash and boot draw under system bars from the first frame`,
+  );
+}
 
 const report = JSON.parse(content.report);
 const database = content.database;

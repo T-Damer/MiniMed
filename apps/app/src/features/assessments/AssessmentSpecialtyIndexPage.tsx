@@ -9,7 +9,10 @@ import {
   type searchAssessments,
   visibleAssessmentSpecialties,
 } from '@/features/assessments/assessment-catalog';
-import type { AssessmentInstallationState } from '@/features/assessments/assessment-packs';
+import {
+  type AssessmentInstallationState,
+  moduleIdForAssessmentSpecialty,
+} from '@/features/assessments/assessment-packs';
 import type { AssessmentRecord } from '@/features/assessments/assessment-types';
 
 function formatDate(value: string): string {
@@ -73,6 +76,10 @@ export function AssessmentSpecialtyIndexPage(props: {
               const installedCount = () =>
                 specialtyDefinitions().filter((definition) => installed(definition.id)).length;
               const empty = () => specialtyDefinitions().length === 0;
+              const emptyLabel = () =>
+                moduleIdForAssessmentSpecialty(specialty.id)
+                  ? 'Набор тестов не загружен'
+                  : 'Тесты появятся позже';
               return (
                 <button
                   type="button"
@@ -87,7 +94,7 @@ export function AssessmentSpecialtyIndexPage(props: {
                   <p class="assessment-specialty-card__description">{specialty.description}</p>
                   <small class="assessment-specialty-card__meta">
                     {empty()
-                      ? 'Тесты появятся позже'
+                      ? emptyLabel()
                       : installedCount() === specialtyDefinitions().length
                         ? `${specialtyDefinitions().length} тестов`
                         : `${installedCount()}/${specialtyDefinitions().length} тестов на устройстве`}

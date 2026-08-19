@@ -4,6 +4,37 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.27] - 2026-08-19
+
+### Added
+
+- Published tool packs install at boot so assessments and calculators are available without a manual
+  download; mapped empty specialties say the pack is not loaded instead of «появятся позже».
+- Diagnosis brain-download fills green with local-model download progress; clinical full-text install
+  progress shows as a percent in the reader button.
+- Document media viewer zoom controls; in-text table/image pinch-zoom uses an opaque fill, dimmed
+  lightbox, and a smooth reset on scroll or a click beside the figure.
+- Regenerated launcher icons and favicons from the leather medical-wallet master.
+
+### Changed
+
+- Android APK updates use explicit `CapacitorHttp.get`; global CapacitorHttp fetch-patching is off so
+  content-module downloads keep WebView `fetch`.
+- Native print preview is one A4 sheet with fitted content, a desk background, and a tap-to-share
+  control (no auto `window.print()`).
+- Settings heading is back + title on one row without the in-page app icon; notes use the same
+  icon + title first-level heading as tests.
+
+### Fixed
+
+- Large companion and tool-pack installs no longer fail with `Failed to fetch` from the global HTTP
+  patch.
+- Tests, calculators, and settings sat under the Android status bar; catalog and medications search
+  sat too low and covered titles.
+- Status-bar blur appeared instantly and could cover search fields and `/search` sticky tools.
+- Bottom nav jumped when opening Tests.
+- Android splash/boot first laid out between the system bars, then stretched under them.
+
 ## [0.6.26] - 2026-08-19
 
 ### Added

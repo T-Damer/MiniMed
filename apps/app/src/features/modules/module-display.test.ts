@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  formatFullTextDownloadLabel,
   formatModuleCollectionSubtitle,
   formatOverviewCollectionSubtitle,
   moduleDocumentCountFact,
@@ -109,5 +110,20 @@ describe('moduleDocumentCountFact', () => {
     expect(moduleDocumentCountFact({ previewDocumentCount: 0, documents: [] } as never)).toBe(
       'Список документов уточняется',
     );
+  });
+});
+
+describe('formatFullTextDownloadLabel', () => {
+  it('shows idle labels', () => {
+    expect(formatFullTextDownloadLabel(false, null, false)).toBe('Загрузить полный текст');
+    expect(formatFullTextDownloadLabel(false, null, true)).toBe('Полный текст');
+  });
+
+  it('shows percent while pending when progress is known', () => {
+    expect(formatFullTextDownloadLabel(true, 0.512, false)).toBe('51%');
+  });
+
+  it('shows generic pending label without progress', () => {
+    expect(formatFullTextDownloadLabel(true, null, false)).toBe('Загружаем полную версию…');
   });
 });

@@ -4,6 +4,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
@@ -11,12 +12,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(LocalMedDatabasePlugin.class);
-        registerPlugin(LlamaInferencePlugin.class);
-        registerPlugin(LocalMedUpdatePlugin.class);
-        registerPlugin(LocalMedHapticsPlugin.class);
-        super.onCreate(savedInstanceState);
-
+        SplashScreen.installSplashScreen(this);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
@@ -27,6 +23,12 @@ public class MainActivity extends BridgeActivity {
             getWindow().setStatusBarContrastEnforced(false);
             getWindow().setNavigationBarContrastEnforced(false);
         }
+
+        registerPlugin(LocalMedDatabasePlugin.class);
+        registerPlugin(LlamaInferencePlugin.class);
+        registerPlugin(LocalMedUpdatePlugin.class);
+        registerPlugin(LocalMedHapticsPlugin.class);
+        super.onCreate(savedInstanceState);
 
         WindowInsetsControllerCompat controller =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());

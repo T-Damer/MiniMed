@@ -12,6 +12,7 @@ import {
   visibleImageCaption,
 } from '@/features/library/document-rich-block-data';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
+import { usePinchZoom } from '@/features/library/use-pinch-zoom';
 
 interface RichBlockHighlightProps {
   readonly query?: string | undefined;
@@ -95,6 +96,8 @@ function MediaViewer(props: {
   readonly onClose: () => void;
   readonly children: JSX.Element;
 }): JSX.Element {
+  const pinch = usePinchZoom();
+
   createEffect(() => {
     if (!props.open) return;
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -105,6 +108,11 @@ function MediaViewer(props: {
     };
     window.addEventListener('keydown', handleKeyDown, true);
     onCleanup(() => window.removeEventListener('keydown', handleKeyDown, true));
+  });
+
+  createEffect(() => {
+    if (props.open) return;
+    pinch.reset();
   });
 
   const handlePrint = (): void => {
@@ -126,26 +134,58 @@ function MediaViewer(props: {
           />
           <div class="media-viewer__panel">
             <header class="media-viewer__toolbar">
-              <button
-                type="button"
-                class="media-viewer__toolbar-button"
-                aria-label="Печать"
-                title="Печать"
-                onClick={handlePrint}
-              >
-                <AppGlyph name="printer" class="media-viewer__toolbar-icon" />
-              </button>
-              <button
-                type="button"
-                class="media-viewer__toolbar-button"
-                aria-label="Закрыть"
-                title="Закрыть"
-                onClick={props.onClose}
-              >
-                <AppGlyph name="close" class="media-viewer__toolbar-icon" />
-              </button>
+              <div class="media-viewer__toolbar-group">
+                <button
+                  type="button"
+                  class="media-viewer__toolbar-button"
+                  aria-label="Уменьшить"
+                  title="Уменьшить"
+                  disabled={pinch.scale() <= 1}
+                  onClick={() => pinch.zoomOut()}
+                >
+                  <AppGlyph name="minus" class="media-viewer__toolbar-icon" />
+                </button>
+                <button
+                  type="button"
+                  class="media-viewer__toolbar-button"
+                  aria-label="Увеличить"
+                  title="Увеличить"
+                  disabled={pinch.scale() >= 3}
+                  onClick={() => pinch.zoomIn()}
+                >
+                  <AppGlyph name="plus" class="media-viewer__toolbar-icon" />
+                </button>
+              </div>
+              <div class="media-viewer__toolbar-group">
+                <button
+                  type="button"
+                  class="media-viewer__toolbar-button"
+                  aria-label="Печать"
+                  title="Печать"
+                  onClick={handlePrint}
+                >
+                  <AppGlyph name="printer" class="media-viewer__toolbar-icon" />
+                </button>
+                <button
+                  type="button"
+                  class="media-viewer__toolbar-button"
+                  aria-label="Закрыть"
+                  title="Закрыть"
+                  onClick={props.onClose}
+                >
+                  <AppGlyph name="close" class="media-viewer__toolbar-icon" />
+                </button>
+              </div>
             </header>
-            <div class="media-viewer__content">{props.children}</div>
+            <div class="media-viewer__content">
+              <PinchZoomSurface
+                pinch={pinch}
+                class="media-viewer__pinch"
+                contentClass="media-viewer__pinch-content"
+              >
+                {props.children}
+              </PinchZoomSurface>
+            </div>
           </div>
         </div>
       </Portal>
@@ -236,6 +276,7 @@ function ZoomableImage(props: {
         <PinchZoomSurface
           class="document-rich-image__pinch"
           contentClass="document-rich-image__pinch-content"
+          lightbox
         >
           <img
             class="document-rich-image__image"
@@ -303,6 +344,7 @@ function ZoomableTable(props: {
       <PinchZoomSurface
         class="document-rich-table__pinch"
         contentClass="document-rich-table__pinch-content"
+        lightbox
       >
         <div class="document-rich-table__scroller">
           <RichTableMarkup

@@ -9,4 +9,8 @@ describe('nextLockedInsetFloor', () => {
     expect(nextLockedInsetFloor(raised, 0)).toBe(24);
     expect(nextLockedInsetFloor(raised, 32)).toBe(32);
   });
+
+  it('never lowers the locked floor', () => {
+    expect(nextLockedInsetFloor(24, 16)).toBe(24);
+  });
 });

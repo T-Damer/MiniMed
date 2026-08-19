@@ -4,6 +4,7 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 import brainDownloadIcon from '@/assets/brainDownload.svg';
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { useStickySurface } from '@/components/sticky-surface';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import type { LocalModelController } from '@/features/models/controller';
 import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
@@ -11,6 +12,7 @@ import type {
   GroundedAssistantState,
   GroundedMedicalCore,
 } from '@/features/models/GroundedMedicalCore';
+import type { LocalModelState } from '@/features/models/types';
 import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
@@ -124,7 +126,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [localModelReady, setLocalModelReady] = createSignal(
     props.localModelController.canRunStructuredTasks(),
   );
+  const [localModelState, setLocalModelState] = createSignal<LocalModelState>(
+    props.localModelController.getState(),
+  );
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
+  let searchModeTools: HTMLElement | undefined;
+  useStickySurface(() => searchModeTools);
 
   const toggleAiAssist = (): void => {
     setAiAssistEnabled((previous) => {
@@ -152,7 +159,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     window.addEventListener('scroll', updateSearchScroll, { passive: true });
     onCleanup(() => window.removeEventListener('scroll', updateSearchScroll));
 
-    const unsubscribeModel = props.localModelController.subscribe(() => {
+    const unsubscribeModel = props.localModelController.subscribe((state) => {
+      setLocalModelState(state);
       setLocalModelReady(props.localModelController.canRunStructuredTasks());
     });
     onCleanup(unsubscribeModel);
@@ -244,6 +252,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     requestAnimationFrame(() => replaySearch(entry));
   };
 
+  const modelDownloadProgress = createMemo((): number => {
+    const state = localModelState();
+    if (state.phase !== 'downloading' && state.phase !== 'loading') return 0;
+    return state.progress ?? 0;
+  });
+
   return (
     <section class="search-home page-grain" aria-label="Поиск MiniMed">
       <div
@@ -251,7 +265,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         classList={{ 'search-home__backdrop-blur--visible': hasSearchScroll() }}
         aria-hidden="true"
       />
-      <div class="search-mode-tools">
+      <div
+        class="search-mode-tools"
+        ref={(element) => {
+          searchModeTools = element;
+        }}
+      >
         <Show when={props.active}>
           <SearchHistoryPanel onReplay={replayHistory} />
         </Show>
@@ -330,12 +349,17 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                 <Show
                   when={localModelReady()}
                   fallback={
-                    <img
-                      class="ai-assist-toggle__icon"
-                      src={brainDownloadIcon}
-                      alt="ai-assist-toggle"
-                      aria-hidden="true"
-                    />
+                    <span
+                      class="ai-assist-toggle__download"
+                      style={{ '--download-progress': String(modelDownloadProgress()) }}
+                    >
+                      <img
+                        class="ai-assist-toggle__icon ai-assist-toggle__download-icon"
+                        src={brainDownloadIcon}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    </span>
                   }
                 >
                   <AppGlyph class="ai-assist-toggle__icon" name="brain" />

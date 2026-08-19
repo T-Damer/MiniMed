@@ -84,9 +84,7 @@ export function catalogModuleHidesRemoveAction(
 export function localPackagedModulesToInstall(
   catalog: ContentModuleCatalog,
   installedIds: ReadonlySet<string>,
-  useLocalArtifacts: boolean,
 ): readonly ContentModuleCatalogEntry[] {
-  if (!useLocalArtifacts) return [];
   return catalog.modules.filter(
     (module) =>
       module.kind === 'tool' &&

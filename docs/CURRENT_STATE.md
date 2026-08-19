@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 19 August 2026
-> Repository version: `0.6.26`
-> Active target: `0.6.26` public prerelease toward `1.0`
+> Repository version: `0.6.27`
+> Active target: `0.6.27` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -189,13 +189,16 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   page-width masked backdrop blur with a subtle grain layer that stays hidden until the header is
   actually stuck. Document reader chrome stays opaque; in-text `h1`/`h2` sticky offsets are measured
   from the real chrome (the paper title is not pinned). On native Android the page itself draws under a
-  translucent status bar (`.app-shell--native` has no top desk padding). Sticky chrome adds `--safe-top`
-  to its own padding instead of sitting below a solid olive strip. The bottom nav remembers the largest
+  translucent status bar (`.app-shell--native` has no top desk padding). Page surfaces keep a negative
+  `--safe-top` margin so the folder paint sits under the bar, and double `--safe-top` padding so text
+  starts below it. Sticky catalog/search chrome adds `--safe-top` only once stuck; blur layers animate
+  through opacity and stay under search fields and `/search` tools. The bottom nav remembers the largest
   observed bottom inset so hash navigation cannot drop it into the gesture bar and bounce it back.
   Outgoing root views isolate their fixed overlays below the incoming navigation surface. Hover styles
   use `@media (hover: hover)`.
-- The diagnosis search actions expose the local-model control on the left; it toggles a ready model
-  and opens Settings when the model is not loaded yet.
+- The diagnosis search actions expose the local-model control on the left; it toggles a ready model,
+  fills the brain-download icon with download progress, and opens Settings when the model is not
+  loaded yet.
 - GitHub release links use a rolling `android-latest` APK asset, and the search history drawer shows
   text links to the repository and current Android build at its bottom.
 - The document library uses a virtualized full-width list. The embedded core library reuses the
@@ -287,7 +290,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   model selection.
 - Device preferences in Settings persist vibration on/off (default on), remember-search-mode
   (default off), and zen-pack UI sound volume (default 20%; zero mutes and stops playback).
-  The Settings heading shows the MiniMed app icon above the title. Android, iOS, and browser
+  The Settings heading keeps back and title on one row (no in-heading app icon). Android, iOS, and browser
   favicons use the same mark; replace `branding/app-icon-source.png` and run `bun run icons:generate`
   to rebuild every size. GitHub and Android APK links at the bottom of Settings use `--theme-link` in both themes.
 - Haptics: Android uses `performHapticFeedback` via `LocalMedHaptics` (selection/light/medium/heavy);
@@ -301,8 +304,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Browser application updates install in the background but wait for explicit approval on the search
   sticky toolbar or the Settings checker (compact percent while an APK downloads) before the new
   service worker activates and reloads the page. Android checks the latest GitHub release, downloads a
-  newer APK through `fetch` / `downloadWithRetry` (native HTTP via CapacitorHttp), writes it in chunks
-  through `LocalMedUpdate`, and hands the file to the system installer. The packaged web
+  newer APK through explicit `CapacitorHttp.get` (global CapacitorHttp stays disabled so module
+  `fetch` is not patched), writes it in chunks through `LocalMedUpdate`, and hands the file to the
+  system installer. Published tool packs (`minimed.tools.*`) auto-install at boot; the medications
+  companion stays user-initiated. The packaged web
   assets include only the Core SQLite (`core-demo.db`); companion databases stay optional local-dev
   files and are stripped from `dist`. Android aapt ignores those companion filenames explicitly —
   a blanket database glob would also drop the bundled core pack, because aapt `!` only silences skip
@@ -325,13 +330,21 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Android draws the page background beneath its transparent status bar while sticky chrome and
   page surfaces add `--safe-top` themselves; there is no solid desk-colored status-bar plate.
   The launch splash and in-app boot screen fill the viewport with paper (`@color/splashBackground`
-  on the splash theme; there is no second `drawable/splash.xml` beside Capacitor's `splash.png`). System-bar icon contrast
+  on the splash theme; there is no second `drawable/splash.xml` beside Capacitor's `splash.png`).
+  Android keeps the window edge-to-edge from `onCreate` (before the WebView) and does not use
+  `windowFullscreen`, so splash/boot do not first layout between the system bars and then stretch
+  under them. System-bar icon contrast
   follows the device theme. Hardware Back closes the
   active dialog or drawer, returns through nested routes and root sections, then minimizes the app at
   the search root. Native-like haptics respect the vibration preference and platform capabilities
   (see device preferences above).
-- Native print actions use an in-app preview with a non-printing Back header, so Android does not leave
-  the application for a browser tab and hardware Back can exit the preview.
+- Native print actions use an in-app preview over the desk background: one A4 sheet with content
+  scaled to fit, a non-printing Back header, and a share (native) or print control that the user taps
+  — Android does not auto-open the system print dialog. Hardware Back can exit the preview.
+- In-document tables and images pinch-zoom 1–3× with an opaque fill, a dimmed lightbox, and a smooth
+  reset on scroll or a click beside the figure. The fullscreen media viewer has zoom controls on the
+  left of its toolbar. Clinical full-text install progress and local-model download progress show in
+  the reader button and the diagnosis brain-download icon.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
 - Diagnosis mode includes a visible explanation that local model output can be wrong, must remain

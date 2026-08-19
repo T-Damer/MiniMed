@@ -90,18 +90,20 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   return (
     <section class="settings-page page-surface page-grain">
       <Show when={route() === 'downloads'}>
-        <header class="settings-page__heading settings-page__heading--subroute">
-          <NavBack
-            class="knowledge-back-button"
-            aria-label="К настройкам"
-            onClick={() => {
-              window.location.hash = SETTINGS_ROOT_HASH;
-            }}
-            icon={<AppGlyph name="arrow-left" class="settings-page__back-icon" />}
-          />
+        <header class="settings-page__heading settings-page__heading--subroute subpage-heading">
           <div class="settings-page__heading-main">
             <p class="archive-kicker">Устройство</p>
-            <h1 class="settings-page__title">Загрузки</h1>
+            <div class="settings-page__title-row">
+              <NavBack
+                class="knowledge-back-button"
+                aria-label="К настройкам"
+                onClick={() => {
+                  window.location.hash = SETTINGS_ROOT_HASH;
+                }}
+                icon={<AppGlyph name="arrow-left" class="settings-page__back-icon" />}
+              />
+              <h1 class="settings-page__title">Загрузки</h1>
+            </div>
           </div>
         </header>
         <ContentDownloadStatus />
@@ -110,30 +112,23 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         <header class="settings-page__heading subpage-heading">
           <div class="settings-page__heading-main">
             <p class="archive-kicker">Устройство</p>
-            <h1 class="settings-page__title">
-              <img
-                class="settings-page__logo"
-                src={`${import.meta.env.BASE_URL}app-icon.png`}
-                alt=""
-                width={48}
-                height={48}
-              />
-              Настройки
-            </h1>
+            <div class="settings-page__title-row">
+              <Show when={returnTo()}>
+                {(returnTo) => (
+                  <Button
+                    type="button"
+                    variant="icon"
+                    class="knowledge-back-button return-navigation-button settings-page__return"
+                    aria-label={returnToControlLabel(returnTo())}
+                    title={returnToControlLabel(returnTo())}
+                    onClick={() => consumeAndRestoreReturnTo()}
+                    icon={<AppGlyph name={returnToControlIcon(returnTo())} />}
+                  />
+                )}
+              </Show>
+              <h1 class="settings-page__title">Настройки</h1>
+            </div>
           </div>
-          <Show when={returnTo()}>
-            {(returnTo) => (
-              <Button
-                type="button"
-                variant="icon"
-                class="knowledge-back-button return-navigation-button settings-page__return"
-                aria-label={returnToControlLabel(returnTo())}
-                title={returnToControlLabel(returnTo())}
-                onClick={() => consumeAndRestoreReturnTo()}
-                icon={<AppGlyph name={returnToControlIcon(returnTo())} />}
-              />
-            )}
-          </Show>
         </header>
 
         <AppUpdateChecker

@@ -573,10 +573,13 @@ export function NotesView(props: {
   return (
     <section class="patient-notes-view page-surface page-grain" aria-label="Личные заметки">
       <Show when={props.active && route().kind === 'index'}>
-        <header class="patient-notes-heading">
+        <header class="patient-notes-heading subpage-heading">
           <div>
             <p class="archive-kicker">Личный слой, только на этом устройстве</p>
-            <h1>Заметки</h1>
+            <div class="tool-page-title">
+              <AppGlyph name="notes" />
+              <h1>Заметки</h1>
+            </div>
           </div>
         </header>
         <SearchField

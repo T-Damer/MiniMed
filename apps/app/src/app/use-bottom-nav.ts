@@ -63,6 +63,7 @@ export function useBottomNav(options: {
   let bottomNavBubbleFrame: number | undefined;
   let bottomNavBubbleSettleTimer: ReturnType<typeof setTimeout> | undefined;
   let suppressNavClickUntil = 0;
+  let transitionObserver: MutationObserver | undefined;
 
   const navButtons = (): readonly HTMLButtonElement[] =>
     bottomNav ? Array.from(bottomNav.querySelectorAll<HTMLButtonElement>('.app-nav-button')) : [];
@@ -271,6 +272,15 @@ export function useBottomNav(options: {
     window.addEventListener('pointerup', finishBottomNavGesture);
     window.addEventListener('pointercancel', handlePointerCancel);
     window.addEventListener('blur', cancelOnWindowBlur);
+    transitionObserver = new MutationObserver(() => {
+      if (!document.documentElement.classList.contains('using-root-view-transition')) {
+        scheduleBottomNavBubble();
+      }
+    });
+    transitionObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
     scheduleBottomNavBubble();
   });
 
@@ -279,6 +289,7 @@ export function useBottomNav(options: {
     window.removeEventListener('pointerup', finishBottomNavGesture);
     window.removeEventListener('pointercancel', handlePointerCancel);
     window.removeEventListener('blur', cancelOnWindowBlur);
+    transitionObserver?.disconnect();
     bottomNavResizeObserver?.disconnect();
     if (bottomNavBubbleFrame !== undefined) cancelAnimationFrame(bottomNavBubbleFrame);
     if (bottomNavBubbleSettleTimer) clearTimeout(bottomNavBubbleSettleTimer);
