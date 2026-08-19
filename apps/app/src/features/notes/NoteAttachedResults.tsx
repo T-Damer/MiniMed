@@ -1,8 +1,9 @@
-import { For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { resultPath } from '@/features/assessments/assessment-routing';
+import type { RichNoteAttachedCalculatorResult } from '@/features/notes/note-attached-results';
 import { findAssessmentRecord } from '@/state/assessment-results';
-import { loadCalculationHistory } from '@/state/calculation-history';
 import type {
   NoteAttachedAssessmentResult,
   NoteAttachedCalculatorResult,
@@ -15,73 +16,71 @@ function openAssessmentResult(result: NoteAttachedAssessmentResult): void {
   window.location.hash = resultPath(result.specialtyId, result.slug, result.recordId);
 }
 
-function openCalculatorResult(result: NoteAttachedCalculatorResult): void {
-  rememberReturnTo();
-  window.location.hash = `#/calculators/${encodeURIComponent(result.slug)}`;
-}
-
 function AssessmentAttachedCard(props: {
   readonly result: NoteAttachedAssessmentResult;
   readonly variant: 'list' | 'editor';
 }): JSX.Element {
+  const [expanded, setExpanded] = createSignal(false);
   const isManual = () => Boolean(props.result.manualText?.trim());
-  const showDisclaimer = () =>
-    props.variant === 'editor' && Boolean(props.result.disclaimer?.trim());
-  const liveRecord = () =>
-    props.variant === 'editor' ? findAssessmentRecord(props.result.recordId) : undefined;
-  const compact = () => props.variant === 'list';
+  const liveRecord = () => findAssessmentRecord(props.result.recordId);
+  const visibleScores = () => (expanded() ? props.result.scores : props.result.scores.slice(0, 1));
+  const hasMore = () =>
+    props.result.scores.length > 1 ||
+    Boolean(props.result.summary.trim()) ||
+    Boolean(props.result.disclaimer?.trim());
 
   return (
-    <div class="assessment-result-summary paper-card">
-      <p class="archive-kicker">Опросник</p>
-      <Show
-        when={compact()}
-        fallback={<h3 class="assessment-result-summary__heading">{props.result.title}</h3>}
-      >
-        <div class="assessment-result-summary__heading">{props.result.title}</div>
-      </Show>
+    <div class="note-result-card note-result-card--assessment paper-card">
+      <header class="note-result-card__header">
+        <span class="note-result-card__icon" aria-hidden="true">
+          <AppGlyph name="list-checks" />
+        </span>
+        <div class="note-result-card__heading">
+          <small>Опросник</small>
+          <strong>{props.result.title}</strong>
+          <Show when={props.result.headline.trim()}>
+            <span>{props.result.headline}</span>
+          </Show>
+        </div>
+      </header>
+
       <Show when={isManual()}>
-        <div class="assessment-result-summary__heading">Результат внесён вручную</div>
-        <pre class="assessment-result-summary__manual-text">{props.result.manualText}</pre>
+        <pre class="note-result-card__manual">{props.result.manualText}</pre>
       </Show>
       <Show when={!isManual()}>
-        <Show when={props.result.headline.trim()}>
-          <div class="assessment-result-summary__heading">{props.result.headline}</div>
-        </Show>
-        <Show when={props.result.summary.trim()}>
-          <p class="assessment-result-summary__text">{props.result.summary}</p>
-        </Show>
-        <Show when={props.result.scores.length > 0}>
-          <div class="assessment-score-list">
-            <For each={props.result.scores}>
+        <Show when={visibleScores().length > 0}>
+          <div class="note-result-card__values">
+            <For each={visibleScores()}>
               {(score) => (
-                <div class="assessment-score-list__row">
-                  <span class="assessment-score-list__label">
-                    <strong>{score.label}</strong>
-                    <small class="assessment-score-list__detail">
-                      {score.rawScore} / {score.maximumScore}
-                    </small>
-                  </span>
-                  <progress class="assessment-score-list__bar" value={score.percent} max={100} />
-                  <b class="assessment-score-list__value">{score.percent}%</b>
+                <div class="note-result-card__value-row">
+                  <span>{score.label}</span>
+                  <strong>{score.rawScore} / {score.maximumScore}</strong>
+                  <small>{score.percent}%</small>
                 </div>
               )}
             </For>
           </div>
         </Show>
+        <Show when={expanded() && props.result.summary.trim()}>
+          <p class="note-result-card__detail">{props.result.summary}</p>
+        </Show>
+        <Show when={expanded() && props.result.disclaimer?.trim()}>
+          <p class="note-result-card__disclaimer">{props.result.disclaimer}</p>
+        </Show>
       </Show>
-      <Show when={showDisclaimer()}>
-        <p class="assessment-disclaimer">{props.result.disclaimer}</p>
-      </Show>
-      <Show when={liveRecord()}>
-        <button
-          type="button"
-          class="note-attached-results__open-link"
-          onClick={() => openAssessmentResult(props.result)}
-        >
-          Открыть исходный результат
-        </button>
-      </Show>
+
+      <div class="note-result-card__actions">
+        <Show when={hasMore()}>
+          <button type="button" onClick={() => setExpanded((value) => !value)}>
+            {expanded() ? 'Свернуть' : 'Развернуть'}
+          </button>
+        </Show>
+        <Show when={liveRecord()}>
+          <button type="button" onClick={() => openAssessmentResult(props.result)}>
+            Открыть исходный результат
+          </button>
+        </Show>
+      </div>
     </div>
   );
 }
@@ -90,47 +89,97 @@ function CalculatorAttachedCard(props: {
   readonly result: NoteAttachedCalculatorResult;
   readonly variant: 'list' | 'editor';
 }): JSX.Element {
-  const showWarnings = () => props.variant === 'editor' && props.result.warnings.length > 0;
-  const liveRecord = () =>
-    props.variant === 'editor'
-      ? loadCalculationHistory().some((record) => record.id === props.result.recordId)
-      : false;
-
-  const compact = () => props.variant === 'list';
+  const [expanded, setExpanded] = createSignal(false);
+  const [sourceOpen, setSourceOpen] = createSignal(false);
+  const rich = () => props.result as RichNoteAttachedCalculatorResult;
+  const visibleOutputs = () => (expanded() ? props.result.outputs : props.result.outputs.slice(0, 2));
+  const hasMore = () => props.result.outputs.length > 2 || props.result.warnings.length > 0;
+  const sourceRecord = () => rich().recordSnapshot;
+  const sourceSchema = () => rich().schemaSnapshot;
 
   return (
-    <div class="calculator-result paper-card">
-      <header>
-        <p class="archive-kicker">Калькулятор</p>
-        <Show when={compact()} fallback={<h3>{props.result.title}</h3>}>
-          <div class="calculator-result__title">{props.result.title}</div>
-        </Show>
-        <small>{props.result.inputSummary}</small>
+    <div class="note-result-card note-result-card--calculator paper-card">
+      <header class="note-result-card__header">
+        <span class="note-result-card__icon" aria-hidden="true">
+          <AppGlyph name="calculator" />
+        </span>
+        <div class="note-result-card__heading">
+          <small>Калькулятор</small>
+          <strong>{props.result.title}</strong>
+          <span>{props.result.inputSummary}</span>
+        </div>
       </header>
-      <div class="calculator-output-list">
-        <For each={props.result.outputs}>
+
+      <div class="note-result-card__values">
+        <For each={visibleOutputs()}>
           {(item) => (
-            <div>
+            <div class="note-result-card__value-row">
               <span>{item.label}</span>
               <strong>{item.display}</strong>
             </div>
           )}
         </For>
       </div>
-      <Show when={showWarnings()}>
-        <div class="calculator-warnings">
+
+      <Show when={expanded() && props.result.warnings.length > 0}>
+        <div class="note-result-card__warnings">
           <For each={props.result.warnings}>{(warning) => <p>{warning}</p>}</For>
         </div>
       </Show>
-      <Show when={liveRecord()}>
-        <button
-          type="button"
-          class="note-attached-results__open-link"
-          onClick={() => openCalculatorResult(props.result)}
-        >
-          Открыть исходный результат
-        </button>
+
+      <Show when={sourceOpen()}>
+        <section class="note-result-card__source" aria-label="Исходный расчёт">
+          <Show
+            when={sourceRecord()}
+            fallback={<p>Старая заметка не содержит snapshot исходного расчёта.</p>}
+          >
+            {(record) => (
+              <>
+                <div class="note-result-card__source-row">
+                  <span>Входные данные</span>
+                  <strong>{record().inputSummary}</strong>
+                </div>
+                <div class="note-result-card__source-row">
+                  <span>Формула</span>
+                  <code>{record().result.formula}</code>
+                </div>
+                <Show when={sourceSchema()}>
+                  {(schema) => (
+                    <div class="note-result-card__source-row">
+                      <span>Схема</span>
+                      <strong>v{schema().schemaVersion} · {schema().shortTitle}</strong>
+                    </div>
+                  )}
+                </Show>
+                <Show when={record().result.trace.length > 0}>
+                  <ol class="note-result-card__trace">
+                    <For each={record().result.trace}>
+                      {(step) => (
+                        <li>
+                          <span>{step.label}</span>
+                          <code>{step.expression}</code>
+                          <strong>{step.value} {step.unit}</strong>
+                        </li>
+                      )}
+                    </For>
+                  </ol>
+                </Show>
+              </>
+            )}
+          </Show>
+        </section>
       </Show>
+
+      <div class="note-result-card__actions">
+        <Show when={hasMore()}>
+          <button type="button" onClick={() => setExpanded((value) => !value)}>
+            {expanded() ? 'Свернуть' : 'Развернуть'}
+          </button>
+        </Show>
+        <button type="button" onClick={() => setSourceOpen((value) => !value)}>
+          {sourceOpen() ? 'Закрыть исходник' : 'Открыть исходный результат'}
+        </button>
+      </div>
     </div>
   );
 }
