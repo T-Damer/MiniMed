@@ -257,8 +257,8 @@ export class ForegroundContentModuleInstaller {
       (candidate) => candidate.id === request.moduleId && candidate.version === request.version,
     );
     if (!module) throw new Error(`Unknown module version: ${request.moduleId}@${request.version}.`);
-    if (module.releaseState !== 'published') {
-      throw new Error(`Module ${module.id}@${module.version} is not published.`);
+    if (module.releaseState !== 'published' && module.releaseState !== 'preview') {
+      throw new Error(`Module ${module.id}@${module.version} is not installable.`);
     }
     if (!module.sourceSetDigest) throw new Error(`Module ${module.id} has no source-set digest.`);
     assertRuntimeCompatible(module, this.runtime);
