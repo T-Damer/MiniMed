@@ -1,5 +1,6 @@
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -7,7 +8,6 @@ html {
   min-height: 100%;
   background: var(--desk);
   scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
 }
 
 body {

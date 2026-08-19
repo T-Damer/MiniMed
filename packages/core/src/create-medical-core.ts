@@ -47,6 +47,7 @@ export interface CreateMedicalCoreOptions {
   readonly seed?: unknown;
   readonly platform?: CoreCapabilities['platform'];
   readonly embedder?: QueryEmbedder;
+  readonly searchExecution?: CoreCapabilities['searchExecution'];
 }
 
 interface AggregatedHit {
@@ -512,6 +513,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         return ok({
           lexicalSearch: true,
           queryAnalysis: true,
+          ...(options.searchExecution ? { searchExecution: options.searchExecution } : {}),
           semanticSearch,
           embeddingProfileIds: embeddingProfiles.map((profile) => profile.id),
           cloudChat: false,

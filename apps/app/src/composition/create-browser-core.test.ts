@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   builtInCompanionMounts,
   hasSqliteHeader,
+  shouldOpenPackagedMedicationsInSearchWorker,
   shouldOpenPackagedWasmCompanion,
 } from '@/composition/create-browser-core';
 
@@ -108,5 +109,9 @@ describe('shouldOpenPackagedWasmCompanion', () => {
 
   it('refuses an oversized companion even when it is not on the unsafe name list', () => {
     expect(shouldOpenPackagedWasmCompanion('regulatory.db', 40 * 1024 * 1024)).toBe(false);
+  });
+
+  it('does not reopen the Allmed pack inside the search worker', () => {
+    expect(shouldOpenPackagedMedicationsInSearchWorker()).toBe(false);
   });
 });

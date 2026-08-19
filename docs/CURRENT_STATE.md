@@ -462,17 +462,16 @@ ordinary search response when validation fails.
   build into a 147-chunk SQLite pack and the oseltamivir scan remains explicitly blocked on OCR.
 - The local Allmed companion `apps/app/public/content/medications.db` (~421 MB, 4,708
   `allmed_reference` cards) is the full drug catalog for local/dev use. Browser sqlite-wasm no longer
-  deserializes that file into the WASM heap (that path OOM'd). It streams the pack into an OPFS SAH
-  pool and opens it from disk; the first boot copies ~421 MB into origin-private storage, later boots
-  reuse it. A truncated, empty, or legacy OPFS copy is discarded and re-imported instead of failing
-  MultiMedicalStore composition and blocking app boot; OPFS virtual filenames use the required
-  absolute-path form. On browsers
-  where `FileSystemFileHandle.prototype.createSyncAccessHandle` is unavailable
-  on the window thread (Safari and some Chromium builds), the main thread opens the pack in a
-  dedicated worker with pool name `minimed-sah-pack` and proxies it as a `MedicalStore`; the search
-  worker still opens OPFS directly (`minimed-sah-worker`) because it already runs in a dedicated
-  worker. `mkb.db` / `ambulatory.db` still stay closed unless
-  `VITE_OPEN_UNSAFE_WASM_COMPANIONS` names them. Core still contributes eight
+  deserializes that file into the WASM heap (that path OOM'd). The window thread streams it into a
+  dedicated OPFS worker (`minimed-sah-pack`) so the main sqlite-wasm singleton only holds the small
+  core/regulatory/reference packs. The first boot copies ~421 MB into origin-private storage, later
+  boots reuse it. A truncated, empty, or legacy OPFS copy is discarded and re-imported instead of
+  failing MultiMedicalStore composition and blocking app boot; OPFS virtual filenames use the required
+  absolute-path form. SQLITE_NOMEM or any other failure opening that pack skips the companion and
+  leaves core search usable. IndexedDB-installed modules larger than 32 MiB are not deserialized into
+  WASM. When Allmed is mounted, in-app search stays on the window core (`searchExecution: 'direct-only'`)
+  so the search worker does not open a second 421 MB copy. `mkb.db` / `ambulatory.db` still stay
+  closed unless `VITE_OPEN_UNSAFE_WASM_COMPANIONS` names them. Core still contributes eight
   `source_linked_summary` registry cards. The 560 KB `data/build/medications.db` GRLS pilot is a
   separate one-drug pipeline artifact, not this catalog.
 - Optional local-dev `mkb.db` companion (`minimed.mkb.ru`) contains the full RLS MKB index (9,841

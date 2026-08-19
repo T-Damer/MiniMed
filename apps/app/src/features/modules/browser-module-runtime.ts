@@ -17,7 +17,7 @@ import {
   PersistentInstalledModuleRegistry,
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
-import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
 
 import {
   getAssessmentCatalog,
@@ -774,6 +774,12 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
     for (const pointer of pointers) {
       const stored = await readVersion(database, pointer.moduleId, pointer.version);
       if (!stored) continue;
+      if (stored.bytes.byteLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
+        console.warn(
+          `Skipping content module ${pointer.moduleId}: too large to deserialize into SQLite WASM (${stored.bytes.byteLength} bytes).`,
+        );
+        continue;
+      }
       try {
         const store = await SqliteMedicalStore.createFromBytes(
           new Uint8Array(stored.bytes.slice(0)),

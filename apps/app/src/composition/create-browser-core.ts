@@ -3,7 +3,11 @@ import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { type MedicalStore, type MedicalStoreMount, MultiMedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
-import { hasOpfsSahPoolApis, SqliteMedicalStore } from '@localmed/storage-sqlite';
+import {
+  hasOpfsSahPoolApis,
+  SQLITE_WASM_DESERIALIZE_MAX_BYTES,
+  SqliteMedicalStore,
+} from '@localmed/storage-sqlite';
 
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
@@ -49,7 +53,7 @@ const WASM_UNSAFE_COMPANION_DATABASES: ReadonlySet<string> = new Set([
   MEDICATIONS_DATABASE_NAME,
   AMBULATORY_DATABASE_NAME,
 ]);
-const WASM_PACKAGED_COMPANION_MAX_BYTES = 32 * 1024 * 1024;
+const WASM_PACKAGED_COMPANION_MAX_BYTES = SQLITE_WASM_DESERIALIZE_MAX_BYTES;
 
 export function getPackagedContentBaseUrl(): string {
   const configuredBaseUrl = import.meta.env.VITE_CONTENT_BASE_URL?.trim();
@@ -251,6 +255,10 @@ async function withInstalledModules(
   return new MultiMedicalStore([...builtInMounts, ...installedModules]);
 }
 
+export function shouldOpenPackagedMedicationsInSearchWorker(): boolean {
+  return false;
+}
+
 async function createOptionalPackagedStore(
   contentBaseUrl: string,
   databaseName: string,
@@ -269,20 +277,27 @@ async function createOptionalOpfsStore(
 ): Promise<MedicalStore | undefined> {
   try {
     const url = new URL(`content/${databaseName}`, contentBaseUrl).href;
+    const options = {
+      url,
+      databaseName,
+      fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
+      poolName: 'minimed-sah-pack',
+    };
+    // Keep the ~421 MB Allmed pack off the main-thread sqlite-wasm singleton. A dedicated
+    // worker has its own WASM heap; SQLITE_NOMEM there skips this companion instead of
+    // failing core boot.
+    if (typeof Worker !== 'undefined') {
+      const store = await WorkerOpfsMedicalStore.open(options);
+      await store.listDocuments();
+      return store;
+    }
     if (hasOpfsSahPoolApis()) {
       const store = await SqliteMedicalStore.createFromOpfsUrl(url, databaseName, {
         fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
       });
       await withTimeout(store.initialize(), OPFS_PACK_FETCH_TIMEOUT_MS, `Opening ${databaseName}`);
+      await store.listDocuments();
       return store;
-    }
-    if (typeof Worker !== 'undefined') {
-      return await WorkerOpfsMedicalStore.open({
-        url,
-        databaseName,
-        fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
-        poolName: 'minimed-sah-pack',
-      });
     }
     throw new Error('OPFS SAH APIs and Web Workers are unavailable.');
   } catch (cause) {
@@ -291,9 +306,13 @@ async function createOptionalOpfsStore(
   }
 }
 
-async function createPackagedCompanionStores(contentBaseUrl: string): Promise<CompanionStores> {
+async function createPackagedCompanionStores(
+  contentBaseUrl: string,
+  options: { readonly includeMedications?: boolean } = {},
+): Promise<CompanionStores> {
   const companions: CompanionStores = {};
   const allowlist = parseUnsafeWasmCompanionAllowlist();
+  const includeMedications = options.includeMedications ?? true;
   // Small companions deserialize into the WASM heap. The Allmed medications pack (~420 MB) is opened
   // through OPFS so it is not copied into memory. mkb/ambulatory stay skipped unless allowlisted.
   const wasmCompanions = [
@@ -314,7 +333,7 @@ async function createPackagedCompanionStores(contentBaseUrl: string): Promise<Co
       companions[key] = store;
     }
   }
-  if (!companions.medicationsStore) {
+  if (includeMedications && !companions.medicationsStore) {
     const medicationsStore = await createOptionalOpfsStore(
       contentBaseUrl,
       MEDICATIONS_DATABASE_NAME,
@@ -339,11 +358,14 @@ export async function createBrowserCore() {
   if (platform === 'android' || platform === 'ios') {
     try {
       const contentBaseUrl = getPackagedContentBaseUrl();
-      const store = await withInstalledModules(
-        await createNativeStore(),
-        await createPackagedCompanionStores(contentBaseUrl),
-      );
-      return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
+      const companions = await createPackagedCompanionStores(contentBaseUrl);
+      const store = await withInstalledModules(await createNativeStore(), companions);
+      return createMedicalCore({
+        store,
+        platform,
+        embedder: QUERY_EMBEDDER,
+        searchExecution: companions.medicationsStore ? 'direct-only' : undefined,
+      });
     } catch (error) {
       console.warn('Native SQLite unavailable; falling back to the packaged WASM database.', error);
     }
@@ -351,12 +373,15 @@ export async function createBrowserCore() {
 
   try {
     const contentBaseUrl = getPackagedContentBaseUrl();
-    const [coreStore, companions] = await Promise.all([
-      createPackagedWasmStore(contentBaseUrl),
-      createPackagedCompanionStores(contentBaseUrl),
-    ]);
+    const coreStore = await createPackagedWasmStore(contentBaseUrl);
+    const companions = await createPackagedCompanionStores(contentBaseUrl);
     const store = await withInstalledModules(coreStore, companions);
-    return createMedicalCore({ store, platform, embedder: QUERY_EMBEDDER });
+    return createMedicalCore({
+      store,
+      platform,
+      embedder: QUERY_EMBEDDER,
+      searchExecution: companions.medicationsStore ? 'direct-only' : undefined,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Не удалось открыть ядро MiniMed: ${message}`, { cause: error });
@@ -365,10 +390,10 @@ export async function createBrowserCore() {
 
 export async function createBrowserWorkerCore(contentBaseUrl: string) {
   try {
-    const [coreStore, companions] = await Promise.all([
-      createPackagedWasmStore(contentBaseUrl),
-      createPackagedCompanionStores(contentBaseUrl),
-    ]);
+    const coreStore = await createPackagedWasmStore(contentBaseUrl);
+    const companions = await createPackagedCompanionStores(contentBaseUrl, {
+      includeMedications: shouldOpenPackagedMedicationsInSearchWorker(),
+    });
     const store = await withInstalledModules(coreStore, companions);
     return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
   } catch (error) {

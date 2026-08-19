@@ -53,6 +53,21 @@ describe('MedicalCore', () => {
     });
   });
 
+  it('reports direct-only search execution when the option is set', async () => {
+    const store = new InMemoryMedicalStore();
+    const core = createMedicalCore({
+      store,
+      seed: DEMO_CONTENT_PACK,
+      platform: 'test',
+      searchExecution: 'direct-only',
+    });
+    cores.push(core);
+    const capabilities = await core.getCapabilities();
+    expect(capabilities.ok).toBe(true);
+    if (!capabilities.ok) return;
+    expect(capabilities.value.searchExecution).toBe('direct-only');
+  });
+
   it('expands colloquial terms and keeps the pneumonia section first in hybrid search', async () => {
     const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
     cores.push(core);

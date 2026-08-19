@@ -49,12 +49,63 @@ import {
 
 type SahPool = Awaited<ReturnType<Sqlite3Static['installOpfsSAHPoolVfs']>>;
 
+export const SQLITE_WASM_DESERIALIZE_MAX_BYTES = 32 * 1024 * 1024;
+const SQLITE_WASM_INITIAL_MEMORY_BYTES = 64 * 1024 * 1024;
+const SQLITE_OPFS_CACHE_SIZE_KIB = -2000;
+
+/** Lightweight tables from schema 004_tools.sql for packaged/OPFS packs that predate tool packs. */
+const TOOL_TABLES_SQL = `CREATE TABLE IF NOT EXISTS tool_definitions (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('calculator', 'assessment')),
+  version TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  short_title TEXT NOT NULL,
+  aliases_json TEXT NOT NULL,
+  bank_id TEXT NOT NULL,
+  bank_label TEXT NOT NULL,
+  category TEXT NOT NULL,
+  description TEXT NOT NULL,
+  estimated_minutes INTEGER,
+  audience TEXT NOT NULL,
+  definition_json TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tool_sources (
+  id TEXT PRIMARY KEY,
+  tool_id TEXT NOT NULL,
+  source_kind TEXT NOT NULL CHECK (
+    source_kind IN ('clinical-recommendation', 'literature', 'guideline', 'regulatory')
+  ),
+  relation TEXT NOT NULL CHECK (relation IN ('methodology', 'interpretation', 'clinical-context')),
+  title TEXT NOT NULL,
+  module_id TEXT,
+  document_id TEXT,
+  url TEXT,
+  reviewed_at TEXT NOT NULL,
+  FOREIGN KEY (tool_id) REFERENCES tool_definitions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_tool_definitions_kind_category
+  ON tool_definitions(kind, category);
+CREATE INDEX IF NOT EXISTS idx_tool_sources_tool
+  ON tool_sources(tool_id);
+`;
+
 let sqliteModulePromise: Promise<Sqlite3Static> | undefined;
 const sahPoolPromises = new Map<string, Promise<SahPool>>();
 
 async function getSqliteModule(): Promise<Sqlite3Static> {
-  sqliteModulePromise ??= sqlite3InitModule();
+  sqliteModulePromise ??= (
+    sqlite3InitModule as (config?: { readonly INITIAL_MEMORY?: number }) => Promise<Sqlite3Static>
+  )({
+    INITIAL_MEMORY: SQLITE_WASM_INITIAL_MEMORY_BYTES,
+  });
   return sqliteModulePromise;
+}
+
+function applyOpfsRuntimePragmas(database: Database): void {
+  database.exec(`PRAGMA cache_size = ${SQLITE_OPFS_CACHE_SIZE_KIB}`);
 }
 
 async function getSahPool(sqlite: Sqlite3Static, poolName: string): Promise<SahPool> {
@@ -314,6 +365,11 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public static async createFromBytes(bytes: Uint8Array): Promise<SqliteMedicalStore> {
     if (bytes.byteLength === 0) throw new Error('Cannot open an empty SQLite content pack.');
+    if (bytes.byteLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
+      throw new Error(
+        `Cannot deserialize SQLite content pack into WASM (${bytes.byteLength} bytes).`,
+      );
+    }
     const sqlite = await getSqliteModule();
     const database = new sqlite.oo1.DB(':memory:', 'c');
     const databasePointer = database.pointer;
@@ -357,6 +413,7 @@ export class SqliteMedicalStore implements MedicalStore {
     const open = (installation: StoreHealthHints['installation']): SqliteMedicalStore => {
       const database = new pool.OpfsSAHPoolDb(vfsName);
       try {
+        applyOpfsRuntimePragmas(database);
         readPackSchemaVersion(database);
       } catch (cause) {
         database.close();
@@ -383,7 +440,11 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async initialize(untrustedSeed?: ContentPackSeed): Promise<StorageHealth> {
     if (!this.initialized) {
-      this.database.exec(SCHEMA_SQL);
+      // Packaged/OPFS files already contain FTS. Re-running SCHEMA_SQL on a ~400 MB Allmed
+      // pack can exhaust the sqlite-wasm heap (SQLITE_NOMEM). Empty :memory: stores still
+      // need the full schema; OPFS copies only gain missing lightweight tool tables.
+      if (this.healthHints.installation === 'memory') this.database.exec(SCHEMA_SQL);
+      else this.database.exec(TOOL_TABLES_SQL);
       const fts5Available = Number(
         this.database.selectValue(
           "SELECT EXISTS(SELECT 1 FROM pragma_module_list WHERE name = 'fts5')",
@@ -882,6 +943,12 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async listToolDefinitions(): Promise<readonly ToolDefinitionRecord[]> {
     this.assertInitialized();
+    const hasToolDefinitions = Number(
+      this.database.selectValue(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'tool_definitions')",
+      ),
+    );
+    if (hasToolDefinitions !== 1) return [];
     const sourcesByTool = new Map<string, ToolDefinitionRecord['sources'][number][]>();
     for (const row of queryRows(
       this.database,

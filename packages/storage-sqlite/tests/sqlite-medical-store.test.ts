@@ -4,7 +4,7 @@ import { embedPortableText, PORTABLE_HASH_PROFILE } from '@localmed/search-seman
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { SqliteMedicalStore } from '../src/index';
+import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '../src/index';
 
 const stores: SqliteMedicalStore[] = [];
 
@@ -93,6 +93,16 @@ describe('SqliteMedicalStore', () => {
       limit: 10,
     });
     expect(excluded).toHaveLength(0);
+  });
+
+  it('rejects deserializing a content pack larger than the wasm heap budget', async () => {
+    await expect(
+      SqliteMedicalStore.createFromBytes({
+        byteLength: SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1,
+      } as Uint8Array),
+    ).rejects.toThrow(
+      `Cannot deserialize SQLite content pack into WASM (${SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1} bytes).`,
+    );
   });
 
   it('loads embedding profiles and performs an exact local vector scan', async () => {
