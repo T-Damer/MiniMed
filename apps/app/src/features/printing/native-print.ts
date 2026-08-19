@@ -1,6 +1,20 @@
 import { Capacitor } from '@capacitor/core';
+import arrowLeftBold from '@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw';
+import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
 
+import {
+  NATIVE_PRINT_CRUMBS_CLASS,
+  NATIVE_PRINT_HEADER_CLASS,
+  NATIVE_PRINT_ICON_BUTTON_CLASS,
+  NATIVE_PRINT_SHARE_BUTTON_CLASS,
+  NATIVE_PRINT_TITLE_CLASS,
+} from '@/features/printing/native-print-chrome';
 import { computePrintFitScale } from '@/features/printing/native-print-fit';
+import {
+  clipNativePrintShareText,
+  shareNativePrintContent,
+} from '@/features/printing/native-print-share';
+import { nativeAndroidShareText } from '@/state/native-share';
 
 function removePreview(): void {
   document.querySelector<HTMLElement>('.native-print-preview')?.remove();
@@ -8,9 +22,23 @@ function removePreview(): void {
   window.removeEventListener('afterprint', removePreview);
 }
 
-const SHARE_ICON_SVG = `<svg class="native-print-preview__action-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M240.49,103.52l-80-80A12,12,0,0,0,140,32V68.74c-25.76,3.12-53.66,15.89-76.75,35.47-29.16,24.74-47.32,56.69-51.14,90A16,16,0,0,0,39.67,207h0c10.46-11.14,47-45.74,100.33-50.42V192a12,12,0,0,0,20.48,8.48l80-80A12,12,0,0,0,240.49,103.52ZM164,163V144a12,12,0,0,0-12-12c-49,0-86.57,21.56-109.79,40.11,7.13-18.16,19.63-35.22,36.57-49.59C101.3,103.41,128.67,92,152,92a12,12,0,0,0,12-12V61l51,51Z"/></svg>`;
+function glyphSvg(raw: string, className: string): string {
+  const body = raw.slice(raw.indexOf('>') + 1, raw.lastIndexOf('</svg>'));
+  return `<svg class="app-glyph ${className}" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor">${body}</svg>`;
+}
 
-const PRINT_ICON_SVG = `<svg class="native-print-preview__action-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M216 72h-32V40a16 16 0 0 0-16-16H88a16 16 0 0 0-16 16v32H40a16 16 0 0 0-16 16v80a16 16 0 0 0 16 16h32v32a16 16 0 0 0 16 16h80a16 16 0 0 0 16-16v-32h32a16 16 0 0 0 16-16V88a16 16 0 0 0-16-16ZM96 48h64v24H96Zm64 160H96v-32h64Zm48-48h-16v-16a8 8 0 0 0-8-8H72a8 8 0 0 0-8 8v16H48V96h160Zm-72-60a12 12 0 1 1-12-12 12 12 0 0 1 12 12Z"/></svg>`;
+function iconButton(className: string, label: string, glyph: string): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = className;
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  const icon = document.createElement('span');
+  icon.className = 'ui-button__icon';
+  icon.innerHTML = glyph;
+  button.append(icon);
+  return button;
+}
 
 function stripHtmlText(html: string): string {
   const parsed = new DOMParser().parseFromString(html, 'text/html');
@@ -36,16 +64,21 @@ function fitPreviewSheet(sheet: HTMLElement, content: HTMLElement, scaler: HTMLE
 }
 
 async function shareOrPrint(title: string, html: string): Promise<void> {
-  const text = [title, stripHtmlText(html)].filter(Boolean).join('\n\n');
-  if ('share' in navigator && typeof navigator.share === 'function') {
-    try {
-      await navigator.share({ title, text });
-      return;
-    } catch (cause) {
-      if (cause instanceof DOMException && cause.name === 'AbortError') return;
-    }
-  }
-  window.print();
+  const text = clipNativePrintShareText([title, stripHtmlText(html)].filter(Boolean).join('\n\n'));
+  const canWebShare = 'share' in navigator && typeof navigator.share === 'function';
+  await shareNativePrintContent({
+    title,
+    text,
+    platform: Capacitor.getPlatform(),
+    androidShare: (payload) => nativeAndroidShareText(payload.title, payload.text),
+    ...(canWebShare
+      ? {
+          webShare: (payload: { readonly title: string; readonly text: string }) =>
+            navigator.share(payload),
+        }
+      : {}),
+    print: () => window.print(),
+  });
 }
 
 export function printHtmlInNativeShell(html: string, title: string): boolean {
@@ -57,37 +90,39 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
   preview.setAttribute('aria-label', `Печать: ${title}`);
 
   const header = document.createElement('header');
-  header.className = 'native-print-preview__header';
-  const back = document.createElement('button');
-  back.type = 'button';
+  header.className = NATIVE_PRINT_HEADER_CLASS;
+
+  const back = iconButton(
+    NATIVE_PRINT_ICON_BUTTON_CLASS,
+    'Назад',
+    glyphSvg(arrowLeftBold, 'document-page__back-icon'),
+  );
   back.dataset['nativePrintBack'] = 'true';
-  back.className = 'native-print-preview__back';
-  back.textContent = 'Назад';
   back.addEventListener('click', removePreview, { once: true });
 
-  const action = document.createElement('button');
-  action.type = 'button';
-  action.className = 'native-print-preview__action';
-  if (Capacitor.isNativePlatform()) {
-    action.classList.add('native-print-preview__action--share');
-    action.setAttribute('aria-label', 'Поделиться');
-    action.title = 'Поделиться';
-    action.innerHTML = SHARE_ICON_SVG;
-    action.addEventListener('click', () => {
-      void shareOrPrint(title, html);
-    });
-  } else {
-    action.classList.add('native-print-preview__action--print');
-    action.setAttribute('aria-label', 'Печать');
-    action.title = 'Печать';
-    action.innerHTML = PRINT_ICON_SVG;
-    action.addEventListener('click', () => window.print());
-  }
+  const action = iconButton(
+    NATIVE_PRINT_SHARE_BUTTON_CLASS,
+    'Поделиться',
+    glyphSvg(shareFatBold, 'document-page__back-icon'),
+  );
+  action.addEventListener('click', () => {
+    void shareOrPrint(title, html);
+  });
 
-  const heading = document.createElement('strong');
-  heading.className = 'native-print-preview__title';
+  const crumbs = document.createElement('nav');
+  crumbs.className = NATIVE_PRINT_CRUMBS_CLASS;
+  crumbs.setAttribute('aria-label', title);
+  const list = document.createElement('ol');
+  list.className = 'document-crumbs__list';
+  const item = document.createElement('li');
+  item.className = 'document-crumbs__item';
+  const heading = document.createElement('span');
+  heading.className = NATIVE_PRINT_TITLE_CLASS;
   heading.textContent = title;
-  header.append(back, action, heading);
+  item.append(heading);
+  list.append(item);
+  crumbs.append(list);
+  header.append(back, action, crumbs);
 
   const stage = document.createElement('div');
   stage.className = 'native-print-preview__stage';

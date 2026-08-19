@@ -23,8 +23,11 @@ const files = {
     'apps/app/android/app/src/main/java/dev/localmed/search/LlamaInferencePlugin.kt',
   androidUpdatePlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedUpdatePlugin.kt',
+  androidSharePlugin:
+    'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedSharePlugin.kt',
   androidLlamaCmake: 'apps/app/android/app/src/main/cpp/CMakeLists.txt',
   typescriptLlamaPlugin: 'apps/app/src/features/models/llama-plugin.ts',
+  typescriptSharePlugin: 'apps/app/src/state/native-share.ts',
 };
 
 const entries = await Promise.all(
@@ -71,6 +74,10 @@ for (const method of ['prepareApkFile', 'appendApkChunk', 'installPreparedApk'])
   requireText('androidUpdatePlugin', `fun ${method}(`);
 }
 requireText('androidActivity', 'registerPlugin(LocalMedUpdatePlugin.class)');
+requireText('androidSharePlugin', 'fun shareText(');
+requireText('androidSharePlugin', '@CapacitorPlugin(name = "LocalMedShare")');
+requireText('androidActivity', 'registerPlugin(LocalMedSharePlugin.class)');
+requireText('typescriptSharePlugin', "registerPlugin<LocalMedSharePlugin>('LocalMedShare')");
 requireText('androidActivity', 'installSplashScreen');
 requireText('androidActivity', 'setDecorFitsSystemWindows');
 requireText('androidUpdatePlugin', '@CapacitorPlugin(name = "LocalMedUpdate")');

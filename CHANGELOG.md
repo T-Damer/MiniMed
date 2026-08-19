@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.28] - 2026-08-19
+
+### Changed
+
+- Native print preview uses the document circle Back/Share header. Android Share opens the system
+  share sheet instead of a no-op WebView `navigator.share` / `window.print()` fallback.
+
 ## [0.6.27] - 2026-08-19
 
 ### Added

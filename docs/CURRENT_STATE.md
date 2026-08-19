@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 19 August 2026
-> Repository version: `0.6.27`
-> Active target: `0.6.27` public prerelease toward `1.0`
+> Repository version: `0.6.28`
+> Active target: `0.6.28` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -339,8 +339,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   the search root. Native-like haptics respect the vibration preference and platform capabilities
   (see device preferences above).
 - Native print actions use an in-app preview over the desk background: one A4 sheet with content
-  scaled to fit, a non-printing Back header, and a share (native) or print control that the user taps
-  — Android does not auto-open the system print dialog. Hardware Back can exit the preview.
+  scaled to fit, document-chrome circle Back/Share buttons, and a breadcrumb title. Android Share
+  opens the system share sheet through `LocalMedShare` (`ACTION_SEND`) instead of WebView
+  `navigator.share` / `window.print()`, which do nothing there. Hardware Back can exit the preview.
 - In-document tables and images pinch-zoom 1–3× with an opaque fill, a dimmed lightbox, and a smooth
   reset on scroll or a click beside the figure. The fullscreen media viewer has zoom controls on the
   left of its toolbar. Clinical full-text install progress and local-model download progress show in

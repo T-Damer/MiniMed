@@ -28,6 +28,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LlamaInferencePlugin.class);
         registerPlugin(LocalMedUpdatePlugin.class);
         registerPlugin(LocalMedHapticsPlugin.class);
+        registerPlugin(LocalMedSharePlugin.class);
         super.onCreate(savedInstanceState);
 
         WindowInsetsControllerCompat controller =
