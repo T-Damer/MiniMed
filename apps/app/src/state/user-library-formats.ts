@@ -1,4 +1,4 @@
-import { readZipEntry } from '@/state/user-library-zip';
+import { listZipEntries, readZipEntry } from '@/state/user-library-zip';
 
 function decodeBytes(bytes: Uint8Array): string {
   try {
@@ -88,7 +88,7 @@ function extractRtfText(rtf: string): string {
     index += 1;
   }
 
-  return text.replace(/\s+/gu, ' ').trim();
+  return text.replace(/[ \t]+/gu, ' ').replace(/\n\s*/gu, '\n').trim();
 }
 
 function extractXmlText(xml: string, tagNames: readonly string[]): string {
@@ -100,7 +100,7 @@ function extractXmlText(xml: string, tagNames: readonly string[]): string {
       if (content) parts.push(content);
     }
   }
-  return parts.join('\n').replace(/\s+/gu, ' ').trim();
+  return parts.join('\n').replace(/[ \t]+/gu, ' ').trim();
 }
 
 function extractFb2Text(xml: string): string {
@@ -114,22 +114,40 @@ function extractFb2Text(xml: string): string {
     const content = paragraph.textContent?.trim();
     if (content) parts.push(content);
   }
-  return parts.join('\n').replace(/\s+/gu, ' ').trim();
+  return parts.join('\n').replace(/[ \t]+/gu, ' ').trim();
+}
+
+const WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const DRAWING_NS = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+
+function textFromNamespacedElement(element: Element, namespace: string, localName: string): string {
+  return Array.from(element.getElementsByTagNameNS(namespace, localName))
+    .map((node) => node.textContent ?? '')
+    .join('')
+    .trim();
 }
 
 function extractDocxText(xml: string): string {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const body = doc.getElementsByTagNameNS(WORD_NS, 'body')[0];
+  if (!body) return extractXmlText(xml, ['w:t']);
+
   const parts: string[] = [];
-  for (const element of Array.from(
-    doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 't'),
-  )) {
-    const content = element.textContent;
-    if (content) parts.push(content);
+  for (const child of Array.from(body.children)) {
+    if (child.localName === 'p') {
+      const paragraph = textFromNamespacedElement(child, WORD_NS, 't');
+      if (paragraph) parts.push(paragraph);
+      continue;
+    }
+    if (child.localName !== 'tbl') continue;
+    for (const row of Array.from(child.getElementsByTagNameNS(WORD_NS, 'tr'))) {
+      const cells = Array.from(row.getElementsByTagNameNS(WORD_NS, 'tc'))
+        .map((cell) => textFromNamespacedElement(cell, WORD_NS, 't'))
+        .filter(Boolean);
+      if (cells.length > 0) parts.push(cells.join('\t'));
+    }
   }
-  if (parts.length === 0) {
-    return extractXmlText(xml, ['w:t']);
-  }
-  return parts.join('').replace(/\s+/gu, ' ').trim();
+  return parts.join('\n').replace(/[ \t]+\n/gu, '\n').trim();
 }
 
 function resolveOpfPath(containerXml: string): string | null {
@@ -186,14 +204,14 @@ async function extractEpubText(data: ArrayBuffer): Promise<string> {
     const content = decodeBytes(contentBytes);
     parts.push(extractHtmlText(content));
   }
-  return parts.join('\n').replace(/\s+/gu, ' ').trim();
+  return parts.join('\n').replace(/[ \t]+/gu, ' ').trim();
 }
 
 function isPrintableAscii(char: number): boolean {
   return char >= 32 && char <= 126;
 }
 
-function extractOleText(data: Uint8Array): string {
+function extractBinaryText(data: Uint8Array): string {
   const runs: string[] = [];
   let asciiRun = '';
   for (let index = 0; index < data.length; index += 1) {
@@ -223,13 +241,93 @@ function extractOleText(data: Uint8Array): string {
   }
   if (utf16Run.length >= 8) runs.push(utf16Run);
 
-  return runs.join('\n').replace(/\s+/gu, ' ').trim();
+  return [...new Set(runs.map((run) => run.replace(/\s+/gu, ' ').trim()).filter(Boolean))]
+    .join('\n')
+    .trim();
+}
+
+function slideNumber(path: string): number {
+  const match = /slide(\d+)\.xml$/u.exec(path);
+  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+}
+
+async function extractPptxText(data: ArrayBuffer): Promise<string> {
+  const entries = (await listZipEntries(data))
+    .filter((path) => /^ppt\/slides\/slide\d+\.xml$/u.test(path))
+    .toSorted((left, right) => slideNumber(left) - slideNumber(right));
+  const slides: string[] = [];
+  for (const path of entries) {
+    const bytes = await readZipEntry(data, path);
+    if (!bytes) continue;
+    const doc = new DOMParser().parseFromString(decodeBytes(bytes), 'application/xml');
+    const text = Array.from(doc.getElementsByTagNameNS(DRAWING_NS, 't'))
+      .map((node) => node.textContent?.trim() ?? '')
+      .filter(Boolean)
+      .join('\n');
+    if (text) slides.push(text);
+  }
+  return slides.join('\n\n').trim();
+}
+
+async function extractPagesText(data: ArrayBuffer): Promise<string> {
+  const entries = await listZipEntries(data);
+  const xmlCandidates = entries.filter((path) => /(^|\/)(index|document)\.xml$/iu.test(path));
+  const parts: string[] = [];
+  for (const path of xmlCandidates) {
+    const bytes = await readZipEntry(data, path);
+    if (!bytes) continue;
+    const text = extractXmlText(decodeBytes(bytes), ['sf:p', 'sf:span', 'text']);
+    if (text) parts.push(text);
+  }
+  if (parts.length > 0) return parts.join('\n').trim();
+
+  // Modern .pages stores content in Protobuf/IWA streams. We do not attempt to interpret layout
+  // here, but extracting sufficiently long UTF-8/UTF-16 runs still gives search a useful textual
+  // fallback without executing embedded content.
+  for (const path of entries.filter((entry) => entry.toLowerCase().endsWith('.iwa'))) {
+    const bytes = await readZipEntry(data, path);
+    if (!bytes) continue;
+    const text = extractBinaryText(bytes);
+    if (text) parts.push(text);
+  }
+  return [...new Set(parts)].join('\n').trim();
 }
 
 function extensionOf(fileName: string): string {
   const lower = fileName.toLocaleLowerCase('ru-RU');
   const dot = lower.lastIndexOf('.');
   return dot >= 0 ? lower.slice(dot + 1) : '';
+}
+
+function isZipOfficeFormat(extension: string, mimeType: string): boolean {
+  return (
+    extension === 'docx' ||
+    extension === 'pptx' ||
+    extension === 'pages' ||
+    extension === 'epub' ||
+    mimeType.includes('openxmlformats') ||
+    mimeType === 'application/vnd.apple.pages' ||
+    mimeType === 'application/epub+zip'
+  );
+}
+
+export async function userLibraryArchiveHasImages(
+  fileName: string,
+  mimeType: string,
+  data: ArrayBuffer,
+): Promise<boolean> {
+  const extension = extensionOf(fileName);
+  if (!isZipOfficeFormat(extension, mimeType)) return false;
+  try {
+    const entries = await listZipEntries(data);
+    return entries.some((path) =>
+      /(?:^|\/)(?:media|images?|quicklook)\/.*\.(?:png|jpe?g|gif|webp|bmp|tiff?|svg|emf|wmf)$/iu.test(
+        path,
+      ),
+    );
+  } catch {
+    return false;
+  }
 }
 
 export async function extractUserLibraryText(
@@ -267,12 +365,28 @@ export async function extractUserLibraryText(
     return extractDocxText(decodeBytes(documentXml));
   }
 
+  if (
+    mimeType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+    extension === 'pptx'
+  ) {
+    return await extractPptxText(data);
+  }
+
   if (mimeType === 'application/epub+zip' || extension === 'epub') {
     return await extractEpubText(data);
   }
 
-  if (mimeType === 'application/msword' || extension === 'doc') {
-    return extractOleText(bytes);
+  if (mimeType === 'application/vnd.apple.pages' || extension === 'pages') {
+    return await extractPagesText(data);
+  }
+
+  if (
+    mimeType === 'application/msword' ||
+    mimeType === 'application/vnd.ms-powerpoint' ||
+    extension === 'doc' ||
+    extension === 'ppt'
+  ) {
+    return extractBinaryText(bytes);
   }
 
   return extractPlainText(bytes);
