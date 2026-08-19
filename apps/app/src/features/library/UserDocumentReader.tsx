@@ -1,6 +1,4 @@
 import type { TextRange } from '@localmed/contracts';
-import * as pdfjs from 'pdfjs-dist';
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
   createEffect,
   createMemo,
@@ -12,6 +10,7 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -29,7 +28,12 @@ import {
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
 import { useBookReadingModeActive } from '@/features/library/document-reading-mode';
+import { LazyPdfCanvas } from '@/features/library/LazyPdfCanvas';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
+import {
+  parseMarkdownDocument,
+  SafeMarkdown,
+} from '@/features/library/SafeMarkdown';
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
@@ -38,6 +42,7 @@ import {
 } from '@/features/library/user-document-reader-helpers';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
 import type { DocumentTrail } from '@/state/document-trail';
+import { loadPdfJsDocument, type PdfDocumentProxy } from '@/state/pdfjs-document';
 import {
   getUserLibraryDocument,
   getUserLibraryFile,
@@ -51,8 +56,6 @@ import {
   type UserLibraryWordBox,
   userLibraryProgressFraction,
 } from '@/state/user-library';
-
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface UserDocumentReaderProps {
   readonly documentId: string;
@@ -72,7 +75,7 @@ const emptyFindState: DocumentFindResultState = {
 
 function statusBanner(libraryDocument: UserLibraryDocument): string {
   if (libraryDocument.status === 'inspecting') {
-    return 'Читаем файл… Текст появится в поиске после обработки.';
+    return 'Читаем файл… Страницы и текст появятся после первичного разбора.';
   }
   if (libraryDocument.status === 'ocr') {
     const done = libraryDocument.nativeTextPages + libraryDocument.ocrDonePages;
@@ -81,29 +84,10 @@ function statusBanner(libraryDocument: UserLibraryDocument): string {
       done +
       ' из ' +
       libraryDocument.pageCount +
-      ' страниц. Книгу можно читать уже сейчас.'
+      ' страниц. Документ можно читать уже сейчас.'
     );
   }
   return '';
-}
-
-async function renderPdfCanvases(documentId: string, pageCount: number, blob: Blob): Promise<void> {
-  const data = await blob.arrayBuffer();
-  const pdf = await pdfjs.getDocument({ data }).promise;
-  const domDocument = globalThis.document;
-  for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-    const page = await pdf.getPage(pageNumber);
-    const viewport = page.getViewport({ scale: 1.25 });
-    const canvas = domDocument.getElementById(
-      pageCanvasId(documentId, pageNumber - 1),
-    ) as HTMLCanvasElement | null;
-    if (!canvas) continue;
-    const context = canvas.getContext('2d');
-    if (!context) continue;
-    canvas.width = Math.floor(viewport.width);
-    canvas.height = Math.floor(viewport.height);
-    await page.render({ canvasContext: context, viewport, canvas }).promise;
-  }
 }
 
 function navigateHref(props: UserDocumentReaderProps, href: string): void {
@@ -156,17 +140,24 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const [libraryDocument, setLibraryDocument] = createSignal<UserLibraryDocument | null>(null);
   const [pages, setPages] = createSignal<readonly UserLibraryPage[]>([]);
   const [pdfPageCount, setPdfPageCount] = createSignal(0);
-  const [pdfBlob, setPdfBlob] = createSignal<Blob | null>(null);
+  const [pdfDocument, setPdfDocument] = createSignal<PdfDocumentProxy | null>(null);
   const [imageUrl, setImageUrl] = createSignal<string | null>(null);
   const [loadError, setLoadError] = createSignal<string | null>(null);
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
   const [findOpen, setFindOpen] = createSignal(false);
+  const [markdownRaw, setMarkdownRaw] = createSignal(false);
+  let activePdf: PdfDocumentProxy | null = null;
+  let pdfLoadGeneration = 0;
 
   const meta = (): UserLibraryDocument | null => libraryDocument();
+  const isMarkdown = (): boolean => meta()?.mimeType === 'text/markdown';
+  const markdownText = createMemo(() => pages().map((page) => page.text).join('\n'));
+  const parsedMarkdown = createMemo(() => parseMarkdownDocument(markdownText()));
 
   const outlineItems = createMemo(() => {
     const current = meta();
     if (!current) return [];
+    if (isMarkdown()) return parsedMarkdown().outline;
     return buildUserDocumentOutlineItems(
       current.mimeType,
       pages(),
@@ -250,28 +241,38 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       const current = meta();
       if (!current) return;
       if (isUserLibraryTextLikeMime(current.mimeType)) {
-        const paper = globalThis.document.querySelector<HTMLElement>(
-          '.user-document-reader__paper',
-        );
+        const paper = globalThis.document.querySelector<HTMLElement>('.user-document-reader__paper');
         const mark = paper?.querySelector<HTMLElement>(
           `[data-document-find-unit="${CSS.escape(match.unitId)}"][data-document-find-start="${String(match.start)}"]`,
         );
         if (mark) {
           mark.scrollIntoView({ behavior: 'auto', block: 'center' });
-        } else {
-          globalThis.document.getElementById(match.unitId)?.scrollIntoView({
-            behavior: 'auto',
-            block: 'center',
-          });
+          return;
         }
+        globalThis.document.getElementById(match.unitId)?.scrollIntoView({
+          behavior: 'auto',
+          block: 'center',
+        });
         return;
       }
-      const word = globalThis.document.querySelector<HTMLElement>(
-        '.user-document-reader__word--current',
-      );
+      const word = globalThis.document.querySelector<HTMLElement>('.user-document-reader__word--current');
       word?.scrollIntoView({ behavior: 'auto', block: 'center' });
     });
   });
+
+  const replacePdf = async (blob: Blob): Promise<void> => {
+    const generation = ++pdfLoadGeneration;
+    const next = await loadPdfJsDocument(blob);
+    if (generation !== pdfLoadGeneration) {
+      await next.destroy();
+      return;
+    }
+    const previous = activePdf;
+    activePdf = next;
+    setPdfDocument(next);
+    setPdfPageCount(next.numPages);
+    if (previous && previous !== next) await previous.destroy();
+  };
 
   const refresh = async (reloadFile = false): Promise<void> => {
     const loadedMeta = await getUserLibraryDocument(props.documentId);
@@ -281,8 +282,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       return;
     }
     props.onTitle?.(loadedMeta.title);
-    const loadedPages = await listUserLibraryPages(props.documentId);
-    setPages(loadedPages);
+    setPages(await listUserLibraryPages(props.documentId));
 
     if (isUserLibraryImageMime(loadedMeta.mimeType)) {
       if (!reloadFile && imageUrl()) return;
@@ -298,17 +298,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     }
 
     if (!isUserLibraryPdfMime(loadedMeta.mimeType)) return;
-    if (!reloadFile && pdfBlob() && pdfPageCount() > 0) return;
+    if (!reloadFile && activePdf) return;
 
     const blob = await getUserLibraryFile(props.documentId);
     if (!blob) {
       setLoadError('Файл личного документа недоступен.');
       return;
     }
-    const data = await blob.arrayBuffer();
-    const pdf = await pdfjs.getDocument({ data }).promise;
-    setPdfPageCount(pdf.numPages);
-    setPdfBlob(blob);
+    await replacePdf(blob);
   };
 
   onMount(() => {
@@ -322,25 +319,21 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     };
     window.addEventListener(USER_LIBRARY_EVENT, handleChange);
     onCleanup(() => {
+      pdfLoadGeneration += 1;
       window.removeEventListener(USER_LIBRARY_EVENT, handleChange);
       const url = imageUrl();
       if (url) URL.revokeObjectURL(url);
-    });
-  });
-
-  createEffect(() => {
-    const documentId = props.documentId;
-    const count = pdfPageCount();
-    const blob = pdfBlob();
-    if (count === 0 || !blob) return;
-    void renderPdfCanvases(documentId, count, blob).catch((cause) => {
-      setLoadError(cause instanceof Error ? cause.message : 'Не удалось отобразить PDF.');
+      const pdf = activePdf;
+      activePdf = null;
+      setPdfDocument(null);
+      if (pdf) void pdf.destroy();
     });
   });
 
   createEffect(() => {
     const pageIndex = props.initialPageIndex;
     if (pageIndex === undefined) return;
+    pdfPageCount();
     requestAnimationFrame(() => {
       const element = globalThis.document.getElementById(pageAnchorId(props.documentId, pageIndex));
       element?.scrollIntoView({ block: 'start' });
@@ -356,9 +349,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     const current = meta();
     if (!current) return;
     const html = buildUserDocumentPrintHtml(current.title, pages());
-    if (!printHtml(html, current.title)) {
-      toast.error('Не удалось открыть окно печати.');
-    }
+    if (!printHtml(html, current.title)) toast.error('Не удалось открыть окно печати.');
   };
 
   const breadcrumbItems = createMemo(() => {
@@ -372,9 +363,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
 
   const visualPageIndexes = createMemo(() => {
     const current = meta();
-    if (!current || !isUserLibraryPdfMime(current.mimeType)) {
-      return [];
-    }
+    if (!current || !isUserLibraryPdfMime(current.mimeType)) return [];
     return Array.from({ length: pdfPageCount() }, (_, index) => index);
   });
 
@@ -505,22 +494,28 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     fuzzy={findState().mode === 'similar'}
                     ranges={rangesForFindUnit(rangesByUnit(), current().id, findState().query)}
                     unitId={current().id}
-                    activeStart={
-                      activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined
-                    }
+                    activeStart={activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined}
                     matchClass="document-overlay-match"
                   />
                 </h1>
                 <header class="document-overlay-paper__header">
                   <div class="document-overlay-paper__actions">
+                    <Show when={isMarkdown()}>
+                      <Button
+                        type="button"
+                        class="document-overlay-action-button"
+                        onClick={() => setMarkdownRaw((raw) => !raw)}
+                        icon={<AppGlyph name="file-text" class="document-overlay-action-button__icon" />}
+                      >
+                        {markdownRaw() ? 'Preview' : 'Raw'}
+                      </Button>
+                    </Show>
                     <Button
                       type="button"
                       class="document-overlay-action-button"
                       aria-label="Распечатать документ"
                       onClick={printDocument}
-                      icon={
-                        <AppGlyph name="printer" class="document-overlay-action-button__icon" />
-                      }
+                      icon={<AppGlyph name="printer" class="document-overlay-action-button__icon" />}
                     >
                       Распечатать
                     </Button>
@@ -529,6 +524,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
               </>
             )}
           </Show>
+
           <Show when={isPdf()}>
             <div class="user-document-reader__pages">
               <For each={visualPageIndexes()}>
@@ -537,18 +533,21 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
                   const anchor = () => pageAnchorId(props.documentId, pageIndex);
                   return (
-                    <section
-                      id={anchor()}
-                      data-user-doc-anchor=""
-                      class="user-document-reader__page"
-                    >
+                    <section id={anchor()} data-user-doc-anchor="" class="user-document-reader__page">
                       <PinchZoomSurface
                         class="user-document-reader__page-pinch"
                         contentClass="user-document-reader__page-surface"
                       >
-                        <canvas
+                        <LazyPdfCanvas
                           id={pageCanvasId(props.documentId, pageIndex)}
+                          pageNumber={pageIndex + 1}
+                          pdf={pdfDocument}
                           class="user-document-reader__canvas"
+                          onError={(cause) => {
+                            setLoadError(
+                              cause instanceof Error ? cause.message : 'Не удалось отобразить страницу PDF.',
+                            );
+                          }}
                         />
                         <Show when={words().length > 0}>
                           <WordOverlay
@@ -578,11 +577,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
               >
                 <Show when={imageUrl()}>
                   {(url) => (
-                    <img
-                      src={url()}
-                      class="user-document-reader__image"
-                      alt={meta()?.title ?? 'Изображение'}
-                    />
+                    <img src={url()} class="user-document-reader__image" alt={meta()?.title ?? 'Изображение'} />
                   )}
                 </Show>
                 <Show when={pageByIndex(0)?.words}>
@@ -600,36 +595,43 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           </Show>
 
           <Show when={isTextLike()}>
-            <div class="user-document-reader__text-pages">
-              <For each={pages()}>
-                {(page) => {
-                  const anchor = () => pageAnchorId(page.documentId, page.pageIndex);
-                  const state = () => findState();
-                  const activeStart = () =>
-                    activeMatch()?.unitId === anchor() ? activeMatch()?.start : undefined;
-                  return (
-                    <section
-                      id={anchor()}
-                      data-user-doc-anchor=""
-                      class="user-document-reader__text-section"
-                    >
-                      <pre class="user-document-reader__text">
-                        <QueryHighlightedText
-                          text={page.text}
-                          query={state().query}
-                          exact={state().mode === 'exact'}
-                          fuzzy={state().mode === 'similar'}
-                          ranges={rangesForFindUnit(rangesByUnit(), anchor(), state().query)}
-                          unitId={anchor()}
-                          activeStart={activeStart()}
-                          matchClass="document-overlay-match"
-                        />
-                      </pre>
-                    </section>
-                  );
-                }}
-              </For>
-            </div>
+            <Show
+              when={isMarkdown() && !markdownRaw()}
+              fallback={
+                <div class="user-document-reader__text-pages">
+                  <For each={pages()}>
+                    {(page) => {
+                      const anchor = () => pageAnchorId(page.documentId, page.pageIndex);
+                      const state = () => findState();
+                      const activeStart = () =>
+                        activeMatch()?.unitId === anchor() ? activeMatch()?.start : undefined;
+                      return (
+                        <section
+                          id={anchor()}
+                          data-user-doc-anchor=""
+                          class="user-document-reader__text-section"
+                        >
+                          <pre class="user-document-reader__text">
+                            <QueryHighlightedText
+                              text={page.text}
+                              query={state().query}
+                              exact={state().mode === 'exact'}
+                              fuzzy={state().mode === 'similar'}
+                              ranges={rangesForFindUnit(rangesByUnit(), anchor(), state().query)}
+                              unitId={anchor()}
+                              activeStart={activeStart()}
+                              matchClass="document-overlay-match"
+                            />
+                          </pre>
+                        </section>
+                      );
+                    }}
+                  </For>
+                </div>
+              }
+            >
+              <SafeMarkdown markdown={markdownText()} />
+            </Show>
           </Show>
         </article>
       }
