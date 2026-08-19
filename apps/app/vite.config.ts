@@ -1,10 +1,21 @@
-import { createWriteStream, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
+import {
+  copyFileSync,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  statSync,
+} from 'node:fs';
 import { get } from 'node:https';
-import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
 import { defineConfig, type Plugin } from 'vite';
 import solid from 'vite-plugin-solid';
+
+const require = createRequire(import.meta.url);
 
 const releaseProxy = {
   target: 'https://github.com',
@@ -69,6 +80,24 @@ function ensureTessdataAssets(): Plugin {
   };
 }
 
+function ensurePdfJsAssets(): Plugin {
+  const pdfBuildFile = require.resolve('pdfjs-dist/build/pdf.mjs');
+  const pdfRoot = join(dirname(pdfBuildFile), '..');
+  const sourceWasmDir = join(pdfRoot, 'wasm');
+  const targetWasmDir = fileURLToPath(new URL('./public/pdfjs/wasm', import.meta.url));
+  return {
+    name: 'ensure-pdfjs-assets',
+    buildStart() {
+      mkdirSync(targetWasmDir, { recursive: true });
+      for (const name of readdirSync(sourceWasmDir)) {
+        const source = join(sourceWasmDir, name);
+        if (!statSync(source).isFile()) continue;
+        copyFileSync(source, join(targetWasmDir, name));
+      }
+    },
+  };
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -93,7 +122,7 @@ function excludeOptionalPublicAssets(): Plugin {
 
 export default defineConfig({
   base: './',
-  plugins: [solid(), ensureTessdataAssets(), excludeOptionalPublicAssets()],
+  plugins: [solid(), ensureTessdataAssets(), ensurePdfJsAssets(), excludeOptionalPublicAssets()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
