@@ -33,27 +33,29 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           calculators = Path('apps/app/src/features/calculators/CalculatorsView.tsx')
           text = calculators.read_text(encoding='utf-8')
-          old = '''                        <input
-                          inputmode="decimal"
-                          value={schemaValues()[input.id] ?? ''}
-                          onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                        />'''
-          new = '''                        <input
-                          type="number"
-                          inputmode={input.integer ? 'numeric' : 'decimal'}
-                          min={input.minimum}
-                          max={input.maximum}
-                          step={input.inputStep ?? (input.integer ? 1 : 'any')}
-                          value={schemaValues()[input.id] ?? ''}
-                          onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                        />'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit('calculator numeric input block not found')
+          if "step={input.inputStep ?? (input.integer ? 1 : 'any')}" not in text:
+              pattern = re.compile(
+                  r'(?P<indent>\s*)inputmode="decimal"\n'
+                  r'(?P=indent)value=\{schemaValues\(\)\[input\.id\] \?\? \'\'\}\n'
+                  r'(?P=indent)onInput=\{\(event\) => setSchemaValue\(input\.id, event\.currentTarget\.value\)\}'
+              )
+              def calculator_input(match: re.Match[str]) -> str:
+                  indent = match.group('indent')
+                  return (
+                      f'{indent}type="number"\n'
+                      f"{indent}inputmode={{input.integer ? 'numeric' : 'decimal'}}\n"
+                      f'{indent}min={{input.minimum}}\n'
+                      f'{indent}max={{input.maximum}}\n'
+                      f"{indent}step={{input.inputStep ?? (input.integer ? 1 : 'any')}}\n"
+                      f"{indent}value={{schemaValues()[input.id] ?? ''}}\n"
+                      f'{indent}onInput={{(event) => setSchemaValue(input.id, event.currentTarget.value)}}'
+                  )
+              text, count = pattern.subn(calculator_input, text, count=1)
+              print(f'calculator constraints patched: {count}')
           calculators.write_text(text, encoding='utf-8')
 
           editor = Path('apps/app/src/features/notes/NoteMarkdownEditor.tsx')
