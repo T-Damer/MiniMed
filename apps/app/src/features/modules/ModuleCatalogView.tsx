@@ -294,8 +294,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const preinstallOptions = createMemo(
     (): PreinstalledCatalogModuleOptions => ({
       companionMedicationsMounted: isCompanionMedicationsMounted(overviewDocumentCounts()),
-      companionReferenceMounted: overviewDocumentCounts().reference > 0,
-      companionRegulatoryMounted: overviewDocumentCounts().regulatory > 0,
     }),
   );
   const installedWithBundled = createMemo(() =>

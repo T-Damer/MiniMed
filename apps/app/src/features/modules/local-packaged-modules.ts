@@ -13,8 +13,6 @@ export const CORE_MEDICATION_REGISTRY_CARD_COUNT = 8;
 
 export interface PreinstalledCatalogModuleOptions {
   readonly companionMedicationsMounted?: boolean;
-  readonly companionReferenceMounted?: boolean;
-  readonly companionRegulatoryMounted?: boolean;
 }
 
 export function isCompanionMedicationsMounted(counts: OverviewDocumentCounts | undefined): boolean {
@@ -29,10 +27,6 @@ export function isPreinstalledCatalogModule(
     module.required ||
     module.releaseState === 'bundled' ||
     module.id === 'minimed.core.ru' ||
-    (module.id === 'minimed.reference.pediatrics.ru' &&
-      options?.companionReferenceMounted === true) ||
-    (module.id === 'minimed.regulatory.pediatrics.ru' &&
-      options?.companionRegulatoryMounted === true) ||
     (module.id === MEDICATIONS_COMPANION_MODULE_ID && options?.companionMedicationsMounted === true)
   );
 }
