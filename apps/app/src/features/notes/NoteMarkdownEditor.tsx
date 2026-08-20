@@ -210,7 +210,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
               title={fullscreen() ? 'Свернуть' : 'На весь экран'}
               onClick={() => setFullscreen((value) => !value)}
             >
-              <AppGlyph name={fullscreen() ? 'x' : 'arrows-out'} />
+              <AppGlyph name={fullscreen() ? 'close' : 'arrows-out'} />
             </button>
           </div>
           <Show when={mention() && suggestions().length > 0}>
