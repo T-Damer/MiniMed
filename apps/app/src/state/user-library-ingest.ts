@@ -1,7 +1,7 @@
 import { createWorker, type Worker } from 'tesseract.js';
 import workerPath from 'tesseract.js/dist/worker.min.js?url';
 import corePath from 'tesseract.js-core/tesseract-core-lstm.wasm.js?url';
-
+import { loadPdfJsDocument, type PdfPageProxy } from '@/state/pdfjs-document';
 import {
   findNextPendingOcrPage,
   getUserLibraryDocument,
@@ -17,12 +17,8 @@ import {
   type UserLibraryPage,
   type UserLibraryWordBox,
 } from '@/state/user-library';
-import {
-  extractUserLibraryText,
-  userLibraryArchiveHasImages,
-} from '@/state/user-library-formats';
+import { extractUserLibraryText, userLibraryArchiveHasImages } from '@/state/user-library-formats';
 import { pageHasEnoughNativeText } from '@/state/user-library-ingest-helpers';
-import { loadPdfJsDocument, type PdfPageProxy } from '@/state/pdfjs-document';
 
 const TEXT_CHUNK_SIZE = 1200;
 const OCR_PAGE_DELAY_MS = 600;
@@ -391,7 +387,9 @@ function buildUserLibraryPage(
   text: string,
   words?: readonly UserLibraryWordBox[],
 ): UserLibraryPage {
-  return words ? { documentId, pageIndex, kind, text, words } : { documentId, pageIndex, kind, text };
+  return words
+    ? { documentId, pageIndex, kind, text, words }
+    : { documentId, pageIndex, kind, text };
 }
 
 async function completeOcrPage(

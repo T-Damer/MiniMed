@@ -579,7 +579,11 @@ function CalculatorForm(props: {
                       when={input.kind === 'date'}
                       fallback={
                         <input
-                          inputmode="decimal"
+                          type="number"
+                          inputmode={input.integer ? 'numeric' : 'decimal'}
+                          min={input.minimum}
+                          max={input.maximum}
+                          step={input.inputStep ?? (input.integer ? 1 : 'any')}
                           value={schemaValues()[input.id] ?? ''}
                           onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
                         />

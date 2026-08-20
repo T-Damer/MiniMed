@@ -160,8 +160,8 @@
   z-index: var(--z-modal);
   inset: 0;
   overflow: auto;
-  padding: max(1rem, var(--safe-top)) max(1rem, var(--safe-right))
-    max(1rem, var(--safe-bottom)) max(1rem, var(--safe-left));
+  padding: max(1rem, var(--safe-top)) max(1rem, var(--safe-right)) max(1rem, var(--safe-bottom))
+    max(1rem, var(--safe-left));
   background: var(--theme-background);
 }
 

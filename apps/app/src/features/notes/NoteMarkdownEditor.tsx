@@ -40,7 +40,7 @@ function mentionAtCaret(value: string, caret: number): MentionState | null {
 }
 
 function sanitizeLinkLabel(value: string): string {
-  return value.replace(/[\[\]]/gu, '').trim();
+  return value.replaceAll('[', '').replaceAll(']', '').trim();
 }
 
 export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element {
@@ -158,7 +158,11 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
               }
             }}
           />
-          <div class="note-markdown-editor__toolbar" aria-label="Форматирование заметки">
+          <div
+            class="note-markdown-editor__toolbar"
+            role="toolbar"
+            aria-label="Форматирование заметки"
+          >
             <button
               type="button"
               aria-label="Заголовок"
@@ -234,14 +238,16 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
             </div>
           </Show>
         </div>
-        <div class="note-markdown-editor__preview" aria-label="Предпросмотр Markdown">
+        <div class="note-markdown-editor__preview" role="region" aria-label="Предпросмотр Markdown">
           <div class="note-markdown-editor__preview-heading">
             <span>Предпросмотр</span>
             <small>Markdown · LaTeX</small>
           </div>
           <Show
             when={props.value.trim()}
-            fallback={<p class="note-markdown-editor__preview-empty">Предпросмотр появится здесь.</p>}
+            fallback={
+              <p class="note-markdown-editor__preview-empty">Предпросмотр появится здесь.</p>
+            }
           >
             <SafeMarkdown markdown={props.value} />
           </Show>

@@ -119,7 +119,8 @@ export function recoverPendingModuleInstalls(
       continue;
     }
     const module = findCatalogModule(catalog, pending);
-    if (!module || (module.releaseState !== 'published' && module.releaseState !== 'preview')) continue;
+    if (!module || (module.releaseState !== 'published' && module.releaseState !== 'preview'))
+      continue;
     const activeTask = runtime
       .listTasks()
       .find(

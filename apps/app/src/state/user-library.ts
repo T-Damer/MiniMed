@@ -235,7 +235,9 @@ function isDocument(value: unknown): value is UserLibraryDocument {
     typeof candidate.nativeTextPages === 'number' &&
     typeof candidate.ocrDonePages === 'number' &&
     typeof candidate.ocrNeededPages === 'number' &&
-    (candidate.folderId === undefined || candidate.folderId === null || typeof candidate.folderId === 'string') &&
+    (candidate.folderId === undefined ||
+      candidate.folderId === null ||
+      typeof candidate.folderId === 'string') &&
     (candidate.hasImages === undefined || typeof candidate.hasImages === 'boolean') &&
     (candidate.ocrPriority === undefined || typeof candidate.ocrPriority === 'number') &&
     (candidate.ocrQuality === undefined || isOcrQuality(candidate.ocrQuality)) &&
@@ -465,7 +467,8 @@ export async function createUserLibraryFolder(
       const transaction = database.transaction(FOLDERS_STORE, 'readwrite');
       transaction.objectStore(FOLDERS_STORE).put(folder);
       transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось создать папку.'));
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось создать папку.'));
     });
   } finally {
     database.close();
@@ -490,7 +493,8 @@ export async function renameUserLibraryFolder(id: string, title: string): Promis
         updatedAt: new Date().toISOString(),
       });
       transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось переименовать папку.'));
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось переименовать папку.'));
     });
   } finally {
     database.close();
@@ -518,7 +522,8 @@ export async function moveUserLibraryFolder(id: string, parentId: string | null)
         updatedAt: new Date().toISOString(),
       });
       transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось переместить папку.'));
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось переместить папку.'));
     });
   } finally {
     database.close();
@@ -539,7 +544,11 @@ export async function removeUserLibraryFolder(id: string): Promise<void> {
       const documentStore = transaction.objectStore(DOCUMENTS_STORE);
       folderStore.delete(id);
       for (const child of folders.filter((candidate) => candidate.parentId === id)) {
-        folderStore.put({ ...child, parentId: folder.parentId, updatedAt: new Date().toISOString() });
+        folderStore.put({
+          ...child,
+          parentId: folder.parentId,
+          updatedAt: new Date().toISOString(),
+        });
       }
       for (const document of documents.filter((candidate) => candidate.folderId === id)) {
         documentStore.put({
@@ -549,7 +558,8 @@ export async function removeUserLibraryFolder(id: string): Promise<void> {
         });
       }
       transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error ?? new Error('Не удалось удалить папку.'));
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось удалить папку.'));
     });
   } finally {
     database.close();

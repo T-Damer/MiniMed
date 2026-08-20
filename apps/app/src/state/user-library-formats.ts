@@ -88,7 +88,10 @@ function extractRtfText(rtf: string): string {
     index += 1;
   }
 
-  return text.replace(/[ \t]+/gu, ' ').replace(/\n\s*/gu, '\n').trim();
+  return text
+    .replace(/[ \t]+/gu, ' ')
+    .replace(/\n\s*/gu, '\n')
+    .trim();
 }
 
 function extractXmlText(xml: string, tagNames: readonly string[]): string {
@@ -100,7 +103,10 @@ function extractXmlText(xml: string, tagNames: readonly string[]): string {
       if (content) parts.push(content);
     }
   }
-  return parts.join('\n').replace(/[ \t]+/gu, ' ').trim();
+  return parts
+    .join('\n')
+    .replace(/[ \t]+/gu, ' ')
+    .trim();
 }
 
 function extractFb2Text(xml: string): string {
@@ -114,7 +120,10 @@ function extractFb2Text(xml: string): string {
     const content = paragraph.textContent?.trim();
     if (content) parts.push(content);
   }
-  return parts.join('\n').replace(/[ \t]+/gu, ' ').trim();
+  return parts
+    .join('\n')
+    .replace(/[ \t]+/gu, ' ')
+    .trim();
 }
 
 const WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -147,7 +156,10 @@ function extractDocxText(xml: string): string {
       if (cells.length > 0) parts.push(cells.join('\t'));
     }
   }
-  return parts.join('\n').replace(/[ \t]+\n/gu, '\n').trim();
+  return parts
+    .join('\n')
+    .replace(/[ \t]+\n/gu, '\n')
+    .trim();
 }
 
 function resolveOpfPath(containerXml: string): string | null {
@@ -204,7 +216,10 @@ async function extractEpubText(data: ArrayBuffer): Promise<string> {
     const content = decodeBytes(contentBytes);
     parts.push(extractHtmlText(content));
   }
-  return parts.join('\n').replace(/[ \t]+/gu, ' ').trim();
+  return parts
+    .join('\n')
+    .replace(/[ \t]+/gu, ' ')
+    .trim();
 }
 
 function isPrintableAscii(char: number): boolean {

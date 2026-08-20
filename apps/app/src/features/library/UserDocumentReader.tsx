@@ -30,10 +30,7 @@ import {
 import { useBookReadingModeActive } from '@/features/library/document-reading-mode';
 import { LazyPdfCanvas } from '@/features/library/LazyPdfCanvas';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
-import {
-  parseMarkdownDocument,
-  SafeMarkdown,
-} from '@/features/library/SafeMarkdown';
+import { parseMarkdownDocument, SafeMarkdown } from '@/features/library/SafeMarkdown';
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
@@ -151,7 +148,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
 
   const meta = (): UserLibraryDocument | null => libraryDocument();
   const isMarkdown = (): boolean => meta()?.mimeType === 'text/markdown';
-  const markdownText = createMemo(() => pages().map((page) => page.text).join('\n'));
+  const markdownText = createMemo(() =>
+    pages()
+      .map((page) => page.text)
+      .join('\n'),
+  );
   const parsedMarkdown = createMemo(() => parseMarkdownDocument(markdownText()));
 
   const outlineItems = createMemo(() => {
@@ -241,7 +242,9 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       const current = meta();
       if (!current) return;
       if (isUserLibraryTextLikeMime(current.mimeType)) {
-        const paper = globalThis.document.querySelector<HTMLElement>('.user-document-reader__paper');
+        const paper = globalThis.document.querySelector<HTMLElement>(
+          '.user-document-reader__paper',
+        );
         const mark = paper?.querySelector<HTMLElement>(
           `[data-document-find-unit="${CSS.escape(match.unitId)}"][data-document-find-start="${String(match.start)}"]`,
         );
@@ -255,7 +258,9 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         });
         return;
       }
-      const word = globalThis.document.querySelector<HTMLElement>('.user-document-reader__word--current');
+      const word = globalThis.document.querySelector<HTMLElement>(
+        '.user-document-reader__word--current',
+      );
       word?.scrollIntoView({ behavior: 'auto', block: 'center' });
     });
   });
@@ -494,7 +499,9 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     fuzzy={findState().mode === 'similar'}
                     ranges={rangesForFindUnit(rangesByUnit(), current().id, findState().query)}
                     unitId={current().id}
-                    activeStart={activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined}
+                    activeStart={
+                      activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined
+                    }
                     matchClass="document-overlay-match"
                   />
                 </h1>
@@ -505,7 +512,9 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                         type="button"
                         class="document-overlay-action-button"
                         onClick={() => setMarkdownRaw((raw) => !raw)}
-                        icon={<AppGlyph name="file-text" class="document-overlay-action-button__icon" />}
+                        icon={
+                          <AppGlyph name="file-text" class="document-overlay-action-button__icon" />
+                        }
                       >
                         {markdownRaw() ? 'Preview' : 'Raw'}
                       </Button>
@@ -515,7 +524,9 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                       class="document-overlay-action-button"
                       aria-label="Распечатать документ"
                       onClick={printDocument}
-                      icon={<AppGlyph name="printer" class="document-overlay-action-button__icon" />}
+                      icon={
+                        <AppGlyph name="printer" class="document-overlay-action-button__icon" />
+                      }
                     >
                       Распечатать
                     </Button>
@@ -533,7 +544,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
                   const anchor = () => pageAnchorId(props.documentId, pageIndex);
                   return (
-                    <section id={anchor()} data-user-doc-anchor="" class="user-document-reader__page">
+                    <section
+                      id={anchor()}
+                      data-user-doc-anchor=""
+                      class="user-document-reader__page"
+                    >
                       <PinchZoomSurface
                         class="user-document-reader__page-pinch"
                         contentClass="user-document-reader__page-surface"
@@ -545,7 +560,9 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                           class="user-document-reader__canvas"
                           onError={(cause) => {
                             setLoadError(
-                              cause instanceof Error ? cause.message : 'Не удалось отобразить страницу PDF.',
+                              cause instanceof Error
+                                ? cause.message
+                                : 'Не удалось отобразить страницу PDF.',
                             );
                           }}
                         />
@@ -577,7 +594,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
               >
                 <Show when={imageUrl()}>
                   {(url) => (
-                    <img src={url()} class="user-document-reader__image" alt={meta()?.title ?? 'Изображение'} />
+                    <img
+                      src={url()}
+                      class="user-document-reader__image"
+                      alt={meta()?.title ?? 'Изображение'}
+                    />
                   )}
                 </Show>
                 <Show when={pageByIndex(0)?.words}>

@@ -7,13 +7,22 @@ export interface MarkdownOutlineItem {
 }
 
 type MarkdownBlock =
-  | { readonly kind: 'heading'; readonly depth: number; readonly text: string; readonly anchor: string }
+  | {
+      readonly kind: 'heading';
+      readonly depth: number;
+      readonly text: string;
+      readonly anchor: string;
+    }
   | { readonly kind: 'paragraph'; readonly text: string }
   | { readonly kind: 'blockquote'; readonly text: string }
   | { readonly kind: 'code'; readonly language: string; readonly text: string }
   | { readonly kind: 'math'; readonly text: string }
   | { readonly kind: 'list'; readonly ordered: boolean; readonly items: readonly string[] }
-  | { readonly kind: 'table'; readonly header: readonly string[]; readonly rows: readonly (readonly string[])[] }
+  | {
+      readonly kind: 'table';
+      readonly header: readonly string[];
+      readonly rows: readonly (readonly string[])[];
+    }
   | { readonly kind: 'hr' };
 
 export interface ParsedMarkdownDocument {
@@ -118,7 +127,11 @@ export function parseMarkdownDocument(markdown: string): ParsedMarkdownDocument 
       const header = splitTableRow(line);
       const rows: (readonly string[])[] = [];
       index += 2;
-      while (index < lines.length && (lines[index] ?? '').includes('|') && (lines[index] ?? '').trim()) {
+      while (
+        index < lines.length &&
+        (lines[index] ?? '').includes('|') &&
+        (lines[index] ?? '').trim()
+      ) {
         rows.push(splitTableRow(lines[index] ?? ''));
         index += 1;
       }
@@ -208,7 +221,8 @@ interface InlineToken {
 
 function tokenizeInline(value: string): readonly InlineToken[] {
   const tokens: InlineToken[] = [];
-  const pattern = /(!?\[([^\]]*)\]\(([^)]+)\)|`([^`]+)`|\$([^$\n]+)\$|\*\*([^*]+)\*\*|__([^_]+)__|(?<!\*)\*([^*]+)\*(?!\*)|(?<!_)_([^_]+)_(?!_))/gu;
+  const pattern =
+    /(!?\[([^\]]*)\]\(([^)]+)\)|`([^`]+)`|\$([^$\n]+)\$|\*\*([^*]+)\*\*|__([^_]+)__|(?<!\*)\*([^*]+)\*(?!\*)|(?<!_)_([^_]+)_(?!_))/gu;
   let cursor = 0;
   for (const match of value.matchAll(pattern)) {
     const at = match.index ?? 0;
@@ -243,7 +257,11 @@ function InlineMarkdown(props: { readonly text: string }): JSX.Element {
           if (token.kind === 'code') return <code>{token.text}</code>;
           if (token.kind === 'math') {
             return (
-              <span class="safe-markdown__math-inline" aria-label={`LaTeX: ${token.text}`}>
+              <span
+                class="safe-markdown__math-inline"
+                role="math"
+                aria-label={`LaTeX: ${token.text}`}
+              >
                 {token.text}
               </span>
             );
@@ -280,12 +298,41 @@ function InlineMarkdown(props: { readonly text: string }): JSX.Element {
 
 function Heading(props: Extract<MarkdownBlock, { kind: 'heading' }>): JSX.Element {
   const content = <InlineMarkdown text={props.text} />;
-  if (props.depth === 1) return <h1 id={props.anchor} data-user-doc-anchor="">{content}</h1>;
-  if (props.depth === 2) return <h2 id={props.anchor} data-user-doc-anchor="">{content}</h2>;
-  if (props.depth === 3) return <h3 id={props.anchor} data-user-doc-anchor="">{content}</h3>;
-  if (props.depth === 4) return <h4 id={props.anchor} data-user-doc-anchor="">{content}</h4>;
-  if (props.depth === 5) return <h5 id={props.anchor} data-user-doc-anchor="">{content}</h5>;
-  return <h6 id={props.anchor} data-user-doc-anchor="">{content}</h6>;
+  if (props.depth === 1)
+    return (
+      <h1 id={props.anchor} data-user-doc-anchor="">
+        {content}
+      </h1>
+    );
+  if (props.depth === 2)
+    return (
+      <h2 id={props.anchor} data-user-doc-anchor="">
+        {content}
+      </h2>
+    );
+  if (props.depth === 3)
+    return (
+      <h3 id={props.anchor} data-user-doc-anchor="">
+        {content}
+      </h3>
+    );
+  if (props.depth === 4)
+    return (
+      <h4 id={props.anchor} data-user-doc-anchor="">
+        {content}
+      </h4>
+    );
+  if (props.depth === 5)
+    return (
+      <h5 id={props.anchor} data-user-doc-anchor="">
+        {content}
+      </h5>
+    );
+  return (
+    <h6 id={props.anchor} data-user-doc-anchor="">
+      {content}
+    </h6>
+  );
 }
 
 export function SafeMarkdown(props: { readonly markdown: string }): JSX.Element {
@@ -305,7 +352,7 @@ export function SafeMarkdown(props: { readonly markdown: string }): JSX.Element 
           }
           if (block.kind === 'math') {
             return (
-              <pre class="safe-markdown__math" aria-label="Блок LaTeX">
+              <pre class="safe-markdown__math" role="math" aria-label="Блок LaTeX">
                 {block.text}
               </pre>
             );
@@ -320,11 +367,23 @@ export function SafeMarkdown(props: { readonly markdown: string }): JSX.Element 
           if (block.kind === 'list') {
             return block.ordered ? (
               <ol>
-                <For each={block.items}>{(item) => <li><InlineMarkdown text={item} /></li>}</For>
+                <For each={block.items}>
+                  {(item) => (
+                    <li>
+                      <InlineMarkdown text={item} />
+                    </li>
+                  )}
+                </For>
               </ol>
             ) : (
               <ul>
-                <For each={block.items}>{(item) => <li><InlineMarkdown text={item} /></li>}</For>
+                <For each={block.items}>
+                  {(item) => (
+                    <li>
+                      <InlineMarkdown text={item} />
+                    </li>
+                  )}
+                </For>
               </ul>
             );
           }
@@ -333,11 +392,29 @@ export function SafeMarkdown(props: { readonly markdown: string }): JSX.Element 
               <div class="safe-markdown__table-scroll">
                 <table>
                   <thead>
-                    <tr><For each={block.header}>{(cell) => <th><InlineMarkdown text={cell} /></th>}</For></tr>
+                    <tr>
+                      <For each={block.header}>
+                        {(cell) => (
+                          <th>
+                            <InlineMarkdown text={cell} />
+                          </th>
+                        )}
+                      </For>
+                    </tr>
                   </thead>
                   <tbody>
                     <For each={block.rows}>
-                      {(row) => <tr><For each={row}>{(cell) => <td><InlineMarkdown text={cell} /></td>}</For></tr>}
+                      {(row) => (
+                        <tr>
+                          <For each={row}>
+                            {(cell) => (
+                              <td>
+                                <InlineMarkdown text={cell} />
+                              </td>
+                            )}
+                          </For>
+                        </tr>
+                      )}
                     </For>
                   </tbody>
                 </table>

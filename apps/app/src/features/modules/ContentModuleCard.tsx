@@ -56,9 +56,7 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
     );
   const canInstall = (): boolean => moduleInstallable(props.module);
   const updateAvailable = (): boolean =>
-    Boolean(
-      props.installed && props.installed.version !== props.module.version && canInstall(),
-    );
+    Boolean(props.installed && props.installed.version !== props.module.version && canInstall());
   const installedLabel = (): boolean =>
     Boolean(props.installed || isPreinstalledCatalogModule(props.module, props.preinstallOptions));
   const sizeLabel = (): string =>

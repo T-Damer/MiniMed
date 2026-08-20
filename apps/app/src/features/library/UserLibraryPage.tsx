@@ -1,19 +1,8 @@
-import {
-  createMemo,
-  createSignal,
-  For,
-  type JSX,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
-import {
-  AppContextMenu,
-  type AppContextMenuAction,
-} from '@/components/AppContextMenu';
+import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -136,7 +125,9 @@ function UserLibraryPicker(props: {
           event.currentTarget.value = '';
         }}
       />
-      <span class="user-library-picker__plus" aria-hidden="true">+</span>
+      <span class="user-library-picker__plus" aria-hidden="true">
+        +
+      </span>
       <span class="user-library-picker__label">Загрузить документы</span>
     </label>
   );
@@ -345,9 +336,21 @@ export function UserLibraryPage(): JSX.Element {
             label: document.status === 'ocr' ? 'Распознать в приоритете' : 'Распознать текст',
             icon: 'file-text' as const,
             children: [
-              { id: 'ocr-fast', label: 'Быстро', onSelect: () => void requestOcr(document, 'fast') },
-              { id: 'ocr-balanced', label: 'Обычно', onSelect: () => void requestOcr(document, 'balanced') },
-              { id: 'ocr-quality', label: 'Качественно', onSelect: () => void requestOcr(document, 'quality') },
+              {
+                id: 'ocr-fast',
+                label: 'Быстро',
+                onSelect: () => void requestOcr(document, 'fast'),
+              },
+              {
+                id: 'ocr-balanced',
+                label: 'Обычно',
+                onSelect: () => void requestOcr(document, 'balanced'),
+              },
+              {
+                id: 'ocr-quality',
+                label: 'Качественно',
+                onSelect: () => void requestOcr(document, 'quality'),
+              },
             ],
           } satisfies AppContextMenuAction,
         ]
@@ -430,7 +433,9 @@ export function UserLibraryPage(): JSX.Element {
       <div class="user-library-page__title-row">
         <div>
           <h1 class="user-library-page__title">Ваши документы</h1>
-          <p class="user-library-page__kicker">Только на этом устройстве. Не официальный источник.</p>
+          <p class="user-library-page__kicker">
+            Только на этом устройстве. Не официальный источник.
+          </p>
         </div>
         <Button
           type="button"
@@ -484,8 +489,12 @@ export function UserLibraryPage(): JSX.Element {
             autofocus
             onInput={(event) => setFolderTitle(event.currentTarget.value)}
           />
-          <Button type="submit" variant="primary" disabled={!folderTitle().trim()}>Создать</Button>
-          <Button type="button" variant="quiet" onClick={() => setCreatingFolder(false)}>Отмена</Button>
+          <Button type="submit" variant="primary" disabled={!folderTitle().trim()}>
+            Создать
+          </Button>
+          <Button type="button" variant="quiet" onClick={() => setCreatingFolder(false)}>
+            Отмена
+          </Button>
         </form>
       </Show>
 
@@ -511,7 +520,9 @@ export function UserLibraryPage(): JSX.Element {
                     }
                   }}
                   onDrop={(event) => {
-                    const documentId = event.dataTransfer?.getData('application/x-minimed-document-id');
+                    const documentId = event.dataTransfer?.getData(
+                      'application/x-minimed-document-id',
+                    );
                     if (!documentId) return;
                     event.preventDefault();
                     void moveDocument(documentId, folder.id);
@@ -620,14 +631,21 @@ export function UserLibraryPage(): JSX.Element {
                             <Show when={libraryDocument.hasImages}>
                               <AppGlyph name="image" class="user-library-card__media-icon" />
                             </Show>
-                            <strong class="user-library-card__title">{libraryDocument.title}</strong>
+                            <strong class="user-library-card__title">
+                              {libraryDocument.title}
+                            </strong>
                           </span>
-                          <span class="user-library-card__file-name">{libraryDocument.fileName}</span>
+                          <span class="user-library-card__file-name">
+                            {libraryDocument.fileName}
+                          </span>
                           <span class="user-library-card__progress">
                             {statusLabel(libraryDocument, activeOcrId())}
                           </span>
                           <Show
-                            when={libraryDocument.status === 'inspecting' || libraryDocument.status === 'ocr'}
+                            when={
+                              libraryDocument.status === 'inspecting' ||
+                              libraryDocument.status === 'ocr'
+                            }
                           >
                             <progress
                               class="user-library-card__progress-bar"

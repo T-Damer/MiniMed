@@ -87,12 +87,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
   };
   const handlePointerMove = (event: PointerEvent): void => {
     if (!swipeMode) return;
-    const direction = swipe.move(
-      event.pointerId,
-      event.clientX,
-      event.clientY,
-      event.timeStamp,
-    );
+    const direction = swipe.move(event.pointerId, event.clientX, event.clientY, event.timeStamp);
     if (!direction) {
       if (!swipe.active()) swipeMode = undefined;
       return;

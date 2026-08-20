@@ -54,7 +54,9 @@ function AssessmentAttachedCard(props: {
               {(score) => (
                 <div class="note-result-card__value-row">
                   <span>{score.label}</span>
-                  <strong>{score.rawScore} / {score.maximumScore}</strong>
+                  <strong>
+                    {score.rawScore} / {score.maximumScore}
+                  </strong>
                   <small>{score.percent}%</small>
                 </div>
               )}
@@ -92,7 +94,8 @@ function CalculatorAttachedCard(props: {
   const [expanded, setExpanded] = createSignal(false);
   const [sourceOpen, setSourceOpen] = createSignal(false);
   const rich = () => props.result as RichNoteAttachedCalculatorResult;
-  const visibleOutputs = () => (expanded() ? props.result.outputs : props.result.outputs.slice(0, 2));
+  const visibleOutputs = () =>
+    expanded() ? props.result.outputs : props.result.outputs.slice(0, 2);
   const hasMore = () => props.result.outputs.length > 2 || props.result.warnings.length > 0;
   const sourceRecord = () => rich().recordSnapshot;
   const sourceSchema = () => rich().schemaSnapshot;
@@ -147,7 +150,9 @@ function CalculatorAttachedCard(props: {
                   {(schema) => (
                     <div class="note-result-card__source-row">
                       <span>Схема</span>
-                      <strong>v{schema().schemaVersion} · {schema().shortTitle}</strong>
+                      <strong>
+                        v{schema().schemaVersion} · {schema().shortTitle}
+                      </strong>
                     </div>
                   )}
                 </Show>
@@ -158,7 +163,9 @@ function CalculatorAttachedCard(props: {
                         <li>
                           <span>{step.label}</span>
                           <code>{step.expression}</code>
-                          <strong>{step.value} {step.unit}</strong>
+                          <strong>
+                            {step.value} {step.unit}
+                          </strong>
                         </li>
                       )}
                     </For>

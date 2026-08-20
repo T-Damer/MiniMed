@@ -28,12 +28,7 @@ export function useDocumentOutlineSwipe(options: {
   };
 
   const onPointerMove = (event: PointerEvent): void => {
-    const direction = gesture.move(
-      event.pointerId,
-      event.clientX,
-      event.clientY,
-      event.timeStamp,
-    );
+    const direction = gesture.move(event.pointerId, event.clientX, event.clientY, event.timeStamp);
     if (!direction) return;
     if (fromEdge && direction === 'right' && !options.outlineOpen()) {
       options.openOutline();
