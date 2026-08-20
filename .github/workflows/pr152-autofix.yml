@@ -1,8 +1,9 @@
 name: PR 152 autofix
 
 on:
-  push:
-    branches: [codex/minimed-reader-library-polish]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
 
 permissions:
   contents: write
@@ -13,6 +14,7 @@ concurrency:
 
 jobs:
   fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/minimed-reader-library-polish'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -64,6 +66,10 @@ jobs:
               '<div class="note-markdown-editor__preview" aria-label="Предпросмотр Markdown">',
               '<div class="note-markdown-editor__preview" role="region" aria-label="Предпросмотр Markdown">',
           )
+          text = text.replace(
+              "return value.replace(/[\\[\\]]/gu, '').trim();",
+              "return value.replaceAll('[', '').replaceAll(']', '').trim();",
+          )
           editor.write_text(text, encoding='utf-8')
 
           markdown = Path('apps/app/src/features/library/SafeMarkdown.tsx')
@@ -84,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           bun install --frozen-lockfile
-          bun run check:write || true
+          bunx biome check --write . || true
 
       - name: Commit fixes
         shell: bash
