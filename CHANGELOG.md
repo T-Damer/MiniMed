@@ -4,11 +4,35 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.30] - 2026-08-20
+
+### Added
+
+- Experimental module downloads can be enabled explicitly in Settings; preview medication,
+  calculator, and assessment packs remain hidden until enabled.
+- Personal library folders support move, rename, delete, drag-and-drop, and themed context menus.
+- Notes have a fullscreen Markdown/LaTeX editor with preview, images, autosave, and document mentions.
+- MiniMed icon pack v2 supplies Android adaptive, monochrome and legacy icons, the iOS icon, web
+  favicons, and PWA maskable icons from one hash-verified prepared pack.
+
+### Changed
+
+- Personal documents use sanitized Markdown preview, broader Office/book/image extraction, lazy PDF
+  page rendering, and one prioritized OCR queue.
+- Search history and document outline gestures share one horizontal gesture implementation; reader
+  outline transitions and end-of-document tracking are smoother.
+- Calculator inputs honor numeric metadata, while saved calculator and questionnaire results retain
+  compact schema snapshots and source links.
+
 ### Fixed
 
 - Browser sqlite-wasm no longer opens the local Allmed `medications.db` (~421 MB) on the shared
   main-thread heap. That pack runs in a dedicated OPFS worker; if it still hits SQLITE_NOMEM, boot
   continues without the drug catalog instead of failing the splash screen.
+- Update checks now distinguish production, DEV, latest-version, and visible in-progress states.
+- PDF.js loads local WASM/font/map assets, releases its loading tasks, bounds page memory, and avoids
+  parallel OCR/render spikes.
+- Document TOC swipes no longer jump the layout, and assessment subpage navigation is centered.
 
 ## [0.6.29] - 2026-08-19
 

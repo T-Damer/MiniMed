@@ -8,9 +8,13 @@ function assetUrl(path: string): string {
   return new URL(`pdfjs/${path}`, base).href;
 }
 
-export async function loadPdfJsDocument(blob: Blob): Promise<pdfjs.PDFDocumentProxy> {
+export type PdfDocumentProxy = pdfjs.PDFDocumentProxy & {
+  destroy(): Promise<void>;
+};
+
+export async function loadPdfJsDocument(blob: Blob): Promise<PdfDocumentProxy> {
   const data = await blob.arrayBuffer();
-  return await pdfjs.getDocument({
+  const loadingTask = pdfjs.getDocument({
     data,
     cMapUrl: assetUrl('cmaps/'),
     cMapPacked: true,
@@ -19,8 +23,9 @@ export async function loadPdfJsDocument(blob: Blob): Promise<pdfjs.PDFDocumentPr
     iccUrl: assetUrl('iccs/'),
     useWasm: true,
     useWorkerFetch: true,
-  }).promise;
+  });
+  const document = await loadingTask.promise;
+  return Object.assign(document, { destroy: () => loadingTask.destroy() });
 }
 
-export type PdfDocumentProxy = pdfjs.PDFDocumentProxy;
 export type PdfPageProxy = pdfjs.PDFPageProxy;

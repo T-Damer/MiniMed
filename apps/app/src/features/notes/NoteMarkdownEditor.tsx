@@ -238,7 +238,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
             </div>
           </Show>
         </div>
-        <div class="note-markdown-editor__preview" role="region" aria-label="Предпросмотр Markdown">
+        <section class="note-markdown-editor__preview" aria-label="Предпросмотр Markdown">
           <div class="note-markdown-editor__preview-heading">
             <span>Предпросмотр</span>
             <small>Markdown · LaTeX</small>
@@ -251,7 +251,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
           >
             <SafeMarkdown markdown={props.value} />
           </Show>
-        </div>
+        </section>
       </div>
     </section>
   );

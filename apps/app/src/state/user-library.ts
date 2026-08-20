@@ -709,7 +709,7 @@ export async function requestUserLibraryOcr(
       ocrNeededPages: Math.max(document.pageCount, pages.length),
       ocrDonePages: 0,
       nativeTextPages: 0,
-      errorMessage: undefined,
+      errorMessage: '',
     });
   } else {
     await patchUserLibraryDocument(id, { ocrPriority: priority, ocrQuality: quality });

@@ -75,10 +75,7 @@ function statusLabel(document: UserLibraryDocument, activeOcrId: string | null):
   return `Распознавание текста · ${done} / ${document.pageCount}`;
 }
 
-function folderDescendants(
-  folders: readonly UserLibraryFolder[],
-  folderId: string,
-): ReadonlySet<string> {
+function folderDescendants(folders: readonly UserLibraryFolder[], folderId: string): Set<string> {
   const result = new Set<string>();
   const queue = [folderId];
   while (queue.length > 0) {

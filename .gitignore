@@ -63,6 +63,9 @@ apps/app/dist/content/modules/
 # Tesseract traineddata downloaded locally for same-origin OCR (see apps/app/vite.config.ts)
 apps/app/public/tessdata/*.gz
 
+# PDF.js support files copied from the pinned package during Vite builds.
+apps/app/public/pdfjs/
+
 # Personal medical study library (12GB+, not app source)
 Med/
 

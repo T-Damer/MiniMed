@@ -1,8 +1,8 @@
 # Current state
 
-> Updated: 19 August 2026
-> Repository version: `0.6.29`
-> Active target: `0.6.29` public prerelease toward `1.0`
+> Updated: 20 August 2026
+> Repository version: `0.6.30`
+> Active target: `0.6.30` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -300,8 +300,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Device preferences in Settings persist vibration on/off (default on), remember-search-mode
   (default off), and zen-pack UI sound volume (default 20%; zero mutes and stops playback).
   The Settings heading keeps back and title on one row (no in-heading app icon). Android, iOS, and browser
-  favicons use the same mark; replace `branding/app-icon-source.png` and run `bun run icons:generate`
-  to rebuild every size. GitHub and Android APK links at the bottom of Settings use `--theme-link` in both themes.
+  favicons use the same mark; prepared packs are installed with `bun run icons:install <pack.zip>` and
+  verified with `bun run icons:check`. GitHub and Android APK links at the bottom of Settings use
+  `--theme-link` in both themes.
 - Haptics: Android uses `performHapticFeedback` via `LocalMedHaptics` (selection/light/medium/heavy);
   iOS uses Capacitor Haptics impact/selection; web does not call `navigator.vibrate`.
 - Zen-pack UI sounds go through one `UiSoundController`: cards, buttons, sliders, links, horizontal
