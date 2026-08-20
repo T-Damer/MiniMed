@@ -51,6 +51,8 @@ export const CalculatorInputSchema = z.object({
   options: z.array(CalculatorInputOptionSchema).optional(),
   minimum: z.number().optional(),
   maximum: z.number().optional(),
+  /** Native HTML number-input increment. Integer fields default to 1; other fields default to `any`. */
+  inputStep: z.number().positive().optional(),
   /** Reject non-integer values for a 'number' input (e.g. Bishop score sub-scores, whole weeks/days). */
   integer: z.boolean().optional(),
   required: z.boolean(),

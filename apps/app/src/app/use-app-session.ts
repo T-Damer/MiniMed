@@ -36,6 +36,13 @@ import { installUiFeedback } from '@/state/ui-feedback';
 import { ensureUserLibraryIngestRunning } from '@/state/user-library-ingest';
 
 const SLOW_BOOT_DELAY_MS = 10_000;
+const APP_UPDATE_MIN_CHECK_MS = 650;
+const APP_UPDATE_UP_TO_DATE_VISIBLE_MS = 2_800;
+
+function delay(ms: number): Promise<void> {
+  if (ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 export function useAppSession() {
   const isNativeShell = Capacitor.getPlatform() !== 'web';
@@ -49,6 +56,7 @@ export function useAppSession() {
   const [availableApk, setAvailableApk] = createSignal<AvailableApkUpdate>();
   const [appUpdating, setAppUpdating] = createSignal(false);
   const [appUpdateChecking, setAppUpdateChecking] = createSignal(false);
+  const [appUpdateUpToDate, setAppUpdateUpToDate] = createSignal(false);
   const [appUpdateProgress, setAppUpdateProgress] = createSignal<AppUpdateProgress>();
   const [appUpdateError, setAppUpdateError] = createSignal<string>();
   const modelController = createLocalModelController();
@@ -61,16 +69,33 @@ export function useAppSession() {
   let stopButtonHaptics: (() => void) | undefined;
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
+  let updateFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
 
   const handleAppUpdate = (event: Event): void => {
     setAppUpdateWorker((event as CustomEvent<AppUpdateReadyDetail>).detail.worker);
+    setAppUpdateUpToDate(false);
   };
 
   const describeUpdateError = (cause: unknown, fallback: string): string =>
     cause instanceof Error ? cause.message : fallback;
 
+  const showUpToDateFeedback = (): void => {
+    if (updateFeedbackTimer) clearTimeout(updateFeedbackTimer);
+    setAppUpdateUpToDate(true);
+    updateFeedbackTimer = setTimeout(() => {
+      updateFeedbackTimer = undefined;
+      setAppUpdateUpToDate(false);
+    }, APP_UPDATE_UP_TO_DATE_VISIBLE_MS);
+  };
+
   const checkAvailableUpdate = (): void => {
     if (appUpdateChecking() || appUpdating()) return;
+    const startedAt = performance.now();
+    if (updateFeedbackTimer) {
+      clearTimeout(updateFeedbackTimer);
+      updateFeedbackTimer = undefined;
+    }
+    setAppUpdateUpToDate(false);
     setAppUpdateChecking(true);
     setAppUpdateError();
     const pending =
@@ -81,16 +106,22 @@ export function useAppSession() {
           })
         : checkWebAppUpdate();
     void pending
+      .then((available) => {
+        if (!available && !appUpdateWorker() && !availableApk()) showUpToDateFeedback();
+      })
       .catch((cause: unknown) => {
+        setAppUpdateUpToDate(false);
         setAppUpdateError(describeUpdateError(cause, 'Не удалось проверить обновление.'));
       })
-      .finally(() => {
+      .finally(async () => {
+        await delay(APP_UPDATE_MIN_CHECK_MS - (performance.now() - startedAt));
         setAppUpdateChecking(false);
       });
   };
 
   const activateAvailableUpdate = (): void => {
     if (appUpdating()) return;
+    setAppUpdateUpToDate(false);
     setAppUpdating(true);
     setAppUpdateProgress(undefined);
     setAppUpdateError();
@@ -203,6 +234,7 @@ export function useAppSession() {
     window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     if (reminderTimer) clearInterval(reminderTimer);
     if (bootTimer) clearTimeout(bootTimer);
+    if (updateFeedbackTimer) clearTimeout(updateFeedbackTimer);
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     stopButtonHaptics?.();
@@ -227,6 +259,7 @@ export function useAppSession() {
       availableApk()?.version ?? appUpdateVersionFromWorker(appUpdateWorker()),
     appUpdating,
     appUpdateChecking,
+    appUpdateUpToDate,
     appUpdateProgress,
     appUpdateError,
     modelController,

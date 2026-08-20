@@ -6,13 +6,6 @@ import type {
 
 import type { OverviewDocumentCounts } from '@/features/modules/overview-document-counts';
 
-/** Catalog ids that ship as packaged companions and are already mounted at boot. */
-export const PACKAGED_COMPANION_MODULE_IDS: ReadonlySet<string> = new Set([
-  'minimed.core.ru',
-  'minimed.regulatory.pediatrics.ru',
-  'minimed.reference.pediatrics.ru',
-]);
-
 export const MEDICATIONS_COMPANION_MODULE_ID = 'minimed.medications.ru';
 
 /** Core ships eight registry summary cards without the Allmed medications companion. */
@@ -33,7 +26,7 @@ export function isPreinstalledCatalogModule(
   return (
     module.required ||
     module.releaseState === 'bundled' ||
-    PACKAGED_COMPANION_MODULE_IDS.has(module.id) ||
+    module.id === 'minimed.core.ru' ||
     (module.id === MEDICATIONS_COMPANION_MODULE_ID && options?.companionMedicationsMounted === true)
   );
 }

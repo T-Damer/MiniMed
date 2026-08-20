@@ -1,0 +1,185 @@
+{
+  "name": "MiniMed",
+  "version": 2,
+  "concept": "Leather medical records folder with clearly visible documents and medical cross",
+  "sources": {
+    "detailed": "source/detailed-master-transparent-1536.png",
+    "monochromeReference": "source/monochrome-reference.png"
+  },
+  "palette": {
+    "leather": "#2f4638",
+    "leatherDark": "#223329",
+    "accent": "#405b4e",
+    "paper": "#f3ecd9",
+    "paperRaised": "#fbf7ea",
+    "border": "#cbc0a7",
+    "medicalCross": "#87453c"
+  },
+  "android": {
+    "adaptive": {
+      "foregroundMaster": "android/adaptive/foreground-1080.png",
+      "backgroundMaster": "android/adaptive/background-1080.png",
+      "monochromeMaster": "android/adaptive/monochrome-1080.png",
+      "monochromePreview": "android/adaptive/monochrome-preview-1080.png",
+      "squirclePreview": "android/adaptive/preview-squircle-1080.png",
+      "circlePreview": "android/adaptive/preview-circle-1080.png",
+      "note": "Foreground carries the detailed folder; background is full-bleed leather green. Monochrome uses the simplified folder silhouette with document outlines and a negative-space cross.",
+      "densities": {
+        "mdpi": {
+          "sizePx": 108,
+          "foreground": "android/adaptive/mdpi/ic_launcher_foreground.png",
+          "background": "android/adaptive/mdpi/ic_launcher_background.png",
+          "monochrome": "android/adaptive/mdpi/ic_launcher_monochrome.png"
+        },
+        "hdpi": {
+          "sizePx": 162,
+          "foreground": "android/adaptive/hdpi/ic_launcher_foreground.png",
+          "background": "android/adaptive/hdpi/ic_launcher_background.png",
+          "monochrome": "android/adaptive/hdpi/ic_launcher_monochrome.png"
+        },
+        "xhdpi": {
+          "sizePx": 216,
+          "foreground": "android/adaptive/xhdpi/ic_launcher_foreground.png",
+          "background": "android/adaptive/xhdpi/ic_launcher_background.png",
+          "monochrome": "android/adaptive/xhdpi/ic_launcher_monochrome.png"
+        },
+        "xxhdpi": {
+          "sizePx": 324,
+          "foreground": "android/adaptive/xxhdpi/ic_launcher_foreground.png",
+          "background": "android/adaptive/xxhdpi/ic_launcher_background.png",
+          "monochrome": "android/adaptive/xxhdpi/ic_launcher_monochrome.png"
+        },
+        "xxxhdpi": {
+          "sizePx": 432,
+          "foreground": "android/adaptive/xxxhdpi/ic_launcher_foreground.png",
+          "background": "android/adaptive/xxxhdpi/ic_launcher_background.png",
+          "monochrome": "android/adaptive/xxxhdpi/ic_launcher_monochrome.png"
+        }
+      }
+    },
+    "legacy": {
+      "playStore": "android/legacy/play-store-512.png",
+      "densities": {
+        "mdpi": {
+          "sizePx": 48,
+          "square": "android/legacy/mdpi/ic_launcher.png",
+          "round": "android/legacy/mdpi/ic_launcher_round.png"
+        },
+        "hdpi": {
+          "sizePx": 72,
+          "square": "android/legacy/hdpi/ic_launcher.png",
+          "round": "android/legacy/hdpi/ic_launcher_round.png"
+        },
+        "xhdpi": {
+          "sizePx": 96,
+          "square": "android/legacy/xhdpi/ic_launcher.png",
+          "round": "android/legacy/xhdpi/ic_launcher_round.png"
+        },
+        "xxhdpi": {
+          "sizePx": 144,
+          "square": "android/legacy/xxhdpi/ic_launcher.png",
+          "round": "android/legacy/xxhdpi/ic_launcher_round.png"
+        },
+        "xxxhdpi": {
+          "sizePx": 192,
+          "square": "android/legacy/xxxhdpi/ic_launcher.png",
+          "round": "android/legacy/xxxhdpi/ic_launcher_round.png"
+        }
+      }
+    }
+  },
+  "web": {
+    "favicon": {
+      "master": "web/favicon-master-512.png",
+      "ico": "web/favicon.ico",
+      "png": {
+        "16": "web/favicon-16.png",
+        "32": "web/favicon-32.png",
+        "48": "web/favicon-48.png",
+        "64": "web/favicon-64.png",
+        "128": "web/favicon-128.png",
+        "256": "web/favicon-256.png"
+      }
+    },
+    "pwa": [
+      {
+        "src": "web/icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "web/icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "web/maskable-192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "maskable"
+      },
+      {
+        "src": "web/maskable-512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
+      }
+    ]
+  },
+  "ios": {
+    "appIcon": "ios/AppIcon-1024.png",
+    "sizePx": 1024,
+    "opaque": true
+  },
+  "sha256": {
+    "android/adaptive/background-1080.png": "d35a812b2077e64c5f3402b4b77a1e5ec89a69fa0149b32fdac54e6a4bd1c5c5",
+    "android/adaptive/foreground-1080.png": "37c92af41d948a1e3ba976929dd44b6f5ed1148b1f349cbae17083ecf383bffe",
+    "android/adaptive/hdpi/ic_launcher_background.png": "ffb4111be2b32abcb052aef9ac3248d0de0808767258bf14162eb28f7643f4d0",
+    "android/adaptive/hdpi/ic_launcher_foreground.png": "404919cf62617c25938ab3e4e10cbb22ffec2a64c783073dfd719e32078acd83",
+    "android/adaptive/hdpi/ic_launcher_monochrome.png": "abc57da30bedd39ca0c16831997b78d2a84d6682e17d717729d48b69b9b5c12e",
+    "android/adaptive/mdpi/ic_launcher_background.png": "c3445a202793553593ced5ea2be6782b6e373fcddab761d92a538c3c828a3087",
+    "android/adaptive/mdpi/ic_launcher_foreground.png": "94d3e2ca4a84fa5fd257abd1dd920225c57cac081776f20f72b77cf4e8de12c8",
+    "android/adaptive/mdpi/ic_launcher_monochrome.png": "659a16b9a1289ecd217900a10cbf996212e24855d52c2e35228bb7ace24398cb",
+    "android/adaptive/monochrome-1080.png": "24c6ce905c77a25ac5eedc372b4749723fc55f58dad4f5e641f87c1282c03d6f",
+    "android/adaptive/monochrome-preview-1080.png": "4b0132c40aedf0723e08fdc679edec239a25eb6a5f82b4b862e1b6cb574d5933",
+    "android/adaptive/preview-circle-1080.png": "8731719b519b9d899e6248b9c84ee469b44bcf2dc5e9513a8ceaea93ac5607e7",
+    "android/adaptive/preview-squircle-1080.png": "2d61d0d26e7471f803e5be0cc468f73421d1814948c98f9af22ac9d855d3cab6",
+    "android/adaptive/xhdpi/ic_launcher_background.png": "f3ac235cdc76e4ed0760d31f2fc89949adc87130d76da01dbd05c8501905666a",
+    "android/adaptive/xhdpi/ic_launcher_foreground.png": "4ff5c2ac07f4718d1df58f05430c08490f6427445abb3d629e603c16bf169876",
+    "android/adaptive/xhdpi/ic_launcher_monochrome.png": "64189d9bc7c577418f0651b80dfbc6b99c2b2903a0582214d31a834d25ed0fd4",
+    "android/adaptive/xxhdpi/ic_launcher_background.png": "92ea5be3301e72dc41cd2f5766170c36ad44f3e4fc1eacce72599636500fcb59",
+    "android/adaptive/xxhdpi/ic_launcher_foreground.png": "00fe51e247e94b7b0fb62ad7170c07905b416ab2570c3b501a5b963551ff0559",
+    "android/adaptive/xxhdpi/ic_launcher_monochrome.png": "44fa132dcd31186fa6a4850d5472b3595ad917e73093b29dfd5b08256d8d8b8a",
+    "android/adaptive/xxxhdpi/ic_launcher_background.png": "35c8bcdd9af479f0f141c8ade565b7f716ff4262a8483c7cc48a6317b9e8c1b8",
+    "android/adaptive/xxxhdpi/ic_launcher_foreground.png": "8c113733dd53c46e13122a30647e6df0c135bc03156d2de5cdd2db1191ef8a00",
+    "android/adaptive/xxxhdpi/ic_launcher_monochrome.png": "64c890e8a62d593f04247bc138ddbe5efd7017c97d767a729598976e2c4802fc",
+    "android/legacy/hdpi/ic_launcher.png": "eb36dfbe6a78883dcc669cd7555db55f0408061452fee37fca62ed1b9d439630",
+    "android/legacy/hdpi/ic_launcher_round.png": "9f62f0db206310f92b78a1b41381110e5e0c612c42f25201047abd736c92b2d6",
+    "android/legacy/mdpi/ic_launcher.png": "8adba6762eb824856826a59d889b3a136f6dbcb753cbd288547f388bbf7c7411",
+    "android/legacy/mdpi/ic_launcher_round.png": "1ca81d2ad76e0dd41c1e508bd4d37dfa52d9864da135b78a0cff5ed3296dc2fe",
+    "android/legacy/play-store-512.png": "cff2535f9a517d6e3c6d0cc4bfac1035cc3fb039627f40b0595368f7fbc7a2a8",
+    "android/legacy/xhdpi/ic_launcher.png": "d4e114492cd43c24e9155ef0cb722a052de8b35b077694f30c8b0f8710b16284",
+    "android/legacy/xhdpi/ic_launcher_round.png": "7157cf4f66384675c0508839997225a421caccb5ae17427c624fb7f3d4c03722",
+    "android/legacy/xxhdpi/ic_launcher.png": "0a66f1d3722b4a8c3a58de0f933ae43b65fc4fadcf96d215a62af79b72c23c2e",
+    "android/legacy/xxhdpi/ic_launcher_round.png": "a99e68aca0c6c6654df2200026e1707f1f8851b002446f5357196fd77fe5df79",
+    "android/legacy/xxxhdpi/ic_launcher.png": "39236154ae9275f68ebb8f8b225e35c5c4b895c78212ee27f9e9a46585dbf6e3",
+    "android/legacy/xxxhdpi/ic_launcher_round.png": "cd2b650802261885aeae1eff40c08553fa26b9ad7b1da9c103bd87a6fe8018de",
+    "ios/AppIcon-1024.png": "933bddd16fabb8d46586ddedca0db05e11de181c32748d96b1b950852f97940d",
+    "source/detailed-master-transparent-1536.png": "27678385bc9af2d16e259fae482e6f0a68fae6144db878d2f494a472fa66a965",
+    "source/monochrome-reference.png": "26479d6e9dd1efbf814d173c145d0aeab1f72f906f034bee6b40ca83d90ca9d5",
+    "web/favicon-128.png": "7008d0c8f071ac8b284e68bd77ccd97e4ffd984e2ca5a207a508f950259f0b8f",
+    "web/favicon-16.png": "bdf073f31b4a5b79f10acfeda1f7ea5b2fae8f87ca375046ef76d13c0939a289",
+    "web/favicon-256.png": "6d271a25b0ea1d100c5f08cec68c1115ee4097d40e22df805821eb668b49b3f3",
+    "web/favicon-32.png": "c4d513f671951c0ee3f4407d098eb016164fe039d422b31281ff48d0effb4695",
+    "web/favicon-48.png": "547a626b7ebd960bca782a5e64dc627271d6c2a8f932b72616e707fb5adc9762",
+    "web/favicon-64.png": "e43ec32622440dad5a09a828f276afb0824b20d4ad89083fb7a647ce3204ff0e",
+    "web/favicon-master-512.png": "1caa59fbecf580b0a3c76bd047774f910319788c2f26f03f565380e6870e1e95",
+    "web/favicon.ico": "bd15ccc56d526c39c199f7570704f01c85b6de94f6c4ff954783a473d1f7df46",
+    "web/icon-192.png": "675ef4778d943fde38969fdb97fa9b333ffacc716e653daccfbcafcc67e97c4c",
+    "web/icon-512.png": "1caa59fbecf580b0a3c76bd047774f910319788c2f26f03f565380e6870e1e95",
+    "web/maskable-192.png": "caf1f0d1ba8a5f83436712c9d091340712169c071e335e0f754ec11c3c130090",
+    "web/maskable-512.png": "ac8d65087fb0eef1b696a713d879e589f46a3c21851760b96ec7187593742466"
+  }
+}

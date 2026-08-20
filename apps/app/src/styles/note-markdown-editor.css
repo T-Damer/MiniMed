@@ -1,0 +1,199 @@
+.note-markdown-editor {
+  position: relative;
+  min-width: 0;
+}
+
+.note-markdown-editor__workspace {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.note-markdown-editor__field {
+  position: relative;
+  min-width: 0;
+}
+
+.note-markdown-editor__textarea {
+  display: block;
+  width: 100%;
+  min-height: 10rem;
+  resize: vertical;
+  padding: 0.875rem 3.5rem 0.875rem 0.875rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.35rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.note-markdown-editor__toolbar {
+  position: absolute;
+  z-index: var(--z-raised-2);
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  width: 2.25rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--theme-surface-raised) 94%, transparent);
+  box-shadow: 0 0.35rem 1rem rgb(32 30 25 / 12%);
+  backdrop-filter: blur(0.35rem);
+}
+
+.note-markdown-editor__toolbar button {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  color: var(--theme-text-muted);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.note-markdown-editor__toolbar button:hover,
+.note-markdown-editor__toolbar button:focus-visible {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.note-markdown-editor__toolbar .app-glyph {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.note-markdown-editor__mentions {
+  position: absolute;
+  z-index: var(--z-overlay);
+  right: 3.25rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.45rem;
+  background: var(--theme-surface-raised);
+  box-shadow: 0 0.75rem 2rem rgb(29 27 22 / 22%);
+}
+
+.note-markdown-editor__mentions button {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--theme-border);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  text-align: left;
+}
+
+.note-markdown-editor__mentions button:last-child {
+  border-bottom: 0;
+}
+
+.note-markdown-editor__mentions button:hover,
+.note-markdown-editor__mentions button:focus-visible {
+  background: var(--theme-accent-soft);
+}
+
+.note-markdown-editor__mentions span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-markdown-editor__mentions small {
+  color: var(--theme-accent);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.note-markdown-editor__preview {
+  min-width: 0;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.35rem;
+  background: var(--theme-surface);
+}
+
+.note-markdown-editor__preview-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--theme-border);
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.note-markdown-editor__preview-heading small {
+  font-size: inherit;
+}
+
+.note-markdown-editor__preview-empty {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.note-markdown-editor--fullscreen {
+  position: fixed;
+  z-index: var(--z-modal);
+  inset: 0;
+  overflow: auto;
+  padding: max(1rem, var(--safe-top)) max(1rem, var(--safe-right)) max(1rem, var(--safe-bottom))
+    max(1rem, var(--safe-left));
+  background: var(--theme-background);
+}
+
+.note-markdown-editor--fullscreen .note-markdown-editor__workspace {
+  width: min(90rem, 100%);
+  min-height: calc(100dvh - 2rem);
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.9fr);
+  align-items: stretch;
+}
+
+.note-markdown-editor--fullscreen .note-markdown-editor__field,
+.note-markdown-editor--fullscreen .note-markdown-editor__preview {
+  min-height: 0;
+}
+
+.note-markdown-editor--fullscreen .note-markdown-editor__textarea {
+  height: 100%;
+  min-height: calc(100dvh - 2rem);
+  resize: none;
+}
+
+.note-markdown-editor--fullscreen .note-markdown-editor__preview {
+  overflow: auto;
+}
+
+@media (max-width: 52rem) {
+  .note-markdown-editor--fullscreen .note-markdown-editor__workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .note-markdown-editor--fullscreen .note-markdown-editor__textarea {
+    min-height: 45dvh;
+  }
+}

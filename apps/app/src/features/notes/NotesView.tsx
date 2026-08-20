@@ -19,6 +19,7 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { NoteAttachedResults } from '@/features/notes/NoteAttachedResults';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
+import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import {
@@ -909,8 +910,7 @@ export function NotesView(props: {
                       />
                     )}
                   </Show>
-                  <NoteTextArea
-                    name="text"
+                  <NoteMarkdownEditor
                     label={editing() ? 'Текст записи' : `Новая заметка для ${card().title}`}
                     value={
                       viewingPreviousRevision()
@@ -918,6 +918,8 @@ export function NotesView(props: {
                         : noteDraft()
                     }
                     onChange={setNoteDraft}
+                    documents={documents()}
+                    priorityDocumentIds={note()?.relatedDocumentIds ?? []}
                     placeholder="Осмотр, назначение, динамика"
                     disabled={viewingPreviousRevision()}
                   />

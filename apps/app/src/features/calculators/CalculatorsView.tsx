@@ -579,7 +579,11 @@ function CalculatorForm(props: {
                       when={input.kind === 'date'}
                       fallback={
                         <input
-                          inputmode="decimal"
+                          type="number"
+                          inputmode={input.integer ? 'numeric' : 'decimal'}
+                          min={input.minimum}
+                          max={input.maximum}
+                          step={input.inputStep ?? (input.integer ? 1 : 'any')}
                           value={schemaValues()[input.id] ?? ''}
                           onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
                         />
@@ -888,25 +892,31 @@ export function CalculatorsView(): JSX.Element {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
     setRoute(next);
-    void refreshDownloadedTools();
   };
   const refreshInstallation = (): void => {
     setInstallation(loadCalculatorInstallationState(calculatorRegistry()));
   };
-  const refreshDownloadedTools = async (): Promise<void> => {
-    const runtime = getContentModuleRuntime(MODULE_CATALOG);
-    await runtime.whenLocalPackagedModulesReady();
-    const definitions = await runtime.listInstalledToolDefinitions();
-    clearDownloadedCalculators();
-    definitions.forEach(registerDownloadedCalculator);
-    const next = getCalculatorRegistry();
-    setCalculatorRegistry(next);
-    setDatabaseCalculatorIds(
-      definitions
-        .filter((definition) => definition.kind === 'calculator')
-        .map((definition) => definition.id),
-    );
-    setInstallation(loadCalculatorInstallationState(next));
+  let downloadedToolsRefresh: Promise<void> | undefined;
+  const refreshDownloadedTools = (): Promise<void> => {
+    if (downloadedToolsRefresh) return downloadedToolsRefresh;
+    downloadedToolsRefresh = (async () => {
+      const runtime = getContentModuleRuntime(MODULE_CATALOG);
+      await runtime.whenLocalPackagedModulesReady();
+      const definitions = await runtime.listInstalledToolDefinitions();
+      clearDownloadedCalculators();
+      definitions.forEach(registerDownloadedCalculator);
+      const next = getCalculatorRegistry();
+      setCalculatorRegistry(next);
+      setDatabaseCalculatorIds(
+        definitions
+          .filter((definition) => definition.kind === 'calculator')
+          .map((definition) => definition.id),
+      );
+      setInstallation(loadCalculatorInstallationState(next));
+    })().finally(() => {
+      downloadedToolsRefresh = undefined;
+    });
+    return downloadedToolsRefresh;
   };
   let unsubscribeToolTasks: (() => void) | undefined;
   const handleStorage = (event: StorageEvent): void => {
@@ -935,14 +945,20 @@ export function CalculatorsView(): JSX.Element {
     if (parts[1] !== 'section') return undefined;
     return CALCULATOR_SECTIONS.find((section) => section.id === parts[2]);
   });
-  const routeDefinition = createMemo(() => (slug() ? findCalculator(slug()) : undefined));
+  const routeDefinition = createMemo(() => {
+    calculatorRegistry();
+    return slug() ? findCalculator(slug()) : undefined;
+  });
   const selected = createMemo<AvailableCalculatorDefinition | undefined>(() => {
     const definition = routeDefinition();
     return definition?.state === 'available' && installation().installedIds.has(definition.id)
       ? definition
       : undefined;
   });
-  const filtered = createMemo(() => searchCalculators(query()));
+  const filtered = createMemo(() => {
+    calculatorRegistry();
+    return searchCalculators(query());
+  });
 
   const openCalculator = (definition: AvailableCalculatorDefinition): void => {
     setActiveRecord(undefined);

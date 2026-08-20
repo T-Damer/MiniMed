@@ -64,6 +64,7 @@ describe('app-preferences', () => {
       rememberSearchMode: false,
       soundVolume: 0.2,
       bookReadingMode: false,
+      experimentalModulesEnabled: false,
     });
   });
 
@@ -74,6 +75,7 @@ describe('app-preferences', () => {
         vibrationEnabled: 'yes',
         rememberSearchMode: false,
         soundVolume: 2,
+        experimentalModulesEnabled: 'yes',
       }),
     );
     expect(loadAppPreferences()).toEqual({
@@ -81,6 +83,7 @@ describe('app-preferences', () => {
       rememberSearchMode: false,
       soundVolume: 1,
       bookReadingMode: false,
+      experimentalModulesEnabled: false,
     });
   });
 

@@ -76,7 +76,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await expect(card.getByRole('button', { name: 'Скачать' })).toBeVisible();
   await card.getByRole('button', { name: 'Скачать' }).click();
   await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
-  await expect(card).toContainText('На устройстве');
 
   await navigationButton(page, 'Поиск').click();
   const legalScope = page.getByRole('radio', { name: /Правовые документы/u });
@@ -158,6 +157,7 @@ test('shows the real download state and resumes automatically when the network r
 
   downloadAvailable = true;
   await context.setOffline(false);
-  await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
-  await expect(manager).toHaveCount(0);
+  await expect(manager).toContainText('Тут будут ваши загрузки', { timeout: 30_000 });
+  await navigationButton(page, 'База знаний').click();
+  await expect(regulatoryCard(page).locator('.module-state')).toHaveText('Установлено');
 });

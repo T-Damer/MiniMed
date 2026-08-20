@@ -190,6 +190,6 @@ describe('user-library storage', () => {
 
     await expect(
       addUserLibraryFile(new File(['MZ'], 'virus.exe', { type: 'application/octet-stream' })),
-    ).rejects.toThrow('Поддерживаются PDF, текст, Office, книги (EPUB/FB2) и изображения.');
+    ).rejects.toThrow('Поддерживаются PDF, Markdown, Office, RTF, Pages, книги и изображения.');
   });
 });

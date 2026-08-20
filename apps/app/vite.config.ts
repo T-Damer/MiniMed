@@ -1,10 +1,21 @@
-import { createWriteStream, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
+import {
+  copyFileSync,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  statSync,
+} from 'node:fs';
 import { get } from 'node:https';
-import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
 import { defineConfig, type Plugin } from 'vite';
 import solid from 'vite-plugin-solid';
+
+const require = createRequire(import.meta.url);
 
 const releaseProxy = {
   target: 'https://github.com',
@@ -24,6 +35,7 @@ const LARGE_COMPANION_PATHS = [
 const TESSDATA_LANGS = ['eng', 'rus'] as const;
 const TESSDATA_VERSION = '4.0.0';
 const TESSDATA_BASE = `https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/${TESSDATA_VERSION}/`;
+const PDFJS_STATIC_DIRECTORIES = ['wasm', 'standard_fonts', 'cmaps', 'iccs'] as const;
 
 function downloadFile(url: string, destination: string): Promise<void> {
   if (existsSync(destination)) return Promise.resolve();
@@ -69,6 +81,31 @@ function ensureTessdataAssets(): Plugin {
   };
 }
 
+function copyDirectoryFiles(sourceDir: string, targetDir: string): void {
+  mkdirSync(targetDir, { recursive: true });
+  for (const name of readdirSync(sourceDir)) {
+    const source = join(sourceDir, name);
+    if (!statSync(source).isFile()) continue;
+    copyFileSync(source, join(targetDir, name));
+  }
+}
+
+function ensurePdfJsAssets(): Plugin {
+  const pdfBuildFile = require.resolve('pdfjs-dist/build/pdf.mjs');
+  const pdfRoot = join(dirname(pdfBuildFile), '..');
+  const publicPdfRoot = fileURLToPath(new URL('./public/pdfjs', import.meta.url));
+  return {
+    name: 'ensure-pdfjs-assets',
+    buildStart() {
+      for (const directory of PDFJS_STATIC_DIRECTORIES) {
+        const sourceDir = join(pdfRoot, directory);
+        if (!existsSync(sourceDir)) continue;
+        copyDirectoryFiles(sourceDir, join(publicPdfRoot, directory));
+      }
+    },
+  };
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -93,7 +130,7 @@ function excludeOptionalPublicAssets(): Plugin {
 
 export default defineConfig({
   base: './',
-  plugins: [solid(), ensureTessdataAssets(), excludeOptionalPublicAssets()],
+  plugins: [solid(), ensureTessdataAssets(), ensurePdfJsAssets(), excludeOptionalPublicAssets()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

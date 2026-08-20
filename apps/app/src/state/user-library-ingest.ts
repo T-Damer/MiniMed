@@ -1,8 +1,7 @@
-import * as pdfjs from 'pdfjs-dist';
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { createWorker, type Worker } from 'tesseract.js';
 import workerPath from 'tesseract.js/dist/worker.min.js?url';
 import corePath from 'tesseract.js-core/tesseract-core-lstm.wasm.js?url';
+import { loadPdfJsDocument, type PdfPageProxy } from '@/state/pdfjs-document';
 import {
   findNextPendingOcrPage,
   getUserLibraryDocument,
@@ -14,16 +13,14 @@ import {
   patchUserLibraryDocument,
   putUserLibraryPage,
   type UserLibraryDocument,
+  type UserLibraryOcrQuality,
   type UserLibraryPage,
   type UserLibraryWordBox,
 } from '@/state/user-library';
-import { extractUserLibraryText } from '@/state/user-library-formats';
+import { extractUserLibraryText, userLibraryArchiveHasImages } from '@/state/user-library-formats';
 import { pageHasEnoughNativeText } from '@/state/user-library-ingest-helpers';
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
-
 const TEXT_CHUNK_SIZE = 1200;
-const OCR_RENDER_SCALE = 1.2;
 const OCR_PAGE_DELAY_MS = 600;
 const OCR_WORKER_INIT_TIMEOUT_MS = 20_000;
 const OCR_WORKER_INIT_MAX_ATTEMPTS = 2;
@@ -34,9 +31,13 @@ let ingestLoopRunning = false;
 let ocrWorker: Worker | undefined;
 let ocrWorkerInitAttempts = 0;
 
-function splitTextIntoPages(text: string): readonly string[] {
+function splitTextIntoPages(text: string, mimeType: string): readonly string[] {
   const normalized = text.replace(/\r\n/gu, '\n');
   if (!normalized.trim()) return [''];
+  // Markdown structure must survive ingestion so headings, lists and fenced blocks can be rendered
+  // and indexed consistently. Keep Markdown as one logical page instead of cutting syntax at an
+  // arbitrary character boundary.
+  if (mimeType === 'text/markdown') return [normalized];
   const pages: string[] = [];
   let offset = 0;
   while (offset < normalized.length) {
@@ -98,9 +99,7 @@ function multiplyMatrix(a: readonly number[], b: readonly number[]): readonly nu
 }
 
 async function yieldToEventLoop(): Promise<void> {
-  await new Promise<void>((resolve) => {
-    window.setTimeout(resolve, 0);
-  });
+  await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
 }
 
 async function withTimeout<T>(task: Promise<T>, timeoutMs: number, label: string): Promise<T> {
@@ -121,9 +120,7 @@ async function withTimeout<T>(task: Promise<T>, timeoutMs: number, label: string
 }
 
 async function waitForIdle(): Promise<void> {
-  await new Promise<void>((resolve) => {
-    window.setTimeout(resolve, OCR_PAGE_DELAY_MS);
-  });
+  await new Promise<void>((resolve) => window.setTimeout(resolve, OCR_PAGE_DELAY_MS));
   if ('requestIdleCallback' in window) {
     await new Promise<void>((resolve) => {
       window.requestIdleCallback(() => resolve(), { timeout: OCR_PAGE_DELAY_MS });
@@ -144,13 +141,8 @@ async function waitWhileHidden(): Promise<void> {
   });
 }
 
-async function loadPdfDocument(blob: Blob): Promise<pdfjs.PDFDocumentProxy> {
-  const data = await blob.arrayBuffer();
-  return pdfjs.getDocument({ data }).promise;
-}
-
 async function extractPdfPageContent(
-  page: pdfjs.PDFPageProxy,
+  page: PdfPageProxy,
 ): Promise<{ readonly text: string; readonly words?: readonly UserLibraryWordBox[] }> {
   const textContent = await page.getTextContent();
   const viewport = page.getViewport({ scale: 1 });
@@ -182,13 +174,20 @@ async function extractPdfPageContent(
   return words ? { text, words } : { text };
 }
 
+function ocrRenderScale(quality: UserLibraryOcrQuality | undefined): number {
+  if (quality === 'fast') return 0.9;
+  if (quality === 'quality') return 1.55;
+  return 1.2;
+}
+
 async function renderPdfPageForOcr(
-  page: pdfjs.PDFPageProxy,
+  page: PdfPageProxy,
+  quality: UserLibraryOcrQuality | undefined,
 ): Promise<{ readonly canvas: HTMLCanvasElement; width: number; height: number }> {
-  const viewport = page.getViewport({ scale: OCR_RENDER_SCALE });
+  const viewport = page.getViewport({ scale: ocrRenderScale(quality) });
   const canvas = document.createElement('canvas');
-  canvas.width = Math.floor(viewport.width);
-  canvas.height = Math.floor(viewport.height);
+  canvas.width = Math.max(1, Math.floor(viewport.width));
+  canvas.height = Math.max(1, Math.floor(viewport.height));
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Не удалось подготовить страницу для распознавания.');
   await page.render({ canvasContext: context, viewport, canvas }).promise;
@@ -197,6 +196,7 @@ async function renderPdfPageForOcr(
 
 async function renderImageForOcr(
   blob: Blob,
+  quality: UserLibraryOcrQuality | undefined,
 ): Promise<{ readonly canvas: HTMLCanvasElement; width: number; height: number }> {
   const url = URL.createObjectURL(blob);
   try {
@@ -206,12 +206,13 @@ async function renderImageForOcr(
       element.onerror = () => reject(new Error('Не удалось загрузить изображение.'));
       element.src = url;
     });
+    const scale = quality === 'fast' ? 0.75 : quality === 'quality' ? 1 : 0.9;
     const canvas = document.createElement('canvas');
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
+    canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Не удалось подготовить изображение для распознавания.');
-    context.drawImage(image, 0, 0);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
     return { canvas, width: canvas.width, height: canvas.height };
   } finally {
     URL.revokeObjectURL(url);
@@ -303,7 +304,8 @@ export async function processNewDocument(documentId: string): Promise<void> {
   if (isUserLibraryTextLikeMime(meta.mimeType)) {
     const data = await blob.arrayBuffer();
     const text = await extractUserLibraryText(meta.fileName, meta.mimeType, data);
-    const chunks = splitTextIntoPages(text);
+    const chunks = splitTextIntoPages(text, meta.mimeType);
+    const hasImages = await userLibraryArchiveHasImages(meta.fileName, meta.mimeType, data);
     for (let pageIndex = 0; pageIndex < chunks.length; pageIndex += 1) {
       await putUserLibraryPage({
         documentId,
@@ -318,6 +320,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
       nativeTextPages: chunks.length,
       ocrDonePages: 0,
       ocrNeededPages: 0,
+      hasImages,
       status: 'ready',
     });
     ensureUserLibraryIngestRunning();
@@ -325,56 +328,55 @@ export async function processNewDocument(documentId: string): Promise<void> {
   }
 
   if (isUserLibraryImageMime(meta.mimeType)) {
-    await putUserLibraryPage({
-      documentId,
-      pageIndex: 0,
-      kind: 'pending',
-      text: '',
-    });
+    await putUserLibraryPage({ documentId, pageIndex: 0, kind: 'pending', text: '' });
     await patchUserLibraryDocument(documentId, {
       pageCount: 1,
       nativeTextPages: 0,
       ocrNeededPages: 1,
       ocrDonePages: 0,
+      hasImages: true,
       status: 'ocr',
     });
     ensureUserLibraryIngestRunning();
     return;
   }
 
-  const pdf = await loadPdfDocument(blob);
-  const pageCount = pdf.numPages;
-  let nativeTextPages = 0;
-  let ocrNeededPages = 0;
+  const pdf = await loadPdfJsDocument(blob);
+  try {
+    const pageCount = pdf.numPages;
+    let nativeTextPages = 0;
+    let ocrNeededPages = 0;
 
-  for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
-    const page = await pdf.getPage(pageIndex + 1);
-    const { text: nativeText, words } = await extractPdfPageContent(page);
-    if (pageHasEnoughNativeText(nativeText)) {
-      nativeTextPages += 1;
-      await putUserLibraryPage(
-        buildUserLibraryPage(documentId, pageIndex, 'native', nativeText, words),
-      );
-    } else {
-      ocrNeededPages += 1;
-      await putUserLibraryPage({
-        documentId,
-        pageIndex,
-        kind: 'pending',
-        text: '',
-      });
+    for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
+      const page = await pdf.getPage(pageIndex + 1);
+      try {
+        const { text: nativeText, words } = await extractPdfPageContent(page);
+        if (pageHasEnoughNativeText(nativeText)) {
+          nativeTextPages += 1;
+          await putUserLibraryPage(
+            buildUserLibraryPage(documentId, pageIndex, 'native', nativeText, words),
+          );
+        } else {
+          ocrNeededPages += 1;
+          await putUserLibraryPage({ documentId, pageIndex, kind: 'pending', text: '' });
+        }
+      } finally {
+        page.cleanup();
+      }
+      await yieldToEventLoop();
     }
-    await yieldToEventLoop();
-  }
 
-  const status = ocrNeededPages === 0 ? 'ready' : 'ocr';
-  await patchUserLibraryDocument(documentId, {
-    pageCount,
-    nativeTextPages,
-    ocrNeededPages,
-    ocrDonePages: 0,
-    status,
-  });
+    await patchUserLibraryDocument(documentId, {
+      pageCount,
+      nativeTextPages,
+      ocrNeededPages,
+      ocrDonePages: 0,
+      hasImages: true,
+      status: ocrNeededPages === 0 ? 'ready' : 'ocr',
+    });
+  } finally {
+    await pdf.destroy();
+  }
   ensureUserLibraryIngestRunning();
 }
 
@@ -385,10 +387,9 @@ function buildUserLibraryPage(
   text: string,
   words?: readonly UserLibraryWordBox[],
 ): UserLibraryPage {
-  if (words) {
-    return { documentId, pageIndex, kind, text, words };
-  }
-  return { documentId, pageIndex, kind, text };
+  return words
+    ? { documentId, pageIndex, kind, text, words }
+    : { documentId, pageIndex, kind, text };
 }
 
 async function completeOcrPage(
@@ -406,7 +407,7 @@ async function completeOcrPage(
     ocrDonePages: meta.ocrDonePages + 1,
   });
   if (updated && updated.ocrDonePages >= updated.ocrNeededPages) {
-    await patchUserLibraryDocument(documentId, { status: 'ready' });
+    await patchUserLibraryDocument(documentId, { status: 'ready', ocrPriority: 0 });
   }
 }
 
@@ -458,20 +459,28 @@ async function processNextOcrPage(): Promise<boolean> {
   const worker = await ensureOcrWorker();
   if (!worker) return false;
 
+  let canvas: HTMLCanvasElement | undefined;
   try {
-    let canvas: HTMLCanvasElement;
     let canvasWidth = 0;
     let canvasHeight = 0;
 
     if (isPdf) {
-      const pdf = await loadPdfDocument(blob);
-      const page = await pdf.getPage(pending.pageIndex + 1);
-      const rendered = await renderPdfPageForOcr(page);
-      canvas = rendered.canvas;
-      canvasWidth = rendered.width;
-      canvasHeight = rendered.height;
+      const pdf = await loadPdfJsDocument(blob);
+      try {
+        const page = await pdf.getPage(pending.pageIndex + 1);
+        try {
+          const rendered = await renderPdfPageForOcr(page, meta.ocrQuality);
+          canvas = rendered.canvas;
+          canvasWidth = rendered.width;
+          canvasHeight = rendered.height;
+        } finally {
+          page.cleanup();
+        }
+      } finally {
+        await pdf.destroy();
+      }
     } else {
-      const rendered = await renderImageForOcr(blob);
+      const rendered = await renderImageForOcr(blob, meta.ocrQuality);
       canvas = rendered.canvas;
       canvasWidth = rendered.width;
       canvasHeight = rendered.height;
@@ -484,8 +493,6 @@ async function processNextOcrPage(): Promise<boolean> {
     };
     const recognizedText = ocrData.text.replace(/\s+/gu, ' ').trim();
     const words = extractTesseractWords(ocrData.words, canvasWidth, canvasHeight);
-    canvas.width = 0;
-    canvas.height = 0;
     await completeOcrPage(
       pending.documentId,
       pending.pageIndex,
@@ -500,31 +507,49 @@ async function processNextOcrPage(): Promise<boolean> {
       kind: 'empty',
       text: '',
     });
+  } finally {
+    if (canvas) {
+      canvas.width = 0;
+      canvas.height = 0;
+    }
   }
 
   await waitForIdle();
   return true;
 }
 
-async function processInspectingDocuments(): Promise<void> {
+async function processNextInspectingDocument(): Promise<boolean> {
   const documents = await listUserLibraryDocuments();
-  for (const document of documents) {
-    if (document.status !== 'inspecting') continue;
-    await processNewDocument(document.id);
-  }
+  const document = documents
+    .filter((item) => item.status === 'inspecting')
+    .toSorted((left, right) => {
+      const priority = (right.ocrPriority ?? 0) - (left.ocrPriority ?? 0);
+      return priority || left.createdAt.localeCompare(right.createdAt);
+    })[0];
+  if (!document) return false;
+  await processNewDocument(document.id);
+  return true;
 }
 
 async function runIngestLoop(): Promise<void> {
+  let preferInspection = true;
   try {
-    await processInspectingDocuments();
-    while (await processNextOcrPage()) {
-      await waitWhileHidden();
+    while (true) {
+      let processed = false;
+      if (preferInspection) processed = await processNextInspectingDocument();
+      if (!processed) processed = await processNextOcrPage();
+      if (!processed && !preferInspection) processed = await processNextInspectingDocument();
+      if (!processed) break;
+      preferInspection = !preferInspection;
+      await yieldToEventLoop();
     }
   } finally {
     ingestLoopRunning = false;
     const documents = await listUserLibraryDocuments();
-    const hasOcrWork = documents.some((document) => document.status === 'ocr');
-    if (hasOcrWork) {
+    const hasWork = documents.some(
+      (document) => document.status === 'ocr' || document.status === 'inspecting',
+    );
+    if (hasWork) {
       ensureUserLibraryIngestRunning();
     } else {
       await disposeOcrWorker();

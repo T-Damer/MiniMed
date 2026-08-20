@@ -9,6 +9,7 @@ const phaseTimeoutMs = Number.parseInt(
 
 const phases = [
   { label: 'content', command: bun, args: ['run', 'content:build'] },
+  { label: 'icons', command: bun, args: ['run', 'icons:check'] },
   { label: 'format-and-lint', command: bun, args: ['run', 'check'] },
   { label: 'typescript', command: bun, args: ['run', 'typecheck'] },
   { label: 'unit-tests', command: bun, args: ['run', 'test:unit'] },

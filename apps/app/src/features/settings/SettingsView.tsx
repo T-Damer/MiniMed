@@ -19,9 +19,11 @@ import {
 } from '@/features/settings/settings-routing';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import {
+  getExperimentalModulesEnabled,
   getRememberSearchMode,
   getSoundVolume,
   getVibrationEnabled,
+  setExperimentalModulesEnabled,
   setRememberSearchMode,
   setSoundVolume,
   setVibrationEnabled,
@@ -42,6 +44,7 @@ interface SettingsViewProps {
   readonly appUpdateReady: boolean;
   readonly appUpdating: boolean;
   readonly appUpdateChecking: boolean;
+  readonly appUpdateUpToDate: boolean;
   readonly appUpdateProgress: AppUpdateProgress | undefined;
   readonly appUpdateError: string | undefined;
   readonly onCheckAppUpdate: () => void;
@@ -53,6 +56,9 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   const [vibrationEnabled, setVibrationEnabledState] = createSignal(getVibrationEnabled());
   const [rememberSearchMode, setRememberSearchModeState] = createSignal(getRememberSearchMode());
   const [soundVolume, setSoundVolumeState] = createSignal(getSoundVolume());
+  const [experimentalModulesEnabled, setExperimentalModulesEnabledState] = createSignal(
+    getExperimentalModulesEnabled(),
+  );
   const [model, setModel] = createSignal<LocalModelState>(props.controller.getState());
   const [returnTo, setReturnTo] = createSignal(peekReturnTo());
 
@@ -75,6 +81,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
       setVibrationEnabledState(preferences.vibrationEnabled);
       setRememberSearchModeState(preferences.rememberSearchMode);
       setSoundVolumeState(preferences.soundVolume);
+      setExperimentalModulesEnabledState(preferences.experimentalModulesEnabled);
     });
     const unsubscribeModel = props.controller.subscribe(setModel);
     onCleanup(() => {
@@ -134,6 +141,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         <AppUpdateChecker
           ready={() => props.appUpdateReady}
           checking={() => props.appUpdateChecking}
+          upToDate={() => props.appUpdateUpToDate}
           updating={() => props.appUpdating}
           progress={() => props.appUpdateProgress}
           error={() => props.appUpdateError}
@@ -174,6 +182,21 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
               checked={rememberSearchMode()}
               aria-label="Запоминать режим поиска"
               onChange={(checked) => setRememberSearchMode(checked)}
+            />
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row__text">
+              <span class="settings-row__label">Experimental</span>
+              <p class="settings-row__helper">
+                Показывать загрузку предварительных баз препаратов, калькуляторов и опросников. Они
+                могут быть неполными или измениться без обратной совместимости.
+              </p>
+            </div>
+            <Switch
+              checked={experimentalModulesEnabled()}
+              aria-label="Экспериментальные базы"
+              onChange={(checked) => setExperimentalModulesEnabled(checked)}
             />
           </div>
 

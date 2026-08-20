@@ -32,6 +32,8 @@ export function formatAppUpdateCheckerStatus(input: {
   readonly ready: boolean;
   readonly checking: boolean;
   readonly updating: boolean;
+  readonly upToDate?: boolean;
+  readonly dev?: boolean;
 }): { readonly body: string; readonly checkLabel: string } {
   if (input.updating) {
     return { body: 'Загрузка обновления…', checkLabel: 'Проверить' };
@@ -42,8 +44,11 @@ export function formatAppUpdateCheckerStatus(input: {
   if (input.ready) {
     return { body: 'Доступна новая версия приложения.', checkLabel: 'Проверить ещё раз' };
   }
+  if (input.upToDate) {
+    return { body: 'Уже установлена последняя версия.', checkLabel: 'Проверить ещё раз' };
+  }
   return {
-    body: `Установлена версия ${input.version}.`,
+    body: `Установлена версия ${input.version}.${input.dev ? ' DEV' : ''}`,
     checkLabel: 'Проверить обновления',
   };
 }

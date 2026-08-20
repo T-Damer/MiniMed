@@ -58,6 +58,15 @@ export interface UseDocumentReaderChromeOptions {
   readonly onScrollTo?: (anchor: string, element: HTMLElement | null) => void;
 }
 
+function isNearScrollEnd(element: HTMLElement, threshold = 32): boolean {
+  return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold;
+}
+
+function isWindowNearScrollEnd(threshold = 32): boolean {
+  const root = document.documentElement;
+  return root.scrollHeight - window.scrollY - window.innerHeight <= threshold;
+}
+
 export function useDocumentReaderChrome(
   options: UseDocumentReaderChromeOptions,
 ): DocumentReaderChromeController {
@@ -148,6 +157,15 @@ export function useDocumentReaderChrome(
       if (sections.length === 0) return;
       const paperScrolls = paper.scrollHeight > paper.clientHeight + 1;
       const bodyScrolls = Boolean(body && body.scrollHeight > body.clientHeight + 1);
+      const nearEnd = paperScrolls
+        ? isNearScrollEnd(paper)
+        : bodyScrolls && body
+          ? isNearScrollEnd(body)
+          : isWindowNearScrollEnd();
+      if (nearEnd) {
+        setActiveAnchor(sections.at(-1)?.id ?? sections[0]?.id ?? '');
+        return;
+      }
       const scrollerRect = paperScrolls
         ? paper.getBoundingClientRect()
         : bodyScrolls && body
@@ -280,6 +298,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
     >
       {props.showLayout ? (
         <div
+          ref={outlineSwipe.ref}
           class="document-overlay-layout"
           classList={{ 'document-overlay-layout--outline-hidden': !chrome.outlineOpen() }}
         >
@@ -331,7 +350,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
             </OverlayScrollbarsComponent>
             {props.outlineFooter}
           </aside>
-          <div ref={outlineSwipe.ref} class="document-page__main">
+          <div class="document-page__main">
             <header
               ref={chrome.setChromeElement}
               class={

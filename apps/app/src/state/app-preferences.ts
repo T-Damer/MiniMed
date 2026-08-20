@@ -5,6 +5,7 @@ export interface AppPreferences {
   readonly rememberSearchMode: boolean;
   readonly soundVolume: number;
   readonly bookReadingMode: boolean;
+  readonly experimentalModulesEnabled: boolean;
 }
 
 export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
@@ -16,6 +17,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   rememberSearchMode: false,
   soundVolume: 0.2,
   bookReadingMode: false,
+  experimentalModulesEnabled: false,
 };
 
 const VALID_SCOPES = new Set<SearchScope>([
@@ -39,6 +41,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly rememberSearchMode?: unknown;
     readonly soundVolume?: unknown;
     readonly bookReadingMode?: unknown;
+    readonly experimentalModulesEnabled?: unknown;
   };
   return {
     vibrationEnabled:
@@ -58,6 +61,10 @@ function normalizePreferences(value: unknown): AppPreferences {
       typeof candidate.bookReadingMode === 'boolean'
         ? candidate.bookReadingMode
         : DEFAULT_PREFERENCES.bookReadingMode,
+    experimentalModulesEnabled:
+      typeof candidate.experimentalModulesEnabled === 'boolean'
+        ? candidate.experimentalModulesEnabled
+        : DEFAULT_PREFERENCES.experimentalModulesEnabled,
   };
 }
 
@@ -123,6 +130,14 @@ export function getBookReadingMode(): boolean {
 
 export function setBookReadingMode(enabled: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), bookReadingMode: enabled });
+}
+
+export function getExperimentalModulesEnabled(): boolean {
+  return loadAppPreferences().experimentalModulesEnabled;
+}
+
+export function setExperimentalModulesEnabled(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), experimentalModulesEnabled: enabled });
 }
 
 export function subscribeAppPreferences(

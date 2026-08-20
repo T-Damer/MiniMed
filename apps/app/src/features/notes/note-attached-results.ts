@@ -1,14 +1,22 @@
+import type { CalculatorSchema } from '@localmed/contracts';
+
 import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
 import { calculationRecordOutputs } from '@/features/calculators/calculator-print';
 import { findCalculator } from '@/features/calculators/calculator-registry';
+import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import type { CalculationRecord } from '@/state/calculation-history';
 import type {
   NoteAttachedAssessmentResult,
   NoteAttachedCalculatorResult,
 } from '@/state/patient-notes';
+
+export interface RichNoteAttachedCalculatorResult extends NoteAttachedCalculatorResult {
+  readonly schemaSnapshot?: CalculatorSchema;
+  readonly recordSnapshot?: CalculationRecord;
+}
 
 export function snapshotAssessmentForNote(
   definition: AssessmentDefinition,
@@ -59,6 +67,7 @@ export function snapshotCalculationForNote(
 ): NoteAttachedCalculatorResult {
   const definition = findCalculator(record.calculatorId);
   const slug = definition?.state === 'available' ? definition.slug : record.calculatorId;
+  const schema = getCalculatorSchema(record.calculatorId);
   return {
     kind: 'calculator',
     recordId: record.id,
@@ -68,7 +77,9 @@ export function snapshotCalculationForNote(
     inputSummary: record.inputSummary,
     outputs: calculationRecordOutputs(record),
     warnings: record.result.warnings.map((warning) => warning.message),
-  };
+    ...(schema ? { schemaSnapshot: structuredClone(schema) } : {}),
+    recordSnapshot: structuredClone(record),
+  } as RichNoteAttachedCalculatorResult;
 }
 
 export function assessmentNoteCaption(

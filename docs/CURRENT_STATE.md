@@ -1,8 +1,8 @@
 # Current state
 
-> Updated: 19 August 2026
-> Repository version: `0.6.29`
-> Active target: `0.6.29` public prerelease toward `1.0`
+> Updated: 20 August 2026
+> Repository version: `0.6.30`
+> Active target: `0.6.30` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
@@ -258,11 +258,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   owning section rather than the assessments root; a test may later appear in several sections via tags.
   Runtime TypeScript keeps only `unit-conversion` in `CALCULATOR_REGISTRY`; every other calculator
   schema and all assessments live in `content/tool-modules/*.json`, build to
-  `apps/app/public/content/modules/minimed-tools-*.db`, and are auto-installed from those local
-  artifacts during browser-dev boot (`VITE_USE_LOCAL_MODULE_ARTIFACTS`, on by default). Once a tool
+  `apps/app/public/content/modules/minimed-tools-*.db`, and are auto-installed from those bundled
+  artifacts in development and production (`VITE_USE_LOCAL_MODULE_ARTIFACTS`, on by default). Once a tool
   pack is on the device, every questionnaire and calculator in it is available immediately — there is
-  no second per-item download/remove toggle. Production builds without local artifacts still install
-  a pack through `ContentModuleRuntime.install`. Section-to-module mapping is in
+  no second per-item download/remove toggle. Remote-artifact QA can explicitly disable the local URL
+  rewrite and still install a pack through `ContentModuleRuntime.install`. Section-to-module mapping is in
   `CALCULATOR_SECTION_MODULE_IDS` and `ASSESSMENT_SECTION_MODULE_IDS`. Published packs:
   `minimed.tools.core-clinical.ru` preview.2 (the original 17 renal/emergency/cardiology/hepatology/
   hematology calculators plus BSA, CKD-EPI 2021, Schwartz 2009, maintenance fluids, and paediatric
@@ -300,8 +300,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Device preferences in Settings persist vibration on/off (default on), remember-search-mode
   (default off), and zen-pack UI sound volume (default 20%; zero mutes and stops playback).
   The Settings heading keeps back and title on one row (no in-heading app icon). Android, iOS, and browser
-  favicons use the same mark; replace `branding/app-icon-source.png` and run `bun run icons:generate`
-  to rebuild every size. GitHub and Android APK links at the bottom of Settings use `--theme-link` in both themes.
+  favicons use the same mark; prepared packs are installed with `bun run icons:install <pack.zip>` and
+  verified with `bun run icons:check`. GitHub and Android APK links at the bottom of Settings use
+  `--theme-link` in both themes.
 - Haptics: Android uses `performHapticFeedback` via `LocalMedHaptics` (selection/light/medium/heavy);
   iOS uses Capacitor Haptics impact/selection; web does not call `navigator.vibrate`.
 - Zen-pack UI sounds go through one `UiSoundController`: cards, buttons, sliders, links, horizontal

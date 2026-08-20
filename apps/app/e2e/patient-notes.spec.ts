@@ -47,11 +47,11 @@ test('keeps patient note records local, editable in nested routes, and findable 
   });
   await imageTransfer.dispose();
   await expect(page.locator('.note-image-previews img')).toBeVisible();
-  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.getByLabel('Назад к записям').click();
   const record = page.locator('.patient-note-record');
   await expect(record).toContainText('Назначен цефтриаксон');
   await record.getByRole('button').first().click();
-  await expect(page.getByRole('heading', { name: 'Редактировать запись' })).toBeVisible();
+  await expect(page.getByText('Редактировать запись', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Текст записи')).toHaveValue(/Назначен цефтриаксон/u);
   await expect(page.locator('.record-images-editor .note-image-previews img')).toBeVisible();
   await page.getByLabel('Назад к записям').click();
@@ -71,11 +71,12 @@ test('keeps patient note records local, editable in nested routes, and findable 
 
   const personal = page.locator('.personal-note-matches');
   await expect(personal).toBeVisible();
-  await expect(personal.getByText('Личные записи')).toBeVisible();
+  await expect(personal.getByText('Личные записи').first()).toBeVisible();
   await expect(personal.getByText(/Не официальный источник/u)).toBeVisible();
   await expect(personal).toContainText('Иванов И., 3 года, 20 кг');
   await expect(page.getByTestId('search-results')).not.toContainText('Иванов И.');
 
+  await personal.getByRole('button', { name: 'Развернуть раздел «Личные записи»' }).click();
   await personal.getByRole('button', { name: 'Открыть заметки' }).click();
   await expect(page.getByRole('heading', { name: 'Заметки' })).toBeVisible();
 });
@@ -163,7 +164,7 @@ test('a reminder can be attached while writing a note', async ({ page }) => {
   await page.getByLabel('Новая заметка для Сидорова А.').fill('Повторный осмотр');
   await page.getByLabel('Дата напоминания').fill(futureDateInput());
   await expect(page.getByText('Системное уведомление', { exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.getByLabel('Назад к записям').click();
 
   const link = page.locator('.note-reminder-link');
   await expect(link).toBeVisible();
@@ -179,7 +180,7 @@ test('requires a valid reminder timestamp before installation', async ({ page })
   await page.locator('.patient-card').filter({ hasText: 'Орлова М.' }).click();
   await page.getByRole('button', { name: 'Добавить запись' }).click();
   await page.getByLabel('Новая заметка для Орлова М.').fill('Контроль состояния');
-  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.getByLabel('Назад к записям').click();
   await page.locator('.patient-note-record').getByRole('button').first().click();
 
   const install = page.getByRole('button', { name: 'Установить' });
@@ -190,7 +191,7 @@ test('requires a valid reminder timestamp before installation', async ({ page })
   await expect(page.locator('.note-reminder-link')).toBeVisible();
 });
 
-test('warns before leaving a record with unsaved changes', async ({ page }) => {
+test('autosaves a new record when leaving the editor', async ({ page }) => {
   const createdAt = new Date().toISOString();
   await mountBuiltApp(page, {
     persistentOrigin: true,
@@ -209,14 +210,9 @@ test('warns before leaving a record with unsaved changes', async ({ page }) => {
   await page.getByRole('button', { name: 'Добавить запись' }).click();
   await page.getByLabel('Новая заметка для Черновик').fill('Несохранённый текст');
 
-  page.once('dialog', async (dialog) => {
-    expect(dialog.message()).toContain('Несохранённые изменения');
-    await dialog.dismiss();
-  });
-  await navigationButton(page, 'Поиск').click();
-  await expect(page).toHaveURL(/\/records\/new$/u);
-
-  page.once('dialog', (dialog) => dialog.accept());
   await navigationButton(page, 'Поиск').click();
   await expect(page).toHaveURL(/#\/search$/u);
+  await navigationButton(page, 'Заметки').click();
+  await page.getByLabel('Назад к записям').click();
+  await expect(page.locator('.patient-note-record')).toContainText('Несохранённый текст');
 });

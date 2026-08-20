@@ -1,7 +1,8 @@
 import { onCleanup } from 'solid-js';
 
-const EDGE_WIDTH_PX = 24;
-const SWIPE_THRESHOLD_PX = 56;
+import { createHorizontalGestureManager } from '@/state/horizontal-gesture';
+
+const EDGE_WIDTH_PX = 44;
 
 export interface OutlineSwipeBindings {
   readonly ref: (element: HTMLElement) => void;
@@ -12,60 +13,49 @@ export function useDocumentOutlineSwipe(options: {
   readonly openOutline: () => void;
   readonly closeOutline: () => void;
 }): OutlineSwipeBindings {
-  let startX = 0;
-  let startY = 0;
-  let tracking = false;
+  const gesture = createHorizontalGestureManager({
+    thresholdPx: 58,
+    axisLockPx: 9,
+    velocityThresholdPxPerMs: 0.5,
+  });
   let fromEdge = false;
 
-  const onTouchStart = (event: TouchEvent): void => {
-    if (event.touches.length !== 1) {
-      tracking = false;
-      return;
-    }
-    const touch = event.touches[0];
-    if (!touch) return;
-    startX = touch.clientX;
-    startY = touch.clientY;
-    tracking = true;
-    fromEdge = !options.outlineOpen() && startX <= EDGE_WIDTH_PX;
+  const onPointerDown = (event: PointerEvent): void => {
+    if (event.pointerType === 'mouse') return;
+    fromEdge = !options.outlineOpen() && event.clientX <= EDGE_WIDTH_PX;
+    if (!options.outlineOpen() && !fromEdge) return;
+    gesture.start(event.pointerId, event.clientX, event.clientY, event.timeStamp);
   };
 
-  const onTouchMove = (event: TouchEvent): void => {
-    if (!tracking || event.touches.length !== 1) return;
-    const touch = event.touches[0];
-    if (!touch) return;
-    const deltaX = touch.clientX - startX;
-    const deltaY = touch.clientY - startY;
-    if (Math.abs(deltaY) > Math.abs(deltaX) * 1.2) {
-      tracking = false;
-      return;
-    }
-    if (fromEdge && deltaX > SWIPE_THRESHOLD_PX) {
+  const onPointerMove = (event: PointerEvent): void => {
+    const direction = gesture.move(event.pointerId, event.clientX, event.clientY, event.timeStamp);
+    if (!direction) return;
+    if (fromEdge && direction === 'right' && !options.outlineOpen()) {
       options.openOutline();
-      tracking = false;
-      return;
-    }
-    if (options.outlineOpen() && deltaX < -SWIPE_THRESHOLD_PX) {
+    } else if (direction === 'left' && options.outlineOpen()) {
       options.closeOutline();
-      tracking = false;
     }
+    fromEdge = false;
   };
 
-  const onTouchEnd = (): void => {
-    tracking = false;
+  const onPointerEnd = (event: PointerEvent): void => {
+    gesture.end(event.pointerId);
     fromEdge = false;
   };
 
   const bind = (node: HTMLElement): void => {
-    node.addEventListener('touchstart', onTouchStart, { passive: true });
-    node.addEventListener('touchmove', onTouchMove, { passive: true });
-    node.addEventListener('touchend', onTouchEnd, { passive: true });
-    node.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    const previousTouchAction = node.style.touchAction;
+    node.style.touchAction = 'pan-y pinch-zoom';
+    node.addEventListener('pointerdown', onPointerDown, { passive: true });
+    node.addEventListener('pointermove', onPointerMove, { passive: true });
+    node.addEventListener('pointerup', onPointerEnd, { passive: true });
+    node.addEventListener('pointercancel', onPointerEnd, { passive: true });
     onCleanup(() => {
-      node.removeEventListener('touchstart', onTouchStart);
-      node.removeEventListener('touchmove', onTouchMove);
-      node.removeEventListener('touchend', onTouchEnd);
-      node.removeEventListener('touchcancel', onTouchEnd);
+      node.style.touchAction = previousTouchAction;
+      node.removeEventListener('pointerdown', onPointerDown);
+      node.removeEventListener('pointermove', onPointerMove);
+      node.removeEventListener('pointerup', onPointerEnd);
+      node.removeEventListener('pointercancel', onPointerEnd);
     });
   };
 
