@@ -23,9 +23,11 @@ interface AppContextMenuProps {
 function requestContextMenu(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
-  const trigger = event.currentTarget.closest<HTMLElement>('[data-app-context-menu-trigger]');
+  const currentTarget = event.currentTarget;
+  if (!(currentTarget instanceof HTMLElement)) return;
+  const trigger = currentTarget.closest<HTMLElement>('[data-app-context-menu-trigger]');
   if (!trigger) return;
-  const rect = event.currentTarget.getBoundingClientRect();
+  const rect = currentTarget.getBoundingClientRect();
   trigger.dispatchEvent(
     new MouseEvent('contextmenu', {
       bubbles: true,
@@ -45,7 +47,7 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
         <ContextMenu.Item
           class="app-context-menu__item"
           classList={{ 'app-context-menu__item--danger': Boolean(props.action.danger) }}
-          disabled={props.action.disabled}
+          disabled={props.action.disabled ?? false}
           onSelect={() => props.action.onSelect?.()}
         >
           <Show when={props.action.icon}>
@@ -58,13 +60,15 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
       <ContextMenu.Sub>
         <ContextMenu.SubTrigger
           class="app-context-menu__item app-context-menu__item--submenu"
-          disabled={props.action.disabled}
+          disabled={props.action.disabled ?? false}
         >
           <Show when={props.action.icon}>
             {(icon) => <AppGlyph name={icon()} class="app-context-menu__item-icon" />}
           </Show>
           <span>{props.action.label}</span>
-          <span class="app-context-menu__submenu-arrow" aria-hidden="true">›</span>
+          <span class="app-context-menu__submenu-arrow" aria-hidden="true">
+            ›
+          </span>
         </ContextMenu.SubTrigger>
         <ContextMenu.Portal>
           <ContextMenu.SubContent class="app-context-menu app-context-menu--sub">
