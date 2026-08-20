@@ -133,7 +133,6 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     <section
       class="note-markdown-editor"
       classList={{ 'note-markdown-editor--fullscreen': fullscreen() }}
-      aria-label={props.label}
     >
       <div class="note-markdown-editor__workspace">
         <div class="note-markdown-editor__field">

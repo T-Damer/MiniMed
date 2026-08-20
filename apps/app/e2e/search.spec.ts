@@ -56,8 +56,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(pneumoniaResult(page)).toBeVisible();
   await expect(page.getByTestId('search-mode')).toHaveText('FTS5 + VECTOR');
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
-  await pneumoniaResult(page).click();
-  await page.getByTestId('search-result').first().click();
+  await page.getByTestId('search-results').getByTestId('search-result').first().click();
   await expect(page.getByTestId('reader-context')).toContainText('Внебольничная пневмония у детей');
   await expect(page.getByTestId('reader-context')).toContainText('тахипноэ');
 });
@@ -158,8 +157,7 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
-  await pneumoniaResult(page).click();
-  await page.getByTestId('search-result').first().click();
+  await page.getByTestId('search-results').getByTestId('search-result').first().click();
   await expect(page.getByTestId('reader-context')).toBeVisible();
   await page.getByRole('button', { name: 'Открыть полный документ' }).click();
 
@@ -188,6 +186,7 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await page.screenshot({ path: '.omo/evidence/document-overlay/reader-375-closed.png' });
   await toggle.click();
   await expect(outline).toHaveClass(/document-overlay-outline--open/u);
+  await outline.getByRole('button', { name: 'Закрыть оглавление' }).click();
 
   await overlay.getByRole('button', { name: 'Поиск в документе' }).click();
   await overlay.getByRole('searchbox', { name: 'Поиск в документе' }).fill('тахипноэ');
@@ -203,7 +202,7 @@ test('renders the complete virtualized document list', async ({ page }) => {
   await page.getByTestId('search-submit').click();
 
   const groups = page.locator('.result-group');
-  await expect(groups).toHaveCount(2);
+  await expect(groups).toHaveCount(6);
   await expect(page.getByRole('button', { name: /Показать ещё/u })).toHaveCount(0);
 });
 
@@ -232,9 +231,9 @@ test('returns to the documents route after opening a questionnaire', async ({ pa
   await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
 
   await page.evaluate(() => {
-    window.location.hash = '#/assessments/braverman-behavioral-profile';
+    window.location.hash = '#/assessments/psychology/braverman-behavioral-profile';
   });
-  await expect(page).toHaveURL(/#\/assessments\/braverman-behavioral-profile$/u);
+  await expect(page).toHaveURL(/#\/assessments\/psychology\/braverman-behavioral-profile$/u);
   await expect(
     page.getByRole('heading', { name: 'Тест Бравермана — поведенческий профиль' }),
   ).toBeVisible();
@@ -289,20 +288,16 @@ test('finishes a swipe released outside the bottom navigation', async ({ page })
 
   const nav = page.locator('.app-bottom-nav');
   const from = await navigationButton(page, 'Поиск').boundingBox();
+  const to = await navigationButton(page, 'Заметки').boundingBox();
   const navBounds = await nav.boundingBox();
-  const viewport = await page.evaluate(() => ({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  }));
-  if (!from || !navBounds) throw new Error('Bottom navigation is not visible.');
+  const viewportHeight = await page.evaluate(() => window.innerHeight);
+  if (!from || !to || !navBounds) throw new Error('Bottom navigation is not visible.');
 
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
-  await page.mouse.move(
-    Math.min(viewport.width - 4, navBounds.x + navBounds.width + 180),
-    from.y + from.height / 2,
-    { steps: 8 },
-  );
+  await page.mouse.move(to.x + to.width / 2, Math.min(viewportHeight - 4, navBounds.y - 24), {
+    steps: 8,
+  });
   await page.mouse.up();
 
   await expect(page).toHaveURL(/#\/notes$/u);
@@ -333,7 +328,7 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.getByText('Обновление списка наборов')).toHaveCount(0);
   await page.getByRole('button', { name: 'Назад' }).click();
   await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
-  await expect(page.getByRole('heading', { name: /встроенных документов/u })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Архив документов' })).toBeVisible();
 });
 
 test('replays a saved query from the history drawer', async ({ page }) => {
@@ -382,7 +377,7 @@ test('filters the document library and opens a document with one click', async (
   await navigationButton(page, 'База знаний').click();
   await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
   await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
-  await expect(page.getByRole('heading', { name: 'Пневмония у детей', level: 2 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Пневмония у детей', level: 1 })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Поиск в документе' })).toBeVisible();
 });
 
@@ -391,8 +386,7 @@ test('opens only the exact fragment without surrounding source context', async (
   await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 3_000 });
-  await pneumoniaResult(page).click();
-  await page.getByTestId('search-result').first().click();
+  await page.getByTestId('search-results').getByTestId('search-result').first().click();
   await expect(page.locator('.source-paragraph')).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Показать текст вокруг' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Открыть полный документ' })).toBeVisible();

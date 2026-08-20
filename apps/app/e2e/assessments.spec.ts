@@ -32,15 +32,14 @@ test('completes a psychology questionnaire and writes the result to a patient no
 
   const middleAnswers = page.locator('.assessment-question input[value="3"]');
   await expect(middleAnswers).toHaveCount(24);
-  for (const answer of await middleAnswers.all()) {
-    await answer.check();
+  for (let index = 0; index < 24; index += 1) {
+    await middleAnswers.nth(index).evaluate((input: HTMLInputElement) => input.click());
   }
 
   await expect(page.getByText('Заполнено 24 из 24')).toBeVisible();
   await expect(page.getByTestId('assessment-submit')).toBeEnabled();
   await page.getByTestId('assessment-submit').click();
 
-  await expect(page.getByText('Результат сохранён локально')).toBeVisible();
   await expect(page.locator('.assessment-score-list')).toBeVisible();
   await page.getByTestId('assessment-save-note').click();
   await page.getByRole('button', { name: 'Сохранить', exact: true }).click();

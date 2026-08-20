@@ -30,6 +30,7 @@ All notable changes are documented here. The project follows Semantic Versioning
   main-thread heap. That pack runs in a dedicated OPFS worker; if it still hits SQLITE_NOMEM, boot
   continues without the drug catalog instead of failing the splash screen.
 - Update checks now distinguish production, DEV, latest-version, and visible in-progress states.
+- Production builds install bundled medication, calculator, and assessment databases by default.
 - PDF.js loads local WASM/font/map assets, releases its loading tasks, bounds page memory, and avoids
   parallel OCR/render spikes.
 - Document TOC swipes no longer jump the layout, and assessment subpage navigation is centered.

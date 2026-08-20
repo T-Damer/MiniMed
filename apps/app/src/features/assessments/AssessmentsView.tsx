@@ -15,15 +15,14 @@ import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQu
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
 import { AssessmentSpecialtyIndexPage } from '@/features/assessments/AssessmentSpecialtyIndexPage';
 import {
+  type AssessmentCatalogEntry,
   assessmentsInSpecialty,
   clearDownloadedAssessments,
-  findAssessmentBySlug,
   findAssessmentSpecialty,
   getAssessmentCatalog,
   loadAssessmentDefinition,
   preloadAssessmentDefinitions,
   registerDownloadedAssessment,
-  type searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
   ASSESSMENT_PACKS_EVENT,
@@ -72,8 +71,10 @@ import {
   type PatientNotesSnapshot,
 } from '@/state/patient-notes';
 
-function filterAssessments(query: string): ReturnType<typeof searchAssessments> {
-  const catalog = getAssessmentCatalog();
+function filterAssessments(
+  query: string,
+  catalog: readonly AssessmentCatalogEntry[],
+): readonly AssessmentCatalogEntry[] {
   const trimmed = query.trim();
   if (!trimmed) return catalog;
   return catalog.filter((assessment) => {
@@ -116,6 +117,7 @@ export function AssessmentsView(): JSX.Element {
   } | null>(null);
   let definitionRequest = 0;
   let unsubscribeToolTasks: (() => void) | undefined;
+  let downloadedToolsRefresh: Promise<void> | undefined;
 
   const refreshRecords = (): void => {
     setRecords(loadAssessmentRecords());
@@ -126,19 +128,25 @@ export function AssessmentsView(): JSX.Element {
   const refreshPacks = (): void => {
     setInstallation(loadAssessmentInstallationState(assessmentCatalog()));
   };
-  const refreshDownloadedTools = async (): Promise<void> => {
-    const runtime = getContentModuleRuntime(MODULE_CATALOG);
-    await runtime.whenLocalPackagedModulesReady();
-    const definitions = await runtime.listInstalledToolDefinitions();
-    clearDownloadedAssessments();
-    definitions.forEach(registerDownloadedAssessment);
-    setAssessmentCatalog(getAssessmentCatalog());
-    setDatabaseAssessmentIds(
-      definitions
-        .filter((definition) => definition.kind === 'assessment')
-        .map((definition) => definition.id),
-    );
-    refreshPacks();
+  const refreshDownloadedTools = (): Promise<void> => {
+    if (downloadedToolsRefresh) return downloadedToolsRefresh;
+    downloadedToolsRefresh = (async () => {
+      const runtime = getContentModuleRuntime(MODULE_CATALOG);
+      await runtime.whenLocalPackagedModulesReady();
+      const definitions = await runtime.listInstalledToolDefinitions();
+      clearDownloadedAssessments();
+      definitions.forEach(registerDownloadedAssessment);
+      setAssessmentCatalog(getAssessmentCatalog());
+      setDatabaseAssessmentIds(
+        definitions
+          .filter((definition) => definition.kind === 'assessment')
+          .map((definition) => definition.id),
+      );
+      refreshPacks();
+    })().finally(() => {
+      downloadedToolsRefresh = undefined;
+    });
+    return downloadedToolsRefresh;
   };
   const handleHashChange = (): void => {
     const route = window.location.hash.replace(/^#\/?/u, '');
@@ -148,7 +156,6 @@ export function AssessmentsView(): JSX.Element {
     // silently discarding whatever answers the user had already entered.
     if (route !== '' && route !== 'assessments' && !route.startsWith('assessments/')) return;
     setRoute(readAssessmentRoute());
-    void refreshDownloadedTools();
     setMessage('');
     if (!document.documentElement.classList.contains('using-root-view-transition')) {
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -191,7 +198,7 @@ export function AssessmentsView(): JSX.Element {
   const catalogEntry = createMemo(() => {
     const current = route();
     return current.kind === 'assessment' || current.kind === 'result'
-      ? findAssessmentBySlug(current.slug)
+      ? assessmentCatalog().find((entry) => entry.slug === current.slug)
       : undefined;
   });
   const record = createMemo(() => {
@@ -379,7 +386,7 @@ export function AssessmentsView(): JSX.Element {
       <Show when={route().kind === 'index'}>
         <AssessmentSpecialtyIndexPage
           definitions={assessmentCatalog()}
-          matches={query().trim() ? filterAssessments(query()) : []}
+          matches={query().trim() ? filterAssessments(query(), assessmentCatalog()) : []}
           installation={installation()}
           query={query()}
           recentRecords={records().slice(0, 8)}
@@ -405,7 +412,10 @@ export function AssessmentsView(): JSX.Element {
         {(specialty) => (
           <AssessmentCatalogPage
             specialty={specialty()}
-            definitions={assessmentsInSpecialty(specialty().id, filterAssessments(query()))}
+            definitions={assessmentsInSpecialty(
+              specialty().id,
+              filterAssessments(query(), assessmentCatalog()),
+            )}
             installation={installation()}
             query={query()}
             onQuery={setQuery}
@@ -442,7 +452,10 @@ export function AssessmentsView(): JSX.Element {
           <AssessmentCatalogPage
             specialty={specialty()}
             sectionId={(route() as { sectionId: AssessmentSectionId }).sectionId}
-            definitions={assessmentsInSpecialty(specialty().id, filterAssessments(query()))}
+            definitions={assessmentsInSpecialty(
+              specialty().id,
+              filterAssessments(query(), assessmentCatalog()),
+            )}
             installation={installation()}
             query={query()}
             onQuery={setQuery}

@@ -377,7 +377,7 @@ export class BrowserContentModuleRuntime {
       this.backend,
       new BrowserModuleValidator(),
       this.registry,
-      1,
+      3,
     );
     this.installer.subscribe((task) => {
       if (task.state === 'completed') {
@@ -441,22 +441,24 @@ export class BrowserContentModuleRuntime {
       this.catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
     );
-    for (const module of candidates) {
-      if (this.disposed) return;
-      const artifact = module.artifacts.find((entry) => entry.kind === 'index' && entry.url);
-      if (!artifact?.url) continue;
-      const reachable = await this.localArtifactReachable(
-        resolveContentModuleArtifactUrl(artifact.url),
-      );
-      if (!reachable) continue;
-      if (this.listInstalled().some((installed) => installed.moduleId === module.id)) continue;
-      try {
-        const task = this.install(module);
-        await this.wait(task.id);
-      } catch (cause) {
-        console.warn(`Local packaged module ${module.id} could not be installed.`, cause);
-      }
-    }
+    await Promise.all(
+      candidates.map(async (module) => {
+        if (this.disposed) return;
+        const artifact = module.artifacts.find((entry) => entry.kind === 'index' && entry.url);
+        if (!artifact?.url) return;
+        const reachable = await this.localArtifactReachable(
+          resolveContentModuleArtifactUrl(artifact.url),
+        );
+        if (!reachable || this.disposed) return;
+        if (this.listInstalled().some((installed) => installed.moduleId === module.id)) return;
+        try {
+          const task = this.install(module);
+          await this.wait(task.id);
+        } catch (cause) {
+          console.warn(`Local packaged module ${module.id} could not be installed.`, cause);
+        }
+      }),
+    );
   }
 
   private retryKey(moduleId: string, version: string): string {

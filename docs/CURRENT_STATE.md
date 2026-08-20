@@ -258,11 +258,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   owning section rather than the assessments root; a test may later appear in several sections via tags.
   Runtime TypeScript keeps only `unit-conversion` in `CALCULATOR_REGISTRY`; every other calculator
   schema and all assessments live in `content/tool-modules/*.json`, build to
-  `apps/app/public/content/modules/minimed-tools-*.db`, and are auto-installed from those local
-  artifacts during browser-dev boot (`VITE_USE_LOCAL_MODULE_ARTIFACTS`, on by default). Once a tool
+  `apps/app/public/content/modules/minimed-tools-*.db`, and are auto-installed from those bundled
+  artifacts in development and production (`VITE_USE_LOCAL_MODULE_ARTIFACTS`, on by default). Once a tool
   pack is on the device, every questionnaire and calculator in it is available immediately — there is
-  no second per-item download/remove toggle. Production builds without local artifacts still install
-  a pack through `ContentModuleRuntime.install`. Section-to-module mapping is in
+  no second per-item download/remove toggle. Remote-artifact QA can explicitly disable the local URL
+  rewrite and still install a pack through `ContentModuleRuntime.install`. Section-to-module mapping is in
   `CALCULATOR_SECTION_MODULE_IDS` and `ASSESSMENT_SECTION_MODULE_IDS`. Published packs:
   `minimed.tools.core-clinical.ru` preview.2 (the original 17 renal/emergency/cardiology/hepatology/
   hematology calculators plus BSA, CKD-EPI 2021, Schwartz 2009, maintenance fluids, and paediatric

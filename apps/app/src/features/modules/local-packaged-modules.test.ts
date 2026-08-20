@@ -114,13 +114,20 @@ describe('local packaged modules', () => {
     return found;
   };
 
-  it('treats bundled, required, and packaged companions as already installed', () => {
+  it('treats bundled, required, and mounted packaged companions as already installed', () => {
     expect(isPreinstalledCatalogModule(moduleById('minimed.core.ru'))).toBe(true);
-    expect(isPreinstalledCatalogModule(moduleById('minimed.regulatory.pediatrics.ru'))).toBe(true);
+    expect(isPreinstalledCatalogModule(moduleById('minimed.regulatory.pediatrics.ru'))).toBe(false);
+    expect(
+      isPreinstalledCatalogModule(moduleById('minimed.regulatory.pediatrics.ru'), {
+        companionRegulatoryMounted: true,
+      }),
+    ).toBe(true);
     expect(isPreinstalledCatalogModule(moduleById('minimed.clinical.recommendation.1'))).toBe(
       false,
     );
-    const merged = mergePreinstalledModules(catalog, []);
+    const merged = mergePreinstalledModules(catalog, [], {
+      companionRegulatoryMounted: true,
+    });
     expect(merged.map((entry) => entry.moduleId).toSorted()).toEqual([
       'minimed.core.ru',
       'minimed.regulatory.pediatrics.ru',
@@ -128,12 +135,19 @@ describe('local packaged modules', () => {
   });
 
   it('hides download and remove for packaged companions, and remove for tool packs', () => {
-    expect(catalogModuleHidesInstallAction(moduleById('minimed.regulatory.pediatrics.ru'))).toBe(
-      true,
-    );
-    expect(catalogModuleHidesRemoveAction(moduleById('minimed.regulatory.pediatrics.ru'))).toBe(
-      true,
-    );
+    const mountedRegulatory = { companionRegulatoryMounted: true };
+    expect(
+      catalogModuleHidesInstallAction(
+        moduleById('minimed.regulatory.pediatrics.ru'),
+        mountedRegulatory,
+      ),
+    ).toBe(true);
+    expect(
+      catalogModuleHidesRemoveAction(
+        moduleById('minimed.regulatory.pediatrics.ru'),
+        mountedRegulatory,
+      ),
+    ).toBe(true);
     expect(catalogModuleHidesInstallAction(moduleById('minimed.tools.psychology.ru'))).toBe(false);
     expect(catalogModuleHidesRemoveAction(moduleById('minimed.tools.psychology.ru'))).toBe(true);
     expect(catalogModuleHidesInstallAction(moduleById('minimed.clinical.recommendation.1'))).toBe(

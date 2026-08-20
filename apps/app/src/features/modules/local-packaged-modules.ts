@@ -6,13 +6,6 @@ import type {
 
 import type { OverviewDocumentCounts } from '@/features/modules/overview-document-counts';
 
-/** Catalog ids that ship as packaged companions and are already mounted at boot. */
-export const PACKAGED_COMPANION_MODULE_IDS: ReadonlySet<string> = new Set([
-  'minimed.core.ru',
-  'minimed.regulatory.pediatrics.ru',
-  'minimed.reference.pediatrics.ru',
-]);
-
 export const MEDICATIONS_COMPANION_MODULE_ID = 'minimed.medications.ru';
 
 /** Core ships eight registry summary cards without the Allmed medications companion. */
@@ -20,6 +13,8 @@ export const CORE_MEDICATION_REGISTRY_CARD_COUNT = 8;
 
 export interface PreinstalledCatalogModuleOptions {
   readonly companionMedicationsMounted?: boolean;
+  readonly companionReferenceMounted?: boolean;
+  readonly companionRegulatoryMounted?: boolean;
 }
 
 export function isCompanionMedicationsMounted(counts: OverviewDocumentCounts | undefined): boolean {
@@ -33,7 +28,11 @@ export function isPreinstalledCatalogModule(
   return (
     module.required ||
     module.releaseState === 'bundled' ||
-    PACKAGED_COMPANION_MODULE_IDS.has(module.id) ||
+    module.id === 'minimed.core.ru' ||
+    (module.id === 'minimed.reference.pediatrics.ru' &&
+      options?.companionReferenceMounted === true) ||
+    (module.id === 'minimed.regulatory.pediatrics.ru' &&
+      options?.companionRegulatoryMounted === true) ||
     (module.id === MEDICATIONS_COMPANION_MODULE_ID && options?.companionMedicationsMounted === true)
   );
 }
