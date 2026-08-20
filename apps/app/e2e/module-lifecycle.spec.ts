@@ -159,6 +159,5 @@ test('shows the real download state and resumes automatically when the network r
   await context.setOffline(false);
   await expect(manager).toContainText('Тут будут ваши загрузки', { timeout: 30_000 });
   await navigationButton(page, 'База знаний').click();
-  await regulatorySection(page).click();
   await expect(regulatoryCard(page).locator('.module-state')).toHaveText('Установлено');
 });
