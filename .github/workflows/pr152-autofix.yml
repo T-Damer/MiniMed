@@ -1,0 +1,99 @@
+name: PR 152 autofix
+
+on:
+  push:
+    branches: [codex/minimed-reader-library-polish]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr152-autofix
+  cancel-in-progress: true
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/minimed-reader-library-polish
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+
+      - name: Apply focused fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          calculators = Path('apps/app/src/features/calculators/CalculatorsView.tsx')
+          text = calculators.read_text(encoding='utf-8')
+          old = '''                        <input
+                          inputmode="decimal"
+                          value={schemaValues()[input.id] ?? ''}
+                          onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                        />'''
+          new = '''                        <input
+                          type="number"
+                          inputmode={input.integer ? 'numeric' : 'decimal'}
+                          min={input.minimum}
+                          max={input.maximum}
+                          step={input.inputStep ?? (input.integer ? 1 : 'any')}
+                          value={schemaValues()[input.id] ?? ''}
+                          onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                        />'''
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif new not in text:
+              raise SystemExit('calculator numeric input block not found')
+          calculators.write_text(text, encoding='utf-8')
+
+          editor = Path('apps/app/src/features/notes/NoteMarkdownEditor.tsx')
+          text = editor.read_text(encoding='utf-8')
+          text = text.replace(
+              '<div class="note-markdown-editor__toolbar" aria-label="Форматирование заметки">',
+              '<div class="note-markdown-editor__toolbar" role="toolbar" aria-label="Форматирование заметки">',
+          )
+          text = text.replace(
+              '<div class="note-markdown-editor__preview" aria-label="Предпросмотр Markdown">',
+              '<div class="note-markdown-editor__preview" role="region" aria-label="Предпросмотр Markdown">',
+          )
+          editor.write_text(text, encoding='utf-8')
+
+          markdown = Path('apps/app/src/features/library/SafeMarkdown.tsx')
+          text = markdown.read_text(encoding='utf-8')
+          text = text.replace(
+              '<span class="safe-markdown__math-inline" aria-label={`LaTeX: ${token.text}`}>',
+              '<span class="safe-markdown__math-inline" role="math" aria-label={`LaTeX: ${token.text}`}>',
+          )
+          text = text.replace(
+              '<pre class="safe-markdown__math" aria-label="Блок LaTeX">',
+              '<pre class="safe-markdown__math" role="math" aria-label="Блок LaTeX">',
+          )
+          markdown.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Format changed sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          bun run check:write || true
+
+      - name: Commit fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: format PR polish and wire calculator constraints'
+            git push origin HEAD:codex/minimed-reader-library-polish
+          fi
