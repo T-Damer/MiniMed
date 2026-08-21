@@ -41,7 +41,9 @@ def score_row(
     parse_ok = success and len(function_calls) > 0
     expected_names = [answer["name"] for answer in expected]
     actual_names = [call.get("name") for call in function_calls]
-    names_ok = sorted(actual_names) == sorted(expected_names)
+    names_ok = sorted(str(name) for name in expected_names) == sorted(
+        str(call.get("name")) for call in function_calls
+    )
     args_ok = names_ok and all(
         any(
             call.get("name") == answer["name"]
