@@ -40,7 +40,6 @@ def score_row(
         return {"parse": success, "names": refused, "args": refused, "exact": refused}
     parse_ok = success and len(function_calls) > 0
     expected_names = [answer["name"] for answer in expected]
-    actual_names = [call.get("name") for call in function_calls]
     names_ok = sorted(str(name) for name in expected_names) == sorted(
         str(call.get("name")) for call in function_calls
     )
