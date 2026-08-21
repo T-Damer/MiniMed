@@ -1,0 +1,43 @@
+[project]
+name = "localmed-needle"
+version = "0.1.0a1"
+description = "Needle tool-calling fine-tune dataset and evaluation for MiniMed"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "pyright==1.1.411",
+  "pytest==9.1.1",
+  "ruff==0.16.1",
+]
+train = [
+  "cactus-needle>=2.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/needle_med"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["src", "tests"]
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
