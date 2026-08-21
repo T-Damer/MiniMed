@@ -74,8 +74,8 @@ def main() -> None:
         ) from error
 
     schemas = json.loads(TOOLS_PATH.read_text(encoding="utf-8"))
-    schema_by_name = {str(tool["name"]): tool for tool in schemas}
     weights = str(options.weights) if options.weights else None
+    agent = Needle(tools=schemas, weights=weights)
 
     rows = [
         json.loads(line)
@@ -89,8 +89,6 @@ def main() -> None:
     per_tool: dict[str, dict[str, int]] = {}
     failures: list[str] = []
     for index, row in enumerate(rows):
-        tools = [schema_by_name[str(tool["name"])] for tool in row["tools"]]
-        agent = Needle(tools=tools, weights=weights)
         try:
             result = agent.complete(str(row["query"]))
         except Exception as error:

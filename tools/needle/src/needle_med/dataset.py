@@ -425,18 +425,6 @@ AMBIGUOUS: tuple[tuple[str, str | None, dict[str, Any], str], ...] = (
     ),
 )
 
-DISTRACTORS: dict[str, tuple[str, ...]] = {
-    "run_calculator": ("run_assessment", "extract_labs"),
-    "run_assessment": ("run_calculator",),
-    "extract_labs": ("extract_vitals", "run_calculator"),
-    "extract_vitals": ("extract_labs",),
-    "search_medical_documents": ("find_icd",),
-    "lookup_drug": ("find_interaction", "search_medical_documents"),
-    "find_interaction": ("lookup_drug",),
-    "find_icd": ("search_medical_documents",),
-    "create_note": ("search_medical_documents",),
-}
-
 TARGET_COUNTS: dict[str, int] = {
     "run_calculator": 280,
     "run_assessment": 96,
@@ -737,20 +725,19 @@ def build_sample(
     args: dict[str, Any],
     reasoning: str,
 ) -> dict[str, Any]:
+    # Every line declares the full tool catalog: production serves one fixed
+    # catalog, and the Needle engine only initialises reliably with it.
+    tools = list(schemas.values())
     if target is None:
-        names = rng.sample(sorted(schemas), rng.randint(3, 6))
         return {
             "query": query,
-            "tools": [schemas[n] for n in names],
+            "tools": tools,
             "answers": [],
             "_target": "off-topic",
         }
-    distractors = DISTRACTORS[target]
-    chosen = [target, *rng.sample(distractors, rng.randint(0, len(distractors)))]
-    rng.shuffle(chosen)
     sample = {
         "query": query,
-        "tools": [schemas[n] for n in chosen],
+        "tools": tools,
         "answers": [{"name": target, "arguments": args}] if args else [],
         "_target": target,
     }
