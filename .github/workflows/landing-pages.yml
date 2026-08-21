@@ -58,6 +58,12 @@ jobs:
           gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
             --pattern ambulatory.db --dir apps/app/public/content --clobber \
             || echo "ambulatory.db not on v$version; Pages ships without it"
+          gh release download "v$version" --repo "$GITHUB_REPOSITORY" \
+            --pattern "MiniMed-$version-core.db" --dir apps/app/public/content --clobber \
+            || echo "MiniMed-$version-core.db not on v$version; Pages keeps the tracked core pack"
+          if [ -f "apps/app/public/content/MiniMed-$version-core.db" ]; then
+            mv "apps/app/public/content/MiniMed-$version-core.db" apps/app/public/content/core-demo.db
+          fi
       - name: Build regulatory and reference databases
         run: |
           mkdir -p apps/app/public/content

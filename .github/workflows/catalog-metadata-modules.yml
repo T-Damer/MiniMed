@@ -117,7 +117,7 @@ jobs:
           path: |
             data/build/fixture-clinical-ledger.json
             data/build/fixture-clinical-modules
-            data/build/fixture-clinical-databases
+            data/build/fixture-clinical-databases/*.report.json
           if-no-files-found: error
 
   build-configured-ledger:
@@ -171,5 +171,6 @@ jobs:
           path: |
             data/raw/catalog-module-ledger/source-url.txt
             data/raw/catalog-module-ledger/ledger.json
-            data/build/catalog-metadata-modules
+            data/build/catalog-metadata-modules/workspaces
+            data/build/catalog-metadata-modules/databases/*.report.json
           if-no-files-found: error

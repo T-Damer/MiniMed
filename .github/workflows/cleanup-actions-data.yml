@@ -1,0 +1,61 @@
+name: Cleanup Actions data
+
+on:
+  schedule:
+    - cron: '17 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: List eligible runs without deleting them
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  actions: write
+
+concurrency:
+  group: cleanup-actions-data
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+    steps:
+      - name: Retain three completed runs per workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          repo="$GITHUB_REPOSITORY"
+          all_runs="$(gh api --paginate "/repos/${repo}/actions/runs?per_page=100" \
+            --jq '.workflow_runs[]' | jq -s '.')"
+          candidates="$(jq '[
+            .[]
+            | select(.status == "completed")
+          ]
+          | group_by(.workflow_id)
+          | map(sort_by(.created_at) | reverse | .[3:][])
+          | sort_by(.created_at)' <<< "$all_runs")"
+
+          completed_count="$(jq '[.[] | select(.status == "completed")] | length' <<< "$all_runs")"
+          active_count="$(jq '[.[] | select(.status != "completed")] | length' <<< "$all_runs")"
+          candidate_count="$(jq 'length' <<< "$candidates")"
+
+          echo "Completed runs: ${completed_count}"
+          echo "Active/queued runs protected: ${active_count}"
+          echo "Older completed runs eligible: ${candidate_count}"
+          jq -r '.[] | [.id, .workflow_id, .name, .status, .conclusion, .created_at] | @tsv' <<< "$candidates"
+
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo 'Dry run: no runs or artifacts deleted.'
+            exit 0
+          fi
+
+          while IFS= read -r run_id; do
+            [[ -n "$run_id" ]] || continue
+            gh api --method DELETE "/repos/${repo}/actions/runs/${run_id}"
+          done < <(jq -r '.[].id' <<< "$candidates")

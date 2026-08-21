@@ -36,6 +36,7 @@ jobs:
           echo "RELEASE_TAG=v$version" >> "$GITHUB_ENV"
           echo "APK_NAME=MiniMed-$version-rf-public-pilot-debug.apk" >> "$GITHUB_ENV"
           echo "APK_LATEST_NAME=MiniMed-android.apk" >> "$GITHUB_ENV"
+          echo "CORE_DATABASE_NAME=MiniMed-$version-core.db" >> "$GITHUB_ENV"
       - uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.0"
@@ -80,6 +81,7 @@ jobs:
           apk="release-output/${APK_NAME}"
           apk_latest="release-output/${APK_LATEST_NAME}"
           original_db="data/build/rf-public-pilot.db"
+          release_db="release-output/${CORE_DATABASE_NAME}"
           extracted_db="$RUNNER_TEMP/rf-public-pilot-from-apk.db"
 
           test -s "$apk_source"
@@ -257,16 +259,20 @@ jobs:
               json.dumps(source_index, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
           )
           PY
+          cp "$original_db" "$release_db"
 
-      - name: Upload APK and complete verification evidence
+      - name: Upload release verification evidence
         uses: actions/upload-artifact@v7
         with:
-          name: MiniMed-${{ env.RELEASE_VERSION }}-rf-public-pilot
-          path: release-output
+          name: MiniMed-${{ env.RELEASE_VERSION }}-verification
+          path: |
+            release-output/*.txt
+            release-output/SOURCE-INDEX.json
+            release-output/VERIFICATION.json
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publish APK-only GitHub prerelease
+      - name: Publish APK and database GitHub prerelease
         if: >-
           github.event_name == 'push' &&
           github.ref == 'refs/heads/main' &&
@@ -277,6 +283,7 @@ jobs:
           set -euo pipefail
           apk="release-output/${APK_NAME}"
           apk_latest="release-output/${APK_LATEST_NAME}"
+          release_db="release-output/${CORE_DATABASE_NAME}"
           notes=$(cat <<EOF
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
@@ -305,9 +312,9 @@ jobs:
           EOF
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" --clobber
+            gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" --clobber
           else
-            gh release create "$RELEASE_TAG" "$apk" "$apk_latest" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
+            gh release create "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
           fi
           if gh release view android-latest >/dev/null 2>&1; then
             gh release upload android-latest "$apk_latest" --clobber

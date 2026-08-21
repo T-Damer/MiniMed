@@ -508,6 +508,11 @@ ordinary search response when validation fails.
   rewrites them to the CORS-safe `datasets/<snapshot-tag>` mirror branch on
   `raw.githubusercontent.com` (`apps/app/public/content/clinical/*.db`). Publish via
   `scripts/publish-clinical-datasets-branch.sh` (also hooked into `publish-clinical-snapshot.yml`).
+- GitHub Actions no longer stores APK or SQLite binaries as run artifacts: release jobs publish those
+  binaries only as GitHub Release assets, while Actions artifacts retain only diagnostic reports,
+  manifests, checksums, and benchmark evidence. A scheduled/manual cleanup retains the newest three
+  completed runs per workflow and never targets active runs, releases, release assets, caches, or
+  environments.
 - The runtime fingerprints actual module versions, digests, URLs, checksums, and sizes rather than only
   comparing catalog counts.
 - Regulatory catalog rows resolve Russian document titles, revision dates, and current/historical status;

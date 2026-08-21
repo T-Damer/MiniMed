@@ -188,8 +188,8 @@ jobs:
                   'kind': 'index',
                   'required': True,
                   'url': (
-                      'https://raw.githubusercontent.com/T-Damer/MiniMed/main/'
-                      f'apps/app/public/content/modules/{database_path.name}'
+                      f'https://github.com/T-Damer/MiniMed/releases/download/{dataset_tag}/'
+                      f'{database_path.name}'
                   ),
                   'sha256': digest,
                   'sizeBytes': len(database_bytes),
@@ -274,7 +274,10 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: minimed-datasets-preview-1
-          path: release-datasets
+          path: |
+            release-datasets/catalog.preview.json
+            release-datasets/SHA256SUMS.txt
+            release-datasets/*.manifest.json
           if-no-files-found: error
           retention-days: 30
       - name: Publish preview channel assets

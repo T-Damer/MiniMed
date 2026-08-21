@@ -71,7 +71,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: |
-            data/build/rf-regulatory-pilot.db
             data/build/rf-regulatory-pilot-report.json
             data/build/rf-regulatory-pilot-benchmark.json
             data/build/regulatory-source-sync-report.json

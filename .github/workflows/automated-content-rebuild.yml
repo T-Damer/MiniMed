@@ -107,12 +107,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: minimed-content-database-${{ github.run_id }}
+          name: minimed-content-rebuild-evidence-${{ github.run_id }}
           if-no-files-found: warn
           retention-days: 21
           path: |
             data/build/source-sync-report.json
-            data/build/rf-public-pilot.db
             data/build/rf-public-pilot-report.json
             data/build/rf-public-pilot-benchmark.json
 

@@ -48,7 +48,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           path: |
-            data/build/rf-public-pilot.db
             data/build/rf-public-pilot-report.json
             data/build/rf-public-pilot-benchmark.json
             data/build/rf-public-pilot-benchmark.log

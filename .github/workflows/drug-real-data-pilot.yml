@@ -81,5 +81,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: |
-            data/build/rf-public-pilot.db
             data/build/rf-public-pilot-report.json
