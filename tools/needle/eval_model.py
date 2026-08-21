@@ -31,7 +31,9 @@ def _arguments_equal(left: Any, right: Any) -> bool:
     return left == right
 
 
-def score_row(row: dict[str, Any], function_calls: list[dict[str, Any]], success: bool) -> dict[str, bool]:
+def score_row(
+    row: dict[str, Any], function_calls: list[dict[str, Any]], success: bool
+) -> dict[str, bool]:
     expected = row["answers"]
     if not expected:
         refused = success and not function_calls
@@ -83,15 +85,14 @@ def main() -> None:
         rows = rows[: options.limit]
 
     totals = {"parse": 0, "names": 0, "args": 0, "exact": 0}
-    off_topic_total = 0
-    off_topic_passed = 0
+    per_tool: dict[str, dict[str, int]] = {}
     failures: list[str] = []
     for index, row in enumerate(rows):
         tools = [schema_by_name[str(tool["name"])] for tool in row["tools"]]
         agent = Needle(tools=tools, weights=weights)
         try:
             result = agent.complete(str(row["query"]))
-        except Exception as error:  # noqa: BLE001 - report every engine failure per row
+        except Exception as error:
             failures.append(f"[{index}] engine error: {error}\n    query: {row['query']}")
             continue
         calls = list(result.get("function_calls") or [])
@@ -99,10 +100,14 @@ def main() -> None:
         for key in totals:
             if marks[key]:
                 totals[key] += 1
-        if not row["answers"]:
-            off_topic_total += 1
-            off_topic_passed += int(marks["exact"])
-        elif not marks["exact"]:
+        label = str(row["answers"][0]["name"]) if row["answers"] else "off-topic"
+        stats_row = per_tool.setdefault(label, {"n": 0, "exact": 0})
+        stats_row["n"] += 1
+        if marks["exact"]:
+            stats_row["exact"] += 1
+        elif not row["answers"]:
+            pass
+        else:
             failures.append(
                 f"[{index}] query: {row['query'][:110]}\n"
                 f"    expected: {json.dumps(row['answers'], ensure_ascii=False)[:180]}\n"
@@ -115,8 +120,11 @@ def main() -> None:
     print(f"name match:   {totals['names'] / total:.1%}")
     print(f"args exact:   {totals['args'] / total:.1%}")
     print(f"exact match:  {totals['exact'] / total:.1%}")
-    if off_topic_total:
-        print(f"refusal rate: {off_topic_passed}/{off_topic_total}")
+    print("\nper tool:")
+    for label in sorted(per_tool):
+        stats_row = per_tool[label]
+        rate = stats_row["exact"] / max(1, stats_row["n"])
+        print(f"  {label:28s} {stats_row['exact']:3d}/{stats_row['n']:<3d} ({rate:.1%})")
     shown = failures[:8]
     if shown:
         print("\nfailing samples:")
