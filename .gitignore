@@ -21,6 +21,10 @@ __pycache__/
 .ruff_cache/
 .pyright/
 tools/ingest/.venv/
+tools/needle/.venv/
+data/needle/*
+checkpoints/
+*.cact
 data/raw/*
 !data/raw/.gitkeep
 data/intermediate/*

@@ -437,6 +437,31 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 The model cannot open the network, change the corpus, create a citation, calculate a dose, or hide the
 ordinary search response when validation fails.
 
+### Needle tool-calling fine-tune (worktree branch `feat/needle-finetune`)
+
+- `tools/needle/` holds a Cactus Needle 2 LoRA fine-tune slice: one static tool schema
+  (`minimed_tools.json`, nine tools) and a deterministic seeded dataset generator grounded in real
+  repository content — calculator ids and inputs from `content/tool-modules/*.json` (~21 trainable
+  calculators plus a synthetic `dose-by-weight`), assessment slugs from shipped modules, search
+  queries verbatim from `tools/benchmarks/*` with their expected scope/section metadata as labels.
+- The generator validates every sample before writing: answers must reference declared tools,
+  satisfy JSON-schema type/enum/range constraints, ground non-selection argument values in the query
+  text, keep off-topic samples at `answers: []`, and stay duplicate-free. Volume: ~1045 samples
+  (~935 train / ~110 val) across nine tools.
+- `eval_model.py` scores a checkpoint on the held-out split (parse rate, name match, argument
+  exactness, off-topic refusal, exact match) against the full nine-tool catalog. Checks:
+  `bun run needle:check`; data: `bun run needle:data`.
+- Scope/section enums mirror the real contracts (`ScopedMedicalCore` source families and
+  `SearchResultCategory`); audience and intent stay deterministic and are not model arguments.
+- Status: dataset and harness are done and green; LoRA training is blocked in the current macOS
+  environment — JAX on CPU wedges after a few optimizer steps regardless of batch size, sequence
+  length, or thread settings (compile alone takes ~15–20 minutes). The base Needle 2 model scores
+  0% exact on this Russian medical split, so the tuned adapter is required for any capability.
+  Training must run on a Linux/GPU machine or a fixed JAX build before integration; the engine also
+  needs an upstream fix for truncated multi-byte UTF-8 output (worked around in the eval harness).
+- Not integrated into the app yet; `dose-by-weight` has no runtime calculator until one is added to
+  the pediatrics tool module.
+
 ### Content and downloads
 
 - Deterministic preparation, Markdown validation, stable IDs, provenance, and SQLite building.
@@ -620,6 +645,10 @@ review-required intermediate draft. Neither pilot has been run with provider cre
    on-device transcriber.
 7. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
    presenting diagnostic assistance as a 1.0 capability.
+8. Needle tool-calling slice: measure the fine-tuned checkpoint against the deterministic baseline
+   (`tools/needle/eval_model.py`), add the runtime `dose-by-weight` schema calculator to the
+   pediatrics module, then wire a validated tool-call loop behind `MedicalCore` without letting
+   model text replace retrieval or computed results (see [NEEDLE_FINETUNE.md](NEEDLE_FINETUNE.md)).
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
 No cross-language runtime migration should start before shared golden fixtures demonstrate parity.
