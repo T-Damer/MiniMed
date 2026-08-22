@@ -449,10 +449,16 @@ ordinary search response when validation fails.
   text, keep off-topic samples at `answers: []`, and stay duplicate-free. Volume: ~1045 samples
   (~935 train / ~110 val) across nine tools.
 - `eval_model.py` scores a checkpoint on the held-out split (parse rate, name match, argument
-  exactness, off-topic refusal, exact match). Checks: `bun run needle:check`; data:
-  `bun run needle:data`.
+  exactness, off-topic refusal, exact match) against the full nine-tool catalog. Checks:
+  `bun run needle:check`; data: `bun run needle:data`.
 - Scope/section enums mirror the real contracts (`ScopedMedicalCore` source families and
   `SearchResultCategory`); audience and intent stay deterministic and are not model arguments.
+- Status: dataset and harness are done and green; LoRA training is blocked in the current macOS
+  environment — JAX on CPU wedges after a few optimizer steps regardless of batch size, sequence
+  length, or thread settings (compile alone takes ~15–20 minutes). The base Needle 2 model scores
+  0% exact on this Russian medical split, so the tuned adapter is required for any capability.
+  Training must run on a Linux/GPU machine or a fixed JAX build before integration; the engine also
+  needs an upstream fix for truncated multi-byte UTF-8 output (worked around in the eval harness).
 - Not integrated into the app yet; `dose-by-weight` has no runtime calculator until one is added to
   the pediatrics tool module.
 
