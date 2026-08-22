@@ -73,9 +73,28 @@ def main() -> None:
             "cactus-needle is not installed. Run: uv sync --project tools/needle --group train"
         ) from error
 
-    schemas = json.loads(TOOLS_PATH.read_text(encoding="utf-8"))
+    from needle_med.dataset import _slim_schema
+
+    schemas = [_slim_schema(tool) for tool in json.loads(TOOLS_PATH.read_text(encoding="utf-8"))]
     weights = str(options.weights) if options.weights else None
-    agent = Needle(tools=schemas, weights=weights)
+    # The default 64 KiB buffer can split multi-byte UTF-8 characters on long
+    # Cyrillic tool catalogs, so give the engine a larger response buffer.
+    agent = Needle(tools=schemas, weights=weights, buffer_size=262144)
+
+    def tolerant_complete(bound: Any, text: str, max_new_tokens: int = 256) -> dict[str, Any]:
+        """Work around upstream engines emitting truncated multi-byte characters."""
+        from needle import _lib
+
+        bound._bind()
+        return_code = _lib().needle_complete(
+            text.encode("utf-8"), int(max_new_tokens), bound._buffer, len(bound._buffer)
+        )
+        if return_code < 0:
+            raise RuntimeError(f"needle_complete failed (code {return_code})")
+        raw = bound._buffer.value
+        return json.loads(raw.decode("utf-8", errors="replace"))
+
+    agent.complete = lambda text, max_new_tokens=256: tolerant_complete(agent, text, max_new_tokens)
 
     rows = [
         json.loads(line)

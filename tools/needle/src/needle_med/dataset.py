@@ -717,6 +717,47 @@ def check_grounding(query: str, args: dict[str, Any]) -> str | None:
     return None
 
 
+def _slim_schema(tool: dict[str, Any]) -> dict[str, Any]:
+    """Drop per-property descriptions and numeric ranges from the training context.
+
+    Tool-level descriptions stay. The served catalog keeps its full schemas;
+    trimming only the per-line payload keeps sequences near ~2k tokens so CPU
+    LoRA training stays practical.
+    """
+
+    def slim(node: Any, top_level: bool = False) -> Any:
+        if isinstance(node, dict):
+            keep_description = top_level
+            result: dict[str, Any] = {}
+            for key, value in node.items():
+                if key == "description":
+                    if keep_description:
+                        result[key] = slim(value)
+                elif key not in ("minimum", "maximum", "enum", "required"):
+                    result[key] = slim(value)
+            return result
+        if isinstance(node, list):
+            return [slim(item) for item in node]
+        return node
+
+    return slim(tool, top_level=True)
+
+
+# Confusable tool groups used to build small per-line menus; the model learns to
+# discriminate inside a changing menu, and evaluation binds the full catalog.
+DISTRACTORS: dict[str, tuple[str, ...]] = {
+    "run_calculator": ("run_assessment", "extract_labs", "extract_vitals"),
+    "run_assessment": ("run_calculator",),
+    "extract_labs": ("extract_vitals", "run_calculator"),
+    "extract_vitals": ("extract_labs",),
+    "search_medical_documents": ("find_icd", "lookup_drug"),
+    "lookup_drug": ("find_interaction", "search_medical_documents"),
+    "find_interaction": ("lookup_drug",),
+    "find_icd": ("search_medical_documents",),
+    "create_note": ("search_medical_documents",),
+}
+
+
 def build_sample(
     rng: random.Random,
     schemas: dict[str, dict[str, Any]],
@@ -725,19 +766,23 @@ def build_sample(
     args: dict[str, Any],
     reasoning: str,
 ) -> dict[str, Any]:
-    # Every line declares the full tool catalog: production serves one fixed
-    # catalog, and the Needle engine only initialises reliably with it.
-    tools = list(schemas.values())
+    names = sorted(schemas)
     if target is None:
+        menu = rng.sample(names, rng.randint(3, 4))
         return {
             "query": query,
-            "tools": tools,
+            "tools": [_slim_schema(schemas[n]) for n in menu],
             "answers": [],
             "_target": "off-topic",
         }
+    pool = [n for n in DISTRACTORS[target] if n != target]
+    extra = rng.sample(pool, rng.randint(0, min(2, len(pool))))
+    filler = [n for n in names if n not in {target, *extra}]
+    while len(extra) < 2 and filler and rng.random() < 0.4:
+        extra.append(filler.pop(rng.randrange(len(filler))))
     sample = {
         "query": query,
-        "tools": tools,
+        "tools": [_slim_schema(schemas[n]) for n in [target, *extra]],
         "answers": [{"name": target, "arguments": args}] if args else [],
         "_target": target,
     }
