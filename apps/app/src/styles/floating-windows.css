@@ -1,0 +1,405 @@
+.floating-windows-layer {
+  position: fixed;
+  z-index: var(--z-float);
+  inset: 0;
+  pointer-events: none;
+}
+
+.floating-window {
+  position: fixed;
+  display: flex;
+  min-width: min(16.25rem, calc(100vw - 1rem));
+  min-height: min(21.25rem, calc(100dvh - 1rem));
+  max-width: calc(100vw - 1rem);
+  max-height: calc(100dvh - 1rem);
+  box-sizing: border-box;
+  flex-direction: column;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--theme-border-strong);
+  border-radius: 0.875rem;
+  background: var(--desk);
+  box-shadow: 0 1.25rem 3rem rgb(18 16 13 / 30%);
+  isolation: isolate;
+  pointer-events: auto;
+  transition: transform 120ms ease-out;
+}
+
+.floating-window--resizing {
+  transition: none;
+}
+
+.floating-window__frame--resizing {
+  flex: 0 0 auto;
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+.floating-window__content--resizing::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: rgb(35 33 29 / 7%);
+  content: "";
+  pointer-events: none;
+}
+
+.floating-window--inactive .floating-window__content {
+  visibility: hidden;
+}
+
+.floating-window__toolbar {
+  position: static;
+  display: grid;
+  min-height: 2.125rem;
+  box-sizing: border-box;
+  flex: 0 0 2.125rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.375rem;
+  border-bottom: 1px solid var(--theme-border);
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-surface-raised) 94%, transparent);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.floating-window__toolbar:active {
+  cursor: grabbing;
+}
+
+.floating-window__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.floating-window__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.floating-window__button {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface);
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .floating-window__button:hover {
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+  }
+}
+
+.floating-window__icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.floating-window__content {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.floating-window__loading {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--desk) 86%, transparent);
+}
+
+.floating-window__spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0.1875rem solid var(--theme-border-strong);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+.floating-window__resize-corner {
+  display: none;
+}
+
+.floating-window__resize-icon {
+  display: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.floating-window__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--desk);
+}
+
+.floating-window-controls {
+  --floating-window-control-size: 2.6875rem;
+  position: fixed;
+  z-index: var(--z-float);
+  right: max(0.75rem, var(--safe-right));
+  bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom)));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.floating-window-controls .floating-window-toggle,
+.floating-window-controls .scroll-top-button,
+.floating-window-controls .document-book-mode-button,
+.floating-window-controls .patient-notes-fab,
+.floating-window-controls .assessment-next-button {
+  width: var(--floating-window-control-size);
+  height: var(--floating-window-control-size);
+}
+
+.floating-window-controls__item {
+  position: static;
+  right: auto;
+  bottom: auto;
+}
+
+.floating-window-toggle {
+  display: grid;
+  width: var(--floating-window-control-size);
+  height: var(--floating-window-control-size);
+  place-items: center;
+  border: 1px solid rgb(246 238 219 / 25%);
+  border-radius: 50%;
+  color: #f6eedb;
+  background: rgb(71 69 63 / 92%);
+  box-shadow: 0 0.625rem 1.5625rem rgb(24 22 19 / 27%);
+  cursor: pointer;
+}
+
+.floating-window-toggle:hover {
+  color: #fff;
+  background: #5a574f;
+}
+
+.floating-window-toggle__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+@media (min-width: 45rem) and (hover: hover) and (pointer: fine) {
+  .floating-window__resize-corner {
+    position: absolute;
+    z-index: 3;
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    touch-action: none;
+  }
+
+  .floating-window__resize-corner--nw {
+    top: 0;
+    left: 0;
+    cursor: nwse-resize;
+  }
+
+  .floating-window__resize-corner--ne {
+    top: 0;
+    right: 0;
+    cursor: nesw-resize;
+  }
+
+  .floating-window__resize-corner--sw {
+    bottom: 0;
+    left: 0;
+    cursor: nesw-resize;
+  }
+
+  .floating-window__resize-corner--se {
+    right: 0;
+    bottom: 0;
+    cursor: nwse-resize;
+  }
+}
+
+html:has(.app-shell--floating-child),
+html:has(.app-shell--floating-child) body {
+  min-width: 0;
+  scrollbar-width: none;
+}
+
+html:has(.app-shell--floating-child)::-webkit-scrollbar,
+html:has(.app-shell--floating-child) body::-webkit-scrollbar {
+  display: none;
+}
+
+.app-shell--floating-child {
+  min-height: 100%;
+}
+
+.app-main--floating-child {
+  min-height: 100%;
+  overflow-x: clip;
+}
+
+.app-shell--floating-child-scaled {
+  --floating-content-scale: clamp(0.78, calc(100vw / 366px), 1);
+  width: calc(100vw / var(--floating-content-scale));
+  min-height: calc(100dvh / var(--floating-content-scale));
+  overflow-x: clip;
+  zoom: var(--floating-content-scale);
+}
+
+.app-main--floating-child-scaled {
+  width: 100%;
+}
+
+.app-view.app-view--floating-child-scaled {
+  max-width: none;
+}
+
+@media (max-width: 44rem) {
+  .floating-window__resize-corner--nw {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    color: var(--theme-text-muted);
+    cursor: nwse-resize;
+    touch-action: none;
+  }
+
+  .floating-window__resize-icon {
+    display: block;
+  }
+
+  .floating-window {
+    max-width: calc(100vw - 0.5rem);
+    max-height: calc(100dvh - 0.5rem);
+  }
+
+  .floating-window-controls {
+    right: 0.75rem;
+    bottom: calc(4.375rem + var(--safe-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-window {
+    transition: none;
+  }
+}
+
+/* Floating-window compactness: shrink oversized chrome on small viewports */
+
+.app-shell--floating-child .user-library-folder-card__icon.app-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.app-shell--floating-child .user-library-folder-card__open {
+  gap: 0.3rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.app-shell--floating-child .module-catalog-actions--toolbar .ui-button {
+  min-height: 2rem;
+  padding-inline: 0.5rem;
+  font-size: 0.72rem;
+}
+
+.app-shell--floating-child .reader-card.paper-card,
+.app-shell--floating-child .reader-card.paper-sheet {
+  padding: 0.7rem 0.8rem;
+}
+
+.app-shell--floating-child .reader-header__actions {
+  gap: 0.3rem;
+}
+
+/* Size reducer for big page titles on narrow/floating viewports */
+
+.app-shell--floating-child .subpage-heading h1,
+.app-shell--floating-child .tool-page-title h1,
+.app-shell--floating-child .calculator-subpage-title,
+.app-shell--floating-child .assessment-subpage-title,
+.app-shell--floating-child .assessments-heading h1 {
+  font-size: clamp(1.05rem, 4.5vw, 1.45rem);
+  line-height: 1.2;
+}
+
+.app-shell--floating-child .subpage-heading p,
+.app-shell--floating-child .assessments-heading__description,
+.app-shell--floating-child .calculator-subpage-summary {
+  font-size: 0.78rem;
+}
+
+/* Collapsed mini-window: header-only strip */
+
+.floating-window--collapsed {
+  min-height: 0;
+}
+
+.floating-window__content--collapsed {
+  display: none;
+}
+
+/* Title marquee while collapsed: slide out, hold, return */
+
+.floating-window__title {
+  text-overflow: clip;
+}
+
+.floating-window__title-text {
+  display: inline-block;
+}
+
+.floating-window__title-text--marquee {
+  animation: floating-window-marquee 12s linear infinite;
+}
+
+@keyframes floating-window-marquee {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+
+  55%,
+  80% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-window__title-text--marquee {
+    animation: none;
+  }
+}
+
+.floating-window--collapsed .floating-window__resize-corner {
+  display: none;
+}
