@@ -1,4 +1,5 @@
 import { scaleThumbnailSize } from '@/state/note-images';
+import { readZipEntry } from '@/state/user-library-zip';
 
 const THUMBNAIL_QUALITY = 0.72;
 const EMBEDDED_JPEG_SCAN_BYTES = 8 * 1024 * 1024;
@@ -43,7 +44,7 @@ async function rasterImageThumbnail(blob: Blob): Promise<string | undefined> {
  * Best-effort scan for an embedded JPEG thumbnail (EXIF/HEIF containers keep a
  * small preview JPEG inside). Returns the decoded thumbnail when found.
  */
-async function embeddedJpegThumbnail(blob: Blob): Promise<string | undefined> {
+async function embeddedImageThumbnail(blob: Blob): Promise<string | undefined> {
   try {
     const head = new Uint8Array(await blob.slice(0, EMBEDDED_JPEG_SCAN_BYTES).arrayBuffer());
     let start = -1;
@@ -64,6 +65,66 @@ async function embeddedJpegThumbnail(blob: Blob): Promise<string | undefined> {
     if (end <= start + 100) return undefined;
     const jpegBlob = blob.slice(start, end, 'image/jpeg');
     return await rasterImageThumbnail(jpegBlob);
+  } catch {
+    return undefined;
+  }
+}
+
+function joinZipPath(base: string, relative: string): string {
+  const baseParts = base.includes('/') ? base.split('/').slice(0, -1) : [];
+  const parts = [...baseParts];
+  for (const segment of relative.replace(/^\//u, '').split('/')) {
+    if (segment === '..') parts.pop();
+    else if (segment && segment !== '.') parts.push(segment);
+  }
+  return parts.join('/');
+}
+
+async function epubThumbnail(blob: Blob): Promise<string | undefined> {
+  try {
+    const data = await blob.arrayBuffer();
+    const containerBytes = await readZipEntry(data, 'META-INF/container.xml');
+    if (!containerBytes) return undefined;
+    const container = new DOMParser().parseFromString(
+      new TextDecoder().decode(containerBytes),
+      'application/xml',
+    );
+    const rootfile = container.querySelector('rootfile');
+    const opfPath = rootfile?.getAttribute('full-path') ?? rootfile?.getAttribute('fullPath');
+    if (!opfPath) return undefined;
+    const opfBytes = await readZipEntry(data, opfPath);
+    if (!opfBytes) return undefined;
+    const opf = new DOMParser().parseFromString(
+      new TextDecoder().decode(opfBytes),
+      'application/xml',
+    );
+    const items = Array.from(opf.getElementsByTagName('item'));
+    const coverId = Array.from(opf.getElementsByTagName('meta'))
+      .find((item) => item.getAttribute('name')?.toLowerCase() === 'cover')
+      ?.getAttribute('content');
+    const cover =
+      items.find((item) =>
+        item.getAttribute('properties')?.split(/\s+/u).includes('cover-image'),
+      ) ??
+      items.find((item) => item.getAttribute('id') === coverId) ??
+      items.find(
+        (item) =>
+          item.getAttribute('media-type')?.startsWith('image/') &&
+          /cover|front/iu.test(
+            `${item.getAttribute('id') ?? ''} ${item.getAttribute('href') ?? ''}`,
+          ),
+      ) ??
+      items.find((item) => item.getAttribute('media-type')?.startsWith('image/'));
+    if (!cover) return undefined;
+    const href = cover.getAttribute('href');
+    if (!href) return undefined;
+    const coverBytes = await readZipEntry(data, joinZipPath(opfPath, decodeURIComponent(href)));
+    if (!coverBytes) return undefined;
+    const coverData = new ArrayBuffer(coverBytes.byteLength);
+    new Uint8Array(coverData).set(coverBytes);
+    return await rasterImageThumbnail(
+      new Blob([coverData], { type: cover.getAttribute('media-type') ?? 'image/jpeg' }),
+    );
   } catch {
     return undefined;
   }
@@ -137,7 +198,8 @@ async function pdfThumbnail(blob: Blob): Promise<string | undefined> {
 /**
  * Single entry point that turns any attachable file into a small preview
  * image: photos and screenshots directly, videos via a captured frame,
- * PDFs via their first page, HEIC/HEIF via the embedded EXIF thumbnail.
+ * PDFs via their first page, EPUBs via their cover, and HEIC/HEIF or audio
+ * files via an embedded JPEG thumbnail when the browser cannot decode them.
  */
 export class AttachmentThumbnails {
   async forFile(file: File | Blob, mimeType: string, name?: string): Promise<string | undefined> {
@@ -147,10 +209,14 @@ export class AttachmentThumbnails {
       mimeType === 'image/heif' ||
       lowerName.endsWith('.heic') ||
       lowerName.endsWith('.heif');
-    if (isHeic) return (await rasterImageThumbnail(file)) ?? (await embeddedJpegThumbnail(file));
+    if (isHeic) return (await rasterImageThumbnail(file)) ?? (await embeddedImageThumbnail(file));
     if (mimeType.startsWith('image/')) return await rasterImageThumbnail(file);
     if (mimeType.startsWith('video/')) return await videoThumbnail(file);
     if (mimeType === 'application/pdf') return await pdfThumbnail(file);
+    if (mimeType === 'application/epub+zip' || lowerName.endsWith('.epub')) {
+      return await epubThumbnail(file);
+    }
+    if (mimeType.startsWith('audio/')) return await embeddedImageThumbnail(file);
     return undefined;
   }
 }
