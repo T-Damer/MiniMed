@@ -12,6 +12,7 @@ import {
   Show,
 } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { createFlipAnimator } from '@/components/flip-layout';
 import { NavBack } from '@/components/NavBack';
 import { useStickySurface } from '@/components/sticky-surface';
 import { dismissOpenDocumentFind } from '@/features/library/document-find';
@@ -40,6 +41,7 @@ export interface DocumentReaderChromeController {
   readonly chromeElement: () => HTMLElement | undefined;
   readonly setChromeElement: (element: HTMLElement) => void;
   readonly setOutline: (element: HTMLElement) => void;
+  readonly outlineElement: () => HTMLElement | undefined;
   readonly setOutlineNav: (element: HTMLElement) => void;
   readonly setOutlineScrollbars: (value: OverlayScrollbarsComponentRef) => void;
   readonly setPaper: (element: HTMLElement) => void;
@@ -119,7 +121,9 @@ export function useDocumentReaderChrome(
     const observer = new ResizeObserver(schedule);
     observer.observe(element);
     const mutations = root ? new MutationObserver(schedule) : undefined;
-    if (mutations && root) mutations.observe(root, { childList: true, subtree: true });
+    const paperElement = root?.querySelector<HTMLElement>('.document-overlay-paper');
+    if (mutations && paperElement)
+      mutations.observe(paperElement, { childList: true, subtree: true });
     window.addEventListener('resize', schedule);
     onCleanup(() => {
       if (frame !== undefined) cancelAnimationFrame(frame);
@@ -136,7 +140,20 @@ export function useDocumentReaderChrome(
   };
 
   onMount(() => {
-    if (isDesktopReaderLayout()) setOutlineOpen(true);
+    if (isDesktopReaderLayout()) {
+      setOutlineOpen(true);
+      try {
+        const storedWidth = localStorage.getItem('minimed.outline.width');
+        const width = storedWidth ? Number.parseInt(storedWidth, 10) : NaN;
+        if (Number.isFinite(width) && width >= 200 && width <= 480) {
+          chromeElement()
+            ?.closest<HTMLElement>('.document-overlay-layout')
+            ?.style.setProperty('--outline-column-width', `${width}px`);
+        }
+      } catch {
+        // ignore storage errors
+      }
+    }
     outline?.addEventListener('scroll', updateOutlineSearchSticky, { passive: true });
     updateOutlineSearchSticky();
     onCleanup(() => {
@@ -151,9 +168,13 @@ export function useDocumentReaderChrome(
     const body = options.bodyClosestSelector
       ? paper.closest<HTMLElement>(options.bodyClosestSelector)
       : paper.closest<HTMLElement>('.document-page__body');
+    let sections: readonly HTMLElement[] = [];
+    const refreshSections = (): void => {
+      sections = Array.from(paper?.querySelectorAll<HTMLElement>(options.sectionSelector) ?? []);
+    };
+    refreshSections();
     const updateActiveSection = (): void => {
       if (!paper) return;
-      const sections = Array.from(paper.querySelectorAll<HTMLElement>(options.sectionSelector));
       if (sections.length === 0) return;
       const paperScrolls = paper.scrollHeight > paper.clientHeight + 1;
       const bodyScrolls = Boolean(body && body.scrollHeight > body.clientHeight + 1);
@@ -162,29 +183,47 @@ export function useDocumentReaderChrome(
         : bodyScrolls && body
           ? isNearScrollEnd(body)
           : isWindowNearScrollEnd();
-      if (nearEnd) {
-        setActiveAnchor(sections.at(-1)?.id ?? sections[0]?.id ?? '');
-        return;
-      }
-      const scrollerRect = paperScrolls
-        ? paper.getBoundingClientRect()
-        : bodyScrolls && body
-          ? body.getBoundingClientRect()
-          : new DOMRect(0, 0, window.innerWidth, window.innerHeight);
-      const readingLine = computeReadingLine(scrollerRect);
-      setActiveAnchor(pickActiveSectionAnchor(sections, readingLine));
+      const nextAnchor = nearEnd
+        ? (sections.at(-1)?.id ?? sections[0]?.id ?? '')
+        : pickActiveSectionAnchor(
+            sections,
+            computeReadingLine(
+              paperScrolls
+                ? paper.getBoundingClientRect()
+                : bodyScrolls && body
+                  ? body.getBoundingClientRect()
+                  : new DOMRect(0, 0, window.innerWidth, window.innerHeight),
+            ),
+          );
+      if (nextAnchor !== activeAnchor()) setActiveAnchor(nextAnchor);
     };
 
-    paper.addEventListener('scroll', updateActiveSection, { passive: true });
-    body?.addEventListener('scroll', updateActiveSection, { passive: true });
-    window.addEventListener('scroll', updateActiveSection, { passive: true });
-    window.addEventListener('resize', updateActiveSection);
-    queueMicrotask(updateActiveSection);
+    let activeFrame: number | undefined;
+    const scheduleActiveSection = (): void => {
+      if (activeFrame !== undefined) return;
+      activeFrame = requestAnimationFrame(() => {
+        activeFrame = undefined;
+        updateActiveSection();
+      });
+    };
+
+    paper.addEventListener('scroll', scheduleActiveSection, { passive: true });
+    body?.addEventListener('scroll', scheduleActiveSection, { passive: true });
+    window.addEventListener('scroll', scheduleActiveSection, { passive: true });
+    window.addEventListener('resize', scheduleActiveSection);
+    const sectionMutations = new MutationObserver(() => {
+      refreshSections();
+      scheduleActiveSection();
+    });
+    sectionMutations.observe(paper, { childList: true, subtree: true });
+    queueMicrotask(scheduleActiveSection);
     onCleanup(() => {
-      paper?.removeEventListener('scroll', updateActiveSection);
-      body?.removeEventListener('scroll', updateActiveSection);
-      window.removeEventListener('scroll', updateActiveSection);
-      window.removeEventListener('resize', updateActiveSection);
+      paper?.removeEventListener('scroll', scheduleActiveSection);
+      body?.removeEventListener('scroll', scheduleActiveSection);
+      window.removeEventListener('scroll', scheduleActiveSection);
+      window.removeEventListener('resize', scheduleActiveSection);
+      if (activeFrame !== undefined) cancelAnimationFrame(activeFrame);
+      sectionMutations.disconnect();
     });
   });
 
@@ -203,7 +242,9 @@ export function useDocumentReaderChrome(
 
   const scrollTo = (anchor: string): void => {
     setActiveAnchor(anchor);
-    if (!isDesktopReaderLayout()) setOutlineOpen(false);
+    if (!isDesktopReaderLayout()) {
+      mutateOutline(() => setOutlineOpen(false));
+    }
     requestAnimationFrame(() => {
       const element = document.getElementById(anchor);
       options.onScrollTo?.(anchor, element);
@@ -223,6 +264,19 @@ export function useDocumentReaderChrome(
     };
   };
 
+  // Outline open/close mutates the grid instantly and slides the paper via
+  // FLIP, so text reflows once instead of animating every frame.
+  const mutateOutline = (mutate: () => void): void => {
+    const root =
+      paper?.closest<HTMLElement>('.document-overlay-layout') ??
+      chromeElement()?.closest<HTMLElement>('.document-overlay-layout');
+    if (!root) {
+      mutate();
+      return;
+    }
+    createFlipAnimator(root, { selector: '.document-overlay-paper', durationMs: 200 })(mutate);
+  };
+
   return {
     outlineOpen,
     setOutlineOpen,
@@ -234,6 +288,7 @@ export function useDocumentReaderChrome(
     setOutline: (element) => {
       outline = element;
     },
+    outlineElement: () => outline,
     setOutlineNav: (element) => {
       outlineNav = element;
     },
@@ -246,8 +301,11 @@ export function useDocumentReaderChrome(
       paper = element;
     },
     scrollTo,
-    closeOutline: () => setOutlineOpen(false),
-    toggleOutline: () => setOutlineOpen((open) => !open),
+    closeOutline: () => mutateOutline(() => setOutlineOpen(false)),
+    toggleOutline: () =>
+      mutateOutline(() => {
+        setOutlineOpen((open) => !open);
+      }),
     bindOutlineScrollbars,
   };
 }
@@ -261,6 +319,9 @@ export interface DocumentReaderChromeShellProps {
   readonly chrome: DocumentReaderChromeController;
   readonly trail?: DocumentTrail | null;
   readonly onNavigate?: (href: string) => void;
+  readonly onBack?: () => void;
+  /** Return true to consume the back press (e.g. exit an inline mode first). */
+  readonly onBackIntercept?: () => boolean;
   readonly breadcrumbs: JSX.Element;
   readonly headerSearchSlot?: JSX.Element;
   readonly searchOpen?: () => boolean;
@@ -287,6 +348,11 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
   const handleBack = (): void => {
     const header = chrome.chromeElement();
     if (header && dismissOpenDocumentFind(header)) return;
+    if (props.onBackIntercept?.()) return;
+    if (props.onBack) {
+      props.onBack();
+      return;
+    }
     navigateDocumentReaderBack(props.trail, props.onNavigate);
   };
 
@@ -318,6 +384,50 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
             }}
             aria-hidden={!chrome.outlineOpen()}
           >
+            <button
+              type="button"
+              class="document-overlay-outline-resize"
+              aria-label="Изменить ширину оглавления"
+              title="Потяните, чтобы изменить ширину"
+              onPointerDown={(pointerDown) => {
+                const handle = pointerDown.currentTarget;
+                const layout = handle.closest<HTMLElement>('.document-overlay-layout');
+                if (!layout) return;
+                pointerDown.preventDefault();
+                handle.setPointerCapture(pointerDown.pointerId);
+                const startX = pointerDown.clientX;
+                const outlineElement = layout.querySelector<HTMLElement>(
+                  '.document-overlay-outline',
+                );
+                const startWidth = Math.round(outlineElement?.getBoundingClientRect().width ?? 220);
+                let frame: number | undefined;
+                let width = startWidth;
+                const applyWidth = (): void => {
+                  frame = undefined;
+                  layout.style.setProperty('--outline-column-width', `${width}px`);
+                };
+                const onMove = (move: PointerEvent): void => {
+                  width = Math.min(480, Math.max(200, startWidth + move.clientX - startX));
+                  if (frame === undefined) frame = requestAnimationFrame(applyWidth);
+                };
+                const stop = (): void => {
+                  handle.removeEventListener('pointermove', onMove);
+                  handle.removeEventListener('pointerup', stop);
+                  handle.removeEventListener('pointercancel', stop);
+                  if (frame !== undefined) cancelAnimationFrame(frame);
+                  layout.classList.remove('document-overlay-layout--resizing');
+                  try {
+                    localStorage.setItem('minimed.outline.width', String(width));
+                  } catch {
+                    // storage unavailable — width applies until reload
+                  }
+                };
+                handle.addEventListener('pointermove', onMove);
+                handle.addEventListener('pointerup', stop);
+                handle.addEventListener('pointercancel', stop);
+                layout.classList.add('document-overlay-layout--resizing');
+              }}
+            />
             <header class="document-overlay-outline-header">
               <strong>Оглавление</strong>
               <button

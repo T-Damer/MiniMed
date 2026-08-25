@@ -1,6 +1,7 @@
 import { createWorker, type Worker } from 'tesseract.js';
 import workerPath from 'tesseract.js/dist/worker.min.js?url';
 import corePath from 'tesseract.js-core/tesseract-core-lstm.wasm.js?url';
+import { backgroundParity, PARITY_PRIORITIES } from '@/state/parity-controller';
 import { loadPdfJsDocument, type PdfPageProxy } from '@/state/pdfjs-document';
 import {
   findNextPendingOcrPage,
@@ -296,6 +297,13 @@ async function disposeOcrWorker(): Promise<void> {
   ocrWorker = undefined;
 }
 
+async function resumeQueuedOcr(documentId: string): Promise<void> {
+  const current = await getUserLibraryDocument(documentId);
+  if (!current || current.status !== 'ready' || !current.ocrPriority) return;
+  const { requestUserLibraryOcr } = await import('@/state/user-library');
+  await requestUserLibraryOcr(documentId, current.ocrQuality);
+}
+
 export async function processNewDocument(documentId: string): Promise<void> {
   const blob = await getUserLibraryFile(documentId);
   const meta = await getUserLibraryDocument(documentId);
@@ -323,21 +331,36 @@ export async function processNewDocument(documentId: string): Promise<void> {
       hasImages,
       status: 'ready',
     });
+    await resumeQueuedOcr(documentId);
     ensureUserLibraryIngestRunning();
     return;
   }
 
   if (isUserLibraryImageMime(meta.mimeType)) {
-    await putUserLibraryPage({ documentId, pageIndex: 0, kind: 'pending', text: '' });
+    await putUserLibraryPage({ documentId, pageIndex: 0, kind: 'empty', text: '' });
     await patchUserLibraryDocument(documentId, {
       pageCount: 1,
       nativeTextPages: 0,
-      ocrNeededPages: 1,
+      ocrNeededPages: 0,
       ocrDonePages: 0,
       hasImages: true,
-      status: 'ocr',
+      status: 'ready',
     });
-    ensureUserLibraryIngestRunning();
+    await resumeQueuedOcr(documentId);
+    return;
+  }
+
+  if (!isUserLibraryPdfMime(meta.mimeType)) {
+    // Unknown binary (json, zip, video, …): nothing to extract — keep the file
+    // downloadable in the reader instead of failing PDF inspection.
+    await patchUserLibraryDocument(documentId, {
+      pageCount: 0,
+      nativeTextPages: 0,
+      ocrNeededPages: 0,
+      ocrDonePages: 0,
+      status: 'ready',
+    });
+    await resumeQueuedOcr(documentId);
     return;
   }
 
@@ -372,11 +395,14 @@ export async function processNewDocument(documentId: string): Promise<void> {
       ocrNeededPages,
       ocrDonePages: 0,
       hasImages: true,
-      status: ocrNeededPages === 0 ? 'ready' : 'ocr',
+      // OCR is opt-in: the document lands ready and the user picks
+      // «Распознать текст» from the card menu when they want it.
+      status: 'ready',
     });
   } finally {
     await pdf.destroy();
   }
+  await resumeQueuedOcr(documentId);
   ensureUserLibraryIngestRunning();
 }
 
@@ -448,7 +474,22 @@ async function processNextOcrPage(): Promise<boolean> {
 
   const isPdf = isUserLibraryPdfMime(meta.mimeType);
   const isImage = isUserLibraryImageMime(meta.mimeType);
-  if (!isPdf && !isImage) {
+  if (isImage) {
+    await putUserLibraryPage({
+      documentId: pending.documentId,
+      pageIndex: pending.pageIndex,
+      kind: 'empty',
+      text: '',
+    });
+    await patchUserLibraryDocument(pending.documentId, {
+      status: 'ready',
+      ocrNeededPages: 0,
+      ocrDonePages: 0,
+      ocrPriority: 0,
+    });
+    return true;
+  }
+  if (!isPdf) {
     await completeOcrPage(pending.documentId, pending.pageIndex, meta, {
       kind: 'empty',
       text: '',
@@ -459,6 +500,30 @@ async function processNextOcrPage(): Promise<boolean> {
   const worker = await ensureOcrWorker();
   if (!worker) return false;
 
+  // Each page runs as a ParityController job at OCR priority: the lane is
+  // shared with speech transcription (lower priority), so both heavy WASM
+  // workloads never compete and transcription yields to recognition.
+  await backgroundParity.submit({
+    kind: 'ocr',
+    priority: PARITY_PRIORITIES.ocr,
+    label: `ocr:${pending.documentId}:${pending.pageIndex}`,
+    run: async (ctx) => {
+      await ctx.checkpoint();
+      await recognizePendingPage(pending, meta, blob, isPdf, worker);
+    },
+  }).done;
+
+  await waitForIdle();
+  return true;
+}
+
+async function recognizePendingPage(
+  pending: { readonly documentId: string; readonly pageIndex: number },
+  meta: UserLibraryDocument,
+  blob: Blob,
+  isPdf: boolean,
+  worker: Awaited<ReturnType<typeof ensureOcrWorker>> & {},
+): Promise<void> {
   let canvas: HTMLCanvasElement | undefined;
   try {
     let canvasWidth = 0;
@@ -513,9 +578,6 @@ async function processNextOcrPage(): Promise<boolean> {
       canvas.height = 0;
     }
   }
-
-  await waitForIdle();
-  return true;
 }
 
 async function processNextInspectingDocument(): Promise<boolean> {
@@ -527,7 +589,15 @@ async function processNextInspectingDocument(): Promise<boolean> {
       return priority || left.createdAt.localeCompare(right.createdAt);
     })[0];
   if (!document) return false;
-  await processNewDocument(document.id);
+  try {
+    await processNewDocument(document.id);
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : 'Не удалось обработать документ.';
+    await patchUserLibraryDocument(document.id, {
+      status: 'failed',
+      errorMessage: message,
+    });
+  }
   return true;
 }
 

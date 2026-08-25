@@ -21,9 +21,9 @@ export interface DocumentSectionTree {
   readonly children: readonly DocumentSectionTree[];
 }
 
-type MutableDocumentSectionTree = {
+export type MutableDocumentSectionTree = {
   readonly section: MedicalSection;
-  readonly children: DocumentSectionTree[];
+  children: DocumentSectionTree[];
 };
 
 export {
@@ -81,15 +81,24 @@ export function documentSectionHeadingTag(
 
 export function nestDocumentSections(
   sections: readonly MedicalSection[],
+  nodeCache?: Map<MedicalSection, MutableDocumentSectionTree>,
 ): readonly DocumentSectionTree[] {
   const roots: DocumentSectionTree[] = [];
   const stack: Array<{ depth: number; node: MutableDocumentSectionTree }> = [];
 
+  const resolveNode = (section: MedicalSection): MutableDocumentSectionTree => {
+    if (!nodeCache) return { section, children: [] };
+    let node = nodeCache.get(section);
+    if (!node) {
+      node = { section, children: [] };
+      nodeCache.set(section, node);
+    }
+    node.children = [];
+    return node;
+  };
+
   for (const section of sections) {
-    const node: MutableDocumentSectionTree = {
-      section,
-      children: [],
-    };
+    const node = resolveNode(section);
     let parent = stack.at(-1);
     while (parent && parent.depth >= section.depth) {
       stack.pop();

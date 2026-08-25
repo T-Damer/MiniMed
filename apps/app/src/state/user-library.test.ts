@@ -162,7 +162,7 @@ describe('user-library storage', () => {
 
   it('tracks OCR progress fraction from native and OCR pages', async () => {
     installUserLibraryIndexedDb();
-    const file = new File(['%PDF'], 'scan.pdf', { type: 'application/pdf' });
+    const file = new File(['%PDF-1.7'], 'scan.pdf', { type: 'application/pdf' });
     const created = await addUserLibraryFile(file);
     await patchUserLibraryDocument(created.id, {
       pageCount: 4,
@@ -176,7 +176,7 @@ describe('user-library storage', () => {
     expect(userLibraryProgressFraction(updated as NonNullable<typeof updated>)).toBe(0.75);
   });
 
-  it('allows RTF and image uploads and rejects unsupported binaries', async () => {
+  it('allows RTF, image and arbitrary binary uploads', async () => {
     installUserLibraryIndexedDb();
     const rtf = await addUserLibraryFile(
       new File(['{\\rtf1 тест}'], 'note.rtf', { type: 'text/rtf' }),
@@ -188,8 +188,11 @@ describe('user-library storage', () => {
     );
     expect(image.mimeType).toBe('image/jpeg');
 
-    await expect(
-      addUserLibraryFile(new File(['MZ'], 'virus.exe', { type: 'application/octet-stream' })),
-    ).rejects.toThrow('Поддерживаются PDF, Markdown, Office, RTF, Pages, книги и изображения.');
+    // Любой тип файла теперь принимается и хранится как документ-файл.
+    const binary = await addUserLibraryFile(
+      new File(['MZ'], 'tool.exe', { type: 'application/octet-stream' }),
+    );
+    expect(binary.mimeType).toBe('application/octet-stream');
+    expect(binary.title).toBe('tool');
   });
 });

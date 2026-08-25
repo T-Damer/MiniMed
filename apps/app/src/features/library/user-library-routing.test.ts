@@ -6,9 +6,11 @@ import {
   openUserLibraryCatalog,
   openUserLibraryDocument,
   parseUserLibraryDocumentRoute,
+  parseUserLibraryFolderRoute,
   USER_LIBRARY_CATALOG_HASH,
   USER_LIBRARY_CATALOG_ROUTE,
   userLibraryDocumentHash,
+  userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
 import { buildUserDocumentHash } from '@/state/document-route';
 
@@ -19,7 +21,15 @@ describe('user-library routing', () => {
 
   it('recognizes the user library catalog route', () => {
     expect(isUserLibraryCatalogRoute(USER_LIBRARY_CATALOG_ROUTE)).toBe(true);
+    expect(isUserLibraryCatalogRoute(`${USER_LIBRARY_CATALOG_ROUTE}?folder=folder-1`)).toBe(true);
     expect(parseUserLibraryDocumentRoute(USER_LIBRARY_CATALOG_ROUTE)).toBeNull();
+  });
+
+  it('builds and parses user folder hashes', () => {
+    const hash = userLibraryFolderHash('folder-1');
+    expect(hash).toBe(`${USER_LIBRARY_CATALOG_HASH}?folder=folder-1`);
+    expect(parseUserLibraryFolderRoute(hash.slice(2))).toBe('folder-1');
+    expect(userLibraryFolderHash(null)).toBe(USER_LIBRARY_CATALOG_HASH);
   });
 
   it('builds module user document hashes', () => {

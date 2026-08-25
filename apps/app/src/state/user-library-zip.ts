@@ -1,6 +1,9 @@
 const LOCAL_FILE_SIGNATURE = 0x04034b50;
 const CENTRAL_DIR_SIGNATURE = 0x02014b50;
 const END_OF_CENTRAL_DIR_SIGNATURE = 0x06054b50;
+const MAX_ZIP_ENTRIES = 2048;
+const MAX_ZIP_ENTRY_BYTES = 128 * 1024 * 1024;
+const MAX_ZIP_TOTAL_BYTES = 256 * 1024 * 1024;
 
 interface ZipEntry {
   readonly path: string;
@@ -39,14 +42,25 @@ function readCentralDirectory(data: Uint8Array): readonly ZipEntry[] {
   const centralDirSize = readUint32(data, eocdOffset + 12);
   const centralDirOffset = readUint32(data, eocdOffset + 16);
   const entries: ZipEntry[] = [];
+  let totalUncompressedSize = 0;
   let offset = centralDirOffset;
   const end = centralDirOffset + centralDirSize;
 
   while (offset < end) {
     if (readUint32(data, offset) !== CENTRAL_DIR_SIGNATURE) break;
+    if (entries.length >= MAX_ZIP_ENTRIES) {
+      throw new Error('ZIP: слишком много записей.');
+    }
     const method = readUint16(data, offset + 10);
     const compressedSize = readUint32(data, offset + 20);
     const uncompressedSize = readUint32(data, offset + 24);
+    if (uncompressedSize > MAX_ZIP_ENTRY_BYTES) {
+      throw new Error('ZIP: запись слишком большая.');
+    }
+    totalUncompressedSize += uncompressedSize;
+    if (totalUncompressedSize > MAX_ZIP_TOTAL_BYTES) {
+      throw new Error('ZIP: общий распакованный размер слишком большой.');
+    }
     const fileNameLength = readUint16(data, offset + 28);
     const extraFieldLength = readUint16(data, offset + 30);
     const commentLength = readUint16(data, offset + 32);
@@ -81,14 +95,28 @@ function extractStoredEntry(data: Uint8Array, entry: ZipEntry): Uint8Array {
   const fileNameLength = readUint16(data, localOffset + 26);
   const extraFieldLength = readUint16(data, localOffset + 28);
   const dataOffset = localOffset + 30 + fileNameLength + extraFieldLength;
+  if (dataOffset < 0 || dataOffset + entry.compressedSize > data.length) {
+    throw new Error(`ZIP: повреждённые данные для ${entry.path}.`);
+  }
   return data.slice(dataOffset, dataOffset + entry.compressedSize);
 }
 
 async function extractEntry(data: Uint8Array, entry: ZipEntry): Promise<Uint8Array> {
   const raw = extractStoredEntry(data, entry);
-  if (entry.method === 0) return raw;
-  if (entry.method === 8) return await inflateRaw(raw);
-  throw new Error(`ZIP: метод сжатия ${entry.method} не поддерживается для ${entry.path}.`);
+  const result =
+    entry.method === 0
+      ? raw
+      : entry.method === 8
+        ? await inflateRaw(raw)
+        : (() => {
+            throw new Error(
+              `ZIP: метод сжатия ${entry.method} не поддерживается для ${entry.path}.`,
+            );
+          })();
+  if (result.byteLength !== entry.uncompressedSize) {
+    throw new Error(`ZIP: размер записи ${entry.path} не совпадает с каталогом.`);
+  }
+  return result;
 }
 
 export async function readZipEntry(data: ArrayBuffer, path: string): Promise<Uint8Array | null> {

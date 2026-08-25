@@ -4,6 +4,7 @@ import { appendDocumentCrumb, beginDocumentTrail, loadDocumentTrail } from '@/st
 export const USER_LIBRARY_CATALOG_ROUTE = 'modules/documents/user';
 export const USER_LIBRARY_CATALOG_HASH = '#/modules/documents/user';
 export const USER_LIBRARY_DOCUMENT_ROUTE_PREFIX = 'modules/documents/user/';
+const USER_LIBRARY_FOLDER_QUERY_PREFIX = `${USER_LIBRARY_CATALOG_ROUTE}?`;
 
 function decodeRoutePart(value: string): string | null {
   try {
@@ -14,11 +15,22 @@ function decodeRoutePart(value: string): string | null {
 }
 
 export function isUserLibraryCatalogRoute(route: string): boolean {
-  return route === USER_LIBRARY_CATALOG_ROUTE;
+  return route === USER_LIBRARY_CATALOG_ROUTE || route.startsWith(USER_LIBRARY_FOLDER_QUERY_PREFIX);
 }
 
 export function openUserLibraryCatalog(): void {
   window.location.hash = USER_LIBRARY_CATALOG_HASH;
+}
+
+export function parseUserLibraryFolderRoute(route: string): string | null {
+  if (!route.startsWith(USER_LIBRARY_FOLDER_QUERY_PREFIX)) return null;
+  return new URLSearchParams(route.slice(USER_LIBRARY_FOLDER_QUERY_PREFIX.length)).get('folder');
+}
+
+export function userLibraryFolderHash(folderId: string | null): string {
+  return folderId === null
+    ? USER_LIBRARY_CATALOG_HASH
+    : `${USER_LIBRARY_CATALOG_HASH}?folder=${encodeURIComponent(folderId)}`;
 }
 
 export function parseUserLibraryDocumentRoute(

@@ -146,5 +146,6 @@ export function seedPartialDownload(
 export function rangeHeaderOfCall(calls: readonly unknown[][], index: number): string | undefined {
   const init = calls[index]?.[1] as RequestInit | undefined;
   const headers = init?.headers as Record<string, string> | undefined;
+  // biome-ignore lint/complexity/useLiteralKeys: HTTP header names are runtime keys.
   return headers?.['Range'];
 }

@@ -1,4 +1,9 @@
-import type { MedicalDocument, MedicalDocumentSummary, TextRange } from '@localmed/contracts';
+import type {
+  MedicalDocument,
+  MedicalDocumentSummary,
+  MedicalSection,
+  TextRange,
+} from '@localmed/contracts';
 import {
   createEffect,
   createMemo,
@@ -17,6 +22,7 @@ import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText, documentTextSearchText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
+import type { MutableDocumentSectionTree } from '@/features/library/document-display';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
@@ -137,7 +143,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
 
   const visibleSections = createMemo(() => orderedSections().slice(0, mountedSectionCount()));
-  const visibleSectionTree = createMemo(() => nestDocumentSections(visibleSections()));
+  // Stable node identities keep Solid's <For> from remounting already-rendered
+  // sections on every idle batch append.
+  const sectionTreeCache = new Map<MedicalSection, MutableDocumentSectionTree>();
+  const visibleSectionTree = createMemo(() =>
+    nestDocumentSections(visibleSections(), sectionTreeCache),
+  );
   const sectionsPending = createMemo(
     () => mountedSectionCount() > 0 && mountedSectionCount() < orderedSections().length,
   );
@@ -197,6 +208,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
               ? documentRenderBlockSearchText(item.block)
               : documentTextSearchText(
                   item.chunk.originalText,
+                  // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.
                   item.chunk.metadata?.['sourceSpans'],
                 ),
         });
@@ -664,6 +676,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                         activeStart={activeStart()}
                                         highlightClass="document-overlay-match"
                                         paragraphClass="document-overlay-section__paragraph"
+                                        // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.
                                         sourceSpans={item.chunk.metadata?.['sourceSpans']}
                                         documentLinkMatcher={documentLinkMatcher() ?? undefined}
                                         onDocumentLink={(documentId) => {

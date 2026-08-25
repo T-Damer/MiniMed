@@ -31,69 +31,130 @@ function decodeRtfUnicode(value: string): string {
 }
 
 function extractRtfText(rtf: string): string {
-  let text = '';
-  let index = 0;
-  let skipDest = 0;
+  const codepage = /\\ansicpg(\d+)/u.exec(rtf)?.[1] ?? '1252';
+  let decoder: TextDecoder;
+  try {
+    decoder = new TextDecoder(`windows-${codepage}`);
+  } catch {
+    decoder = new TextDecoder('latin1');
+  }
 
+  interface RtfFrame {
+    skip: boolean;
+    hex: number[];
+  }
+  const stack: RtfFrame[] = [{ skip: false, hex: [] }];
+  let text = '';
+  let unicodeFallbacks = 0;
+
+  const flushHex = (frame: RtfFrame): void => {
+    if (frame.hex.length === 0) return;
+    if (!frame.skip) {
+      const bytes = new Uint8Array(frame.hex);
+      // Some generators write UTF-8 bytes without declaring it. Valid multibyte
+      // UTF-8 wins over the declared codepage; pure ASCII decodes identically.
+      try {
+        const utf8 = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        if ([...utf8].some((character) => (character.codePointAt(0) ?? 0) > 0x7f)) {
+          text += utf8;
+          frame.hex = [];
+          return;
+        }
+      } catch {
+        // not valid UTF-8 — use the declared codepage
+      }
+      text += decoder.decode(bytes);
+    }
+    frame.hex = [];
+  };
+
+  const DESTINATIONS =
+    /^(fonttbl|colortbl|stylesheet|info|pict|object|header|footer|footnote|themedata|datastore|listtable|listoverridetable|rsidtbl|generator|xmlnstbl|pgptbl|wgrffmtfilter)$/iu;
+
+  let index = 0;
   while (index < rtf.length) {
     const char = rtf[index];
     if (char === '{') {
+      const top = stack.at(-1);
+      if (top) flushHex(top);
+      stack.push({ skip: stack.at(-1)?.skip ?? false, hex: [] });
       index += 1;
       continue;
     }
     if (char === '}') {
+      const frame = stack.pop();
+      if (frame) flushHex(frame);
       index += 1;
       continue;
     }
     if (char === '\\') {
       index += 1;
-      if (index >= rtf.length) break;
       const next = rtf[index];
+      if (next === undefined) break;
+      const top = stack.at(-1);
+      if (!top) break;
       if (next === '\\' || next === '{' || next === '}') {
-        if (skipDest === 0) text += next;
+        flushHex(top);
+        if (!top.skip) text += next;
         index += 1;
         continue;
       }
       if (next === "'") {
-        const hex = rtf.slice(index + 1, index + 3);
-        if (skipDest === 0) text += decodeRtfHexByte(hex);
+        const code = Number.parseInt(rtf.slice(index + 1, index + 3), 16);
+        if (!Number.isNaN(code)) top.hex.push(code);
         index += 3;
         continue;
       }
-      if (next === 'u') {
-        const match = /^u(-?\d+)/u.exec(rtf.slice(index));
-        if (match) {
-          if (skipDest === 0) text += decodeRtfUnicode(match[1] ?? '');
-          index += match[0].length;
-          if (rtf[index] === '?') index += 1;
+      const unicode = /^u(-?\d+)\s?/u.exec(rtf.slice(index));
+      if (unicode) {
+        flushHex(top);
+        if (!top.skip) text += decodeRtfUnicode(unicode[1] ?? '');
+        index += unicode[0].length;
+        unicodeFallbacks = 1;
+        continue;
+      }
+      const word = /^([a-z]+)(-?\d+)? ?/iu.exec(rtf.slice(index));
+      if (word) {
+        index += word[0].length;
+        if (unicodeFallbacks > 0) {
+          unicodeFallbacks = 0;
           continue;
         }
-      }
-      const wordMatch = /^[a-z]+(-?\d+)? ?/iu.exec(rtf.slice(index));
-      if (wordMatch) {
-        const word = wordMatch[0].trim();
-        if (word === 'par' || word === 'line') {
-          if (skipDest === 0) text += '\n';
+        const name = word[1] ?? '';
+        if (name === 'par' || name === 'line') {
+          flushHex(top);
+          if (!top.skip) text += '\n';
         }
-        const destMatch =
-          /^(fonttbl|colortbl|stylesheet|info|pict|object|header|footer|footnote)/iu.exec(word);
-        if (destMatch) skipDest += 1;
-        index += wordMatch[0].length;
+        if (DESTINATIONS.test(name)) {
+          flushHex(top);
+          top.skip = true;
+        }
         continue;
       }
       index += 1;
       continue;
     }
-    if (skipDest === 0) text += char;
+    const top = stack.at(-1);
+    if (!top) break;
+    if (unicodeFallbacks > 0) {
+      unicodeFallbacks -= 1;
+      index += 1;
+      continue;
+    }
+    if (top.hex.length > 0) flushHex(top);
+    if (!top.skip) text += char;
     index += 1;
+  }
+  while (stack.length > 0) {
+    const frame = stack.pop();
+    if (frame) flushHex(frame);
   }
 
   return text
-    .replace(/[ \t]+/gu, ' ')
-    .replace(/\n\s*/gu, '\n')
+    .replace(/[\t]+/gu, ' ')
+    .replace(/\\n\s*/gu, '\n')
     .trim();
 }
-
 function extractXmlText(xml: string, tagNames: readonly string[]): string {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
   const parts: string[] = [];
@@ -326,6 +387,52 @@ function isZipOfficeFormat(extension: string, mimeType: string): boolean {
   );
 }
 
+export async function validateUserLibraryFile(
+  fileName: string,
+  mimeType: string,
+  data: ArrayBuffer,
+): Promise<void> {
+  const extension = extensionOf(fileName);
+  const bytes = new Uint8Array(data);
+  if (bytes.byteLength === 0) throw new Error('Файл пустой.');
+
+  if (extension === 'pdf') {
+    const header = decodeBytes(bytes.slice(0, 5));
+    if (header !== '%PDF-') throw new Error('Файл PDF имеет некорректный заголовок.');
+  }
+
+  if (isZipOfficeFormat(extension, mimeType)) {
+    let entries: readonly string[];
+    try {
+      entries = await listZipEntries(data);
+    } catch {
+      throw new Error('Не удалось проверить структуру ZIP-документа.');
+    }
+    const requiredEntry =
+      extension === 'docx'
+        ? 'word/document.xml'
+        : extension === 'pptx'
+          ? 'ppt/presentation.xml'
+          : extension === 'epub'
+            ? 'META-INF/container.xml'
+            : null;
+    if (requiredEntry && !entries.includes(requiredEntry)) {
+      throw new Error(`Файл ${extension.toUpperCase()} не содержит обязательную структуру.`);
+    }
+    if (extension === 'pages' && !entries.some((entry) => entry.endsWith('.iwa'))) {
+      throw new Error('Файл Pages не содержит читаемых данных.');
+    }
+    return;
+  }
+
+  if (extension === 'rtf' && !decodeBytes(bytes.slice(0, 32)).trimStart().startsWith('{\\rtf')) {
+    throw new Error('Файл RTF имеет некорректный заголовок.');
+  }
+  if (extension === 'fb2' && !decodeBytes(bytes.slice(0, 4096)).includes('<FictionBook')) {
+    throw new Error('Файл FB2 имеет некорректную структуру.');
+  }
+}
+
 export async function userLibraryArchiveHasImages(
   fileName: string,
   mimeType: string,
@@ -359,6 +466,14 @@ export async function extractUserLibraryText(
 
   if (mimeType === 'text/rtf' || mimeType === 'application/rtf' || extension === 'rtf') {
     return extractRtfText(decodeBytes(bytes));
+  }
+
+  if (mimeType === 'application/vnd.apple.pages' || extension === 'pages') {
+    // iWork '08-style packages keep plain index.xml; newer ones use Snappy
+    // streams and fall through to the generic-file panel.
+    const indexBytes = await readZipEntry(data, 'index.xml');
+    if (indexBytes) return extractHtmlText(decodeBytes(indexBytes));
+    return '';
   }
 
   if (

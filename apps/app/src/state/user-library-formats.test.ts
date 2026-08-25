@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { extractUserLibraryText } from '@/state/user-library-formats';
+import { extractUserLibraryText, validateUserLibraryFile } from '@/state/user-library-formats';
 import { readZipEntry } from '@/state/user-library-zip';
 
 const LOCAL_FILE_SIGNATURE = 0x04034b50;
@@ -208,5 +208,70 @@ describe('user-library formats', () => {
       zip,
     );
     expect(text).toContain('Клинический случай');
+  });
+
+  it('rejects a ZIP file that is not a valid DOCX', async () => {
+    const zip = buildStoredZip({ 'word/styles.xml': '<w:styles />' });
+    await expect(
+      validateUserLibraryFile(
+        'case.docx',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        zip,
+      ),
+    ).rejects.toThrow('обязательную структуру');
+  });
+
+  it('rejects a PDF extension with a non-PDF payload', async () => {
+    await expect(
+      validateUserLibraryFile(
+        'case.pdf',
+        'text/plain',
+        new TextEncoder().encode('not a pdf').buffer,
+      ),
+    ).rejects.toThrow('некорректный заголовок');
+  });
+});
+
+describe('rtf extraction (cyrillic + destinations)', () => {
+  it('decodes cp1251 hex runs and survives fonttbl groups', async () => {
+    const rtf =
+      "{\\rtf1\\ansi\\ansicpg1251{\\fonttbl{\\f0 Times;}}\\f0 \\'cf\\'f0\\'e8\\'e2\\'e5\\'f2, \\'ec\\'e8\\'f0!\\par}";
+    const bytes = new TextEncoder().encode(rtf);
+    const text = await extractUserLibraryText(
+      'z.rtf',
+      'application/rtf',
+      bytes.buffer as ArrayBuffer,
+    );
+    expect(text).toContain('Привет, мир!');
+    expect(text).not.toContain('Times');
+  });
+
+  it('decodes unicode escapes', async () => {
+    const rtf = '{\\rtf1\\u1055?\\u1088?\\u1080?}';
+    const bytes = new TextEncoder().encode(rtf);
+    const text = await extractUserLibraryText('u.rtf', 'text/rtf', bytes.buffer as ArrayBuffer);
+    expect(text).toContain('При');
+  });
+});
+
+describe('rtf utf-8 and pages', () => {
+  it('decodes utf-8 hex runs without ansicpg', async () => {
+    // «Привет» in utf-8 bytes, no \ansicpg declaration
+    const rtf =
+      "{\\rtf1\\ansi{\\fonttbl{\\f0 Arial;}}\\f0 \\'d0\\'9f\\'d1\\'80\\'d0\\'b8\\'d0\\'b2\\'d0\\'b5\\'d1\\'82!}";
+    const text = await extractUserLibraryText(
+      'u8.rtf',
+      'application/rtf',
+      new TextEncoder().encode(rtf).buffer as ArrayBuffer,
+    );
+    expect(text).toContain('Привет!');
+  });
+
+  it('extracts text from iWork-08 style Pages packages', async () => {
+    const indexXml =
+      '<?xml version="1.0"?><sl:document xmlns:sl="x"><sl:text-body>Согласие на обработку персональных данных</sl:text-body></sl:document>';
+    const zip = buildStoredZip({ 'index.xml': indexXml });
+    const text = await extractUserLibraryText('consent.pages', 'application/vnd.apple.pages', zip);
+    expect(text).toContain('Согласие на обработку персональных данных');
   });
 });

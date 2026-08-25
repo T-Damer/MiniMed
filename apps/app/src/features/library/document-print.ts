@@ -201,3 +201,20 @@ export async function shareDocument(document: MedicalDocument): Promise<'shared'
   await navigator.clipboard.writeText(text);
   return 'copied';
 }
+
+export function printElementHtml(element: HTMLElement, title: string): boolean {
+  const styles = Array.from(element.querySelectorAll('style'))
+    .map((style) => `<style>${style.textContent ?? ''}</style>`)
+    .join('');
+  const html = `<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>${escapeHtml(title)}</title>
+<style>@page { size: A4; margin: 10mm; } body { margin: 0; background: #fff; }</style>
+${styles}
+</head>
+<body>${element.outerHTML}</body>
+</html>`;
+  return printHtml(html, title);
+}

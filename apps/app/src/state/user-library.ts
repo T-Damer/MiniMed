@@ -3,6 +3,7 @@ import {
   personalQueryStems,
   wordMatchesQueryStem,
 } from '@/state/personal-stem-match';
+import { validateUserLibraryFile } from '@/state/user-library-formats';
 
 export type UserLibraryOcrStatus = 'inspecting' | 'ready' | 'ocr' | 'failed';
 export type UserLibraryOcrQuality = 'fast' | 'balanced' | 'quality';
@@ -25,6 +26,7 @@ export interface UserLibraryDocument {
   readonly errorMessage?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  readonly lastOpenedAt?: string;
 }
 
 export interface UserLibraryFolder {
@@ -78,6 +80,8 @@ const IMAGE_MIME_TYPES = new Set([
   'image/gif',
   'image/bmp',
   'image/tiff',
+  'image/heic',
+  'image/heif',
 ]);
 
 const TEXT_LIKE_MIME_TYPES = new Set([
@@ -110,6 +114,8 @@ const EXTENSION_MIME_MAP: Readonly<Record<string, string>> = {
   rtf: 'text/rtf',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   doc: 'application/msword',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   ppt: 'application/vnd.ms-powerpoint',
   pages: 'application/vnd.apple.pages',
@@ -126,6 +132,8 @@ const EXTENSION_MIME_MAP: Readonly<Record<string, string>> = {
   bmp: 'image/bmp',
   tif: 'image/tiff',
   tiff: 'image/tiff',
+  heic: 'image/heic',
+  heif: 'image/heif',
 };
 
 export function isUserLibraryPdfMime(mime: string): boolean {
@@ -150,6 +158,79 @@ export function userLibraryFileAccept(): string {
     .join(',');
   const mimeTypes = [...ALLOWED_MIME_TYPES].join(',');
   return `${extensions},${mimeTypes}`;
+}
+
+export type UserLibraryFileKind =
+  | 'pdf'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'archive'
+  | 'code'
+  | 'presentation'
+  | 'sheet'
+  | 'doc'
+  | 'ebook'
+  | 'text'
+  | 'binary';
+
+const FILE_KIND_BY_EXTENSION: Readonly<Record<string, UserLibraryFileKind>> = {
+  pdf: 'pdf',
+  jpg: 'image',
+  jpeg: 'image',
+  png: 'image',
+  webp: 'image',
+  gif: 'image',
+  bmp: 'image',
+  tif: 'image',
+  tiff: 'image',
+  heic: 'image',
+  heif: 'image',
+  mp4: 'video',
+  mov: 'video',
+  webm: 'video',
+  avi: 'video',
+  mkv: 'video',
+  mp3: 'audio',
+  wav: 'audio',
+  m4a: 'audio',
+  ogg: 'audio',
+  flac: 'audio',
+  zip: 'archive',
+  '7z': 'archive',
+  rar: 'archive',
+  dmg: 'archive',
+  json: 'code',
+  xml: 'code',
+  js: 'code',
+  ts: 'code',
+  ppt: 'presentation',
+  pptx: 'presentation',
+  xls: 'sheet',
+  xlsx: 'sheet',
+  csv: 'sheet',
+  doc: 'doc',
+  docx: 'doc',
+  pages: 'doc',
+  epub: 'ebook',
+  fb2: 'ebook',
+  txt: 'text',
+  md: 'text',
+  markdown: 'text',
+  rtf: 'text',
+  exe: 'binary',
+  msi: 'binary',
+};
+
+export function userLibraryFileKind(mime: string, fileName: string): UserLibraryFileKind {
+  const byExtension = FILE_KIND_BY_EXTENSION[extensionOf(fileName)];
+  if (byExtension) return byExtension;
+  if (isUserLibraryPdfMime(mime)) return 'pdf';
+  if (isUserLibraryImageMime(mime)) return 'image';
+  if (mime.startsWith('video/')) return 'video';
+  if (mime.startsWith('audio/')) return 'audio';
+  if (mime.startsWith('text/')) return 'text';
+  return 'binary';
 }
 
 function isFiniteUnit(value: unknown): value is number {
@@ -244,7 +325,8 @@ function isDocument(value: unknown): value is UserLibraryDocument {
     (candidate.status === 'inspecting' ||
       candidate.status === 'ready' ||
       candidate.status === 'ocr' ||
-      candidate.status === 'failed')
+      candidate.status === 'failed') &&
+    (candidate.lastOpenedAt === undefined || typeof candidate.lastOpenedAt === 'string')
   );
 }
 
@@ -285,10 +367,10 @@ function extensionOf(fileName: string): string {
 }
 
 function normalizeMimeType(file: File): string {
-  if (file.type && ALLOWED_MIME_TYPES.has(file.type)) return file.type;
   const extension = extensionOf(file.name);
   const mapped = EXTENSION_MIME_MAP[extension];
   if (mapped) return mapped;
+  if (file.type && ALLOWED_MIME_TYPES.has(file.type)) return file.type;
   if (extension === 'xml' && (file.type === 'text/xml' || file.type === 'application/xml')) {
     return 'application/x-fictionbook+xml';
   }
@@ -296,10 +378,9 @@ function normalizeMimeType(file: File): string {
 }
 
 function validateFile(file: File): string {
+  // Любой тип файла разрешён: нераспознанные хранятся как «документ-файл»
+  // с иконкой по расширению и скачиванием вместо читалки.
   const mimeType = normalizeMimeType(file);
-  if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-    throw new Error('Поддерживаются PDF, Markdown, Office, RTF, Pages, книги и изображения.');
-  }
   if (file.size > MAX_FILE_BYTES) {
     throw new Error('Размер файла не должен превышать 128 МБ.');
   }
@@ -598,6 +679,28 @@ export async function moveUserLibraryDocument(id: string, folderId: string | nul
   await patchUserLibraryDocument(id, { folderId });
 }
 
+/** Records an open without touching `updatedAt` (which means "content changed"). */
+export async function markUserLibraryDocumentOpened(id: string): Promise<void> {
+  const existing = await getUserLibraryDocument(id);
+  if (!existing) return;
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(DOCUMENTS_STORE, 'readwrite');
+      transaction.objectStore(DOCUMENTS_STORE).put({
+        ...existing,
+        lastOpenedAt: new Date().toISOString(),
+      });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось обновить документ.'));
+    });
+    emitLibraryChanged();
+  } finally {
+    database.close();
+  }
+}
+
 export async function removeUserLibraryDocument(id: string): Promise<void> {
   if (!id) return;
   const database = await openDatabase();
@@ -617,6 +720,8 @@ export async function removeUserLibraryDocument(id: string): Promise<void> {
       transaction.onerror = () =>
         reject(transaction.error ?? new Error('Не удалось удалить личный документ.'));
     });
+    const { removeUserHighlightsForDocuments } = await import('@/state/user-library-highlights');
+    await removeUserHighlightsForDocuments([id]);
     emitLibraryChanged();
   } finally {
     database.close();
@@ -681,16 +786,119 @@ export async function patchUserLibraryDocument(
   }
 }
 
+function buildJpegPdf(jpeg: Uint8Array, width: number, height: number): Uint8Array {
+  // Page geometry is in PDF points (1/72"), image pixels are CSS pixels (96/").
+  const ptPerPx = 72 / 96;
+  const pageWidth = Math.round(width * ptPerPx * 100) / 100;
+  const pageHeight = Math.round(height * ptPerPx * 100) / 100;
+  const chunks: Uint8Array[] = [];
+  const offsets = [0];
+  let byteLength = 0;
+  const encoder = new TextEncoder();
+  const appendText = (text: string): void => {
+    const bytes = encoder.encode(text);
+    chunks.push(bytes);
+    byteLength += bytes.length;
+  };
+  const appendBytes = (bytes: Uint8Array): void => {
+    chunks.push(bytes);
+    byteLength += bytes.length;
+  };
+  const beginObject = (number: number): void => {
+    offsets[number] = byteLength;
+    appendText(`${number} 0 obj\n`);
+  };
+
+  appendText('%PDF-1.4\n');
+  appendBytes(Uint8Array.from([37, 255, 255, 255, 255]));
+  appendText('\n');
+  beginObject(1);
+  appendText('<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+  beginObject(2);
+  appendText('<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+  beginObject(3);
+  appendText(
+    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`,
+  );
+  beginObject(4);
+  appendText(
+    `<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`,
+  );
+  appendBytes(jpeg);
+  appendText('\nendstream\nendobj\n');
+  const content = encoder.encode(`q\n${pageWidth} 0 0 ${pageHeight} 0 0 cm\n/Im0 Do\nQ\n`);
+  beginObject(5);
+  appendText(`<< /Length ${content.length} >>\nstream\n`);
+  appendBytes(content);
+  appendText('endstream\nendobj\n');
+
+  const xrefOffset = byteLength;
+  appendText('xref\n0 6\n0000000000 65535 f \n');
+  for (let number = 1; number <= 5; number += 1) {
+    appendText(`${String(offsets[number] ?? 0).padStart(10, '0')} 00000 n \n`);
+  }
+  appendText(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+
+  const result = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return result;
+}
+
+async function imageToPdfFile(imageBlob: Blob, fileName: string): Promise<File> {
+  if (typeof document === 'undefined') {
+    throw new Error('Конвертация изображения доступна только в браузере.');
+  }
+  const url = URL.createObjectURL(imageBlob);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error('Не удалось прочитать изображение.'));
+      element.src = url;
+    });
+    const maxDimension = 4096;
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Не удалось подготовить PDF-копию изображения.');
+    context.drawImage(image, 0, 0, width, height);
+    const encoded = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+    if (!encoded) throw new Error('Не удалось закодировать PDF-копию изображения.');
+    const jpeg = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
+    const pdfBytes = buildJpegPdf(jpeg, width, height);
+    return new File([pdfBytes.buffer as ArrayBuffer], fileName, { type: 'application/pdf' });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export async function requestUserLibraryOcr(
   id: string,
   quality: UserLibraryOcrQuality = 'balanced',
-): Promise<void> {
+): Promise<'queued' | 'pdf-copy'> {
   const document = await getUserLibraryDocument(id);
-  if (!document) return;
+  if (!document) return 'queued';
+  if (isUserLibraryImageMime(document.mimeType)) {
+    const image = await getUserLibraryFile(document.id);
+    if (!image) throw new Error('Файл изображения недоступен.');
+    const baseName = document.fileName.replace(/\.[^.]+$/u, '').trim() || document.fileName;
+    const pdfFile = await imageToPdfFile(image, `${baseName} — OCR.pdf`);
+    const copy = await addUserLibraryFile(pdfFile, document.folderId ?? null);
+    await requestUserLibraryOcr(copy.id, quality);
+    return 'pdf-copy';
+  }
   const priority = Date.now();
   if (document.status === 'inspecting') {
     await patchUserLibraryDocument(id, { ocrPriority: priority, ocrQuality: quality });
-    return;
+    return 'queued';
   }
   const pages = await listUserLibraryPages(id);
   if (document.status !== 'ocr') {
@@ -717,6 +925,7 @@ export async function requestUserLibraryOcr(
   void import('@/state/user-library-ingest').then(({ ensureUserLibraryIngestRunning }) => {
     ensureUserLibraryIngestRunning();
   });
+  return 'queued';
 }
 
 export async function findNextPendingOcrPage(): Promise<{
@@ -747,6 +956,7 @@ export async function addUserLibraryFile(
     throw new Error('Хранилище личных документов недоступно.');
   }
   const mimeType = validateFile(file);
+  await validateUserLibraryFile(file.name, mimeType, await file.arrayBuffer());
   const now = new Date().toISOString();
   const title = file.name.replace(/\.[^.]+$/u, '').trim() || file.name;
   const document: UserLibraryDocument = {

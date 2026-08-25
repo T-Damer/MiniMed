@@ -1,0 +1,106 @@
+/* User document reader chrome */
+
+.user-document-reader .document-page__chrome--with-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-document-reader .document-page__chrome--with-search .document-page__header-search {
+  flex: 1 1 auto;
+  margin-inline-start: 0;
+}
+
+/* Image documents: click to zoom lightbox */
+
+.user-document-reader__image-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: zoom-in;
+  line-height: 0;
+}
+
+.user-document-reader__image {
+  cursor: zoom-in;
+}
+
+.user-doc-image-lightbox .overlay-dialog-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-doc-image-lightbox__image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 92vw;
+  max-height: 92dvh;
+  margin: 0 auto;
+}
+
+/* EPUB host: epub.js paginates inside a fixed-height frame; the browser must
+   not scroll the host itself or the first page stretches. */
+
+.rich-document-renderer--epub {
+  height: calc(100dvh - 16rem);
+  min-height: 24rem;
+  overflow: hidden;
+}
+
+/* XLSX/CSV sheets */
+
+.rich-sheet__tabs {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+.rich-sheet__tab {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  background: transparent;
+  font-size: 0.7rem;
+}
+
+.rich-sheet__tab--active {
+  color: var(--theme-accent-contrast);
+  border-color: var(--theme-accent);
+  background: var(--theme-accent);
+}
+
+.rich-sheet__tab:focus-visible {
+  outline: 0.125rem solid var(--theme-accent);
+  outline-offset: 0.1rem;
+}
+
+.rich-sheet__tab:hover {
+  border-color: var(--theme-accent);
+}
+
+.rich-sheet table {
+  border-collapse: collapse;
+  margin: 0.75rem auto;
+  font-size: 0.72rem;
+}
+
+.rich-sheet td {
+  border: 1px solid var(--paper-line);
+  padding: 0.2rem 0.5rem;
+  min-width: 3rem;
+  color: var(--ink);
+}
+
+/* PPTX slides */
+
+.rich-pptx {
+  overflow: auto;
+}

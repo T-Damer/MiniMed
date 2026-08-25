@@ -61,13 +61,21 @@ function span(value: unknown): number | null {
     : null;
 }
 
+function recordValue(record: Readonly<Record<string, unknown>>, key: string): unknown {
+  return record[key];
+}
+
 function readImage(value: Readonly<Record<string, unknown>>): DocumentImageBlock | null {
-  const dataUrl = value['dataUrl'];
-  if (value['kind'] !== 'image' || typeof dataUrl !== 'string' || !SAFE_IMAGE.test(dataUrl)) {
+  const dataUrl = recordValue(value, 'dataUrl');
+  if (
+    recordValue(value, 'kind') !== 'image' ||
+    typeof dataUrl !== 'string' ||
+    !SAFE_IMAGE.test(dataUrl)
+  ) {
     return null;
   }
-  const alt = value['alt'];
-  const title = value['title'];
+  const alt = recordValue(value, 'alt');
+  const title = recordValue(value, 'title');
   return {
     kind: 'image',
     dataUrl,
@@ -77,22 +85,22 @@ function readImage(value: Readonly<Record<string, unknown>>): DocumentImageBlock
 }
 
 function readTable(value: Readonly<Record<string, unknown>>): DocumentTableBlock | null {
-  const rawRows = value['rows'];
+  const rawRows = recordValue(value, 'rows');
   if (!Array.isArray(rawRows)) return null;
   const rows: DocumentTableRow[] = [];
   for (const rawRow of rawRows) {
     if (!rawRow || typeof rawRow !== 'object') return null;
-    const cellsValue = (rawRow as Readonly<Record<string, unknown>>)['cells'];
+    const cellsValue = recordValue(rawRow as Readonly<Record<string, unknown>>, 'cells');
     if (!Array.isArray(cellsValue)) return null;
     const cells: DocumentTableCell[] = [];
     for (const rawCell of cellsValue) {
       if (!rawCell || typeof rawCell !== 'object') return null;
       const cell = rawCell as Readonly<Record<string, unknown>>;
-      const rowSpan = span(cell['rowSpan']);
-      const colSpan = span(cell['colSpan']);
-      const text = cell['text'];
+      const rowSpan = span(recordValue(cell, 'rowSpan'));
+      const colSpan = span(recordValue(cell, 'colSpan'));
+      const text = recordValue(cell, 'text');
       if (typeof text !== 'string' || rowSpan === null || colSpan === null) return null;
-      const rawImages = cell['images'];
+      const rawImages = recordValue(cell, 'images');
       const images = Array.isArray(rawImages)
         ? rawImages
             .filter((image): image is Readonly<Record<string, unknown>> =>
@@ -103,7 +111,7 @@ function readTable(value: Readonly<Record<string, unknown>>): DocumentTableBlock
         : [];
       cells.push({
         text,
-        header: cell['header'] === true,
+        header: recordValue(cell, 'header') === true,
         rowSpan,
         colSpan,
         images,
@@ -112,7 +120,7 @@ function readTable(value: Readonly<Record<string, unknown>>): DocumentTableBlock
     if (cells.length > 0) rows.push({ cells });
   }
   if (rows.length === 0) return null;
-  const caption = value['caption'];
+  const caption = recordValue(value, 'caption');
   return {
     kind: 'table',
     caption: typeof caption === 'string' ? caption : '',
@@ -123,10 +131,10 @@ function readTable(value: Readonly<Record<string, unknown>>): DocumentTableBlock
 export function readDocumentRenderBlock(
   metadata: Readonly<Record<string, unknown>> | undefined,
 ): DocumentRenderBlock | null {
-  const value = metadata?.['renderBlock'];
+  const value = metadata === undefined ? undefined : recordValue(metadata, 'renderBlock');
   if (!value || typeof value !== 'object') return null;
   const block = value as Readonly<Record<string, unknown>>;
-  if (block['kind'] === 'table') return readTable(block);
+  if (recordValue(block, 'kind') === 'table') return readTable(block);
   return readImage(block);
 }
 

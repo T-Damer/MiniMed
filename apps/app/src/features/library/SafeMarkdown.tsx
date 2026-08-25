@@ -204,12 +204,6 @@ function safeImageSrc(value: string): string | null {
   if (src.startsWith('blob:') || /^data:image\/(?:png|jpeg|jpg|webp|gif);base64,/iu.test(src)) {
     return src;
   }
-  try {
-    const url = new URL(src, window.location.href);
-    if (url.protocol === 'http:' || url.protocol === 'https:') return src;
-  } catch {
-    return null;
-  }
   return null;
 }
 
@@ -249,50 +243,74 @@ function tokenizeInline(value: string): readonly InlineToken[] {
 
 function InlineMarkdown(props: { readonly text: string }): JSX.Element {
   return (
-    <>
-      <For each={tokenizeInline(props.text)}>
-        {(token) => {
-          if (token.kind === 'strong') return <strong>{token.text}</strong>;
-          if (token.kind === 'em') return <em>{token.text}</em>;
-          if (token.kind === 'code') return <code>{token.text}</code>;
-          if (token.kind === 'math') {
+    <For each={tokenizeInline(props.text)}>
+      {(token) => {
+        if (token.kind === 'strong') return <strong>{token.text}</strong>;
+        if (token.kind === 'em') return <em>{token.text}</em>;
+        if (token.kind === 'code') return <code>{token.text}</code>;
+        if (token.kind === 'math') {
+          return (
+            <span
+              class="safe-markdown__math-inline"
+              role="math"
+              aria-label={`LaTeX: ${token.text}`}
+            >
+              {token.text}
+            </span>
+          );
+        }
+        if (token.kind === 'link') {
+          const raw = token.href ?? '';
+          if (raw.startsWith('#') && !raw.startsWith('#/')) {
+            // Inner-document anchor: scroll to the heading instead of navigating.
             return (
-              <span
-                class="safe-markdown__math-inline"
-                role="math"
-                aria-label={`LaTeX: ${token.text}`}
+              <a
+                href={raw}
+                onClick={(event) => {
+                  event.preventDefault();
+                  const id = decodeURIComponent(raw.slice(1));
+                  const target =
+                    document.getElementById(id) ??
+                    document.getElementById(`md-${id}`) ??
+                    Array.from(
+                      document.querySelectorAll<HTMLElement>('h1[id], h2[id], h3[id], h4[id]'),
+                    ).find((heading) => slugBase(heading.textContent ?? '') === slugBase(id));
+                  target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
               >
                 {token.text}
-              </span>
-            );
-          }
-          if (token.kind === 'link') {
-            const href = safeHref(token.href ?? '');
-            return href ? (
-              <a href={href} rel="noopener noreferrer">
-                {token.text}
               </a>
-            ) : (
-              <span>{token.text}</span>
             );
           }
-          if (token.kind === 'image') {
-            const src = safeImageSrc(token.href ?? '');
-            return src ? (
-              <figure class="safe-markdown__inline-image">
-                <img src={src} alt={token.text} loading="lazy" />
-                <Show when={token.text}>
-                  <figcaption>{token.text}</figcaption>
-                </Show>
-              </figure>
-            ) : (
-              <span>{token.text}</span>
-            );
-          }
-          return <>{token.text}</>;
-        }}
-      </For>
-    </>
+          const href = safeHref(raw);
+          return href ? (
+            <a
+              href={href}
+              target={href.startsWith('#/') ? undefined : '_blank'}
+              rel="noopener noreferrer"
+            >
+              {token.text}
+            </a>
+          ) : (
+            <span>{token.text}</span>
+          );
+        }
+        if (token.kind === 'image') {
+          const src = safeImageSrc(token.href ?? '');
+          return src ? (
+            <figure class="safe-markdown__inline-image">
+              <img src={src} alt={token.text} loading="lazy" />
+              <Show when={token.text}>
+                <figcaption>{token.text}</figcaption>
+              </Show>
+            </figure>
+          ) : (
+            <span>{token.text}</span>
+          );
+        }
+        return <>{token.text}</>;
+      }}
+    </For>
   );
 }
 
@@ -335,10 +353,13 @@ function Heading(props: Extract<MarkdownBlock, { kind: 'heading' }>): JSX.Elemen
   );
 }
 
-export function SafeMarkdown(props: { readonly markdown: string }): JSX.Element {
+export function SafeMarkdown(props: {
+  readonly markdown: string;
+  readonly class?: string;
+}): JSX.Element {
   const parsed = () => parseMarkdownDocument(props.markdown);
   return (
-    <div class="safe-markdown">
+    <div class={`safe-markdown${props.class ? ` ${props.class}` : ''}`}>
       <For each={parsed().blocks}>
         {(block) => {
           if (block.kind === 'heading') return <Heading {...block} />;
