@@ -8,6 +8,24 @@ function decodeBytes(bytes: Uint8Array): string {
   }
 }
 
+function decodeRtfBytes(bytes: Uint8Array): string {
+  let utf8: string | undefined;
+  try {
+    utf8 = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    // RTF files from Windows often contain raw bytes from their declared codepage.
+  }
+  if (utf8 && /[^\u0000-\u007f]/u.test(utf8)) return utf8;
+
+  const header = new TextDecoder('ascii').decode(bytes.slice(0, 4096));
+  const codepage = /\\ansicpg(\d+)/u.exec(header)?.[1] ?? '1252';
+  try {
+    return new TextDecoder(`windows-${codepage}`).decode(bytes);
+  } catch {
+    return decodeBytes(bytes);
+  }
+}
+
 function extractPlainText(bytes: Uint8Array): string {
   return decodeBytes(bytes);
 }
@@ -465,7 +483,7 @@ export async function extractUserLibraryText(
   }
 
   if (mimeType === 'text/rtf' || mimeType === 'application/rtf' || extension === 'rtf') {
-    return extractRtfText(decodeBytes(bytes));
+    return extractRtfText(decodeRtfBytes(bytes));
   }
 
   if (mimeType === 'application/vnd.apple.pages' || extension === 'pages') {
