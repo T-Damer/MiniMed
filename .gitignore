@@ -75,3 +75,7 @@ Med/
 
 # Local QA evidence is generated during development; committed history remains tracked.
 .omo/evidence/*
+
+# Local test/QA artifacts (screenshots, playwright dumps) — never committed.
+.artifacts/
+.playwright-mcp/

@@ -4,7 +4,8 @@
     "types": ["vite/client"],
     "allowImportingTsExtensions": true,
     "paths": {
-      "@/*": ["apps/app/src/*"]
+      "@/*": ["apps/app/src/*"],
+      "mdast-util-mark": ["apps/app/src/types/mdast-util-mark.d.ts"]
     },
     "noEmit": true
   },
