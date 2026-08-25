@@ -30,12 +30,6 @@ body::before {
   display: none;
 }
 
-*,
-*::before,
-*::after {
-  -webkit-tap-highlight-color: transparent;
-}
-
 button,
 textarea,
 input,

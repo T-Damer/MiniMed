@@ -1,5 +1,5 @@
 import { ContextMenu } from '@kobalte/core/context-menu';
-import { For, type JSX, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 
@@ -17,10 +17,14 @@ interface AppContextMenuProps {
   readonly children: JSX.Element;
   readonly actions: readonly AppContextMenuAction[];
   readonly buttonLabel?: string;
+  readonly buttonIcon?: AppGlyphName;
+  readonly buttonClass?: string;
+  readonly hideButton?: boolean;
   readonly class?: string;
 }
 
-function requestContextMenu(event: MouseEvent): void {
+/** Opens the nearest context menu synthetically (e.g. from a left click). */
+export function requestContextMenu(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
   const currentTarget = event.currentTarget;
@@ -53,7 +57,7 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
           <Show when={props.action.icon}>
             {(icon) => <AppGlyph name={icon()} class="app-context-menu__item-icon" />}
           </Show>
-          <span>{props.action.label}</span>
+          <span class="app-context-menu__item-label">{props.action.label}</span>
         </ContextMenu.Item>
       }
     >
@@ -65,7 +69,7 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
           <Show when={props.action.icon}>
             {(icon) => <AppGlyph name={icon()} class="app-context-menu__item-icon" />}
           </Show>
-          <span>{props.action.label}</span>
+          <span class="app-context-menu__item-label">{props.action.label}</span>
           <span class="app-context-menu__submenu-arrow" aria-hidden="true">
             ›
           </span>
@@ -81,22 +85,46 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
 }
 
 export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+
+  // Non-modal menus let the page scroll freely; the first scroll gesture
+  // outside the menu closes it via a synthesized outside press.
+  createEffect(() => {
+    if (!open()) return;
+    const closeOnScroll = (event: Event): void => {
+      if (event.target instanceof Element && event.target.closest('.app-context-menu')) return;
+      document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    };
+    window.addEventListener('wheel', closeOnScroll, { capture: true, passive: true });
+    window.addEventListener('touchmove', closeOnScroll, { capture: true, passive: true });
+    window.addEventListener('scroll', closeOnScroll, { capture: true, passive: true });
+    onCleanup(() => {
+      window.removeEventListener('wheel', closeOnScroll, { capture: true });
+      window.removeEventListener('touchmove', closeOnScroll, { capture: true });
+      window.removeEventListener('scroll', closeOnScroll, { capture: true });
+    });
+  });
+
   return (
-    <ContextMenu>
+    <ContextMenu modal={false} preventScroll={false} onOpenChange={setOpen}>
       <ContextMenu.Trigger
         class={`app-context-menu__trigger${props.class ? ` ${props.class}` : ''}`}
         data-app-context-menu-trigger=""
       >
         {props.children}
-        <button
-          type="button"
-          class="app-context-menu__more"
-          aria-label={props.buttonLabel ?? 'Действия'}
-          title={props.buttonLabel ?? 'Действия'}
-          onClick={requestContextMenu}
-        >
-          <span aria-hidden="true">•••</span>
-        </button>
+        <Show when={!props.hideButton}>
+          <button
+            type="button"
+            class={`app-context-menu__more${props.buttonClass ? ` ${props.buttonClass}` : ''}`}
+            aria-label={props.buttonLabel ?? 'Действия'}
+            title={props.buttonLabel ?? 'Действия'}
+            onClick={requestContextMenu}
+          >
+            <Show when={props.buttonIcon} fallback={<span aria-hidden="true">•••</span>}>
+              {(icon) => <AppGlyph name={icon()} class="app-context-menu__more-icon" />}
+            </Show>
+          </button>
+        </Show>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
         <ContextMenu.Content class="app-context-menu">

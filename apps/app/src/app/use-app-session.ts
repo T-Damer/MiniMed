@@ -11,13 +11,6 @@ import {
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
 import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
-import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
-import {
-  getContentModuleRuntime,
-  peekContentModuleRuntime,
-  subscribeContentModuleRuntime,
-} from '@/features/modules/module-runtime-service';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 import {
   APP_UPDATE_READY_EVENT,
@@ -38,6 +31,9 @@ import { ensureUserLibraryIngestRunning } from '@/state/user-library-ingest';
 const SLOW_BOOT_DELAY_MS = 10_000;
 const APP_UPDATE_MIN_CHECK_MS = 650;
 const APP_UPDATE_UP_TO_DATE_VISIBLE_MS = 2_800;
+
+type ModuleRuntimeService = typeof import('@/features/modules/module-runtime-service');
+type ContentModuleRuntime = ReturnType<ModuleRuntimeService['getContentModuleRuntime']>;
 
 function delay(ms: number): Promise<void> {
   if (ms <= 0) return Promise.resolve();
@@ -64,12 +60,14 @@ export function useAppSession() {
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
 
   let coreToClose: MedicalCore | undefined;
+  let moduleRuntimeService: ModuleRuntimeService | undefined;
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
   let stopButtonHaptics: (() => void) | undefined;
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
   let updateFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let disposed = false;
 
   const handleAppUpdate = (event: Event): void => {
     setAppUpdateWorker((event as CustomEvent<AppUpdateReadyDetail>).detail.worker);
@@ -167,7 +165,9 @@ export function useAppSession() {
     });
     coreToClose = next.core;
     setReady(next);
-    setDownloadedModuleCount(peekContentModuleRuntime()?.listInstalled().length ?? 0);
+    setDownloadedModuleCount(
+      moduleRuntimeService?.peekContentModuleRuntime()?.listInstalled().length ?? 0,
+    );
     notifyContentChanged();
   };
 
@@ -195,7 +195,11 @@ export function useAppSession() {
     refreshDueReminders();
     ensureUserLibraryIngestRunning();
     reminderTimer = setInterval(refreshDueReminders, 30_000);
-    const bindModuleRuntime = (runtime: ReturnType<typeof getContentModuleRuntime>): void => {
+    const moduleRuntimeLoad = Promise.all([
+      import('@/features/modules/module-catalog'),
+      import('@/features/modules/module-runtime-service'),
+    ]);
+    const bindModuleRuntime = (runtime: ContentModuleRuntime): void => {
       unsubscribeInstalledModules?.();
       const syncInstalledCount = (): void => {
         setDownloadedModuleCount(runtime.listInstalled().length);
@@ -203,22 +207,39 @@ export function useAppSession() {
       syncInstalledCount();
       unsubscribeInstalledModules = runtime.subscribe(syncInstalledCount);
     };
-    bindModuleRuntime(getContentModuleRuntime(MODULE_CATALOG));
-    unsubscribeModuleRuntime = subscribeContentModuleRuntime(bindModuleRuntime);
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
+    const initializedPromise = initializeMedicalCore(createBrowserCore);
     try {
-      const initialized = await initializeMedicalCore(createBrowserCore);
+      const initialized = await initializedPromise;
+      if (disposed) {
+        await initialized.core.close();
+        return;
+      }
       const initializedSearchCore = new WorkerSearchMedicalCore(initialized.core);
       coreToClose = initialized.core;
       setSearchCore(initializedSearchCore);
       setAssistantCore(new GroundedMedicalCore(initializedSearchCore, modelController));
       setReady(initialized);
-      void refreshContentModuleCatalog()
+      void moduleRuntimeLoad
+        .then(([catalogModule, runtimeService]) => {
+          if (disposed) return;
+          moduleRuntimeService = runtimeService;
+          bindModuleRuntime(runtimeService.getContentModuleRuntime(catalogModule.MODULE_CATALOG));
+          unsubscribeModuleRuntime =
+            runtimeService.subscribeContentModuleRuntime(bindModuleRuntime);
+        })
+        .catch((cause: unknown) => {
+          console.warn('Optional content module runtime could not be loaded.', cause);
+        });
+      void import('@/features/modules/catalog-service')
+        .then(({ refreshContentModuleCatalog }) => refreshContentModuleCatalog())
         .then((result) => {
           setAvailableModuleCount(countPublishedCatalogModules(result.catalog.modules));
         })
         .catch(() => undefined);
     } catch (cause) {
+      const initialized = await initializedPromise.catch(() => undefined);
+      if (initialized) await initialized.core.close();
       setError(
         cause instanceof Error ? cause.message : 'Не удалось открыть локальную базу знаний.',
       );
@@ -229,6 +250,7 @@ export function useAppSession() {
   });
 
   onCleanup(() => {
+    disposed = true;
     document.documentElement.classList.remove('platform-android');
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);

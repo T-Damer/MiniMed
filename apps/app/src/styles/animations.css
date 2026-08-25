@@ -1,28 +1,20 @@
 @keyframes root-view-enter-forward {
   from {
-    margin-left: clamp(5rem, 18vw, 12rem);
-    transform: none;
-    box-shadow: -1.25rem 0 1.75rem rgb(18 15 10 / 28%);
+    opacity: 0;
   }
 
   to {
-    margin-left: 0;
-    transform: none;
-    box-shadow: 0 0 0 rgb(18 15 10 / 0%);
+    opacity: 1;
   }
 }
 
 @keyframes root-view-enter-backward {
   from {
-    margin-left: clamp(-12rem, -18vw, -5rem);
-    transform: none;
-    box-shadow: 1.25rem 0 1.75rem rgb(18 15 10 / 28%);
+    opacity: 0;
   }
 
   to {
-    margin-left: 0;
-    transform: none;
-    box-shadow: 0 0 0 rgb(18 15 10 / 0%);
+    opacity: 1;
   }
 }
 

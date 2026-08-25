@@ -33,11 +33,13 @@ import '@/styles/tool-link-icons.css';
 import '@/styles/components.css';
 import '@/styles/notifications.css';
 import '@/styles/user-library.css';
+import '@/styles/user-reader.css';
 import '@/styles/theme-dark.css';
 import '@/styles/context-menu.css';
 import '@/styles/library-polish.css';
 import '@/styles/notes-polish.css';
 import '@/styles/reader-polish.css';
+import '@/styles/floating-windows.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');

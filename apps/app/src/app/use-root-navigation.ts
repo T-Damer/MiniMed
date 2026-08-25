@@ -18,13 +18,20 @@ interface RootNavigationMotion {
   readonly direction: RootNavigationDirection;
 }
 
-const ROOT_NAVIGATION_MOTION_MS = 320;
+const ROOT_NAVIGATION_MOTION_MS = 180;
 
 export function useRootNavigation() {
   bootstrapDocumentReadLocation();
   const [view, setView] = createSignal<RootView>(viewFromLocation());
   const [documentReadActive, setDocumentReadActive] = createSignal(
     isDocumentReadRoute(window.location.hash),
+  );
+  // Keep-alive registry: a root pane constructs its component the first time it becomes
+  // the navigation target and stays mounted (hidden) afterwards. Never-visited tabs cost
+  // nothing at boot; visited tabs preserve scroll position, draft input, and local state
+  // without re-running their bootstrap on every tab switch.
+  const [mountedViews, setMountedViews] = createSignal<ReadonlySet<RootView>>(
+    new Set([viewFromLocation()]),
   );
   const [rootNavigationMotion, setRootNavigationMotion] = createSignal<RootNavigationMotion>();
   const [showScrollTop, setShowScrollTop] = createSignal(false);
@@ -130,7 +137,8 @@ export function useRootNavigation() {
     if (current === next) return false;
     const reduceMotion =
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      document.querySelector('.overlay-dialog') !== null;
+      document.querySelector('.overlay-dialog') !== null ||
+      new URLSearchParams(window.location.search).has('minimed-floating');
     const inFlight = rootNavigationMotion();
     if (inFlight) {
       finishRootNavigationMotion(inFlight.to);
@@ -154,6 +162,12 @@ export function useRootNavigation() {
       clearIncomingScrollShift();
     }
     setView(next);
+    setMountedViews((current) => {
+      if (current.has(next)) return current;
+      const expanded = new Set(current);
+      expanded.add(next);
+      return expanded;
+    });
     if (reduceMotion) {
       restoreScrollFor(next);
     } else {
@@ -195,6 +209,8 @@ export function useRootNavigation() {
     const motion = rootNavigationMotion();
     return view() === target || motion?.from === target;
   };
+
+  const hasMountedView = (target: RootView): boolean => mountedViews().has(target);
 
   const navigate = (next: RootView): void => {
     transitionToRootView(next, () => {
@@ -286,5 +302,6 @@ export function useRootNavigation() {
     navigate,
     rootViewClasses,
     isViewVisible,
+    hasMountedView,
   };
 }

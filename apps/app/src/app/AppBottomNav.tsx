@@ -1,10 +1,15 @@
-import { type Accessor, type JSX, Show } from 'solid-js';
+import { type Accessor, type JSX, lazy, Show, Suspense } from 'solid-js';
 
 import { ROOT_VIEW_ORDER, ROOT_VIEWS, type RootView } from '@/app/root-view';
 import { AppGlyph } from '@/components/AppGlyph';
 import type { LocalModelController } from '@/features/models/controller';
 import { ModelNavIndicator } from '@/features/models/ModelNavIndicator';
-import { ContentDownloadNavIndicator } from '@/features/modules/ContentDownloadNavIndicator';
+
+const ContentDownloadNavIndicator = lazy(() =>
+  import('@/features/modules/ContentDownloadNavIndicator').then(
+    ({ ContentDownloadNavIndicator: component }) => ({ default: component }),
+  ),
+);
 
 function compactCount(value: number, cap: number): string {
   return value > cap ? `${cap}+` : String(value);
@@ -61,7 +66,9 @@ export function AppBottomNav(props: {
         return (
           <div class="app-nav-item">
             <Show when={item.id === 'settings'}>
-              <ContentDownloadNavIndicator />
+              <Suspense>
+                <ContentDownloadNavIndicator />
+              </Suspense>
               <ModelNavIndicator controller={props.modelController} />
             </Show>
             <button

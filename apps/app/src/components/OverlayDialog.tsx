@@ -20,6 +20,21 @@ interface OverlayDialogProps {
 
 let nextOverlayDialogId = 0;
 
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
+
+function focusableElementsWithin(root: HTMLElement): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (element) => element.getClientRects().length > 0,
+  );
+}
+
 export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let panel: HTMLElement | undefined;
   let historyEntryPushed = false;
@@ -44,6 +59,8 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     if (!props.open) return;
     const restoreUrl = window.location.href;
     const restoreState = window.history.state;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     if (tracksHistory()) {
       window.history.pushState(
         { ...(window.history.state as object | null), overlay: true },
@@ -54,9 +71,39 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     }
     const releaseScroll = lockBodyScroll();
     const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape') return;
-      if (document.querySelector('.media-viewer')) return;
-      closeDialog();
+      if (event.key === 'Escape') {
+        // Only a media viewer layered over THIS dialog consumes Escape (zoom reset);
+        // unrelated viewers elsewhere must not disable closing this dialog.
+        if (panel?.querySelector('.media-viewer')) return;
+        closeDialog();
+        return;
+      }
+      if (event.key !== 'Tab' || !panel) return;
+      // aria-modal="true" promises assistive tech that background content is inert,
+      // so keyboard focus has to cycle inside the panel instead of leaking behind it.
+      const focusable = focusableElementsWithin(panel);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey) {
+        if (
+          active === first ||
+          active === panel ||
+          !(active instanceof Node && panel.contains(active))
+        ) {
+          event.preventDefault();
+          last?.focus();
+        }
+        return;
+      }
+      if (active === last || !(active instanceof Node && panel.contains(active))) {
+        event.preventDefault();
+        first?.focus();
+      }
     };
     const handlePopState = (): void => {
       if (!isTopmostDialog()) return;
@@ -74,6 +121,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
         window.history.replaceState(restoreState, '', restoreUrl);
         historyEntryPushed = false;
       }
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
     });
   });
 

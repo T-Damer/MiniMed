@@ -6,11 +6,13 @@ import { chunkLayoutRows, createLayoutColumnCount } from '@/state/layout-columns
 interface LayoutVirtualizedGridProps<T> {
   readonly data: readonly T[];
   readonly bufferSize?: number;
+  readonly columns?: number;
   readonly children: (item: T, index: number) => JSX.Element;
 }
 
 export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): JSX.Element {
-  const columns = createLayoutColumnCount();
+  const responsiveColumns = createLayoutColumnCount();
+  const columns = (): number => props.columns ?? responsiveColumns();
   const rows = createMemo(() => chunkLayoutRows(props.data, columns()));
 
   return (

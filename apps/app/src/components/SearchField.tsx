@@ -1,4 +1,4 @@
-import { type JSX, splitProps } from 'solid-js';
+import { createUniqueId, type JSX, splitProps } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 
@@ -32,7 +32,8 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
     'inputRef',
   ]);
 
-  const fieldId = () => local.id ?? 'archive-search-input';
+  const generatedId = createUniqueId();
+  const fieldId = () => local.id ?? `archive-search-input-${generatedId}`;
   const labelText = () => local.label ?? 'Поиск';
 
   return (

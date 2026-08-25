@@ -306,6 +306,16 @@
   text-transform: uppercase;
 }
 
+.recommendation-section-card--user-library {
+  border-color: color-mix(in srgb, var(--theme-accent) 48%, var(--theme-border));
+  background: color-mix(in srgb, var(--theme-accent-soft) 38%, var(--theme-surface-raised));
+}
+
+.recommendation-section-card-meta--stats {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .recommendation-section-card-compact > .recommendation-section-card-header {
   display: contents;
 }

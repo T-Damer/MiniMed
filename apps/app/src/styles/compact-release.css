@@ -25,16 +25,14 @@
 }
 
 html.using-root-view-transition .app-main {
-  overflow-x: visible;
+  overflow-x: clip;
 }
 
 /* Keep the outgoing view in normal flow while the incoming view overlays it during the motion window.
    App.tsx toggles `hidden` off for both so the old screen stays visually still underneath the new one.
    `--root-view-enter-scroll-shift` pre-offsets the overlay to the incoming page's saved scroll while
-   `window.scrollY` still belongs to the outgoing page. Do not use transform — it creates a sticky
-   containing block and makes header chrome jump out of its slot. Center the overlay with an explicit
-   left/width (not left:0 + right:auto, which pins the 65ch measure to the viewport edge) and slide
-   with margin-left so the box stays the page measure on wide screens. */
+   `window.scrollY` still belongs to the outgoing page. Avoid transforms here: they create a sticky
+   containing block and can expose horizontal overflow during navigation. */
 .app-view.root-view-enter-forward,
 .app-view.root-view-enter-backward {
   position: absolute;
@@ -45,7 +43,7 @@ html.using-root-view-transition .app-main {
   margin-inline: 0;
   z-index: var(--z-raised-2);
   transform: none;
-  animation-duration: 320ms;
+  animation-duration: 120ms;
   animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
   animation-fill-mode: both;
 }
@@ -1156,7 +1154,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
     top 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
     width 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
     height 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1);
   will-change: left, top, width, height, transform;
 }
 
@@ -1436,12 +1434,12 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 }
 
 .search-history-panel-header__close {
-  color: var(--theme-link);
+  color: var(--theme-text);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .search-history-panel-header__close:hover {
-    color: color-mix(in srgb, var(--theme-link) 72%, var(--theme-text));
+    color: var(--theme-accent);
     transform: none;
     box-shadow: none;
   }
@@ -2192,19 +2190,7 @@ fieldset.search-mode-picker {
 }
 
 .patient-notes-fab {
-  position: fixed;
-  z-index: var(--z-graph);
-  right: max(
-    1.25rem,
-    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
-  );
-  bottom: max(
-    var(--theme-bottom-nav-clearance),
-    calc(var(--theme-bottom-nav-clearance) + var(--safe-bottom))
-  );
   display: grid;
-  width: 3.25rem;
-  height: 3.25rem;
   place-items: center;
   border: 0;
   border-radius: 50%;
@@ -2214,34 +2200,10 @@ fieldset.search-mode-picker {
   cursor: pointer;
 }
 
-.scroll-top-button {
-  right: max(
-    0.875rem,
-    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 0.875rem + var(--safe-right))
-  );
-}
-
-.scroll-top-button--notes {
-  right: max(
-    1.25rem,
-    calc((100vw - min(100vw, var(--page-content-width))) / 2 + 1.25rem + var(--safe-right))
-  );
-  bottom: max(
-    var(--theme-bottom-nav-secondary-clearance),
-    calc(var(--theme-bottom-nav-secondary-clearance) + var(--safe-bottom))
-  );
-  width: 3.25rem;
-  height: 3.25rem;
-}
-
-.document-book-mode-button {
-  position: fixed;
-  z-index: var(--z-graph);
-  right: max(0.875rem, var(--safe-right));
-  bottom: max(7.5rem, calc(7.5rem + var(--safe-bottom)));
+.document-book-mode-button__trigger {
   display: grid;
-  width: 2.6875rem;
-  height: 2.6875rem;
+  width: 100%;
+  height: 100%;
   place-items: center;
   border: 1px solid rgb(246 238 219 / 25%);
   border-radius: 50%;
@@ -2251,10 +2213,17 @@ fieldset.search-mode-picker {
   cursor: pointer;
 }
 
-.document-book-mode-button--active {
+.document-book-mode-button__trigger--active {
   color: var(--theme-accent-contrast, #f6eedb);
-  background: var(--theme-accent);
   border-color: color-mix(in srgb, var(--theme-accent) 70%, #f6eedb);
+  background: var(--theme-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .document-book-mode-button__trigger:hover {
+    color: var(--theme-accent-contrast, #f6eedb);
+    background: var(--theme-accent);
+  }
 }
 
 .document-book-mode-button__icon {
@@ -3554,4 +3523,27 @@ html.native-print-active #root {
     align-items: stretch;
     flex-direction: column;
   }
+}
+
+/* Typography: route-depth-aware page headings (components/Text.tsx) */
+
+.app-heading {
+  overflow-wrap: break-word;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.app-heading--depth-1 {
+  font-size: clamp(1.3rem, 3vw, 1.75rem);
+}
+
+.app-heading--depth-2 {
+  font-size: clamp(1.12rem, 2.4vw, 1.4rem);
+}
+
+.app-heading--depth-3 {
+  font-size: clamp(1rem, 2vw, 1.2rem);
 }

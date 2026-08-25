@@ -1,7 +1,8 @@
 .assessments-page,
 .calculators-page {
   box-sizing: border-box;
-  width: min(100%, var(--page-board-width));
+  width: 100%;
+  max-width: none;
   min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
   margin-inline: auto;
   margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
