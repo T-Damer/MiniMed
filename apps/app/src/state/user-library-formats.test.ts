@@ -233,6 +233,18 @@ describe('user-library formats', () => {
 });
 
 describe('rtf extraction (cyrillic + destinations)', () => {
+  it('decodes raw Windows-1251 RTF text', async () => {
+    const prefix = new TextEncoder().encode('{\\rtf1\\ansi\\ansicpg1251 ');
+    const cyrillic = Uint8Array.from([0xcf, 0xf0, 0xe8, 0xe2, 0xe5, 0xf2]);
+    const suffix = new TextEncoder().encode('}');
+    const bytes = new Uint8Array(prefix.length + cyrillic.length + suffix.length);
+    bytes.set(prefix);
+    bytes.set(cyrillic, prefix.length);
+    bytes.set(suffix, prefix.length + cyrillic.length);
+    const text = await extractUserLibraryText('raw.rtf', 'text/rtf', bytes.buffer);
+    expect(text).toContain('Привет');
+  });
+
   it('decodes cp1251 hex runs and survives fonttbl groups', async () => {
     const rtf =
       "{\\rtf1\\ansi\\ansicpg1251{\\fonttbl{\\f0 Times;}}\\f0 \\'cf\\'f0\\'e8\\'e2\\'e5\\'f2, \\'ec\\'e8\\'f0!\\par}";

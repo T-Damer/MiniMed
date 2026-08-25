@@ -15,7 +15,9 @@ function decodeRtfBytes(bytes: Uint8Array): string {
   } catch {
     // RTF files from Windows often contain raw bytes from their declared codepage.
   }
-  if (utf8 && /[^\u0000-\u007f]/u.test(utf8)) return utf8;
+  if (utf8 && [...utf8].some((character) => (character.codePointAt(0) ?? 0) > 0x7f)) {
+    return utf8;
+  }
 
   const header = new TextDecoder('ascii').decode(bytes.slice(0, 4096));
   const codepage = /\\ansicpg(\d+)/u.exec(header)?.[1] ?? '1252';
@@ -33,12 +35,6 @@ function extractPlainText(bytes: Uint8Array): string {
 function extractHtmlText(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return doc.body?.textContent?.replace(/\s+/gu, ' ').trim() ?? '';
-}
-
-function decodeRtfHexByte(hex: string): string {
-  const code = Number.parseInt(hex, 16);
-  if (Number.isNaN(code)) return '';
-  return String.fromCharCode(code);
 }
 
 function decodeRtfUnicode(value: string): string {
