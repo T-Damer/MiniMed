@@ -1,10 +1,17 @@
 import { createSignal, onCleanup, onMount } from 'solid-js';
 
-/** Must match `breakpoints.css` tablet query. Wider viewports keep this two-column cap. */
+/** Must match `breakpoints.css` tablet query. */
 export const LAYOUT_TABLET_MIN_PX = 760;
+export const LAYOUT_WIDE_MIN_PX = 1180;
+export type LayoutColumnCount = 1 | 2 | 3;
 
-export function layoutColumnCount(widthPx: number): 1 | 2 {
-  if (widthPx >= LAYOUT_TABLET_MIN_PX) return 2;
+export function layoutColumnCount(
+  widthPx: number,
+  maxColumns: 1 | 2 | 3 = 2,
+  minTwoColumnWidth = LAYOUT_TABLET_MIN_PX,
+): LayoutColumnCount {
+  if (maxColumns >= 3 && widthPx >= LAYOUT_WIDE_MIN_PX) return 3;
+  if (maxColumns >= 2 && widthPx >= minTwoColumnWidth) return 2;
   return 1;
 }
 
@@ -21,20 +28,31 @@ export function chunkLayoutRows<T>(
   return rows;
 }
 
-export function createLayoutColumnCount() {
-  const [columns, setColumns] = createSignal<1 | 2>(
-    typeof window === 'undefined' ? 1 : layoutColumnCount(window.innerWidth),
+export function createLayoutColumnCount(
+  maxColumns: 1 | 2 | 3 = 2,
+  minTwoColumnWidth = LAYOUT_TABLET_MIN_PX,
+) {
+  const [columns, setColumns] = createSignal<LayoutColumnCount>(
+    typeof window === 'undefined'
+      ? 1
+      : layoutColumnCount(window.innerWidth, maxColumns, minTwoColumnWidth),
   );
 
   onMount(() => {
-    const tabletQuery = window.matchMedia(`(min-width: ${LAYOUT_TABLET_MIN_PX}px)`);
+    const breakpoints = [
+      minTwoColumnWidth,
+      ...(maxColumns >= 3 ? [LAYOUT_WIDE_MIN_PX] : []),
+    ];
+    const queries = [...new Set(breakpoints)].map((width) =>
+      window.matchMedia(`(min-width: ${width}px)`),
+    );
     const sync = (): void => {
-      setColumns(layoutColumnCount(window.innerWidth));
+      setColumns(layoutColumnCount(window.innerWidth, maxColumns, minTwoColumnWidth));
     };
-    tabletQuery.addEventListener('change', sync);
+    for (const query of queries) query.addEventListener('change', sync);
     sync();
     onCleanup(() => {
-      tabletQuery.removeEventListener('change', sync);
+      for (const query of queries) query.removeEventListener('change', sync);
     });
   });
 

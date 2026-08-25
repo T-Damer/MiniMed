@@ -1,17 +1,27 @@
 import { createMemo, For, type JSX } from 'solid-js';
 import { WindowVirtualizer } from 'virtua/solid';
 
-import { chunkLayoutRows, createLayoutColumnCount } from '@/state/layout-columns';
+import {
+  chunkLayoutRows,
+  createLayoutColumnCount,
+  LAYOUT_TABLET_MIN_PX,
+  type LayoutColumnCount,
+} from '@/state/layout-columns';
 
 interface LayoutVirtualizedGridProps<T> {
   readonly data: readonly T[];
   readonly bufferSize?: number;
   readonly columns?: number;
+  readonly maxColumns?: LayoutColumnCount;
+  readonly minTwoColumnWidth?: number;
   readonly children: (item: T, index: number) => JSX.Element;
 }
 
 export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): JSX.Element {
-  const responsiveColumns = createLayoutColumnCount();
+  const responsiveColumns = createLayoutColumnCount(
+    props.maxColumns ?? 2,
+    props.minTwoColumnWidth ?? LAYOUT_TABLET_MIN_PX,
+  );
   const columns = (): number => props.columns ?? responsiveColumns();
   const rows = createMemo(() => chunkLayoutRows(props.data, columns()));
 
@@ -19,7 +29,7 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
     <WindowVirtualizer data={rows()} bufferSize={props.bufferSize ?? 400}>
       {(row, rowIndex) => (
         <div class="layout-card-row">
-          <div class="layout-card-grid">
+          <div class="layout-card-grid" style={{ '--layout-cols': String(columns()) }}>
             <For each={row}>
               {(item, columnIndex) => props.children(item, rowIndex() * columns() + columnIndex())}
             </For>

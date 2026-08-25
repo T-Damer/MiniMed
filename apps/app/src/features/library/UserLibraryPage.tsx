@@ -23,7 +23,7 @@ import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
-import { createLibraryDropHandlers, hasFileTransfer } from '@/features/library/user-library-drag';
+import { createLibraryDropHandlers } from '@/features/library/user-library-drag';
 import {
   openUserLibraryDocument,
   parseUserLibraryFolderRoute,
@@ -34,7 +34,6 @@ import {
   addUserLibraryFile,
   createUserLibraryFolder,
   getUserLibraryFile,
-  isUserLibraryImageMime,
   isUserLibraryVisualMime,
   listUserLibraryDocuments,
   listUserLibraryFolders,
@@ -54,6 +53,7 @@ import {
   userLibraryFileKind,
   userLibraryProgressFraction,
 } from '@/state/user-library';
+import { previewExtractor } from '@/state/thumbnails';
 
 interface RenameTarget {
   readonly kind: 'document' | 'folder';
@@ -234,29 +234,25 @@ function UserLibraryAttachmentPreview(props: {
 }): JSX.Element {
   const [source, setSource] = createSignal<string>();
   const [decodeFailed, setDecodeFailed] = createSignal(false);
-  let objectUrl: string | undefined;
-  let mounted = true;
+  let disposed = false;
 
   onMount(() => {
-    if (!isUserLibraryImageMime(props.document.mimeType)) return;
     void getUserLibraryFile(props.document.id)
-      .then((blob) => {
+      .then(async (blob) => {
         if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        if (!mounted) {
-          URL.revokeObjectURL(url);
-          return;
-        }
-        objectUrl = url;
-        setSource(url);
+        const preview = await previewExtractor.forFile(
+          blob,
+          props.document.mimeType,
+          props.document.fileName,
+        );
+        if (!disposed && preview) setSource(preview);
       })
       .catch(() => {
-        if (mounted) setDecodeFailed(true);
+        if (!disposed) setDecodeFailed(true);
       });
   });
   onCleanup(() => {
-    mounted = false;
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    disposed = true;
   });
 
   // HEIC and other platform-specific formats may fail to decode — fall back to
@@ -300,7 +296,6 @@ export function UserLibraryPage(): JSX.Element {
     {},
   );
   const [draggingKey, setDraggingKey] = createSignal<string | null>(null);
-  const [filesDragging, setFilesDragging] = createSignal(false);
   const [mediaDocument, setMediaDocument] = createSignal<UserLibraryDocument | null>(null);
   const [mediaUrl, setMediaUrl] = createSignal('');
   function initialViewMode(): 'grid' | 'list' | 'free' {
@@ -652,11 +647,6 @@ export function UserLibraryPage(): JSX.Element {
 
   const openFilePicker = (): void => fileInputElement?.click();
 
-  const dragTargetLabel = (): string => {
-    const folderId = dragTarget() === null ? currentFolderId() : dragTarget();
-    return folders().find((folder) => folder.id === folderId)?.title ?? 'Ваши документы';
-  };
-
   const startRename = (target: RenameTarget): void => {
     setRenameTarget(target);
     setRenameValue(target.title);
@@ -921,13 +911,6 @@ export function UserLibraryPage(): JSX.Element {
     return parent ? `Назад к папке «${parent.title}»` : 'Назад к каталогу документов';
   };
 
-  const pageDrops = createLibraryDropHandlers({
-    folderId: () => currentFolderId(),
-    onDragActive: (folderId) => setDragTarget(folderId),
-    onDragEnd: () => setDragTarget(undefined),
-    onDropFiles: (files, folderId) => void appendFiles(files, folderId),
-    onMoveDocument: (documentId, folderId) => void moveDocument(documentId, folderId),
-  });
   const rootDrops = createLibraryDropHandlers({
     folderId: () => null,
     onDragActive: (folderId) => setDragTarget(folderId),
@@ -1250,23 +1233,7 @@ export function UserLibraryPage(): JSX.Element {
   );
 
   return (
-    <section
-      class="user-library-page"
-      aria-label="Ваши документы"
-      onDragEnter={(event) => {
-        if (hasFileTransfer(event)) setFilesDragging(true);
-        pageDrops.onDragEnter(event);
-      }}
-      onDragOver={(event) => {
-        if (hasFileTransfer(event)) setFilesDragging(true);
-        pageDrops.onDragOver(event);
-      }}
-      onDragLeave={pageDrops.onDragLeave}
-      onDrop={(event) => {
-        setFilesDragging(false);
-        pageDrops.onDrop(event);
-      }}
-    >
+    <section class="user-library-page" aria-label="Ваши документы">
       <AppContextMenu actions={pageActions} hideButton class="user-library-page__area-context">
         <div
           ref={setHeadingElement}
@@ -1388,25 +1355,6 @@ export function UserLibraryPage(): JSX.Element {
           </form>
         </OverlayDialog>
 
-        <Show when={dragTarget() !== undefined && filesDragging()}>
-          <div
-            class="user-library-page__drop-overlay"
-            role="status"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              const targetFolderId = dragTarget();
-              setDragTarget(undefined);
-              void appendFiles(event.dataTransfer?.files, targetFolderId ?? null);
-            }}
-          >
-            <AppGlyph name="download" class="user-library-page__drop-icon" />
-            <strong>Отпустите файлы</strong>
-            <span>Загрузить в «{dragTargetLabel()}»</span>
-          </div>
-        </Show>
-
         <Show
           when={visibleEntries().length > 0}
           fallback={
@@ -1443,7 +1391,8 @@ export function UserLibraryPage(): JSX.Element {
                 <LayoutVirtualizedGrid
                   data={visibleEntries()}
                   bufferSize={500}
-                  {...(viewMode() === 'grid' ? { columns: 2 } : {})}
+                  maxColumns={3}
+                  minTwoColumnWidth={320}
                 >
                   {(entry) => {
                     if (entry.folder) return <LibraryFolderCard folder={entry.folder} />;
