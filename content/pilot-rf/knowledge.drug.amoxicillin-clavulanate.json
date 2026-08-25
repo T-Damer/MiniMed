@@ -6,9 +6,21 @@
       "entityType": "medication",
       "canonicalName": "Амоксициллин + клавулановая кислота 400 мг + 57 мг/5 мл, суспензия",
       "names": [
-        { "name": "Амоксициллин + клавулановая кислота", "nameType": "inn", "weight": 1.2 },
-        { "name": "Аугментин", "nameType": "trade-name", "weight": 1.1 },
-        { "name": "ко-амоксиклав", "nameType": "common-name", "weight": 0.9 }
+        {
+          "name": "Амоксициллин + клавулановая кислота",
+          "nameType": "inn",
+          "weight": 1.2
+        },
+        {
+          "name": "Аугментин",
+          "nameType": "trade-name",
+          "weight": 1.1
+        },
+        {
+          "name": "ко-амоксиклав",
+          "nameType": "common-name",
+          "weight": 0.9
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000045857",
@@ -23,7 +35,9 @@
         "registrationNumber": "ЛП-№(003017)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "formulation-specific-review-required",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     }
   ],
@@ -43,9 +57,9 @@
       "population": {},
       "approvalStatus": "registry-metadata-only",
       "authorityTier": "official-registry",
-      "reviewStatus": "proposed",
+      "reviewStatus": "reviewed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2025-04-14",
       "evidence": [
         {
@@ -59,7 +73,18 @@
             "recordId": "1000045857"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.vidal.ru/drugs/augmentin__93 (порошок для суспензии 400 мг+57 мг/5 мл, РУ ЛП-№(003017)-(РГ-RU) от 16.08.23, бессрочно)"
+          ]
+        }
+      }
     }
   ],
   "documentLinks": [
@@ -71,7 +96,7 @@
       "sectionId": "section.bf6f7c3f7b38950d",
       "chunkId": "chunk.5ef6c7113d8f5fdf",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     }
   ]

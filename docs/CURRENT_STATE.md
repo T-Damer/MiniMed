@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 20 August 2026
+> Updated: 23 August 2026
 > Repository version: `0.6.30`
 > Active target: `0.6.30` public prerelease toward `1.0`
 
@@ -13,11 +13,16 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 - SolidJS browser app behind the UI-independent `MedicalCore` contract.
 - SQLite/FTS5 retrieval with SQLite WASM fallback and compatible native read-only storage adapters.
-- Deterministic portable embeddings and hybrid lexical/vector fusion.
+- Deterministic portable embeddings and hybrid lexical/vector fusion. Browser WASM vector search
+  runs as a two-phase top-K scan (light embedding rows first, heavy hydration only for candidates,
+  mirroring the native adapter), and lexical search widens its SQL pre-limit while specialty or
+  age-group filters are active so filtered result lists no longer come back short.
 - Russian patient-case parsing, negative findings, bounded query branches, medical abbreviations, and
   missing-field prompts; the symptom lexicon recognizes nosebleed phrases such as `кровотечение из
   носа` and expands them to searchable `носовое кровотечение`/`эпистаксис` terms.
-- Search after 500 ms of inactivity with stale-response cancellation.
+- Search after 500 ms of inactivity with stale-response cancellation. A transient search-worker
+  boot failure retries on the next query instead of silently falling back to main-thread search for
+  the whole session.
 - Short name lookups promote a document or medication whose title/trade name *is* the query
   (for example `Парацетамол`) above combinations and sources that only mention the term. The
   medications catalog sorts those hits by the same name-first rule instead of alphabetically.
@@ -46,7 +51,12 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   a deep link to `#/modules/documents/d/<token>`; legacy `?o=` / `dialog`+`section` and `#/read/…` migrate
   to that hash on load. Opening a large official document no longer freezes the main thread:
   inline cross-links use a prefix-bucket matcher compiled once per document, assessment/calculator
-  links reuse a singleton matcher, and paper sections mount in idle batches.   Outline sections are paper blocks in default, hover, and active states. Initial open keeps the
+  links reuse a singleton matcher, paper sections mount in idle batches whose tree nodes stay
+  referentially stable so already-mounted sections are not rebuilt while later batches append, the
+  reader outline collapses through a FLIP animation (text reflows once, then slides) with a
+  drag-resizable outline width on desktop, and offscreen pages/sections use content-visibility so
+  width changes stay cheap on huge books.
+  referentially stable so already-mounted sections are not rebuilt while later batches append.   Outline sections are paper blocks in default, hover, and active states. Initial open keeps the
   same page chrome with an inner paper spinner; clinical full-text loading stays inside the primary
   button. Nested document links navigate to another documents hash page and append a breadcrumb
   instead of stacking reader dialogs. Own documents can switch to a paper-free book mode from a
@@ -73,7 +83,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 ### Browser workspace
 
 - Pointer clicks do not show the system blue tap flash or leftover focus rings; keyboard Tab/arrow
-  focus rings stay.
+  focus rings stay. Overlay dialogs trap Tab inside the panel, restore focus to the invoking
+  element on close, and Escape is suppressed only by a media viewer layered over the same dialog.
 - Six primary sections — search, knowledge base, assessments, calculators, notes, and settings — use
   a compact bottom navigation with a floating glass bubble that follows the
   selected item and horizontal pointer/touch swipes. `App.tsx` only wires shell hooks and root
@@ -92,9 +103,14 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   do not wait on View Transition snapshots; document read routes, note, and local-model subroutes remain instant. The
   scroll-to-top control
   reserves the bottom-navigation band on long pages, and the notes add control mounts only while the
-  notes root is active.
+  notes root is active. All floating page controls (book mode, mini-window toggle, scroll-to-top,
+  notes add) share one fixed vertical stack at the right edge with one uniform control size; only
+  their z-index and visibility vary by context.
 - Root navigation snapshots the route that was left, not the already-updated hash, so returning from a
-  questionnaire or nested tool restores the same Documents subroute. Incoming-view scroll is painted
+  questionnaire or nested tool restores the same Documents subroute. Root panes are keep-alive: a view
+  constructs its component on first visit and stays mounted (hidden) afterwards, so tab switches
+  preserve composer drafts and per-view state without re-running bootstrap, while never-visited tabs
+  cost nothing at boot. Incoming-view scroll is painted
   immediately via a Y overlay shift while `window.scrollY` stays on the outgoing page, then committed
   when the enter animation ends so neither page jumps; sticky chrome (catalog search, search tools,
   medication headings) stays in its header slot during the slide because the enter animation uses
@@ -143,9 +159,23 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   documents no longer freezes the main thread on per-chunk regex compilation or full synchronous mount.
 - Personal cards use a responsive three-column sticker board and a focused creation dialog opened
   from a floating add button. Card timelines and dated-record editors use nested note routes; card
-  edit/delete actions are compact icon controls. Record editors guard unsaved drafts, accept image
-  attachments by file selection or drag-and-drop, and keep tags, reminders, images, and related
-  sources in distinct blocks. The previous-revision control is enabled only when the stored revision
+  edit/delete actions are compact icon controls. Timeline records render sanitized Markdown previews
+  instead of raw markup. The note editor is a Milkdown-based WYSIWYG surface (bundled offline in a
+  lazy chunk with KaTeX): typing Markdown converts to styled HTML immediately, a Raw Markdown mode
+  was removed in favour of a single editable preview, and the formatting toolbar (Phosphor icons:
+  headings, bold, italic, bullet/numbered lists, `==highlight==` marks, inline LaTeX `$…$` via
+  KaTeX, document mentions, images, voice recording, reminders) reflects the caret state, sticks
+  below the header on mobile, and opens a selection menu for bold/italic/strike/highlight. Enter in
+  an empty blockquote lifts the cursor out. The fullscreen editor reuses the document-reader chrome
+  and paper, fills the viewport with the lined-paper background down to a real bottom margin, shows
+  a live reader-styled table of contents (open/close toggle, empty-state hint) that updates as
+  headings are inserted and scrolls to them on click, offers in-note search via CSS Custom
+  Highlights, and prints the rendered note through the shared print pipeline. Record editors guard
+  unsaved drafts, accept attachments of any file type (stored as blobs in IndexedDB with generated
+  thumbnails: images, video frames, PDF first pages, HEIC embedded previews; unreadable types offer
+  a save-to-device prompt; voice recordings capture through MediaRecorder and play back as
+  waveforms), and keep tags, reminders (edited in a dialog through native-picker trigger fields),
+  images, and related sources in distinct blocks. The previous-revision control is enabled only when the stored revision
   differs from the current draft; its review mode is shown inside the editor card with dashed borders,
   disabled text/image inputs, hidden reminders/related sources, and disabled back/delete actions. On
   first launch, an editable colleague card and record introduce the local notes workflow; once removed,
@@ -238,7 +268,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   is missing, in-app back from an open calculator returns to its section catalog, open tests and
   calculators use Kobalte breadcrumbs (`Тесты` / specialty / section, `Калькуляторы` / section) instead
   of the old “скачан на устройство” kicker, and
-  installed tools keep specialty section cards open dedicated sub-routes containing the full grid.
+  installed tools keep specialty section cards open dedicated sub-routes containing the full grid, and
+  every assessment category shipped in the tool modules has a matching routable section.
   Pasted document links with `?o=` (or legacy `dialog` + `section`) migrate to
   `#/modules/documents/d/<token>` on load. Legacy `#/read/…` hashes migrate the same way.
   Schema calculators support staged inputs via `step`/`stepRequired`; the fluids section includes a
@@ -285,7 +316,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   idle packs hide that pie. The manager lives at `#/settings/downloads` rather than a
   floating pill. A single document runtime
   survives catalog refreshes; transient failures release their slot before an automatic retry so one
-  broken source cannot starve the queue.
+  broken source cannot starve the queue. The Settings «Experimental» toggle consistently unlocks
+  `preview` packs across card install buttons, bulk download counts, category installs, and download
+  retry (shared `isModuleReleased` predicate); preview packs still need published artifacts to be
+  installable. Stale superseded tool-pack databases (`minimed-tools-*-preview.1` files superseded by
+  `preview.2`) are no longer shipped in `public/content/modules`.
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
   medication, legal, and personal-note sources; its canvas supports wheel zoom, pan, and two-finger
   pinch zoom on touch devices. The embedded graph dialog is 95dvh tall.
@@ -390,7 +425,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   in a separate IndexedDB store rather than the localStorage note snapshot and are deleted with the
   owning record. The editor keeps its add tile and equal-size image previews in one horizontally
   scrollable row with explicit previous/next controls. Previews enlarge in-place, delete from an
-  icon with confirmation, and support long-press multi-select.
+  icon with confirmation, and support long-press multi-select. Saved images and files also render
+  inline in the timeline record body and open through the attachment viewer.
 - Personal matches appear in search with an explicit personal-source label and outside the official
   result container, so they cannot be mistaken for installed medical content. The block collapses by
   default, shows up to five combined note and book hits sorted by score, and can expand like an
@@ -399,15 +435,66 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   searches only personal notes and user-uploaded books and never queries the official SQLite corpus.
   Personal hits require every distinctive query stem (inflected forms still count); a shared leftover
   such as «дети» or «мг» no longer surfaces a book or note that does not contain the specific term.
-- User-uploaded PDFs, images, and text-like files live in IndexedDB as a personal overlay: visual
-  pages render immediately while throttled tesseract.js WASM OCR runs in a background worker; only
+- User documents open in their original form where possible: EPUB renders through epub.js and
+  DOC/DOCX through docx-preview (both bundled offline), while extracted text still powers search.
+  Persistent text highlights are stored per document/page in IndexedDB and painted with CSS Custom
+  Highlights; selecting text offers add/remove actions. PDFs print as the original file, OCR runs
+  only when requested from the card menu, book mode and in-document search stay disabled without
+  extractable text, and the reading-mode paper keeps its light fill. Files support multi-select
+  (long-press on touch, «Выбрать» in the context menu) with a bottom bubble showing count and total
+  size, bulk download and delete, and drag-and-drop onto folder cards and breadcrumbs with hover
+  highlight.
+- User-uploaded PDFs, images, and text-like files live in IndexedDB as a personal overlay: PDF pages
+  with insufficient native text use throttled tesseract.js WASM OCR in a background worker, while
+  images remain visual-only until the user explicitly requests OCR, which creates a PDF copy. Only
   extracted text is indexed for personal search, never written into official content packs.
-- «Ваши документы» opens a dedicated catalog at `#/modules/documents/user` with upload, fuzzy
-  search, rename with confirm, virtualized cards, and OCR progress; opening a document navigates to
+- Voice recordings captured in the note editor render as full-width Telegram-style bubbles with a
+  stretching waveform, a decoded-duration label, and a square `text-aa` transcribe button; deleting
+  requires confirmation, and transcription without an activated model opens a dialog offering the
+  settings screen. On-device ASR is limited to models the transformers.js v4 ASR pipeline can run:
+  Whisper Tiny (`onnx-community/whisper-tiny`, fp32 because onnxruntime-web ≥1.25 crashes int8
+  whisper decoders) is the only selectable model — Parakeet TDT has no pipeline support (only
+  English-only ParakeetForCTC) and GigaAM v3 still lacks a transformers.js export. Settings rows use
+  a single checkbox per model: checking starts the download, checking another or unchecking pauses
+  the in-flight download by terminating the worker.
+- The five user-facing root sections can be opened in same-origin mini-windows from the fixed action
+  button; settings stays in the main route.
+  The normal route remains separate; only the current root view and the outgoing view remain mounted
+  during the CSS transition, then the outgoing view is disposed. Each mini-window keeps its own hash
+  route and geometry while sharing the browser's IndexedDB/localStorage data layer. The single
+  floating-window manager persists route, position, size, and stacking order, keeps at most three
+  windows with one active visual window, allows separate windows for separate routes in the same root
+  section, keeps a shared geometry for all windows, keeps headers in a visible cascade, and promotes
+  any clicked header to the top. Expanding a mini-window restores its saved route in the main view.
+  It moves stacked windows as a group, hides inner scrollbars, shows a centered iframe loading state,
+  renders only the active mini-window iframe, and resizes through four invisible desktop corner
+  handles with blurred content until the gesture ends; mobile exposes the Phosphor `notches` handle.
+  The opt-in embedded scale flag adapts to the
+  window width so compact iframe headers and controls do not dominate the content.
+  Add `?minimed-floating-scale=1` to try the reduced embedded-content scale. Embedded windows skip the
+  optional OPFS medications companion so multiple frames do not contend for one access handle.
+- «Ваши документы» opens a dedicated catalog at `#/modules/documents/user` with nested local folders
+  whose current folder is preserved in `?folder=<folderId>` navigation,
+  visible folder breadcrumbs, page-level plus actions, move/rename/delete actions, file drag-and-drop
+  with folder-aware targets, fuzzy search, virtualized cards, and OCR progress; upload validates supported
+  container formats before storing a file; opening a document navigates to
   `#/modules/documents/user/<documentId>` (optional `/p/<pageIndex>`) with breadcrumbs
   (origin — Поиск or Ваши документы — then nested titles via Kobalte); a pasted user-document URL
   parents back to the user catalog, in-document search,
   outline, selectable OCR/native word overlay on page images, and print of extracted text.
+  Folders and files render as one Finder-style tile list (icon block + name + meta) obeying a shared
+  sort — time, name, or type, persisted — with per-kind icon colors (presentations orange, documents
+  blue, sheets green). Opened/modified/added times are tracked and shown in card metadata and
+  tooltips (`lastOpenedAt` is recorded without touching `updatedAt`). The view toggle (grid/list)
+  sits next to a sort menu on the left of the breadcrumb row with the green add button on the right;
+  free placement is hidden for now; file actions open from the context menu on right-click/long-press,
+  including multi-select; mobile controls wrap below breadcrumbs and grid keeps two columns. Folder
+  creation uses a dialog; drop targets share one helper that highlights hovered folders/breadcrumbs for
+  both OS file drops and in-app moves; list rows show image
+  previews when present; HEIC/HEIF upload is accepted with native-decode previews where the platform
+  supports them (glyph fallback elsewhere). The floating book button is the single reading-mode control,
+  opening a menu with book mode and the PDF two-page spread; the PDF header zoom pill was removed
+  (pinch-zoom per page remains).
 - Document text links installed medications, recommendations, and laws into nested
   `#/modules/documents/d/…` pages and
   show kind icons beside each link, with a traveling wavy underline on hover.
@@ -421,6 +508,13 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   reconnects the local corpus and replaces that same reader with the full document.
 
 ### Local model
+
+- Speech transcription is prepared for two open-weight ONNX models — GigaAM v3 (Russian,
+  preferred) and Parakeet v3 (multilingual) — downloadable from Settings into IndexedDB through the
+  shared retry lane. Background transcription runs through a ParityController single-lane
+  scheduler where OCR outranks transcription and higher-priority jobs preempt at cooperative
+  checkpoints; the ONNX runtime hookup is the remaining step.
+
 
 - Validated remote/cache/bundled model catalog and device selection.
 - Browser CPU/WebAssembly GGUF runtime with a structured-output viability probe.
@@ -491,11 +585,14 @@ ordinary search response when validation fails.
   deserializes that file into the WASM heap (that path OOM'd). The window thread streams it into a
   dedicated OPFS worker (`minimed-sah-pack`) so the main sqlite-wasm singleton only holds the small
   core/regulatory/reference packs. The first boot copies ~421 MB into origin-private storage, later
-  boots reuse it. A truncated, empty, or legacy OPFS copy is discarded and re-imported instead of
+  boots reuse it. Opening that companion no longer hydrates every document record as a boot-time
+  warm-up; worker `open` already validates the pack through `initialize`. A truncated, empty, or legacy OPFS copy is discarded and re-imported instead of
   failing MultiMedicalStore composition and blocking app boot; OPFS virtual filenames use the required
-  absolute-path form. SQLITE_NOMEM or any other failure opening that pack skips the companion and
-  leaves core search usable. IndexedDB-installed modules larger than 32 MiB are not deserialized into
-  WASM. When Allmed is mounted, in-app search stays on the window core (`searchExecution: 'direct-only'`)
+  absolute-path form. Compiled packs are never schema-mutated during initialization, including legacy
+  packs without tool tables; those packs report no tools instead of replaying DDL and exhausting the
+  WASM heap. SQLITE_NOMEM or any other failure opening Allmed skips the companion and leaves core search
+  usable. IndexedDB-installed modules larger than 32 MiB are not deserialized into WASM. When Allmed is
+  mounted, in-app search stays on the window core (`searchExecution: 'direct-only'`)
   so the search worker does not open a second 421 MB copy. `mkb.db` / `ambulatory.db` still stay
   closed unless `VITE_OPEN_UNSAFE_WASM_COMPANIONS` names them. Core still contributes eight
   `source_linked_summary` registry cards. The 560 KB `data/build/medications.db` GRLS pilot is a
@@ -520,6 +617,11 @@ ordinary search response when validation fails.
 - Public Russian starter pack: seven clinical navigation cards and eight medication-registry identity
   cards.
 - Structured knowledge tables support proposed facts, exact evidence links, relations, and review tasks.
+  The pilot drug-registry facts and the amoxicillin→pediatric-pneumonia relation retain AI-assisted
+  verification notes and source lists, but remain `reviewStatus: proposed` with open review tasks until
+  a licensed human reviewer records approval through the ingestion workflow. The import pipeline also
+  forces new model output to `proposed` and cannot self-promote it. Rights-based flags (`requiresReview`
+  on the local MKB companion) are legal blockers, not content reviews, and remain in place.
 - Exact RLS MKB links use the dedicated `professional-reference` authority tier. They remain
   `reference-only` rather than treatment recommendations, but are included in the lexical knowledge
   index because their evidence points directly to the RLS MKB page.

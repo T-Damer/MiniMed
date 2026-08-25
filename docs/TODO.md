@@ -2,6 +2,42 @@
 
 Short-term 1.0 follow-up work that remains after the 0.6.0 release-candidate implementation.
 
+## In progress — documents/library & notes UX batch
+
+- [x] Outline resize: visible grip, live column resize, width persists, TOC above blurred paper.
+- [x] Zoom pill in the reader header (microscope toggle, zoom mode hides extras, TOC stays).
+- [x] Per-page PDF scaling; two-page spread via reading menu; book mode fits content to screen.
+- [x] PDF text selection (word-layer pointer events).
+- [x] Markdown prints rendered HTML; DOCX prints with original styles; PDFs print as original.
+- [x] Photos open in a zoom lightbox; photo-only printing.
+- [x] OCR is opt-in («Распознать текст»), image→PDF copies sized to the image.
+- [x] Book mode/search gated without extractable text; light reading paper.
+- [x] Library: whole card clickable, RMB anywhere, back climbs folder hierarchy.
+- [x] Library: any file type accepted (JSON/exe/zip bug fixed), kind icons, video/audio player.
+- [x] Library: list view + free-form placement (3 view modes with size modifiers).
+- [x] Folder cards drawn as real folders with name/contents below.
+- [x] EPUB (epub.js) and DOCX (docx-preview) render as originals.
+- [x] RTF import (cp1251 + group-stack parser).
+- [x] Notes: undo/redo with shortcut labels, selection-menu active states, quote escape.
+- [x] Notes: mentions search across documents/calculators/tests/notes, clickable hash links.
+- [x] Notes: voice recording (10-min chunks, Telegram-style bubbles) + ASR queue via
+      ParityController; transformers.js worker with Parakeet v3 / Whisper-tiny; Settings picker.
+- [x] Text highlighting: `==mark==` in notes; saved highlights in text documents.
+- [x] assessments-subpage-header column layout on mobile; animated next-button progress ring.
+- [x] Floating windows: collapse to header, marquee title.
+- [ ] ASR ONNX inference quality pass on device (worker + engine seam are ready).
+- [ ] Highlighting for PDF/EPUB surfaces (text documents only for now).
+- [ ] PDF text-selection quality check in a live browser.
+- [ ] Reading scale for text/markdown content (PDF-only today).
+- [ ] e2e + on-device validation of the whole batch.
+
+## Памятки для пациентов (proposal, awaiting approval)
+
+New top-level collection in the knowledge base: curated packs we publish
+(`minimed.handouts.<theme>`) plus doctor-uploaded memos (image/video/text via the attachment
+stack), optional per-section download, and a questionnaire builder on the existing tool-module
+JSON framework. Phased: collection+viewers, doctor uploads, builder, publication pipeline.
+
 ## Done since the 0.6.0 release-candidate baseline
 
 Landed on `main` with unit, benchmark, and Chromium E2E coverage:

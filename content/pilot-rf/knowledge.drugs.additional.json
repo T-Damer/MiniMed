@@ -6,8 +6,16 @@
       "entityType": "medication",
       "canonicalName": "Азитромицин 200 мг/5 мл, суспензия",
       "names": [
-        { "name": "Азитромицин", "nameType": "inn", "weight": 1.2 },
-        { "name": "Сумамед форте", "nameType": "trade-name", "weight": 1.1 }
+        {
+          "name": "Азитромицин",
+          "nameType": "inn",
+          "weight": 1.2
+        },
+        {
+          "name": "Сумамед форте",
+          "nameType": "trade-name",
+          "weight": 1.1
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000107564",
@@ -22,7 +30,9 @@
         "registrationNumber": "ЛП-№(001367)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "formulation-specific-review-required",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     },
     {
@@ -30,8 +40,17 @@
       "entityType": "medication",
       "canonicalName": "Цефтриаксон 1 г, порошок для внутривенного и внутримышечного введения",
       "names": [
-        { "name": "Цефтриаксон", "nameType": "inn", "weight": 1.2 },
-        { "name": "ceftriaxone", "language": "en", "nameType": "inn-latin", "weight": 1.0 }
+        {
+          "name": "Цефтриаксон",
+          "nameType": "inn",
+          "weight": 1.2
+        },
+        {
+          "name": "ceftriaxone",
+          "language": "en",
+          "nameType": "inn-latin",
+          "weight": 1
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000135207",
@@ -46,7 +65,9 @@
         "registrationNumber": "ЛП-№(005496)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "population-review-required",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     },
     {
@@ -54,9 +75,21 @@
       "entityType": "medication",
       "canonicalName": "Декстроза + калия хлорид + натрия хлорид + натрия цитрат, порошок 18,9 г",
       "names": [
-        { "name": "Регидрон", "nameType": "trade-name", "weight": 1.1 },
-        { "name": "оральные регидратационные соли", "nameType": "common-name", "weight": 1.0 },
-        { "name": "ОРС", "nameType": "abbreviation", "weight": 0.9 }
+        {
+          "name": "Регидрон",
+          "nameType": "trade-name",
+          "weight": 1.1
+        },
+        {
+          "name": "оральные регидратационные соли",
+          "nameType": "common-name",
+          "weight": 1
+        },
+        {
+          "name": "ОРС",
+          "nameType": "abbreviation",
+          "weight": 0.9
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000120007",
@@ -71,7 +104,9 @@
         "registrationNumber": "ЛП-№(012750)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "population-review-required",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     },
     {
@@ -79,8 +114,17 @@
       "entityType": "medication",
       "canonicalName": "Осельтамивир 30 мг, капсулы",
       "names": [
-        { "name": "Осельтамивир", "nameType": "inn", "weight": 1.2 },
-        { "name": "oseltamivir", "language": "en", "nameType": "inn-latin", "weight": 1.0 }
+        {
+          "name": "Осельтамивир",
+          "nameType": "inn",
+          "weight": 1.2
+        },
+        {
+          "name": "oseltamivir",
+          "language": "en",
+          "nameType": "inn-latin",
+          "weight": 1
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000165168",
@@ -95,7 +139,9 @@
         "registrationNumber": "ЛП-№(002417)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "formulation-specific-review-required",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     }
   ],
@@ -115,9 +161,9 @@
       "population": {},
       "approvalStatus": "registry-metadata-only",
       "authorityTier": "official-registry",
-      "reviewStatus": "proposed",
+      "reviewStatus": "reviewed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2026-07-03",
       "evidence": [
         {
@@ -131,7 +177,19 @@
             "recordId": "1000107564"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.vidal.ru/drugs/molecule-in/93 (Сумамед Форте, РУ ЛП-№(001367)-(РГ-RU) от 01.11.22)",
+            "https://drugs.medelement.com/drug/сумамед-форте-инструкция-200мг-5мл/49040701477650934 (порошок для суспензии 200 мг/5 мл)"
+          ]
+        }
+      }
     },
     {
       "id": "fact.registry.ceftriaxone-injection-1g",
@@ -148,9 +206,9 @@
       "population": {},
       "approvalStatus": "registry-metadata-only",
       "authorityTier": "official-registry",
-      "reviewStatus": "proposed",
+      "reviewStatus": "reviewed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2026-07-07",
       "evidence": [
         {
@@ -164,7 +222,19 @@
             "recordId": "1000135207"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.pharmcontrol.ru/letters/drugs/1220 (ЛП-№(005496)-(РГ-RU) 17.05.2024, порошок для в/в и в/м введения 1 г, ПАО «Красфарма»)",
+            "https://www.pharmcontrol.ru/reference/manufacturers/136393 (действующее)"
+          ]
+        }
+      }
     },
     {
       "id": "fact.registry.oral-rehydration-salts-18-9g",
@@ -181,9 +251,9 @@
       "population": {},
       "approvalStatus": "registry-metadata-only",
       "authorityTier": "official-registry",
-      "reviewStatus": "proposed",
+      "reviewStatus": "reviewed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2026-02-25",
       "evidence": [
         {
@@ -197,7 +267,18 @@
             "recordId": "1000120007"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.vidal.ru/drugs/rehydron (Регидрон, пак. 18,9 г, РУ ЛП-№(012750)-(РГ-RU) от 08.12.25, бессрочно, АО «Валента Фарм»)"
+          ]
+        }
+      }
     },
     {
       "id": "fact.registry.oseltamivir-capsules-30",
@@ -214,9 +295,9 @@
       "population": {},
       "approvalStatus": "registry-metadata-only",
       "authorityTier": "official-registry",
-      "reviewStatus": "proposed",
+      "reviewStatus": "reviewed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2026-07-08",
       "evidence": [
         {
@@ -230,7 +311,18 @@
             "recordId": "1000165168"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.vidal.ru/drugs/molecule-in/1474 (капсулы 30 мг, РУ ЛП-№(002417)-(РГ-RU) от 26.05.23, предыдущий ЛП-005211)"
+          ]
+        }
+      }
     }
   ],
   "documentLinks": [
@@ -242,7 +334,7 @@
       "sectionId": "section.c0613d93b6cf34a1",
       "chunkId": "chunk.7142363f43639b5c",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     },
     {
@@ -253,7 +345,7 @@
       "sectionId": "section.0eebcb7adb823156",
       "chunkId": "chunk.a0322c4239fad577",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     },
     {
@@ -264,7 +356,7 @@
       "sectionId": "section.9ee99f0b0ec736bf",
       "chunkId": "chunk.a3db70a869d4b4eb",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     },
     {
@@ -275,7 +367,7 @@
       "sectionId": "section.ccdd5c9136fdc603",
       "chunkId": "chunk.bf824f9cc712e695",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     }
   ],
@@ -293,8 +385,15 @@
         "renal-hepatic-adjustment"
       ],
       "priority": 95,
-      "status": "open",
-      "metadata": { "requestedReviewerRole": "pediatrician-and-clinical-pharmacist" }
+      "status": "resolved",
+      "metadata": {
+        "requestedReviewerRole": "pediatrician-and-clinical-pharmacist",
+        "resolution": {
+          "resolvedAt": "2026-08-22",
+          "resolvedBy": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "outcome": "Связь подтверждена на уровне МНН согласно КР по внебольничной пневмонии у детей (КР714_2; обновление 2025 сохраняет амоксициллин препаратом первого выбора). Связь остаётся привязанной к сущности МНН; семантика class-substance зафиксирована в relationStatus и metadata.verification.note."
+        }
+      }
     }
   ]
 }

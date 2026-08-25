@@ -26,6 +26,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ### Fixed
 
+- Precompiled SQLite packs are no longer schema-mutated during browser initialization; legacy packs
+  without tool tables stay readable instead of failing startup with `SQLITE_NOMEM`.
 - Browser sqlite-wasm no longer opens the local Allmed `medications.db` (~421 MB) on the shared
   main-thread heap. That pack runs in a dedicated OPFS worker; if it still hits SQLITE_NOMEM, boot
   continues without the drug catalog instead of failing the splash screen.

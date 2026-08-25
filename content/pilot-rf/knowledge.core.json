@@ -6,9 +6,21 @@
       "entityType": "medication",
       "canonicalName": "Парацетамол 120 мг/5 мл, суспензия для детей",
       "names": [
-        { "name": "Парацетамол", "nameType": "inn", "weight": 1.2 },
-        { "name": "Парацетамол-АКОС", "nameType": "trade-name", "weight": 1.1 },
-        { "name": "детский парацетамол", "nameType": "colloquial", "weight": 0.9 }
+        {
+          "name": "Парацетамол",
+          "nameType": "inn",
+          "weight": 1.2
+        },
+        {
+          "name": "Парацетамол-АКОС",
+          "nameType": "trade-name",
+          "weight": 1.1
+        },
+        {
+          "name": "детский парацетамол",
+          "nameType": "colloquial",
+          "weight": 0.9
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000114162",
@@ -23,7 +35,9 @@
         "registrationNumber": "ЛП-№(002094)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "pediatric-form",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     },
     {
@@ -31,8 +45,16 @@
       "entityType": "medication",
       "canonicalName": "Ибупрофен 100 мг/5 мл, суспензия для детей",
       "names": [
-        { "name": "Ибупрофен", "nameType": "inn", "weight": 1.2 },
-        { "name": "детский ибупрофен", "nameType": "colloquial", "weight": 0.9 }
+        {
+          "name": "Ибупрофен",
+          "nameType": "inn",
+          "weight": 1.2
+        },
+        {
+          "name": "детский ибупрофен",
+          "nameType": "colloquial",
+          "weight": 0.9
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000141345",
@@ -47,7 +69,9 @@
         "registrationNumber": "ЛП-№(006579)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "pediatric-form",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     },
     {
@@ -55,8 +79,17 @@
       "entityType": "medication",
       "canonicalName": "Амоксициллин 500 мг, таблетки",
       "names": [
-        { "name": "Амоксициллин", "nameType": "inn", "weight": 1.2 },
-        { "name": "amoxicillin", "language": "en", "nameType": "inn-latin", "weight": 1.0 }
+        {
+          "name": "Амоксициллин",
+          "nameType": "inn",
+          "weight": 1.2
+        },
+        {
+          "name": "amoxicillin",
+          "language": "en",
+          "nameType": "inn-latin",
+          "weight": 1
+        }
       ],
       "externalIds": {
         "grls-price-record": "1000035147",
@@ -71,15 +104,25 @@
         "registrationNumber": "ЛП-№(013359)-(РГ-RU)",
         "registrationStatus": "present-in-public-price-registry",
         "pediatricStatus": "formulation-specific-review-required",
-        "metadata": { "sourceReviewedAt": "2026-07-20" }
+        "metadata": {
+          "sourceReviewedAt": "2026-07-20"
+        }
       }
     },
     {
       "id": "condition.pediatric-community-acquired-pneumonia",
       "entityType": "condition",
       "canonicalName": "Внебольничная пневмония у детей",
-      "names": [{ "name": "пневмония у ребенка", "nameType": "colloquial", "weight": 0.9 }],
-      "externalIds": { "minzdrav-clinical-recommendation": "714_2" }
+      "names": [
+        {
+          "name": "пневмония у ребенка",
+          "nameType": "colloquial",
+          "weight": 0.9
+        }
+      ],
+      "externalIds": {
+        "minzdrav-clinical-recommendation": "714_2"
+      }
     }
   ],
   "facts": [
@@ -95,12 +138,14 @@
         "registrationNumber": "ЛП-№(002094)-(РГ-RU)",
         "registryRecordId": "1000114162"
       },
-      "population": { "ageGroup": "children" },
+      "population": {
+        "ageGroup": "children"
+      },
       "approvalStatus": "registry-metadata-only",
       "authorityTier": "official-registry",
       "reviewStatus": "proposed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2026-05-07",
       "evidence": [
         {
@@ -114,7 +159,19 @@
             "recordId": "1000114162"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.vidal.ru/drugs/molecule-in/800 (Парацетамол-АКОС, РУ ЛП-№(002094)-(РГ-RU) от 03.04.23)",
+            "https://clinline.ru/reestr-klinicheskih-issledovanij/188-04.04.2023.html (КИ-протокол: Парацетамол-АКОС суспензия для детей 120 мг/5 мл)"
+          ]
+        }
+      }
     },
     {
       "id": "fact.registry.ibuprofen-suspension-100",
@@ -128,12 +185,14 @@
         "registrationNumber": "ЛП-№(006579)-(РГ-RU)",
         "registryRecordId": "1000141345"
       },
-      "population": { "ageGroup": "children" },
+      "population": {
+        "ageGroup": "children"
+      },
       "approvalStatus": "registry-metadata-only",
       "authorityTier": "official-registry",
       "reviewStatus": "proposed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2024-11-11",
       "evidence": [
         {
@@ -147,7 +206,19 @@
             "recordId": "1000141345"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.vidal.ru/drugs/ibuprofen-13 (РУ ЛП-№(006579)-(РГ-RU) от 15.08.24, действует)",
+            "https://www.pharmcontrol.ru/letters/drugs/21441 (суспензия [для детей] 100 мг/5 мл, ООО «Атолл»)"
+          ]
+        }
+      }
     },
     {
       "id": "fact.registry.amoxicillin-tablet-500",
@@ -166,7 +237,7 @@
       "authorityTier": "official-registry",
       "reviewStatus": "proposed",
       "jurisdiction": "RU",
-      "confidence": 1.0,
+      "confidence": 1,
       "validFrom": "2026-03-19",
       "evidence": [
         {
@@ -180,7 +251,19 @@
             "recordId": "1000035147"
           }
         }
-      ]
+      ],
+      "metadata": {
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "sources": [
+            "https://www.vidal.ru/drugs/atc/j01ca04 (таблетки 500 мг, РУ ЛП-№(013359)-(РГ-RU) от 27.01.26)",
+            "https://www.pharmcontrol.ru/reference/manufacturers/4500 (ООО «СитиФарм», таблетки, действующее)"
+          ]
+        }
+      }
     }
   ],
   "relations": [
@@ -214,7 +297,19 @@
         }
       ],
       "metadata": {
-        "limitation": "Конкретная форма, дозировка и режим должны проверяться по полной рекомендации и официальной инструкции."
+        "limitation": "Конкретная форма, дозировка и режим должны проверяться по полной рекомендации и официальной инструкции.",
+        "verification": {
+          "reviewedAt": "2026-08-22",
+          "reviewer": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "method": "independent web verification of INN, dosage form, strength, and RU number against authoritative secondary registries (Vidal, pharmcontrol.ru Roszdravnadzor letter index, ClinLine) plus the original Minzdrav price-registry evidence quote retained in-pack; not a substitute for a licensed human reviewer",
+          "status": "confirmed-all-fields-match",
+          "note": "Связь подтверждена на уровне МНН (класс-субстанция): амоксициллин — препарат первого выбора для амбулаторного лечения внебольничной пневмонии у детей согласно КР (КР714_2, обновление 2025). Конкретная лекарственная форма (500 мг таблетки) с рекомендацией не связывается — выбор формы определяется возрастом/массой тела и инструкцией.",
+          "sources": [
+            "https://cr.minzdrav.gov.ru/preview-cr/714_2 (первоисточник цитаты в пакете)",
+            "https://medvestnik.ru/content/news/Obnovleny-klinicheskie-rekomendacii-po-lecheniu-vnebolnichnoi-pnevmonii-u-detei.html (обновлённые КР 2025: амоксициллин остаётся препаратом первого выбора)",
+            "https://www.med-sovet.pro/jour/article/view/6826 (анализ КР 2022: пероральный амоксициллин у детей с 3 мес)"
+          ]
+        }
       }
     }
   ],
@@ -227,7 +322,7 @@
       "sectionId": "section.83a0a0be7aa3a0a0",
       "chunkId": "chunk.c6571f9984f6462b",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     },
     {
@@ -238,7 +333,7 @@
       "sectionId": "section.5319d1d9bbc34c46",
       "chunkId": "chunk.77115f24d182141d",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     },
     {
@@ -249,7 +344,7 @@
       "sectionId": "section.65ebf591a4642ac2",
       "chunkId": "chunk.35fef50290ecf58f",
       "linkType": "registration-record",
-      "weight": 1.0,
+      "weight": 1,
       "reviewStatus": "proposed"
     },
     {
@@ -277,7 +372,14 @@
       ],
       "priority": 90,
       "status": "open",
-      "metadata": { "requestedReviewerRole": "clinical-pharmacist-or-pharmacist" }
+      "metadata": {
+        "requestedReviewerRole": "clinical-pharmacist-or-pharmacist",
+        "resolution": {
+          "resolvedAt": "2026-08-22",
+          "resolvedBy": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "outcome": "AI-assisted verification is recorded in metadata.verification, but the task remains open until a licensed human reviewer confirms the current registration status, official instruction version, and ESKLP identifiers."
+        }
+      }
     },
     {
       "id": "review.amoxicillin-pneumonia-relation",
@@ -293,7 +395,14 @@
       ],
       "priority": 100,
       "status": "open",
-      "metadata": { "requestedReviewerRole": "pediatrician-and-clinical-pharmacist" }
+      "metadata": {
+        "requestedReviewerRole": "pediatrician-and-clinical-pharmacist",
+        "resolution": {
+          "resolvedAt": "2026-08-22",
+          "resolvedBy": "ai-assisted verification (ox-alpha agent), directed by repository owner",
+          "outcome": "AI-assisted verification is recorded in metadata.verification, but the task remains open until a pediatrician and clinical pharmacist confirm the age-, weight-, dose-, contraindication-, and renal-adjustment fields."
+        }
+      }
     }
   ]
 }
