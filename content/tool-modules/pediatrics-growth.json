@@ -1,0 +1,159 @@
+{
+  "tools": [
+    {
+      "kind": "calculator",
+      "version": "0.1.0-demo",
+      "bankId": "pediatrics-growth",
+      "bankLabel": "Педиатрия · рост",
+      "description": "Демонстрация визуализаций: положение веса девочки относительно коридора ВОЗ (-2SD…+2SD) в 0–24 месяца. Значения кривых приближённые — демо, не для клиники.",
+      "estimatedMinutes": 2,
+      "definition": {
+        "id": "minimed.calculator.weight-for-age-girls-who-demo",
+        "slug": "weight-for-age-girls-who-demo",
+        "title": "Вес к возрасту, девочки 0–24 мес (демо WHO-кривых)",
+        "shortTitle": "Вес/возраст (дев.)",
+        "aliases": [
+          "вес к возрасту",
+          "weight for age",
+          "кривые воz",
+          "гипотрофия вес",
+          "центиль вес"
+        ],
+        "audience": "pediatric",
+        "category": "anthropometry",
+        "clinical": false,
+        "formulaDisplay": "z-коридор ВОЗ: сравнение веса с медианой и ±2 SD для возраста",
+        "population": "девочки 0–24 месяцев",
+        "limitations": [
+          "ДЕМО: значения кривых приближённые и округлены; клиническое применение требует точных таблиц WHO Child Growth Standards по source contract.",
+          "Один замер не заменяет наблюдение динамики и клиническое суждение."
+        ],
+        "inputs": [
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "unit": "мес",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 24,
+            "required": true,
+            "note": "возраст в месяцах (0–24)"
+          },
+          {
+            "id": "weight_kg",
+            "label": "Вес",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 20,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "median_w",
+            "label": "Медиана ВОЗ для возраста",
+            "unit": "кг",
+            "expression": "cond(age_months < 1.5, 3.2, cond(age_months < 4.5, 5.5, cond(age_months < 7.5, 7.3, cond(age_months < 10.5, 8.6, cond(age_months < 15, 9.6, cond(age_months < 21, 10.6, 11.9))))))",
+            "isOutput": false
+          },
+          {
+            "id": "low_w",
+            "label": "-2 SD ВОЗ",
+            "unit": "кг",
+            "expression": "cond(age_months < 1.5, 2.4, cond(age_months < 4.5, 4.3, cond(age_months < 7.5, 5.7, cond(age_months < 10.5, 6.8, cond(age_months < 15, 7.7, cond(age_months < 21, 8.6, 9.7))))))",
+            "isOutput": true
+          },
+          {
+            "id": "high_w",
+            "label": "+2 SD ВОЗ",
+            "unit": "кг",
+            "expression": "cond(age_months < 1.5, 4.2, cond(age_months < 4.5, 6.9, cond(age_months < 7.5, 9.3, cond(age_months < 10.5, 11, cond(age_months < 15, 12.7, cond(age_months < 21, 14, 15.3))))))",
+            "isOutput": true
+          },
+          {
+            "id": "delta_w",
+            "label": "Отклонение от медианы",
+            "unit": "кг",
+            "expression": "round((weight_kg - median_w) * 100) / 100",
+            "isOutput": true
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "weight_kg < low_w",
+            "message": "Вес ниже -2 SD (зона риска гипотрофии) — демо-оценка, требуется очная оценка педиатром."
+          },
+          {
+            "when": "weight_kg > high_w",
+            "message": "Вес выше +2 SD (зона риска избытка массы) — демо-оценка, требуется очная оценка педиатром."
+          },
+          {
+            "when": "(weight_kg >= low_w) * (weight_kg <= high_w)",
+            "message": "Вес в коридоре -2 SD … +2 SD."
+          }
+        ],
+        "visuals": [
+          {
+            "id": "who_curves",
+            "title": "Кривые ВОЗ: вес к возрасту, девочки 0–24 мес",
+            "kind": "line",
+            "labels": ["0", "3", "6", "9", "12", "18", "24"],
+            "datasets": [
+              {
+                "label": "-2 SD",
+                "data": [2.4, 4.3, 5.7, 6.8, 7.7, 8.6, 9.7]
+              },
+              {
+                "label": "медиана",
+                "data": [3.2, 5.5, 7.3, 8.6, 9.6, 10.6, 11.9]
+              },
+              {
+                "label": "+2 SD",
+                "data": [4.2, 6.9, 9.3, 11, 12.7, 14, 15.3]
+              }
+            ],
+            "heightPx": 260
+          },
+          {
+            "id": "child_vs_corridor",
+            "title": "Ребёнок vs коридор ВОЗ (ближайшая контрольная точка)",
+            "kind": "bar",
+            "labels": ["ребёнок", "-2 SD", "медиана", "+2 SD"],
+            "datasets": [
+              {
+                "label": "кг",
+                "data": ["weight_kg", "low_w", "median_w", "high_w"]
+              }
+            ],
+            "heightPx": 220
+          }
+        ],
+        "sources": [
+          {
+            "title": "WHO Child Growth Standards (weight-for-age girls, 0–24 months)",
+            "publisher": "World Health Organization",
+            "version": "demo approximation",
+            "reviewedAt": "2026-08-24"
+          }
+        ],
+        "schemaVersion": 1,
+        "summary": "Демо: положение веса девочки относительно коридора ВОЗ (-2SD…+2SD), 0–24 месяца."
+      },
+      "id": "minimed.calculator.weight-for-age-girls-who-demo",
+      "slug": "weight-for-age-girls-who-demo",
+      "title": "Вес к возрасту, девочки 0–24 мес (демо WHO-кривых)",
+      "shortTitle": "Вес/возраст (дев.)",
+      "aliases": [
+        "вес к возрасту",
+        "weight for age",
+        "кривые воz",
+        "гипотрофия вес",
+        "центиль вес"
+      ],
+      "category": "anthropometry",
+      "audience": "pediatric",
+      "clinical": false
+    }
+  ]
+}
