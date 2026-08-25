@@ -32,7 +32,14 @@ interface SourceDocument {
   readonly versionId: string;
   readonly sourceType: string;
   readonly status: string;
-  readonly metadata: Readonly<Record<string, unknown>>;
+  readonly metadata: Readonly<Record<string, unknown>> & {
+    readonly contentMode?: unknown;
+    readonly publicPilot?: unknown;
+    readonly officialId?: unknown;
+    readonly registryRecordId?: unknown;
+    readonly registrationNumber?: unknown;
+    readonly authorityTier?: unknown;
+  };
 }
 
 interface PilotRow {
@@ -96,18 +103,15 @@ function matchesExpectedSource(document: SourceDocument, fixture: PilotQuery): b
     document.versionId === fixture.expectedVersionId &&
     document.sourceType === expectedSourceType &&
     document.status === 'active' &&
-    document.metadata['contentMode'] === expectedContentMode &&
-    document.metadata['publicPilot'] === true &&
-    matchesOptionalMetadata(document.metadata['officialId'], fixture.expectedOfficialId) &&
+    document.metadata.contentMode === expectedContentMode &&
+    document.metadata.publicPilot === true &&
+    matchesOptionalMetadata(document.metadata.officialId, fixture.expectedOfficialId) &&
+    matchesOptionalMetadata(document.metadata.registryRecordId, fixture.expectedRegistryRecordId) &&
     matchesOptionalMetadata(
-      document.metadata['registryRecordId'],
-      fixture.expectedRegistryRecordId,
-    ) &&
-    matchesOptionalMetadata(
-      document.metadata['registrationNumber'],
+      document.metadata.registrationNumber,
       fixture.expectedRegistrationNumber,
     ) &&
-    matchesOptionalMetadata(document.metadata['authorityTier'], fixture.expectedAuthorityTier)
+    matchesOptionalMetadata(document.metadata.authorityTier, fixture.expectedAuthorityTier)
   );
 }
 

@@ -13,16 +13,25 @@ import {
 } from './hard-query-scoring';
 
 const root = resolve(import.meta.dirname, '../../..');
+const benchmarkEnv = process.env as {
+  readonly MINIMED_HARD_BENCHMARK_DB?: string;
+  readonly MINIMED_HARD_BENCHMARK_SPLIT?: string;
+  readonly MINIMED_HARD_BENCHMARK_MODE?: string;
+  readonly MINIMED_HARD_BENCHMARK_MAX_QUERIES?: string;
+  readonly MINIMED_HARD_BENCHMARK_MIN_RECALL_AT_5?: string;
+  readonly MINIMED_HARD_BENCHMARK_MAX_FORBIDDEN_RATE_AT_5?: string;
+  readonly MINIMED_HARD_BENCHMARK_MIN_SECTION_RECALL_AT_5?: string;
+};
 const databasePath = resolve(
   root,
-  process.env['MINIMED_HARD_BENCHMARK_DB'] ?? 'data/build/rf-public-pilot.db',
+  benchmarkEnv.MINIMED_HARD_BENCHMARK_DB ?? 'data/build/rf-public-pilot.db',
 );
-const splitValue = process.env['MINIMED_HARD_BENCHMARK_SPLIT'] ?? 'all';
+const splitValue = benchmarkEnv.MINIMED_HARD_BENCHMARK_SPLIT ?? 'all';
 if (!['all', 'dev', 'validation', 'hidden_test'].includes(splitValue)) {
   throw new Error(`Unsupported MINIMED_HARD_BENCHMARK_SPLIT: ${splitValue}`);
 }
 const split = splitValue as HardQuerySplit | 'all';
-const modeValue = process.env['MINIMED_HARD_BENCHMARK_MODE'] ?? 'hybrid';
+const modeValue = benchmarkEnv.MINIMED_HARD_BENCHMARK_MODE ?? 'hybrid';
 if (!['auto', 'lexical', 'semantic', 'hybrid'].includes(modeValue)) {
   throw new Error(`Unsupported MINIMED_HARD_BENCHMARK_MODE: ${modeValue}`);
 }
@@ -44,7 +53,7 @@ const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);
 
 const loadedFixtures = loadHardMedicalQueries({ split });
-const maxQueriesValue = process.env['MINIMED_HARD_BENCHMARK_MAX_QUERIES'];
+const maxQueriesValue = benchmarkEnv.MINIMED_HARD_BENCHMARK_MAX_QUERIES;
 const maxQueries = maxQueriesValue === undefined ? loadedFixtures.length : Number(maxQueriesValue);
 if (!Number.isInteger(maxQueries) || maxQueries <= 0) {
   throw new Error(
@@ -104,17 +113,17 @@ writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 console.log(JSON.stringify({ ...aggregate, reportPath }, null, 2));
 
 const failures: string[] = [];
-const minRecall = process.env['MINIMED_HARD_BENCHMARK_MIN_RECALL_AT_5'];
+const minRecall = benchmarkEnv.MINIMED_HARD_BENCHMARK_MIN_RECALL_AT_5;
 if (minRecall !== undefined && aggregate.recallAt5 < Number(minRecall)) {
   failures.push(`Recall@5 ${aggregate.recallAt5.toFixed(3)} < ${Number(minRecall).toFixed(3)}`);
 }
-const maxForbidden = process.env['MINIMED_HARD_BENCHMARK_MAX_FORBIDDEN_RATE_AT_5'];
+const maxForbidden = benchmarkEnv.MINIMED_HARD_BENCHMARK_MAX_FORBIDDEN_RATE_AT_5;
 if (maxForbidden !== undefined && aggregate.forbiddenRateAt5 > Number(maxForbidden)) {
   failures.push(
     `forbidden rate@5 ${aggregate.forbiddenRateAt5.toFixed(3)} > ${Number(maxForbidden).toFixed(3)}`,
   );
 }
-const minSectionRecall = process.env['MINIMED_HARD_BENCHMARK_MIN_SECTION_RECALL_AT_5'];
+const minSectionRecall = benchmarkEnv.MINIMED_HARD_BENCHMARK_MIN_SECTION_RECALL_AT_5;
 if (
   minSectionRecall !== undefined &&
   aggregate.expectedSectionRecallAt5 < Number(minSectionRecall)

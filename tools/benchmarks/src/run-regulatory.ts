@@ -6,6 +6,16 @@ import { createMedicalCore, rankSearchGroupsByQuery } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
+type RegulatoryMetadata = Readonly<Record<string, unknown>> & {
+  readonly audienceLabel?: unknown;
+  readonly authorityTier?: unknown;
+  readonly jurisdiction?: unknown;
+  readonly documentNumber?: unknown;
+  readonly officialPublicationNumber?: unknown;
+  readonly contentMode?: unknown;
+  readonly supersededByDocumentId?: unknown;
+};
+
 interface RegulatoryQuery {
   readonly id: string;
   readonly query: string;
@@ -214,7 +224,7 @@ for (const fixture of queries) {
   const documentResult = await core.getDocument(fixture.expectedDocumentId);
   if (!documentResult.ok) throw new Error(`${fixture.id}: ${documentResult.error.message}`);
   const document = documentResult.value;
-  const metadata = document.metadata;
+  const metadata = document.metadata as RegulatoryMetadata;
   const expectedStatus = fixture.expectedStatus ?? 'active';
   const actualAgeGroups = metadataStrings(metadata, 'ageGroups');
   const ageGroupsValid =
@@ -222,21 +232,21 @@ for (const fixture of queries) {
     fixture.expectedAgeGroups.every((ageGroup) => actualAgeGroups.includes(ageGroup));
   const audienceLabelValid =
     fixture.expectedAudienceLabel === undefined ||
-    metadata['audienceLabel'] === fixture.expectedAudienceLabel;
+    metadata.audienceLabel === fixture.expectedAudienceLabel;
   const metadataValid =
     stableEditionIdentity(document.versionId) ===
       stableEditionIdentity(fixture.expectedVersionId) &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
-    metadata['authorityTier'] === 'official-regulatory-act' &&
-    metadata['jurisdiction'] === 'RU' &&
-    metadata['documentNumber'] === fixture.expectedDocumentNumber &&
-    metadata['officialPublicationNumber'] === fixture.expectedPublicationNumber &&
-    metadata['contentMode'] === 'source_linked_paraphrase' &&
+    metadata.authorityTier === 'official-regulatory-act' &&
+    metadata.jurisdiction === 'RU' &&
+    metadata.documentNumber === fixture.expectedDocumentNumber &&
+    metadata.officialPublicationNumber === fixture.expectedPublicationNumber &&
+    metadata.contentMode === 'source_linked_paraphrase' &&
     ageGroupsValid &&
     audienceLabelValid &&
     (fixture.expectedSupersededBy === undefined ||
-      metadata['supersededByDocumentId'] === fixture.expectedSupersededBy);
+      metadata.supersededByDocumentId === fixture.expectedSupersededBy);
 
   const requiredRank = fixture.requireTop1 === true ? 1 : 2;
   rows.push({
