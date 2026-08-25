@@ -110,6 +110,36 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     title: 'Педиатрическая гастроэнтерология',
     description: 'Шкалы активности воспалительных заболеваний кишечника у детей.',
   },
+  {
+    id: 'pediatric-pain',
+    title: 'Оценка боли у детей',
+    description: 'Наблюдательные шкалы оценки боли у детей, включая невербальных пациентов.',
+  },
+  {
+    id: 'neonatal-respiratory',
+    title: 'Дыхательные расстройства у новорождённых',
+    description: 'Шкалы оценки выраженности дыхательных расстройств у новорождённых.',
+  },
+  {
+    id: 'neonatal-pain',
+    title: 'Оценка боли у новорождённых',
+    description: 'Шкалы наблюдения за болью и дискомфортом у новорождённых.',
+  },
+  {
+    id: 'gastroenterology',
+    title: 'Гастроэнтерология',
+    description: 'Шкалы активности и выраженности симптомов заболеваний ЖКТ.',
+  },
+  {
+    id: 'neurology-emergency',
+    title: 'Неврологическая неотложная оценка',
+    description: 'Краткие шкалы первичной оценки неврологических нарушений.',
+  },
+  {
+    id: 'abdominal-emergency',
+    title: 'Острая боль в животе',
+    description: 'Шкалы первичной оценки симптомов при острой боли в животе.',
+  },
 ];
 
 const SECTION_IDS = new Set(ASSESSMENT_SECTIONS.map((section) => section.id));
@@ -125,6 +155,12 @@ export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSe
     'perinatal-mood': 'minimed.tools.obstetrics-gynecology.ru',
     'gynecologic-endocrinology': 'minimed.tools.obstetrics-gynecology.ru',
     'pediatric-gastroenterology': 'minimed.tools.gastroenterology.ru',
+    'pediatric-pain': 'minimed.tools.pediatrics.ru',
+    'neonatal-respiratory': 'minimed.tools.neonatology.ru',
+    'neonatal-pain': 'minimed.tools.neonatology.ru',
+    gastroenterology: 'minimed.tools.gastroenterology.ru',
+    'neurology-emergency': 'minimed.tools.emergency.ru',
+    'abdominal-emergency': 'minimed.tools.emergency.ru',
   };
 
 export function moduleIdForAssessmentSection(sectionId: AssessmentSectionId): string | undefined {

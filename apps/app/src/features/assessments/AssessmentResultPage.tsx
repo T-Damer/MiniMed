@@ -4,6 +4,7 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
+import { Heading } from '@/components/Text';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import {
   printAssessmentRecord,
@@ -107,7 +108,9 @@ export function AssessmentResultPage(props: {
         </div>
         <div class="assessment-subpage-header__body">
           <div class="assessment-subpage-header__content">
-            <h1 class="assessment-subpage-title">{props.definition.title}</h1>
+            <Heading depth={3} class="assessment-subpage-title">
+              {props.definition.title}
+            </Heading>
             <p class="assessment-subpage-summary">
               {props.record.subjectLabel || 'Без подписи'} · {formatDate(props.record.createdAt)}
             </p>

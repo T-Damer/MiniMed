@@ -87,5 +87,33 @@ export function validateCalculatorSchema(candidate: unknown): CalculatorSchemaVa
     knownIds.add(step.id);
   }
 
+  for (const visual of schema.visuals) {
+    for (const dataset of visual.datasets) {
+      for (const [index, entry] of dataset.data.entries()) {
+        if (typeof entry === 'number') continue;
+        let node: ExpressionNode;
+        try {
+          node = parseCalculatorExpression(entry);
+        } catch (error) {
+          const message =
+            error instanceof CalculatorExpressionError ? error.message : String(error);
+          errors.push(
+            `visual "${visual.id}" dataset "${dataset.label}" point ${index + 1}: ${message}`,
+          );
+          continue;
+        }
+        const referenced = new Set<string>();
+        referencedVariables(node, referenced);
+        for (const name of referenced) {
+          if (!knownIds.has(name)) {
+            errors.push(
+              `visual "${visual.id}" dataset "${dataset.label}" point ${index + 1}: references unknown variable "${name}".`,
+            );
+          }
+        }
+      }
+    }
+  }
+
   return errors.length === 0 ? { ok: true, schema, errors: [] } : { ok: false, errors };
 }

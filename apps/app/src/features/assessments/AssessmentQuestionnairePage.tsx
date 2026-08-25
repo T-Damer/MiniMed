@@ -1,10 +1,12 @@
-import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import NumberFlow from 'solid-number-flow';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
+import { Heading } from '@/components/Text';
 import { AssessmentBackNav } from '@/features/assessments/AssessmentBackNav';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import { answeredQuestionCount, scoreAssessment } from '@/features/assessments/assessment-engine';
@@ -37,6 +39,10 @@ export function AssessmentQuestionnairePage(props: {
   const [subjectLabel, setSubjectLabel] = createSignal(props.initialRecord?.subjectLabel ?? '');
   const [methodologyOpen, setMethodologyOpen] = createSignal(false);
   const [highlightedQuestionId, setHighlightedQuestionId] = createSignal<string | null>(null);
+  const [nextButtonHost, setNextButtonHost] = createSignal<HTMLElement | undefined>(undefined);
+  onMount(() => {
+    setNextButtonHost(document.getElementById('app-floating-controls') ?? undefined);
+  });
   let draftId = props.initialRecord?.id;
   let hydratedFromInitial = false;
   let highlightTimer: ReturnType<typeof setTimeout> | undefined;
@@ -93,6 +99,7 @@ export function AssessmentQuestionnairePage(props: {
       '.assessment-questionnaire .assessment-question:not(:has(input:checked))',
     );
     if (!target) return;
+    // biome-ignore lint/complexity/useLiteralKeys: DOMStringMap is an index-signature API.
     const questionId = target.dataset['questionId'] ?? null;
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (!questionId) return;
@@ -161,7 +168,9 @@ export function AssessmentQuestionnairePage(props: {
         </div>
         <div class="assessment-subpage-header__body">
           <div class="assessment-subpage-header__content">
-            <h1 class="assessment-subpage-title">{props.definition.title}</h1>
+            <Heading depth={3} class="assessment-subpage-title">
+              {props.definition.title}
+            </Heading>
           </div>
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
             <Button
@@ -307,31 +316,45 @@ export function AssessmentQuestionnairePage(props: {
         </div>
       </form>
 
-      <Show when={answered() > 0}>
-        <button
-          type="button"
-          class="assessment-next-button"
-          classList={{ 'assessment-next-button--complete': complete() }}
-          data-testid="assessment-next"
-          aria-label={
-            complete()
-              ? 'Показать результат'
-              : `Следующий вопрос. Осталось ${remaining()} из ${props.definition.questions.length}`
-          }
-          title={complete() ? 'Показать результат' : 'Следующий вопрос'}
-          style={`--assessment-progress: ${(answered() / props.definition.questions.length) * 100}%;`}
-          onClick={() => (complete() ? submit() : scrollToNextQuestion())}
-        >
-          <Show
-            when={complete()}
-            fallback={<NumberFlow value={remaining()} class="assessment-next-button__count" />}
-          >
-            <AppGlyph
-              name="graph"
-              class="assessment-next-button__icon assessment-next-button__icon--complete"
-            />
-          </Show>
-        </button>
+      <Show when={answered() > 0 && nextButtonHost()}>
+        {(host) => (
+          <Portal mount={host()}>
+            <button
+              type="button"
+              class="assessment-next-button floating-window-controls__item"
+              classList={{ 'assessment-next-button--complete': complete() }}
+              data-testid="assessment-next"
+              aria-label={
+                complete()
+                  ? 'Показать результат'
+                  : `Следующий вопрос. Осталось ${remaining()} из ${props.definition.questions.length}`
+              }
+              title={complete() ? 'Показать результат' : 'Следующий вопрос'}
+              style={`--assessment-progress: ${(answered() / props.definition.questions.length) * 100}%;`}
+              onClick={() => (complete() ? submit() : scrollToNextQuestion())}
+            >
+              <svg class="assessment-next-button__ring" viewBox="0 0 36 36" aria-hidden="true">
+                <circle class="assessment-next-button__ring-track" cx="18" cy="18" r="16" />
+                <circle
+                  class="assessment-next-button__ring-fill"
+                  cx="18"
+                  cy="18"
+                  r="16"
+                  style={`stroke-dashoffset: ${100 * (1 - answered() / props.definition.questions.length)}`}
+                />
+              </svg>
+              <Show
+                when={complete()}
+                fallback={<NumberFlow value={remaining()} class="assessment-next-button__count" />}
+              >
+                <AppGlyph
+                  name="graph"
+                  class="assessment-next-button__icon assessment-next-button__icon--complete"
+                />
+              </Show>
+            </button>
+          </Portal>
+        )}
       </Show>
     </div>
   );

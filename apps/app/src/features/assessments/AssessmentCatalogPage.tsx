@@ -6,6 +6,7 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
+import { Heading } from '@/components/Text';
 import type {
   AssessmentSpecialty,
   searchAssessments,
@@ -134,12 +135,12 @@ export function AssessmentCatalogPage(props: {
   return (
     <>
       <header class="subpage-heading assessments-heading assessment-specialty-heading">
-        <NavBack
-          class="knowledge-back-button"
-          aria-label="К разделам тестов"
-          onClick={props.onBack}
-        />
-        <div class="assessment-subpage-header__content">
+        <div class="assessment-subpage-header__nav">
+          <NavBack
+            class="knowledge-back-button"
+            aria-label="К разделам тестов"
+            onClick={props.onBack}
+          />
           <AppBreadcrumbs
             items={assessmentCatalogCrumbs(
               props.specialty.title,
@@ -152,11 +153,15 @@ export function AssessmentCatalogPage(props: {
               window.location.hash = href;
             }}
           />
-          <div class="tool-page-title">
-            <AppGlyph name="list-checks" />
-            <h1>{props.specialty.title}</h1>
+        </div>
+        <div class="assessment-subpage-header__body">
+          <div class="assessment-subpage-header__content">
+            <div class="tool-page-title">
+              <AppGlyph name="list-checks" />
+              <Heading depth={2}>{props.specialty.title}</Heading>
+            </div>
+            <p class="assessments-heading__description">{props.specialty.description}</p>
           </div>
-          <p class="assessments-heading__description">{props.specialty.description}</p>
         </div>
       </header>
 

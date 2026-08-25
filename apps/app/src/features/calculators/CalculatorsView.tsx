@@ -20,6 +20,8 @@ import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
+import { Heading } from '@/components/Text';
+import { CalculatorChart } from '@/features/calculators/CalculatorChart';
 import type {
   CalculatorInstallationState,
   CalculatorSectionId,
@@ -300,7 +302,7 @@ function CalculatorSectionPage(props: {
               window.location.hash = href;
             }}
           />
-          <h1>{props.section.title}</h1>
+          <Heading depth={2}>{props.section.title}</Heading>
           <p>{props.section.description}</p>
         </div>
         <Show when={!bundled() && availableCount() > 0}>
@@ -528,7 +530,10 @@ function CalculatorForm(props: {
         <label>
           <span>Значение</span>
           <input
+            type="number"
             inputmode="decimal"
+            min="0"
+            step="any"
             value={value()}
             onInput={(event) => setValue(event.currentTarget.value)}
           />
@@ -619,16 +624,22 @@ function CalculatorForm(props: {
             <p class="calculator-step-preview__title">Базовая схема</p>
             <div class="calculator-output-list">
               <For each={preview().outputs}>
-                {(output) => (
-                  <div>
-                    <span>{output.label}</span>
-                    <strong>
-                      {output.kind === 'text'
-                        ? output.text
-                        : `${formatNumber(output.value, output.displayPrecision)} ${output.unit}`}
-                    </strong>
-                  </div>
-                )}
+                {(output) =>
+                  output.kind === 'visual' ? (
+                    <CalculatorChart title={output.label} spec={output.chart} />
+                  ) : (
+                    <div>
+                      <span>{output.label}</span>
+                      <strong>
+                        {output.kind === 'text'
+                          ? output.text
+                          : output.kind === 'number'
+                            ? `${formatNumber(output.value, output.displayPrecision)} ${output.unit}`
+                            : ''}
+                      </strong>
+                    </div>
+                  )
+                }
               </For>
             </div>
             <Button
@@ -728,6 +739,16 @@ function CalculationResultPanel(props: {
           )}
         </For>
       </div>
+
+      <For each={props.record.result.visuals ?? []}>
+        {(chart, index) => (
+          <CalculatorChart
+            title={`График ${index() + 1}`}
+            spec={chart}
+            {...(chart.heightPx === undefined ? {} : { heightPx: chart.heightPx })}
+          />
+        )}
+      </For>
 
       <div class="calculator-result-details">
         <Button
@@ -1085,7 +1106,7 @@ export function CalculatorsView(): JSX.Element {
                     <header class="subpage-heading calculators-heading">
                       <div>
                         <p class="archive-kicker">Разделы инструментов</p>
-                        <h1>Калькуляторы</h1>
+                        <Heading depth={1}>Калькуляторы</Heading>
                         <p>
                           Скачайте нужный раздел на устройство. После этого его инструменты работают
                           без сети, а каждый результат сохраняется с формулой и границами
@@ -1158,7 +1179,7 @@ export function CalculatorsView(): JSX.Element {
                   return (
                     <section class="calculator-pack-required paper-card" role="status">
                       <p class="archive-kicker">{section?.title ?? 'Раздел калькуляторов'}</p>
-                      <h1>{definition().title}</h1>
+                      <Heading depth={3}>{definition().title}</Heading>
                       <p>
                         Этот инструмент входит в скачиваемый раздел. Сначала скачайте раздел, затем
                         откройте калькулятор без сети.
@@ -1220,7 +1241,9 @@ export function CalculatorsView(): JSX.Element {
                     window.location.hash = href;
                   }}
                 />
-                <h1 class="calculator-subpage-title">{definition().title}</h1>
+                <Heading depth={3} class="calculator-subpage-title">
+                  {definition().title}
+                </Heading>
                 <p class="calculator-subpage-summary">{definition().summary}</p>
               </div>
             </header>

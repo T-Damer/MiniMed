@@ -103,6 +103,29 @@ export const CalculatorAssertionSchema = z.object({
   error: z.string().min(1),
 });
 
+/** One plotted series of a calculator visual. Each `data` entry is either a literal number or an
+ *  expression string evaluated against the final scope (inputs + steps) — e.g. `"bmi"` to plot the
+ *  computed BMI step. Non-finite results fail the whole calculation (same contract as steps). */
+export const CalculatorVisualDatasetSchema = z.object({
+  label: z.string().min(1),
+  data: z.array(z.union([z.number(), z.string().min(1)])).min(1),
+});
+
+/**
+ * A declarative chart rendered under the calculation result. The engine evaluates dataset
+ * expressions and emits a plain serializable spec (type/labels/datasets with numbers only); the UI
+ * draws it with Chart.js. No arbitrary code runs at render time.
+ */
+export const CalculatorVisualSchema = z.object({
+  id: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/u, 'must be a valid expression variable name'),
+  title: z.string().min(1),
+  kind: z.enum(['bar', 'line', 'pie', 'doughnut']),
+  /** Category labels for bar/line/pie charts (one per data point). */
+  labels: z.array(z.string()).default([]),
+  datasets: z.array(CalculatorVisualDatasetSchema).min(1),
+  heightPx: z.number().int().min(80).max(600).optional(),
+});
+
 export const CalculatorSchemaSchema = z
   .object({
     schemaVersion: z.literal(1),
@@ -123,6 +146,7 @@ export const CalculatorSchemaSchema = z
     warnings: z.array(CalculatorWarningSchema).default([]),
     interpretations: z.array(CalculatorInterpretationSchema).default([]),
     assertions: z.array(CalculatorAssertionSchema).default([]),
+    visuals: z.array(CalculatorVisualSchema).default([]),
     sources: z.array(CalculatorSourceReferenceSchema).min(1),
   })
   .refine((schema) => schema.steps.some((step) => step.isOutput), {
@@ -151,4 +175,6 @@ export type CalculatorStepDefinition = z.infer<typeof CalculatorStepSchema>;
 export type CalculatorWarning = z.infer<typeof CalculatorWarningSchema>;
 export type CalculatorInterpretation = z.infer<typeof CalculatorInterpretationSchema>;
 export type CalculatorAssertion = z.infer<typeof CalculatorAssertionSchema>;
+export type CalculatorVisualDataset = z.infer<typeof CalculatorVisualDatasetSchema>;
+export type CalculatorVisualDefinition = z.infer<typeof CalculatorVisualSchema>;
 export type CalculatorSchema = z.infer<typeof CalculatorSchemaSchema>;

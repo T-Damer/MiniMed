@@ -8,6 +8,17 @@ export interface CalculatorWarning {
   readonly message: string;
 }
 
+/** Serializable Chart.js-ready chart spec emitted by schema visuals (see calculator-schema-engine). */
+export interface CalculationChartSpec {
+  readonly type: 'bar' | 'line' | 'pie' | 'doughnut';
+  readonly labels: readonly string[];
+  readonly heightPx?: number;
+  readonly datasets: readonly {
+    readonly label: string;
+    readonly data: readonly number[];
+  }[];
+}
+
 export interface NumericCalculationResult {
   readonly ok: true;
   readonly calculatorId: string;
@@ -17,6 +28,7 @@ export interface NumericCalculationResult {
   readonly displayPrecision: number;
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  readonly visuals?: readonly CalculationChartSpec[];
 }
 
 export interface DualCalculationResult {
@@ -31,6 +43,7 @@ export interface DualCalculationResult {
   }[];
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  readonly visuals?: readonly CalculationChartSpec[];
 }
 
 export interface TextCalculationResult {
@@ -43,6 +56,7 @@ export interface TextCalculationResult {
   }[];
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  readonly visuals?: readonly CalculationChartSpec[];
 }
 
 export type StoredCalculationResult =

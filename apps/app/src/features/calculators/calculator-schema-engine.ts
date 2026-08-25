@@ -1,4 +1,8 @@
-import type { CalculatorSchema, CalculatorStepDefinition } from '@localmed/contracts';
+import type {
+  CalculatorSchema,
+  CalculatorStepDefinition,
+  CalculatorVisualDefinition,
+} from '@localmed/contracts';
 import {
   CalculatorExpressionError,
   type CalculatorScope,
@@ -33,7 +37,27 @@ export interface CalculatorSchemaTextOutput {
   readonly text: string;
 }
 
-export type CalculatorSchemaOutput = CalculatorSchemaNumberOutput | CalculatorSchemaTextOutput;
+export type CalculatorSchemaOutput =
+  | CalculatorSchemaNumberOutput
+  | CalculatorSchemaTextOutput
+  | CalculatorSchemaVisualOutput;
+
+/** Plain serializable Chart.js-ready spec: the engine evaluates dataset expressions to finite
+ *  numbers, so the UI can render (or re-render for print) without touching the expression scope. */
+export interface CalculatorChartSpec {
+  readonly type: CalculatorVisualDefinition['kind'];
+  readonly labels: readonly string[];
+  readonly datasets: readonly {
+    readonly label: string;
+    readonly data: readonly number[];
+  }[];
+}
+
+export interface CalculatorSchemaVisualOutput {
+  readonly kind: 'visual';
+  readonly label: string;
+  readonly chart: CalculatorChartSpec;
+}
 
 export interface CalculatorSchemaEvaluation {
   readonly ok: true;
@@ -249,6 +273,14 @@ function evaluateCalculatorSchemaInner(
     }
   }
 
+  const visualOutputs: CalculatorSchemaVisualOutput[] = [];
+  for (const visual of schema.visuals) {
+    const result = evaluateCalculatorVisual(visual, scope as CalculatorScope);
+    if (!result.ok) return failure(result.error);
+    visualOutputs.push(result.output);
+  }
+  outputs.push(...visualOutputs);
+
   return {
     ok: true,
     calculatorId: schema.id,
@@ -256,6 +288,62 @@ function evaluateCalculatorSchemaInner(
     outputs,
     trace,
     warnings,
+  };
+}
+
+type CalculatorVisualEvaluation =
+  | { readonly ok: true; readonly output: CalculatorSchemaVisualOutput }
+  | { readonly ok: false; readonly error: string };
+
+function evaluateCalculatorVisual(
+  visual: CalculatorVisualDefinition,
+  scope: CalculatorScope,
+): CalculatorVisualEvaluation {
+  const datasets: { label: string; data: number[] }[] = [];
+  for (const dataset of visual.datasets) {
+    const data: number[] = [];
+    for (const [index, entry] of dataset.data.entries()) {
+      let value: CalculatorValue;
+      if (typeof entry === 'number') {
+        value = entry;
+      } else {
+        try {
+          value = evaluateCalculatorExpression(entry, scope);
+        } catch (error) {
+          return {
+            ok: false,
+            error: `Визуализация «${visual.title}», ряд «${dataset.label}»: ${formatExpressionError(`точка ${index + 1}`, error)}`,
+          };
+        }
+      }
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        return {
+          ok: false,
+          error: `Визуализация «${visual.title}», ряд «${dataset.label}»: точка ${index + 1} не является конечным числом.`,
+        };
+      }
+      data.push(value);
+    }
+    if (visual.labels.length > 0 && visual.labels.length !== data.length) {
+      return {
+        ok: false,
+        error: `Визуализация «${visual.title}», ряд «${dataset.label}»: число точек (${data.length}) не совпадает с числом подписей (${visual.labels.length}).`,
+      };
+    }
+    datasets.push({ label: dataset.label, data });
+  }
+  return {
+    ok: true,
+    output: {
+      kind: 'visual',
+      label: visual.title,
+      chart: {
+        type: visual.kind,
+        labels: [...visual.labels],
+        datasets,
+        ...(visual.heightPx === undefined ? {} : { heightPx: visual.heightPx }),
+      },
+    },
   };
 }
 
@@ -270,23 +358,28 @@ function evaluateCalculatorSchemaInner(
 export function toStoredCalculationResult(
   evaluation: CalculatorSchemaEvaluation,
 ): StoredCalculationResult {
+  const visuals = evaluation.outputs.flatMap((output) =>
+    output.kind === 'visual' ? [output.chart] : [],
+  );
   const base = {
     ok: true as const,
     calculatorId: evaluation.calculatorId,
     formula: evaluation.formula,
     trace: evaluation.trace,
     warnings: evaluation.warnings,
+    ...(visuals.length > 0 ? { visuals } : {}),
   };
 
   const hasTextOutput = evaluation.outputs.some((output) => output.kind === 'text');
   if (hasTextOutput) {
     const result: TextCalculationResult = {
       ...base,
-      textValues: evaluation.outputs.map((output) =>
-        output.kind === 'text'
-          ? { label: output.label, text: output.text }
-          : { label: output.label, text: formatNumberOutputText(output) },
-      ),
+      textValues: evaluation.outputs.flatMap((output) => {
+        if (output.kind === 'text') return [{ label: output.label, text: output.text }];
+        if (output.kind === 'number')
+          return [{ label: output.label, text: formatNumberOutputText(output) }];
+        return [];
+      }),
     };
     return result;
   }

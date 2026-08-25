@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  clearDownloadedAssessments,
   getAssessmentCatalog,
   registerDownloadedAssessment,
 } from '@/features/assessments/assessment-catalog';
@@ -58,6 +59,7 @@ function installStorage(initial: Readonly<Record<string, string>> = {}): Install
 }
 
 afterEach(() => {
+  clearDownloadedAssessments();
   setDatabaseAssessmentIds([]);
   vi.unstubAllGlobals();
 });
@@ -70,6 +72,19 @@ describe('questionnaire packs', () => {
     expect(groups.flatMap((group) => group.assessments)).toHaveLength(catalog.length);
     expect(groups.map((group) => group.section.id)).toEqual(
       expect.arrayContaining(['self-reflection', 'work-style', 'team-role', 'temperament']),
+    );
+  });
+
+  it('keeps every shipped assessment category routable', () => {
+    for (const record of loadToolModuleRecords()) {
+      if (record.kind === 'assessment') registerDownloadedAssessment(record);
+    }
+    const catalog = getAssessmentCatalog();
+    const groups = groupAssessmentsBySection(catalog);
+
+    expect(groups.flatMap((group) => group.assessments)).toHaveLength(catalog.length);
+    expect(new Set(groups.map((group) => group.section.id))).toEqual(
+      new Set(catalog.map((assessment) => assessment.category)),
     );
   });
 

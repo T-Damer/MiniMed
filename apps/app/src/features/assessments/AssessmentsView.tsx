@@ -312,7 +312,11 @@ export function AssessmentsView(): JSX.Element {
     void (async () => {
       setMessage('Скачиваем опросник…');
       try {
-        await installToolModule(moduleIdForAssessmentSection(sectionId));
+        const section = assessmentCatalog().find((entry) => entry.category === sectionId);
+        await installToolModule(
+          moduleIdForAssessmentSection(sectionId) ??
+            (section ? moduleIdForAssessmentSpecialty(section.bankId) : undefined),
+        );
         const ids = assessmentIdsInSection(sectionId, assessmentCatalog());
         await preloadAssessmentDefinitions(ids);
         setInstallation(installAssessmentSection(sectionId, assessmentCatalog()));

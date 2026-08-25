@@ -3,6 +3,7 @@ import { For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
+import { Heading } from '@/components/Text';
 import {
   assessmentsInSpecialty,
   findAssessmentById,
@@ -49,7 +50,7 @@ export function AssessmentSpecialtyIndexPage(props: {
           <p class="archive-kicker">Тесты и опросники</p>
           <div class="tool-page-title">
             <AppGlyph name="list-checks" />
-            <h1>Тесты и опросники</h1>
+            <Heading depth={1}>Тесты и опросники</Heading>
           </div>
           <p class="assessments-heading__description">
             Выберите раздел медицины и проходите тесты без сети. Результаты сохраняются локально и
