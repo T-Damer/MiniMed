@@ -897,11 +897,6 @@
   padding: 1rem;
 }
 
-.recommendation-section-card,
-.document-library-card {
-  -webkit-tap-highlight-color: transparent;
-}
-
 .recommendation-section-card:focus,
 .recommendation-section-card:focus-visible,
 .document-library-card:focus,
