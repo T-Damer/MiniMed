@@ -4,6 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { resultPath } from '@/features/assessments/assessment-routing';
 import type { RichNoteAttachedCalculatorResult } from '@/features/notes/note-attached-results';
 import { findAssessmentRecord } from '@/state/assessment-results';
+import { findCalculationRecord } from '@/state/calculation-history';
 import type {
   NoteAttachedAssessmentResult,
   NoteAttachedCalculatorResult,
@@ -97,7 +98,7 @@ function CalculatorAttachedCard(props: {
   const visibleOutputs = () =>
     expanded() ? props.result.outputs : props.result.outputs.slice(0, 2);
   const hasMore = () => props.result.outputs.length > 2 || props.result.warnings.length > 0;
-  const sourceRecord = () => rich().recordSnapshot;
+  const sourceRecord = () => rich().recordSnapshot ?? findCalculationRecord(props.result.recordId);
   const sourceSchema = () => rich().schemaSnapshot;
 
   return (

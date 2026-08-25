@@ -1,6 +1,8 @@
-import type { MedicalCore } from '@localmed/contracts';
+import type { CalculatorSchema, MedicalCore } from '@localmed/contracts';
 import { lightStemRussian, tokenize } from '@localmed/search-lexical';
 
+import type { CalculationRecord } from '@/state/calculation-history';
+import { deleteNoteFilesForNotes } from '@/state/note-files';
 import { deleteNoteImagesForNotes } from '@/state/note-images';
 import {
   personalMatchScore,
@@ -73,6 +75,9 @@ export interface NoteAttachedCalculatorResult {
   readonly inputSummary: string;
   readonly outputs: readonly NoteAttachedOutput[];
   readonly warnings: readonly string[];
+  /** Immutable source context kept with the note so later schema changes cannot rewrite history. */
+  readonly schemaSnapshot?: CalculatorSchema;
+  readonly recordSnapshot?: CalculationRecord;
 }
 
 export type NoteAttachedResult = NoteAttachedAssessmentResult | NoteAttachedCalculatorResult;
@@ -277,7 +282,39 @@ function isNoteAttachedCalculatorResult(value: unknown): value is NoteAttachedCa
     Array.isArray(candidate.outputs) &&
     candidate.outputs.every(isNoteAttachedOutput) &&
     Array.isArray(candidate.warnings) &&
-    candidate.warnings.every((warning): warning is string => typeof warning === 'string')
+    candidate.warnings.every((warning): warning is string => typeof warning === 'string') &&
+    (candidate.schemaSnapshot === undefined ||
+      isCalculatorSchemaSnapshot(candidate.schemaSnapshot)) &&
+    (candidate.recordSnapshot === undefined ||
+      isCalculationRecordSnapshot(candidate.recordSnapshot))
+  );
+}
+
+function isCalculatorSchemaSnapshot(value: unknown): value is CalculatorSchema {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<CalculatorSchema>;
+  return (
+    candidate.schemaVersion === 1 &&
+    typeof candidate.id === 'string' &&
+    typeof candidate.title === 'string' &&
+    Array.isArray(candidate.inputs) &&
+    Array.isArray(candidate.steps)
+  );
+}
+
+function isCalculationRecordSnapshot(value: unknown): value is CalculationRecord {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<CalculationRecord>;
+  const result = candidate.result;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.calculatorId === 'string' &&
+    typeof candidate.inputSummary === 'string' &&
+    Boolean(result) &&
+    typeof result === 'object' &&
+    result.ok === true &&
+    typeof result.formula === 'string' &&
+    Array.isArray(result.trace)
   );
 }
 
@@ -562,6 +599,9 @@ export function removePatientCard(cardId: string): PatientNotesSnapshot {
   void deleteNoteImagesForNotes(doomedNoteIds).catch(() =>
     console.warn('Не удалось удалить изображения карточки.'),
   );
+  void deleteNoteFilesForNotes(doomedNoteIds).catch(() =>
+    console.warn('Не удалось удалить файлы карточки.'),
+  );
   return persist({
     cards: current.cards.filter((card) => card.id !== cardId),
     notes: current.notes.filter((note) => note.cardId !== cardId),
@@ -676,6 +716,9 @@ export function removePatientNote(noteId: string): PatientNotesSnapshot {
   }
   void deleteNoteImagesForNotes([...doomed]).catch(() =>
     console.warn('Не удалось удалить изображения записи.'),
+  );
+  void deleteNoteFilesForNotes([...doomed]).catch(() =>
+    console.warn('Не удалось удалить файлы записи.'),
   );
   return persist({
     cards: current.cards,

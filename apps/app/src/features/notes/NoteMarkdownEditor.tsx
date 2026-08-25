@@ -1,17 +1,46 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { toast } from 'solid-sonner';
 
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
+import { AudioWaveformPlayer } from '@/components/AudioWaveformPlayer';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { isAsrReady, transcribeBlob } from '@/features/asr/asr-models';
+import { getAssessmentCatalog } from '@/features/assessments/assessment-catalog';
+import { assessmentPath } from '@/features/assessments/assessment-routing';
+import { getCalculatorRegistry } from '@/features/calculators/calculator-registry';
+import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
+import { documentSectionHeadingTag } from '@/features/library/document-display';
+import { printHtml } from '@/features/library/document-print';
+import {
+  DocumentReaderChromeShell,
+  useDocumentReaderChrome,
+} from '@/features/library/document-reader-chrome';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
-import { buildOfficialDocumentHash } from '@/state/document-route';
+import { escapePrintHtml } from '@/features/library/user-document-reader-helpers';
+import { NoteSearchToggle, NoteTextSearch } from '@/features/notes/NoteTextSearch';
+import type { NoteWysiwyg } from '@/features/notes/note-wysiwyg';
+import {
+  createNoteWysiwyg,
+  EMPTY_NOTE_MARKS,
+  type NoteWysiwygMarks,
+} from '@/features/notes/note-wysiwyg';
+import { VoiceRecordingButton } from '@/features/notes/VoiceRecordingButton';
+import { openDocumentOverlay } from '@/state/document-navigation';
+import { buildOfficialDocumentHash, parseDocumentReadRoute } from '@/state/document-route';
+import { loadPatientNotes } from '@/state/patient-notes';
 import '@/styles/note-markdown-editor.css';
-
-interface MentionState {
-  readonly start: number;
-  readonly end: number;
-  readonly query: string;
-}
 
 interface NoteMarkdownEditorProps {
   readonly label: string;
@@ -19,245 +48,956 @@ interface NoteMarkdownEditorProps {
   readonly onChange: (value: string) => void;
   readonly documents: readonly MedicalDocumentSummary[];
   readonly priorityDocumentIds?: readonly string[];
-  readonly placeholder?: string;
+  readonly onOpenImages?: () => void;
+  readonly recordingOwnerId?: string;
+  readonly onRecordAudio?: (
+    file: File,
+    ownerId: string,
+  ) => string | undefined | Promise<string | undefined>;
+  readonly onRemoveRecording?: (file: File, ownerId: string, persistedFileId?: string) => void;
+  readonly onOpenReminders?: () => void;
   readonly disabled?: boolean;
 }
 
-function mentionAtCaret(value: string, caret: number): MentionState | null {
-  const beforeCaret = value.slice(0, caret);
-  const lineStart = beforeCaret.lastIndexOf('\n') + 1;
-  const line = beforeCaret.slice(lineStart);
-  const match = /(^|\s)[@/]([^@/\n]*)$/u.exec(line);
-  if (!match) return null;
-  const query = (match[2] ?? '').trimStart();
-  const triggerIndex = line.lastIndexOf(match[0].trimStart()[0] ?? '@');
-  if (triggerIndex < 0) return null;
-  return {
-    start: lineStart + triggerIndex,
-    end: caret,
-    query,
-  };
+const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
+
+const MAX_MENTIONS = 5;
+
+type MentionKind = 'document' | 'calculator' | 'assessment' | 'note';
+
+const MENTION_KIND_LABEL: Record<MentionKind, string> = {
+  document: 'Документ',
+  calculator: 'Калькулятор',
+  assessment: 'Тест',
+  note: 'Заметка',
+};
+
+interface MentionSuggestion {
+  readonly kind: MentionKind;
+  readonly key: string;
+  readonly title: string;
+  readonly detail?: string;
+  readonly markdown: string;
+  readonly priority?: boolean;
+}
+
+interface PendingRecording {
+  readonly file: File;
+  readonly url: string;
+  readonly ownerId: string;
+  readonly persistedFileId?: string;
+}
+
+interface TocEntry {
+  readonly anchor: string;
+  readonly label: string;
+  readonly depth: number;
 }
 
 function sanitizeLinkLabel(value: string): string {
   return value.replaceAll('[', '').replaceAll(']', '').trim();
 }
 
+function normalizeRu(value: string): string {
+  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
+}
+
+function noteTitle(text: string): string {
+  const line = text
+    .split('\n')
+    .map((candidate) => candidate.replace(/^#+\s*|^[-*+]\s*|[*_`>]/gu, '').trim())
+    .find(Boolean);
+  return (line ?? '').slice(0, 60) || 'Заметка';
+}
+
+interface WysiwygFieldProps {
+  readonly initialValue: string;
+  readonly latest: () => string;
+  readonly disabled: boolean;
+  readonly onChange: (markdown: string) => void;
+  readonly onReady: (instance: NoteWysiwyg | null) => void;
+}
+
+function WysiwygField(props: WysiwygFieldProps): JSX.Element {
+  let host!: HTMLDivElement;
+  const instanceRef: { current: NoteWysiwyg | null } = { current: null };
+
+  const handleKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    if (instanceRef.current?.escapeQuoteOnEnter()) event.preventDefault();
+  };
+
+  const handleLinkClick = (event: MouseEvent): void => {
+    const anchor = (event.target as HTMLElement | null)?.closest('a');
+    if (!anchor) return;
+    const href = anchor.getAttribute('href');
+    if (!href?.startsWith('#')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const route = parseDocumentReadRoute(href);
+    if (route && route.kind === 'official') {
+      openDocumentOverlay(route.documentId, route.section ?? null);
+      return;
+    }
+    window.location.hash = href;
+  };
+
+  onMount(() => {
+    host.addEventListener('click', handleLinkClick);
+    host.addEventListener('keydown', handleKeyDown);
+    onCleanup(() => {
+      host.removeEventListener('click', handleLinkClick);
+      host.removeEventListener('keydown', handleKeyDown);
+    });
+    let disposed = false;
+    void createNoteWysiwyg({
+      root: host,
+      initialValue: props.initialValue,
+      editable: () => !props.disabled,
+      onChange: (markdown) => props.onChange(markdown),
+    })
+      .then((created) => {
+        if (disposed) {
+          created.destroy();
+          return;
+        }
+        const freshest = props.latest();
+        if (freshest !== props.initialValue) created.setMarkdown(freshest);
+        instanceRef.current = created;
+        props.onReady(created);
+      })
+      .catch((cause: unknown) => {
+        if (disposed) return;
+        toast.error(
+          cause instanceof Error ? cause.message : 'Не удалось открыть редактор заметки.',
+        );
+      });
+    onCleanup(() => {
+      disposed = true;
+      instanceRef.current?.destroy();
+      props.onReady(null);
+    });
+  });
+
+  return <div ref={host} class="note-markdown-wysiwyg" />;
+}
+
 export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element {
   const [fullscreen, setFullscreen] = createSignal(false);
-  const [mention, setMention] = createSignal<MentionState | null>(null);
-  let textarea: HTMLTextAreaElement | undefined;
+  const [mentionOpen, setMentionOpen] = createSignal(false);
+  const [mentionQuery, setMentionQuery] = createSignal('');
+  const [toc, setToc] = createSignal<readonly TocEntry[]>([]);
+  const [selectionMenu, setSelectionMenu] = createSignal<{ x: number; y: number } | null>(null);
+  const [activeState, setActiveState] = createSignal({
+    heading: false,
+    strong: false,
+    em: false,
+    strike: false,
+    highlight: false,
+  });
+  const [historyState, setHistoryState] = createSignal({ canUndo: false, canRedo: false });
+  const [selectionMarks, setSelectionMarks] = createSignal<NoteWysiwygMarks>({
+    ...EMPTY_NOTE_MARKS,
+  });
+  const [pendingRecordings, setPendingRecordings] = createSignal<readonly PendingRecording[]>([]);
+  const [searchOpen, setSearchOpen] = createSignal(false);
+  const [deleteTarget, setDeleteTarget] = createSignal<PendingRecording | null>(null);
+  const [asrPromptOpen, setAsrPromptOpen] = createSignal(false);
+  const [transcribingKey, setTranscribingKey] = createSignal<string | null>(null);
+
+  let wysiwyg: NoteWysiwyg | null = null;
+  let editorSurfaceRoot: HTMLElement | undefined;
+  let lastEmitted = props.value;
+  let tocRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+  const [text, setText] = createSignal(props.value);
+  const [recordingOwnerId, setRecordingOwnerId] = createSignal('');
+
+  const chrome = useDocumentReaderChrome({
+    sectionSelector:
+      '.note-markdown-wysiwyg__surface h1, .note-markdown-wysiwyg__surface h2, .note-markdown-wysiwyg__surface h3, .note-markdown-wysiwyg__surface h4, .note-markdown-wysiwyg__surface h5, .note-markdown-wysiwyg__surface h6',
+    outlineItemAttr: 'data-section-anchor',
+    scrollSpyWhen: fullscreen,
+  });
+
+  const emit = (value: string): void => {
+    lastEmitted = value;
+    setText(value);
+    props.onChange(value);
+    scheduleTocRefresh();
+  };
+
+  createEffect(() => {
+    const incoming = props.value;
+    if (incoming === lastEmitted) return;
+    lastEmitted = incoming;
+    setText(incoming);
+    if (wysiwyg && wysiwyg.getMarkdown() !== incoming) wysiwyg.setMarkdown(incoming);
+    scheduleTocRefresh();
+  });
+
+  createEffect(() => {
+    if (!fullscreen()) return;
+    scheduleTocRefresh();
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setMentionOpen(false);
+      setSelectionMenu(null);
+      setFullscreen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    onCleanup(() => document.removeEventListener('keydown', onKeyDown));
+  });
+
+  onMount(() => {
+    const stateTimer = window.setInterval(() => {
+      setActiveState(
+        wysiwyg?.activeState() ?? {
+          heading: false,
+          strong: false,
+          em: false,
+          strike: false,
+          highlight: false,
+        },
+      );
+      setHistoryState(
+        wysiwyg
+          ? { canUndo: wysiwyg.canUndo(), canRedo: wysiwyg.canRedo() }
+          : { canUndo: false, canRedo: false },
+      );
+      if (selectionMenu()) {
+        setSelectionMarks(wysiwyg?.marksForRange() ?? { ...EMPTY_NOTE_MARKS });
+      }
+    }, 400);
+    onCleanup(() => window.clearInterval(stateTimer));
+    const refreshSelectionMenu = (): void => {
+      const selection = document.getSelection();
+      if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+        setSelectionMenu(null);
+        return;
+      }
+      const range = selection.getRangeAt(0);
+      const surface = editorSurfaceRoot?.querySelector('.note-markdown-wysiwyg__surface');
+      if (surface?.contains(range.commonAncestorContainer) !== true || props.disabled) {
+        setSelectionMenu(null);
+        return;
+      }
+      const rect = range.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) {
+        setSelectionMenu(null);
+        return;
+      }
+      setSelectionMenu({ x: rect.left + rect.width / 2, y: rect.top });
+    };
+    document.addEventListener('selectionchange', refreshSelectionMenu);
+    const dismissSelectionMenuOnScroll = (): void => {
+      setSelectionMenu(null);
+    };
+    window.addEventListener('scroll', dismissSelectionMenuOnScroll, {
+      capture: true,
+      passive: true,
+    });
+    onCleanup(() => {
+      document.removeEventListener('selectionchange', refreshSelectionMenu);
+      window.removeEventListener('scroll', dismissSelectionMenuOnScroll, { capture: true });
+    });
+    scheduleTocRefresh();
+  });
+
+  onCleanup(() => {
+    if (tocRefreshTimer !== undefined) clearTimeout(tocRefreshTimer);
+  });
+
+  const refreshToc = (attempt = 0): void => {
+    const surface = editorSurfaceRoot?.querySelector<HTMLElement>(
+      '.note-markdown-wysiwyg__surface',
+    );
+    if (!surface && attempt < 10) {
+      setTimeout(() => refreshToc(attempt + 1), 120);
+      return;
+    }
+    const headings = surface
+      ? Array.from(surface.querySelectorAll<HTMLElement>(HEADING_TAGS.join(',')))
+      : [];
+    const usedIds = new Set<string>();
+    setToc(
+      headings.map((heading, index) => {
+        let anchor = heading.id;
+        if (!anchor || usedIds.has(anchor)) {
+          anchor = `note-heading-${index + 1}`;
+          heading.id = anchor;
+        }
+        usedIds.add(anchor);
+        return {
+          anchor,
+          label: (heading.textContent ?? '').trim() || 'Без названия',
+          depth: Number(heading.tagName.slice(1)) || 1,
+        };
+      }),
+    );
+  };
+
+  const scheduleTocRefresh = (): void => {
+    if (tocRefreshTimer !== undefined) clearTimeout(tocRefreshTimer);
+    tocRefreshTimer = setTimeout(() => {
+      tocRefreshTimer = undefined;
+      refreshToc();
+    }, 300);
+  };
 
   const priorityIds = createMemo(() => new Set(props.priorityDocumentIds ?? []));
-  const suggestions = createMemo(() => {
-    const state = mention();
-    if (!state) return [];
-    const query = state.query.toLocaleLowerCase('ru-RU').trim();
-    return props.documents
-      .filter((document) => !query || document.title.toLocaleLowerCase('ru-RU').includes(query))
+  const suggestions = createMemo<readonly MentionSuggestion[]>(() => {
+    if (!mentionOpen()) return [];
+    const needle = normalizeRu(mentionQuery().trim());
+    const matches = (...fields: readonly string[]): boolean =>
+      needle.length === 0 || fields.some((field) => normalizeRu(field).includes(needle));
+
+    const documents = [...props.documents]
       .toSorted((left, right) => {
         const leftPriority = priorityIds().has(left.id);
         const rightPriority = priorityIds().has(right.id);
         if (leftPriority !== rightPriority) return leftPriority ? -1 : 1;
         return left.title.localeCompare(right.title, 'ru-RU');
       })
-      .slice(0, 5);
+      .filter((document) => matches(document.title))
+      .map(
+        (document): MentionSuggestion => ({
+          kind: 'document',
+          key: `document:${document.id}`,
+          title: document.title,
+          priority: priorityIds().has(document.id),
+          markdown: `[${sanitizeLinkLabel(document.title) || 'Документ'}](${buildOfficialDocumentHash(document.id)})`,
+        }),
+      );
+
+    const calculators = getCalculatorRegistry()
+      .filter(
+        (calculator): calculator is AvailableCalculatorDefinition =>
+          calculator.state === 'available',
+      )
+      .filter((calculator) =>
+        matches(calculator.title, calculator.shortTitle, ...calculator.aliases),
+      )
+      .toSorted((left, right) => left.title.localeCompare(right.title, 'ru-RU'))
+      .map(
+        (calculator): MentionSuggestion => ({
+          kind: 'calculator',
+          key: `calculator:${calculator.id}`,
+          title: calculator.title,
+          markdown: `[${sanitizeLinkLabel(calculator.title)}](#/calculators/${encodeURIComponent(calculator.slug)})`,
+        }),
+      );
+
+    const assessments = getAssessmentCatalog()
+      .filter((entry) => matches(entry.title, entry.shortTitle, ...entry.aliases))
+      .toSorted((left, right) => left.title.localeCompare(right.title, 'ru-RU'))
+      .map(
+        (entry): MentionSuggestion => ({
+          kind: 'assessment',
+          key: `assessment:${entry.id}`,
+          title: entry.title,
+          markdown: `[${sanitizeLinkLabel(entry.title)}](${assessmentPath(entry.bankId, entry.slug)})`,
+        }),
+      );
+
+    const snapshot = loadPatientNotes();
+    const cardsById = new Map(snapshot.cards.map((card) => [card.id, card.title]));
+    const notes = snapshot.notes
+      .filter((note) => matches(noteTitle(note.text), note.text))
+      .toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .slice(0, 20)
+      .map((note): MentionSuggestion => {
+        const title = noteTitle(note.text);
+        const cardTitle = cardsById.get(note.cardId);
+        return {
+          kind: 'note',
+          key: `note:${note.id}`,
+          title,
+          ...(cardTitle ? { detail: cardTitle } : {}),
+          markdown: `[${sanitizeLinkLabel(title)}](#/notes/${encodeURIComponent(note.cardId)}/records/${encodeURIComponent(note.id)})`,
+        };
+      });
+
+    const buckets = [documents, calculators, assessments, notes];
+    const mixed: MentionSuggestion[] = [];
+    for (let index = 0; mixed.length < MAX_MENTIONS; index += 1) {
+      let added = false;
+      for (const bucket of buckets) {
+        const candidate = bucket[index];
+        if (!candidate) continue;
+        mixed.push(candidate);
+        added = true;
+        if (mixed.length >= MAX_MENTIONS) break;
+      }
+      if (!added) break;
+    }
+    return mixed;
   });
 
-  const refreshMention = (target = textarea): void => {
-    if (!target || props.disabled) {
-      setMention(null);
+  const insertSuggestion = (suggestion: MentionSuggestion): void => {
+    wysiwyg?.deleteBeforeCursor();
+    wysiwyg?.insert(`${suggestion.markdown} `);
+    setMentionOpen(false);
+    setMentionQuery('');
+    wysiwyg?.focus();
+  };
+
+  const handleRecordingComplete = (file: File): void => {
+    const ownerId = recordingOwnerId();
+    setRecordingOwnerId('');
+    const recording: PendingRecording = { file, ownerId, url: URL.createObjectURL(file) };
+    setPendingRecordings((current) => [...current, recording]);
+    void Promise.resolve(props.onRecordAudio?.(file, ownerId))
+      .then((persistedFileId) => {
+        if (!persistedFileId) return;
+        setPendingRecordings((current) =>
+          current.map((item) => (item === recording ? { ...item, persistedFileId } : item)),
+        );
+      })
+      .catch((cause: unknown) => {
+        toast.error(cause instanceof Error ? cause.message : 'Не удалось сохранить запись.');
+      });
+  };
+
+  const removeRecording = (recording: PendingRecording): void => {
+    URL.revokeObjectURL(recording.url);
+    setPendingRecordings((current) => current.filter((item) => item !== recording));
+    props.onRemoveRecording?.(recording.file, recording.ownerId, recording.persistedFileId);
+  };
+
+  const handleTranscribe = async (recording: PendingRecording): Promise<void> => {
+    if (!isAsrReady()) {
+      setAsrPromptOpen(true);
       return;
     }
-    setMention(mentionAtCaret(target.value, target.selectionStart ?? target.value.length));
+    setTranscribingKey(recording.url);
+    try {
+      const text = (await transcribeBlob(recording.file)).trim();
+      if (!text) {
+        toast.error('Речь не распознана.');
+        return;
+      }
+      wysiwyg?.insert(`${text} `);
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось расшифровать запись.');
+    } finally {
+      setTranscribingKey(null);
+    }
   };
 
-  const updateValue = (value: string, caret?: number): void => {
-    props.onChange(value);
-    queueMicrotask(() => {
-      if (!textarea) return;
-      if (caret !== undefined) textarea.setSelectionRange(caret, caret);
-      textarea.focus();
-      refreshMention();
-    });
+  onCleanup(() => {
+    for (const recording of pendingRecordings()) URL.revokeObjectURL(recording.url);
+  });
+
+  const scrollToHeading = (index: number): void => {
+    const entry = toc()[index];
+    if (!entry) return;
+    chrome.scrollTo(entry.anchor);
   };
 
-  const replaceSelection = (
-    before: string,
-    after: string,
-    placeholder: string,
-    linePrefix = false,
-  ): void => {
-    if (!textarea || props.disabled) return;
-    const start = textarea.selectionStart ?? props.value.length;
-    const end = textarea.selectionEnd ?? start;
-    const selected = props.value.slice(start, end) || placeholder;
-    if (linePrefix) {
-      const lineStart = props.value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
-      const next = `${props.value.slice(0, lineStart)}${before}${props.value.slice(lineStart)}`;
-      updateValue(next, start + before.length);
+  const handlePrint = (): void => {
+    const surface = editorSurfaceRoot?.querySelector<HTMLElement>(
+      '.note-markdown-wysiwyg__surface',
+    );
+    if (!surface) {
+      toast.error('Не удалось открыть окно печати.');
       return;
     }
-    const replacement = `${before}${selected}${after}`;
-    const next = `${props.value.slice(0, start)}${replacement}${props.value.slice(end)}`;
-    const selectionStart = start + before.length;
-    props.onChange(next);
-    queueMicrotask(() => {
-      if (!textarea) return;
-      textarea.focus();
-      textarea.setSelectionRange(selectionStart, selectionStart + selected.length);
-      refreshMention();
-    });
+    const clone = surface.cloneNode(true) as HTMLElement;
+    for (const node of Array.from(
+      clone.querySelectorAll<HTMLElement>('[data-type="math_inline"], [data-type="math_block"]'),
+    )) {
+      node.textContent = `$${node.getAttribute('data-value') ?? ''}$`;
+    }
+    for (const node of Array.from(clone.querySelectorAll('.ProseMirror-trailingBreak')))
+      node.remove();
+    const printed = printHtml(
+      [
+        '<!doctype html><html lang="ru"><head><meta charset="utf-8">',
+        `<title>${escapePrintHtml(props.label)}</title>`,
+        '<style>',
+        '@page { margin: 18mm; }',
+        'body { margin: 0; color: #1f2422; background: #fff; font: 12pt/1.55 Georgia, "Times New Roman", serif; }',
+        'article { max-width: 65ch; margin: 0 auto; }',
+        'h1, h2, h3, h4, h5, h6 { margin: 1.2em 0 0.4em; line-height: 1.2; page-break-after: avoid; }',
+        'h1 { font-size: 1.9em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }',
+        'p { margin: 0.5em 0; } ul, ol { margin: 0.5em 0; padding-left: 1.6em; }',
+        'blockquote { margin: 0.7em 0; padding: 0.3em 0.9em; border-left: 3px solid #999; color: #444; }',
+        'pre { padding: 0.6em 0.8em; border: 1px solid #ddd; background: #f6f6f2; font-size: 0.85em; white-space: pre-wrap; }',
+        'code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.88em; }',
+        'table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #bbb; padding: 0.35em 0.5em; text-align: left; vertical-align: top; }',
+        'img { max-width: 100%; } hr { border: 0; border-top: 1px solid #bbb; }',
+        '</style></head><body>',
+        `<h1>${escapePrintHtml(props.label)}</h1>`,
+        clone.innerHTML,
+        '</body></html>',
+      ].join(''),
+      props.label,
+    );
+    if (!printed) toast.error('Не удалось открыть окно печати.');
   };
 
-  const startMention = (): void => {
-    if (!textarea || props.disabled) return;
-    const start = textarea.selectionStart ?? props.value.length;
-    const end = textarea.selectionEnd ?? start;
-    const prefix = start > 0 && !/\s/u.test(props.value[start - 1] ?? '') ? ' @' : '@';
-    const next = `${props.value.slice(0, start)}${prefix}${props.value.slice(end)}`;
-    updateValue(next, start + prefix.length);
-  };
-
-  const insertDocument = (document: MedicalDocumentSummary): void => {
-    const state = mention();
-    if (!state) return;
-    const title = sanitizeLinkLabel(document.title) || 'Документ';
-    const link = `[${title}](${buildOfficialDocumentHash(document.id)})`;
-    const next = `${props.value.slice(0, state.start)}${link} ${props.value.slice(state.end)}`;
-    setMention(null);
-    updateValue(next, state.start + link.length + 1);
-  };
-
-  const editor = (): JSX.Element => (
-    <section
-      class="note-markdown-editor"
-      classList={{ 'note-markdown-editor--fullscreen': fullscreen() }}
+  const formattingToolbar = (variant: 'embedded' | 'fullscreen'): JSX.Element => (
+    <div
+      class="note-markdown-editor__toolbar"
+      classList={{ 'note-markdown-editor__toolbar--fullscreen': variant === 'fullscreen' }}
+      role="toolbar"
+      aria-label="Форматирование заметки"
     >
-      <div class="note-markdown-editor__workspace">
-        <div class="note-markdown-editor__field">
-          <textarea
-            ref={textarea}
-            class="note-markdown-editor__textarea"
-            aria-label={props.label}
-            value={props.value}
-            placeholder={props.placeholder}
-            disabled={props.disabled}
-            rows={fullscreen() ? 16 : 7}
-            onInput={(event) => {
-              props.onChange(event.currentTarget.value);
-              refreshMention(event.currentTarget);
-            }}
-            onClick={(event) => refreshMention(event.currentTarget)}
-            onKeyUp={(event) => refreshMention(event.currentTarget)}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape' && mention()) {
-                event.preventDefault();
-                setMention(null);
-              }
-            }}
-          />
-          <div
-            class="note-markdown-editor__toolbar"
-            role="toolbar"
-            aria-label="Форматирование заметки"
-          >
+      <Show when={variant === 'embedded'}>
+        <button
+          class="note-markdown-editor__tool note-markdown-editor__tool--expand"
+          type="button"
+          aria-label="Развернуть редактор"
+          title="На весь экран"
+          onClick={() => setFullscreen(true)}
+        >
+          <AppGlyph name="arrows-out" class="note-markdown-editor__tool-icon" />
+        </button>
+      </Show>
+      <button
+        class="note-markdown-editor__tool"
+        type="button"
+        aria-label="Отменить (Ctrl+Z)"
+        title="Отменить"
+        disabled={props.disabled || !historyState().canUndo}
+        onClick={() => wysiwyg?.undo()}
+      >
+        <AppGlyph name="arrow-u-up-left" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        type="button"
+        aria-label="Вернуть (Ctrl+Shift+Z)"
+        title="Вернуть"
+        disabled={props.disabled || !historyState().canRedo}
+        onClick={() => wysiwyg?.redo()}
+      >
+        <AppGlyph name="arrow-u-up-right" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        classList={{ 'note-markdown-editor__tool--active': activeState().heading }}
+        type="button"
+        aria-label="Заголовок"
+        title="Заголовок"
+        disabled={props.disabled}
+        onClick={() => wysiwyg?.toggleHeading(2)}
+      >
+        <AppGlyph name="text-h-two" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        classList={{ 'note-markdown-editor__tool--active': activeState().strong }}
+        type="button"
+        aria-label="Жирный текст"
+        title="Жирный текст"
+        disabled={props.disabled}
+        onClick={() => wysiwyg?.toggleBold()}
+      >
+        <AppGlyph name="text-b" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        classList={{ 'note-markdown-editor__tool--active': activeState().em }}
+        type="button"
+        aria-label="Курсив"
+        title="Курсив"
+        disabled={props.disabled}
+        onClick={() => wysiwyg?.toggleItalic()}
+      >
+        <AppGlyph name="text-italic" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        type="button"
+        aria-label="Маркированный список"
+        title="Маркированный список"
+        disabled={props.disabled}
+        onClick={() => wysiwyg?.toggleBulletList()}
+      >
+        <AppGlyph name="list-bullets" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        type="button"
+        aria-label="Нумерованный список"
+        title="Нумерованный список"
+        disabled={props.disabled}
+        onClick={() => wysiwyg?.toggleOrderedList()}
+      >
+        <AppGlyph name="list-numbers" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        classList={{ 'note-markdown-editor__tool--active': activeState().highlight }}
+        type="button"
+        aria-label="Выделить текст"
+        title="Выделение"
+        disabled={props.disabled}
+        onClick={() => wysiwyg?.toggleHighlight()}
+      >
+        <AppGlyph name="highlighter" class="note-markdown-editor__tool-icon" />
+      </button>
+      <button
+        class="note-markdown-editor__tool"
+        type="button"
+        aria-label="Формула LaTeX"
+        title="LaTeX"
+        disabled={props.disabled}
+        onClick={() => wysiwyg?.insert('$x = y$')}
+      >
+        <AppGlyph name="math-operations" class="note-markdown-editor__tool-icon" />
+      </button>
+      <Show when={variant === 'fullscreen'}>
+        <NoteSearchToggle onToggle={() => setSearchOpen((open) => !open)} />
+      </Show>
+      <Show when={props.onOpenReminders}>
+        <button
+          class="note-markdown-editor__tool"
+          type="button"
+          aria-label="Напоминание"
+          title="Напоминание"
+          disabled={props.disabled}
+          onClick={() => props.onOpenReminders?.()}
+        >
+          <AppGlyph name="clock" class="note-markdown-editor__tool-icon" />
+        </button>
+      </Show>
+      <Show when={props.onRecordAudio}>
+        <VoiceRecordingButton
+          disabled={Boolean(props.disabled)}
+          onComplete={handleRecordingComplete}
+          onStart={() => setRecordingOwnerId(props.recordingOwnerId ?? '')}
+          onError={(message) => {
+            setRecordingOwnerId('');
+            toast.error(message);
+          }}
+        />
+      </Show>
+      <button
+        class="note-markdown-editor__tool"
+        type="button"
+        aria-label="Упомянуть документ"
+        title="Документ (@)"
+        disabled={props.disabled}
+        onClick={() => {
+          setMentionOpen(true);
+          queueMicrotask(() => wysiwyg?.insert('@'));
+        }}
+      >
+        <AppGlyph name="at" class="note-markdown-editor__tool-icon" />
+      </button>
+      <Show when={props.onOpenImages}>
+        <button
+          class="note-markdown-editor__tool"
+          type="button"
+          aria-label="Добавить изображение"
+          title="Изображения"
+          disabled={props.disabled}
+          onClick={() => props.onOpenImages?.()}
+        >
+          <AppGlyph name="file-plus" class="note-markdown-editor__tool-icon" />
+        </button>
+      </Show>
+    </div>
+  );
+
+  const mentionPopup = (): JSX.Element => (
+    <Show when={mentionOpen()}>
+      <div class="note-markdown-editor__mentions" role="listbox">
+        <input
+          class="note-markdown-editor__mentions-search"
+          type="text"
+          placeholder="Поиск документа, калькулятора, теста, заметки"
+          aria-label="Поиск того, что нужно вставить в заметку"
+          value={mentionQuery()}
+          onInput={(event) => setMentionQuery(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape') return;
+            event.stopPropagation();
+            setMentionOpen(false);
+            setMentionQuery('');
+            wysiwyg?.focus();
+          }}
+        />
+        <For each={suggestions()}>
+          {(suggestion) => (
             <button
+              class="note-markdown-editor__mention"
               type="button"
-              aria-label="Заголовок"
-              title="Заголовок"
-              disabled={props.disabled}
-              onClick={() => replaceSelection('## ', '', 'Раздел', true)}
+              role="option"
+              aria-selected="false"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => insertSuggestion(suggestion)}
             >
-              H
+              <span class="note-markdown-editor__mention-title">
+                {suggestion.detail
+                  ? `${suggestion.title} · ${suggestion.detail}`
+                  : suggestion.title}
+              </span>
+              <Show
+                when={suggestion.priority}
+                fallback={
+                  <small class="note-markdown-editor__mention-kind">
+                    {MENTION_KIND_LABEL[suggestion.kind]}
+                  </small>
+                }
+              >
+                <small class="note-markdown-editor__mention-priority">из заметки</small>
+              </Show>
             </button>
-            <button
-              type="button"
-              aria-label="Жирный текст"
-              title="Жирный текст"
-              disabled={props.disabled}
-              onClick={() => replaceSelection('**', '**', 'текст')}
-            >
-              B
-            </button>
-            <button
-              type="button"
-              aria-label="Маркированный список"
-              title="Список"
-              disabled={props.disabled}
-              onClick={() => replaceSelection('- ', '', 'пункт', true)}
-            >
-              ≡
-            </button>
-            <button
-              type="button"
-              aria-label="Формула LaTeX"
-              title="LaTeX"
-              disabled={props.disabled}
-              onClick={() => replaceSelection('$', '$', 'x = y')}
-            >
-              ∑
-            </button>
-            <button
-              type="button"
-              aria-label="Упомянуть документ"
-              title="Документ (@ или /)"
-              disabled={props.disabled}
-              onClick={startMention}
-            >
-              @
-            </button>
-            <button
-              type="button"
-              aria-label={fullscreen() ? 'Выйти из полноэкранного режима' : 'На весь экран'}
-              title={fullscreen() ? 'Свернуть' : 'На весь экран'}
-              onClick={() => setFullscreen((value) => !value)}
-            >
-              <AppGlyph name={fullscreen() ? 'close' : 'arrows-out'} />
-            </button>
-          </div>
-          <Show when={mention() && suggestions().length > 0}>
-            <div class="note-markdown-editor__mentions" role="listbox">
-              <For each={suggestions()}>
-                {(document) => (
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected="false"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => insertDocument(document)}
-                  >
-                    <span>{document.title}</span>
-                    <Show when={priorityIds().has(document.id)}>
-                      <small>из заметки</small>
-                    </Show>
-                  </button>
-                )}
-              </For>
-            </div>
-          </Show>
+          )}
+        </For>
+        <Show when={suggestions().length === 0}>
+          <p class="note-markdown-editor__mentions-empty">Ничего не найдено.</p>
+        </Show>
+      </div>
+    </Show>
+  );
+
+  const wysiwygEditor = (variant: 'embedded' | 'fullscreen'): JSX.Element => (
+    <div
+      ref={(element) => {
+        editorSurfaceRoot = element;
+      }}
+      class={`note-markdown-editor__wysiwyg-host note-markdown-editor__wysiwyg-host--${variant}`}
+    >
+      <Show
+        when={!props.disabled}
+        fallback={<SafeMarkdown class="note-markdown-editor__readonly-preview" markdown={text()} />}
+      >
+        <WysiwygField
+          initialValue={text()}
+          latest={() => text()}
+          disabled={Boolean(props.disabled)}
+          onChange={(markdown) => emit(markdown)}
+          onReady={(instance) => {
+            wysiwyg = instance;
+            scheduleTocRefresh();
+          }}
+        />
+      </Show>
+      {mentionPopup()}
+      <Show when={pendingRecordings().length > 0}>
+        <div class="note-voice-bubbles">
+          <For each={pendingRecordings()}>
+            {(recording) => (
+              <div class="note-voice-bubble">
+                <AudioWaveformPlayer src={recording.url} label={recording.file.name} compact />
+                <button
+                  type="button"
+                  class="note-voice-bubble__transcribe"
+                  aria-label={`Расшифровать запись «${recording.file.name}»`}
+                  title="Расшифровать речь"
+                  disabled={transcribingKey() === recording.url}
+                  onClick={() => void handleTranscribe(recording)}
+                >
+                  <AppGlyph name="text-aa" class="note-voice-bubble__transcribe-icon" />
+                </button>
+                <button
+                  type="button"
+                  class="note-voice-bubble__remove"
+                  aria-label={`Удалить запись «${recording.file.name}»`}
+                  title="Удалить запись"
+                  onClick={() => setDeleteTarget(recording)}
+                >
+                  <AppGlyph name="trash" class="note-voice-bubble__remove-icon" />
+                </button>
+              </div>
+            )}
+          </For>
         </div>
-        <section class="note-markdown-editor__preview" aria-label="Предпросмотр Markdown">
-          <div class="note-markdown-editor__preview-heading">
-            <span>Предпросмотр</span>
-            <small>Markdown · LaTeX</small>
-          </div>
-          <Show
-            when={props.value.trim()}
-            fallback={
-              <p class="note-markdown-editor__preview-empty">Предпросмотр появится здесь.</p>
-            }
-          >
-            <SafeMarkdown markdown={props.value} />
-          </Show>
-        </section>
+      </Show>
+      <ConfirmationDialog
+        open={Boolean(deleteTarget())}
+        title="Удалить запись?"
+        description={`«${deleteTarget()?.file.name ?? ''}» будет удалена безвозвратно.`}
+        confirmLabel="Удалить"
+        danger
+        onConfirm={() => {
+          const target = deleteTarget();
+          setDeleteTarget(null);
+          if (target) removeRecording(target);
+        }}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      />
+      <ConfirmationDialog
+        open={asrPromptOpen()}
+        title="Нужна модель расшифровки"
+        description="Скачайте модель распознавания речи в настройках, чтобы расшифровывать голосовые записи на устройстве."
+        confirmLabel="Перейти в настройки"
+        onConfirm={() => {
+          setAsrPromptOpen(false);
+          window.location.hash = '#/settings';
+        }}
+        onOpenChange={setAsrPromptOpen}
+      />
+    </div>
+  );
+
+  const embeddedEditor = (): JSX.Element => (
+    <section class="note-markdown-editor">
+      <div class="note-markdown-editor__workspace">
+        {wysiwygEditor('embedded')}
+        {formattingToolbar('embedded')}
       </div>
     </section>
   );
 
+  const fullscreenEditor = (): JSX.Element => (
+    <DocumentReaderChromeShell
+      class="note-markdown-editor note-markdown-editor--fullscreen document-page page-surface page-grain"
+      ariaLabel="Полноэкранный редактор заметки"
+      chrome={chrome}
+      chromeClassList={{ 'note-markdown-editor__chrome': true }}
+      onBack={() => setFullscreen(false)}
+      breadcrumbs={<AppBreadcrumbs items={[{ label: props.label }]} />}
+      headerSearchSlot={
+        <button
+          type="button"
+          class="note-markdown-editor__print-button"
+          aria-label="Распечатать заметку"
+          title="Печать"
+          onClick={handlePrint}
+        >
+          <AppGlyph name="printer" class="note-markdown-editor__print-icon" />
+        </button>
+      }
+      bodyPrefix={
+        <div class="note-markdown-editor__chrome-tools">
+          {formattingToolbar('fullscreen')}
+          <Show when={searchOpen()}>
+            <NoteTextSearch
+              surface={() =>
+                editorSurfaceRoot?.querySelector<HTMLElement>('.note-markdown-wysiwyg__surface') ??
+                undefined
+              }
+              onClose={() => setSearchOpen(false)}
+            />
+          </Show>
+        </div>
+      }
+      showLayout
+      outlineNav={
+        <Show
+          when={toc().length > 0}
+          fallback={
+            <p class="document-overlay-outline-empty">
+              Добавьте заголовок — он появится в оглавлении.
+            </p>
+          }
+        >
+          <For each={toc()}>
+            {(item, index) => {
+              const headingTag = documentSectionHeadingTag(item.depth - 1);
+              return (
+                <button
+                  type="button"
+                  data-section-anchor={item.anchor}
+                  class={`document-overlay-outline-section-button document-overlay-outline-section-button--${headingTag}`}
+                  classList={{
+                    'document-overlay-outline-section-button--active':
+                      chrome.activeAnchor() === item.anchor,
+                  }}
+                  aria-current={chrome.activeAnchor() === item.anchor ? 'location' : undefined}
+                  onClick={() => scrollToHeading(index())}
+                >
+                  <span class="document-overlay-outline-section-number">
+                    {String(index() + 1).padStart(2, '0')}
+                  </span>
+                  {item.label}
+                </button>
+              );
+            }}
+          </For>
+        </Show>
+      }
+      content={
+        <article ref={chrome.setPaper} class="document-overlay-paper">
+          <h1 class="document-overlay-paper__title">{props.label}</h1>
+          <div class="note-markdown-editor__fullscreen-content">{wysiwygEditor('fullscreen')}</div>
+        </article>
+      }
+    />
+  );
+
   return (
-    <Show when={fullscreen()} fallback={editor()}>
-      <Portal>{editor()}</Portal>
-    </Show>
+    <>
+      <Show when={fullscreen()} fallback={embeddedEditor()}>
+        <Portal>{fullscreenEditor()}</Portal>
+      </Show>
+      <Show when={selectionMenu()}>
+        {(position) => (
+          <Portal>
+            <div
+              class="note-selection-menu"
+              role="toolbar"
+              aria-label="Форматирование выделенного текста"
+              style={{ left: `${position().x}px`, top: `${position().y}px` }}
+            >
+              <button
+                type="button"
+                class="note-selection-menu__button"
+                classList={{ 'note-selection-menu__button--active': selectionMarks().strong }}
+                aria-label="Жирный текст"
+                title="Жирный текст"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  wysiwyg?.toggleBold();
+                  setSelectionMarks(wysiwyg?.marksForRange() ?? { ...EMPTY_NOTE_MARKS });
+                }}
+              >
+                B
+              </button>
+              <button
+                type="button"
+                class="note-selection-menu__button note-selection-menu__button--italic"
+                classList={{ 'note-selection-menu__button--active': selectionMarks().em }}
+                aria-label="Курсив"
+                title="Курсив"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  wysiwyg?.toggleItalic();
+                  setSelectionMarks(wysiwyg?.marksForRange() ?? { ...EMPTY_NOTE_MARKS });
+                }}
+              >
+                I
+              </button>
+              <button
+                type="button"
+                class="note-selection-menu__button"
+                classList={{ 'note-selection-menu__button--active': selectionMarks().highlight }}
+                aria-label="Выделить цветом"
+                title="Выделение"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  wysiwyg?.toggleHighlight();
+                  setSelectionMarks(wysiwyg?.marksForRange() ?? { ...EMPTY_NOTE_MARKS });
+                }}
+              >
+                <AppGlyph name="highlighter" class="note-selection-menu__icon" />
+              </button>
+              <button
+                type="button"
+                class="note-selection-menu__button note-selection-menu__button--strike"
+                classList={{ 'note-selection-menu__button--active': selectionMarks().strike }}
+                aria-label="Зачёркнутый текст"
+                title="Зачёркнутый"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  wysiwyg?.toggleStrikethrough();
+                  setSelectionMarks(wysiwyg?.marksForRange() ?? { ...EMPTY_NOTE_MARKS });
+                }}
+              >
+                S
+              </button>
+            </div>
+          </Portal>
+        )}
+      </Show>
+    </>
   );
 }

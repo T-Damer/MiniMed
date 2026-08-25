@@ -12,23 +12,40 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
-import { AppGlyph } from '@/components/AppGlyph';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { NativeDateTimeField } from '@/components/NativeDateTimeField';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
+import { Heading } from '@/components/Text';
+import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { NoteAttachedResults } from '@/features/notes/NoteAttachedResults';
+import {
+  AttachmentViewerDialog,
+  recordToViewerState,
+  type ViewerState,
+} from '@/features/notes/NoteAttachmentViewer';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
 import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
+import { notesPath } from '@/features/notes/notes-routing';
+import { useNotesRoute } from '@/features/notes/use-notes-route';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import {
+  addNoteFiles,
+  deleteNoteFile,
+  loadNoteFilesForNotes,
+  NOTE_FILES_EVENT,
+  type NoteFile,
+  noteFileSrc,
+} from '@/state/note-files';
 import {
   addNoteImages,
   loadNoteImages,
   loadNoteImagesForNotes,
   NOTE_IMAGES_EVENT,
   type NoteImage,
-  noteImageListSrc,
 } from '@/state/note-images';
 import {
   addPatientNote,
@@ -56,12 +73,7 @@ import {
   updatePatientNote,
 } from '@/state/patient-notes';
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
-
-type NotesRoute =
-  | { readonly kind: 'index' }
-  | { readonly kind: 'card'; readonly cardId: string }
-  | { readonly kind: 'new-record'; readonly cardId: string }
-  | { readonly kind: 'record'; readonly cardId: string; readonly noteId: string };
+import { attachmentViewerKind } from '@/state/thumbnails';
 
 type DeleteTarget =
   | {
@@ -130,30 +142,88 @@ function reminderInputValues(reminder?: NoteReminder): {
   };
 }
 
-function readNotesRoute(): NotesRoute {
-  const parts = window.location.hash.replace(/^#\/?/u, '').split('/');
-  if (parts[0] !== 'notes' || !parts[1]) return { kind: 'index' };
-  let cardId: string;
-  try {
-    cardId = decodeURIComponent(parts[1]);
-  } catch {
-    return { kind: 'index' };
-  }
-  if (parts.length === 2) return { kind: 'card', cardId };
-  if (parts[2] !== 'records' || !parts[3]) return { kind: 'card', cardId };
-  if (parts[3] === 'new') return { kind: 'new-record', cardId };
-  try {
-    return { kind: 'record', cardId, noteId: decodeURIComponent(parts[3]) };
-  } catch {
-    return { kind: 'card', cardId };
+function inlineFileGlyph(mimeType: string): AppGlyphName {
+  switch (attachmentViewerKind(mimeType)) {
+    case 'image':
+      return 'image';
+    case 'video':
+      return 'film-strip';
+    case 'audio':
+      return 'music-notes';
+    case 'pdf':
+    case 'text':
+      return 'file-text';
+    case 'download':
+      return 'file-plus';
   }
 }
 
-function notesPath(cardId?: string, noteId?: string): string {
-  if (!cardId) return '#/notes';
-  const card = encodeURIComponent(cardId);
-  if (!noteId) return `#/notes/${card}`;
-  return `#/notes/${card}/records/${encodeURIComponent(noteId)}`;
+function NoteInlineFile(props: {
+  readonly file: NoteFile;
+  readonly onOpen: () => void;
+}): JSX.Element {
+  const kind = (): string => attachmentViewerKind(props.file.mimeType);
+  const preview = (): string | undefined =>
+    props.file.thumbnailDataUrl ?? (kind() === 'image' ? noteFileSrc(props.file) : undefined);
+
+  return (
+    <button
+      type="button"
+      class="patient-note-record-inline-file"
+      onClick={props.onOpen}
+      aria-label={`Открыть файл «${props.file.name}»`}
+    >
+      <Show
+        when={preview()}
+        fallback={
+          <span class="patient-note-record-inline-file__icon" aria-hidden="true">
+            <AppGlyph
+              name={inlineFileGlyph(props.file.mimeType)}
+              class="patient-note-record-inline-file__glyph"
+            />
+          </span>
+        }
+      >
+        <img
+          class="patient-note-record-inline-file__preview"
+          src={preview()}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      </Show>
+      <span class="patient-note-record-inline-file__meta">
+        <strong class="patient-note-record-inline-file__name">{props.file.name}</strong>
+        <small class="patient-note-record-inline-file__hint">Открыть вложение</small>
+      </span>
+    </button>
+  );
+}
+
+function NoteInlineImage(props: {
+  readonly image: NoteImage;
+  readonly onOpen: () => void;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      class="patient-note-record-inline-file patient-note-record-inline-file--image"
+      onClick={props.onOpen}
+      aria-label={`Открыть изображение «${props.image.name}»`}
+    >
+      <img
+        class="patient-note-record-inline-file__preview"
+        src={props.image.dataUrl}
+        alt={props.image.name}
+        loading="lazy"
+        decoding="async"
+      />
+      <span class="patient-note-record-inline-file__meta">
+        <strong class="patient-note-record-inline-file__name">{props.image.name}</strong>
+        <small class="patient-note-record-inline-file__hint">Открыть вложение</small>
+      </span>
+    </button>
+  );
 }
 
 function NoteTextArea(props: {
@@ -194,19 +264,19 @@ function ReminderFields(props: {
   return (
     <div class="note-reminder-fields">
       <span>Напомнить</span>
-      <input
+      <NativeDateTimeField
         type="date"
-        class="note-reminder-fields__control"
-        aria-label="Дата напоминания"
+        label="Дата напоминания"
         value={props.date}
-        onInput={(event) => props.onDateChange(event.currentTarget.value)}
+        placeholder="Дата"
+        onChange={props.onDateChange}
       />
-      <input
+      <NativeDateTimeField
         type="time"
-        class="note-reminder-fields__control"
-        aria-label="Время напоминания"
+        label="Время напоминания"
         value={props.time}
-        onInput={(event) => props.onTimeChange(event.currentTarget.value)}
+        placeholder="Время"
+        onChange={props.onTimeChange}
       />
       <Show when={props.notificationMessage}>
         <small class="note-notification-message">{props.notificationMessage}</small>
@@ -227,8 +297,27 @@ export function NotesView(props: {
 }): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
-  const [route, setRoute] = createSignal<NotesRoute>(readNotesRoute());
+  const notesRoute = useNotesRoute({
+    onHashChange: () => {
+      commitEditor();
+      setEditingCard(false);
+      setReminderNoteId(null);
+      setPendingImages([]);
+      setImageError('');
+      setDraftRecovered(false);
+      setShowPreviousRevision(false);
+      setRelatedDocumentsLoading(false);
+    },
+  });
+  const route = notesRoute.route;
   const [creating, setCreating] = createSignal(false);
+  const [reminderOpen, setReminderOpen] = createSignal(false);
+  const [floatingControlsHost, setFloatingControlsHost] = createSignal<HTMLElement | undefined>(
+    undefined,
+  );
+  onMount(() => {
+    setFloatingControlsHost(document.getElementById('app-floating-controls') ?? undefined);
+  });
   const [editingCard, setEditingCard] = createSignal(false);
   const [deleteTarget, setDeleteTarget] = createSignal<DeleteTarget | null>(null);
   const [reminderNoteId, setReminderNoteId] = createSignal<string | null>(null);
@@ -243,6 +332,10 @@ export function NotesView(props: {
   const [recordImages, setRecordImages] = createSignal<ReadonlyMap<string, readonly NoteImage[]>>(
     new Map(),
   );
+  const [recordFiles, setRecordFiles] = createSignal<ReadonlyMap<string, readonly NoteFile[]>>(
+    new Map(),
+  );
+  const [timelineViewer, setTimelineViewer] = createSignal<ViewerState | null>(null);
   const [imagesTick, setImagesTick] = createSignal(0);
   const [pendingImages, setPendingImages] = createSignal<readonly File[]>([]);
   const [imageError, setImageError] = createSignal('');
@@ -261,17 +354,6 @@ export function NotesView(props: {
     void props.core.listDocuments().then((result) => {
       if (result.ok) setDocuments(result.value);
     });
-  };
-  const handleHashChange = (): void => {
-    commitEditor();
-    setRoute(readNotesRoute());
-    setEditingCard(false);
-    setReminderNoteId(null);
-    setPendingImages([]);
-    setImageError('');
-    setDraftRecovered(false);
-    setShowPreviousRevision(false);
-    setRelatedDocumentsLoading(false);
   };
   const refreshImages = (): void => {
     setImagesTick((tick) => tick + 1);
@@ -294,17 +376,17 @@ export function NotesView(props: {
         injectColleagueNote();
         refresh();
       });
-    window.addEventListener('hashchange', handleHashChange);
     window.addEventListener(PATIENT_NOTES_EVENT, refresh);
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     window.addEventListener(NOTE_IMAGES_EVENT, refreshImages);
+    window.addEventListener(NOTE_FILES_EVENT, refreshImages);
     clockTimer = setInterval(() => setClock(Date.now()), 30_000);
   });
   onCleanup(() => {
-    window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener(PATIENT_NOTES_EVENT, refresh);
     window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     window.removeEventListener(NOTE_IMAGES_EVENT, refreshImages);
+    window.removeEventListener(NOTE_FILES_EVENT, refreshImages);
     if (clockTimer) clearInterval(clockTimer);
   });
 
@@ -342,20 +424,37 @@ export function NotesView(props: {
   };
   const reminderNote = (): PatientNote | null =>
     snapshot().notes.find((note) => note.id === reminderNoteId()) ?? null;
-  const notesForCard = (cardId: string): readonly PatientNote[] =>
-    snapshot()
-      .notes.filter((note) => note.cardId === cardId)
-      .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt));
-
+  const notesByCard = createMemo(() => {
+    const grouped = new Map<string, PatientNote[]>();
+    for (const note of snapshot().notes) {
+      const notes = grouped.get(note.cardId);
+      if (notes) notes.push(note);
+      else grouped.set(note.cardId, [note]);
+    }
+    for (const notes of grouped.values()) {
+      notes.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    }
+    return grouped;
+  });
+  const notesForCard = (cardId: string): readonly PatientNote[] => notesByCard().get(cardId) ?? [];
+  const recordFilesForActive = (): readonly NoteFile[] => {
+    const id = activeNote()?.id;
+    return id ? (recordFiles().get(id) ?? []) : [];
+  };
+  const openTimelineFile = (record: NoteFile): void => {
+    setTimelineViewer(recordToViewerState(record));
+  };
   createEffect(() => {
     imagesTick();
     const cardId = routeCardId();
     const ids = cardId ? notesForCard(cardId).map((note) => note.id) : [];
     if (ids.length === 0) {
       setRecordImages(new Map());
+      setRecordFiles(new Map());
       return;
     }
     void loadNoteImagesForNotes(ids).then(setRecordImages);
+    void loadNoteFilesForNotes(ids).then(setRecordFiles);
   });
   const documentTitle = (documentId: string): string | null =>
     documents().find((document) => document.id === documentId)?.title ?? null;
@@ -369,13 +468,15 @@ export function NotesView(props: {
 
   const sortedCards = (): readonly PatientCard[] => {
     clock();
+    const dueCardIds = new Set<string>();
+    for (const [cardId, notes] of notesByCard()) {
+      if (notes.some((note) => note.reminder && isReminderDue(note.reminder))) {
+        dueCardIds.add(cardId);
+      }
+    }
     return snapshot().cards.toSorted((left, right) => {
-      const leftDue = notesForCard(left.id).some(
-        (note) => note.reminder && isReminderDue(note.reminder),
-      );
-      const rightDue = notesForCard(right.id).some(
-        (note) => note.reminder && isReminderDue(note.reminder),
-      );
+      const leftDue = dueCardIds.has(left.id);
+      const rightDue = dueCardIds.has(right.id);
       if (leftDue !== rightDue) return leftDue ? -1 : 1;
       return right.updatedAt.localeCompare(left.updatedAt);
     });
@@ -390,9 +491,7 @@ export function NotesView(props: {
     return cards.filter((card) => matchingCardIds.has(card.id));
   });
 
-  const navigate = (path: string): void => {
-    window.location.hash = path;
-  };
+  const navigate = notesRoute.navigate;
   const confirmDelete = (): void => {
     const target = deleteTarget();
     if (!target) return;
@@ -436,13 +535,24 @@ export function NotesView(props: {
 
   const persistEditorImages = (noteId: string, files: readonly File[]): void => {
     if (files.length === 0) return;
-    void addNoteImages(noteId, files)
-      .then(() => {
-        if (activeNote()?.id === noteId) refreshImages();
-      })
-      .catch((cause) => {
-        setImageError(cause instanceof Error ? cause.message : 'Не удалось сохранить изображения.');
+    const images = files.filter((file) => file.type.startsWith('image/'));
+    const others = files.filter((file) => !file.type.startsWith('image/'));
+    if (images.length > 0) {
+      void addNoteImages(noteId, images)
+        .then(() => {
+          if (activeNote()?.id === noteId) refreshImages();
+        })
+        .catch((cause) => {
+          setImageError(
+            cause instanceof Error ? cause.message : 'Не удалось сохранить изображения.',
+          );
+        });
+    }
+    if (others.length > 0) {
+      void addNoteFiles(noteId, others).catch((cause) => {
+        setImageError(cause instanceof Error ? cause.message : 'Не удалось сохранить файлы.');
       });
+    }
   };
 
   function commitEditor(): void {
@@ -579,7 +689,7 @@ export function NotesView(props: {
             <p class="archive-kicker">Личный слой, только на этом устройстве</p>
             <div class="tool-page-title">
               <AppGlyph name="notes" />
-              <h1>Заметки</h1>
+              <Heading depth={1}>Заметки</Heading>
             </div>
           </div>
         </header>
@@ -654,19 +764,23 @@ export function NotesView(props: {
           </div>
         </Show>
 
-        <Portal>
-          <button
-            class="patient-notes-fab"
-            type="button"
-            aria-label="Создать карточку"
-            title="Новая карточка"
-            onClick={() => setCreating(true)}
-          >
-            <span class="patient-notes-fab__icon" aria-hidden="true">
-              +
-            </span>
-          </button>
-        </Portal>
+        <Show when={floatingControlsHost()}>
+          {(host) => (
+            <Portal mount={host()}>
+              <button
+                class="patient-notes-fab floating-window-controls__item"
+                type="button"
+                aria-label="Создать карточку"
+                title="Новая карточка"
+                onClick={() => setCreating(true)}
+              >
+                <span class="patient-notes-fab__icon" aria-hidden="true">
+                  +
+                </span>
+              </button>
+            </Portal>
+          )}
+        </Show>
       </Show>
 
       <Show when={route().kind === 'card'}>
@@ -693,7 +807,7 @@ export function NotesView(props: {
                   <AppGlyph name="arrow-left" />
                 </button>
                 <div>
-                  <h1>{card().title}</h1>
+                  <Heading depth={2}>{card().title}</Heading>
                   <Show when={card().summary}>
                     <p class="notes-route-summary">{card().summary}</p>
                   </Show>
@@ -744,31 +858,55 @@ export function NotesView(props: {
                         <button
                           type="button"
                           class="patient-note-record__open"
+                          aria-label={`Открыть запись от ${formatDate(note.createdAt)}`}
                           onClick={() => navigate(notesPath(card().id, note.id))}
-                        >
-                          <small>{formatDate(note.createdAt)}</small>
-                          <Show when={(recordImages().get(note.id)?.length ?? 0) > 0}>
-                            <div class="patient-note-record-thumbnails">
-                              <For each={recordImages().get(note.id)}>
-                                {(image) => (
-                                  <img
-                                    src={noteImageListSrc(image)}
-                                    alt=""
-                                    loading="lazy"
-                                    decoding="async"
-                                  />
-                                )}
-                              </For>
-                            </div>
-                          </Show>
+                        />
+                        <div class="patient-note-record__content">
+                          <small class="patient-note-record__date">
+                            {formatDate(note.createdAt)}
+                          </small>
                           <NoteAttachedResults
                             results={note.attachedResults ?? []}
                             variant="list"
                           />
                           <Show when={note.text.trim()}>
-                            <p>{note.text}</p>
+                            <SafeMarkdown
+                              class="patient-note-record__markdown"
+                              markdown={note.text}
+                            />
                           </Show>
-                        </button>
+                          <Show
+                            when={
+                              (recordImages().get(note.id)?.length ?? 0) > 0 ||
+                              (recordFiles().get(note.id)?.length ?? 0) > 0
+                            }
+                          >
+                            <div class="patient-note-record-inline-files">
+                              <For each={recordImages().get(note.id)}>
+                                {(image) => (
+                                  <NoteInlineImage
+                                    image={image}
+                                    onOpen={() =>
+                                      setTimelineViewer({
+                                        kind: 'image',
+                                        name: image.name,
+                                        src: image.dataUrl,
+                                      })
+                                    }
+                                  />
+                                )}
+                              </For>
+                              <For each={recordFiles().get(note.id)}>
+                                {(file) => (
+                                  <NoteInlineFile
+                                    file={file}
+                                    onOpen={() => openTimelineFile(file)}
+                                  />
+                                )}
+                              </For>
+                            </div>
+                          </Show>
+                        </div>
                         <Show when={note.reminder}>
                           {(reminder) => (
                             <button
@@ -827,7 +965,9 @@ export function NotesView(props: {
                     <p class="notes-route-heading__eyebrow">
                       {editing() ? 'Редактировать запись' : 'Новая запись'}
                     </p>
-                    <h1 class="notes-route-heading__title">{card().title}</h1>
+                    <Heading depth={3} class="notes-route-heading__title">
+                      {card().title}
+                    </Heading>
                   </div>
                   <Show when={note()}>
                     {(currentNote) => (
@@ -912,6 +1052,10 @@ export function NotesView(props: {
                   </Show>
                   <NoteMarkdownEditor
                     label={editing() ? 'Текст записи' : `Новая заметка для ${card().title}`}
+                    recordingOwnerId={(() => {
+                      const current = note();
+                      return current ? `note:${current.id}` : `new:${card().id}`;
+                    })()}
                     value={
                       viewingPreviousRevision()
                         ? (previousRevision()?.text ?? noteDraft())
@@ -920,12 +1064,55 @@ export function NotesView(props: {
                     onChange={setNoteDraft}
                     documents={documents()}
                     priorityDocumentIds={note()?.relatedDocumentIds ?? []}
-                    placeholder="Осмотр, назначение, динамика"
+                    onOpenImages={() =>
+                      document
+                        .querySelector<HTMLInputElement>('[data-note-image-picker-input="true"]')
+                        ?.click()
+                    }
+                    onOpenReminders={() => setReminderOpen(true)}
+                    onRecordAudio={(file, ownerId) => {
+                      const noteId = ownerId.startsWith('note:')
+                        ? ownerId.slice('note:'.length)
+                        : '';
+                      if (noteId) {
+                        return addNoteFiles(noteId, [file])
+                          .then((records) => {
+                            refreshImages();
+                            return records[0]?.id;
+                          })
+                          .catch((cause) => {
+                            setImageError(
+                              cause instanceof Error
+                                ? cause.message
+                                : 'Не удалось сохранить запись.',
+                            );
+                            return undefined;
+                          });
+                      }
+                      setPendingImages((current) => [...current, file]);
+                      return undefined;
+                    }}
+                    onRemoveRecording={(file, ownerId, persistedFileId) => {
+                      if (persistedFileId) {
+                        void deleteNoteFile(persistedFileId)
+                          .then(() => refreshImages())
+                          .catch((cause) => {
+                            setImageError(
+                              cause instanceof Error ? cause.message : 'Не удалось удалить запись.',
+                            );
+                          });
+                        return;
+                      }
+                      if (ownerId.startsWith('new:')) {
+                        setPendingImages((current) => current.filter((item) => item !== file));
+                      }
+                    }}
                     disabled={viewingPreviousRevision()}
                   />
                   <NoteImagePicker
                     files={pendingImages()}
                     images={noteImages()}
+                    savedFiles={recordFilesForActive()}
                     error={imageError()}
                     onFilesChange={setPendingImages}
                     onError={setImageError}
@@ -967,7 +1154,48 @@ export function NotesView(props: {
                 <Show when={!viewingPreviousRevision() ? note() : null}>
                   {(currentNote) => (
                     <div class="patient-record-editor-aside">
-                      <div class="record-reminder-editor paper-card">
+                      <Show
+                        when={
+                          relatedDocumentsLoading() || relatedDocuments(currentNote()).length > 0
+                        }
+                      >
+                        <div class="patient-note-related paper-card">
+                          <span>По теме:</span>
+                          <Show
+                            when={!relatedDocumentsLoading()}
+                            fallback={
+                              <span class="patient-note-related__loading" role="status">
+                                Подбираем документы по теме…
+                              </span>
+                            }
+                          >
+                            <For each={relatedDocuments(currentNote())}>
+                              {(document) => (
+                                <button
+                                  type="button"
+                                  onClick={() => openDocumentOverlay(document.id)}
+                                >
+                                  {document.title}
+                                </button>
+                              )}
+                            </For>
+                          </Show>
+                        </div>
+                      </Show>
+                    </div>
+                  )}
+                </Show>
+
+                <OverlayDialog
+                  open={reminderOpen()}
+                  title="Напоминание"
+                  subtitle="Запись появится в списке дел заметок"
+                  class="note-reminder-dialog"
+                  onClose={() => setReminderOpen(false)}
+                >
+                  <Show when={note()}>
+                    {(currentNote) => (
+                      <div class="record-reminder-editor note-reminder-dialog__body">
                         <Show when={currentNote().reminder}>
                           {(reminder) => (
                             <button
@@ -1007,48 +1235,23 @@ export function NotesView(props: {
                                 reminder.allDay,
                                 notificationGranted,
                               );
+                              setReminderOpen(false);
                             });
                           }}
                         >
                           {currentNote().reminder ? 'Сохранить' : 'Установить'}
                         </Button>
                       </div>
-                      <Show
-                        when={
-                          relatedDocumentsLoading() || relatedDocuments(currentNote()).length > 0
-                        }
-                      >
-                        <div class="patient-note-related paper-card">
-                          <span>По теме:</span>
-                          <Show
-                            when={!relatedDocumentsLoading()}
-                            fallback={
-                              <span class="patient-note-related__loading" role="status">
-                                Подбираем документы по теме…
-                              </span>
-                            }
-                          >
-                            <For each={relatedDocuments(currentNote())}>
-                              {(document) => (
-                                <button
-                                  type="button"
-                                  onClick={() => openDocumentOverlay(document.id)}
-                                >
-                                  {document.title}
-                                </button>
-                              )}
-                            </For>
-                          </Show>
-                        </div>
-                      </Show>
-                    </div>
-                  )}
-                </Show>
+                    )}
+                  </Show>
+                </OverlayDialog>
               </>
             );
           }}
         </Show>
       </Show>
+
+      <AttachmentViewerDialog state={timelineViewer()} onClose={() => setTimelineViewer(null)} />
 
       <OverlayDialog
         open={creating()}
@@ -1057,6 +1260,7 @@ export function NotesView(props: {
         class="patient-card-dialog"
         onClose={() => setCreating(false)}
       >
+        {' '}
         <form
           class="patient-note-form patient-card-create-form"
           onSubmit={(event) => {

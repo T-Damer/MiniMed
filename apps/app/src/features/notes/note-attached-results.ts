@@ -1,5 +1,3 @@
-import type { CalculatorSchema } from '@localmed/contracts';
-
 import type {
   AssessmentDefinition,
   AssessmentRecord,
@@ -13,10 +11,7 @@ import type {
   NoteAttachedCalculatorResult,
 } from '@/state/patient-notes';
 
-export interface RichNoteAttachedCalculatorResult extends NoteAttachedCalculatorResult {
-  readonly schemaSnapshot?: CalculatorSchema;
-  readonly recordSnapshot?: CalculationRecord;
-}
+export type RichNoteAttachedCalculatorResult = NoteAttachedCalculatorResult;
 
 export function snapshotAssessmentForNote(
   definition: AssessmentDefinition,
@@ -79,7 +74,7 @@ export function snapshotCalculationForNote(
     warnings: record.result.warnings.map((warning) => warning.message),
     ...(schema ? { schemaSnapshot: structuredClone(schema) } : {}),
     recordSnapshot: structuredClone(record),
-  } as RichNoteAttachedCalculatorResult;
+  };
 }
 
 export function assessmentNoteCaption(

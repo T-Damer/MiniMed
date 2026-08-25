@@ -6,6 +6,7 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { Switch } from '@/components/Switch';
+import { AsrSettings } from '@/features/asr/AsrSettings';
 import type { LocalModelController } from '@/features/models/controller';
 import { ModelSettings } from '@/features/models/ModelSettings';
 import type { LocalModelState } from '@/features/models/types';
@@ -244,6 +245,8 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         </a>
 
         <ModelSettings controller={props.controller} />
+
+        <AsrSettings />
 
         <details class="system-technical-panel">
           <summary class="system-technical-panel__summary">

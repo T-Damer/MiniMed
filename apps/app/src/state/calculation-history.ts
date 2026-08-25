@@ -18,24 +18,28 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function recordValue(record: Readonly<Record<string, unknown>>, key: string): unknown {
+  return record[key];
+}
+
 function isCalculationRecord(value: unknown): value is CalculationRecord {
   if (!isRecord(value)) return false;
-  const result = value['result'];
+  const result = recordValue(value, 'result');
   if (!isRecord(result)) return false;
   return (
-    typeof value['id'] === 'string' &&
-    typeof value['calculatorId'] === 'string' &&
-    typeof value['subjectLabel'] === 'string' &&
-    typeof value['createdAt'] === 'string' &&
-    typeof value['inputSummary'] === 'string' &&
-    result['ok'] === true &&
-    typeof result['calculatorId'] === 'string' &&
-    typeof result['formula'] === 'string' &&
-    Array.isArray(result['trace']) &&
-    Array.isArray(result['warnings']) &&
-    (typeof result['value'] === 'number' ||
-      Array.isArray(result['values']) ||
-      Array.isArray(result['textValues']))
+    typeof recordValue(value, 'id') === 'string' &&
+    typeof recordValue(value, 'calculatorId') === 'string' &&
+    typeof recordValue(value, 'subjectLabel') === 'string' &&
+    typeof recordValue(value, 'createdAt') === 'string' &&
+    typeof recordValue(value, 'inputSummary') === 'string' &&
+    recordValue(result, 'ok') === true &&
+    typeof recordValue(result, 'calculatorId') === 'string' &&
+    typeof recordValue(result, 'formula') === 'string' &&
+    Array.isArray(recordValue(result, 'trace')) &&
+    Array.isArray(recordValue(result, 'warnings')) &&
+    (typeof recordValue(result, 'value') === 'number' ||
+      Array.isArray(recordValue(result, 'values')) ||
+      Array.isArray(recordValue(result, 'textValues')))
   );
 }
 
@@ -52,6 +56,10 @@ export function loadCalculationHistory(): readonly CalculationRecord[] {
   } catch {
     return [];
   }
+}
+
+export function findCalculationRecord(recordId: string): CalculationRecord | undefined {
+  return loadCalculationHistory().find((record) => record.id === recordId);
 }
 
 function persist(records: readonly CalculationRecord[]): void {

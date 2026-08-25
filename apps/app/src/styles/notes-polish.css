@@ -180,3 +180,750 @@
     grid-template-columns: 1fr;
   }
 }
+
+.patient-note-record {
+  position: relative;
+  display: grid;
+}
+
+.patient-note-record__open {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+}
+
+.patient-note-record__open:focus-visible {
+  outline: 0.125rem solid var(--theme-accent);
+  outline-offset: 0.15rem;
+}
+
+.patient-note-record__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.patient-note-record__date {
+  width: fit-content;
+}
+
+.patient-note-record__markdown {
+  --safe-markdown-heading-margin: 0.55rem 0 0.25rem;
+  --safe-markdown-paragraph-margin: 0.25rem 0;
+  --safe-markdown-h1-size: 1rem;
+  --safe-markdown-h2-size: 0.95rem;
+  --safe-markdown-h3-size: 0.9rem;
+  --safe-markdown-small-heading-size: 0.86rem;
+  width: 100%;
+  max-height: 12rem;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.82rem;
+  line-height: 1.48;
+}
+
+.note-reminder-link {
+  position: relative;
+  z-index: 2;
+  justify-self: start;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .patient-note-record__open:hover {
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+/* Universal note attachments */
+
+.note-image-preview__file-tile {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: var(--theme-surface-muted);
+}
+
+.note-image-preview__file-icon.app-glyph {
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--theme-text-muted);
+}
+
+.patient-note-record-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.patient-note-record-file {
+  display: inline-flex;
+  max-width: 16rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.5rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font-size: 0.75rem;
+}
+
+.patient-note-record-file img {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.3rem;
+  object-fit: cover;
+}
+
+.patient-note-record-file__icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.patient-note-record-file__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .patient-note-record-file:hover {
+    border-color: var(--theme-accent);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.patient-note-record-inline-files {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  pointer-events: auto;
+}
+
+.patient-note-record-inline-file {
+  display: grid;
+  grid-template-columns: minmax(5rem, 8rem) minmax(0, 1fr);
+  width: min(100%, 32rem);
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.625rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  text-align: left;
+}
+
+.patient-note-record-inline-file__preview,
+.patient-note-record-inline-file__icon {
+  width: 100%;
+  height: 5rem;
+}
+
+.patient-note-record-inline-file__preview {
+  display: block;
+  object-fit: cover;
+  background: var(--theme-surface-muted);
+}
+
+.patient-note-record-inline-file__icon {
+  display: grid;
+  place-items: center;
+  background: var(--theme-surface-muted);
+}
+
+.patient-note-record-inline-file__glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--theme-text-muted);
+}
+
+.patient-note-record-inline-file__meta {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 0.15rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.patient-note-record-inline-file__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.patient-note-record-inline-file__hint {
+  color: var(--theme-text-muted);
+  font-size: 0.7rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .patient-note-record-inline-file:hover {
+    border-color: var(--theme-border);
+    background: var(--theme-surface-muted);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .patient-note-record-inline-file {
+    grid-template-columns: minmax(4.5rem, 6rem) minmax(0, 1fr);
+  }
+}
+
+.note-attachment-viewer {
+  position: fixed;
+  z-index: calc(var(--z-overlay) + 5);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.note-attachment-viewer__panel {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  max-width: min(48rem, 92vw);
+  max-height: 88dvh;
+  overflow: auto;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.75rem;
+  background: var(--theme-surface-raised);
+  box-shadow: 0 1.25rem 3rem rgb(24 22 19 / 32%);
+}
+
+.note-attachment-viewer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.note-attachment-viewer__name {
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-attachment-viewer__close {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: transparent;
+  box-shadow: none;
+}
+
+.note-attachment-viewer__image,
+.note-attachment-viewer__media {
+  display: block;
+  max-width: min(44rem, 86vw);
+  max-height: 70dvh;
+  margin: 0 auto;
+}
+
+.note-attachment-viewer__audio {
+  display: block;
+  width: min(26rem, 80vw);
+  margin: 1.25rem auto;
+}
+
+.note-attachment-viewer__text {
+  max-height: 60dvh;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  overflow: auto;
+  color: var(--theme-text);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-attachment-viewer__prompt {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.1rem 1.2rem;
+  color: var(--theme-text);
+  font-size: 0.86rem;
+}
+
+.note-attachment-viewer__prompt p {
+  margin: 0;
+}
+
+.note-attachment-viewer__prompt-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Voice notes */
+
+.note-voice-button {
+  position: relative;
+  overflow: visible;
+}
+
+.note-voice-button--recording {
+  display: inline-flex;
+  width: auto;
+  min-width: 1.8rem;
+  align-items: center;
+  padding-inline: 0.5rem;
+  border-radius: 999px;
+  color: #fff;
+  background: #b3402f;
+}
+
+.note-voice-button__time {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.audio-waveform {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.audio-waveform__toggle {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  box-shadow: none;
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.audio-waveform__strip {
+  display: inline-flex;
+  flex: 1;
+  gap: 0.12rem;
+  min-width: 0;
+  align-items: flex-end;
+  height: 1.9rem;
+  padding: 0.15rem 0.3rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.audio-waveform--compact .audio-waveform__strip {
+  height: 1.3rem;
+}
+
+/* Hover shows where the click would seek; played bars stay accent-colored */
+
+.audio-waveform__bar {
+  flex: 1 1 0;
+  min-width: 0.08rem;
+  height: var(--bar-height, 30%);
+  border-radius: 0.08rem;
+  background: var(--theme-text-muted);
+  opacity: 0.45;
+}
+
+.audio-waveform__bar--active {
+  opacity: 1;
+  background: var(--theme-accent);
+}
+
+.audio-waveform__bar--seek {
+  opacity: 0.8;
+  background: color-mix(in srgb, var(--theme-accent) 40%, var(--theme-text-muted));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .audio-waveform__strip:hover,
+  .audio-waveform__strip:focus-visible {
+    box-shadow: none;
+    transform: none;
+    outline: none;
+  }
+
+  .audio-waveform__toggle:hover {
+    border-color: var(--theme-accent);
+    color: var(--theme-accent);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.audio-waveform__duration {
+  flex: none;
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.note-attachment-viewer__transcribe {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-accent);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Recording pill: stop-circle icon + elapsed time, halo reacts to the mic level */
+
+.note-voice-button--recording {
+  gap: 0.3rem;
+}
+
+.note-voice-button--recording .note-markdown-editor__tool-icon {
+  display: none;
+}
+
+.note-voice-button__halo {
+  position: absolute;
+  top: 50%;
+  left: 1.05rem;
+  width: 2.7rem;
+  height: 2.7rem;
+  margin: -1.35rem 0 0 -1.35rem;
+  border-radius: 50%;
+  background: rgb(179 64 47 / 50%);
+  pointer-events: none;
+  transform: scale(calc(0.55 + var(--voice-level, 0%) / 80));
+  transition: transform 110ms linear;
+}
+
+.note-voice-button__stop-icon.app-glyph {
+  position: relative;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.note-voice-button__time {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Active toolbar state reflects the caret */
+
+.note-markdown-editor__tool--active {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+/* Fullscreen: formatting toolbar is a second sticky header row */
+
+.note-markdown-editor__chrome-tools {
+  position: sticky;
+  top: var(--document-chrome-height, 3.25rem);
+  z-index: calc(var(--z-sticky-chrome, 30) - 1);
+}
+
+.note-markdown-editor__toolbar--fullscreen {
+  display: flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  width: 100%;
+  overflow-x: auto;
+  padding: 0.35rem var(--page-inline-padding, 1rem);
+  border-bottom: 1px solid var(--paper-line);
+  background: color-mix(in srgb, var(--paper-light, #f8f4e8) 94%, transparent);
+  scrollbar-width: none;
+}
+
+.note-markdown-editor__toolbar--fullscreen .note-markdown-editor__tool {
+  flex: 0 0 auto;
+}
+
+/* Audio attachments get a speaker glyph in record chips */
+
+.patient-note-record-file__icon--audio::before {
+  content: "\25B6";
+}
+
+/* In-note search (CSS Custom Highlights) */
+
+.note-text-search {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.3rem var(--page-inline-padding, 1rem);
+  border-bottom: 1px solid var(--paper-line);
+  background: color-mix(in srgb, var(--paper-light, #f8f4e8) 96%, transparent);
+}
+
+.note-text-search__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.4rem;
+  background: var(--theme-surface-raised);
+  font-size: 0.8rem;
+}
+
+.note-text-search__count {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.note-text-search__button {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0.35rem;
+  color: var(--ink-soft);
+  background: transparent;
+  box-shadow: none;
+}
+
+.note-text-search__icon.app-glyph {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+::highlight(note-text-search) {
+  background-color: rgb(255 213 79 / 55%);
+}
+
+::highlight(note-text-search-active) {
+  background-color: rgb(255 145 60 / 75%);
+}
+
+/* ASR settings card */
+
+.asr-model-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.asr-model-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.6rem;
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+}
+
+.asr-model-row--active {
+  border-color: var(--theme-accent);
+}
+
+.asr-model-row__check {
+  flex: none;
+  margin-top: 0.2rem;
+  accent-color: var(--theme-accent);
+}
+
+.asr-model-row__info {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 0.1rem;
+  font-size: 0.8rem;
+}
+
+.asr-model-row__description {
+  color: var(--theme-text-muted);
+  font-size: 0.7rem;
+}
+
+.asr-model-row__meta {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.asr-model-row__state {
+  color: var(--theme-text-muted);
+  font-size: 0.7rem;
+}
+
+.asr-model-row__state--on {
+  color: var(--theme-accent);
+  font-weight: 700;
+}
+
+.asr-model-row__progress {
+  color: var(--theme-accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.asr-settings__error {
+  margin: 0.5rem 0 0;
+  color: #b3402f;
+  font-size: 0.72rem;
+}
+
+/* ==highlight== mark */
+
+.note-markdown-wysiwyg__surface mark,
+.note-highlight {
+  padding: 0.05em 0.15em;
+  border-radius: 0.2em;
+  background: rgb(255 213 79 / 60%);
+  color: inherit;
+}
+
+.note-selection-menu__icon.app-glyph {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+/* Native date/time trigger fields */
+
+.native-datetime-field__wrapper {
+  display: inline-flex;
+}
+
+.native-datetime-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1875rem 0.45rem;
+  border: 1px solid rgb(103 92 68 / 30%);
+  border-radius: 0.25rem;
+  color: var(--theme-text);
+  background: var(--paper-light);
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.native-datetime-field--empty .native-datetime-field__value {
+  color: var(--theme-text-muted);
+}
+
+.native-datetime-field__icon.app-glyph {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--theme-text-muted);
+}
+
+/* Pending voice bubbles under the editor (Telegram-style) */
+
+.note-voice-bubbles {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+  /* match the editor surface padding so bubbles align with the text area */
+  padding-inline: 0.875rem;
+}
+
+.note-voice-bubble {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface-raised);
+}
+
+.note-voice-bubble .audio-waveform {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-voice-bubble__transcribe {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.45rem;
+  color: var(--theme-accent);
+  background: transparent;
+  box-shadow: none;
+}
+
+.note-voice-bubble__transcribe:disabled {
+  opacity: 0.5;
+}
+
+.note-voice-bubble__transcribe-icon.app-glyph {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.note-voice-bubble__remove {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: transparent;
+  box-shadow: none;
+}
+
+.note-voice-bubble__remove-icon.app-glyph {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note-voice-bubble__remove:hover {
+    color: #b3402f;
+    box-shadow: none;
+    transform: none;
+  }
+}
