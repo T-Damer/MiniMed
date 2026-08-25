@@ -1,12 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
-import { chunkLayoutRows, LAYOUT_TABLET_MIN_PX, layoutColumnCount } from '@/state/layout-columns';
+import {
+  chunkLayoutRows,
+  LAYOUT_TABLET_MIN_PX,
+  LAYOUT_WIDE_MIN_PX,
+  layoutColumnCount,
+} from '@/state/layout-columns';
 
 describe('layoutColumnCount', () => {
   it('uses one column on phone and two from tablet upward', () => {
     expect(layoutColumnCount(LAYOUT_TABLET_MIN_PX - 1)).toBe(1);
     expect(layoutColumnCount(LAYOUT_TABLET_MIN_PX)).toBe(2);
     expect(layoutColumnCount(2560)).toBe(2);
+  });
+
+  it('allows the library to use two phone columns and three wide columns', () => {
+    expect(layoutColumnCount(319, 3, 320)).toBe(1);
+    expect(layoutColumnCount(320, 3, 320)).toBe(2);
+    expect(layoutColumnCount(LAYOUT_WIDE_MIN_PX, 3, 320)).toBe(3);
   });
 });
 

@@ -39,10 +39,7 @@ export function createLayoutColumnCount(
   );
 
   onMount(() => {
-    const breakpoints = [
-      minTwoColumnWidth,
-      ...(maxColumns >= 3 ? [LAYOUT_WIDE_MIN_PX] : []),
-    ];
+    const breakpoints = [minTwoColumnWidth, ...(maxColumns >= 3 ? [LAYOUT_WIDE_MIN_PX] : [])];
     const queries = [...new Set(breakpoints)].map((width) =>
       window.matchMedia(`(min-width: ${width}px)`),
     );
