@@ -68,7 +68,7 @@ requireText('typescriptLlamaPlugin', "registerPlugin<LlamaInferencePlugin>('Llam
 requireText('androidLlamaPlugin', '@CapacitorPlugin(name = "LlamaInference")');
 requireText('androidActivity', 'registerPlugin(LlamaInferencePlugin.class)');
 requireText('androidLlamaPlugin', 'expectedSha256');
-requireText('androidLlamaCmake', 'add_subdirectory(${LLAMA_SRC} build-llama)');
+requireText('androidLlamaCmake', `add_subdirectory(\${LLAMA_SRC} build-llama)`);
 
 for (const method of ['prepareApkFile', 'appendApkChunk', 'installPreparedApk']) {
   requireText('androidUpdatePlugin', `fun ${method}(`);

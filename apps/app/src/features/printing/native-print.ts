@@ -97,7 +97,7 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
     'Назад',
     glyphSvg(arrowLeftBold, 'document-page__back-icon'),
   );
-  back.dataset['nativePrintBack'] = 'true';
+  back.setAttribute('data-native-print-back', 'true');
   back.addEventListener('click', removePreview, { once: true });
 
   const action = iconButton(

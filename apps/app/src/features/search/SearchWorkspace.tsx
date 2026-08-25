@@ -732,7 +732,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
 
         <Show when={loading() && !response() && props.scope !== 'personal'}>
-          <div class="search-results-skeleton" role="status" aria-label="Loading search results">
+          <div
+            class="search-results-skeleton"
+            role="status"
+            aria-label="Загружаем результаты поиска"
+          >
             <For each={[0, 1, 2]}>
               {() => (
                 <div class="search-results-skeleton__row">

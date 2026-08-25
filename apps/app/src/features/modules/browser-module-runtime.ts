@@ -30,7 +30,10 @@ import {
   setAssessmentModuleDependencies,
 } from '@/features/assessments/assessment-packs';
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
-import { localPackagedModulesToInstall } from '@/features/modules/local-packaged-modules';
+import {
+  isModuleReleased,
+  localPackagedModulesToInstall,
+} from '@/features/modules/local-packaged-modules';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
   dequeuePendingModuleInstall,
@@ -510,7 +513,7 @@ export class BrowserContentModuleRuntime {
       const module = this.catalog.modules.find(
         (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
       );
-      if (module?.releaseState !== 'published') {
+      if (!module || !isModuleReleased(module)) {
         discardPendingModuleInstall(task.moduleId, task.version);
         return;
       }

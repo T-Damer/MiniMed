@@ -215,6 +215,25 @@ function placeholders(count: number): string {
   return Array.from({ length: count }, () => '?').join(', ');
 }
 
+function appendMetadataFilterClauses(
+  clauses: string[],
+  bind: NativeSqlValue[],
+  filters: SearchFilters,
+): void {
+  if (filters.specialties?.length) {
+    clauses.push(
+      `EXISTS (SELECT 1 FROM json_each(d.specialty_json) AS specialty_filter WHERE specialty_filter.value IN (${placeholders(filters.specialties.length)}))`,
+    );
+    bind.push(...filters.specialties);
+  }
+  if (filters.ageGroups?.length) {
+    clauses.push(
+      `EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(d.metadata_json, '$.ageGroups'), '[]')) AS age_filter WHERE age_filter.value IN (${placeholders(filters.ageGroups.length)}))`,
+    );
+    bind.push(...filters.ageGroups);
+  }
+}
+
 export interface CapacitorMedicalStoreOptions extends OpenPackOptions {
   readonly plugin?: LocalMedDatabasePlugin;
 }
@@ -367,10 +386,12 @@ export class CapacitorMedicalStore implements MedicalStore {
       profileId: request.profileId,
       vectorBase64: encodeSignedInt8(request.vector),
       vectorNorm: request.norm,
-      // Native code scans all matching vectors. Request a wider result window because specialty
-      // and age-group metadata are deliberately post-filtered through the portable domain mapper.
+      // Native code applies document metadata filters while scanning vectors. Keep a wider window
+      // so hydration can still return the requested number after defensive post-filtering.
       limit: Math.min(500, Math.max(request.limit * 10, 100)),
       ...(request.filters.documentIds?.length ? { documentIds: request.filters.documentIds } : {}),
+      ...(request.filters.specialties?.length ? { specialties: request.filters.specialties } : {}),
+      ...(request.filters.ageGroups?.length ? { ageGroups: request.filters.ageGroups } : {}),
       ...(request.filters.sectionTypes?.length
         ? { sectionTypes: request.filters.sectionTypes }
         : {}),
@@ -416,6 +437,7 @@ export class CapacitorMedicalStore implements MedicalStore {
       clauses.push(`s.section_type IN (${placeholders(request.filters.sectionTypes.length)})`);
       bind.push(...request.filters.sectionTypes);
     }
+    appendMetadataFilterClauses(clauses, bind, request.filters);
     bind.push(Math.max(request.limit * 5, 50));
 
     const rows = await this.query(

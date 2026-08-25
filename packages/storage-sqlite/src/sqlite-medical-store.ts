@@ -53,45 +53,6 @@ export const SQLITE_WASM_DESERIALIZE_MAX_BYTES = 32 * 1024 * 1024;
 const SQLITE_WASM_INITIAL_MEMORY_BYTES = 64 * 1024 * 1024;
 const SQLITE_OPFS_CACHE_SIZE_KIB = -2000;
 
-/** Lightweight tables from schema 004_tools.sql for packaged/OPFS packs that predate tool packs. */
-const TOOL_TABLES_SQL = `CREATE TABLE IF NOT EXISTS tool_definitions (
-  id TEXT PRIMARY KEY,
-  kind TEXT NOT NULL CHECK (kind IN ('calculator', 'assessment')),
-  version TEXT NOT NULL,
-  slug TEXT NOT NULL UNIQUE,
-  title TEXT NOT NULL,
-  short_title TEXT NOT NULL,
-  aliases_json TEXT NOT NULL,
-  bank_id TEXT NOT NULL,
-  bank_label TEXT NOT NULL,
-  category TEXT NOT NULL,
-  description TEXT NOT NULL,
-  estimated_minutes INTEGER,
-  audience TEXT NOT NULL,
-  definition_json TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS tool_sources (
-  id TEXT PRIMARY KEY,
-  tool_id TEXT NOT NULL,
-  source_kind TEXT NOT NULL CHECK (
-    source_kind IN ('clinical-recommendation', 'literature', 'guideline', 'regulatory')
-  ),
-  relation TEXT NOT NULL CHECK (relation IN ('methodology', 'interpretation', 'clinical-context')),
-  title TEXT NOT NULL,
-  module_id TEXT,
-  document_id TEXT,
-  url TEXT,
-  reviewed_at TEXT NOT NULL,
-  FOREIGN KEY (tool_id) REFERENCES tool_definitions(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_tool_definitions_kind_category
-  ON tool_definitions(kind, category);
-CREATE INDEX IF NOT EXISTS idx_tool_sources_tool
-  ON tool_sources(tool_id);
-`;
-
 let sqliteModulePromise: Promise<Sqlite3Static> | undefined;
 const sahPoolPromises = new Map<string, Promise<SahPool>>();
 
@@ -166,6 +127,17 @@ function readPackSchemaVersion(database: Database): number {
       database.selectValue('SELECT schema_version FROM content_packs ORDER BY id LIMIT 1'),
     );
   }
+}
+
+function hasTable(database: Database, tableName: string): boolean {
+  return (
+    Number(
+      database.selectValue(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?)",
+        tableName,
+      ),
+    ) === 1
+  );
 }
 
 async function importOpfsPack(
@@ -318,17 +290,37 @@ function placeholders(count: number): string {
   return Array.from({ length: count }, () => '?').join(', ');
 }
 
+function appendMetadataFilterClauses(
+  clauses: string[],
+  bind: BindableValue[],
+  filters: SearchFilters,
+): void {
+  if (filters.specialties?.length) {
+    clauses.push(
+      `EXISTS (SELECT 1 FROM json_each(d.specialty_json) AS specialty_filter WHERE specialty_filter.value IN (${placeholders(filters.specialties.length)}))`,
+    );
+    bind.push(...filters.specialties);
+  }
+  if (filters.ageGroups?.length) {
+    clauses.push(
+      `EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(d.metadata_json, '$.ageGroups'), '[]')) AS age_filter WHERE age_filter.value IN (${placeholders(filters.ageGroups.length)}))`,
+    );
+    bind.push(...filters.ageGroups);
+  }
+}
+
 function toInt8Blob(values: readonly number[]): Uint8Array {
   return Uint8Array.from(values, (value) => (value < 0 ? value + 256 : value));
 }
 
-function fromInt8Blob(value: Uint8Array): readonly number[] {
-  return Array.from(value, (byte) => (byte > 127 ? byte - 256 : byte));
+/** Zero-copy signed-int8 view over the stored vector blob. */
+function asInt8Vector(value: Uint8Array): Int8Array {
+  return new Int8Array(value.buffer, value.byteOffset, value.byteLength);
 }
 
 function cosine(
-  left: readonly number[],
-  right: readonly number[],
+  left: ArrayLike<number>,
+  right: ArrayLike<number>,
   leftNorm: number,
   rightNorm: number,
 ): number {
@@ -440,11 +432,9 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async initialize(untrustedSeed?: ContentPackSeed): Promise<StorageHealth> {
     if (!this.initialized) {
-      // Packaged/OPFS files already contain FTS. Re-running SCHEMA_SQL on a ~400 MB Allmed
-      // pack can exhaust the sqlite-wasm heap (SQLITE_NOMEM). Empty :memory: stores still
-      // need the full schema; OPFS copies only gain missing lightweight tool tables.
-      if (this.healthHints.installation === 'memory') this.database.exec(SCHEMA_SQL);
-      else this.database.exec(TOOL_TABLES_SQL);
+      // Compiled packs are immutable inputs. Replaying any schema DDL on them can exhaust the
+      // sqlite-wasm heap (SQLITE_NOMEM); only a new empty store needs the full schema.
+      if (!hasTable(this.database, 'content_packs')) this.database.exec(SCHEMA_SQL);
       const fts5Available = Number(
         this.database.selectValue(
           "SELECT EXISTS(SELECT 1 FROM pragma_module_list WHERE name = 'fts5')",
@@ -803,10 +793,97 @@ export class SqliteMedicalStore implements MedicalStore {
     );
     if (!profile || profile.dimensions !== request.vector.length) return [];
 
+    // Two-phase top-K: phase 1 touches only embedding rows (chunk id, blob, norm) so the scan
+    // stays allocation-light at corpus scale; heavy chunk/section/document hydration waits for
+    // the candidate window. Mirrors the native adapter's searchVectors shape.
+    const candidateLimit = Math.min(500, Math.max(request.limit * 10, 100));
+    const clauses = ['ce.profile_id = ?'];
+    const bind: BindableValue[] = [request.profileId];
+    const joins: string[] = [];
+    let chunksJoined = false;
+    let documentsJoined = false;
+    const hasMetadataFilters = Boolean(
+      request.filters.specialties?.length || request.filters.ageGroups?.length,
+    );
+    if (request.filters.documentIds?.length) {
+      joins.push('JOIN chunks c ON c.id = ce.chunk_id');
+      joins.push('JOIN documents d ON d.current_version_id = c.document_version_id');
+      chunksJoined = true;
+      documentsJoined = true;
+      // A plain `d.id IN (?, ?, ...)` list blows up the bound-parameter count for large
+      // document sets (hundreds of IDs), which can exhaust the WASM SQLite heap with
+      // SQLITE_NOMEM. Binding the IDs as one JSON array and scanning it via json_each keeps
+      // the parameter count constant regardless of how many documents are selected.
+      clauses.push('d.id IN (SELECT value FROM json_each(?))');
+      bind.push(JSON.stringify(request.filters.documentIds));
+    }
+    if (request.filters.sectionTypes?.length) {
+      if (!chunksJoined) {
+        joins.push('JOIN chunks c ON c.id = ce.chunk_id');
+        chunksJoined = true;
+      }
+      joins.push('JOIN sections s ON s.id = c.section_id');
+      clauses.push(`s.section_type IN (${placeholders(request.filters.sectionTypes.length)})`);
+      bind.push(...request.filters.sectionTypes);
+    }
+    if (hasMetadataFilters) {
+      if (!chunksJoined) {
+        joins.push('JOIN chunks c ON c.id = ce.chunk_id');
+        chunksJoined = true;
+      }
+      if (!documentsJoined) {
+        joins.push('JOIN documents d ON d.current_version_id = c.document_version_id');
+        documentsJoined = true;
+      }
+      appendMetadataFilterClauses(clauses, bind, request.filters);
+    }
+    const candidateRows = queryRows(
+      this.database,
+      `SELECT ce.chunk_id AS chunk_id, ce.vector AS vector, ce.vector_norm AS vector_norm
+       FROM chunk_embeddings ce
+       ${joins.join('\n')}
+       WHERE ${clauses.join(' AND ')}`,
+      bind,
+    );
+
+    const candidates: { chunkId: string; score: number }[] = [];
+    const byScoreDescThenIdAsc = (
+      left: { chunkId: string; score: number },
+      right: { chunkId: string; score: number },
+    ): number => right.score - left.score || left.chunkId.localeCompare(right.chunkId);
+    for (const row of candidateRows) {
+      const score = cosine(
+        request.vector,
+        asInt8Vector(readBlob(row, 'vector')),
+        request.norm,
+        readNumber(row, 'vector_norm'),
+      );
+      const candidate = { chunkId: readString(row, 'chunk_id'), score };
+      const last = candidates[candidates.length - 1];
+      if (
+        last &&
+        candidates.length >= candidateLimit &&
+        byScoreDescThenIdAsc(candidate, last) >= 0
+      ) {
+        continue;
+      }
+      let insertionIndex = candidates.length;
+      while (insertionIndex > 0) {
+        const previous = candidates[insertionIndex - 1];
+        if (!previous || byScoreDescThenIdAsc(previous, candidate) <= 0) break;
+        insertionIndex -= 1;
+      }
+      if (candidates.length >= candidateLimit) candidates.pop();
+      candidates.splice(insertionIndex, 0, candidate);
+    }
+    if (candidates.length === 0) return [];
+
+    const scoreByChunk = new Map(
+      candidates.map((candidate) => [candidate.chunkId, candidate.score]),
+    );
     const rows = queryRows(
       this.database,
       `SELECT
-        ce.vector, ce.vector_norm,
         c.id AS chunk_id, c.document_version_id, c.section_id,
         c.order_index AS chunk_order_index, c.original_text, c.normalized_text,
         c.page_start AS chunk_page_start, c.page_end AS chunk_page_end,
@@ -820,49 +897,31 @@ export class SqliteMedicalStore implements MedicalStore {
         d.specialty_json, d.metadata_json,
         dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
         dv.source_checksum, dv.extracted_at
-      FROM chunk_embeddings ce
-      JOIN chunks c ON c.id = ce.chunk_id
+      FROM chunks c
       JOIN sections s ON s.id = c.section_id
       JOIN documents d ON d.current_version_id = c.document_version_id
       JOIN document_versions dv ON dv.id = c.document_version_id
-      WHERE ce.profile_id = ?`,
-      request.profileId,
+      WHERE c.id IN (${placeholders(scoreByChunk.size)})`,
+      [...scoreByChunk.keys()],
     );
 
     return rows
-      .flatMap((row): VectorHit[] => {
+      .map((row): VectorHit | null => {
         const chunk = toChunk(row);
-        const section = toSection(row);
-        const document = toDocument(row);
-        if (!matchesPostFilters(document, request.filters)) return [];
-        if (
-          request.filters.documentIds?.length &&
-          !request.filters.documentIds.includes(document.id)
-        ) {
-          return [];
-        }
-        if (
-          request.filters.sectionTypes?.length &&
-          !request.filters.sectionTypes.includes(section.sectionType ?? '')
-        ) {
-          return [];
-        }
-        const storedVector = fromInt8Blob(readBlob(row, 'vector'));
-        return [
-          {
-            chunk,
-            section,
-            document,
-            score: cosine(
-              request.vector,
-              storedVector,
-              request.norm,
-              readNumber(row, 'vector_norm'),
-            ),
-          },
-        ];
+        const score = scoreByChunk.get(chunk.id);
+        if (score === undefined) return null;
+        return {
+          chunk,
+          section: toSection(row),
+          document: toDocument(row),
+          score,
+        };
       })
-      .toSorted((left, right) => right.score - left.score)
+      .filter((hit): hit is VectorHit => hit !== null)
+      .filter((hit) => matchesPostFilters(hit.document, request.filters))
+      .toSorted(
+        (left, right) => right.score - left.score || left.chunk.id.localeCompare(right.chunk.id),
+      )
       .slice(0, request.limit);
   }
 
@@ -883,6 +942,7 @@ export class SqliteMedicalStore implements MedicalStore {
       clauses.push(`s.section_type IN (${placeholders(request.filters.sectionTypes.length)})`);
       bind.push(...request.filters.sectionTypes);
     }
+    appendMetadataFilterClauses(clauses, bind, request.filters);
     bind.push(Math.max(request.limit * 5, 50));
 
     const rows = queryRows(
@@ -943,12 +1003,7 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async listToolDefinitions(): Promise<readonly ToolDefinitionRecord[]> {
     this.assertInitialized();
-    const hasToolDefinitions = Number(
-      this.database.selectValue(
-        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'tool_definitions')",
-      ),
-    );
-    if (hasToolDefinitions !== 1) return [];
+    if (!hasTable(this.database, 'tool_definitions')) return [];
     const sourcesByTool = new Map<string, ToolDefinitionRecord['sources'][number][]>();
     for (const row of queryRows(
       this.database,

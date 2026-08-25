@@ -35,6 +35,8 @@ export interface NativeVectorSearchOptions {
   readonly vectorNorm: number;
   readonly limit: number;
   readonly documentIds?: readonly string[];
+  readonly specialties?: readonly string[];
+  readonly ageGroups?: readonly string[];
   readonly sectionTypes?: readonly string[];
 }
 

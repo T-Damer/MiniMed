@@ -60,39 +60,10 @@ export function formatModuleCollectionSubtitle(
     return formatKnownBytes(downloadBytes);
   }
 
-  const fullyInstalled = moduleCount > 0 && installedCount > 0 && installedCount === moduleCount;
-  const nothingInstalled = installedCount === 0;
-  const segments: string[] = [];
-
-  if (moduleCount > 0 && !fullyInstalled) {
-    segments.push(`${installedCount}/${moduleCount}`);
-  }
-
-  if (nothingInstalled) {
-    const downloadLabel = formatKnownBytes(downloadBytes);
-    if (downloadLabel) segments.push(downloadLabel);
-  } else if (fullyInstalled) {
-    const installedLabel = formatKnownBytes(installedBytes);
-    const catalogLabel = formatKnownBytes(downloadBytes);
-    if (installedLabel && catalogLabel && installedLabel === catalogLabel) {
-      segments.push(installedLabel);
-    } else if (installedLabel) {
-      segments.push(installedLabel);
-    } else if (catalogLabel) {
-      segments.push(catalogLabel);
-    }
-  } else {
-    const installedLabel = formatKnownBytes(installedBytes);
-    const catalogLabel = formatKnownBytes(downloadBytes);
-    if (installedLabel) {
-      segments.push(`загружено ${installedLabel}`);
-    }
-    if (catalogLabel && catalogLabel !== installedLabel) {
-      segments.push(catalogLabel);
-    }
-  }
-
-  if (segments.length === 0) return null;
+  if (moduleCount <= 0) return null;
+  const segments = [`Доступно ${moduleCount}`, `Скачано ${installedCount}`];
+  const downloadLabel = formatKnownBytes(downloadBytes);
+  if (downloadLabel) segments.push(downloadLabel);
   return segments.join(' · ');
 }
 

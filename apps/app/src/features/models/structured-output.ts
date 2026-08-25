@@ -75,17 +75,21 @@ export interface LocalModelProbe {
 
 export function normalizeLocalModelProbe(value: unknown): LocalModelProbe | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
-  const record = value as Readonly<Record<string, unknown>>;
-  const intent = typeof record['intent'] === 'string' ? record['intent'].trim() : '';
-  const rawAge = record['ageYears'];
+  const record = value as {
+    readonly intent?: unknown;
+    readonly ageYears?: unknown;
+    readonly concepts?: unknown;
+  };
+  const intent = typeof record.intent === 'string' ? record.intent.trim() : '';
+  const rawAge = record.ageYears;
   const ageYears =
     typeof rawAge === 'number'
       ? rawAge
       : typeof rawAge === 'string' && rawAge.trim() !== ''
         ? Number(rawAge)
         : Number.NaN;
-  const concepts = Array.isArray(record['concepts'])
-    ? record['concepts']
+  const concepts = Array.isArray(record.concepts)
+    ? record.concepts
         .filter((item): item is string => typeof item === 'string')
         .map((item) => item.trim())
         .filter(Boolean)

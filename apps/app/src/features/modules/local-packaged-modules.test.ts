@@ -1,16 +1,18 @@
 import type { ContentModuleCatalog, ContentModuleCatalogEntry } from '@localmed/contracts';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   CORE_MEDICATION_REGISTRY_CARD_COUNT,
   catalogModuleHidesInstallAction,
   catalogModuleHidesRemoveAction,
   isCompanionMedicationsMounted,
+  isModuleReleased,
   isPreinstalledCatalogModule,
   localPackagedModulesToInstall,
   MEDICATIONS_COMPANION_MODULE_ID,
   mergePreinstalledModules,
 } from '@/features/modules/local-packaged-modules';
+import { setExperimentalModulesEnabled } from '@/state/app-preferences';
 
 function module(
   overrides: Partial<ContentModuleCatalogEntry> &
@@ -166,5 +168,66 @@ describe('local packaged modules', () => {
     ).toBe(true);
     const merged = mergePreinstalledModules(catalog, [], { companionMedicationsMounted: true });
     expect(merged.map((entry) => entry.moduleId)).toContain(MEDICATIONS_COMPANION_MODULE_ID);
+  });
+});
+
+describe('isModuleReleased', () => {
+  const previewModule = module({
+    id: 'minimed.clinical.preview',
+    kind: 'clinical',
+    releaseState: 'preview',
+    required: false,
+  });
+  const publishedModule = module({
+    id: 'minimed.clinical.published',
+    kind: 'clinical',
+    releaseState: 'published',
+    required: false,
+  });
+
+  function installLocalStorageMock(): void {
+    const store = new Map<string, string>();
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: (key: string) => store.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          store.set(key, value);
+        },
+        removeItem: (key: string) => {
+          store.delete(key);
+        },
+      },
+      dispatchEvent: () => undefined,
+    });
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('keeps published modules installable regardless of the experimental toggle', () => {
+    installLocalStorageMock();
+    setExperimentalModulesEnabled(false);
+    expect(isModuleReleased(publishedModule)).toBe(true);
+    setExperimentalModulesEnabled(true);
+    expect(isModuleReleased(publishedModule)).toBe(true);
+  });
+
+  it('unlocks preview modules only while the experimental toggle is on', () => {
+    installLocalStorageMock();
+    setExperimentalModulesEnabled(false);
+    expect(isModuleReleased(previewModule)).toBe(false);
+    setExperimentalModulesEnabled(true);
+    expect(isModuleReleased(previewModule)).toBe(true);
+    expect(
+      isModuleReleased(
+        module({
+          id: 'minimed.clinical.planned',
+          kind: 'clinical',
+          releaseState: 'planned',
+          required: false,
+        }),
+      ),
+    ).toBe(false);
   });
 });

@@ -36,25 +36,29 @@ describe('formatModuleCollectionSubtitle', () => {
   });
 
   it('shows download size when nothing is installed', () => {
-    expect(formatModuleCollectionSubtitle(0, 3, 12 * MB, 0)).toBe('0/3 · 12 МБ');
+    expect(formatModuleCollectionSubtitle(0, 3, 12 * MB, 0)).toBe('Доступно 3 · Скачано 0 · 12 МБ');
   });
 
-  it('shows a single size when fully installed and sizes match', () => {
-    expect(formatModuleCollectionSubtitle(2, 2, 12 * MB, 12 * MB)).toBe('12 МБ');
-  });
-
-  it('prefers installed size when fully installed and sizes differ', () => {
-    expect(formatModuleCollectionSubtitle(2, 2, 15 * MB, 12 * MB)).toBe('12 МБ');
-  });
-
-  it('shows partial counts with installed and catalog sizes when they differ', () => {
-    expect(formatModuleCollectionSubtitle(1, 3, 24 * MB, 12 * MB)).toBe(
-      '1/3 · загружено 12 МБ · 24 МБ',
+  it('shows available and downloaded counts when fully installed', () => {
+    expect(formatModuleCollectionSubtitle(2, 2, 12 * MB, 12 * MB)).toBe(
+      'Доступно 2 · Скачано 2 · 12 МБ',
     );
   });
 
-  it('omits duplicate catalog size when it matches installed bytes during partial install', () => {
-    expect(formatModuleCollectionSubtitle(1, 3, 12 * MB, 12 * MB)).toBe('1/3 · загружено 12 МБ');
+  it('shows the download size when installed size differs', () => {
+    expect(formatModuleCollectionSubtitle(2, 2, 15 * MB, 12 * MB)).toBe(
+      'Доступно 2 · Скачано 2 · 15 МБ',
+    );
+  });
+
+  it('shows available and downloaded counts for a partial install', () => {
+    expect(formatModuleCollectionSubtitle(1, 3, 24 * MB, 12 * MB)).toBe(
+      'Доступно 3 · Скачано 1 · 24 МБ',
+    );
+  });
+
+  it('omits the size when the catalog has no download bytes', () => {
+    expect(formatModuleCollectionSubtitle(1, 3, 0, 12 * MB)).toBe('Доступно 3 · Скачано 1');
   });
 });
 

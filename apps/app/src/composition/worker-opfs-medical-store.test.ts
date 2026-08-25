@@ -25,11 +25,16 @@ describe('WorkerOpfsMedicalStore', () => {
     const terminate = vi.fn();
     vi.stubGlobal(
       'Worker',
-      vi.fn(function FakeWorker(this: Record<string, unknown>) {
-        this['postMessage'] = postMessage;
-        this['terminate'] = terminate;
-        this['onmessage'] = undefined;
-        this['onerror'] = undefined;
+      vi.fn(function FakeWorker(this: {
+        postMessage: typeof postMessage;
+        terminate: typeof terminate;
+        onmessage: unknown;
+        onerror: unknown;
+      }) {
+        this.postMessage = postMessage;
+        this.terminate = terminate;
+        this.onmessage = undefined;
+        this.onerror = undefined;
       }),
     );
 
@@ -83,11 +88,16 @@ describe('WorkerOpfsMedicalStore', () => {
     const terminate = vi.fn();
     vi.stubGlobal(
       'Worker',
-      vi.fn(function FakeWorker(this: Record<string, unknown>) {
-        this['postMessage'] = postMessage;
-        this['terminate'] = terminate;
-        this['onmessage'] = undefined;
-        this['onerror'] = undefined;
+      vi.fn(function FakeWorker(this: {
+        postMessage: typeof postMessage;
+        terminate: typeof terminate;
+        onmessage: unknown;
+        onerror: unknown;
+      }) {
+        this.postMessage = postMessage;
+        this.terminate = terminate;
+        this.onmessage = undefined;
+        this.onerror = undefined;
       }),
     );
 
@@ -119,11 +129,16 @@ describe('WorkerOpfsMedicalStore', () => {
     const terminate = vi.fn();
     vi.stubGlobal(
       'Worker',
-      vi.fn(function FakeWorker(this: Record<string, unknown>) {
-        this['postMessage'] = postMessage;
-        this['terminate'] = terminate;
-        this['onmessage'] = undefined;
-        this['onerror'] = undefined;
+      vi.fn(function FakeWorker(this: {
+        postMessage: typeof postMessage;
+        terminate: typeof terminate;
+        onmessage: unknown;
+        onerror: unknown;
+      }) {
+        this.postMessage = postMessage;
+        this.terminate = terminate;
+        this.onmessage = undefined;
+        this.onerror = undefined;
       }),
     );
 

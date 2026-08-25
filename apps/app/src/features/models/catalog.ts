@@ -31,6 +31,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function recordValue(record: Readonly<Record<string, unknown>>, key: string): unknown {
+  return record[key];
+}
+
 function requiredString(value: unknown, label: string): string {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new Error(`${label} должен быть непустой строкой.`);
@@ -98,20 +102,20 @@ function optionalSha256(value: unknown, label: string): string | null {
 function parseLicense(value: unknown, modelId: string): LocalModelLicense {
   if (!isRecord(value)) throw new Error(`${modelId}: license должен быть объектом.`);
   return {
-    id: requiredString(value['id'], `${modelId}.license.id`),
-    name: requiredString(value['name'], `${modelId}.license.name`),
-    url: requiredHttpsUrl(value['url'], `${modelId}.license.url`),
-    requiresAcceptance: value['requiresAcceptance'] === true,
+    id: requiredString(recordValue(value, 'id'), `${modelId}.license.id`),
+    name: requiredString(recordValue(value, 'name'), `${modelId}.license.name`),
+    url: requiredHttpsUrl(recordValue(value, 'url'), `${modelId}.license.url`),
+    requiresAcceptance: recordValue(value, 'requiresAcceptance') === true,
   };
 }
 
 function parseArtifact(value: unknown, modelId: string): LocalModelArtifact {
   if (!isRecord(value)) throw new Error(`${modelId}: artifact должен быть объектом.`);
-  const runtime = requiredString(value['runtime'], `${modelId}.artifact.runtime`);
+  const runtime = requiredString(recordValue(value, 'runtime'), `${modelId}.artifact.runtime`);
   if (!RUNTIMES.has(runtime as LocalModelRuntimeKind)) {
     throw new Error(`${modelId}: неизвестный runtime ${runtime}.`);
   }
-  const rawPlatforms = value['platforms'];
+  const rawPlatforms = recordValue(value, 'platforms');
   if (!Array.isArray(rawPlatforms) || rawPlatforms.length === 0) {
     throw new Error(`${modelId}: artifact.platforms должен быть непустым массивом.`);
   }
@@ -127,30 +131,33 @@ function parseArtifact(value: unknown, modelId: string): LocalModelArtifact {
   }
 
   const typedRuntime = runtime as LocalModelRuntimeKind;
-  const published = value['published'] === true;
-  const sha256 = optionalSha256(value['sha256'], `${modelId}.artifact.sha256`);
+  const published = recordValue(value, 'published') === true;
+  const sha256 = optionalSha256(recordValue(value, 'sha256'), `${modelId}.artifact.sha256`);
   if (published && typedRuntime !== 'litert-native' && sha256 === null) {
     throw new Error(`${modelId}: опубликованный ${typedRuntime} artifact требует SHA-256.`);
   }
 
   return {
-    id: requiredString(value['id'], `${modelId}.artifact.id`),
+    id: requiredString(recordValue(value, 'id'), `${modelId}.artifact.id`),
     runtime: typedRuntime,
     platforms,
     upstreamUrl: requiredHttpsUrl(
-      value['upstreamUrl'],
+      recordValue(value, 'upstreamUrl'),
       `${modelId}.artifact.upstreamUrl`,
       MODEL_HOSTS,
     ),
-    mirrorPath: optionalMirrorPath(value['mirrorPath'], `${modelId}.artifact.mirrorPath`),
+    mirrorPath: optionalMirrorPath(
+      recordValue(value, 'mirrorPath'),
+      `${modelId}.artifact.mirrorPath`,
+    ),
     downloadBytes: requiredPositiveInteger(
-      value['downloadBytes'],
+      recordValue(value, 'downloadBytes'),
       `${modelId}.artifact.downloadBytes`,
     ),
     sha256,
     published,
     maxContextTokens: requiredPositiveInteger(
-      value['maxContextTokens'],
+      recordValue(value, 'maxContextTokens'),
       `${modelId}.artifact.maxContextTokens`,
     ),
   };
@@ -164,10 +171,10 @@ function boundedScore(value: unknown, label: string): number {
 
 function parseModel(value: unknown): LocalModelDescriptor {
   if (!isRecord(value)) throw new Error('Элемент models должен быть объектом.');
-  const id = requiredString(value['id'], 'model.id');
-  const tier = requiredString(value['tier'], `${id}.tier`);
+  const id = requiredString(recordValue(value, 'id'), 'model.id');
+  const tier = requiredString(recordValue(value, 'tier'), `${id}.tier`);
   if (!TIERS.has(tier as LocalModelTier)) throw new Error(`${id}: неизвестный tier ${tier}.`);
-  const rawArtifacts = value['artifacts'];
+  const rawArtifacts = recordValue(value, 'artifacts');
   if (!Array.isArray(rawArtifacts) || rawArtifacts.length === 0) {
     throw new Error(`${id}: artifacts должен быть непустым массивом.`);
   }
@@ -175,9 +182,12 @@ function parseModel(value: unknown): LocalModelDescriptor {
   if (new Set(artifacts.map((artifact) => artifact.id)).size !== artifacts.length) {
     throw new Error(`${id}: повторяющийся artifact id.`);
   }
-  const minimumMemoryGb = requiredNumber(value['minimumMemoryGb'], `${id}.minimumMemoryGb`);
+  const minimumMemoryGb = requiredNumber(
+    recordValue(value, 'minimumMemoryGb'),
+    `${id}.minimumMemoryGb`,
+  );
   const recommendedMemoryGb = requiredNumber(
-    value['recommendedMemoryGb'],
+    recordValue(value, 'recommendedMemoryGb'),
     `${id}.recommendedMemoryGb`,
   );
   if (recommendedMemoryGb < minimumMemoryGb) {
@@ -185,26 +195,31 @@ function parseModel(value: unknown): LocalModelDescriptor {
   }
   return {
     id,
-    name: requiredString(value['name'], `${id}.name`),
-    family: requiredString(value['family'], `${id}.family`),
+    name: requiredString(recordValue(value, 'name'), `${id}.name`),
+    family: requiredString(recordValue(value, 'family'), `${id}.family`),
     tier: tier as LocalModelTier,
-    description: requiredString(value['description'], `${id}.description`),
-    parameterCount: requiredPositiveInteger(value['parameterCount'], `${id}.parameterCount`),
-    qualityScore: boundedScore(value['qualityScore'], `${id}.qualityScore`),
-    russianPriority: boundedScore(value['russianPriority'], `${id}.russianPriority`),
+    description: requiredString(recordValue(value, 'description'), `${id}.description`),
+    parameterCount: requiredPositiveInteger(
+      recordValue(value, 'parameterCount'),
+      `${id}.parameterCount`,
+    ),
+    qualityScore: boundedScore(recordValue(value, 'qualityScore'), `${id}.qualityScore`),
+    russianPriority: boundedScore(recordValue(value, 'russianPriority'), `${id}.russianPriority`),
     minimumMemoryGb,
     recommendedMemoryGb,
-    license: parseLicense(value['license'], id),
+    license: parseLicense(recordValue(value, 'license'), id),
     artifacts,
   };
 }
 
 export function parseLocalModelCatalog(value: unknown): LocalModelCatalog {
   if (!isRecord(value)) throw new Error('Каталог моделей должен быть объектом.');
-  if (value['schemaVersion'] !== 1) throw new Error('Неподдерживаемая схема каталога моделей.');
-  const runtime = value['runtime'];
+  if (recordValue(value, 'schemaVersion') !== 1) {
+    throw new Error('Неподдерживаемая схема каталога моделей.');
+  }
+  const runtime = recordValue(value, 'runtime');
   if (!isRecord(runtime)) throw new Error('runtime должен быть объектом.');
-  const rawModels = value['models'];
+  const rawModels = recordValue(value, 'models');
   if (!Array.isArray(rawModels) || rawModels.length === 0) {
     throw new Error('models должен быть непустым массивом.');
   }
@@ -214,20 +229,20 @@ export function parseLocalModelCatalog(value: unknown): LocalModelCatalog {
   }
   return {
     schemaVersion: 1,
-    catalogVersion: requiredString(value['catalogVersion'], 'catalogVersion'),
-    publishedAt: requiredString(value['publishedAt'], 'publishedAt'),
+    catalogVersion: requiredString(recordValue(value, 'catalogVersion'), 'catalogVersion'),
+    publishedAt: requiredString(recordValue(value, 'publishedAt'), 'publishedAt'),
     runtime: {
       wllamaModuleUrl: requiredHttpsUrl(
-        runtime['wllamaModuleUrl'],
+        recordValue(runtime, 'wllamaModuleUrl'),
         'runtime.wllamaModuleUrl',
         new Set(['cdn.jsdelivr.net']),
       ),
       wllamaWasmUrl: requiredHttpsUrl(
-        runtime['wllamaWasmUrl'],
+        recordValue(runtime, 'wllamaWasmUrl'),
         'runtime.wllamaWasmUrl',
         new Set(['cdn.jsdelivr.net']),
       ),
-      version: requiredString(runtime['version'], 'runtime.version'),
+      version: requiredString(recordValue(runtime, 'version'), 'runtime.version'),
     },
     models,
   };
@@ -247,7 +262,7 @@ function readCache(trusted: LocalModelCatalog): LocalModelCatalog | null {
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed)) throw new Error('invalid cache record');
-    const catalog = parseLocalModelCatalog(parsed['catalog']);
+    const catalog = parseLocalModelCatalog(recordValue(parsed, 'catalog'));
     if (!runtimeMatches(catalog, trusted)) throw new Error('untrusted runtime metadata');
     return catalog;
   } catch {

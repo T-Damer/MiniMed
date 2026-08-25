@@ -58,9 +58,12 @@ describe('WorkerSearchMedicalCore', () => {
     const terminate = vi.fn();
     vi.stubGlobal(
       'Worker',
-      vi.fn(function FakeWorker(this: Record<string, unknown>) {
-        this['postMessage'] = postMessage;
-        this['terminate'] = terminate;
+      vi.fn(function FakeWorker(this: {
+        postMessage: typeof postMessage;
+        terminate: typeof terminate;
+      }) {
+        this.postMessage = postMessage;
+        this.terminate = terminate;
       }),
     );
 
@@ -96,9 +99,12 @@ describe('WorkerSearchMedicalCore', () => {
     const terminate = vi.fn();
     vi.stubGlobal(
       'Worker',
-      vi.fn(function FakeWorker(this: Record<string, unknown>) {
-        this['postMessage'] = postMessage;
-        this['terminate'] = terminate;
+      vi.fn(function FakeWorker(this: {
+        postMessage: typeof postMessage;
+        terminate: typeof terminate;
+      }) {
+        this.postMessage = postMessage;
+        this.terminate = terminate;
       }),
     );
 

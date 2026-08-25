@@ -37,6 +37,7 @@ import { refreshContentModuleCatalog } from '@/features/modules/catalog-service'
 import { LawsDocumentsView } from '@/features/modules/LawsDocumentsView';
 import {
   isCompanionMedicationsMounted,
+  isModuleReleased,
   isPreinstalledCatalogModule,
   mergePreinstalledModules,
   type PreinstalledCatalogModuleOptions,
@@ -111,8 +112,7 @@ const AUTO_UPDATES_PAUSED_KEY = 'minimed.module-auto-updates-paused.v1';
 
 function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter(
-    (module) =>
-      module.releaseState === 'published' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
+    (module) => isModuleReleased(module) && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
   ).length;
 }
 
@@ -539,10 +539,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           ...current,
           ...Object.fromEntries(
             modules
-              .filter(
-                (module) =>
-                  module.releaseState === 'published' && !installedModuleIds().has(module.id),
-              )
+              .filter((module) => isModuleReleased(module) && !installedModuleIds().has(module.id))
               .map((module) => [module.id, message]),
           ),
         }));
@@ -570,10 +567,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         ...current,
         ...Object.fromEntries(
           bulkDownloadModules()
-            .filter(
-              (module) =>
-                module.releaseState === 'published' && !installedModuleIds().has(module.id),
-            )
+            .filter((module) => isModuleReleased(module) && !installedModuleIds().has(module.id))
             .map((module) => [module.id, message]),
         ),
       }));
@@ -585,7 +579,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const pendingDownloadCount = createMemo(
     () =>
       bulkDownloadModules().filter(
-        (module) => module.releaseState === 'published' && !installedModuleIds().has(module.id),
+        (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
       ).length,
   );
   const bulkDownloadLabel = (): string =>
@@ -679,7 +673,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       if (
         current &&
         current.version !== module.version &&
-        module.releaseState === 'published' &&
+        isModuleReleased(module) &&
         !activeTasks.has(module.id)
       ) {
         void install(module);
@@ -866,9 +860,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         <Show when={!regularCollection()}>
           <div class="recommendation-section-grid recommendation-section-grid-compact user-library-catalog-card-slot">
             <article
-              class="recommendation-section-card paper-card recommendation-section-card-compact"
+              class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--user-library"
               tabindex="0"
-              aria-label="Открыть «Ваши документы»"
+              aria-label="Открыть личные документы"
               onClick={openUserLibraryCatalog}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') openUserLibraryCatalog();
@@ -877,7 +871,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               <AppGlyph name="folder-open" class="recommendation-section-card-icon" />
               <strong class="recommendation-section-card-title">Ваши документы</strong>
               <span class="recommendation-section-card-meta">
-                Только на этом устройстве. Не официальный источник.
+                Личные документы · только на этом устройстве
               </span>
             </article>
           </div>
@@ -1112,7 +1106,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           )}
                         >
                           {(subtitle) => (
-                            <span class="recommendation-section-card-meta">{subtitle()}</span>
+                            <span class="recommendation-section-card-meta recommendation-section-card-meta--stats">
+                              {subtitle()}
+                            </span>
                           )}
                         </Show>
                       </div>
@@ -1367,7 +1363,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                               class="recommendation-row-download-button"
                               aria-label={`Скачать «${module.title}»`}
                               title="Скачать"
-                              disabled={module.releaseState !== 'published'}
+                              disabled={!isModuleReleased(module)}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 void install(module);

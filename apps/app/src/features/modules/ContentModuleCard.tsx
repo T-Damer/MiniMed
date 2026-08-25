@@ -9,6 +9,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import {
   catalogModuleHidesInstallAction,
   catalogModuleHidesRemoveAction,
+  isModuleReleased,
   isPreinstalledCatalogModule,
   type PreinstalledCatalogModuleOptions,
 } from '@/features/modules/local-packaged-modules';
@@ -20,7 +21,6 @@ import {
   MODULE_TASK_LABELS,
   moduleDocumentCountFact,
 } from '@/features/modules/module-display';
-import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 
 interface ContentModuleCardProps {
   readonly module: ContentModuleCatalogEntry;
@@ -39,8 +39,10 @@ interface ContentModuleCardProps {
 }
 
 function moduleInstallable(module: ContentModuleCatalogEntry): boolean {
-  if (module.releaseState === 'published') return true;
-  return module.releaseState === 'preview' && getExperimentalModulesEnabled();
+  const hasIndexArtifact = module.artifacts.some(
+    (artifact) => artifact.kind === 'index' && Boolean(artifact.url),
+  );
+  return hasIndexArtifact && isModuleReleased(module);
 }
 
 export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
@@ -143,7 +145,9 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
                     ? props.module.releaseState === 'preview'
                       ? 'Скачать Experimental'
                       : 'Скачать'
-                    : 'Пока недоступно'}
+                    : props.module.artifacts.length === 0
+                      ? 'Пакет ещё не опубликован'
+                      : 'Пока недоступно'}
                 </button>
               </Show>
             }

@@ -170,6 +170,8 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         let requestedLimit = call.getInt("limit") ?? 50
         let limit = max(1, min(requestedLimit, 500))
         let documentIds = call.getArray("documentIds", String.self) ?? []
+        let specialties = call.getArray("specialties", String.self) ?? []
+        let ageGroups = call.getArray("ageGroups", String.self) ?? []
         let sectionTypes = call.getArray("sectionTypes", String.self) ?? []
 
         databaseLock.lock()
@@ -180,6 +182,8 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
                 queryVector: queryVector,
                 queryNorm: queryNorm,
                 documentIds: documentIds,
+                specialties: specialties,
+                ageGroups: ageGroups,
                 sectionTypes: sectionTypes,
                 limit: limit
             )
@@ -288,6 +292,8 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         queryVector: Data,
         queryNorm: Double,
         documentIds: [String],
+        specialties: [String],
+        ageGroups: [String],
         sectionTypes: [String],
         limit: Int
     ) throws -> [VectorHit] {
@@ -295,6 +301,18 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         var clauses = ["ce.profile_id = ?"]
         var arguments: [Any] = [profileId]
         appendInFilter(column: "d.id", values: documentIds, clauses: &clauses, arguments: &arguments)
+        appendJsonArrayFilter(
+            expression: "d.specialty_json",
+            values: specialties,
+            clauses: &clauses,
+            arguments: &arguments
+        )
+        appendJsonArrayFilter(
+            expression: "json_extract(d.metadata_json, '$.ageGroups')",
+            values: ageGroups,
+            clauses: &clauses,
+            arguments: &arguments
+        )
         appendInFilter(
             column: "s.section_type",
             values: sectionTypes,
@@ -371,6 +389,21 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         guard !filtered.isEmpty else { return }
         clauses.append(
             "\(column) IN (\(Array(repeating: "?", count: filtered.count).joined(separator: ", ")))"
+        )
+        arguments.append(contentsOf: filtered)
+    }
+
+    private func appendJsonArrayFilter(
+        expression: String,
+        values: [String],
+        clauses: inout [String],
+        arguments: inout [Any]
+    ) {
+        let filtered = values.filter { !$0.isEmpty }
+        guard !filtered.isEmpty else { return }
+        let placeholders = Array(repeating: "?", count: filtered.count).joined(separator: ", ")
+        clauses.append(
+            "EXISTS (SELECT 1 FROM json_each(COALESCE(\(expression), '[]')) AS metadata_filter WHERE metadata_filter.value IN (\(placeholders)))"
         )
         arguments.append(contentsOf: filtered)
     }

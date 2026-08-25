@@ -14,7 +14,13 @@ self.onmessage = async (event: MessageEvent<SearchWorkerRequest>): Promise<void>
   const message = event.data;
   try {
     core ??= createBrowserWorkerCore(message.contentBaseUrl);
-    const activeCore = await core;
+    let activeCore: MedicalCore;
+    try {
+      activeCore = await core;
+    } catch (cause) {
+      core = undefined;
+      throw cause;
+    }
     const result =
       message.method === 'search'
         ? await activeCore.search(message.request)

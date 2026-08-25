@@ -3,10 +3,21 @@ import type {
   ContentModuleCatalogEntry,
   InstalledContentModule,
 } from '@localmed/contracts';
-
 import type { OverviewDocumentCounts } from '@/features/modules/overview-document-counts';
+import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 
 export const MEDICATIONS_COMPANION_MODULE_ID = 'minimed.medications.ru';
+
+/**
+ * A module the catalog lets the user install right now: everything published,
+ * plus preview ("Experimental") packs while the settings toggle is on.
+ */
+export function isModuleReleased(module: Pick<ContentModuleCatalogEntry, 'releaseState'>): boolean {
+  return (
+    module.releaseState === 'published' ||
+    (module.releaseState === 'preview' && getExperimentalModulesEnabled())
+  );
+}
 
 /** Core ships eight registry summary cards without the Allmed medications companion. */
 export const CORE_MEDICATION_REGISTRY_CARD_COUNT = 8;

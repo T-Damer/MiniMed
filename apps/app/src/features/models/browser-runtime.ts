@@ -74,8 +74,8 @@ export interface BrowserWllamaRuntimeOptions {
 function asWllamaModule(value: unknown): WllamaModule {
   if (typeof value !== 'object' || value === null)
     throw new Error('Компонент локальной модели не загрузился.');
-  const candidate = value as Readonly<Record<string, unknown>>;
-  if (typeof candidate['Wllama'] !== 'function') {
+  const candidate = value as { readonly Wllama?: unknown };
+  if (typeof candidate.Wllama !== 'function') {
     throw new Error('Компонент локальной модели имеет неподдерживаемый формат.');
   }
   return candidate as unknown as WllamaModule;

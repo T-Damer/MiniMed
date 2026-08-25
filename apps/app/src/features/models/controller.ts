@@ -89,6 +89,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function recordValue(record: Readonly<Record<string, unknown>>, key: string): unknown {
+  return record[key];
+}
+
 function defaultPreference(defaultAutoLoad: boolean): LocalModelPreference {
   return {
     automatic: true,
@@ -104,15 +108,21 @@ function loadPreference(defaultAutoLoad: boolean): LocalModelPreference {
     if (!raw) return defaultPreference(defaultAutoLoad);
     const value: unknown = JSON.parse(raw);
     if (!isRecord(value)) return defaultPreference(defaultAutoLoad);
-    const accepted = Array.isArray(value['acceptedLicenseIds'])
-      ? value['acceptedLicenseIds'].filter((item): item is string => typeof item === 'string')
+    const acceptedLicenseIds = recordValue(value, 'acceptedLicenseIds');
+    const accepted = Array.isArray(acceptedLicenseIds)
+      ? acceptedLicenseIds.filter((item): item is string => typeof item === 'string')
       : [];
     return {
-      automatic: value['automatic'] !== false,
+      automatic: recordValue(value, 'automatic') !== false,
       selectedModelId:
-        typeof value['selectedModelId'] === 'string' ? value['selectedModelId'] : null,
+        typeof recordValue(value, 'selectedModelId') === 'string'
+          ? (recordValue(value, 'selectedModelId') as string)
+          : null,
       acceptedLicenseIds: accepted,
-      autoLoad: typeof value['autoLoad'] === 'boolean' ? value['autoLoad'] : defaultAutoLoad,
+      autoLoad:
+        typeof recordValue(value, 'autoLoad') === 'boolean'
+          ? (recordValue(value, 'autoLoad') as boolean)
+          : defaultAutoLoad,
     };
   } catch {
     return defaultPreference(defaultAutoLoad);
@@ -128,19 +138,21 @@ function readBenchmarks(): readonly LocalModelBenchmark[] {
     const raw = window.localStorage.getItem(BENCHMARK_KEY);
     if (!raw) return [];
     const value: unknown = JSON.parse(raw);
-    if (!isRecord(value) || !Array.isArray(value['records'])) return [];
-    return value['records'].filter((item): item is LocalModelBenchmark => {
+    if (!isRecord(value)) return [];
+    const records = recordValue(value, 'records');
+    if (!Array.isArray(records)) return [];
+    return records.filter((item): item is LocalModelBenchmark => {
       if (!isRecord(item)) return false;
       return (
-        typeof item['modelId'] === 'string' &&
-        typeof item['artifactId'] === 'string' &&
-        typeof item['runtime'] === 'string' &&
-        typeof item['measuredAt'] === 'string' &&
-        typeof item['loadMs'] === 'number' &&
-        typeof item['generationMs'] === 'number' &&
-        typeof item['outputCharacters'] === 'number' &&
-        typeof item['validStructuredOutput'] === 'boolean' &&
-        typeof item['deviceFingerprint'] === 'string'
+        typeof recordValue(item, 'modelId') === 'string' &&
+        typeof recordValue(item, 'artifactId') === 'string' &&
+        typeof recordValue(item, 'runtime') === 'string' &&
+        typeof recordValue(item, 'measuredAt') === 'string' &&
+        typeof recordValue(item, 'loadMs') === 'number' &&
+        typeof recordValue(item, 'generationMs') === 'number' &&
+        typeof recordValue(item, 'outputCharacters') === 'number' &&
+        typeof recordValue(item, 'validStructuredOutput') === 'boolean' &&
+        typeof recordValue(item, 'deviceFingerprint') === 'string'
       );
     });
   } catch {
@@ -186,13 +198,15 @@ function readFailures(): readonly FailureRecord[] {
     const raw = window.localStorage.getItem(FAILURE_KEY);
     if (!raw) return [];
     const value: unknown = JSON.parse(raw);
-    if (!isRecord(value) || !Array.isArray(value['records'])) return [];
-    return value['records'].filter((item): item is FailureRecord => {
+    if (!isRecord(value)) return [];
+    const records = recordValue(value, 'records');
+    if (!Array.isArray(records)) return [];
+    return records.filter((item): item is FailureRecord => {
       return (
         isRecord(item) &&
-        typeof item['modelId'] === 'string' &&
-        typeof item['failedAt'] === 'string' &&
-        typeof item['reason'] === 'string'
+        typeof recordValue(item, 'modelId') === 'string' &&
+        typeof recordValue(item, 'failedAt') === 'string' &&
+        typeof recordValue(item, 'reason') === 'string'
       );
     });
   } catch {

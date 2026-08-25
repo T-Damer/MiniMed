@@ -1,6 +1,7 @@
 import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 
 import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
+import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 
 export interface CategoryInstallResult {
   readonly changed: boolean;
@@ -17,7 +18,7 @@ export async function installPublishedCategoryModules(
   installedModuleIds: ReadonlySet<string>,
 ): Promise<CategoryInstallResult> {
   const pending = modules.filter(
-    (module) => module.releaseState === 'published' && !installedModuleIds.has(module.id),
+    (module) => isModuleReleased(module) && !installedModuleIds.has(module.id),
   );
   if (pending.length === 0) {
     return { changed: false, errorMessage: null };

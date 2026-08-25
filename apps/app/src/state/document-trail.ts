@@ -79,7 +79,11 @@ export function originLabelForView(view: DocumentTrailOriginView, hash: string):
   if (view === 'notes') return 'Заметки';
   if (view === 'settings') return 'Настройки';
   const route = hash.replace(/^#\/?/u, '');
-  if (route === 'modules/documents/user' || route.startsWith('modules/documents/user/')) {
+  if (
+    route === 'modules/documents/user' ||
+    route.startsWith('modules/documents/user/') ||
+    route.startsWith('modules/documents/user?')
+  ) {
     return 'Ваши документы';
   }
   if (

@@ -184,6 +184,45 @@ describe('CapacitorMedicalStore', () => {
     expect(JSON.parse(queryCall?.argsJson ?? '[]')).toEqual(['"тахипноэ"* OR "лихорадка"*', 50]);
   });
 
+  it('pushes specialty and age-group filters into native SQL and vector search', async () => {
+    const plugin = new FakeNativePlugin();
+    const store = createStore(plugin);
+    await store.initialize();
+
+    await store.search({
+      ftsQuery: '"тахипноэ"*',
+      terms: ['тахипноэ'],
+      filters: { specialties: ['pediatrics'], ageGroups: ['children'] },
+      limit: 1,
+    });
+    const queryCall = plugin.calls.at(-1);
+    expect(queryCall?.sql).toContain('json_each(d.specialty_json)');
+    expect(queryCall?.sql).toContain("json_extract(d.metadata_json, '$.ageGroups')");
+    expect(JSON.parse(queryCall?.argsJson ?? '[]')).toEqual([
+      '"тахипноэ"*',
+      'pediatrics',
+      'children',
+      50,
+    ]);
+
+    const profile = DEMO_CONTENT_PACK.embeddingProfiles[0];
+    const embedding = DEMO_CONTENT_PACK.embeddings.find(
+      (item) => item.profileId === profile?.id && item.chunkId === fixtureChunkId(),
+    );
+    if (!profile || !embedding) throw new Error('Expected a pneumonia embedding fixture.');
+    await store.searchVector({
+      profileId: profile.id,
+      vector: embedding.values,
+      norm: embedding.norm,
+      filters: { specialties: ['pediatrics'], ageGroups: ['children'] },
+      limit: 1,
+    });
+    expect(plugin.vectorCalls.at(-1)).toMatchObject({
+      specialties: ['pediatrics'],
+      ageGroups: ['children'],
+    });
+  });
+
   it('loads the native embedding profile and hydrates exact vector hits', async () => {
     const plugin = new FakeNativePlugin();
     const store = createStore(plugin);

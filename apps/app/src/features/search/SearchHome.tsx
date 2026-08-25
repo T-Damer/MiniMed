@@ -421,7 +421,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       <OverlayDialog
         open={helpOpen()}
         title="Диагностический режим"
-        subtitle="Локальная поддержка решения, а не автоматический диагноз"
         class="diagnosis-help-dialog"
         onClose={() => setHelpOpen(false)}
       >

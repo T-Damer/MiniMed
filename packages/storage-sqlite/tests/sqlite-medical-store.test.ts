@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 
 import { embedPortableText, PORTABLE_HASH_PROFILE } from '@localmed/search-semantic';
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '../src/index';
 
@@ -56,6 +56,21 @@ describe('SqliteMedicalStore', () => {
     expect(documents.every((document) => document.title.length > 0)).toBe(true);
   });
 
+  it('does not mutate a precompiled pack that predates tool tables', async () => {
+    const databaseBytes = await readFile('packages/test-fixtures/data/rf-public-pilot.db');
+    const store = await SqliteMedicalStore.createFromBytes(new Uint8Array(databaseBytes));
+    stores.push(store);
+    const database = (
+      store as unknown as { readonly database: { readonly exec: (sql: string) => void } }
+    ).database;
+    const exec = vi.spyOn(database, 'exec');
+
+    await store.initialize();
+
+    expect(exec.mock.calls.some(([sql]) => sql.includes('CREATE TABLE'))).toBe(false);
+    expect(await store.listToolDefinitions()).toEqual([]);
+  });
+
   it('finds a colloquial respiratory case through a generated FTS query', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
@@ -95,6 +110,49 @@ describe('SqliteMedicalStore', () => {
     expect(excluded).toHaveLength(0);
   });
 
+  it('applies specialty metadata filters before lexical and vector limits', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(DEMO_CONTENT_PACK);
+
+    const lexical = await store.search({
+      ftsQuery: '"аппендицит"*',
+      terms: ['аппендицит'],
+      filters: { specialties: ['surgery'] },
+      limit: 1,
+    });
+    expect(lexical).toHaveLength(1);
+    expect(lexical[0]?.document.specialties).toContain('surgery');
+
+    const excludedLexical = await store.search({
+      ftsQuery: '"аппендицит"*',
+      terms: ['аппендицит'],
+      filters: { specialties: ['obstetrics'] },
+      limit: 1,
+    });
+    expect(excludedLexical).toHaveLength(0);
+
+    const query = embedPortableText('боль справа внизу живота и рвота');
+    const vector = await store.searchVector({
+      profileId: query.profileId,
+      vector: query.values,
+      norm: query.norm,
+      filters: { specialties: ['surgery'] },
+      limit: 1,
+    });
+    expect(vector).toHaveLength(1);
+    expect(vector[0]?.document.specialties).toContain('surgery');
+
+    const excludedVector = await store.searchVector({
+      profileId: query.profileId,
+      vector: query.values,
+      norm: query.norm,
+      filters: { specialties: ['obstetrics'] },
+      limit: 1,
+    });
+    expect(excludedVector).toHaveLength(0);
+  });
+
   it('rejects deserializing a content pack larger than the wasm heap budget', async () => {
     await expect(
       SqliteMedicalStore.createFromBytes({
@@ -123,5 +181,43 @@ describe('SqliteMedicalStore', () => {
     });
     expect(results[0]?.document.id).toBe('kr.demo.surgery.appendicitis');
     expect(results[0]?.score).toBeGreaterThan(0);
+  });
+
+  it('applies document and section filters inside the vector candidate scan', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(DEMO_CONTENT_PACK);
+    const query = embedPortableText('боль справа внизу живота и рвота');
+    const request = {
+      profileId: query.profileId,
+      vector: query.values,
+      norm: query.norm,
+      filters: {},
+      limit: 5,
+    };
+
+    const scoped = await store.searchVector({
+      ...request,
+      filters: { documentIds: ['kr.demo.surgery.appendicitis'] },
+    });
+    expect(scoped.length).toBeGreaterThan(0);
+    expect(scoped.every((hit) => hit.document.id === 'kr.demo.surgery.appendicitis')).toBe(true);
+
+    const otherDocument = await store.searchVector({
+      ...request,
+      filters: { documentIds: ['kr.demo.pediatrics.pneumonia'] },
+    });
+    expect(otherDocument.length).toBeGreaterThan(0);
+    expect(otherDocument.every((hit) => hit.document.id === 'kr.demo.pediatrics.pneumonia')).toBe(
+      true,
+    );
+
+    const sectionScoped = await store.searchVector({
+      ...request,
+      filters: { documentIds: ['kr.demo.surgery.appendicitis'], sectionTypes: ['diagnostics'] },
+    });
+    for (const hit of sectionScoped) {
+      expect(hit.section.sectionType).toBe('diagnostics');
+    }
   });
 });

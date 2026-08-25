@@ -25,6 +25,9 @@ export function knowledgeDocumentBackHash(route: string): string | null {
   if (route === 'modules/documents/user') {
     return '#/modules/documents';
   }
+  if (route.startsWith('modules/documents/user?')) {
+    return '#/modules/documents/user';
+  }
   if (route.startsWith('modules/documents/user/')) {
     return '#/modules/documents/user';
   }

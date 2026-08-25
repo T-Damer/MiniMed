@@ -48,6 +48,12 @@ describe('knowledgeDocumentBackHash', () => {
     expect(knowledgeDocumentBackHash('modules/documents/user')).toBe('#/modules/documents');
   });
 
+  it('returns the user library catalog for a user folder route', () => {
+    expect(knowledgeDocumentBackHash('modules/documents/user?folder=folder-1')).toBe(
+      '#/modules/documents/user',
+    );
+  });
+
   it('returns no parent for the document catalog root', () => {
     expect(knowledgeDocumentBackHash('modules/documents')).toBeNull();
   });

@@ -87,6 +87,10 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function recordValue(record: Readonly<Record<string, unknown>>, key: string): unknown {
+  return record[key];
+}
+
 function boundedStrings(value: unknown, limit: number): readonly string[] | null {
   if (!Array.isArray(value)) return null;
   const result: string[] = [];
@@ -102,14 +106,15 @@ function boundedStrings(value: unknown, limit: number): readonly string[] | null
 
 function parseQueryPlan(value: unknown): QueryPlan {
   if (!isRecord(value)) throw new Error('Модель не вернула план запроса в формате JSON.');
-  const terms = boundedStrings(value['terms'], MAX_TERMS);
-  const questions = boundedStrings(value['clarifyingQuestions'], MAX_QUESTIONS);
-  const exclusions = boundedStrings(value['exclusions'], MAX_TERMS);
-  if (typeof value['intent'] !== 'string' || !terms || !questions || !exclusions) {
+  const terms = boundedStrings(recordValue(value, 'terms'), MAX_TERMS);
+  const questions = boundedStrings(recordValue(value, 'clarifyingQuestions'), MAX_QUESTIONS);
+  const exclusions = boundedStrings(recordValue(value, 'exclusions'), MAX_TERMS);
+  const intent = recordValue(value, 'intent');
+  if (typeof intent !== 'string' || !terms || !questions || !exclusions) {
     throw new Error('План запроса не прошёл проверку структуры.');
   }
   return {
-    intent: value['intent'].slice(0, MAX_TEXT_LENGTH),
+    intent: intent.slice(0, MAX_TEXT_LENGTH),
     terms,
     clarifyingQuestions: questions,
     exclusions,
