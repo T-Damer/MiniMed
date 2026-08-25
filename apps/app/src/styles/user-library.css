@@ -39,27 +39,6 @@
   white-space: nowrap;
 }
 
-.user-library-page__drop-overlay {
-  position: fixed;
-  z-index: var(--z-overlay);
-  inset: 0;
-  display: grid;
-  place-content: center;
-  gap: 0.35rem;
-  padding: 2rem;
-  border: 2px dashed var(--theme-accent);
-  color: var(--theme-accent-contrast);
-  background: color-mix(in srgb, var(--theme-accent) 86%, transparent);
-  text-align: center;
-  pointer-events: auto;
-}
-
-.user-library-page__drop-icon {
-  width: 2rem;
-  height: 2rem;
-  justify-self: center;
-}
-
 .user-library-card__progress {
   color: var(--theme-text-muted);
   font-size: 0.6875rem;
@@ -702,21 +681,19 @@
    menu button fades in. The same opening plays for a drop target. */
 
 .user-library-folder-card__figure::before {
-  transition:
-    transform var(--theme-motion-control, 160ms ease-out),
-    transform-origin var(--theme-motion-control, 160ms ease-out);
-  transform-origin: bottom left;
+  transform-origin: 50% 100%;
+  transition: transform 180ms cubic-bezier(0.2, 0.75, 0.25, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .user-library-folder-card__open:hover .user-library-folder-card__figure::before,
   .user-library-folder-card--drop-target .user-library-folder-card__figure::before {
-    transform: translateY(-0.16rem) rotate(-14deg);
+    transform: translateY(-0.2rem) rotateX(20deg) rotateZ(-2deg);
   }
 }
 
 .user-library-folder-card--drop-target .user-library-folder-card__figure::before {
-  transform: translateY(-0.16rem) rotate(-14deg);
+  transform: translateY(-0.2rem) rotateX(20deg) rotateZ(-2deg);
 }
 
 /* Breadcrumbs accept dropped files/folders and highlight on hover */
@@ -726,11 +703,6 @@
   background: var(--theme-accent);
   outline: 0.12rem solid var(--theme-accent);
   outline-offset: 0.1rem;
-}
-
-.user-library-folder-card--drop-target.user-library-folder-card {
-  outline: 0.14rem solid var(--theme-accent);
-  outline-offset: -0.14rem;
 }
 
 /* Original-format renderers (EPUB via epub.js, DOC/DOCX via docx-preview) */
@@ -940,16 +912,14 @@
   height: 0.8rem;
 }
 
-/* List view: 1 column (2 on wide), compact rows */
+/* List view: compact rows with the same responsive column count as the grid. */
 
 .user-library-page__list--list .layout-card-grid {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
 }
 
-@media (min-width: 90rem) {
-  .user-library-page__list--list .layout-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.user-library-page__list--list {
+  margin-top: -0.2rem;
 }
 
 .user-library-page__list--list .user-library-card,
@@ -1028,6 +998,7 @@
   position: absolute;
   inset: 0;
   display: block;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1039,13 +1010,13 @@
   color: #7a776d;
 }
 
-/* Per-kind colors: presentations orange, documents blue, sheets green. */
+/* Per-kind colors keep the file glyph readable without relying on one accent. */
 
 .user-library-kind--presentation.user-library-card__figure {
   background: rgb(232 89 / 14%);
 }
 
-.user-library-kind--presentation .user-library-card__figure-glyph.app-glyph {
+.user-library-card__figure-glyph--presentation {
   color: #e8590c;
 }
 
@@ -1053,7 +1024,7 @@
   background: rgb(25 113 194 / 13%);
 }
 
-.user-library-kind--doc .user-library-card__figure-glyph.app-glyph {
+.user-library-card__figure-glyph--doc {
   color: #1971c2;
 }
 
@@ -1061,8 +1032,12 @@
   background: rgb(47 158 68 / 14%);
 }
 
-.user-library-kind--sheet .user-library-card__figure-glyph.app-glyph {
+.user-library-card__figure-glyph--sheet {
   color: #2f9e44;
+}
+
+.user-library-card__figure-glyph--audio {
+  color: #8e44ad;
 }
 
 .user-library-card__text {

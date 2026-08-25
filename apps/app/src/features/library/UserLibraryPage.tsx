@@ -30,6 +30,7 @@ import {
   userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
+import { attachmentThumbnails } from '@/state/thumbnails';
 import {
   addUserLibraryFile,
   createUserLibraryFolder,
@@ -53,7 +54,6 @@ import {
   userLibraryFileKind,
   userLibraryProgressFraction,
 } from '@/state/user-library';
-import { previewExtractor } from '@/state/thumbnails';
 
 interface RenameTarget {
   readonly kind: 'document' | 'folder';
@@ -240,7 +240,7 @@ function UserLibraryAttachmentPreview(props: {
     void getUserLibraryFile(props.document.id)
       .then(async (blob) => {
         if (!blob) return;
-        const preview = await previewExtractor.forFile(
+        const preview = await attachmentThumbnails.forFile(
           blob,
           props.document.mimeType,
           props.document.fileName,
@@ -1018,7 +1018,10 @@ export function UserLibraryPage(): JSX.Element {
               aria-hidden="true"
             >
               <UserLibraryAttachmentPreview document={props.document} />
-              <AppGlyph name={FILE_KIND_GLYPHS[kind()]} class="user-library-card__figure-glyph" />
+              <AppGlyph
+                name={FILE_KIND_GLYPHS[kind()]}
+                class={`user-library-card__figure-glyph user-library-card__figure-glyph--${kind()}`}
+              />
             </span>
             <span class={`user-library-card__text user-library-card__text--${viewMode()}`}>
               <Show
