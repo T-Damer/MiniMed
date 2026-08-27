@@ -97,15 +97,12 @@ export interface RecommendationCategoryDownloadProgress {
   readonly byteProgress: number | null;
 }
 
-export function recommendationCategoryDownloadProgress(
+export function moduleGroupDownloadProgress(
   modules: readonly ContentModuleCatalogEntry[],
-  categoryId: string,
   installedModuleIds: ReadonlySet<string>,
   tasks: readonly ContentModuleDownloadTask[],
 ): RecommendationCategoryDownloadProgress {
-  const published = modulesInCategory(modules, categoryId).filter(
-    (module) => module.releaseState === 'published',
-  );
+  const published = modules.filter((module) => module.releaseState === 'published');
   const publishedIds = new Set(published.map((module) => module.id));
   const installedCount = published.filter((module) => installedModuleIds.has(module.id)).length;
   const activeTasks = tasks.filter(
@@ -136,4 +133,17 @@ export function recommendationCategoryDownloadProgress(
         ? downloadedBytes / totalBytes
         : null,
   };
+}
+
+export function recommendationCategoryDownloadProgress(
+  modules: readonly ContentModuleCatalogEntry[],
+  categoryId: string,
+  installedModuleIds: ReadonlySet<string>,
+  tasks: readonly ContentModuleDownloadTask[],
+): RecommendationCategoryDownloadProgress {
+  return moduleGroupDownloadProgress(
+    modulesInCategory(modules, categoryId),
+    installedModuleIds,
+    tasks,
+  );
 }

@@ -328,9 +328,18 @@ body {
 
 .app-view__loading {
   display: grid;
-  min-height: 12rem;
+  min-height: 100dvh;
   place-items: center;
   color: var(--ink-muted);
+}
+
+.app-view__spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 0.1875rem solid var(--ink-faint);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
 }
 
 .page-surface {

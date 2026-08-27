@@ -1,6 +1,8 @@
 import { createEffect, createSignal, type JSX, Match, Show, Switch } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
+import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { downloadNoteFile, type NoteFile, noteFileSrc } from '@/state/note-files';
 import { queueTranscription } from '@/state/note-transcription';
 import { attachmentViewerKind } from '@/state/thumbnails';
@@ -14,7 +16,12 @@ export type ViewerState =
       readonly poster?: string;
     }
   | { readonly kind: 'audio'; readonly name: string; readonly src: string }
-  | { readonly kind: 'text'; readonly name: string; readonly blob: Blob }
+  | {
+      readonly kind: 'text';
+      readonly name: string;
+      readonly mimeType?: string;
+      readonly blob: Blob;
+    }
   | { readonly kind: 'pdf'; readonly name: string; readonly record: NoteFile }
   | { readonly kind: 'download'; readonly name: string; readonly record: NoteFile };
 
@@ -36,7 +43,7 @@ export function recordToViewerState(record: NoteFile): ViewerState {
     };
   }
   if (kind === 'text') {
-    return { kind: 'text', name: record.name, blob: record.blob };
+    return { kind: 'text', name: record.name, mimeType: record.mimeType, blob: record.blob };
   }
   return { kind: 'pdf', name: record.name, record };
 }
@@ -49,12 +56,55 @@ async function readTextBlob(blob: Blob): Promise<string> {
   }
 }
 
-function TextPreviewBody(props: { readonly blob: Blob }): JSX.Element {
+function isMarkdownAttachment(name: string, mimeType?: string): boolean {
+  return mimeType === 'text/markdown' || /\.(?:md|markdown)$/iu.test(name);
+}
+
+function TextPreviewBody(props: {
+  readonly name: string;
+  readonly mimeType: string | undefined;
+  readonly blob: Blob;
+}): JSX.Element {
   const [content, setContent] = createSignal('');
+  const isMarkdown = isMarkdownAttachment(props.name, props.mimeType);
+  const [readingMode, setReadingMode] = createSignal(isMarkdown);
   createEffect(() => {
     void readTextBlob(props.blob).then(setContent);
   });
-  return <pre class="note-attachment-viewer__text">{content()}</pre>;
+  return (
+    <div class="note-attachment-viewer__text-body">
+      <Show when={isMarkdown}>
+        <div
+          class="note-attachment-viewer__text-toolbar"
+          role="toolbar"
+          aria-label="Режим просмотра"
+        >
+          <Button
+            type="button"
+            class="note-attachment-viewer__mode-toggle"
+            variant="quiet"
+            aria-pressed={readingMode()}
+            aria-label={readingMode() ? 'Показать исходный Markdown' : 'Включить режим чтения'}
+            onClick={() => setReadingMode((active) => !active)}
+            icon={
+              <AppGlyph
+                name={readingMode() ? 'file-text' : 'book-open'}
+                class="note-attachment-viewer__mode-toggle-icon"
+              />
+            }
+          >
+            {readingMode() ? 'Исходник' : 'Читать'}
+          </Button>
+        </div>
+      </Show>
+      <Show
+        when={isMarkdown && readingMode()}
+        fallback={<pre class="note-attachment-viewer__text">{content()}</pre>}
+      >
+        <SafeMarkdown class="note-attachment-viewer__markdown" markdown={content()} />
+      </Show>
+    </div>
+  );
 }
 
 function DownloadPromptBody(props: {
@@ -175,7 +225,11 @@ export function AttachmentViewerDialog(props: {
                   </audio>
                 </Match>
                 <Match when={current.kind === 'text'}>
-                  <TextPreviewBody blob={(current as { readonly blob: Blob }).blob} />
+                  <TextPreviewBody
+                    name={current.name}
+                    mimeType={(current as { readonly mimeType?: string }).mimeType}
+                    blob={(current as { readonly blob: Blob }).blob}
+                  />
                 </Match>
               </Switch>
             </div>

@@ -66,6 +66,9 @@ Forbidden without a dedicated ADR:
 - Do not catch and discard errors.
 - Assessment copy must attribute or accurately describe real instruments and explain how to
   interpret results; never brand an established instrument or questionnaire as a MiniMed invention.
+- Overview-card counters must name the entity they summarize: section/module counts are never
+  labelled as documents, and concrete document counts come from the catalog manifest rather than
+  incidental documents already mounted in the search core.
 - Update `docs/CURRENT_STATE.md` when a change affects behavior, corpus coverage, trust boundaries,
   benchmark composition, or ordered next tasks.
 

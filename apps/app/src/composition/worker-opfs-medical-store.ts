@@ -21,12 +21,29 @@ type PendingCall = {
   readonly reject: (error: Error) => void;
 };
 
+type SharedWorkerStore = {
+  readonly optionsKey: string;
+  readonly poolName: string;
+  owner: Promise<WorkerOpfsMedicalStore>;
+};
+
 export class WorkerOpfsMedicalStore implements MedicalStore {
+  private static readonly sharedStores = new Map<string, SharedWorkerStore>();
+
   private requestId = 0;
   private readonly pending = new Map<number, PendingCall>();
-  private closed = false;
+  private readonly owner: WorkerOpfsMedicalStore;
+  private connectionClosed = false;
+  private leaseClosed = false;
+  private leaseCount = 1;
 
-  private constructor(private readonly worker: Worker) {
+  private constructor(
+    private readonly worker: Worker,
+    private readonly shared?: SharedWorkerStore,
+    owner?: WorkerOpfsMedicalStore,
+  ) {
+    this.owner = owner ?? this;
+    if (owner) return;
     worker.onmessage = (event: MessageEvent<OpfsPackWorkerResponse>) => {
       const pending = this.pending.get(event.data.id);
       if (!pending) return;
@@ -38,10 +55,42 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public static async open(options: OpfsPackWorkerOpenOptions): Promise<WorkerOpfsMedicalStore> {
+    const optionsKey = JSON.stringify([options.url, options.databaseName, options.fetchTimeoutMs]);
+    const existing = WorkerOpfsMedicalStore.sharedStores.get(options.poolName);
+    if (existing) {
+      if (existing.optionsKey !== optionsKey) {
+        throw new Error(`SAH pool ${options.poolName} is already open for another database.`);
+      }
+      const owner = await existing.owner;
+      if (owner.connectionClosed) {
+        WorkerOpfsMedicalStore.sharedStores.delete(options.poolName);
+        return WorkerOpfsMedicalStore.open(options);
+      }
+      owner.leaseCount += 1;
+      return new WorkerOpfsMedicalStore(owner.worker, existing, owner);
+    }
+
+    const shared = { optionsKey, poolName: options.poolName } as SharedWorkerStore;
+    shared.owner = WorkerOpfsMedicalStore.openOwner(options, shared);
+    WorkerOpfsMedicalStore.sharedStores.set(options.poolName, shared);
+    try {
+      return await shared.owner;
+    } catch (cause) {
+      if (WorkerOpfsMedicalStore.sharedStores.get(options.poolName) === shared) {
+        WorkerOpfsMedicalStore.sharedStores.delete(options.poolName);
+      }
+      throw cause;
+    }
+  }
+
+  private static async openOwner(
+    options: OpfsPackWorkerOpenOptions,
+    shared: SharedWorkerStore,
+  ): Promise<WorkerOpfsMedicalStore> {
     const worker = new Worker(new URL('./opfs-pack.worker.ts', import.meta.url), {
       type: 'module',
     });
-    const store = new WorkerOpfsMedicalStore(worker);
+    const store = new WorkerOpfsMedicalStore(worker, shared);
     const opened = store.request('open', options);
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
@@ -125,7 +174,20 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public async close(): Promise<void> {
-    if (this.closed) return;
+    if (this.leaseClosed) return;
+    this.leaseClosed = true;
+    await this.owner.release();
+  }
+
+  private async release(): Promise<void> {
+    this.leaseCount -= 1;
+    if (this.leaseCount > 0 || this.connectionClosed) return;
+    if (
+      this.shared &&
+      WorkerOpfsMedicalStore.sharedStores.get(this.shared.poolName) === this.shared
+    ) {
+      WorkerOpfsMedicalStore.sharedStores.delete(this.shared.poolName);
+    }
     try {
       await this.call('close', []);
     } finally {
@@ -144,7 +206,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     methodOrOptions: OpfsPackWorkerMethod | OpfsPackWorkerOpenOptions,
     args: readonly unknown[] = [],
   ): Promise<unknown> {
-    if (this.closed) return Promise.reject(new Error('OPFS pack worker is closed.'));
+    if (this.connectionClosed) return Promise.reject(new Error('OPFS pack worker is closed.'));
     const id = ++this.requestId;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
@@ -169,13 +231,21 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     method: M,
     args: OpfsPackWorkerCallArgs[M],
   ): Promise<Awaited<ReturnType<MedicalStore[M]>>> {
-    return this.request('call', method, args) as Promise<Awaited<ReturnType<MedicalStore[M]>>>;
+    return this.owner.request('call', method, args) as Promise<
+      Awaited<ReturnType<MedicalStore[M]>>
+    >;
   }
 
   private shutdown(error: Error): void {
-    if (!this.closed) {
-      this.closed = true;
+    if (!this.connectionClosed) {
+      this.connectionClosed = true;
       this.worker.terminate();
+    }
+    if (
+      this.shared &&
+      WorkerOpfsMedicalStore.sharedStores.get(this.shared.poolName) === this.shared
+    ) {
+      WorkerOpfsMedicalStore.sharedStores.delete(this.shared.poolName);
     }
     this.failPending(error);
   }

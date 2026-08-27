@@ -65,7 +65,9 @@
 
 .user-library-page__empty-state {
   display: grid;
-  min-height: min(18rem, 42dvh);
+  width: 100%;
+  min-height: min(22rem, 44dvh);
+  margin-top: 0.75rem;
   place-content: center;
   justify-items: center;
   gap: 0.6rem;
@@ -364,26 +366,52 @@
   margin-top: 0.4rem;
 }
 
-.user-library-folder-card__figure::before {
-  content: "";
+.user-library-folder-card__back {
   position: absolute;
   z-index: 0;
-  inset: 0;
-  border-radius: 0.35rem 0.7rem 0.7rem 0.7rem;
+  inset: 12% 0 0;
+  border-radius: 0.65rem 0.75rem 0.75rem;
   background: linear-gradient(180deg, var(--folder-light), var(--folder-dark));
-  clip-path: polygon(0 14%, 20% 14%, 25% 0, 54% 0, 60% 14%, 100% 14%, 100% 100%, 0 100%);
-  transform-origin: 50% 100%;
-  transition: transform 180ms cubic-bezier(0.2, 0.75, 0.25, 1);
 }
 
-.user-library-folder-card__figure::after {
+.user-library-folder-card__back::before {
   content: "";
   position: absolute;
+  top: -14%;
+  left: 14%;
+  width: 44%;
+  height: 22%;
+  border-radius: 0.45rem 0.45rem 0 0;
+  background: var(--folder-light);
+}
+
+.user-library-folder-card__document {
+  position: absolute;
   z-index: 1;
-  inset: 0.45rem 0 0;
+  inset: 7% 8% 9%;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 45%, transparent);
+  border-radius: 0.35rem;
+  background: linear-gradient(180deg, #f5eddd, #ddcdb0);
+  box-shadow: 0 0.08rem 0.16rem rgb(41 35 25 / 16%);
+  transform: translateY(0.08rem) rotateZ(-1deg);
+  transition: transform 200ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.user-library-folder-card__front {
+  position: absolute;
+  z-index: 2;
+  inset: 12% 0 0;
+  display: grid;
+  place-items: center;
   border-radius: 0.35rem 0.7rem 0.7rem 0.7rem;
   background: linear-gradient(180deg, var(--folder-light), var(--folder-dark));
   box-shadow: inset 0 -0.14rem 0 rgb(255 255 255 / 16%);
+}
+
+.user-library-folder-card__note-icon.app-glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: color-mix(in srgb, var(--theme-text) 70%, var(--folder-dark));
 }
 
 .user-library-folder-card__title {
@@ -442,6 +470,34 @@
   padding: 0.25rem;
 }
 
+.user-library-card__open--grid,
+.user-library-folder-card__open--grid {
+  min-height: 9.5rem;
+  padding: 0.85rem 0.6rem 0.7rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--theme-surface-raised) 42%, transparent);
+}
+
+.user-library-card__figure--grid,
+.user-library-folder-card__figure--grid {
+  width: 7rem;
+  height: 4.5rem;
+  border-radius: 0.7rem;
+}
+
+.user-library-card__file-name,
+.user-library-folder-card__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.user-library-card__meta,
+.user-library-folder-card__details {
+  color: color-mix(in srgb, var(--theme-text) 72%, transparent);
+  font-size: 0.72rem;
+}
+
 .user-library-page__list--grid {
   --layout-gap: 0.5rem;
 }
@@ -472,7 +528,7 @@
   align-items: center;
   gap: 0.5rem;
   min-height: 2.5rem;
-  padding: 0.25rem 2.75rem 0.25rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--theme-radius-control);
   text-align: left;
 }
@@ -497,7 +553,7 @@
   grid-template-rows: none;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.25rem 2.75rem 0.25rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--theme-radius-control);
   text-align: left;
 }
@@ -572,12 +628,6 @@
     transform: translateY(-50%);
   }
 
-  .user-library-card.paper-card.user-library-card--grid:hover .user-library-card__open--grid,
-  .user-library-folder-card.paper-card.user-library-folder-card--grid:hover
-    .user-library-folder-card__open--grid {
-    background: transparent;
-  }
-
   .user-library-card.paper-card:hover,
   .user-library-folder-card.paper-card:hover {
     border-color: transparent;
@@ -604,9 +654,144 @@
 @media (hover: hover) and (pointer: fine) {
   .user-library-card__open:hover,
   .user-library-folder-card__open:hover {
-    background: color-mix(in srgb, var(--theme-accent-soft) 55%, transparent);
+    background: color-mix(in srgb, var(--theme-accent-soft) 68%, var(--theme-surface-raised));
     box-shadow: none;
     transform: none;
+  }
+}
+
+.user-library-kind--pdf.user-library-card__figure {
+  background: color-mix(in srgb, #c92a2a 20%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--pdf {
+  color: #c92a2a;
+}
+
+.user-library-kind--dicom.user-library-card__figure {
+  background: color-mix(in srgb, #2563eb 22%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--dicom {
+  color: #2563eb;
+}
+
+.user-library-kind--image.user-library-card__figure {
+  background: color-mix(in srgb, #0d9488 20%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--image {
+  color: #0f766e;
+}
+
+.user-library-kind--video.user-library-card__figure {
+  background: color-mix(in srgb, #be185d 20%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--video {
+  color: #be185d;
+}
+
+.user-library-kind--archive.user-library-card__figure {
+  background: color-mix(in srgb, #d97706 20%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--archive {
+  color: #b45309;
+}
+
+.user-library-kind--code.user-library-card__figure {
+  background: color-mix(in srgb, #4f46e5 19%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--code {
+  color: #4f46e5;
+}
+
+.user-library-kind--ebook.user-library-card__figure {
+  background: color-mix(in srgb, #7c3aed 19%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--ebook {
+  color: #7c3aed;
+}
+
+.user-library-kind--text.user-library-card__figure {
+  background: color-mix(in srgb, #475569 22%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--text {
+  color: color-mix(in srgb, var(--theme-text) 78%, #475569);
+}
+
+.user-library-kind--binary.user-library-card__figure {
+  background: color-mix(in srgb, #475569 22%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure-glyph--binary {
+  color: color-mix(in srgb, var(--theme-text) 78%, #475569);
+}
+
+/* Files need a clear surface and a readable type treatment on the warm canvas. */
+
+.user-library-card.paper-card {
+  border-color: transparent;
+  border-radius: var(--theme-radius-panel);
+  background: color-mix(in srgb, var(--theme-surface-raised) 92%, var(--theme-surface));
+  box-shadow: 0 0.35rem 1rem rgb(41 35 25 / 10%);
+  transition:
+    background-color 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+
+.user-library-card__open--grid {
+  background: transparent;
+}
+
+.user-library-card__figure--grid {
+  border: 1px solid color-mix(in srgb, var(--theme-text-muted) 28%, var(--theme-surface-raised));
+  background: color-mix(in srgb, var(--theme-text-muted) 18%, var(--theme-surface-raised));
+}
+
+.user-library-card__file-name {
+  color: var(--theme-text);
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.user-library-card__meta {
+  color: color-mix(in srgb, var(--theme-text) 78%, var(--theme-text-muted));
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.user-library-card--list.paper-card {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.user-library-card__open--list {
+  background: color-mix(in srgb, var(--theme-surface-raised) 74%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .user-library-card.paper-card:not(.user-library-card--selected):hover {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--theme-surface-raised) 94%, var(--theme-accent-soft));
+    box-shadow: 0 0.5rem 1.25rem rgb(41 35 25 / 14%);
+    transform: none;
+  }
+
+  .user-library-card--list.paper-card:not(.user-library-card--selected):hover {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .user-library-card__open--list:hover {
+    background: color-mix(in srgb, var(--theme-accent-soft) 68%, var(--theme-surface-raised));
   }
 }
 
@@ -633,5 +818,69 @@
   .user-library-card__open--grid,
   .user-library-folder-card__open--grid {
     padding-inline: 0.35rem;
+  }
+}
+
+/* Keep file and folder tiles on the same surface; their icons carry the type distinction. */
+
+.user-library-card.paper-card,
+.user-library-folder-card.paper-card {
+  border-color: transparent;
+  border-radius: var(--theme-radius-panel);
+  background: color-mix(in srgb, var(--theme-surface-raised) 92%, var(--theme-surface));
+  box-shadow: 0 0.35rem 1rem rgb(41 35 25 / 10%);
+}
+
+.user-library-card__open--grid,
+.user-library-folder-card__open--grid {
+  background: transparent;
+}
+
+.user-library-card__file-name,
+.user-library-folder-card__title {
+  color: var(--theme-text);
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.user-library-card__meta,
+.user-library-folder-card__details {
+  color: color-mix(in srgb, var(--theme-text) 78%, var(--theme-text-muted));
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.user-library-breadcrumbs__label {
+  display: inline-block;
+  min-width: 0;
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-library-page__list {
+  margin-top: 1rem;
+}
+
+.user-library-page__search-chrome.knowledge-subroute-heading--blurred::before {
+  height: calc(100% + var(--safe-top) + 0.5rem);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .user-library-card.paper-card:not(.user-library-card--selected):hover,
+  .user-library-folder-card.paper-card:hover {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--theme-surface-raised) 94%, var(--theme-accent-soft));
+    box-shadow: 0 0.5rem 1.25rem rgb(41 35 25 / 14%);
+    transform: none;
+  }
+
+  .user-library-card--list.paper-card:not(.user-library-card--selected):hover,
+  .user-library-folder-card--list.paper-card:hover {
+    background: transparent;
+    box-shadow: none;
   }
 }

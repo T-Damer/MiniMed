@@ -32,8 +32,8 @@
 
 .app-context-menu {
   z-index: var(--z-overlay);
-  width: max-content;
-  min-width: 12.5rem;
+  width: min(20rem, calc(100vw - 1.5rem));
+  min-width: min(12.5rem, calc(100vw - 1.5rem));
   max-width: min(22rem, calc(100vw - 1.5rem));
   padding: 0.35rem;
   border: 1px solid var(--theme-border);
@@ -46,14 +46,15 @@
 }
 
 .app-context-menu--sub {
-  min-width: 11.5rem;
+  min-width: min(11.5rem, calc(100vw - 1.5rem));
 }
 
 .app-context-menu__item {
   display: grid;
   width: 100%;
+  min-width: 0;
   min-height: 2.25rem;
-  grid-template-columns: 1.25rem max-content auto;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.5rem;
   padding: 0.45rem 0.6rem;
@@ -71,20 +72,10 @@
 
 .app-context-menu__item-label {
   display: block;
-  min-width: max-content;
-  overflow-wrap: break-word;
-  white-space: normal;
-}
-
-@media (max-width: 25rem) {
-  .app-context-menu__item {
-    grid-template-columns: 1.25rem minmax(0, 1fr) auto;
-  }
-
-  .app-context-menu__item-label {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-context-menu__item[data-highlighted] {

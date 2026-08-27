@@ -5,6 +5,7 @@ import {
   registerDownloadedAssessment,
 } from '@/features/assessments/assessment-catalog';
 import {
+  printAssessmentRecord,
   printBlankAssessment,
   shareAssessmentRecord,
 } from '@/features/assessments/assessment-print';
@@ -22,7 +23,7 @@ beforeAll(() => {
 describe('assessment print layout', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it('keeps the description out of the blank form and adds a page link QR footer', async () => {
+  it('keeps the description out of the blank form and links the MiniMed project', async () => {
     const definition = await loadAssessmentDefinition('braverman-behavioral-profile');
     const popupDocument = {
       open: vi.fn(),
@@ -49,10 +50,57 @@ describe('assessment print layout', () => {
     expect(markup).toContain(`<h1>${definition.title}</h1>`);
     expect(markup).not.toContain(`<div>${definition.title}</div>`);
     expect(markup).not.toContain(definition.description);
-    expect(markup).toContain(
-      'href="http://127.0.0.1:5175/#/assessments/braverman-behavioral-profile"',
-    );
+    expect(markup).toContain('href="https://t-damer.github.io/MiniMed/app/"');
+    expect(markup).not.toContain('#/assessments/braverman-behavioral-profile');
+    expect(markup).not.toContain('Ограничение:');
+    expect(markup).not.toContain('Версия:');
     expect(markup).toContain('class="footer-qr"');
+  });
+
+  it('omits technical lines and prints an attached note title beside the date', async () => {
+    const definition = await loadAssessmentDefinition('braverman-behavioral-profile');
+    const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
+    const popup = { document: popupDocument, focus: vi.fn(), print: vi.fn() };
+    vi.stubGlobal('window', {
+      location: { href: 'http://127.0.0.1:5175/#/assessments/private-result' },
+      open: vi.fn(() => popup),
+      setTimeout: (callback: () => void) => {
+        callback();
+        return 0;
+      },
+    });
+    const completedAt = '2026-08-10T10:00:00.000Z';
+
+    expect(
+      printAssessmentRecord(
+        definition,
+        {
+          id: 'assessment-print-test',
+          assessmentId: definition.id,
+          subjectLabel: 'Скрытая подпись',
+          createdAt: completedAt,
+          kind: 'completed',
+          answers: {},
+          result: {
+            assessmentId: definition.id,
+            completedAt,
+            scores: [],
+            primaryScaleIds: [],
+            headline: 'Результат',
+            summary: 'Описание результата.',
+            disclaimer: definition.disclaimer,
+          },
+        },
+        'Заметка пациента',
+      ),
+    ).toBe(true);
+
+    const markup = popupDocument.write.mock.calls[0]?.[0];
+    expect(markup).toContain('⋅ Заметка пациента');
+    expect(markup).not.toContain('Пациент / участник:');
+    expect(markup).not.toContain('Ограничение:');
+    expect(markup).not.toContain('Версия:');
+    expect(markup).not.toContain('#/assessments/private-result');
   });
 
   it('reports clipboard share success and failure through its promise contract', async () => {

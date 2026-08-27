@@ -40,7 +40,7 @@ interface PersonalNoteMatchesProps {
  */
 export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Element {
   const [revision, setRevision] = createSignal(0);
-  const [collapsed, setCollapsed] = createSignal(true);
+  const [collapsed, setCollapsed] = createSignal(props.scope !== 'personal');
   const [hasUserLibrary, setHasUserLibrary] = createSignal(false);
   const [libraryMatches, setLibraryMatches] = createSignal<readonly UserLibraryMatch[]>([]);
 
@@ -72,7 +72,7 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
 
   createEffect(() => {
     trimmedQuery();
-    setCollapsed(true);
+    setCollapsed(props.scope !== 'personal');
   });
 
   createEffect(() => {
@@ -110,11 +110,13 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
   });
 
   const sectionLabel = createMemo(() =>
-    hasUserLibrary() || libraryMatches().length > 0 ? 'Ваши данные' : 'Личные записи',
+    props.scope === 'personal' || hasUserLibrary() || libraryMatches().length > 0
+      ? 'Ваши данные'
+      : 'Личные записи',
   );
 
   const ariaLabel = createMemo(() =>
-    hasUserLibrary() || libraryMatches().length > 0
+    sectionLabel() === 'Ваши данные'
       ? 'Совпадения в личных данных'
       : 'Совпадения в личных заметках',
   );
@@ -135,9 +137,6 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
           onClick={() => setCollapsed((value) => !value)}
         >
           <span class="personal-note-badge">{sectionLabel()}</span>
-          <small class="personal-note-matches__disclaimer">
-            Не официальный источник. Только на этом устройстве.
-          </small>
           <AppGlyph
             name="caret-down"
             class={

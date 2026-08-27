@@ -242,6 +242,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     sectionSelector: '.document-overlay-section',
     outlineItemAttr: 'data-section-anchor',
     scrollSpyWhen: () => Boolean(props.document) && orderedSections().length > 0,
+    onBeforeScrollTo: (anchor) => {
+      const sectionIndex = sectionIndexForAnchor(orderedSections(), anchor);
+      if (sectionIndex >= mountedSectionCount()) setMountedSectionCount(sectionIndex + 1);
+    },
     onScrollTo: (_anchor, section) => {
       const heading = section?.querySelector<HTMLElement>('.document-overlay-section__title');
       if (heading) {
@@ -378,7 +382,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     <DocumentReaderChromeShell
       ariaLabel={pageTitle()}
       class="document-page document-overlay page-surface page-grain"
-      classList={{ 'document-overlay--loading': !props.document }}
       chrome={chrome}
       searchOpen={findOpen}
       trail={props.trail}
@@ -423,8 +426,19 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
           )}
         </Show>
       }
-      showLayout={!props.openError}
-      loadingBody={undefined}
+      showLayout={Boolean(props.document) && !props.openError}
+      loadingBody={
+        <Show when={!props.document && !props.openError}>
+          <div
+            class="document-page__loading"
+            role="status"
+            aria-live="polite"
+            aria-label="Загрузка страницы"
+          >
+            <span class="document-page__loading-spinner" aria-hidden="true" />
+          </div>
+        </Show>
+      }
       outlineSearchSlot={
         <Show when={props.document}>
           <p class="document-overlay-outline-label">Оглавление</p>
@@ -449,7 +463,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 <span class="document-overlay-outline-section-number">
                   {String(index() + 1).padStart(2, '0')}
                 </span>
-                {section.title}
+                <span class="document-overlay-outline-section-button__label">{section.title}</span>
               </button>
             );
           }}
@@ -480,11 +494,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       }
       content={
         <article ref={chrome.setPaper} class="document-overlay-paper">
-          <Show when={!props.document && !props.openError}>
-            <div class="document-overlay-spinner-overlay" role="status" aria-live="polite">
-              <span class="document-overlay-spinner" aria-hidden="true" />
-            </div>
-          </Show>
           <Show when={props.document}>
             {(documentValue) => (
               <>
@@ -726,9 +735,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   }}
                 </For>
                 <Show when={sectionsPending()}>
-                  <p class="document-overlay-paper__pending" role="status" aria-live="polite">
-                    Загружаем остальные разделы…
-                  </p>
+                  <div
+                    class="document-overlay-paper__pending"
+                    role="status"
+                    aria-label="Загружаем остальные разделы"
+                  >
+                    <span class="document-overlay-spinner" aria-hidden="true" />
+                  </div>
                 </Show>
               </>
             )}

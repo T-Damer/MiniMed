@@ -52,6 +52,7 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
           class="app-context-menu__item"
           classList={{ 'app-context-menu__item--danger': Boolean(props.action.danger) }}
           disabled={props.action.disabled ?? false}
+          onClick={(event) => event.stopPropagation()}
           onSelect={() => props.action.onSelect?.()}
         >
           <Show when={props.action.icon}>

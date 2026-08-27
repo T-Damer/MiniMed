@@ -13,7 +13,7 @@ import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
-import { AppGlyph } from '@/components/AppGlyph';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { AudioWaveformPlayer } from '@/components/AudioWaveformPlayer';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { isAsrReady, transcribeBlob } from '@/features/asr/asr-models';
@@ -29,6 +29,7 @@ import {
 } from '@/features/library/document-reader-chrome';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { escapePrintHtml } from '@/features/library/user-document-reader-helpers';
+import { AttachmentViewerDialog, type ViewerState } from '@/features/notes/NoteAttachmentViewer';
 import { NoteSearchToggle, NoteTextSearch } from '@/features/notes/NoteTextSearch';
 import type { NoteWysiwyg } from '@/features/notes/note-wysiwyg';
 import {
@@ -36,11 +37,22 @@ import {
   EMPTY_NOTE_MARKS,
   type NoteWysiwygMarks,
 } from '@/features/notes/note-wysiwyg';
+import { isNotesFullscreenRoute, withNotesFullscreen } from '@/features/notes/notes-routing';
 import { VoiceRecordingButton } from '@/features/notes/VoiceRecordingButton';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { buildOfficialDocumentHash, parseDocumentReadRoute } from '@/state/document-route';
 import { loadPatientNotes } from '@/state/patient-notes';
 import '@/styles/note-markdown-editor.css';
+
+export interface EditorFileAttachment {
+  readonly key: string;
+  readonly name: string;
+  readonly kind: 'image' | 'video' | 'audio' | 'pdf' | 'text' | 'download';
+  readonly src?: string;
+  readonly sizeBytes: number;
+  readonly datesLabel: string;
+  readonly viewer: ViewerState;
+}
 
 interface NoteMarkdownEditorProps {
   readonly label: string;
@@ -49,6 +61,8 @@ interface NoteMarkdownEditorProps {
   readonly documents: readonly MedicalDocumentSummary[];
   readonly priorityDocumentIds?: readonly string[];
   readonly onOpenImages?: () => void;
+  readonly onOpenFiles?: () => void;
+  readonly fileAttachments?: readonly EditorFileAttachment[];
   readonly recordingOwnerId?: string;
   readonly onRecordAudio?: (
     file: File,
@@ -81,11 +95,67 @@ interface MentionSuggestion {
   readonly priority?: boolean;
 }
 
+type SlashCommandId = 'reminder' | 'voice' | 'attachment' | 'file';
+
+interface SlashCommand {
+  readonly id: SlashCommandId;
+  readonly label: string;
+  readonly hint: string;
+  readonly aliases: readonly string[];
+  readonly icon: AppGlyphName;
+}
+
+const SLASH_COMMANDS: readonly SlashCommand[] = [
+  {
+    id: 'reminder',
+    label: 'Напоминание',
+    hint: 'Добавить задачу или напоминание',
+    aliases: ['reminder', 'задача', 'напомнить'],
+    icon: 'clock',
+  },
+  {
+    id: 'voice',
+    label: 'Голос',
+    hint: 'Записать голосовую заметку',
+    aliases: ['voice', 'голос', 'аудио'],
+    icon: 'microphone',
+  },
+  {
+    id: 'attachment',
+    label: 'Вложение',
+    hint: 'Добавить изображение или вложение',
+    aliases: ['attachment', 'вложение', 'изображение', 'картинка'],
+    icon: 'file-plus',
+  },
+  {
+    id: 'file',
+    label: 'Файл',
+    hint: 'Добавить файл из устройства',
+    aliases: ['file', 'файл', 'документ'],
+    icon: 'file-text',
+  },
+];
+
 interface PendingRecording {
   readonly file: File;
   readonly url: string;
   readonly ownerId: string;
   readonly persistedFileId?: string;
+}
+
+const FILE_BLOCK_GLYPHS: Record<EditorFileAttachment['kind'], AppGlyphName> = {
+  image: 'image',
+  video: 'film-slate',
+  audio: 'music-notes',
+  pdf: 'file-text',
+  text: 'file-text',
+  download: 'file-plus',
+};
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} КБ`;
+  return `${(bytes / 1024 / 1024).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
 }
 
 interface TocEntry {
@@ -111,11 +181,14 @@ function noteTitle(text: string): string {
 }
 
 interface WysiwygFieldProps {
+  readonly label: string;
   readonly initialValue: string;
   readonly latest: () => string;
   readonly disabled: boolean;
   readonly onChange: (markdown: string) => void;
   readonly onReady: (instance: NoteWysiwyg | null) => void;
+  readonly onInput?: () => void;
+  readonly onKeyDown?: (event: KeyboardEvent) => void;
 }
 
 function WysiwygField(props: WysiwygFieldProps): JSX.Element {
@@ -123,9 +196,13 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
   const instanceRef: { current: NoteWysiwyg | null } = { current: null };
 
   const handleKeyDown = (event: KeyboardEvent): void => {
+    props.onKeyDown?.(event);
+    if (event.defaultPrevented) return;
     if (event.key !== 'Enter' || event.shiftKey) return;
     if (instanceRef.current?.escapeQuoteOnEnter()) event.preventDefault();
   };
+
+  const handleInput = (): void => props.onInput?.();
 
   const handleLinkClick = (event: MouseEvent): void => {
     const anchor = (event.target as HTMLElement | null)?.closest('a');
@@ -144,14 +221,17 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
 
   onMount(() => {
     host.addEventListener('click', handleLinkClick);
-    host.addEventListener('keydown', handleKeyDown);
+    host.addEventListener('keydown', handleKeyDown, true);
+    host.addEventListener('input', handleInput);
     onCleanup(() => {
       host.removeEventListener('click', handleLinkClick);
-      host.removeEventListener('keydown', handleKeyDown);
+      host.removeEventListener('keydown', handleKeyDown, true);
+      host.removeEventListener('input', handleInput);
     });
     let disposed = false;
     void createNoteWysiwyg({
       root: host,
+      label: props.label,
       initialValue: props.initialValue,
       editable: () => !props.disabled,
       onChange: (markdown) => props.onChange(markdown),
@@ -183,9 +263,12 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
 }
 
 export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element {
-  const [fullscreen, setFullscreen] = createSignal(false);
+  const [fullscreen, setFullscreenState] = createSignal(isNotesFullscreenRoute());
   const [mentionOpen, setMentionOpen] = createSignal(false);
   const [mentionQuery, setMentionQuery] = createSignal('');
+  const [slashOpen, setSlashOpen] = createSignal(false);
+  const [slashQuery, setSlashQuery] = createSignal('');
+  const [slashActive, setSlashActive] = createSignal(0);
   const [toc, setToc] = createSignal<readonly TocEntry[]>([]);
   const [selectionMenu, setSelectionMenu] = createSignal<{ x: number; y: number } | null>(null);
   const [activeState, setActiveState] = createSignal({
@@ -204,6 +287,8 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
   const [deleteTarget, setDeleteTarget] = createSignal<PendingRecording | null>(null);
   const [asrPromptOpen, setAsrPromptOpen] = createSignal(false);
   const [transcribingKey, setTranscribingKey] = createSignal<string | null>(null);
+  const [mentionActive, setMentionActive] = createSignal(0);
+  const [fileViewer, setFileViewer] = createSignal<ViewerState | null>(null);
 
   let wysiwyg: NoteWysiwyg | null = null;
   let editorSurfaceRoot: HTMLElement | undefined;
@@ -211,6 +296,17 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
   let tocRefreshTimer: ReturnType<typeof setTimeout> | undefined;
   const [text, setText] = createSignal(props.value);
   const [recordingOwnerId, setRecordingOwnerId] = createSignal('');
+
+  const setFullscreen = (enabled: boolean): void => {
+    setFullscreenState(enabled);
+    const currentHash = window.location.hash;
+    const nextHash = withNotesFullscreen(currentHash, enabled);
+    if (nextHash === currentHash) return;
+    const currentHistoryState = window.history.state;
+    const nextHistoryState =
+      currentHistoryState && typeof currentHistoryState === 'object' ? currentHistoryState : {};
+    window.history.replaceState({ ...nextHistoryState, noteFullscreen: enabled }, '', nextHash);
+  };
 
   const chrome = useDocumentReaderChrome({
     sectionSelector:
@@ -242,6 +338,9 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       if (event.key !== 'Escape') return;
       event.preventDefault();
       setMentionOpen(false);
+      setSlashOpen(false);
+      setSlashQuery('');
+      setSlashActive(0);
       setSelectionMenu(null);
       setFullscreen(false);
     };
@@ -439,14 +538,210 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     wysiwyg?.insert(`${suggestion.markdown} `);
     setMentionOpen(false);
     setMentionQuery('');
+    setMentionActive(0);
     wysiwyg?.focus();
   };
+
+  const slashSuggestions = createMemo(() => {
+    const needle = normalizeRu(slashQuery().trim());
+    return SLASH_COMMANDS.filter(
+      (command) =>
+        needle.length === 0 ||
+        [command.label, ...command.aliases].some((field) => normalizeRu(field).includes(needle)),
+    );
+  });
+
+  const closeSlashMenu = (focus = true): void => {
+    setSlashOpen(false);
+    setSlashQuery('');
+    setSlashActive(0);
+    if (focus) wysiwyg?.focus();
+  };
+
+  const syncSlashMenu = (): void => {
+    if (props.disabled) return;
+    const match = /(?:^|\s)\/([\p{L}\p{N}_-]*)$/u.exec(wysiwyg?.textBeforeCursor() ?? '');
+    if (!match) {
+      if (slashOpen()) closeSlashMenu(false);
+      return;
+    }
+    setSlashQuery(match[1] ?? '');
+    setSlashOpen(true);
+  };
+
+  const moveSlashActive = (delta: number): void => {
+    const total = slashSuggestions().length;
+    if (total === 0) return;
+    setSlashActive((current) => Math.min(total - 1, Math.max(0, current + delta)));
+  };
+
+  const activateSlashCommand = (command: SlashCommand): void => {
+    wysiwyg?.deleteBeforeCursor('/');
+    closeSlashMenu(false);
+    if (command.id === 'reminder') {
+      if (props.onOpenReminders) {
+        props.onOpenReminders();
+      } else {
+        wysiwyg?.insert('- [ ] Напоминание: ');
+        wysiwyg?.focus();
+      }
+      return;
+    }
+    if (command.id === 'voice') {
+      const scope = editorSurfaceRoot?.closest<HTMLElement>('.note-markdown-editor');
+      const voiceButton = scope?.querySelector<HTMLButtonElement>(
+        '[data-note-voice-button="true"]',
+      );
+      if (voiceButton) {
+        voiceButton.click();
+        return;
+      }
+      toast.info('Голосовая запись недоступна в этом редакторе.');
+      return;
+    }
+    const openFiles =
+      command.id === 'attachment'
+        ? (props.onOpenImages ?? props.onOpenFiles)
+        : (props.onOpenFiles ?? props.onOpenImages);
+    if (openFiles) {
+      openFiles();
+      return;
+    }
+    toast.info('Добавление файлов недоступно в этом редакторе.');
+  };
+
+  const handleEditorKeyDown = (event: KeyboardEvent): void => {
+    if (!slashOpen()) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveSlashActive(1);
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveSlashActive(-1);
+      return;
+    }
+    if (event.key === 'Enter') {
+      const command = slashSuggestions()[slashActive()];
+      if (!command) return;
+      event.preventDefault();
+      activateSlashCommand(command);
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSlashMenu();
+    }
+  };
+
+  createEffect(() => {
+    if (!slashOpen()) return;
+    const total = slashSuggestions().length;
+    setSlashActive((current) => Math.min(total - 1, Math.max(0, current)));
+  });
+
+  createEffect(() => {
+    if (!mentionOpen()) return;
+    suggestions();
+    setMentionActive(0);
+  });
+
+  createEffect(() => {
+    if (!mentionOpen()) return;
+    const active = document.querySelector('.note-markdown-editor__mention--active');
+    active?.scrollIntoView({ block: 'nearest' });
+  });
+
+  // Clicks outside the popup (and its toolbar trigger) dismiss it.
+  createEffect(() => {
+    if (!mentionOpen()) return;
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.note-markdown-editor__mentions')) return;
+      if (target.closest('.note-editor-mention-button')) return;
+      setMentionOpen(false);
+      setMentionQuery('');
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    onCleanup(() => document.removeEventListener('pointerdown', onPointerDown, true));
+  });
+
+  createEffect(() => {
+    if (!slashOpen()) return;
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.note-markdown-editor__slash-menu')) return;
+      if (target.closest('.note-markdown-wysiwyg__surface')) return;
+      closeSlashMenu(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    onCleanup(() => document.removeEventListener('pointerdown', onPointerDown, true));
+  });
+
+  const openMentionMenu = (): void => {
+    setMentionQuery('');
+    setMentionActive(0);
+    setMentionOpen(true);
+  };
+
+  const closeMentionMenu = (): void => {
+    setMentionOpen(false);
+    setMentionQuery('');
+    setMentionActive(0);
+    wysiwyg?.focus();
+  };
+
+  const moveMentionActive = (delta: number): void => {
+    const total = suggestions().length;
+    if (total === 0) return;
+    setMentionActive((current) => Math.min(total - 1, Math.max(0, current + delta)));
+  };
+
+  const handleMentionSearchKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveMentionActive(1);
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveMentionActive(-1);
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const suggestion = suggestions()[mentionActive()];
+      if (suggestion) insertSuggestion(suggestion);
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      closeMentionMenu();
+    }
+  };
+
+  /** Attachments shown inline under the text; fresh recordings are already bubbles. */
+  const visibleFileAttachments = createMemo(() => {
+    const attachments = props.fileAttachments ?? [];
+    if (attachments.length === 0) return [];
+    const pendingIds = new Set(
+      pendingRecordings()
+        .map((recording) => recording.persistedFileId)
+        .filter((id): id is string => Boolean(id)),
+    );
+    return attachments.filter((file) => !pendingIds.has(file.key));
+  });
 
   const handleRecordingComplete = (file: File): void => {
     const ownerId = recordingOwnerId();
     setRecordingOwnerId('');
     const recording: PendingRecording = { file, ownerId, url: URL.createObjectURL(file) };
     setPendingRecordings((current) => [...current, recording]);
+    wysiwyg?.ensureTrailingParagraph();
     void Promise.resolve(props.onRecordAudio?.(file, ownerId))
       .then((persistedFileId) => {
         if (!persistedFileId) return;
@@ -537,198 +832,245 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     if (!printed) toast.error('Не удалось открыть окно печати.');
   };
 
-  const formattingToolbar = (variant: 'embedded' | 'fullscreen'): JSX.Element => (
-    <div
-      class="note-markdown-editor__toolbar"
-      classList={{ 'note-markdown-editor__toolbar--fullscreen': variant === 'fullscreen' }}
-      role="toolbar"
-      aria-label="Форматирование заметки"
-    >
-      <Show when={variant === 'embedded'}>
-        <button
-          class="note-markdown-editor__tool note-markdown-editor__tool--expand"
-          type="button"
-          aria-label="Развернуть редактор"
-          title="На весь экран"
-          onClick={() => setFullscreen(true)}
-        >
-          <AppGlyph name="arrows-out" class="note-markdown-editor__tool-icon" />
-        </button>
-      </Show>
-      <button
-        class="note-markdown-editor__tool"
-        type="button"
-        aria-label="Отменить (Ctrl+Z)"
-        title="Отменить"
-        disabled={props.disabled || !historyState().canUndo}
-        onClick={() => wysiwyg?.undo()}
-      >
-        <AppGlyph name="arrow-u-up-left" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        type="button"
-        aria-label="Вернуть (Ctrl+Shift+Z)"
-        title="Вернуть"
-        disabled={props.disabled || !historyState().canRedo}
-        onClick={() => wysiwyg?.redo()}
-      >
-        <AppGlyph name="arrow-u-up-right" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        classList={{ 'note-markdown-editor__tool--active': activeState().heading }}
-        type="button"
-        aria-label="Заголовок"
-        title="Заголовок"
-        disabled={props.disabled}
-        onClick={() => wysiwyg?.toggleHeading(2)}
-      >
-        <AppGlyph name="text-h-two" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        classList={{ 'note-markdown-editor__tool--active': activeState().strong }}
-        type="button"
-        aria-label="Жирный текст"
-        title="Жирный текст"
-        disabled={props.disabled}
-        onClick={() => wysiwyg?.toggleBold()}
-      >
-        <AppGlyph name="text-b" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        classList={{ 'note-markdown-editor__tool--active': activeState().em }}
-        type="button"
-        aria-label="Курсив"
-        title="Курсив"
-        disabled={props.disabled}
-        onClick={() => wysiwyg?.toggleItalic()}
-      >
-        <AppGlyph name="text-italic" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        type="button"
-        aria-label="Маркированный список"
-        title="Маркированный список"
-        disabled={props.disabled}
-        onClick={() => wysiwyg?.toggleBulletList()}
-      >
-        <AppGlyph name="list-bullets" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        type="button"
-        aria-label="Нумерованный список"
-        title="Нумерованный список"
-        disabled={props.disabled}
-        onClick={() => wysiwyg?.toggleOrderedList()}
-      >
-        <AppGlyph name="list-numbers" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        classList={{ 'note-markdown-editor__tool--active': activeState().highlight }}
-        type="button"
-        aria-label="Выделить текст"
-        title="Выделение"
-        disabled={props.disabled}
-        onClick={() => wysiwyg?.toggleHighlight()}
-      >
-        <AppGlyph name="highlighter" class="note-markdown-editor__tool-icon" />
-      </button>
-      <button
-        class="note-markdown-editor__tool"
-        type="button"
-        aria-label="Формула LaTeX"
-        title="LaTeX"
-        disabled={props.disabled}
-        onClick={() => wysiwyg?.insert('$x = y$')}
-      >
-        <AppGlyph name="math-operations" class="note-markdown-editor__tool-icon" />
-      </button>
-      <Show when={variant === 'fullscreen'}>
-        <NoteSearchToggle onToggle={() => setSearchOpen((open) => !open)} />
-      </Show>
-      <Show when={props.onOpenReminders}>
-        <button
-          class="note-markdown-editor__tool"
-          type="button"
-          aria-label="Напоминание"
-          title="Напоминание"
-          disabled={props.disabled}
-          onClick={() => props.onOpenReminders?.()}
-        >
-          <AppGlyph name="clock" class="note-markdown-editor__tool-icon" />
-        </button>
-      </Show>
-      <Show when={props.onRecordAudio}>
-        <VoiceRecordingButton
-          disabled={Boolean(props.disabled)}
-          onComplete={handleRecordingComplete}
-          onStart={() => setRecordingOwnerId(props.recordingOwnerId ?? '')}
-          onError={(message) => {
-            setRecordingOwnerId('');
-            toast.error(message);
-          }}
-        />
-      </Show>
-      <button
-        class="note-markdown-editor__tool"
-        type="button"
-        aria-label="Упомянуть документ"
-        title="Документ (@)"
-        disabled={props.disabled}
-        onClick={() => {
-          setMentionOpen(true);
-          queueMicrotask(() => wysiwyg?.insert('@'));
+  const formattingToolbar = (variant: 'embedded' | 'fullscreen'): JSX.Element => {
+    const toolGroupClass =
+      variant === 'fullscreen'
+        ? 'note-markdown-editor__tool-group note-markdown-editor__tool-group--fullscreen'
+        : 'note-markdown-editor__tool-group note-markdown-editor__tool-group--embedded';
+
+    return (
+      <div
+        class="note-markdown-editor__toolbar"
+        classList={{
+          'note-markdown-editor__toolbar--embedded': variant === 'embedded',
+          'note-markdown-editor__toolbar--fullscreen': variant === 'fullscreen',
         }}
+        role="toolbar"
+        aria-orientation={variant === 'fullscreen' ? 'horizontal' : 'vertical'}
+        aria-label="Форматирование заметки"
       >
-        <AppGlyph name="at" class="note-markdown-editor__tool-icon" />
-      </button>
-      <Show when={props.onOpenImages}>
-        <button
-          class="note-markdown-editor__tool"
-          type="button"
-          aria-label="Добавить изображение"
-          title="Изображения"
-          disabled={props.disabled}
-          onClick={() => props.onOpenImages?.()}
-        >
-          <AppGlyph name="file-plus" class="note-markdown-editor__tool-icon" />
-        </button>
-      </Show>
-    </div>
-  );
+        <Show when={variant === 'embedded'}>
+          <button
+            class="note-markdown-editor__tool note-markdown-editor__tool--expand"
+            type="button"
+            aria-label="Развернуть редактор"
+            title="На весь экран"
+            onClick={() => setFullscreen(true)}
+          >
+            <AppGlyph name="arrows-out" class="note-markdown-editor__tool-icon" />
+          </button>
+        </Show>
+        <fieldset class={toolGroupClass} aria-label="История изменений">
+          <button
+            class="note-markdown-editor__tool"
+            type="button"
+            aria-label="Отменить (Ctrl+Z)"
+            title="Отменить"
+            disabled={props.disabled || !historyState().canUndo}
+            onClick={() => wysiwyg?.undo()}
+          >
+            <AppGlyph name="arrow-u-up-left" class="note-markdown-editor__tool-icon" />
+          </button>
+          <button
+            class="note-markdown-editor__tool"
+            type="button"
+            aria-label="Вернуть (Ctrl+Shift+Z)"
+            title="Вернуть"
+            disabled={props.disabled || !historyState().canRedo}
+            onClick={() => wysiwyg?.redo()}
+          >
+            <AppGlyph name="arrow-u-up-right" class="note-markdown-editor__tool-icon" />
+          </button>
+        </fieldset>
+        <fieldset class={toolGroupClass} aria-label="Форматирование текста">
+          <button
+            class="note-markdown-editor__tool"
+            classList={{ 'note-markdown-editor__tool--active': activeState().heading }}
+            type="button"
+            aria-label="Заголовок"
+            title="Заголовок"
+            disabled={props.disabled}
+            onClick={() => wysiwyg?.toggleHeading(2)}
+          >
+            <AppGlyph name="text-h-two" class="note-markdown-editor__tool-icon" />
+          </button>
+          <button
+            class="note-markdown-editor__tool"
+            classList={{ 'note-markdown-editor__tool--active': activeState().strong }}
+            type="button"
+            aria-label="Жирный текст"
+            title="Жирный текст"
+            disabled={props.disabled}
+            onClick={() => wysiwyg?.toggleBold()}
+          >
+            <AppGlyph name="text-b" class="note-markdown-editor__tool-icon" />
+          </button>
+          <button
+            class="note-markdown-editor__tool"
+            classList={{ 'note-markdown-editor__tool--active': activeState().em }}
+            type="button"
+            aria-label="Курсив"
+            title="Курсив"
+            disabled={props.disabled}
+            onClick={() => wysiwyg?.toggleItalic()}
+          >
+            <AppGlyph name="text-italic" class="note-markdown-editor__tool-icon" />
+          </button>
+          <button
+            class="note-markdown-editor__tool"
+            classList={{ 'note-markdown-editor__tool--active': activeState().highlight }}
+            type="button"
+            aria-label="Выделить текст"
+            title="Выделение"
+            disabled={props.disabled}
+            onClick={() => wysiwyg?.toggleHighlight()}
+          >
+            <AppGlyph name="highlighter" class="note-markdown-editor__tool-icon" />
+          </button>
+        </fieldset>
+        <fieldset class={toolGroupClass} aria-label="Списки">
+          <button
+            class="note-markdown-editor__tool"
+            type="button"
+            aria-label="Маркированный список"
+            title="Маркированный список"
+            disabled={props.disabled}
+            onClick={() => wysiwyg?.toggleBulletList()}
+          >
+            <AppGlyph name="list-bullets" class="note-markdown-editor__tool-icon" />
+          </button>
+          <button
+            class="note-markdown-editor__tool"
+            type="button"
+            aria-label="Нумерованный список"
+            title="Нумерованный список"
+            disabled={props.disabled}
+            onClick={() => wysiwyg?.toggleOrderedList()}
+          >
+            <AppGlyph name="list-numbers" class="note-markdown-editor__tool-icon" />
+          </button>
+        </fieldset>
+        <fieldset class={toolGroupClass} aria-label="Вставка">
+          <button
+            class="note-markdown-editor__tool"
+            type="button"
+            aria-label="Формула LaTeX"
+            title="LaTeX"
+            disabled={props.disabled}
+            onClick={() => wysiwyg?.insert('$x = y$')}
+          >
+            <AppGlyph name="math-operations" class="note-markdown-editor__tool-icon" />
+          </button>
+        </fieldset>
+        <fieldset class={toolGroupClass} aria-label="Дополнительные действия">
+          <Show when={props.onOpenReminders}>
+            <button
+              class="note-markdown-editor__tool"
+              type="button"
+              aria-label="Напоминание"
+              title="Напоминание"
+              disabled={props.disabled}
+              onClick={() => props.onOpenReminders?.()}
+            >
+              <AppGlyph name="clock" class="note-markdown-editor__tool-icon" />
+            </button>
+          </Show>
+          <Show when={props.onRecordAudio}>
+            <VoiceRecordingButton
+              disabled={Boolean(props.disabled)}
+              onComplete={handleRecordingComplete}
+              onStart={() => setRecordingOwnerId(props.recordingOwnerId ?? '')}
+              onError={(message) => {
+                setRecordingOwnerId('');
+                toast.error(message);
+              }}
+            />
+          </Show>
+          <button
+            class="note-markdown-editor__tool note-editor-mention-button"
+            type="button"
+            classList={{ 'note-markdown-editor__tool--active': mentionOpen() }}
+            aria-label="Упомянуть документ"
+            aria-expanded={mentionOpen()}
+            title="Упоминание (@)"
+            disabled={props.disabled}
+            onClick={() => (mentionOpen() ? closeMentionMenu() : openMentionMenu())}
+          >
+            <AppGlyph name="at" class="note-markdown-editor__tool-icon" />
+          </button>
+          <Show when={props.onOpenImages}>
+            <button
+              class="note-markdown-editor__tool"
+              type="button"
+              aria-label="Добавить изображение"
+              title="Изображения"
+              disabled={props.disabled}
+              onClick={() => props.onOpenImages?.()}
+            >
+              <AppGlyph name="file-plus" class="note-markdown-editor__tool-icon" />
+            </button>
+          </Show>
+          <Show when={props.onOpenFiles && !props.onOpenImages}>
+            <button
+              class="note-markdown-editor__tool"
+              type="button"
+              aria-label="Добавить файл"
+              title="Файл"
+              disabled={props.disabled}
+              onClick={() => props.onOpenFiles?.()}
+            >
+              <AppGlyph name="file-text" class="note-markdown-editor__tool-icon" />
+            </button>
+          </Show>
+        </fieldset>
+      </div>
+    );
+  };
 
   const mentionPopup = (): JSX.Element => (
     <Show when={mentionOpen()}>
-      <div class="note-markdown-editor__mentions" role="listbox">
-        <input
-          class="note-markdown-editor__mentions-search"
-          type="text"
-          placeholder="Поиск документа, калькулятора, теста, заметки"
-          aria-label="Поиск того, что нужно вставить в заметку"
-          value={mentionQuery()}
-          onInput={(event) => setMentionQuery(event.currentTarget.value)}
-          onKeyDown={(event) => {
-            if (event.key !== 'Escape') return;
-            event.stopPropagation();
-            setMentionOpen(false);
-            setMentionQuery('');
-            wysiwyg?.focus();
-          }}
-        />
+      <div class="note-markdown-editor__mentions" role="listbox" aria-label="Упоминания">
+        <div class="note-markdown-editor__mentions-head">
+          <input
+            class="note-markdown-editor__mentions-search"
+            type="text"
+            placeholder="Поиск документа, калькулятора, теста, заметки"
+            aria-label="Поиск того, что нужно вставить в заметку"
+            aria-activedescendant={`mention-option-${mentionActive()}`}
+            value={mentionQuery()}
+            ref={(element) => {
+              queueMicrotask(() => {
+                element.focus();
+                element.select();
+              });
+            }}
+            onInput={(event) => setMentionQuery(event.currentTarget.value)}
+            onKeyDown={handleMentionSearchKeyDown}
+          />
+          <button
+            type="button"
+            class="note-markdown-editor__mentions-close"
+            aria-label="Закрыть меню упоминаний"
+            title="Закрыть"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={closeMentionMenu}
+          >
+            <AppGlyph name="close" class="note-markdown-editor__mentions-close-icon" />
+          </button>
+        </div>
         <For each={suggestions()}>
-          {(suggestion) => (
+          {(suggestion, index) => (
             <button
               class="note-markdown-editor__mention"
+              classList={{
+                'note-markdown-editor__mention--active': mentionActive() === index(),
+              }}
+              id={`mention-option-${index()}`}
               type="button"
               role="option"
-              aria-selected="false"
+              aria-selected={mentionActive() === index()}
               onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setMentionActive(index())}
               onClick={() => insertSuggestion(suggestion)}
             >
               <span class="note-markdown-editor__mention-title">
@@ -756,28 +1098,75 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     </Show>
   );
 
+  const slashPopup = (): JSX.Element => (
+    <Show when={slashOpen()}>
+      <div class="note-markdown-editor__slash-menu" role="listbox" aria-label="Команды вставки">
+        <div class="note-markdown-editor__slash-head">
+          <strong class="note-markdown-editor__slash-title">Добавить</strong>
+          <kbd class="note-markdown-editor__slash-key">/</kbd>
+        </div>
+        <For each={slashSuggestions()}>
+          {(command, index) => (
+            <button
+              id={`slash-option-${index()}`}
+              class="note-markdown-editor__slash-command"
+              classList={{
+                'note-markdown-editor__slash-command--active': slashActive() === index(),
+              }}
+              type="button"
+              role="option"
+              aria-selected={slashActive() === index()}
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setSlashActive(index())}
+              onClick={() => activateSlashCommand(command)}
+            >
+              <span class="note-markdown-editor__slash-icon" aria-hidden="true">
+                <AppGlyph name={command.icon} class="note-markdown-editor__slash-icon-glyph" />
+              </span>
+              <span class="note-markdown-editor__slash-copy">
+                <strong class="note-markdown-editor__slash-label">{command.label}</strong>
+                <small class="note-markdown-editor__slash-hint">{command.hint}</small>
+              </span>
+            </button>
+          )}
+        </For>
+        <Show when={slashSuggestions().length === 0}>
+          <p class="note-markdown-editor__slash-empty">Команда не найдена.</p>
+        </Show>
+      </div>
+    </Show>
+  );
+
   const wysiwygEditor = (variant: 'embedded' | 'fullscreen'): JSX.Element => (
     <div
       ref={(element) => {
         editorSurfaceRoot = element;
       }}
       class={`note-markdown-editor__wysiwyg-host note-markdown-editor__wysiwyg-host--${variant}`}
+      classList={{ 'note-markdown-editor__wysiwyg-host--slash-open': slashOpen() }}
     >
       <Show
         when={!props.disabled}
         fallback={<SafeMarkdown class="note-markdown-editor__readonly-preview" markdown={text()} />}
       >
         <WysiwygField
+          label={props.label}
           initialValue={text()}
           latest={() => text()}
           disabled={Boolean(props.disabled)}
-          onChange={(markdown) => emit(markdown)}
+          onChange={(markdown) => {
+            emit(markdown);
+            syncSlashMenu();
+          }}
+          onInput={syncSlashMenu}
+          onKeyDown={handleEditorKeyDown}
           onReady={(instance) => {
             wysiwyg = instance;
             scheduleTocRefresh();
           }}
         />
       </Show>
+      {slashPopup()}
       {mentionPopup()}
       <Show when={pendingRecordings().length > 0}>
         <div class="note-voice-bubbles">
@@ -809,6 +1198,46 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
           </For>
         </div>
       </Show>
+      <Show when={visibleFileAttachments().length > 0}>
+        <div class="note-file-blocks">
+          <For each={visibleFileAttachments()}>
+            {(file) => (
+              <button
+                type="button"
+                class="note-file-block paper-card"
+                aria-label={`Открыть «${file.name}»`}
+                title={file.name}
+                onClick={() => setFileViewer(file.viewer)}
+              >
+                <span
+                  class={`note-file-block__thumb note-file-kind--${file.kind}`}
+                  aria-hidden="true"
+                >
+                  <Show
+                    when={file.kind === 'image' && file.src}
+                    fallback={
+                      <AppGlyph
+                        name={FILE_BLOCK_GLYPHS[file.kind]}
+                        class="note-file-block__glyph"
+                      />
+                    }
+                  >
+                    {(src) => (
+                      <img class="note-file-block__image" src={src()} alt="" loading="lazy" />
+                    )}
+                  </Show>
+                </span>
+                <span class="note-file-block__info">
+                  <strong class="note-file-block__name">{file.name}</strong>
+                  <small class="note-file-block__meta">{file.datesLabel}</small>
+                  <small class="note-file-block__meta">{formatFileSize(file.sizeBytes)}</small>
+                </span>
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
+      <AttachmentViewerDialog state={fileViewer()} onClose={() => setFileViewer(null)} />
       <ConfirmationDialog
         open={Boolean(deleteTarget())}
         title="Удалить запись?"
@@ -852,24 +1281,21 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       class="note-markdown-editor note-markdown-editor--fullscreen document-page page-surface page-grain"
       ariaLabel="Полноэкранный редактор заметки"
       chrome={chrome}
+      searchOpen={searchOpen}
       chromeClassList={{ 'note-markdown-editor__chrome': true }}
       onBack={() => setFullscreen(false)}
+      onBackIntercept={() => {
+        if (!searchOpen()) return false;
+        setSearchOpen(false);
+        return true;
+      }}
       breadcrumbs={<AppBreadcrumbs items={[{ label: props.label }]} />}
       headerSearchSlot={
-        <button
-          type="button"
-          class="note-markdown-editor__print-button"
-          aria-label="Распечатать заметку"
-          title="Печать"
-          onClick={handlePrint}
-        >
-          <AppGlyph name="printer" class="note-markdown-editor__print-icon" />
-        </button>
-      }
-      bodyPrefix={
-        <div class="note-markdown-editor__chrome-tools">
-          {formattingToolbar('fullscreen')}
-          <Show when={searchOpen()}>
+        <div class="note-markdown-editor__header-actions">
+          <Show
+            when={searchOpen()}
+            fallback={<NoteSearchToggle onToggle={() => setSearchOpen(true)} />}
+          >
             <NoteTextSearch
               surface={() =>
                 editorSurfaceRoot?.querySelector<HTMLElement>('.note-markdown-wysiwyg__surface') ??
@@ -878,7 +1304,21 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
               onClose={() => setSearchOpen(false)}
             />
           </Show>
+          <Show when={!searchOpen()}>
+            <button
+              type="button"
+              class="note-markdown-editor__print-button"
+              aria-label="Распечатать заметку"
+              title="Печать"
+              onClick={handlePrint}
+            >
+              <AppGlyph name="printer" class="note-markdown-editor__print-icon" />
+            </button>
+          </Show>
         </div>
+      }
+      bodyPrefix={
+        <div class="note-markdown-editor__chrome-tools">{formattingToolbar('fullscreen')}</div>
       }
       showLayout
       outlineNav={
@@ -908,7 +1348,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
                   <span class="document-overlay-outline-section-number">
                     {String(index() + 1).padStart(2, '0')}
                   </span>
-                  {item.label}
+                  <span class="document-overlay-outline-section-button__label">{item.label}</span>
                 </button>
               );
             }}

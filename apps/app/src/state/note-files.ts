@@ -21,6 +21,18 @@ export const MAX_NOTE_FILE_BYTES = 64 * 1024 * 1024;
 const listFilesCache = new Map<string, ReadonlyMap<string, readonly NoteFile[]>>();
 const objectUrlCache = new Map<string, string>();
 
+function scheduleLibrarySync(): void {
+  void import('@/state/note-library-sync')
+    .then(({ schedulePatientNotesLibrarySync }) => schedulePatientNotesLibrarySync())
+    .catch((cause) => {
+      console.warn(
+        cause instanceof Error
+          ? `Не удалось подключить синхронизацию вложений: ${cause.message}`
+          : 'Не удалось подключить синхронизацию вложений.',
+      );
+    });
+}
+
 export function invalidateNoteFileCache(): void {
   listFilesCache.clear();
 }
@@ -112,6 +124,7 @@ export async function addNoteFiles(
     database.close();
   }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
+  scheduleLibrarySync();
   return records;
 }
 
@@ -182,6 +195,7 @@ export async function deleteNoteFile(fileId: string): Promise<void> {
     database.close();
   }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
+  scheduleLibrarySync();
 }
 
 export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promise<void> {
@@ -206,6 +220,7 @@ export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promi
     database.close();
   }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
+  scheduleLibrarySync();
 }
 
 /** Save a stored attachment back to the user's machine (web download). */

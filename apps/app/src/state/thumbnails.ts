@@ -1,4 +1,5 @@
 import { scaleThumbnailSize } from '@/state/note-images';
+import { isUserLibraryDicomFile, isUserLibraryVolumeFile } from '@/state/user-library';
 import { readZipEntry } from '@/state/user-library-zip';
 
 const THUMBNAIL_QUALITY = 0.72;
@@ -204,6 +205,14 @@ async function pdfThumbnail(blob: Blob): Promise<string | undefined> {
 export class AttachmentThumbnails {
   async forFile(file: File | Blob, mimeType: string, name?: string): Promise<string | undefined> {
     const lowerName = (name ?? '').toLowerCase();
+    if (isUserLibraryDicomFile(mimeType, lowerName)) {
+      const { createDicomThumbnail } = await import('@/features/library/DicomViewer');
+      return await createDicomThumbnail(file);
+    }
+    if (isUserLibraryVolumeFile(mimeType, lowerName)) {
+      const { createVolumeThumbnail } = await import('@/features/library/VolumeViewer');
+      return await createVolumeThumbnail(file, name ?? 'volume.nii');
+    }
     const isHeic =
       mimeType === 'image/heic' ||
       mimeType === 'image/heif' ||
@@ -211,17 +220,23 @@ export class AttachmentThumbnails {
       lowerName.endsWith('.heif');
     if (isHeic) return (await rasterImageThumbnail(file)) ?? (await embeddedImageThumbnail(file));
     if (mimeType.startsWith('image/')) return await rasterImageThumbnail(file);
-    if (mimeType.startsWith('video/')) return await videoThumbnail(file);
+    if (mimeType.startsWith('video/') || /\.(?:avi|mkv|mov|mp4|webm)$/u.test(lowerName)) {
+      return await videoThumbnail(file);
+    }
     if (mimeType === 'application/pdf') return await pdfThumbnail(file);
     if (mimeType === 'application/epub+zip' || lowerName.endsWith('.epub')) {
       return await epubThumbnail(file);
     }
-    if (mimeType.startsWith('audio/')) return await embeddedImageThumbnail(file);
+    if (mimeType.startsWith('audio/') || /\.(?:flac|m4a|mp3|ogg|wav)$/u.test(lowerName)) {
+      return await embeddedImageThumbnail(file);
+    }
     return undefined;
   }
 }
 
 export const attachmentThumbnails = new AttachmentThumbnails();
+export const previewExtractor = attachmentThumbnails;
+export const thumbnailExtractor = attachmentThumbnails;
 
 /** Readable-in-app categories used to decide viewer vs. download prompt. */
 export type AttachableViewerKind = 'image' | 'video' | 'audio' | 'text' | 'pdf' | 'download';

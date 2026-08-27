@@ -1,6 +1,7 @@
-import { createEffect, createSignal, type JSX, onCleanup, Show } from 'solid-js';
+import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { SearchField } from '@/components/SearchField';
 
 const HIGHLIGHT_NAME = 'note-text-search';
 const ACTIVE_NAME = 'note-text-search-active';
@@ -59,6 +60,11 @@ export function NoteTextSearch(props: {
   const [query, setQuery] = createSignal('');
   const [matches, setMatches] = createSignal<readonly SearchMatch[]>([]);
   const [activeIndex, setActiveIndex] = createSignal(-1);
+  let searchInput: HTMLInputElement | undefined;
+
+  onMount(() => {
+    searchInput?.focus({ preventScroll: true });
+  });
 
   createEffect(() => {
     const surface = props.surface();
@@ -105,28 +111,41 @@ export function NoteTextSearch(props: {
     requestAnimationFrame(scrollToActive);
   };
 
+  const countLabel = (): string =>
+    matches().length > 0 ? `${activeIndex() + 1}/${matches().length}` : '0/0';
+
   onCleanup(() => {
     highlightRegistry()?.delete(HIGHLIGHT_NAME);
     highlightRegistry()?.delete(ACTIVE_NAME);
   });
 
   return (
-    <search class="note-text-search" aria-label="Поиск по заметке">
-      <input
-        class="note-text-search__input"
-        type="text"
-        placeholder="Поиск в заметке"
-        aria-label="Поиск по заметке"
+    <search class="note-text-search note-text-search--open" aria-label="Поиск по заметке">
+      <SearchField
+        class="note-text-search__field"
         value={query()}
-        onInput={(event) => setQuery(event.currentTarget.value)}
+        onInput={setQuery}
+        placeholder="Поиск в заметке"
+        label="Поиск по заметке"
+        hideLabel
+        inputRef={(element) => {
+          searchInput = element;
+        }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') step(event.shiftKey ? -1 : 1);
           if (event.key === 'Escape') props.onClose();
         }}
+        leading={
+          <span
+            class="note-text-search__field-status"
+            role="status"
+            aria-live="polite"
+            aria-label={countLabel() === '0/0' ? 'Нет совпадений' : countLabel()}
+          >
+            {countLabel()}
+          </span>
+        }
       />
-      <span class="note-text-search__count">
-        {matches().length > 0 ? `${activeIndex() + 1}/${matches().length}` : '0/0'}
-      </span>
       <button
         type="button"
         class="note-text-search__button"
@@ -143,14 +162,6 @@ export function NoteTextSearch(props: {
       >
         <AppGlyph name="caret-down" class="note-text-search__icon" />
       </button>
-      <button
-        type="button"
-        class="note-text-search__button"
-        aria-label="Закрыть поиск"
-        onClick={props.onClose}
-      >
-        <AppGlyph name="close" class="note-text-search__icon" />
-      </button>
     </search>
   );
 }
@@ -163,12 +174,12 @@ export const NoteSearchToggle = (props: { readonly onToggle: () => void }): JSX.
   <Show when={hasHighlightSupport()}>
     <button
       type="button"
-      class="note-markdown-editor__tool"
+      class="note-text-search__toggle"
       aria-label="Искать в заметке"
       title="Поиск в заметке"
       onClick={props.onToggle}
     >
-      <AppGlyph name="search" class="note-markdown-editor__tool-icon" />
+      <AppGlyph name="search" class="note-text-search__icon" />
     </button>
   </Show>
 );

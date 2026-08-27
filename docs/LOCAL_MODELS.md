@@ -8,7 +8,7 @@ remain available when the model is absent, downloading, unloaded, unsupported, o
 The experimental slice implements:
 
 - a validated remote/cache/bundled model catalog;
-- two curated Russian-specific Vikhr candidates (compact and balanced tiers);
+- three measured compact/balanced candidates, including Qwen3 0.6B;
 - a lightweight startup device probe;
 - deterministic automatic recommendation;
 - browser/Android-WebView GGUF loading through a dynamically imported wllama runtime;
@@ -38,21 +38,20 @@ The bundled preview catalog contains:
 | Model | Initial tier | Smallest current artifact | Current runtime path |
 | --- | --- | ---: | --- |
 | Vikhr Qwen 2.5 0.5B Q4 | compact/Russian | about 398 MB | browser/Android WebView GGUF; native llama.cpp on Android |
+| Qwen3 0.6B Q8 | compact/multilingual | about 639 MB | browser/Android WebView GGUF; native llama.cpp on Android |
 | QVikhr 3 1.7B Q4 | balanced/Russian | about 1.11 GB | browser/Android WebView GGUF; native llama.cpp on Android |
 
-The catalog was deliberately trimmed to these two Russian-tuned models — every other candidate
-(Qwen3 0.6B/1.7B, Gemma 3 1B IT, Llama 3.2 3B) was a control/experimental entry with no real
-advantage over these two for MiniMed's Russian-first use case, and kept the catalog and its test
-fixtures larger than necessary.
+Qwen3 0.6B is included because it led the current mechanical strict-JSON comparison (4/20 validator
+passes versus 3/20 for QVikhr and 0/20 for Vikhr). None of the three is qualified for clinical
+answers; the result only selects the least-bad query-planning candidate for further testing.
 
 The displayed tier is not a clinical-quality claim. The Russian-tuned models receive a higher initial
 Russian priority because they are instruction-tuned specifically for Russian, but they still have to
 pass MiniMed's own extraction, structured-output, negation, omission, and retrieval benchmarks.
 
-Generic Qwen/Gemma/Llama controls were carried in the catalog through the initial survey, to let the
-benchmark determine whether Russian fine-tuning helps our actual physician queries instead of assuming
-that it does. Once that comparison confirmed no advantage over the two Russian-tuned models above, the
-controls were dropped to keep the catalog and its test fixtures minimal.
+Generic Qwen/Gemma/Llama controls were carried through the initial survey so the benchmark, rather
+than the model family name, determines which candidates remain. Qwen3 0.6B stays because it currently
+leads that comparison; the larger generic controls remain omitted.
 
 ## Russian model survey
 
@@ -60,6 +59,8 @@ The initial survey found several useful Russian open-weight families:
 
 - **Vikhr Qwen 2.5 0.5B**: Apache-2.0, GGUF, approximately 398 MB at Q4_K_M, intended for
   low-end/mobile Russian instruction following;
+- **Qwen3 0.6B**: Apache-2.0, GGUF, approximately 639 MB at Q8_0, currently the strongest of the
+  three candidates on MiniMed's mechanical structured-output validator;
 - **QVikhr 3 1.7B noreasoning**: Apache-2.0, GGUF, approximately 1.11 GB at Q4_K_M, based on
   Qwen3 and tuned for Russian instruction following without a reasoning preamble;
 - **Vikhr Llama 3.2 1B** and **Vikhr Qwen 2.5 1.5B**: viable additional benchmark candidates,
@@ -98,10 +99,9 @@ The remaining candidates are ranked by:
 - CPU probe result;
 - data-saver and connection conditions.
 
-Artifacts up to 1.25 GB can be selected automatically when the model otherwise fits. Larger automatic
-downloads receive a strong penalty unless the device has at least 12 GB RAM and meets the model's
-recommended memory. This permits QVikhr 1.7B on suitable 8 GB devices while keeping Qwen 1.7B Q8 and
-larger candidates conservative.
+Artifacts up to 1.25 GB can be selected automatically when the model otherwise fits. Qwen3 0.6B is
+recommended on supported devices with at least 4 GB reported memory; the smaller Vikhr model remains
+its automatic download fallback.
 
 The selected model uses a reserved download slot. It may download alongside up to three document
 modules and never waits behind the document queue.
@@ -183,8 +183,9 @@ The intended layout is:
 repository main branch
   apps/app/src/features/models/catalog.preview.json
 
-GitHub Release: local-models-preview
+GitHub Release: models-preview-1
   vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf
+  qwen3-0.6b-q8_0.gguf
   qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf
 ```
 
@@ -192,7 +193,7 @@ Configuration:
 
 ```env
 VITE_LOCAL_MODEL_CATALOG_URL=https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/models/catalog.preview.json
-VITE_LOCAL_MODEL_ASSET_BASE_URL=https://github.com/T-Damer/MiniMed/releases/download/local-models-preview
+VITE_LOCAL_MODEL_ASSET_BASE_URL=https://github.com/T-Damer/MiniMed/releases/download/models-preview-1
 VITE_LOCAL_MODEL_ALLOW_UPSTREAM=true
 VITE_LOCAL_MODEL_WEBGPU=true
 VITE_LOCAL_MODEL_AUTOLOAD=true
@@ -238,7 +239,7 @@ is faster than CPU for a particular prompt or decoder workload. No catalog model
 
 The normal pull-request suite validates catalog trust, selection, fallback, strict output contracts and
 application packaging without downloading model weights. A weekly/manual `Local model CPU smoke`
-workflow downloads both bundled Apache-licensed GGUF candidates, verifies SHA-256, loads each in real
+workflow downloads all three bundled Apache-licensed GGUF candidates, verifies SHA-256, loads each in real
 Chromium/wllama, and requires the fixed Russian probe to produce a valid structured result.
 
 Hosted GitHub runners do not establish Android GPU/NPU support or useful mobile performance numbers.

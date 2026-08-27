@@ -51,8 +51,27 @@ function sourceSpanLeft(sourceSpans: unknown, index: number): number | undefined
   return bbox[0];
 }
 
+function implicitListStarts(lines: readonly { readonly text: string }[]): ReadonlySet<number> {
+  const starts = new Set<number>();
+  for (let index = 1; index < lines.length; index += 1) {
+    if (!/[：:]$/u.test(lines[index - 1]?.text ?? '')) continue;
+    let end = index;
+    while (
+      end < lines.length &&
+      /^[\p{Ll}]/u.test(lines[end]?.text ?? '') &&
+      /[.;]$/u.test(lines[end]?.text ?? '')
+    ) {
+      end += 1;
+    }
+    if (end - index >= 2 && /\.$/u.test(lines[end - 1]?.text ?? '')) {
+      for (let item = index; item < end; item += 1) starts.add(item);
+    }
+  }
+  return starts;
+}
+
 function normalizePhrase(value: string): string {
-  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
+  return value.toLowerCase().replaceAll('ё', 'е').trim();
 }
 
 export function parseDocumentText(
@@ -67,10 +86,11 @@ export function parseDocumentText(
       .split('\n')
       .map((text) => ({ sourceIndex, text: text.trim() })),
   );
+  const implicitList = implicitListStarts(lines);
   let activeListIndent: number | undefined;
   let previousSourceIndex: number | undefined;
 
-  for (const line of lines) {
+  for (const [lineIndex, line] of lines.entries()) {
     if (!line.text) continue;
     const bullet = /^[•▪◦●○*+-]\s+(.+)$/u.exec(line.text);
     if (bullet?.[1]) {
@@ -82,6 +102,12 @@ export function parseDocumentText(
     const ordered = /^(\d+)[.)]\s+(.+)$/u.exec(line.text);
     if (ordered?.[1] && ordered[2]) {
       blocks.push({ kind: 'ordered', ordinal: Number(ordered[1]), text: ordered[2] });
+      activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
+      previousSourceIndex = line.sourceIndex;
+      continue;
+    }
+    if (implicitList.has(lineIndex)) {
+      blocks.push({ kind: 'bullet', text: line.text });
       activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
       previousSourceIndex = line.sourceIndex;
       continue;
@@ -123,7 +149,7 @@ function isBoundaryChar(ch: string | undefined): boolean {
 }
 
 function foldChar(ch: string): string {
-  const lower = ch.toLocaleLowerCase('ru-RU');
+  const lower = ch.toLowerCase();
   return lower === 'ё' ? 'е' : lower;
 }
 

@@ -386,7 +386,7 @@
 .assessment-subpage-header__nav {
   display: flex;
   min-width: 0;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--theme-space-2);
 }
 
@@ -406,10 +406,6 @@
   .assessment-subpage-header {
     display: grid;
     gap: 0.35rem;
-  }
-
-  .assessment-subpage-header__nav {
-    align-items: center;
   }
 
   .assessment-subpage-header__body {

@@ -50,6 +50,7 @@ async function serveBuiltAsset(route: Route): Promise<void> {
 
 export interface MountBuiltAppOptions {
   readonly localStorage?: Readonly<Record<string, string>>;
+  readonly origin?: string;
   readonly persistentOrigin?: boolean;
   readonly skipLargeCompanionPacks?: boolean;
   readonly includeMkbCompanionPack?: boolean;
@@ -71,7 +72,8 @@ async function waitForWorkspace(page: Page): Promise<void> {
 }
 
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
-  await page.route(`${E2E_ASSET_ORIGIN}/**`, serveBuiltAsset);
+  const origin = options.origin ?? E2E_ASSET_ORIGIN;
+  if (!options.origin) await page.route(`${origin}/**`, serveBuiltAsset);
   const skippedCompanionPacks = new Set([
     'ambulatory.db',
     ...(options.includeMkbCompanionPack ? [] : ['mkb.db']),
@@ -82,7 +84,7 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
     skippedCompanionPacks.add('medications.db');
   }
   for (const databaseName of skippedCompanionPacks) {
-    await page.route(`${E2E_ASSET_ORIGIN}/content/${databaseName}`, (route) => route.abort());
+    await page.route(`${origin}/content/${databaseName}`, (route) => route.abort());
   }
   const initialStorage = options.localStorage ?? {};
   await page.addInitScript((initialValues) => {
@@ -90,6 +92,6 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
       window.localStorage.setItem(key, value);
     }
   }, initialStorage);
-  await page.goto(`${E2E_ASSET_ORIGIN}/`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
   await waitForWorkspace(page);
 }

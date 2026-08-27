@@ -1,4 +1,4 @@
-import { For, type JSX, onCleanup, Show } from 'solid-js';
+import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
 import { ROOT_VIEWS, type RootView } from '@/app/root-view';
@@ -52,6 +52,9 @@ function FloatingWindowSlot(props: {
   const view = () => props.windowState().view;
   const isActive = () => props.manager.activeWindowId() === id();
   const collapsed = () => props.windowState().collapsed;
+  const [titleOverflows, setTitleOverflows] = createSignal(false);
+  let title: HTMLElement | undefined;
+  let titleText: HTMLSpanElement | undefined;
   const spreadOffset = () => {
     const orderedWindows = [...props.manager.windows()].sort(
       (left, right) => right.zIndex - left.zIndex,
@@ -72,11 +75,28 @@ function FloatingWindowSlot(props: {
       left: `${current.x}px`,
       top: `${current.y + offset.y}px`,
       width: `${current.width}px`,
-      height: current.collapsed ? '2.75rem' : `${current.height}px`,
+      height: current.collapsed
+        ? 'calc(var(--floating-window-toolbar-height) + 2px)'
+        : `${current.height}px`,
       'z-index': current.zIndex,
       transform: `translateX(${offset.x}px)`,
     };
   };
+
+  onMount(() => {
+    if (!title || !titleText) return;
+    const measure = (): void => {
+      setTitleOverflows(titleText.scrollWidth > title.clientWidth + 1);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(title);
+    const frame = requestAnimationFrame(measure);
+    onCleanup(() => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    });
+  });
+
   return (
     <section
       class="floating-window"
@@ -103,10 +123,13 @@ function FloatingWindowSlot(props: {
         >
           <AppGlyph name="close" class="floating-window__icon" />
         </button>
-        <strong class="floating-window__title">
+        <strong class="floating-window__title" ref={title}>
           <span
             class="floating-window__title-text"
-            classList={{ 'floating-window__title-text--marquee': collapsed() }}
+            classList={{
+              'floating-window__title-text--marquee': collapsed() && titleOverflows(),
+            }}
+            ref={titleText}
           >
             {viewLabel(view())}
           </span>
@@ -160,9 +183,7 @@ function FloatingWindowSlot(props: {
           event.stopPropagation();
           props.manager.beginResize(id(), event, 'nw');
         }}
-      >
-        <AppGlyph name="notches" class="floating-window__resize-icon" />
-      </span>
+      />
       <span
         class="floating-window__resize-corner floating-window__resize-corner--ne"
         aria-hidden="true"
@@ -178,7 +199,9 @@ function FloatingWindowSlot(props: {
           event.stopPropagation();
           props.manager.beginResize(id(), event, 'sw');
         }}
-      />
+      >
+        <AppGlyph name="notches" class="floating-window__resize-icon" />
+      </span>
       <span
         class="floating-window__resize-corner floating-window__resize-corner--se"
         aria-hidden="true"

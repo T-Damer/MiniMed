@@ -69,6 +69,7 @@ apps/app/public/tessdata/*.gz
 
 # PDF.js support files copied from the pinned package during Vite builds.
 apps/app/public/pdfjs/
+apps/app/public/cornerstone-codecs/
 
 # Personal medical study library (12GB+, not app source)
 Med/

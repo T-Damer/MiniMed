@@ -8,6 +8,21 @@ function decodeBytes(bytes: Uint8Array): string {
   }
 }
 
+function decodeXmlBytes(bytes: Uint8Array, fallbackEncoding = 'utf-8'): string {
+  const header = new TextDecoder('ascii').decode(bytes.slice(0, 1024));
+  const declared = /encoding\s*=\s*["']([^"']+)["']/iu.exec(header)?.[1]?.toLowerCase();
+  const encoding = declared === 'cp1251' ? 'windows-1251' : declared;
+  for (const candidate of [encoding, 'utf-8', fallbackEncoding]) {
+    if (!candidate) continue;
+    try {
+      return new TextDecoder(candidate, { fatal: true }).decode(bytes);
+    } catch {
+      // Try the next encoding when a book's declaration or bytes are invalid.
+    }
+  }
+  return decodeBytes(bytes);
+}
+
 function decodeRtfBytes(bytes: Uint8Array): string {
   let utf8: string | undefined;
   try {
@@ -276,19 +291,19 @@ function joinZipPath(base: string, relative: string): string {
 async function extractEpubText(data: ArrayBuffer): Promise<string> {
   const containerBytes = await readZipEntry(data, 'META-INF/container.xml');
   if (!containerBytes) return '';
-  const containerXml = decodeBytes(containerBytes);
+  const containerXml = decodeXmlBytes(containerBytes);
   const opfPath = resolveOpfPath(containerXml);
   if (!opfPath) return '';
   const opfBytes = await readZipEntry(data, opfPath);
   if (!opfBytes) return '';
-  const opfXml = decodeBytes(opfBytes);
+  const opfXml = decodeXmlBytes(opfBytes);
   const hrefs = resolveSpineHrefs(opfXml);
   const parts: string[] = [];
   for (const href of hrefs) {
     const contentPath = joinZipPath(opfPath, href);
     const contentBytes = await readZipEntry(data, contentPath);
     if (!contentBytes) continue;
-    const content = decodeBytes(contentBytes);
+    const content = decodeXmlBytes(contentBytes);
     parts.push(extractHtmlText(content));
   }
   return parts
@@ -389,6 +404,175 @@ function extensionOf(fileName: string): string {
   return dot >= 0 ? lower.slice(dot + 1) : '';
 }
 
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+export function isEditableUserLibraryFile(fileName: string, mimeType: string): boolean {
+  const extension = extensionOf(fileName);
+  return (
+    (extension === 'txt' && mimeType === 'text/plain') ||
+    ((extension === 'md' || extension === 'markdown') && mimeType === 'text/markdown') ||
+    (extension === 'rtf' && (mimeType === 'text/rtf' || mimeType === 'application/rtf')) ||
+    (extension === 'docx' && mimeType === DOCX_MIME)
+  );
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/gu, '&amp;')
+    .replace(/</gu, '&lt;')
+    .replace(/>/gu, '&gt;')
+    .replace(/"/gu, '&quot;')
+    .replace(/'/gu, '&apos;');
+}
+
+function escapeRtf(value: string): string {
+  return value.replace(/[\\{}]/gu, (character) => `\\${character}`);
+}
+
+function createRtfText(text: string): string {
+  const output = ['{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Arial;}}\\viewkind4\\uc1\\f0\\fs22 '];
+  const normalized = text.replace(/\r\n?/gu, '\n');
+  for (let index = 0; index < normalized.length; index += 1) {
+    const code = normalized.charCodeAt(index);
+    const character = normalized[index] ?? '';
+    if (character === '\n') {
+      output.push('\\par\n');
+    } else if (character === '\t') {
+      output.push('\\tab ');
+    } else if (code >= 0x20 && code <= 0x7e) {
+      output.push(escapeRtf(character));
+    } else {
+      const signed = code > 0x7fff ? code - 0x10000 : code;
+      output.push(`\\u${String(signed)}?`);
+    }
+  }
+  output.push('}');
+  return output.join('');
+}
+
+function createDocxDocumentXml(text: string): string {
+  const paragraphs = text
+    .replace(/\r\n?/gu, '\n')
+    .split('\n')
+    .map((line) => {
+      const content = escapeXml(line);
+      return `<w:p><w:r><w:t xml:space="preserve">${content}</w:t></w:r></w:p>`;
+    });
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>${paragraphs.join('')}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body>
+</w:document>`;
+}
+
+function writeLittleUint16(buffer: Uint8Array, offset: number, value: number): void {
+  buffer[offset] = value & 0xff;
+  buffer[offset + 1] = (value >>> 8) & 0xff;
+}
+
+function writeLittleUint32(buffer: Uint8Array, offset: number, value: number): void {
+  buffer[offset] = value & 0xff;
+  buffer[offset + 1] = (value >>> 8) & 0xff;
+  buffer[offset + 2] = (value >>> 16) & 0xff;
+  buffer[offset + 3] = (value >>> 24) & 0xff;
+}
+
+const CRC32_TABLE = Array.from({ length: 256 }, (_, index) => {
+  let value = index;
+  for (let bit = 0; bit < 8; bit += 1) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+  return value >>> 0;
+});
+
+function crc32(bytes: Uint8Array): number {
+  let value = 0xffffffff;
+  for (const byte of bytes) value = (CRC32_TABLE[(value ^ byte) & 0xff] ?? 0) ^ (value >>> 8);
+  return (value ^ 0xffffffff) >>> 0;
+}
+
+function createStoredZip(
+  entries: readonly { readonly path: string; readonly text: string }[],
+): ArrayBuffer {
+  const encoder = new TextEncoder();
+  const encoded = entries.map((entry) => ({
+    path: encoder.encode(entry.path),
+    bytes: encoder.encode(entry.text),
+  }));
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
+  let localOffset = 0;
+  for (const entry of encoded) {
+    const checksum = crc32(entry.bytes);
+    const local = new Uint8Array(30 + entry.path.length);
+    writeLittleUint32(local, 0, 0x04034b50);
+    writeLittleUint16(local, 4, 20);
+    writeLittleUint16(local, 6, 0x800);
+    writeLittleUint32(local, 14, checksum);
+    writeLittleUint32(local, 18, entry.bytes.length);
+    writeLittleUint32(local, 22, entry.bytes.length);
+    writeLittleUint16(local, 26, entry.path.length);
+    local.set(entry.path, 30);
+    localParts.push(local, entry.bytes);
+
+    const central = new Uint8Array(46 + entry.path.length);
+    writeLittleUint32(central, 0, 0x02014b50);
+    writeLittleUint16(central, 4, 20);
+    writeLittleUint16(central, 6, 20);
+    writeLittleUint16(central, 8, 0x800);
+    writeLittleUint32(central, 16, checksum);
+    writeLittleUint32(central, 20, entry.bytes.length);
+    writeLittleUint32(central, 24, entry.bytes.length);
+    writeLittleUint16(central, 28, entry.path.length);
+    writeLittleUint32(central, 42, localOffset);
+    central.set(entry.path, 46);
+    centralParts.push(central);
+    localOffset += local.length + entry.bytes.length;
+  }
+
+  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  const end = new Uint8Array(22);
+  writeLittleUint32(end, 0, 0x06054b50);
+  writeLittleUint16(end, 8, encoded.length);
+  writeLittleUint16(end, 10, encoded.length);
+  writeLittleUint32(end, 12, centralSize);
+  writeLittleUint32(end, 16, localOffset);
+  const output = new Uint8Array(localOffset + centralSize + end.length);
+  let offset = 0;
+  for (const part of [...localParts, ...centralParts, end]) {
+    output.set(part, offset);
+    offset += part.length;
+  }
+  return output.buffer;
+}
+
+export function createEditableUserLibraryFile(
+  fileName: string,
+  mimeType: string,
+  text: string,
+): File {
+  if (!isEditableUserLibraryFile(fileName, mimeType)) {
+    throw new Error('Этот тип файла нельзя редактировать во встроенном редакторе.');
+  }
+  const extension = extensionOf(fileName);
+  const normalized = text.replace(/\r\n?/gu, '\n');
+  if (extension === 'rtf') {
+    return new File([createRtfText(normalized)], fileName, { type: mimeType });
+  }
+  if (extension === 'docx') {
+    const zip = createStoredZip([
+      {
+        path: '[Content_Types].xml',
+        text: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="${DOCX_MIME}.main+xml"/></Types>`,
+      },
+      {
+        path: '_rels/.rels',
+        text: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`,
+      },
+      { path: 'word/document.xml', text: createDocxDocumentXml(normalized) },
+    ]);
+    return new File([zip], fileName, { type: mimeType });
+  }
+  return new File([normalized], fileName, { type: mimeType });
+}
+
 function isZipOfficeFormat(extension: string, mimeType: string): boolean {
   return (
     extension === 'docx' ||
@@ -413,6 +597,13 @@ export async function validateUserLibraryFile(
   if (extension === 'pdf') {
     const header = decodeBytes(bytes.slice(0, 5));
     if (header !== '%PDF-') throw new Error('Файл PDF имеет некорректный заголовок.');
+  }
+
+  if (extension === 'dcm' || extension === 'dicom' || mimeType === 'application/dicom') {
+    const prefix = decodeBytes(bytes.slice(128, 132));
+    if (bytes.byteLength < 132 || prefix !== 'DICM') {
+      throw new Error('Файл DICOM не содержит заголовок Part 10.');
+    }
   }
 
   if (isZipOfficeFormat(extension, mimeType)) {
@@ -442,7 +633,10 @@ export async function validateUserLibraryFile(
   if (extension === 'rtf' && !decodeBytes(bytes.slice(0, 32)).trimStart().startsWith('{\\rtf')) {
     throw new Error('Файл RTF имеет некорректный заголовок.');
   }
-  if (extension === 'fb2' && !decodeBytes(bytes.slice(0, 4096)).includes('<FictionBook')) {
+  if (
+    extension === 'fb2' &&
+    !/<FictionBook(?:\s|>)/iu.test(decodeXmlBytes(bytes.slice(0, 4096), 'windows-1251'))
+  ) {
     throw new Error('Файл FB2 имеет некорректную структуру.');
   }
 }
@@ -495,9 +689,9 @@ export async function extractUserLibraryText(
     extension === 'fb2' ||
     (extension === 'xml' &&
       bytes.length > 4 &&
-      decodeBytes(bytes.slice(0, 100)).includes('<FictionBook'))
+      /<FictionBook(?:\s|>)/iu.test(decodeXmlBytes(bytes.slice(0, 100), 'windows-1251')))
   ) {
-    return extractFb2Text(decodeBytes(bytes));
+    return extractFb2Text(decodeXmlBytes(bytes, 'windows-1251'));
   }
 
   if (

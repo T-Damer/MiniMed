@@ -452,6 +452,15 @@ function persist(snapshot: PatientNotesSnapshot): PatientNotesSnapshot {
     console.warn('Заметки сохранены локально, но IndexedDB сейчас недоступна.');
   });
   window.dispatchEvent(new CustomEvent(PATIENT_NOTES_EVENT, { detail: snapshot }));
+  void import('@/state/note-library-sync')
+    .then(({ schedulePatientNotesLibrarySync }) => schedulePatientNotesLibrarySync())
+    .catch((cause) => {
+      console.warn(
+        cause instanceof Error
+          ? `Не удалось подключить синхронизацию заметок: ${cause.message}`
+          : 'Не удалось подключить синхронизацию заметок.',
+      );
+    });
   return snapshot;
 }
 

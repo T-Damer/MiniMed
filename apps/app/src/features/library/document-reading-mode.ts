@@ -25,6 +25,9 @@ export function markUserDocumentPdf(active: boolean): void {
   setUserDocumentPdfActive(active);
 }
 
+/** Set by the active user-document reader while a CT/MRI viewer owns the full page. */
+export const [medicalImageViewerActive, markMedicalImageViewerActive] = createSignal(false);
+
 const TWO_PAGE_KEY = 'minimed.userDocTwoPage';
 
 function readTwoPageMode(): boolean {

@@ -11,6 +11,9 @@
   "engines": {
     "node": ">=22.12.0"
   },
+  "overrides": {
+    "onnxruntime-web": "1.27.0"
+  },
   "scripts": {
     "dev": "bun run --filter @localmed/app dev",
     "dev:landing": "bun run --filter @localmed/landing dev",

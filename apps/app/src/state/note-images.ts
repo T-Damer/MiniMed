@@ -21,6 +21,18 @@ const ALLOWED_IMAGE_TYPES = new Set(['image/gif', 'image/jpeg', 'image/png', 'im
 
 const listImageCache = new Map<string, ReadonlyMap<string, readonly NoteImage[]>>();
 
+function scheduleLibrarySync(): void {
+  void import('@/state/note-library-sync')
+    .then(({ schedulePatientNotesLibrarySync }) => schedulePatientNotesLibrarySync())
+    .catch((cause) => {
+      console.warn(
+        cause instanceof Error
+          ? `Не удалось подключить синхронизацию вложений: ${cause.message}`
+          : 'Не удалось подключить синхронизацию вложений.',
+      );
+    });
+}
+
 export function scaleThumbnailSize(
   width: number,
   height: number,
@@ -183,6 +195,7 @@ export async function addNoteImages(
   }
   invalidateListCache();
   window.dispatchEvent(new CustomEvent(NOTE_IMAGES_EVENT, { detail: { noteId } }));
+  scheduleLibrarySync();
   return records;
 }
 
@@ -277,6 +290,7 @@ export async function deleteNoteImage(imageIdValue: string): Promise<void> {
   }
   invalidateListCache();
   window.dispatchEvent(new CustomEvent(NOTE_IMAGES_EVENT));
+  scheduleLibrarySync();
 }
 
 export async function deleteNoteImagesForNotes(noteIds: readonly string[]): Promise<void> {
@@ -303,4 +317,5 @@ export async function deleteNoteImagesForNotes(noteIds: readonly string[]): Prom
   }
   invalidateListCache();
   window.dispatchEvent(new CustomEvent(NOTE_IMAGES_EVENT));
+  scheduleLibrarySync();
 }

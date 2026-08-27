@@ -12,6 +12,16 @@ function futureDateInput(days = 2): string {
   return date.toISOString().slice(0, 10);
 }
 
+async function setReminderDate(page: Page, value = futureDateInput()): Promise<void> {
+  await page
+    .locator('.native-datetime-field__wrapper input[type="date"]')
+    .evaluate((input, date) => {
+      const field = input as HTMLInputElement;
+      field.value = date;
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+    }, value);
+}
+
 test('keeps patient note records local, editable in nested routes, and findable from search', async ({
   page,
 }) => {
@@ -35,24 +45,21 @@ test('keeps patient note records local, editable in nested routes, and findable 
   await page
     .getByLabel('Новая заметка для Иванов И., 3 года, 20 кг')
     .fill('Назначен цефтриаксон, вторая линия при пневмонии');
-  const imageTransfer = await page.evaluateHandle(() => {
-    const transfer = new DataTransfer();
-    transfer.items.add(
-      new File(['image'], 'очень-длинное-название-осмотра.png', { type: 'image/png' }),
-    );
-    return transfer;
+  await page.getByLabel('Добавить вложения').setInputFiles({
+    name: 'очень-длинное-название-осмотра.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('image'),
   });
-  await page.locator('.note-image-picker').dispatchEvent('drop', {
-    dataTransfer: imageTransfer,
-  });
-  await imageTransfer.dispose();
   await expect(page.locator('.note-image-previews img')).toBeVisible();
   await page.getByLabel('Назад к записям').click();
   const record = page.locator('.patient-note-record');
   await expect(record).toContainText('Назначен цефтриаксон');
-  await record.getByRole('button').first().click();
+  await record
+    .getByRole('button')
+    .first()
+    .click({ position: { x: 8, y: 8 } });
   await expect(page.getByText('Редактировать запись', { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Текст записи')).toHaveValue(/Назначен цефтриаксон/u);
+  await expect(page.getByLabel('Текст записи')).toContainText(/Назначен цефтриаксон/u);
   await expect(page.locator('.record-images-editor .note-image-previews img')).toBeVisible();
   await page.getByLabel('Назад к записям').click();
   await navigationButton(page, 'Поиск').click();
@@ -71,12 +78,14 @@ test('keeps patient note records local, editable in nested routes, and findable 
 
   const personal = page.locator('.personal-note-matches');
   await expect(personal).toBeVisible();
-  await expect(personal.getByText('Личные записи').first()).toBeVisible();
-  await expect(personal.getByText(/Не официальный источник/u)).toBeVisible();
+  await expect(
+    personal.getByRole('button', { name: 'Развернуть раздел «Ваши данные»' }),
+  ).toBeVisible();
+  await expect(personal.getByText(/Не официальный источник/u)).toHaveCount(0);
   await expect(personal).toContainText('Иванов И., 3 года, 20 кг');
   await expect(page.getByTestId('search-results')).not.toContainText('Иванов И.');
 
-  await personal.getByRole('button', { name: 'Развернуть раздел «Личные записи»' }).click();
+  await personal.getByRole('button', { name: 'Развернуть раздел «Ваши данные»' }).click();
   await personal.getByRole('button', { name: 'Открыть заметки' }).click();
   await expect(page.getByRole('heading', { name: 'Заметки' })).toBeVisible();
 });
@@ -162,7 +171,7 @@ test('a reminder can be attached while writing a note', async ({ page }) => {
   await card.click();
   await page.getByRole('button', { name: 'Добавить запись' }).click();
   await page.getByLabel('Новая заметка для Сидорова А.').fill('Повторный осмотр');
-  await page.getByLabel('Дата напоминания').fill(futureDateInput());
+  await setReminderDate(page);
   await expect(page.getByText('Системное уведомление', { exact: true })).toHaveCount(0);
   await page.getByLabel('Назад к записям').click();
 
@@ -182,12 +191,14 @@ test('requires a valid reminder timestamp before installation', async ({ page })
   await page.getByLabel('Новая заметка для Орлова М.').fill('Контроль состояния');
   await page.getByLabel('Назад к записям').click();
   await page.locator('.patient-note-record').getByRole('button').first().click();
+  await page.getByRole('button', { name: 'Напоминание' }).click();
 
   const install = page.getByRole('button', { name: 'Установить' });
   await expect(install).toBeDisabled();
-  await page.getByLabel('Дата напоминания').fill(futureDateInput());
+  await setReminderDate(page);
   await expect(install).toBeEnabled();
   await install.click();
+  await page.getByLabel('Назад к записям').click();
   await expect(page.locator('.note-reminder-link')).toBeVisible();
 });
 

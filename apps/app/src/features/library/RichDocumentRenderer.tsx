@@ -64,7 +64,8 @@ export function RichDocumentRenderer(props: {
             const rendition = book.renderTo(host, {
               width: '100%',
               height: '100%',
-              flow: 'paginated',
+              manager: 'continuous',
+              flow: 'scrolled-continuous',
             });
             await rendition.display();
             if (disposed) {

@@ -5,6 +5,7 @@ import {
   collectionLabel,
   documentCountLabel,
   recommendationCountLabel,
+  sectionCountLabel,
   specialtyLabel,
   specialtyMessageKey,
 } from '@/i18n/labels';
@@ -59,6 +60,12 @@ describe('labels', () => {
     expect(documentCountLabel(1)).toBe('1 документ');
     expect(documentCountLabel(2)).toBe('2 документа');
     expect(documentCountLabel(15)).toBe('15 документов');
+  });
+
+  it('formats section counts with Russian plural rules', () => {
+    expect(sectionCountLabel(1)).toBe('1 раздел');
+    expect(sectionCountLabel(3)).toBe('3 раздела');
+    expect(sectionCountLabel(7)).toBe('7 разделов');
   });
 
   it('localizes module collection ids', () => {

@@ -77,6 +77,11 @@
   border-color: var(--theme-accent);
 }
 
+.module-document-card--disabled:hover {
+  border-color: var(--theme-border);
+  transform: none;
+}
+
 .recommendation-row-actions__remove {
   width: 2.125rem;
   padding: 0.4375rem;
@@ -363,6 +368,10 @@
 .recommendation-section-card--category > .recommendation-section-progress {
   grid-column: 1 / -1;
   grid-row: 2;
+}
+
+.recommendation-row-compact {
+  padding: 0.625rem 0.5rem 0.625rem 0.75rem;
 }
 
 .recommendation-row-compact .recommendation-row-actions {

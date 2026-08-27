@@ -1,5 +1,6 @@
 import type { MedicalCore, MedicalDocument } from '@localmed/contracts';
 import {
+  createDeferred,
   createEffect,
   createMemo,
   createSignal,
@@ -194,7 +195,10 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     openDocumentOverlay(documentId);
   });
 
-  const visibleProducts = createMemo(() => rankMedicationCatalog(products(), searchQuery()));
+  const deferredSearchQuery = createDeferred(searchQuery, { timeoutMs: 120 });
+  const visibleProducts = createMemo(() =>
+    rankMedicationCatalog(products(), deferredSearchQuery()),
+  );
 
   const openProduct = (product: MedicationProduct): void => {
     const documentId = readableMedicationDocumentId(product);

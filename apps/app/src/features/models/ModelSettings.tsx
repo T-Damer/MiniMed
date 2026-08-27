@@ -1,6 +1,7 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { LocalModelController } from '@/features/models/controller';
 import { runtimeAvailableForDevice } from '@/features/models/model-runtime-availability';
@@ -46,18 +47,6 @@ function deviceFitsModel(
 ): boolean | null {
   if (deviceMemoryGb === null || deviceMemoryGb === undefined) return null;
   return deviceMemoryGb >= model.minimumMemoryGb;
-}
-
-function modelDeviceLabel(
-  model: LocalModelDescriptor,
-  deviceMemoryGb: number | null | undefined,
-  available: boolean,
-): string {
-  if (!available) return 'Нет в браузере';
-  const fits = deviceFitsModel(model, deviceMemoryGb);
-  if (fits === true) return 'Подходит';
-  if (fits === false) return 'Мало памяти';
-  return 'Не проверено';
 }
 
 function modelStatusLabel(
@@ -120,6 +109,14 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
   const busyPhase = (): boolean => isActiveLoadPhase(state().phase);
   const inFlightModelId = (): string | null =>
     busyPhase() ? (busyModelId() ?? state().selectedModelId ?? null) : null;
+  const currentStateTitle = (): string =>
+    state().phase === 'ready'
+      ? (props.controller.modelById(state().activeModelId)?.name ?? state().message)
+      : state().message;
+  const currentStateDetail = (): string | null => {
+    if (state().phase === 'idle') return null;
+    return PHASE_LABELS[state().phase];
+  };
 
   const runtimeAvailable = (model: LocalModelDescriptor): boolean => {
     const device = state().device;
@@ -159,64 +156,57 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       </header>
 
       <div class="model-current-state" aria-live="polite">
+        <div class="model-current-state__copy">
+          <strong>{currentStateTitle()}</strong>
+          <Show when={currentStateDetail()}>{(detail) => <span>{detail()}</span>}</Show>
+          <Show when={state().progress !== null}>
+            <div
+              class="model-current-state__progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round((state().progress ?? 0) * 100)}
+            >
+              <i style={{ width: `${Math.round((state().progress ?? 0) * 100)}%` }} />
+            </div>
+          </Show>
+        </div>
         <Show
           when={busyPhase()}
           fallback={
             <Show
               when={state().phase === 'ready'}
               fallback={
-                <>
-                  <div class="model-current-state__copy">
-                    <span>Текущее состояние</span>
-                    <strong>{state().message}</strong>
-                  </div>
-                  <button
-                    type="button"
-                    class="model-current-state__action model-current-state__action--primary model-device-check"
-                    disabled={busyPhase()}
-                    onClick={() => void props.controller.useAutomaticSelection()}
-                  >
-                    Проверить устройство
-                  </button>
-                </>
+                <Button
+                  type="button"
+                  variant="primary"
+                  class="model-current-state__action model-device-check"
+                  disabled={busyPhase()}
+                  onClick={() => void props.controller.start()}
+                >
+                  Проверить устройство
+                </Button>
               }
             >
-              <div class="model-current-state__copy">
-                <span>Используется</span>
-                <strong>{props.controller.modelById(state().activeModelId)?.name}</strong>
-              </div>
-              <button
+              <Button
                 type="button"
-                class="model-current-state__action model-current-state__action--danger"
+                variant="danger"
+                class="model-current-state__action"
                 onClick={() => void props.controller.unload()}
               >
                 Остановить
-              </button>
+              </Button>
             </Show>
           }
         >
-          <div class="model-current-state__copy">
-            <span>{PHASE_LABELS[state().phase]}</span>
-            <strong>{state().message}</strong>
-            <Show when={state().progress !== null}>
-              <div
-                class="model-current-state__progress"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round((state().progress ?? 0) * 100)}
-              >
-                <i style={{ width: `${Math.round((state().progress ?? 0) * 100)}%` }} />
-              </div>
-            </Show>
-          </div>
-          <button
+          <Button
             type="button"
-            class="model-current-state__action model-current-state__action--secondary model-download-cancel"
+            variant="danger"
+            class="model-current-state__action model-download-cancel"
             onClick={cancelLoad}
           >
             Отменить
-          </button>
+          </Button>
         </Show>
       </div>
 
@@ -226,7 +216,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       >
         <details class="model-catalog-details">
           <summary class="model-catalog-details__summary">
-            <strong class="model-catalog-details__title">Доступные модели</strong>
+            <strong class="model-catalog-details__title">Модели</strong>
             <span class="model-catalog-details__count">{models().length}</span>
             <AppGlyph name="caret-down" class="model-catalog-details__chevron" aria-hidden="true" />
           </summary>
@@ -249,7 +239,6 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                     loading: loading(),
                     deviceMemoryGb: deviceMemoryGb(),
                   });
-                const deviceLabel = () => modelDeviceLabel(model, deviceMemoryGb(), available());
                 return (
                   <article
                     class="model-option-card"
@@ -265,41 +254,34 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                   >
                     <div class="model-option-header">
                       <div class="model-option-title">
-                        <h3>{model.name}</h3>
+                        <h3 class="model-option-title__name">{model.name}</h3>
                         <span class="model-tier-chip">{TIER_LABELS[model.tier]}</span>
                       </div>
-                      <span
-                        class="model-option-status"
-                        classList={{
-                          active: active(),
-                          recommended: recommended(),
-                          warning:
-                            available() && deviceFitsModel(model, deviceMemoryGb()) === false,
-                          loading: loading(),
-                          'model-option-status--empty': !statusLabel(),
-                        }}
-                        aria-hidden={statusLabel() ? undefined : 'true'}
-                      >
-                        {statusLabel() ?? '\u00a0'}
-                      </span>
+                      <Show when={statusLabel()}>
+                        {(label) => (
+                          <span
+                            class="model-option-status"
+                            classList={{
+                              active: active(),
+                              recommended: recommended(),
+                              warning:
+                                available() && deviceFitsModel(model, deviceMemoryGb()) === false,
+                              loading: loading(),
+                            }}
+                          >
+                            {label()}
+                          </span>
+                        )}
+                      </Show>
                     </div>
                     <div class="model-option-row">
-                      <dl class="model-option-specs">
-                        <div>
-                          <dt>Размер</dt>
-                          <dd>{size() === null ? '—' : formatBytes(size() ?? 0)}</dd>
-                        </div>
-                        <div>
-                          <dt>ОЗУ</dt>
-                          <dd>от {model.minimumMemoryGb} ГБ</dd>
-                        </div>
-                        <div>
-                          <dt>Устройство</dt>
-                          <dd>{deviceLabel()}</dd>
-                        </div>
-                      </dl>
-                      <button
+                      <p class="model-option-meta">
+                        {size() === null ? 'Размер неизвестен' : formatBytes(size() ?? 0)} · от{' '}
+                        {model.minimumMemoryGb} ГБ ОЗУ
+                      </p>
+                      <Button
                         type="button"
+                        variant={loading() ? 'danger' : active() ? 'secondary' : 'primary'}
                         class="model-option-action"
                         disabled={!available() || (busyPhase() && inFlightModelId() !== model.id)}
                         onClick={() => {
@@ -317,7 +299,7 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
                             : available()
                               ? 'Скачать'
                               : 'Недоступно'}
-                      </button>
+                      </Button>
                     </div>
                     <Show when={model.license.requiresAcceptance && !accepted() && available()}>
                       <p class="model-license-note">
@@ -337,9 +319,14 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
       </Show>
 
       <Show when={state().error}>
-        <button class="model-error-button" type="button" onClick={() => setShowError(true)}>
+        <Button
+          class="model-error-button"
+          type="button"
+          variant="danger"
+          onClick={() => setShowError(true)}
+        >
           Модель не запустилась. Нажмите, чтобы посмотреть причину и повторить проверку.
-        </button>
+        </Button>
       </Show>
 
       <OverlayDialog
@@ -360,20 +347,21 @@ export function ModelSettings(props: ModelSettingsProps): JSX.Element {
           <div class="model-error-actions">
             <Show when={state().selectedModelId}>
               {(modelId) => (
-                <button
+                <Button
                   type="button"
+                  variant="primary"
                   onClick={() => {
                     const model = props.controller.modelById(modelId());
                     if (model) void testModel(model);
                   }}
                 >
                   Повторить проверку
-                </button>
+                </Button>
               )}
             </Show>
-            <button type="button" onClick={() => setShowError(false)}>
+            <Button type="button" onClick={() => setShowError(false)}>
               Выбрать другую модель
-            </button>
+            </Button>
           </div>
           <details class="doctor-technical-details">
             <summary>Данные для сообщения об ошибке</summary>

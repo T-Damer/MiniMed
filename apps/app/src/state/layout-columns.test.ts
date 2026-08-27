@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   chunkLayoutRows,
+  LAYOUT_FOUR_COLUMN_MIN_PX,
+  LAYOUT_SIX_COLUMN_MIN_PX,
   LAYOUT_TABLET_MIN_PX,
   LAYOUT_WIDE_MIN_PX,
   layoutColumnCount,
@@ -18,6 +20,14 @@ describe('layoutColumnCount', () => {
     expect(layoutColumnCount(319, 3, 320)).toBe(1);
     expect(layoutColumnCount(320, 3, 320)).toBe(2);
     expect(layoutColumnCount(LAYOUT_WIDE_MIN_PX, 3, 320)).toBe(3);
+  });
+
+  it('expands the wide file grid while keeping mobile columns compact', () => {
+    expect(layoutColumnCount(390, 6, 320)).toBe(2);
+    expect(layoutColumnCount(LAYOUT_TABLET_MIN_PX, 6, 320)).toBe(3);
+    expect(layoutColumnCount(LAYOUT_FOUR_COLUMN_MIN_PX, 6, 320)).toBe(4);
+    expect(layoutColumnCount(LAYOUT_WIDE_MIN_PX, 6, 320)).toBe(5);
+    expect(layoutColumnCount(LAYOUT_SIX_COLUMN_MIN_PX, 6, 320)).toBe(6);
   });
 });
 

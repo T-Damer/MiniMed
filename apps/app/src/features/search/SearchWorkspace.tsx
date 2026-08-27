@@ -597,7 +597,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
         <Show when={activeAnalysis()}>
           {(analysis) => (
-            <section class="query-index" aria-label="Разбор запроса">
+            <section class="query-index query-index--content-sized" aria-label="Разбор запроса">
               <Show when={analysis().suggestions.length > 0}>
                 <div class="index-row query-index__suggestions">
                   <div class="index-label query-index__label">
@@ -637,9 +637,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       {analysisLoading()
                         ? 'Обновляем разбор…'
                         : `Распознано ${analysis().facts.length} полей · показать детали`}
-                    </span>
-                    <span class="query-index__badge query-index__badge--spacer" aria-hidden="true">
-                      Детали
                     </span>
                   </span>
                 </summary>

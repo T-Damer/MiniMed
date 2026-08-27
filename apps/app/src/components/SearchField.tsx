@@ -12,6 +12,7 @@ export interface SearchFieldProps {
   readonly type?: 'search' | 'text';
   readonly tone?: 'default' | 'inverse';
   readonly class?: string;
+  readonly leading?: JSX.Element;
   readonly autocomplete?: string;
   readonly inputRef?: (element: HTMLInputElement) => void;
   readonly onKeyDown?: JSX.EventHandlerUnion<HTMLInputElement, KeyboardEvent>;
@@ -28,6 +29,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
     'type',
     'tone',
     'class',
+    'leading',
     'autocomplete',
     'inputRef',
   ]);
@@ -47,7 +49,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
         {labelText()}
       </span>
       <span class="archive-search__control">
-        <AppGlyph name="search" class="archive-search__icon" />
+        {local.leading ?? <AppGlyph name="search" class="archive-search__icon" />}
         <input
           {...rest}
           id={fieldId()}

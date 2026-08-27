@@ -9,6 +9,7 @@ import type {
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
 import { printHtmlInNativeShell } from '@/features/printing/native-print';
+import { MINIMED_WEB_APP_URL } from '../../../../../release';
 
 function escapeHtml(value: string): string {
   return value
@@ -22,6 +23,25 @@ function escapeHtml(value: string): string {
 function removeLeadingTitle(title: string, text: string): string {
   const prefix = `${title}\n`;
   return text.startsWith(prefix) ? text.slice(prefix.length) : text;
+}
+
+function printableAssessmentText(text: string, noteTitle = ''): string {
+  const linkedTitle = noteTitle.trim();
+  return text
+    .split('\n')
+    .filter(
+      (line) =>
+        !line.startsWith('Ограничение:') &&
+        !line.startsWith('Версия:') &&
+        !(linkedTitle && line.startsWith('Пациент / участник:')),
+    )
+    .map((line) =>
+      linkedTitle && (line.startsWith('Дата:') || line.startsWith('Дата записи:'))
+        ? `${line} ⋅ ${linkedTitle}`
+        : line,
+    )
+    .join('\n')
+    .trimEnd();
 }
 
 function renderQrCode(value: string): string {
@@ -89,7 +109,7 @@ function printableHtml(title: string, text: string, pageLink: string): string {
 }
 
 export function printText(title: string, text: string): boolean {
-  const html = printableHtml(title, text, window.location.href);
+  const html = printableHtml(title, text, MINIMED_WEB_APP_URL);
   if (printHtmlInNativeShell(html, title)) return true;
   const popup = window.open('', '_blank');
   if (!popup) return false;
@@ -110,19 +130,25 @@ export function printBlankAssessment(definition: AssessmentDefinition): boolean 
   const prefix = `${definition.title}\n${definition.description}\n`;
   return printText(
     definition.title,
-    text.startsWith(prefix)
-      ? text.slice(prefix.length)
-      : removeLeadingTitle(definition.title, text),
+    printableAssessmentText(
+      text.startsWith(prefix)
+        ? text.slice(prefix.length)
+        : removeLeadingTitle(definition.title, text),
+    ),
   );
 }
 
 export function printAssessmentRecord(
   definition: AssessmentDefinition,
   record: AssessmentRecord,
+  noteTitle = '',
 ): boolean {
   return printText(
     definition.title,
-    removeLeadingTitle(definition.title, formatAssessmentRecord(definition, record)),
+    printableAssessmentText(
+      removeLeadingTitle(definition.title, formatAssessmentRecord(definition, record)),
+      noteTitle,
+    ),
   );
 }
 

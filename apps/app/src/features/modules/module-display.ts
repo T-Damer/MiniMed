@@ -34,7 +34,7 @@ export interface ModuleCollectionSubtitleOptions {
 }
 
 export interface OverviewCollectionSubtitleInput {
-  readonly documentCountLabel?: string | null;
+  readonly countLabel?: string | null;
   readonly downloadBytes: number;
   readonly installedBytes: number;
 }
@@ -71,7 +71,7 @@ export function formatOverviewCollectionSubtitle(
   input: OverviewCollectionSubtitleInput,
 ): string | null {
   const size = formatKnownBytes(input.installedBytes) ?? formatKnownBytes(input.downloadBytes);
-  const countLabel = input.documentCountLabel?.trim() || null;
+  const countLabel = input.countLabel?.trim() || null;
   const segments = [countLabel, size].filter((segment): segment is string => Boolean(segment));
   if (segments.length === 0) return null;
   return segments.join(' · ');
@@ -99,6 +99,12 @@ export function primaryModuleDocumentId(module: ContentModuleCatalogEntry): stri
 
 export function moduleListedDocumentCount(module: ContentModuleCatalogEntry): number {
   return Math.max(module.previewDocumentCount ?? 0, module.documents.length);
+}
+
+export function moduleCollectionDocumentCount(
+  modules: readonly ContentModuleCatalogEntry[],
+): number {
+  return modules.reduce((total, module) => total + moduleListedDocumentCount(module), 0);
 }
 
 export function moduleDocumentCountFact(module: ContentModuleCatalogEntry): string {

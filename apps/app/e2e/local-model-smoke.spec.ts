@@ -13,6 +13,7 @@ test('downloads, loads and benchmarks the selected compact CPU model', async ({ 
   if (!modelId || !modelName) throw new Error('LOCAL_MODEL_ID and LOCAL_MODEL_NAME are required.');
 
   await mountBuiltApp(page, {
+    origin: process.env.LOCAL_MODEL_SMOKE_ORIGIN,
     localStorage: {
       'minimed.local-model-preference.v1': JSON.stringify({
         automatic: false,
@@ -27,11 +28,21 @@ test('downloads, loads and benchmarks the selected compact CPU model', async ({ 
     .locator('.app-bottom-nav')
     .getByRole('button', { name: /^Настройки/u })
     .click();
-  await page.getByText('Доступные модели').click();
-  const modelCard = page.locator('.model-option-card').filter({ hasText: modelName });
-  await modelCard.getByRole('button', { name: /Скачать/u }).click();
+  await page.getByRole('button', { name: 'Проверить устройство' }).click();
 
-  const toast = page.getByTestId('local-model-toast');
-  await expect(toast).toContainText('Локальный ИИ готов', { timeout: 12 * 60 * 1000 });
-  await expect(toast).toContainText(modelName);
+  const readyState = page
+    .locator('.model-current-state')
+    .filter({ hasText: 'Используется' })
+    .filter({ hasText: modelName });
+  const errorButton = page.locator('.model-error-button');
+  const outcome = await Promise.race([
+    readyState.waitFor({ timeout: 14 * 60 * 1000 }).then(() => 'ready' as const),
+    errorButton.waitFor({ timeout: 14 * 60 * 1000 }).then(() => 'error' as const),
+  ]);
+  if (outcome === 'error') {
+    const details = page.locator('.model-error-details');
+    if (!(await details.isVisible())) await errorButton.click();
+    throw new Error(await details.innerText());
+  }
+  await expect(readyState).toContainText('Используется');
 });

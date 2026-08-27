@@ -16,11 +16,11 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-import { WindowVirtualizer } from 'virtua/solid';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { CountBadge } from '@/components/CountBadge';
+import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBackWithReturnTo } from '@/components/NavBackWithReturnTo';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
@@ -56,6 +56,7 @@ import {
   formatOverviewCollectionSubtitle,
   MODULE_RELEASE_LABELS,
   MODULE_TASK_LABELS,
+  moduleCollectionDocumentCount,
   moduleDocumentCountFact,
   moduleListedDocumentCount,
   primaryModuleDocumentId,
@@ -67,11 +68,11 @@ import {
 } from '@/features/modules/module-runtime-service';
 import {
   countDocumentsByOverviewBucket,
-  type DocumentOverviewBucket,
   EMPTY_OVERVIEW_DOCUMENT_COUNTS,
 } from '@/features/modules/overview-document-counts';
 import {
   moduleCollectionStats,
+  moduleGroupDownloadProgress,
   modulesInCategory,
   recommendationCategoryDownloadProgress,
   recommendationCategoryStats,
@@ -80,7 +81,12 @@ import {
   installPublishedCategoryModules,
   removeInstalledCategoryModules,
 } from '@/features/modules/recommendation-category-operations';
-import { collectionLabel, documentCountLabel, recommendationCountLabel } from '@/i18n/labels';
+import {
+  collectionLabel,
+  documentCountLabel,
+  recommendationCountLabel,
+  sectionCountLabel,
+} from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
@@ -109,6 +115,10 @@ interface ModuleLoadError {
 
 const INDIVIDUAL_RECOMMENDATION_TAG = 'individual-recommendation';
 const AUTO_UPDATES_PAUSED_KEY = 'minimed.module-auto-updates-paused.v1';
+
+function downloadProgressPercent(progress: ReturnType<typeof moduleGroupDownloadProgress>): number {
+  return Math.round((progress.byteProgress ?? progress.installedFraction) * 100);
+}
 
 function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter(
@@ -239,12 +249,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   };
 
   const overviewSubtitle = (
-    bucket: DocumentOverviewBucket | null,
+    countLabel: string | null,
     stats: { readonly downloadBytes: number; readonly installedBytes: number },
   ): string | null => {
-    const documentCount = bucket ? overviewDocumentCounts()[bucket] : 0;
     return formatOverviewCollectionSubtitle({
-      documentCountLabel: documentCount > 0 ? documentCountLabel(documentCount) : null,
+      countLabel,
       downloadBytes: stats.downloadBytes,
       installedBytes: stats.installedBytes,
     });
@@ -271,6 +280,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const recommendationModules = createMemo(() =>
     catalog().modules.filter((module) => module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
   );
+  const recommendationSectionModules = createMemo(() =>
+    catalog().modules.filter(
+      (module) =>
+        module.kind === 'clinical' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
+    ),
+  );
   const regularModules = createMemo(() =>
     catalog().modules.filter(
       (module) =>
@@ -279,6 +294,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   );
   const regularSectionModules = (section: string): readonly ContentModuleCatalogEntry[] =>
     regularModules().filter((module) => module.kind === section || module.collection === section);
+  const singleRegularSectionModule = (section: string): ContentModuleCatalogEntry | null => {
+    const modules = regularSectionModules(section);
+    return modules.length === 1 ? (modules[0] ?? null) : null;
+  };
   const activeLawsModule = createMemo(() => {
     const specialty = lawsSpecialty();
     if (!specialty) return null;
@@ -350,8 +369,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       categoryModules,
     }),
   );
+  const bulkDownloadProgress = createMemo(() =>
+    moduleGroupDownloadProgress(bulkDownloadModules(), installedModuleIds(), tasks()),
+  );
+  const bulkDownloadPercent = createMemo(() => downloadProgressPercent(bulkDownloadProgress()));
   const activeCategory = createMemo(() =>
     catalog().categories.find((category) => category.id === recommendationCategory()),
+  );
+  const activeCategoryDownloadProgress = createMemo(() =>
+    recommendationCategoryDownloadProgress(
+      recommendationModules(),
+      recommendationCategory(),
+      installedModuleIds(),
+      tasks(),
+    ),
   );
   const activeCategoryComplete = (): boolean => {
     const category = activeCategory();
@@ -705,18 +736,28 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <Show when={pendingDownloadCount() > 0}>
             <button
               type="button"
-              aria-label={`${bulkDownloadLabel()}: ${pendingDownloadCount()}`}
+              aria-label={
+                installingAll()
+                  ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
+                  : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
+              }
               class="module-download-all"
               disabled={installingAll()}
               onClick={() => void installAllAvailable()}
             >
-              <AppGlyph name="download" />
-              <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
+              <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
+                <AppGlyph name="download" class="module-download-all__icon" />
+              </Show>
+              <span>{installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}</span>
             </button>
           </Show>
         </header>
       </Show>
-      <Show when={props.embedded && !lawsSpecialty()}>
+      <Show
+        when={
+          props.embedded && !lawsSpecialty() && !singleRegularSectionModule(regularCollection())
+        }
+      >
         <div
           ref={moduleCatalogHeading}
           class="module-catalog-toolbar knowledge-subroute-heading--blurred route-sticky-chrome"
@@ -766,13 +807,21 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               <Show when={pendingDownloadCount() > 0 && !recommendationCategory()}>
                 <button
                   type="button"
-                  aria-label={`${bulkDownloadLabel()}: ${pendingDownloadCount()}`}
+                  aria-label={
+                    installingAll()
+                      ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
+                      : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
+                  }
                   class="module-download-all"
                   disabled={installingAll()}
                   onClick={() => void installAllAvailable()}
                 >
-                  <AppGlyph name="download" />
-                  <span>{installingAll() ? 'Скачиваем…' : 'Скачать всё'}</span>
+                  <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
+                    <AppGlyph name="download" class="module-download-all__icon" />
+                  </Show>
+                  <span>
+                    {installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}
+                  </span>
                 </button>
               </Show>
               <Show
@@ -832,8 +881,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <LawsDocumentsView
             module={module()}
             installed={Boolean(installedModule(module().id))}
+            downloadAvailable={isModuleReleased(module())}
+            task={moduleTask(module().id)}
+            installError={installErrors()[module().id] || undefined}
             documentTitle={moduleDocumentTitle}
             documentDate={moduleDocumentDate}
+            onInstall={() => install(module())}
+            onRemove={() => requestRemove(module().id)}
             onBack={() => {
               window.location.hash = '#/modules/documents/collection/regulatory';
               syncSelectionFromLocation();
@@ -914,7 +968,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 >
                   <AppGlyph name="notes" class="recommendation-section-card-icon" />
                   <strong class="recommendation-section-card-title">Лекарства</strong>
-                  <Show when={overviewSubtitle('medications', medicationCollectionStats())}>
+                  <Show
+                    when={overviewSubtitle(
+                      overviewDocumentCounts().medications > 0
+                        ? documentCountLabel(overviewDocumentCounts().medications)
+                        : null,
+                      medicationCollectionStats(),
+                    )}
+                  >
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
@@ -925,10 +986,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 {(section) => {
                   const modules = () => regularSectionModules(section);
                   const stats = () => moduleCollectionStats(modules(), installedById());
-                  const overviewBucket = (): DocumentOverviewBucket | null => {
-                    if (section === 'reference') return 'reference';
-                    if (section === 'regulatory') return 'regulatory';
-                    return null;
+                  const countLabel = (): string | null => {
+                    if (section !== 'reference' && section !== 'regulatory') return null;
+                    const count = moduleCollectionDocumentCount(modules());
+                    return count > 0 ? documentCountLabel(count) : null;
                   };
                   return (
                     <Show
@@ -956,7 +1017,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <strong class="recommendation-section-card-title">
                           {regularSectionLabel(section)}
                         </strong>
-                        <Show when={overviewSubtitle(overviewBucket(), stats())}>
+                        <Show when={overviewSubtitle(countLabel(), stats())}>
                           {(subtitle) => (
                             <span class="recommendation-section-card-meta">{subtitle()}</span>
                           )}
@@ -980,7 +1041,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <strong class="recommendation-section-card-title">
                     Клинические рекомендации
                   </strong>
-                  <Show when={overviewSubtitle('clinical', recommendationCollectionStats())}>
+                  <Show
+                    when={overviewSubtitle(
+                      sectionCountLabel(recommendationSectionModules().length),
+                      recommendationCollectionStats(),
+                    )}
+                  >
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
@@ -999,7 +1065,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 >
                   <AppGlyph name="modules" class="recommendation-section-card-icon" />
                   <strong class="recommendation-section-card-title">Ядро</strong>
-                  <Show when={overviewSubtitle('core', coreCollectionStats())}>
+                  <Show
+                    when={overviewSubtitle(
+                      overviewDocumentCounts().core > 0
+                        ? documentCountLabel(overviewDocumentCounts().core)
+                        : null,
+                      coreCollectionStats(),
+                    )}
+                  >
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
@@ -1012,43 +1085,63 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
         <For each={regularCollection() ? [regularCollection()] : []}>
           {(section) => (
-            <section class="module-collection">
-              <div class="module-collection-heading">
-                <h2 class="module-collection-heading__title">{regularSectionLabel(section)}</h2>
-                <CountBadge value={regularSectionModules(section).length} />
-              </div>
-              <div class="module-grid module-grid-two-columns">
-                <For each={visibleRegularSectionModules(section)}>
-                  {(module) => (
-                    <ContentModuleCard
-                      module={module}
-                      installed={installedModule(module.id)}
-                      task={moduleTask(module.id)}
-                      retryScheduled={moduleRetryScheduled(module.id)}
-                      fallbackError={installErrors()[module.id]}
-                      connecting={reconnectingModuleId() === module.id && connecting()}
-                      preinstallOptions={preinstallOptions()}
-                      onInspect={() => {
-                        const route = lawsRouteForModule(module);
-                        if (route) {
-                          window.location.hash = route;
-                          syncSelectionFromLocation();
-                          return;
-                        }
-                        setDetailsModule(module);
-                      }}
-                      onOpenError={(message) =>
-                        setLoadErrorDetails({ title: module.title, message })
-                      }
-                      onInstall={() => void install(module)}
-                      onOpenCore={openCoreLibrary}
-                      onRemove={() => requestRemove(module.id)}
-                      onActivateVersion={(version) => void activateVersion(module.id, version)}
-                    />
-                  )}
-                </For>
-              </div>
-            </section>
+            <Show
+              when={singleRegularSectionModule(section)}
+              fallback={
+                <section class="module-collection">
+                  <div class="module-collection-heading">
+                    <h2 class="module-collection-heading__title">{regularSectionLabel(section)}</h2>
+                    <CountBadge value={regularSectionModules(section).length} />
+                  </div>
+                  <div class="module-grid module-grid-two-columns">
+                    <For each={visibleRegularSectionModules(section)}>
+                      {(module) => (
+                        <ContentModuleCard
+                          module={module}
+                          installed={installedModule(module.id)}
+                          task={moduleTask(module.id)}
+                          retryScheduled={moduleRetryScheduled(module.id)}
+                          fallbackError={installErrors()[module.id]}
+                          connecting={reconnectingModuleId() === module.id && connecting()}
+                          preinstallOptions={preinstallOptions()}
+                          onInspect={() => {
+                            const route = lawsRouteForModule(module);
+                            if (route) {
+                              window.location.hash = route;
+                              syncSelectionFromLocation();
+                              return;
+                            }
+                            setDetailsModule(module);
+                          }}
+                          onOpenError={(message) =>
+                            setLoadErrorDetails({ title: module.title, message })
+                          }
+                          onInstall={() => void install(module)}
+                          onOpenCore={openCoreLibrary}
+                          onRemove={() => requestRemove(module.id)}
+                          onActivateVersion={(version) => void activateVersion(module.id, version)}
+                        />
+                      )}
+                    </For>
+                  </div>
+                </section>
+              }
+            >
+              {(module) => (
+                <LawsDocumentsView
+                  module={module()}
+                  installed={Boolean(installedModule(module().id))}
+                  downloadAvailable={isModuleReleased(module())}
+                  task={moduleTask(module().id)}
+                  installError={installErrors()[module().id] || undefined}
+                  documentTitle={moduleDocumentTitle}
+                  documentDate={moduleDocumentDate}
+                  onInstall={() => install(module())}
+                  onRemove={() => requestRemove(module().id)}
+                  onBack={() => props.onBack?.()}
+                />
+              )}
+            </Show>
           )}
         </For>
       </Show>
@@ -1083,6 +1176,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       tasks(),
                     );
                   const showByteProgress = () => downloadProgress().byteProgress;
+                  const categoryDownloadPercent = () => downloadProgressPercent(downloadProgress());
                   return (
                     <article
                       class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--category"
@@ -1123,6 +1217,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           )}
                         >
                           <i
+                            class="recommendation-section-progress__fill"
                             style={{
                               width: `${Math.round(
                                 (showByteProgress() ?? downloadProgress().installedFraction) * 100,
@@ -1135,33 +1230,47 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <Show
                           when={stats().pendingCount > 0}
                           fallback={
-                            <button
+                            <Button
                               type="button"
-                              class="module-remove-button recommendation-section-actions__remove"
+                              variant="primary"
+                              class="recommendation-delete-button"
                               aria-label={`Удалить раздел «${category.title}»`}
+                              title="Удалить раздел"
                               disabled={stats().installedCount === 0 || categoryBusy()}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 requestRemoveCategory(category.id);
                               }}
-                            >
-                              <Show
-                                when={!categoryBusy()}
-                                fallback={<span class="module-action-spinner" />}
-                              >
-                                <AppGlyph
-                                  name="trash"
-                                  class="recommendation-section-actions__icon"
-                                />
-                              </Show>
-                            </button>
+                              icon={
+                                <Show
+                                  when={!categoryBusy()}
+                                  fallback={<span class="module-action-spinner" />}
+                                >
+                                  <AppGlyph
+                                    name="trash"
+                                    class="recommendation-delete-button__icon"
+                                  />
+                                </Show>
+                              }
+                            />
                           }
                         >
                           <button
                             type="button"
                             class="recommendation-section-actions__download"
-                            aria-label={`Скачать раздел «${category.title}»`}
-                            title="Скачать раздел"
+                            classList={{
+                              'recommendation-section-actions__download--busy': categoryBusy(),
+                            }}
+                            aria-label={
+                              categoryBusy()
+                                ? `Скачивается раздел «${category.title}»: ${categoryDownloadPercent()}%`
+                                : `Скачать раздел «${category.title}»`
+                            }
+                            title={
+                              categoryBusy()
+                                ? `Скачивается ${categoryDownloadPercent()}%`
+                                : 'Скачать раздел'
+                            }
                             disabled={categoryBusy()}
                             onClick={(event) => {
                               event.stopPropagation();
@@ -1170,7 +1279,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           >
                             <Show
                               when={!categoryBusy()}
-                              fallback={<span class="module-action-spinner" />}
+                              fallback={
+                                <>
+                                  <span class="module-action-spinner" />
+                                  <span class="recommendation-section-actions__progress">
+                                    {categoryDownloadPercent()}%
+                                  </span>
+                                </>
+                              }
                             >
                               <AppGlyph
                                 name="download"
@@ -1195,7 +1311,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <button
                     type="button"
                     class="recommendation-list-actions__download"
-                    aria-label={activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}
+                    aria-label={
+                      isCategoryBusy(recommendationCategory())
+                        ? `Скачивается раздел: ${downloadProgressPercent(
+                            activeCategoryDownloadProgress(),
+                          )}%`
+                        : activeCategoryComplete()
+                          ? 'Удалить раздел'
+                          : 'Скачать раздел'
+                    }
                     title={activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}
                     disabled={isCategoryBusy(recommendationCategory())}
                     onClick={() =>
@@ -1211,7 +1335,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         class="recommendation-list-actions__icon"
                       />
                     </Show>
-                    <span>{activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}</span>
+                    <span>
+                      {isCategoryBusy(recommendationCategory())
+                        ? `Скачиваем ${downloadProgressPercent(activeCategoryDownloadProgress())}%`
+                        : activeCategoryComplete()
+                          ? 'Удалить раздел'
+                          : 'Скачать раздел'}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1245,7 +1375,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             </p>
 
             <div class="recommendation-list recommendation-list-compact">
-              <WindowVirtualizer data={filteredRecommendations()} bufferSize={500}>
+              <LayoutVirtualizedGrid
+                data={filteredRecommendations()}
+                bufferSize={500}
+                maxColumns={3}
+              >
                 {(module) => {
                   const installedValue = () => installedModule(module.id);
                   const task = () => moduleTask(module.id);
@@ -1260,128 +1394,143 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     retryScheduled() ||
                     (task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? ''));
                   return (
-                    <>
-                      <article
-                        class="recommendation-row paper-card recommendation-row-compact"
-                        classList={{
-                          'recommendation-row-openable': Boolean(
-                            installedValue() && primaryModuleDocumentId(module),
-                          ),
-                        }}
-                        tabindex={
-                          installedValue() && primaryModuleDocumentId(module) ? 0 : undefined
+                    <article
+                      class="recommendation-row paper-card recommendation-row-compact medication-product-card"
+                      classList={{
+                        'recommendation-row-openable': Boolean(
+                          installedValue() && primaryModuleDocumentId(module),
+                        ),
+                      }}
+                      tabindex={installedValue() && primaryModuleDocumentId(module) ? 0 : undefined}
+                      aria-label={
+                        installedValue() && primaryModuleDocumentId(module)
+                          ? `Открыть «${module.title}»`
+                          : undefined
+                      }
+                      onClick={(event) => {
+                        if (
+                          installedValue() &&
+                          primaryModuleDocumentId(module) &&
+                          !(event.target instanceof HTMLButtonElement)
+                        ) {
+                          openModuleDocument(module);
                         }
-                        aria-label={
-                          installedValue() && primaryModuleDocumentId(module)
-                            ? `Открыть «${module.title}»`
-                            : undefined
+                      }}
+                      onKeyDown={(event) => {
+                        if (
+                          (event.key === 'Enter' || event.key === ' ') &&
+                          installedValue() &&
+                          primaryModuleDocumentId(module)
+                        ) {
+                          event.preventDefault();
+                          openModuleDocument(module);
                         }
-                        onClick={(event) => {
-                          if (
-                            installedValue() &&
-                            primaryModuleDocumentId(module) &&
-                            !(event.target instanceof HTMLButtonElement)
-                          ) {
-                            openModuleDocument(module);
-                          }
-                        }}
-                        onKeyDown={(event) => {
-                          if (
-                            (event.key === 'Enter' || event.key === ' ') &&
-                            installedValue() &&
-                            primaryModuleDocumentId(module)
-                          ) {
-                            event.preventDefault();
-                            openModuleDocument(module);
-                          }
-                        }}
-                      >
-                        <div class="recommendation-row__content recommendation-row-compact__content">
-                          <strong class="recommendation-row__title recommendation-row-compact__title">
-                            {module.title}
-                          </strong>
-                          <span class="recommendation-row__meta">
-                            {[
-                              module.tags.find((tag) => /^\d+_\d+$/u.test(tag)),
-                              formatModuleBytes(module.sizes.downloadBytes),
-                              installedValue()
-                                ? `загружено ${formatModuleBytes(
-                                    installedValue()?.installedSizeBytes ?? null,
-                                  )}`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')}
-                          </span>
-                          <Show when={!installedValue() && working() && progress() !== null}>
-                            <div class="recommendation-row-progress" role="progressbar">
-                              <i style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }} />
-                            </div>
-                          </Show>
-                          <Show when={retryScheduled() || installError()}>
-                            <ModuleTaskStatus
-                              label={
-                                retryScheduled()
-                                  ? 'Повторим автоматически'
-                                  : MODULE_TASK_LABELS[task()?.state ?? 'failed']
-                              }
-                              progress={null}
-                              errorMessage={retryScheduled() ? null : installError()}
-                              onOpenError={() =>
-                                setLoadErrorDetails({
-                                  title: module.title,
-                                  message: installError() ?? 'Не удалось скачать документ.',
-                                })
-                              }
-                            />
-                          </Show>
-                        </div>
-                        <Show
-                          when={!installedValue()}
-                          fallback={
-                            <div class="recommendation-row-actions">
-                              <Button
-                                type="button"
-                                variant="icon"
-                                class="module-remove-button recommendation-row-actions__remove"
-                                aria-label={`Удалить «${module.title}»`}
-                                title="Удалить"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  requestRemove(module.id);
-                                }}
-                                icon={
-                                  <AppGlyph name="trash" class="recommendation-row-actions__icon" />
-                                }
-                              />
-                            </div>
-                          }
-                        >
-                          <Show when={!working()}>
-                            <button
+                      }}
+                    >
+                      <div class="recommendation-row__content recommendation-row-compact__content">
+                        <strong class="recommendation-row__title recommendation-row-compact__title">
+                          {module.title}
+                        </strong>
+                        <span class="recommendation-row__meta">
+                          {[
+                            module.tags.find((tag) => /^\d+_\d+$/u.test(tag)),
+                            formatModuleBytes(module.sizes.downloadBytes),
+                            installedValue()
+                              ? `загружено ${formatModuleBytes(
+                                  installedValue()?.installedSizeBytes ?? null,
+                                )}`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </span>
+                        <Show when={retryScheduled() || installError()}>
+                          <ModuleTaskStatus
+                            label={
+                              retryScheduled()
+                                ? 'Повторим автоматически'
+                                : MODULE_TASK_LABELS[task()?.state ?? 'failed']
+                            }
+                            progress={null}
+                            errorMessage={retryScheduled() ? null : installError()}
+                            onOpenError={() =>
+                              setLoadErrorDetails({
+                                title: module.title,
+                                message: installError() ?? 'Не удалось скачать документ.',
+                              })
+                            }
+                          />
+                        </Show>
+                      </div>
+                      <Show
+                        when={!installedValue()}
+                        fallback={
+                          <div class="recommendation-row-actions recommendation-row-actions--compact">
+                            <Button
                               type="button"
-                              class="recommendation-row-download-button"
-                              aria-label={`Скачать «${module.title}»`}
-                              title="Скачать"
-                              disabled={!isModuleReleased(module)}
+                              variant="primary"
+                              class="recommendation-delete-button"
+                              aria-label={`Удалить «${module.title}»`}
+                              title="Удалить"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                void install(module);
+                                requestRemove(module.id);
                               }}
+                              icon={
+                                <AppGlyph name="trash" class="recommendation-delete-button__icon" />
+                              }
+                            />
+                          </div>
+                        }
+                      >
+                        <Button
+                          type="button"
+                          variant="icon"
+                          class="recommendation-row-download-button"
+                          aria-label={
+                            working()
+                              ? `Скачивается «${module.title}»: ${Math.round(
+                                  (progress() ?? 0) * 100,
+                                )}%`
+                              : `Скачать «${module.title}»`
+                          }
+                          title={working() ? 'Скачивается' : 'Скачать'}
+                          disabled={working() || !isModuleReleased(module)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void install(module);
+                          }}
+                          icon={
+                            <Show
+                              when={!working()}
+                              fallback={<span class="module-action-spinner" />}
                             >
                               <AppGlyph
                                 name="download"
                                 class="recommendation-row-download-button__icon"
                               />
-                            </button>
-                          </Show>
-                        </Show>
-                      </article>
-                      <div class="recommendation-list__gap" aria-hidden="true" />
-                    </>
+                            </Show>
+                          }
+                        />
+                      </Show>
+                      <Show when={!installedValue() && working() && progress() !== null}>
+                        <div
+                          class="recommendation-row-progress recommendation-row-progress--card"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round((progress() ?? 0) * 100)}
+                        >
+                          <i
+                            class="recommendation-row-progress__fill"
+                            style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }}
+                          />
+                        </div>
+                      </Show>
+                    </article>
                   );
                 }}
-              </WindowVirtualizer>
+              </LayoutVirtualizedGrid>
             </div>
           </Show>
         </section>

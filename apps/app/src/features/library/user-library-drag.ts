@@ -1,7 +1,12 @@
-const DOCUMENT_DRAG_TYPE = 'application/x-minimed-document-id';
+export const DOCUMENT_DRAG_TYPE = 'application/x-minimed-document-id';
+export const FOLDER_DRAG_TYPE = 'application/x-minimed-folder-id';
 
 export function draggedDocumentId(event: DragEvent): string | null {
   return event.dataTransfer?.getData(DOCUMENT_DRAG_TYPE) || null;
+}
+
+export function draggedFolderId(event: DragEvent): string | null {
+  return event.dataTransfer?.getData(FOLDER_DRAG_TYPE) || null;
 }
 
 export function hasFileTransfer(event: DragEvent): boolean {
@@ -9,7 +14,12 @@ export function hasFileTransfer(event: DragEvent): boolean {
 }
 
 function acceptsLibraryDrop(event: DragEvent): boolean {
-  return hasFileTransfer(event) || event.dataTransfer?.types.includes(DOCUMENT_DRAG_TYPE) || false;
+  return (
+    hasFileTransfer(event) ||
+    event.dataTransfer?.types.includes(DOCUMENT_DRAG_TYPE) ||
+    event.dataTransfer?.types.includes(FOLDER_DRAG_TYPE) ||
+    false
+  );
 }
 
 interface LibraryDropOptions {
@@ -19,6 +29,7 @@ interface LibraryDropOptions {
   readonly onDragEnd: () => void;
   readonly onDropFiles: (files: FileList | null | undefined, folderId: string | null) => void;
   readonly onMoveDocument: (documentId: string, folderId: string | null) => void;
+  readonly onMoveFolder: (folderId: string, parentId: string | null) => void;
 }
 
 /**
@@ -64,6 +75,11 @@ export function createLibraryDropHandlers(options: LibraryDropOptions) {
       depth = 0;
       const folderId = options.folderId();
       options.onDragEnd();
+      const draggedFolder = draggedFolderId(event);
+      if (draggedFolder) {
+        options.onMoveFolder(draggedFolder, folderId);
+        return;
+      }
       const documentId = draggedDocumentId(event);
       if (documentId) options.onMoveDocument(documentId, folderId);
       else options.onDropFiles(event.dataTransfer?.files, folderId);

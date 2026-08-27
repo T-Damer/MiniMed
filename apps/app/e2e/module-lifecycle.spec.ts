@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, type Locator, type Page, test } from '@playwright/test';
@@ -11,12 +12,31 @@ const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
 const REGULATORY_QUERY =
   'Какие дети подлежат диспансерному наблюдению после заболевания, травмы или отравления';
 
-function navigationButton(page: Page, name: string): Locator {
-  return page.locator('.app-bottom-nav').getByRole('button', { name });
+interface TestCatalog {
+  publishedAt: string;
+  modules: Array<{
+    id: string;
+    sizes: { downloadBytes: number; installedBytes: number };
+    artifacts: Array<{ sha256: string; sizeBytes: number }>;
+  }>;
 }
 
-function regulatoryCard(page: Page): Locator {
-  return page.locator('.module-card').filter({ hasText: 'Нормативные документы РФ: педиатрия' });
+function currentCatalog(raw: string, database: Buffer): string {
+  const catalog = JSON.parse(raw) as TestCatalog;
+  const module = catalog.modules.find((entry) => entry.id === 'minimed.regulatory.pediatrics.ru');
+  const artifact = module?.artifacts[0];
+  if (!module || !artifact) throw new Error('Regulatory E2E module is missing from the catalog.');
+  const size = database.byteLength;
+  module.sizes.downloadBytes = size;
+  module.sizes.installedBytes = size;
+  artifact.sizeBytes = size;
+  artifact.sha256 = `sha256:${createHash('sha256').update(database).digest('hex')}`;
+  catalog.publishedAt = '2099-01-01T00:00:00Z';
+  return JSON.stringify(catalog);
+}
+
+function navigationButton(page: Page, name: string): Locator {
+  return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
 
 function regulatorySection(page: Page): Locator {
@@ -40,9 +60,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
     readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
     readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
   ]);
-  const catalogValue = JSON.parse(catalog) as { publishedAt: string };
-  catalogValue.publishedAt = '2099-01-01T00:00:00Z';
-  const currentCatalog = JSON.stringify(catalogValue);
+  const catalogBody = currentCatalog(catalog, database);
 
   await page.route(
     (url) => url.href.startsWith(CATALOG_URL),
@@ -50,7 +68,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
       await route.fulfill({
         status: 200,
         contentType: 'application/json; charset=utf-8',
-        body: currentCatalog,
+        body: catalogBody,
         headers: {
           ETag: '"e2e-regulatory-catalog"',
           'Last-Modified': 'Wed, 22 Jul 2026 00:00:00 GMT',
@@ -72,10 +90,10 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await navigationButton(page, 'База знаний').click();
   await regulatorySection(page).click();
 
-  const card = regulatoryCard(page);
-  await expect(card.getByRole('button', { name: 'Скачать' })).toBeVisible();
-  await card.getByRole('button', { name: 'Скачать' }).click();
-  await expect(card.locator('.module-state')).toHaveText('Установлено', { timeout: 30_000 });
+  await page.getByRole('button', { name: 'Скачать все документы' }).click();
+  await expect(page.getByRole('button', { name: /^Открыть «/u }).first()).toBeVisible({
+    timeout: 30_000,
+  });
 
   await navigationButton(page, 'Поиск').click();
   const legalScope = page.getByRole('radio', { name: /Правовые документы/u });
@@ -93,9 +111,9 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await navigationButton(page, 'База знаний').click();
   await navigationButton(page, 'База знаний').click();
   await regulatorySection(page).click();
-  await card.getByRole('button', { name: /^Удалить/u }).click();
+  await page.getByRole('button', { name: /^Удалить «Нормативные документы РФ/u }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Удалить', exact: true }).click();
-  await expect(card.getByRole('button', { name: 'Скачать' })).toBeVisible({
+  await expect(page.getByRole('button', { name: 'Скачать все документы' })).toBeVisible({
     timeout: 15_000,
   });
 
@@ -116,8 +134,7 @@ test('shows the real download state and resumes automatically when the network r
     readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
     readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
   ]);
-  const catalogValue = JSON.parse(catalog) as { publishedAt: string };
-  catalogValue.publishedAt = '2099-01-01T00:00:00Z';
+  const catalogBody = currentCatalog(catalog, database);
 
   await page.route(
     (url) => url.href.startsWith(CATALOG_URL),
@@ -125,7 +142,7 @@ test('shows the real download state and resumes automatically when the network r
       route.fulfill({
         status: 200,
         contentType: 'application/json; charset=utf-8',
-        body: JSON.stringify(catalogValue),
+        body: catalogBody,
       }),
   );
   let downloadAvailable = false;
@@ -146,9 +163,8 @@ test('shows the real download state and resumes automatically when the network r
   await regulatorySection(page).click();
 
   await context.setOffline(true);
-  const card = regulatoryCard(page);
-  await card.getByRole('button', { name: 'Скачать' }).click();
-  await expect(card.getByRole('button', { name: 'Скачать' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Скачать все документы' }).click();
+  await expect(page.getByRole('button', { name: 'Скачать все документы' })).toHaveCount(0);
   await page.getByTestId('content-download-nav').click();
   await expect(page).toHaveURL(/#\/settings\/downloads/u);
   const manager = page.getByTestId('content-download-status');
@@ -159,5 +175,5 @@ test('shows the real download state and resumes automatically when the network r
   await context.setOffline(false);
   await expect(manager).toContainText('Тут будут ваши загрузки', { timeout: 30_000 });
   await navigationButton(page, 'База знаний').click();
-  await expect(regulatoryCard(page).locator('.module-state')).toHaveText('Установлено');
+  await expect(page.getByRole('button', { name: /^Открыть «/u }).first()).toBeVisible();
 });

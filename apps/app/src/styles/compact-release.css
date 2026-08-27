@@ -961,19 +961,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   padding: 0.875rem;
 }
 
-.model-settings-heading {
-  margin-bottom: 0.625rem;
-}
-
-.model-card-grid {
-  grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
-  gap: var(--layout-gap);
-}
-
-.model-option-card {
-  padding: 0.625rem 0.75rem;
-}
-
 .content-download-status {
   margin: 0;
   transform: none;
@@ -2239,10 +2226,9 @@ fieldset.search-mode-picker {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky-chrome);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
   gap: 0.75rem;
-  align-items: start;
+  align-items: center;
   padding: 0.35rem 0 0.75rem;
 }
 
@@ -2251,27 +2237,14 @@ fieldset.search-mode-picker {
   padding-top: calc(var(--safe-top) + 0.35rem);
 }
 
-.laws-documents-page__heading {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.laws-documents-page__title {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 1.125rem;
-}
-
-.laws-documents-page__subtitle {
-  margin: 0;
-  color: var(--theme-text-muted);
-  font-size: 0.75rem;
-  line-height: 1.35;
+.laws-documents-page__download {
+  flex: 0 0 auto;
 }
 
 .laws-documents-page__body {
   display: grid;
   gap: 0.75rem;
+  margin-top: 1.25rem;
   padding: 0 0 1.5rem;
 }
 
@@ -2286,6 +2259,30 @@ fieldset.search-mode-picker {
   font-size: 0.8125rem;
 }
 
+.laws-documents-page__error {
+  margin: 0;
+  color: var(--theme-danger, #8e4038);
+  font-size: 0.75rem;
+}
+
+.module-document-card__action-spinner {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+@media (max-width: 640px) {
+  .laws-documents-page__download {
+    width: 2.8rem;
+    min-width: 2.8rem;
+    padding-inline: 0;
+  }
+
+  .laws-documents-page__download-label {
+    display: none;
+  }
+}
+
 .search-history-drawer-backdrop {
   z-index: var(--z-notes-image);
 }
@@ -2296,27 +2293,6 @@ fieldset.search-mode-picker {
   line-height: 1;
 }
 
-.model-current-state {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem;
-}
-
-.model-current-state > div {
-  display: grid;
-  gap: 0.1875rem;
-}
-
-.model-current-state > div > span {
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  text-transform: uppercase;
-}
-
-.model-current-state button,
 .model-catalog-details__summary {
   cursor: pointer;
 }
@@ -2326,7 +2302,7 @@ fieldset.search-mode-picker {
   grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: 0.625rem;
-  padding: 0.75rem 0;
+  padding: 0.25rem 0 0;
   list-style: none;
   color: var(--theme-text);
   cursor: pointer;
@@ -2948,13 +2924,11 @@ html.native-print-active #root {
   background: var(--theme-accent);
 }
 
-.patient-record-editor.paper-card,
 .record-reminder-editor.paper-card,
 .patient-note-related.paper-card {
   box-shadow: none;
 }
 
-.patient-record-editor.paper-card:hover,
 .record-reminder-editor.paper-card:hover,
 .patient-note-related.paper-card:hover {
   box-shadow: none;
@@ -3069,7 +3043,7 @@ html.native-print-active #root {
 }
 
 .patient-record-editor {
-  padding: 1rem;
+  padding: 0;
 }
 
 .patient-note-previous-revision__restore {

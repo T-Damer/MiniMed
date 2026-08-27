@@ -88,8 +88,7 @@ const SEARCH_SCOPES: readonly SearchScopeOption[] = [
     id: 'personal',
     label: 'Ваши данные',
     shortLabel: 'Ваши данные',
-    description:
-      'Поиск только в личных заметках и загруженных книгах на этом устройстве. Не официальный источник.',
+    description: 'Поиск только в личных заметках и загруженных книгах.',
   },
 ] as const;
 

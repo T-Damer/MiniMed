@@ -229,6 +229,21 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
           value={inputValue()}
           onInput={setInputValue}
           placeholder="Слово или фраза"
+          leading={
+            <div
+              class="document-find__status document-find__field-status"
+              role="status"
+              aria-live="polite"
+              aria-label={countLabel() === '0/0' ? 'Нет совпадений' : undefined}
+            >
+              <Show when={loading()}>
+                <span class="document-find__spinner" aria-hidden="true" />
+              </Show>
+              <Show when={countLabel()}>
+                <span class="document-find__count">{countLabel()}</span>
+              </Show>
+            </div>
+          }
           inputRef={(element) => {
             searchInput = element;
           }}
@@ -262,19 +277,6 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
             onClick={() => step(1)}
             icon={<AppGlyph name="caret-down" class="document-find__step-icon" />}
           />
-          <div
-            class="document-find__status"
-            role="status"
-            aria-live="polite"
-            aria-label={countLabel() === '0/0' ? 'Нет совпадений' : undefined}
-          >
-            <Show when={loading()}>
-              <span class="document-find__spinner" aria-hidden="true" />
-            </Show>
-            <Show when={countLabel()}>
-              <span class="document-find__count">{countLabel()}</span>
-            </Show>
-          </div>
         </div>
       </Show>
     </div>

@@ -4,6 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 const chromiumExecutable =
   process.env.CHROMIUM_PATH ?? (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
+const localModelSmokeOrigin = process.env.LOCAL_MODEL_SMOKE_ORIGIN;
 
 export default defineConfig({
   testDir: './apps/app/e2e',
@@ -15,6 +16,14 @@ export default defineConfig({
   use: {
     trace: 'on-first-retry',
   },
+  webServer: localModelSmokeOrigin
+    ? {
+        command: 'bun run --cwd apps/app preview -- --host 127.0.0.1 --port 4173',
+        url: localModelSmokeOrigin,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      }
+    : undefined,
   projects: [
     {
       name: 'chromium',

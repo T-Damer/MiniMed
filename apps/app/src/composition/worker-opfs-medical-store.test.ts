@@ -83,6 +83,60 @@ describe('WorkerOpfsMedicalStore', () => {
     expect(terminate).toHaveBeenCalledOnce();
   });
 
+  it('shares one worker while the same SAH pool has multiple active stores', async () => {
+    const workers: Array<{
+      postMessage: ReturnType<typeof vi.fn>;
+      terminate: ReturnType<typeof vi.fn>;
+      onmessage?: (event: MessageEvent) => void;
+      onerror?: () => void;
+    }> = [];
+    vi.stubGlobal(
+      'Worker',
+      vi.fn(function FakeWorker(this: (typeof workers)[number]) {
+        this.postMessage = vi.fn();
+        this.terminate = vi.fn();
+        workers.push(this);
+      }),
+    );
+    const options = {
+      url: 'https://example.test/content/medications.db',
+      databaseName: 'medications.db',
+      fetchTimeoutMs: 180_000,
+      poolName: 'minimed-sah-pack',
+    };
+
+    const firstPromise = WorkerOpfsMedicalStore.open(options);
+    workers[0]?.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+    const first = await firstPromise;
+    const secondPromise = WorkerOpfsMedicalStore.open(options);
+    workers[1]?.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+    const second = await secondPromise;
+
+    const firstClose = first.close();
+    const earlyCloseRequest = workers[0]?.postMessage.mock.calls.findLast(
+      ([message]) => message.type === 'call' && message.method === 'close',
+    )?.[0];
+    if (earlyCloseRequest) {
+      workers[0]?.onmessage?.({
+        data: { id: earlyCloseRequest.id, result: undefined },
+      } as MessageEvent);
+    }
+    await firstClose;
+    const terminatedAfterFirstClose = workers[0]?.terminate.mock.calls.length ?? 0;
+
+    const finalClose = second.close();
+    const owner = workers.at(-1);
+    const closeRequest = owner?.postMessage.mock.calls.findLast(
+      ([message]) => message.type === 'call' && message.method === 'close',
+    )?.[0];
+    owner?.onmessage?.({ data: { id: closeRequest?.id, result: undefined } } as MessageEvent);
+    await finalClose;
+
+    expect(Worker).toHaveBeenCalledOnce();
+    expect(terminatedAfterFirstClose).toBe(0);
+    expect(workers[0]?.terminate).toHaveBeenCalledOnce();
+  });
+
   it('rejects pending calls when the worker fails', async () => {
     const postMessage = vi.fn();
     const terminate = vi.fn();

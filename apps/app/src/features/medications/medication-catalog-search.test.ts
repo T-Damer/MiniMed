@@ -53,4 +53,21 @@ describe('rankMedicationCatalog', () => {
       'Колдрекс ХотРем',
     ]);
   });
+
+  it('prefers a trade-name prefix over a fuzzy match elsewhere', () => {
+    const ranked = rankMedicationCatalog(
+      [
+        product('Натрия пара-аминосалицилат', 'натрия пара-аминосалицилат'),
+        product('Парацетамол + римантадин', 'парацетамол римантадин'),
+        product('Парацетамол', 'парацетамол'),
+      ],
+      'Парацетам',
+    );
+
+    expect(ranked.map((item) => item.tradeName)).toEqual([
+      'Парацетамол',
+      'Парацетамол + римантадин',
+      'Натрия пара-аминосалицилат',
+    ]);
+  });
 });

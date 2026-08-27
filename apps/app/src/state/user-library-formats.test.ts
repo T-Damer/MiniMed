@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { extractUserLibraryText, validateUserLibraryFile } from '@/state/user-library-formats';
+import {
+  createEditableUserLibraryFile,
+  extractUserLibraryText,
+  validateUserLibraryFile,
+} from '@/state/user-library-formats';
 import { readZipEntry } from '@/state/user-library-zip';
 
 const LOCAL_FILE_SIGNATURE = 0x04034b50;
@@ -17,6 +21,16 @@ function writeUint32(buffer: Uint8Array, offset: number, value: number): void {
   buffer[offset + 1] = (value >> 8) & 0xff;
   buffer[offset + 2] = (value >> 16) & 0xff;
   buffer[offset + 3] = (value >> 24) & 0xff;
+}
+
+function joinBytes(...parts: readonly Uint8Array[]): ArrayBuffer {
+  const output = new Uint8Array(parts.reduce((length, part) => length + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    output.set(part, offset);
+    offset += part.length;
+  }
+  return output.buffer;
 }
 
 function buildStoredZip(entries: Readonly<Record<string, string>>): ArrayBuffer {
@@ -113,11 +127,16 @@ function installDomParser(): void {
 
     getElementsByTagName(tag: string): StubElement[] {
       const results: StubElement[] = [];
-      const pattern = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, 'giu');
+      const pattern = new RegExp(`<${tag}([^>]*)>([\\s\\S]*?)</${tag}>`, 'giu');
       let match = pattern.exec(this.source);
       while (match) {
-        const inner = match[1]?.replace(/<[^>]+>/gu, '').trim() ?? '';
-        if (inner) results.push(new StubElement(inner));
+        const element = new StubElement(match[2]?.replace(/<[^>]+>/gu, '').trim() ?? '');
+        for (const attribute of match[1]?.matchAll(/([\w:-]+)=["']([^"']*)["']/gu) ?? []) {
+          const name = attribute[1];
+          const value = attribute[2];
+          if (name && value !== undefined) element.setAttribute(name, value);
+        }
+        results.push(element);
         match = pattern.exec(this.source);
       }
       return results;
@@ -163,6 +182,25 @@ describe('user-library formats', () => {
   beforeEach(() => {
     installDomParser();
   });
+
+  it('creates an RTF draft that keeps Unicode text readable', async () => {
+    const file = createEditableUserLibraryFile('draft.rtf', 'text/rtf', 'Привет\nмир');
+    const text = await extractUserLibraryText(file.name, file.type, await file.arrayBuffer());
+    expect(text).toContain('Привет');
+    expect(text).toContain('мир');
+  });
+
+  it('creates a valid DOCX draft that can be extracted again', async () => {
+    const file = createEditableUserLibraryFile(
+      'draft.docx',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Привет\nworld',
+    );
+    await validateUserLibraryFile(file.name, file.type, await file.arrayBuffer());
+    const text = await extractUserLibraryText(file.name, file.type, await file.arrayBuffer());
+    expect(text).toContain('Привет');
+    expect(text).toContain('world');
+  });
   it('extracts plain RTF text with hex and unicode escapes', async () => {
     const rtf = '{\\rtf1\\ansi\\ab тест}';
     const text = await extractUserLibraryText(
@@ -194,6 +232,34 @@ describe('user-library formats', () => {
     );
     expect(text).toContain('Заголовок');
     expect(text).toContain('Основной текст');
+  });
+
+  it('decodes Windows-1251 FB2 books', async () => {
+    const text = await extractUserLibraryText(
+      'book.fb2',
+      'application/x-fictionbook+xml',
+      joinBytes(
+        new TextEncoder().encode(
+          '<?xml version="1.0" encoding="windows-1251"?><FictionBook><body><section><p>',
+        ),
+        Uint8Array.from([0xcf, 0xf0, 0xe8, 0xe2, 0xe5, 0xf2]),
+        new TextEncoder().encode('</p></section></body></FictionBook>'),
+      ),
+    );
+    expect(text).toContain('Привет');
+  });
+
+  it('extracts text from a stored EPUB spine', async () => {
+    const zip = buildStoredZip({
+      'META-INF/container.xml':
+        '<?xml version="1.0"?><container><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"></rootfile></rootfiles></container>',
+      'OEBPS/content.opf':
+        '<?xml version="1.0"?><package><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"></item></manifest><spine><itemref idref="chapter"></itemref></spine></package>',
+      'OEBPS/chapter.xhtml': '<html><body><h1>Глава</h1><p>Текст книги</p></body></html>',
+    });
+    const text = await extractUserLibraryText('book.epub', 'application/epub+zip', zip);
+    expect(text).toContain('Глава');
+    expect(text).toContain('Текст книги');
   });
 
   it('extracts text from a stored DOCX zip', async () => {
@@ -229,6 +295,16 @@ describe('user-library formats', () => {
         new TextEncoder().encode('not a pdf').buffer,
       ),
     ).rejects.toThrow('некорректный заголовок');
+  });
+
+  it('rejects a DICOM extension without a Part 10 preamble', async () => {
+    await expect(
+      validateUserLibraryFile(
+        'scan.dcm',
+        'application/dicom',
+        new TextEncoder().encode('not a dicom').buffer,
+      ),
+    ).rejects.toThrow('Part 10');
   });
 });
 

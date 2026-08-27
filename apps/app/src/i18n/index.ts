@@ -10,6 +10,7 @@ export { browser, browserI18n, setUILanguageForTests } from '@/i18n/browser-i18n
 export {
   collectionLabel,
   recommendationCountLabel,
+  sectionCountLabel,
   sourceTypeLibraryLabel,
   sourceTypeReaderLabel,
   specialtyLabel,

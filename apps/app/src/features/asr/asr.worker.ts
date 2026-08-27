@@ -1,4 +1,9 @@
-import { type AutomaticSpeechRecognitionPipeline, env, pipeline } from '@huggingface/transformers';
+import {
+  type AutomaticSpeechRecognitionPipeline,
+  env,
+  type ProgressInfo,
+  pipeline,
+} from '@huggingface/transformers';
 
 export interface AsrLoadMessage {
   readonly type: 'load';
@@ -63,14 +68,19 @@ interface ModelSpec {
 }
 
 const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
-  // ponytail: fp32 because onnxruntime-web ≥1.25 crashes int8 whisper decoders
-  // (TransposeDQWeightsForMatMulNBits, microsoft/onnxruntime#28306); switch to
-  // q8 when transformers.js ships the fixed ORT.
-  'onnx-community/whisper-tiny': {
-    options: { dtype: 'fp32' },
+  // onnxruntime-web 1.27 contains microsoft/onnxruntime#28326, which fixes the
+  // tied-weight crash that previously made quantized Whisper decoders unusable.
+  'onnx-community/whisper-base': {
+    options: { dtype: 'q8' },
+    callOptions: { chunk_length_s: 30, language: 'russian', task: 'transcribe' },
+  },
+  'onnx-community/whisper-small': {
+    options: { dtype: 'q8' },
     callOptions: { chunk_length_s: 30, language: 'russian', task: 'transcribe' },
   },
 };
+
+const NETWORK_RETRY_DELAYS_MS = [750, 2000] as const;
 
 env.allowLocalModels = false;
 
@@ -93,23 +103,48 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
   return run;
 }
 
+function isNetworkError(cause: unknown): boolean {
+  return (
+    cause instanceof Error &&
+    /failed to fetch|network\s*error|networkerror|load failed/iu.test(cause.message)
+  );
+}
+
+function wait(delayMs: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
 async function loadPipeline(modelId: string): Promise<SpeechPipeline> {
   if (current?.id === modelId) return current.pipe;
   const spec = MODEL_SPECS[modelId];
   if (!spec) throw new Error(`Неизвестная модель: ${modelId}`);
-  const created = await pipeline('automatic-speech-recognition', modelId, {
-    ...spec.options,
-    progress_callback: (info: { readonly status?: string; readonly progress?: number }) => {
-      if (info.status !== 'progress') return;
-      scope.postMessage({
-        type: 'loading',
-        modelId,
-        progress: typeof info.progress === 'number' ? info.progress / 100 : null,
+  let reportedProgress = 0;
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const created = await pipeline('automatic-speech-recognition', modelId, {
+        ...spec.options,
+        progress_callback: (info: ProgressInfo) => {
+          if (info.status !== 'progress_total') return;
+          reportedProgress = Math.max(
+            reportedProgress,
+            Math.min(1, Math.max(0, info.progress / 100)),
+          );
+          scope.postMessage({ type: 'loading', modelId, progress: reportedProgress });
+        },
       });
-    },
-  });
-  current = { id: modelId, pipe: created };
-  return created;
+      current = { id: modelId, pipe: created };
+      return created;
+    } catch (cause) {
+      const retryDelay = NETWORK_RETRY_DELAYS_MS[attempt];
+      if (!isNetworkError(cause) || retryDelay === undefined) {
+        if (isNetworkError(cause)) {
+          throw new Error('Ошибка сети. Проверьте подключение и повторите загрузку.');
+        }
+        throw cause;
+      }
+      await wait(retryDelay);
+    }
+  }
 }
 
 scope.onmessage = (event) => {

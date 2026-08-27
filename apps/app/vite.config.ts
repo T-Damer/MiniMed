@@ -36,6 +36,12 @@ const TESSDATA_LANGS = ['eng', 'rus'] as const;
 const TESSDATA_VERSION = '4.0.0';
 const TESSDATA_BASE = `https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/${TESSDATA_VERSION}/`;
 const PDFJS_STATIC_DIRECTORIES = ['wasm', 'standard_fonts', 'cmaps', 'iccs'] as const;
+const CORNERSTONE_CODEC_ASSETS = [
+  ['@cornerstonejs/codec-charls/decodewasm', 'charlswasm_decode.wasm'],
+  ['@cornerstonejs/codec-libjpeg-turbo-8bit/decodewasm', 'libjpegturbowasm_decode.wasm'],
+  ['@cornerstonejs/codec-openjpeg/decodewasm', 'openjpegwasm_decode.wasm'],
+  ['@cornerstonejs/codec-openjph/wasm', 'openjphjs.wasm'],
+] as const;
 
 function downloadFile(url: string, destination: string): Promise<void> {
   if (existsSync(destination)) return Promise.resolve();
@@ -106,6 +112,19 @@ function ensurePdfJsAssets(): Plugin {
   };
 }
 
+function ensureCornerstoneCodecAssets(): Plugin {
+  const publicCodecRoot = fileURLToPath(new URL('./public/cornerstone-codecs', import.meta.url));
+  return {
+    name: 'ensure-cornerstone-codec-assets',
+    buildStart() {
+      mkdirSync(publicCodecRoot, { recursive: true });
+      for (const [moduleId, fileName] of CORNERSTONE_CODEC_ASSETS) {
+        copyFileSync(require.resolve(moduleId), join(publicCodecRoot, fileName));
+      }
+    },
+  };
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -130,14 +149,29 @@ function excludeOptionalPublicAssets(): Plugin {
 
 export default defineConfig({
   base: './',
-  plugins: [solid(), ensureTessdataAssets(), ensurePdfJsAssets(), excludeOptionalPublicAssets()],
+  plugins: [
+    solid(),
+    ensureTessdataAssets(),
+    ensurePdfJsAssets(),
+    ensureCornerstoneCodecAssets(),
+    excludeOptionalPublicAssets(),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@minimed-rars-wasm': fileURLToPath(
+        new URL('../../node_modules/@bitplane/rars/browser/wasm/rars_wasm.js', import.meta.url),
+      ),
     },
   },
   optimizeDeps: {
     exclude: ['@sqlite.org/sqlite-wasm'],
+    include: [
+      '@cornerstonejs/codec-charls/decodewasmjs',
+      '@cornerstonejs/codec-libjpeg-turbo-8bit/decodewasmjs',
+      '@cornerstonejs/codec-openjpeg/decodewasmjs',
+      '@cornerstonejs/codec-openjph/wasmjs',
+    ],
   },
   build: {
     target: 'es2022',

@@ -10,11 +10,7 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 
-import {
-  AppContextMenu,
-  type AppContextMenuAction,
-  requestContextMenu,
-} from '@/components/AppContextMenu';
+import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -23,18 +19,25 @@ import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
-import { createLibraryDropHandlers } from '@/features/library/user-library-drag';
+import { createLibraryDropHandlers, FOLDER_DRAG_TYPE } from '@/features/library/user-library-drag';
 import {
   openUserLibraryDocument,
   parseUserLibraryFolderRoute,
   userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
+import { shareSystemFile } from '@/state/native-share';
+import { schedulePatientNotesLibrarySync } from '@/state/note-library-sync';
 import { attachmentThumbnails } from '@/state/thumbnails';
 import {
   addUserLibraryFile,
   createUserLibraryFolder,
+  createUserLibraryPdfFromImages,
+  ensureUserLibraryMedicalExamples,
   getUserLibraryFile,
+  isUserLibraryArchive,
+  isUserLibraryImageMime,
+  isUserLibrarySystemFolder,
   isUserLibraryVisualMime,
   listUserLibraryDocuments,
   listUserLibraryFolders,
@@ -47,6 +50,8 @@ import {
   renameUserLibraryFolder,
   requestUserLibraryOcr,
   USER_LIBRARY_EVENT,
+  USER_LIBRARY_NAME_MAX_LENGTH,
+  USER_LIBRARY_NOTES_FOLDER_ID,
   type UserLibraryDocument,
   type UserLibraryFileKind,
   type UserLibraryFolder,
@@ -54,6 +59,7 @@ import {
   userLibraryFileKind,
   userLibraryProgressFraction,
 } from '@/state/user-library';
+import { unpackUserLibraryArchive } from '@/state/user-library-archives';
 
 interface RenameTarget {
   readonly kind: 'document' | 'folder';
@@ -74,6 +80,11 @@ const SORT_MODE_LABEL: Record<SortMode, string> = {
   name: 'По названию',
   type: 'По типу',
 };
+
+function breadcrumbLabel(value: string): string {
+  const characters = [...value];
+  return characters.length > 16 ? `${characters.slice(0, 15).join('')}…` : value;
+}
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} Б`;
@@ -99,8 +110,10 @@ function formatDateTime(value: string | undefined): string {
 
 const FILE_KIND_GLYPHS: Record<UserLibraryFileKind, AppGlyphName> = {
   pdf: 'file-pdf',
+  dicom: 'disc',
+  volume: 'disc',
   image: 'image',
-  video: 'film-strip',
+  video: 'film-slate',
   audio: 'music-notes',
   archive: 'file-zip',
   code: 'code',
@@ -119,14 +132,16 @@ const FILE_KIND_SORT_RANK: Record<UserLibraryFileKind | 'folder', number> = {
   sheet: 2,
   doc: 3,
   pdf: 4,
-  ebook: 5,
-  image: 6,
-  text: 7,
-  code: 8,
-  audio: 9,
-  video: 10,
-  archive: 11,
-  binary: 12,
+  dicom: 5,
+  volume: 6,
+  ebook: 7,
+  image: 8,
+  text: 9,
+  code: 10,
+  audio: 11,
+  video: 12,
+  archive: 13,
+  binary: 14,
 };
 
 interface FreePosition {
@@ -290,6 +305,7 @@ export function UserLibraryPage(): JSX.Element {
   const [selectedIds, setSelectedIds] = createSignal<ReadonlySet<string>>(new Set());
   const [confirmExitSelection, setConfirmExitSelection] = createSignal(false);
   const [confirmBulkDelete, setConfirmBulkDelete] = createSignal(false);
+  const [creatingPdf, setCreatingPdf] = createSignal(false);
   const [viewMode, setViewMode] = createSignal<'grid' | 'list' | 'free'>(initialViewMode());
   const [sortMode, setSortMode] = createSignal<SortMode>(initialSortMode());
   const [freePositions, setFreePositions] = createSignal<Readonly<Record<string, FreePosition>>>(
@@ -365,7 +381,11 @@ export function UserLibraryPage(): JSX.Element {
     };
     syncFolderFromLocation();
     refresh();
+    schedulePatientNotesLibrarySync();
     window.addEventListener(USER_LIBRARY_EVENT, refresh);
+    void ensureUserLibraryMedicalExamples().catch((cause) => {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось добавить примеры КТ/МРТ.');
+    });
     window.addEventListener('hashchange', syncFolderFromLocation);
     onCleanup(() => window.removeEventListener('hashchange', syncFolderFromLocation));
   });
@@ -378,6 +398,14 @@ export function UserLibraryPage(): JSX.Element {
   );
   const selectionTotalBytes = createMemo(() =>
     selectedDocuments().reduce((sum, document) => sum + document.byteLength, 0),
+  );
+  const selectedImageDocuments = createMemo(() =>
+    selectedDocuments().filter((document) => isUserLibraryImageMime(document.mimeType)),
+  );
+  const canCreatePdfFromSelection = createMemo(
+    () =>
+      selectedDocuments().length > 0 &&
+      selectedImageDocuments().length === selectedDocuments().length,
   );
 
   const enterDocumentSelection = (documentId: string): void => {
@@ -403,22 +431,51 @@ export function UserLibraryPage(): JSX.Element {
     }
   };
 
+  const downloadDocument = async (record: UserLibraryDocument): Promise<void> => {
+    try {
+      const blob = await getUserLibraryFile(record.id);
+      if (!blob) throw new Error('Файл недоступен.');
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = record.fileName || record.title;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {
+      toast.error(`Не удалось сохранить «${record.title}».`);
+    }
+  };
+
   const downloadSelected = async (): Promise<void> => {
-    for (const record of selectedDocuments()) {
-      try {
-        const blob = await getUserLibraryFile(record.id);
-        if (!blob) continue;
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = record.fileName || record.title;
-        document.body.append(anchor);
-        anchor.click();
-        anchor.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 4000);
-      } catch {
-        toast.error(`Не удалось сохранить «${record.title}».`);
-      }
+    for (const record of selectedDocuments()) await downloadDocument(record);
+  };
+
+  const createPdfFileName = (title: string): string => {
+    const suffix = '.pdf';
+    const base = [...title.trim()].slice(0, USER_LIBRARY_NAME_MAX_LENGTH - suffix.length).join('');
+    return `${base || 'Фотографии'}${suffix}`;
+  };
+
+  const createPdfFromImages = async (
+    images: readonly UserLibraryDocument[],
+    title: string,
+    folderId: string | null,
+  ): Promise<void> => {
+    if (creatingPdf() || images.length === 0) return;
+    setCreatingPdf(true);
+    const fileName = createPdfFileName(title);
+    try {
+      await createUserLibraryPdfFromImages(images, fileName, folderId);
+      toast.success(`Создан PDF: ${fileName}.`);
+      setSelectionMode(false);
+      setSelectedIds(new Set<string>());
+      refresh();
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось создать PDF.');
+    } finally {
+      setCreatingPdf(false);
     }
   };
 
@@ -570,6 +627,18 @@ export function UserLibraryPage(): JSX.Element {
     });
   });
 
+  const imageDocumentsForFolder = (folderId: string): readonly UserLibraryDocument[] => {
+    const childDocuments = documents().filter((document) => document.folderId === folderId);
+    if (
+      childDocuments.length === 0 ||
+      folders().some((folder) => folder.parentId === folderId) ||
+      childDocuments.some((document) => !isUserLibraryImageMime(document.mimeType))
+    ) {
+      return [];
+    }
+    return childDocuments;
+  };
+
   /** Folders and files interleaved in one list, ordered by the chosen sort. */
   const visibleEntries = createMemo<readonly LibraryEntry[]>(() => {
     const query = searchQuery().trim();
@@ -719,6 +788,33 @@ export function UserLibraryPage(): JSX.Element {
     }
   };
 
+  const unpackArchive = async (document: UserLibraryDocument): Promise<void> => {
+    try {
+      const result = await unpackUserLibraryArchive(document.id);
+      toast.success(
+        `Распаковано файлов: ${result.files}${result.folders > 0 ? `, папок: ${result.folders}` : ''}.`,
+      );
+      refresh();
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось распаковать архив.');
+    }
+  };
+
+  const shareDocument = async (document: UserLibraryDocument): Promise<void> => {
+    try {
+      const blob = await getUserLibraryFile(document.id);
+      if (!blob) throw new Error('Файл недоступен.');
+      await shareSystemFile({
+        title: document.title,
+        fileName: document.fileName || document.title,
+        mimeType: document.mimeType,
+        blob,
+      });
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось отправить файл.');
+    }
+  };
+
   const moveDocumentActions = (document: UserLibraryDocument): readonly AppContextMenuAction[] => [
     {
       id: 'root',
@@ -776,6 +872,28 @@ export function UserLibraryPage(): JSX.Element {
       onSelect: () => startRename({ kind: 'document', id: document.id, title: document.title }),
     },
     {
+      id: 'download',
+      label: 'Сохранить на устройство',
+      icon: 'download',
+      onSelect: () => void downloadDocument(document),
+    },
+    {
+      id: 'share',
+      label: 'Отправить',
+      icon: 'envelope-simple',
+      onSelect: () => void shareDocument(document),
+    },
+    ...(isUserLibraryArchive(document.fileName)
+      ? [
+          {
+            id: 'unpack',
+            label: 'Распаковать',
+            icon: 'archive' as const,
+            onSelect: () => void unpackArchive(document),
+          } satisfies AppContextMenuAction,
+        ]
+      : []),
+    {
       id: 'move',
       label: 'Переместить',
       icon: 'folder-open',
@@ -816,27 +934,50 @@ export function UserLibraryPage(): JSX.Element {
     },
   ];
 
-  const folderActions = (folder: UserLibraryFolder): readonly AppContextMenuAction[] => [
-    {
-      id: 'rename',
-      label: 'Переименовать',
-      icon: 'edit',
-      onSelect: () => startRename({ kind: 'folder', id: folder.id, title: folder.title }),
-    },
-    {
-      id: 'move',
-      label: 'Переместить',
-      icon: 'folder-open',
-      children: moveFolderActions(folder),
-    },
-    {
-      id: 'delete',
-      label: 'Удалить папку',
-      icon: 'trash',
-      danger: true,
-      onSelect: () => setDeleteTarget({ kind: 'folder', id: folder.id, title: folder.title }),
-    },
-  ];
+  const folderActions = (folder: UserLibraryFolder): readonly AppContextMenuAction[] => {
+    if (isUserLibrarySystemFolder(folder)) {
+      return [
+        {
+          id: 'system',
+          label: 'Системная папка: нельзя удалить или переместить',
+          icon: 'folder-open',
+          disabled: true,
+        },
+      ];
+    }
+    const images = imageDocumentsForFolder(folder.id);
+    return [
+      ...(images.length > 0
+        ? [
+            {
+              id: 'create-pdf',
+              label: 'Создать PDF из фото',
+              icon: 'file-pdf' as const,
+              onSelect: () => void createPdfFromImages(images, folder.title, folder.parentId),
+            } satisfies AppContextMenuAction,
+          ]
+        : []),
+      {
+        id: 'rename',
+        label: 'Переименовать',
+        icon: 'edit',
+        onSelect: () => startRename({ kind: 'folder', id: folder.id, title: folder.title }),
+      },
+      {
+        id: 'move',
+        label: 'Переместить',
+        icon: 'folder-open',
+        children: moveFolderActions(folder),
+      },
+      {
+        id: 'delete',
+        label: 'Удалить папку',
+        icon: 'trash',
+        danger: true,
+        onSelect: () => setDeleteTarget({ kind: 'folder', id: folder.id, title: folder.title }),
+      },
+    ];
+  };
 
   const pageActions: readonly AppContextMenuAction[] = [
     {
@@ -917,6 +1058,7 @@ export function UserLibraryPage(): JSX.Element {
     onDragEnd: () => setDragTarget(undefined),
     onDropFiles: (files, folderId) => void appendFiles(files, folderId),
     onMoveDocument: (documentId, folderId) => void moveDocument(documentId, folderId),
+    onMoveFolder: (folderId, parentId) => void moveFolder(folderId, parentId),
   });
   const folderDropsFor = (folderId: string) =>
     createLibraryDropHandlers({
@@ -925,6 +1067,7 @@ export function UserLibraryPage(): JSX.Element {
       onDragEnd: () => setDragTarget(undefined),
       onDropFiles: (files, target) => void appendFiles(files, target),
       onMoveDocument: (documentId, target) => void moveDocument(documentId, target),
+      onMoveFolder: (source, target) => void moveFolder(source, target),
     });
 
   const LibraryCard = (props: { readonly document: UserLibraryDocument }): JSX.Element => {
@@ -1043,7 +1186,7 @@ export function UserLibraryPage(): JSX.Element {
                   />
                 }
               >
-                <strong class="user-library-card__file-name">{props.document.fileName}</strong>
+                <strong class="user-library-card__file-name">{props.document.title}</strong>
               </Show>
               <Show
                 when={props.document.status === 'ready' || props.document.status === 'failed'}
@@ -1102,6 +1245,8 @@ export function UserLibraryPage(): JSX.Element {
   const LibraryFolderCard = (props: { readonly folder: UserLibraryFolder }): JSX.Element => {
     const renaming = (): boolean =>
       renameTarget()?.kind === 'folder' && renameTarget()?.id === props.folder.id;
+    const fileCount = (): number =>
+      documents().filter((item) => item.folderId === props.folder.id).length;
     const drops = folderDropsFor(props.folder.id);
     const openThisFolder = (): void => {
       if (lastInteractedKey === props.folder.id) {
@@ -1122,6 +1267,12 @@ export function UserLibraryPage(): JSX.Element {
           class={`user-library-folder-card paper-card user-library-folder-card--${viewMode()}`}
           classList={{
             'user-library-folder-card--drop-target': dragTarget() === props.folder.id,
+            'user-library-folder-card--system': isUserLibrarySystemFolder(props.folder),
+          }}
+          draggable={viewMode() !== 'free' && !isUserLibrarySystemFolder(props.folder)}
+          onDragStart={(event) => {
+            event.dataTransfer?.setData(FOLDER_DRAG_TYPE, props.folder.id);
+            if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
           }}
           {...drops}
         >
@@ -1164,7 +1315,17 @@ export function UserLibraryPage(): JSX.Element {
               <span
                 class={`user-library-folder-card__figure user-library-folder-card__figure--${viewMode()}`}
                 aria-hidden="true"
-              />
+              >
+                <span class="user-library-folder-card__back" />
+                <Show when={fileCount() > 0}>
+                  <span class="user-library-folder-card__document" />
+                </Show>
+                <span class="user-library-folder-card__front">
+                  <Show when={props.folder.id === USER_LIBRARY_NOTES_FOLDER_ID}>
+                    <AppGlyph name="notes" class="user-library-folder-card__note-icon" />
+                  </Show>
+                </span>
+              </span>
               <strong
                 class={`user-library-folder-card__title user-library-folder-card__title--${viewMode()}`}
               >
@@ -1175,7 +1336,7 @@ export function UserLibraryPage(): JSX.Element {
                 title={timesTitleFor(props.folder)}
               >
                 {folders().filter((item) => item.parentId === props.folder.id).length} папок ·{' '}
-                {documents().filter((item) => item.folderId === props.folder.id).length} файлов
+                {fileCount()} файлов
               </small>
             </button>
           </Show>
@@ -1186,6 +1347,11 @@ export function UserLibraryPage(): JSX.Element {
 
   const timesTitleFor = (folder: UserLibraryFolder): string =>
     `Создана: ${formatDateTime(folder.createdAt)}`;
+
+  const renderLibraryEntry = (entry: LibraryEntry): JSX.Element | null => {
+    if (entry.folder) return <LibraryFolderCard folder={entry.folder} />;
+    return entry.document ? <LibraryCard document={entry.document} /> : null;
+  };
 
   const viewToggle = (): JSX.Element => (
     <fieldset
@@ -1240,7 +1406,7 @@ export function UserLibraryPage(): JSX.Element {
       <AppContextMenu actions={pageActions} hideButton class="user-library-page__area-context">
         <div
           ref={setHeadingElement}
-          class="knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading route-sticky-chrome"
+          class="user-library-page__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading route-sticky-chrome"
         >
           <NavBack
             class="knowledge-back-button knowledge-subroute-heading__control"
@@ -1271,7 +1437,7 @@ export function UserLibraryPage(): JSX.Element {
               {...rootDrops}
             >
               <AppGlyph name="house" class="user-library-breadcrumbs__icon" />
-              Ваши файлы
+              <span class="user-library-breadcrumbs__label">Ваши файлы</span>
             </button>
             <For each={folderTrail()}>
               {(folder) => {
@@ -1292,7 +1458,9 @@ export function UserLibraryPage(): JSX.Element {
                       onClick={() => openFolder(folder.id)}
                       {...drops}
                     >
-                      {folder.title}
+                      <span class="user-library-breadcrumbs__label" title={folder.title}>
+                        {breadcrumbLabel(folder.title)}
+                      </span>
                     </button>
                   </>
                 );
@@ -1364,17 +1532,17 @@ export function UserLibraryPage(): JSX.Element {
             <Show
               when={searchQuery().trim()}
               fallback={
-                <button
-                  type="button"
-                  class="user-library-page__empty-state"
-                  aria-label="Загрузите документ или создайте папку"
-                  onClick={requestContextMenu}
-                >
-                  <AppGlyph name="file-plus" class="user-library-page__empty-icon" />
-                  <strong class="user-library-page__empty-title">
-                    Загрузите документ или создайте папку
-                  </strong>
-                </button>
+                <div class="user-library-page__empty-context">
+                  <button
+                    type="button"
+                    class="user-library-page__empty-state"
+                    aria-label="Добавьте файлы"
+                    onClick={openFilePicker}
+                  >
+                    <AppGlyph name="file-plus" class="user-library-page__empty-icon" />
+                    <strong class="user-library-page__empty-title">Добавьте файлы</strong>
+                  </button>
+                </div>
               }
             >
               <p class="user-library-page__empty">Ничего не найдено по вашему запросу.</p>
@@ -1391,18 +1559,28 @@ export function UserLibraryPage(): JSX.Element {
                   'user-library-page__list--list': viewMode() === 'list',
                 }}
               >
-                <LayoutVirtualizedGrid
-                  data={visibleEntries()}
-                  bufferSize={500}
-                  maxColumns={3}
-                  minTwoColumnWidth={320}
+                <Show
+                  when={viewMode() === 'grid'}
+                  fallback={
+                    <LayoutVirtualizedGrid
+                      data={visibleEntries()}
+                      bufferSize={500}
+                      maxColumns={3}
+                      minTwoColumnWidth={320}
+                    >
+                      {(entry) => renderLibraryEntry(entry)}
+                    </LayoutVirtualizedGrid>
+                  }
                 >
-                  {(entry) => {
-                    if (entry.folder) return <LibraryFolderCard folder={entry.folder} />;
-                    const document = entry.document;
-                    return document ? <LibraryCard document={document} /> : null;
-                  }}
-                </LayoutVirtualizedGrid>
+                  <LayoutVirtualizedGrid
+                    data={visibleEntries()}
+                    bufferSize={500}
+                    maxColumns={6}
+                    minTwoColumnWidth={320}
+                  >
+                    {(entry) => renderLibraryEntry(entry)}
+                  </LayoutVirtualizedGrid>
+                </Show>
               </div>
             }
           >
@@ -1461,6 +1639,22 @@ export function UserLibraryPage(): JSX.Element {
               onClick={() => void downloadSelected()}
             >
               <AppGlyph name="download" class="user-library-selection-bar__icon" />
+            </button>
+            <button
+              type="button"
+              class="user-library-selection-bar__pdf"
+              aria-label="Создать PDF из выбранных фото"
+              title={
+                canCreatePdfFromSelection()
+                  ? 'Создать PDF из выбранных фото'
+                  : 'Выберите только фотографии'
+              }
+              disabled={!canCreatePdfFromSelection() || creatingPdf()}
+              onClick={() =>
+                void createPdfFromImages(selectedImageDocuments(), 'Фотографии', currentFolderId())
+              }
+            >
+              <AppGlyph name="file-pdf" class="user-library-selection-bar__icon" />
             </button>
             <button
               type="button"

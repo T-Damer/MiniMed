@@ -1,15 +1,30 @@
-import { describe, expect, it } from 'vitest';
-import { parseLocalModelCatalog } from '@/features/models/catalog';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { loadLocalModelCatalog, parseLocalModelCatalog } from '@/features/models/catalog';
 import rawCatalog from '@/features/models/catalog.preview.json';
 
 describe('local model catalog', () => {
-  it('loads the two curated startup candidates', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('loads the three curated startup candidates', () => {
     const catalog = parseLocalModelCatalog(rawCatalog);
     expect(catalog.models.map((model) => model.id)).toEqual([
       'vikhr-qwen2.5-0.5b-q4',
+      'qwen3-0.6b-q8',
       'qvikhr-3-1.7b-q4',
     ]);
     expect(catalog.models.every((model) => model.artifacts.length > 0)).toBe(true);
+  });
+
+  it('keeps a newer bundled catalog when GitHub main is stale', async () => {
+    const stale = structuredClone(rawCatalog);
+    stale.publishedAt = '2026-07-22T00:00:00Z';
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => stale }));
+
+    const loaded = await loadLocalModelCatalog('https://example.com/catalog.json');
+
+    expect(loaded.source).toBe('bundled');
+    expect(loaded.catalog.catalogVersion).toBe(rawCatalog.catalogVersion);
+    expect(loaded.warning).toMatch(/старее встроенного/u);
   });
 
   it('includes Russian-first Apache-licensed candidates', () => {

@@ -12,27 +12,30 @@ export interface AsrModelDescriptor {
   readonly runtimeReady: boolean;
 }
 
-/**
- * On-device ASR candidates. Whisper Tiny is the only transformers.js-runnable
- * multilingual model right now: Parakeet TDT exports lack an ASR-pipeline
- * integration (only ParakeetForCTC exists, English-only). GigaAM v3 stays as a
- * descriptor until an ONNX/transformers.js export exists.
- */
+/** On-device ASR candidates supported by the current transformers.js pipeline. */
 export const ASR_MODELS: readonly AsrModelDescriptor[] = [
   {
-    id: 'onnx-community/whisper-tiny',
-    name: 'Whisper Tiny',
-    description: 'Лёгкая модель OpenAI, понимает русскую речь.',
+    id: 'onnx-community/whisper-base',
+    name: 'Whisper Base (q8)',
+    description: 'Компактная модель для обычных голосовых заметок.',
     language: 'multilingual',
     preferredForRussian: true,
     runtimeReady: true,
   },
   {
+    id: 'onnx-community/whisper-small',
+    name: 'Whisper Small (q8)',
+    description: 'Точнее на шумной записи, но требует больше памяти.',
+    language: 'multilingual',
+    preferredForRussian: false,
+    runtimeReady: true,
+  },
+  {
     id: 'gigaam-v3-onnx',
     name: 'GigaAM v3 (ONNX)',
-    description: 'требует конвертации в transformers.js-формат',
+    description: 'требует отдельного GigaAM-препроцессора и CTC-декодера',
     language: 'ru',
-    preferredForRussian: false,
+    preferredForRussian: true,
     runtimeReady: false,
   },
 ];

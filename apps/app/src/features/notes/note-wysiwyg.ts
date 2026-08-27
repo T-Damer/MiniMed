@@ -11,6 +11,7 @@ import { pandocMark } from 'micromark-extension-mark';
 
 export interface NoteWysiwygOptions {
   readonly root: HTMLElement;
+  readonly label: string;
   readonly initialValue: string;
   readonly editable: () => boolean;
   readonly onChange: (markdown: string) => void;
@@ -42,6 +43,8 @@ export interface NoteWysiwyg {
   getMarkdown(): string;
   setMarkdown(markdown: string): void;
   insert(markdown: string): void;
+  /** Appends an empty paragraph at the document end (once) and focuses the editor. */
+  ensureTrailingParagraph(): void;
   toggleHeading(level: number): void;
   toggleBold(): void;
   toggleItalic(): void;
@@ -57,8 +60,10 @@ export interface NoteWysiwyg {
   activeState(): NoteWysiwygActiveState;
   /** Whether the current selection is fully covered by each mark. */
   marksForRange(): NoteWysiwygMarks;
-  /** Deletes the single character before the caret when it is '@'. */
-  deleteBeforeCursor(): void;
+  /** Text in the current block immediately before the caret. */
+  textBeforeCursor(): string;
+  /** Deletes the current mention/command trigger and its query before the caret. */
+  deleteBeforeCursor(trigger?: '@' | '/'): void;
   /** Escape a blockquote with Enter in an empty paragraph. */
   escapeQuoteOnEnter(): boolean;
   focus(): void;
@@ -119,7 +124,7 @@ const highlightInputRule = $inputRule(() => {
 
 export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<NoteWysiwyg> {
   const [
-    { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx },
+    { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx, serializerCtx },
     {
       commonmark,
       wrapInHeadingCommand,
@@ -144,15 +149,6 @@ export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<No
     import('@milkdown/kit/utils'),
   ]);
 
-  let changeTimer: ReturnType<typeof setTimeout> | undefined;
-  const scheduleChange = (markdown: string): void => {
-    if (changeTimer !== undefined) clearTimeout(changeTimer);
-    changeTimer = setTimeout(() => {
-      changeTimer = undefined;
-      options.onChange(markdown);
-    }, 250);
-  };
-
   const editor = await Editor.make()
     .config((ctx) => {
       ctx.set(rootCtx, options.root);
@@ -160,9 +156,18 @@ export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<No
       ctx.update(editorViewOptionsCtx, (previous) => ({
         ...previous,
         editable: () => options.editable(),
-        attributes: { class: 'note-markdown-wysiwyg__surface' },
+        attributes: {
+          class: 'note-markdown-wysiwyg__surface',
+          'aria-label': options.label,
+        },
       }));
-      ctx.get(listenerCtx).markdownUpdated((_ctx, markdown) => scheduleChange(markdown));
+      ctx
+        .get(listenerCtx)
+        .markdownUpdated((_ctx, markdown) => options.onChange(markdown))
+        .blur((listenerCtxValue) => {
+          const view = listenerCtxValue.get(editorViewCtx);
+          options.onChange(listenerCtxValue.get(serializerCtx)(view.state.doc));
+        });
       ctx.update(remarkPluginsCtx, (plugins) => [
         ...plugins,
         {
@@ -186,6 +191,18 @@ export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<No
     getMarkdown: () => editor.action(getMarkdown()),
     setMarkdown: (markdown) => editor.action(replaceAll(markdown)),
     insert: (markdown) => editor.action(insert(markdown)),
+    /** Appends a clickable empty paragraph so the caret can reach the line after the last block. */
+    ensureTrailingParagraph: () =>
+      editor.action((ctx) => {
+        const view = ctx.get(editorViewCtx);
+        const { state } = view;
+        const last = state.doc.lastChild;
+        if (last?.type.name === 'paragraph' && last.content.size === 0) return;
+        const paragraphType = state.schema.nodes['paragraph'];
+        if (!paragraphType) return;
+        view.dispatch(state.tr.insert(state.doc.content.size, paragraphType.create()));
+        view.focus();
+      }),
     toggleHeading: (level) =>
       editor.action((ctx) => {
         const view = ctx.get(editorViewCtx);
@@ -274,15 +291,23 @@ export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<No
         return { ...EMPTY_NOTE_MARKS };
       }
     },
-    deleteBeforeCursor: () =>
+    textBeforeCursor: () =>
+      editor.action((ctx) => {
+        const view = ctx.get(editorViewCtx);
+        const { state } = view;
+        if (!state.selection.empty) return '';
+        const caret = state.selection.from;
+        return state.doc.textBetween(Math.max(0, caret - 80), caret, '\uFFFC', '\uFFFC');
+      }) ?? '',
+    deleteBeforeCursor: (trigger = '@') =>
       editor.action((ctx) => {
         const view = ctx.get(editorViewCtx);
         const { state } = view;
         if (!state.selection.empty) return;
         const caret = state.selection.from;
-        const window = 80;
-        const text = state.doc.textBetween(Math.max(0, caret - window), caret, '\uFFFC', '\uFFFC');
-        const match = /@([\p{L}\p{N}_-]*)$/u.exec(text);
+        const text = state.doc.textBetween(Math.max(0, caret - 80), caret, '\uFFFC', '\uFFFC');
+        const escapedTrigger = trigger === '/' ? '\\/' : '@';
+        const match = new RegExp(`${escapedTrigger}([\\p{L}\\p{N}_-]*)$`, 'u').exec(text);
         if (!match) return;
         view.dispatch(state.tr.delete(caret - match[0].length, caret));
       }),
@@ -311,11 +336,6 @@ export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<No
     destroy: () => {
       if (destroyed) return;
       destroyed = true;
-      if (changeTimer !== undefined) {
-        clearTimeout(changeTimer);
-        changeTimer = undefined;
-        options.onChange(editor.action(getMarkdown()));
-      }
       void editor.destroy();
     },
   };

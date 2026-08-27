@@ -1,6 +1,7 @@
 import { findCalculator } from '@/features/calculators/calculator-registry';
 import { printHtmlInNativeShell } from '@/features/printing/native-print';
 import type { CalculationRecord } from '@/state/calculation-history';
+import { MINIMED_WEB_APP_URL } from '../../../../../release';
 
 function escapeHtml(value: string): string {
   return value
@@ -39,9 +40,10 @@ export function calculationRecordOutputs(
   }));
 }
 
-export function formatCalculationRecord(record: CalculationRecord): string {
+export function formatCalculationRecord(record: CalculationRecord, noteTitle = ''): string {
   const definition = findCalculator(record.calculatorId);
   const title = definition?.title ?? record.calculatorId;
+  const linkedTitle = noteTitle.trim();
   const outputs =
     'textValues' in record.result || 'values' in record.result
       ? calculationRecordOutputs(record)
@@ -49,11 +51,16 @@ export function formatCalculationRecord(record: CalculationRecord): string {
           .join('\n')
       : (calculationRecordOutputs(record)[0]?.display ?? '');
   const warnings = record.result.warnings.map((warning) => `- ${warning.message}`).join('\n');
-  const subject = record.subjectLabel ? `Пациент / случай: ${record.subjectLabel}\n` : '';
+  const subject =
+    !linkedTitle && record.subjectLabel ? `Пациент / случай: ${record.subjectLabel}\n` : '';
+  const date = new Intl.DateTimeFormat('ru-RU', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(record.createdAt));
   return [
     title,
     subject,
-    `Дата: ${new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(record.createdAt))}`,
+    `Дата: ${date}${linkedTitle ? ` ⋅ ${linkedTitle}` : ''}`,
     `Входные данные: ${record.inputSummary}`,
     `Формула: ${record.result.formula}`,
     '',
@@ -65,8 +72,8 @@ export function formatCalculationRecord(record: CalculationRecord): string {
     .join('\n');
 }
 
-export function printCalculationRecord(record: CalculationRecord): void {
-  const text = formatCalculationRecord(record);
+export function printCalculationRecord(record: CalculationRecord, noteTitle = ''): void {
+  const text = formatCalculationRecord(record, noteTitle);
   const title = findCalculator(record.calculatorId)?.title ?? 'Расчёт MiniMed';
   const html = `<!doctype html>
 <html lang="ru">
@@ -82,7 +89,7 @@ small{color:#555}
 </head>
 <body>
 <pre>${escapeHtml(text)}</pre>
-<small>MiniMed · локальный расчёт</small>
+<small>MiniMed · <a href="${MINIMED_WEB_APP_URL}">${MINIMED_WEB_APP_URL}</a></small>
 <script>window.addEventListener('afterprint',()=>window.close());window.addEventListener('load',()=>window.print())</script>
 </body>
 </html>`;

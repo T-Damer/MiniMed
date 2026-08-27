@@ -42,6 +42,12 @@ function requiredString(value: unknown, label: string): string {
   return value.trim();
 }
 
+function requiredDate(value: unknown, label: string): string {
+  const result = requiredString(value, label);
+  if (Number.isNaN(Date.parse(result))) throw new Error(`${label} должен быть корректной датой.`);
+  return result;
+}
+
 function requiredNumber(value: unknown, label: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
     throw new Error(`${label} должен быть неотрицательным числом.`);
@@ -230,7 +236,7 @@ export function parseLocalModelCatalog(value: unknown): LocalModelCatalog {
   return {
     schemaVersion: 1,
     catalogVersion: requiredString(recordValue(value, 'catalogVersion'), 'catalogVersion'),
-    publishedAt: requiredString(recordValue(value, 'publishedAt'), 'publishedAt'),
+    publishedAt: requiredDate(recordValue(value, 'publishedAt'), 'publishedAt'),
     runtime: {
       wllamaModuleUrl: requiredHttpsUrl(
         recordValue(runtime, 'wllamaModuleUrl'),
@@ -256,7 +262,12 @@ function runtimeMatches(candidate: LocalModelCatalog, trusted: LocalModelCatalog
   );
 }
 
+function isOlderThan(candidate: LocalModelCatalog, trusted: LocalModelCatalog): boolean {
+  return Date.parse(candidate.publishedAt) < Date.parse(trusted.publishedAt);
+}
+
 function readCache(trusted: LocalModelCatalog): LocalModelCatalog | null {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = window.localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
@@ -264,6 +275,7 @@ function readCache(trusted: LocalModelCatalog): LocalModelCatalog | null {
     if (!isRecord(parsed)) throw new Error('invalid cache record');
     const catalog = parseLocalModelCatalog(recordValue(parsed, 'catalog'));
     if (!runtimeMatches(catalog, trusted)) throw new Error('untrusted runtime metadata');
+    if (isOlderThan(catalog, trusted)) throw new Error('кэш каталога старее встроенного');
     return catalog;
   } catch {
     window.localStorage.removeItem(CACHE_KEY);
@@ -288,6 +300,7 @@ export async function loadLocalModelCatalog(remoteUrl: string): Promise<LocalMod
     if (!runtimeMatches(remote, bundled)) {
       throw new Error('remote catalog attempted to replace executable runtime metadata');
     }
+    if (isOlderThan(remote, bundled)) throw new Error('удалённый каталог старее встроенного');
     writeCache(remote);
     return { catalog: remote, source: 'remote', warning: null };
   } catch (cause) {
@@ -297,13 +310,13 @@ export async function loadLocalModelCatalog(remoteUrl: string): Promise<LocalMod
       return {
         catalog: cached,
         source: 'cache',
-        warning: `Каталог GitHub недоступен; используется проверенная копия: ${detail}`,
+        warning: `Удалённый каталог недоступен или отклонён; используется проверенная копия: ${detail}`,
       };
     }
     return {
       catalog: bundled,
       source: 'bundled',
-      warning: `Каталог GitHub недоступен; используется встроенный список: ${detail}`,
+      warning: `Удалённый каталог недоступен или отклонён; используется встроенный список: ${detail}`,
     };
   }
 }

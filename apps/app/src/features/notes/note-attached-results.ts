@@ -9,9 +9,17 @@ import type { CalculationRecord } from '@/state/calculation-history';
 import type {
   NoteAttachedAssessmentResult,
   NoteAttachedCalculatorResult,
+  PatientNotesSnapshot,
 } from '@/state/patient-notes';
 
 export type RichNoteAttachedCalculatorResult = NoteAttachedCalculatorResult;
+
+export function attachedResultNoteTitle(snapshot: PatientNotesSnapshot, recordId: string): string {
+  const note = snapshot.notes.find((candidate) =>
+    candidate.attachedResults?.some((result) => result.recordId === recordId),
+  );
+  return snapshot.cards.find((card) => card.id === note?.cardId)?.title.trim() ?? '';
+}
 
 export function snapshotAssessmentForNote(
   definition: AssessmentDefinition,

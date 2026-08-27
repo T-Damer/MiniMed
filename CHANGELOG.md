@@ -4,6 +4,32 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.31] - 2026-08-27
+
+### Added
+
+- Fullscreen DICOM and NIfTI viewer with bundled CT/MRI examples, multiplanar and 3D views,
+  study metadata, per-slice annotations, undo/redo, contrast controls, and floating-window support.
+- Personal files support archive extraction, folder drag-and-drop, native sharing/download, richer
+  thumbnails, editable text documents, notes-library synchronization, and image-to-PDF export.
+
+### Changed
+
+- Files, notes, document readers, module catalogs, and model settings use denser responsive layouts,
+  unified controls, improved dark-theme contrast, and mobile-safe toolbars.
+- Regulatory and reference collections open directly as searchable document lists with per-document
+  actions, accurate section/document counts, adaptive grids, and visible download progress.
+- Markdown editing and rendering now share the notes editor experience, including GFM-compatible
+  HTML, slash commands, full-page search, explicit drafts, and reliable navigation state.
+
+### Fixed
+
+- OPFS access-handle serialization prevents concurrent SQLite opens from failing module downloads.
+- Medication search prioritizes exact and prefix name matches; Whisper downloads retry transient
+  network failures without regressing progress.
+- RTF/EPUB/FB2 decoding, reader lazy-loading, document TOC anchors, native share fallback, print
+  output, file context menus, and note draft persistence were corrected.
+
 ## [0.6.30] - 2026-08-20
 
 ### Added

@@ -114,24 +114,24 @@ function nativeOnlyUnavailableModel(): LocalModelDescriptor {
 const runtimes = new Set(['wllama-web'] as const);
 
 describe('local model selection', () => {
-  it('chooses the 398 MB Russian Vikhr model on a 4 GB browser device', () => {
+  it('chooses the benchmark-leading Qwen3 model on a 4 GB browser device', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: profile(4),
       preference: preference(),
       availableRuntimes: runtimes,
     });
-    expect(selected?.model.id).toBe('vikhr-qwen2.5-0.5b-q4');
+    expect(selected?.model.id).toBe('qwen3-0.6b-q8');
   });
 
-  it('chooses QVikhr 1.7B on an 8 GB device', () => {
+  it('chooses Qwen3 0.6B on an 8 GB device', () => {
     const selected = selectLocalModel({
       models: catalog.models,
       profile: profile(8),
       preference: preference(),
       availableRuntimes: runtimes,
     });
-    expect(selected?.model.id).toBe('qvikhr-3-1.7b-q4');
+    expect(selected?.model.id).toBe('qwen3-0.6b-q8');
   });
 
   it('builds an automatic plan with a genuinely smaller fallback', () => {
@@ -142,7 +142,7 @@ describe('local model selection', () => {
       availableRuntimes: runtimes,
     });
     expect(plan.map((candidate) => candidate.model.id)).toEqual([
-      'qvikhr-3-1.7b-q4',
+      'qwen3-0.6b-q8',
       'vikhr-qwen2.5-0.5b-q4',
     ]);
     expect(plan[1]?.artifact.downloadBytes).toBeLessThan(plan[0]?.artifact.downloadBytes ?? 0);
@@ -163,7 +163,7 @@ describe('local model selection', () => {
   });
 
   it('tests only the manually selected model without a silent fallback', () => {
-    // On a 12 GB profile automatic selection would prefer QVikhr 1.7B; manually pinning the
+    // On a 12 GB profile automatic selection prefers Qwen3 0.6B; manually pinning the
     // smaller model must not silently add a fallback candidate.
     const plan = buildLocalModelLoadPlan({
       models: catalog.models,
@@ -208,7 +208,7 @@ describe('local model selection', () => {
       preference: preference(),
       availableRuntimes: new Set(['wllama-web', 'llama-native']),
     });
-    expect(selected?.model.id).toBe('vikhr-qwen2.5-0.5b-q4');
+    expect(selected?.model.id).toBe('qwen3-0.6b-q8');
     expect(selected?.artifact.runtime).toBe('llama-native');
   });
 

@@ -29,6 +29,11 @@
   margin: 0;
 }
 
+.settings-section--local-model {
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
 .settings-section__heading {
   display: flex;
   width: 100%;

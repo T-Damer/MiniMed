@@ -31,8 +31,8 @@ interface WllamaCompletion {
 }
 
 interface WllamaInstance {
-  loadModelFromUrl(
-    url: string,
+  loadModel(
+    blobs: Blob[],
     options: {
       readonly n_ctx: number;
       readonly n_threads: number;
@@ -106,17 +106,12 @@ async function loadModelFromResumableUrl(
     onProgress: ({ downloadedBytes, totalBytes }) =>
       callbacks.onProgress(downloadedBytes, totalBytes ?? expectedBytes ?? downloadedBytes),
   });
-  const blobUrl = URL.createObjectURL(new Blob([Uint8Array.from(bytes)]));
-  try {
-    await instance.loadModelFromUrl(blobUrl, {
-      n_ctx: Math.min(artifact.maxContextTokens, 2048),
-      n_threads: Math.max(1, Math.min(6, profile.hardwareConcurrency - 1)),
-      n_gpu_layers: 0,
-      progressCallback: ({ loaded, total }) => callbacks.onProgress(loaded, total),
-    });
-  } finally {
-    URL.revokeObjectURL(blobUrl);
-  }
+  await instance.loadModel([new Blob([Uint8Array.from(bytes)])], {
+    n_ctx: Math.min(artifact.maxContextTokens, 2048),
+    n_threads: Math.max(1, Math.min(6, profile.hardwareConcurrency - 1)),
+    n_gpu_layers: 0,
+    progressCallback: ({ loaded, total }) => callbacks.onProgress(loaded, total),
+  });
 }
 
 function outputPreview(value: string): string {

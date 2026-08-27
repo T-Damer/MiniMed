@@ -52,5 +52,35 @@
         "example": "15"
       }
     }
+  },
+  "section_count_one": {
+    "message": "$1 section",
+    "description": "Section count with English singular form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "section_count_few": {
+    "message": "$1 sections",
+    "description": "Section count with English plural form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "section_count_many": {
+    "message": "$1 sections",
+    "description": "Section count with English plural form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
   }
 }

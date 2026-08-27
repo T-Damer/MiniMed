@@ -4,6 +4,7 @@ import {
   formatFullTextDownloadLabel,
   formatModuleCollectionSubtitle,
   formatOverviewCollectionSubtitle,
+  moduleCollectionDocumentCount,
   moduleDocumentCountFact,
   moduleListedDocumentCount,
 } from './module-display';
@@ -68,7 +69,7 @@ describe('formatOverviewCollectionSubtitle', () => {
   it('does not show pack fractions', () => {
     expect(
       formatOverviewCollectionSubtitle({
-        documentCountLabel: '8 документов',
+        countLabel: '8 документов',
         downloadBytes: 12 * MB,
         installedBytes: 0,
       }),
@@ -84,7 +85,7 @@ describe('formatOverviewCollectionSubtitle', () => {
   it('shows document count alone when pack size is unknown', () => {
     expect(
       formatOverviewCollectionSubtitle({
-        documentCountLabel: '4708 документов',
+        countLabel: '4708 документов',
         downloadBytes: 0,
         installedBytes: 0,
       }),
@@ -94,7 +95,7 @@ describe('formatOverviewCollectionSubtitle', () => {
   it('prefers on-device size when present', () => {
     expect(
       formatOverviewCollectionSubtitle({
-        documentCountLabel: '12 документов',
+        countLabel: '12 документов',
         downloadBytes: 15 * MB,
         installedBytes: 12 * MB,
       }),
@@ -114,6 +115,15 @@ describe('moduleDocumentCountFact', () => {
     expect(moduleDocumentCountFact({ previewDocumentCount: 0, documents: [] } as never)).toBe(
       'Список документов уточняется',
     );
+  });
+
+  it('counts concrete documents across catalog modules', () => {
+    expect(
+      moduleCollectionDocumentCount([
+        { previewDocumentCount: 2, documents: [{}, {}] },
+        { previewDocumentCount: 1, documents: [{}] },
+      ] as never),
+    ).toBe(3);
   });
 });
 

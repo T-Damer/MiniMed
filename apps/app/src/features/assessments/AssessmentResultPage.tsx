@@ -15,7 +15,10 @@ import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
-import { snapshotAssessmentForNote } from '@/features/notes/note-attached-results';
+import {
+  attachedResultNoteTitle,
+  snapshotAssessmentForNote,
+} from '@/features/notes/note-attached-results';
 import {
   addPatientNote,
   createPatientCard,
@@ -199,7 +202,13 @@ export function AssessmentResultPage(props: {
         <Button
           class="assessment-result-actions__button"
           icon={<AppGlyph name="printer" />}
-          onClick={() => printAssessmentRecord(props.definition, props.record)}
+          onClick={() =>
+            printAssessmentRecord(
+              props.definition,
+              props.record,
+              attachedResultNoteTitle(props.notes, props.record.id),
+            )
+          }
         >
           Распечатать
         </Button>

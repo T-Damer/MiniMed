@@ -1,9 +1,9 @@
 const LOCAL_FILE_SIGNATURE = 0x04034b50;
 const CENTRAL_DIR_SIGNATURE = 0x02014b50;
 const END_OF_CENTRAL_DIR_SIGNATURE = 0x06054b50;
-const MAX_ZIP_ENTRIES = 2048;
-const MAX_ZIP_ENTRY_BYTES = 128 * 1024 * 1024;
-const MAX_ZIP_TOTAL_BYTES = 256 * 1024 * 1024;
+export const USER_LIBRARY_ARCHIVE_MAX_ENTRIES = 2048;
+export const USER_LIBRARY_ARCHIVE_MAX_ENTRY_BYTES = 128 * 1024 * 1024;
+export const USER_LIBRARY_ARCHIVE_MAX_TOTAL_BYTES = 256 * 1024 * 1024;
 
 interface ZipEntry {
   readonly path: string;
@@ -48,17 +48,17 @@ function readCentralDirectory(data: Uint8Array): readonly ZipEntry[] {
 
   while (offset < end) {
     if (readUint32(data, offset) !== CENTRAL_DIR_SIGNATURE) break;
-    if (entries.length >= MAX_ZIP_ENTRIES) {
+    if (entries.length >= USER_LIBRARY_ARCHIVE_MAX_ENTRIES) {
       throw new Error('ZIP: слишком много записей.');
     }
     const method = readUint16(data, offset + 10);
     const compressedSize = readUint32(data, offset + 20);
     const uncompressedSize = readUint32(data, offset + 24);
-    if (uncompressedSize > MAX_ZIP_ENTRY_BYTES) {
+    if (uncompressedSize > USER_LIBRARY_ARCHIVE_MAX_ENTRY_BYTES) {
       throw new Error('ZIP: запись слишком большая.');
     }
     totalUncompressedSize += uncompressedSize;
-    if (totalUncompressedSize > MAX_ZIP_TOTAL_BYTES) {
+    if (totalUncompressedSize > USER_LIBRARY_ARCHIVE_MAX_TOTAL_BYTES) {
       throw new Error('ZIP: общий распакованный размер слишком большой.');
     }
     const fileNameLength = readUint16(data, offset + 28);

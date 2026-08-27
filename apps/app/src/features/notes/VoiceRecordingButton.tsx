@@ -129,6 +129,7 @@ export function VoiceRecordingButton(props: {
     <button
       type="button"
       class={`note-markdown-editor__tool note-voice-button${recording() ? ' note-voice-button--recording' : ''}`}
+      data-note-voice-button="true"
       aria-label={recording() ? `Остановить запись (${durationLabel()})` : 'Записать голос'}
       title={recording() ? `Остановить запись · ${durationLabel()}` : 'Голосовая заметка'}
       disabled={props.disabled}

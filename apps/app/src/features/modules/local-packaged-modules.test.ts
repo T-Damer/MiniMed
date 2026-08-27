@@ -11,6 +11,7 @@ import {
   localPackagedModulesToInstall,
   MEDICATIONS_COMPANION_MODULE_ID,
   mergePreinstalledModules,
+  PACKAGED_MEDICATIONS_SIZE_BYTES,
 } from '@/features/modules/local-packaged-modules';
 import { setExperimentalModulesEnabled } from '@/state/app-preferences';
 
@@ -168,6 +169,10 @@ describe('local packaged modules', () => {
     ).toBe(true);
     const merged = mergePreinstalledModules(catalog, [], { companionMedicationsMounted: true });
     expect(merged.map((entry) => entry.moduleId)).toContain(MEDICATIONS_COMPANION_MODULE_ID);
+    expect(
+      merged.find((entry) => entry.moduleId === MEDICATIONS_COMPANION_MODULE_ID)
+        ?.installedSizeBytes,
+    ).toBe(PACKAGED_MEDICATIONS_SIZE_BYTES);
   });
 });
 

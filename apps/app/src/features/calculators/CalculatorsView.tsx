@@ -77,7 +77,10 @@ import {
 } from '@/features/calculators/unit-conversion';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
-import { snapshotCalculationForNote } from '@/features/notes/note-attached-results';
+import {
+  attachedResultNoteTitle,
+  snapshotCalculationForNote,
+} from '@/features/notes/note-attached-results';
 import {
   type CalculationRecord,
   createCalculationRecord,
@@ -776,7 +779,9 @@ function CalculationResultPanel(props: {
       <div class="calculator-result-actions">
         <Button
           icon={<AppGlyph name="printer" />}
-          onClick={() => printCalculationRecord(props.record)}
+          onClick={() =>
+            printCalculationRecord(props.record, attachedResultNoteTitle(notes(), props.record.id))
+          }
         >
           Распечатать
         </Button>

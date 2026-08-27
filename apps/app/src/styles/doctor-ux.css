@@ -134,19 +134,17 @@
   max-height: min(95dvh, calc(100dvh - 2rem - var(--safe-top, 0px) - var(--safe-bottom, 0px)));
 }
 
-.document-overlay--loading .document-overlay-loading-body {
+.document-page__loading {
   display: flex;
-  min-height: 0;
+  min-height: calc(100dvh - var(--document-chrome-height));
   flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  padding: 1.5rem;
-}
-
-.document-overlay--loading .document-overlay-paper {
-  min-height: 100dvh;
+  padding: 2rem var(--page-inline-padding, 1rem) calc(4rem + var(--nav-safe-bottom, 0px));
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%),
+    linear-gradient(180deg, var(--folder-light), var(--folder));
 }
 
 .document-overlay-spinner {
@@ -158,27 +156,13 @@
   animation: spin 700ms linear infinite;
 }
 
-.document-overlay-loading-note,
-.document-overlay-spinner-caption {
-  max-width: 28ch;
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  text-align: center;
-}
-
-.document-overlay-spinner-overlay {
-  position: absolute;
-  z-index: var(--z-sticky-local);
-  inset: 0;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 0.75rem;
-  min-height: 100dvh;
-  padding: 1.5rem;
-  background: color-mix(in srgb, var(--theme-surface) 78%, transparent);
+.document-page__loading-spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0.1875rem solid color-mix(in srgb, var(--theme-accent) 26%, var(--ink-faint));
+  border-right-color: var(--theme-accent);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
 }
 
 .document-overlay-layout {
@@ -262,6 +246,7 @@
 
 .document-overlay-outline-section-button {
   display: grid;
+  min-width: 0;
   grid-template-columns: 1.5625rem minmax(0, 1fr);
   gap: 0.4375rem;
   padding: 0.55rem 0.5rem;
@@ -304,6 +289,16 @@
   color: var(--ink-faint);
   font-family: var(--font-mono);
   font-size: 0.8em;
+}
+
+.document-overlay-outline-section-button__label,
+.document-overlay-outline-item__label {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow-wrap: anywhere;
 }
 
 .document-overlay-outline-section-button--h3 {
@@ -383,14 +378,14 @@
 }
 
 .document-overlay-paper__title {
-  max-width: 24ch;
+  max-width: min(100%, 56rem);
   margin: 0;
   padding: 0.35rem 0;
   overflow-wrap: break-word;
   word-break: normal;
   hyphens: none;
   font-family: var(--font-serif);
-  font-size: clamp(1.75rem, 4.5vw, 2.875rem);
+  font-size: clamp(1.375rem, 4.5vw, 2.875rem);
   font-weight: 500;
   line-height: 1.08;
 }
@@ -848,10 +843,15 @@
 }
 
 .document-overlay-paper__pending {
+  display: grid;
+  min-height: 8rem;
   margin: 1.5rem 0 0;
-  color: var(--ink-faint);
-  font-size: 0.8125rem;
-  text-align: center;
+  place-items: center;
+  align-content: center;
+  padding: 1.5rem;
+  border: 1px solid var(--paper-line);
+  border-radius: var(--theme-radius-panel);
+  background: color-mix(in srgb, var(--theme-surface-muted) 82%, var(--document-paper-fill));
 }
 
 .document-overlay-action-button {
@@ -1321,14 +1321,6 @@
   margin: 1rem 0;
 }
 
-.model-error-actions button {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid var(--theme-border);
-  color: var(--theme-text);
-  background: var(--theme-surface-raised);
-  cursor: pointer;
-}
-
 .model-error-details pre {
   max-height: 15rem;
   overflow: auto;
@@ -1674,7 +1666,7 @@
   width: auto;
 }
 
-.document-overlay-outline-resize {
+.document-overlay-outline-resize:not(:disabled) {
   position: absolute;
   z-index: 5;
   top: 0;
@@ -1685,7 +1677,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: col-resize;
+  cursor: ew-resize;
   touch-action: none;
 }
 
@@ -1694,19 +1686,15 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 0.3rem;
+  width: 0.1875rem;
   height: 2.75rem;
   transform: translate(-50%, -50%);
   border-radius: 999px;
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--paper-line, var(--theme-border)) 0,
-    var(--paper-line, var(--theme-border)) 0.0625rem,
-    transparent 0.0625rem,
-    transparent 0.4375rem
-  );
-  opacity: 0.7;
-  transition: opacity var(--theme-motion-control);
+  background: var(--paper-line, var(--theme-border));
+  opacity: 0.8;
+  transition:
+    background-color var(--theme-motion-control),
+    opacity var(--theme-motion-control);
 }
 
 @media (min-width: 761px) {

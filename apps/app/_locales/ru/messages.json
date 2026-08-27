@@ -291,6 +291,36 @@
       }
     }
   },
+  "section_count_one": {
+    "message": "$1 раздел",
+    "description": "Section count with Russian singular form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "section_count_few": {
+    "message": "$1 раздела",
+    "description": "Section count with Russian paucal form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "section_count_many": {
+    "message": "$1 разделов",
+    "description": "Section count with Russian plural form",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
+      }
+    }
+  },
   "graph_legend_domain": {
     "message": "медицинская область",
     "description": "Knowledge graph legend label for domain nodes"

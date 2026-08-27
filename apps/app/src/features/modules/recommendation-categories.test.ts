@@ -6,6 +6,7 @@ import type {
 import { describe, expect, it } from 'vitest';
 
 import {
+  moduleGroupDownloadProgress,
   modulesInCategory,
   recommendationCategoryDownloadProgress,
   recommendationCategoryStats,
@@ -131,6 +132,28 @@ describe('recommendation-categories', () => {
       installedFraction: 0.5,
       byteProgress: 0.75,
     });
+  });
+
+  it('aggregates download progress across an arbitrary module group', () => {
+    const progress = moduleGroupDownloadProgress(
+      [module('a'), module('b', { collection: 'other', tags: [] })],
+      new Set(['a']),
+      [
+        {
+          id: 'task-1',
+          moduleId: 'b',
+          version: '1.0.0',
+          state: 'downloading',
+          downloadedBytes: 250_000,
+          totalBytes: 1_000_000,
+          includeSourceAssets: false,
+          runsInBackground: false,
+          errorMessage: null,
+        },
+      ],
+    );
+
+    expect(progress.byteProgress).toBe(0.625);
   });
 
   it('does not show a shared category as fully loaded while overlapping modules download', () => {

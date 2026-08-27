@@ -13,6 +13,7 @@ import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { DocumentBookModeButton } from '@/features/library/DocumentBookModeButton';
+import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
 import { createFloatingWindows } from '@/state/floating-windows';
 import { rememberReturnTo } from '@/state/return-navigation';
 
@@ -101,8 +102,13 @@ export function App(): JSX.Element {
       <Show when={navigation.hasMountedView(id)}>
         <Suspense
           fallback={
-            <div class="app-view__loading" role="status" aria-live="polite">
-              Загрузка страницы…
+            <div
+              class="app-view__loading page-surface page-grain"
+              role="status"
+              aria-live="polite"
+              aria-label="Загрузка страницы"
+            >
+              <span class="app-view__spinner" aria-hidden="true" />
             </div>
           }
         >
@@ -211,8 +217,13 @@ export function App(): JSX.Element {
                 <section class="app-view app-view--document-read active" aria-hidden={false}>
                   <Suspense
                     fallback={
-                      <div class="app-view__loading" role="status" aria-live="polite">
-                        Загрузка документа…
+                      <div
+                        class="app-view__loading page-surface page-grain"
+                        role="status"
+                        aria-live="polite"
+                        aria-label="Загрузка страницы"
+                      >
+                        <span class="app-view__spinner" aria-hidden="true" />
                       </div>
                     }
                   >
@@ -232,7 +243,7 @@ export function App(): JSX.Element {
         <FloatingWindowLayer manager={floatingWindows} onClose={closeFloatingWindow} />
       </Show>
 
-      <Show when={session.ready() && !embeddedFloatingWindow}>
+      <Show when={session.ready() && !embeddedFloatingWindow && !medicalImageViewerActive()}>
         <Portal>
           <AppBottomNav
             view={navigation.view}
@@ -259,14 +270,7 @@ export function App(): JSX.Element {
         <Show when={session.ready() && !embeddedFloatingWindow}>
           <DocumentBookModeButton />
         </Show>
-        <Show
-          when={
-            session.ready() &&
-            !embeddedFloatingWindow &&
-            !navigation.documentReadActive() &&
-            navigation.view() !== 'settings'
-          }
-        >
+        <Show when={session.ready() && !embeddedFloatingWindow && navigation.view() !== 'settings'}>
           <button
             class="floating-window-toggle floating-window-controls__item"
             type="button"

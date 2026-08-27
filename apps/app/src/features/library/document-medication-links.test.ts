@@ -57,6 +57,19 @@ describe('document-medication-links', () => {
     ]);
   });
 
+  it('recognizes PDF paragraphs that form an implicit list', () => {
+    expect(
+      parseDocumentText(
+        'Медицинская помощь оказывается в следующих условиях:\n\nвне медицинской организации;\n\nамбулаторно;\n\nстационарно.',
+      ),
+    ).toEqual([
+      { kind: 'paragraph', text: 'Медицинская помощь оказывается в следующих условиях:' },
+      { kind: 'bullet', text: 'вне медицинской организации;' },
+      { kind: 'bullet', text: 'амбулаторно;' },
+      { kind: 'bullet', text: 'стационарно.' },
+    ]);
+  });
+
   it('uses PDF indentation to stop a list before the following paragraph', () => {
     expect(
       parseDocumentText('• Пункт начинается\n\nи продолжается.\n\nСледующий раздел', [

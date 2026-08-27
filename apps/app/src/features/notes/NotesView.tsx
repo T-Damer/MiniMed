@@ -27,7 +27,7 @@ import {
   type ViewerState,
 } from '@/features/notes/NoteAttachmentViewer';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
-import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
+import { type EditorFileAttachment, NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
 import { notesPath } from '@/features/notes/notes-routing';
 import { useNotesRoute } from '@/features/notes/use-notes-route';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
@@ -147,7 +147,7 @@ function inlineFileGlyph(mimeType: string): AppGlyphName {
     case 'image':
       return 'image';
     case 'video':
-      return 'film-strip';
+      return 'film-slate';
     case 'audio':
       return 'music-notes';
     case 'pdf':
@@ -441,6 +441,77 @@ export function NotesView(props: {
     const id = activeNote()?.id;
     return id ? (recordFiles().get(id) ?? []) : [];
   };
+
+  const pendingFileUrlCache = new Map<string, string>();
+  onCleanup(() => {
+    for (const url of pendingFileUrlCache.values()) URL.revokeObjectURL(url);
+  });
+  const pendingFileUrl = (file: File): string => {
+    const key = `${file.name}:${file.size}:${file.lastModified}`;
+    let url = pendingFileUrlCache.get(key);
+    if (!url) {
+      url = URL.createObjectURL(file);
+      pendingFileUrlCache.set(key, url);
+    }
+    return url;
+  };
+
+  /** Files shown as inline blocks inside the note editor (saved + pending). */
+  const editorFileAttachments = createMemo<readonly EditorFileAttachment[]>(() => {
+    const noteId = activeNote()?.id;
+    if (!noteId) return [];
+    const dateFormat = new Intl.DateTimeFormat('ru-RU', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const fmt = (value: string): string => {
+      try {
+        return dateFormat.format(new Date(value));
+      } catch {
+        return '';
+      }
+    };
+    const saved: readonly EditorFileAttachment[] = (recordFiles().get(noteId) ?? []).map(
+      (record) => {
+        const kind = attachmentViewerKind(record.mimeType);
+        return {
+          key: `file:${record.id}`,
+          name: record.name,
+          kind,
+          ...(record.thumbnailDataUrl || kind === 'image'
+            ? { src: record.thumbnailDataUrl ?? noteFileSrc(record) }
+            : {}),
+          sizeBytes: record.size,
+          datesLabel: `добавлен ${fmt(record.createdAt)}`,
+          viewer: recordToViewerState(record),
+        };
+      },
+    );
+    const pending: readonly EditorFileAttachment[] = pendingImages().map((file, index) => {
+      const kind = attachmentViewerKind(file.type || '');
+      const url = pendingFileUrl(file);
+      return {
+        key: `pending:${index}`,
+        name: file.name,
+        kind,
+        ...(kind === 'image' ? { src: url } : {}),
+        sizeBytes: file.size,
+        datesLabel: `создан ${fmt(new Date(file.lastModified).toISOString())}`,
+        viewer:
+          kind === 'image'
+            ? { kind: 'image', name: file.name, src: url }
+            : kind === 'video'
+              ? { kind: 'video', name: file.name, src: url }
+              : kind === 'audio'
+                ? { kind: 'audio', name: file.name, src: url }
+                : { kind: 'text', name: file.name, blob: file },
+      };
+    });
+    return [...saved, ...pending];
+  });
+
   const openTimelineFile = (record: NoteFile): void => {
     setTimelineViewer(recordToViewerState(record));
   };
@@ -1026,7 +1097,7 @@ export function NotesView(props: {
                   )}
                 </Show>
                 <div
-                  class="patient-note-form patient-record-editor paper-card"
+                  class="patient-note-form patient-record-editor"
                   classList={{
                     'patient-record-editor--previous-revision': viewingPreviousRevision(),
                   }}
@@ -1069,6 +1140,7 @@ export function NotesView(props: {
                         .querySelector<HTMLInputElement>('[data-note-image-picker-input="true"]')
                         ?.click()
                     }
+                    fileAttachments={editorFileAttachments()}
                     onOpenReminders={() => setReminderOpen(true)}
                     onRecordAudio={(file, ownerId) => {
                       const noteId = ownerId.startsWith('note:')
@@ -1126,9 +1198,6 @@ export function NotesView(props: {
                       onDateChange={setReminderDate}
                       onTimeChange={setReminderTime}
                     />
-                  </Show>
-                  <Show when={!viewingPreviousRevision()}>
-                    <p class="patient-note-autosave-status">Сохраняется автоматически</p>
                   </Show>
                 </div>
 

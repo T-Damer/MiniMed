@@ -56,6 +56,12 @@
     background: var(--desk);
   }
 
+  .user-library-folder-card {
+    --folder: #b9a06a;
+    --folder-light: #cbb37c;
+    --folder-dark: #8f7849;
+  }
+
   .app-bottom-nav {
     border: 1px solid rgb(255 255 255 / 12%);
     color: #f8f0dd;
@@ -415,7 +421,7 @@
   .module-page .recommendation-controls input,
   .module-page .recommendation-controls select,
   .module-page .recommendation-controls button,
-  .module-page .recommendation-row button,
+  .module-page .recommendation-row button:not(.recommendation-delete-button),
   .module-card-actions__remove,
   .module-card__version-button {
     border-color: var(--theme-border);
@@ -434,7 +440,7 @@
   .recommendation-section-actions__download,
   .recommendation-list-actions__download,
   .module-page .recommendation-controls button,
-  .module-page .recommendation-row button {
+  .module-page .recommendation-row button:not(.recommendation-delete-button) {
     color: var(--theme-link);
   }
 
@@ -549,10 +555,6 @@
     background: var(--theme-surface-muted);
   }
 
-  .document-overlay-spinner-overlay {
-    background: color-mix(in srgb, var(--theme-surface) 82%, transparent);
-  }
-
   .document-page__chrome,
   .document-page__chrome.sticky-surface.route-sticky-chrome {
     border-color: var(--theme-border);
@@ -648,7 +650,8 @@
 
   @media (hover: hover) and (pointer: fine) {
     .example-scroll-content__chip:hover {
-      background: color-mix(in srgb, var(--theme-surface-muted) 72%, var(--theme-accent-soft));
+      border-color: var(--theme-accent);
+      background: var(--theme-accent-soft);
     }
   }
 

@@ -5,6 +5,7 @@ import {
   createSignal,
   For,
   type JSX,
+  lazy,
   onCleanup,
   onMount,
   Show,
@@ -24,11 +25,13 @@ import {
   rangesForFindUnit,
 } from '@/features/library/document-find';
 import { printElementHtml, printHtml } from '@/features/library/document-print';
+import { navigateDocumentReaderBack } from '@/features/library/document-reader-back';
 import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
 import {
+  markMedicalImageViewerActive,
   markUserDocumentPdf,
   markUserDocumentTextAvailable,
   useDocumentBookReadingMode,
@@ -52,21 +55,31 @@ import {
   pageCanvasId,
 } from '@/features/library/user-document-reader-helpers';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
+import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
 import type { DocumentTrail } from '@/state/document-trail';
 import { loadPdfJsDocument, type PdfDocumentProxy } from '@/state/pdfjs-document';
 import {
+  addUserLibraryFile,
   getUserLibraryDocument,
   getUserLibraryFile,
+  isUserLibraryDicomFile,
   isUserLibraryImageMime,
   isUserLibraryPdfMime,
   isUserLibraryTextLikeMime,
+  isUserLibraryVolumeFile,
   listUserLibraryPages,
+  saveUserLibraryDraft,
   USER_LIBRARY_EVENT,
   type UserLibraryDocument,
   type UserLibraryPage,
   type UserLibraryWordBox,
+  userLibraryFileAccept,
   userLibraryProgressFraction,
 } from '@/state/user-library';
+import { isEditableUserLibraryFile } from '@/state/user-library-formats';
+
+const DicomViewer = lazy(() => import('@/features/library/DicomViewer'));
+const VolumeViewer = lazy(() => import('@/features/library/VolumeViewer'));
 
 interface UserDocumentReaderProps {
   readonly documentId: string;
@@ -157,12 +170,30 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
   const [findOpen, setFindOpen] = createSignal(false);
   const [markdownRaw, setMarkdownRaw] = createSignal(false);
+  const [draftOpen, setDraftOpen] = createSignal(false);
+  const [draftText, setDraftText] = createSignal('');
+  const [draftDirty, setDraftDirty] = createSignal(false);
+  const [draftSaving, setDraftSaving] = createSignal(false);
+  const [draftError, setDraftError] = createSignal<string | null>(null);
+  const [discardOpen, setDiscardOpen] = createSignal(false);
+  const [leaveAction, setLeaveAction] = createSignal<'close' | 'navigate' | null>(null);
+  const [pendingNavigation, setPendingNavigation] = createSignal<string | null>(null);
   const [imageLightboxOpen, setImageLightboxOpen] = createSignal(false);
   let activePdf: PdfDocumentProxy | null = null;
   let pdfLoadGeneration = 0;
+  let draftFileInput: HTMLInputElement | undefined;
 
   const meta = (): UserLibraryDocument | null => libraryDocument();
   const isMarkdown = (): boolean => meta()?.mimeType === 'text/markdown';
+  const isDicom = (): boolean => {
+    const current = meta();
+    return current ? isUserLibraryDicomFile(current.mimeType, current.fileName) : false;
+  };
+  const isVolume = (): boolean => {
+    const current = meta();
+    return current ? isUserLibraryVolumeFile(current.mimeType, current.fileName) : false;
+  };
+  const isMedicalImage = (): boolean => isDicom() || isVolume();
   const markdownText = createMemo(() =>
     pages()
       .map((page) => page.text)
@@ -173,6 +204,31 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     return firstPage ? pageAnchorId(props.documentId, firstPage.pageIndex) : undefined;
   });
   const parsedMarkdown = createMemo(() => parseMarkdownDocument(markdownText()));
+  const editableSource = createMemo(() => {
+    const current = meta();
+    return current ? isEditableUserLibraryFile(current.fileName, current.mimeType) : false;
+  });
+  const draftFormatHint = (): string => {
+    const current = meta();
+    if (!current) return '';
+    if (/\.(?:docx|rtf)$/iu.test(current.fileName)) {
+      return 'Сложное форматирование исходного файла не переносится: сохранится текстовый черновик в том же формате.';
+    }
+    return 'Изменения остаются черновиком и попадут в файл только после явного сохранения.';
+  };
+
+  const openDraftFiles = (): void => draftFileInput?.click();
+
+  const handleDraftFiles = (files: FileList | null): void => {
+    const folderId = meta()?.folderId ?? null;
+    for (const file of Array.from(files ?? [])) {
+      void addUserLibraryFile(file, folderId)
+        .then(() => toast.success(`Файл «${file.name}» добавлен.`))
+        .catch((cause: unknown) => {
+          toast.error(cause instanceof Error ? cause.message : 'Не удалось добавить файл.');
+        });
+    }
+  };
 
   const outlineItems = createMemo(() => {
     const current = meta();
@@ -225,9 +281,13 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
 
   const findSearchable = createMemo(() => hasSearchableDocumentUnits(findUnits()));
   createEffect(() => {
-    markUserDocumentTextAvailable(findSearchable());
+    markUserDocumentTextAvailable(!isMedicalImage() && findSearchable());
+    markMedicalImageViewerActive(isMedicalImage());
   });
-  onCleanup(() => markUserDocumentTextAvailable(true));
+  onCleanup(() => {
+    markUserDocumentTextAvailable(true);
+    markMedicalImageViewerActive(false);
+  });
   const readingMode = useDocumentBookReadingMode();
   const bookReadingMode = readingMode.bookMode;
 
@@ -362,6 +422,109 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       if (pdf) void pdf.destroy();
     });
   });
+
+  createEffect(() => {
+    if (!draftOpen() || !draftDirty()) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    onCleanup(() => window.removeEventListener('beforeunload', handleBeforeUnload));
+  });
+
+  const openDraftEditor = (): void => {
+    setDraftError(null);
+    setDraftText(markdownText());
+    setDraftDirty(false);
+    setLeaveAction(null);
+    setPendingNavigation(null);
+    setDraftOpen(true);
+  };
+
+  const persistDraft = async (): Promise<boolean> => {
+    const current = meta();
+    if (!current) return false;
+    setDraftSaving(true);
+    setDraftError(null);
+    try {
+      const saved = await saveUserLibraryDraft(current.id, draftText());
+      if (!saved) throw new Error('Документ больше недоступен.');
+      setLibraryDocument(saved);
+      setPages(await listUserLibraryPages(current.id));
+      props.onTitle?.(saved.title);
+      setDraftDirty(false);
+      toast.success('Черновик сохранён.');
+      return true;
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : 'Не удалось сохранить черновик.';
+      setDraftError(message);
+      toast.error(message);
+      return false;
+    } finally {
+      setDraftSaving(false);
+    }
+  };
+
+  const askDiscard = (action: 'close' | 'navigate', href?: string): void => {
+    setLeaveAction(action);
+    setPendingNavigation(href ?? null);
+    setDiscardOpen(true);
+  };
+
+  const closeDraftEditor = (): void => {
+    if (draftDirty()) {
+      askDiscard('close');
+      return;
+    }
+    setDraftOpen(false);
+    setLeaveAction(null);
+    setPendingNavigation(null);
+  };
+
+  const discardDraft = (): void => {
+    const action = leaveAction();
+    const href = pendingNavigation();
+    setDraftDirty(false);
+    setDraftOpen(false);
+    setDiscardOpen(false);
+    setLeaveAction(null);
+    setPendingNavigation(null);
+    if (action === 'navigate' && href) navigateHref(props, href);
+  };
+
+  const saveDraft = async (): Promise<void> => {
+    if (await persistDraft()) {
+      setDraftOpen(false);
+      setLeaveAction(null);
+      setPendingNavigation(null);
+    }
+  };
+
+  const saveDraftAndLeave = async (): Promise<void> => {
+    if (!(await persistDraft())) return;
+    const action = leaveAction();
+    const href = pendingNavigation();
+    setDraftOpen(false);
+    setDiscardOpen(false);
+    setLeaveAction(null);
+    setPendingNavigation(null);
+    if (action === 'navigate' && href) navigateHref(props, href);
+  };
+
+  const requestNavigate = (href: string): void => {
+    if (draftOpen() && draftDirty()) {
+      askDiscard('navigate', href);
+      return;
+    }
+    navigateHref(props, href);
+  };
+
+  const stayInDraft = (): void => {
+    setDiscardOpen(false);
+    setLeaveAction(null);
+    setPendingNavigation(null);
+  };
 
   createEffect(() => {
     const pageIndex = props.initialPageIndex;
@@ -509,6 +672,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     const current = meta();
     return current ? isUserLibraryTextLikeMime(current.mimeType) && !richMime() : false;
   };
+  const leaveMedicalViewer = (): void => navigateDocumentReaderBack(props.trail, props.onNavigate);
   const showBannerProgress = (): boolean => {
     const current = meta();
     return current?.status === 'inspecting' || current?.status === 'ocr';
@@ -522,38 +686,37 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       <DocumentReaderChromeShell
         ariaLabel={meta()?.title ?? 'Личный документ'}
         class="document-page user-document-reader page-surface page-grain"
-        classList={{ 'document-page--book': bookReadingMode() }}
+        classList={{
+          'document-page--book': bookReadingMode(),
+          'user-document-reader--medical': isMedicalImage(),
+        }}
         chromeClass="document-page__chrome sticky-surface route-sticky-chrome"
+        chromeClassList={{ 'document-page__chrome--medical-hidden': isMedicalImage() }}
+        bodyClassList={{ 'document-page__body--medical': isMedicalImage() }}
         chrome={chrome}
         searchOpen={findOpen}
         trail={props.trail ?? null}
-        onNavigate={(href) => navigateHref(props, href)}
+        onNavigate={requestNavigate}
         breadcrumbs={
           <Show
             when={props.trail}
-            fallback={
-              <AppBreadcrumbs
-                items={breadcrumbItems()}
-                onNavigate={(href) => navigateHref(props, href)}
-              />
-            }
+            fallback={<AppBreadcrumbs items={breadcrumbItems()} onNavigate={requestNavigate} />}
           >
             {(currentTrail) => (
-              <DocumentCrumbs
-                trail={currentTrail()}
-                onNavigate={(href) => navigateHref(props, href)}
-              />
+              <DocumentCrumbs trail={currentTrail()} onNavigate={requestNavigate} />
             )}
           </Show>
         }
         headerSearchSlot={
-          <DocumentFindBar
-            class="document-page__header-search"
-            units={findUnits}
-            disabled={!findSearchable()}
-            onOpenChange={setFindOpen}
-            onResult={setFindState}
-          />
+          <Show when={!isMedicalImage()}>
+            <DocumentFindBar
+              class="document-page__header-search"
+              units={findUnits}
+              disabled={!findSearchable()}
+              onOpenChange={setFindOpen}
+              onResult={setFindState}
+            />
+          </Show>
         }
         bodyError={
           <Show when={loadError()}>
@@ -561,6 +724,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           </Show>
         }
         showLayout
+        outlineEnabled={!isMedicalImage()}
         bodyPrefix={
           <Show when={banner()}>
             {(message) => (
@@ -606,17 +770,21 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   aria-current={chrome.activeAnchor() === item.anchor ? 'location' : undefined}
                   onClick={() => chrome.scrollTo(item.anchor)}
                 >
-                  {item.label}
+                  <span class="document-overlay-outline-item__label">{item.label}</span>
                 </button>
               )}
             </For>
           </Show>
         }
         content={
-          <article ref={chrome.setPaper} class="document-overlay-paper user-document-reader__paper">
+          <article
+            ref={chrome.setPaper}
+            class="document-overlay-paper user-document-reader__paper"
+            classList={{ 'user-document-reader__paper--medical': isMedicalImage() }}
+          >
             <Show when={meta()}>
               {(current) => (
-                <>
+                <Show when={!isMedicalImage()}>
                   <h1 class="document-overlay-paper__title">
                     <QueryHighlightedText
                       text={current().title}
@@ -633,219 +801,382 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   </h1>
                   <header class="document-overlay-paper__header">
                     <div class="document-overlay-paper__actions">
-                      <Show when={isMarkdown()}>
+                      <Show
+                        when={draftOpen()}
+                        fallback={
+                          <>
+                            <Show when={editableSource()}>
+                              <Button
+                                type="button"
+                                class="document-overlay-action-button"
+                                onClick={openDraftEditor}
+                                icon={
+                                  <AppGlyph
+                                    name="edit"
+                                    class="document-overlay-action-button__icon"
+                                  />
+                                }
+                              >
+                                Редактировать
+                              </Button>
+                            </Show>
+                            <Show when={isMarkdown()}>
+                              <Button
+                                type="button"
+                                class="document-overlay-action-button"
+                                onClick={() => setMarkdownRaw((raw) => !raw)}
+                                icon={
+                                  <AppGlyph
+                                    name="file-text"
+                                    class="document-overlay-action-button__icon"
+                                  />
+                                }
+                              >
+                                {markdownRaw() ? 'Preview' : 'Raw'}
+                              </Button>
+                            </Show>
+                            <Button
+                              type="button"
+                              class="document-overlay-action-button"
+                              aria-label="Распечатать документ"
+                              onClick={printDocument}
+                              icon={
+                                <AppGlyph
+                                  name="printer"
+                                  class="document-overlay-action-button__icon"
+                                />
+                              }
+                            >
+                              Распечатать
+                            </Button>
+                          </>
+                        }
+                      >
+                        <span class="user-document-reader__draft-status" role="status">
+                          Черновик{draftDirty() ? ' · не сохранён' : ''}
+                        </span>
                         <Button
                           type="button"
                           class="document-overlay-action-button"
-                          onClick={() => setMarkdownRaw((raw) => !raw)}
+                          onClick={closeDraftEditor}
+                          disabled={draftSaving()}
+                        >
+                          Отмена
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="primary"
+                          class="document-overlay-action-button"
+                          onClick={() => void saveDraft()}
+                          disabled={!draftDirty() || draftSaving()}
                           icon={
                             <AppGlyph
-                              name="file-text"
-                              class="document-overlay-action-button__icon"
+                              name={draftSaving() ? 'refresh' : 'check'}
+                              class={
+                                draftSaving()
+                                  ? 'document-overlay-action-button__icon document-overlay-action-button__icon--spin'
+                                  : 'document-overlay-action-button__icon'
+                              }
                             />
                           }
                         >
-                          {markdownRaw() ? 'Preview' : 'Raw'}
+                          {draftSaving() ? 'Сохраняем…' : 'Сохранить черновик'}
                         </Button>
                       </Show>
-                      <Button
-                        type="button"
-                        class="document-overlay-action-button"
-                        aria-label="Распечатать документ"
-                        onClick={printDocument}
-                        icon={
-                          <AppGlyph name="printer" class="document-overlay-action-button__icon" />
-                        }
-                      >
-                        Распечатать
-                      </Button>
                     </div>
                   </header>
-                </>
-              )}
-            </Show>
-
-            <Show when={isPdf()}>
-              <div
-                class="user-document-reader__pages"
-                classList={{ 'user-document-reader__pages--two': readingMode.twoPageMode() }}
-              >
-                <For each={visualPageIndexes()}>
-                  {(pageIndex) => {
-                    const page = (): UserLibraryPage | undefined => pageByIndex(pageIndex);
-                    const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
-                    const anchor = () => pageAnchorId(props.documentId, pageIndex);
-                    return (
-                      <section
-                        id={anchor()}
-                        data-user-doc-anchor=""
-                        class="user-document-reader__page"
-                      >
-                        <PinchZoomSurface
-                          class="user-document-reader__page-pinch"
-                          contentClass="user-document-reader__page-surface"
-                        >
-                          <LazyPdfCanvas
-                            id={pageCanvasId(props.documentId, pageIndex)}
-                            pageNumber={pageIndex + 1}
-                            pdf={pdfDocument}
-                            class="user-document-reader__canvas"
-                            onError={(cause) => {
-                              setLoadError(
-                                cause instanceof Error
-                                  ? cause.message
-                                  : 'Не удалось отобразить страницу PDF.',
-                              );
-                            }}
-                          />
-                          <Show when={words().length > 0}>
-                            <WordOverlay
-                              pageAnchor={anchor()}
-                              words={words()}
-                              hitUnitIds={hitUnitIds}
-                              activeUnitId={() => activeMatch()?.unitId}
-                            />
-                          </Show>
-                        </PinchZoomSurface>
-                      </section>
-                    );
-                  }}
-                </For>
-              </div>
-            </Show>
-
-            <Show when={isImage()}>
-              <section
-                id={pageAnchorId(props.documentId, 0)}
-                data-user-doc-anchor=""
-                class="user-document-reader__page"
-              >
-                <PinchZoomSurface
-                  class="user-document-reader__page-pinch"
-                  contentClass="user-document-reader__page-surface"
-                >
-                  <Show when={imageUrl()}>
-                    {(url) => (
-                      <button
-                        type="button"
-                        class="user-document-reader__image-open"
-                        aria-label="Открыть изображение крупно"
-                        onClick={() => setImageLightboxOpen(true)}
-                      >
-                        <img
-                          src={url()}
-                          class="user-document-reader__image"
-                          alt={meta()?.title ?? 'Изображение'}
-                        />
-                      </button>
-                    )}
-                  </Show>
-                  <Show when={pageByIndex(0)?.words}>
-                    {(wordBoxes) => (
-                      <WordOverlay
-                        pageAnchor={pageAnchorId(props.documentId, 0)}
-                        words={wordBoxes()}
-                        hitUnitIds={hitUnitIds}
-                        activeUnitId={() => activeMatch()?.unitId}
-                      />
-                    )}
-                  </Show>
-                </PinchZoomSurface>
-              </section>
-            </Show>
-
-            <Show when={meta() && !isPdf() && !isImage() && !richMime() && !isTextLike()}>
-              <Show when={meta()} keyed>
-                {(current) => (
-                  <section class="user-document-reader__binary" aria-label={current.title}>
-                    <AppGlyph name="archive" class="user-document-reader__binary-icon" />
-                    <p class="user-document-reader__binary-name">{current.fileName}</p>
-                    <p class="user-document-reader__binary-hint">
-                      Этот тип файла нельзя открыть во встроенной читалке.
-                    </p>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      onClick={() => {
-                        void getUserLibraryFile(current.id).then((blob) => {
-                          if (!blob) return;
-                          const url = URL.createObjectURL(blob);
-                          const link = document.createElement('a');
-                          link.href = url;
-                          link.download = current.fileName || current.title;
-                          document.body.append(link);
-                          link.click();
-                          link.remove();
-                          window.setTimeout(() => URL.revokeObjectURL(url), 4000);
-                        });
-                      }}
-                    >
-                      Сохранить на устройство
-                    </Button>
-                  </section>
-                )}
-              </Show>
-            </Show>
-
-            <Show when={richMime()}>
-              {(mime) => (
-                <Show when={meta()} keyed>
-                  {(current) => <RichDocumentRenderer documentId={current.id} mimeType={mime()} />}
                 </Show>
               )}
             </Show>
 
-            <Show when={isTextLike() && meta()}>
-              {(current) => (
-                <UserDocumentHighlights
-                  documentId={current().id}
-                  surface={() =>
-                    document.querySelector<HTMLElement>('.user-document-reader__paper') ?? undefined
-                  }
-                />
-              )}
-            </Show>
+            <Show
+              when={draftOpen()}
+              fallback={
+                <>
+                  <Show when={isPdf()}>
+                    <div
+                      class="user-document-reader__pages"
+                      classList={{ 'user-document-reader__pages--two': readingMode.twoPageMode() }}
+                    >
+                      <For each={visualPageIndexes()}>
+                        {(pageIndex) => {
+                          const page = (): UserLibraryPage | undefined => pageByIndex(pageIndex);
+                          const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
+                          const anchor = () => pageAnchorId(props.documentId, pageIndex);
+                          return (
+                            <section
+                              id={anchor()}
+                              data-user-doc-anchor=""
+                              class="user-document-reader__page"
+                            >
+                              <PinchZoomSurface
+                                class="user-document-reader__page-pinch"
+                                contentClass="user-document-reader__page-surface"
+                              >
+                                <LazyPdfCanvas
+                                  id={pageCanvasId(props.documentId, pageIndex)}
+                                  pageNumber={pageIndex + 1}
+                                  pdf={pdfDocument}
+                                  class="user-document-reader__canvas"
+                                  onError={(cause) => {
+                                    setLoadError(
+                                      cause instanceof Error
+                                        ? cause.message
+                                        : 'Не удалось отобразить страницу PDF.',
+                                    );
+                                  }}
+                                />
+                                <Show when={words().length > 0}>
+                                  <WordOverlay
+                                    pageAnchor={anchor()}
+                                    words={words()}
+                                    hitUnitIds={hitUnitIds}
+                                    activeUnitId={() => activeMatch()?.unitId}
+                                  />
+                                </Show>
+                              </PinchZoomSurface>
+                            </section>
+                          );
+                        }}
+                      </For>
+                    </div>
+                  </Show>
 
-            <Show when={isTextLike()}>
-              <Show
-                when={isMarkdown() && !markdownRaw()}
-                fallback={
-                  <div class="user-document-reader__text-pages">
-                    <For each={pages()}>
-                      {(page) => {
-                        const anchor = () => pageAnchorId(page.documentId, page.pageIndex);
-                        const state = () => findState();
-                        const activeStart = () =>
-                          activeMatch()?.unitId === anchor() ? activeMatch()?.start : undefined;
-                        return (
-                          <section
-                            id={anchor()}
-                            data-user-doc-anchor=""
-                            class="user-document-reader__text-section"
-                          >
-                            <pre class="user-document-reader__text">
-                              <QueryHighlightedText
-                                text={page.text}
-                                query={state().query}
-                                exact={state().mode === 'exact'}
-                                fuzzy={state().mode === 'similar'}
-                                ranges={rangesForFindUnit(rangesByUnit(), anchor(), state().query)}
-                                unitId={anchor()}
-                                activeStart={activeStart()}
-                                matchClass="document-overlay-match"
+                  <Show when={isImage()}>
+                    <section
+                      id={pageAnchorId(props.documentId, 0)}
+                      data-user-doc-anchor=""
+                      class="user-document-reader__page"
+                    >
+                      <PinchZoomSurface
+                        class="user-document-reader__page-pinch"
+                        contentClass="user-document-reader__page-surface"
+                      >
+                        <Show when={imageUrl()}>
+                          {(url) => (
+                            <button
+                              type="button"
+                              class="user-document-reader__image-open"
+                              aria-label="Открыть изображение крупно"
+                              onClick={() => setImageLightboxOpen(true)}
+                            >
+                              <img
+                                src={url()}
+                                class="user-document-reader__image"
+                                alt={meta()?.title ?? 'Изображение'}
                               />
-                            </pre>
-                          </section>
-                        );
-                      }}
-                    </For>
-                  </div>
-                }
+                            </button>
+                          )}
+                        </Show>
+                        <Show when={pageByIndex(0)?.words}>
+                          {(wordBoxes) => (
+                            <WordOverlay
+                              pageAnchor={pageAnchorId(props.documentId, 0)}
+                              words={wordBoxes()}
+                              hitUnitIds={hitUnitIds}
+                              activeUnitId={() => activeMatch()?.unitId}
+                            />
+                          )}
+                        </Show>
+                      </PinchZoomSurface>
+                    </section>
+                  </Show>
+
+                  <Show when={isDicom() && meta()}>
+                    {(current) => (
+                      <DicomViewer
+                        documentId={current().id}
+                        title={current().title}
+                        onBack={leaveMedicalViewer}
+                      />
+                    )}
+                  </Show>
+
+                  <Show when={isVolume() && meta()}>
+                    {(current) => (
+                      <VolumeViewer
+                        documentId={current().id}
+                        title={current().title}
+                        onBack={leaveMedicalViewer}
+                      />
+                    )}
+                  </Show>
+
+                  <Show
+                    when={
+                      meta() &&
+                      !isPdf() &&
+                      !isImage() &&
+                      !isMedicalImage() &&
+                      !richMime() &&
+                      !isTextLike()
+                    }
+                  >
+                    <Show when={meta()} keyed>
+                      {(current) => (
+                        <section class="user-document-reader__binary" aria-label={current.title}>
+                          <AppGlyph name="archive" class="user-document-reader__binary-icon" />
+                          <p class="user-document-reader__binary-name">{current.fileName}</p>
+                          <p class="user-document-reader__binary-hint">
+                            Этот тип файла нельзя открыть во встроенной читалке.
+                          </p>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            onClick={() => {
+                              void getUserLibraryFile(current.id).then((blob) => {
+                                if (!blob) return;
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = current.fileName || current.title;
+                                document.body.append(link);
+                                link.click();
+                                link.remove();
+                                window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+                              });
+                            }}
+                          >
+                            Сохранить на устройство
+                          </Button>
+                        </section>
+                      )}
+                    </Show>
+                  </Show>
+
+                  <Show when={richMime()}>
+                    {(mime) => (
+                      <Show when={meta()} keyed>
+                        {(current) => (
+                          <RichDocumentRenderer documentId={current.id} mimeType={mime()} />
+                        )}
+                      </Show>
+                    )}
+                  </Show>
+
+                  <Show when={isTextLike() && meta()}>
+                    {(current) => (
+                      <UserDocumentHighlights
+                        documentId={current().id}
+                        surface={() =>
+                          document.querySelector<HTMLElement>('.user-document-reader__paper') ??
+                          undefined
+                        }
+                      />
+                    )}
+                  </Show>
+
+                  <Show when={isTextLike()}>
+                    <Show
+                      when={isMarkdown() && !markdownRaw()}
+                      fallback={
+                        <div class="user-document-reader__text-pages">
+                          <For each={pages()}>
+                            {(page) => {
+                              const anchor = () => pageAnchorId(page.documentId, page.pageIndex);
+                              const state = () => findState();
+                              const activeStart = () =>
+                                activeMatch()?.unitId === anchor()
+                                  ? activeMatch()?.start
+                                  : undefined;
+                              return (
+                                <section
+                                  id={anchor()}
+                                  data-user-doc-anchor=""
+                                  class="user-document-reader__text-section"
+                                >
+                                  <pre class="user-document-reader__text">
+                                    <QueryHighlightedText
+                                      text={page.text}
+                                      query={state().query}
+                                      exact={state().mode === 'exact'}
+                                      fuzzy={state().mode === 'similar'}
+                                      ranges={rangesForFindUnit(
+                                        rangesByUnit(),
+                                        anchor(),
+                                        state().query,
+                                      )}
+                                      unitId={anchor()}
+                                      activeStart={activeStart()}
+                                      matchClass="document-overlay-match"
+                                    />
+                                  </pre>
+                                </section>
+                              );
+                            }}
+                          </For>
+                        </div>
+                      }
+                    >
+                      <div class="user-document-reader__text-section" id={markdownAnchor()}>
+                        <SafeMarkdown markdown={markdownText()} />
+                      </div>
+                    </Show>
+                  </Show>
+                </>
+              }
+            >
+              <section
+                class="user-document-reader__draft-editor"
+                aria-label="Редактирование черновика"
               >
-                <div class="user-document-reader__text-section" id={markdownAnchor()}>
-                  <SafeMarkdown markdown={markdownText()} />
-                </div>
-              </Show>
+                <input
+                  ref={(element) => {
+                    draftFileInput = element;
+                  }}
+                  class="user-document-reader__draft-file-input"
+                  type="file"
+                  accept={userLibraryFileAccept()}
+                  multiple
+                  hidden
+                  onChange={(event) => {
+                    handleDraftFiles(event.currentTarget.files);
+                    event.currentTarget.value = '';
+                  }}
+                />
+                <Show
+                  when={isMarkdown()}
+                  fallback={
+                    <label class="user-document-reader__draft-field">
+                      <span class="user-document-reader__draft-label">Текст черновика</span>
+                      <textarea
+                        class="user-document-reader__draft-input"
+                        value={draftText()}
+                        autofocus
+                        aria-label="Текст черновика"
+                        onInput={(event) => {
+                          setDraftText(event.currentTarget.value);
+                          setDraftDirty(true);
+                          setDraftError(null);
+                        }}
+                      />
+                    </label>
+                  }
+                >
+                  <NoteMarkdownEditor
+                    label="Текст черновика"
+                    value={draftText()}
+                    onChange={(value) => {
+                      setDraftText(value);
+                      setDraftDirty(true);
+                      setDraftError(null);
+                    }}
+                    documents={[]}
+                    onOpenFiles={openDraftFiles}
+                    onRecordAudio={(file) =>
+                      addUserLibraryFile(file, meta()?.folderId ?? null).then((saved) => saved.id)
+                    }
+                  />
+                </Show>
+                <p class="user-document-reader__draft-hint">{draftFormatHint()}</p>
+                <Show when={draftError()}>
+                  {(message) => (
+                    <p class="user-document-reader__draft-error" role="alert">
+                      {message()}
+                    </p>
+                  )}
+                </Show>
+              </section>
             </Show>
           </article>
         }
@@ -865,6 +1196,32 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             />
           )}
         </Show>
+      </OverlayDialog>
+      <OverlayDialog
+        open={discardOpen()}
+        title="Несохранённый черновик"
+        tracksHistory={false}
+        onClose={stayInDraft}
+      >
+        <p class="user-document-reader__discard-copy">
+          В черновике есть изменения. Сохранить их перед выходом?
+        </p>
+        <div class="user-document-reader__discard-actions">
+          <Button type="button" onClick={stayInDraft}>
+            Остаться
+          </Button>
+          <Button type="button" variant="danger" onClick={discardDraft}>
+            Не сохранять
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            disabled={draftSaving()}
+            onClick={() => void saveDraftAndLeave()}
+          >
+            {draftSaving() ? 'Сохраняем…' : 'Сохранить и выйти'}
+          </Button>
+        </div>
       </OverlayDialog>
     </>
   );
