@@ -6,10 +6,10 @@
   "embeddingProfiles": 1,
   "embeddings": 58,
   "warnings": [
-    "knowledge: 9 entities, 8 facts (0 reviewed), 1 relations (0 reviewed), 3 review tasks"
+    "knowledge: 9 entities, 8 facts (5 reviewed), 1 relations (0 reviewed), 3 review tasks"
   ],
   "errors": [],
-  "outputChecksum": "sha256:4368c11a335fae07515a6d428289d777cd6d2ac34299c4df9a1d0261c9592aba",
+  "outputChecksum": "sha256:4763ef698107e9cbd643ac655bd39e40853b5838de24b2694e8551894757f3e0",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0
 }
