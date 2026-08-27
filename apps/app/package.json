@@ -20,7 +20,7 @@
     "@capacitor/app": "8.1.1",
     "@capacitor/core": "8.5.0",
     "@capacitor/haptics": "^8.0.2",
-    "@capacitor/local-notifications": "8.3.0",
+    "@capacitor/local-notifications": "8.3.1",
     "@cornerstonejs/core": "5.8.2",
     "@cornerstonejs/dicom-image-loader": "5.8.2",
     "@cornerstonejs/metadata": "5.8.2",
@@ -43,7 +43,7 @@
     "docx-preview": "^0.4.0",
     "epubjs": "^0.3.93",
     "filing": "0.1.2",
-    "katex": "0.16.22",
+    "katex": "0.18.4",
     "mdast-util-mark": "^1.0.0",
     "micromark-extension-mark": "^1.0.2",
     "overlayscrollbars": "2.16.0",
@@ -51,12 +51,12 @@
     "pdfjs-dist": "^6.2.108",
     "pptx-preview": "1.0.7",
     "qrcode": "1.5.4",
-    "solid-js": "1.9.14",
+    "solid-js": "1.9.15",
     "solid-number-flow": "0.5.5",
-    "solid-sonner": "0.3.1",
+    "solid-sonner": "0.3.2",
     "tesseract.js": "^7.0.0",
     "uisfx": "^0.4.0",
-    "virtua": "0.50.1",
+    "virtua": "0.50.4",
     "xlsx": "0.18.5"
   },
   "devDependencies": {
@@ -66,7 +66,7 @@
     "@phosphor-icons/core": "2.1.1",
     "@types/qrcode": "1.5.6",
     "typescript": "5.9.3",
-    "vite": "8.2.1",
+    "vite": "8.2.2",
     "vite-plugin-solid": "2.11.14"
   }
 }
