@@ -69,6 +69,7 @@ export function PatientCaseCombobox(props: {
         option.kind === 'unlock' || matchesPatient(option.searchText, inputValue)
       }
       noResetInputOnBlur
+      triggerMode="input"
       sameWidth
       fitViewport
       gutter={6}

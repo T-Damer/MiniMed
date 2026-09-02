@@ -16,6 +16,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
@@ -95,6 +96,14 @@ import {
   saveCalculationRecord,
 } from '@/state/calculation-history';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
+import type { PatientProfile } from '@/state/patient-domain';
+import {
+  isPatientVaultUnlocked,
+  PATIENT_VAULT_EVENT,
+  PATIENT_VAULT_LOCK_EVENT,
+  readPatientVault,
+} from '@/state/patient-vault';
+import { notesPatientsPath } from '@/features/notes/notes-routing';
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
@@ -377,6 +386,7 @@ function CalculatorForm(props: {
   readonly onMessage: (message: string) => void;
 }): JSX.Element {
   const [subjectLabel, setSubjectLabel] = createSignal('');
+  const [patientProfiles, setPatientProfiles] = createSignal<readonly PatientProfile[]>([]);
   const [value, setValue] = createSignal('');
   const [family, setFamily] = createSignal<QuantityFamily>('mass');
   const [fromUnit, setFromUnit] = createSignal('kg');
@@ -386,6 +396,22 @@ function CalculatorForm(props: {
   const [schemaValues, setSchemaValues] = createSignal<Record<string, string>>({});
   const [schemaStep, setSchemaStep] = createSignal(0);
   const [schemaPreview, setSchemaPreview] = createSignal<CalculatorSchemaEvaluation>();
+  const refreshPatients = (): void => {
+    if (!isPatientVaultUnlocked()) {
+      setPatientProfiles([]);
+      return;
+    }
+    void readPatientVault().then((snapshot) => setPatientProfiles(snapshot.profiles));
+  };
+  onMount(() => {
+    refreshPatients();
+    window.addEventListener(PATIENT_VAULT_EVENT, refreshPatients);
+    window.addEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
+  });
+  onCleanup(() => {
+    window.removeEventListener(PATIENT_VAULT_EVENT, refreshPatients);
+    window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
+  });
   const schemaHasNextStep = (): boolean => {
     const schema = getCalculatorSchema(props.definition.id);
     return schema !== undefined && schemaStep() < maxSchemaStep(schema);
@@ -512,18 +538,20 @@ function CalculatorForm(props: {
         submit();
       }}
     >
-      <label class="calculator-wide-field">
-        <span>Пациент / случай — необязательно</span>
-        <input
-          list="calculator-patient-suggestions"
-          value={subjectLabel()}
-          placeholder="Имя, номер карты или псевдоним"
-          onInput={(event) => setSubjectLabel(event.currentTarget.value)}
-        />
-        <datalist id="calculator-patient-suggestions">
-          <For each={loadPatientNotes().cards}>{(card) => <option value={card.title} />}</For>
-        </datalist>
-      </label>
+      <PatientCaseCombobox
+        profiles={patientProfiles()}
+        patientId=""
+        subjectLabel={subjectLabel()}
+        unlocked={isPatientVaultUnlocked()}
+        onPatientChange={(patientId) => {
+          const profile = patientProfiles().find((candidate) => candidate.id === patientId);
+          setSubjectLabel(profile?.displayName ?? '');
+        }}
+        onSubjectLabelChange={setSubjectLabel}
+        onUnlock={() => {
+          window.location.hash = notesPatientsPath();
+        }}
+      />
 
       <Show when={props.definition.id === 'unit-conversion'}>
         <label>
