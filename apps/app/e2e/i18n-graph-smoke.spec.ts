@@ -11,6 +11,7 @@ test('shows localized specialty labels in the document library', async ({ page }
   await navigationButton(page, 'База знаний').click();
   await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
   await expect(page.getByRole('region', { name: 'Архив документов' })).toBeVisible();
+  await page.getByRole('searchbox', { name: 'Поиск по текущему разделу' }).fill('педиатрия');
   await expect(
     page.locator('.document-library-card').filter({ hasText: 'Педиатрия' }).first(),
   ).toBeVisible();

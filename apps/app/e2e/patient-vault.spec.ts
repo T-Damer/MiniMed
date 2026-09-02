@@ -160,7 +160,7 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await expect(page.getByLabel('Рост, см')).toHaveValue('110');
   await expect(page.getByLabel('Масса, кг')).toHaveValue('20');
   await page.getByTestId('calculator-submit').click();
-  await expect(page.getByTestId('calculator-result')).toContainText('Оценка недоступна');
+  await expect(page.getByTestId('calculator-result')).toContainText('0,78 м²');
   await expect(page.getByText('Результат записан в защищённую карточку.')).toBeVisible();
 
   await page

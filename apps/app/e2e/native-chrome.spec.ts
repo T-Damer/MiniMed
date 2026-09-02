@@ -163,7 +163,11 @@ test('hides native status blur on document readers and medical viewers', async (
   await page.locator('.app-bottom-nav').getByRole('button', { name: 'База знаний' }).click();
   await page.getByRole('heading', { name: 'Наборы документов' }).waitFor();
   await page.locator('article[aria-label="Открыть набор «Ядро»"]').click();
-  await page.getByRole('button', { name: /Внебольничная пневмония/u }).click();
+  await page.getByRole('searchbox', { name: 'Поиск по текущему разделу' }).fill('пневмония');
+  await page
+    .getByRole('button', { name: /Пневмония/u })
+    .first()
+    .click();
   await expect(page.locator('.document-page__chrome')).toBeVisible();
   await expect.poll(() => nativeBlurOpacity(page)).toBe('0');
 

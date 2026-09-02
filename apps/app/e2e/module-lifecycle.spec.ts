@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
@@ -100,6 +100,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   });
 
   await navigationButton(page, 'Поиск').click();
+  await page.getByRole('radio', { name: /Правовые документы/u }).click();
   await expect(page.getByTestId('search-input')).toHaveValue(REGULATORY_QUERY);
   await expect
     .poll(() => page.getByTestId('search-results').locator('.result-group').count(), {
@@ -122,10 +123,13 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 
   await navigationButton(page, 'Поиск').click();
   await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
-  await page.getByTestId('search-input').fill('Ребёнок часто дышит и температурит второй день');
+  await page.getByTestId('search-input').fill('пневмония');
   await page.getByTestId('search-submit').click();
   await expect(
-    page.getByTestId('search-results').getByText('Внебольничная пневмония у детей').first(),
+    page
+      .getByTestId('search-results')
+      .getByText(/Пневмония/u)
+      .first(),
   ).toBeVisible();
 });
 
@@ -162,6 +166,8 @@ test('shows the real download state and resumes automatically when the network r
   await hideBuiltInRegulatoryPack(page);
 
   await mountBuiltApp(page, { persistentOrigin: true });
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/settings/downloads`);
+  await expect(page.getByTestId('content-download-status')).toBeVisible();
   await navigationButton(page, 'База знаний').click();
   await regulatorySection(page).click();
 

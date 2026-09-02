@@ -17,6 +17,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   outputs. A regression check also covers deleted files, symlinks and filename-only error reporting.
 - Browser E2E uses a loopback HTTP preview server for real pack downloads: embedding the 93 MiB core
   in a base64 Playwright route response exceeded Chromium's 100 MiB DevTools message limit.
+- Calculator patient selection now binds the result to an explicit protected patient and optional
+  open episode, prefills schema inputs from the patient snapshot, records longitudinal observations,
+  and removes the protected result from the mounted calculator when the vault is locked.
 - Medication title-term boosts no longer apply to legal acts or legal crosswalks. The 61-query
   regulatory release benchmark passes its existing ranking, section and metadata gates.
 - Qualification cards mark 206n superseded and 436n active from 1 September 2026. The transition was

@@ -16,9 +16,9 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
-import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
@@ -88,6 +88,7 @@ import {
   attachedResultNoteTitle,
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
+import { notesPatientsPath } from '@/features/notes/notes-routing';
 import {
   type CalculationRecord,
   createCalculationRecord,
@@ -95,15 +96,19 @@ import {
   loadCalculationHistory,
   saveCalculationRecord,
 } from '@/state/calculation-history';
+import type { PatientProfile, PatientVaultSnapshot } from '@/state/patient-domain';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
-import type { PatientProfile } from '@/state/patient-domain';
 import {
+  patientBoundCalculatorInputs,
+  recordCalculatorResultForPatient,
+} from '@/state/patient-tool-recording';
+import {
+  acknowledgePatientVaultUiCleared,
   isPatientVaultUnlocked,
   PATIENT_VAULT_EVENT,
   PATIENT_VAULT_LOCK_EVENT,
   readPatientVault,
 } from '@/state/patient-vault';
-import { notesPatientsPath } from '@/features/notes/notes-routing';
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
@@ -386,7 +391,9 @@ function CalculatorForm(props: {
   readonly onMessage: (message: string) => void;
 }): JSX.Element {
   const [subjectLabel, setSubjectLabel] = createSignal('');
-  const [patientProfiles, setPatientProfiles] = createSignal<readonly PatientProfile[]>([]);
+  const [patientId, setPatientId] = createSignal('');
+  const [episodeId, setEpisodeId] = createSignal('');
+  const [patientSnapshot, setPatientSnapshot] = createSignal<PatientVaultSnapshot>();
   const [value, setValue] = createSignal('');
   const [family, setFamily] = createSignal<QuantityFamily>('mass');
   const [fromUnit, setFromUnit] = createSignal('kg');
@@ -398,10 +405,14 @@ function CalculatorForm(props: {
   const [schemaPreview, setSchemaPreview] = createSignal<CalculatorSchemaEvaluation>();
   const refreshPatients = (): void => {
     if (!isPatientVaultUnlocked()) {
-      setPatientProfiles([]);
+      setPatientSnapshot(undefined);
+      setPatientId('');
+      setEpisodeId('');
+      setSubjectLabel('');
+      acknowledgePatientVaultUiCleared();
       return;
     }
-    void readPatientVault().then((snapshot) => setPatientProfiles(snapshot.profiles));
+    void readPatientVault().then(setPatientSnapshot);
   };
   onMount(() => {
     refreshPatients();
@@ -444,7 +455,78 @@ function CalculatorForm(props: {
     setToUnit(units[1] ?? units[0] ?? '');
   };
 
-  const submit = (): void => {
+  const patientProfiles = (): readonly PatientProfile[] => patientSnapshot()?.profiles ?? [];
+  const selectedPatient = (): PatientProfile | undefined =>
+    patientProfiles().find((profile) => profile.id === patientId());
+  const patientEpisodes = () =>
+    patientSnapshot()?.episodes.filter(
+      (episode) => episode.patientId === patientId() && episode.status === 'open',
+    ) ?? [];
+  const selectPatient = (nextPatientId: string): void => {
+    setPatientId(nextPatientId);
+    setEpisodeId('');
+    const patient = patientProfiles().find((profile) => profile.id === nextPatientId);
+    setSubjectLabel(patient?.displayName ?? '');
+    const schema = getCalculatorSchema(props.definition.id);
+    const snapshot = patientSnapshot();
+    if (patient && schema && snapshot) {
+      const bound = patientBoundCalculatorInputs(schema, patient, snapshot);
+      setSchemaValues((previous) => ({
+        ...previous,
+        ...Object.fromEntries(Object.entries(bound).map(([key, value]) => [key, String(value)])),
+      }));
+    }
+  };
+
+  const saveRecord = async (
+    result: StoredCalculationResult,
+    inputSummary: string,
+    rawInputs: Readonly<Record<string, string | number>>,
+  ): Promise<void> => {
+    const record = createCalculationRecord({
+      calculatorId: props.definition.id,
+      subjectLabel: subjectLabel(),
+      inputSummary,
+      result,
+      ...(patientId() ? { patientId: patientId() } : {}),
+      ...(episodeId() ? { episodeId: episodeId() } : {}),
+      definitionVersion: props.definition.version,
+      normalizedInputs: rawInputs,
+    });
+    if (patientId()) {
+      try {
+        const schema = getCalculatorSchema(props.definition.id);
+        const saved = await recordCalculatorResultForPatient({
+          patientId: patientId(),
+          ...(episodeId() ? { episodeId: episodeId() } : {}),
+          recordId: record.id,
+          calculatorId: props.definition.id,
+          calculatorVersion: props.definition.version,
+          title: props.definition.title,
+          ...(schema ? { schema } : {}),
+          result,
+          rawInputs,
+          occurredAt: record.createdAt,
+        });
+        props.onMessage(
+          saved.created
+            ? 'Результат записан в защищённую карточку.'
+            : (saved.reason ?? 'Результат рассчитан без записи в динамику.'),
+        );
+      } catch (cause) {
+        props.onMessage(
+          cause instanceof Error ? cause.message : 'Не удалось записать результат в карточку.',
+        );
+        return;
+      }
+    } else {
+      saveCalculationRecord(record);
+      props.onMessage('Расчёт сохранён локально.');
+    }
+    props.onRecord(record);
+  };
+
+  const submit = async (): Promise<void> => {
     let result: StoredCalculationResult;
     let inputSummary: string;
 
@@ -477,15 +559,7 @@ function CalculatorForm(props: {
         })
         .filter((part): part is string => part !== null)
         .join(', ');
-      const record = createCalculationRecord({
-        calculatorId: props.definition.id,
-        subjectLabel: subjectLabel(),
-        inputSummary,
-        result,
-      });
-      saveCalculationRecord(record);
-      props.onRecord(record);
-      props.onMessage('Расчёт сохранён локально.');
+      await saveRecord(result, inputSummary, schemaValues());
       return;
     }
 
@@ -519,15 +593,7 @@ function CalculatorForm(props: {
         return;
     }
 
-    const record = createCalculationRecord({
-      calculatorId: props.definition.id,
-      subjectLabel: subjectLabel(),
-      inputSummary,
-      result,
-    });
-    saveCalculationRecord(record);
-    props.onRecord(record);
-    props.onMessage('Расчёт сохранён локально.');
+    await saveRecord(result, inputSummary, { value: value(), family: family() });
   };
 
   return (
@@ -535,23 +601,41 @@ function CalculatorForm(props: {
       class="calculator-form paper-card"
       onSubmit={(event) => {
         event.preventDefault();
-        submit();
+        void submit();
       }}
     >
       <PatientCaseCombobox
         profiles={patientProfiles()}
-        patientId=""
+        patientId={patientId()}
         subjectLabel={subjectLabel()}
         unlocked={isPatientVaultUnlocked()}
-        onPatientChange={(patientId) => {
-          const profile = patientProfiles().find((candidate) => candidate.id === patientId);
-          setSubjectLabel(profile?.displayName ?? '');
-        }}
+        onPatientChange={selectPatient}
         onSubjectLabelChange={setSubjectLabel}
         onUnlock={() => {
           window.location.hash = notesPatientsPath();
         }}
       />
+
+      <Show when={selectedPatient()}>
+        <label class="calculator-wide-field">
+          <span>Осмотр — необязательно</span>
+          <select
+            class="calculator-form__select"
+            data-testid="calculator-episode-select"
+            value={episodeId()}
+            onChange={(event) => setEpisodeId(event.currentTarget.value)}
+          >
+            <option value="">Отдельное событие</option>
+            <For each={patientEpisodes()}>
+              {(episode) => (
+                <option value={episode.id}>
+                  {episode.title} · {new Date(episode.startedAt).toLocaleDateString('ru-RU')}
+                </option>
+              )}
+            </For>
+          </select>
+        </label>
+      </Show>
 
       <Show when={props.definition.id === 'unit-conversion'}>
         <label>
@@ -786,7 +870,11 @@ function CalculationResultPanel(props: {
         fallback={
           <>
             <header>
-              <p class="archive-kicker">Результат сохранён локально</p>
+              <p class="archive-kicker">
+                {props.record.patientId
+                  ? 'Результат в защищённой карточке'
+                  : 'Результат сохранён локально'}
+              </p>
               <h2>{props.definition.shortTitle}</h2>
               <small>{props.record.inputSummary}</small>
             </header>
@@ -1104,10 +1192,14 @@ export function CalculatorsView(): JSX.Element {
   const handleStorage = (event: StorageEvent): void => {
     if (!event.key || event.key === 'minimed.calculator-packs.v1') refreshInstallation();
   };
+  const clearProtectedResult = (): void => {
+    if (activeRecord()?.patientId) setActiveRecord(undefined);
+  };
   onMount(() => {
     window.addEventListener('hashchange', refresh);
     window.addEventListener('storage', handleStorage);
     window.addEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation);
+    window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult);
     unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
       if (task.state === 'completed') void refreshDownloadedTools();
     });
@@ -1116,6 +1208,7 @@ export function CalculatorsView(): JSX.Element {
   onCleanup(() => window.removeEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('storage', handleStorage));
   onCleanup(() => window.removeEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation));
+  onCleanup(() => window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult));
   onCleanup(() => unsubscribeToolTasks?.());
   const notify = (text: string): void => {
     toast(text, { duration: 3200 });
