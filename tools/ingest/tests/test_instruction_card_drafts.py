@@ -4,7 +4,37 @@ import json
 import sqlite3
 from pathlib import Path
 
-from localmed_ingest.instruction_card_drafts import export_instruction_card_drafts
+from localmed_ingest.instruction_card_drafts import (
+    export_instruction_card_drafts,
+    instruction_body_fact_segments,
+    instruction_dosage_drafts,
+    instruction_fact_type_for_heading,
+)
+
+
+def test_dosage_drafts_reject_negative_or_context_free_amounts() -> None:
+    assert instruction_dosage_drafts("Поддерживающая доза 10 мг не рекомендуется.") == []
+    assert instruction_dosage_drafts("Принимать более 6 таблеток (1200 мг) за 24 часа.") == []
+    assert instruction_dosage_drafts("1 таблетка") == []
+    assert instruction_dosage_drafts("Взрослые\n\n1 таблетка") == []
+    assert (
+        instruction_dosage_drafts(
+            "При клиренсе креатинина 30-60 мл/мин рекомендованная доза определяется врачом."
+        )
+        == []
+    )
+
+    rate = instruction_dosage_drafts("Скорость введения 0,01 мл/кг/мин.")
+    assert rate[0].structured["doseExpressions"] == [
+        {
+            "value": 0.01,
+            "unit": "мл",
+            "per": "kg",
+            "perTime": "minute",
+            "role": "administration-rate",
+            "sourceText": "0,01 мл/кг/мин",
+        }
+    ]
 
 
 def write_instruction_fixture(path: Path) -> None:
@@ -93,6 +123,39 @@ def write_instruction_fixture(path: Path) -> None:
         connection.commit()
     finally:
         connection.close()
+
+
+def test_maps_standard_patient_leaflet_headings_without_brand_rules() -> None:
+    assert (
+        instruction_fact_type_for_heading("3. Применение препарата Симбикорт® Турбухалер®")
+        == "administration"
+    )
+    assert (
+        instruction_fact_type_for_heading("5. Хранение препарата Симбикорт® Турбухалер®")
+        == "storage"
+    )
+    assert instruction_fact_type_for_heading("3. Прием препарата Нурофен®") == "administration"
+    assert instruction_fact_type_for_heading("Особые указания и меры предосторожности") == "warning"
+
+
+def test_splits_exact_inline_instruction_sections_but_rejects_toc() -> None:
+    text = (
+        "Вводный текст.\n\n"
+        "Показания к применению Лечение инфекции.\n\n"
+        "Противопоказания Повышенная чувствительность.\n\n"
+        "Способ применения и дозы Внутривенно или внутримышечно."
+    )
+
+    segments = instruction_body_fact_segments(text)
+
+    assert [segment[0] for segment in segments] == [
+        "indication",
+        "contraindication",
+        "administration",
+    ]
+    assert segments[0][3] == "Показания к применению Лечение инфекции."
+    assert text[segments[1][1] : segments[1][2]] == segments[1][3]
+    assert instruction_body_fact_segments("Показания к применению\n.... 5\n") == []
 
 
 def test_exports_exact_heading_matched_review_drafts(tmp_path: Path) -> None:

@@ -1,6 +1,6 @@
 # Automated content database updates
 
-MiniMed can synchronize URL and local-file inputs, rebuild the vectorized SQLite pack, run the retrieval gate and update the application asset.
+MiniMed can synchronize URL and local-file inputs, rebuild a pilot SQLite pack and run the retrieval gate. Publishing a replacement discovery core is a separate release step.
 
 ## Source manifest
 
@@ -61,10 +61,17 @@ Remote cache metadata records:
 - byte size;
 - ETag;
 - Last-Modified;
+- Content-Disposition;
+- Content-Length;
 - fetch time;
 - content type.
 
 A normal refresh sends `If-None-Match` and `If-Modified-Since` when available. HTTP `304` reuses the cached payload. A transient network failure may reuse a previously checksum-validated cache entry and records a warning in the report. `--force-refresh` skips conditional headers.
+
+For binary archives whose server provides neither `ETag` nor `Last-Modified`, a normal refresh first
+sends `HEAD`. Matching `Content-Disposition` and `Content-Length` reuse the checksum-validated cache;
+any difference triggers a complete download and a new SHA-256. The filename/size pair is only a fast
+preflight signal — the downloaded bytes remain identified by their checksum.
 
 Local files use a content-addressed cache keyed by SHA-256. Output files are replaced atomically only when their checksum changes.
 
@@ -91,11 +98,12 @@ The workflow:
 3. validates the prepared corpus;
 4. rebuilds SQLite, FTS5 and precomputed vectors;
 5. runs the pilot retrieval benchmark;
-6. builds the web application against the generated pack;
-7. uploads the database and reports as an Actions artifact;
-8. on `main`, commits the application database only when its bytes changed.
+6. builds the web application with the tracked discovery core;
+7. uploads synchronization, build and retrieval reports as an Actions artifact.
 
-The artifact retains the synchronization report, compiled database, build report and retrieval benchmark so every automatic update has inspectable evidence. The generated bot commit includes `[skip db rebuild]` to prevent a workflow loop.
+The reports make each rebuild inspectable. The workflow has read-only repository permission and never
+replaces or commits `core.db`: the smaller pilot pack must not erase its catalog pointers. A commit
+containing `[skip db rebuild]` still skips this optional pilot job.
 
 ## Public and private repositories
 

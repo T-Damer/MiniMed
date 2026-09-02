@@ -125,6 +125,7 @@ export function NoteTextSearch(props: {
         class="note-text-search__field"
         value={query()}
         onInput={setQuery}
+        onClear={() => setQuery('')}
         placeholder="Поиск в заметке"
         label="Поиск по заметке"
         hideLabel

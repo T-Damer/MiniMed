@@ -71,14 +71,29 @@ describe('WorkerOpfsMedicalStore', () => {
     worker.onmessage?.({ data: { id: 2, result: documents } } as MessageEvent);
     await expect(listPromise).resolves.toEqual(documents);
 
-    const closePromise = store.close();
+    const integrityPromise = store.inspectIntegrity();
     expect(postMessage).toHaveBeenCalledWith({
       id: 3,
+      type: 'call',
+      method: 'inspectIntegrity',
+      args: [],
+    });
+    worker.onmessage?.({
+      data: {
+        id: 3,
+        result: { integrity: 'ok', foreignKeyViolations: 0, chunkCount: 1, ftsRowCount: 1 },
+      },
+    } as MessageEvent);
+    await expect(integrityPromise).resolves.toMatchObject({ integrity: 'ok' });
+
+    const closePromise = store.close();
+    expect(postMessage).toHaveBeenCalledWith({
+      id: 4,
       type: 'call',
       method: 'close',
       args: [],
     });
-    worker.onmessage?.({ data: { id: 3, result: undefined } } as MessageEvent);
+    worker.onmessage?.({ data: { id: 4, result: undefined } } as MessageEvent);
     await closePromise;
     expect(terminate).toHaveBeenCalledOnce();
   });
@@ -108,8 +123,7 @@ describe('WorkerOpfsMedicalStore', () => {
     const firstPromise = WorkerOpfsMedicalStore.open(options);
     workers[0]?.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
     const first = await firstPromise;
-    const secondPromise = WorkerOpfsMedicalStore.open(options);
-    workers[1]?.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+    const secondPromise = WorkerOpfsMedicalStore.open({ ...options, url: 'blob:second' });
     const second = await secondPromise;
 
     const firstClose = first.close();

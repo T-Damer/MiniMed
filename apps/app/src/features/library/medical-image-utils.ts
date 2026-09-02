@@ -110,6 +110,7 @@ export function medicalImagePointerAction(
     if (annotationActive) return 'blocked';
     return rotate3D ? 'viewer' : 'cursor';
   }
+  if (annotationActive) return 'viewer';
   if (viewerToolActive) return 'viewer';
   return canDragSlice ? 'slice' : 'viewer';
 }

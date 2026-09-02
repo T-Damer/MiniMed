@@ -80,6 +80,42 @@ body {
   transition: opacity 180ms ease;
 }
 
+.app-shell--native::before {
+  opacity: 0;
+}
+
+/* Keep native status blur between page content (z1) and sticky controls (z20+). */
+.app-shell--native .page-grain {
+  isolation: auto;
+}
+
+.app-shell--native .page-grain > * {
+  z-index: auto;
+}
+
+.app-shell--native .search-home__backdrop-blur,
+.app-shell--native .knowledge-subroute-heading--blurred::before,
+.app-shell--native .search-mode-tools::before {
+  display: none;
+  opacity: 0;
+}
+
+.app-shell--native:has(.app-view.active .search-mode-tools.sticky-surface--stuck)::before,
+.app-shell--native:has(
+  .app-view.active .knowledge-subroute-heading--blurred.sticky-surface--stuck
+)::before {
+  opacity: 1;
+}
+
+.app-shell--native .knowledge-subroute-heading--blurred.route-sticky-chrome {
+  top: var(--safe-top);
+}
+
+.app-shell--native:has(.app-view.active .document-page)::before,
+.app-shell--medical-image::before {
+  opacity: 0;
+}
+
 .masked-backdrop-blur,
 .knowledge-subroute-heading--blurred::before,
 .platform-android .search-mode-tools::before {
@@ -336,7 +372,7 @@ body {
 .app-view__spinner {
   width: 2rem;
   height: 2rem;
-  border: 0.1875rem solid var(--ink-faint);
+  border: 0.1875rem solid var(--theme-accent);
   border-right-color: transparent;
   border-radius: 50%;
   animation: spin 700ms linear infinite;
@@ -356,6 +392,7 @@ body {
 }
 
 .page-grain::before {
+  display: none;
   position: absolute;
   z-index: var(--z-base);
   top: 0;

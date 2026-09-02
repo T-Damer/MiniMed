@@ -2,15 +2,29 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from pathlib import Path
 from typing import cast
 
 import pymupdf
+import pytest
 import yaml
 
+from localmed_ingest import source_registry
 from localmed_ingest.builder import build_content_pack, load_content_pack
-from localmed_ingest.models import ExtractedBlock, ExtractedPage, RegistrySource
-from localmed_ingest.pdf_import import _build_diagnostics, extract_pdf
+from localmed_ingest.models import (
+    ExtractedBlock,
+    ExtractedPage,
+    ExtractedSource,
+    ExtractionOptions,
+    RegistrySource,
+)
+from localmed_ingest.pdf_import import (
+    RawBlock,
+    _build_diagnostics,
+    _looks_like_heading,
+    extract_pdf,
+)
 from localmed_ingest.source_registry import prepare_registry, render_prepared_markdown
 
 
@@ -147,6 +161,29 @@ def test_ocr_extraction_requires_source_page_review() -> None:
     assert "OCR-derived text requires source-page review" in diagnostics.review_reasons[0]
 
 
+def test_plain_instruction_section_labels_are_headings() -> None:
+    for title in (
+        "Способ применения и дозы",
+        "Режим дозирования",
+        "Условия хранения",
+        "Побочное действие",
+    ):
+        block = RawBlock(
+            page=1,
+            page_width=595,
+            page_height=842,
+            order_index=0,
+            bbox=(50, 100, 300, 120),
+            text=title,
+            font_size=11,
+            font_name="regular",
+            bold=False,
+            line_count=1,
+            columnar_lines=0,
+        )
+        assert _looks_like_heading(block, 11, ExtractionOptions()) == 2
+
+
 def test_rendered_markdown_keeps_source_markers(tmp_path: Path) -> None:
     source_path = tmp_path / "recommendation.pdf"
     create_text_pdf(source_path)
@@ -209,6 +246,97 @@ def test_prepare_registry_builds_searchable_pack_with_page_provenance(tmp_path: 
 
     saved_report = json.loads((prepared_dir / "prepare-report.json").read_text(encoding="utf-8"))
     assert saved_report["packId"] == "localmed.private-pilot"
+
+
+def test_prepare_registry_extracts_in_parallel_but_reports_registry_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = tmp_path / "raw"
+    source_root.mkdir()
+    payload = registry_payload("first.txt")
+    first = cast(list[dict[str, object]], payload["sources"])[0]
+    if first is None:
+        raise AssertionError("registry fixture is empty")
+    sources = [
+        {**first, "id": "source.first", "path": "first.txt", "title": "Первый"},
+        {**first, "id": "source.second", "path": "second.txt", "title": "Второй"},
+        {**first, "id": "source.third", "path": "third.txt", "title": "Третий"},
+    ]
+    payload["sources"] = sources
+    for source in sources:
+        (source_root / cast(str, source["path"])).write_text(
+            "# Заголовок\n\n" + ("Исходный текст. " * 20), encoding="utf-8"
+        )
+    registry_path = tmp_path / "sources.yaml"
+    registry_path.write_text(
+        yaml.safe_dump(payload, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+
+    barrier = threading.Barrier(2)
+    original_extract_source = source_registry.extract_source
+
+    def synchronized_extract(source: RegistrySource, path: Path):
+        if source.id in {"source.first", "source.second"}:
+            barrier.wait(timeout=5)
+        return original_extract_source(source, path)
+
+    monkeypatch.setattr(source_registry, "extract_source", synchronized_extract)
+    report = prepare_registry(registry_path, source_root, tmp_path / "prepared", workers=2)
+
+    assert [item.source_id for item in report.prepared] == [
+        "source.first",
+        "source.second",
+        "source.third",
+    ]
+
+
+def test_prepare_registry_reuses_checksum_matched_extractions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = tmp_path / "raw"
+    source_root.mkdir()
+    first = source_root / "first.txt"
+    second = source_root / "second.txt"
+    first.write_text("Показания к применению\n\nПервый текст.", encoding="utf-8")
+    second.write_text("Противопоказания\n\nВторой текст.", encoding="utf-8")
+    payload = registry_payload(first.name)
+    original = cast(list[dict[str, object]], payload["sources"])[0]
+    payload["sources"] = [{**original, "id": "source.first", "path": first.name}]
+    first_registry = tmp_path / "first.yaml"
+    first_registry.write_text(
+        yaml.safe_dump(payload, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+    prepared = tmp_path / "prepared"
+    prepare_registry(first_registry, source_root, prepared)
+
+    payload["sources"] = [
+        {**original, "id": "source.first", "path": first.name},
+        {**original, "id": "source.second", "path": second.name},
+    ]
+    second_registry = tmp_path / "second.yaml"
+    second_registry.write_text(
+        yaml.safe_dump(payload, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+    extracted_ids: list[str] = []
+    original_extract_source = source_registry.extract_source
+
+    def tracking_extract(source: RegistrySource, path: Path) -> ExtractedSource:
+        extracted_ids.append(source.id)
+        return original_extract_source(source, path)
+
+    monkeypatch.setattr(source_registry, "extract_source", tracking_extract)
+    report = prepare_registry(
+        second_registry,
+        source_root,
+        tmp_path / "expanded",
+        workers=2,
+        reuse_from=prepared,
+    )
+
+    assert extracted_ids == ["source.second"]
+    assert report.reused_sources == 1
+    assert report.extracted_sources == 1
+    assert [item.extraction_reused for item in report.prepared] == [True, False]
 
 
 def test_prepare_rejects_source_path_outside_root(tmp_path: Path) -> None:

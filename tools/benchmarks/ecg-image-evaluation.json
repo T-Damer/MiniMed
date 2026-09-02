@@ -1,0 +1,467 @@
+{
+  "schema_version": 1,
+  "dataset_id": "minimed-ecg-image-evaluation-v1",
+  "intended_use": "Research-only smoke testing of local ECG image classifiers; not clinical validation.",
+  "sources": [
+    {
+      "source_id": "learnecg",
+      "name": "LearnECG examples",
+      "source_url": "https://learnecg.ru/ecg_example/ecg_example_menu.php",
+      "license": null,
+      "rights_status": "link-only; redistribution permission not confirmed",
+      "redistribution_allowed": false
+    },
+    {
+      "source_id": "ecg-image-kit",
+      "name": "Alphanumerics Lab ECG Image Kit sample data",
+      "source_url": "https://github.com/alphanumericslab/ecg-image-kit",
+      "revision": "27b90f56896c9fc78b05a83ca14844ea2637aa0b",
+      "license": "BSD-3-Clause",
+      "rights_status": "redistributable with attribution and license notice",
+      "redistribution_allowed": true
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "learnecg-norm-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["NORM"],
+      "title": "ЭКГ: вариант нормы № 1",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_norma.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/norma_09021635.png"
+    },
+    {
+      "case_id": "learnecg-norm-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["NORM"],
+      "title": "ЭКГ: вариант нормы № 2",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_norma.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/norma_10022154.gif"
+    },
+    {
+      "case_id": "learnecg-norm-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["NORM"],
+      "title": "ЭКГ: вариант нормы № 3",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_norma.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/norma_13052235.jpg"
+    },
+    {
+      "case_id": "learnecg-acute-mi-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["Acute MI"],
+      "title": "Распространённый инфаркт миокарда левого желудочка с подъёмом ST",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/infarkt_stemi30051539.png"
+    },
+    {
+      "case_id": "learnecg-acute-mi-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["Acute MI"],
+      "title": "Острая стадия инфаркта передней стенки и перегородки с подъёмом ST",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/infarkt_stemi30051522.jpg"
+    },
+    {
+      "case_id": "learnecg-acute-mi-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["Acute MI"],
+      "title": "Острая стадия инфаркта передней и боковой стенок с подъёмом ST",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/infarkt_stemi30051536.jpg"
+    },
+    {
+      "case_id": "learnecg-acute-mi-04",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["Acute MI"],
+      "title": "Инфаркт миокарда верхней части левого желудочка и задней стенки с подъёмом ST",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/infarkt_stemi30051948.jpg"
+    },
+    {
+      "case_id": "learnecg-acute-mi-05",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["Acute MI"],
+      "title": "Инфаркт нижней стенки с подъёмом ST",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/infarkt_stemi_09021354.gif"
+    },
+    {
+      "case_id": "learnecg-acute-mi-06",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["Acute MI"],
+      "title": "Инфаркт миокарда без подъёма сегмента ST",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/ex_an_13126_0404201520_comment.jpg"
+    },
+    {
+      "case_id": "learnecg-old-mi-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["Old MI"],
+      "title": "Постинфарктная аневризма левого желудочка",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/infarkt_stemi30051541.jpg"
+    },
+    {
+      "case_id": "learnecg-sttc-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["STTC"],
+      "title": "Субэндокардиальная ишемия",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/ishemia_miokarda3005931.jpg"
+    },
+    {
+      "case_id": "learnecg-sttc-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["STTC"],
+      "title": "Ишемия с отрицательным T в левых отведениях",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/ishemia_miokarda30051211.jpg"
+    },
+    {
+      "case_id": "learnecg-sttc-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["STTC"],
+      "title": "Нестабильная стенокардия",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/ishemia_miokarda_09022208.jpg"
+    },
+    {
+      "case_id": "learnecg-sttc-04",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["STTC"],
+      "title": "Вариантная стенокардия Принцметала",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_ishemicheskaya_bolezn_serdtsa.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/variantnaia_stenokardia_26042200.jpg"
+    },
+    {
+      "case_id": "learnecg-cd-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["CD"],
+      "title": "Атриовентрикулярная блокада I степени",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_atrioventrikulyarnye_blokady.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/atrioventrikuliarnaia_blokada_1_03062014.jpg"
+    },
+    {
+      "case_id": "learnecg-cd-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["CD"],
+      "title": "Атриовентрикулярная блокада II степени, Мобитц I",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_atrioventrikulyarnye_blokady.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/atrioventrikuliarnaia_blokada_2_mobitz_1_29051454.jpg"
+    },
+    {
+      "case_id": "learnecg-cd-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["CD"],
+      "title": "Блокада правой ножки пучка Гиса",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_vnutrizheludochkovye_blokady.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/blokada_pravoi_nojki_puchka_gica29051527.jpg"
+    },
+    {
+      "case_id": "learnecg-cd-04",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["CD"],
+      "title": "Блокада левой ножки пучка Гиса",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_vnutrizheludochkovye_blokady.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/blokada_lovoi_nojki_puchka_gica29052002.jpg"
+    },
+    {
+      "case_id": "learnecg-hyp-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["HYP"],
+      "title": "Гипертрофия левого желудочка",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_gipertrophiya_zheludochkov.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/gipertrophia_levogo_jeludochka28051151.jpg"
+    },
+    {
+      "case_id": "learnecg-hyp-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["HYP"],
+      "title": "Гипертрофия правого желудочка",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_gipertrophiya_zheludochkov.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/gipertrophia_pravogo_predserdia_28012139.png"
+    },
+    {
+      "case_id": "learnecg-hyp-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["HYP"],
+      "title": "Гипертрофия и перегрузка правого желудочка",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_gipertrophiya_zheludochkov.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/gipertrophia_pravogo_jeludochka29051313.jpg"
+    },
+    {
+      "case_id": "learnecg-pac-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["PAC"],
+      "title": "Типичные предсердные экстрасистолы",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_nadzheludochkovye_ekstrasistoly.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/predserdnaia_extrasistola_08031104.png"
+    },
+    {
+      "case_id": "learnecg-pac-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["PAC"],
+      "title": "Предсердная экстрасистола из нижних участков предсердий",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_nadzheludochkovye_ekstrasistoly.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/predserdnaia_extrasistola_22021507.png"
+    },
+    {
+      "case_id": "learnecg-pac-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["PAC"],
+      "title": "Блокированная предсердная экстрасистола",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_nadzheludochkovye_ekstrasistoly.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/blokiroavannaia_predserdnaia_extrasistola_20021956.jpg"
+    },
+    {
+      "case_id": "learnecg-pvc-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["PVC"],
+      "title": "Желудочковые экстрасистолы из левого желудочка",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_zheludochkovye_ekstrasistoly.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/jeludochkovaia_extrasistolia16071516.gif"
+    },
+    {
+      "case_id": "learnecg-pvc-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["PVC"],
+      "title": "Желудочковые экстрасистолы из правого желудочка",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_zheludochkovye_ekstrasistoly.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/ishemia_miokarda_26021306.gif"
+    },
+    {
+      "case_id": "learnecg-pvc-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["PVC"],
+      "title": "Мультифокальные желудочковые экстрасистолы",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_zheludochkovye_ekstrasistoly.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/jeludochkovaia_extrasistolia16071543.gif"
+    },
+    {
+      "case_id": "learnecg-afib-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["AFIB/AFL"],
+      "title": "Трепетание предсердий",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_trepetanie_i_fibrilyatsiya_predserdiy.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/trepetanie_predserdiy26051959.jpg"
+    },
+    {
+      "case_id": "learnecg-afib-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["AFIB/AFL"],
+      "title": "Фибрилляция предсердий с мелкими волнами",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_trepetanie_i_fibrilyatsiya_predserdiy.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/fibrilliaciya_predserdiy2705908.jpg"
+    },
+    {
+      "case_id": "learnecg-afib-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["AFIB/AFL", "TACHY"],
+      "title": "Фибрилляция предсердий, тахисистолическая форма",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_trepetanie_i_fibrilyatsiya_predserdiy.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/fibrilliaciya_predserdiy_12021023.gif"
+    },
+    {
+      "case_id": "learnecg-tachy-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["TACHY"],
+      "title": "Синусовая тахикардия",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_nadzheludochkovye_takhikardii.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/sinusovaia_tahikardia26052208.jpg"
+    },
+    {
+      "case_id": "learnecg-tachy-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["TACHY"],
+      "title": "Пароксизм предсердной тахикардии",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_nadzheludochkovye_takhikardii.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/predserdnaia_tahikardia_21031720.jpg"
+    },
+    {
+      "case_id": "learnecg-tachy-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["TACHY"],
+      "title": "Атриовентрикулярная узловая реципрокная тахикардия",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_nadzheludochkovye_takhikardii.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/atrioventrikuliarnaia_tahikardia27051207.jpg"
+    },
+    {
+      "case_id": "learnecg-brady-01",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["BRADY"],
+      "title": "Синусовая брадикардия",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_bradikardii.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/sinusovaia_bradikardia_06022243.gif"
+    },
+    {
+      "case_id": "learnecg-brady-02",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["BRADY"],
+      "title": "Узловая брадикардия",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_bradikardii.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/uzlovoy_ritm_19031048.png"
+    },
+    {
+      "case_id": "learnecg-brady-03",
+      "source_id": "learnecg",
+      "fixture_kind": "classification",
+      "labels": ["BRADY"],
+      "title": "Синусовая брадикардия с остановкой синусового узла",
+      "page_url": "https://learnecg.ru/ecg_example/ecg_group_bradikardii.php",
+      "image_url": "https://learnecg.ru/ecg_example/ecg_example_image/sinus_arrest_11031618.png"
+    },
+    {
+      "case_id": "image-kit-clean-01",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic PTB-XL sample 00002",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/PTB_XL_op",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/PTB_XL_op/00002_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-clean-02",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic PTB-XL sample 00003",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/PTB_XL_op",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/PTB_XL_op/00003_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-distortion-01",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic distorted sample 00002",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/00002_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-distortion-02",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic distorted sample 00003",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/00003_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-augmentation-01",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic augmented sample 00001",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation/00001_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-augmentation-02",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic augmented sample 00002",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation/00002_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-augmentation-03",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic augmented sample 00004",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation/00004_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-augmentation-04",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic augmented sample 00006",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Augmentation/00006_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-handwriting-01",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic handwritten-text sample 00002",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/HandwrittenText",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/HandwrittenText/00002_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-handwriting-02",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic handwritten-text sample 00004",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/HandwrittenText",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/HandwrittenText/00004_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-wrinkle-01",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic wrinkles and creases sample 00001",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Wrinkles_Creases",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Wrinkles_Creases/00001_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-wrinkle-02",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Synthetic wrinkles and creases sample 00003",
+      "page_url": "https://github.com/alphanumericslab/ecg-image-kit/tree/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Wrinkles_Creases",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/codes/ecg-image-generator/SampleData/DistortionData/Wrinkles_Creases/00003_hr-0.png"
+    },
+    {
+      "case_id": "image-kit-real-redacted-01",
+      "source_id": "ecg-image-kit",
+      "fixture_kind": "quality-only",
+      "labels": [],
+      "title": "Redacted real ECG photograph or scan",
+      "page_url": "https://moody-challenge.physionet.org/2024/",
+      "image_url": "https://raw.githubusercontent.com/alphanumericslab/ecg-image-kit/27b90f56896c9fc78b05a83ca14844ea2637aa0b/sample-data/ecg-images/ecg00051.png"
+    }
+  ]
+}

@@ -54,6 +54,9 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
+  await expect(page.locator('.result-group-header__kind-label').first()).toHaveText(
+    'Клиническая рекомендация',
+  );
   await expect(page.getByTestId('search-mode')).toHaveText('FTS5 + VECTOR');
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
   await page.getByTestId('search-results').getByTestId('search-result').first().click();
@@ -73,6 +76,12 @@ test('limits medication mode to medication documents', async ({ page }) => {
   await expect(page.locator('.result-group').first()).toContainText(/Цефтриаксон/u, {
     timeout: 10_000,
   });
+  await expect(
+    page.locator('.result-group').first().locator('.result-group-header__kind-label'),
+  ).toHaveText('Препарат');
+  await expect
+    .poll(() => page.locator('.result-group').first().locator('.result-open').count())
+    .toBeLessThanOrEqual(3);
   await expect(page.getByTestId('search-results')).not.toContainText(
     'Внебольничная пневмония у детей',
   );
@@ -318,6 +327,21 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.locator('article[aria-label="Открыть набор «Ядро»"]')).toBeVisible();
   await expect(
     page.locator('article[aria-label="Открыть набор «Клинические рекомендации»"]'),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('article[aria-label="Открыть набор «Нормы и расчёты»"]')
+      .getByRole('button', { name: 'Скачать раздел «Нормы и расчёты»' }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('article[aria-label="Открыть набор «Законы и нормативные акты»"]')
+      .getByRole('button', { name: 'Скачать раздел «Законы и нормативные акты»' }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('article[aria-label="Открыть набор «Клинические рекомендации»"]')
+      .getByRole('button', { name: 'Скачать раздел «Клинические рекомендации»' }),
   ).toBeVisible();
   await page.locator('article[aria-label="Открыть набор «Клинические рекомендации»"]').click();
   await expect(page).toHaveURL(/#\/modules\/documents\/recommendations/u);

@@ -5,6 +5,7 @@ export interface AppPreferences {
   readonly rememberSearchMode: boolean;
   readonly soundVolume: number;
   readonly bookReadingMode: boolean;
+  readonly floatingWindowsEnabled: boolean;
   readonly experimentalModulesEnabled: boolean;
 }
 
@@ -17,7 +18,8 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   rememberSearchMode: false,
   soundVolume: 0.2,
   bookReadingMode: false,
-  experimentalModulesEnabled: false,
+  floatingWindowsEnabled: false,
+  experimentalModulesEnabled: true,
 };
 
 const VALID_SCOPES = new Set<SearchScope>([
@@ -41,6 +43,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly rememberSearchMode?: unknown;
     readonly soundVolume?: unknown;
     readonly bookReadingMode?: unknown;
+    readonly floatingWindowsEnabled?: unknown;
     readonly experimentalModulesEnabled?: unknown;
   };
   return {
@@ -61,6 +64,10 @@ function normalizePreferences(value: unknown): AppPreferences {
       typeof candidate.bookReadingMode === 'boolean'
         ? candidate.bookReadingMode
         : DEFAULT_PREFERENCES.bookReadingMode,
+    floatingWindowsEnabled:
+      typeof candidate.floatingWindowsEnabled === 'boolean'
+        ? candidate.floatingWindowsEnabled
+        : DEFAULT_PREFERENCES.floatingWindowsEnabled,
     experimentalModulesEnabled:
       typeof candidate.experimentalModulesEnabled === 'boolean'
         ? candidate.experimentalModulesEnabled
@@ -130,6 +137,14 @@ export function getBookReadingMode(): boolean {
 
 export function setBookReadingMode(enabled: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), bookReadingMode: enabled });
+}
+
+export function getFloatingWindowsEnabled(): boolean {
+  return loadAppPreferences().floatingWindowsEnabled;
+}
+
+export function setFloatingWindowsEnabled(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), floatingWindowsEnabled: enabled });
 }
 
 export function getExperimentalModulesEnabled(): boolean {

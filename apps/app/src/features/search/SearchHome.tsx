@@ -32,6 +32,12 @@ import {
   loadIgnoredAppUpdates,
 } from '@/state/ignored-app-updates';
 import { loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
+import {
+  isPatientVaultUnlocked,
+  PATIENT_VAULT_EVENT,
+  PATIENT_VAULT_LOCK_EVENT,
+  readPatientVault,
+} from '@/state/patient-vault';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 import { USER_LIBRARY_EVENT, userLibrarySearchableCount } from '@/state/user-library';
 
@@ -133,6 +139,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
   const [ignoredAppUpdates, setIgnoredAppUpdates] = createSignal(loadIgnoredAppUpdates());
   let searchModeTools: HTMLElement | undefined;
+  let searchScrollFrame: number | undefined;
   useStickySurface(() => searchModeTools);
 
   const toggleAiAssist = (): void => {
@@ -155,7 +162,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     onCleanup(unsubscribePreferences);
 
     const updateSearchScroll = (): void => {
-      setHasSearchScroll(window.scrollY > 1);
+      if (searchScrollFrame !== undefined) return;
+      searchScrollFrame = requestAnimationFrame(() => {
+        searchScrollFrame = undefined;
+        setHasSearchScroll(window.scrollY > 1);
+      });
     };
     updateSearchScroll();
     window.addEventListener('scroll', updateSearchScroll, { passive: true });
@@ -184,11 +195,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
 
   const refreshPersonalCount = (): void => {
-    void userLibrarySearchableCount()
-      .then((libraryCount) => {
+    const patientProfileCount = isPatientVaultUnlocked()
+      ? readPatientVault()
+          .then((snapshot) => snapshot.profiles.length)
+          .catch((cause) => {
+            console.error('Не удалось посчитать карточки пациентов.', cause);
+            return 0;
+          })
+      : Promise.resolve(0);
+    void Promise.all([userLibrarySearchableCount(), patientProfileCount])
+      .then(([libraryCount, patientCount]) => {
         const snapshot = loadPatientNotes();
         const noteCorpus = snapshot.cards.length + snapshot.notes.length;
-        let personal = libraryCount + noteCorpus;
+        let personal = libraryCount + noteCorpus + patientCount;
         if (snapshot.cards.length > 0 && personal === 0) personal = 1;
         setDocumentCounts((current) => ({ ...current, personal }));
       })
@@ -221,16 +240,21 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   };
 
   onMount(() => {
-    refreshDocumentCounts();
-    refreshPersonalCount();
+    const initialCountsFrame = requestAnimationFrame(refreshDocumentCounts);
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts);
     window.addEventListener(USER_LIBRARY_EVENT, refreshPersonalCount);
     window.addEventListener(PATIENT_NOTES_EVENT, refreshPersonalCount);
+    window.addEventListener(PATIENT_VAULT_EVENT, refreshPersonalCount);
+    window.addEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPersonalCount);
+    onCleanup(() => cancelAnimationFrame(initialCountsFrame));
   });
   onCleanup(() => {
     window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts);
     window.removeEventListener(USER_LIBRARY_EVENT, refreshPersonalCount);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshPersonalCount);
+    window.removeEventListener(PATIENT_VAULT_EVENT, refreshPersonalCount);
+    window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPersonalCount);
+    if (searchScrollFrame !== undefined) cancelAnimationFrame(searchScrollFrame);
   });
 
   const scopedCore = createMemo(() => {
@@ -390,6 +414,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               <For each={SEARCH_SCOPES}>
                 {(option) => (
                   <label
+                    class="search-mode-picker__option"
                     classList={{
                       active: scope() === option.id,
                       unavailable: documentCountsLoaded() && documentCounts()[option.id] === 0,

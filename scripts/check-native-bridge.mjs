@@ -17,17 +17,21 @@ const files = {
   iosProject: 'apps/app/ios/App/App.xcodeproj/project.pbxproj',
   storyboard: 'apps/app/ios/App/App/Base.lproj/Main.storyboard',
   typescriptPlugin: 'packages/storage-capacitor/src/plugin.ts',
-  database: 'apps/app/public/content/core-demo.db',
-  report: 'apps/app/public/content/core-demo-report.json',
+  database: 'apps/app/public/content/core.db',
+  report: 'apps/app/public/content/core-report.json',
   androidLlamaPlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LlamaInferencePlugin.kt',
   androidUpdatePlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedUpdatePlugin.kt',
   androidSharePlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedSharePlugin.kt',
+  androidPatientVaultPlugin:
+    'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedPatientVaultPlugin.kt',
   androidLlamaCmake: 'apps/app/android/app/src/main/cpp/CMakeLists.txt',
   typescriptLlamaPlugin: 'apps/app/src/features/models/llama-plugin.ts',
   typescriptSharePlugin: 'apps/app/src/state/native-share.ts',
+  typescriptPatientVaultPlugin: 'apps/app/src/state/patient-vault-native.ts',
+  iosPatientVaultPlugin: 'apps/app/ios/App/App/LocalMedPatientVaultPlugin.swift',
 };
 
 const entries = await Promise.all(
@@ -82,6 +86,24 @@ requireText('androidActivity', 'installSplashScreen');
 requireText('androidActivity', 'setDecorFitsSystemWindows');
 requireText('androidUpdatePlugin', '@CapacitorPlugin(name = "LocalMedUpdate")');
 
+for (const method of ['isAvailable', 'wrapKey', 'unwrapKey', 'deleteKey']) {
+  requireText('typescriptPatientVaultPlugin', `${method}(`);
+  requireText('androidPatientVaultPlugin', `fun ${method}(`);
+  requireText('iosPatientVaultPlugin', `name: "${method}"`);
+}
+requireText(
+  'typescriptPatientVaultPlugin',
+  "registerPlugin<LocalMedPatientVaultPlugin>('LocalMedPatientVault')",
+);
+requireText('androidPatientVaultPlugin', '@CapacitorPlugin(name = "LocalMedPatientVault")');
+requireText('androidActivity', 'registerPlugin(LocalMedPatientVaultPlugin.class)');
+requireText('androidPatientVaultPlugin', 'AndroidKeyStore');
+requireText('androidPatientVaultPlugin', 'setEncryptionPaddings');
+requireText('iosPatientVaultPlugin', 'kSecAttrAccessibleWhenUnlockedThisDeviceOnly');
+requireText('iosPatientVaultPlugin', 'SecItemCopyMatching');
+requireText('iosBridge', 'registerPluginInstance(LocalMedPatientVaultPlugin())');
+requireText('iosProject', 'LocalMedPatientVaultPlugin.swift in Sources');
+
 for (const native of ['androidPlugin', 'iosPlugin']) {
   requireText(native, 'PRAGMA quick_check');
   requireText(native, 'chunks_fts');
@@ -105,11 +127,11 @@ if (!ignoreAssetsPattern) {
 }
 if (/(?:^|:)[*][.]db(?::|$)/u.test(ignoreAssetsPattern.replaceAll(/\s/gu, ''))) {
   throw new Error(
-    'ignoreAssetsPattern must not ignore all database files; aapt has no keep exception and that omits core-demo.db',
+    'ignoreAssetsPattern must not ignore all database files; aapt has no keep exception and that omits core.db',
   );
 }
-if (ignoreAssetsPattern.includes('core-demo.db')) {
-  throw new Error('ignoreAssetsPattern must keep core-demo.db in the APK');
+if (ignoreAssetsPattern.includes('core.db')) {
+  throw new Error('ignoreAssetsPattern must keep core.db in the APK');
 }
 for (const kept of ['medications.db', 'regulatory.db', 'reference.db']) {
   if (ignoreAssetsPattern.includes(kept)) {

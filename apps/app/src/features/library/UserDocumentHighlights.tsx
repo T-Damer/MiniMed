@@ -150,7 +150,15 @@ export function UserDocumentHighlights(props: {
         remove: intersecting ?? null,
       });
     };
-    document.addEventListener('selectionchange', refreshPopup);
+    let popupFrame: number | undefined;
+    const schedulePopupRefresh = (): void => {
+      if (popupFrame !== undefined) return;
+      popupFrame = requestAnimationFrame(() => {
+        popupFrame = undefined;
+        refreshPopup();
+      });
+    };
+    document.addEventListener('selectionchange', schedulePopupRefresh);
     const dismissPopupOnScroll = (): void => {
       setPopup(null);
     };
@@ -160,7 +168,8 @@ export function UserDocumentHighlights(props: {
     });
     onCleanup(() => {
       window.removeEventListener(USER_HIGHLIGHTS_EVENT, reload);
-      document.removeEventListener('selectionchange', refreshPopup);
+      document.removeEventListener('selectionchange', schedulePopupRefresh);
+      if (popupFrame !== undefined) cancelAnimationFrame(popupFrame);
       window.removeEventListener('scroll', dismissPopupOnScroll, { capture: true });
       registry()?.delete(HIGHLIGHT_NAME);
     });

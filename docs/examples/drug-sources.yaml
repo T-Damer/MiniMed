@@ -26,21 +26,25 @@ sources:
   # ESKLP: use an official exchange snapshot whose reuse terms have been reviewed.
   - id: ru.esklp.normalized-products
     title: ЕСКЛП — официальный обменный файл
-    acquisition: manual
+    acquisition: https
+    location: https://esklp.egisz.rosminzdrav.ru/fs/public/download/eabd8ada-5200-449d-8973-57f4a45cf756
+    target: esklp/esklp-latest.zip
+    contentType: binary
+    maxBytes: 104857600
     enabled: false
     jurisdiction: RU
     categories:
       - normalized-drug-identities
       - smnn
       - klp
-    updateCadence: verify with provider
+    updateCadence: explicit build-time check
     rights:
       owner: Russian Federation / responsible ESKLP operator
       licenseId: terms-review-required
       allowsOfflineStorage: false
       allowsDerivativeProcessing: false
       allowsRedistribution: false
-      notes: Record the exact exchange specification and snapshot version before enabling.
+      notes: Enable only after the exact exchange specification and reuse terms are reviewed.
     metadata:
       expectedIdentifiers:
         - smnn-uuid

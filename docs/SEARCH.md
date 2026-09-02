@@ -18,6 +18,15 @@ long free-form case
 
 No generative model participates in this path. When vectors are unavailable or incompatible, the complete lexical path remains active.
 
+## Core-only pointers and modules
+
+The bundled core indexes lightweight medication and clinical-recommendation pointers. If the full
+document or medicine pack is not installed, search can still show the pointer and offer the exact
+module download; after installation, the result reconnects to the full source document. ESKLP
+identity modules are preview content and are available only when Experimental modules are enabled.
+
+SQLite packs larger than 32 MiB use OPFS in the browser; small packs stay on the WASM path.
+
 ## Personal overlay
 
 Notes and uploaded books are searched outside SQLite. A hit requires every distinctive query stem
@@ -50,6 +59,8 @@ A long description can produce at most seven branches and 28 terms per branch:
 - `original` — normalized original wording as a recall fallback;
 - `investigation` — laboratory/instrumental terms;
 - `medication` — current therapy and drug aliases;
+- `medication-presentation` — a high-weight conjunction for a brand/MNN with the requested form,
+  route, and strength;
 - `clause` — useful individual clauses from the narrative.
 
 Branches have explicit weights and appear in diagnostics. A failed specialized branch does not
@@ -75,6 +86,28 @@ Example fixture aliases:
 
 Raw user text is never interpolated into SQL. The planner emits a safe bind value for FTS5.
 
+Clinical recommendation pointers project disease aliases/synonyms and explicit terms from valid
+`Ключевые слова` sections into the recall vocabulary. These terms improve candidate coverage but are
+not exact diagnoses and do not create treatment or dose assertions. The combined
+`Ключевые слова Список сокращений` section is ignored; abbreviations are not promoted to keywords
+automatically.
+
+Medication-form aliases are additive and source-preserving. `сироп` (including `спироп`) adds the
+exact FTS phrase `суспензия для приема внутрь`; suspension inflections add `сироп`. The phrase is not
+split into generic suspension tokens, so injection and external suspensions receive no syrup boost.
+The exact requested source form remains ahead of an equivalent form, and displayed form labels stay
+as registered in the source.
+
+The measured medication smoke cases keep the correct ESKLP suspension section first for
+`нурофен суспензия` and `100 мг/5 мл`, return no result for `нурофен мазь`, and preserve the
+ceftriaxone intravenous match. This verifies identity retrieval only; it does not supply a dose.
+
+Administration-route shorthand is also additive: `в/м` searches `внутримышечно`, and `в/в` searches
+`внутривенно`. Route, age, and body-mass terms refine the source result but do not weaken an exact
+single-ingredient title in favour of a fixed combination. A bare value in kilograms can be recorded
+as body mass; bare grams remain a medication strength unless explicitly labelled as weight or mass.
+Search does not turn these facts into an individualized dose.
+
 ## Rank fusion
 
 Each branch retrieves a BM25-ranked candidate list. Fusion preserves the strongest normalized
@@ -82,9 +115,10 @@ lexical evidence and adds only a capped corroboration bonus from additional bran
 a known failure mode of plain reciprocal-rank summation, where one weak chunk can win merely by
 appearing in several nearly duplicated branches.
 
-After grouping by document, a name-lookup boost prefers a title that *is* the query (or is that
-name plus a dosage form) over a combination product and over a document that only mentions the
-term in body text.
+After grouping by document, query-aware ranking prefers a title containing a specific query term
+over a document that only mentions the term frequently in body text. Exact name/form matches still
+beat combination products; terms that describe a failed prior treatment do not become the answer
+solely because that treatment appears in a title.
 
 Small transparent section boosts are applied only when branch intent matches section type, for
 example investigation → diagnostics and medication → treatment. Each result exposes:
@@ -97,8 +131,9 @@ example investigation → diagnostics and medication → treatment. Each result 
 
 ## Snippets and source context
 
-Source text is rendered as text nodes; computed ranges become `<mark>` elements. Untrusted corpus
-text is never injected as HTML. Selecting a result loads the focus chunk plus configurable
+Known HTML fragments and entities are converted to readable plain text before snippet offsets are
+computed. Source text is rendered as text nodes; computed ranges become `<mark>` elements. Untrusted
+corpus text is never injected as HTML. Selecting a result loads the focus chunk plus configurable
 neighbors and can open the whole section.
 
 ## Regression benchmarks
@@ -107,6 +142,7 @@ neighbors and can open the whole section.
 bun run benchmark:search  # 30 compact lexical queries
 bun run benchmark:cases   # 5 long clinical descriptions
 bun run benchmark:all
+bun run benchmark:pilot   # 61 public-pilot clinical, medication, and workflow queries
 ```
 
 The long-case benchmark requires the expected synthetic document at rank 1, expected extracted

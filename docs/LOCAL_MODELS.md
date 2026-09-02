@@ -187,6 +187,7 @@ GitHub Release: models-preview-1
   vikhr-qwen2.5-0.5b-instruct-q4_k_m.gguf
   qwen3-0.6b-q8_0.gguf
   qvikhr-3-1.7b-instruction-noreasoning-q4_k_m.gguf
+  minimed-ecg-open-digitizer-2026.1-q8.zip
 ```
 
 Configuration:

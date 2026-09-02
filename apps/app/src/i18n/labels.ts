@@ -1,4 +1,4 @@
-import { browserI18n } from '@/i18n/browser-i18n';
+import { browserI18n, getPluralMessage } from '@/i18n/browser-i18n';
 
 export function specialtyMessageKey(slug: string): string {
   return `specialty_${slug.replaceAll('-', '_')}`;
@@ -74,4 +74,8 @@ export function sectionCountLabel(count: number): string {
     return browserI18n.getMessage('section_count_few', String(count));
   }
   return browserI18n.getMessage('section_count_many', String(count));
+}
+
+export function assessmentCountLabel(count: number): string {
+  return getPluralMessage('assessment_count', count);
 }

@@ -27,7 +27,7 @@ interface CompanionStores {
 
 const QUERY_EMBEDDER = new PortableHashEmbedder();
 
-const PACK_DATABASE_NAME = 'core-demo.db';
+const PACK_DATABASE_NAME = 'core.db';
 const MKB_DATABASE_NAME = 'mkb.db';
 const MEDICATIONS_DATABASE_NAME = 'medications.db';
 const AMBULATORY_DATABASE_NAME = 'ambulatory.db';
@@ -88,11 +88,11 @@ async function withTimeout<T>(task: Promise<T>, timeoutMs: number, label: string
   }
 }
 
-async function fetchContent(url: URL): Promise<Response> {
+async function fetchContent(url: URL, init?: RequestInit): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), CONTENT_FETCH_TIMEOUT_MS);
   try {
-    return await fetch(url, { signal: controller.signal });
+    return await fetch(url, { ...init, signal: controller.signal });
   } catch (cause) {
     if (cause instanceof DOMException && cause.name === 'AbortError') {
       throw new Error(`Unable to load ${url.pathname}: request timed out.`);
@@ -106,7 +106,7 @@ async function fetchContent(url: URL): Promise<Response> {
 async function readPackReport(
   contentBaseUrl = getPackagedContentBaseUrl(),
 ): Promise<PackBuildReport> {
-  const response = await fetchContent(new URL('content/core-demo-report.json', contentBaseUrl));
+  const response = await fetchContent(new URL('content/core-report.json', contentBaseUrl));
   if (!response.ok) {
     throw new Error(`Unable to load content-pack report (${response.status}).`);
   }
@@ -182,6 +182,58 @@ async function createPackagedWasmStore(
     SqliteMedicalStore.createFromBytes(bytes),
     CONTENT_OPEN_TIMEOUT_MS,
     `Opening ${databaseName}`,
+  );
+}
+
+async function packagedContentLength(url: URL): Promise<number | undefined> {
+  try {
+    const response = await fetchContent(url, { method: 'HEAD' });
+    if (!response.ok) return undefined;
+    const header = response.headers.get('Content-Length');
+    if (header === null) return undefined;
+    const value = Number(header);
+    return Number.isSafeInteger(value) && value >= 0 ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function openRequiredCoreFromOpfs(url: string): Promise<WorkerOpfsMedicalStore> {
+  return WorkerOpfsMedicalStore.open({
+    url,
+    databaseName: PACK_DATABASE_NAME,
+    fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
+    poolName: 'minimed-sah-core',
+  });
+}
+
+export async function createRequiredWebCoreStore(contentBaseUrl: string): Promise<MedicalStore> {
+  const url = new URL(`content/${PACK_DATABASE_NAME}`, contentBaseUrl);
+  const contentLength = await packagedContentLength(url);
+  if (contentLength !== undefined && contentLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
+    return await openRequiredCoreFromOpfs(url.href);
+  }
+  const response = await fetchContent(url);
+  if (!response.ok) {
+    throw new Error(`Unable to load compiled content pack (${response.status}).`);
+  }
+  const buffer = await response.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  if (!hasSqliteHeader(bytes)) {
+    throw new Error(`Unable to load compiled content pack (${PACK_DATABASE_NAME} is not SQLite).`);
+  }
+  if (bytes.byteLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
+    const blobUrl = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.sqlite3' }));
+    try {
+      return await openRequiredCoreFromOpfs(blobUrl);
+    } finally {
+      URL.revokeObjectURL(blobUrl);
+    }
+  }
+  return await withTimeout(
+    SqliteMedicalStore.createFromBytes(bytes),
+    CONTENT_OPEN_TIMEOUT_MS,
+    `Opening ${PACK_DATABASE_NAME}`,
   );
 }
 
@@ -382,7 +434,7 @@ export async function createBrowserCore() {
 
   try {
     const contentBaseUrl = getPackagedContentBaseUrl();
-    const coreStore = await createPackagedWasmStore(contentBaseUrl);
+    const coreStore = await createRequiredWebCoreStore(contentBaseUrl);
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: !isFloatingWindowRuntime(),
     });
@@ -401,7 +453,7 @@ export async function createBrowserCore() {
 
 export async function createBrowserWorkerCore(contentBaseUrl: string) {
   try {
-    const coreStore = await createPackagedWasmStore(contentBaseUrl);
+    const coreStore = await createRequiredWebCoreStore(contentBaseUrl);
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: shouldOpenPackagedMedicationsInSearchWorker(),
     });

@@ -54,7 +54,7 @@ test('does not show root navigation while the medical core is loading', async ({
   }
   test.skip(!running, 'dev server is not running on 127.0.0.1:5173');
 
-  await page.route('**/core-demo.db', async (route) => {
+  await page.route('**/core.db', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 1_500));
     await route.continue();
   });

@@ -1,5 +1,7 @@
 .medical-image-viewer {
   color-scheme: dark;
+  /* Native status bar must use the same fill as the toolbar safe-area header. */
+  --medical-image-status-bar-color: #171c19;
   --theme-surface: #171c19;
   --theme-surface-raised: #252c27;
   --theme-surface-muted: #101512;
@@ -26,37 +28,69 @@
 .medical-image-viewer__toolbar {
   --ui-button-height: 2.5rem;
   --ui-icon-button-size: 2.5rem;
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
   min-width: 0;
   min-height: 3.65rem;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.75rem;
   overflow: hidden;
-  padding: 0.5rem 0.625rem;
+  padding: calc(0.5rem + var(--safe-top)) 0.625rem 0.5rem;
   border-bottom: 1px solid var(--theme-border);
   background: var(--theme-surface);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%);
 }
 
-.medical-image-viewer__toolbar-locked {
-  display: inline-flex;
+.medical-image-viewer__toolbar-top {
+  display: flex;
   min-width: 0;
-  flex: none;
   align-items: center;
+  justify-content: space-between;
   gap: 0.45rem;
 }
 
-.medical-image-viewer__toolbar-scroll {
+.medical-image-viewer__toolbar-top-leading,
+.medical-image-viewer__toolbar-top-slice {
+  display: inline-flex;
   min-width: 0;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  align-items: center;
 }
 
-.medical-image-viewer__toolbar-scroll::-webkit-scrollbar {
-  display: none;
+.medical-image-viewer__toolbar-top-leading {
+  flex: 1 1 auto;
+  gap: 0.45rem;
+  overflow: hidden;
+}
+
+.medical-image-viewer__toolbar-top-slice {
+  flex: none;
+}
+
+.medical-image-viewer__toolbar-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.medical-image-viewer__toolbar-bottom {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.medical-image-viewer__toolbar-bottom-actions,
+.medical-image-viewer__toolbar-slice-navigation {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.medical-image-viewer__toolbar-slice-navigation {
+  flex: none;
+}
+
+.medical-image-viewer__toolbar-bottom-actions {
+  flex: none;
 }
 
 .medical-image-viewer__toolbar-scroll-content {
@@ -64,6 +98,10 @@
   min-width: max-content;
   align-items: center;
   gap: 0.45rem;
+}
+
+.medical-image-viewer__toolbar-bottom .medical-image-viewer__toolbar-scroll {
+  width: 100%;
 }
 
 .medical-image-viewer__title {
@@ -110,6 +148,7 @@
 }
 
 .medical-image-viewer__tool.ui-button {
+  position: relative;
   min-height: var(--ui-button-height, 2.25rem);
   padding: 0.4rem 0.65rem;
   border-color: var(--theme-border);
@@ -144,18 +183,50 @@
   height: 1rem;
 }
 
+.medical-image-viewer__tool-shortcut {
+  position: absolute;
+  top: 0.16rem;
+  right: 0.2rem;
+  color: currentColor;
+  font-size: 0.56rem;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
 .medical-image-viewer__slice {
+  display: inline-flex;
   min-width: 3.5rem;
+  min-height: var(--ui-icon-button-size, 2.5rem);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
   border: 0;
   color: var(--theme-text-muted);
   background: transparent;
   font-variant-numeric: tabular-nums;
   font-size: 0.78rem;
   font-weight: 700;
+  line-height: 1.05;
   text-align: center;
   touch-action: none;
   user-select: none;
   cursor: ns-resize;
+}
+
+.medical-image-viewer__slice-value {
+  display: block;
+}
+
+.medical-image-viewer__slice-divider {
+  display: block;
+  width: 100%;
+  height: 1px;
+  flex: none;
+  background: currentColor;
+  opacity: 0.8;
 }
 
 .medical-image-viewer__slice-navigation {
@@ -209,6 +280,39 @@
 
 .medical-image-viewer__canvas--rotate {
   cursor: grab;
+}
+
+.medical-image-viewer__grid-crosshairs {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.medical-image-viewer__grid-crosshair {
+  position: absolute;
+  overflow: hidden;
+}
+
+.medical-image-viewer__grid-crosshair-line {
+  position: absolute;
+  display: block;
+  background: #ff4050;
+  opacity: 0.9;
+}
+
+.medical-image-viewer__grid-crosshair-line--vertical {
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  translate: -1px 0;
+}
+
+.medical-image-viewer__grid-crosshair-line--horizontal {
+  right: 0;
+  left: 0;
+  height: 2px;
+  translate: 0 -1px;
 }
 
 .medical-image-viewer__rotation-button.ui-button {
@@ -277,6 +381,7 @@
 }
 
 .medical-image-viewer__annotation-color {
+  position: relative;
   width: var(--ui-icon-button-size, 2.25rem);
   height: var(--ui-icon-button-size, 2.25rem);
   padding: 0;
@@ -302,6 +407,13 @@
   box-shadow:
     0 0 0 2px var(--theme-surface-muted),
     0 0 0 4px color-mix(in srgb, var(--theme-accent) 72%, transparent);
+}
+
+.medical-image-viewer__annotation-color-icon.app-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #fff;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 35%));
 }
 
 .medical-image-viewer__annotation-color:disabled {
@@ -435,6 +547,8 @@
 .user-document-reader__paper--medical.document-overlay-paper {
   width: 100%;
   max-width: none;
+  height: 100%;
+  min-height: 0;
   padding: 0;
   background: transparent;
   box-shadow: none;
@@ -445,21 +559,59 @@
 }
 
 .document-page__body--medical.document-page__body {
+  height: 100%;
+  min-height: 0;
   gap: 0;
   overflow: hidden;
   padding: 0;
 }
 
 .user-document-reader--medical.page-surface {
+  height: 100%;
   min-height: 100dvh;
-  margin-bottom: 0;
+  max-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  background: #07090b;
+}
+
+.document-overlay-layout--medical {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .medical-image-viewer--fullscreen {
-  height: calc(100dvh - var(--safe-top, 0px));
+  height: 100%;
+  max-height: 100%;
   min-height: 0;
   border: 0;
   border-radius: 0;
+}
+
+.app-shell--medical-image {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.app-main--medical-image {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-main--medical-image > .app-view--document-read {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html:has(.app-shell--medical-image),
+body:has(.app-shell--medical-image) {
+  overflow: hidden;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -491,26 +643,20 @@
   .medical-image-viewer__toolbar {
     --ui-button-height: 2.75rem;
     --ui-icon-button-size: 2.75rem;
-    grid-template-areas:
-      "leading trailing"
-      "scroll scroll";
-    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.35rem;
-    padding: 0.4rem;
+    padding: calc(0.4rem + var(--safe-top)) 0.4rem 0.4rem;
   }
 
-  .medical-image-viewer__toolbar-locked--leading {
-    grid-area: leading;
-    overflow: hidden;
-  }
-
-  .medical-image-viewer__toolbar-locked--trailing {
-    grid-area: trailing;
-    gap: 0.2rem;
+  .medical-image-viewer__toolbar-top {
+    justify-content: space-between;
   }
 
   .medical-image-viewer__toolbar-scroll {
-    grid-area: scroll;
+    min-width: 0;
+  }
+
+  .medical-image-viewer__toolbar-bottom-actions {
+    gap: 0.1rem;
   }
 
   .medical-image-viewer__title {
@@ -545,6 +691,8 @@
 
   .user-document-reader__paper--medical.document-overlay-paper {
     width: 100%;
+    height: 100%;
+    min-height: 0;
     padding: 0;
   }
 }

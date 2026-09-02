@@ -21,7 +21,9 @@ test('calculates an EDD by LMP and writes the result to a patient note', async (
     page.getByRole('heading', { name: 'ПДР по дате последней менструации' }),
   ).toBeVisible();
 
-  await page.getByLabel('Пациент / случай — необязательно').fill('Пациентка калькулятора');
+  await page
+    .getByRole('combobox', { name: 'Пациент / случай — необязательно', exact: true })
+    .fill('Пациентка калькулятора');
   await page.getByLabel('Дата последней менструации').fill('2026-05-01');
   await page.getByTestId('calculator-submit').click();
 

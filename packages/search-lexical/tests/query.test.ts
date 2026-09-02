@@ -45,6 +45,46 @@ const aliases = [
   },
 ];
 
+const TURBUHALER_ALIASES = [
+  {
+    id: 'alias.pulmicort.turbuhaler',
+    canonicalTerm: 'БУДЕСОНИД',
+    alias: 'Пульмикорт Турбухалер',
+    category: 'medication',
+    weight: 1,
+  },
+  {
+    id: 'alias.symbicort.turbuhaler',
+    canonicalTerm: 'БУДЕСОНИД+ФОРМОТЕРОЛ',
+    alias: 'Симбикорт Турбухалер',
+    category: 'medication',
+    weight: 1,
+  },
+  {
+    id: 'alias.oxis.turbuhaler',
+    canonicalTerm: 'ФОРМОТЕРОЛ',
+    alias: 'Оксис Турбухалер',
+    category: 'medication',
+    weight: 1,
+  },
+] as const;
+
+const NUROFEN_ALIASES = [
+  {
+    id: 'alias.nurofen',
+    canonicalTerm: 'ИБУПРОФЕН',
+    alias: 'Нурофен',
+    category: 'medication',
+    weight: 1,
+  },
+] as const;
+
+const TURBUHALER_ALIAS_MATCHES = [
+  'Пульмикорт Турбухалер → БУДЕСОНИД',
+  'Симбикорт Турбухалер → БУДЕСОНИД+ФОРМОТЕРОЛ',
+  'Оксис Турбухалер → ФОРМОТЕРОЛ',
+];
+
 describe('lexical query planning', () => {
   it('normalizes Russian morphology in the same way as the corpus builder', () => {
     expect(lightStemRussian('пневмонией')).toBe('пневмони');
@@ -68,6 +108,61 @@ describe('lexical query planning', () => {
     expect(plan.aliasMatches).toContain('часто дышит → тахипноэ');
     expect(plan.ftsQuery).toContain('"тахипноэ"*');
   });
+
+  it('expands детский to детей as a search term', () => {
+    const plan = buildLexicalQueryPlan('Нурофен детский', []);
+
+    expect(plan.terms).toContain('детей');
+  });
+
+  it.each(['сироп', 'спироп'])('expands %s to the oral suspension form', (query) => {
+    const plan = buildLexicalQueryPlan(query, []);
+
+    expect(plan.terms).toContain('суспензия для приема внутрь');
+    expect(plan.terms).not.toEqual(
+      expect.arrayContaining(['суспензия', 'суспенз', 'приема', 'внутрь']),
+    );
+    expect(plan.ftsQuery).toContain('"суспензия для приема внутрь"*');
+  });
+
+  it('looks up the suspension-to-syrup expansion through a Russian light stem', () => {
+    const plan = buildLexicalQueryPlan('суспензии', []);
+
+    expect(plan.terms).toContain('сироп');
+  });
+
+  it.each([
+    ['Нурофен суспензия', 'суспенз'],
+    ['Нурофен мазь', 'мазь'],
+    ['Нурофен сироп', 'суспензия для приема внутрь'],
+  ])('adds an exact medication-presentation branch for %s', (query, formTerm) => {
+    const plan = buildLexicalQueryPlan(query, NUROFEN_ALIASES);
+    const branch = plan.branches.find((item) => item.id === 'medication-presentation');
+
+    expect(branch).toBeDefined();
+    expect(branch?.kind).toBe('medication');
+    expect(branch?.terms).toContain('нурофен');
+    expect(branch?.terms).toContain(formTerm);
+    expect(branch?.ftsQuery).toContain(' AND ');
+    expect(branch?.ftsQuery).toContain('"нурофен"*');
+  });
+
+  it('keeps strength evidence conjunctive in the presentation branch', () => {
+    const plan = buildLexicalQueryPlan('Нурофен 100 мг/5 мл', NUROFEN_ALIASES);
+    const branch = plan.branches.find((item) => item.id === 'medication-presentation');
+
+    expect(branch?.ftsQuery).toContain('"мг"* AND "100"* AND "мл"*');
+    expect(branch?.ftsQuery).not.toContain('"100"* OR');
+  });
+
+  it.each(['Нурофен', 'ибупрофен суспензия', 'Нурофен ребенку 4 года 20 кг 2 раза в день'])(
+    'does not force a medication-presentation branch for %s',
+    (query) => {
+      const plan = buildLexicalQueryPlan(query, NUROFEN_ALIASES);
+
+      expect(plan.branches.map((branch) => branch.id)).not.toContain('medication-presentation');
+    },
+  );
 
   it('expands an uppercase abbreviation only at a word boundary', () => {
     const expanded = analyzeClinicalQuery('ОАК без изменений', aliases);
@@ -257,6 +352,37 @@ describe('lexical query planning', () => {
     const plan = analyzeClinicalQuery('Дизурея у ребенка', aliases);
     expect(plan.aliasMatches).toContain('дизурия → болезненное мочеиспускание');
     expect(plan.terms).toEqual(expect.arrayContaining(['болезненн', 'мочеиспуск']));
+  });
+
+  it.each(['турбухалер', 'турбухаер'])(
+    'matches one long device token inside all full Turbuhaler aliases for %s',
+    (query) => {
+      const plan = buildLexicalQueryPlan(query, TURBUHALER_ALIASES);
+      expect(plan.aliasMatches).toHaveLength(3);
+      expect(plan.aliasMatches).toEqual(expect.arrayContaining(TURBUHALER_ALIAS_MATCHES));
+      expect(plan.terms).toEqual(expect.arrayContaining(['будесонид', 'формотерол']));
+      expect(plan.terms).toEqual(
+        expect.arrayContaining(['пульмикорт', 'симбикорт', 'оксис', 'турбухалер']),
+      );
+    },
+  );
+
+  it('does not partially match full device aliases from a multiword query', () => {
+    const plan = buildLexicalQueryPlan('ингалятор турбухалер', TURBUHALER_ALIASES);
+    expect(plan.aliasMatches).toHaveLength(0);
+  });
+
+  it('does not fuzzy-match a generated full-form alias from a form token', () => {
+    const plan = buildLexicalQueryPlan('дозированый', [
+      {
+        id: 'alias.generated.salbutamol',
+        canonicalTerm: 'САЛЬБУТАМОЛ',
+        alias: 'Сальбутамол аэрозоль для ингаляций дозированный',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    expect(plan.aliasMatches).toHaveLength(0);
   });
 
   it('does not promote a fuzzy-matched alias that is explicitly negated', () => {

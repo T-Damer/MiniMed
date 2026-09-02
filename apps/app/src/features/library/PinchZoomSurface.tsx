@@ -5,16 +5,20 @@ import { type PinchZoomControls, usePinchZoom } from '@/features/library/use-pin
 export function PinchZoomSurface(props: {
   readonly class?: string;
   readonly contentClass?: string;
+  readonly expandScrollPort?: boolean;
   readonly lightbox?: boolean;
   readonly pinch?: PinchZoomControls;
   readonly children: JSX.Element;
 }): JSX.Element {
-  const fallback = usePinchZoom();
+  const fallback = usePinchZoom(props.expandScrollPort === true ? { expandScrollPort: true } : {});
   const controls = (): PinchZoomControls => props.pinch ?? fallback;
 
   createEffect(() => {
     if (!props.lightbox || controls().scale() <= 1) return;
+    let resetStarted = false;
     const handleScroll = (): void => {
+      if (resetStarted) return;
+      resetStarted = true;
       controls().reset({ animated: true });
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -26,6 +30,7 @@ export function PinchZoomSurface(props: {
       ref={(element) => controls().ref(element)}
       class={props.class ?? 'pinch-zoom-surface'}
       classList={{ 'pinch-zoom-surface--zoomed': controls().scale() > 1 }}
+      data-pinch-zoom-surface=""
     >
       <Show when={props.lightbox && controls().scale() > 1}>
         <button

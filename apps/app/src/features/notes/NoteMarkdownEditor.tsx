@@ -22,15 +22,14 @@ import { assessmentPath } from '@/features/assessments/assessment-routing';
 import { getCalculatorRegistry } from '@/features/calculators/calculator-registry';
 import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
 import { documentSectionHeadingTag } from '@/features/library/document-display';
-import { printHtml } from '@/features/library/document-print';
 import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
-import { escapePrintHtml } from '@/features/library/user-document-reader-helpers';
 import { AttachmentViewerDialog, type ViewerState } from '@/features/notes/NoteAttachmentViewer';
 import { NoteSearchToggle, NoteTextSearch } from '@/features/notes/NoteTextSearch';
+import { buildNotePrintHtml } from '@/features/notes/note-print';
 import type { NoteWysiwyg } from '@/features/notes/note-wysiwyg';
 import {
   createNoteWysiwyg,
@@ -39,6 +38,7 @@ import {
 } from '@/features/notes/note-wysiwyg';
 import { isNotesFullscreenRoute, withNotesFullscreen } from '@/features/notes/notes-routing';
 import { VoiceRecordingButton } from '@/features/notes/VoiceRecordingButton';
+import { PrintManager } from '@/features/printing/print-manager';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { buildOfficialDocumentHash, parseDocumentReadRoute } from '@/state/document-route';
 import { loadPatientNotes } from '@/state/patient-notes';
@@ -56,6 +56,10 @@ export interface EditorFileAttachment {
 
 interface NoteMarkdownEditorProps {
   readonly label: string;
+  readonly printTitle?: string;
+  readonly printDate?: string;
+  /** Uses A4 with 1 cm margins and exposes print next to the embedded template editor. */
+  readonly templatePrint?: boolean;
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly documents: readonly MedicalDocumentSummary[];
@@ -502,11 +506,11 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     const snapshot = loadPatientNotes();
     const cardsById = new Map(snapshot.cards.map((card) => [card.id, card.title]));
     const notes = snapshot.notes
-      .filter((note) => matches(noteTitle(note.text), note.text))
+      .filter((note) => matches(note.title, noteTitle(note.text), note.text))
       .toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt))
       .slice(0, 20)
       .map((note): MentionSuggestion => {
-        const title = noteTitle(note.text);
+        const title = note.title.trim() || noteTitle(note.text);
         const cardTitle = cardsById.get(note.cardId);
         return {
           kind: 'note',
@@ -799,37 +803,33 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       return;
     }
     const clone = surface.cloneNode(true) as HTMLElement;
-    for (const node of Array.from(
-      clone.querySelectorAll<HTMLElement>('[data-type="math_inline"], [data-type="math_block"]'),
-    )) {
-      node.textContent = `$${node.getAttribute('data-value') ?? ''}$`;
-    }
     for (const node of Array.from(clone.querySelectorAll('.ProseMirror-trailingBreak')))
       node.remove();
-    const printed = printHtml(
-      [
-        '<!doctype html><html lang="ru"><head><meta charset="utf-8">',
-        `<title>${escapePrintHtml(props.label)}</title>`,
-        '<style>',
-        '@page { margin: 18mm; }',
-        'body { margin: 0; color: #1f2422; background: #fff; font: 12pt/1.55 Georgia, "Times New Roman", serif; }',
-        'article { max-width: 65ch; margin: 0 auto; }',
-        'h1, h2, h3, h4, h5, h6 { margin: 1.2em 0 0.4em; line-height: 1.2; page-break-after: avoid; }',
-        'h1 { font-size: 1.9em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }',
-        'p { margin: 0.5em 0; } ul, ol { margin: 0.5em 0; padding-left: 1.6em; }',
-        'blockquote { margin: 0.7em 0; padding: 0.3em 0.9em; border-left: 3px solid #999; color: #444; }',
-        'pre { padding: 0.6em 0.8em; border: 1px solid #ddd; background: #f6f6f2; font-size: 0.85em; white-space: pre-wrap; }',
-        'code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.88em; }',
-        'table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #bbb; padding: 0.35em 0.5em; text-align: left; vertical-align: top; }',
-        'img { max-width: 100%; } hr { border: 0; border-top: 1px solid #bbb; }',
-        '</style></head><body>',
-        `<h1>${escapePrintHtml(props.label)}</h1>`,
-        clone.innerHTML,
-        '</body></html>',
-      ].join(''),
-      props.label,
+    for (const [selector, className] of [
+      ['h1, h2, h3, h4, h5, h6', 'note-print__heading'],
+      ['blockquote', 'note-print__blockquote'],
+      ['pre', 'note-print__pre'],
+      ['code', 'note-print__code'],
+      ['table', 'note-print__table'],
+      ['th, td', 'note-print__table-cell'],
+      ['img', 'note-print__image'],
+      ['hr', 'note-print__rule'],
+    ] as const) {
+      for (const node of Array.from(clone.querySelectorAll<HTMLElement>(selector))) {
+        node.classList.add(className);
+      }
+    }
+    const printTitle = props.printTitle === undefined ? props.label : props.printTitle;
+    const printed = PrintManager.html(
+      buildNotePrintHtml(printTitle, props.printDate, clone.innerHTML, props.templatePrint),
+      printTitle.trim() || 'Заметка',
     );
     if (!printed) toast.error('Не удалось открыть окно печати.');
+  };
+
+  const fullscreenTitle = (): string | null => {
+    const title = props.printTitle === undefined ? props.label : props.printTitle.trim();
+    return title || null;
   };
 
   const formattingToolbar = (variant: 'embedded' | 'fullscreen'): JSX.Element => {
@@ -1023,6 +1023,17 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
             </button>
           </Show>
         </fieldset>
+        <Show when={variant === 'fullscreen' || props.templatePrint}>
+          <button
+            type="button"
+            class="note-markdown-editor__print-button"
+            aria-label="Распечатать заметку"
+            title="Печать"
+            onClick={handlePrint}
+          >
+            <AppGlyph name="printer" class="note-markdown-editor__print-icon" />
+          </button>
+        </Show>
       </div>
     );
   };
@@ -1289,7 +1300,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
         setSearchOpen(false);
         return true;
       }}
-      breadcrumbs={<AppBreadcrumbs items={[{ label: props.label }]} />}
+      breadcrumbs={<AppBreadcrumbs items={[{ label: fullscreenTitle() ?? 'Без названия' }]} />}
       headerSearchSlot={
         <div class="note-markdown-editor__header-actions">
           <Show
@@ -1303,17 +1314,6 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
               }
               onClose={() => setSearchOpen(false)}
             />
-          </Show>
-          <Show when={!searchOpen()}>
-            <button
-              type="button"
-              class="note-markdown-editor__print-button"
-              aria-label="Распечатать заметку"
-              title="Печать"
-              onClick={handlePrint}
-            >
-              <AppGlyph name="printer" class="note-markdown-editor__print-icon" />
-            </button>
           </Show>
         </div>
       }
@@ -1357,7 +1357,9 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       }
       content={
         <article ref={chrome.setPaper} class="document-overlay-paper">
-          <h1 class="document-overlay-paper__title">{props.label}</h1>
+          <Show when={fullscreenTitle()}>
+            {(title) => <h1 class="document-overlay-paper__title">{title()}</h1>}
+          </Show>
           <div class="note-markdown-editor__fullscreen-content">{wysiwygEditor('fullscreen')}</div>
         </article>
       }

@@ -15,6 +15,22 @@ The first release is explicitly a prototype for validating workflow, formula tra
 - A calculator must refuse to calculate when required data are missing, units are ambiguous, or the patient is outside the supported population.
 - Text parsing may fill a draft form, but calculation begins only after all required fields and units are unambiguous.
 
+## Schema v2 and result evaluation
+
+Published calculator definitions use `schemaVersion: 2` only. Each definition declares an explicit
+`evaluation` state (`verdict`, `missing-context`, `unavailable`, or `not-applicable`) and stable
+`observationMappings`. A mapping can expose a final input, derived step, or output as a canonical
+`metricId`/unit for longitudinal patient dynamics. `patientBinding` may fill only explicitly declared
+fields such as date of birth, biological sex, age on the event date, or a recent measurement; the
+selector is always an explicit `patientId` and never a name match.
+
+When a selected patient is present, the completed result captures normalized inputs, the selected
+context, definition version, provenance, and a structured reference verdict in the encrypted patient
+vault. A missing or unverified reference remains visible as “Оценка недоступна”; the engine does not
+guess a norm. Unit conversion, calendar calculations, and other outputs without a meaningful
+reference use `not-applicable`. Only final deterministic numeric mappings create graph points; drafts
+and free-text results do not.
+
 ## Source contract for clinical formulas
 
 A clinical calculator cannot move from `planned` to `available` until its definition records:

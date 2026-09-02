@@ -19,6 +19,9 @@ export interface AliasExpansion {
   readonly matchSpans: readonly AliasMatchSpan[];
 }
 
+// Only device-like two-token aliases get a single-token fallback; form aliases stay exact-only.
+const MIN_FUZZY_FINAL_ALIAS_TOKEN_LENGTH = 10;
+
 export function findNormalizedPhraseIndex(text: string, phrase: string): number {
   if (!phrase) return -1;
   const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
@@ -33,8 +36,10 @@ export function findNormalizedPhraseIndex(text: string, phrase: string): number 
  * token of the phrase must have a close (exact or bounded-edit-distance) match somewhere in the
  * query. Requires at least one token long enough to be fuzzy-eligible, so short abbreviations
  * (e.g. "ОАК", "АД") never fall back to fuzzy matching — only genuinely misspelled/inflected
- * clinical words do. Returns the span covering the matched query tokens (in `normalizedQuery`
- * coordinates), used for downstream negation-overlap checks.
+ * clinical words do. A single-token query may additionally match only the final token of an exact
+ * two-token alias when that final token has at least 10 characters. Returns the span covering the
+ * matched query tokens (in `normalizedQuery` coordinates), used for downstream negation-overlap
+ * checks.
  */
 export function fuzzyPhraseSpan(
   normalizedQuery: string,
@@ -45,6 +50,23 @@ export function fuzzyPhraseSpan(
   if (!phraseTokens.some((token) => token.length >= MIN_FUZZY_TOKEN_LENGTH)) return null;
 
   const queryTokens = tokenize(normalizedQuery);
+  if (queryTokens.length === 1 && phraseTokens.length === 2) {
+    const queryToken = queryTokens[0];
+    const finalPhraseToken = phraseTokens[1];
+    if (
+      !queryToken ||
+      !finalPhraseToken ||
+      queryToken.length < MIN_FUZZY_TOKEN_LENGTH ||
+      finalPhraseToken.length < MIN_FUZZY_FINAL_ALIAS_TOKEN_LENGTH ||
+      !isCloseToken(finalPhraseToken, queryToken)
+    ) {
+      return null;
+    }
+    const tokenIndex = findNormalizedPhraseIndex(normalizedQuery, queryToken);
+    if (tokenIndex < 0) return null;
+    return { start: tokenIndex, end: tokenIndex + queryToken.length };
+  }
+
   const usedQueryTokenIndexes = new Set<number>();
   let start = Number.POSITIVE_INFINITY;
   let end = Number.NEGATIVE_INFINITY;

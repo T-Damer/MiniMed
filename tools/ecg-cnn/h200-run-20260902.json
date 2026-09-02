@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "run_id": "minimed-ecg-direct-image-resnet18-20260902",
+  "decision": "rejected_for_integration",
+  "training": {
+    "architecture": "ImageNet-pretrained ResNet18",
+    "dataset": "PTB-XL 1.0.3 adult 18+ synthetic 12x1 renders",
+    "labels": ["NORM", "MI", "STTC", "CD", "HYP"],
+    "epochs": 2,
+    "splits": { "train": 16970, "validation": 2136, "test": 2145 },
+    "patient_disjoint": true,
+    "excluded_phone_holdout_ecg_ids": [2926, 11209, 14009],
+    "loss": [0.6438435242140204, 0.5257273220029989]
+  },
+  "ptb_xl_test": {
+    "macro_auc": 0.9124148705794285,
+    "macro_f1": 0.7270483230795003,
+    "per_label_f1": {
+      "NORM": 0.847526772055074,
+      "MI": 0.6982248520710059,
+      "STTC": 0.7434146341463415,
+      "CD": 0.7226519337016575,
+      "HYP": 0.6234234234234234
+    }
+  },
+  "real_phone_holdout": {
+    "source": "PM-ECG-ID",
+    "format": "real phone photographs of printed 12x1 ECG pages at 25 mm/s",
+    "devices": ["Doogee", "iPhone", "Samsung"],
+    "photos": 9,
+    "base_ecgs": 3,
+    "exact_match": 0.2222222222222222,
+    "micro_f1": 0.4444444444444445,
+    "confusion": {
+      "NORM": { "tp": 0, "fp": 0, "fn": 6, "tn": 3 },
+      "MI": { "tp": 0, "fp": 6, "fn": 0, "tn": 3 },
+      "STTC": { "tp": 0, "fp": 0, "fn": 0, "tn": 9 },
+      "CD": { "tp": 6, "fp": 3, "fn": 0, "tn": 0 },
+      "HYP": { "tp": 0, "fp": 0, "fn": 0, "tn": 9 }
+    },
+    "orientation_corrected": true,
+    "grid_crop_recheck_changed_decision": false
+  },
+  "clean_render_holdout": {
+    "exact_match": 0.6666666666666666,
+    "correct_ecg_ids": [2926, 14009],
+    "missed_ecg_ids": [11209]
+  },
+  "onnx": {
+    "checker_valid": true,
+    "phone_files_compared": 9,
+    "max_probability_delta_vs_pytorch": 0.00019150972366333008
+  },
+  "artifacts": {
+    "archive": "/tmp/minimed-ecg-image-cnn-h200-20260902.3e68WL/minimed-ecg-image-cnn-h200.tar.gz",
+    "archive_sha256": "636dfa101f4159a0973e9062cad7d56ac6e4a15f916b02116079e2db923e098f",
+    "checkpoint_sha256": "6e242d459b2ceb29cf6eed5835926604da2e426451020a90aed52054b4753463",
+    "onnx_sha256": "ca81aeeb95f699ea87f62721cf10f0102c89cdd2fd7a47e7221c3a6f608c2e19"
+  },
+  "vast": {
+    "gpu": "NVIDIA H200 143771 MiB",
+    "total_spend_usd": 2.02132247,
+    "active_instances_after_run": 0
+  },
+  "reason": "The model generalizes to clean PTB-XL-style renders but fails on real phone photographs of the same held-out ECGs. It must not be shipped or fused with Solver probabilities."
+}

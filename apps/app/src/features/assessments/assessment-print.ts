@@ -6,9 +6,10 @@ import {
 } from '@/features/assessments/assessment-engine';
 import type {
   AssessmentDefinition,
+  AssessmentImage,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
-import { printHtmlInNativeShell } from '@/features/printing/native-print';
+import { PrintManager } from '@/features/printing/print-manager';
 import { MINIMED_WEB_APP_URL } from '../../../../../release';
 
 function escapeHtml(value: string): string {
@@ -56,11 +57,24 @@ function renderQrCode(value: string): string {
   return `<svg class="footer-qr" viewBox="-4 -4 ${size + 8} ${size + 8}" role="img" aria-label="QR-код страницы" shape-rendering="crispEdges"><path d="${path}" /></svg>`;
 }
 
-function printableHtml(title: string, text: string, pageLink: string): string {
+function printableHtml(
+  title: string,
+  text: string,
+  pageLink: string,
+  images: readonly AssessmentImage[] = [],
+): string {
   const paragraphs = escapeHtml(text)
     .split('\n')
     .map((line) => (line ? `<div>${line}</div>` : '<br />'))
     .join('');
+  const imageGrid = images.length
+    ? `<div class="images">${images
+        .map(
+          (image) =>
+            `<figure class="image"><img src="${escapeHtml(image.dataUrl)}" alt="${escapeHtml(image.alt)}" /><figcaption>${escapeHtml(image.alt)}</figcaption></figure>`,
+        )
+        .join('')}</div>`
+    : '';
   const escapedPageLink = escapeHtml(pageLink);
   return `<!doctype html>
 <html lang="ru">
@@ -89,6 +103,10 @@ function printableHtml(title: string, text: string, pageLink: string): string {
     h1 { font-size: var(--print-title-size); margin: 0 0 var(--print-title-gap); }
     .document { white-space: pre-wrap; font-size: var(--print-body-size); }
     .document div { break-inside: avoid; }
+    .images { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3mm; margin: 4mm 0; }
+    .image { break-inside: avoid; margin: 0; }
+    .image img { display: block; width: 100%; max-height: 78mm; object-fit: contain; border: 1px solid var(--print-rule-color); }
+    .image figcaption { margin-top: 1mm; font-size: var(--print-footer-size); }
     .footer { display: flex; align-items: center; gap: var(--print-inline-gap); margin-top: var(--print-footer-gap); padding-top: var(--print-footer-padding); border-top: var(--print-border-width) solid var(--print-rule-color); font-size: var(--print-footer-size); line-height: 1.1; }
     .footer-link { overflow-wrap: anywhere; }
     .footer-qr { flex: 0 0 auto; width: var(--print-qr-size); height: var(--print-qr-size); fill: var(--print-ink-color); }
@@ -96,6 +114,7 @@ function printableHtml(title: string, text: string, pageLink: string): string {
 </head>
 <body>
   <h1>${escapeHtml(title)}</h1>
+  ${imageGrid}
   <div class="document">${paragraphs}</div>
   <footer class="footer">
     <span>MiniMed</span>
@@ -108,21 +127,12 @@ function printableHtml(title: string, text: string, pageLink: string): string {
 </html>`;
 }
 
-export function printText(title: string, text: string): boolean {
-  const html = printableHtml(title, text, MINIMED_WEB_APP_URL);
-  if (printHtmlInNativeShell(html, title)) return true;
-  const popup = window.open('', '_blank');
-  if (!popup) return false;
-  popup.opener = null;
-  popup.document.open();
-  popup.document.write(html);
-  popup.document.close();
-  popup.onafterprint = () => popup.close();
-  window.setTimeout(() => {
-    popup.focus();
-    popup.print();
-  }, 50);
-  return true;
+export function printText(
+  title: string,
+  text: string,
+  images: readonly AssessmentImage[] = [],
+): boolean {
+  return PrintManager.html(printableHtml(title, text, MINIMED_WEB_APP_URL, images), title);
 }
 
 export function printBlankAssessment(definition: AssessmentDefinition): boolean {
@@ -135,6 +145,10 @@ export function printBlankAssessment(definition: AssessmentDefinition): boolean 
         ? text.slice(prefix.length)
         : removeLeadingTitle(definition.title, text),
     ),
+    [
+      ...(definition.images ?? []),
+      ...definition.questions.flatMap((question) => question.images ?? []),
+    ],
   );
 }
 

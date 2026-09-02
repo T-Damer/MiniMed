@@ -1,3 +1,4 @@
+import { isHttpUrl } from '@localmed/contracts';
 import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -10,6 +11,9 @@ export function AssessmentDefinitionNotice(props: {
   readonly onOpenChange: (open: boolean) => void;
   readonly showTrigger?: boolean;
 }): JSX.Element {
+  const licenseSourceUrl = props.definition.license.sourceUrl;
+  const safeLicenseSourceUrl =
+    licenseSourceUrl && isHttpUrl(licenseSourceUrl) ? licenseSourceUrl : undefined;
   return (
     <>
       <Show when={props.showTrigger !== false}>
@@ -61,7 +65,7 @@ export function AssessmentDefinitionNotice(props: {
           <p class="assessment-methodology-body__text">
             <strong>Источник и статус:</strong> {props.definition.license.notice}
           </p>
-          <Show when={props.definition.license.sourceUrl}>
+          <Show when={safeLicenseSourceUrl}>
             {(sourceUrl) => (
               <a
                 class="assessment-methodology-body__link"
@@ -78,23 +82,26 @@ export function AssessmentDefinitionNotice(props: {
               <strong>Связанные источники</strong>
               <ul class="assessment-methodology-body__source-list">
                 <For each={props.definition.sourceLinks}>
-                  {(source) => (
-                    <li>
-                      <span>{source.title}</span>
-                      <Show when={source.url}>
-                        {(url) => (
-                          <a
-                            class="assessment-methodology-body__link"
-                            href={url()}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Открыть источник
-                          </a>
-                        )}
-                      </Show>
-                    </li>
-                  )}
+                  {(source) => {
+                    const sourceUrl = source.url && isHttpUrl(source.url) ? source.url : undefined;
+                    return (
+                      <li>
+                        <span>{source.title}</span>
+                        <Show when={sourceUrl}>
+                          {(url) => (
+                            <a
+                              class="assessment-methodology-body__link"
+                              href={url()}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Открыть источник
+                            </a>
+                          )}
+                        </Show>
+                      </li>
+                    );
+                  }}
                 </For>
               </ul>
             </div>

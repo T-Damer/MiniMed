@@ -159,6 +159,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'decode-named-character-reference': require.resolve('decode-named-character-reference'),
       '@minimed-rars-wasm': fileURLToPath(
         new URL('../../node_modules/@bitplane/rars/browser/wasm/rars_wasm.js', import.meta.url),
       ),

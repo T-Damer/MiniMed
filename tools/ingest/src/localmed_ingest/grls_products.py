@@ -3,17 +3,29 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import cast
 
 import yaml
 from pydantic import Field
 
+from .esklp_grls_crosswalk import (
+    EsklpGrlsCrosswalk,
+    EsklpPresentation,
+    EsklpRegistration,
+    build_esklp_grls_crosswalk,
+)
+from .instruction_card_drafts import (
+    instruction_body_fact_segments,
+    instruction_dosage_drafts,
+    instruction_fact_type_for_heading,
+)
 from .knowledge import (
     KnowledgeDocumentLink,
     KnowledgeEntity,
     KnowledgeEvidence,
+    KnowledgeFact,
     KnowledgeName,
     KnowledgeRelation,
     KnowledgeReviewTask,
@@ -28,6 +40,11 @@ from .source_registry import load_source_registry
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _ENTRY_SPLIT_PATTERN = re.compile(r";\s+(?=[^/;]{1,160},\s*\d)")
+_STRENGTH_FIELD_PATTERN = re.compile(
+    r"\d+(?:[.,]\d+)?\s*(?:мкг|мг|кг|г|ме|ед|%)",
+    re.IGNORECASE,
+)
+_TRADEMARK_PATTERN = re.compile(r"[®™℠]")
 _ROUTES = (
     ("для приема внутрь", "oral"),
     ("внутрив", "parenteral"),
@@ -65,6 +82,10 @@ def _clean(value: object | None) -> str | None:
 
 def _normalized(value: str) -> str:
     return _SPACE_PATTERN.sub(" ", value.casefold().replace("ё", "е")).strip()
+
+
+def _trade_name_key(value: str) -> str:
+    return _normalized(_TRADEMARK_PATTERN.sub("", value))
 
 
 def _stable_id(prefix: str, value: str) -> str:
@@ -108,15 +129,23 @@ def parse_grls_presentations(value: object | None) -> list[GrlsPresentation]:
     grouped: dict[tuple[str, str], GrlsPresentation] = {}
     seen_packages: dict[tuple[str, str], set[str]] = {}
     for entry in entries:
-        parts = [part.strip() for part in entry.split(",", 2)]
-        if len(parts) < 2 or not any(character.isdigit() for character in parts[1]):
+        parts = [part.strip() for part in entry.split(",")]
+        strength_index = next(
+            (
+                index
+                for index, part in enumerate(parts[1:], start=1)
+                if _STRENGTH_FIELD_PATTERN.search(part)
+            ),
+            None,
+        )
+        if strength_index is None:
             continue
-        dosage_form = _clean(parts[0])
-        raw_strength = _clean(parts[1])
+        dosage_form = _clean(", ".join(parts[:strength_index]))
+        raw_strength = _clean(parts[strength_index])
         if dosage_form is None or raw_strength is None:
             continue
         strength = _display_strength(raw_strength)
-        package_text = _clean(parts[2] if len(parts) > 2 else entry) or entry
+        package_text = _clean(", ".join(parts[strength_index + 1 :])) or entry
         status = _prescription_status(package_text)
         description = re.sub(
             r"\s+-\s+(?:По рецепту|Без рецепта)\s*$",
@@ -210,6 +239,10 @@ def _write_registry_card(
     workspace: Path,
     record: dict[str, object],
     presentations: list[GrlsPresentation],
+    *,
+    instruction_document_id: str,
+    esklp_crosswalk_status: str | None,
+    esklp_metadata: dict[str, object] | None,
 ) -> Path:
     registration_number = cast(str, record["registrationNumber"])
     trade_name = cast(str, record["tradeName"])
@@ -217,6 +250,45 @@ def _write_registry_card(
     status = _clean(record.get("status")) or "не указан"
     source_edition = _clean(record.get("sourceEdition")) or "unknown"
     groups = _split_values(record.get("pharmacotherapeuticGroup"))
+    document_metadata: dict[str, object] = {
+        "authorityTier": "official-registry",
+        "officialSourceUrl": record.get("officialUrl"),
+        "registrationNumber": registration_number,
+        "tradeName": trade_name,
+        "inn": inn,
+        "registrationStatus": status,
+        "prescriptionStatus": _clean(record.get("prescriptionStatus")),
+        "holder": _clean(record.get("holder")),
+        "manufacturer": _clean(record.get("manufacturer")),
+        "registrationDate": _clean(record.get("registrationDate")),
+        "pharmacotherapeuticGroups": groups,
+        "presentations": [
+            presentation.model_dump(by_alias=True, mode="json") for presentation in presentations
+        ],
+        "instructionDocumentId": instruction_document_id,
+        "sourceEdition": source_edition,
+        "sourceWorkbook": record.get("sourceWorkbook"),
+        "contentMode": "registry-normalized",
+        "rights": {
+            "licenseId": "grls-redistribution-review-required",
+            "allowsDerivativeProcessing": False,
+            "allowsRedistribution": False,
+        },
+    }
+    if esklp_crosswalk_status is not None:
+        document_metadata["esklpCrosswalkStatus"] = esklp_crosswalk_status
+    if esklp_metadata is not None:
+        document_metadata.update(esklp_metadata)
+        for source_key, target_key in (
+            ("esklpMnnDocumentId", "mnnDocumentId"),
+            ("esklpStandardizedInn", "standardizedInn"),
+            ("esklpSmnnCode", "smnnCode"),
+            ("esklpSmnnCodes", "smnnCodes"),
+            ("esklpKlpCodes", "klpCodes"),
+        ):
+            if source_key in esklp_metadata:
+                document_metadata[target_key] = esklp_metadata[source_key]
+
     metadata = {
         "id": _registry_document_id(registration_number),
         "title": f"{trade_name}: регистрационная карточка ГРЛС",
@@ -227,31 +299,7 @@ def _write_registry_card(
         "source_file": record.get("officialUrl"),
         "source_checksum": _sha256_json(record),
         "synthetic_fixture": False,
-        "metadata": {
-            "authorityTier": "official-registry",
-            "officialSourceUrl": record.get("officialUrl"),
-            "registrationNumber": registration_number,
-            "tradeName": trade_name,
-            "inn": inn,
-            "registrationStatus": status,
-            "prescriptionStatus": _clean(record.get("prescriptionStatus")),
-            "holder": _clean(record.get("holder")),
-            "manufacturer": _clean(record.get("manufacturer")),
-            "registrationDate": _clean(record.get("registrationDate")),
-            "pharmacotherapeuticGroups": groups,
-            "presentations": [
-                presentation.model_dump(by_alias=True, mode="json")
-                for presentation in presentations
-            ],
-            "sourceEdition": source_edition,
-            "sourceWorkbook": record.get("sourceWorkbook"),
-            "contentMode": "registry-normalized",
-            "rights": {
-                "licenseId": "grls-redistribution-review-required",
-                "allowsDerivativeProcessing": False,
-                "allowsRedistribution": False,
-            },
-        },
+        "metadata": document_metadata,
     }
     groups_text = "; ".join(groups) if groups else "не указана"
     summary = (
@@ -339,22 +387,124 @@ def _evidence(
     document: PackDocument,
     chunk: PackChunk,
     registration_number: str,
+    *,
+    quote: str | None = None,
+    start_offset: int | None = None,
+    end_offset: int | None = None,
 ) -> list[KnowledgeEvidence]:
     section = next(
         section
         for section in document.sections
         if any(item.id == chunk.id for item in section.chunks)
     )
+    source_locator: dict[str, object] = {
+        "registrationNumber": registration_number,
+        "anchor": chunk.anchor,
+        "pageStart": chunk.page_start,
+        "pageEnd": chunk.page_end,
+        "sourceSpans": chunk.metadata.get("sourceSpans", []),
+    }
+    if start_offset is not None:
+        source_locator["startOffset"] = start_offset
+    if end_offset is not None:
+        source_locator["endOffset"] = end_offset
     return [
         KnowledgeEvidence(
             document_id=document.id,
             document_version_id=document.version.id,
             section_id=section.id,
             chunk_id=chunk.id,
-            quote=chunk.original_text,
-            source_locator={"registrationNumber": registration_number},
+            quote=quote or chunk.original_text,
+            source_locator=source_locator,
         )
     ]
+
+
+def _instruction_facts(
+    document: PackDocument,
+    registration_id: str,
+    registration_number: str,
+) -> list[KnowledgeFact]:
+    extraction = document.metadata.get("extraction")
+    requires_review = isinstance(extraction, dict) and extraction.get("requiresReview") is True
+    facts: list[KnowledgeFact] = []
+    for section in document.sections:
+        fact_type = instruction_fact_type_for_heading(section.title)
+        for chunk in section.chunks:
+            segments = (
+                [(fact_type, 0, len(chunk.original_text), chunk.original_text)]
+                if fact_type is not None
+                else instruction_body_fact_segments(chunk.original_text)
+            )
+            for segment_type, start, end, segment_quote in segments:
+                match_kind = (
+                    "exact-section-heading" if fact_type is not None else "body-heading-segment"
+                )
+                fact_id = _stable_id(
+                    "fact.grls",
+                    f"{registration_id}|{segment_type}|{chunk.id}|{start}",
+                )
+                facts.append(
+                    KnowledgeFact(
+                        id=fact_id,
+                        entity_id=registration_id,
+                        fact_type=segment_type,
+                        text=segment_quote,
+                        authority_tier="official-label",
+                        review_status="proposed",
+                        evidence=_evidence(
+                            document,
+                            chunk,
+                            registration_number,
+                            quote=segment_quote,
+                            start_offset=start,
+                            end_offset=end,
+                        ),
+                        metadata={
+                            "projectionKind": "exact-instruction-section",
+                            "matchKind": match_kind,
+                            "sectionTitle": section.title,
+                            "sourceExtractionRequiresReview": requires_review,
+                        },
+                    )
+                )
+                if segment_type != "administration":
+                    continue
+                for dosage in instruction_dosage_drafts(segment_quote):
+                    dosage_start = start + dosage.start
+                    dosage_end = start + dosage.end
+                    facts.append(
+                        KnowledgeFact(
+                            id=_stable_id(
+                                "fact.grls",
+                                f"{registration_id}|dosage|{chunk.id}|{dosage_start}",
+                            ),
+                            entity_id=registration_id,
+                            fact_type="dosage",
+                            text=dosage.quote,
+                            structured=dosage.structured,
+                            population=dosage.population,
+                            approval_status="registered",
+                            authority_tier="official-label",
+                            review_status="proposed",
+                            evidence=_evidence(
+                                document,
+                                chunk,
+                                registration_number,
+                                quote=dosage.quote,
+                                start_offset=dosage_start,
+                                end_offset=dosage_end,
+                            ),
+                            metadata={
+                                "projectionKind": "exact-instruction-dosage-paragraph",
+                                "extractionRule": "instruction-dosage-v1",
+                                "parentAdministrationFactId": fact_id,
+                                "sectionTitle": section.title,
+                                "sourceExtractionRequiresReview": requires_review,
+                            },
+                        )
+                    )
+    return facts
 
 
 def _relation(
@@ -398,6 +548,7 @@ def _add_document_link(
     entity_id: str,
     document: PackDocument,
     link_type: str,
+    metadata: dict[str, object] | None = None,
 ) -> None:
     link_id = _stable_id("link.grls", f"{entity_id}|{document.version.id}|{link_type}")
     links[link_id] = KnowledgeDocumentLink(
@@ -407,7 +558,93 @@ def _add_document_link(
         document_version_id=document.version.id,
         link_type=link_type,
         review_status="proposed",
+        metadata=metadata or {},
     )
+
+
+def _crosswalk_presentations(
+    entry: EsklpRegistration,
+    trade_name: str,
+    presentation: GrlsPresentation | None = None,
+) -> tuple[list[EsklpPresentation], str]:
+    trade_key = _trade_name_key(trade_name)
+    candidates = [
+        item
+        for item in entry.presentations
+        if item.trade_name is not None and _trade_name_key(item.trade_name) == trade_key
+    ]
+    if not candidates:
+        candidates = [item for item in entry.presentations if item.trade_name is None]
+    if not candidates:
+        return [], "registration"
+    if presentation is None:
+        return candidates, "registration-and-trade"
+
+    exact = [
+        item
+        for item in candidates
+        if (
+            presentation.dosage_form is None
+            or (
+                item.dosage_form is not None
+                and _normalized(item.dosage_form) == _normalized(presentation.dosage_form)
+            )
+        )
+        and (
+            presentation.strength is None
+            or (
+                item.strength is not None
+                and _normalized(item.strength) == _normalized(presentation.strength)
+            )
+        )
+    ]
+    return (
+        exact or candidates
+    ), "exact-registration-trade-presentation" if exact else "registration-and-trade"
+
+
+def _crosswalk_metadata(
+    entry: EsklpRegistration,
+    trade_name: str,
+    presentation: GrlsPresentation | None = None,
+) -> dict[str, object]:
+    presentations, match_level = _crosswalk_presentations(entry, trade_name, presentation)
+    smnn_codes = sorted({item.smnn_code for item in presentations})
+    klp_codes = sorted({code for item in presentations for code in item.klp_codes})
+    metadata: dict[str, object] = {
+        "esklpMnnDocumentIds": entry.mnn_document_ids,
+        "esklpStandardizedInns": entry.standardized_inns,
+        "esklpTradeNames": entry.trade_names,
+        "esklpRegistrationNumber": entry.registration_number,
+        "esklpSmnnCodes": smnn_codes,
+        "esklpKlpCodes": klp_codes,
+        "esklpPresentations": [
+            item.model_dump(by_alias=True, mode="json") for item in presentations
+        ],
+        "esklpMatch": match_level,
+    }
+    if entry.mnn_document_id is not None:
+        metadata["esklpMnnDocumentId"] = entry.mnn_document_id
+    if entry.standardized_inn is not None:
+        metadata["esklpStandardizedInn"] = entry.standardized_inn
+    if len(smnn_codes) == 1:
+        metadata["esklpSmnnCode"] = smnn_codes[0]
+    if len(klp_codes) == 1:
+        metadata["esklpKlpCode"] = klp_codes[0]
+    return metadata
+
+
+def _crosswalk_status_metadata(
+    crosswalk: EsklpGrlsCrosswalk,
+    registration_number: str,
+    trade_name: str,
+) -> tuple[EsklpRegistration | None, dict[str, object] | None]:
+    entry = crosswalk.resolve(registration_number, trade_name)
+    if entry is None:
+        return None, None
+    if entry.status != "matched":
+        return entry, None
+    return entry, _crosswalk_metadata(entry, trade_name)
 
 
 def _source_registration(source: RegistrySource) -> str:
@@ -424,19 +661,41 @@ def build_grls_product_workspace(
     output: Path,
     *,
     report_output: Path | None = None,
+    esklp_packs: Sequence[Path] | None = None,
 ) -> dict[str, object]:
     records, catalog_metadata = _load_catalog(catalog_path)
     registry = load_source_registry(registry_path)
+    crosswalk = build_esklp_grls_crosswalk(esklp_packs) if esklp_packs is not None else None
     workspace.mkdir(parents=True, exist_ok=True)
     selected: list[tuple[RegistrySource, dict[str, object], list[GrlsPresentation]]] = []
     cards: list[Path] = []
+    crosswalk_results: dict[str, tuple[EsklpRegistration | None, dict[str, object] | None]] = {}
     for source in registry.sources:
         registration_number = _source_registration(source)
         record = records.get(registration_number)
         if record is None:
             raise ValueError(f"GRLS catalog does not contain {registration_number}.")
         presentations = parse_grls_presentations(record.get("releaseForms"))
-        cards.append(_write_registry_card(workspace, record, presentations))
+        crosswalk_entry: EsklpRegistration | None = None
+        crosswalk_metadata: dict[str, object] | None = None
+        crosswalk_status: str | None = None
+        if crosswalk is not None:
+            trade_name = cast(str, record["tradeName"])
+            crosswalk_entry, crosswalk_metadata = _crosswalk_status_metadata(
+                crosswalk, registration_number, trade_name
+            )
+            crosswalk_status = "unmatched" if crosswalk_entry is None else crosswalk_entry.status
+            crosswalk_results[registration_number] = (crosswalk_entry, crosswalk_metadata)
+        cards.append(
+            _write_registry_card(
+                workspace,
+                record,
+                presentations,
+                instruction_document_id=source.id,
+                esklp_crosswalk_status=crosswalk_status,
+                esklp_metadata=crosswalk_metadata,
+            )
+        )
         selected.append((source, record, presentations))
 
     documents = load_workspace_documents(workspace)
@@ -447,9 +706,31 @@ def build_grls_product_workspace(
         documents, source_type="official_drug_instruction"
     )
     entities: dict[str, KnowledgeEntity] = {}
+    facts: dict[str, KnowledgeFact] = {}
     relations: dict[str, KnowledgeRelation] = {}
     document_links: dict[str, KnowledgeDocumentLink] = {}
     review_tasks: dict[str, KnowledgeReviewTask] = {}
+    crosswalk_counts = {"matched": 0, "ambiguous": 0, "unmatched": 0}
+    brand_inns: dict[str, set[str]] = {}
+    brand_mnn_document_ids: dict[str, set[str]] = {}
+    brand_standardized_inns: dict[str, set[str]] = {}
+
+    for source, record, _presentations in selected:
+        registration_number = _source_registration(source)
+        trade_name = cast(str, record["tradeName"])
+        brand_id = _stable_id("medication.brand", trade_name)
+        inn = _clean(record.get("inn"))
+        if inn and inn != "~":
+            brand_inns.setdefault(brand_id, set()).add(inn)
+        if crosswalk is None:
+            continue
+        crosswalk_entry = crosswalk_results[registration_number][0]
+        if crosswalk_entry is None or crosswalk_entry.status != "matched":
+            continue
+        brand_mnn_document_ids.setdefault(brand_id, set()).update(crosswalk_entry.mnn_document_ids)
+        brand_standardized_inns.setdefault(brand_id, set()).update(
+            crosswalk_entry.standardized_inns
+        )
 
     for source, record, presentations in selected:
         registration_number = _source_registration(source)
@@ -461,8 +742,19 @@ def build_grls_product_workspace(
         instruction_document = instruction_documents.get(registration_number)
         identity_chunk = _section_chunk(registry_document, "Регистрационная запись")
         identity_evidence = _evidence(registry_document, identity_chunk, registration_number)
+        crosswalk_entry: EsklpRegistration | None = None
+        crosswalk_metadata: dict[str, object] | None = None
+        if crosswalk is not None:
+            crosswalk_entry, crosswalk_metadata = crosswalk_results[registration_number]
+            status = "unmatched" if crosswalk_entry is None else crosswalk_entry.status
+            crosswalk_counts[status] += 1
 
         brand_id = _stable_id("medication.brand", trade_name)
+        brand_metadata: dict[str, object] = {}
+        if mnn_document_ids := sorted(brand_mnn_document_ids.get(brand_id, set())):
+            brand_metadata["esklpMnnDocumentIds"] = mnn_document_ids
+        if standardized_inns := sorted(brand_standardized_inns.get(brand_id, set())):
+            brand_metadata["esklpStandardizedInns"] = standardized_inns
         _add_entity(
             entities,
             KnowledgeEntity(
@@ -472,31 +764,47 @@ def build_grls_product_workspace(
                 names=[KnowledgeName(name=trade_name, name_type="trade-name", weight=1.1)],
                 medication=MedicationProfile(
                     concept_level="brand",
-                    inn=inn,
-                    metadata={"jurisdiction": "RU"},
+                    inn="; ".join(sorted(brand_inns.get(brand_id, set()))) or None,
+                    metadata={"jurisdiction": "RU", **brand_metadata},
                 ),
+                metadata=brand_metadata,
             ),
         )
         registration_id = _stable_id("medication.registration", registration_number)
+        registration_metadata: dict[str, object] = {
+            "holder": record.get("holder"),
+            "manufacturer": record.get("manufacturer"),
+            "registrationDate": record.get("registrationDate"),
+            "sourceEdition": record.get("sourceEdition"),
+        }
+        if crosswalk is not None:
+            registration_metadata["esklpCrosswalkStatus"] = (
+                "unmatched" if crosswalk_entry is None else crosswalk_entry.status
+            )
+            if crosswalk_entry is not None and crosswalk_entry.status == "ambiguous":
+                registration_metadata["esklpCrosswalkReasons"] = crosswalk_entry.ambiguity_reasons
+            elif crosswalk_metadata is not None:
+                registration_metadata.update(crosswalk_metadata)
+        registration_external_ids: dict[str, str] = {"ru-registration-number": registration_number}
+        if crosswalk_metadata is not None:
+            mnn_document_id = crosswalk_metadata.get("esklpMnnDocumentId")
+            if isinstance(mnn_document_id, str):
+                registration_external_ids["esklp-mnn-document-id"] = mnn_document_id
         _add_entity(
             entities,
             KnowledgeEntity(
                 id=registration_id,
                 entity_type="medication",
                 canonical_name=f"{trade_name} — {registration_number}",
-                external_ids={"ru-registration-number": registration_number},
+                external_ids=registration_external_ids,
                 medication=MedicationProfile(
                     concept_level="registration",
                     inn=inn,
                     registration_number=registration_number,
                     registration_status=_clean(record.get("status")),
-                    metadata={
-                        "holder": record.get("holder"),
-                        "manufacturer": record.get("manufacturer"),
-                        "registrationDate": record.get("registrationDate"),
-                        "sourceEdition": record.get("sourceEdition"),
-                    },
+                    metadata=registration_metadata,
                 ),
+                metadata=registration_metadata,
             ),
         )
         brand_registration = _relation(
@@ -511,7 +819,16 @@ def build_grls_product_workspace(
             entity_id=registration_id,
             document=registry_document,
             link_type="registration-record",
+            metadata=crosswalk_metadata,
         )
+        if crosswalk_metadata is not None:
+            _add_document_link(
+                document_links,
+                entity_id=brand_id,
+                document=registry_document,
+                link_type="brand-registration-record",
+                metadata=crosswalk_metadata,
+            )
 
         substance_ids: list[str] = []
         for substance in substances:
@@ -561,6 +878,17 @@ def build_grls_product_workspace(
                 metadata={"registrationNumber": registration_number},
             )
         for presentation in presentations:
+            presentation_crosswalk_metadata = (
+                _crosswalk_metadata(crosswalk_entry, trade_name, presentation)
+                if crosswalk_entry is not None and crosswalk_entry.status == "matched"
+                else {}
+            )
+            presentation_external_ids: dict[str, str] = {
+                "ru-registration-number": registration_number
+            }
+            mnn_document_id = presentation_crosswalk_metadata.get("esklpMnnDocumentId")
+            if isinstance(mnn_document_id, str):
+                presentation_external_ids["esklp-mnn-document-id"] = mnn_document_id
             presentation_id = _stable_id(
                 "medication.presentation",
                 (
@@ -581,7 +909,7 @@ def build_grls_product_workspace(
                             for substance in substances
                         ],
                     ],
-                    external_ids={"ru-registration-number": registration_number},
+                    external_ids=presentation_external_ids,
                     medication=MedicationProfile(
                         concept_level="clinical-drug",
                         inn=inn,
@@ -598,8 +926,10 @@ def build_grls_product_workspace(
                                 for item in presentation.packages
                             ],
                             "pharmacotherapeuticGroups": groups,
+                            **presentation_crosswalk_metadata,
                         },
                     ),
+                    metadata=presentation_crosswalk_metadata,
                 ),
             )
             presentation_chunk = _section_chunk(
@@ -635,7 +965,53 @@ def build_grls_product_workspace(
                         entity_id=entity_id,
                         document=instruction_document,
                         link_type=link_type,
+                        metadata=crosswalk_metadata,
                     )
+            if crosswalk_metadata is not None:
+                _add_document_link(
+                    document_links,
+                    entity_id=presentation_id,
+                    document=registry_document,
+                    link_type="presentation-registration-record",
+                    metadata=presentation_crosswalk_metadata,
+                )
+
+        if crosswalk is not None and (
+            crosswalk_entry is None or crosswalk_entry.status != "matched"
+        ):
+            status = "unmatched" if crosswalk_entry is None else "ambiguous"
+            reason = (
+                "Точное регистрационное соответствие ЕСКЛП не найдено."
+                if crosswalk_entry is None
+                else "Точное соответствие ЕСКЛП неоднозначно: "
+                + " ".join(crosswalk_entry.ambiguity_reasons)
+            )
+            task_id = _stable_id("review.grls", f"{registration_number}|esklp-crosswalk")
+            review_tasks[task_id] = KnowledgeReviewTask(
+                id=task_id,
+                task_type="missing-esklp-crosswalk"
+                if status == "unmatched"
+                else "ambiguous-esklp-crosswalk",
+                target_id=registration_id,
+                question=(
+                    f"{reason} Проверить registrationNumber {registration_number} "
+                    "между ГРЛС и ЕСКЛП вручную."
+                ),
+                missing_fields=[
+                    "esklp-mnn-document-id",
+                    "esklp-smnn-code",
+                    "esklp-klp-provenance",
+                ],
+                priority=92,
+                metadata={
+                    "registrationNumber": registration_number,
+                    "tradeName": trade_name,
+                    "status": status,
+                    "reasons": crosswalk_entry.ambiguity_reasons
+                    if crosswalk_entry is not None
+                    else [reason],
+                },
+            )
 
         if instruction_document is None:
             task_id = _stable_id("review.grls", f"{registration_number}|instruction")
@@ -649,6 +1025,12 @@ def build_grls_product_workspace(
                 metadata={"registrationNumber": registration_number},
             )
         else:
+            for fact in _instruction_facts(
+                instruction_document,
+                registration_id,
+                registration_number,
+            ):
+                facts[fact.id] = fact
             extraction = instruction_document.metadata.get("extraction")
             if isinstance(extraction, dict) and extraction.get("requiresReview") is True:
                 task_id = _stable_id("review.grls", f"{registration_number}|document-structure")
@@ -667,6 +1049,7 @@ def build_grls_product_workspace(
 
     knowledge = KnowledgeWorkspace(
         entities=sorted(entities.values(), key=lambda item: item.id),
+        facts=sorted(facts.values(), key=lambda item: item.id),
         relations=sorted(relations.values(), key=lambda item: item.id),
         document_links=sorted(document_links.values(), key=lambda item: item.id),
         review_tasks=sorted(review_tasks.values(), key=lambda item: item.id),
@@ -693,10 +1076,19 @@ def build_grls_product_workspace(
         "registryCards": len(cards),
         "presentations": sum(len(item[2]) for item in selected),
         "entities": len(knowledge.entities),
+        "facts": len(knowledge.facts),
         "relations": len(knowledge.relations),
         "documentLinks": len(knowledge.document_links),
         "reviewTasks": len(knowledge.review_tasks),
     }
+    if crosswalk is not None:
+        report["esklpCrosswalk"] = {
+            "sourcePacks": crosswalk.source_packs,
+            "indexedRegistrations": len(crosswalk.registrations),
+            "matchedRegistrations": crosswalk_counts["matched"],
+            "ambiguousRegistrations": crosswalk_counts["ambiguous"],
+            "unmatchedRegistrations": crosswalk_counts["unmatched"],
+        }
     if report_output is not None:
         report_output.parent.mkdir(parents=True, exist_ok=True)
         report_output.write_text(

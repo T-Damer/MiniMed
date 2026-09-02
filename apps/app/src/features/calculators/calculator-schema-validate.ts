@@ -115,5 +115,61 @@ export function validateCalculatorSchema(candidate: unknown): CalculatorSchemaVa
     }
   }
 
+  for (const [index, rule] of schema.evaluation.rules.entries()) {
+    let node: ExpressionNode;
+    try {
+      node = parseCalculatorExpression(rule.when);
+    } catch (error) {
+      const message = error instanceof CalculatorExpressionError ? error.message : String(error);
+      errors.push(`evaluation rule ${index + 1}: ${message}`);
+      continue;
+    }
+    const referenced = new Set<string>();
+    referencedVariables(node, referenced);
+    for (const name of referenced) {
+      if (!knownIds.has(name))
+        errors.push(`evaluation rule ${index + 1}: references unknown variable "${name}".`);
+    }
+  }
+
+  const inputIds = new Set(schema.inputs.map((input) => input.id));
+  const stepIds = new Set(schema.steps.map((step) => step.id));
+  const outputIds = new Set(schema.steps.filter((step) => step.isOutput).map((step) => step.id));
+  for (const [index, mapping] of schema.observationMappings.entries()) {
+    const sourceId = mapping.inputId ?? mapping.stepId ?? mapping.outputId;
+    if (mapping.inputId && !inputIds.has(mapping.inputId)) {
+      errors.push(`observationMappings.${index}: unknown input "${mapping.inputId}".`);
+    } else if (
+      mapping.inputId &&
+      schema.inputs.find((input) => input.id === mapping.inputId)?.kind !== 'number'
+    ) {
+      errors.push(`observationMappings.${index}: input "${mapping.inputId}" is not numeric.`);
+    }
+    if (mapping.stepId && !stepIds.has(mapping.stepId)) {
+      errors.push(`observationMappings.${index}: unknown step "${mapping.stepId}".`);
+    } else if (
+      mapping.stepId &&
+      schema.steps.find((step) => step.id === mapping.stepId)?.valueKind !== 'number'
+    ) {
+      errors.push(`observationMappings.${index}: step "${mapping.stepId}" is not numeric.`);
+    }
+    if (mapping.outputId && !outputIds.has(mapping.outputId)) {
+      errors.push(
+        `observationMappings.${index}: output "${mapping.outputId}" is not a final output.`,
+      );
+    } else if (
+      mapping.outputId &&
+      schema.steps.find((step) => step.id === mapping.outputId)?.valueKind !== 'number'
+    ) {
+      errors.push(`observationMappings.${index}: output "${mapping.outputId}" is not numeric.`);
+    }
+    if (mapping.scaleId) {
+      errors.push(`observationMappings.${index}: scaleId is not valid for calculator schemas.`);
+    }
+    if (!sourceId && !mapping.scaleId) {
+      errors.push(`observationMappings.${index}: missing source reference.`);
+    }
+  }
+
   return errors.length === 0 ? { ok: true, schema, errors: [] } : { ok: false, errors };
 }

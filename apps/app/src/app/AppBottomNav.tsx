@@ -27,6 +27,7 @@ export function AppBottomNav(props: {
   readonly modelController: LocalModelController;
   readonly bubbleStyle: () => string;
   readonly bindNav: (element: HTMLElement) => void;
+  readonly onPrefetch: (next: RootView) => void;
   readonly onPointerDown: (event: PointerEvent) => void;
   readonly onPointerMove: (event: PointerEvent) => void;
   readonly onPointerUp: (event: PointerEvent) => void;
@@ -78,6 +79,8 @@ export function AppBottomNav(props: {
               aria-label={label()}
               aria-current={props.view() === item.id ? 'page' : undefined}
               title={label()}
+              onPointerEnter={() => props.onPrefetch(item.id)}
+              onPointerDown={() => props.onPrefetch(item.id)}
               onClick={() => props.onItemClick(item.id)}
             >
               <AppGlyph

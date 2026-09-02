@@ -69,6 +69,8 @@ Forbidden without a dedicated ADR:
 - Overview-card counters must name the entity they summarize: section/module counts are never
   labelled as documents, and concrete document counts come from the catalog manifest rather than
   incidental documents already mounted in the search core.
+- When visible copy puts a number before a countable word, explicitly decide whether the word needs
+  pluralization; Russian counters must use the correct one/few/many form rather than a fixed noun.
 - Update `docs/CURRENT_STATE.md` when a change affects behavior, corpus coverage, trust boundaries,
   benchmark composition, or ordered next tasks.
 

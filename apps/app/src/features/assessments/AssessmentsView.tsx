@@ -7,7 +7,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-
+import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
 import { AssessmentMissingPage } from '@/features/assessments/AssessmentMissingPage';
@@ -50,11 +50,17 @@ import {
   resumePath,
   sectionPath,
   specialtyPath,
+  userQuestionnaireEditPath,
+  userQuestionnaireHomePath,
+  userQuestionnaireNewPath,
+  userQuestionnairePath,
+  userQuestionnaireResultPath,
 } from '@/features/assessments/assessment-routing';
 import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import {
@@ -65,11 +71,25 @@ import {
   removeAssessmentRecord,
 } from '@/state/assessment-results';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
+import { shareSystemFile } from '@/state/native-share';
 import {
   loadPatientNotes,
   PATIENT_NOTES_EVENT,
   type PatientNotesSnapshot,
 } from '@/state/patient-notes';
+import { acknowledgePatientVaultUiCleared, PATIENT_VAULT_LOCK_EVENT } from '@/state/patient-vault';
+import { USER_LIBRARY_EVENT } from '@/state/user-library';
+import {
+  createUserQuestionnaire,
+  ensureUserQuestionnaireSample,
+  exportUserQuestionnaire,
+  importUserQuestionnaire,
+  listUserQuestionnaires,
+  loadUserQuestionnaire,
+  type StoredUserQuestionnaire,
+  userQuestionnaireReadinessError,
+  userQuestionnaireToAssessmentDefinition,
+} from '@/state/user-questionnaires';
 
 function filterAssessments(
   query: string,
@@ -91,10 +111,11 @@ function filterAssessments(
   });
 }
 
-export function AssessmentsView(): JSX.Element {
+export function AssessmentsView(props: { readonly active: boolean }): JSX.Element {
   const [route, setRoute] = createSignal<AssessmentRoute>(readAssessmentRoute());
   const [query, setQuery] = createSignal('');
   const [records, setRecords] = createSignal<readonly AssessmentRecord[]>(loadAssessmentRecords());
+  const [transientRecord, setTransientRecord] = createSignal<AssessmentRecord>();
   const [notes, setNotes] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [installation, setInstallation] = createSignal<AssessmentInstallationState>(
     loadAssessmentInstallationState(getAssessmentCatalog()),
@@ -103,6 +124,13 @@ export function AssessmentsView(): JSX.Element {
   const [loadedDefinition, setLoadedDefinition] = createSignal<AssessmentDefinition>();
   const [definitionLoading, setDefinitionLoading] = createSignal(false);
   const [definitionError, setDefinitionError] = createSignal('');
+  const [userQuestionnaires, setUserQuestionnaires] = createSignal<
+    readonly StoredUserQuestionnaire[]
+  >([]);
+  const [loadedUserQuestionnaire, setLoadedUserQuestionnaire] =
+    createSignal<StoredUserQuestionnaire>();
+  const [userQuestionnaireLoading, setUserQuestionnaireLoading] = createSignal(false);
+  const [userQuestionnaireError, setUserQuestionnaireError] = createSignal('');
   const [message, setMessage] = createSignal('');
 
   createEffect(() => {
@@ -116,11 +144,22 @@ export function AssessmentsView(): JSX.Element {
     readonly title: string;
   } | null>(null);
   let definitionRequest = 0;
+  let userQuestionnaireRequest = 0;
   let unsubscribeToolTasks: (() => void) | undefined;
   let downloadedToolsRefresh: Promise<void> | undefined;
 
   const refreshRecords = (): void => {
     setRecords(loadAssessmentRecords());
+  };
+  const refreshUserQuestionnaires = (): void => {
+    void ensureUserQuestionnaireSample()
+      .then(() => listUserQuestionnaires())
+      .then(setUserQuestionnaires)
+      .catch((cause: unknown) => {
+        setMessage(
+          cause instanceof Error ? cause.message : 'Не удалось прочитать локальные опросники.',
+        );
+      });
   };
   const refreshNotes = (): void => {
     setNotes(loadPatientNotes());
@@ -165,34 +204,49 @@ export function AssessmentsView(): JSX.Element {
     if (!event.key || event.key.startsWith('minimed.assessment-packs.')) refreshPacks();
     if (event.key === ASSESSMENT_RESULTS_KEY) refreshRecords();
   };
+  const clearProtectedResult = (): void => {
+    if (transientRecord()?.patientId) {
+      setTransientRecord(undefined);
+      acknowledgePatientVaultUiCleared();
+    }
+  };
 
   onMount(() => {
     refreshRecords();
     refreshNotes();
     refreshPacks();
+    refreshUserQuestionnaires();
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('storage', handleStorage);
     window.addEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
     window.addEventListener(PATIENT_NOTES_EVENT, refreshNotes);
     window.addEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
+    window.addEventListener(USER_LIBRARY_EVENT, refreshUserQuestionnaires);
+    window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult);
     unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
       if (task.state === 'completed') void refreshDownloadedTools();
     });
-    void refreshDownloadedTools().catch((cause: unknown) => {
-      setMessage(
-        cause instanceof Error ? cause.message : 'Не удалось прочитать скачанные инструменты.',
-      );
+    const initialToolsFrame = requestAnimationFrame(() => {
+      void refreshDownloadedTools().catch((cause: unknown) => {
+        setMessage(
+          cause instanceof Error ? cause.message : 'Не удалось прочитать скачанные инструменты.',
+        );
+      });
     });
+    onCleanup(() => cancelAnimationFrame(initialToolsFrame));
   });
 
   onCleanup(() => {
     definitionRequest += 1;
+    userQuestionnaireRequest += 1;
     unsubscribeToolTasks?.();
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('storage', handleStorage);
     window.removeEventListener(ASSESSMENT_RESULTS_EVENT, refreshRecords);
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshNotes);
     window.removeEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
+    window.removeEventListener(USER_LIBRARY_EVENT, refreshUserQuestionnaires);
+    window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult);
   });
 
   const catalogEntry = createMemo(() => {
@@ -204,9 +258,15 @@ export function AssessmentsView(): JSX.Element {
   const record = createMemo(() => {
     const current = route();
     if (current.kind !== 'result') return undefined;
-    return records().find(
-      (candidate) =>
-        candidate.id === current.recordId && candidate.assessmentId === catalogEntry()?.id,
+    return (
+      records().find(
+        (candidate) =>
+          candidate.id === current.recordId && candidate.assessmentId === catalogEntry()?.id,
+      ) ??
+      (transientRecord()?.id === current.recordId &&
+      transientRecord()?.assessmentId === catalogEntry()?.id
+        ? transientRecord()
+        : undefined)
     );
   });
   const draftRecord = createMemo(() => {
@@ -221,6 +281,56 @@ export function AssessmentsView(): JSX.Element {
       return candidate?.kind === 'incomplete' ? candidate : undefined;
     }
     return latestIncompleteAssessmentRecord(records(), assessmentId);
+  });
+  const userQuestionnaireFileId = createMemo(() => {
+    const current = route();
+    switch (current.kind) {
+      case 'user-editor':
+        return current.fileId;
+      case 'user-assessment':
+      case 'user-result':
+        return current.fileId;
+      default:
+        return undefined;
+    }
+  });
+  const userDefinition = createMemo(() => {
+    const stored = loadedUserQuestionnaire();
+    if (!stored || stored.file.id !== userQuestionnaireFileId()) return undefined;
+    return userQuestionnaireToAssessmentDefinition(stored);
+  });
+  const userReadinessError = createMemo(() => {
+    const stored = loadedUserQuestionnaire();
+    return stored && stored.file.id === userQuestionnaireFileId()
+      ? userQuestionnaireReadinessError(stored.questionnaire)
+      : null;
+  });
+  const userRecord = createMemo(() => {
+    const current = route();
+    const definition = userDefinition();
+    if (current.kind !== 'user-result' || !definition) return undefined;
+    return (
+      records().find(
+        (candidate) =>
+          candidate.id === current.recordId && candidate.assessmentId === definition.id,
+      ) ??
+      (transientRecord()?.id === current.recordId &&
+      transientRecord()?.assessmentId === definition.id
+        ? transientRecord()
+        : undefined)
+    );
+  });
+  const userDraftRecord = createMemo(() => {
+    const current = route();
+    const definition = userDefinition();
+    if (current.kind !== 'user-assessment' || !definition) return undefined;
+    if (current.recordId) {
+      const candidate = records().find(
+        (entry) => entry.id === current.recordId && entry.assessmentId === definition.id,
+      );
+      return candidate?.kind === 'incomplete' ? candidate : undefined;
+    }
+    return latestIncompleteAssessmentRecord(records(), definition.id);
   });
 
   createEffect(() => {
@@ -247,6 +357,50 @@ export function AssessmentsView(): JSX.Element {
       })
       .finally(() => {
         if (request === definitionRequest) setDefinitionLoading(false);
+      });
+  });
+
+  createEffect(() => {
+    const current = route();
+    const request = ++userQuestionnaireRequest;
+    setLoadedUserQuestionnaire(undefined);
+    setUserQuestionnaireError('');
+    setUserQuestionnaireLoading(false);
+    if (current.kind === 'user-editor' && !current.fileId) {
+      setUserQuestionnaireLoading(true);
+      void createUserQuestionnaire()
+        .then((stored) => {
+          if (request !== userQuestionnaireRequest) return;
+          setUserQuestionnaires((items) => [stored, ...items]);
+          window.location.hash = userQuestionnaireEditPath(stored.file.id);
+        })
+        .catch((cause: unknown) => {
+          if (request !== userQuestionnaireRequest) return;
+          setUserQuestionnaireError(
+            cause instanceof Error ? cause.message : 'Не удалось создать опросник.',
+          );
+        })
+        .finally(() => {
+          if (request === userQuestionnaireRequest) setUserQuestionnaireLoading(false);
+        });
+      return;
+    }
+    const fileId = userQuestionnaireFileId();
+    if (!fileId) return;
+    setUserQuestionnaireLoading(true);
+    void loadUserQuestionnaire(fileId)
+      .then((stored) => {
+        if (request !== userQuestionnaireRequest) return;
+        setLoadedUserQuestionnaire(stored);
+      })
+      .catch((cause: unknown) => {
+        if (request !== userQuestionnaireRequest) return;
+        setUserQuestionnaireError(
+          cause instanceof Error ? cause.message : 'Не удалось открыть опросник.',
+        );
+      })
+      .finally(() => {
+        if (request === userQuestionnaireRequest) setUserQuestionnaireLoading(false);
       });
   });
 
@@ -353,19 +507,56 @@ export function AssessmentsView(): JSX.Element {
     if (pending.kind === 'section') removeSection(pending.id as AssessmentSectionId);
     if (pending.kind === 'result') {
       removeAssessmentRecord(pending.id);
+      if (transientRecord()?.id === pending.id) setTransientRecord(undefined);
       refreshRecords();
-      navigate('#/assessments');
+      const current = route();
+      navigate(
+        current.kind === 'user-result' ? userQuestionnairePath(current.fileId) : '#/assessments',
+      );
     }
   };
   const printDefinition = (id: string): void => {
     setMessage('Подготавливаем бланк…');
     void loadAssessmentDefinition(id)
       .then((definition) => {
-        printBlankAssessment(definition);
-        setMessage('Бланк подготовлен к печати.');
+        setMessage(
+          printBlankAssessment(definition)
+            ? 'Бланк подготовлен к печати.'
+            : 'Не удалось открыть окно печати.',
+        );
       })
       .catch((cause: unknown) => {
         setMessage(cause instanceof Error ? cause.message : 'Не удалось подготовить бланк.');
+      });
+  };
+  const exportUserQuestionnaireFile = (fileId: string): void => {
+    void exportUserQuestionnaire(fileId)
+      .then((file) =>
+        shareSystemFile({
+          title: file.name.replace(/\.minimed-questionnaire$/u, ''),
+          fileName: file.name,
+          mimeType: file.type,
+          blob: file,
+        }),
+      )
+      .then((result) => {
+        if (result === 'cancelled') return;
+        setMessage(result === 'shared' ? 'Опросник передан.' : 'Опросник экспортирован в файл.');
+      })
+      .catch((cause: unknown) => {
+        setMessage(cause instanceof Error ? cause.message : 'Не удалось экспортировать опросник.');
+      });
+  };
+  const importUserQuestionnaireFile = (file: File): void => {
+    void importUserQuestionnaire(file)
+      .then((stored) => {
+        setUserQuestionnaires((items) => [stored, ...items]);
+        setLoadedUserQuestionnaire(stored);
+        setMessage('Опросник импортирован в «Мои файлы».');
+        navigate(userQuestionnaireEditPath(stored.file.id));
+      })
+      .catch((cause: unknown) => {
+        setMessage(cause instanceof Error ? cause.message : 'Не удалось импортировать опросник.');
       });
   };
 
@@ -387,15 +578,24 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
-      <Show when={route().kind === 'index'}>
+      <Show when={route().kind === 'index' || route().kind === 'user-index'}>
         <AssessmentSpecialtyIndexPage
+          mineOnly={route().kind === 'user-index'}
           definitions={assessmentCatalog()}
           matches={query().trim() ? filterAssessments(query(), assessmentCatalog()) : []}
           installation={installation()}
           query={query()}
           recentRecords={records().slice(0, 8)}
+          userQuestionnaires={userQuestionnaires()}
           onQuery={setQuery}
+          onBack={() => navigate('#/assessments')}
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
+          onOpenUserQuestionnaires={() => navigate(userQuestionnaireHomePath())}
+          onCreateUserQuestionnaire={() => navigate(userQuestionnaireNewPath())}
+          onOpenUserQuestionnaire={(fileId) => navigate(userQuestionnairePath(fileId))}
+          onEditUserQuestionnaire={(fileId) => navigate(userQuestionnaireEditPath(fileId))}
+          onExportUserQuestionnaire={exportUserQuestionnaireFile}
+          onImportUserQuestionnaire={importUserQuestionnaireFile}
           onOpenRecord={(selected, selectedRecord) =>
             navigate(
               selectedRecord.kind === 'incomplete'
@@ -485,6 +685,127 @@ export function AssessmentsView(): JSX.Element {
         )}
       </Show>
 
+      <Show when={userQuestionnaireLoading()}>
+        <section class="assessment-pack-required paper-card" aria-live="polite">
+          <h1 class="assessment-pack-required__title">Открываем опросник</h1>
+          <p class="assessment-pack-required__text">
+            Читаем локальный файл и восстанавливаем черновик.
+          </p>
+        </section>
+      </Show>
+
+      <Show when={userQuestionnaireError()}>
+        {(error) => (
+          <section class="assessment-pack-required paper-card" role="alert">
+            <h1 class="assessment-pack-required__title">Не удалось открыть опросник</h1>
+            <p class="assessment-pack-required__text">{error()}</p>
+            <Button
+              type="button"
+              class="assessment-pack-required__button"
+              onClick={() => navigate(userQuestionnaireHomePath())}
+            >
+              К моим опросникам
+            </Button>
+          </section>
+        )}
+      </Show>
+
+      <Show
+        when={
+          route().kind === 'user-editor' && loadedUserQuestionnaire()
+            ? loadedUserQuestionnaire()
+            : undefined
+        }
+      >
+        {(stored) => (
+          <UserQuestionnaireEditorPage
+            stored={stored()}
+            onBack={() => navigate(userQuestionnaireHomePath())}
+            onRun={() => navigate(userQuestionnairePath(stored().file.id))}
+            onMessage={setMessage}
+            onSaved={(saved) => {
+              setLoadedUserQuestionnaire(saved);
+              setUserQuestionnaires((items) => [
+                saved,
+                ...items.filter((item) => item.file.id !== saved.file.id),
+              ]);
+            }}
+          />
+        )}
+      </Show>
+
+      <Show
+        when={
+          route().kind === 'user-assessment' && userDefinition() && !userReadinessError()
+            ? userDefinition()
+            : undefined
+        }
+      >
+        {(definition) => (
+          <AssessmentQuestionnairePage
+            active={props.active}
+            definition={definition()}
+            {...(userDraftRecord() ? { initialRecord: userDraftRecord() } : {})}
+            sectionTitle="Мои опросники"
+            onBack={() => navigate(userQuestionnaireHomePath())}
+            onDraftSaved={refreshRecords}
+            onMessage={setMessage}
+            onSaved={(saved) => {
+              setTransientRecord(saved);
+              refreshRecords();
+              navigate(userQuestionnaireResultPath(userQuestionnaireFileId() ?? '', saved.id));
+            }}
+          />
+        )}
+      </Show>
+
+      <Show
+        when={
+          route().kind === 'user-assessment' && loadedUserQuestionnaire()
+            ? userReadinessError()
+            : undefined
+        }
+      >
+        {(error) => (
+          <section class="assessment-pack-required paper-card" role="alert">
+            <h1 class="assessment-pack-required__title">Опросник ещё не готов</h1>
+            <p class="assessment-pack-required__text">{error()}</p>
+            <Button
+              type="button"
+              class="assessment-pack-required__button"
+              onClick={() => navigate(userQuestionnaireEditPath(userQuestionnaireFileId() ?? ''))}
+            >
+              Редактировать
+            </Button>
+          </section>
+        )}
+      </Show>
+
+      <Show
+        when={route().kind === 'user-result' && userDefinition() ? userDefinition() : undefined}
+      >
+        {(definition) => (
+          <Show when={userRecord()}>
+            {(selectedRecord) => (
+              <AssessmentResultPage
+                definition={definition()}
+                record={selectedRecord()}
+                notes={notes()}
+                onBack={() => navigate(userQuestionnairePath(userQuestionnaireFileId() ?? ''))}
+                onMessage={setMessage}
+                onNotesChanged={setNotes}
+                onDelete={() =>
+                  requestDeleteResult(
+                    selectedRecord().id,
+                    selectedRecord().subjectLabel || definition().shortTitle,
+                  )
+                }
+              />
+            )}
+          </Show>
+        )}
+      </Show>
+
       <Show when={definitionLoading()}>
         <section class="assessment-pack-required paper-card" aria-live="polite">
           <h1 class="assessment-pack-required__title">Подключаем опросник</h1>
@@ -513,6 +834,7 @@ export function AssessmentsView(): JSX.Element {
       <Show when={route().kind === 'assessment' ? loadedDefinition() : undefined}>
         {(selected) => (
           <AssessmentQuestionnairePage
+            active={props.active}
             definition={selected()}
             {...(draftRecord() ? { initialRecord: draftRecord() } : {})}
             sectionTitle={
@@ -523,6 +845,7 @@ export function AssessmentsView(): JSX.Element {
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
             onSaved={(saved) => {
+              setTransientRecord(saved);
               refreshRecords();
               navigate(resultPath(selected().bankId, selected().slug, saved.id));
             }}
@@ -580,6 +903,10 @@ export function AssessmentsView(): JSX.Element {
       <Show
         when={
           route().kind !== 'index' &&
+          route().kind !== 'user-index' &&
+          route().kind !== 'user-editor' &&
+          route().kind !== 'user-assessment' &&
+          route().kind !== 'user-result' &&
           route().kind !== 'specialty' &&
           route().kind !== 'section' &&
           !catalogEntry()

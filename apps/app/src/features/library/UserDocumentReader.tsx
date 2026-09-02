@@ -13,18 +13,14 @@ import {
 import { toast } from 'solid-sonner';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
-import {
-  type DocumentFindUnit,
-  hasSearchableDocumentUnits,
-  rangesForFindUnit,
-} from '@/features/library/document-find';
-import { printElementHtml, printHtml } from '@/features/library/document-print';
+import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import { navigateDocumentReaderBack } from '@/features/library/document-reader-back';
 import {
   DocumentReaderChromeShell,
@@ -33,20 +29,24 @@ import {
 import {
   markMedicalImageViewerActive,
   markUserDocumentPdf,
-  markUserDocumentTextAvailable,
+  setTwoPageMode,
   useDocumentBookReadingMode,
 } from '@/features/library/document-reading-mode';
+import { MediaViewer } from '@/features/library/document-rich-block';
 import { LazyPdfCanvas } from '@/features/library/LazyPdfCanvas';
+import { PaginatedTextEditor } from '@/features/library/PaginatedTextEditor';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
+import { PINCH_ZOOM_MAX, PINCH_ZOOM_MIN } from '@/features/library/pinch-zoom-math';
+import { isRichDocumentMime, RichDocumentRenderer } from '@/features/library/RichDocumentRenderer';
 import {
-  isDocxMime,
-  isPresentationMime,
-  isRichDocumentMime,
-  isSheetMime,
-  RichDocumentRenderer,
-} from '@/features/library/RichDocumentRenderer';
-import { parseMarkdownDocument, SafeMarkdown } from '@/features/library/SafeMarkdown';
+  type ParsedMarkdownDocument,
+  parseMarkdownDocument,
+  parseMarkdownDocumentAsync,
+  SafeMarkdown,
+} from '@/features/library/SafeMarkdown';
+import { sheetAnchorId } from '@/features/library/SpreadsheetRenderer';
 import { UserDocumentHighlights } from '@/features/library/UserDocumentHighlights';
+import { usePinchZoom } from '@/features/library/use-pinch-zoom';
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
@@ -56,7 +56,9 @@ import {
 } from '@/features/library/user-document-reader-helpers';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
 import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
+import { PrintManager } from '@/features/printing/print-manager';
 import type { DocumentTrail } from '@/state/document-trail';
+import { setMedicalImageStatusBar } from '@/state/native-system-ui';
 import { loadPdfJsDocument, type PdfDocumentProxy } from '@/state/pdfjs-document';
 import {
   addUserLibraryFile,
@@ -70,13 +72,17 @@ import {
   listUserLibraryPages,
   saveUserLibraryDraft,
   USER_LIBRARY_EVENT,
+  USER_LIBRARY_TEMPLATES_FOLDER_ID,
   type UserLibraryDocument,
   type UserLibraryPage,
   type UserLibraryWordBox,
   userLibraryFileAccept,
+  userLibraryFileCapability,
   userLibraryProgressFraction,
 } from '@/state/user-library';
+import type { UserLibraryReaderAction } from '@/state/user-library-capabilities';
 import { isEditableUserLibraryFile } from '@/state/user-library-formats';
+import { joinUserLibraryTextPages } from '@/state/user-library-text-pages';
 
 const DicomViewer = lazy(() => import('@/features/library/DicomViewer'));
 const VolumeViewer = lazy(() => import('@/features/library/VolumeViewer'));
@@ -85,6 +91,10 @@ interface UserDocumentReaderProps {
   readonly documentId: string;
   readonly initialPageIndex?: number;
   readonly trail?: DocumentTrail | null;
+  readonly origin?: {
+    readonly catalogLabel: string;
+    readonly catalogHref: string;
+  };
   readonly onNavigate?: (href: string) => void;
   readonly onTitle?: (title: string) => void;
 }
@@ -126,14 +136,30 @@ function wordUnitId(pageAnchor: string, wordIndex: number): string {
   return `${pageAnchor}:${wordIndex}`;
 }
 
+function readBlobAsDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () =>
+      typeof reader.result === 'string'
+        ? resolve(reader.result)
+        : reject(new Error('Не удалось подготовить изображение к печати.'));
+    reader.onerror = () => reject(new Error('Не удалось подготовить изображение к печати.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 function WordOverlay(props: {
   readonly pageAnchor: string;
   readonly words: readonly UserLibraryWordBox[];
+  readonly interactive: boolean;
   readonly hitUnitIds: () => ReadonlySet<string>;
   readonly activeUnitId: () => string | undefined;
 }): JSX.Element {
   return (
-    <div class="user-document-reader__word-layer">
+    <div
+      class="user-document-reader__word-layer"
+      classList={{ 'user-document-reader__word-layer--selection-disabled': !props.interactive }}
+    >
       <For each={props.words}>
         {(word, index) => {
           const unitId = () => wordUnitId(props.pageAnchor, index());
@@ -143,6 +169,7 @@ function WordOverlay(props: {
               classList={{
                 'user-document-reader__word--hit': props.hitUnitIds().has(unitId()),
                 'user-document-reader__word--current': props.activeUnitId() === unitId(),
+                'user-document-reader__word--selection-disabled': !props.interactive,
               }}
               style={{
                 left: `${String(word.x * 100)}%`,
@@ -161,6 +188,7 @@ function WordOverlay(props: {
 }
 
 export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element {
+  const origin = props.origin;
   const [libraryDocument, setLibraryDocument] = createSignal<UserLibraryDocument | null>(null);
   const [pages, setPages] = createSignal<readonly UserLibraryPage[]>([]);
   const [pdfPageCount, setPdfPageCount] = createSignal(0);
@@ -169,7 +197,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const [loadError, setLoadError] = createSignal<string | null>(null);
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
   const [findOpen, setFindOpen] = createSignal(false);
-  const [markdownRaw, setMarkdownRaw] = createSignal(false);
+  const [fullscreen, setFullscreen] = createSignal(false);
   const [draftOpen, setDraftOpen] = createSignal(false);
   const [draftText, setDraftText] = createSignal('');
   const [draftDirty, setDraftDirty] = createSignal(false);
@@ -179,12 +207,28 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const [leaveAction, setLeaveAction] = createSignal<'close' | 'navigate' | null>(null);
   const [pendingNavigation, setPendingNavigation] = createSignal<string | null>(null);
   const [imageLightboxOpen, setImageLightboxOpen] = createSignal(false);
+  const [presentationPreviewSlide, setPresentationPreviewSlide] = createSignal<HTMLElement | null>(
+    null,
+  );
+  const [sheetNames, setSheetNames] = createSignal<readonly string[]>([]);
+  const [activeSheetName, setActiveSheetName] = createSignal('');
+  const [parsedMarkdown, setParsedMarkdown] = createSignal<ParsedMarkdownDocument | null>(null);
   let activePdf: PdfDocumentProxy | null = null;
   let pdfLoadGeneration = 0;
+  let markdownParseGeneration = 0;
   let draftFileInput: HTMLInputElement | undefined;
+  const pdfZoom = usePinchZoom({ expandScrollPort: true, lockHorizontalPan: true });
 
   const meta = (): UserLibraryDocument | null => libraryDocument();
-  const isMarkdown = (): boolean => meta()?.mimeType === 'text/markdown';
+  const readerCapability = createMemo(() => {
+    const current = meta();
+    return userLibraryFileCapability(current?.mimeType ?? '', current?.fileName ?? '');
+  });
+  const hasReaderAction = (action: UserLibraryReaderAction): boolean =>
+    readerCapability().reader.actions.includes(action);
+  const isTemplateDocument = (): boolean => meta()?.folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID;
+  const isMarkdown = (): boolean => readerCapability().reader.renderer === 'markdown';
+  const isSheet = (): boolean => readerCapability().reader.renderer === 'sheet';
   const isDicom = (): boolean => {
     const current = meta();
     return current ? isUserLibraryDicomFile(current.mimeType, current.fileName) : false;
@@ -199,11 +243,32 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       .map((page) => page.text)
       .join('\n'),
   );
+  const draftSourceText = createMemo(() => {
+    const pageTexts = pages().map((page) => page.text);
+    return readerCapability().reader.renderer === 'docx'
+      ? joinUserLibraryTextPages(pageTexts)
+      : pageTexts.join('\n');
+  });
   const markdownAnchor = createMemo(() => {
     const firstPage = pages()[0];
     return firstPage ? pageAnchorId(props.documentId, firstPage.pageIndex) : undefined;
   });
-  const parsedMarkdown = createMemo(() => parseMarkdownDocument(markdownText()));
+  createEffect(() => {
+    const source = isMarkdown() ? markdownText() : '';
+    const generation = ++markdownParseGeneration;
+    setParsedMarkdown(null);
+    void parseMarkdownDocumentAsync(source)
+      .then((parsed) => {
+        if (generation === markdownParseGeneration) setParsedMarkdown(parsed);
+      })
+      .catch(() => {
+        if (generation === markdownParseGeneration)
+          setParsedMarkdown(parseMarkdownDocument(source));
+      });
+    onCleanup(() => {
+      if (generation === markdownParseGeneration) markdownParseGeneration += 1;
+    });
+  });
   const editableSource = createMemo(() => {
     const current = meta();
     return current ? isEditableUserLibraryFile(current.fileName, current.mimeType) : false;
@@ -211,7 +276,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const draftFormatHint = (): string => {
     const current = meta();
     if (!current) return '';
-    if (/\.(?:docx|rtf)$/iu.test(current.fileName)) {
+    if (/\.docx$/iu.test(current.fileName)) {
+      return 'Разрывы страниц сохранены. Сложное форматирование исходного файла не переносится: сохранится текстовый черновик в том же формате.';
+    }
+    if (/\.rtf$/iu.test(current.fileName)) {
       return 'Сложное форматирование исходного файла не переносится: сохранится текстовый черновик в том же формате.';
     }
     return 'Изменения остаются черновиком и попадут в файл только после явного сохранения.';
@@ -233,7 +301,15 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const outlineItems = createMemo(() => {
     const current = meta();
     if (!current) return [];
-    if (isMarkdown()) return parsedMarkdown().outline;
+    if (isMarkdown()) return parsedMarkdown()?.outline ?? [];
+    if (isSheet()) {
+      return sheetNames().map((sheetName) => ({
+        anchor: sheetAnchorId(current.id, sheetName),
+        label: sheetName,
+        depth: 1,
+        searchTexts: [sheetName],
+      }));
+    }
     return buildUserDocumentOutlineItems(
       current.mimeType,
       pages(),
@@ -247,7 +323,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     const current = meta();
     if (!current) return [];
     const titleUnit: DocumentFindUnit = { id: current.id, text: current.title };
-    if (isUserLibraryTextLikeMime(current.mimeType)) {
+    if (isUserLibraryTextLikeMime(current.mimeType, current.fileName)) {
       return [
         titleUnit,
         ...pages().map((page) => ({
@@ -279,17 +355,51 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     return [titleUnit];
   });
 
-  const findSearchable = createMemo(() => hasSearchableDocumentUnits(findUnits()));
+  const findSearchable = createMemo(() => {
+    const current = meta();
+    if (!current) return false;
+    const searchKind = readerCapability().reader.search;
+    if (searchKind === 'none') return false;
+    if (searchKind === 'text') {
+      return pages().some((page) => page.text.trim().length > 0);
+    }
+    return pages().some(
+      (page) =>
+        page.text.trim().length > 0 ||
+        (page.words?.some((word) => word.text.trim().length > 0) ?? false),
+    );
+  });
   createEffect(() => {
-    markUserDocumentTextAvailable(!isMedicalImage() && findSearchable());
-    markMedicalImageViewerActive(isMedicalImage());
+    const medicalImageActive = isMedicalImage();
+    markMedicalImageViewerActive(medicalImageActive);
+    setMedicalImageStatusBar(medicalImageActive);
   });
   onCleanup(() => {
-    markUserDocumentTextAvailable(true);
     markMedicalImageViewerActive(false);
+    setMedicalImageStatusBar(false);
   });
   const readingMode = useDocumentBookReadingMode();
-  const bookReadingMode = readingMode.bookMode;
+  const bookReadingMode = createMemo(
+    () => readingMode.bookMode() && hasReaderAction('reading-mode'),
+  );
+
+  createEffect(() => {
+    if (!isPdf()) return;
+    pdfDocument();
+    readingMode.twoPageMode();
+    pdfZoom.reset();
+  });
+
+  createEffect(() => {
+    if (!fullscreen()) return;
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setFullscreen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    onCleanup(() => window.removeEventListener('keydown', closeOnEscape));
+  });
 
   const chrome = useDocumentReaderChrome({
     sectionSelector: '[data-user-doc-anchor]',
@@ -297,9 +407,22 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     scrollSpyWhen: () => Boolean(meta()) && outlineItems().length > 0,
   });
 
+  const handleSheetNamesChange = (names: readonly string[]): void => {
+    setSheetNames(names);
+    const next = names.includes(activeSheetName()) ? activeSheetName() : (names[0] ?? '');
+    setActiveSheetName(next);
+    if (next) chrome.setActiveAnchor(sheetAnchorId(props.documentId, next));
+  };
+
+  const handleActiveSheetChange = (name: string): void => {
+    setActiveSheetName(name);
+    chrome.setActiveAnchor(sheetAnchorId(props.documentId, name));
+  };
+
+  const findMatches = createMemo(() => findState().matches);
   const rangesByUnit = createMemo(() => {
     const map = new Map<string, TextRange[]>();
-    for (const match of findState().matches) {
+    for (const match of findMatches()) {
       const existing = map.get(match.unitId) ?? [];
       existing.push({ start: match.start, end: match.end });
       map.set(match.unitId, existing);
@@ -307,10 +430,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     return map;
   });
 
-  const hitUnitIds = createMemo(() => new Set(findState().matches.map((match) => match.unitId)));
+  const hitUnitIds = createMemo(() => new Set(findMatches().map((match) => match.unitId)));
 
   const activeMatch = createMemo(() => {
-    const matches = findState().matches;
+    const matches = findMatches();
     const state = findState();
     return matches[state.activeIndex];
   });
@@ -329,7 +452,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     requestAnimationFrame(() => {
       const current = meta();
       if (!current) return;
-      if (isUserLibraryTextLikeMime(current.mimeType)) {
+      if (isUserLibraryTextLikeMime(current.mimeType, current.fileName)) {
         const paper = globalThis.document.querySelector<HTMLElement>(
           '.user-document-reader__paper',
         );
@@ -435,7 +558,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
 
   const openDraftEditor = (): void => {
     setDraftError(null);
-    setDraftText(markdownText());
+    setDraftText(draftSourceText());
     setDraftDirty(false);
     setLeaveAction(null);
     setPendingNavigation(null);
@@ -520,6 +643,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     navigateHref(props, href);
   };
 
+  const openPresentationPreview = (slide: HTMLElement): void => {
+    setPresentationPreviewSlide(slide);
+  };
+
   const stayInDraft = (): void => {
     setDiscardOpen(false);
     setLeaveAction(null);
@@ -546,99 +673,115 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const printDocument = (): void => {
     const current = meta();
     if (!current) return;
-    if (current.mimeType === 'text/markdown') {
-      void printRenderedMarkdown(markdownText(), current.title).then((printed) => {
-        if (!printed) toast.error('Не удалось открыть окно печати.');
-      });
-      return;
-    }
-    if (isSheetMime(current.mimeType)) {
-      const rendered = document.querySelector<HTMLElement>('.rich-document-renderer.rich-sheet');
-      if (!rendered) {
-        toast.error('Документ ещё не готов к печати — попробуйте ещё раз через минуту.');
-        return;
-      }
-      if (!printElementHtml(rendered, current.title))
-        toast.error('Не удалось открыть окно печати.');
-      return;
-    }
-    if (isPresentationMime(current.mimeType)) {
-      const rendered = document.querySelector<HTMLElement>('.rich-document-renderer.rich-pptx');
-      if (!rendered) {
-        toast.error('Документ ещё не готов к печати — попробуйте ещё раз через минуту.');
-        return;
-      }
-      if (!printElementHtml(rendered, current.title))
-        toast.error('Не удалось открыть окно печати.');
-      return;
-    }
-    if (isDocxMime(current.mimeType)) {
-      const rendered = document.querySelector<HTMLElement>('.rich-document-renderer.rich-docx');
-      if (!rendered) {
-        toast.error('Документ ещё не готов к печати — попробуйте ещё раз через минуту.');
-        return;
-      }
-      if (!printElementHtml(rendered, current.title))
-        toast.error('Не удалось открыть окно печати.');
-      return;
-    }
-    if (current.mimeType === 'application/pdf') {
-      // Print the original PDF instead of our extracted text layer.
-      void getUserLibraryFile(current.id).then((blob) => {
-        if (!blob) {
-          toast.error('Не удалось открыть окно печати.');
-          return;
-        }
-        const url = URL.createObjectURL(blob);
-        const frame = document.createElement('iframe');
-        frame.style.position = 'fixed';
-        frame.style.right = '0';
-        frame.style.bottom = '0';
-        frame.style.width = '1px';
-        frame.style.height = '1px';
-        frame.style.opacity = '0';
-        frame.style.border = '0';
-        frame.src = url;
-        frame.onload = () => {
-          frame.contentWindow?.focus();
-          frame.contentWindow?.print();
-          window.setTimeout(() => {
-            URL.revokeObjectURL(url);
-            frame.remove();
-          }, 60_000);
-        };
-        document.body.append(frame);
-      });
-      return;
-    }
-    if (isUserLibraryImageMime(current.mimeType)) {
-      void getUserLibraryFile(current.id).then(async (blob) => {
-        if (!blob) {
-          toast.error('Не удалось открыть окно печати.');
-          return;
-        }
-        const url = URL.createObjectURL(blob);
-        await new Promise<void>((resolve) => {
-          const probe = new Image();
-          probe.onload = () => resolve();
-          probe.onerror = () => resolve();
-          probe.src = url;
-        });
-        const printed = printHtml(
-          `<!doctype html><html lang="ru"><head><meta charset="utf-8" /><title>${escapePrintHtml(current.title)}</title></head><body style="margin: 0"><img src="${url}" alt="${escapePrintHtml(current.title)}" style="max-width: 100%" /></body></html>`,
-          current.title,
+    const capability = readerCapability();
+    if (!hasReaderAction('print')) return;
+    switch (capability.reader.renderer) {
+      case 'markdown':
+        void printRenderedMarkdown(markdownText(), current.title, isTemplateDocument()).then(
+          (printed) => {
+            if (!printed) toast.error('Не удалось открыть окно печати.');
+          },
         );
+        return;
+      case 'sheet': {
+        const rendered = document.querySelector<HTMLElement>('.rich-document-renderer.rich-sheet');
+        if (!rendered) {
+          toast.error('Документ ещё не готов к печати — попробуйте ещё раз через минуту.');
+          return;
+        }
+        if (
+          !PrintManager.element(rendered, current.title, {
+            orientation: capability.reader.printOrientation,
+          })
+        ) {
+          toast.error('Не удалось открыть окно печати.');
+        }
+        return;
+      }
+      case 'presentation': {
+        const rendered = document.querySelector<HTMLElement>('.rich-document-renderer.rich-pptx');
+        if (!rendered) {
+          toast.error('Документ ещё не готов к печати — попробуйте ещё раз через минуту.');
+          return;
+        }
+        if (!PrintManager.presentation(rendered, current.title))
+          toast.error('Не удалось открыть окно печати.');
+        return;
+      }
+      case 'docx': {
+        const rendered = document.querySelector<HTMLElement>('.rich-document-renderer.rich-docx');
+        if (!rendered) {
+          toast.error('Документ ещё не готов к печати — попробуйте ещё раз через минуту.');
+          return;
+        }
+        const printed = isTemplateDocument()
+          ? PrintManager.element(rendered, current.title, { margin: '10mm' })
+          : PrintManager.element(rendered, current.title);
         if (!printed) toast.error('Не удалось открыть окно печати.');
-        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      });
-      return;
+        return;
+      }
+      case 'epub':
+        void PrintManager.epub(getUserLibraryFile(current.id), current.title).then((printed) => {
+          if (!printed) toast.error('Не удалось открыть окно печати.');
+        });
+        return;
+      case 'pdf':
+        // Print the original PDF instead of our extracted text layer.
+        void getUserLibraryFile(current.id)
+          .then(async (blob) => {
+            if (!blob) {
+              toast.error('Не удалось открыть окно печати.');
+              return;
+            }
+            if (!(await PrintManager.original(blob, current.title))) {
+              toast.error('Не удалось открыть окно печати.');
+            }
+          })
+          .catch(() => toast.error('Не удалось открыть окно печати.'));
+        return;
+      case 'image':
+        void getUserLibraryFile(current.id)
+          .then(async (blob) => {
+            if (!blob) {
+              toast.error('Не удалось открыть окно печати.');
+              return;
+            }
+            const dataUrl = await readBlobAsDataUrl(blob);
+            await new Promise<void>((resolve) => {
+              const probe = new Image();
+              probe.onload = () => resolve();
+              probe.onerror = () => resolve();
+              probe.src = dataUrl;
+            });
+            const printed = PrintManager.html(
+              `<!doctype html><html lang="ru"><head><meta charset="utf-8" /><title>${escapePrintHtml(current.title)}</title><style>@page { size: A4 ${capability.reader.printOrientation}; }</style></head><body style="margin: 0"><img src="${dataUrl}" alt="${escapePrintHtml(current.title)}" style="max-width: 100%" /></body></html>`,
+              current.title,
+            );
+            if (!printed) toast.error('Не удалось открыть окно печати.');
+          })
+          .catch(() => toast.error('Не удалось открыть окно печати.'));
+        return;
+      case 'text': {
+        const html = buildUserDocumentPrintHtml(current.title, pages(), isTemplateDocument());
+        if (!PrintManager.html(html, current.title)) toast.error('Не удалось открыть окно печати.');
+        return;
+      }
+      case 'dicom':
+      case 'volume':
+      case 'download':
+        return;
     }
-    const html = buildUserDocumentPrintHtml(current.title, pages());
-    if (!printHtml(html, current.title)) toast.error('Не удалось открыть окно печати.');
   };
 
   const breadcrumbItems = createMemo(() => {
     const current = meta();
+    if (origin) {
+      return [
+        { label: 'Заметки', href: '#/notes' },
+        { label: origin.catalogLabel, href: origin.catalogHref },
+        { label: current?.title ?? 'Шаблон' },
+      ];
+    }
     return [
       { label: 'Документы', href: '#/modules/documents' },
       { label: 'Ваши документы', href: USER_LIBRARY_CATALOG_HASH },
@@ -656,6 +799,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     const current = meta();
     return current ? isUserLibraryPdfMime(current.mimeType) : false;
   };
+  const pdfReady = createMemo(() => isPdf() && pdfDocument() !== null && pdfPageCount() > 0);
   createEffect(() => {
     markUserDocumentPdf(isPdf());
   });
@@ -669,13 +813,67 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     return current && isRichDocumentMime(current.mimeType) ? current.mimeType : undefined;
   };
   const isTextLike = (): boolean => {
-    const current = meta();
-    return current ? isUserLibraryTextLikeMime(current.mimeType) && !richMime() : false;
+    const renderer = readerCapability().reader.renderer;
+    return renderer === 'markdown' || renderer === 'text';
   };
-  const leaveMedicalViewer = (): void => navigateDocumentReaderBack(props.trail, props.onNavigate);
+  const leaveMedicalViewer = (): void => {
+    if (origin) {
+      requestNavigate(origin.catalogHref);
+      return;
+    }
+    navigateDocumentReaderBack(props.trail, props.onNavigate);
+  };
   const showBannerProgress = (): boolean => {
     const current = meta();
     return current?.status === 'inspecting' || current?.status === 'ocr';
+  };
+
+  const toggleFullscreen = (): void => {
+    setFullscreen((active) => {
+      const next = !active;
+      if (next) chrome.closeOutline();
+      return next;
+    });
+  };
+
+  const readerMenuActions = (): readonly AppContextMenuAction[] => {
+    const actions: AppContextMenuAction[] = [];
+    if (hasReaderAction('print')) {
+      actions.push({
+        id: 'print',
+        label: 'Распечатать документ',
+        icon: 'printer',
+        disabled: draftOpen(),
+        onSelect: printDocument,
+      });
+    }
+    if (hasReaderAction('fullscreen')) {
+      actions.push({
+        id: 'fullscreen',
+        label: fullscreen() ? 'Выйти из полноэкранного режима' : 'На весь экран',
+        icon: fullscreen() ? 'arrows-in' : 'arrows-out',
+        onSelect: toggleFullscreen,
+      });
+    }
+    if (hasReaderAction('reading-mode')) {
+      actions.push({
+        id: 'reading-mode',
+        label: 'Режим чтения',
+        icon: bookReadingMode() ? 'check' : 'book-open',
+        onSelect: readingMode.toggleBookMode,
+      });
+    }
+    if (hasReaderAction('two-page')) {
+      actions.push({
+        id: 'two-page',
+        label: readingMode.twoPageMode()
+          ? 'Отключить разворот из двух страниц'
+          : 'Разворот из двух страниц',
+        icon: readingMode.twoPageMode() ? 'check' : 'squares-four',
+        onSelect: () => setTwoPageMode(!readingMode.twoPageMode()),
+      });
+    }
+    return actions;
   };
 
   const pageByIndex = (pageIndex: number): UserLibraryPage | undefined =>
@@ -688,15 +886,29 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         class="document-page user-document-reader page-surface page-grain"
         classList={{
           'document-page--book': bookReadingMode(),
+          'user-document-reader--fullscreen': fullscreen(),
           'user-document-reader--medical': isMedicalImage(),
+          'user-document-reader--sheet': isSheet(),
+          'user-document-reader--sheet-fullscreen': isSheet() && fullscreen(),
         }}
         chromeClass="document-page__chrome sticky-surface route-sticky-chrome"
-        chromeClassList={{ 'document-page__chrome--medical-hidden': isMedicalImage() }}
-        bodyClassList={{ 'document-page__body--medical': isMedicalImage() }}
+        chromeClassList={{
+          'document-page__chrome--medical-hidden': isMedicalImage(),
+          'document-page__chrome--sheet-fullscreen': isSheet() && fullscreen(),
+        }}
+        layoutClassList={{
+          'document-overlay-layout--medical': isMedicalImage(),
+          'document-overlay-layout--sheet-fullscreen': isSheet() && fullscreen(),
+        }}
+        bodyClassList={{
+          'document-page__body--medical': isMedicalImage(),
+          'document-page__body--sheet-fullscreen': isSheet() && fullscreen(),
+        }}
         chrome={chrome}
         searchOpen={findOpen}
         trail={props.trail ?? null}
         onNavigate={requestNavigate}
+        {...(origin ? { onBack: () => requestNavigate(origin.catalogHref) } : {})}
         breadcrumbs={
           <Show
             when={props.trail}
@@ -708,7 +920,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           </Show>
         }
         headerSearchSlot={
-          <Show when={!isMedicalImage()}>
+          <Show when={!isMedicalImage() && readerCapability().reader.search !== 'none'}>
             <DocumentFindBar
               class="document-page__header-search"
               units={findUnits}
@@ -718,6 +930,24 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             />
           </Show>
         }
+        printButton={
+          <Show when={meta() && readerMenuActions().length > 0}>
+            <AppContextMenu
+              class="document-reader-menu"
+              buttonClass="document-reader-menu__button"
+              buttonIcon="dots-three-vertical"
+              buttonLabel="Действия документа"
+              actions={readerMenuActions()}
+            >
+              <span class="document-reader-menu__anchor" aria-hidden="true" />
+            </AppContextMenu>
+          </Show>
+        }
+        onBackIntercept={() => {
+          if (!fullscreen()) return false;
+          setFullscreen(false);
+          return true;
+        }}
         bodyError={
           <Show when={loadError()}>
             {(message) => <p class="user-document-reader__error">{message()}</p>}
@@ -768,7 +998,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     'document-overlay-outline-item--active': chrome.activeAnchor() === item.anchor,
                   }}
                   aria-current={chrome.activeAnchor() === item.anchor ? 'location' : undefined}
-                  onClick={() => chrome.scrollTo(item.anchor)}
+                  onClick={() => {
+                    if (!isSheet()) {
+                      chrome.scrollTo(item.anchor);
+                      return;
+                    }
+                    setActiveSheetName(item.label);
+                    requestAnimationFrame(() => chrome.scrollTo(item.anchor));
+                  }}
                 >
                   <span class="document-overlay-outline-item__label">{item.label}</span>
                 </button>
@@ -780,12 +1017,20 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           <article
             ref={chrome.setPaper}
             class="document-overlay-paper user-document-reader__paper"
-            classList={{ 'user-document-reader__paper--medical': isMedicalImage() }}
+            classList={{
+              'user-document-reader__paper--medical': isMedicalImage(),
+              'user-document-reader__paper--sheet-fullscreen': isSheet() && fullscreen(),
+            }}
           >
             <Show when={meta()}>
               {(current) => (
                 <Show when={!isMedicalImage()}>
-                  <h1 class="document-overlay-paper__title">
+                  <h1
+                    class="document-overlay-paper__title"
+                    classList={{
+                      'document-overlay-paper__title--sheet-fullscreen': isSheet() && fullscreen(),
+                    }}
+                  >
                     <QueryHighlightedText
                       text={current().title}
                       query={findState().query}
@@ -799,57 +1044,31 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                       matchClass="document-overlay-match"
                     />
                   </h1>
-                  <header class="document-overlay-paper__header">
+                  <header
+                    class="document-overlay-paper__header"
+                    classList={{
+                      'document-overlay-paper__header--sheet-fullscreen': isSheet() && fullscreen(),
+                    }}
+                  >
                     <div class="document-overlay-paper__actions">
                       <Show
                         when={draftOpen()}
                         fallback={
-                          <>
-                            <Show when={editableSource()}>
-                              <Button
-                                type="button"
-                                class="document-overlay-action-button"
-                                onClick={openDraftEditor}
-                                icon={
-                                  <AppGlyph
-                                    name="edit"
-                                    class="document-overlay-action-button__icon"
-                                  />
-                                }
-                              >
-                                Редактировать
-                              </Button>
-                            </Show>
-                            <Show when={isMarkdown()}>
-                              <Button
-                                type="button"
-                                class="document-overlay-action-button"
-                                onClick={() => setMarkdownRaw((raw) => !raw)}
-                                icon={
-                                  <AppGlyph
-                                    name="file-text"
-                                    class="document-overlay-action-button__icon"
-                                  />
-                                }
-                              >
-                                {markdownRaw() ? 'Preview' : 'Raw'}
-                              </Button>
-                            </Show>
+                          <Show when={editableSource()}>
                             <Button
                               type="button"
                               class="document-overlay-action-button"
-                              aria-label="Распечатать документ"
-                              onClick={printDocument}
+                              onClick={openDraftEditor}
                               icon={
                                 <AppGlyph
-                                  name="printer"
+                                  name="edit"
                                   class="document-overlay-action-button__icon"
                                 />
                               }
                             >
-                              Распечатать
+                              Редактировать
                             </Button>
-                          </>
+                          </Show>
                         }
                       >
                         <span class="user-document-reader__draft-status" role="status">
@@ -894,24 +1113,62 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
               fallback={
                 <>
                   <Show when={isPdf()}>
-                    <div
-                      class="user-document-reader__pages"
-                      classList={{ 'user-document-reader__pages--two': readingMode.twoPageMode() }}
+                    <Show when={hasReaderAction('zoom') && pdfReady()}>
+                      <div class="user-document-reader__pdf-zoom-controls">
+                        <button
+                          type="button"
+                          class="user-document-reader__pdf-zoom-button"
+                          aria-label="Уменьшить"
+                          title="Уменьшить"
+                          disabled={pdfZoom.scale() <= PINCH_ZOOM_MIN}
+                          onClick={pdfZoom.zoomOut}
+                        >
+                          <AppGlyph name="minus" class="user-document-reader__pdf-zoom-icon" />
+                        </button>
+                        <button
+                          type="button"
+                          class="user-document-reader__pdf-zoom-value"
+                          aria-label="Вернуть масштаб 100%"
+                          title="Вернуть масштаб 100%"
+                          disabled={pdfZoom.scale() <= PINCH_ZOOM_MIN}
+                          onClick={() => pdfZoom.reset()}
+                        >
+                          {String(Math.round(pdfZoom.scale() * 100))}%
+                        </button>
+                        <button
+                          type="button"
+                          class="user-document-reader__pdf-zoom-button"
+                          aria-label="Увеличить"
+                          title="Увеличить"
+                          disabled={pdfZoom.scale() >= PINCH_ZOOM_MAX}
+                          onClick={pdfZoom.zoomIn}
+                        >
+                          <AppGlyph name="plus" class="user-document-reader__pdf-zoom-icon" />
+                        </button>
+                      </div>
+                    </Show>
+                    <PinchZoomSurface
+                      pinch={pdfZoom}
+                      expandScrollPort
+                      class="pinch-zoom-surface user-document-reader__document-pinch user-document-reader__document-pinch--pdf"
+                      contentClass="pinch-zoom-surface__content user-document-reader__document-pinch-content"
                     >
-                      <For each={visualPageIndexes()}>
-                        {(pageIndex) => {
-                          const page = (): UserLibraryPage | undefined => pageByIndex(pageIndex);
-                          const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
-                          const anchor = () => pageAnchorId(props.documentId, pageIndex);
-                          return (
-                            <section
-                              id={anchor()}
-                              data-user-doc-anchor=""
-                              class="user-document-reader__page"
-                            >
-                              <PinchZoomSurface
-                                class="user-document-reader__page-pinch"
-                                contentClass="user-document-reader__page-surface"
+                      <div
+                        class="user-document-reader__pages"
+                        classList={{
+                          'user-document-reader__pages--two': readingMode.twoPageMode(),
+                        }}
+                      >
+                        <For each={visualPageIndexes()}>
+                          {(pageIndex) => {
+                            const page = (): UserLibraryPage | undefined => pageByIndex(pageIndex);
+                            const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
+                            const anchor = () => pageAnchorId(props.documentId, pageIndex);
+                            return (
+                              <div
+                                id={anchor()}
+                                data-user-doc-anchor=""
+                                class="user-document-reader__page"
                               >
                                 <LazyPdfCanvas
                                   id={pageCanvasId(props.documentId, pageIndex)}
@@ -930,27 +1187,29 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                                   <WordOverlay
                                     pageAnchor={anchor()}
                                     words={words()}
+                                    interactive={page()?.kind !== 'native'}
                                     hitUnitIds={hitUnitIds}
                                     activeUnitId={() => activeMatch()?.unitId}
                                   />
                                 </Show>
-                              </PinchZoomSurface>
-                            </section>
-                          );
-                        }}
-                      </For>
-                    </div>
+                              </div>
+                            );
+                          }}
+                        </For>
+                      </div>
+                    </PinchZoomSurface>
                   </Show>
 
                   <Show when={isImage()}>
-                    <section
-                      id={pageAnchorId(props.documentId, 0)}
-                      data-user-doc-anchor=""
-                      class="user-document-reader__page"
+                    <PinchZoomSurface
+                      expandScrollPort
+                      class="pinch-zoom-surface user-document-reader__document-pinch"
+                      contentClass="pinch-zoom-surface__content user-document-reader__document-pinch-content"
                     >
-                      <PinchZoomSurface
-                        class="user-document-reader__page-pinch"
-                        contentClass="user-document-reader__page-surface"
+                      <section
+                        id={pageAnchorId(props.documentId, 0)}
+                        data-user-doc-anchor=""
+                        class="user-document-reader__page"
                       >
                         <Show when={imageUrl()}>
                           {(url) => (
@@ -973,13 +1232,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                             <WordOverlay
                               pageAnchor={pageAnchorId(props.documentId, 0)}
                               words={wordBoxes()}
+                              interactive
                               hitUnitIds={hitUnitIds}
                               activeUnitId={() => activeMatch()?.unitId}
                             />
                           )}
                         </Show>
-                      </PinchZoomSurface>
-                    </section>
+                      </section>
+                    </PinchZoomSurface>
                   </Show>
 
                   <Show when={isDicom() && meta()}>
@@ -1002,116 +1262,142 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     )}
                   </Show>
 
-                  <Show
-                    when={
-                      meta() &&
-                      !isPdf() &&
-                      !isImage() &&
-                      !isMedicalImage() &&
-                      !richMime() &&
-                      !isTextLike()
-                    }
-                  >
-                    <Show when={meta()} keyed>
-                      {(current) => (
-                        <section class="user-document-reader__binary" aria-label={current.title}>
-                          <AppGlyph name="archive" class="user-document-reader__binary-icon" />
-                          <p class="user-document-reader__binary-name">{current.fileName}</p>
-                          <p class="user-document-reader__binary-hint">
-                            Этот тип файла нельзя открыть во встроенной читалке.
-                          </p>
-                          <Button
-                            type="button"
-                            variant="primary"
-                            onClick={() => {
-                              void getUserLibraryFile(current.id).then((blob) => {
-                                if (!blob) return;
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = current.fileName || current.title;
-                                document.body.append(link);
-                                link.click();
-                                link.remove();
-                                window.setTimeout(() => URL.revokeObjectURL(url), 4000);
-                              });
-                            }}
-                          >
-                            Сохранить на устройство
-                          </Button>
-                        </section>
-                      )}
-                    </Show>
-                  </Show>
+                  <Show when={meta() && !isPdf() && !isImage() && !isMedicalImage()}>
+                    <PinchZoomSurface
+                      expandScrollPort
+                      class="pinch-zoom-surface user-document-reader__document-pinch"
+                      contentClass="pinch-zoom-surface__content user-document-reader__document-pinch-content"
+                    >
+                      <Show
+                        when={
+                          meta() &&
+                          !isPdf() &&
+                          !isImage() &&
+                          !isMedicalImage() &&
+                          !richMime() &&
+                          !isTextLike()
+                        }
+                      >
+                        <Show when={meta()} keyed>
+                          {(current) => (
+                            <section
+                              class="user-document-reader__binary"
+                              aria-label={current.title}
+                            >
+                              <AppGlyph name="archive" class="user-document-reader__binary-icon" />
+                              <p class="user-document-reader__binary-name">{current.fileName}</p>
+                              <p class="user-document-reader__binary-hint">
+                                Этот тип файла нельзя открыть во встроенной читалке.
+                              </p>
+                              <Button
+                                type="button"
+                                variant="primary"
+                                onClick={() => {
+                                  void getUserLibraryFile(current.id).then((blob) => {
+                                    if (!blob) return;
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = current.fileName || current.title;
+                                    document.body.append(link);
+                                    link.click();
+                                    link.remove();
+                                    window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+                                  });
+                                }}
+                              >
+                                Сохранить на устройство
+                              </Button>
+                            </section>
+                          )}
+                        </Show>
+                      </Show>
 
-                  <Show when={richMime()}>
-                    {(mime) => (
-                      <Show when={meta()} keyed>
-                        {(current) => (
-                          <RichDocumentRenderer documentId={current.id} mimeType={mime()} />
+                      <Show when={richMime()}>
+                        {(mime) => (
+                          <Show when={meta()} keyed>
+                            {(current) => (
+                              <RichDocumentRenderer
+                                documentId={current.id}
+                                fileName={current.fileName}
+                                mimeType={mime()}
+                                fullscreen={fullscreen()}
+                                activeSheetName={activeSheetName()}
+                                onSheetNamesChange={handleSheetNamesChange}
+                                onActiveSheetChange={handleActiveSheetChange}
+                                onExitFullscreen={() => setFullscreen(false)}
+                                onPresentationSlideClick={openPresentationPreview}
+                              />
+                            )}
+                          </Show>
                         )}
                       </Show>
-                    )}
-                  </Show>
 
-                  <Show when={isTextLike() && meta()}>
-                    {(current) => (
-                      <UserDocumentHighlights
-                        documentId={current().id}
-                        surface={() =>
-                          document.querySelector<HTMLElement>('.user-document-reader__paper') ??
-                          undefined
-                        }
-                      />
-                    )}
-                  </Show>
+                      <Show when={isTextLike() && meta()}>
+                        {(current) => (
+                          <UserDocumentHighlights
+                            documentId={current().id}
+                            surface={() =>
+                              document.querySelector<HTMLElement>('.user-document-reader__paper') ??
+                              undefined
+                            }
+                          />
+                        )}
+                      </Show>
 
-                  <Show when={isTextLike()}>
-                    <Show
-                      when={isMarkdown() && !markdownRaw()}
-                      fallback={
-                        <div class="user-document-reader__text-pages">
-                          <For each={pages()}>
-                            {(page) => {
-                              const anchor = () => pageAnchorId(page.documentId, page.pageIndex);
-                              const state = () => findState();
-                              const activeStart = () =>
-                                activeMatch()?.unitId === anchor()
-                                  ? activeMatch()?.start
-                                  : undefined;
-                              return (
-                                <section
-                                  id={anchor()}
-                                  data-user-doc-anchor=""
-                                  class="user-document-reader__text-section"
-                                >
-                                  <pre class="user-document-reader__text">
-                                    <QueryHighlightedText
-                                      text={page.text}
-                                      query={state().query}
-                                      exact={state().mode === 'exact'}
-                                      fuzzy={state().mode === 'similar'}
-                                      ranges={rangesForFindUnit(
-                                        rangesByUnit(),
-                                        anchor(),
-                                        state().query,
-                                      )}
-                                      unitId={anchor()}
-                                      activeStart={activeStart()}
-                                      matchClass="document-overlay-match"
-                                    />
-                                  </pre>
-                                </section>
-                              );
-                            }}
-                          </For>
-                        </div>
-                      }
-                    >
-                      <div class="user-document-reader__text-section" id={markdownAnchor()}>
-                        <SafeMarkdown markdown={markdownText()} />
-                      </div>
-                    </Show>
+                      <Show when={isTextLike()}>
+                        <Show
+                          when={isMarkdown()}
+                          fallback={
+                            <div class="user-document-reader__text-pages">
+                              <For each={pages()}>
+                                {(page) => {
+                                  const anchor = () =>
+                                    pageAnchorId(page.documentId, page.pageIndex);
+                                  const state = () => findState();
+                                  const activeStart = () =>
+                                    activeMatch()?.unitId === anchor()
+                                      ? activeMatch()?.start
+                                      : undefined;
+                                  return (
+                                    <section
+                                      id={anchor()}
+                                      data-user-doc-anchor=""
+                                      class="user-document-reader__text-section"
+                                    >
+                                      <pre class="user-document-reader__text">
+                                        <QueryHighlightedText
+                                          text={page.text}
+                                          query={state().query}
+                                          exact={state().mode === 'exact'}
+                                          fuzzy={state().mode === 'similar'}
+                                          ranges={rangesForFindUnit(
+                                            rangesByUnit(),
+                                            anchor(),
+                                            state().query,
+                                          )}
+                                          unitId={anchor()}
+                                          activeStart={activeStart()}
+                                          matchClass="document-overlay-match"
+                                        />
+                                      </pre>
+                                    </section>
+                                  );
+                                }}
+                              </For>
+                            </div>
+                          }
+                        >
+                          <div class="user-document-reader__text-section" id={markdownAnchor()}>
+                            <Show when={parsedMarkdown()} keyed>
+                              {(parsed) => (
+                                <SafeMarkdown markdown={markdownText()} parsed={parsed} />
+                              )}
+                            </Show>
+                          </div>
+                        </Show>
+                      </Show>
+                    </PinchZoomSurface>
                   </Show>
                 </>
               }
@@ -1137,24 +1423,41 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                 <Show
                   when={isMarkdown()}
                   fallback={
-                    <label class="user-document-reader__draft-field">
-                      <span class="user-document-reader__draft-label">Текст черновика</span>
-                      <textarea
-                        class="user-document-reader__draft-input"
+                    <Show
+                      when={readerCapability().reader.renderer === 'docx'}
+                      fallback={
+                        <label class="user-document-reader__draft-field">
+                          <span class="user-document-reader__draft-label">Текст черновика</span>
+                          <textarea
+                            class="user-document-reader__draft-input"
+                            value={draftText()}
+                            autofocus
+                            aria-label="Текст черновика"
+                            onInput={(event) => {
+                              setDraftText(event.currentTarget.value);
+                              setDraftDirty(true);
+                              setDraftError(null);
+                            }}
+                          />
+                        </label>
+                      }
+                    >
+                      <PaginatedTextEditor
+                        label="Текст черновика"
                         value={draftText()}
-                        autofocus
-                        aria-label="Текст черновика"
-                        onInput={(event) => {
-                          setDraftText(event.currentTarget.value);
+                        onChange={(value) => {
+                          setDraftText(value);
                           setDraftDirty(true);
                           setDraftError(null);
                         }}
                       />
-                    </label>
+                    </Show>
                   }
                 >
                   <NoteMarkdownEditor
                     label="Текст черновика"
+                    printTitle={meta()?.title ?? ''}
+                    templatePrint={isTemplateDocument()}
                     value={draftText()}
                     onChange={(value) => {
                       setDraftText(value);
@@ -1181,6 +1484,28 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           </article>
         }
       />
+      <MediaViewer
+        open={presentationPreviewSlide() !== null}
+        title={`${meta()?.title ?? 'Презентация'} — слайд крупно`}
+        onClose={() => setPresentationPreviewSlide(null)}
+      >
+        <Show when={presentationPreviewSlide()} keyed>
+          {(slide) => (
+            <div class="user-document-reader__presentation-preview">
+              <div
+                class="user-document-reader__presentation-preview-content"
+                ref={(element) => {
+                  const clone = slide.cloneNode(true);
+                  if (!(clone instanceof HTMLElement)) return;
+                  clone.classList.add('user-document-reader__presentation-preview-slide');
+                  clone.style.margin = '0 auto';
+                  element.replaceChildren(clone);
+                }}
+              />
+            </div>
+          )}
+        </Show>
+      </MediaViewer>
       <OverlayDialog
         open={imageLightboxOpen()}
         title={meta()?.title ?? 'Изображение'}
@@ -1227,10 +1552,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   );
 }
 
-const markdownPrintStyles = `
-  body { font: 11pt/1.55 Georgia, 'Times New Roman', serif; color: #2b2b26; }
+function markdownPrintStyles(templatePrint: boolean): string {
+  return `
+  body { font: 11pt/1.5 Georgia, 'Times New Roman', serif; color: #2b2b26; margin: 0; }
   h1, h2, h3, h4, h5, h6 { margin: 1.2em 0 0.4em; line-height: 1.2; break-after: avoid; }
-  p { margin: 0.45em 0; }
+  p { margin: 0.45em 0; text-indent: ${templatePrint ? '0' : '12.5mm'}; }
   ul, ol { margin: 0.45em 0; padding-left: 1.6em; }
   blockquote { margin: 0.7em 0; padding: 0.3em 0.9em; border-left: 3px solid #cbc0a7; color: #585349; }
   code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.88em; background: #f3efe2; padding: 0.1em 0.3em; border-radius: 3px; }
@@ -1241,8 +1567,13 @@ const markdownPrintStyles = `
   figcaption { font-size: 8pt; color: #585349; margin-top: 1mm; }
   hr { border: 0; border-top: 0.6pt solid #cbc0a7; margin: 4mm 0; }
 `;
+}
 
-async function printRenderedMarkdown(markdown: string, title: string): Promise<boolean> {
+async function printRenderedMarkdown(
+  markdown: string,
+  title: string,
+  templatePrint = false,
+): Promise<boolean> {
   const [{ render }, { createComponent }] = await Promise.all([
     import('solid-js/web'),
     import('solid-js'),
@@ -1258,13 +1589,13 @@ async function printRenderedMarkdown(markdown: string, title: string): Promise<b
   dispose();
   host.remove();
   if (!html.trim()) return false;
-  return printHtml(
+  return PrintManager.html(
     `<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8" />
 <title>${escapePrintHtml(title)}</title>
-<style>@page { size: A4; margin: 14mm; }${markdownPrintStyles}</style>
+<style>@page { size: A4; margin: ${templatePrint ? '10mm' : '20mm 15mm 20mm 30mm'}; }${markdownPrintStyles(templatePrint)}</style>
 </head>
 <body>${html}</body>
 </html>`,

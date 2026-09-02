@@ -51,7 +51,7 @@ class ToolModule(BaseModel):
     id: str
     version: str
     title: str
-    schema_version: int = Field(alias="schemaVersion")
+    schema_version: Literal[2] = Field(alias="schemaVersion")
     built_at: str = Field(alias="builtAt")
     tools: list[ToolEntry]
 

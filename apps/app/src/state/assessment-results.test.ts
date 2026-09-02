@@ -13,6 +13,7 @@ import {
   createCompletedAssessmentRecord,
   latestIncompleteAssessmentRecord,
   loadAssessmentRecords,
+  removeAssessmentRecord,
   saveIncompleteAssessmentRecord,
 } from '@/state/assessment-results';
 
@@ -96,5 +97,30 @@ describe('assessment result persistence', () => {
     );
     expect(latestIncompleteAssessmentRecord(records, 'missing-assessment')).toBeUndefined();
     expect(older.id).not.toBe(newer.id);
+  });
+
+  it('preserves signed weighted answers from a local questionnaire', () => {
+    const draft = saveIncompleteAssessmentRecord({
+      assessmentId: 'user-questionnaire:file-1',
+      subjectLabel: '',
+      answers: { mood: -1, energy: 10 },
+      totalQuestions: 2,
+    });
+
+    expect(loadAssessmentRecords()).toEqual([draft]);
+  });
+
+  it('removes an ordinary draft when a questionnaire crosses into the patient vault', () => {
+    const draft = saveIncompleteAssessmentRecord({
+      assessmentId: 'personal-egogram',
+      subjectLabel: 'До привязки',
+      answers: { mood: 1 },
+      totalQuestions: 2,
+    });
+
+    removeAssessmentRecord(draft.id);
+
+    expect(loadAssessmentRecords()).toEqual([]);
+    expect(JSON.parse(storage.get(ASSESSMENT_RESULTS_KEY) ?? 'null')).toEqual([]);
   });
 });

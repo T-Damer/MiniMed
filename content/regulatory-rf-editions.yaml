@@ -82,12 +82,12 @@ documents:
     reviewed_at: "2026-08-01"
     next_review_by: "2026-11-01"
     audience: [adults]
-  - document_id: regulatory.rf.minzdrav.206n-2023-qualification
-    document_number: 206н
-    official_publication_number: "0001202306010041"
-    official_url: https://publication.pravo.gov.ru/document/0001202306010041
-    reviewed_at: "2026-08-02"
-    next_review_by: "2026-08-31"
+  - document_id: regulatory.rf.minzdrav.436n-2026-qualification
+    document_number: 436н
+    official_publication_number: "0001202605290053"
+    official_url: https://publication.pravo.gov.ru/document/0001202605290053
+    reviewed_at: "2026-09-02"
+    next_review_by: "2026-12-02"
     audience: [adults]
   - document_id: regulatory.rf.minzdrav.211n-2025
     document_number: 211н

@@ -1,4 +1,5 @@
 import { scaleThumbnailSize } from '@/state/note-images';
+import type { loadPdfJsDocument } from '@/state/pdfjs-document';
 import { isUserLibraryDicomFile, isUserLibraryVolumeFile } from '@/state/user-library';
 import { readZipEntry } from '@/state/user-library-zip';
 
@@ -173,11 +174,11 @@ async function videoThumbnail(blob: Blob): Promise<string | undefined> {
 }
 
 async function pdfThumbnail(blob: Blob): Promise<string | undefined> {
+  let pdfDocument: Awaited<ReturnType<typeof loadPdfJsDocument>> | undefined;
   try {
-    const pdfjs = await import('pdfjs-dist');
-    const data = await blob.arrayBuffer();
-    const document_ = await pdfjs.getDocument({ data }).promise;
-    const page = await document_.getPage(1);
+    const { loadPdfJsDocument } = await import('@/state/pdfjs-document');
+    pdfDocument = await loadPdfJsDocument(blob);
+    const page = await pdfDocument.getPage(1);
     const viewport = page.getViewport({ scale: 1 });
     const scale = Math.min(1, 360 / Math.max(viewport.width, viewport.height));
     const scaled = page.getViewport({ scale: Math.max(scale, 0.15) });
@@ -193,6 +194,8 @@ async function pdfThumbnail(blob: Blob): Promise<string | undefined> {
     return canvas.toDataURL('image/jpeg', THUMBNAIL_QUALITY);
   } catch {
     return undefined;
+  } finally {
+    await pdfDocument?.destroy();
   }
 }
 
@@ -206,11 +209,11 @@ export class AttachmentThumbnails {
   async forFile(file: File | Blob, mimeType: string, name?: string): Promise<string | undefined> {
     const lowerName = (name ?? '').toLowerCase();
     if (isUserLibraryDicomFile(mimeType, lowerName)) {
-      const { createDicomThumbnail } = await import('@/features/library/DicomViewer');
+      const { createDicomThumbnail } = await import('@/features/library/dicom-thumbnail');
       return await createDicomThumbnail(file);
     }
     if (isUserLibraryVolumeFile(mimeType, lowerName)) {
-      const { createVolumeThumbnail } = await import('@/features/library/VolumeViewer');
+      const { createVolumeThumbnail } = await import('@/features/library/volume-thumbnail');
       return await createVolumeThumbnail(file, name ?? 'volume.nii');
     }
     const isHeic =

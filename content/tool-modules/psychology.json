@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.1",
-  "title": "Инструменты психологии и психодиагностики",
+  "version": "0.1.0-preview.2",
+  "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-08-18T00:00:00Z",
+  "builtAt": "2026-09-02T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.braverman-behavioral",
@@ -220,9 +220,58 @@
         "license": {
           "kind": "project-original",
           "notice": "Формулировки и подсчёт подготовлены MiniMed как образовательная адаптация; это не официальный бланк Бравермана и не клиническая шкала."
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
+          "sourceIds": ["minimed-braverman-educational-methodology"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.braverman-behavioral.dopamine",
+            "label": "Дофаминовый паттерн",
+            "unit": "баллы",
+            "scaleId": "dopamine",
+            "method": "assessment:minimed.assessment.braverman-behavioral"
+          },
+          {
+            "metricId": "minimed.assessment.braverman-behavioral.acetylcholine",
+            "label": "Ацетилхолиновый паттерн",
+            "unit": "баллы",
+            "scaleId": "acetylcholine",
+            "method": "assessment:minimed.assessment.braverman-behavioral"
+          },
+          {
+            "metricId": "minimed.assessment.braverman-behavioral.gaba",
+            "label": "ГАМК-паттерн",
+            "unit": "баллы",
+            "scaleId": "gaba",
+            "method": "assessment:minimed.assessment.braverman-behavioral"
+          },
+          {
+            "metricId": "minimed.assessment.braverman-behavioral.serotonin",
+            "label": "Серотониновый паттерн",
+            "unit": "баллы",
+            "scaleId": "serotonin",
+            "method": "assessment:minimed.assessment.braverman-behavioral"
+          }
+        ]
       },
-      "sources": []
+      "sources": [
+        {
+          "id": "minimed-braverman-educational-methodology",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Braverman behavioral profile — MiniMed educational adaptation note",
+          "moduleId": null,
+          "documentId": null,
+          "url": null,
+          "reviewedAt": "2026-08-18"
+        }
+      ]
     },
     {
       "id": "minimed.assessment.egogram",
@@ -448,9 +497,65 @@
         "license": {
           "kind": "project-original",
           "notice": "Формулировки и подсчёт подготовлены MiniMed как образовательная адаптация концепции эгограммы; это не коммерческий или валидированный бланк."
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
+          "sourceIds": ["minimed-egogram-educational-methodology"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.egogram.critical-parent",
+            "label": "Критический Родитель",
+            "unit": "баллы",
+            "scaleId": "critical-parent",
+            "method": "assessment:minimed.assessment.egogram"
+          },
+          {
+            "metricId": "minimed.assessment.egogram.nurturing-parent",
+            "label": "Заботливый Родитель",
+            "unit": "баллы",
+            "scaleId": "nurturing-parent",
+            "method": "assessment:minimed.assessment.egogram"
+          },
+          {
+            "metricId": "minimed.assessment.egogram.adult",
+            "label": "Взрослый",
+            "unit": "баллы",
+            "scaleId": "adult",
+            "method": "assessment:minimed.assessment.egogram"
+          },
+          {
+            "metricId": "minimed.assessment.egogram.free-child",
+            "label": "Свободный Ребёнок",
+            "unit": "баллы",
+            "scaleId": "free-child",
+            "method": "assessment:minimed.assessment.egogram"
+          },
+          {
+            "metricId": "minimed.assessment.egogram.adapted-child",
+            "label": "Адаптированный Ребёнок",
+            "unit": "баллы",
+            "scaleId": "adapted-child",
+            "method": "assessment:minimed.assessment.egogram"
+          }
+        ]
       },
-      "sources": []
+      "sources": [
+        {
+          "id": "minimed-egogram-educational-methodology",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Transactional analysis egogram — MiniMed educational adaptation note",
+          "moduleId": null,
+          "documentId": null,
+          "url": null,
+          "reviewedAt": "2026-08-18"
+        }
+      ]
     },
     {
       "id": "minimed.assessment.paei",
@@ -668,7 +773,45 @@
           "kind": "project-original",
           "notice": "Формулировки и подсчёт подготовлены MiniMed как образовательная адаптация; это не официальный Adizes Leadership Indicator Suite.",
           "sourceUrl": "https://www.adizes.com/alis"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
+          "sourceIds": ["paei-work-style-paei-work-style"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.paei.producer",
+            "label": "Производитель результата",
+            "unit": "баллы",
+            "scaleId": "producer",
+            "method": "assessment:minimed.assessment.paei"
+          },
+          {
+            "metricId": "minimed.assessment.paei.administrator",
+            "label": "Администратор",
+            "unit": "баллы",
+            "scaleId": "administrator",
+            "method": "assessment:minimed.assessment.paei"
+          },
+          {
+            "metricId": "minimed.assessment.paei.entrepreneur",
+            "label": "Предприниматель",
+            "unit": "баллы",
+            "scaleId": "entrepreneur",
+            "method": "assessment:minimed.assessment.paei"
+          },
+          {
+            "metricId": "minimed.assessment.paei.integrator",
+            "label": "Интегратор",
+            "unit": "баллы",
+            "scaleId": "integrator",
+            "method": "assessment:minimed.assessment.paei"
+          }
+        ]
       },
       "sources": [
         {
@@ -985,7 +1128,80 @@
           "kind": "project-original",
           "notice": "Образовательная адаптация для обсуждения командных ролей; не воспроизводит, не переводит и не модифицирует Belbin Self-Perception Inventory.",
           "sourceUrl": "https://www.belbin.com/about/copyright-and-trademarks"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
+          "sourceIds": ["team-role-profile-team-role-profile"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.team-roles.plant",
+            "label": "Генератор идей",
+            "unit": "баллы",
+            "scaleId": "plant",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.resource-investigator",
+            "label": "Исследователь возможностей",
+            "unit": "баллы",
+            "scaleId": "resource-investigator",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.coordinator",
+            "label": "Координатор",
+            "unit": "баллы",
+            "scaleId": "coordinator",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.shaper",
+            "label": "Драйвер",
+            "unit": "баллы",
+            "scaleId": "shaper",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.monitor-evaluator",
+            "label": "Аналитик",
+            "unit": "баллы",
+            "scaleId": "monitor-evaluator",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.teamworker",
+            "label": "Объединитель",
+            "unit": "баллы",
+            "scaleId": "teamworker",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.implementer",
+            "label": "Организатор исполнения",
+            "unit": "баллы",
+            "scaleId": "implementer",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.completer-finisher",
+            "label": "Контролёр завершения",
+            "unit": "баллы",
+            "scaleId": "completer-finisher",
+            "method": "assessment:minimed.assessment.team-roles"
+          },
+          {
+            "metricId": "minimed.assessment.team-roles.specialist",
+            "label": "Эксперт",
+            "unit": "баллы",
+            "scaleId": "specialist",
+            "method": "assessment:minimed.assessment.team-roles"
+          }
+        ]
       },
       "sources": [
         {
@@ -1188,7 +1404,31 @@
           "kind": "public-domain-derived",
           "notice": "Основано на public-domain item pool IPIP; русские формулировки являются адаптацией MiniMed.",
           "sourceUrl": "https://ipip.ori.org"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
+          "sourceIds": ["temperament-profile-temperament-profile"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.temperament.extraversion",
+            "label": "Экстраверсия",
+            "unit": "баллы",
+            "scaleId": "extraversion",
+            "method": "assessment:minimed.assessment.temperament"
+          },
+          {
+            "metricId": "minimed.assessment.temperament.emotional-stability",
+            "label": "Эмоциональная устойчивость",
+            "unit": "баллы",
+            "scaleId": "emotional-stability",
+            "method": "assessment:minimed.assessment.temperament"
+          }
+        ]
       },
       "sources": [
         {
@@ -1198,6 +1438,352 @@
           "title": "Тест на темперамент",
           "url": "https://ipip.ori.org",
           "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.shas",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "asthenic-state-shas",
+      "title": "Шкала астенического состояния (ШАС)",
+      "shortTitle": "Шкала ШАС",
+      "aliases": [
+        "ШАС",
+        "SHAS",
+        "астения",
+        "астеническое состояние",
+        "шкала Малковой",
+        "Малкова Чертова",
+        "Asthenic State Scale"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "asthenia",
+      "description": "Шкала Л. Д. Малковой в адаптации Т. Г. Чертовой: 30 утверждений для оценки выраженности астенического состояния. Оцените каждое утверждение применительно к тому, как вы чувствуете себя в настоящий момент.",
+      "estimatedMinutes": 5,
+      "audience": "Взрослые",
+      "definition": {
+        "id": "minimed.assessment.shas",
+        "slug": "asthenic-state-shas",
+        "title": "Шкала астенического состояния (ШАС)",
+        "shortTitle": "Шкала ШАС",
+        "aliases": [
+          "ШАС",
+          "SHAS",
+          "астения",
+          "астеническое состояние",
+          "шкала Малковой",
+          "Малкова Чертова",
+          "Asthenic State Scale"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "asthenia",
+        "description": "Шкала Л. Д. Малковой в адаптации Т. Г. Чертовой: 30 утверждений для оценки выраженности астенического состояния. Оцените каждое утверждение применительно к тому, как вы чувствуете себя в настоящий момент.",
+        "estimatedMinutes": 5,
+        "audience": "Взрослые",
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Нет, неверно"
+          },
+          {
+            "value": 2,
+            "label": "Пожалуй, так"
+          },
+          {
+            "value": 3,
+            "label": "Верно"
+          },
+          {
+            "value": 4,
+            "label": "Совершенно верно"
+          }
+        ],
+        "scales": [
+          {
+            "id": "shas-total",
+            "label": "Итоговый балл ШАС",
+            "shortLabel": "ШАС",
+            "description": "Прямая сумма 30 ответов по 1–4 балла, без обратных пунктов. Диапазон: 30–120 баллов. Градации ШАС: 30–50 — отсутствие астении; 51–75 — слабая; 76–100 — умеренная; 101–120 — выраженная астения."
+          }
+        ],
+        "questions": [
+          {
+            "id": "asthenic-state-shas-01",
+            "scaleId": "shas-total",
+            "prompt": "Я работаю с большим напряжением"
+          },
+          {
+            "id": "asthenic-state-shas-02",
+            "scaleId": "shas-total",
+            "prompt": "Мне трудно сосредоточиться на чем-либо"
+          },
+          {
+            "id": "asthenic-state-shas-03",
+            "scaleId": "shas-total",
+            "prompt": "Моя половая жизнь не удовлетворяет меня"
+          },
+          {
+            "id": "asthenic-state-shas-04",
+            "scaleId": "shas-total",
+            "prompt": "Ожидание нервирует меня"
+          },
+          {
+            "id": "asthenic-state-shas-05",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю мышечную слабость"
+          },
+          {
+            "id": "asthenic-state-shas-06",
+            "scaleId": "shas-total",
+            "prompt": "Мне не хочется ходить в кино или театр"
+          },
+          {
+            "id": "asthenic-state-shas-07",
+            "scaleId": "shas-total",
+            "prompt": "Я забывчив"
+          },
+          {
+            "id": "asthenic-state-shas-08",
+            "scaleId": "shas-total",
+            "prompt": "Я чувствую себя усталым"
+          },
+          {
+            "id": "asthenic-state-shas-09",
+            "scaleId": "shas-total",
+            "prompt": "Мои глаза устают при длительном чтении"
+          },
+          {
+            "id": "asthenic-state-shas-10",
+            "scaleId": "shas-total",
+            "prompt": "Мои руки дрожат"
+          },
+          {
+            "id": "asthenic-state-shas-11",
+            "scaleId": "shas-total",
+            "prompt": "У меня плохой аппетит"
+          },
+          {
+            "id": "asthenic-state-shas-12",
+            "scaleId": "shas-total",
+            "prompt": "Мне трудно быть на вечеринке или в шумной компании"
+          },
+          {
+            "id": "asthenic-state-shas-13",
+            "scaleId": "shas-total",
+            "prompt": "Я уже не так хорошо понимаю прочитанное"
+          },
+          {
+            "id": "asthenic-state-shas-14",
+            "scaleId": "shas-total",
+            "prompt": "Мои руки и ноги холодные"
+          },
+          {
+            "id": "asthenic-state-shas-15",
+            "scaleId": "shas-total",
+            "prompt": "Меня легко задеть"
+          },
+          {
+            "id": "asthenic-state-shas-16",
+            "scaleId": "shas-total",
+            "prompt": "У меня болит голова"
+          },
+          {
+            "id": "asthenic-state-shas-17",
+            "scaleId": "shas-total",
+            "prompt": "Я просыпаюсь утром усталым и не отдохнувшим"
+          },
+          {
+            "id": "asthenic-state-shas-18",
+            "scaleId": "shas-total",
+            "prompt": "У меня бывают головокружения"
+          },
+          {
+            "id": "asthenic-state-shas-19",
+            "scaleId": "shas-total",
+            "prompt": "У меня бывают подергивания мышц"
+          },
+          {
+            "id": "asthenic-state-shas-20",
+            "scaleId": "shas-total",
+            "prompt": "У меня шумит в ушах"
+          },
+          {
+            "id": "asthenic-state-shas-21",
+            "scaleId": "shas-total",
+            "prompt": "Меня беспокоят половые вопросы"
+          },
+          {
+            "id": "asthenic-state-shas-22",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю тяжесть в голове"
+          },
+          {
+            "id": "asthenic-state-shas-23",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю общую слабость"
+          },
+          {
+            "id": "asthenic-state-shas-24",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю боли в темени"
+          },
+          {
+            "id": "asthenic-state-shas-25",
+            "scaleId": "shas-total",
+            "prompt": "Жизнь для меня связана с напряжением"
+          },
+          {
+            "id": "asthenic-state-shas-26",
+            "scaleId": "shas-total",
+            "prompt": "Моя голова как бы стянута обручем"
+          },
+          {
+            "id": "asthenic-state-shas-27",
+            "scaleId": "shas-total",
+            "prompt": "Я легко просыпаюсь от шума"
+          },
+          {
+            "id": "asthenic-state-shas-28",
+            "scaleId": "shas-total",
+            "prompt": "Меня утомляют люди"
+          },
+          {
+            "id": "asthenic-state-shas-29",
+            "scaleId": "shas-total",
+            "prompt": "Когда я волнуюсь, то покрываюсь потом"
+          },
+          {
+            "id": "asthenic-state-shas-30",
+            "scaleId": "shas-total",
+            "prompt": "Мне не дают заснуть беспокойные мысли"
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 30,
+            "maxScore": 50,
+            "scaleId": "shas-total",
+            "headline": "Отсутствие астении по ШАС",
+            "message": "30–50 баллов: отсутствие астении по градации ШАС. Низкий балл не исключает другие причины слабости или утомляемости."
+          },
+          {
+            "minScore": 51,
+            "maxScore": 75,
+            "scaleId": "shas-total",
+            "headline": "Слабая астения по ШАС",
+            "message": "51–75 баллов: слабая астения по градации ШАС."
+          },
+          {
+            "minScore": 76,
+            "maxScore": 100,
+            "scaleId": "shas-total",
+            "headline": "Умеренная астения по ШАС",
+            "message": "76–100 баллов: умеренная астения по градации ШАС."
+          },
+          {
+            "minScore": 101,
+            "maxScore": 120,
+            "scaleId": "shas-total",
+            "headline": "Выраженная астения по ШАС",
+            "message": "101–120 баллов: выраженная астения по градации ШАС."
+          }
+        ],
+        "disclaimer": "ШАС оценивает выраженность астенических жалоб и не устанавливает медицинский или психиатрический диагноз. Результат следует рассматривать вместе с клиническими данными; при сохраняющейся слабости или утомляемости обсудите симптомы с врачом.",
+        "evidenceNote": "Шкала разработана Л. Д. Малковой и адаптирована Т. Г. Чертовой. Формулировки и ответы воспроизведены по приложению 1 к статье Шаброва и соавт. «Принципы диагностики астении» (2022, с. 60); ключ и градации — с. 59–60. Оценивается состояние в настоящий момент. Баллы и нормированный процент не являются вероятностью заболевания или популяционным процентилем.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "ШАС: Л. Д. Малкова, адаптация Т. Г. Чертовой. Текст бланка: Шабров А. В., Фоминых Ю. А., Успенский Ю. П., Наджафова К. Н. Принципы диагностики астении. Университетский терапевтический вестник. 2022;4(3):57–63. DOI: 10.56871/3052.2022.73.10.007. Публикация доступна по CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). В MiniMed изменена компоновка для интерактивного заполнения; формулировки и ключ сохранены.",
+          "sourceUrl": "https://ojs3.gpmu.org/index.php/Un-ther-journal/article/view/4125"
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_shas_total <= 50",
+              "verdict": {
+                "rangeId": "shas-absent",
+                "title": "Отсутствие астении по ШАС",
+                "explanation": "30–50 баллов: отсутствие астении по градации ШАС. Низкий балл не исключает другие причины слабости или утомляемости.",
+                "attentionLevel": "none",
+                "lowerBound": 30,
+                "upperBound": 50,
+                "sourceIds": ["shabrov-2022-shas"]
+              }
+            },
+            {
+              "when": "score_shas_total <= 75",
+              "verdict": {
+                "rangeId": "shas-mild",
+                "title": "Слабая астения по ШАС",
+                "explanation": "51–75 баллов: слабая астения по градации ШАС.",
+                "attentionLevel": "low",
+                "lowerBound": 51,
+                "upperBound": 75,
+                "sourceIds": ["shabrov-2022-shas"]
+              }
+            },
+            {
+              "when": "score_shas_total <= 100",
+              "verdict": {
+                "rangeId": "shas-moderate",
+                "title": "Умеренная астения по ШАС",
+                "explanation": "76–100 баллов: умеренная астения по градации ШАС.",
+                "attentionLevel": "moderate",
+                "lowerBound": 76,
+                "upperBound": 100,
+                "sourceIds": ["shabrov-2022-shas"]
+              }
+            },
+            {
+              "when": "score_shas_total >= 101",
+              "verdict": {
+                "rangeId": "shas-marked",
+                "title": "Выраженная астения по ШАС",
+                "explanation": "101–120 баллов: выраженная астения по градации ШАС.",
+                "attentionLevel": "high",
+                "lowerBound": 101,
+                "upperBound": 120,
+                "sourceIds": ["shabrov-2022-shas"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["shabrov-2022-shas"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.shas.shas-total",
+            "label": "Итоговый балл ШАС",
+            "unit": "баллы",
+            "scaleId": "shas-total",
+            "method": "assessment:minimed.assessment.shas"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "shabrov-2022-shas",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Шабров и соавт. Принципы диагностики астении (2022): ШАС, ключ и градации, с. 59–60; приложение 1, с. 60",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://ojs3.gpmu.org/index.php/Un-ther-journal/article/download/4125/4063#page=4",
+          "reviewedAt": "2026-09-02"
+        },
+        {
+          "id": "psytests-shas-context",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Psytests: Шкала астенического состояния (ШАС), авторство и описание методики",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://psytests.org/depr/shas.html",
+          "reviewedAt": "2026-09-02"
         }
       ]
     }

@@ -1,0 +1,11 @@
+[
+  { "file": "doogee-img2.jpeg", "ecg_id": 11209, "labels": ["NORM", "CD"] },
+  { "file": "iphone-img2.jpeg", "ecg_id": 11209, "labels": ["NORM", "CD"] },
+  { "file": "samsung-img2.jpeg", "ecg_id": 11209, "labels": ["NORM", "CD"] },
+  { "file": "doogee-img3.jpeg", "ecg_id": 14009, "labels": ["CD"] },
+  { "file": "iphone-img3.jpeg", "ecg_id": 14009, "labels": ["CD"] },
+  { "file": "samsung-img3.jpeg", "ecg_id": 14009, "labels": ["CD"] },
+  { "file": "doogee-img6.jpeg", "ecg_id": 2926, "labels": ["NORM"] },
+  { "file": "iphone-img6.jpeg", "ecg_id": 2926, "labels": ["NORM"] },
+  { "file": "samsung-img6.jpeg", "ecg_id": 2926, "labels": ["NORM"] }
+]

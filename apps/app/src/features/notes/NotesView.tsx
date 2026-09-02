@@ -1,6 +1,7 @@
 import { TextField } from '@kobalte/core/text-field';
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import {
+  createDeferred,
   createEffect,
   createMemo,
   createSignal,
@@ -12,14 +13,22 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import {
+  AppContextMenu,
+  type AppContextMenuAction,
+  requestContextMenu,
+} from '@/components/AppContextMenu';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { NativeDateTimeField } from '@/components/NativeDateTimeField';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
+import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { NoteAttachedResults } from '@/features/notes/NoteAttachedResults';
 import {
   AttachmentViewerDialog,
@@ -28,7 +37,15 @@ import {
 } from '@/features/notes/NoteAttachmentViewer';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
 import { type EditorFileAttachment, NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
-import { notesPath } from '@/features/notes/notes-routing';
+import { NoteTemplatesCatalog } from '@/features/notes/NoteTemplatesCatalog';
+import {
+  notesNewPatientPath,
+  notesPath,
+  notesPatientsPath,
+  notesTemplatesPath,
+  noteTemplatePath,
+} from '@/features/notes/notes-routing';
+import { type PatientRoute, PatientWorkspace } from '@/features/notes/PatientWorkspace';
 import { useNotesRoute } from '@/features/notes/use-notes-route';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -71,7 +88,10 @@ import {
   setNoteReminder,
   updatePatientCard,
   updatePatientNote,
+  updatePatientNoteCategories,
+  updatePatientNoteTitle,
 } from '@/state/patient-notes';
+import { installPatientVaultLifecycle } from '@/state/patient-vault';
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 import { attachmentViewerKind } from '@/state/thumbnails';
 
@@ -116,6 +136,51 @@ function formatReminderDate(reminder: NoteReminder): string {
           minute: '2-digit',
         },
   ).format(date);
+}
+
+function parseNoteCategories(value: string): readonly string[] {
+  return [
+    ...new Set(
+      value
+        .split(/[\s,;]+/u)
+        .map((category) => category.trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function NoteCategoryLabel(props: { readonly category: string }): JSX.Element {
+  const [overflowDistance, setOverflowDistance] = createSignal(0);
+  let label: HTMLSpanElement | undefined;
+  let text: HTMLSpanElement | undefined;
+
+  onMount(() => {
+    if (!label || !text) return;
+    const measure = (): void => {
+      setOverflowDistance(Math.max(0, Math.ceil(text.scrollWidth - label.clientWidth)));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(label);
+    observer.observe(text);
+    const frame = requestAnimationFrame(measure);
+    onCleanup(() => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    });
+  });
+
+  return (
+    <span class="patient-note-form__category-label" title={props.category} ref={label}>
+      <span
+        class="patient-note-form__category-label-text"
+        classList={{ 'patient-note-form__category-label-text--marquee': overflowDistance() > 1 }}
+        style={{ '--patient-note-category-shift': `${String(overflowDistance())}px` }}
+        ref={text}
+      >
+        {props.category}
+      </span>
+    </span>
+  );
 }
 
 function composeDueAt(
@@ -297,16 +362,19 @@ export function NotesView(props: {
 }): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
+  let cardTitleValue = '';
+  let recordTitleValue = '';
   const notesRoute = useNotesRoute({
     onHashChange: () => {
       commitEditor();
-      setEditingCard(false);
+      setEditingCardTitle(false);
       setReminderNoteId(null);
       setPendingImages([]);
       setImageError('');
       setDraftRecovered(false);
       setShowPreviousRevision(false);
       setRelatedDocumentsLoading(false);
+      setEditingRecordTitle(false);
     },
   });
   const route = notesRoute.route;
@@ -315,16 +383,43 @@ export function NotesView(props: {
   const [floatingControlsHost, setFloatingControlsHost] = createSignal<HTMLElement | undefined>(
     undefined,
   );
+  const createMenuActions = (): readonly AppContextMenuAction[] => [
+    {
+      id: 'note-card',
+      label: 'Обычная заметка',
+      icon: 'notes',
+      onSelect: () => setCreating(true),
+    },
+    {
+      id: 'patient-profile',
+      label: 'Карточка пациента',
+      icon: 'lock',
+      onSelect: () => navigate(notesNewPatientPath()),
+    },
+    {
+      id: 'note-template',
+      label: 'Шаблон',
+      icon: 'file-plus',
+      onSelect: () => navigate(notesTemplatesPath(true)),
+    },
+  ];
   onMount(() => {
     setFloatingControlsHost(document.getElementById('app-floating-controls') ?? undefined);
+    const cleanupPatientVaultLifecycle = installPatientVaultLifecycle();
+    onCleanup(cleanupPatientVaultLifecycle);
   });
-  const [editingCard, setEditingCard] = createSignal(false);
   const [deleteTarget, setDeleteTarget] = createSignal<DeleteTarget | null>(null);
   const [reminderNoteId, setReminderNoteId] = createSignal<string | null>(null);
   const [cardTitleDraft, setCardTitleDraft] = createSignal('');
-  const [cardSummaryDraft, setCardSummaryDraft] = createSignal('');
+  const [cardTitleEditInitial, setCardTitleEditInitial] = createSignal('');
+  const [editingCardTitle, setEditingCardTitle] = createSignal(false);
   const [notesSearchQuery, setNotesSearchQuery] = createSignal('');
+  const [recordTitleDraft, setRecordTitleDraft] = createSignal('');
+  const [recordTitleEditInitial, setRecordTitleEditInitial] = createSignal('');
+  const [editingRecordTitle, setEditingRecordTitle] = createSignal(false);
   const [noteDraft, setNoteDraft] = createSignal('');
+  const [noteCategories, setNoteCategories] = createSignal<readonly string[]>([]);
+  const [noteCategoryInput, setNoteCategoryInput] = createSignal('');
   const [reminderDate, setReminderDate] = createSignal('');
   const [reminderTime, setReminderTime] = createSignal('');
   const [notificationMessage, setNotificationMessage] = createSignal('');
@@ -346,6 +441,21 @@ export function NotesView(props: {
   const [clock, setClock] = createSignal(Date.now());
   let editorKey = '';
   let editorReadyKey = '';
+
+  const setNoteCategoriesDraft = (value: string): void => {
+    setNoteCategories(parseNoteCategories(value));
+    setNoteCategoryInput('');
+  };
+  const noteCategoriesValue = (): readonly string[] =>
+    parseNoteCategories([...noteCategories(), noteCategoryInput()].join(' '));
+  const noteCategoriesDraftValue = (): string => noteCategoriesValue().join(', ');
+  const handleNoteCategoriesInput = (value: string): string => {
+    const parts = value.split(/[\s,;]+/u);
+    const input = parts.pop() ?? '';
+    setNoteCategories((current) => parseNoteCategories([...current, ...parts].join(' ')));
+    setNoteCategoryInput(input);
+    return input;
+  };
 
   const refresh = (): void => {
     setSnapshot(loadPatientNotes());
@@ -369,18 +479,21 @@ export function NotesView(props: {
   let clockTimer: ReturnType<typeof setInterval> | undefined;
   onMount(() => {
     refresh();
-    refreshDocuments();
-    void hydratePatientNotesFromIndexedDb()
-      .catch(() => console.warn('Не удалось восстановить заметки из IndexedDB.'))
-      .finally(() => {
-        injectColleagueNote();
-        refresh();
-      });
+    const initialDataFrame = requestAnimationFrame(() => {
+      refreshDocuments();
+      void hydratePatientNotesFromIndexedDb()
+        .catch(() => console.warn('Не удалось восстановить заметки из IndexedDB.'))
+        .finally(() => {
+          injectColleagueNote();
+          refresh();
+        });
+    });
     window.addEventListener(PATIENT_NOTES_EVENT, refresh);
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocuments);
     window.addEventListener(NOTE_IMAGES_EVENT, refreshImages);
     window.addEventListener(NOTE_FILES_EVENT, refreshImages);
     clockTimer = setInterval(() => setClock(Date.now()), 30_000);
+    onCleanup(() => cancelAnimationFrame(initialDataFrame));
   });
   onCleanup(() => {
     window.removeEventListener(PATIENT_NOTES_EVENT, refresh);
@@ -392,7 +505,9 @@ export function NotesView(props: {
 
   const routeCardId = (): string | null => {
     const current = route();
-    return current.kind === 'index' ? null : current.cardId;
+    return current.kind === 'card' || current.kind === 'new-record' || current.kind === 'record'
+      ? current.cardId
+      : null;
   };
   const activeCard = (): PatientCard | null =>
     snapshot().cards.find((card) => card.id === routeCardId()) ?? null;
@@ -436,6 +551,9 @@ export function NotesView(props: {
     }
     return grouped;
   });
+  const documentsById = createMemo(
+    () => new Map(documents().map((document) => [document.id, document] as const)),
+  );
   const notesForCard = (cardId: string): readonly PatientNote[] => notesByCard().get(cardId) ?? [];
   const recordFilesForActive = (): readonly NoteFile[] => {
     const id = activeNote()?.id;
@@ -528,7 +646,7 @@ export function NotesView(props: {
     void loadNoteFilesForNotes(ids).then(setRecordFiles);
   });
   const documentTitle = (documentId: string): string | null =>
-    documents().find((document) => document.id === documentId)?.title ?? null;
+    documentsById().get(documentId)?.title ?? null;
   const relatedDocuments = (
     note: PatientNote,
   ): readonly { readonly id: string; readonly title: string }[] =>
@@ -552,9 +670,10 @@ export function NotesView(props: {
       return right.updatedAt.localeCompare(left.updatedAt);
     });
   };
+  const deferredNotesSearchQuery = createDeferred(notesSearchQuery, { timeoutMs: 120 });
   const visibleCards = createMemo(() => {
     const cards = sortedCards();
-    const query = notesSearchQuery().trim();
+    const query = deferredNotesSearchQuery().trim();
     if (!query) return cards;
     const matchingCardIds = new Set(
       searchPatientNotes(query, Number.MAX_SAFE_INTEGER).map((match) => match.card.id),
@@ -563,6 +682,23 @@ export function NotesView(props: {
   });
 
   const navigate = notesRoute.navigate;
+  const patientRoute = createMemo<PatientRoute | null>(() => {
+    const current = route();
+    return current.kind === 'patients' ||
+      current.kind === 'new-patient' ||
+      current.kind === 'patient' ||
+      current.kind === 'patient-dynamics'
+      ? current
+      : null;
+  });
+  const activeTemplateId = (): string | null => {
+    const current = route();
+    return current.kind === 'template' ? current.documentId : null;
+  };
+  const shouldCreateTemplate = (): boolean => {
+    const current = route();
+    return current.kind === 'templates' && current.create === true;
+  };
   const confirmDelete = (): void => {
     const target = deleteTarget();
     if (!target) return;
@@ -571,10 +707,63 @@ export function NotesView(props: {
     if (target.returnPath) navigate(target.returnPath);
     setDeleteTarget(null);
   };
-  const openCardEditor = (card: PatientCard): void => {
+  const startCardTitleEdit = (card: PatientCard): void => {
     setCardTitleDraft(card.title);
-    setCardSummaryDraft(card.summary);
-    setEditingCard(true);
+    setCardTitleEditInitial(card.title);
+    cardTitleValue = card.title;
+    setEditingCardTitle(true);
+  };
+  const cancelCardTitleEdit = (): void => {
+    setCardTitleDraft(cardTitleEditInitial());
+    cardTitleValue = cardTitleEditInitial();
+    setEditingCardTitle(false);
+  };
+  const saveCardTitle = (): void => {
+    const card = activeCard();
+    const title = cardTitleValue.trim();
+    if (card && title) updatePatientCard(card.id, { title });
+    setCardTitleDraft(title || card?.title || '');
+    setEditingCardTitle(false);
+  };
+  const handleCardTitleKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      saveCardTitle();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelCardTitleEdit();
+    }
+  };
+  const startRecordTitleEdit = (): void => {
+    const title = activeNote()?.title ?? recordTitleDraft();
+    setRecordTitleEditInitial(title);
+    setRecordTitleDraft(title);
+    recordTitleValue = title;
+    setEditingRecordTitle(true);
+  };
+  const cancelRecordTitleEdit = (): void => {
+    setRecordTitleDraft(recordTitleEditInitial());
+    recordTitleValue = recordTitleEditInitial();
+    setEditingRecordTitle(false);
+  };
+  const saveRecordTitle = (): void => {
+    const title = recordTitleValue.trim();
+    const current = route();
+    if (current.kind === 'record') {
+      const note = activeNote();
+      if (note) updatePatientNoteTitle(note.id, title);
+    }
+    setRecordTitleDraft(title);
+    setEditingRecordTitle(false);
+  };
+  const handleRecordTitleKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      saveRecordTitle();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelRecordTitleEdit();
+    }
   };
   const openReminder = (note: PatientNote): void => {
     setReminderNoteId(note.id);
@@ -630,6 +819,7 @@ export function NotesView(props: {
     const current = route();
     if (current.kind !== 'new-record' && current.kind !== 'record') return;
     const card = activeCard();
+    const title = (editingRecordTitle() ? recordTitleValue : recordTitleDraft()).trim();
     const text = noteDraft().trim();
     const reminder = reminderValue();
     const files = pendingImages();
@@ -641,6 +831,11 @@ export function NotesView(props: {
       if (text && note.text !== text) {
         updatePatientNote(note.id, text);
         deferEnrichment(note.id, props.core, () => setRelatedDocumentsLoading(false));
+      }
+      if (note.title !== title) updatePatientNoteTitle(note.id, title);
+      const categories = noteCategoriesValue();
+      if (note.categories.join('\u0000') !== categories.join('\u0000')) {
+        updatePatientNoteCategories(note.id, categories);
       }
       if (
         reminder &&
@@ -662,7 +857,11 @@ export function NotesView(props: {
     }
 
     if (!text) return;
-    const next = addPatientNote(card.id, text);
+    const categories = noteCategoriesValue();
+    const next = addPatientNote(card.id, text, null, {
+      title,
+      ...(categories.length > 0 ? { categories } : {}),
+    });
     const created = next.notes.at(-1);
     if (!created) return;
     if (reminder) setNoteReminder(created.id, reminder.dueAt, reminder.allDay);
@@ -689,10 +888,17 @@ export function NotesView(props: {
       editorKey = key;
       const draft = loadPatientNoteDraft(key);
       const useDraft = Boolean(
-        draft && (draft.text.trim() || draft.reminderDate || draft.reminderTime),
+        draft &&
+          ((draft.title ?? '').trim() ||
+            draft.text.trim() ||
+            (draft.categories ?? '').trim() ||
+            draft.reminderDate ||
+            draft.reminderTime),
       );
       if (draft && !useDraft) removePatientNoteDraft(key);
+      setRecordTitleDraft(useDraft && draft ? (draft.title ?? '') : '');
       setNoteDraft(useDraft && draft ? draft.text : '');
+      setNoteCategoriesDraft(useDraft && draft ? (draft.categories ?? '') : '');
       setReminderDate(useDraft && draft ? draft.reminderDate : '');
       setReminderTime(useDraft && draft ? draft.reminderTime : '');
       setNotificationMessage('');
@@ -710,14 +916,21 @@ export function NotesView(props: {
       editorKey = note.id;
       const draft = loadPatientNoteDraft(note.id);
       const reminder = reminderInputValues(note.reminder);
+      const currentCategories = note.categories.join(', ');
       const useDraft = Boolean(
-        draft?.text.trim() &&
-          (draft.text !== note.text ||
+        draft &&
+          ((draft.title ?? '') !== note.title ||
+            draft.text !== note.text ||
+            (draft.categories ?? currentCategories) !== currentCategories ||
             draft.reminderDate !== reminder.date ||
             draft.reminderTime !== reminder.time),
       );
       if (draft && !useDraft) removePatientNoteDraft(note.id);
+      setRecordTitleDraft(useDraft && draft ? (draft.title ?? '') : note.title);
       setNoteDraft(useDraft && draft ? draft.text : note.text);
+      setNoteCategoriesDraft(
+        useDraft && draft ? (draft.categories ?? currentCategories) : currentCategories,
+      );
       setReminderDate(useDraft && draft ? draft.reminderDate : reminder.date);
       setReminderTime(useDraft && draft ? draft.reminderTime : reminder.time);
       setNotificationMessage('');
@@ -745,7 +958,9 @@ export function NotesView(props: {
     if (!noteId || editorReadyKey !== noteId) return;
     savePatientNoteDraft({
       noteId,
+      title: recordTitleDraft(),
       text: noteDraft(),
+      categories: noteCategoriesDraftValue(),
       reminderDate: reminderDate(),
       reminderTime: reminderTime(),
       savedAt: new Date().toISOString(),
@@ -753,105 +968,152 @@ export function NotesView(props: {
   });
 
   return (
-    <section class="patient-notes-view page-surface page-grain" aria-label="Личные заметки">
+    <section
+      class="patient-notes-view page-surface page-grain"
+      classList={{ 'patient-notes-view--document-reader': activeTemplateId() !== null }}
+      aria-label="Личные заметки"
+    >
+      <Show when={props.active && patientRoute()}>
+        {(current) => <PatientWorkspace route={current()} onNavigate={navigate} />}
+      </Show>
       <Show when={props.active && route().kind === 'index'}>
-        <header class="patient-notes-heading subpage-heading">
-          <div>
-            <p class="archive-kicker">Личный слой, только на этом устройстве</p>
-            <div class="tool-page-title">
-              <AppGlyph name="notes" />
-              <Heading depth={1}>Заметки</Heading>
-            </div>
-          </div>
-        </header>
+        <Page
+          class="patient-notes-heading"
+          icon={<AppGlyph name="notes" class="page__icon-glyph" />}
+          title={<Heading depth={1}>Заметки</Heading>}
+          description="Личный слой, только на этом устройстве."
+        />
         <SearchField
           class="notes-search"
           id="notes-search"
           value={notesSearchQuery()}
           onInput={setNotesSearchQuery}
+          onClear={() => setNotesSearchQuery('')}
           label="Поиск по заметкам"
           hideLabel
           placeholder="Поиск по заметкам"
         />
 
-        <Show
-          when={visibleCards().length > 0}
-          fallback={
-            <p class="patient-notes-empty paper-card">
-              {notesSearchQuery().trim()
-                ? 'По запросу ничего не найдено.'
-                : 'Пока нет карточек. Создайте первую, чтобы вести записи по пациенту.'}
-            </p>
-          }
-        >
-          <div class="patient-card-list">
-            <For each={visibleCards()}>
-              {(card) => {
-                const notes = () => notesForCard(card.id);
-                const due = () =>
-                  notes().some((note) => note.reminder && isReminderDue(note.reminder));
-                return (
-                  <article
-                    class="patient-card paper-card"
-                    classList={{ 'has-due-reminder': due() }}
+        <div class="patient-card-list">
+          <article class="patient-notes-protected-card paper-card">
+            <button
+              type="button"
+              class="patient-card-open"
+              onClick={() => navigate(notesPatientsPath())}
+            >
+              <span class="patient-card-title">Пациенты</span>
+              <p>Карточки, осмотры и продольная динамика в отдельном локальном контуре</p>
+              <small>Открыть раздел</small>
+            </button>
+          </article>
+          <article class="patient-notes-template-card paper-card">
+            <button
+              type="button"
+              class="patient-card-open"
+              onClick={() => navigate(notesTemplatesPath())}
+            >
+              <span class="patient-card-title">Ваши шаблоны</span>
+              <p>Бланки осмотров, отчётов и других рабочих записей</p>
+              <small>Открыть каталог шаблонов</small>
+            </button>
+          </article>
+          <For each={visibleCards()}>
+            {(card) => {
+              const notes = () => notesForCard(card.id);
+              const due = () =>
+                notes().some((note) => note.reminder && isReminderDue(note.reminder));
+              return (
+                <article class="patient-card paper-card" classList={{ 'has-due-reminder': due() }}>
+                  <button
+                    type="button"
+                    class="patient-card-open"
+                    onClick={() => navigate(notesPath(card.id))}
                   >
+                    <span class="patient-card-title">{card.title}</span>
+                    <Show when={card.summary}>
+                      <p>{card.summary}</p>
+                    </Show>
+                    <small>
+                      {notes().length} зап.
+                      <br />
+                      {formatDate(card.updatedAt)}
+                    </small>
+                  </button>
+                  <div class="patient-card-corner-actions">
                     <button
                       type="button"
-                      class="patient-card-open"
-                      onClick={() => navigate(notesPath(card.id))}
+                      class="patient-card-icon-action danger"
+                      aria-label={`Удалить карточку «${card.title}»`}
+                      title="Удалить карточку"
+                      onClick={() =>
+                        setDeleteTarget({
+                          kind: 'card',
+                          id: card.id,
+                          title: card.title,
+                          returnPath: null,
+                        })
+                      }
                     >
-                      <span class="patient-card-title">{card.title}</span>
-                      <Show when={card.summary}>
-                        <p>{card.summary}</p>
-                      </Show>
-                      <small>
-                        {notes().length} зап.
-                        <br />
-                        {formatDate(card.updatedAt)}
-                      </small>
+                      <AppGlyph name="trash" class="patient-card-icon-action__icon" />
                     </button>
-                    <div class="patient-card-corner-actions">
-                      <button
-                        type="button"
-                        class="patient-card-icon-action danger"
-                        aria-label={`Удалить карточку «${card.title}»`}
-                        title="Удалить карточку"
-                        onClick={() =>
-                          setDeleteTarget({
-                            kind: 'card',
-                            id: card.id,
-                            title: card.title,
-                            returnPath: null,
-                          })
-                        }
-                      >
-                        <AppGlyph name="trash" class="patient-card-icon-action__icon" />
-                      </button>
-                    </div>
-                  </article>
-                );
-              }}
-            </For>
-          </div>
+                  </div>
+                </article>
+              );
+            }}
+          </For>
+        </div>
+        <Show when={visibleCards().length === 0}>
+          <p class="patient-notes-empty paper-card">
+            {notesSearchQuery().trim()
+              ? 'По запросу ничего не найдено.'
+              : 'Пока нет карточек. Создайте первую, чтобы вести записи по пациенту.'}
+          </p>
         </Show>
 
         <Show when={floatingControlsHost()}>
           {(host) => (
             <Portal mount={host()}>
-              <button
-                class="patient-notes-fab floating-window-controls__item"
-                type="button"
-                aria-label="Создать карточку"
-                title="Новая карточка"
-                onClick={() => setCreating(true)}
+              <AppContextMenu
+                class="patient-notes-create-menu"
+                actions={createMenuActions()}
+                hideButton
               >
-                <span class="patient-notes-fab__icon" aria-hidden="true">
-                  +
-                </span>
-              </button>
+                <button
+                  class="patient-notes-fab floating-window-controls__item"
+                  type="button"
+                  aria-label="Добавить"
+                  title="Добавить"
+                  onClick={requestContextMenu}
+                >
+                  <span class="patient-notes-fab__icon" aria-hidden="true">
+                    +
+                  </span>
+                </button>
+              </AppContextMenu>
             </Portal>
           )}
         </Show>
+      </Show>
+
+      <Show when={route().kind === 'templates'}>
+        <NoteTemplatesCatalog
+          onBack={() => navigate(notesPath())}
+          onOpenTemplate={(documentId) => navigate(noteTemplatePath(documentId))}
+          createOnMount={shouldCreateTemplate()}
+        />
+      </Show>
+
+      <Show when={activeTemplateId()} keyed>
+        {(documentId) => (
+          <UserDocumentReader
+            documentId={documentId}
+            onNavigate={navigate}
+            origin={{
+              catalogLabel: 'Ваши шаблоны',
+              catalogHref: notesTemplatesPath(),
+            }}
+          />
+        )}
       </Show>
 
       <Show when={route().kind === 'card'}>
@@ -868,50 +1130,91 @@ export function NotesView(props: {
         >
           {(card) => (
             <>
-              <header class="notes-route-heading">
-                <button
-                  class="knowledge-back-button"
-                  type="button"
-                  aria-label="Назад к заметкам"
-                  onClick={() => navigate(notesPath())}
-                >
-                  <AppGlyph name="arrow-left" />
-                </button>
-                <div>
-                  <Heading depth={2}>{card().title}</Heading>
-                  <Show when={card().summary}>
-                    <p class="notes-route-summary">{card().summary}</p>
-                  </Show>
-                  <p>Обновлено {formatDate(card().updatedAt)}</p>
-                </div>
-                <div class="patient-note-actions">
+              <Page
+                class="notes-route-heading"
+                navigation={
                   <button
+                    class="knowledge-back-button"
                     type="button"
-                    class="patient-card-icon-action"
-                    aria-label="Изменить карточку"
-                    title="Изменить карточку"
-                    onClick={() => openCardEditor(card())}
+                    aria-label="Назад к заметкам"
+                    onClick={() => navigate(notesPath())}
                   >
-                    <AppGlyph name="edit" class="patient-card-icon-action__icon" />
+                    <AppGlyph name="arrow-left" />
                   </button>
-                  <button
-                    type="button"
-                    class="patient-card-icon-action danger"
-                    aria-label="Удалить карточку"
-                    title="Удалить карточку"
-                    onClick={() =>
-                      setDeleteTarget({
-                        kind: 'card',
-                        id: card().id,
-                        title: card().title,
-                        returnPath: notesPath(),
-                      })
-                    }
-                  >
-                    <AppGlyph name="trash" class="patient-card-icon-action__icon" />
-                  </button>
-                </div>
-              </header>
+                }
+                breadcrumbs={
+                  <AppBreadcrumbs
+                    items={[
+                      { label: 'Заметки', href: notesPath() },
+                      {
+                        label: card().title,
+                        ...(editingCardTitle()
+                          ? {
+                              currentContent: (
+                                // biome-ignore lint/a11y/useSemanticElements: contenteditable keeps the breadcrumb title inline.
+                                <span
+                                  class="notes-route-heading__breadcrumb-editor"
+                                  contentEditable
+                                  role="textbox"
+                                  aria-label="Название карточки"
+                                  aria-multiline="false"
+                                  tabIndex={0}
+                                  data-placeholder="Название карточки"
+                                  ref={(element) => {
+                                    queueMicrotask(() => element.focus());
+                                  }}
+                                  onInput={(event) => {
+                                    cardTitleValue = event.currentTarget.textContent ?? '';
+                                  }}
+                                  onBlur={saveCardTitle}
+                                  onKeyDown={handleCardTitleKeyDown}
+                                >
+                                  {cardTitleDraft()}
+                                </span>
+                              ),
+                            }
+                          : {
+                              onCurrentClick: () => startCardTitleEdit(card()),
+                              currentAriaLabel: `Изменить название карточки «${card().title}»`,
+                            }),
+                      },
+                    ]}
+                    onNavigate={(href) => {
+                      window.location.hash = href;
+                    }}
+                  />
+                }
+                actions={
+                  <>
+                    <button
+                      type="button"
+                      class="patient-card-icon-action"
+                      aria-label="Изменить название карточки"
+                      title="Изменить название карточки"
+                      disabled={editingCardTitle()}
+                      onClick={() => startCardTitleEdit(card())}
+                    >
+                      <AppGlyph name="edit" class="patient-card-icon-action__icon" />
+                    </button>
+                    <button
+                      type="button"
+                      class="patient-card-icon-action danger"
+                      aria-label="Удалить карточку"
+                      title="Удалить карточку"
+                      onClick={() =>
+                        setDeleteTarget({
+                          kind: 'card',
+                          id: card().id,
+                          title: card().title,
+                          returnPath: notesPath(),
+                        })
+                      }
+                    >
+                      <AppGlyph name="trash" class="patient-card-icon-action__icon" />
+                    </button>
+                  </>
+                }
+              />
               <div class="patient-records-toolbar">
                 <h2>Записи</h2>
                 <button type="button" onClick={() => navigate(notesPath(card().id, 'new'))}>
@@ -929,13 +1232,16 @@ export function NotesView(props: {
                         <button
                           type="button"
                           class="patient-note-record__open"
-                          aria-label={`Открыть запись от ${formatDate(note.createdAt)}`}
+                          aria-label={`Открыть запись${note.title ? ` «${note.title}»` : ''} от ${formatDate(note.createdAt)}`}
                           onClick={() => navigate(notesPath(card().id, note.id))}
                         />
                         <div class="patient-note-record__content">
                           <small class="patient-note-record__date">
                             {formatDate(note.createdAt)}
                           </small>
+                          <Show when={note.title}>
+                            <strong class="patient-note-record__title">{note.title}</strong>
+                          </Show>
                           <NoteAttachedResults
                             results={note.attachedResults ?? []}
                             variant="list"
@@ -1022,80 +1328,132 @@ export function NotesView(props: {
             const note = activeNote;
             return (
               <>
-                <header class="notes-route-heading">
-                  <button
-                    class="notes-route-heading__back knowledge-back-button"
-                    type="button"
-                    aria-label="Назад к записям"
-                    disabled={viewingPreviousRevision()}
-                    onClick={() => navigate(notesPath(card().id))}
-                  >
-                    <AppGlyph name="arrow-left" />
-                  </button>
-                  <div>
-                    <p class="notes-route-heading__eyebrow">
-                      {editing() ? 'Редактировать запись' : 'Новая запись'}
-                    </p>
-                    <Heading depth={3} class="notes-route-heading__title">
-                      {card().title}
-                    </Heading>
-                  </div>
-                  <Show when={note()}>
-                    {(currentNote) => (
-                      <div class="notes-route-heading__actions">
-                        <button
-                          class="notes-route-heading__previous patient-card-icon-action"
-                          classList={{
-                            'notes-route-heading__previous--active': viewingPreviousRevision(),
-                          }}
-                          type="button"
-                          aria-label={
-                            viewingPreviousRevision()
-                              ? 'Скрыть предыдущую редакцию'
-                              : 'Показать предыдущую редакцию'
-                          }
-                          aria-expanded={viewingPreviousRevision()}
-                          title={
-                            viewingPreviousRevision()
-                              ? 'Скрыть предыдущую редакцию'
-                              : 'Предыдущая редакция'
-                          }
-                          disabled={!previousRevisionDiffers()}
-                          onClick={() => setShowPreviousRevision((visible) => !visible)}
-                        >
-                          <AppGlyph name="share-fat" class="notes-route-heading__previous-icon" />
-                        </button>
-                        <button
-                          class="notes-route-heading__delete patient-record-delete patient-card-icon-action danger"
-                          type="button"
-                          aria-label="Удалить запись"
-                          title="Удалить запись"
-                          disabled={viewingPreviousRevision()}
-                          onClick={() =>
-                            setDeleteTarget({
-                              kind: 'note',
-                              id: currentNote().id,
-                              title: currentNote().text.slice(0, 80),
-                              returnPath: notesPath(card().id),
-                            })
-                          }
-                        >
-                          <AppGlyph name="trash" class="patient-card-icon-action__icon" />
-                        </button>
-                      </div>
-                    )}
-                  </Show>
-                </header>
-                <Show when={note()}>
-                  {(currentNote) => (
-                    <div class="patient-note-categories notes-route-categories">
-                      <span class="patient-note-categories-label">Теги:</span>
-                      <For each={currentNote().categories}>
-                        {(category) => <span>{category}</span>}
-                      </For>
-                    </div>
-                  )}
-                </Show>
+                <Page
+                  class="notes-route-heading"
+                  navigation={
+                    <button
+                      class="notes-route-heading__back knowledge-back-button"
+                      type="button"
+                      aria-label="Назад к записям"
+                      disabled={viewingPreviousRevision()}
+                      onClick={() => navigate(notesPath(card().id))}
+                    >
+                      <AppGlyph name="arrow-left" />
+                    </button>
+                  }
+                  breadcrumbs={
+                    <AppBreadcrumbs
+                      items={[
+                        { label: 'Заметки', href: notesPath() },
+                        { label: card().title, href: notesPath(card().id) },
+                        {
+                          label: recordTitleDraft().trim() || 'Новая запись',
+                          ...(editingRecordTitle()
+                            ? {
+                                currentContent: (
+                                  // biome-ignore lint/a11y/useSemanticElements: contenteditable keeps the breadcrumb title inline.
+                                  <span
+                                    class="notes-route-heading__breadcrumb-editor"
+                                    contentEditable
+                                    role="textbox"
+                                    aria-label="Название записи"
+                                    aria-multiline="false"
+                                    tabIndex={0}
+                                    data-placeholder="Название записи"
+                                    ref={(element) => {
+                                      queueMicrotask(() => element.focus());
+                                    }}
+                                    onInput={(event) => {
+                                      recordTitleValue = event.currentTarget.textContent ?? '';
+                                    }}
+                                    onBlur={saveRecordTitle}
+                                    onKeyDown={handleRecordTitleKeyDown}
+                                  >
+                                    {recordTitleDraft()}
+                                  </span>
+                                ),
+                              }
+                            : viewingPreviousRevision()
+                              ? {}
+                              : {
+                                  onCurrentClick: startRecordTitleEdit,
+                                  currentAriaLabel: recordTitleDraft().trim()
+                                    ? `Изменить название записи «${recordTitleDraft().trim()}»`
+                                    : 'Добавить название записи',
+                                }),
+                        },
+                      ]}
+                      onNavigate={(href) => {
+                        window.location.hash = href;
+                      }}
+                    />
+                  }
+                  actions={
+                    <>
+                      <button
+                        class="notes-route-heading__edit patient-card-icon-action"
+                        type="button"
+                        aria-label="Изменить название записи"
+                        title="Изменить название записи"
+                        disabled={viewingPreviousRevision() || editingRecordTitle()}
+                        onClick={startRecordTitleEdit}
+                      >
+                        <AppGlyph name="edit" class="patient-card-icon-action__icon" />
+                      </button>
+                      <Show when={note()}>
+                        {(currentNote) => (
+                          <>
+                            <button
+                              class="notes-route-heading__previous patient-card-icon-action"
+                              classList={{
+                                'notes-route-heading__previous--active': viewingPreviousRevision(),
+                              }}
+                              type="button"
+                              aria-label={
+                                viewingPreviousRevision()
+                                  ? 'Скрыть предыдущую редакцию'
+                                  : 'Показать предыдущую редакцию'
+                              }
+                              aria-expanded={viewingPreviousRevision()}
+                              title={
+                                viewingPreviousRevision()
+                                  ? 'Скрыть предыдущую редакцию'
+                                  : 'Предыдущая редакция'
+                              }
+                              disabled={!previousRevisionDiffers()}
+                              onClick={() => setShowPreviousRevision((visible) => !visible)}
+                            >
+                              <AppGlyph
+                                name="share-fat"
+                                class="notes-route-heading__previous-icon"
+                              />
+                            </button>
+                            <button
+                              class="notes-route-heading__delete patient-record-delete patient-card-icon-action danger"
+                              type="button"
+                              aria-label="Удалить запись"
+                              title="Удалить запись"
+                              disabled={viewingPreviousRevision()}
+                              onClick={() =>
+                                setDeleteTarget({
+                                  kind: 'note',
+                                  id: currentNote().id,
+                                  title:
+                                    currentNote().title ||
+                                    currentNote().text.slice(0, 80) ||
+                                    'Без названия',
+                                  returnPath: notesPath(card().id),
+                                })
+                              }
+                            >
+                              <AppGlyph name="trash" class="patient-card-icon-action__icon" />
+                            </button>
+                          </>
+                        )}
+                      </Show>
+                    </>
+                  }
+                />
                 <div
                   class="patient-note-form patient-record-editor"
                   classList={{
@@ -1113,6 +1471,59 @@ export function NotesView(props: {
                       Черновик восстановлен
                     </p>
                   </Show>
+                  <div class="patient-note-form__categories">
+                    <label
+                      class="patient-note-form__categories-label"
+                      for="patient-note-categories"
+                    >
+                      Теги
+                    </label>
+                    <div class="patient-note-form__categories-control">
+                      <For each={noteCategories()}>
+                        {(category, index) => (
+                          <span class="patient-note-form__category">
+                            <NoteCategoryLabel category={category} />
+                            <button
+                              type="button"
+                              class="patient-note-form__category-remove"
+                              aria-label={`Удалить тег «${category}»`}
+                              title={`Удалить тег «${category}»`}
+                              disabled={viewingPreviousRevision()}
+                              onClick={() =>
+                                setNoteCategories((current) =>
+                                  current.filter((_, categoryIndex) => categoryIndex !== index()),
+                                )
+                              }
+                            >
+                              <AppGlyph
+                                name="close"
+                                class="patient-note-form__category-remove-icon"
+                              />
+                            </button>
+                          </span>
+                        )}
+                      </For>
+                      <input
+                        id="patient-note-categories"
+                        class="patient-note-form__categories-input"
+                        type="text"
+                        value={noteCategoryInput()}
+                        aria-label="Теги записи"
+                        placeholder={
+                          noteCategories().length > 0 ? 'Добавить тег' : 'Например: контроль'
+                        }
+                        disabled={viewingPreviousRevision()}
+                        onInput={(event) => {
+                          event.currentTarget.value = handleNoteCategoriesInput(
+                            event.currentTarget.value,
+                          );
+                        }}
+                      />
+                    </div>
+                    <small class="patient-note-form__categories-hint">
+                      Нажмите пробел, запятую или точку с запятой, чтобы добавить тег
+                    </small>
+                  </div>
                   <Show when={note()}>
                     {(currentNote) => (
                       <NoteAttachedResults
@@ -1123,6 +1534,11 @@ export function NotesView(props: {
                   </Show>
                   <NoteMarkdownEditor
                     label={editing() ? 'Текст записи' : `Новая заметка для ${card().title}`}
+                    printTitle={recordTitleDraft()}
+                    printDate={(() => {
+                      const current = note();
+                      return formatDate(current?.createdAt ?? new Date().toISOString());
+                    })()}
                     recordingOwnerId={(() => {
                       const current = note();
                       return current ? `note:${current.id}` : `new:${card().id}`;
@@ -1325,7 +1741,7 @@ export function NotesView(props: {
       <OverlayDialog
         open={creating()}
         title="Новая карточка"
-        subtitle="Личная заметка на этом устройстве"
+        subtitle="Введите название обычной заметки"
         class="patient-card-dialog"
         onClose={() => setCreating(false)}
       >
@@ -1368,52 +1784,9 @@ export function NotesView(props: {
       />
 
       <OverlayDialog
-        open={editingCard()}
-        title="Изменить карточку"
-        subtitle={activeCard()?.title ?? ''}
-        class="patient-card-dialog"
-        onClose={() => setEditingCard(false)}
-      >
-        <Show when={activeCard()}>
-          {(card) => (
-            <form
-              class="patient-note-form patient-card-create-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                updatePatientCard(card().id, {
-                  title: cardTitleDraft(),
-                  summary: cardSummaryDraft(),
-                });
-                setEditingCard(false);
-              }}
-            >
-              <input
-                value={cardTitleDraft()}
-                onInput={(event) => setCardTitleDraft(event.currentTarget.value)}
-                aria-label="Название карточки"
-              />
-              <NoteTextArea
-                name="summary"
-                label="Контекст пациента"
-                value={cardSummaryDraft()}
-                onChange={setCardSummaryDraft}
-                placeholder="Контекст, аллергии, сопутствующие состояния"
-              />
-              <div class="patient-note-form-actions">
-                <button type="submit">Сохранить</button>
-                <button type="button" onClick={() => setEditingCard(false)}>
-                  Отмена
-                </button>
-              </div>
-            </form>
-          )}
-        </Show>
-      </OverlayDialog>
-
-      <OverlayDialog
         open={reminderNote() !== null}
         title="Напоминание"
-        subtitle={reminderNote()?.text.slice(0, 80) ?? ''}
+        subtitle={reminderNote()?.title || reminderNote()?.text.slice(0, 80) || ''}
         class="reminder-dialog"
         onClose={() => setReminderNoteId(null)}
       >

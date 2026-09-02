@@ -18,6 +18,7 @@
 		7A0C10010000000000000001 /* LocalMedDatabasePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C10110000000000000001 /* LocalMedDatabasePlugin.swift */; };
 		7A0C10020000000000000002 /* LocalMedBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C10120000000000000002 /* LocalMedBridgeViewController.swift */; };
 		7A0C10030000000000000003 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A0C10130000000000000003 /* libsqlite3.tbd */; };
+		7A0C10040000000000000004 /* LocalMedPatientVaultPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C10140000000000000004 /* LocalMedPatientVaultPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		7A0C10110000000000000001 /* LocalMedDatabasePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMedDatabasePlugin.swift; sourceTree = "<group>"; };
 		7A0C10120000000000000002 /* LocalMedBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMedBridgeViewController.swift; sourceTree = "<group>"; };
 		7A0C10130000000000000003 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		7A0C10140000000000000004 /* LocalMedPatientVaultPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMedPatientVaultPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,7 @@
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				7A0C10110000000000000001 /* LocalMedDatabasePlugin.swift */,
 				7A0C10120000000000000002 /* LocalMedBridgeViewController.swift */,
+				7A0C10140000000000000004 /* LocalMedPatientVaultPlugin.swift */,
 				7A0C10130000000000000003 /* libsqlite3.tbd */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
@@ -168,6 +171,7 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				7A0C10010000000000000001 /* LocalMedDatabasePlugin.swift in Sources */,
 				7A0C10020000000000000002 /* LocalMedBridgeViewController.swift in Sources */,
+				7A0C10040000000000000004 /* LocalMedPatientVaultPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

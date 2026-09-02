@@ -64,6 +64,8 @@ export interface RetryingDownloadOptions extends ResumableDownloadOptions {
   readonly retryDelaysMs?: readonly number[];
   /** Keep retrying transient failures until the caller aborts. */
   readonly retryForever?: boolean;
+  /** Disable retries for a known-published asset, where HTTP 404 is a permanent error. */
+  readonly retryMissingAssets?: boolean;
 }
 
 /**
@@ -75,6 +77,7 @@ export async function downloadWithRetry(options: RetryingDownloadOptions): Promi
   const {
     retryDelaysMs = DOWNLOAD_RETRY_DELAYS_MS,
     retryForever = false,
+    retryMissingAssets = true,
     ...downloadOptions
   } = options;
   let lastError: unknown;
@@ -88,7 +91,15 @@ export async function downloadWithRetry(options: RetryingDownloadOptions): Promi
       return await downloadWithResume(downloadOptions);
     } catch (cause) {
       lastError = cause;
-      if (!isTransientDownloadError(cause) || downloadOptions.signal?.aborted) throw cause;
+      const missingAsset =
+        cause instanceof Error && cause.message.toLowerCase().includes('http 404');
+      if (
+        !isTransientDownloadError(cause) ||
+        (!retryMissingAssets && missingAsset) ||
+        downloadOptions.signal?.aborted
+      ) {
+        throw cause;
+      }
     }
     attempt += 1;
   }

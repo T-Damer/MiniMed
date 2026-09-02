@@ -1,4 +1,13 @@
-import { type JSX, lazy, Show, Suspense } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  type JSX,
+  lazy,
+  onCleanup,
+  onMount,
+  Show,
+  Suspense,
+} from 'solid-js';
 import { Dynamic, Portal } from 'solid-js/web';
 import { Toaster } from 'solid-sonner';
 
@@ -12,57 +21,102 @@ import { useNativeBack } from '@/app/use-native-back';
 import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
-import { DocumentBookModeButton } from '@/features/library/DocumentBookModeButton';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
+import { getFloatingWindowsEnabled, subscribeAppPreferences } from '@/state/app-preferences';
 import { createFloatingWindows } from '@/state/floating-windows';
 import { rememberReturnTo } from '@/state/return-navigation';
 
-const AssessmentsView = lazy(() =>
+const loadAssessmentsView = () =>
   import('@/features/assessments/AssessmentsView').then(({ AssessmentsView: component }) => ({
     default: component,
-  })),
-);
-const CalculatorsView = lazy(() =>
+  }));
+const loadCalculatorsView = () =>
   import('@/features/calculators/CalculatorsView').then(({ CalculatorsView: component }) => ({
     default: component,
-  })),
-);
-const KnowledgeBaseView = lazy(() =>
+  }));
+const loadKnowledgeBaseView = () =>
   import('@/features/knowledge/KnowledgeBaseView').then(({ KnowledgeBaseView: component }) => ({
     default: component,
-  })),
-);
+  }));
 const DocumentPageHost = lazy(() =>
   import('@/features/library/DocumentPageHost').then(({ DocumentPageHost: component }) => ({
     default: component,
   })),
 );
-const NotesView = lazy(() =>
+const loadNotesView = () =>
   import('@/features/notes/NotesView').then(({ NotesView: component }) => ({
     default: component,
-  })),
-);
-const SearchHome = lazy(() =>
+  }));
+const loadSearchHome = () =>
   import('@/features/search/SearchHome').then(({ SearchHome: component }) => ({
     default: component,
-  })),
-);
-const SettingsView = lazy(() =>
+  }));
+const loadSettingsView = () =>
   import('@/features/settings/SettingsView').then(({ SettingsView: component }) => ({
     default: component,
-  })),
-);
+  }));
+
+const AssessmentsView = lazy(loadAssessmentsView);
+const CalculatorsView = lazy(loadCalculatorsView);
+const KnowledgeBaseView = lazy(loadKnowledgeBaseView);
+const NotesView = lazy(loadNotesView);
+const SearchHome = lazy(loadSearchHome);
+const SettingsView = lazy(loadSettingsView);
+
+const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
+  search: loadSearchHome,
+  modules: loadKnowledgeBaseView,
+  assessments: loadAssessmentsView,
+  calculators: loadCalculatorsView,
+  notes: loadNotesView,
+  settings: loadSettingsView,
+};
+
+function preloadRootView(view: RootView): void {
+  void rootViewLoaders[view]().catch(() => undefined);
+}
 
 export function App(): JSX.Element {
-  const embeddedFloatingWindow = new URLSearchParams(window.location.search).has(
-    'minimed-floating',
-  );
+  const floatingWindowParams = new URLSearchParams(window.location.search);
+  const embeddedFloatingWindow = floatingWindowParams.has('minimed-floating');
   const scaledFloatingWindow =
-    embeddedFloatingWindow &&
-    new URLSearchParams(window.location.search).get('minimed-floating-scale') === '1';
+    embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
   const navigation = useRootNavigation();
   const floatingWindows = createFloatingWindows();
+  const [floatingWindowsEnabled, setFloatingWindowsEnabled] = createSignal(
+    getFloatingWindowsEnabled(),
+  );
+  onMount(() => {
+    const unsubscribePreferences = subscribeAppPreferences((preferences) => {
+      setFloatingWindowsEnabled(preferences.floatingWindowsEnabled);
+    });
+    const syncFloatingViewport = (): void => {
+      if (!embeddedFloatingWindow) return;
+      document.documentElement.style.setProperty(
+        '--floating-viewport-width',
+        `${window.innerWidth}px`,
+      );
+      document.documentElement.style.setProperty(
+        '--floating-viewport-height',
+        `${window.innerHeight}px`,
+      );
+    };
+    if (embeddedFloatingWindow) {
+      syncFloatingViewport();
+      window.addEventListener('resize', syncFloatingViewport);
+    }
+    onCleanup(unsubscribePreferences);
+    onCleanup(() => {
+      window.removeEventListener('resize', syncFloatingViewport);
+      document.documentElement.style.removeProperty('--floating-viewport-width');
+      document.documentElement.style.removeProperty('--floating-viewport-height');
+    });
+  });
+  createEffect(() => {
+    if (floatingWindowsEnabled()) return;
+    for (const windowState of floatingWindows.windows()) floatingWindows.close(windowState.id);
+  });
   const bottomNav = useBottomNav({
     view: navigation.view,
     navigate: navigation.navigate,
@@ -92,6 +146,7 @@ export function App(): JSX.Element {
       class="app-view"
       classList={{
         ...navigation.rootViewClasses(id),
+        'app-view--floating-child': embeddedFloatingWindow,
         'app-view--floating-child-scaled': scaledFloatingWindow,
       }}
       hidden={navigation.documentReadActive() || !navigation.isViewVisible(id)}
@@ -124,8 +179,11 @@ export function App(): JSX.Element {
       classList={{
         'app-shell--booting': !session.ready(),
         'app-shell--native': session.isNativeShell,
+        'app-shell--medical-image': medicalImageViewerActive(),
+        'app-shell--chrome-hidden': navigation.chromeHidden(),
         'app-shell--floating-child': embeddedFloatingWindow,
         'app-shell--floating-child-scaled': scaledFloatingWindow,
+        'app-shell--floating-fullscreen': Boolean(floatingWindows.fullscreenWindowId()),
       }}
     >
       <Portal>
@@ -146,10 +204,11 @@ export function App(): JSX.Element {
         classList={{
           'app-main--floating-child': embeddedFloatingWindow,
           'app-main--floating-child-scaled': scaledFloatingWindow,
+          'app-main--medical-image': medicalImageViewerActive(),
         }}
       >
         {rootPane('assessments', () => (
-          <AssessmentsView />
+          <AssessmentsView active={navigation.view() === 'assessments'} />
         ))}
         {rootPane('calculators', () => (
           <CalculatorsView />
@@ -239,11 +298,18 @@ export function App(): JSX.Element {
         </Show>
       </main>
 
-      <Show when={session.ready() && !embeddedFloatingWindow}>
+      <Show when={session.ready() && !embeddedFloatingWindow && floatingWindowsEnabled()}>
         <FloatingWindowLayer manager={floatingWindows} onClose={closeFloatingWindow} />
       </Show>
 
-      <Show when={session.ready() && !embeddedFloatingWindow && !medicalImageViewerActive()}>
+      <Show
+        when={
+          session.ready() &&
+          !embeddedFloatingWindow &&
+          !medicalImageViewerActive() &&
+          !floatingWindows.fullscreenWindowId()
+        }
+      >
         <Portal>
           <AppBottomNav
             view={navigation.view}
@@ -257,6 +323,7 @@ export function App(): JSX.Element {
             modelController={session.modelController}
             bubbleStyle={bottomNav.bubbleStyle}
             bindNav={bottomNav.bindNav}
+            onPrefetch={preloadRootView}
             onPointerDown={bottomNav.handlePointerDown}
             onPointerMove={bottomNav.handlePointerMove}
             onPointerUp={bottomNav.handlePointerUp}
@@ -267,10 +334,15 @@ export function App(): JSX.Element {
       </Show>
 
       <div id="app-floating-controls" class="floating-window-controls">
-        <Show when={session.ready() && !embeddedFloatingWindow}>
-          <DocumentBookModeButton />
-        </Show>
-        <Show when={session.ready() && !embeddedFloatingWindow && navigation.view() !== 'settings'}>
+        <Show
+          when={
+            session.ready() &&
+            !embeddedFloatingWindow &&
+            floatingWindowsEnabled() &&
+            navigation.view() !== 'settings' &&
+            !floatingWindows.fullscreenWindowId()
+          }
+        >
           <button
             class="floating-window-toggle floating-window-controls__item"
             type="button"
@@ -295,12 +367,19 @@ export function App(): JSX.Element {
             />
           </button>
         </Show>
-        <Show when={session.ready() && !embeddedFloatingWindow && navigation.showScrollTop()}>
+        <Show
+          when={
+            session.ready() &&
+            !embeddedFloatingWindow &&
+            !floatingWindows.fullscreenWindowId() &&
+            navigation.showScrollTop()
+          }
+        >
           <button
             class="scroll-top-button floating-window-controls__item"
             type="button"
             aria-label="Вернуться наверх"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={navigation.scrollToTop}
           >
             <AppGlyph name="arrow-up" class="scroll-top-button__icon" />
           </button>

@@ -1,7 +1,23 @@
 import type { MedicalDocument } from '@localmed/contracts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { printDocument, shareDocument } from '@/features/library/document-print';
+import { PrintManager } from '@/features/printing/print-manager';
 
-import { printDocument, printHtml, shareDocument } from '@/features/library/document-print';
+const nativeMocks = vi.hoisted(() => ({
+  isNative: false,
+  shareFile: vi.fn(async () => undefined),
+}));
+
+vi.mock('@capacitor/core', () => ({
+  Capacitor: {
+    getPlatform: () => 'android',
+    isNativePlatform: () => nativeMocks.isNative,
+  },
+  registerPlugin: () => ({
+    shareFile: nativeMocks.shareFile,
+    shareText: vi.fn(),
+  }),
+}));
 
 function buildDocument(): MedicalDocument {
   return {
@@ -70,7 +86,11 @@ function buildDocument(): MedicalDocument {
 }
 
 describe('document print layout', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    nativeMocks.isNative = false;
+    nativeMocks.shareFile.mockClear();
+    vi.unstubAllGlobals();
+  });
 
   it('renders headings, real lists, and real tables into the popup markup', () => {
     const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
@@ -115,15 +135,127 @@ describe('document print layout', () => {
       },
     });
 
-    expect(printHtml('<html><body><p>Test</p></body></html>', 'Test page')).toBe(true);
+    expect(PrintManager.html('<html><body><p>Test</p></body></html>', 'Test page')).toBe(true);
 
     const markup = popupDocument.write.mock.calls[0]?.[0] as string;
     expect(markup).toContain('<p>Test</p>');
   });
 
+  it('prints the original file through a hidden frame', () => {
+    const handlers = new Map<string, () => void>();
+    const frame = {
+      style: {},
+      title: '',
+      src: '',
+      addEventListener: vi.fn((event: string, handler: () => void) => {
+        handlers.set(event, handler);
+      }),
+      contentWindow: { focus: vi.fn(), print: vi.fn() },
+      remove: vi.fn(),
+    } as unknown as HTMLIFrameElement;
+    const createObjectURL = vi.fn(() => 'blob:original');
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+    vi.stubGlobal('document', {
+      createElement: vi.fn(() => frame),
+      body: { append: vi.fn() },
+    });
+    vi.stubGlobal('window', {
+      setTimeout: (callback: () => void) => {
+        callback();
+        return 0;
+      },
+    });
+
+    const printed = PrintManager.original(new Blob(['original']), 'Original EPUB');
+    expect(createObjectURL).toHaveBeenCalledOnce();
+    expect(frame.src).toBe('blob:original');
+
+    handlers.get('load')?.();
+    return expect(printed)
+      .resolves.toBe(true)
+      .then(() => {
+        expect(frame.contentWindow?.print).toHaveBeenCalledOnce();
+        expect(revokeObjectURL).toHaveBeenCalledWith('blob:original');
+        expect(frame.remove).toHaveBeenCalledOnce();
+      });
+  });
+
+  it('shares the original file through the native file bridge', async () => {
+    nativeMocks.isNative = true;
+
+    await expect(
+      PrintManager.original(new Blob(['original'], { type: 'application/pdf' }), 'Original PDF'),
+    ).resolves.toBe(true);
+
+    expect(nativeMocks.shareFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Original PDF',
+        mimeType: 'application/pdf',
+        data: 'b3JpZ2luYWw=',
+      }),
+    );
+  });
+
+  it('returns false when the EPUB print popup is blocked', async () => {
+    vi.stubGlobal('window', { open: vi.fn(() => null) });
+    await expect(
+      PrintManager.epub(Promise.resolve(new Blob(['original'])), 'Original EPUB'),
+    ).resolves.toBe(false);
+  });
+
+  it('prints every presentation slide as a separate A4 page', () => {
+    const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
+    const popup = { document: popupDocument, opener: undefined, focus: vi.fn(), print: vi.fn() };
+    vi.stubGlobal('window', {
+      open: vi.fn(() => popup),
+      setTimeout: (callback: () => void) => {
+        callback();
+        return 0;
+      },
+    });
+    const presentation = {
+      outerHTML:
+        '<div class="rich-document-renderer rich-pptx"><div class="rich-pptx__wrapper"><div class="rich-pptx__slide">1</div><div class="rich-pptx__slide">2</div></div></div>',
+      querySelectorAll: () => [],
+    } as unknown as HTMLElement;
+
+    expect(PrintManager.presentation(presentation, 'Презентация')).toBe(true);
+
+    const markup = popupDocument.write.mock.calls[0]?.[0] as string;
+    expect(markup).toContain('@page { size: A4 landscape; margin: 20mm 15mm 20mm 30mm; }');
+    expect(markup).toContain('break-after: page');
+    expect(markup).toContain('<div class="rich-pptx__slide">1</div>');
+    expect(markup).toContain('<div class="rich-pptx__slide">2</div>');
+  });
+
+  it('prints spreadsheets in A4 landscape orientation', () => {
+    const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
+    const popup = { document: popupDocument, opener: undefined, focus: vi.fn(), print: vi.fn() };
+    vi.stubGlobal('window', {
+      open: vi.fn(() => popup),
+      setTimeout: (callback: () => void) => {
+        callback();
+        return 0;
+      },
+    });
+    const spreadsheet = {
+      outerHTML:
+        '<div class="rich-document-renderer rich-sheet"><table><tr><td>Пневмония</td></tr></table></div>',
+      querySelectorAll: () => [],
+    } as unknown as HTMLElement;
+
+    expect(PrintManager.element(spreadsheet, 'Таблица', { orientation: 'landscape' })).toBe(true);
+
+    const markup = popupDocument.write.mock.calls[0]?.[0] as string;
+    expect(markup).toContain('@page { size: A4 landscape; margin: 20mm 15mm 20mm 30mm; }');
+    expect(markup).toContain('.rich-sheet__tabs { display: none');
+    expect(markup).toContain('.rich-sheet__cell {');
+  });
+
   it('returns false when printHtml popup is blocked', () => {
     vi.stubGlobal('window', { open: vi.fn(() => null) });
-    expect(printHtml('<html></html>', 'Blocked')).toBe(false);
+    expect(PrintManager.html('<html></html>', 'Blocked')).toBe(false);
   });
 
   it('shares a title/summary/link and falls back to clipboard', async () => {

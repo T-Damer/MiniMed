@@ -1,0 +1,1004 @@
+{
+  "schema_version": 1,
+  "dataset": "minimed-query-parser-phase-2-v2",
+  "canonical_entity_definition": "kind+normalizedValue from parser facts/context; not diagnosis or dose correctness",
+  "fixed": [
+    {
+      "query_id": "P2-F01",
+      "query": "Препарат цефтриаксон ребенку 12 лет, 30 кг, 1 г во флаконе, в/м",
+      "intent": "medication",
+      "canonical_entities": [
+        { "kind": "age", "normalized_value": "12 лет" },
+        { "kind": "measurement", "normalized_value": "30 кг" },
+        { "kind": "weight", "normalized_value": "30 кг" },
+        { "kind": "strength", "normalized_value": "1 г" },
+        { "kind": "route", "normalized_value": "внутримышечно" }
+      ],
+      "critical_context": [
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "ребенку 12 лет",
+          "normalized_value": "12 лет",
+          "unit": "лет",
+          "polarity": "positive"
+        },
+        {
+          "field": "weight",
+          "kind": "weight",
+          "raw": "30 кг",
+          "normalized_value": "30 кг",
+          "unit": "кг",
+          "polarity": "positive"
+        },
+        {
+          "field": "strength",
+          "kind": "strength",
+          "raw": "1 г во флаконе",
+          "normalized_value": "1 г",
+          "unit": "г",
+          "polarity": "positive"
+        },
+        {
+          "field": "route",
+          "kind": "route",
+          "raw": "в/м",
+          "normalized_value": "внутримышечно",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": [
+        { "field": "weight", "kind": "weight", "normalized_value": "1 г", "polarity": "positive" }
+      ]
+    },
+    {
+      "query_id": "P2-F02",
+      "query": "Препарат ибупрофен, суспензия 100 мг/5 мл, ребенку 8,5 кг, 2 раза в день",
+      "intent": "medication",
+      "canonical_entities": [
+        { "kind": "measurement", "normalized_value": "8,5 кг" },
+        { "kind": "weight", "normalized_value": "8.5 кг" },
+        { "kind": "dose-form", "normalized_value": "суспензия" },
+        { "kind": "strength", "normalized_value": "100 мг/5 мл" },
+        { "kind": "frequency", "normalized_value": "2 раза в сутки" }
+      ],
+      "critical_context": [
+        {
+          "field": "weight",
+          "kind": "weight",
+          "raw": "8,5 кг",
+          "normalized_value": "8.5 кг",
+          "unit": "кг",
+          "polarity": "positive"
+        },
+        {
+          "field": "doseForm",
+          "kind": "dose-form",
+          "raw": "суспензия",
+          "normalized_value": "суспензия",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "strength",
+          "kind": "strength",
+          "raw": "100 мг/5 мл",
+          "normalized_value": "100 мг/5 мл",
+          "unit": "мг/5 мл",
+          "polarity": "positive"
+        },
+        {
+          "field": "frequency",
+          "kind": "frequency",
+          "raw": "2 раза в день",
+          "normalized_value": "2 раза в сутки",
+          "unit": "раз/сут",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-F03",
+      "query": "АД 200/120",
+      "intent": "unknown",
+      "canonical_entities": [{ "kind": "measurement", "normalized_value": "200/120" }],
+      "critical_context": [
+        {
+          "field": "measurements",
+          "kind": "measurement",
+          "raw": "АД 200/120",
+          "normalized_value": "200/120",
+          "unit": "мм рт. ст.",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "strength",
+          "kind": "strength",
+          "normalized_value": "200/120",
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "query_id": "P2-F04",
+      "query": "2 недели, кашель: как диагностировать",
+      "intent": "diagnosis",
+      "canonical_entities": [
+        { "kind": "symptom", "normalized_value": "кашель" },
+        { "kind": "duration", "normalized_value": "2 недели" }
+      ],
+      "critical_context": [
+        {
+          "field": "positiveFindings",
+          "kind": "symptom",
+          "raw": "кашель",
+          "normalized_value": "кашель",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "duration",
+          "kind": "duration",
+          "raw": "2 недели",
+          "normalized_value": "2 недели",
+          "unit": "недели",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-F05",
+      "query": "Проверить 34 недели гестации",
+      "intent": "unknown",
+      "canonical_entities": [{ "kind": "gestational-age", "normalized_value": "34 недели" }],
+      "critical_context": [
+        {
+          "field": "gestationalAge",
+          "kind": "gestational-age",
+          "raw": "34 недели гестации",
+          "normalized_value": "34 недели",
+          "unit": "недели",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "duration",
+          "kind": "duration",
+          "normalized_value": "34 недели",
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "query_id": "P2-F06",
+      "query": "Лечение: не беременна, аллергии нет, без почечной недостаточности",
+      "intent": "treatment",
+      "canonical_entities": [
+        { "kind": "negative-finding", "normalized_value": "аллергии" },
+        { "kind": "negative-finding", "normalized_value": "почечной недостаточности" },
+        { "kind": "pregnancy", "normalized_value": "беременность" },
+        { "kind": "organ-function", "normalized_value": "почечная недостаточность" },
+        { "kind": "allergy", "normalized_value": "аллергия" }
+      ],
+      "critical_context": [
+        {
+          "field": "pregnancy",
+          "kind": "pregnancy",
+          "raw": "не беременна",
+          "normalized_value": "беременность",
+          "unit": null,
+          "polarity": "negative"
+        },
+        {
+          "field": "allergies",
+          "kind": "allergy",
+          "raw": "аллергии нет",
+          "normalized_value": "аллергия",
+          "unit": null,
+          "polarity": "negative"
+        },
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "raw": "без почечной недостаточности",
+          "normalized_value": "почечная недостаточность",
+          "unit": null,
+          "polarity": "negative"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "pregnancy",
+          "kind": "pregnancy",
+          "normalized_value": "беременность",
+          "polarity": "positive"
+        },
+        {
+          "field": "allergies",
+          "kind": "allergy",
+          "normalized_value": "аллергия",
+          "polarity": "positive"
+        },
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "normalized_value": "почечная недостаточность",
+          "polarity": "positive"
+        }
+      ],
+      "negation": {
+        "expected": [
+          {
+            "field": "pregnancy",
+            "kind": "pregnancy",
+            "raw": "не беременна",
+            "normalized_value": "беременность",
+            "unit": null,
+            "polarity": "negative"
+          },
+          {
+            "field": "allergies",
+            "kind": "allergy",
+            "raw": "аллергии нет",
+            "normalized_value": "аллергия",
+            "unit": null,
+            "polarity": "negative"
+          },
+          {
+            "field": "organFunction",
+            "kind": "organ-function",
+            "raw": "без почечной недостаточности",
+            "normalized_value": "почечная недостаточность",
+            "unit": null,
+            "polarity": "negative"
+          }
+        ],
+        "forbidden": [
+          {
+            "field": "pregnancy",
+            "kind": "pregnancy",
+            "normalized_value": "беременность",
+            "polarity": "positive"
+          },
+          {
+            "field": "allergies",
+            "kind": "allergy",
+            "normalized_value": "аллергия",
+            "polarity": "positive"
+          },
+          {
+            "field": "organFunction",
+            "kind": "organ-function",
+            "normalized_value": "почечная недостаточность",
+            "polarity": "positive"
+          }
+        ]
+      }
+    },
+    {
+      "query_id": "P2-F07",
+      "query": "Питание ребенка: новорождённый",
+      "intent": "care-guidance",
+      "canonical_entities": [{ "kind": "age", "normalized_value": "неонатальный период" }],
+      "critical_context": [
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "новорождённый",
+          "normalized_value": "неонатальный период",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-F08",
+      "query": "Уход и питание ребенка 6 мес",
+      "intent": "care-guidance",
+      "canonical_entities": [{ "kind": "age", "normalized_value": "6 месяцев" }],
+      "critical_context": [
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "6 мес",
+          "normalized_value": "6 месяцев",
+          "unit": "месяцев",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-F09",
+      "query": "Препарат: подросток 12 лет",
+      "intent": "medication",
+      "canonical_entities": [{ "kind": "age", "normalized_value": "12 лет" }],
+      "critical_context": [
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "подросток 12 лет",
+          "normalized_value": "12 лет",
+          "unit": "лет",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-F10",
+      "query": "АД 200 на 120",
+      "intent": "unknown",
+      "canonical_entities": [{ "kind": "measurement", "normalized_value": "200/120" }],
+      "critical_context": [
+        {
+          "field": "measurements",
+          "kind": "measurement",
+          "raw": "АД 200 на 120",
+          "normalized_value": "200/120",
+          "unit": "мм рт. ст.",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "strength",
+          "kind": "strength",
+          "normalized_value": "200/120",
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "query_id": "P2-F11",
+      "query": "200/120",
+      "intent": "unknown",
+      "canonical_entities": [{ "kind": "measurement", "normalized_value": "200/120" }],
+      "critical_context": [
+        {
+          "field": "measurements",
+          "kind": "measurement",
+          "raw": "200/120",
+          "normalized_value": "200/120",
+          "unit": "мм рт. ст.",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "strength",
+          "kind": "strength",
+          "normalized_value": "200/120",
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "query_id": "P2-F12",
+      "query": "Курс лечения 5–7 суток",
+      "intent": "treatment",
+      "canonical_entities": [{ "kind": "duration", "normalized_value": "5-7 суток" }],
+      "critical_context": [
+        {
+          "field": "duration",
+          "kind": "duration",
+          "raw": "5–7 суток",
+          "normalized_value": "5-7 суток",
+          "unit": "суток",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    }
+  ],
+  "heldout": [
+    {
+      "query_id": "P2-H01",
+      "query": "Лечение: сальбутамол 100 мкг/доза ингаляционно по необходимости",
+      "intent": "treatment",
+      "canonical_entities": [
+        { "kind": "route", "normalized_value": "ингаляционно" },
+        { "kind": "strength", "normalized_value": "100 мкг/доза" },
+        { "kind": "frequency", "normalized_value": "по необходимости" }
+      ],
+      "critical_context": [
+        {
+          "field": "strength",
+          "kind": "strength",
+          "raw": "100 мкг/доза",
+          "normalized_value": "100 мкг/доза",
+          "unit": "мкг/доза",
+          "polarity": "positive"
+        },
+        {
+          "field": "route",
+          "kind": "route",
+          "raw": "ингаляционно",
+          "normalized_value": "ингаляционно",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "frequency",
+          "kind": "frequency",
+          "raw": "по необходимости",
+          "normalized_value": "по необходимости",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H02",
+      "query": "Что такое: беременность 20 недель, почечная недостаточность, аллергия на пенициллин",
+      "intent": "disease-reference",
+      "canonical_entities": [
+        { "kind": "gestational-age", "normalized_value": "20 недель" },
+        { "kind": "pregnancy", "normalized_value": "беременность" },
+        { "kind": "organ-function", "normalized_value": "почечная недостаточность" },
+        { "kind": "allergy", "normalized_value": "аллергия на пенициллин" }
+      ],
+      "critical_context": [
+        {
+          "field": "gestationalAge",
+          "kind": "gestational-age",
+          "raw": "20 недель",
+          "normalized_value": "20 недель",
+          "unit": "недель",
+          "polarity": "positive"
+        },
+        {
+          "field": "pregnancy",
+          "kind": "pregnancy",
+          "raw": "беременность 20 недель",
+          "normalized_value": "беременность",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "raw": "почечная недостаточность",
+          "normalized_value": "почечная недостаточность",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "allergies",
+          "kind": "allergy",
+          "raw": "аллергия на пенициллин",
+          "normalized_value": "аллергия на пенициллин",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "duration",
+          "kind": "duration",
+          "normalized_value": "20 недель",
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "query_id": "P2-H03",
+      "query": "Препарат цефтриаксон 12-летнему, 30 кг, в/в",
+      "intent": "medication",
+      "canonical_entities": [
+        { "kind": "age", "normalized_value": "12 лет" },
+        { "kind": "measurement", "normalized_value": "30 кг" },
+        { "kind": "weight", "normalized_value": "30 кг" },
+        { "kind": "route", "normalized_value": "внутривенно" }
+      ],
+      "critical_context": [
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "12-летнему",
+          "normalized_value": "12 лет",
+          "unit": "лет",
+          "polarity": "positive"
+        },
+        {
+          "field": "weight",
+          "kind": "weight",
+          "raw": "30 кг",
+          "normalized_value": "30 кг",
+          "unit": "кг",
+          "polarity": "positive"
+        },
+        {
+          "field": "route",
+          "kind": "route",
+          "raw": "в/в",
+          "normalized_value": "внутривенно",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H04",
+      "query": "Ребёнку 1 год 3 месяца, мальчик",
+      "intent": "unknown",
+      "canonical_entities": [
+        { "kind": "age", "normalized_value": "15 месяцев" },
+        { "kind": "sex", "normalized_value": "мужской" }
+      ],
+      "critical_context": [
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "1 год 3 месяца",
+          "normalized_value": "15 месяцев",
+          "unit": "месяцев",
+          "polarity": "positive"
+        },
+        {
+          "field": "sex",
+          "kind": "sex",
+          "raw": "мальчик",
+          "normalized_value": "мужской",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H05",
+      "query": "Лечение ребенку полтора года",
+      "intent": "treatment",
+      "canonical_entities": [{ "kind": "age", "normalized_value": "18 месяцев" }],
+      "critical_context": [
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "полтора года",
+          "normalized_value": "18 месяцев",
+          "unit": "месяцев",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H06",
+      "query": "Лечение: почечной недостаточности нет",
+      "intent": "treatment",
+      "canonical_entities": [
+        { "kind": "negative-finding", "normalized_value": "почечной недостаточности" },
+        { "kind": "organ-function", "normalized_value": "почечная недостаточность" }
+      ],
+      "critical_context": [
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "raw": "почечной недостаточности нет",
+          "normalized_value": "почечная недостаточность",
+          "unit": null,
+          "polarity": "negative"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "normalized_value": "почечная недостаточность",
+          "polarity": "positive"
+        }
+      ],
+      "negation": {
+        "expected": [
+          {
+            "field": "organFunction",
+            "kind": "organ-function",
+            "raw": "почечной недостаточности нет",
+            "normalized_value": "почечная недостаточность",
+            "unit": null,
+            "polarity": "negative"
+          }
+        ],
+        "forbidden": [
+          {
+            "field": "organFunction",
+            "kind": "organ-function",
+            "normalized_value": "почечная недостаточность",
+            "polarity": "positive"
+          }
+        ]
+      }
+    },
+    {
+      "query_id": "P2-H07",
+      "query": "Препарат парацетамол не помог",
+      "intent": "medication",
+      "canonical_entities": [
+        { "kind": "negative-finding", "normalized_value": "препарат парацетамол" }
+      ],
+      "critical_context": [
+        {
+          "field": "negativeFindings",
+          "kind": "negative-finding",
+          "raw": "Препарат парацетамол",
+          "normalized_value": "препарат парацетамол",
+          "unit": null,
+          "polarity": "negative"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "currentMedicines",
+          "kind": "medication",
+          "normalized_value": "парацетамол",
+          "polarity": "positive"
+        }
+      ],
+      "negation": {
+        "expected": [
+          {
+            "field": "negativeFindings",
+            "kind": "negative-finding",
+            "raw": "Препарат парацетамол",
+            "normalized_value": "препарат парацетамол",
+            "unit": null,
+            "polarity": "negative"
+          }
+        ],
+        "forbidden": []
+      }
+    },
+    {
+      "query_id": "P2-H08",
+      "query": "Мальчик 5 лет, температура 38,5, АД 120/80, кашель",
+      "intent": "diagnosis",
+      "canonical_entities": [
+        { "kind": "sex", "normalized_value": "мужской" },
+        { "kind": "age", "normalized_value": "5 лет" },
+        { "kind": "temperature", "normalized_value": "38.5" },
+        { "kind": "measurement", "normalized_value": "120/80" },
+        { "kind": "symptom", "normalized_value": "кашель" }
+      ],
+      "critical_context": [
+        {
+          "field": "sex",
+          "kind": "sex",
+          "raw": "Мальчик",
+          "normalized_value": "мужской",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "Мальчик 5 лет",
+          "normalized_value": "5 лет",
+          "unit": "лет",
+          "polarity": "positive"
+        },
+        {
+          "field": "positiveFindings",
+          "kind": "temperature",
+          "raw": "температура 38,5",
+          "normalized_value": "38.5",
+          "unit": "°C",
+          "polarity": "positive"
+        },
+        {
+          "field": "positiveFindings",
+          "kind": "measurement",
+          "raw": "АД 120/80",
+          "normalized_value": "120/80",
+          "unit": "мм рт. ст.",
+          "polarity": "positive"
+        },
+        {
+          "field": "positiveFindings",
+          "kind": "symptom",
+          "raw": "кашель",
+          "normalized_value": "кашель",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "duration",
+          "kind": "duration",
+          "normalized_value": "5 лет",
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "query_id": "P2-H09",
+      "query": "Лечение: нет почечной недостаточности",
+      "intent": "treatment",
+      "canonical_entities": [
+        { "kind": "negative-finding", "normalized_value": "почечной недостаточности" },
+        { "kind": "organ-function", "normalized_value": "почечная недостаточность" }
+      ],
+      "critical_context": [
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "raw": "нет почечной недостаточности",
+          "normalized_value": "почечная недостаточность",
+          "unit": null,
+          "polarity": "negative"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "normalized_value": "почечная недостаточность",
+          "polarity": "positive"
+        }
+      ],
+      "negation": {
+        "expected": [
+          {
+            "field": "organFunction",
+            "kind": "organ-function",
+            "raw": "нет почечной недостаточности",
+            "normalized_value": "почечная недостаточность",
+            "unit": null,
+            "polarity": "negative"
+          }
+        ],
+        "forbidden": [
+          {
+            "field": "organFunction",
+            "kind": "organ-function",
+            "normalized_value": "почечная недостаточность",
+            "polarity": "positive"
+          }
+        ]
+      }
+    },
+    {
+      "query_id": "P2-H10",
+      "query": "Принимать до еды, после еды, с рождения",
+      "intent": "unknown",
+      "canonical_entities": [
+        { "kind": "duration", "normalized_value": "до еды" },
+        { "kind": "duration", "normalized_value": "после еды" },
+        { "kind": "duration", "normalized_value": "с рождения" }
+      ],
+      "critical_context": [
+        {
+          "field": "duration",
+          "kind": "duration",
+          "raw": "до еды",
+          "normalized_value": "до еды",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "duration",
+          "kind": "duration",
+          "raw": "после еды",
+          "normalized_value": "после еды",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "duration",
+          "kind": "duration",
+          "raw": "с рождения",
+          "normalized_value": "с рождения",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H11",
+      "query": "Антибиотики не принимал",
+      "intent": "unknown",
+      "canonical_entities": [{ "kind": "negative-finding", "normalized_value": "антибиотики" }],
+      "critical_context": [
+        {
+          "field": "negativeFindings",
+          "kind": "negative-finding",
+          "raw": "Антибиотики",
+          "normalized_value": "антибиотики",
+          "unit": null,
+          "polarity": "negative"
+        }
+      ],
+      "forbidden_facts": [
+        {
+          "field": "currentMedicines",
+          "kind": "medication",
+          "normalized_value": "антибиотики",
+          "polarity": "positive"
+        }
+      ],
+      "negation": {
+        "expected": [
+          {
+            "field": "negativeFindings",
+            "kind": "negative-finding",
+            "raw": "Антибиотики",
+            "normalized_value": "антибиотики",
+            "unit": null,
+            "polarity": "negative"
+          }
+        ],
+        "forbidden": []
+      }
+    },
+    {
+      "query_id": "P2-H12",
+      "query": "Препарат: спироп 100 мг/5 мл",
+      "intent": "medication",
+      "canonical_entities": [
+        { "kind": "dose-form", "normalized_value": "сироп" },
+        { "kind": "strength", "normalized_value": "100 мг/5 мл" }
+      ],
+      "critical_context": [
+        {
+          "field": "doseForm",
+          "kind": "dose-form",
+          "raw": "спироп",
+          "normalized_value": "сироп",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "strength",
+          "kind": "strength",
+          "raw": "100 мг/5 мл",
+          "normalized_value": "100 мг/5 мл",
+          "unit": "мг/5 мл",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H13",
+      "query": "Мальчику 5 лет: какие анализы",
+      "intent": "diagnosis",
+      "canonical_entities": [
+        { "kind": "sex", "normalized_value": "мужской" },
+        { "kind": "age", "normalized_value": "5 лет" }
+      ],
+      "critical_context": [
+        {
+          "field": "sex",
+          "kind": "sex",
+          "raw": "Мальчику",
+          "normalized_value": "мужской",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "age",
+          "kind": "age",
+          "raw": "Мальчику 5 лет",
+          "normalized_value": "5 лет",
+          "unit": "лет",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H14",
+      "query": "Температура 39,2° ; какие анализы",
+      "intent": "diagnosis",
+      "canonical_entities": [{ "kind": "temperature", "normalized_value": "39.2" }],
+      "critical_context": [
+        {
+          "field": "positiveFindings",
+          "kind": "temperature",
+          "raw": "Температура 39,2°",
+          "normalized_value": "39.2",
+          "unit": "°C",
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H15",
+      "query": "Антибиотики не принимал ; лечение",
+      "intent": "treatment",
+      "canonical_entities": [{ "kind": "negative-finding", "normalized_value": "антибиотики" }],
+      "critical_context": [
+        {
+          "field": "negativeFindings",
+          "kind": "negative-finding",
+          "raw": "Антибиотики",
+          "normalized_value": "антибиотики",
+          "unit": null,
+          "polarity": "negative"
+        }
+      ],
+      "forbidden_facts": [],
+      "negation": {
+        "expected": [
+          {
+            "field": "negativeFindings",
+            "kind": "negative-finding",
+            "raw": "Антибиотики",
+            "normalized_value": "антибиотики",
+            "unit": null,
+            "polarity": "negative"
+          }
+        ],
+        "forbidden": []
+      }
+    },
+    {
+      "query_id": "P2-H16",
+      "query": "Что такое: аллергия на пенициллин — почечная недостаточность",
+      "intent": "disease-reference",
+      "canonical_entities": [
+        { "kind": "allergy", "normalized_value": "аллергия на пенициллин" },
+        { "kind": "organ-function", "normalized_value": "почечная недостаточность" }
+      ],
+      "critical_context": [
+        {
+          "field": "allergies",
+          "kind": "allergy",
+          "raw": "аллергия на пенициллин",
+          "normalized_value": "аллергия на пенициллин",
+          "unit": null,
+          "polarity": "positive"
+        },
+        {
+          "field": "organFunction",
+          "kind": "organ-function",
+          "raw": "почечная недостаточность",
+          "normalized_value": "почечная недостаточность",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    },
+    {
+      "query_id": "P2-H17",
+      "query": "температура 39,2 ; кашель",
+      "intent": "diagnosis",
+      "canonical_entities": [
+        { "kind": "temperature", "normalized_value": "39.2" },
+        { "kind": "symptom", "normalized_value": "кашель" }
+      ],
+      "critical_context": [
+        {
+          "field": "positiveFindings",
+          "kind": "temperature",
+          "raw": "температура 39,2",
+          "normalized_value": "39.2",
+          "unit": "°C",
+          "polarity": "positive"
+        },
+        {
+          "field": "positiveFindings",
+          "kind": "symptom",
+          "raw": "кашель",
+          "normalized_value": "кашель",
+          "unit": null,
+          "polarity": "positive"
+        }
+      ],
+      "forbidden_facts": []
+    }
+  ]
+}

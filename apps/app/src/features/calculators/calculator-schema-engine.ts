@@ -2,6 +2,8 @@ import type {
   CalculatorSchema,
   CalculatorStepDefinition,
   CalculatorVisualDefinition,
+  EvaluationStatus,
+  ReferenceVerdict,
 } from '@localmed/contracts';
 import {
   CalculatorExpressionError,
@@ -25,6 +27,7 @@ import type {
 
 export interface CalculatorSchemaNumberOutput {
   readonly kind: 'number';
+  readonly id: string;
   readonly label: string;
   readonly value: number;
   readonly unit: string;
@@ -33,6 +36,7 @@ export interface CalculatorSchemaNumberOutput {
 
 export interface CalculatorSchemaTextOutput {
   readonly kind: 'text';
+  readonly id: string;
   readonly label: string;
   readonly text: string;
 }
@@ -55,6 +59,7 @@ export interface CalculatorChartSpec {
 
 export interface CalculatorSchemaVisualOutput {
   readonly kind: 'visual';
+  readonly id: string;
   readonly label: string;
   readonly chart: CalculatorChartSpec;
 }
@@ -66,6 +71,13 @@ export interface CalculatorSchemaEvaluation {
   readonly outputs: readonly CalculatorSchemaOutput[];
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  readonly evaluation: {
+    readonly status: EvaluationStatus;
+    readonly verdict?: ReferenceVerdict;
+    readonly missingContext: readonly string[];
+    readonly reason?: string;
+    readonly sourceIds: readonly string[];
+  };
 }
 
 export interface CalculatorSchemaFailure {
@@ -183,6 +195,13 @@ function evaluateCalculatorSchemaInner(
         return failure(`${input.label}: некорректная дата.`);
       }
       scope[input.id] = dateText;
+    } else if (input.kind === 'text') {
+      scope[input.id] = String(raw);
+    } else if (input.kind === 'checkbox') {
+      if (raw !== 0 && raw !== 1 && raw !== '0' && raw !== '1') {
+        return failure(`${input.label}: недопустимое значение.`);
+      }
+      scope[input.id] = Number(raw);
     } else {
       const allowed = input.options?.map((option) => option.value) ?? [];
       const matched = allowed.find((option) => String(option) === String(raw));
@@ -222,7 +241,18 @@ function evaluateCalculatorSchemaInner(
         if (formatted === null) {
           return failure(`${step.label}: результат не является корректной датой.`);
         }
-        outputs.push({ kind: 'text', label: step.label, text: formatted });
+        outputs.push({ kind: 'text', id: step.id, label: step.label, text: formatted });
+      }
+      continue;
+    }
+
+    if (step.valueKind === 'text') {
+      if (typeof value !== 'string') {
+        return failure(`${step.label}: результат не является текстом.`);
+      }
+      scope[step.id] = value;
+      if (step.isOutput) {
+        outputs.push({ kind: 'text', id: step.id, label: step.label, text: value });
       }
       continue;
     }
@@ -231,11 +261,18 @@ function evaluateCalculatorSchemaInner(
       return failure(`${step.label}: результат не является конечным числом.`);
     }
     const expressionText = renderExpressionWithValues(node, scope as CalculatorScope);
-    trace.push({ label: step.label, expression: expressionText, value, unit: step.unit });
+    trace.push({
+      id: step.id,
+      label: step.label,
+      expression: expressionText,
+      value,
+      unit: step.unit,
+    });
     scope[step.id] = value;
     if (step.isOutput) {
       outputs.push({
         kind: 'number',
+        id: step.id,
         label: step.label,
         value,
         unit: step.unit,
@@ -247,6 +284,12 @@ function evaluateCalculatorSchemaInner(
   if (outputs.length === 0) return failure('Калькулятор не определил ни одного результата.');
 
   const warnings: CalculatorWarning[] = [...schema.warnings];
+  let evaluation: CalculatorSchemaEvaluation['evaluation'] = {
+    status: schema.evaluation.status,
+    missingContext: schema.evaluation.missingContext,
+    ...(schema.evaluation.reason ? { reason: schema.evaluation.reason } : {}),
+    sourceIds: schema.evaluation.sourceIds,
+  };
   // Partial stages intentionally defer cross-step guards and interpretations until the final
   // evaluation, when all declared inputs/derived values are available in scope.
   if (options.maxStep === undefined) {
@@ -271,6 +314,33 @@ function evaluateCalculatorSchemaInner(
         break;
       }
     }
+    if (schema.evaluation.status === 'verdict') {
+      for (const rule of schema.evaluation.rules) {
+        let matched: CalculatorValue;
+        try {
+          matched = evaluateCalculatorExpression(rule.when, scope as CalculatorScope);
+        } catch (error) {
+          return failure(formatExpressionError('Оценка результата', error));
+        }
+        if (matched === 1) {
+          evaluation = {
+            status: 'verdict',
+            verdict: rule.verdict,
+            missingContext: [],
+            sourceIds: rule.verdict.sourceIds,
+          };
+          break;
+        }
+      }
+      if (evaluation.status !== 'verdict') {
+        evaluation = {
+          status: 'unavailable',
+          missingContext: [],
+          reason: 'Для рассчитанного результата не найдено правило оценки.',
+          sourceIds: schema.evaluation.sourceIds,
+        };
+      }
+    }
   }
 
   const visualOutputs: CalculatorSchemaVisualOutput[] = [];
@@ -288,6 +358,7 @@ function evaluateCalculatorSchemaInner(
     outputs,
     trace,
     warnings,
+    evaluation,
   };
 }
 
@@ -336,6 +407,7 @@ function evaluateCalculatorVisual(
     ok: true,
     output: {
       kind: 'visual',
+      id: visual.id,
       label: visual.title,
       chart: {
         type: visual.kind,
@@ -367,6 +439,7 @@ export function toStoredCalculationResult(
     formula: evaluation.formula,
     trace: evaluation.trace,
     warnings: evaluation.warnings,
+    evaluation: evaluation.evaluation,
     ...(visuals.length > 0 ? { visuals } : {}),
   };
 
@@ -375,9 +448,10 @@ export function toStoredCalculationResult(
     const result: TextCalculationResult = {
       ...base,
       textValues: evaluation.outputs.flatMap((output) => {
-        if (output.kind === 'text') return [{ label: output.label, text: output.text }];
+        if (output.kind === 'text')
+          return [{ id: output.id, label: output.label, text: output.text }];
         if (output.kind === 'number')
-          return [{ label: output.label, text: formatNumberOutputText(output) }];
+          return [{ id: output.id, label: output.label, text: formatNumberOutputText(output) }];
         return [];
       }),
     };
@@ -394,6 +468,7 @@ export function toStoredCalculationResult(
       ...base,
       value: output.value,
       unit: output.unit,
+      outputId: output.id,
       displayPrecision: output.displayPrecision,
     };
     return result;
@@ -401,6 +476,7 @@ export function toStoredCalculationResult(
   const result: DualCalculationResult = {
     ...base,
     values: numberOutputs.map((output) => ({
+      id: output.id,
       label: output.label,
       value: output.value,
       unit: output.unit,

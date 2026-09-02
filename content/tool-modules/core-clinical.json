@@ -20,7 +20,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые; применяется специалистом с учётом массы тела и инструкции препарата",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.cockcroft-gault",
         "slug": "cockcroft-gault-creatinine-clearance",
         "title": "Клиренс креатинина — Cockcroft–Gault",
@@ -45,7 +45,10 @@
             "kind": "number",
             "minimum": 18,
             "maximum": 120,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
           },
           {
             "id": "weightKg",
@@ -54,7 +57,13 @@
             "kind": "number",
             "minimum": 1,
             "maximum": 400,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "creatinine",
@@ -94,7 +103,10 @@
                 "value": "female",
                 "label": "Женский"
               }
-            ]
+            ],
+            "patientBinding": {
+              "kind": "biologicalSex"
+            }
           }
         ],
         "steps": [
@@ -135,6 +147,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/1244564/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["cockcroft-gault-creatinine-clearance-cockcroft-gault-1976"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.cockcroft-gault.creatinineClearance",
+            "label": "Расчётный клиренс креатинина",
+            "unit": "мл/мин",
+            "stepId": "creatinineClearance",
+            "method": "calculator:minimed.calculator.cockcroft-gault"
+          }
         ]
       },
       "sources": [
@@ -163,7 +191,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые и дети; интерпретация зависит от клинического контекста и диуретиков",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.fractional-excretion-sodium",
         "slug": "fractional-excretion-sodium",
         "title": "Фракционная экскреция натрия",
@@ -240,6 +268,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/28008340/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["fractional-excretion-sodium-fena-context"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.fractional-excretion-sodium.fena",
+            "label": "Фракционная экскреция натрия",
+            "unit": "%",
+            "stepId": "fena",
+            "method": "calculator:minimed.calculator.fractional-excretion-sodium"
+          }
         ]
       },
       "sources": [
@@ -268,7 +312,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые и дети; интерпретация требует оценки причин острого повреждения почек",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.fractional-excretion-urea",
         "slug": "fractional-excretion-urea",
         "title": "Фракционная экскреция мочевины",
@@ -343,6 +387,22 @@
             "url": "https://www.kidney.org/atoz/content/acutekidneyinjury",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["fractional-excretion-urea-feurea-aki"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.fractional-excretion-urea.feurea",
+            "label": "Фракционная экскреция мочевины",
+            "unit": "%",
+            "stepId": "feurea",
+            "method": "calculator:minimed.calculator.fractional-excretion-urea"
+          }
         ]
       },
       "sources": [
@@ -371,7 +431,7 @@
       "estimatedMinutes": 1,
       "audience": "Дети и взрослые; особенно полезно при наблюдении в стационаре",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.pediatric-urine-output",
         "slug": "pediatric-urine-output",
         "title": "Диурез по массе",
@@ -405,7 +465,13 @@
             "kind": "number",
             "minimum": 0.1,
             "maximum": 500,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "hours",
@@ -441,6 +507,22 @@
             "url": "https://kdigo.org/guidelines/acute-kidney-injury/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.pediatric-urine-output.urineOutput",
+            "label": "Диурез",
+            "unit": "мл/кг/ч",
+            "stepId": "urineOutput",
+            "method": "calculator:minimed.calculator.pediatric-urine-output"
+          }
         ]
       },
       "sources": [
@@ -469,7 +551,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети и взрослые; анализ кислотно-основного состояния специалистом",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.anion-gap",
         "slug": "anion-gap-albumin-corrected",
         "title": "Анионная разница с поправкой на альбумин",
@@ -555,6 +637,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/12456555/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["anion-gap-albumin-corrected-anion-gap-albumin-2002"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.anion-gap.correctedAnionGap",
+            "label": "Анионная разница с поправкой на альбумин",
+            "unit": "ммоль/л",
+            "stepId": "correctedAnionGap",
+            "method": "calculator:minimed.calculator.anion-gap"
+          }
         ]
       },
       "sources": [
@@ -583,7 +681,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети и взрослые; используется вместе с оценкой осмолярности и состояния пациента",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.corrected-sodium-hyperglycemia",
         "slug": "corrected-sodium-hyperglycemia",
         "title": "Скорректированный натрий при гипергликемии",
@@ -666,6 +764,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/10225241/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["corrected-sodium-hyperglycemia-hillier-sodium-1999"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.corrected-sodium-hyperglycemia.correctedSodium",
+            "label": "Скорректированный натрий",
+            "unit": "ммоль/л",
+            "stepId": "correctedSodium",
+            "method": "calculator:minimed.calculator.corrected-sodium-hyperglycemia"
+          }
         ]
       },
       "sources": [
@@ -694,7 +808,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети и взрослые; оценка гиперосмолярных состояний специалистом",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.effective-osmolality",
         "slug": "effective-plasma-osmolality",
         "title": "Эффективная и расчётная осмолярность",
@@ -772,6 +886,29 @@
             "url": "https://diabetesjournals.org/care/article/27/suppl_1/s94/23995/Hyperglycemic-Crises-in-Diabetes",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["effective-plasma-osmolality-osmolality-diabetes-reference"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.effective-osmolality.effectiveOsmolality",
+            "label": "Эффективная осмолярность",
+            "unit": "мОсм/кг",
+            "stepId": "effectiveOsmolality",
+            "method": "calculator:minimed.calculator.effective-osmolality"
+          },
+          {
+            "metricId": "minimed.calculator.effective-osmolality.calculatedOsmolality",
+            "label": "Расчётная осмолярность",
+            "unit": "мОсм/кг",
+            "stepId": "calculatedOsmolality",
+            "method": "calculator:minimed.calculator.effective-osmolality"
+          }
         ]
       },
       "sources": [
@@ -800,7 +937,7 @@
       "estimatedMinutes": 1,
       "audience": "Дети и взрослые; интерпретация газов крови специалистом",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.winter-formula",
         "slug": "winters-formula-metabolic-acidosis",
         "title": "Формула Winter для метаболического ацидоза",
@@ -867,6 +1004,36 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/14007617/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["winters-formula-metabolic-acidosis-winters-acid-base"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.winter-formula.expectedPco2",
+            "label": "Ожидаемый PaCO₂",
+            "unit": "мм рт. ст.",
+            "stepId": "expectedPco2",
+            "method": "calculator:minimed.calculator.winter-formula"
+          },
+          {
+            "metricId": "minimed.calculator.winter-formula.lowerRange",
+            "label": "Нижняя граница",
+            "unit": "мм рт. ст.",
+            "stepId": "lowerRange",
+            "method": "calculator:minimed.calculator.winter-formula"
+          },
+          {
+            "metricId": "minimed.calculator.winter-formula.upperRange",
+            "label": "Верхняя граница",
+            "unit": "мм рт. ст.",
+            "stepId": "upperRange",
+            "method": "calculator:minimed.calculator.winter-formula"
+          }
         ]
       },
       "sources": [
@@ -895,7 +1062,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые; оценка риска фиброза при заболеваниях печени",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.fib-4",
         "slug": "fib-4-liver-fibrosis-index",
         "title": "FIB-4 — индекс фиброза печени",
@@ -920,7 +1087,10 @@
             "kind": "number",
             "minimum": 18,
             "maximum": 120,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
           },
           {
             "id": "ast",
@@ -974,6 +1144,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/16729309/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["fib-4-liver-fibrosis-index-fib4-sterling-2006"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.fib-4.fib4",
+            "label": "Индекс FIB-4",
+            "unit": "балла",
+            "stepId": "fib4",
+            "method": "calculator:minimed.calculator.fib-4"
+          }
         ]
       },
       "sources": [
@@ -1002,7 +1188,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые; оценка риска фиброза при заболеваниях печени",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.apri",
         "slug": "apri-liver-fibrosis-index",
         "title": "APRI — индекс AST к тромбоцитам",
@@ -1072,6 +1258,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/12883497/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.apri.apri",
+            "label": "Индекс APRI",
+            "unit": "балла",
+            "stepId": "apri",
+            "method": "calculator:minimed.calculator.apri"
+          }
         ]
       },
       "sources": [
@@ -1100,7 +1302,7 @@
       "estimatedMinutes": 1,
       "audience": "Дети и взрослые; оценка нейтропении специалистом",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.absolute-neutrophil-count",
         "slug": "absolute-neutrophil-count",
         "title": "Абсолютное число нейтрофилов",
@@ -1170,6 +1372,22 @@
             "url": "https://www.hematology.org/education/patients/anemia/neutropenia",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["absolute-neutrophil-count-anc-hematology-reference"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.absolute-neutrophil-count.anc",
+            "label": "Абсолютное число нейтрофилов",
+            "unit": "10⁹/л",
+            "stepId": "anc",
+            "method": "calculator:minimed.calculator.absolute-neutrophil-count"
+          }
         ]
       },
       "sources": [
@@ -1198,7 +1416,7 @@
       "estimatedMinutes": 1,
       "audience": "Дети и взрослые; только первичная лабораторная ориентация",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.mentzer-index",
         "slug": "mentzer-index-microcytosis",
         "title": "Индекс Ментцера",
@@ -1269,6 +1487,42 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/9587328/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "mentzer < 13",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "Результат ниже 13: возможна талассемическая черта; подтвердите лабораторными исследованиями.",
+                "explanation": "Результат ниже 13: возможна талассемическая черта; подтвердите лабораторными исследованиями.",
+                "attentionLevel": "none",
+                "sourceIds": ["mentzer-index-microcytosis-mentzer-index-source"]
+              }
+            },
+            {
+              "when": "mentzer >= 13",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "Результат 13 или выше: возможен железодефицит; подтвердите лабораторными исследованиями.",
+                "explanation": "Результат 13 или выше: возможен железодефицит; подтвердите лабораторными исследованиями.",
+                "attentionLevel": "none",
+                "sourceIds": ["mentzer-index-microcytosis-mentzer-index-source"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["mentzer-index-microcytosis-mentzer-index-source"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.mentzer-index.mentzer",
+            "label": "Индекс Ментцера",
+            "unit": "безразмерно",
+            "stepId": "mentzer",
+            "method": "calculator:minimed.calculator.mentzer-index"
+          }
         ]
       },
       "sources": [
@@ -1297,7 +1551,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети и взрослые; измерения ЭКГ и интерпретация специалистом",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.qtc-correction",
         "slug": "qtc-bazett-fridericia",
         "title": "Коррекция QT — Bazett и Fridericia",
@@ -1373,6 +1627,29 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/26552754/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["qtc-bazett-fridericia-qtc-correction-2015"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.qtc-correction.qtcBazett",
+            "label": "QTc Bazett",
+            "unit": "мс",
+            "stepId": "qtcBazett",
+            "method": "calculator:minimed.calculator.qtc-correction"
+          },
+          {
+            "metricId": "minimed.calculator.qtc-correction.qtcFridericia",
+            "label": "QTc Fridericia",
+            "unit": "мс",
+            "stepId": "qtcFridericia",
+            "method": "calculator:minimed.calculator.qtc-correction"
+          }
         ]
       },
       "sources": [
@@ -1401,7 +1678,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые с фибрилляцией предсердий; не является автоматическим назначением антикоагулянта",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.cha2ds2-vasc",
         "slug": "cha2ds2-vasc-stroke-risk",
         "title": "CHA₂DS₂-VASc",
@@ -1426,7 +1703,10 @@
             "kind": "number",
             "minimum": 18,
             "maximum": 120,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
           },
           {
             "id": "heartFailure",
@@ -1549,6 +1829,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/23018151/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["cha2ds2-vasc-stroke-risk-cha2ds2-vasc-validation"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.cha2ds2-vasc.score",
+            "label": "CHA₂DS₂-VASc",
+            "unit": "балла",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.cha2ds2-vasc"
+          }
         ]
       },
       "sources": [
@@ -1577,7 +1873,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые с фибрилляцией предсердий; нужен для коррекции факторов риска, а не запрета терапии",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.has-bled",
         "slug": "has-bled-bleeding-risk",
         "title": "HAS-BLED",
@@ -1748,6 +2044,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/20299623/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["has-bled-bleeding-risk-has-bled-pisters-2010"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.has-bled.score",
+            "label": "HAS-BLED",
+            "unit": "балла",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.has-bled"
+          }
         ]
       },
       "sources": [
@@ -1776,7 +2088,7 @@
       "estimatedMinutes": 3,
       "audience": "Взрослые с хроническим заболеванием печени; заполняет специалист",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.child-pugh",
         "slug": "child-pugh-liver-function",
         "title": "Child–Pugh",
@@ -1933,6 +2245,52 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/2734585/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 6",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "Сумма 5–6: класс A по классической градации.",
+                "explanation": "Сумма 5–6: класс A по классической градации.",
+                "attentionLevel": "none",
+                "sourceIds": ["child-pugh-liver-function-child-pugh-1989"]
+              }
+            },
+            {
+              "when": "score <= 9",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "Сумма 7–9: класс B по классической градации.",
+                "explanation": "Сумма 7–9: класс B по классической градации.",
+                "attentionLevel": "none",
+                "sourceIds": ["child-pugh-liver-function-child-pugh-1989"]
+              }
+            },
+            {
+              "when": "score >= 10",
+              "verdict": {
+                "rangeId": "legacy-3",
+                "title": "Сумма 10–15: класс C по классической градации.",
+                "explanation": "Сумма 10–15: класс C по классической градации.",
+                "attentionLevel": "none",
+                "sourceIds": ["child-pugh-liver-function-child-pugh-1989"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["child-pugh-liver-function-child-pugh-1989"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.child-pugh.score",
+            "label": "Child–Pugh",
+            "unit": "балла",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.child-pugh"
+          }
         ]
       },
       "sources": [
@@ -1961,7 +2319,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети и взрослые с ожогами; только как стартовый ориентир для команды лечения ожогов",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.parkland-burn-resuscitation",
         "slug": "parkland-burn-resuscitation",
         "title": "Parkland — расчёт жидкости при ожоге",
@@ -1986,7 +2344,13 @@
             "kind": "number",
             "minimum": 1,
             "maximum": 400,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "tbsaPercent",
@@ -2062,6 +2426,43 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/9882069/",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["parkland-burn-resuscitation-parkland-burns-reference"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.parkland-burn-resuscitation.totalVolume",
+            "label": "Ориентир на первые 24 часа",
+            "unit": "мл",
+            "stepId": "totalVolume",
+            "method": "calculator:minimed.calculator.parkland-burn-resuscitation"
+          },
+          {
+            "metricId": "minimed.calculator.parkland-burn-resuscitation.firstHalfVolume",
+            "label": "Половина объёма на первые 8 часов",
+            "unit": "мл",
+            "stepId": "firstHalfVolume",
+            "method": "calculator:minimed.calculator.parkland-burn-resuscitation"
+          },
+          {
+            "metricId": "minimed.calculator.parkland-burn-resuscitation.firstHalfRate",
+            "label": "Ориентировочная скорость до 8 часов",
+            "unit": "мл/ч",
+            "stepId": "firstHalfRate",
+            "method": "calculator:minimed.calculator.parkland-burn-resuscitation"
+          },
+          {
+            "metricId": "minimed.calculator.parkland-burn-resuscitation.secondHalfRate",
+            "label": "Ориентировочная скорость с 8 до 24 часов",
+            "unit": "мл/ч",
+            "stepId": "secondHalfRate",
+            "method": "calculator:minimed.calculator.parkland-burn-resuscitation"
+          }
         ]
       },
       "sources": [
@@ -2090,7 +2491,7 @@
       "estimatedMinutes": 2,
       "audience": "Пациенты с известными ростом и массой; возраст отдельно не используется.",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "body-surface-area-mosteller",
         "slug": "body-surface-area-mosteller",
         "title": "Площадь поверхности тела — Mosteller",
@@ -2115,7 +2516,13 @@
             "minimum": 1,
             "maximum": 260,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-height",
+              "unit": "см",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "weightKg",
@@ -2125,7 +2532,13 @@
             "minimum": 0.1,
             "maximum": 500,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           }
         ],
         "steps": [
@@ -2176,6 +2589,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/3657876/",
             "reviewedAt": "2026-08-03"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["body-surface-area-mosteller-mosteller-1987"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "body-surface-area-mosteller.bsa",
+            "label": "Площадь поверхности тела",
+            "unit": "м²",
+            "stepId": "bsa",
+            "method": "calculator:body-surface-area-mosteller"
+          }
         ]
       },
       "sources": [
@@ -2204,7 +2633,7 @@
       "estimatedMinutes": 2,
       "audience": "Взрослые от 18 лет со стандартизованным по IDMS сывороточным креатинином.",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "adult-egfr-ckd-epi-2021",
         "slug": "adult-egfr-ckd-epi-2021",
         "title": "Расчётная СКФ у взрослых — CKD-EPI 2021",
@@ -2230,7 +2659,10 @@
             "minimum": 18,
             "maximum": 120,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
           },
           {
             "id": "sex",
@@ -2247,7 +2679,10 @@
               }
             ],
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "biologicalSex"
+            }
           },
           {
             "id": "creatinine",
@@ -2403,6 +2838,25 @@
             "url": "https://www.kidney.org/professionals/ckd-epi-creatinine-equation-2021",
             "reviewedAt": "2026-08-03"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "adult-egfr-ckd-epi-2021-ckd-epi-2021",
+            "adult-egfr-ckd-epi-2021-2021-creatinine-equation"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "adult-egfr-ckd-epi-2021.egfr",
+            "label": "Расчётная СКФ",
+            "unit": "мл/мин/1,73 м²",
+            "stepId": "egfr",
+            "method": "calculator:adult-egfr-ckd-epi-2021"
+          }
         ]
       },
       "sources": [
@@ -2439,7 +2893,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети 1–16 лет; исходная когорта преимущественно имела хроническую болезнь почек.",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "pediatric-egfr-schwartz-2009",
         "slug": "pediatric-egfr-schwartz-2009",
         "title": "Расчётная СКФ у детей — bedside CKiD 2009",
@@ -2465,7 +2919,10 @@
             "minimum": 1,
             "maximum": 16,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
           },
           {
             "id": "heightCm",
@@ -2475,7 +2932,13 @@
             "minimum": 40,
             "maximum": 220,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-height",
+              "unit": "см",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "creatinine",
@@ -2560,6 +3023,22 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/19158356/",
             "reviewedAt": "2026-08-03"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["pediatric-egfr-schwartz-2009-bedside-ckid-2009"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "pediatric-egfr-schwartz-2009.egfr",
+            "label": "Расчётная СКФ",
+            "unit": "мл/мин/1,73 м²",
+            "stepId": "egfr",
+            "method": "calculator:pediatric-egfr-schwartz-2009"
+          }
         ]
       },
       "sources": [
@@ -2588,7 +3067,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети с массой 0,5–200 кг, когда требуется исходная оценка поддерживающей воды.",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "pediatric-maintenance-fluids",
         "slug": "pediatric-maintenance-fluids",
         "title": "Поддерживающая жидкость у детей — Holliday–Segar",
@@ -2614,7 +3093,13 @@
             "minimum": 0.5,
             "maximum": 200,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           }
         ],
         "steps": [
@@ -2703,6 +3188,36 @@
             "url": "https://publications.aap.org/pediatrics/article/19/5/823/29135/THE-MAINTENANCE-NEED-FOR-WATER-IN-PARENTERAL-FLUID",
             "reviewedAt": "2026-08-03"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["pediatric-maintenance-fluids-holliday-segar-1957"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "pediatric-maintenance-fluids.daily",
+            "label": "Суточная поддерживающая потребность",
+            "unit": "мл/сут",
+            "stepId": "daily",
+            "method": "calculator:pediatric-maintenance-fluids"
+          },
+          {
+            "metricId": "pediatric-maintenance-fluids.hourly421",
+            "label": "Почасовая скорость 4–2–1",
+            "unit": "мл/ч",
+            "stepId": "hourly421",
+            "method": "calculator:pediatric-maintenance-fluids"
+          },
+          {
+            "metricId": "pediatric-maintenance-fluids.averageHourly",
+            "label": "Средняя скорость из суточного объёма",
+            "unit": "мл/ч",
+            "stepId": "averageHourly",
+            "method": "calculator:pediatric-maintenance-fluids"
+          }
         ]
       },
       "sources": [
@@ -2731,7 +3246,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети от 1 месяца до 18 лет, если ребёнок может получать жидкость энтерально.",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "pediatric-oral-rehydration",
         "slug": "pediatric-oral-rehydration",
         "title": "Пероральная регидратация у детей",
@@ -2764,7 +3279,10 @@
             "maximum": 18,
             "required": true,
             "note": "влияет на начальный темп маленьких порций",
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
           },
           {
             "id": "weightKg",
@@ -2774,7 +3292,13 @@
             "minimum": 0.5,
             "maximum": 200,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "diarrheaEpisodes",
@@ -2967,6 +3491,110 @@
             "version": "WHO 9241544449",
             "url": "https://iris.who.int/bitstream/10665/40343/1/9241544449.pdf",
             "reviewedAt": "2026-08-15"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "ageYears < 1",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "Возраст младше 1 года повышает риск обезвоживания; нужна более ранняя очная оценка, особенно при повторной рвоте или частом жидком стуле.",
+                "explanation": "Возраст младше 1 года повышает риск обезвоживания; нужна более ранняя очная оценка, особенно при повторной рвоте или частом жидком стуле.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "pediatric-oral-rehydration-cg84",
+                  "pediatric-oral-rehydration-mmwr-rr-16",
+                  "pediatric-oral-rehydration-who-9241544449"
+                ]
+              }
+            },
+            {
+              "when": "vomitingEpisodes > 2",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "Более двух эпизодов рвоты за 24 часа — фактор повышенного риска обезвоживания; контролируйте переносимость ОРС и обратитесь за медицинской помощью при ухудшении.",
+                "explanation": "Более двух эпизодов рвоты за 24 часа — фактор повышенного риска обезвоживания; контролируйте переносимость ОРС и обратитесь за медицинской помощью при ухудшении.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "pediatric-oral-rehydration-cg84",
+                  "pediatric-oral-rehydration-mmwr-rr-16",
+                  "pediatric-oral-rehydration-who-9241544449"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "pediatric-oral-rehydration-cg84",
+            "pediatric-oral-rehydration-mmwr-rr-16",
+            "pediatric-oral-rehydration-who-9241544449"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "pediatric-oral-rehydration.maintenanceDaily",
+            "label": "Суточная поддерживающая потребность",
+            "unit": "мл/сут",
+            "stepId": "maintenanceDaily",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.maintenanceHourly421",
+            "label": "Почасовая скорость 4–2–1",
+            "unit": "мл/ч",
+            "stepId": "maintenanceHourly421",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.initialOrs",
+            "label": "ОРС при клинической дегидратации за 4 часа",
+            "unit": "мл",
+            "stepId": "initialOrs",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.initialOrsHourly",
+            "label": "Средняя скорость ОРС на эти 4 часа",
+            "unit": "мл/ч",
+            "stepId": "initialOrsHourly",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.startingSip",
+            "label": "Начальная порция при отпаивании",
+            "unit": "мл",
+            "stepId": "startingSip",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.stoolLoss",
+            "label": "Оценка потерь с жидким стулом",
+            "unit": "мл ОРС",
+            "stepId": "stoolLoss",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.vomitLoss",
+            "label": "Оценка потерь с рвотой",
+            "unit": "мл ОРС",
+            "stepId": "vomitLoss",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.ongoingLosses",
+            "label": "Продолжающиеся потери по введённым эпизодам",
+            "unit": "мл ОРС",
+            "stepId": "ongoingLosses",
+            "method": "calculator:pediatric-oral-rehydration"
+          },
+          {
+            "metricId": "pediatric-oral-rehydration.replacementWithRecordedLosses",
+            "label": "Базовый ОРС плюс введённые потери",
+            "unit": "мл ОРС",
+            "stepId": "replacementWithRecordedLosses",
+            "method": "calculator:pediatric-oral-rehydration"
           }
         ]
       },

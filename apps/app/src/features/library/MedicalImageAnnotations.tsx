@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -16,11 +16,19 @@ export type MedicalImageAnnotationTool = 'none' | 'pen' | 'eraser';
 const VIEWBOX_SIZE = 1000;
 const MIN_POINT_DISTANCE = 0.0015;
 
+interface PendingAnnotationPoint {
+  readonly point: UserLibraryMedicalAnnotationPoint;
+  readonly mode: 'pen' | 'eraser';
+  readonly strokeId?: string;
+  readonly tolerance?: number;
+}
+
 export function MedicalImageAnnotationToolbar(props: {
   readonly tool: MedicalImageAnnotationTool;
   readonly color: UserLibraryMedicalAnnotationColor;
   readonly disabled?: boolean;
   readonly disabledReason?: string;
+  readonly showShortcuts?: boolean;
   readonly onToolChange: (tool: MedicalImageAnnotationTool) => void;
   readonly onColorChange: (color: UserLibraryMedicalAnnotationColor) => void;
 }): JSX.Element {
@@ -43,12 +51,22 @@ export function MedicalImageAnnotationToolbar(props: {
             props.tool === 'pen' && props.color === 'red',
         }}
         type="button"
-        aria-label="Красный карандаш"
-        title="Красный карандаш"
+        aria-label="Режим: красный карандаш (D)"
+        title="Режим: красный карандаш (D)"
         aria-pressed={props.tool === 'pen' && props.color === 'red'}
         disabled={props.disabled}
         onClick={() => selectColor('red')}
-      />
+      >
+        <AppGlyph
+          name={props.tool === 'pen' && props.color === 'red' ? 'edit-fill' : 'edit'}
+          class="medical-image-viewer__annotation-color-icon"
+        />
+        <Show when={props.showShortcuts !== false}>
+          <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
+            (d)
+          </span>
+        </Show>
+      </button>
       <button
         class="medical-image-viewer__annotation-color medical-image-viewer__annotation-color--blue"
         classList={{
@@ -56,21 +74,40 @@ export function MedicalImageAnnotationToolbar(props: {
             props.tool === 'pen' && props.color === 'blue',
         }}
         type="button"
-        aria-label="Синий карандаш"
-        title="Синий карандаш"
+        aria-label="Режим: синий карандаш (D)"
+        title="Режим: синий карандаш (D)"
         aria-pressed={props.tool === 'pen' && props.color === 'blue'}
         disabled={props.disabled}
         onClick={() => selectColor('blue')}
-      />
+      >
+        <AppGlyph
+          name={props.tool === 'pen' && props.color === 'blue' ? 'edit-fill' : 'edit'}
+          class="medical-image-viewer__annotation-color-icon"
+        />
+        <Show when={props.showShortcuts !== false}>
+          <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
+            (d)
+          </span>
+        </Show>
+      </button>
       <Button
         class="medical-image-viewer__tool medical-image-viewer__tool--icon"
         variant={props.tool === 'eraser' ? 'primary' : 'icon'}
-        aria-label="Ластик"
-        title={props.disabled ? props.disabledReason : 'Ластик'}
+        aria-label="Режим: ластик (E)"
+        title={props.disabled ? props.disabledReason : 'Режим: ластик (E)'}
         aria-pressed={props.tool === 'eraser'}
         disabled={props.disabled}
         onClick={() => props.onToolChange(props.tool === 'eraser' ? 'none' : 'eraser')}
-        icon={<AppGlyph name="eraser" class="medical-image-viewer__tool-icon" />}
+        icon={
+          <>
+            <AppGlyph name="eraser" class="medical-image-viewer__tool-icon" />
+            <Show when={props.showShortcuts !== false}>
+              <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
+                (e)
+              </span>
+            </Show>
+          </>
+        }
       />
     </fieldset>
   );
@@ -87,6 +124,9 @@ export function MedicalImageAnnotationLayer(props: {
   const [error, setError] = createSignal<string>();
   let activePointerId: number | undefined;
   let activeStrokeId: string | undefined;
+  let annotationBounds: DOMRect | undefined;
+  let annotationFrame: number | undefined;
+  let pendingPoint: PendingAnnotationPoint | undefined;
   let loadGeneration = 0;
 
   createEffect(() => {
@@ -94,6 +134,10 @@ export function MedicalImageAnnotationLayer(props: {
     const generation = ++loadGeneration;
     activePointerId = undefined;
     activeStrokeId = undefined;
+    annotationBounds = undefined;
+    pendingPoint = undefined;
+    if (annotationFrame !== undefined) cancelAnimationFrame(annotationFrame);
+    annotationFrame = undefined;
     setStrokes([]);
     setError(undefined);
     if (!sliceKey) return;
@@ -109,22 +153,50 @@ export function MedicalImageAnnotationLayer(props: {
 
   const pointFromEvent = (
     event: PointerEvent & { readonly currentTarget: SVGSVGElement },
+    bounds: DOMRect = event.currentTarget.getBoundingClientRect(),
   ): UserLibraryMedicalAnnotationPoint => {
     // ponytail: Screen-space vectors follow viewport resizing; use viewer world coordinates if marks must follow zoom/pan.
-    const bounds = event.currentTarget.getBoundingClientRect();
     return {
       x: Math.min(1, Math.max(0, (event.clientX - bounds.left) / Math.max(1, bounds.width))),
       y: Math.min(1, Math.max(0, (event.clientY - bounds.top) / Math.max(1, bounds.height))),
     };
   };
 
-  const eraseAt = (
-    event: PointerEvent & { readonly currentTarget: SVGSVGElement },
-    point: UserLibraryMedicalAnnotationPoint,
-  ): void => {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const tolerance = 14 / Math.max(1, Math.min(bounds.width, bounds.height));
-    setStrokes((current) => eraseMedicalImageStrokes(current, point, tolerance));
+  const applyPendingPoint = (): void => {
+    const pending = pendingPoint;
+    pendingPoint = undefined;
+    if (!pending) return;
+    if (pending.mode === 'eraser') {
+      setStrokes((current) =>
+        eraseMedicalImageStrokes(current, pending.point, pending.tolerance ?? 0.014),
+      );
+      return;
+    }
+    const strokeId = pending.strokeId;
+    if (!strokeId) return;
+    setStrokes((current) =>
+      current.map((stroke) => {
+        if (stroke.id !== strokeId || stroke.points.length >= 4096) return stroke;
+        const previous = stroke.points.at(-1);
+        if (
+          previous &&
+          (pending.point.x - previous.x) ** 2 + (pending.point.y - previous.y) ** 2 <
+            MIN_POINT_DISTANCE ** 2
+        ) {
+          return stroke;
+        }
+        return { ...stroke, points: [...stroke.points, pending.point] };
+      }),
+    );
+  };
+
+  const schedulePoint = (pending: PendingAnnotationPoint): void => {
+    pendingPoint = pending;
+    if (annotationFrame !== undefined) return;
+    annotationFrame = requestAnimationFrame(() => {
+      annotationFrame = undefined;
+      applyPendingPoint();
+    });
   };
 
   const persist = (): void => {
@@ -142,9 +214,14 @@ export function MedicalImageAnnotationLayer(props: {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     activePointerId = event.pointerId;
-    const point = pointFromEvent(event);
+    annotationBounds = event.currentTarget.getBoundingClientRect();
+    const point = pointFromEvent(event, annotationBounds);
     if (props.tool === 'eraser') {
-      eraseAt(event, point);
+      schedulePoint({
+        point,
+        mode: 'eraser',
+        tolerance: 14 / Math.max(1, Math.min(annotationBounds.width, annotationBounds.height)),
+      });
       return;
     }
     if (strokes().length >= 512) {
@@ -161,34 +238,38 @@ export function MedicalImageAnnotationLayer(props: {
   const handlePointerMove: JSX.EventHandlerUnion<SVGSVGElement, PointerEvent> = (event) => {
     if (event.pointerId !== activePointerId || props.tool === 'none') return;
     event.preventDefault();
-    const point = pointFromEvent(event);
+    const bounds = annotationBounds ?? event.currentTarget.getBoundingClientRect();
+    annotationBounds = bounds;
+    const point = pointFromEvent(event, bounds);
     if (props.tool === 'eraser') {
-      eraseAt(event, point);
+      schedulePoint({
+        point,
+        mode: 'eraser',
+        tolerance: 14 / Math.max(1, Math.min(bounds.width, bounds.height)),
+      });
       return;
     }
     const strokeId = activeStrokeId;
     if (!strokeId) return;
-    setStrokes((current) =>
-      current.map((stroke) => {
-        if (stroke.id !== strokeId || stroke.points.length >= 4096) return stroke;
-        const previous = stroke.points.at(-1);
-        if (
-          previous &&
-          (point.x - previous.x) ** 2 + (point.y - previous.y) ** 2 < MIN_POINT_DISTANCE ** 2
-        ) {
-          return stroke;
-        }
-        return { ...stroke, points: [...stroke.points, point] };
-      }),
-    );
+    schedulePoint({ point, mode: 'pen', strokeId });
   };
 
   const finishPointer: JSX.EventHandlerUnion<SVGSVGElement, PointerEvent> = (event) => {
     if (event.pointerId !== activePointerId) return;
+    if (annotationFrame !== undefined) {
+      cancelAnimationFrame(annotationFrame);
+      annotationFrame = undefined;
+    }
+    applyPendingPoint();
     activePointerId = undefined;
     activeStrokeId = undefined;
+    annotationBounds = undefined;
     persist();
   };
+
+  onCleanup(() => {
+    if (annotationFrame !== undefined) cancelAnimationFrame(annotationFrame);
+  });
 
   return (
     <>

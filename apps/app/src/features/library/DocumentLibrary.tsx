@@ -1,5 +1,6 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import {
+  createDeferred,
   createEffect,
   createMemo,
   createSignal,
@@ -15,7 +16,9 @@ import { Button } from '@/components/Button';
 import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGlyph';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
+import { Heading } from '@/components/Text';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { browserI18n } from '@/i18n/browser-i18n';
@@ -51,16 +54,21 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     !document.documentElement.classList.contains('using-root-view-transition'),
   );
 
-  const activeQuery = createMemo(() => props.query ?? filter());
+  const deferredFilter = createDeferred(filter, { timeoutMs: 120 });
+  const activeQuery = createMemo(() => props.query ?? deferredFilter());
+  const searchValuesById = createMemo(
+    () => new Map(documents().map((document) => [document.id, documentSearchValues(document)])),
+  );
 
   const filteredDocuments = createMemo(() => {
     const query = activeQuery().trim();
     if (!query) return documents();
+    const searchValues = searchValuesById();
     return documents()
       .map((document, index) => ({
         document,
         index,
-        score: fuzzyQueryScore(query, documentSearchValues(document)),
+        score: fuzzyQueryScore(query, searchValues.get(document.id) ?? []),
       }))
       .filter((entry) => entry.score > 0)
       .toSorted((left, right) => right.score - left.score || left.index - right.index)
@@ -98,33 +106,31 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       aria-label="Архив документов"
     >
       <Show when={!props.embedded}>
-        <header class="subpage-heading archive-library-heading">
-          <div>
-            <p class="archive-kicker">Локальная медицинская библиотека</p>
-            <h1>Документы</h1>
-            <p>
-              Откройте рекомендации, лекарственные сведения и нормативные документы. Чтение
-              происходит в отдельном окне поверх текущего раздела.
-            </p>
-          </div>
-          <fieldset class="library-mode-tabs">
-            <legend class="sr-only">Представление библиотеки</legend>
-            <button
-              classList={{ active: mode() === 'list' }}
-              type="button"
-              onClick={() => setMode('list')}
-            >
-              <AppGlyph name="list" /> Список
-            </button>
-            <button
-              classList={{ active: mode() === 'graph' }}
-              type="button"
-              onClick={() => setMode('graph')}
-            >
-              <AppGlyph name="graph" /> Карта связей
-            </button>
-          </fieldset>
-        </header>
+        <Page
+          class="archive-library-page-header"
+          icon={<AppGlyph name="book-open" class="page__icon-glyph" />}
+          title={<Heading depth={1}>Документы</Heading>}
+          description="Откройте рекомендации, лекарственные сведения и нормативные документы. Чтение происходит в отдельном окне поверх текущего раздела."
+          actions={
+            <fieldset class="library-mode-tabs library-mode-tabs--page-header">
+              <legend class="sr-only">Представление библиотеки</legend>
+              <button
+                classList={{ active: mode() === 'list' }}
+                type="button"
+                onClick={() => setMode('list')}
+              >
+                <AppGlyph name="list" /> Список
+              </button>
+              <button
+                classList={{ active: mode() === 'graph' }}
+                type="button"
+                onClick={() => setMode('graph')}
+              >
+                <AppGlyph name="graph" /> Карта связей
+              </button>
+            </fieldset>
+          }
+        />
       </Show>
 
       <Show when={props.embedded}>
@@ -147,6 +153,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
             class="route-search"
             value={filter()}
             onInput={setFilter}
+            onClear={() => setFilter('')}
             label="Поиск по документам"
             hideLabel
             placeholder="Название, специальность или источник"

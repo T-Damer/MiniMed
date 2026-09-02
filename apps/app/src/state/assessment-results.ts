@@ -6,8 +6,9 @@ import type {
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
 
-export const ASSESSMENT_RESULTS_KEY = 'minimed.assessment-results.v1';
+export const ASSESSMENT_RESULTS_KEY = 'minimed.assessment-results.v2';
 export const ASSESSMENT_RESULTS_EVENT = 'minimed:assessment-results-changed';
+const MAX_STORED_RESPONSE_WEIGHT = 1000;
 
 function createId(): string {
   if ('crypto' in globalThis && typeof crypto.randomUUID === 'function') {
@@ -48,7 +49,9 @@ function isAssessmentAnswers(value: unknown): value is AssessmentAnswers {
     isStringRecord(value) &&
     Object.values(value).every(
       (answer) =>
-        typeof answer === 'number' && Number.isInteger(answer) && answer >= 0 && answer <= 5,
+        typeof answer === 'number' &&
+        Number.isFinite(answer) &&
+        Math.abs(answer) <= MAX_STORED_RESPONSE_WEIGHT,
     )
   );
 }
@@ -89,9 +92,14 @@ export function loadAssessmentRecords(): readonly AssessmentRecord[] {
     if (!raw) return [];
     const value: unknown = JSON.parse(raw);
     if (!Array.isArray(value)) return [];
-    return value
-      .filter(isAssessmentRecord)
-      .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return (
+      value
+        .filter(isAssessmentRecord)
+        // Protected completed results live only in the encrypted patient vault. Ignore malformed
+        // or stale entries that may have been written to this ordinary-results key by an older build.
+        .filter((record) => record.patientId === undefined)
+        .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt))
+    );
   } catch {
     return [];
   }
@@ -103,6 +111,12 @@ export function createCompletedAssessmentRecord(input: {
   readonly subjectLabel: string;
   readonly answers: AssessmentAnswers;
   readonly result: ScoredAssessment;
+  readonly patientId?: string;
+  readonly episodeId?: string;
+  readonly definitionVersion?: string;
+  readonly contextSnapshot?: Readonly<Record<string, string | number>>;
+  /** Patient-bound results live in the encrypted vault, never in localStorage. */
+  readonly persist?: boolean;
 }): CompletedAssessmentRecord {
   const record: CompletedAssessmentRecord = {
     id: input.id ?? createId(),
@@ -112,8 +126,14 @@ export function createCompletedAssessmentRecord(input: {
     kind: 'completed',
     answers: input.answers,
     result: input.result,
+    ...(input.patientId ? { patientId: input.patientId } : {}),
+    ...(input.episodeId ? { episodeId: input.episodeId } : {}),
+    ...(input.definitionVersion ? { definitionVersion: input.definitionVersion } : {}),
+    ...(input.contextSnapshot ? { contextSnapshot: input.contextSnapshot } : {}),
   };
-  persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
+  if (input.persist !== false && !input.patientId) {
+    persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
+  }
   return record;
 }
 

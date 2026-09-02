@@ -44,9 +44,9 @@ jobs:
       - run: >-
           uv run --project tools/ingest medbase build
           --input content/fixtures
-          --output data/build/core-demo.db
+          --output data/build/core.db
           --json-output packages/test-fixtures/src/generated/core-demo.json
-          --report data/build/core-demo-report.json
+          --report data/build/core-report.json
       - run: >-
           uv run --project tools/ingest medbase build
           --input content/regulatory-rf-pilot

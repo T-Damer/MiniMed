@@ -101,6 +101,19 @@ describe('user-document-reader-helpers', () => {
     expect(html).not.toContain('<test>');
   });
 
+  it('uses small A4 margins and keeps explicit text pages separate for a template', () => {
+    const html = buildUserDocumentPrintHtml(
+      'Осмотр на дому',
+      [
+        { documentId: 'doc-1', pageIndex: 0, kind: 'native', text: 'Первая страница' },
+        { documentId: 'doc-1', pageIndex: 1, kind: 'native', text: 'Вторая страница' },
+      ],
+      true,
+    );
+    expect(html).toContain('@page { size: A4; margin: 10mm; }');
+    expect(html).toContain('break-after: page');
+  });
+
   it('matches document query exactly by default', () => {
     expect(textMatchesDocumentQuery('Гипертоническая болезнь', 'диабет')).toBe(false);
     expect(textMatchesDocumentQuery('Гипертоническая болезнь', 'болезнь')).toBe(true);

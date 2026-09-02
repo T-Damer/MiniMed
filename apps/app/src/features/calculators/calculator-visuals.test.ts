@@ -7,7 +7,7 @@ import {
 } from '@/features/calculators/calculator-schema-engine';
 
 const BASE_SCHEMA = {
-  schemaVersion: 1 as const,
+  schemaVersion: 2 as const,
   id: 'visual-test-calc',
   slug: 'visual-test-calc',
   title: 'ИМТ (тест визуализации)',
@@ -34,6 +34,10 @@ const BASE_SCHEMA = {
     },
   ],
   sources: [{ title: 'Test source', publisher: 'Test', version: '1', reviewedAt: '2026-01-01' }],
+  evaluation: { status: 'unavailable' as const, rules: [], missingContext: [], sourceIds: [] },
+  observationMappings: [
+    { metricId: 'visual-test-calc.bmi', label: 'ИМТ', unit: 'кг/м²', stepId: 'bmi' },
+  ],
 };
 
 function schemaWithVisuals(visuals: unknown[]): CalculatorSchema {

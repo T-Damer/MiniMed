@@ -157,6 +157,7 @@ function announceUpdate(worker: ServiceWorker): void {
 }
 
 export async function registerAppServiceWorker(): Promise<void> {
+  if (Capacitor.getPlatform() !== 'web') return;
   const registration = await navigator.serviceWorker.register(`./sw.js?v=${RELEASE_VERSION}`);
   if (registration.waiting) announceUpdate(registration.waiting);
   registration.addEventListener('updatefound', () => {

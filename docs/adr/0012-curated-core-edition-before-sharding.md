@@ -1,6 +1,6 @@
 # ADR 0012: Curated core editions before runtime sharding
 
-- Status: accepted
+- Status: superseded by [ADR 0017](0017-lightweight-core-index-and-domain-packs.md)
 - Date: 2026-07-29
 
 ## Context

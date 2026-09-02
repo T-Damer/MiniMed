@@ -86,7 +86,7 @@ Demo pack:
 bun run content:build
 ```
 
-The publish step refuses to replace `apps/app/public/content/core-demo.db` when the committed pack
+The publish step refuses to replace `apps/app/public/content/core.db` when the committed pack
 (built by CI from the pilot corpus) contains more documents than the local fixtures build. Run
 `bun scripts/publish-demo-pack.mjs --force` to overwrite it deliberately.
 

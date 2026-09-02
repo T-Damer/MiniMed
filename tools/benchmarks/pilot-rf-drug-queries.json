@@ -61,6 +61,7 @@
     "expectedAnchorPrefixes": [
       "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07/регистрационная-запись"
     ],
+    "requireTop1": true,
     "category": "drug-registry"
   },
   {

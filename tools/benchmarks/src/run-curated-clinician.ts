@@ -18,7 +18,9 @@ const benchmarkEnv = process.env as {
   readonly MINIMED_CLINICIAN_BENCHMARK_MODE?: string;
   readonly MINIMED_CLINICIAN_MIN_RECALL_AT_1?: string;
   readonly MINIMED_CLINICIAN_MIN_RECALL_AT_5?: string;
-  readonly MINIMED_CLINICIAN_MIN_SECTION_RECALL_AT_5?: string;
+  readonly MINIMED_CLINICIAN_MIN_HIT_AT_5?: string;
+  readonly MINIMED_CLINICIAN_MIN_MRR_AT_5?: string;
+  readonly MINIMED_CLINICIAN_MIN_SECTION_HIT_AT_5?: string;
   readonly MINIMED_CLINICIAN_MAX_FORBIDDEN_RATE_AT_5?: string;
 };
 const databasePath = resolve(
@@ -80,7 +82,9 @@ console.log(JSON.stringify({ ...aggregate, reportPath }, null, 2));
 
 const minRecallAt1 = Number(benchmarkEnv.MINIMED_CLINICIAN_MIN_RECALL_AT_1 ?? '0.75');
 const minRecallAt5 = Number(benchmarkEnv.MINIMED_CLINICIAN_MIN_RECALL_AT_5 ?? '0.9');
-const minSectionRecall = Number(benchmarkEnv.MINIMED_CLINICIAN_MIN_SECTION_RECALL_AT_5 ?? '0.7');
+const minHitAt5 = Number(benchmarkEnv.MINIMED_CLINICIAN_MIN_HIT_AT_5 ?? '0.9');
+const minMrrAt5 = Number(benchmarkEnv.MINIMED_CLINICIAN_MIN_MRR_AT_5 ?? '0.65');
+const minSectionHit = Number(benchmarkEnv.MINIMED_CLINICIAN_MIN_SECTION_HIT_AT_5 ?? '0.9');
 const maxForbiddenRate = Number(benchmarkEnv.MINIMED_CLINICIAN_MAX_FORBIDDEN_RATE_AT_5 ?? '0');
 const failures: string[] = [];
 if (aggregate.recallAt1 < minRecallAt1) {
@@ -89,10 +93,14 @@ if (aggregate.recallAt1 < minRecallAt1) {
 if (aggregate.recallAt5 < minRecallAt5) {
   failures.push(`Recall@5 ${aggregate.recallAt5.toFixed(3)} < ${minRecallAt5.toFixed(3)}`);
 }
-if (aggregate.expectedSectionRecallAt5 < minSectionRecall) {
-  failures.push(
-    `section recall@5 ${aggregate.expectedSectionRecallAt5.toFixed(3)} < ${minSectionRecall.toFixed(3)}`,
-  );
+if (aggregate.hitAt5 < minHitAt5) {
+  failures.push(`Hit@5 ${aggregate.hitAt5.toFixed(3)} < ${minHitAt5.toFixed(3)}`);
+}
+if (aggregate.mrrAt5 < minMrrAt5) {
+  failures.push(`MRR@5 ${aggregate.mrrAt5.toFixed(3)} < ${minMrrAt5.toFixed(3)}`);
+}
+if (aggregate.sectionHitAt5 < minSectionHit) {
+  failures.push(`SectionHit@5 ${aggregate.sectionHitAt5.toFixed(3)} < ${minSectionHit.toFixed(3)}`);
 }
 if (aggregate.forbiddenRateAt5 > maxForbiddenRate) {
   failures.push(

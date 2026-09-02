@@ -4,6 +4,7 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import {
@@ -50,6 +51,17 @@ export function AssessmentResultPage(props: {
   const [shareMessage, setShareMessage] = createSignal('');
   const completed = () => (props.record.kind === 'completed' ? props.record.result : undefined);
   const manualText = () => (props.record.kind === 'manual' ? props.record.text : '');
+  const printResult = (): void => {
+    if (
+      !printAssessmentRecord(
+        props.definition,
+        props.record,
+        attachedResultNoteTitle(props.notes, props.record.id),
+      )
+    ) {
+      props.onMessage('Не удалось открыть окно печати.');
+    }
+  };
 
   onMount(() => {
     const hideFloatingControls = (): void => {
@@ -99,26 +111,37 @@ export function AssessmentResultPage(props: {
 
   return (
     <article class="assessment-result-page">
-      <header class="assessment-subpage-header assessment-result-page__header">
-        <div class="assessment-subpage-header__nav">
+      <Page
+        class="assessment-page-header assessment-result-page__header"
+        navigation={
           <NavBack class="knowledge-back-button" aria-label="К тесту" onClick={props.onBack} />
+        }
+        breadcrumbs={
           <AppBreadcrumbs
             items={assessmentWorkspaceCrumbs(props.definition)}
             onNavigate={(href) => {
               window.location.hash = href;
             }}
           />
-        </div>
-        <div class="assessment-subpage-header__body">
-          <div class="assessment-subpage-header__content">
-            <Heading depth={3} class="assessment-subpage-title">
-              {props.definition.title}
-            </Heading>
-            <p class="assessment-subpage-summary">
-              {props.record.subjectLabel || 'Без подписи'} · {formatDate(props.record.createdAt)}
-            </p>
-          </div>
+        }
+        icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}
+        title={
+          <Heading depth={3} class="assessment-subpage-title">
+            {props.definition.title}
+          </Heading>
+        }
+        description={`${props.definition.description} · ${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`}
+        actions={
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
+            <Button
+              type="button"
+              variant="icon"
+              class="knowledge-back-button assessment-result-print-button"
+              aria-label="Распечатать результат"
+              title="Распечатать результат"
+              onClick={printResult}
+              icon={<AppGlyph name="printer" class="assessment-questionnaire-print__icon" />}
+            />
             <Button
               type="button"
               variant="icon"
@@ -129,13 +152,19 @@ export function AssessmentResultPage(props: {
               icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
             />
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <Show
         when={completed()}
         fallback={
           <section class="assessment-result-summary paper-card">
+            <section class="assessment-result-evaluation" aria-live="polite">
+              <strong class="assessment-result-evaluation__title">Оценка недоступна</strong>
+              <p class="assessment-result-evaluation__text">
+                Результат введён вручную; MiniMed не пересчитывал его и не проверял референс.
+              </p>
+            </section>
             <h2 class="assessment-result-summary__heading">Результат внесён вручную</h2>
             <pre class="assessment-result-summary__manual-text">{manualText()}</pre>
             <p class="assessment-result-summary__text">
@@ -146,6 +175,35 @@ export function AssessmentResultPage(props: {
       >
         {(result) => (
           <section class="assessment-result-summary paper-card">
+            <Show
+              when={Boolean(result().evaluation)}
+              fallback={
+                <section class="assessment-result-evaluation" aria-live="polite">
+                  <strong class="assessment-result-evaluation__title">Оценка недоступна</strong>
+                  <p class="assessment-result-evaluation__text">
+                    Опросник не объявил проверенный референсный диапазон.
+                  </p>
+                </section>
+              }
+            >
+              <section class="assessment-result-evaluation" aria-live="polite">
+                <strong class="assessment-result-evaluation__title">
+                  {result().evaluation?.status === 'verdict'
+                    ? (result().evaluation?.verdict?.title ?? 'Оценка результата')
+                    : result().evaluation?.status === 'missing-context'
+                      ? 'Оценка недоступна: не хватает контекста'
+                      : result().evaluation?.status === 'not-applicable'
+                        ? 'Оценка не применяется к этому результату'
+                        : 'Оценка недоступна'}
+                </strong>
+                <p class="assessment-result-evaluation__text">
+                  {result().evaluation?.verdict?.explanation ??
+                    result().evaluation?.reason ??
+                    (result().evaluation?.missingContext.join(' ') ||
+                      'Проверенный референсный диапазон не объявлен.')}
+                </p>
+              </section>
+            </Show>
             <Show when={result().headline.trim()}>
               <h2 class="assessment-result-summary__heading">{result().headline}</h2>
             </Show>
@@ -201,19 +259,6 @@ export function AssessmentResultPage(props: {
       <div class="assessment-result-actions paper-card">
         <Button
           class="assessment-result-actions__button"
-          icon={<AppGlyph name="printer" />}
-          onClick={() =>
-            printAssessmentRecord(
-              props.definition,
-              props.record,
-              attachedResultNoteTitle(props.notes, props.record.id),
-            )
-          }
-        >
-          Распечатать
-        </Button>
-        <Button
-          class="assessment-result-actions__button"
           icon={<AppGlyph name="share" />}
           onClick={() => {
             setShareMessage('Подготавливаем результат…');
@@ -228,15 +273,17 @@ export function AssessmentResultPage(props: {
         >
           Поделиться
         </Button>
-        <Button
-          class="assessment-result-actions__button"
-          variant="secondary"
-          icon={<AppGlyph name="notes" />}
-          data-testid="assessment-save-note"
-          onClick={() => setNotePanelOpen((value) => !value)}
-        >
-          Записать
-        </Button>
+        <Show when={!props.record.patientId}>
+          <Button
+            class="assessment-result-actions__button"
+            variant="secondary"
+            icon={<AppGlyph name="notes" />}
+            data-testid="assessment-save-note"
+            onClick={() => setNotePanelOpen((value) => !value)}
+          >
+            Записать
+          </Button>
+        </Show>
         <Button
           class="assessment-result-actions__button"
           variant="danger"
@@ -247,7 +294,7 @@ export function AssessmentResultPage(props: {
         </Button>
       </div>
 
-      <Show when={notePanelOpen()}>
+      <Show when={notePanelOpen() && !props.record.patientId}>
         <section class="assessment-note-panel paper-card assessment-result-page__full">
           <h2 class="assessment-note-panel__heading">Сохранить в карточку пациента</h2>
           <label class="assessment-note-panel__field">

@@ -112,6 +112,7 @@ def test_promotes_exact_rls_relations_to_professional_reference(tmp_path: Path) 
                 section_id="section.i67-9",
                 chunk_id="chunk.i67-9",
                 quote="Агапурин",
+                source_locator={"anchor": "chunk.i67-9"},
             )
         ],
     )

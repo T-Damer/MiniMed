@@ -134,7 +134,7 @@
 
 .user-document-reader .document-page__body {
   gap: 0.375rem;
-  padding: 0.375rem 0.5rem 0.75rem;
+  padding: 0.375rem 0.5rem calc(4.875rem + var(--nav-safe-bottom) + 0.75rem);
 }
 
 .user-document-reader__banner {
@@ -233,6 +233,85 @@
   font-size: 0.8125rem;
 }
 
+.paginated-text-editor {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.paginated-text-editor__page {
+  display: flex;
+  width: min(100%, 52.5rem);
+  min-height: 32rem;
+  aspect-ratio: 210 / 297;
+  box-sizing: border-box;
+  flex-direction: column;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--paper-line);
+  border-radius: 0.375rem;
+  background: var(--paper-light, var(--theme-surface-raised));
+  box-shadow: 0 0.2rem 0.8rem rgb(34 31 25 / 14%);
+}
+
+.paginated-text-editor__page-header {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.625rem;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+.paginated-text-editor__page-number {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.paginated-text-editor__remove-page {
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  color: var(--theme-text-muted);
+}
+
+.paginated-text-editor__remove-page-icon,
+.paginated-text-editor__add-page-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.paginated-text-editor__input {
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  flex: 1;
+  resize: none;
+  padding: 1rem;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font:
+    0.9375rem / 1.55 ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+}
+
+.paginated-text-editor__input:focus-visible {
+  outline: 0.125rem solid var(--theme-accent);
+  outline-offset: -0.125rem;
+}
+
+.paginated-text-editor__add-page {
+  align-self: center;
+}
+
 .user-document-reader__draft-status {
   align-self: center;
   color: var(--theme-accent);
@@ -282,15 +361,6 @@
   gap: 0.375rem;
 }
 
-.user-document-reader__page-pinch {
-  width: 100%;
-}
-
-.user-document-reader__page-pinch .user-document-reader__page-surface {
-  position: relative;
-  width: 100%;
-}
-
 .document-page--book .user-document-reader__paper.document-overlay-paper,
 .document-page--book .user-document-reader__text {
   color: var(--ink);
@@ -313,12 +383,53 @@
   background: var(--theme-surface);
 }
 
+.user-document-reader__pdf-page {
+  position: relative;
+  width: 100%;
+}
+
+.user-document-reader__pdf-text-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  color-scheme: only light;
+  line-height: 1;
+  text-align: initial;
+  pointer-events: auto;
+  --min-font-size: 1;
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+}
+
+.user-document-reader__pdf-text-run {
+  position: absolute;
+  color: transparent;
+  cursor: text;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  transform: rotate(var(--rotate, 0deg)) scaleX(var(--scale-x, 1)) scale(var(--min-font-size-inv));
+  transform-origin: 0% 0%;
+  user-select: text;
+  white-space: pre;
+}
+
+.user-document-reader__pdf-text-run::selection {
+  color: transparent;
+  background: color-mix(in srgb, var(--theme-accent, #5a7d5a) 35%, transparent);
+}
+
 .user-document-reader__word-layer {
   position: absolute;
   inset: 0;
   overflow: hidden;
   border-radius: 0.375rem;
   pointer-events: none;
+  z-index: 2;
+}
+
+.user-document-reader__word-layer--selection-disabled {
+  pointer-events: none;
+  user-select: none;
 }
 
 .user-document-reader__word {
@@ -330,6 +441,11 @@
   white-space: nowrap;
   user-select: text;
   pointer-events: auto;
+}
+
+.user-document-reader__word--selection-disabled {
+  pointer-events: none;
+  user-select: none;
 }
 
 .user-document-reader__word--hit {
@@ -810,7 +926,7 @@
   outline-offset: 0.1rem;
 }
 
-/* Original-format renderers (EPUB via epub.js, DOC/DOCX via docx-preview) */
+/* Original-format renderers (EPUB via epub.js, DOCX via docx-preview) */
 
 .rich-document-renderer {
   width: 100%;
@@ -826,14 +942,39 @@
   min-height: 20rem;
 }
 
-.rich-document-renderer.rich-docx .docx-wrapper {
+.rich-docx {
+  background: color-mix(in srgb, var(--paper-line) 24%, var(--theme-surface-muted));
+}
+
+.rich-docx__wrapper {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
   padding: 1rem 0.5rem;
   background: transparent;
 }
 
-.rich-document-renderer.rich-docx .docx-wrapper > section.docx {
+.rich-docx__page {
+  max-width: 100%;
+  margin: 0;
   box-shadow: 0 0.2rem 0.8rem rgb(34 31 25 / 14%);
-  margin-bottom: 1rem;
+}
+
+.rich-pptx__slide {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 32rem;
+}
+
+.rich-docx__page {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 70rem;
+}
+
+@media print {
+  .rich-pptx__slide,
+  .rich-docx__page {
+    content-visibility: visible;
+  }
 }
 
 /* Persistent user-document text highlights */
@@ -920,7 +1061,7 @@
   }
 }
 
-/* PDF text selection lives on word boxes above the canvas */
+/* Native PDF text selection uses PDF.js; word boxes remain for OCR/search overlays. */
 
 .user-document-reader__word {
   cursor: text;
@@ -1053,6 +1194,8 @@
 }
 
 .user-library-page__list--list .user-library-folder-card__figure {
+  width: 2.75rem;
+  height: 2.25rem;
   margin-top: 0;
   flex: none;
 }
@@ -1112,6 +1255,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.user-library-card__preview-sentinel {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
 }
 
 .user-library-card__figure-glyph.app-glyph {
@@ -1217,17 +1367,12 @@
 }
 
 .user-library-view-toggle--grid .user-library-view-toggle__thumb,
-.user-library-view-toggle--list .user-library-view-toggle__thumb,
-.user-library-view-toggle--free .user-library-view-toggle__thumb {
+.user-library-view-toggle--list .user-library-view-toggle__thumb {
   opacity: 1;
 }
 
 .user-library-view-toggle--list .user-library-view-toggle__thumb {
   transform: translateX(2.5rem);
-}
-
-.user-library-view-toggle--free .user-library-view-toggle__thumb {
-  transform: translateX(5rem);
 }
 
 .user-library-view-toggle__button {

@@ -106,6 +106,14 @@ const catalog: ContentModuleCatalog = {
       required: false,
       releaseState: 'preview',
       previewDocumentCount: 4708,
+      version: 'allmed-c8e85a688094',
+      sourceSetDigest: 'sha256:7b8a22cef1a7bb7338765106b57dfdf52f60f21f7b8570a4bf74443d34b55200',
+      sizes: {
+        downloadBytes: null,
+        installedBytes: 514_322_432,
+        sourceAssetsDownloadBytes: null,
+        precision: 'exact',
+      },
     }),
   ],
 };
@@ -145,12 +153,20 @@ describe('local packaged modules', () => {
   });
 
   it('selects published tool packs that are not already installed', () => {
-    expect(localPackagedModulesToInstall(catalog, new Set()).map((entry) => entry.id)).toEqual([
+    expect(localPackagedModulesToInstall(catalog, new Map()).map((entry) => entry.id)).toEqual([
       'minimed.tools.psychology.ru',
     ]);
     expect(
-      localPackagedModulesToInstall(catalog, new Set(['minimed.tools.psychology.ru'])),
+      localPackagedModulesToInstall(catalog, new Map([['minimed.tools.psychology.ru', '1.0.0']])),
     ).toEqual([]);
+  });
+
+  it('selects a newer published version of an installed tool pack', () => {
+    const installedVersions = new Map([['minimed.tools.psychology.ru', '0.9.0']]);
+
+    expect(
+      localPackagedModulesToInstall(catalog, installedVersions).map((entry) => entry.id),
+    ).toEqual(['minimed.tools.psychology.ru']);
   });
 
   it('treats the medications companion as installed when mounted document counts exceed core cards', () => {
@@ -173,6 +189,10 @@ describe('local packaged modules', () => {
       merged.find((entry) => entry.moduleId === MEDICATIONS_COMPANION_MODULE_ID)
         ?.installedSizeBytes,
     ).toBe(PACKAGED_MEDICATIONS_SIZE_BYTES);
+  });
+
+  it('keeps the packaged medication size synchronized with the local Allmed artifact', () => {
+    expect(PACKAGED_MEDICATIONS_SIZE_BYTES).toBe(514_322_432);
   });
 });
 

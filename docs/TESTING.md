@@ -21,7 +21,9 @@ CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
 - negation and uncertainty handling;
 - branch construction and suggestions;
 - strong-match rank-fusion regression;
-- snippets and highlight ranges;
+- query-aware title priority, including long mixed medication/condition queries and failed prior
+  treatments;
+- snippets and highlight ranges, including known HTML fragments without exposing raw tags;
 - patient-card validation, nested-note deletion/search, and follow-up reminder ordering/completion;
 - deterministic note categorization and installed-document cross-link segmentation;
 - worker search delegation/fallback and automatic scope inference;
@@ -53,6 +55,11 @@ manual inspection of parser diagnostics.
 
 `tools/benchmarks/queries.json` contains 30 compact synthetic queries. The runner records Recall@1,
 Recall@5, MRR@5, zero-result rate, latency, hybrid usage, and semantic-path usage.
+
+`tools/benchmarks/pilot-rf-queries.json`, `pilot-rf-drug-queries.json`, and
+`doctor-workflow-queries.json` form the 61-case public-pilot suite. It also checks exact section,
+context, and source metadata; marked medication/workflow cases require the expected document at
+Top-1 so a passing Recall@5 cannot hide a ranking regression.
 
 `tools/benchmarks/clinical-cases.json` contains long descriptions with expected facts, branches,
 negations, warnings, and a rank-1 target document. Its purpose is to catch query-planning and

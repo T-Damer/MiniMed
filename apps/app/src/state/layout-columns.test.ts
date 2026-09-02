@@ -16,18 +16,22 @@ describe('layoutColumnCount', () => {
     expect(layoutColumnCount(2560)).toBe(2);
   });
 
-  it('allows the library to use two phone columns and three wide columns', () => {
-    expect(layoutColumnCount(319, 3, 320)).toBe(1);
-    expect(layoutColumnCount(320, 3, 320)).toBe(2);
-    expect(layoutColumnCount(LAYOUT_WIDE_MIN_PX, 3, 320)).toBe(3);
+  it('keeps default file grids to one column on phones', () => {
+    expect(layoutColumnCount(390, 6)).toBe(1);
+    expect(layoutColumnCount(LAYOUT_TABLET_MIN_PX, 3)).toBe(2);
+    expect(layoutColumnCount(LAYOUT_WIDE_MIN_PX, 3)).toBe(3);
+  });
+
+  it('supports a minimum column count for narrow feature grids', () => {
+    expect(layoutColumnCount(274, 6, 2)).toBe(2);
+    expect(layoutColumnCount(LAYOUT_TABLET_MIN_PX, 6, 2)).toBe(5);
   });
 
   it('expands the wide file grid while keeping mobile columns compact', () => {
-    expect(layoutColumnCount(390, 6, 320)).toBe(2);
-    expect(layoutColumnCount(LAYOUT_TABLET_MIN_PX, 6, 320)).toBe(3);
-    expect(layoutColumnCount(LAYOUT_FOUR_COLUMN_MIN_PX, 6, 320)).toBe(4);
-    expect(layoutColumnCount(LAYOUT_WIDE_MIN_PX, 6, 320)).toBe(5);
-    expect(layoutColumnCount(LAYOUT_SIX_COLUMN_MIN_PX, 6, 320)).toBe(6);
+    expect(layoutColumnCount(LAYOUT_TABLET_MIN_PX, 6)).toBe(5);
+    expect(layoutColumnCount(LAYOUT_FOUR_COLUMN_MIN_PX, 6)).toBe(5);
+    expect(layoutColumnCount(LAYOUT_WIDE_MIN_PX, 6)).toBe(5);
+    expect(layoutColumnCount(LAYOUT_SIX_COLUMN_MIN_PX, 6)).toBe(6);
   });
 });
 

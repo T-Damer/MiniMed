@@ -20,7 +20,7 @@ and source navigation remain in portable TypeScript.
 
 ## Startup sequence
 
-1. The application reads `public/content/core-demo-report.json` and obtains the expected SHA-256.
+1. The application reads `public/content/core-report.json` and obtains the expected SHA-256.
 2. On Android/iOS, `CapacitorMedicalStore` calls the local `LocalMedDatabase` plugin.
 3. The plugin copies the bundled `.db` into private application storage only when the checksum
    marker differs.

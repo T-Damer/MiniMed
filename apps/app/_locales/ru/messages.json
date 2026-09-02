@@ -404,5 +404,45 @@
   "recommendation_help_offline_note": {
     "message": "Каждая рекомендация скачивается отдельно и проверяется перед подключением к поиску. Можно загрузить весь раздел целиком или выбрать отдельные документы внутри.",
     "description": "Recommendation section help dialog offline note"
+  },
+  "assessment_count_one": {
+    "message": "$1 тест",
+    "description": "Assessment count, CLDR plural category: one",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "assessment_count_few": {
+    "message": "$1 теста",
+    "description": "Assessment count, CLDR plural category: few",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "assessment_count_many": {
+    "message": "$1 тестов",
+    "description": "Assessment count, CLDR plural category: many",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "assessment_count_other": {
+    "message": "$1 теста",
+    "description": "Assessment count, CLDR plural category: other",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
   }
 }

@@ -1,4 +1,4 @@
-import type { SearchResultGroup } from '@localmed/contracts';
+import type { MedicalDocumentSummary, SearchResultGroup } from '@localmed/contracts';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
 const GENERIC_QUERY_TERMS = new Set([
@@ -21,6 +21,12 @@ const CURRENT_EDITION_QUERY =
 const HISTORICAL_EDITION_QUERY =
   /(?:утратил[ао]?\s+сил|историческ|стар(?:ый|ая|ое)|отмен[её]н|недействующ)/u;
 const HISTORICAL_DOCUMENT_TEXT = /(?:утратил[ао]?\s+сил|историческ|отмен[её]н|недействующ)/u;
+const INSTRUCTION_QUERY =
+  /(?:инструкц|показани|противопоказани|побочн|способ[а-я]*\s+применени|дозировк|как\s+(?:принимать|применять|вводить))/u;
+const REGISTRY_QUERY =
+  /(?:грлс|регистрационн[а-я]*\s+(?:номер|карточк|запис)|регистрац[а-я]*\s+препарат)/u;
+
+type SearchDocumentDescriptor = Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>;
 
 function compactReference(value: string): string {
   return normalizeSurfaceText(value).replace(/[^0-9a-zа-я]+/gu, '');
@@ -118,6 +124,8 @@ const TITLE_FORM_STEMS = new Set([
   'действующ',
   'веществ',
   'доз',
+  'внутримышечн',
+  'внутривенн',
   'мг',
   'мл',
   'шт',
@@ -168,7 +176,9 @@ function exactTitleMatchBoost(query: string, title: string): number {
   const normalizedTitle = normalizeSurfaceText(title).trim();
   if (normalizedTitle === normalizedQuery) return 6;
 
-  const queryTerms = tokenize(normalizedQuery);
+  const queryTerms = tokenize(normalizedQuery).filter(
+    (term) => !isFormOrStrengthToken(term) && isTitleQueryTerm(term),
+  );
   if (queryTerms.length === 0) return 0;
   const titleTerms = tokenize(normalizedTitle);
   if (titleTerms.length === 0) return 0;
@@ -178,13 +188,73 @@ function exactTitleMatchBoost(query: string, title: string): number {
   );
   if (matchedTitleIndexes.some((index) => index < 0)) return 0;
 
-  const leftoverTerms = titleTerms.filter((_, index) => !matchedTitleIndexes.includes(index));
+  const leftoverTerms = titleTerms.filter(
+    (titleTerm, index) =>
+      !matchedTitleIndexes.includes(index) &&
+      !queryTerms.some((queryTerm) => tokensMatch(queryTerm, titleTerm)),
+  );
   const combination = isCombinationTitle(normalizedTitle, leftoverTerms);
   const headedByQuery = matchedTitleIndexes[0] === 0;
   if (combination) return headedByQuery ? 1.2 : 0.8;
   if (normalizedTitle.startsWith(normalizedQuery)) return 5;
   if (headedByQuery && leftoverTerms.every((term) => isFormOrStrengthToken(term))) return 5;
   return headedByQuery ? 4.5 : 3.5;
+}
+
+const TITLE_CONTEXT_STEMS = new Set(
+  [
+    ...[...GENERIC_QUERY_TERMS],
+    'детский',
+    'ребенк',
+    'вес',
+    'год',
+    'лет',
+    'первый',
+    'второй',
+    'третий',
+    'заболевание',
+    'инфекция',
+    'мочевой',
+    'мочевых',
+    'путь',
+    'путей',
+  ].map(stemToken),
+);
+
+function isTitleQueryTerm(term: string): boolean {
+  return term.length >= 4 && !TITLE_CONTEXT_STEMS.has(stemToken(term));
+}
+
+function isFailedQueryTerm(query: string, term: string): boolean {
+  const normalizedQuery = normalizeSurfaceText(query);
+  const termIndex = normalizedQuery.indexOf(term);
+  if (termIndex < 0) return false;
+  return /^(?:\s+)(?:не\s+)?(?:помог|сработ|эффект|подейств|перенос)/u.test(
+    normalizedQuery.slice(termIndex + term.length),
+  );
+}
+
+function titleTermBoost(
+  query: string,
+  title: string,
+  candidateTerms: readonly ReadonlySet<string>[],
+): number {
+  const queryTerms = [...new Set(tokenize(query).filter(isTitleQueryTerm))];
+  const titleTerms = tokenize(title);
+  return queryTerms.reduce((boost, queryTerm) => {
+    if (isFailedQueryTerm(query, queryTerm)) return boost;
+    const titleIndex = titleTerms.findIndex(
+      (titleTerm) => !isFormOrStrengthToken(titleTerm) && tokensMatch(queryTerm, titleTerm),
+    );
+    if (titleIndex < 0) return boost;
+    const documentFrequency = candidateTerms.filter((terms) =>
+      [...terms].some((term) => !isFormOrStrengthToken(term) && tokensMatch(queryTerm, term)),
+    ).length;
+    const inverseFrequency = Math.log((candidateTerms.length + 1) / (documentFrequency + 1));
+    const specificity = Math.min(1, queryTerm.length * 0.08);
+    const headedTitleBoost = titleIndex === 0 ? 0.45 : 0;
+    return boost + 1.8 + specificity + headedTitleBoost + inverseFrequency * 0.2;
+  }, 0);
 }
 
 export function queryGroupRelevanceBoost(query: string, text: string): number {
@@ -211,10 +281,38 @@ function groupRankingText(group: SearchResultGroup): string {
   ].join(' ');
 }
 
+function medicationDocumentBoost(
+  query: string,
+  document: SearchDocumentDescriptor | undefined,
+): number {
+  if (!document) return 0;
+  const normalizedQuery = normalizeSurfaceText(query);
+  if (document.sourceType === 'official_drug_instruction') {
+    return INSTRUCTION_QUERY.test(normalizedQuery) ? 8 : 0;
+  }
+  if (document.sourceType === 'official_registry_summary') {
+    return REGISTRY_QUERY.test(normalizedQuery) ? 8 : 0;
+  }
+  const metadata = document.metadata;
+  if (
+    document.sourceType === 'core_catalog_pointer' &&
+    metadata?.['catalogFamily'] === 'medication' &&
+    !INSTRUCTION_QUERY.test(normalizedQuery) &&
+    !REGISTRY_QUERY.test(normalizedQuery)
+  ) {
+    return 8;
+  }
+  return 0;
+}
+
 export function rankSearchGroupsByQuery(
   groups: readonly SearchResultGroup[],
   query: string,
+  documents: readonly SearchDocumentDescriptor[] = [],
 ): readonly SearchResultGroup[] {
+  // ponytail: scan the bounded candidate window; use corpus-wide document frequencies if this grows hot.
+  const candidateTerms = groups.map((group) => new Set(tokenize(groupRankingText(group))));
+  const documentsById = new Map(documents.map((document) => [document.id, document]));
   return groups
     .map((group, index) => ({
       group,
@@ -222,7 +320,13 @@ export function rankSearchGroupsByQuery(
       score:
         group.bestScore +
         queryGroupRelevanceBoost(query, groupRankingText(group)) +
-        exactTitleMatchBoost(query, group.title),
+        // Drug-name title boosts must not outweigh legal references and subject sections.
+        (documentsById.get(group.documentId)?.sourceType === 'regulatory_act_summary' ||
+        documentsById.get(group.documentId)?.metadata?.['notLegalAdvice'] === true
+          ? 0
+          : titleTermBoost(query, group.title, candidateTerms)) +
+        exactTitleMatchBoost(query, group.title) +
+        medicationDocumentBoost(query, documentsById.get(group.documentId)),
     }))
     .toSorted((left, right) => right.score - left.score || left.index - right.index)
     .map((entry) => entry.group);

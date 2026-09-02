@@ -2,6 +2,8 @@ import type { JSX } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { Page } from '@/components/Page';
+import { Heading } from '@/components/Text';
 import { AssessmentBackNav } from '@/features/assessments/AssessmentBackNav';
 
 export function AssessmentMissingPage(props: {
@@ -12,15 +14,19 @@ export function AssessmentMissingPage(props: {
 }): JSX.Element {
   return (
     <div class="assessment-workspace">
-      <header class="assessment-subpage-header">
-        <div class="assessment-subpage-header-actions assessment-subpage-header-actions--leading">
+      <Page
+        class="assessment-page-header"
+        navigation={
           <AssessmentBackNav sectionTitle={props.sectionTitle} onBackToCatalog={props.onBack} />
-        </div>
-        <div class="assessment-subpage-header__content">
-          <p class="archive-kicker">{props.sectionTitle}</p>
-          <h1 class="assessment-subpage-title">{props.title}</h1>
-        </div>
-      </header>
+        }
+        icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}
+        title={
+          <Heading depth={3} class="assessment-subpage-title">
+            {props.title}
+          </Heading>
+        }
+        description={props.sectionTitle}
+      />
 
       <section class="assessment-missing-body paper-card" aria-live="polite">
         <p class="assessment-missing-body__lead">

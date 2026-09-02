@@ -13,6 +13,7 @@ import type {
   MedicalDocumentSummary,
   MedicalSection,
   QueryAnalysis,
+  QueryFact,
   QueryIntent,
   Result,
   SearchRequest,
@@ -20,11 +21,11 @@ import type {
   SearchResult,
   SearchResultGroup,
 } from '@localmed/contracts';
-import { rankSearchGroupsByQuery } from '@localmed/core';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
 export type SearchScope = 'diagnosis' | 'guidelines' | 'medications' | 'legal' | 'all' | 'personal';
 export type SearchAudience = 'children' | 'adults';
+export type SearchResultDocumentKind = NonNullable<SearchResultGroup['documentKind']>;
 
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 
@@ -46,10 +47,18 @@ const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<st
 };
 
 export function documentMatchesSearchScope(
-  document: Pick<MedicalDocumentSummary, 'sourceType'>,
+  document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata'>,
   scope: SearchScope,
 ): boolean {
   if (scope === 'personal') return false;
+  if (document.sourceType === 'core_catalog_pointer') {
+    if (scope === 'all' || scope === 'diagnosis') return true;
+    const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
+    if (metadata?.catalogFamily === 'medication') return scope === 'medications';
+    if (metadata?.catalogFamily === 'clinical') return scope === 'guidelines';
+    if (metadata?.catalogFamily === 'legal') return scope === 'legal';
+    return false;
+  }
   const sourceTypes = SOURCE_TYPES_BY_SCOPE[scope];
   return sourceTypes ? sourceTypes.has(document.sourceType) : true;
 }
@@ -122,6 +131,144 @@ function keepExplicitMedicationMatches(response: SearchResponse): SearchResponse
   };
 }
 
+const INTERCHANGEABLE_LIQUID_FORM_STEMS = new Set(
+  ['суспензия', 'сироп', 'спироп'].flatMap((value) =>
+    tokenize(normalizeSurfaceText(value)).map((term) => lightStemRussian(term)),
+  ),
+);
+
+function stemmedTokens(value: string): readonly string[] {
+  return (normalizeSurfaceText(value).match(/[\p{L}\p{N}]+/gu) ?? []).map((term) =>
+    lightStemRussian(term),
+  );
+}
+
+function containsStemmedValue(textStems: ReadonlySet<string>, value: string): boolean {
+  const requiredStems = stemmedTokens(value);
+  return requiredStems.length > 0 && requiredStems.every((stem) => textStems.has(stem));
+}
+
+function containsStructuredMedicationFact(
+  textStems: ReadonlySet<string>,
+  fact: QueryFact<'dose-form' | 'route' | 'strength'>,
+): boolean {
+  const requiredStems = stemmedTokens(fact.normalizedValue);
+  if (
+    fact.kind === 'dose-form' &&
+    requiredStems.some((stem) => INTERCHANGEABLE_LIQUID_FORM_STEMS.has(stem))
+  ) {
+    return [...INTERCHANGEABLE_LIQUID_FORM_STEMS].some((stem) => textStems.has(stem));
+  }
+  return requiredStems.length > 0 && requiredStems.every((stem) => textStems.has(stem));
+}
+
+function medicationContextMatchScore(
+  result: SearchResult,
+  groupTitle: string,
+  isMedicationPointer: boolean,
+  aliasFacts: readonly QueryFact<'medication'>[],
+  structuredFacts: readonly QueryFact<'dose-form' | 'route' | 'strength'>[],
+): number {
+  const text = medicationResultText(result, isMedicationPointer ? undefined : groupTitle);
+  const textStems = new Set(stemmedTokens(text));
+  if (
+    !aliasFacts.some((fact) => containsStemmedValue(textStems, fact.value)) ||
+    !structuredFacts.every((fact) => containsStructuredMedicationFact(textStems, fact))
+  ) {
+    return 0;
+  }
+
+  const normalizedText = normalizeSurfaceText(text);
+  const normalizedSectionPath = normalizeSurfaceText(result.sectionPath.join(' '));
+  const exactFactMatches = structuredFacts.reduce(
+    (matches, fact) =>
+      matches + Number(normalizedText.includes(normalizeSurfaceText(fact.normalizedValue))),
+    0,
+  );
+  const exactSectionMatches = structuredFacts.reduce(
+    (matches, fact) =>
+      matches + Number(normalizedSectionPath.includes(normalizeSurfaceText(fact.normalizedValue))),
+    0,
+  );
+  return 1 + exactFactMatches + exactSectionMatches * 2;
+}
+
+function medicationResultText(result: SearchResult, groupTitle?: string): string {
+  return [groupTitle, result.snippet, result.title, ...result.sectionPath, ...result.matchedTerms]
+    .filter((value): value is string => Boolean(value))
+    .join(' ');
+}
+
+function isMedicationSearchDocument(document: MedicalDocumentSummary): boolean {
+  if (searchResultDocumentKind(document) === 'medication') return true;
+  if (document.sourceType !== 'rls_mkb_reference') return false;
+  const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
+  return metadata?.catalogFamily === 'medication' || metadata?.entityType === 'medication';
+}
+
+function filterMedicationDocuments(
+  response: SearchResponse,
+  documents: readonly MedicalDocumentSummary[],
+  scope: SearchScope,
+): SearchResponse {
+  const positiveMedicationFacts = response.analysis.facts.filter(
+    (fact): fact is QueryFact<'medication'> =>
+      fact.kind === 'medication' && fact.polarity === 'positive',
+  );
+  const aliasFacts = positiveMedicationFacts.filter(
+    (fact) => normalizeSurfaceText(fact.value) !== normalizeSurfaceText(fact.normalizedValue),
+  );
+  const clinicalContext = response.analysis.clinicalContext;
+  const structuredFacts: readonly QueryFact<'dose-form' | 'route' | 'strength'>[] = [
+    ...(clinicalContext?.doseForm ?? []),
+    ...(clinicalContext?.route ?? []),
+    ...(clinicalContext?.strength ?? []),
+  ].filter((fact) => fact.polarity === 'positive');
+  const primaryIntent = response.analysis.intent?.primary;
+  const excludeByIntent =
+    scope !== 'medications' &&
+    positiveMedicationFacts.length === 0 &&
+    primaryIntent !== 'medication' &&
+    primaryIntent !== 'mixed';
+  const requireSameResult = aliasFacts.length > 0 && structuredFacts.length > 0;
+  if (!excludeByIntent && !requireSameResult) return response;
+
+  const documentsById = new Map(documents.map((document) => [document.id, document]));
+  return {
+    ...response,
+    groups: response.groups.flatMap((group) => {
+      const document = documentsById.get(group.documentId);
+      const metadata = document?.metadata as SearchDocumentKindMetadata | undefined;
+      if (!document || !isMedicationSearchDocument(document)) return [group];
+      if (excludeByIntent) return [];
+      if (!requireSameResult) return [group];
+      const isMedicationPointer =
+        document.sourceType === 'core_catalog_pointer' && metadata?.catalogFamily === 'medication';
+      const rankedResults = group.results
+        .map((result) => ({
+          result,
+          matchScore: medicationContextMatchScore(
+            result,
+            group.title,
+            isMedicationPointer,
+            aliasFacts,
+            structuredFacts,
+          ),
+        }))
+        .filter((entry) => entry.matchScore > 0)
+        .toSorted(
+          (left, right) =>
+            right.matchScore - left.matchScore || right.result.finalScore - left.result.finalScore,
+        )
+        .map((entry) => entry.result);
+      const firstResult = rankedResults[0];
+      return firstResult
+        ? [{ ...group, bestScore: firstResult.finalScore, results: rankedResults }]
+        : [];
+    }),
+  };
+}
+
 function audiencePriority(ageGroups: readonly string[], audience: SearchAudience): number {
   const supportsChildren = ageGroups.some(
     (ageGroup) => ageGroup === 'children' || ageGroup === 'adolescents',
@@ -143,6 +290,47 @@ function audienceLabel(ageGroups: readonly string[]): string | undefined {
   return undefined;
 }
 
+interface SearchDocumentKindMetadata {
+  readonly interactiveAssessmentId?: unknown;
+  readonly calculationRequired?: unknown;
+  readonly interactiveCalculatorId?: unknown;
+  readonly catalogFamily?: unknown;
+  readonly entityType?: unknown;
+}
+
+export function searchResultDocumentKind(
+  document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata'>,
+): SearchResultDocumentKind {
+  const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
+  if (typeof metadata?.interactiveAssessmentId === 'string') return 'assessment';
+  if (
+    metadata?.calculationRequired === true ||
+    typeof metadata?.interactiveCalculatorId === 'string'
+  ) {
+    return 'calculator';
+  }
+  if (document.sourceType === 'core_catalog_pointer') {
+    if (metadata?.catalogFamily === 'medication') return 'medication';
+    if (metadata?.catalogFamily === 'legal') return 'legal';
+    if (metadata?.catalogFamily === 'clinical' && metadata.entityType === 'disease') {
+      return 'clinical-recommendation';
+    }
+    return 'reference';
+  }
+  if (
+    ['allmed_reference', 'official_drug_instruction', 'official_registry_summary'].includes(
+      document.sourceType,
+    )
+  ) {
+    return 'medication';
+  }
+  if (document.sourceType.startsWith('clinical_recommendation')) {
+    return 'clinical-recommendation';
+  }
+  if (document.sourceType.startsWith('regulatory_act')) return 'legal';
+  return 'reference';
+}
+
 export function rankSearchGroupsByAudience(
   groups: readonly SearchResultGroup[],
   documents: readonly MedicalDocumentSummary[],
@@ -150,11 +338,13 @@ export function rankSearchGroupsByAudience(
 ): readonly SearchResultGroup[] {
   const documentsById = new Map(documents.map((document) => [document.id, document]));
   const annotated = groups.map((group) => {
-    const ageGroups = documentsById.get(group.documentId)?.ageGroups ?? group.ageGroups ?? [];
+    const document = documentsById.get(group.documentId);
+    const ageGroups = document?.ageGroups ?? group.ageGroups ?? [];
     const label = audienceLabel(ageGroups);
     return {
       ...group,
       ageGroups,
+      ...(document ? { documentKind: searchResultDocumentKind(document) } : {}),
       title: label && !group.title.startsWith('Для ') ? `${label} · ${group.title}` : group.title,
     };
   });
@@ -218,7 +408,7 @@ export class ScopedMedicalCore implements MedicalCore {
       const availableDocumentIds = documents.value
         .filter(
           (document) =>
-            sourceTypes.has(document.sourceType) &&
+            documentMatchesSearchScope(document, this.scope) &&
             (!this.includedDocumentIds || this.includedDocumentIds.has(document.id)),
         )
         .map((document) => document.id);
@@ -240,15 +430,19 @@ export class ScopedMedicalCore implements MedicalCore {
     }
     if (!result.ok) return result;
 
-    const scopedResponse =
+    const explicitMedicationResponse =
       this.scope === 'medications' ? keepExplicitMedicationMatches(result.value) : result.value;
-    const queryRankedGroups = rankSearchGroupsByQuery(scopedResponse.groups, request.query);
+    const scopedResponse = filterMedicationDocuments(
+      explicitMedicationResponse,
+      documents.value,
+      this.scope,
+    );
     return {
       ok: true,
       value: {
         ...scopedResponse,
         groups: rankSearchGroupsByAudience(
-          queryRankedGroups,
+          scopedResponse.groups,
           documents.value,
           inferRequestedAudience(request.query),
         ),

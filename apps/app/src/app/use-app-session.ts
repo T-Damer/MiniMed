@@ -40,6 +40,19 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+function scheduleIdle<T>(work: () => Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const run = (): void => {
+      void work().then(resolve, reject);
+    };
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(run, { timeout: 1000 });
+    } else {
+      setTimeout(run, 0);
+    }
+  });
+}
+
 export function useAppSession() {
   const isNativeShell = Capacitor.getPlatform() !== 'web';
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
@@ -195,10 +208,6 @@ export function useAppSession() {
     refreshDueReminders();
     ensureUserLibraryIngestRunning();
     reminderTimer = setInterval(refreshDueReminders, 30_000);
-    const moduleRuntimeLoad = Promise.all([
-      import('@/features/modules/module-catalog'),
-      import('@/features/modules/module-runtime-service'),
-    ]);
     const bindModuleRuntime = (runtime: ContentModuleRuntime): void => {
       unsubscribeInstalledModules?.();
       const syncInstalledCount = (): void => {
@@ -220,6 +229,12 @@ export function useAppSession() {
       setSearchCore(initializedSearchCore);
       setAssistantCore(new GroundedMedicalCore(initializedSearchCore, modelController));
       setReady(initialized);
+      const moduleRuntimeLoad = scheduleIdle(() =>
+        Promise.all([
+          import('@/features/modules/module-catalog'),
+          import('@/features/modules/module-runtime-service'),
+        ]),
+      );
       void moduleRuntimeLoad
         .then(([catalogModule, runtimeService]) => {
           if (disposed) return;

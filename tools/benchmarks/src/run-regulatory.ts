@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import type { MedicalDocumentSummary, SearchResultGroup } from '@localmed/contracts';
-import { createMedicalCore, rankSearchGroupsByQuery } from '@localmed/core';
+import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
@@ -196,7 +196,7 @@ for (const fixture of queries) {
   if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
 
   const rankedGroups = rankGroupsByAudience(
-    rankSearchGroupsByQuery(response.value.groups, fixture.query),
+    response.value.groups,
     documentsById,
     inferRequestedAudience(fixture.query),
   );

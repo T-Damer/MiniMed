@@ -14,6 +14,10 @@ export interface AssessmentCrumb {
 
 export type AssessmentRoute =
   | { readonly kind: 'index' }
+  | { readonly kind: 'user-index' }
+  | { readonly kind: 'user-editor'; readonly fileId?: string }
+  | { readonly kind: 'user-assessment'; readonly fileId: string; readonly recordId?: string }
+  | { readonly kind: 'user-result'; readonly fileId: string; readonly recordId: string }
   | { readonly kind: 'specialty'; readonly specialtyId: string }
   | {
       readonly kind: 'section';
@@ -66,6 +70,30 @@ export function resultPath(specialtyId: string, slug: string, recordId: string):
   return `${assessmentPath(specialtyId, slug)}/results/${encodeURIComponent(recordId)}`;
 }
 
+export function userQuestionnaireHomePath(): string {
+  return '#/assessments/mine';
+}
+
+export function userQuestionnaireNewPath(): string {
+  return `${userQuestionnaireHomePath()}/new`;
+}
+
+export function userQuestionnairePath(fileId: string): string {
+  return `${userQuestionnaireHomePath()}/${encodeURIComponent(fileId)}`;
+}
+
+export function userQuestionnaireEditPath(fileId: string): string {
+  return `${userQuestionnairePath(fileId)}/edit`;
+}
+
+export function userQuestionnaireResumePath(fileId: string, recordId: string): string {
+  return `${userQuestionnairePath(fileId)}/resume/${encodeURIComponent(recordId)}`;
+}
+
+export function userQuestionnaireResultPath(fileId: string, recordId: string): string {
+  return `${userQuestionnairePath(fileId)}/results/${encodeURIComponent(recordId)}`;
+}
+
 export function assessmentHomePath(slug: string): string {
   const entry = findAssessmentBySlug(slug);
   if (!entry) return '#/assessments';
@@ -79,6 +107,18 @@ export function readAssessmentRoute(hash = window.location.hash): AssessmentRout
   if (parts[0] !== 'assessments' || !parts[1]) return { kind: 'index' };
   const first = decodePart(parts[1]);
   if (!first) return { kind: 'index' };
+
+  if (first === 'mine') {
+    const fileId = decodePart(parts[2]);
+    const action = decodePart(parts[3]);
+    const recordId = decodePart(parts[4]);
+    if (!fileId) return { kind: 'user-index' };
+    if (fileId === 'new' && !action) return { kind: 'user-editor' };
+    if (action === 'edit' && !recordId) return { kind: 'user-editor', fileId };
+    if (action === 'results' && recordId) return { kind: 'user-result', fileId, recordId };
+    if (action === 'resume' && recordId) return { kind: 'user-assessment', fileId, recordId };
+    return { kind: 'user-assessment', fileId };
+  }
 
   if (findAssessmentSpecialty(first)) {
     const second = decodePart(parts[2]);
@@ -116,9 +156,11 @@ export function assessmentWorkspaceCrumbs(definition: {
   readonly bankLabel: string;
   readonly category: string;
 }): readonly AssessmentCrumb[] {
+  const bankHref =
+    definition.bankId === 'mine' ? userQuestionnaireHomePath() : specialtyPath(definition.bankId);
   const crumbs: AssessmentCrumb[] = [
     { label: 'Тесты', href: '#/assessments' },
-    { label: definition.bankLabel, href: specialtyPath(definition.bankId) },
+    { label: definition.bankLabel, href: bankHref },
   ];
   if (isSectionId(definition.category)) {
     crumbs.push({
@@ -153,6 +195,14 @@ export function assessmentParentHash(route: string): string | null {
   switch (parsed.kind) {
     case 'index':
       return null;
+    case 'user-index':
+      return '#/assessments';
+    case 'user-editor':
+      return parsed.fileId ? userQuestionnairePath(parsed.fileId) : userQuestionnaireHomePath();
+    case 'user-assessment':
+      return userQuestionnaireHomePath();
+    case 'user-result':
+      return userQuestionnairePath(parsed.fileId);
     case 'specialty':
       return '#/assessments';
     case 'section':

@@ -2,6 +2,7 @@ import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
+import { setDarkHeaderStatusBar } from '@/state/native-system-ui';
 
 interface OverlayDialogProps {
   readonly open: boolean;
@@ -69,6 +70,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       );
       historyEntryPushed = true;
     }
+    setDarkHeaderStatusBar(true);
     const releaseScroll = lockBodyScroll();
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
@@ -114,6 +116,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     window.addEventListener('popstate', handlePopState);
     queueMicrotask(() => panel?.focus());
     onCleanup(() => {
+      setDarkHeaderStatusBar(false);
       releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);

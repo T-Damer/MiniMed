@@ -448,7 +448,7 @@ body:has(.note-markdown-editor--fullscreen) {
   border: 0;
   border-bottom: 1px solid var(--theme-border);
   border-radius: 0;
-  background: transparent;
+  background: var(--theme-surface-muted);
 }
 
 .note-markdown-editor--fullscreen .note-markdown-wysiwyg__surface {

@@ -2,9 +2,9 @@
 id: regulatory.rf.minzdrav.206n-2023-qualification
 title: Квалификационные требования к работникам с высшим образованием — приказ № 206н
 short_title: Квалификационные требования — 206н
-version_label: 206n-amended-reviewed-2026-08-02
+version_label: 206n-superseded-reviewed-2026-09-02
 source_type: regulatory_act_summary
-status: active
+status: superseded
 specialties:
   - pediatrics
   - medical-education
@@ -29,7 +29,7 @@ metadata:
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202306010041
   replacedFrom: "2026-09-01"
   replacedByDocumentId: regulatory.rf.minzdrav.436n-2026-qualification
-  sourceReviewedAt: "2026-08-02"
+  sourceReviewedAt: "2026-09-02"
   editionVerified: true
   audienceLabel: Для медицинских работников
   publicPilot: true
@@ -40,7 +40,7 @@ metadata:
 # Текущий статус
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202306010041","publicationNumber":"0001202306010041","documentNumber":"206н","sourceSection":"приказ и квалификационные требования","contentMode":"paraphrase"} -->
-На 2 августа 2026 года приказ № 206н остаётся действующим актом о квалификационных требованиях к медицинским и фармацевтическим работникам с высшим образованием. Он заменил приказ № 707н и применяется с учётом внесённых изменений.
+Приказ № 206н утратил силу с 1 сентября 2026 года. Он сохраняется для исторических запросов; действующие квалификационные требования установлены приказом № 436н.
 
 # Педиатрия
 
@@ -50,4 +50,4 @@ metadata:
 # Переход к приказу № 436н
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202605290053","publicationNumber":"0001202605290053","documentNumber":"436н","sourceSection":"пункты о вступлении в силу и признании утратившими силу прежних актов","contentMode":"paraphrase"} -->
-С 1 сентября 2026 года приказ № 206н будет заменён приказом № 436н. До этой даты ответы следует строить по действующей редакции № 206н, а вопросы о периоде после 1 сентября — по № 436н.
+С 1 сентября 2026 года приказ № 206н заменён приказом № 436н. Для более раннего периода следует проверять действовавшую на нужную дату редакцию № 206н.

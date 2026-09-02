@@ -45,6 +45,7 @@ describe('medical image loading', () => {
     );
     expect(medicalImagePointerAction('axial', false, true)).toBe('slice');
     expect(medicalImagePointerAction('axial', false, true, true)).toBe('viewer');
+    expect(medicalImagePointerAction('axial', false, true, false, false, true)).toBe('viewer');
     expect(medicalImagePointerAction('multiplanar', false, false)).toBe('viewer');
   });
 

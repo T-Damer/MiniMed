@@ -72,22 +72,27 @@ function fixtureChunkId(): string {
 class FakeNativePlugin implements LocalMedDatabasePlugin {
   readonly calls: NativeQueryOptions[] = [];
   readonly vectorCalls: NativeVectorSearchOptions[] = [];
+  openCount = 0;
+  closeCount = 0;
   closed = false;
 
   async openPack() {
+    this.openCount += 1;
+    this.closed = false;
     return {
       schemaVersion: 2,
       sqliteVersion: '3.50.0-native-test',
       fts5Available: true,
       contentPackIds: [DEMO_CONTENT_PACK.manifest.id],
       documentCount: DEMO_CONTENT_PACK.documents.length,
-      databasePath: '/test/core-demo.db',
+      databasePath: '/test/core.db',
       copied: true,
       sizeBytes: 64_000,
     } as const;
   }
 
   async query(options: NativeQueryOptions) {
+    if (this.closed) throw new Error('native database is closed');
     this.calls.push(options);
 
     if (options.sql.includes('FROM embedding_profiles')) {
@@ -125,6 +130,7 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
   }
 
   async close(): Promise<void> {
+    this.closeCount += 1;
     this.closed = true;
   }
 }
@@ -132,8 +138,8 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
 function createStore(plugin: FakeNativePlugin): CapacitorMedicalStore {
   return new CapacitorMedicalStore({
     plugin,
-    assetPath: 'public/content/core-demo.db',
-    databaseName: 'core-demo.db',
+    assetPath: 'public/content/core.db',
+    databaseName: 'core.db',
     expectedSha256: `sha256:${'a'.repeat(64)}`,
   });
 }
@@ -152,6 +158,23 @@ describe('CapacitorMedicalStore', () => {
     });
     await store.close();
     expect(plugin.closed).toBe(true);
+  });
+
+  it('keeps a shared native database open until the last store closes', async () => {
+    const plugin = new FakeNativePlugin();
+    const first = createStore(plugin);
+    const second = createStore(plugin);
+
+    await first.initialize();
+    await second.initialize();
+    expect(plugin.openCount).toBe(1);
+
+    await first.close();
+    expect(plugin.closeCount).toBe(0);
+    await expect(second.listDocuments()).resolves.toHaveLength(1);
+
+    await second.close();
+    expect(plugin.closeCount).toBe(1);
   });
 
   it('maps native rows into the portable document contract', async () => {
@@ -179,9 +202,19 @@ describe('CapacitorMedicalStore', () => {
       document: { id: 'kr.demo.pediatrics.pneumonia' },
       rank: 2.5,
     });
-    const queryCall = plugin.calls.at(-1);
-    expect(queryCall?.sql).toContain('bm25(chunks_fts');
-    expect(JSON.parse(queryCall?.argsJson ?? '[]')).toEqual(['"тахипноэ"* OR "лихорадка"*', 50]);
+    expect(plugin.calls).toHaveLength(2);
+    const candidateCall = plugin.calls.at(-2);
+    const hydrationCall = plugin.calls.at(-1);
+    expect(candidateCall?.sql).toContain('SELECT chunks_fts.chunk_id AS chunk_id');
+    expect(candidateCall?.sql).toContain('bm25(chunks_fts');
+    expect(candidateCall?.sql).not.toContain('c.original_text');
+    expect(JSON.parse(candidateCall?.argsJson ?? '[]')).toEqual([
+      '"тахипноэ"* OR "лихорадка"*',
+      50,
+    ]);
+    expect(hydrationCall?.sql).toContain('c.original_text');
+    expect(hydrationCall?.sql).not.toContain('bm25(chunks_fts');
+    expect(JSON.parse(hydrationCall?.argsJson ?? '[]')).toEqual([fixtureChunkId()]);
   });
 
   it('pushes specialty and age-group filters into native SQL and vector search', async () => {
@@ -195,10 +228,10 @@ describe('CapacitorMedicalStore', () => {
       filters: { specialties: ['pediatrics'], ageGroups: ['children'] },
       limit: 1,
     });
-    const queryCall = plugin.calls.at(-1);
-    expect(queryCall?.sql).toContain('json_each(d.specialty_json)');
-    expect(queryCall?.sql).toContain("json_extract(d.metadata_json, '$.ageGroups')");
-    expect(JSON.parse(queryCall?.argsJson ?? '[]')).toEqual([
+    const candidateCall = plugin.calls.at(-2);
+    expect(candidateCall?.sql).toContain('json_each(d.specialty_json)');
+    expect(candidateCall?.sql).toContain("json_extract(d.metadata_json, '$.ageGroups')");
+    expect(JSON.parse(candidateCall?.argsJson ?? '[]')).toEqual([
       '"тахипноэ"*',
       'pediatrics',
       'children',

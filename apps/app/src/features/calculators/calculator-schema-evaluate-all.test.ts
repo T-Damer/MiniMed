@@ -71,6 +71,8 @@ function valueForInput(
     if (mode === 'all-min') return '2000-01-01';
     return '2030-12-31';
   }
+  if (input.kind === 'text') return mode === 'all-min' ? '' : 'тест';
+  if (input.kind === 'checkbox') return mode === 'all-max' ? 1 : 0;
   if (mode === 'all-max') return selectLast(input);
   return selectFirst(input);
 }
@@ -166,12 +168,28 @@ function collectCasesForSchema(schema: CalculatorSchema): EvaluationCase[] {
           inputs: { ...baseline, [input.id]: option.value },
         });
       }
-    } else {
+    } else if (input.kind === 'date') {
       for (const dateValue of DATE_SWEEP_VALUES) {
         cases.push({
           schemaId,
           caseName: `sweep:${input.id}:${dateValue || 'empty'}`,
           inputs: { ...baseline, [input.id]: dateValue },
+        });
+      }
+    } else if (input.kind === 'checkbox') {
+      for (const value of [0, 1, 2]) {
+        cases.push({
+          schemaId,
+          caseName: `sweep:${input.id}:${value}`,
+          inputs: { ...baseline, [input.id]: value },
+        });
+      }
+    } else {
+      for (const value of ['', 'тест']) {
+        cases.push({
+          schemaId,
+          caseName: `sweep:${input.id}:${value || 'empty'}`,
+          inputs: { ...baseline, [input.id]: value },
         });
       }
     }
@@ -243,4 +261,38 @@ describe('calculator schema evaluate-all', () => {
       assertEvaluationDoesNotThrow(schema, testCase.inputs, testCase.options);
     },
   );
+
+  it('does not turn a non-verdict declaration into a verdict', () => {
+    const source = ALL_CALCULATOR_SCHEMAS.find(
+      (schema) => schema.id === 'body-surface-area-mosteller',
+    );
+    if (!source) throw new Error('missing test schema');
+    const result = evaluateCalculatorSchema(
+      {
+        ...source,
+        evaluation: {
+          status: 'missing-context',
+          rules: [
+            {
+              when: '1',
+              verdict: {
+                rangeId: 'test',
+                title: 'Не должно применяться',
+                explanation: 'Проверочный вердикт.',
+                attentionLevel: 'none',
+                lowerInclusive: true,
+                upperInclusive: true,
+                sourceIds: [],
+              },
+            },
+          ],
+          missingContext: ['Контекст теста'],
+          sourceIds: [],
+        },
+      },
+      buildFilledInputs(source, 'baseline'),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.evaluation.status).toBe('missing-context');
+  });
 });

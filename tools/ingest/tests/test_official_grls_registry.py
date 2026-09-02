@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import json
+import threading
+import urllib.parse
+from collections.abc import Callable
+from concurrent.futures import Future
 from io import BytesIO
 from pathlib import Path
+from types import TracebackType
 from zipfile import ZIP_DEFLATED, ZipFile
 
 import pymupdf
@@ -18,6 +23,18 @@ from localmed_ingest.official_grls_registry import (
     parse_grls_archive,
     run_grls_instruction_batch,
 )
+
+
+def test_routing_guid_accepts_current_grls_html_row() -> None:
+    page = """
+    <table>
+      <tr class="hi_sys poi" onclick="det(&#39;0fd48656-cd1d-49d4-84cc-25c14fe9bf6a&#39;,0);">
+        <td>Изакардин&#174;</td><td>ЛП-000348</td><td>Д</td>
+      </tr>
+    </table>
+    """
+
+    assert grls._routing_guid(page, "ЛП-000348") == "0fd48656-cd1d-49d4-84cc-25c14fe9bf6a"
 
 
 def xlsx(status: str, rows: list[tuple[str, str]]) -> bytes:
@@ -119,6 +136,33 @@ def test_grls_archive_prefers_current_records_and_parses_instruction_metadata() 
     )
     assert url == "https://grls.rosminzdrav.ru/InstrImg/2026/07/24/test.pdf"
     assert label == "Текущая инструкция"
+
+    encoded_url, _ = _instruction_url(
+        json.dumps(
+            {
+                "d": json.dumps(
+                    {
+                        "Sources": [
+                            {
+                                "Instructions": [
+                                    {
+                                        "Images": [
+                                            {"Url": "\\InstrImg\\2026\\07\\24\\Изакардин №1.pdf"}
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    ensure_ascii=False,
+                )
+            },
+            ensure_ascii=False,
+        ).encode()
+    )
+    assert encoded_url == (
+        "https://grls.rosminzdrav.ru/InstrImg/2026/07/24/" + urllib.parse.quote("Изакардин №1.pdf")
+    )
 
 
 def _catalog(path: Path) -> None:
@@ -229,8 +273,8 @@ def test_instruction_batch_is_append_safe_and_retries_only_failures(
 
     monkeypatch.setattr(grls, "_download_grls_instruction", fake_download)
 
-    first = run_grls_instruction_batch(plan_path, output_root, state, limit=3)
-    second = run_grls_instruction_batch(plan_path, output_root, state, limit=3)
+    first = run_grls_instruction_batch(plan_path, output_root, state, limit=3, workers=1)
+    second = run_grls_instruction_batch(plan_path, output_root, state, limit=3, workers=1)
     rows = [json.loads(line) for line in state.read_text(encoding="utf-8").splitlines()]
 
     assert first == {
@@ -243,17 +287,273 @@ def test_instruction_batch_is_append_safe_and_retries_only_failures(
         "failed": 1,
         "skipped": 0,
         "deferred": 0,
+        "retryExhausted": 0,
     }
     assert second["attempted"] == 1
     assert second["succeeded"] == 1
     assert second["failed"] == 0
     assert second["skipped"] == 2
     assert second["deferred"] == 0
+    assert second["retryExhausted"] == 0
     assert calls == ["ЛП-1", "ЛП-3", "ЛП-current", "ЛП-current"]
     assert [row["state"] for row in rows] == ["success", "success", "failed", "success"]
     assert rows[-1]["attempts"] == 2
     assert rows[-1]["pdfSha256"].startswith("sha256:")
     assert len(list(output_root.glob("pdf/*.pdf"))) == 3
+
+
+def test_instruction_batch_skips_exhausted_failures_and_advances(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    catalog = tmp_path / "catalog.json"
+    plan_path = tmp_path / "plan.json"
+    state = tmp_path / "state.jsonl"
+    output_root = tmp_path / "raw"
+    _catalog(catalog)
+    build_grls_instruction_plan(catalog, plan_path)
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    first = plan["items"][0]
+    state.write_text(
+        json.dumps(
+            {
+                "registrationNumber": first["registrationNumber"],
+                "catalogChecksum": plan["catalogChecksum"],
+                "state": "failed",
+                "attempts": 3,
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    calls: list[str] = []
+
+    def fake_download(
+        registration_number: str,
+        *,
+        timeout_seconds: float,
+        opener: object,
+    ) -> tuple[str, str, bytes]:
+        del timeout_seconds, opener
+        calls.append(registration_number)
+        return (f"https://grls.rosminzdrav.ru/{registration_number}.pdf", "label", b"%PDF-test")
+
+    monkeypatch.setattr(grls, "_download_grls_instruction", fake_download)
+
+    summary = run_grls_instruction_batch(plan_path, output_root, state, limit=1, workers=1)
+
+    assert calls == [plan["items"][1]["registrationNumber"]]
+    assert summary["attempted"] == 1
+    assert summary["succeeded"] == 1
+    assert summary["retryExhausted"] == 1
+
+
+def test_instruction_batch_downloads_concurrently_but_commits_in_plan_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    catalog = tmp_path / "catalog.json"
+    plan_path = tmp_path / "plan.json"
+    state = tmp_path / "state.jsonl"
+    output_root = tmp_path / "raw"
+    _catalog(catalog)
+    build_grls_instruction_plan(catalog, plan_path)
+    started = threading.Barrier(3)
+    other_workers_ready = threading.Barrier(2)
+    release_first = threading.Event()
+    seen_openers: list[object] = []
+    completion_order: list[str] = []
+    lock = threading.Lock()
+
+    def fake_download(
+        registration_number: str,
+        *,
+        timeout_seconds: float,
+        opener: object,
+    ) -> tuple[str, str, bytes]:
+        del timeout_seconds
+        with lock:
+            seen_openers.append(opener)
+        started.wait(timeout=2)
+        if registration_number == "ЛП-1":
+            assert release_first.wait(timeout=2)
+        else:
+            with lock:
+                completion_order.append(registration_number)
+            other_workers_ready.wait(timeout=2)
+            if registration_number == "ЛП-current":
+                release_first.set()
+        if registration_number == "ЛП-1":
+            with lock:
+                completion_order.append(registration_number)
+        return (
+            f"https://grls.rosminzdrav.ru/{registration_number}.pdf",
+            "label",
+            f"%PDF-{registration_number}".encode(),
+        )
+
+    monkeypatch.setattr(grls, "_download_grls_instruction", fake_download)
+
+    summary = run_grls_instruction_batch(
+        plan_path,
+        output_root,
+        state,
+        limit=3,
+        workers=3,
+    )
+    rows = [json.loads(line) for line in state.read_text(encoding="utf-8").splitlines()]
+
+    assert summary["attempted"] == 3
+    assert summary["succeeded"] == 3
+    assert summary["failed"] == 0
+    assert len(seen_openers) == 3
+    assert len({id(opener) for opener in seen_openers}) == 3
+    assert set(completion_order[:2]) == {"ЛП-3", "ЛП-current"}
+    assert completion_order[-1] == "ЛП-1"
+    assert [row["registrationNumber"] for row in rows] == [
+        "ЛП-1",
+        "ЛП-3",
+        "ЛП-current",
+    ]
+    assert [row["state"] for row in rows] == ["success", "success", "success"]
+
+
+def test_instruction_batch_can_target_exact_active_registrations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    catalog = tmp_path / "catalog.json"
+    plan_path = tmp_path / "plan.json"
+    state = tmp_path / "state.jsonl"
+    _catalog(catalog)
+    build_grls_instruction_plan(catalog, plan_path)
+    downloaded: list[str] = []
+
+    def fake_download(
+        registration_number: str,
+        *,
+        timeout_seconds: float,
+        opener: object,
+    ) -> tuple[str, str, bytes]:
+        del timeout_seconds, opener
+        downloaded.append(registration_number)
+        return (
+            f"https://grls.rosminzdrav.ru/{registration_number}.pdf",
+            "label",
+            f"%PDF-{registration_number}".encode(),
+        )
+
+    monkeypatch.setattr(grls, "_download_grls_instruction", fake_download)
+
+    summary = run_grls_instruction_batch(
+        plan_path,
+        tmp_path / "raw",
+        state,
+        limit=10,
+        registrations=["ЛП-current", "ЛП-3"],
+    )
+
+    assert downloaded == ["ЛП-3", "ЛП-current"]
+    assert summary["attempted"] == 2
+    assert summary["requestedRegistrations"] == ["ЛП-3", "ЛП-current"]
+    with pytest.raises(ValueError, match="absent from the active plan"):
+        run_grls_instruction_batch(
+            plan_path,
+            tmp_path / "raw",
+            state,
+            limit=1,
+            registrations=["ЛП-UNKNOWN"],
+        )
+
+
+def test_instruction_batch_bounds_retained_futures_to_workers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    catalog = tmp_path / "catalog.json"
+    plan_path = tmp_path / "plan.json"
+    state = tmp_path / "state.jsonl"
+    output_root = tmp_path / "raw"
+    _catalog(catalog)
+    build_grls_instruction_plan(catalog, plan_path)
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    plan["items"] = [
+        {"registrationNumber": f"ЛП-{index}", "target": f"pdf/{index}.pdf"} for index in range(7)
+    ]
+    plan_path.write_text(json.dumps(plan, ensure_ascii=False), encoding="utf-8")
+    metrics = {"submitted": 0, "committed": 0, "maxOutstanding": 0}
+    real_executor = grls.ThreadPoolExecutor
+
+    class TrackingExecutor:
+        def __init__(
+            self,
+            *,
+            max_workers: int,
+            initializer: Callable[..., None],
+            initargs: tuple[object, ...],
+        ) -> None:
+            self._executor = real_executor(
+                max_workers=max_workers,
+                initializer=initializer,
+                initargs=initargs,
+            )
+
+        def __enter__(self) -> TrackingExecutor:
+            self._executor.__enter__()
+            return self
+
+        def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc_value: BaseException | None,
+            traceback: TracebackType | None,
+        ) -> bool | None:
+            return self._executor.__exit__(exc_type, exc_value, traceback)
+
+        def submit(
+            self,
+            fn: Callable[..., object],
+            /,
+            *args: object,
+            **kwargs: object,
+        ) -> Future[object]:
+            metrics["submitted"] += 1
+            outstanding = metrics["submitted"] - metrics["committed"]
+            metrics["maxOutstanding"] = max(metrics["maxOutstanding"], outstanding)
+            return self._executor.submit(fn, *args, **kwargs)
+
+    def fake_download(
+        registration_number: str,
+        *,
+        timeout_seconds: float,
+        opener: object,
+    ) -> tuple[str, str, bytes]:
+        del timeout_seconds, opener
+        return (
+            f"https://grls.rosminzdrav.ru/{registration_number}.pdf",
+            "label",
+            f"%PDF-{registration_number}".encode(),
+        )
+
+    original_append = grls._append_instruction_state
+
+    def tracking_append(path: Path, result: dict[str, object]) -> None:
+        original_append(path, result)
+        if result.get("state") in {"success", "failed"}:
+            metrics["committed"] += 1
+
+    monkeypatch.setattr(grls, "ThreadPoolExecutor", TrackingExecutor)
+    monkeypatch.setattr(grls, "_download_grls_instruction", fake_download)
+    monkeypatch.setattr(grls, "_append_instruction_state", tracking_append)
+
+    summary = run_grls_instruction_batch(
+        plan_path,
+        output_root,
+        state,
+        limit=7,
+        workers=2,
+    )
+
+    assert summary["attempted"] == 7
+    assert summary["succeeded"] == 7
+    assert metrics == {"submitted": 7, "committed": 7, "maxOutstanding": 2}
 
 
 def test_instruction_batch_defers_legacy_items_from_an_old_plan(

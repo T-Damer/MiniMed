@@ -18,6 +18,7 @@ interface PilotQuery {
   readonly expectedAuthorityTier?: string;
   readonly expectedSectionTypes: readonly string[];
   readonly expectedAnchorPrefixes: readonly string[];
+  readonly requireTop1?: boolean;
   readonly category: string;
 }
 
@@ -46,8 +47,10 @@ interface PilotRow {
   readonly id: string;
   readonly query: string;
   readonly category: string;
+  readonly requireTop1: boolean;
   readonly hitAt1: boolean;
   readonly hitAt5: boolean;
+  readonly requiredRankSatisfied: boolean;
   readonly sectionHit: boolean;
   readonly topSectionHit: boolean;
   readonly contextResolved: boolean;
@@ -183,8 +186,10 @@ for (const fixture of queries) {
     id: fixture.id,
     query: fixture.query,
     category: fixture.category,
+    requireTop1: fixture.requireTop1 === true,
     hitAt1: rank === 1,
     hitAt5: rank !== undefined,
+    requiredRankSatisfied: fixture.requireTop1 !== true || rank === 1,
     sectionHit: matchedResult !== undefined,
     topSectionHit:
       bestExpectedResult !== null && matchesExpectedSection(bestExpectedResult, fixture),
@@ -203,6 +208,7 @@ for (const fixture of queries) {
 await core.close();
 
 const latencies = rows.map((row) => row.elapsedMs);
+const top1Rows = rows.filter((row) => row.requireTop1);
 const categories = Object.fromEntries(
   [...new Set(rows.map((row) => row.category))].toSorted().map((category) => {
     const categoryRows = rows.filter((row) => row.category === category);
@@ -228,6 +234,8 @@ const report = {
   recallAt1: mean(rows.map((row) => Number(row.hitAt1))),
   recallAt5: mean(rows.map((row) => Number(row.hitAt5))),
   mrrAt5: mean(rows.map((row) => row.reciprocalRank)),
+  requiredTop1Count: top1Rows.length,
+  requiredTop1Rate: mean(top1Rows.map((row) => Number(row.hitAt1))),
   sectionRecall: mean(rows.map((row) => Number(row.sectionHit))),
   topSectionAccuracy: mean(rows.map((row) => Number(row.topSectionHit))),
   contextResolutionRate: mean(rows.map((row) => Number(row.contextResolved))),
@@ -255,6 +263,10 @@ console.log(JSON.stringify(report, null, 2));
 const failures: string[] = [];
 if (report.recallAt5 < 0.9) failures.push(`Recall@5 ${report.recallAt5.toFixed(3)} < 0.900`);
 if (report.mrrAt5 < 0.65) failures.push(`MRR@5 ${report.mrrAt5.toFixed(3)} < 0.650`);
+const top1Failures = rows.filter((row) => row.requireTop1 && !row.hitAt1).map((row) => row.id);
+if (top1Failures.length > 0) {
+  failures.push(`required Top-1 misses: ${top1Failures.join(', ')}`);
+}
 if (report.sectionRecall < 0.9) {
   failures.push(`section recall ${report.sectionRecall.toFixed(3)} < 0.900`);
 }

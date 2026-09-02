@@ -1,4 +1,4 @@
-import { createUniqueId, type JSX, splitProps } from 'solid-js';
+import { createUniqueId, type JSX, Show, splitProps } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 
@@ -13,6 +13,7 @@ export interface SearchFieldProps {
   readonly tone?: 'default' | 'inverse';
   readonly class?: string;
   readonly leading?: JSX.Element;
+  readonly onClear?: (() => void) | undefined;
   readonly autocomplete?: string;
   readonly inputRef?: (element: HTMLInputElement) => void;
   readonly onKeyDown?: JSX.EventHandlerUnion<HTMLInputElement, KeyboardEvent>;
@@ -30,6 +31,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
     'tone',
     'class',
     'leading',
+    'onClear',
     'autocomplete',
     'inputRef',
   ]);
@@ -63,6 +65,22 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
           autocomplete={local.autocomplete ?? 'off'}
           onInput={(event) => local.onInput(event.currentTarget.value)}
         />
+        <Show when={local.onClear && local.value.length > 0}>
+          <button
+            type="button"
+            class="archive-search__clear"
+            aria-label="Очистить поиск"
+            title="Очистить поиск"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              local.onClear?.();
+            }}
+          >
+            <AppGlyph name="close" class="archive-search__clear-icon" />
+          </button>
+        </Show>
       </span>
     </label>
   );

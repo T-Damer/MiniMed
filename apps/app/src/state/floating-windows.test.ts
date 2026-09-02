@@ -191,6 +191,29 @@ describe('floating windows', () => {
     });
   });
 
+  it('cascades headers diagonally and toggles temporary fullscreen', () => {
+    installWindowMock();
+    let manager: ReturnType<typeof createFloatingWindows> | undefined;
+    createRoot((dispose) => {
+      manager = createFloatingWindows();
+      manager.open('notes');
+      manager.open('search');
+      manager.open('modules');
+
+      const ordered = [...manager.windows()].sort((left, right) => right.zIndex - left.zIndex);
+      expect(manager.cascadeOffsetFor(ordered[0]?.id ?? '')).toEqual({ x: 0, y: 0 });
+      expect(manager.cascadeOffsetFor(ordered[1]?.id ?? '')).toEqual({ x: -34, y: -34 });
+      expect(manager.cascadeOffsetFor(ordered[2]?.id ?? '')).toEqual({ x: -68, y: -68 });
+
+      manager.toggleFullscreen(ordered[1]?.id ?? '');
+      expect(manager.fullscreenWindowId()).toBe(ordered[1]?.id);
+      expect(manager.activeWindowId()).toBe(ordered[1]?.id);
+      manager.toggleFullscreen(ordered[1]?.id ?? '');
+      expect(manager.fullscreenWindowId()).toBeUndefined();
+      dispose();
+    });
+  });
+
   it('keeps separate windows for separate routes in the same root section', () => {
     installWindowMock();
     let manager: ReturnType<typeof createFloatingWindows> | undefined;

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { browserI18n, setUILanguageForTests } from '@/i18n/browser-i18n';
 import {
+  assessmentCountLabel,
   collectionLabel,
   documentCountLabel,
   recommendationCountLabel,
@@ -71,5 +72,31 @@ describe('labels', () => {
   it('localizes module collection ids', () => {
     expect(collectionLabel('pediatrics')).toBe('Клиническая педиатрия');
     expect(collectionLabel('unknown')).toBe('unknown');
+  });
+
+  it('uses the active catalog plural rules for assessment counts', () => {
+    for (const [count, label] of [
+      [0, '0 тестов'],
+      [1, '1 тест'],
+      [2, '2 теста'],
+      [5, '5 тестов'],
+      [11, '11 тестов'],
+      [12, '12 тестов'],
+      [14, '14 тестов'],
+      [21, '21 тест'],
+      [22, '22 теста'],
+      [25, '25 тестов'],
+      [101, '101 тест'],
+    ] as const) {
+      expect(assessmentCountLabel(count)).toBe(label);
+    }
+    setUILanguageForTests('en-US');
+    try {
+      expect(assessmentCountLabel(1)).toBe('1 test');
+      expect(assessmentCountLabel(2)).toBe('2 tests');
+      expect(assessmentCountLabel(21)).toBe('21 tests');
+    } finally {
+      setUILanguageForTests(undefined);
+    }
   });
 });

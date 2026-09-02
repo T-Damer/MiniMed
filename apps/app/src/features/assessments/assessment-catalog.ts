@@ -123,6 +123,10 @@ export function registerDownloadedAssessment(record: ToolDefinitionRecord): void
   const { interpretations, license, questions, ...rest } = parsed;
   const definition: AssessmentDefinition = {
     ...rest,
+    schemaVersion: 2,
+    version: record.version,
+    evaluation: parsed.evaluation,
+    observationMappings: parsed.observationMappings,
     license: {
       kind: license.kind,
       notice: license.notice,

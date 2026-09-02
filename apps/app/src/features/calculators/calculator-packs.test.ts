@@ -61,6 +61,29 @@ describe('calculator packs', () => {
     expect(isCalculatorSectionCore('renal', CALCULATOR_REGISTRY)).toBe(false);
   });
 
+  it('places the feeding calculator in pediatrics', () => {
+    for (const record of loadToolModuleRecords(['content/tool-modules/pediatrics.json'])) {
+      if (record.kind === 'calculator') registerDownloadedCalculator(record);
+    }
+    expect(calculatorIdsInSection('pediatrics', getCalculatorRegistry())).toContain(
+      'minimed.calculator.pediatric-feeding-plan',
+    );
+  });
+
+  it('places one schema-driven calculator in every tagged section', () => {
+    for (const record of loadToolModuleRecords(['content/tool-modules/pediatrics.json'])) {
+      if (record.kind === 'calculator') registerDownloadedCalculator(record);
+    }
+    const registry = getCalculatorRegistry();
+
+    expect(calculatorIdsInSection('fluids', registry)).toContain(
+      'minimed.calculator.pediatric-feeding-plan',
+    );
+    expect(calculatorIdsInSection('pediatrics', registry)).toContain(
+      'minimed.calculator.pediatric-feeding-plan',
+    );
+  });
+
   it('installs one calculator without installing the whole section', () => {
     registerCoreClinicalCalculators();
     const registry = getCalculatorRegistry();

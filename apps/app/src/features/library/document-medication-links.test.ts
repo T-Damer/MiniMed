@@ -116,6 +116,30 @@ describe('document-medication-links', () => {
     ]);
   });
 
+  it('drops ambiguous medication phrases while preserving a unique longer phrase', () => {
+    const documents = [
+      medication('drug.rf.paracetamol.tablet', 'Парацетамол 500 мг — таблетки', 'Парацетамол'),
+      medication(
+        'drug.rf.paracetamol.suspension',
+        'парацетамол — суспензия 120 мг/5 мл',
+        'ПАРАЦЕТАМОЛ',
+      ),
+    ];
+
+    const forward = buildMedicationLinkPhrases(documents);
+    const reverse = buildMedicationLinkPhrases([...documents].reverse());
+
+    expect(forward).toEqual([
+      {
+        phrase: 'Парацетамол 500 мг',
+        documentId: 'drug.rf.paracetamol.tablet',
+        kind: 'medication',
+      },
+    ]);
+    expect(reverse).toEqual(forward);
+    expect(forward.some((link) => link.phrase === 'Парацетамол')).toBe(false);
+  });
+
   it('indexes installed conditions and laws as cross-links', () => {
     const documents: MedicalDocumentSummary[] = [
       {
@@ -141,6 +165,37 @@ describe('document-medication-links', () => {
     expect(links.find((link) => link.documentId === 'clinical.pneumonia')?.kind).toBe(
       'recommendation',
     );
+  });
+
+  it('drops ambiguous condition phrases while preserving a unique longer phrase', () => {
+    const documents: MedicalDocumentSummary[] = [
+      recommendation(
+        'condition-one',
+        'Клинические рекомендации — Пневмония у детей тяжелая',
+        'Пневмония у детей',
+      ),
+      {
+        ...medication(
+          'reference-one',
+          'Пневмония у детей — медицинский справочник',
+          'пневмония   у   детей',
+        ),
+        sourceType: 'medical_reference',
+      },
+    ];
+
+    const forward = buildDocumentLinkPhrases(documents);
+    const reverse = buildDocumentLinkPhrases([...documents].reverse());
+
+    expect(forward).toEqual([
+      {
+        phrase: 'Пневмония у детей тяжелая',
+        documentId: 'condition-one',
+        kind: 'recommendation',
+      },
+    ]);
+    expect(reverse).toEqual(forward);
+    expect(forward.some((link) => link.phrase === 'Пневмония у детей')).toBe(false);
   });
 
   it('does not link a recommendation to its own topic card or title', () => {

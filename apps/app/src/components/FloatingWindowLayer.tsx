@@ -14,6 +14,7 @@ function viewLabel(view: RootView): string {
 function frameUrl(route: string): string {
   const url = new URL(window.location.href);
   url.searchParams.set('minimed-floating', '1');
+  url.searchParams.set('minimed-floating-scale', '1');
   url.hash = route;
   return url.href;
 }
@@ -24,7 +25,13 @@ export function FloatingWindowLayer(props: {
 }): JSX.Element {
   return (
     <Portal>
-      <section class="floating-windows-layer" aria-label="Мини-окна">
+      <section
+        class="floating-windows-layer"
+        classList={{
+          'floating-windows-layer--fullscreen': Boolean(props.manager.fullscreenWindowId()),
+        }}
+        aria-label="Мини-окна"
+      >
         <For each={props.manager.windows().map((windowState) => windowState.id)}>
           {(id) => (
             <Show when={props.manager.windowFor(id)}>
@@ -51,31 +58,33 @@ function FloatingWindowSlot(props: {
   const id = () => props.windowState().id;
   const view = () => props.windowState().view;
   const isActive = () => props.manager.activeWindowId() === id();
+  const isFullscreen = () => props.manager.fullscreenWindowId() === id();
   const collapsed = () => props.windowState().collapsed;
+  const isCollapsed = () => collapsed() && !isFullscreen();
   const [titleOverflows, setTitleOverflows] = createSignal(false);
   let title: HTMLElement | undefined;
   let titleText: HTMLSpanElement | undefined;
-  const spreadOffset = () => {
-    const orderedWindows = [...props.manager.windows()].sort(
-      (left, right) => right.zIndex - left.zIndex,
-    );
-    const index = orderedWindows.findIndex((windowState) => windowState.id === id());
-    if (index < 0 || props.manager.stacked()) return { x: 0, y: index < 0 ? 0 : index * 18 };
-    const count = props.manager.windows().length;
-    const center = (count - 1) / 2;
-    return { x: Math.round((index - center) * 48), y: Math.round(Math.abs(index - center) * 18) };
-  };
 
   const windowState = () => props.windowState();
   const displayWindowState = () => props.manager.displayWindowFor(id()) ?? windowState();
   const style = () => {
-    const offset = spreadOffset();
     const current = displayWindowState();
+    if (isFullscreen()) {
+      return {
+        left: '0px',
+        top: '0px',
+        width: '100vw',
+        height: '100dvh',
+        'z-index': current.zIndex,
+        transform: 'none',
+      };
+    }
+    const offset = props.manager.cascadeOffsetFor(id());
     return {
       left: `${current.x}px`,
       top: `${current.y + offset.y}px`,
       width: `${current.width}px`,
-      height: current.collapsed
+      height: isCollapsed()
         ? 'calc(var(--floating-window-toolbar-height) + 2px)'
         : `${current.height}px`,
       'z-index': current.zIndex,
@@ -105,17 +114,20 @@ function FloatingWindowSlot(props: {
         'floating-window--inactive': !isActive(),
         'floating-window--stacked': props.manager.stacked(),
         'floating-window--resizing': props.manager.resizingWindowId() === id(),
-        'floating-window--collapsed': collapsed(),
+        'floating-window--collapsed': isCollapsed(),
+        'floating-window--fullscreen': isFullscreen(),
       }}
       style={style()}
     >
       <header
         class="floating-window__toolbar"
+        classList={{ 'floating-window__toolbar--fullscreen': isFullscreen() }}
         onPointerDown={(event) => props.manager.beginDrag(id(), event)}
       >
         <button
           class="floating-window__button"
           type="button"
+          disabled={!isActive()}
           aria-label="Закрыть маленькое окно"
           title="Закрыть маленькое окно"
           onPointerDown={(event) => event.stopPropagation()}
@@ -127,7 +139,7 @@ function FloatingWindowSlot(props: {
           <span
             class="floating-window__title-text"
             classList={{
-              'floating-window__title-text--marquee': collapsed() && titleOverflows(),
+              'floating-window__title-text--marquee': isCollapsed() && titleOverflows(),
             }}
             ref={titleText}
           >
@@ -136,16 +148,47 @@ function FloatingWindowSlot(props: {
         </strong>
         <div class="floating-window__actions">
           <button
-            class="floating-window__button"
+            class="floating-window__button floating-window__button--fullscreen"
             type="button"
-            aria-label={collapsed() ? 'Развернуть маленькое окно' : 'Свернуть маленькое окно'}
-            title={collapsed() ? 'Развернуть' : 'Свернуть'}
-            aria-expanded={!collapsed()}
+            disabled={!isActive()}
+            aria-label={isFullscreen() ? 'Свернуть в маленькое окно' : 'Открыть на весь экран'}
+            title={isFullscreen() ? 'Свернуть в маленькое окно' : 'На весь экран'}
             onPointerDown={(event) => event.stopPropagation()}
-            onClick={() => props.manager.toggleCollapsed(id())}
+            onClick={() => props.manager.toggleFullscreen(id())}
           >
             <AppGlyph
-              name={collapsed() ? 'caret-down' : 'caret-up'}
+              name={isFullscreen() ? 'arrows-in' : 'arrows-out'}
+              class="floating-window__icon"
+            />
+          </button>
+          <button
+            class="floating-window__button"
+            type="button"
+            disabled={!isActive()}
+            aria-label={
+              isFullscreen()
+                ? 'Свернуть в маленькое окно'
+                : isCollapsed()
+                  ? 'Развернуть маленькое окно'
+                  : 'Свернуть маленькое окно'
+            }
+            title={
+              isFullscreen()
+                ? 'Свернуть в маленькое окно'
+                : isCollapsed()
+                  ? 'Развернуть'
+                  : 'Свернуть'
+            }
+            aria-expanded={isFullscreen() || !isCollapsed()}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={() =>
+              isFullscreen()
+                ? props.manager.toggleFullscreen(id())
+                : props.manager.toggleCollapsed(id())
+            }
+          >
+            <AppGlyph
+              name={isCollapsed() ? 'caret-down' : 'caret-up'}
               class="floating-window__icon"
             />
           </button>
@@ -155,7 +198,7 @@ function FloatingWindowSlot(props: {
         class="floating-window__content"
         classList={{
           'floating-window__content--resizing': props.manager.resizingWindowId() === id(),
-          'floating-window__content--collapsed': collapsed(),
+          'floating-window__content--collapsed': isCollapsed(),
         }}
       >
         <Show when={isActive()}>

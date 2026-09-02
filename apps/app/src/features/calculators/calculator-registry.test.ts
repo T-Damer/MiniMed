@@ -23,7 +23,7 @@ describe('calculator registry', () => {
     const slugs = AVAILABLE_CALCULATORS.map((calculator) => calculator.slug);
     expect(new Set(ids).size).toBe(ids.length);
     expect(new Set(slugs).size).toBe(slugs.length);
-    expect(ids).toEqual(['unit-conversion']);
+    expect(ids).toEqual(['unit-conversion', 'ecg-photo-caliper']);
   });
 
   it('requires sources, population and limitations for downloaded clinical calculators', () => {
@@ -58,5 +58,22 @@ describe('calculator registry', () => {
     });
     expect(searchCalculators('шварца')).toHaveLength(1);
     expect(findCalculator('missing-calculator')).toBeUndefined();
+  });
+
+  it('resolves a saved slug against the registry currently rendered by the history view', () => {
+    const base = CALCULATOR_REGISTRY.find((calculator) => calculator.id === 'unit-conversion');
+    if (!base || base.state !== 'available') throw new Error('Missing unit-conversion fixture.');
+    const localRegistry = [
+      {
+        ...base,
+        id: 'minimed.calculator.local-only',
+        slug: 'pediatric-feeding-plan',
+        title: 'Рацион и прикорм до 3 лет',
+      },
+    ];
+
+    expect(findCalculator('pediatric-feeding-plan', localRegistry)?.title).toBe(
+      'Рацион и прикорм до 3 лет',
+    );
   });
 });

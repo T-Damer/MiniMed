@@ -23,6 +23,8 @@ import {
   searchPatientNotes,
   setNoteReminder,
   updatePatientNote,
+  updatePatientNoteCategories,
+  updatePatientNoteTitle,
 } from '@/state/patient-notes';
 
 function installLocalStorageMock(): Map<string, string> {
@@ -142,6 +144,35 @@ describe('patient notes store', () => {
     expect(loadPatientNotes().notes).toHaveLength(0);
   });
 
+  it('keeps legacy notes without a title untitled', () => {
+    store.set(
+      PATIENT_NOTES_KEY,
+      JSON.stringify({
+        cards: [
+          {
+            id: 'card-legacy',
+            title: 'Иванов И.',
+            summary: '',
+            createdAt: '2026-07-26T00:00:00.000Z',
+            updatedAt: '2026-07-26T00:00:00.000Z',
+          },
+        ],
+        notes: [
+          {
+            id: 'note-legacy',
+            cardId: 'card-legacy',
+            parentNoteId: null,
+            text: 'старая запись',
+            createdAt: '2026-07-26T00:00:00.000Z',
+            updatedAt: '2026-07-26T00:00:00.000Z',
+          },
+        ],
+      }),
+    );
+
+    expect(loadPatientNotes().notes[0]?.title).toBe('');
+  });
+
   it('survives a corrupted payload instead of throwing', () => {
     store.set(PATIENT_NOTES_KEY, '{not json');
     expect(loadPatientNotes()).toEqual({ cards: [], notes: [] });
@@ -203,6 +234,35 @@ describe('patient notes store', () => {
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
     updatePatientNote(noteId, '   ');
     expect(loadPatientNotes().notes[0]?.text).toBe('исправленная версия');
+  });
+
+  it('stores and searches a record title separately from its text', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'температура снизилась', null, { title: 'Контрольный осмотр' });
+    const noteId = loadPatientNotes().notes[0]?.id ?? '';
+
+    expect(loadPatientNotes().notes[0]?.title).toBe('Контрольный осмотр');
+    expect(searchPatientNotes('контрольный осмотр')[0]?.note?.id).toBe(noteId);
+
+    updatePatientNoteTitle(noteId, 'Повторный осмотр');
+    expect(loadPatientNotes().notes[0]?.title).toBe('Повторный осмотр');
+    updatePatientNoteTitle(noteId, '   ');
+    expect(loadPatientNotes().notes[0]?.title).toBe('');
+  });
+
+  it('keeps user-edited note tags when text or title changes', () => {
+    createPatientCard('Иванов И.');
+    const cardId = cardIdOf('Иванов И.');
+    addPatientNote(cardId, 'контроль', null, { categories: ['  Важно ', 'наблюдение'] });
+    const noteId = loadPatientNotes().notes[0]?.id ?? '';
+
+    expect(loadPatientNotes().notes[0]?.categories).toEqual(['Важно', 'наблюдение']);
+    updatePatientNoteCategories(noteId, ['аллергия', '', 'аллергия']);
+    updatePatientNote(noteId, 'обновлённый контроль');
+    updatePatientNoteTitle(noteId, 'Повторный визит');
+
+    expect(loadPatientNotes().notes[0]?.categories).toEqual(['аллергия']);
   });
 
   it('round-trips structured attachments through localStorage', () => {

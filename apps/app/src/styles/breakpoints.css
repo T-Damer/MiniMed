@@ -25,6 +25,11 @@
   gap: var(--layout-gap);
 }
 
+.layout-virtualized-grid {
+  width: 100%;
+  min-width: 0;
+}
+
 .layout-card-row__gap {
   height: var(--layout-gap);
 }

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   inferRequestedAudience,
   rankSearchGroupsByAudience,
+  searchResultDocumentKind,
 } from '@/features/search/ScopedMedicalCore';
 
 function document(id: string, ageGroups: readonly string[]): MedicalDocumentSummary {
@@ -82,5 +83,27 @@ describe('age-aware result ordering', () => {
       undefined,
     );
     expect(ranked.map((item) => item.documentId)).toEqual(['adult', 'child', 'unknown']);
+  });
+});
+
+describe('search result document kind', () => {
+  it('uses source metadata for medications, law, calculators, and assessments', () => {
+    const base = document('reference', []);
+    expect(searchResultDocumentKind({ ...base, sourceType: 'official_drug_instruction' })).toBe(
+      'medication',
+    );
+    expect(searchResultDocumentKind({ ...base, sourceType: 'regulatory_act' })).toBe('legal');
+    expect(
+      searchResultDocumentKind({ ...base, sourceType: 'clinical_recommendation_summary' }),
+    ).toBe('clinical-recommendation');
+    expect(searchResultDocumentKind({ ...base, metadata: { calculationRequired: true } })).toBe(
+      'calculator',
+    );
+    expect(
+      searchResultDocumentKind({
+        ...base,
+        metadata: { interactiveAssessmentId: 'assessment.test' },
+      }),
+    ).toBe('assessment');
   });
 });

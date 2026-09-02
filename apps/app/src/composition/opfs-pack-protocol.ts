@@ -4,6 +4,7 @@ import type { LexicalSearchRequest, VectorSearchRequest } from '@localmed/storag
 export type OpfsPackWorkerMethod =
   | 'initialize'
   | 'getHealth'
+  | 'inspectIntegrity'
   | 'listDocuments'
   | 'getDocument'
   | 'getDocumentByVersionId'
@@ -49,6 +50,7 @@ export type OpfsPackWorkerOpenOptions = {
 export type OpfsPackWorkerCallArgs = {
   readonly initialize: readonly [seed?: ContentPackSeed];
   readonly getHealth: readonly [];
+  readonly inspectIntegrity: readonly [];
   readonly listDocuments: readonly [];
   readonly getDocument: readonly [id: string];
   readonly getDocumentByVersionId: readonly [versionId: string];

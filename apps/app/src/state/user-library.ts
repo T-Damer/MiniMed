@@ -1,21 +1,55 @@
-import exampleCtUrl from '@/assets/example-ct.dcm?url';
-import exampleMriUrl from '@/assets/example-mri.nii?url';
+import { downloadWithRetry } from '@/features/network/download-retry';
 import {
   personalMatchScore,
   personalQueryStems,
   wordMatchesQueryStem,
 } from '@/state/personal-stem-match';
 import {
+  type UserLibraryFileKind,
+  userLibraryFileCapability,
+  userLibraryFileExtension,
+  userLibraryFileMimeType,
+  userLibraryFilePickerCapabilities,
+} from '@/state/user-library-capabilities';
+import {
   createEditableUserLibraryFile,
   isEditableUserLibraryFile,
   validateUserLibraryFile,
 } from '@/state/user-library-formats';
 
+export {
+  USER_LIBRARY_FILE_CAPABILITIES,
+  type UserLibraryFileCapability,
+  type UserLibraryFileKind,
+  type UserLibraryReaderAction,
+  userLibraryFileCapability,
+  userLibraryFileExtension,
+  userLibraryFileMimeType,
+} from '@/state/user-library-capabilities';
+
+import { GITHUB_REPOSITORY_URL, RELEASE_TAG } from '../../../../release';
+
 export type UserLibraryOcrStatus = 'inspecting' | 'ready' | 'ocr' | 'failed';
 export type UserLibraryOcrQuality = 'fast' | 'balanced' | 'quality';
+export type UserLibraryExampleId = 'ct' | 'mri' | 'epub';
+export type UserLibraryColor = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'gray';
+
+export const USER_LIBRARY_COLORS = [
+  'red',
+  'orange',
+  'yellow',
+  'green',
+  'blue',
+  'purple',
+  'gray',
+] as const satisfies readonly UserLibraryColor[];
 
 export interface UserLibraryDocument {
   readonly id: string;
+  /** Identifies a file that fills one of the built-in example slots. */
+  readonly exampleId?: UserLibraryExampleId;
+  /** Changes whenever the stored file bytes change, so stale previews cannot win a race. */
+  readonly contentVersion?: string;
   readonly title: string;
   readonly fileName: string;
   readonly mimeType: string;
@@ -28,12 +62,15 @@ export interface UserLibraryDocument {
   readonly folderId?: string | null;
   readonly source?: UserLibraryDocumentSource;
   readonly hasImages?: boolean;
+  /** True when the original PDF exposed a non-empty text layer during inspection. */
+  readonly hasTextLayer?: boolean;
   readonly ocrPriority?: number;
   readonly ocrQuality?: UserLibraryOcrQuality;
   readonly errorMessage?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly lastOpenedAt?: string;
+  readonly color?: UserLibraryColor | undefined;
 }
 
 export type UserLibraryDocumentSource =
@@ -51,6 +88,7 @@ export interface UserLibraryFolder {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly isSystem?: boolean;
+  readonly color?: UserLibraryColor | undefined;
 }
 
 export interface UserLibraryWordBox {
@@ -99,185 +137,140 @@ export interface UserLibraryMatch {
 export const USER_LIBRARY_EVENT = 'minimed:user-library-changed';
 export const USER_LIBRARY_NOTES_FOLDER_ID = 'user-folder-notes';
 export const USER_LIBRARY_NOTES_FOLDER_TITLE = 'Заметки';
+export const USER_LIBRARY_TEMPLATES_FOLDER_ID = 'user-folder-templates';
+export const USER_LIBRARY_TEMPLATES_FOLDER_TITLE = 'Шаблоны';
+export const USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID = 'user-folder-questionnaires';
+export const USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE = 'Опросники';
+export const USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE = 'application/vnd.minimed.questionnaire+json';
+export const USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION = '.minimed-questionnaire';
+export const USER_LIBRARY_BOOKS_FOLDER_ID = 'user-folder-books';
+export const USER_LIBRARY_BOOKS_FOLDER_TITLE = 'Книги';
+export const USER_LIBRARY_RESEARCH_FOLDER_ID = 'user-folder-research';
+export const USER_LIBRARY_RESEARCH_FOLDER_TITLE = 'Исследования';
 export const USER_LIBRARY_EXAMPLE_CT_FILE_NAME = 'Пример КТ.dcm';
 export const USER_LIBRARY_EXAMPLE_MRI_FILE_NAME = 'Пример МРТ.nii';
+export const USER_LIBRARY_EXAMPLE_BOOK_FILE_NAME = "Alice's Adventures in Wonderland.epub";
+
+export interface UserLibraryExampleSlot {
+  readonly id: UserLibraryExampleId;
+  readonly title: string;
+  readonly fileName: string;
+  readonly mimeType: string;
+  readonly folderId: string;
+  /** Canonical asset published with the versioned GitHub Release. */
+  readonly url: string;
+  /** CORS-safe copy of the same release source for browser fetches. */
+  readonly browserUrl: string;
+  readonly expectedBytes: number;
+}
+
+const USER_LIBRARY_EXAMPLE_RELEASE_BASE_URL = `${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}`;
+const USER_LIBRARY_EXAMPLE_BROWSER_BASE_URL = `https://raw.githubusercontent.com/T-Damer/MiniMed/${RELEASE_TAG}`;
+
+export const USER_LIBRARY_EXAMPLE_SLOTS = [
+  {
+    id: 'ct',
+    title: 'Пример КТ',
+    fileName: USER_LIBRARY_EXAMPLE_CT_FILE_NAME,
+    mimeType: 'application/dicom',
+    folderId: USER_LIBRARY_RESEARCH_FOLDER_ID,
+    url: `${USER_LIBRARY_EXAMPLE_RELEASE_BASE_URL}/example-ct.dcm`,
+    browserUrl: `${USER_LIBRARY_EXAMPLE_BROWSER_BASE_URL}/apps/app/src/assets/example-ct.dcm`,
+    expectedBytes: 18_225_324,
+  },
+  {
+    id: 'mri',
+    title: 'Пример МРТ',
+    fileName: USER_LIBRARY_EXAMPLE_MRI_FILE_NAME,
+    mimeType: 'application/x-nifti',
+    folderId: USER_LIBRARY_RESEARCH_FOLDER_ID,
+    url: `${USER_LIBRARY_EXAMPLE_RELEASE_BASE_URL}/example-mri.nii`,
+    browserUrl: `${USER_LIBRARY_EXAMPLE_BROWSER_BASE_URL}/apps/app/src/assets/example-mri.nii`,
+    expectedBytes: 17_039_712,
+  },
+  {
+    id: 'epub',
+    title: "Alice's Adventures in Wonderland",
+    fileName: USER_LIBRARY_EXAMPLE_BOOK_FILE_NAME,
+    mimeType: 'application/epub+zip',
+    folderId: USER_LIBRARY_BOOKS_FOLDER_ID,
+    url: `${USER_LIBRARY_EXAMPLE_RELEASE_BASE_URL}/pg11-images-3.epub`,
+    browserUrl: `${USER_LIBRARY_EXAMPLE_BROWSER_BASE_URL}/examples/pg11-images-3.epub`,
+    expectedBytes: 189_231,
+  },
+] as const satisfies readonly UserLibraryExampleSlot[];
 
 const DATABASE_NAME = 'minimed-user-library-v1';
 const DOCUMENTS_STORE = 'documents';
 const FILES_STORE = 'files';
+const THUMBNAIL_SUFFIX = ':thumbnail';
 const PAGES_STORE = 'pages';
 const FOLDERS_STORE = 'folders';
 const MEDICAL_ANNOTATIONS_STORE = 'medical-annotations';
 const DATABASE_VERSION = 3;
 const MAX_FILE_BYTES = 128 * 1024 * 1024;
 const MAX_SNIPPET_LENGTH = 180;
-const LEGACY_EXAMPLE_CT_SEEDED_KEY = 'minimed.userLibrary.exampleCtSeeded.v1';
-const LEGACY_MEDICAL_EXAMPLES_SEEDED_KEY = 'minimed.userLibrary.medicalExamplesSeeded.v2';
-const LEGACY_REAL_MEDICAL_EXAMPLES_SEEDED_KEY = 'minimed.userLibrary.medicalExamplesSeeded.v3';
-const LEGACY_CURRENT_MEDICAL_EXAMPLES_SEEDED_KEY = 'minimed.userLibrary.medicalExamplesSeeded.v4';
-const MEDICAL_EXAMPLES_SEEDED_KEY = 'minimed.userLibrary.medicalExamplesSeeded.v5';
+const DEFAULT_FOLDERS_SEEDED_KEY = 'minimed.userLibrary.defaultFoldersSeeded.v1';
+
+const DEFAULT_USER_LIBRARY_FOLDERS = [
+  { id: USER_LIBRARY_BOOKS_FOLDER_ID, title: USER_LIBRARY_BOOKS_FOLDER_TITLE },
+  { id: USER_LIBRARY_RESEARCH_FOLDER_ID, title: USER_LIBRARY_RESEARCH_FOLDER_TITLE },
+] as const;
 
 export const USER_LIBRARY_NAME_MAX_LENGTH = 256;
 
-const PDF_MIME_TYPES = new Set(['application/pdf']);
-
-const DICOM_MIME_TYPES = new Set(['application/dicom']);
-
-const MEDICAL_VOLUME_MIME_TYPES = new Set([
-  'application/x-afni',
-  'application/x-analyze',
-  'application/x-metaimage',
-  'application/x-mgh',
-  'application/x-mrtrix',
-  'application/x-nifti',
-  'application/x-nrrd',
-  'application/x-numpy',
-]);
-
-const MEDICAL_VOLUME_EXTENSIONS = new Set([
-  'brik',
-  'head',
-  'hdr',
-  'img',
-  'mha',
-  'mhd',
-  'mgh',
-  'mgz',
-  'mif',
-  'mih',
-  'nhdr',
-  'nii',
-  'nii.gz',
-  'npy',
-  'npz',
-  'nrrd',
-]);
-
-const IMAGE_MIME_TYPES = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-  'image/bmp',
-  'image/tiff',
-  'image/heic',
-  'image/heif',
-]);
-
-const TEXT_LIKE_MIME_TYPES = new Set([
-  'text/plain',
-  'text/markdown',
-  'text/rtf',
-  'application/rtf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'application/vnd.ms-powerpoint',
-  'application/vnd.apple.pages',
-  'text/html',
-  'text/csv',
-  'application/epub+zip',
-  'application/x-fictionbook+xml',
-]);
-
-const ALLOWED_MIME_TYPES = new Set([
-  ...PDF_MIME_TYPES,
-  ...DICOM_MIME_TYPES,
-  ...MEDICAL_VOLUME_MIME_TYPES,
-  ...IMAGE_MIME_TYPES,
-  ...TEXT_LIKE_MIME_TYPES,
-]);
-
-const EXTENSION_MIME_MAP: Readonly<Record<string, string>> = {
-  pdf: 'application/pdf',
-  dcm: 'application/dicom',
-  dicom: 'application/dicom',
-  nii: 'application/x-nifti',
-  nrrd: 'application/x-nrrd',
-  nhdr: 'application/x-nrrd',
-  mif: 'application/x-mrtrix',
-  mih: 'application/x-mrtrix',
-  mgh: 'application/x-mgh',
-  mgz: 'application/x-mgh',
-  mha: 'application/x-metaimage',
-  mhd: 'application/x-metaimage',
-  head: 'application/x-afni',
-  brik: 'application/x-afni',
-  hdr: 'application/x-analyze',
-  img: 'application/x-analyze',
-  npy: 'application/x-numpy',
-  npz: 'application/x-numpy',
-  txt: 'text/plain',
-  md: 'text/markdown',
-  markdown: 'text/markdown',
-  rtf: 'text/rtf',
-  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  doc: 'application/msword',
-  xls: 'application/vnd.ms-excel',
-  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  ppt: 'application/vnd.ms-powerpoint',
-  pages: 'application/vnd.apple.pages',
-  html: 'text/html',
-  htm: 'text/html',
-  csv: 'text/csv',
-  epub: 'application/epub+zip',
-  fb2: 'application/x-fictionbook+xml',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  webp: 'image/webp',
-  gif: 'image/gif',
-  bmp: 'image/bmp',
-  tif: 'image/tiff',
-  tiff: 'image/tiff',
-  heic: 'image/heic',
-  heif: 'image/heif',
-};
+const USER_LIBRARY_FILE_PICKER_CAPABILITIES = userLibraryFilePickerCapabilities();
+const ALLOWED_MIME_TYPES = new Set(
+  USER_LIBRARY_FILE_PICKER_CAPABILITIES.flatMap((capability) => capability.mimeTypes),
+);
+const EXTENSION_MIME_MAP: Readonly<Record<string, string>> =
+  USER_LIBRARY_FILE_PICKER_CAPABILITIES.reduce<Record<string, string>>((map, capability) => {
+    const mimeType = capability.mimeTypes[0];
+    if (!mimeType) return map;
+    for (const extension of capability.extensions) {
+      map[extension] = capability.mimeTypeByExtension?.[extension] ?? mimeType;
+    }
+    return map;
+  }, {});
 
 export function isUserLibraryPdfMime(mime: string): boolean {
-  return PDF_MIME_TYPES.has(mime);
+  return userLibraryFileCapability(mime).reader.renderer === 'pdf';
 }
 
 export function isUserLibraryDicomMime(mime: string): boolean {
-  return DICOM_MIME_TYPES.has(mime);
+  return userLibraryFileCapability(mime).reader.renderer === 'dicom';
 }
 
 export function isUserLibraryDicomFile(mime: string, fileName: string): boolean {
-  const extension = extensionOf(fileName);
-  return isUserLibraryDicomMime(mime) || extension === 'dcm' || extension === 'dicom';
-}
-
-function medicalVolumeExtension(fileName: string): string {
-  const lower = fileName.toLocaleLowerCase('ru-RU');
-  return lower.endsWith('.nii.gz') ? 'nii.gz' : extensionOf(lower);
+  return userLibraryFileCapability(mime, fileName).reader.renderer === 'dicom';
 }
 
 export function isUserLibraryVolumeFile(mime: string, fileName: string): boolean {
-  return (
-    MEDICAL_VOLUME_MIME_TYPES.has(mime) ||
-    MEDICAL_VOLUME_EXTENSIONS.has(medicalVolumeExtension(fileName))
-  );
+  return userLibraryFileCapability(mime, fileName).reader.renderer === 'volume';
 }
 
 export function isUserLibraryMedicalImageFile(mime: string, fileName: string): boolean {
-  return isUserLibraryDicomFile(mime, fileName) || isUserLibraryVolumeFile(mime, fileName);
+  const renderer = userLibraryFileCapability(mime, fileName).reader.renderer;
+  return renderer === 'dicom' || renderer === 'volume';
 }
 
 export function isUserLibraryImageMime(mime: string): boolean {
-  return IMAGE_MIME_TYPES.has(mime);
+  return userLibraryFileCapability(mime).reader.renderer === 'image';
 }
 
-export function isUserLibraryVisualMime(mime: string): boolean {
+export function isUserLibraryVisualMime(mime: string, fileName = ''): boolean {
+  const renderer = userLibraryFileCapability(mime, fileName).reader.renderer;
   return (
-    isUserLibraryPdfMime(mime) ||
-    isUserLibraryImageMime(mime) ||
-    MEDICAL_VOLUME_MIME_TYPES.has(mime)
+    renderer === 'pdf' || renderer === 'image' || renderer === 'dicom' || renderer === 'volume'
   );
 }
 
-export function isUserLibraryTextLikeMime(mime: string): boolean {
-  return TEXT_LIKE_MIME_TYPES.has(mime);
+export function isUserLibraryTextLikeMime(mime: string, fileName = ''): boolean {
+  return userLibraryFileCapability(mime, fileName).textExtraction !== 'none';
+}
+
+export function isUserLibraryOcrSupported(mime: string, fileName = ''): boolean {
+  return userLibraryFileCapability(mime, fileName).reader.ocr;
 }
 
 export function userLibraryFileAccept(): string {
@@ -285,39 +278,10 @@ export function userLibraryFileAccept(): string {
     .map((ext) => `.${ext}`)
     .join(',');
   const mimeTypes = [...ALLOWED_MIME_TYPES].join(',');
-  return `.nii.gz,${extensions},${mimeTypes}`;
+  return `${extensions},${mimeTypes}`;
 }
 
-export type UserLibraryFileKind =
-  | 'pdf'
-  | 'dicom'
-  | 'volume'
-  | 'image'
-  | 'video'
-  | 'audio'
-  | 'archive'
-  | 'code'
-  | 'presentation'
-  | 'sheet'
-  | 'doc'
-  | 'ebook'
-  | 'text'
-  | 'binary';
-
 const FILE_KIND_BY_EXTENSION: Readonly<Record<string, UserLibraryFileKind>> = {
-  pdf: 'pdf',
-  dcm: 'dicom',
-  dicom: 'dicom',
-  jpg: 'image',
-  jpeg: 'image',
-  png: 'image',
-  webp: 'image',
-  gif: 'image',
-  bmp: 'image',
-  tif: 'image',
-  tiff: 'image',
-  heic: 'image',
-  heif: 'image',
   mp4: 'video',
   mov: 'video',
   webm: 'video',
@@ -341,35 +305,31 @@ const FILE_KIND_BY_EXTENSION: Readonly<Record<string, UserLibraryFileKind>> = {
   xml: 'code',
   js: 'code',
   ts: 'code',
-  ppt: 'presentation',
-  pptx: 'presentation',
-  xls: 'sheet',
-  xlsx: 'sheet',
-  csv: 'sheet',
-  doc: 'doc',
-  docx: 'doc',
-  pages: 'doc',
-  epub: 'ebook',
-  fb2: 'ebook',
-  txt: 'text',
-  md: 'text',
-  markdown: 'text',
-  rtf: 'text',
   exe: 'binary',
   msi: 'binary',
 };
 
 export function userLibraryFileKind(mime: string, fileName: string): UserLibraryFileKind {
-  if (isUserLibraryDicomFile(mime, fileName)) return 'dicom';
-  if (isUserLibraryVolumeFile(mime, fileName)) return 'volume';
-  const byExtension = FILE_KIND_BY_EXTENSION[extensionOf(fileName)];
+  const capability = userLibraryFileCapability(mime, fileName);
+  if (capability.kind !== 'binary') return capability.kind;
+  const byExtension = FILE_KIND_BY_EXTENSION[userLibraryFileExtension(fileName)];
   if (byExtension) return byExtension;
-  if (isUserLibraryPdfMime(mime)) return 'pdf';
-  if (isUserLibraryImageMime(mime)) return 'image';
   if (mime.startsWith('video/')) return 'video';
   if (mime.startsWith('audio/')) return 'audio';
   if (mime.startsWith('text/')) return 'text';
   return 'binary';
+}
+
+export function isUserLibraryQuestionnaire(
+  document: Pick<UserLibraryDocument, 'mimeType'>,
+): boolean {
+  return document.mimeType === USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE;
+}
+
+export function userLibraryQuestionnaireFileName(title: string): string {
+  const normalized = normalizeUserLibraryName(title, 'file');
+  const room = USER_LIBRARY_NAME_MAX_LENGTH - USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION.length;
+  return `${[...normalized].slice(0, room).join('')}${USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION}`;
 }
 
 export function isUserLibraryArchive(fileName: string): boolean {
@@ -449,6 +409,10 @@ function pageKey(documentId: string, pageIndex: number): string {
   return `${documentId}:${pageIndex}`;
 }
 
+function thumbnailKey(documentId: string): string {
+  return `${documentId}${THUMBNAIL_SUFFIX}`;
+}
+
 function createDocumentId(): string {
   return `user-doc-${crypto.randomUUID()}`;
 }
@@ -474,11 +438,21 @@ function isOcrQuality(value: unknown): value is UserLibraryOcrQuality {
   return value === 'fast' || value === 'balanced' || value === 'quality';
 }
 
+function isUserLibraryColor(value: unknown): value is UserLibraryColor {
+  return typeof value === 'string' && USER_LIBRARY_COLORS.includes(value as UserLibraryColor);
+}
+
+function isUserLibraryExampleId(value: unknown): value is UserLibraryExampleId {
+  return value === 'ct' || value === 'mri' || value === 'epub';
+}
+
 function isDocument(value: unknown): value is UserLibraryDocument {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<UserLibraryDocument>;
   return (
     typeof candidate.id === 'string' &&
+    (candidate.exampleId === undefined || isUserLibraryExampleId(candidate.exampleId)) &&
+    (candidate.contentVersion === undefined || typeof candidate.contentVersion === 'string') &&
     typeof candidate.title === 'string' &&
     typeof candidate.fileName === 'string' &&
     typeof candidate.mimeType === 'string' &&
@@ -492,8 +466,10 @@ function isDocument(value: unknown): value is UserLibraryDocument {
       typeof candidate.folderId === 'string') &&
     (candidate.source === undefined || isDocumentSource(candidate.source)) &&
     (candidate.hasImages === undefined || typeof candidate.hasImages === 'boolean') &&
+    (candidate.hasTextLayer === undefined || typeof candidate.hasTextLayer === 'boolean') &&
     (candidate.ocrPriority === undefined || typeof candidate.ocrPriority === 'number') &&
     (candidate.ocrQuality === undefined || isOcrQuality(candidate.ocrQuality)) &&
+    (candidate.color === undefined || isUserLibraryColor(candidate.color)) &&
     (candidate.status === 'inspecting' ||
       candidate.status === 'ready' ||
       candidate.status === 'ocr' ||
@@ -524,7 +500,8 @@ function isFolder(value: unknown): value is UserLibraryFolder {
     (candidate.parentId === null || typeof candidate.parentId === 'string') &&
     typeof candidate.createdAt === 'string' &&
     typeof candidate.updatedAt === 'string' &&
-    (candidate.isSystem === undefined || typeof candidate.isSystem === 'boolean')
+    (candidate.isSystem === undefined || typeof candidate.isSystem === 'boolean') &&
+    (candidate.color === undefined || isUserLibraryColor(candidate.color))
   );
 }
 
@@ -608,17 +585,9 @@ function isMedicalAnnotationRecord(value: unknown): value is UserLibraryMedicalA
   );
 }
 
-function extensionOf(fileName: string): string {
-  const lower = fileName.toLocaleLowerCase('ru-RU');
-  const dot = lower.lastIndexOf('.');
-  return dot >= 0 ? lower.slice(dot + 1) : '';
-}
-
 function normalizeMimeType(file: File): string {
-  if (file.name.toLocaleLowerCase('ru-RU').endsWith('.nii.gz')) return 'application/x-nifti';
-  const extension = extensionOf(file.name);
-  const mapped = EXTENSION_MIME_MAP[extension];
-  if (mapped) return mapped;
+  const extension = userLibraryFileExtension(file.name);
+  if (EXTENSION_MIME_MAP[extension]) return userLibraryFileMimeType(file.type, file.name);
   if (file.type && ALLOWED_MIME_TYPES.has(file.type)) return file.type;
   if (extension === 'xml' && (file.type === 'text/xml' || file.type === 'application/xml')) {
     return 'application/x-fictionbook+xml';
@@ -639,6 +608,22 @@ function validateFile(file: File): string {
 
 function emitLibraryChanged(): void {
   window.dispatchEvent(new CustomEvent(USER_LIBRARY_EVENT));
+}
+
+const thumbnailJobs = new Map<string, Promise<string | undefined>>();
+
+function thumbnailJobKey(document: UserLibraryDocument): string {
+  return `${document.id}:${document.contentVersion ?? ''}`;
+}
+
+function scheduleUserLibraryThumbnail(document: UserLibraryDocument, file: File): void {
+  void ensureUserLibraryThumbnail(document, file).catch((cause: unknown) => {
+    console.warn(
+      cause instanceof Error
+        ? `Не удалось сохранить миниатюру личного файла: ${cause.message}`
+        : 'Не удалось сохранить миниатюру личного файла.',
+    );
+  });
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -691,19 +676,30 @@ async function readAllFolders(database: IDBDatabase): Promise<readonly UserLibra
   });
 }
 
-async function ensureUserLibraryNotesFolder(database: IDBDatabase): Promise<void> {
+function protectedSystemFolderTitle(id: string): string | null {
+  if (id === USER_LIBRARY_NOTES_FOLDER_ID) return USER_LIBRARY_NOTES_FOLDER_TITLE;
+  if (id === USER_LIBRARY_TEMPLATES_FOLDER_ID) return USER_LIBRARY_TEMPLATES_FOLDER_TITLE;
+  if (id === USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID) {
+    return USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE;
+  }
+  return null;
+}
+
+async function ensureUserLibrarySystemFolder(
+  database: IDBDatabase,
+  id: string,
+  title: string,
+): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(FOLDERS_STORE, 'readwrite');
     const store = transaction.objectStore(FOLDERS_STORE);
-    const request = store.get(USER_LIBRARY_NOTES_FOLDER_ID) as IDBRequest<
-      UserLibraryFolder | undefined
-    >;
+    const request = store.get(id) as IDBRequest<UserLibraryFolder | undefined>;
     request.onsuccess = () => {
       const existing = request.result;
       if (
         existing &&
         isFolder(existing) &&
-        existing.title === USER_LIBRARY_NOTES_FOLDER_TITLE &&
+        existing.title === title &&
         existing.parentId === null &&
         existing.isSystem === true
       ) {
@@ -711,8 +707,8 @@ async function ensureUserLibraryNotesFolder(database: IDBDatabase): Promise<void
       }
       const now = new Date().toISOString();
       store.put({
-        id: USER_LIBRARY_NOTES_FOLDER_ID,
-        title: USER_LIBRARY_NOTES_FOLDER_TITLE,
+        id,
+        title,
         parentId: null,
         createdAt: isFolder(existing) ? existing.createdAt : now,
         updatedAt: now,
@@ -720,11 +716,64 @@ async function ensureUserLibraryNotesFolder(database: IDBDatabase): Promise<void
       } satisfies UserLibraryFolder);
     };
     request.onerror = () =>
-      reject(request.error ?? new Error('Не удалось подготовить папку заметок.'));
+      reject(request.error ?? new Error(`Не удалось подготовить папку «${title}».`));
     transaction.oncomplete = () => resolve();
     transaction.onerror = () =>
-      reject(transaction.error ?? new Error('Не удалось подготовить папку заметок.'));
+      reject(transaction.error ?? new Error(`Не удалось подготовить папку «${title}».`));
   });
+}
+
+async function ensureUserLibraryDefaultFolders(database: IDBDatabase): Promise<void> {
+  await ensureUserLibrarySystemFolder(
+    database,
+    USER_LIBRARY_NOTES_FOLDER_ID,
+    USER_LIBRARY_NOTES_FOLDER_TITLE,
+  );
+  await ensureUserLibrarySystemFolder(
+    database,
+    USER_LIBRARY_TEMPLATES_FOLDER_ID,
+    USER_LIBRARY_TEMPLATES_FOLDER_TITLE,
+  );
+  await ensureUserLibrarySystemFolder(
+    database,
+    USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
+    USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE,
+  );
+
+  let seeded = false;
+  try {
+    seeded = localStorage.getItem(DEFAULT_FOLDERS_SEEDED_KEY) === '1';
+  } catch {
+    // The stable folder ids still prevent duplicates without localStorage.
+  }
+  if (seeded) return;
+
+  const existingIds = new Set((await readAllFolders(database)).map((folder) => folder.id));
+  const missing = DEFAULT_USER_LIBRARY_FOLDERS.filter((folder) => !existingIds.has(folder.id));
+  if (missing.length > 0) {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(FOLDERS_STORE, 'readwrite');
+      const store = transaction.objectStore(FOLDERS_STORE);
+      const now = new Date().toISOString();
+      for (const folder of missing) {
+        store.put({
+          ...folder,
+          parentId: null,
+          createdAt: now,
+          updatedAt: now,
+        } satisfies UserLibraryFolder);
+      }
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось подготовить папки личных файлов.'));
+    });
+  }
+
+  try {
+    localStorage.setItem(DEFAULT_FOLDERS_SEEDED_KEY, '1');
+  } catch {
+    // The stable folder ids still prevent duplicates without localStorage.
+  }
 }
 
 async function readAllPages(database: IDBDatabase): Promise<readonly UserLibraryPage[]> {
@@ -752,75 +801,11 @@ export async function listUserLibraryDocuments(): Promise<readonly UserLibraryDo
   }
 }
 
-export async function ensureUserLibraryMedicalExamples(): Promise<boolean> {
-  let legacyCtSeeded = false;
-  let legacyMedicalExamplesSeeded = false;
-  let legacyRealMedicalExamplesSeeded = false;
-  let legacyCurrentMedicalExamplesSeeded = false;
-  try {
-    if (localStorage.getItem(MEDICAL_EXAMPLES_SEEDED_KEY) === '1') return false;
-    legacyCurrentMedicalExamplesSeeded =
-      localStorage.getItem(LEGACY_CURRENT_MEDICAL_EXAMPLES_SEEDED_KEY) === '1';
-    legacyRealMedicalExamplesSeeded =
-      !legacyCurrentMedicalExamplesSeeded &&
-      localStorage.getItem(LEGACY_REAL_MEDICAL_EXAMPLES_SEEDED_KEY) === '1';
-    legacyMedicalExamplesSeeded =
-      !legacyCurrentMedicalExamplesSeeded &&
-      !legacyRealMedicalExamplesSeeded &&
-      localStorage.getItem(LEGACY_MEDICAL_EXAMPLES_SEEDED_KEY) === '1';
-    legacyCtSeeded =
-      !legacyCurrentMedicalExamplesSeeded &&
-      !legacyRealMedicalExamplesSeeded &&
-      !legacyMedicalExamplesSeeded &&
-      localStorage.getItem(LEGACY_EXAMPLE_CT_SEEDED_KEY) === '1';
-  } catch {
-    // IndexedDB and the filename check below still prevent duplicates without localStorage.
-  }
-
-  const existing = await listUserLibraryDocuments();
-  let changed = false;
-  const samples = [
-    {
-      fileName: USER_LIBRARY_EXAMPLE_CT_FILE_NAME,
-      mimeType: 'application/dicom',
-      url: exampleCtUrl,
-      replaceExisting:
-        legacyCtSeeded ||
-        legacyMedicalExamplesSeeded ||
-        legacyRealMedicalExamplesSeeded ||
-        legacyCurrentMedicalExamplesSeeded,
-    },
-    {
-      fileName: USER_LIBRARY_EXAMPLE_MRI_FILE_NAME,
-      mimeType: 'application/x-nifti',
-      url: exampleMriUrl,
-      replaceExisting: legacyMedicalExamplesSeeded || legacyRealMedicalExamplesSeeded,
-    },
-  ] as const;
-  for (const sample of samples) {
-    const current = existing.find((document) => document.fileName === sample.fileName);
-    if (current && !sample.replaceExisting) continue;
-    const response = await fetch(sample.url);
-    if (!response.ok) throw new Error(`Не удалось добавить «${sample.fileName}».`);
-    const file = new File([await response.blob()], sample.fileName, { type: sample.mimeType });
-    if (current) await replaceUserLibraryFile(current.id, file);
-    else await addUserLibraryFile(file);
-    changed = true;
-  }
-
-  try {
-    localStorage.setItem(MEDICAL_EXAMPLES_SEEDED_KEY, '1');
-  } catch {
-    // The samples remain deduplicated by filename when localStorage is unavailable.
-  }
-  return changed;
-}
-
 export async function listUserLibraryFolders(): Promise<readonly UserLibraryFolder[]> {
   if (!('indexedDB' in globalThis) || !indexedDB) return [];
   const database = await openDatabase();
   try {
-    await ensureUserLibraryNotesFolder(database);
+    await ensureUserLibraryDefaultFolders(database);
     return (await readAllFolders(database)).toSorted((left, right) =>
       left.title.localeCompare(right.title, 'ru-RU'),
     );
@@ -868,6 +853,85 @@ export async function getUserLibraryFile(id: string): Promise<Blob | null> {
     return blob ?? null;
   } finally {
     database.close();
+  }
+}
+
+export async function getUserLibraryThumbnail(id: string): Promise<string | null> {
+  if (!id || !('indexedDB' in globalThis) || !indexedDB) return null;
+  const database = await openDatabase();
+  try {
+    const thumbnail = await new Promise<string | undefined>((resolve, reject) => {
+      const request = database
+        .transaction(FILES_STORE, 'readonly')
+        .objectStore(FILES_STORE)
+        .get(thumbnailKey(id)) as IDBRequest<string | undefined>;
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () =>
+        reject(request.error ?? new Error('Не удалось прочитать миниатюру личного файла.'));
+    });
+    return thumbnail ?? null;
+  } finally {
+    database.close();
+  }
+}
+
+export async function putUserLibraryThumbnail(
+  id: string,
+  thumbnailDataUrl: string,
+  expectedContentVersion?: string,
+): Promise<void> {
+  if (!id || !thumbnailDataUrl.startsWith('data:image/')) return;
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction([DOCUMENTS_STORE, FILES_STORE], 'readwrite');
+      const documentStore = transaction.objectStore(DOCUMENTS_STORE);
+      const fileStore = transaction.objectStore(FILES_STORE);
+      if (expectedContentVersion) {
+        const request = documentStore.get(id) as IDBRequest<UserLibraryDocument | undefined>;
+        request.onsuccess = () => {
+          if (request.result?.contentVersion !== expectedContentVersion) return;
+          fileStore.put(thumbnailDataUrl, thumbnailKey(id));
+        };
+        request.onerror = () =>
+          reject(request.error ?? new Error('Не удалось проверить документ.'));
+      } else {
+        fileStore.put(thumbnailDataUrl, thumbnailKey(id));
+      }
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось сохранить миниатюру личного файла.'));
+    });
+  } finally {
+    database.close();
+  }
+}
+
+export async function ensureUserLibraryThumbnail(
+  document: UserLibraryDocument,
+  file?: File | Blob,
+): Promise<string | undefined> {
+  const cached = await getUserLibraryThumbnail(document.id);
+  if (cached) return cached;
+  const jobKey = thumbnailJobKey(document);
+  const running = thumbnailJobs.get(jobKey);
+  if (running) return await running;
+
+  const job = (async (): Promise<string | undefined> => {
+    const source = file ?? (await getUserLibraryFile(document.id));
+    if (!source) return undefined;
+    const { previewExtractor } = await import('@/state/thumbnails');
+    const thumbnail = await previewExtractor.forFile(source, document.mimeType, document.fileName);
+    if (thumbnail) {
+      await putUserLibraryThumbnail(document.id, thumbnail, document.contentVersion);
+    }
+    return thumbnail;
+  })();
+  thumbnailJobs.set(jobKey, job);
+  try {
+    return await job;
+  } finally {
+    if (thumbnailJobs.get(jobKey) === job) thumbnailJobs.delete(jobKey);
   }
 }
 
@@ -1054,7 +1118,8 @@ export async function createUserLibraryFolder(
 }
 
 export async function renameUserLibraryFolder(id: string, title: string): Promise<void> {
-  if (id === USER_LIBRARY_NOTES_FOLDER_ID) throw new Error('Папку «Заметки» нельзя переименовать.');
+  const protectedTitle = protectedSystemFolderTitle(id);
+  if (protectedTitle) throw new Error(`Папку «${protectedTitle}» нельзя переименовать.`);
   const trimmed = normalizeUserLibraryName(title, 'folder');
   const folders = await listUserLibraryFolders();
   const existing = folders.find((folder) => folder.id === id);
@@ -1079,7 +1144,8 @@ export async function renameUserLibraryFolder(id: string, title: string): Promis
 }
 
 export async function moveUserLibraryFolder(id: string, parentId: string | null): Promise<void> {
-  if (id === USER_LIBRARY_NOTES_FOLDER_ID) throw new Error('Папку «Заметки» нельзя переместить.');
+  const protectedTitle = protectedSystemFolderTitle(id);
+  if (protectedTitle) throw new Error(`Папку «${protectedTitle}» нельзя переместить.`);
   if (id === parentId) return;
   const folders = await listUserLibraryFolders();
   const existing = folders.find((folder) => folder.id === id);
@@ -1109,7 +1175,8 @@ export async function moveUserLibraryFolder(id: string, parentId: string | null)
 }
 
 export async function removeUserLibraryFolder(id: string): Promise<void> {
-  if (id === USER_LIBRARY_NOTES_FOLDER_ID) throw new Error('Папку «Заметки» нельзя удалить.');
+  const protectedTitle = protectedSystemFolderTitle(id);
+  if (protectedTitle) throw new Error(`Папку «${protectedTitle}» нельзя удалить.`);
   const folders = await listUserLibraryFolders();
   const folder = folders.find((item) => item.id === id);
   if (!folder) return;
@@ -1147,18 +1214,43 @@ export async function removeUserLibraryFolder(id: string): Promise<void> {
 
 export async function renameUserLibraryDocument(id: string, title: string): Promise<void> {
   const trimmed = normalizeUserLibraryName(title, 'file');
+  const existing = await getUserLibraryDocument(id);
+  if (!existing) return;
+  const now = new Date().toISOString();
+  let renamedQuestionnaire: File | undefined;
+  if (isUserLibraryQuestionnaire(existing)) {
+    const source = await getUserLibraryFile(id);
+    if (!source) throw new Error('Файл опросника недоступен.');
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await source.text());
+    } catch {
+      throw new Error('Не удалось переименовать содержимое опросника.');
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Файл опросника содержит некорректные данные.');
+    }
+    renamedQuestionnaire = new File(
+      [JSON.stringify({ ...parsed, title: trimmed, updatedAt: now }, null, 2)],
+      userLibraryQuestionnaireFileName(trimmed),
+      { type: USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE },
+    );
+  }
+  const updated: UserLibraryDocument = {
+    ...existing,
+    title: trimmed,
+    ...(renamedQuestionnaire ? { fileName: renamedQuestionnaire.name } : {}),
+    updatedAt: now,
+  };
   const database = await openDatabase();
   try {
-    const existing = await getUserLibraryDocument(id);
-    if (!existing) return;
-    const updated: UserLibraryDocument = {
-      ...existing,
-      title: trimmed,
-      updatedAt: new Date().toISOString(),
-    };
     await new Promise<void>((resolve, reject) => {
-      const transaction = database.transaction(DOCUMENTS_STORE, 'readwrite');
+      const transaction = database.transaction(
+        renamedQuestionnaire ? [DOCUMENTS_STORE, FILES_STORE] : DOCUMENTS_STORE,
+        'readwrite',
+      );
       transaction.objectStore(DOCUMENTS_STORE).put(updated);
+      if (renamedQuestionnaire) transaction.objectStore(FILES_STORE).put(renamedQuestionnaire, id);
       transaction.oncomplete = () => resolve();
       transaction.onerror = () =>
         reject(transaction.error ?? new Error('Не удалось переименовать документ.'));
@@ -1172,6 +1264,9 @@ export async function renameUserLibraryDocument(id: string, title: string): Prom
 export async function moveUserLibraryDocument(id: string, folderId: string | null): Promise<void> {
   const existing = await getUserLibraryDocument(id);
   if (!existing) return;
+  if (isUserLibraryQuestionnaire(existing) && folderId !== USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID) {
+    throw new Error('Опросники хранятся в системной папке «Опросники».');
+  }
   await patchUserLibraryDocument(id, { folderId });
 }
 
@@ -1209,6 +1304,7 @@ export async function removeUserLibraryDocument(id: string): Promise<void> {
       );
       transaction.objectStore(DOCUMENTS_STORE).delete(id);
       transaction.objectStore(FILES_STORE).delete(id);
+      transaction.objectStore(FILES_STORE).delete(thumbnailKey(id));
       transaction.objectStore(MEDICAL_ANNOTATIONS_STORE).delete(id);
       for (const page of pages) {
         transaction.objectStore(PAGES_STORE).delete(pageKey(page.documentId, page.pageIndex));
@@ -1241,9 +1337,8 @@ export async function putUserLibraryPage(page: UserLibraryPage): Promise<void> {
   }
 }
 
-export async function patchUserLibraryDocument(
-  id: string,
-  patch: Partial<
+type UserLibraryDocumentPatch = Partial<
+  Omit<
     Pick<
       UserLibraryDocument,
       | 'title'
@@ -1254,11 +1349,19 @@ export async function patchUserLibraryDocument(
       | 'status'
       | 'folderId'
       | 'hasImages'
+      | 'hasTextLayer'
       | 'ocrPriority'
       | 'ocrQuality'
       | 'errorMessage'
-    >
-  >,
+      | 'color'
+    >,
+    'color'
+  >
+> & { readonly color?: UserLibraryColor | undefined };
+
+export async function patchUserLibraryDocument(
+  id: string,
+  patch: UserLibraryDocumentPatch,
 ): Promise<UserLibraryDocument | null> {
   const database = await openDatabase();
   try {
@@ -1281,6 +1384,39 @@ export async function patchUserLibraryDocument(
   } finally {
     database.close();
   }
+}
+
+export async function setUserLibraryDocumentColor(
+  id: string,
+  color: UserLibraryColor | null,
+): Promise<void> {
+  await patchUserLibraryDocument(id, { color: color ?? undefined });
+}
+
+export async function setUserLibraryFolderColor(
+  id: string,
+  color: UserLibraryColor | null,
+): Promise<void> {
+  const folders = await listUserLibraryFolders();
+  const existing = folders.find((folder) => folder.id === id);
+  if (!existing) return;
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(FOLDERS_STORE, 'readwrite');
+      transaction.objectStore(FOLDERS_STORE).put({
+        ...existing,
+        color: color ?? undefined,
+        updatedAt: new Date().toISOString(),
+      });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось изменить цвет папки.'));
+    });
+  } finally {
+    database.close();
+  }
+  emitLibraryChanged();
 }
 
 export interface UserLibraryPdfImage {
@@ -1420,12 +1556,60 @@ export async function createUserLibraryPdfFromImages(
   return addUserLibraryFile(pdfFile, folderId);
 }
 
+export interface UserLibraryFileOptions {
+  readonly exampleId?: UserLibraryExampleId;
+  readonly onProgress?: (progress: number) => void;
+  /** App-owned structured files do not need preview or OCR processing. */
+  readonly skipProcessing?: boolean;
+}
+
+export async function downloadUserLibraryExample(
+  slot: UserLibraryExampleSlot,
+  onProgress?: (progress: number) => void,
+): Promise<UserLibraryDocument> {
+  onProgress?.(0);
+  const existing = (await listUserLibraryDocuments()).find(
+    (document) => document.exampleId === slot.id || document.fileName === slot.fileName,
+  );
+  if (existing) {
+    onProgress?.(1);
+    return existing;
+  }
+  const url = typeof window === 'undefined' ? slot.url : slot.browserUrl;
+  let bytes: Uint8Array;
+  try {
+    bytes = await downloadWithRetry({
+      url,
+      cacheKey: `user-library-example:${slot.id}`,
+      expectedBytes: slot.expectedBytes,
+      retryMissingAssets: false,
+      onProgress: ({ downloadedBytes, totalBytes }) => {
+        const total = totalBytes ?? slot.expectedBytes;
+        onProgress?.(total > 0 ? Math.min(0.8, (downloadedBytes / total) * 0.8) : 0);
+      },
+    });
+  } catch (cause) {
+    if (cause instanceof Error && cause.message.toLowerCase().includes('http 404')) {
+      throw new Error(`Пример «${slot.title}» ещё не опубликован в GitHub Release.`, { cause });
+    }
+    throw cause;
+  }
+  const file = new File([bytes.buffer as ArrayBuffer], slot.fileName, { type: slot.mimeType });
+  return addUserLibraryFile(file, slot.folderId, undefined, {
+    exampleId: slot.id,
+    onProgress: (progress) => onProgress?.(0.8 + progress * 0.2),
+  });
+}
+
 export async function requestUserLibraryOcr(
   id: string,
   quality: UserLibraryOcrQuality = 'balanced',
 ): Promise<'queued' | 'pdf-copy'> {
   const document = await getUserLibraryDocument(id);
   if (!document) return 'queued';
+  if (!isUserLibraryOcrSupported(document.mimeType, document.fileName)) {
+    throw new Error('Для этого типа файла распознавание текста не поддерживается.');
+  }
   if (isUserLibraryImageMime(document.mimeType)) {
     const image = await getUserLibraryFile(document.id);
     if (!image) throw new Error('Файл изображения недоступен.');
@@ -1492,16 +1676,37 @@ export async function addUserLibraryFile(
   file: File,
   folderId: string | null = null,
   source?: UserLibraryDocumentSource,
+  options?: UserLibraryFileOptions,
 ): Promise<UserLibraryDocument> {
   if (!('indexedDB' in globalThis) || !indexedDB) {
     throw new Error('Хранилище личных документов недоступно.');
   }
+  options?.onProgress?.(0);
   const mimeType = validateFile(file);
-  await validateUserLibraryFile(file.name, mimeType, await file.arrayBuffer());
+  const exampleSlot = options?.exampleId
+    ? USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === options.exampleId)
+    : undefined;
+  if (options?.exampleId && !exampleSlot) {
+    throw new Error('Некорректный идентификатор примера документа.');
+  }
+  if (
+    exampleSlot &&
+    userLibraryFileKind(mimeType, file.name) !==
+      userLibraryFileKind(exampleSlot.mimeType, exampleSlot.fileName)
+  ) {
+    throw new Error(`Файл не подходит для примера «${exampleSlot.title}».`);
+  }
+  options?.onProgress?.(0.1);
+  const data = await file.arrayBuffer();
+  options?.onProgress?.(0.45);
+  await validateUserLibraryFile(file.name, mimeType, data);
+  options?.onProgress?.(0.6);
   const now = new Date().toISOString();
   const title = file.name.replace(/\.[^.]+$/u, '').trim() || file.name;
   const document: UserLibraryDocument = {
     id: createDocumentId(),
+    ...(options?.exampleId ? { exampleId: options.exampleId } : {}),
+    contentVersion: crypto.randomUUID(),
     title,
     fileName: file.name,
     mimeType,
@@ -1510,10 +1715,11 @@ export async function addUserLibraryFile(
     nativeTextPages: 0,
     ocrDonePages: 0,
     ocrNeededPages: 0,
-    status: 'inspecting',
+    status: options?.skipProcessing ? 'ready' : 'inspecting',
     folderId,
     ...(source ? { source } : {}),
     hasImages: isUserLibraryVisualMime(mimeType),
+    hasTextLayer: false,
     ocrQuality: 'balanced',
     createdAt: now,
     updatedAt: now,
@@ -1531,14 +1737,19 @@ export async function addUserLibraryFile(
   } finally {
     database.close();
   }
+  options?.onProgress?.(0.85);
   emitLibraryChanged();
-  void import('@/state/user-library-ingest')
-    .then(({ processNewDocument }) => processNewDocument(document.id))
-    .catch(async (cause) => {
-      const message =
-        cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
-      await patchUserLibraryDocument(document.id, { status: 'failed', errorMessage: message });
-    });
+  if (!options?.skipProcessing) {
+    scheduleUserLibraryThumbnail(document, file);
+    void import('@/state/user-library-ingest')
+      .then(({ processNewDocument }) => processNewDocument(document.id))
+      .catch(async (cause) => {
+        const message =
+          cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
+        await patchUserLibraryDocument(document.id, { status: 'failed', errorMessage: message });
+      });
+  }
+  options?.onProgress?.(1);
   return document;
 }
 
@@ -1548,6 +1759,7 @@ export async function replaceUserLibraryFile(
   options: {
     readonly folderId?: string | null;
     readonly source?: UserLibraryDocumentSource;
+    readonly skipProcessing?: boolean;
   } = {},
 ): Promise<UserLibraryDocument | null> {
   const existing = await getUserLibraryDocument(id);
@@ -1559,6 +1771,7 @@ export async function replaceUserLibraryFile(
   const title = file.name.replace(/\.[^.]+$/u, '').trim() || file.name;
   const updated: UserLibraryDocument = {
     ...existing,
+    contentVersion: crypto.randomUUID(),
     title,
     fileName: file.name,
     mimeType,
@@ -1567,10 +1780,11 @@ export async function replaceUserLibraryFile(
     nativeTextPages: 0,
     ocrDonePages: 0,
     ocrNeededPages: 0,
-    status: 'inspecting',
+    status: options.skipProcessing ? 'ready' : 'inspecting',
     ...(Object.hasOwn(options, 'folderId') ? { folderId: options.folderId } : {}),
     ...(options.source ? { source: options.source } : {}),
     hasImages: isUserLibraryVisualMime(mimeType),
+    hasTextLayer: false,
     errorMessage: '',
     updatedAt: now,
   };
@@ -1583,6 +1797,7 @@ export async function replaceUserLibraryFile(
       );
       transaction.objectStore(DOCUMENTS_STORE).put(updated);
       transaction.objectStore(FILES_STORE).put(file, id);
+      transaction.objectStore(FILES_STORE).delete(thumbnailKey(id));
       transaction.objectStore(MEDICAL_ANNOTATIONS_STORE).delete(id);
       const pageStore = transaction.objectStore(PAGES_STORE);
       for (const page of pages) pageStore.delete(pageKey(page.documentId, page.pageIndex));
@@ -1594,13 +1809,16 @@ export async function replaceUserLibraryFile(
     database.close();
   }
   emitLibraryChanged();
-  void import('@/state/user-library-ingest')
-    .then(({ processNewDocument }) => processNewDocument(id))
-    .catch(async (cause) => {
-      const message =
-        cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
-      await patchUserLibraryDocument(id, { status: 'failed', errorMessage: message });
-    });
+  if (!options.skipProcessing) {
+    scheduleUserLibraryThumbnail(updated, file);
+    void import('@/state/user-library-ingest')
+      .then(({ processNewDocument }) => processNewDocument(id))
+      .catch(async (cause) => {
+        const message =
+          cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
+        await patchUserLibraryDocument(id, { status: 'failed', errorMessage: message });
+      });
+  }
   return updated;
 }
 
@@ -1617,6 +1835,7 @@ export async function saveUserLibraryDraft(
   const pages = await listUserLibraryPages(id);
   const updated: UserLibraryDocument = {
     ...existing,
+    contentVersion: crypto.randomUUID(),
     byteLength: file.size,
     pageCount: 0,
     nativeTextPages: 0,
@@ -1635,6 +1854,7 @@ export async function saveUserLibraryDraft(
       );
       transaction.objectStore(DOCUMENTS_STORE).put(updated);
       transaction.objectStore(FILES_STORE).put(file, id);
+      transaction.objectStore(FILES_STORE).delete(thumbnailKey(id));
       const pageStore = transaction.objectStore(PAGES_STORE);
       for (const page of pages) pageStore.delete(pageKey(page.documentId, page.pageIndex));
       transaction.oncomplete = () => resolve();
@@ -1645,6 +1865,7 @@ export async function saveUserLibraryDraft(
     database.close();
   }
   emitLibraryChanged();
+  scheduleUserLibraryThumbnail(updated, file);
   try {
     const { processNewDocument } = await import('@/state/user-library-ingest');
     await processNewDocument(id);
@@ -1667,10 +1888,13 @@ export async function searchUserLibrary(
 ): Promise<readonly UserLibraryMatch[]> {
   const queryStems = personalQueryStems(query);
   if (queryStems.length === 0) return [];
-  const documents = await listUserLibraryDocuments();
-  const documentsById = new Map(documents.map((document) => [document.id, document]));
+  if (!('indexedDB' in globalThis) || !indexedDB) return [];
   const database = await openDatabase();
   try {
+    const documents = (await readAllDocuments(database)).toSorted((left, right) =>
+      right.updatedAt.localeCompare(left.updatedAt),
+    );
+    const documentsById = new Map(documents.map((document) => [document.id, document]));
     const pages = await readAllPages(database);
     const matches: UserLibraryMatch[] = [];
 
@@ -1715,13 +1939,20 @@ export async function searchUserLibrary(
 }
 
 export async function userLibrarySearchableCount(): Promise<number> {
-  const documents = await listUserLibraryDocuments();
-  let searchable = 0;
-  for (const document of documents) {
-    const pages = await listUserLibraryPages(document.id);
-    if (pages.some((page) => page.text.trim().length > 0)) searchable += 1;
+  if (!('indexedDB' in globalThis) || !indexedDB) return 0;
+  const database = await openDatabase();
+  try {
+    const documentIds = new Set((await readAllDocuments(database)).map((document) => document.id));
+    const searchableIds = new Set<string>();
+    for (const page of await readAllPages(database)) {
+      if (documentIds.has(page.documentId) && page.text.trim().length > 0) {
+        searchableIds.add(page.documentId);
+      }
+    }
+    return searchableIds.size;
+  } finally {
+    database.close();
   }
-  return searchable;
 }
 
 export function userLibraryProgressFraction(document: UserLibraryDocument): number {

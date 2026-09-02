@@ -1,5 +1,6 @@
 import type { TextRange } from '@localmed/contracts';
 
+import { stripKnownHtmlMarkup } from './html-markup';
 import { normalizeSurfaceText, normalizeSurfaceTextWithOffsets } from './normalize';
 
 export interface SnippetResult {
@@ -26,20 +27,86 @@ export function buildSnippet(
   terms: readonly string[],
   maxLength = 360,
 ): SnippetResult {
-  const normalizedWithOffsets = normalizeSurfaceTextWithOffsets(originalText);
+  const readableText = stripKnownHtmlMarkup(originalText).replaceAll('**', '');
+  const normalizedWithOffsets = normalizeSurfaceTextWithOffsets(readableText);
   const normalized = normalizedWithOffsets.text;
-  const candidatePositions = terms
-    .map((term) => {
-      const position = normalized.indexOf(normalizeSurfaceText(term));
-      return position >= 0 ? (normalizedWithOffsets.offsets[position]?.start ?? 0) : -1;
-    })
-    .filter((position) => position >= 0);
-  const firstPosition = candidatePositions.length > 0 ? Math.min(...candidatePositions) : 0;
-  const start = Math.max(0, firstPosition - Math.floor(maxLength / 3));
-  const end = Math.min(originalText.length, start + maxLength);
+  const occurrences = terms.flatMap((term) => {
+    const normalizedTerm = normalizeSurfaceText(term);
+    if (normalizedTerm.length < 2) return [];
+    const matches: {
+      normalizedTerm: string;
+      start: number;
+      end: number;
+      isExactKnownFieldValue: boolean;
+      knownFieldStart: number | null;
+    }[] = [];
+    let offset = 0;
+    while (offset < normalized.length) {
+      const position = normalized.indexOf(normalizedTerm, offset);
+      if (position < 0) break;
+      const firstOffset = normalizedWithOffsets.offsets[position];
+      const lastOffset = normalizedWithOffsets.offsets[position + normalizedTerm.length - 1];
+      if (firstOffset && lastOffset) {
+        const before = readableText.slice(0, firstOffset.start);
+        const after = readableText.slice(lastOffset.end).replace(/^[ \t\r]+/u, '');
+        const fieldMatch = /(?:^|[\s;])(?:тн|торговое\s+наименование)\s*:\s*$/iu.exec(before);
+        const isExactKnownFieldValue =
+          fieldMatch !== null && (after.length === 0 || /^[.;,\n]/u.test(after));
+        matches.push({
+          normalizedTerm,
+          start: firstOffset.start,
+          end: lastOffset.end,
+          isExactKnownFieldValue,
+          knownFieldStart: isExactKnownFieldValue ? fieldMatch.index : null,
+        });
+      }
+      offset = position + normalizedTerm.length;
+    }
+    return matches;
+  });
+  const candidateStarts = new Set<number>([0]);
+  for (const occurrence of occurrences) {
+    candidateStarts.add(Math.max(0, occurrence.start - Math.floor(maxLength / 3)));
+    candidateStarts.add(Math.max(0, occurrence.end - maxLength));
+    candidateStarts.add(occurrence.start);
+    if (occurrence.knownFieldStart !== null) candidateStarts.add(occurrence.knownFieldStart);
+  }
+  let start = 0;
+  let bestTermCount = -1;
+  let bestExactKnownFieldValueCount = -1;
+  let bestSpan = Number.POSITIVE_INFINITY;
+  for (const candidateStart of candidateStarts) {
+    const boundedStart = Math.min(candidateStart, readableText.length);
+    const candidateEnd = Math.min(readableText.length, boundedStart + maxLength);
+    const inside = occurrences.filter(
+      (occurrence) => occurrence.start >= boundedStart && occurrence.end <= candidateEnd,
+    );
+    const termCount = new Set(inside.map((occurrence) => occurrence.normalizedTerm)).size;
+    const exactKnownFieldValueCount = inside.filter(
+      (occurrence) => occurrence.isExactKnownFieldValue,
+    ).length;
+    const span =
+      inside.length > 0
+        ? Math.max(...inside.map((occurrence) => occurrence.end)) -
+          Math.min(...inside.map((occurrence) => occurrence.start))
+        : Number.POSITIVE_INFINITY;
+    if (
+      termCount > bestTermCount ||
+      (termCount === bestTermCount &&
+        (exactKnownFieldValueCount > bestExactKnownFieldValueCount ||
+          (exactKnownFieldValueCount === bestExactKnownFieldValueCount &&
+            (span < bestSpan || (span === bestSpan && boundedStart < start)))))
+    ) {
+      start = boundedStart;
+      bestTermCount = termCount;
+      bestExactKnownFieldValueCount = exactKnownFieldValueCount;
+      bestSpan = span;
+    }
+  }
+  const end = Math.min(readableText.length, start + maxLength);
   const prefix = start > 0 ? '…' : '';
-  const suffix = end < originalText.length ? '…' : '';
-  const body = originalText.slice(start, end);
+  const suffix = end < readableText.length ? '…' : '';
+  const body = readableText.slice(start, end);
   const text = `${prefix}${body}${suffix}`;
   const bodyOffset = prefix.length;
   const normalizedBodyWithOffsets = normalizeSurfaceTextWithOffsets(body);

@@ -23,8 +23,10 @@ import { CountBadge } from '@/components/CountBadge';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBackWithReturnTo } from '@/components/NavBackWithReturnTo';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
+import { Heading } from '@/components/Text';
 import { getAssessmentCatalog } from '@/features/assessments/assessment-catalog';
 import {
   CALCULATOR_SECTION_CATEGORY_IDS,
@@ -73,8 +75,8 @@ import {
 import {
   moduleCollectionStats,
   moduleGroupDownloadProgress,
+  moduleGroupTaskState,
   modulesInCategory,
-  recommendationCategoryDownloadProgress,
   recommendationCategoryStats,
 } from '@/features/modules/recommendation-categories';
 import {
@@ -170,6 +172,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [regularCollection, setRegularCollection] = createSignal('');
   const [busyCategories, setBusyCategories] = createSignal<ReadonlySet<string>>(new Set());
   const [installingAll, setInstallingAll] = createSignal(false);
+  const [bulkInstallingModuleIds, setBulkInstallingModuleIds] = createSignal<ReadonlySet<string>>(
+    new Set<string>(),
+  );
   const [detailsModule, setDetailsModule] = createSignal<ContentModuleCatalogEntry | null>(null);
   const [loadErrorDetails, setLoadErrorDetails] = createSignal<ModuleLoadError | null>(null);
   const [installErrors, setInstallErrors] = createSignal<Readonly<Record<string, string>>>({});
@@ -184,6 +189,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     window.localStorage.getItem(AUTO_UPDATES_PAUSED_KEY) === 'true',
   );
   const [returnTo, setReturnTo] = createSignal(peekReturnTo());
+  const catalogSearchHasBack = (): boolean =>
+    coreLibraryOpen() ||
+    recommendationBrowserOpen() ||
+    Boolean(regularCollection()) ||
+    Boolean(returnTo());
+  const catalogOverviewVisible = (): boolean =>
+    !coreLibraryOpen() && !lawsSpecialty() && !recommendationBrowserOpen() && !regularCollection();
   const [overviewDocumentCounts, setOverviewDocumentCounts] = createSignal(
     EMPTY_OVERVIEW_DOCUMENT_COUNTS,
   );
@@ -262,14 +274,17 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   onMount(() => {
     bindRuntime(catalog());
     syncSelectionFromLocation();
-    refreshOverviewDocumentCounts();
+    const initialCountsFrame = requestAnimationFrame(refreshOverviewDocumentCounts);
     window.addEventListener('hashchange', syncSelectionFromLocation);
     window.addEventListener(CONTENT_CHANGED_EVENT, refreshOverviewDocumentCounts);
     const syncReturnTo = () => {
       setReturnTo(peekReturnTo());
     };
     window.addEventListener(RETURN_TO_EVENT, syncReturnTo);
-    onCleanup(() => window.removeEventListener(RETURN_TO_EVENT, syncReturnTo));
+    onCleanup(() => {
+      cancelAnimationFrame(initialCountsFrame);
+      window.removeEventListener(RETURN_TO_EVENT, syncReturnTo);
+    });
   });
   onCleanup(() => {
     unsubscribeTask?.();
@@ -376,13 +391,18 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const activeCategory = createMemo(() =>
     catalog().categories.find((category) => category.id === recommendationCategory()),
   );
+  const activeCategoryModules = createMemo(() => categoryModules(recommendationCategory()));
   const activeCategoryDownloadProgress = createMemo(() =>
-    recommendationCategoryDownloadProgress(
-      recommendationModules(),
-      recommendationCategory(),
-      installedModuleIds(),
-      tasks(),
-    ),
+    moduleGroupDownloadProgress(activeCategoryModules(), installedModuleIds(), tasks()),
+  );
+  const activeCategoryTaskState = createMemo(() =>
+    moduleGroupTaskState(activeCategoryModules(), tasks()),
+  );
+  const activeCategoryWorking = createMemo(
+    () =>
+      busyCategories().has(recommendationCategory()) ||
+      activeCategoryTaskState() !== null ||
+      activeCategoryModules().some((module) => bulkInstallingModuleIds().has(module.id)),
   );
   const activeCategoryComplete = (): boolean => {
     const category = activeCategory();
@@ -547,10 +567,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     }
   };
 
-  const installCategory = async (categoryId = recommendationCategory()): Promise<void> => {
-    if (!categoryId) return;
-    await withCategoryBusy(categoryId, async () => {
-      const modules = categoryModules(categoryId);
+  const installModuleGroup = async (
+    groupId: string,
+    modules: readonly ContentModuleCatalogEntry[],
+  ): Promise<void> => {
+    await withCategoryBusy(groupId, async () => {
       if (modules.length === 0) return;
 
       setWarning(null);
@@ -578,9 +599,18 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     });
   };
 
+  const installCategory = async (categoryId = recommendationCategory()): Promise<void> => {
+    if (!categoryId) return;
+    await installModuleGroup(categoryId, categoryModules(categoryId));
+  };
+
   const installAllAvailable = async (): Promise<void> => {
     if (installingAll()) return;
+    const pendingModules = bulkDownloadModules().filter(
+      (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
+    );
     setInstallingAll(true);
+    setBulkInstallingModuleIds(new Set(pendingModules.map((module) => module.id)));
     setWarning(null);
     try {
       const result = await installPublishedCategoryModules(
@@ -603,6 +633,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         ),
       }));
     } finally {
+      setBulkInstallingModuleIds(new Set<string>());
       setInstallingAll(false);
     }
   };
@@ -615,6 +646,81 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   );
   const bulkDownloadLabel = (): string =>
     recommendationBrowserOpen() ? 'Скачать все рекомендации' : 'Скачать все документы';
+
+  const sectionDownloadControls = (
+    groupId: string,
+    title: string,
+    modules: () => readonly ContentModuleCatalogEntry[],
+  ): JSX.Element => {
+    const progress = () => moduleGroupDownloadProgress(modules(), installedModuleIds(), tasks());
+    const taskState = () => moduleGroupTaskState(modules(), tasks());
+    const selectedByBulk = () =>
+      modules().some((module) => bulkInstallingModuleIds().has(module.id));
+    const working = () => isCategoryBusy(groupId) || taskState() !== null || selectedByBulk();
+    const pendingCount = () =>
+      modules().filter((module) => isModuleReleased(module) && !installedModuleIds().has(module.id))
+        .length;
+    const progressValue = () => progress().byteProgress ?? progress().installedFraction;
+    const percent = () => Math.round(progressValue() * 100);
+
+    return (
+      <>
+        <Show when={pendingCount() > 0 || working()}>
+          <div class="recommendation-section-actions recommendation-section-card__actions">
+            <button
+              type="button"
+              class="recommendation-section-actions__download"
+              classList={{ 'recommendation-section-actions__download--busy': working() }}
+              aria-label={
+                working()
+                  ? taskState() === 'queued'
+                    ? `Раздел «${title}» в очереди на скачивание`
+                    : `Скачивается раздел «${title}»: ${percent()}%`
+                  : `Скачать раздел «${title}»`
+              }
+              title={
+                working()
+                  ? taskState() === 'queued'
+                    ? 'В очереди'
+                    : `Скачивается ${percent()}%`
+                  : 'Скачать раздел'
+              }
+              disabled={working()}
+              onClick={(event) => {
+                event.stopPropagation();
+                void installModuleGroup(groupId, modules());
+              }}
+            >
+              <Show
+                when={!working()}
+                fallback={
+                  <Show
+                    when={taskState() === 'queued'}
+                    fallback={<span class="module-action-spinner" />}
+                  >
+                    <AppGlyph name="clock" class="recommendation-section-actions__icon" />
+                  </Show>
+                }
+              >
+                <AppGlyph name="download" class="recommendation-section-actions__icon" />
+              </Show>
+            </button>
+          </div>
+        </Show>
+        <Show when={working()}>
+          <div
+            class="recommendation-section-progress recommendation-section-card__progress"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={percent()}
+          >
+            <i class="recommendation-section-progress__fill" style={{ width: `${percent()}%` }} />
+          </div>
+        </Show>
+      </>
+    );
+  };
 
   const removeCategory = async (categoryId = recommendationCategory()): Promise<void> => {
     if (!categoryId) return;
@@ -723,35 +829,35 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       class="module-page"
       classList={{ 'page-surface': !props.embedded, 'page-grain': !props.embedded }}
     >
-      <Show when={!props.embedded}>
-        <header class="subpage-heading module-heading">
-          <div>
-            <p class="archive-kicker">Документы на устройстве</p>
-            <h1>База знаний</h1>
-            <p>
-              Скачивайте нужные разделы. После проверки они работают без интернета и участвуют в
-              общем поиске MiniMed.
-            </p>
-          </div>
-          <Show when={pendingDownloadCount() > 0}>
-            <button
-              type="button"
-              aria-label={
-                installingAll()
-                  ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
-                  : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
-              }
-              class="module-download-all"
-              disabled={installingAll()}
-              onClick={() => void installAllAvailable()}
-            >
-              <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
-                <AppGlyph name="download" class="module-download-all__icon" />
-              </Show>
-              <span>{installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}</span>
-            </button>
-          </Show>
-        </header>
+      <Show when={!props.embedded || catalogOverviewVisible()}>
+        <Page
+          class="module-page-header"
+          icon={<AppGlyph name="folder-open" class="page__icon-glyph" />}
+          title={<Heading depth={1}>База знаний</Heading>}
+          description="Скачивайте нужные разделы. После проверки они работают без интернета и участвуют в общем поиске MiniMed."
+          actions={
+            <Show when={!props.embedded && pendingDownloadCount() > 0}>
+              <button
+                type="button"
+                aria-label={
+                  installingAll()
+                    ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
+                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
+                }
+                class="module-download-all"
+                disabled={installingAll()}
+                onClick={() => void installAllAvailable()}
+              >
+                <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
+                  <AppGlyph name="download" class="module-download-all__icon" />
+                </Show>
+                <span>
+                  {installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}
+                </span>
+              </button>
+            </Show>
+          }
+        />
       </Show>
       <Show
         when={
@@ -764,39 +870,63 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         >
           <div class="knowledge-subroute-heading module-catalog-heading module-catalog-heading--in-toolbar">
             <Show
-              when={
-                coreLibraryOpen() || recommendationBrowserOpen() || Boolean(regularCollection())
+              when={catalogQuery().length > 0 && catalogSearchHasBack()}
+              fallback={
+                <>
+                  <Show
+                    when={
+                      coreLibraryOpen() ||
+                      recommendationBrowserOpen() ||
+                      Boolean(regularCollection())
+                    }
+                  >
+                    <NavBackWithReturnTo
+                      catalogLabel="Назад"
+                      catalogDetail="К предыдущему разделу"
+                      catalogAriaLabel="Назад"
+                      buttonClass="knowledge-back-button knowledge-subroute-heading__control"
+                      onBackToCatalog={() =>
+                        coreLibraryOpen() ? closeCoreLibrary() : props.onBack?.()
+                      }
+                    />
+                  </Show>
+                  <Show when={returnTo()}>
+                    {(location) => (
+                      <Show
+                        when={
+                          !coreLibraryOpen() && !recommendationBrowserOpen() && !regularCollection()
+                        }
+                      >
+                        <Button
+                          type="button"
+                          variant="icon"
+                          class="knowledge-back-button return-navigation-button knowledge-subroute-heading__control"
+                          aria-label={returnToControlLabel(location())}
+                          title={returnToControlLabel(location())}
+                          onClick={() => consumeAndRestoreReturnTo()}
+                          icon={<AppGlyph name={returnToControlIcon(location())} />}
+                        />
+                      </Show>
+                    )}
+                  </Show>
+                </>
               }
             >
-              <NavBackWithReturnTo
-                catalogLabel="Назад"
-                catalogDetail="К предыдущему разделу"
-                catalogAriaLabel="Назад"
-                buttonClass="knowledge-back-button knowledge-subroute-heading__control"
-                onBackToCatalog={() => (coreLibraryOpen() ? closeCoreLibrary() : props.onBack?.())}
+              <Button
+                type="button"
+                variant="icon"
+                class="knowledge-back-button knowledge-subroute-heading__control"
+                aria-label="Очистить поиск"
+                title="Очистить поиск"
+                onClick={() => setCatalogQuery('')}
+                icon={<AppGlyph name="close" />}
               />
-            </Show>
-            <Show when={returnTo()}>
-              {(location) => (
-                <Show
-                  when={!coreLibraryOpen() && !recommendationBrowserOpen() && !regularCollection()}
-                >
-                  <Button
-                    type="button"
-                    variant="icon"
-                    class="knowledge-back-button return-navigation-button knowledge-subroute-heading__control"
-                    aria-label={returnToControlLabel(location())}
-                    title={returnToControlLabel(location())}
-                    onClick={() => consumeAndRestoreReturnTo()}
-                    icon={<AppGlyph name={returnToControlIcon(location())} />}
-                  />
-                </Show>
-              )}
             </Show>
             <SearchField
               class="route-search knowledge-subroute-heading__control"
               value={catalogQuery()}
               onInput={setCatalogQuery}
+              onClear={catalogSearchHasBack() ? undefined : () => setCatalogQuery('')}
               label="Поиск по текущему разделу"
               hideLabel
               placeholder="Поиск в текущем разделе"
@@ -958,7 +1088,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 ])}
               >
                 <article
-                  class="recommendation-section-card paper-card recommendation-section-card-compact"
+                  class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--downloadable"
                   tabindex="0"
                   aria-label="Открыть набор «Лекарства»"
                   onClick={openMedications}
@@ -980,6 +1110,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
                   </Show>
+                  {sectionDownloadControls('medications', 'Лекарства', medicationCatalogModules)}
                 </article>
               </Show>
               <For each={['reference', 'regulatory', 'tool']}>
@@ -996,7 +1127,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       when={matchesCatalogQuery(catalogQuery(), [regularSectionLabel(section)])}
                     >
                       <article
-                        class="recommendation-section-card paper-card recommendation-section-card-compact"
+                        class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--downloadable"
                         tabindex="0"
                         aria-label={`Открыть набор «${regularSectionLabel(section)}»`}
                         onClick={() => openCollection(section)}
@@ -1022,6 +1153,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                             <span class="recommendation-section-card-meta">{subtitle()}</span>
                           )}
                         </Show>
+                        {sectionDownloadControls(section, regularSectionLabel(section), modules)}
                       </article>
                     </Show>
                   );
@@ -1029,7 +1161,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               </For>
               <Show when={matchesCatalogQuery(catalogQuery(), ['Клинические рекомендации'])}>
                 <article
-                  class="recommendation-section-card paper-card recommendation-section-card-compact clinical-recommendations-entry"
+                  class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--downloadable clinical-recommendations-entry"
                   tabindex="0"
                   aria-label="Открыть набор «Клинические рекомендации»"
                   onClick={openRecommendations}
@@ -1051,6 +1183,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
                   </Show>
+                  {sectionDownloadControls(
+                    'recommendations',
+                    'Клинические рекомендации',
+                    recommendationModules,
+                  )}
                 </article>
               </Show>
               <Show when={matchesCatalogQuery(catalogQuery(), ['Ядро'])}>
@@ -1165,16 +1302,17 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             <div class="recommendation-section-grid recommendation-section-grid-compact">
               <For each={catalog().categories}>
                 {(category) => {
+                  const modules = () => categoryModules(category.id);
                   const stats = () =>
                     recommendationCategoryStats(recommendationModules(), category, installedById());
                   const categoryBusy = () => isCategoryBusy(category.id);
                   const downloadProgress = () =>
-                    recommendationCategoryDownloadProgress(
-                      recommendationModules(),
-                      category.id,
-                      installedModuleIds(),
-                      tasks(),
-                    );
+                    moduleGroupDownloadProgress(modules(), installedModuleIds(), tasks());
+                  const taskState = () => moduleGroupTaskState(modules(), tasks());
+                  const selectedByBulk = () =>
+                    modules().some((module) => bulkInstallingModuleIds().has(module.id));
+                  const categoryWorking = () =>
+                    categoryBusy() || taskState() !== null || selectedByBulk();
                   const showByteProgress = () => downloadProgress().byteProgress;
                   const categoryDownloadPercent = () => downloadProgressPercent(downloadProgress());
                   return (
@@ -1228,7 +1366,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       </Show>
                       <div class="recommendation-section-actions">
                         <Show
-                          when={stats().pendingCount > 0}
+                          when={stats().pendingCount > 0 || categoryWorking()}
                           fallback={
                             <Button
                               type="button"
@@ -1259,33 +1397,47 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                             type="button"
                             class="recommendation-section-actions__download"
                             classList={{
-                              'recommendation-section-actions__download--busy': categoryBusy(),
+                              'recommendation-section-actions__download--busy': categoryWorking(),
                             }}
                             aria-label={
-                              categoryBusy()
-                                ? `Скачивается раздел «${category.title}»: ${categoryDownloadPercent()}%`
+                              categoryWorking()
+                                ? taskState() === 'queued'
+                                  ? `Раздел «${category.title}» в очереди на скачивание`
+                                  : `Скачивается раздел «${category.title}»: ${categoryDownloadPercent()}%`
                                 : `Скачать раздел «${category.title}»`
                             }
                             title={
-                              categoryBusy()
-                                ? `Скачивается ${categoryDownloadPercent()}%`
+                              categoryWorking()
+                                ? taskState() === 'queued'
+                                  ? 'В очереди'
+                                  : `Скачивается ${categoryDownloadPercent()}%`
                                 : 'Скачать раздел'
                             }
-                            disabled={categoryBusy()}
+                            disabled={categoryWorking()}
                             onClick={(event) => {
                               event.stopPropagation();
                               void installCategory(category.id);
                             }}
                           >
                             <Show
-                              when={!categoryBusy()}
+                              when={!categoryWorking()}
                               fallback={
-                                <>
-                                  <span class="module-action-spinner" />
-                                  <span class="recommendation-section-actions__progress">
-                                    {categoryDownloadPercent()}%
-                                  </span>
-                                </>
+                                <Show
+                                  when={taskState() === 'queued'}
+                                  fallback={
+                                    <>
+                                      <span class="module-action-spinner" />
+                                      <span class="recommendation-section-actions__progress">
+                                        {categoryDownloadPercent()}%
+                                      </span>
+                                    </>
+                                  }
+                                >
+                                  <AppGlyph
+                                    name="clock"
+                                    class="recommendation-section-actions__icon"
+                                  />
+                                </Show>
                               }
                             >
                               <AppGlyph
@@ -1312,23 +1464,32 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     type="button"
                     class="recommendation-list-actions__download"
                     aria-label={
-                      isCategoryBusy(recommendationCategory())
-                        ? `Скачивается раздел: ${downloadProgressPercent(
-                            activeCategoryDownloadProgress(),
-                          )}%`
+                      activeCategoryWorking()
+                        ? activeCategoryTaskState() === 'queued'
+                          ? 'Раздел в очереди на скачивание'
+                          : `Скачивается раздел: ${downloadProgressPercent(
+                              activeCategoryDownloadProgress(),
+                            )}%`
                         : activeCategoryComplete()
                           ? 'Удалить раздел'
                           : 'Скачать раздел'
                     }
                     title={activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}
-                    disabled={isCategoryBusy(recommendationCategory())}
+                    disabled={activeCategoryWorking()}
                     onClick={() =>
                       void (activeCategoryComplete() ? removeCategory() : installCategory())
                     }
                   >
                     <Show
-                      when={!isCategoryBusy(recommendationCategory())}
-                      fallback={<span class="module-action-spinner" />}
+                      when={!activeCategoryWorking()}
+                      fallback={
+                        <Show
+                          when={activeCategoryTaskState() === 'queued'}
+                          fallback={<span class="module-action-spinner" />}
+                        >
+                          <AppGlyph name="clock" class="recommendation-list-actions__icon" />
+                        </Show>
+                      }
                     >
                       <AppGlyph
                         name={activeCategoryComplete() ? 'trash' : 'download'}
@@ -1336,8 +1497,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       />
                     </Show>
                     <span>
-                      {isCategoryBusy(recommendationCategory())
-                        ? `Скачиваем ${downloadProgressPercent(activeCategoryDownloadProgress())}%`
+                      {activeCategoryWorking()
+                        ? activeCategoryTaskState() === 'queued'
+                          ? 'В очереди'
+                          : `Скачиваем ${downloadProgressPercent(activeCategoryDownloadProgress())}%`
                         : activeCategoryComplete()
                           ? 'Удалить раздел'
                           : 'Скачать раздел'}
@@ -1393,6 +1556,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   const working = () =>
                     retryScheduled() ||
                     (task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? ''));
+                  const queued = () => task()?.state === 'queued';
                   return (
                     <article
                       class="recommendation-row paper-card recommendation-row-compact medication-product-card"
@@ -1503,7 +1667,17 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           icon={
                             <Show
                               when={!working()}
-                              fallback={<span class="module-action-spinner" />}
+                              fallback={
+                                <Show
+                                  when={queued()}
+                                  fallback={<span class="module-action-spinner" />}
+                                >
+                                  <AppGlyph
+                                    name="clock"
+                                    class="recommendation-row-download-button__icon"
+                                  />
+                                </Show>
+                              }
                             >
                               <AppGlyph
                                 name="download"

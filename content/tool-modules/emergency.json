@@ -31,7 +31,12 @@
         "description": "Три компонента (открывание глаз, речь, движения) для оценки уровня сознания у взрослых и детей старше 4 лет.",
         "estimatedMinutes": 2,
         "audience": "Взрослые и дети старше 4 лет; применяется медицинским специалистом при оценке нарушения сознания",
-        "responseOptions": [{ "value": 0, "label": "0" }],
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "0"
+          }
+        ],
         "scales": [
           {
             "id": "gcs-total",
@@ -46,10 +51,22 @@
             "prompt": "Открывание глаз (E)",
             "scaleId": "gcs-total",
             "responseOptions": [
-              { "value": 1, "label": "Нет открывания глаз" },
-              { "value": 2, "label": "Открывание на боль" },
-              { "value": 3, "label": "Открывание на речь" },
-              { "value": 4, "label": "Спонтанное открывание глаз" }
+              {
+                "value": 1,
+                "label": "Нет открывания глаз"
+              },
+              {
+                "value": 2,
+                "label": "Открывание на боль"
+              },
+              {
+                "value": 3,
+                "label": "Открывание на речь"
+              },
+              {
+                "value": 4,
+                "label": "Спонтанное открывание глаз"
+              }
             ]
           },
           {
@@ -57,11 +74,26 @@
             "prompt": "Вербальный ответ (V)",
             "scaleId": "gcs-total",
             "responseOptions": [
-              { "value": 1, "label": "Нет ответа" },
-              { "value": 2, "label": "Нечленораздельные звуки" },
-              { "value": 3, "label": "Отдельные слова" },
-              { "value": 4, "label": "Смазанная речь" },
-              { "value": 5, "label": "Ориентирован, отвечает на вопросы" }
+              {
+                "value": 1,
+                "label": "Нет ответа"
+              },
+              {
+                "value": 2,
+                "label": "Нечленораздельные звуки"
+              },
+              {
+                "value": 3,
+                "label": "Отдельные слова"
+              },
+              {
+                "value": 4,
+                "label": "Смазанная речь"
+              },
+              {
+                "value": 5,
+                "label": "Ориентирован, отвечает на вопросы"
+              }
             ]
           },
           {
@@ -69,12 +101,30 @@
             "prompt": "Двигательный ответ (M)",
             "scaleId": "gcs-total",
             "responseOptions": [
-              { "value": 1, "label": "Нет движений" },
-              { "value": 2, "label": "Патологическое разгибание на боль (декортикация)" },
-              { "value": 3, "label": "Патологическое сгибание на боль (децеребрация)" },
-              { "value": 4, "label": "Отдергивание на боль" },
-              { "value": 5, "label": "Локализация боли" },
-              { "value": 6, "label": "Выполнение команд" }
+              {
+                "value": 1,
+                "label": "Нет движений"
+              },
+              {
+                "value": 2,
+                "label": "Патологическое разгибание на боль (декортикация)"
+              },
+              {
+                "value": 3,
+                "label": "Патологическое сгибание на боль (децеребрация)"
+              },
+              {
+                "value": 4,
+                "label": "Отдергивание на боль"
+              },
+              {
+                "value": 5,
+                "label": "Локализация боли"
+              },
+              {
+                "value": 6,
+                "label": "Выполнение команд"
+              }
             ]
           }
         ],
@@ -107,7 +157,24 @@
           "kind": "third-party-attributed",
           "notice": "Шкала комы Глазго описана в оригинальной публикации Teasdale & Jennett; MiniMed не является правообладателем инструмента.",
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/4436844/"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": ["gcs-teasdale-1974", "gcs-nice-ng232"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.glasgow-coma-scale.gcs-total",
+            "label": "Суммарный балл GCS",
+            "unit": "баллы",
+            "scaleId": "gcs-total",
+            "method": "assessment:minimed.assessment.glasgow-coma-scale"
+          }
+        ]
       },
       "sources": [
         {
@@ -154,7 +221,16 @@
         "description": "Восемь клинико-лабораторных признаков (MANTRELS) для оценки вероятности острого аппендицита.",
         "estimatedMinutes": 3,
         "audience": "Взрослые и дети; применяется врачом при подозрении на аппендицит",
-        "responseOptions": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }],
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Нет"
+          },
+          {
+            "value": 1,
+            "label": "Да"
+          }
+        ],
         "scales": [
           {
             "id": "alvarado-total",
@@ -169,8 +245,14 @@
             "prompt": "Migration — миграция боли в правую подвздошную область (M)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да (1 балл)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да (1 балл)"
+              }
             ]
           },
           {
@@ -178,8 +260,14 @@
             "prompt": "Anorexia — анорексия (A)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да (1 балл)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да (1 балл)"
+              }
             ]
           },
           {
@@ -187,8 +275,14 @@
             "prompt": "Nausea/vomiting — тошнота или рвота (N)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да (1 балл)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да (1 балл)"
+              }
             ]
           },
           {
@@ -196,8 +290,14 @@
             "prompt": "Tenderness in right lower quadrant — болезненность в правой подвздошной области (T)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 2, "label": "Да (2 балла)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 2,
+                "label": "Да (2 балла)"
+              }
             ]
           },
           {
@@ -205,8 +305,14 @@
             "prompt": "Rebound tenderness — симптом Щёткина–Блюмберга (R)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да (1 балл)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да (1 балл)"
+              }
             ]
           },
           {
@@ -214,8 +320,14 @@
             "prompt": "Elevated temperature — повышение температуры ≥37,3 °C (E)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да (1 балл)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да (1 балл)"
+              }
             ]
           },
           {
@@ -223,8 +335,14 @@
             "prompt": "Leukocytosis — лейкоцитоз >10 000/мм³ (L)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 2, "label": "Да (2 балла)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 2,
+                "label": "Да (2 балла)"
+              }
             ]
           },
           {
@@ -232,8 +350,14 @@
             "prompt": "Shift to the left — сдвиг влево >75% нейтрофилов (S)",
             "scaleId": "alvarado-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "Да (1 балл)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да (1 балл)"
+              }
             ]
           }
         ],
@@ -266,7 +390,24 @@
           "kind": "third-party-attributed",
           "notice": "Балл Alvarado описан в оригинальной публикации Alvarado A.; MiniMed не является правообладателем инструмента.",
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/3946867/"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": ["alvarado-1986", "alvarado-1986-interpretation"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.alvarado-appendicitis.alvarado-total",
+            "label": "Суммарный балл Alvarado",
+            "unit": "баллы",
+            "scaleId": "alvarado-total",
+            "method": "assessment:minimed.assessment.alvarado-appendicitis"
+          }
+        ]
       },
       "sources": [
         {
@@ -302,7 +443,7 @@
       "estimatedMinutes": 1,
       "audience": "Взрослые; применяется специалистом при оценке острой кровопотери и шока",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.shock-index",
         "slug": "shock-index",
         "title": "Индекс шока (Shock Index)",
@@ -375,6 +516,42 @@
             "version": "Rady et al. 1992",
             "url": "https://pubmed.ncbi.nlm.nih.gov/1554081/",
             "reviewedAt": "2026-08-17"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "shockIndex >= 0.9",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "SI ≥0,9 ассоциирован с повышенной потребностью в массивной гемотрансфузии по данным Rady et al. 1992; требуется усиленный гемодинамический мониторинг.",
+                "explanation": "SI ≥0,9 ассоциирован с повышенной потребностью в массивной гемотрансфузии по данным Rady et al. 1992; требуется усиленный гемодинамический мониторинг.",
+                "attentionLevel": "none",
+                "sourceIds": ["shock-index-rady-1992", "shock-index-rady-1992-interpretation"]
+              }
+            },
+            {
+              "when": "shockIndex < 0.9",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "SI <0,9 не исключает гемодинамическую нестабильность; оценивайте перфузию, сознание, диурез и динамику АД.",
+                "explanation": "SI <0,9 не исключает гемодинамическую нестабильность; оценивайте перфузию, сознание, диурез и динамику АД.",
+                "attentionLevel": "none",
+                "sourceIds": ["shock-index-rady-1992", "shock-index-rady-1992-interpretation"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["shock-index-rady-1992", "shock-index-rady-1992-interpretation"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.shock-index.shockIndex",
+            "label": "Индекс шока",
+            "unit": "безразмерно",
+            "stepId": "shockIndex",
+            "method": "calculator:minimed.calculator.shock-index"
           }
         ]
       },

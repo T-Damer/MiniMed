@@ -1,4 +1,9 @@
 {
+  "id": "minimed.tools.pediatrics-growth-demo.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Демо визуализаций роста",
+  "schemaVersion": 2,
+  "builtAt": "2026-08-25T00:00:00Z",
   "tools": [
     {
       "kind": "calculator",
@@ -46,7 +51,13 @@
             "kind": "number",
             "minimum": 1,
             "maximum": 20,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           }
         ],
         "steps": [
@@ -137,8 +148,16 @@
             "reviewedAt": "2026-08-24"
           }
         ],
-        "schemaVersion": 1,
-        "summary": "Демо: положение веса девочки относительно коридора ВОЗ (-2SD…+2SD), 0–24 месяца."
+        "schemaVersion": 2,
+        "summary": "Демо: положение веса девочки относительно коридора ВОЗ (-2SD…+2SD), 0–24 месяца.",
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Приближённая демонстрация WHO не предназначена для карточек пациентов; точные версионированные таблицы WHO ещё не подключены.",
+          "sourceIds": []
+        },
+        "observationMappings": []
       },
       "id": "minimed.calculator.weight-for-age-girls-who-demo",
       "slug": "weight-for-age-girls-who-demo",
@@ -153,7 +172,16 @@
       ],
       "category": "anthropometry",
       "audience": "pediatric",
-      "clinical": false
+      "sources": [
+        {
+          "id": "who-child-growth-demo",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "WHO Child Growth Standards (демонстрационная аппроксимация)",
+          "url": "https://www.who.int/tools/child-growth-standards",
+          "reviewedAt": "2026-08-24"
+        }
+      ]
     }
   ]
 }

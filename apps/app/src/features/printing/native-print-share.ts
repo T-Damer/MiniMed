@@ -1,9 +1,22 @@
 export const NATIVE_PRINT_SHARE_MAX_CHARS = 32_000;
 
 export type NativePrintShareResult = 'shared' | 'printed' | 'cancelled';
+export type NativePrintShareFileResult = 'shared' | 'cancelled' | 'downloaded';
 
 function isAbortError(cause: unknown): boolean {
   return cause instanceof DOMException && cause.name === 'AbortError';
+}
+
+async function tryShareFile(input: {
+  readonly fileShare?: () => Promise<NativePrintShareFileResult>;
+}): Promise<NativePrintShareResult | undefined> {
+  if (!input.fileShare) return undefined;
+  try {
+    const result = await input.fileShare();
+    return result === 'cancelled' ? 'cancelled' : 'shared';
+  } catch {
+    return undefined;
+  }
 }
 
 export function clipNativePrintShareText(
@@ -23,11 +36,14 @@ export async function shareNativePrintContent(input: {
     readonly title: string;
     readonly text: string;
   }) => Promise<void>;
+  readonly fileShare?: () => Promise<NativePrintShareFileResult>;
   readonly webShare?: (payload: { readonly title: string; readonly text: string }) => Promise<void>;
   readonly print: () => void;
 }): Promise<NativePrintShareResult> {
   const payload = { title: input.title, text: input.text };
   if (input.platform === 'android') {
+    const fileResult = await tryShareFile(input);
+    if (fileResult) return fileResult;
     try {
       await input.androidShare(payload);
       return 'shared';
@@ -41,6 +57,9 @@ export async function shareNativePrintContent(input: {
       }
     }
   }
+
+  const fileResult = await tryShareFile(input);
+  if (fileResult) return fileResult;
 
   if (input.webShare) {
     try {

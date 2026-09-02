@@ -5,10 +5,10 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const force = process.argv.includes('--force');
 
-const sourceDatabase = resolve(root, 'data/build/core-demo.db');
-const sourceReportPath = resolve(root, 'data/build/core-demo-report.json');
-const targetDatabase = resolve(root, 'apps/app/public/content/core-demo.db');
-const targetReportPath = resolve(root, 'apps/app/public/content/core-demo-report.json');
+const sourceDatabase = resolve(root, 'data/build/core.db');
+const sourceReportPath = resolve(root, 'data/build/core-report.json');
+const targetDatabase = resolve(root, 'apps/app/public/content/core.db');
+const targetReportPath = resolve(root, 'apps/app/public/content/core-report.json');
 
 async function readReport(path) {
   try {
@@ -59,7 +59,7 @@ if (publishedPackExists && !force) {
 
 const targets = [
   [sourceDatabase, targetDatabase],
-  [resolve(root, 'data/build/core-demo-report.json'), targetReportPath],
+  [resolve(root, 'data/build/core-report.json'), targetReportPath],
 ];
 
 for (const [source, target] of targets) {

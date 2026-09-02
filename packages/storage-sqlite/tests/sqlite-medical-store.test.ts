@@ -41,18 +41,14 @@ describe('SqliteMedicalStore', () => {
   });
 
   it('opens a precompiled SQLite content pack without replaying the JSON seed', async () => {
-    const [databaseBytes, reportText] = await Promise.all([
-      readFile('apps/app/public/content/core-demo.db'),
-      readFile('apps/app/public/content/core-demo-report.json', 'utf8'),
-    ]);
-    const report = JSON.parse(reportText) as { documents: number };
+    const databaseBytes = await readFile('packages/test-fixtures/data/rf-public-pilot.db');
     const store = await SqliteMedicalStore.createFromBytes(new Uint8Array(databaseBytes));
     stores.push(store);
     const health = await store.initialize();
     const documents = await store.listDocuments();
-    expect(health.documentCount).toBe(report.documents);
+    expect(health.documentCount).toBe(15);
     expect(health.schemaVersion).toBe(2);
-    expect(documents).toHaveLength(report.documents);
+    expect(documents).toHaveLength(15);
     expect(documents.every((document) => document.title.length > 0)).toBe(true);
   });
 
@@ -82,6 +78,37 @@ describe('SqliteMedicalStore', () => {
       limit: 10,
     });
     expect(results[0]?.document.id).toBe('kr.demo.pediatrics.pneumonia');
+  });
+
+  it('limits lexical FTS candidates before hydrating full search rows', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(DEMO_CONTENT_PACK);
+    const database = (
+      store as unknown as { readonly database: { readonly exec: (sql: string) => void } }
+    ).database;
+    const exec = vi.spyOn(database, 'exec');
+
+    await expect(
+      store.search({
+        ftsQuery: '"тахипноэ"*',
+        terms: ['тахипноэ'],
+        filters: {},
+        limit: 1,
+      }),
+    ).resolves.toHaveLength(1);
+
+    const sqlCalls = exec.mock.calls.map(([sql]) => sql);
+    const candidateIndex = sqlCalls.findIndex((sql) =>
+      sql.includes('SELECT chunks_fts.chunk_id AS chunk_id'),
+    );
+    const hydrationIndex = sqlCalls.findIndex(
+      (sql) => sql.includes('c.original_text') && sql.includes('WHERE c.id IN'),
+    );
+    expect(candidateIndex).toBeGreaterThanOrEqual(0);
+    expect(hydrationIndex).toBe(candidateIndex + 1);
+    expect(sqlCalls[candidateIndex]).not.toContain('c.original_text');
+    expect(sqlCalls[hydrationIndex]).toContain('c.original_text');
   });
 
   it('filters by a large documentIds list without exhausting bound parameters', async () => {

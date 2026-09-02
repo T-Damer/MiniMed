@@ -1,0 +1,686 @@
+.medical-image-print-dialog {
+  width: min(78rem, 100%);
+}
+
+.medical-image-print-dialog__body {
+  overflow: auto;
+  padding: 1rem;
+}
+
+.medical-image-print-dialog__layout {
+  display: grid;
+  min-height: 0;
+  min-width: 0;
+  grid-template-columns: minmax(18rem, 23rem) minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.medical-image-print-dialog__settings,
+.medical-image-print-dialog__gallery-panel {
+  min-height: 0;
+  min-width: 0;
+}
+
+.medical-image-print-dialog__settings {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.25rem;
+}
+
+.medical-image-print-dialog__header-icon.app-glyph,
+.medical-image-print-dialog__direction-icon.app-glyph {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.medical-image-print-dialog__header-print-button.ui-button {
+  width: 2.6rem;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  min-height: 2.6rem;
+  padding: 0;
+  border-color: rgb(246 238 219 / 25%);
+  border-radius: 50%;
+  color: #fff8e7;
+  background: transparent;
+  box-shadow: none;
+}
+
+.medical-image-print-dialog__header-preview {
+  display: grid;
+  width: min(10rem, 24vw);
+  min-width: 5.5rem;
+  grid-template-columns: 3.1rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.45rem 0.2rem 0.2rem;
+  overflow: hidden;
+  border: 1px solid rgb(246 238 219 / 28%);
+  border-radius: 0.55rem;
+  color: #fff8e7;
+  background: rgb(246 238 219 / 8%);
+  cursor: pointer;
+  text-align: left;
+}
+
+.medical-image-print-dialog__header-preview-media {
+  display: grid;
+  width: 3.1rem;
+  height: 2.1rem;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0.35rem;
+  color: #fff8e7;
+  background: #050607;
+}
+
+.medical-image-print-dialog__header-preview-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.medical-image-print-dialog__header-preview-icon.app-glyph {
+  width: 1rem;
+  height: 1rem;
+}
+
+.medical-image-print-dialog__header-preview-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.05rem;
+}
+
+.medical-image-print-dialog__header-preview-title,
+.medical-image-print-dialog__header-preview-count {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medical-image-print-dialog__header-preview-title {
+  font-size: 0.68rem;
+}
+
+.medical-image-print-dialog__header-preview-count {
+  color: #cfc7b6;
+  font-size: 0.58rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.medical-image-print-dialog__direction-heading,
+.medical-image-print-dialog__range-heading,
+.medical-image-print-dialog__switch-row,
+.medical-image-print-dialog__preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.medical-image-print-dialog__direction-count,
+.medical-image-print-dialog__range-value {
+  color: var(--theme-text-faint);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.medical-image-print-dialog__label {
+  color: var(--theme-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.medical-image-print-dialog__directions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.medical-image-print-dialog__direction-button.ui-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.7rem;
+  padding: 0.45rem;
+}
+
+.medical-image-print-dialog__slice-range,
+.medical-image-print-dialog__page-range {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.medical-image-print-dialog__range-track {
+  position: relative;
+  display: grid;
+  height: 2rem;
+  align-items: center;
+}
+
+.medical-image-print-dialog__range-track::before {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(50% - 0.15rem);
+  inset-inline-start: var(--medical-image-print-range-start, 0%);
+  width: calc(
+    var(--medical-image-print-range-end, 100%) -
+    var(--medical-image-print-range-start, 0%)
+  );
+  height: 0.3rem;
+  border-radius: 999px;
+  background: var(--theme-accent);
+  content: "";
+}
+
+.medical-image-print-dialog__range-track::after {
+  position: absolute;
+  z-index: 0;
+  inset-block-start: calc(50% - 0.15rem);
+  inset-inline: 0;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-accent) 22%, var(--theme-border));
+  content: "";
+}
+
+.medical-image-print-dialog__range-input {
+  display: block;
+  width: 100%;
+  height: 1.5rem;
+  grid-area: 1 / 1;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.medical-image-print-dialog__range-input::-webkit-slider-runnable-track {
+  height: 0.3rem;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.medical-image-print-dialog__range-input::-moz-range-track {
+  height: 0.3rem;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.medical-image-print-dialog__page-range-input::-webkit-slider-runnable-track,
+.medical-image-print-dialog__page-range-input::-moz-range-track {
+  height: 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-accent) 22%, var(--theme-border));
+}
+
+.medical-image-print-dialog__range-input::-webkit-slider-thumb,
+.medical-image-print-dialog__page-range-input::-webkit-slider-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: -0.4rem;
+  appearance: none;
+  border: 2px solid var(--theme-surface-raised);
+  border-radius: 50%;
+  background: var(--theme-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  cursor: grab;
+  pointer-events: auto;
+}
+
+.medical-image-print-dialog__range-input::-moz-range-thumb,
+.medical-image-print-dialog__page-range-input::-moz-range-thumb {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid var(--theme-surface-raised);
+  border-radius: 50%;
+  background: var(--theme-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  cursor: grab;
+  pointer-events: auto;
+}
+
+.medical-image-print-dialog__range-input:focus-visible,
+.medical-image-print-dialog__page-range-input:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 0.2rem;
+}
+
+.medical-image-print-dialog__range-input--from {
+  z-index: 3;
+}
+
+.medical-image-print-dialog__range-input--to {
+  z-index: 2;
+}
+
+.medical-image-print-dialog__range-input--from::-webkit-slider-thumb {
+  background: var(--theme-surface-raised);
+  border-style: dashed;
+}
+
+.medical-image-print-dialog__range-input--from::-moz-range-thumb {
+  background: var(--theme-surface-raised);
+  border-style: dashed;
+}
+
+.medical-image-print-dialog__range-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.medical-image-print-dialog__field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.medical-image-print-dialog__range-label {
+  color: var(--theme-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.medical-image-print-dialog__input {
+  width: 100%;
+  min-height: 2.1rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.medical-image-print-dialog__page-range-input {
+  display: block;
+  width: 100%;
+  height: 1.5rem;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+}
+
+.medical-image-print-dialog__switches {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-muted);
+}
+
+.medical-image-print-dialog__switch-row {
+  color: var(--theme-text);
+  font-size: 0.82rem;
+}
+
+.medical-image-print-dialog__hint,
+.medical-image-print-dialog__error,
+.medical-image-print-dialog__preview-more,
+.medical-image-print-dialog__gallery-empty {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.medical-image-print-dialog__error {
+  color: var(--theme-danger);
+}
+
+.medical-image-print-dialog__gallery-panel {
+  display: grid;
+  max-height: calc(100dvh - 8rem);
+  gap: 0.45rem;
+  align-content: start;
+  overflow: hidden;
+  padding: 0.55rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-muted);
+}
+
+.medical-image-print-dialog__gallery-heading {
+  color: var(--theme-text);
+  font-size: 0.82rem;
+}
+
+.medical-image-print-dialog__gallery-toggle,
+.medical-image-print-dialog__gallery-toggle-meta,
+.medical-image-print-dialog__gallery-hint {
+  color: var(--theme-text-muted);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.medical-image-print-dialog__gallery-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.15rem 0;
+  border: 0;
+  color: var(--theme-text);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.medical-image-print-dialog__gallery-toggle-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.medical-image-print-dialog__gallery-toggle-icon.app-glyph {
+  width: 0.85rem;
+  height: 0.85rem;
+  transition: transform 140ms ease-out;
+}
+
+.medical-image-print-dialog__gallery-toggle-icon--open {
+  transform: rotate(180deg);
+}
+
+.medical-image-print-dialog__gallery-content {
+  display: grid;
+  min-height: 0;
+  gap: 0.45rem;
+  overflow: hidden;
+}
+
+.medical-image-print-dialog__gallery-hint {
+  margin: 0;
+}
+
+.medical-image-print-dialog__gallery-grid {
+  display: grid;
+  max-height: min(28rem, calc(100dvh - 14rem));
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  align-content: start;
+  gap: 0.45rem;
+  overflow: auto;
+  padding: 0.15rem;
+  touch-action: none;
+  user-select: none;
+}
+
+.medical-image-print-dialog__gallery-card {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  text-align: left;
+  content-visibility: auto;
+  contain: layout paint;
+  contain-intrinsic-size: 7rem 7.8rem;
+  touch-action: none;
+  user-select: none;
+}
+
+.medical-image-print-dialog__gallery-card--selected {
+  border-color: var(--theme-accent);
+  box-shadow: inset 0 0 0 1px var(--theme-accent);
+}
+
+.medical-image-print-dialog__gallery-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #050607;
+  pointer-events: none;
+}
+
+.medical-image-print-dialog__gallery-label {
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.62rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medical-image-print-dialog__gallery-empty {
+  display: grid;
+  min-height: 10rem;
+  grid-column: 1 / -1;
+  place-items: center;
+  padding: 1rem;
+  border: 1px dashed var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  text-align: center;
+}
+
+.medical-image-print-dialog__preview {
+  position: fixed;
+  z-index: calc(var(--z-overlay) + 1);
+  inset-block-start: max(0.75rem, var(--safe-top, 0px));
+  inset-inline-end: max(0.75rem, var(--safe-right, 0px));
+  display: grid;
+  width: min(50vw, 42rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  overflow: auto;
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 28%);
+  animation: medical-image-print-preview-in 180ms ease-out;
+  pointer-events: none;
+}
+
+.medical-image-print-dialog__preview-heading,
+.medical-image-print-dialog__preview-sheet,
+.medical-image-print-dialog__preview-more {
+  pointer-events: auto;
+}
+
+@keyframes medical-image-print-preview-in {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.medical-image-print-dialog__preview-heading {
+  color: var(--theme-text);
+  font-size: 0.82rem;
+}
+
+.medical-image-print-dialog__preview-page-count {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--theme-text-faint);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medical-image-print-dialog__preview-close.ui-button {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+.medical-image-print-dialog__preview-sheet {
+  width: min(100%, 31rem, calc(69.1dvh - 5rem));
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 194 / 281;
+  align-self: center;
+  margin-inline: auto;
+  overflow: hidden;
+  padding: 0.8rem;
+  border: 1px solid var(--theme-border);
+  background: #fff;
+  box-shadow: 0 0.7rem 1.8rem rgb(0 0 0 / 18%);
+}
+
+.medical-image-print-dialog__preview-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(var(--medical-image-print-columns), minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
+.medical-image-print-dialog__preview-grid--single {
+  display: block;
+}
+
+.medical-image-print-dialog__preview-frame {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.medical-image-print-dialog__preview-frame--single {
+  height: 100%;
+}
+
+.medical-image-print-dialog__preview-media {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: #050607;
+}
+
+.medical-image-print-dialog__preview-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.medical-image-print-dialog__preview-annotation,
+.medical-image-print__annotation {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.medical-image-print-dialog__preview-overlay {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.3rem;
+  color: #fff;
+  font-size: 0.52rem;
+  line-height: 1.15;
+  pointer-events: none;
+}
+
+.medical-image-print-dialog__preview-overlay--grid {
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.medical-image-print-dialog__preview-overlay-top,
+.medical-image-print-dialog__preview-overlay-bottom {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medical-image-print-dialog__preview-overlay-bottom {
+  align-self: flex-end;
+}
+
+.medical-image-print-dialog__preview-empty {
+  display: grid;
+  height: 100%;
+  margin: 0;
+  place-items: center;
+  color: #585349;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .medical-image-print-dialog__body {
+    padding: 0.75rem;
+  }
+
+  .medical-image-print-dialog__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .medical-image-print-dialog__gallery-panel {
+    max-height: none;
+  }
+
+  .medical-image-print-dialog__gallery-grid {
+    max-height: min(34vh, 20rem);
+    grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  }
+
+  .medical-image-print-dialog__preview {
+    inset-inline: 0.5rem;
+    width: auto;
+    max-height: calc(100dvh - 1rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+  }
+}
+
+@media (max-width: 420px) {
+  .medical-image-print-dialog__header-preview {
+    width: 3.6rem;
+    min-width: 3.6rem;
+    grid-template-columns: 1fr;
+    padding: 0.2rem;
+  }
+
+  .medical-image-print-dialog__header-preview-copy {
+    display: none;
+  }
+
+  .medical-image-print-dialog__input {
+    min-height: 2.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .medical-image-print-dialog__preview,
+  .medical-image-print-dialog__gallery-toggle-icon {
+    animation: none;
+    transition: none;
+  }
+}

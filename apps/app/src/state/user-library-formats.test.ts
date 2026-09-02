@@ -190,16 +190,20 @@ describe('user-library formats', () => {
     expect(text).toContain('мир');
   });
 
-  it('creates a valid DOCX draft that can be extracted again', async () => {
+  it('creates a valid DOCX draft with preserved page breaks', async () => {
     const file = createEditableUserLibraryFile(
       'draft.docx',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'Привет\nworld',
+      'Привет\nworld\fВторая страница',
     );
-    await validateUserLibraryFile(file.name, file.type, await file.arrayBuffer());
-    const text = await extractUserLibraryText(file.name, file.type, await file.arrayBuffer());
-    expect(text).toContain('Привет');
-    expect(text).toContain('world');
+    const content = await file.arrayBuffer();
+    await validateUserLibraryFile(file.name, file.type, content);
+    const documentXml = await readZipEntry(content, 'word/document.xml');
+    if (!documentXml) throw new Error('В DOCX не найден word/document.xml.');
+    expect(new TextDecoder().decode(documentXml)).toContain('<w:br w:type="page"/>');
+    await expect(extractUserLibraryText(file.name, file.type, content)).resolves.toBe(
+      'Привет\nworld\fВторая страница',
+    );
   });
   it('extracts plain RTF text with hex and unicode escapes', async () => {
     const rtf = '{\\rtf1\\ansi\\ab тест}';
@@ -274,6 +278,46 @@ describe('user-library formats', () => {
       zip,
     );
     expect(text).toContain('Клинический случай');
+  });
+
+  it('keeps rendered Word page markers in extracted text', async () => {
+    const documentXml =
+      '<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Первая страница</w:t></w:r></w:p><w:p><w:r><w:lastRenderedPageBreak/></w:r></w:p><w:p><w:r><w:t>Вторая страница</w:t></w:r></w:p></w:body></w:document>';
+    const text = await extractUserLibraryText(
+      'pages.docx',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      buildStoredZip({ 'word/document.xml': documentXml }),
+    );
+    expect(text).toBe('Первая страница\fВторая страница');
+  });
+
+  it('extracts searchable text from XLSX, XLSM, XLS, and CSV sheets', async () => {
+    const XLSX = await import('xlsx');
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet([
+        ['Диагноз', 'Значение'],
+        ['Пневмония', 'Есть'],
+      ]),
+      'Результаты',
+    );
+    const xlsx = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+    const xlsm = XLSX.write(workbook, { type: 'array', bookType: 'xlsm' }) as ArrayBuffer;
+    const xls = XLSX.write(workbook, { type: 'array', bookType: 'xls' }) as ArrayBuffer;
+    const csv = new TextEncoder().encode('Диагноз,Значение\nПневмония,Есть').buffer;
+
+    for (const [fileName, mimeType, data] of [
+      ['table.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsx],
+      ['table.xlsm', 'application/vnd.ms-excel.sheet.macroenabled.12', xlsm],
+      ['table.xls', 'application/vnd.ms-excel', xls],
+      ['table.csv', 'text/csv', csv],
+    ] as const) {
+      await expect(validateUserLibraryFile(fileName, mimeType, data)).resolves.toBeUndefined();
+      const text = await extractUserLibraryText(fileName, mimeType, data);
+      expect(text).toContain('Пневмония');
+      expect(text).toContain('Есть');
+    }
   });
 
   it('rejects a ZIP file that is not a valid DOCX', async () => {
@@ -360,6 +404,6 @@ describe('rtf utf-8 and pages', () => {
       '<?xml version="1.0"?><sl:document xmlns:sl="x"><sl:text-body>Согласие на обработку персональных данных</sl:text-body></sl:document>';
     const zip = buildStoredZip({ 'index.xml': indexXml });
     const text = await extractUserLibraryText('consent.pages', 'application/vnd.apple.pages', zip);
-    expect(text).toContain('Согласие на обработку персональных данных');
+    expect(text).toBe('');
   });
 });

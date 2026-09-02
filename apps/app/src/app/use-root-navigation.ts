@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 
 import {
   bootstrapDocumentReadLocation,
@@ -8,6 +8,7 @@ import {
   syncDocumentReadState,
   viewFromLocation,
 } from '@/app/root-view';
+import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
 import { isDocumentReadRoute } from '@/state/document-route';
 
 type RootNavigationDirection = 'forward' | 'backward';
@@ -19,6 +20,8 @@ interface RootNavigationMotion {
 }
 
 const ROOT_NAVIGATION_MOTION_MS = 180;
+const CHROME_HIDE_AFTER = 96;
+const CHROME_DIRECTION_THRESHOLD = 1;
 
 export function useRootNavigation() {
   bootstrapDocumentReadLocation();
@@ -35,9 +38,12 @@ export function useRootNavigation() {
   );
   const [rootNavigationMotion, setRootNavigationMotion] = createSignal<RootNavigationMotion>();
   const [showScrollTop, setShowScrollTop] = createSignal(false);
+  const [chromeHidden, setChromeHidden] = createSignal(false);
 
   let rootNavigationMotionFallbackTimer: ReturnType<typeof setTimeout> | undefined;
   let rootNavigationMotionEndFrame: number | undefined;
+  let scrollFrame: number | undefined;
+  let lastScrollTop = window.scrollY;
   let rootNavigationIncomingListener:
     | { readonly element: HTMLElement; readonly handler: (event: AnimationEvent) => void }
     | undefined;
@@ -138,7 +144,8 @@ export function useRootNavigation() {
     const reduceMotion =
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
       document.querySelector('.overlay-dialog') !== null ||
-      new URLSearchParams(window.location.search).has('minimed-floating');
+      new URLSearchParams(window.location.search).has('minimed-floating') ||
+      !mountedViews().has(next);
     const inFlight = rootNavigationMotion();
     if (inFlight) {
       finishRootNavigationMotion(inFlight.to);
@@ -267,16 +274,60 @@ export function useRootNavigation() {
     });
   };
 
-  const handleScroll = (): void => {
-    setShowScrollTop(window.scrollY > 48);
+  const activeReaderScrollElement = (): HTMLElement | undefined =>
+    document.querySelector<HTMLElement>('.user-document-reader--fullscreen') || undefined;
+
+  const readScrollTop = (event?: Event): number => {
+    const target = event?.target;
+    if (target instanceof HTMLElement && target.matches('.user-document-reader--fullscreen')) {
+      return target.scrollTop;
+    }
+    return window.scrollY;
+  };
+
+  const scrollToTop = (): void => {
+    const reader = activeReaderScrollElement();
+    if (reader) {
+      reader.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleScroll = (event?: Event): void => {
+    const scrollTop = readScrollTop(event);
+    const direction = scrollTop - lastScrollTop;
+    lastScrollTop = scrollTop;
     if (document.documentElement.classList.contains('using-root-view-transition')) {
       finishRootNavigationMotionIfActive();
     }
+    const canHideChrome = documentReadActive() && !medicalImageViewerActive();
+    if (!canHideChrome) {
+      if (chromeHidden()) setChromeHidden(false);
+    } else if (scrollTop <= CHROME_DIRECTION_THRESHOLD || direction < -CHROME_DIRECTION_THRESHOLD) {
+      setChromeHidden(false);
+    } else if (scrollTop > CHROME_HIDE_AFTER && direction > CHROME_DIRECTION_THRESHOLD) {
+      setChromeHidden(true);
+    }
+    if (scrollFrame !== undefined) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = undefined;
+      setShowScrollTop(scrollTop > 48);
+    });
   };
 
   const handleVisibilityChange = (): void => {
     finishRootNavigationMotionIfActive();
   };
+
+  createEffect(() => {
+    const canHideChrome = documentReadActive() && !medicalImageViewerActive();
+    if (!canHideChrome) {
+      if (chromeHidden()) setChromeHidden(false);
+      lastScrollTop = window.scrollY;
+    }
+    document.documentElement.classList.toggle('app-chrome-hidden', canHideChrome && chromeHidden());
+  });
 
   onMount(() => {
     redirectLegacySettingsRoutes();
@@ -284,6 +335,7 @@ export function useRootNavigation() {
     setView(viewFromLocation());
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
     document.addEventListener('visibilitychange', handleVisibilityChange);
     handleScroll();
   });
@@ -291,14 +343,19 @@ export function useRootNavigation() {
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
+    document.removeEventListener('scroll', handleScroll, { capture: true });
+    document.documentElement.classList.remove('app-chrome-hidden');
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     cancelRootNavigationMotionEnd();
+    if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
   });
 
   return {
     view,
     documentReadActive,
     showScrollTop,
+    chromeHidden,
+    scrollToTop,
     navigate,
     rootViewClasses,
     isViewVisible,

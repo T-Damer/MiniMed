@@ -408,7 +408,7 @@
   box-shadow: inset 0 -0.14rem 0 rgb(255 255 255 / 16%);
 }
 
-.user-library-folder-card__note-icon.app-glyph {
+.user-library-folder-card__system-icon.app-glyph {
   width: 1.5rem;
   height: 1.5rem;
   color: color-mix(in srgb, var(--theme-text) 70%, var(--folder-dark));
@@ -416,30 +416,6 @@
 
 .user-library-folder-card__title {
   max-width: 100%;
-}
-
-/* Free-form placement view (documents only; folders stay in the grid above) */
-
-.user-library-page__free {
-  position: relative;
-  min-height: 60dvh;
-  overflow: hidden;
-  border: 1px dashed var(--theme-border);
-  border-radius: var(--theme-radius-panel);
-  background: color-mix(in srgb, var(--theme-surface-muted) 45%, transparent);
-}
-
-.user-library-page__free-item {
-  position: absolute;
-  width: min(16rem, 86%);
-  touch-action: none;
-  cursor: grab;
-}
-
-.user-library-page__free-item--dragging {
-  z-index: 5;
-  cursor: grabbing;
-  opacity: 0.92;
 }
 
 /* Keep the menu trigger aligned with the tile it owns. */
@@ -456,9 +432,7 @@
 }
 
 .user-library-card-menu--list,
-.user-library-folder-menu--list,
-.user-library-card-menu--free,
-.user-library-folder-menu--free {
+.user-library-folder-menu--list {
   width: 100%;
 }
 
@@ -518,7 +492,7 @@
 }
 
 .user-library-page__list--list .layout-card-grid {
-  column-gap: 0;
+  column-gap: 0.5rem;
 }
 
 .user-library-card__open--list {
@@ -548,10 +522,11 @@
 
 .user-library-folder-card__open--list {
   display: grid;
-  min-height: 2.5rem;
-  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  min-width: 0;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
   grid-template-rows: none;
   align-items: center;
+  min-height: 2.5rem;
   gap: 0.5rem;
   padding: 0.25rem 0.5rem;
   border-radius: var(--theme-radius-control);
@@ -562,22 +537,6 @@
   width: 2.25rem;
   height: 2rem;
   margin-top: 0;
-}
-
-.user-library-folder-card__title--list {
-  min-width: 0;
-  overflow: hidden;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-library-folder-card__details--list {
-  overflow: hidden;
-  max-width: 14rem;
-  text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .user-library-card--list.paper-card,
@@ -640,15 +599,159 @@
   }
 }
 
-.user-library-page__free-item {
-  width: min(14rem, 86%);
-  user-select: none;
-}
-
 .user-library-card__preview-image {
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.user-library-example-card {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--theme-border) 70%, transparent);
+  border-style: dashed;
+  font: inherit;
+  text-align: inherit;
+  background: color-mix(in srgb, var(--theme-surface-raised) 72%, transparent);
+  box-shadow: none;
+}
+
+.user-library-example-card--grid {
+  width: min(100%, 14rem);
+  justify-self: center;
+}
+
+.user-library-example-card__open {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border-radius: 0.75rem;
+}
+
+.user-library-example-card__open--grid {
+  min-height: 9.5rem;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.85rem 0.6rem 0.7rem;
+  text-align: center;
+}
+
+.user-library-example-card__figure {
+  display: grid;
+  width: 2.75rem;
+  height: 2.25rem;
+  flex: none;
+  place-items: center;
+  border: 1px dashed color-mix(in srgb, var(--theme-accent) 55%, var(--theme-border));
+  border-radius: 0.55rem;
+  background: var(--theme-accent-soft);
+}
+
+.user-library-example-card__figure--grid {
+  width: 7rem;
+  height: 4.5rem;
+  border-radius: 0.7rem;
+}
+
+.user-library-example-card__upload {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-accent);
+  background: transparent;
+  pointer-events: none;
+  cursor: inherit;
+}
+
+.user-library-example-card__upload-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+}
+
+.user-library-example-card:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.user-library-example-card__progress {
+  display: grid;
+  width: 82%;
+}
+
+.user-library-example-card__progress-bar {
+  width: 100%;
+  height: 0.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--theme-surface-muted);
+  overflow: hidden;
+}
+
+.user-library-example-card__progress-bar::-webkit-progress-bar {
+  background: var(--theme-surface-muted);
+}
+
+.user-library-example-card__progress-bar::-webkit-progress-value {
+  background: var(--theme-accent);
+}
+
+.user-library-example-card__progress-bar::-moz-progress-bar {
+  background: var(--theme-accent);
+}
+
+.user-library-example-card__text {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 0.15rem;
+}
+
+.user-library-example-card__text--grid {
+  justify-items: center;
+  width: 100%;
+}
+
+.user-library-example-card__file-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-library-example-card__meta {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.64rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-library-example-card__meta--error {
+  color: var(--theme-danger);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .user-library-example-card__upload:hover {
+    color: var(--theme-accent-contrast);
+    background: var(--theme-accent);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -882,5 +985,85 @@
   .user-library-folder-card--list.paper-card:hover {
     background: transparent;
     box-shadow: none;
+  }
+}
+
+/* Finder-like labels: the color is persisted as a semantic name and tinted by the current theme. */
+
+.user-library-card--colored[data-library-color="red"],
+.user-library-folder-card--colored[data-library-color="red"] {
+  --user-library-item-color: #d95555;
+}
+
+.user-library-card--colored[data-library-color="orange"],
+.user-library-folder-card--colored[data-library-color="orange"] {
+  --user-library-item-color: #d9822b;
+}
+
+.user-library-card--colored[data-library-color="yellow"],
+.user-library-folder-card--colored[data-library-color="yellow"] {
+  --user-library-item-color: #bf8a00;
+}
+
+.user-library-card--colored[data-library-color="green"],
+.user-library-folder-card--colored[data-library-color="green"] {
+  --user-library-item-color: #4d9564;
+}
+
+.user-library-card--colored[data-library-color="blue"],
+.user-library-folder-card--colored[data-library-color="blue"] {
+  --user-library-item-color: #4f7fbf;
+}
+
+.user-library-card--colored[data-library-color="purple"],
+.user-library-folder-card--colored[data-library-color="purple"] {
+  --user-library-item-color: #8a63b8;
+}
+
+.user-library-card--colored[data-library-color="gray"],
+.user-library-folder-card--colored[data-library-color="gray"] {
+  --user-library-item-color: #8b8580;
+}
+
+.user-library-card--colored,
+.user-library-folder-card--colored {
+  border-color: color-mix(in srgb, var(--user-library-item-color) 58%, var(--theme-border));
+  background: color-mix(in srgb, var(--user-library-item-color) 8%, var(--theme-surface-raised));
+}
+
+.user-library-card__figure.user-library-card__figure--colored {
+  border-color: color-mix(in srgb, var(--user-library-item-color) 62%, var(--theme-border));
+  background: color-mix(in srgb, var(--user-library-item-color) 22%, var(--theme-surface-raised));
+}
+
+.user-library-folder-card--colored {
+  --folder-light: color-mix(
+    in srgb,
+    var(--user-library-item-color) 52%,
+    var(--theme-surface-raised)
+  );
+  --folder-dark: color-mix(in srgb, var(--user-library-item-color) 76%, var(--theme-text));
+}
+
+@media (pointer: coarse) {
+  .user-library-card,
+  .user-library-folder-card,
+  .user-library-card__open,
+  .user-library-folder-card__open {
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    touch-action: pan-y;
+  }
+
+  body.user-library-touch-dragging {
+    user-select: none;
+  }
+
+  .user-library-card--touch-dragging,
+  .user-library-folder-card--touch-dragging {
+    z-index: 5;
+    opacity: 0.72;
+    touch-action: none;
   }
 }

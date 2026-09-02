@@ -106,7 +106,7 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
   });
 
   createEffect(() => {
-    client.setUnits(props.units());
+    if (open()) client.setUnits(props.units());
   });
 
   createEffect(

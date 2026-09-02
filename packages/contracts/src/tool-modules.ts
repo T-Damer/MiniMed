@@ -1,10 +1,17 @@
 import { z } from 'zod';
 
+import {
+  HttpUrlSchema,
+  ObservationMappingSchema,
+  ToolEvaluationSchema,
+} from './clinical-observations';
+
 export const ToolModuleKindSchema = z.enum(['calculator', 'assessment']);
 
 const AssessmentResponseValueSchema = z.number().int().min(0).max(100);
 
 export const AssessmentDefinitionSchema = z.object({
+  schemaVersion: z.literal(2),
   id: z.string().min(1),
   slug: z.string().min(1),
   title: z.string().min(1),
@@ -51,10 +58,12 @@ export const AssessmentDefinitionSchema = z.object({
       }),
     )
     .optional(),
+  evaluation: ToolEvaluationSchema,
+  observationMappings: z.array(ObservationMappingSchema).default([]),
   license: z.object({
     kind: z.enum(['project-original', 'public-domain-derived', 'third-party-attributed']),
     notice: z.string().min(1),
-    sourceUrl: z.string().url().optional(),
+    sourceUrl: HttpUrlSchema.optional(),
   }),
 });
 
@@ -65,7 +74,7 @@ export const ToolSourceLinkSchema = z.object({
   title: z.string().min(1),
   moduleId: z.string().min(1).nullable().default(null),
   documentId: z.string().min(1).nullable().default(null),
-  url: z.string().url().nullable().default(null),
+  url: HttpUrlSchema.nullable().default(null),
   reviewedAt: z.string().min(1),
 });
 

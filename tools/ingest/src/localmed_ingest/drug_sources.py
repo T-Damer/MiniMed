@@ -37,7 +37,7 @@ class DrugSourceSpec(CamelModel):
     acquisition: AcquisitionMode
     location: str | None = None
     target: str | None = None
-    content_type: Literal["auto", "pdf", "text", "markdown"] = "auto"
+    content_type: Literal["auto", "binary", "pdf", "text", "markdown"] = "auto"
     sha256: str | None = None
     max_bytes: int = Field(default=100 * 1024 * 1024, gt=0)
     enabled: bool = False

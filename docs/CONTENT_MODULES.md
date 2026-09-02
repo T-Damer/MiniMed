@@ -2,14 +2,12 @@
 
 ## Product decision
 
-This document describes source and distribution modules. The target runtime no longer mounts each
-enabled module as a separate searchable SQLite store. Per [ADR 0012](adr/0012-curated-core-edition-before-sharding.md),
-approved modules compile into one immutable curated `core.db` edition; the edition activates and
-rolls back as a whole. Modules remain useful for collection, rights review, provenance, category
-coverage, and build selection.
-
-The current per-module runtime and monolithic pilot are transitional implementations. The compiler
-must preserve stable document, section, chunk, entity, and relation IDs while producing an edition.
+This document describes source and distribution modules. Per
+[ADR 0017](adr/0017-lightweight-core-index-and-domain-packs.md), `core.db` is the always-installed
+discovery index and large reader payloads live in independently versioned domain packs such as
+`medications.db`. Modules remain useful for collection, rights review, provenance, category coverage,
+download selection, and rollback. Stable document, section, chunk, entity, relation, and module IDs
+join core pointers to installed payloads.
 
 ## Initial module map
 

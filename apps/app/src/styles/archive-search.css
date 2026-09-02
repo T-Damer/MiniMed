@@ -76,7 +76,7 @@
   color: var(--ink);
   background: transparent;
   font-family: var(--font-serif);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.35;
 }
 
@@ -90,6 +90,35 @@
 .archive-search__input::placeholder {
   color: var(--ink-faint);
   opacity: 0.85;
+}
+
+.archive-search__input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.archive-search__clear {
+  display: inline-grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: pointer;
+}
+
+.archive-search__clear:hover,
+.archive-search__clear:focus-visible {
+  color: var(--ink);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.archive-search__clear-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .archive-search--inverse .archive-search__control {
@@ -163,7 +192,7 @@
 .document-overlay-search-slot::before {
   position: absolute;
   z-index: var(--z-behind);
-  inset: 0 0 -1.25rem;
+  inset: 0.5rem 0 -1.75rem;
   content: "";
   background-image: var(--masked-grain-image);
   background-size: 12.5rem 12.5rem;

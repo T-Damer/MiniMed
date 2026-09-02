@@ -23,8 +23,12 @@ import {
 import {
   analyzeClinicalQuery,
   buildSnippet,
+  findNormalizedPhraseIndex,
+  fuzzyPhraseSpan,
   type LexicalQueryBranchPlan,
+  MIN_FUZZY_TOKEN_LENGTH,
   normalizeSurfaceText,
+  tokenize,
 } from '@localmed/search-lexical';
 import { profilesCompatible, type QueryEmbedder } from '@localmed/search-semantic';
 import type { LexicalHit, MedicalStore, VectorHit } from '@localmed/storage';
@@ -36,6 +40,7 @@ import {
   toMedicalDocument,
   toMedicalSection,
 } from './mappers';
+import { rankSearchGroupsByQuery } from './query-group-ranking';
 import {
   resolveSearchResultContext,
   type SearchResultContextHint,
@@ -76,6 +81,61 @@ function matchedTerms(hit: LexicalHit, terms: readonly string[]): readonly strin
   return terms.filter((term) => haystack.includes(normalizeSurfaceText(term)));
 }
 
+const PRESENTATION_FIELD_PATTERN =
+  /(?:^|[;\n])\s*(?:-\s*)?(?:тн|торговое\s+наименование|лекарственная\s+форма|нормализованные\s+формы\/дозировки)\s*:\s*([^.;\n]+)/giu;
+const KNOWN_PRESENTATION_FIELD_PATTERN =
+  /(?:^|[;\n])\s*(?:-\s*)?(?:тн|торговое\s+наименование)\s*:\s*([^.;\n]+)/giu;
+
+function presentationRowTerms(originalText: string, terms: readonly string[]): readonly string[] {
+  const normalizedTerms = terms
+    .map((term) => normalizeSurfaceText(term))
+    .filter((term) => term.length >= 3);
+  if (normalizedTerms.length === 0) return [];
+
+  const candidates = originalText
+    .split(/\r?\n/u)
+    .map((line) => {
+      const normalizedLine = normalizeSurfaceText(line);
+      const matchedTermCount = new Set(
+        normalizedTerms.filter((term) => normalizedLine.includes(term)),
+      ).size;
+      KNOWN_PRESENTATION_FIELD_PATTERN.lastIndex = 0;
+      const exactAliasValues = [...line.matchAll(KNOWN_PRESENTATION_FIELD_PATTERN)].map((match) =>
+        normalizeSurfaceText(match[1] ?? ''),
+      );
+      const exactAliasCount = normalizedTerms.filter((term) =>
+        exactAliasValues.includes(term),
+      ).length;
+      const hasPresentationField = PRESENTATION_FIELD_PATTERN.test(line);
+      PRESENTATION_FIELD_PATTERN.lastIndex = 0;
+      return { line, matchedTermCount, exactAliasCount, hasPresentationField };
+    })
+    .filter((candidate) => candidate.hasPresentationField && candidate.matchedTermCount > 0);
+  const best = candidates.toSorted(
+    (left, right) =>
+      right.exactAliasCount - left.exactAliasCount ||
+      right.matchedTermCount - left.matchedTermCount,
+  )[0];
+  if (!best) return [];
+
+  const values: string[] = [];
+  PRESENTATION_FIELD_PATTERN.lastIndex = 0;
+  for (const match of best.line.matchAll(PRESENTATION_FIELD_PATTERN)) {
+    const value = match[1]?.trim();
+    if (value && !values.includes(value)) values.push(value);
+  }
+  return values;
+}
+
+function buildQueryAlignedSnippet(
+  hit: LexicalHit,
+  terms: readonly string[],
+): ReturnType<typeof buildSnippet> {
+  const rowTerms = presentationRowTerms(hit.chunk.originalText, terms);
+  const snippetTerms = [...terms, ...rowTerms.filter((term) => !terms.includes(term))];
+  return buildSnippet(hit.chunk.originalText, snippetTerms, rowTerms.length > 0 ? 520 : 360);
+}
+
 function resultCategory(sectionType: string | null): SearchResultCategory {
   switch (sectionType) {
     case 'definition':
@@ -103,10 +163,7 @@ function resultCategory(sectionType: string | null): SearchResultCategory {
 function toSearchResult(aggregate: AggregatedHit): SearchResult {
   const terms = [...aggregate.terms];
   const matches = matchedTerms(aggregate.hit, terms);
-  const snippet = buildSnippet(
-    aggregate.hit.chunk.originalText,
-    matches.length > 0 ? matches : terms,
-  );
+  const snippet = buildQueryAlignedSnippet(aggregate.hit, matches.length > 0 ? matches : terms);
   return {
     chunkId: aggregate.hit.chunk.id,
     documentId: aggregate.hit.document.id,
@@ -175,18 +232,215 @@ function isMetaSection(result: SearchResult): boolean {
   return leaf === 'ограничения' || leaf === 'источник и ограничения';
 }
 
+interface MedicationAliasCandidate {
+  readonly alias: string;
+  readonly normalizedAlias: string;
+  readonly normalizedCanonicalTerm: string;
+}
+
+const TRADE_NAME_FIELD_PATTERN =
+  /(?:^|[.;])\s*(?:…\s*)?(?:-\s*)?(?:тн|торговое\s+наименование)\s*:\s*([^.;\n]+)/giu;
+
+function presentationTradeNameFromSnippet(
+  snippet: string,
+  query: string,
+  searchTerms: readonly string[],
+  aliases: readonly MedicationAliasCandidate[],
+): string | null {
+  const normalizedTerms = [
+    ...new Set(
+      [...searchTerms, ...tokenize(query)]
+        .map((term) => normalizeSurfaceText(term))
+        .filter((term) => term.length >= 3),
+    ),
+  ];
+  const candidates = snippet.split(/\r?\n/u).flatMap((line) => {
+    TRADE_NAME_FIELD_PATTERN.lastIndex = 0;
+    return [...line.matchAll(TRADE_NAME_FIELD_PATTERN)].flatMap((match) => {
+      const value = match[1]?.trim();
+      if (!value) return [];
+      const normalizedLine = normalizeSurfaceText(line);
+      const normalizedValue = normalizeSurfaceText(value);
+      const matchedTermCount = new Set(
+        normalizedTerms.filter((term) => normalizedLine.includes(term)),
+      ).size;
+      const exactQueryAlias = aliases.some((alias) => alias.normalizedAlias === normalizedValue);
+      return [{ value, matchedTermCount, exactQueryAlias }];
+    });
+  });
+  return (
+    candidates.toSorted(
+      (left, right) =>
+        right.matchedTermCount - left.matchedTermCount ||
+        Number(right.exactQueryAlias) - Number(left.exactQueryAlias),
+    )[0]?.value ?? null
+  );
+}
+
+function selectedGroupPresentation(
+  first: SearchResult,
+  query: string,
+  searchTerms: readonly string[],
+  aliases: readonly MedicationAliasCandidate[],
+): string | null {
+  const normalizedTitle = normalizeSurfaceText(first.title);
+  const queryAlias = aliases.find(
+    (candidate) => candidate.normalizedCanonicalTerm === normalizedTitle,
+  )?.alias;
+  const snippetTradeName = presentationTradeNameFromSnippet(
+    first.snippet,
+    query,
+    searchTerms,
+    aliases.filter((candidate) => candidate.normalizedCanonicalTerm === normalizedTitle),
+  );
+  if (!queryAlias || !snippetTradeName) return queryAlias ?? null;
+  return tokenize(normalizeSurfaceText(snippetTradeName)).length >
+    tokenize(normalizeSurfaceText(queryAlias)).length
+    ? snippetTradeName
+    : queryAlias;
+}
+
+type MedicalAliasRecords = Awaited<ReturnType<MedicalStore['listAliases']>>;
+type MedicalAliasRecord = MedicalAliasRecords[number];
+
+function isFixedCombinationTerm(term: string): boolean {
+  const normalizedTerm = normalizeSurfaceText(term);
+  return /[+;/]/u.test(normalizedTerm) || /(?:^|\s)и(?:\s|$)/u.test(normalizedTerm);
+}
+
+function isComponentMedicationAlias(alias: MedicalAliasRecord): boolean {
+  if (alias.category !== 'medication') return false;
+  const normalizedAlias = normalizeSurfaceText(alias.alias);
+  const normalizedCanonicalTerm = normalizeSurfaceText(alias.canonicalTerm);
+  return (
+    normalizedAlias !== normalizedCanonicalTerm &&
+    isFixedCombinationTerm(normalizedCanonicalTerm) &&
+    findNormalizedPhraseIndex(normalizedCanonicalTerm, normalizedAlias) >= 0
+  );
+}
+
+function filterQueryAliases(aliases: MedicalAliasRecords): MedicalAliasRecords {
+  return aliases.filter((alias) => !isComponentMedicationAlias(alias));
+}
+
+function exactMedicationAliasCandidates(
+  query: string,
+  aliases: MedicalAliasRecords,
+): readonly MedicationAliasCandidate[] {
+  const normalizedQuery = normalizeSurfaceText(query);
+  return aliases
+    .filter((alias) => alias.category === 'medication')
+    .map((alias) => ({
+      alias: alias.alias,
+      normalizedAlias: normalizeSurfaceText(alias.alias),
+      normalizedCanonicalTerm: normalizeSurfaceText(alias.canonicalTerm),
+    }))
+    .filter(
+      ({ normalizedAlias, normalizedCanonicalTerm }) =>
+        normalizedAlias !== normalizedCanonicalTerm &&
+        findNormalizedPhraseIndex(normalizedQuery, normalizedAlias) >= 0,
+    )
+    .toSorted((left, right) => right.normalizedAlias.length - left.normalizedAlias.length);
+}
+
+function snippetQueryTokenCoverage(result: SearchResult, searchTerms: readonly string[]): number {
+  const snippetTokens = tokenize(result.snippet).filter((token) => token.length >= 4);
+  const queryTokens = new Set(
+    searchTerms.flatMap((term) => tokenize(term)).filter((token) => token.length >= 4),
+  );
+  return [...queryTokens].filter((queryToken) =>
+    snippetTokens.some(
+      (snippetToken) =>
+        snippetToken === queryToken ||
+        snippetToken.startsWith(queryToken) ||
+        queryToken.startsWith(snippetToken),
+    ),
+  ).length;
+}
+
+function presentationAliasSnippetBoost(
+  result: SearchResult,
+  candidates: readonly MedicationAliasCandidate[],
+): number {
+  const normalizedSnippet = normalizeSurfaceText(result.snippet);
+  const fields = ['тн:', 'торговое наименование:'];
+  return candidates.some((candidate) =>
+    fields.some(
+      (field) =>
+        findNormalizedPhraseIndex(normalizedSnippet, `${field} ${candidate.normalizedAlias}.`) >= 0,
+    ),
+  )
+    ? 0.35
+    : 0;
+}
+
+function suffixFallbackCanonicalTerms(
+  query: string,
+  aliases: MedicalAliasRecords,
+): ReadonlySet<string> {
+  const normalizedQuery = normalizeSurfaceText(query);
+  const queryTokens = tokenize(normalizedQuery);
+  const queryToken = queryTokens.length === 1 ? queryTokens[0] : undefined;
+  if (!queryToken || queryToken.length < MIN_FUZZY_TOKEN_LENGTH) return new Set();
+  const hasExactSingleTokenMedicationAlias = aliases.some((alias) => {
+    if (alias.category !== 'medication') return false;
+    const normalizedAlias = normalizeSurfaceText(alias.alias);
+    return normalizedAlias === normalizedQuery && tokenize(normalizedAlias).length === 1;
+  });
+  if (hasExactSingleTokenMedicationAlias) return new Set();
+
+  const canonicalTerms = new Set<string>();
+  for (const alias of aliases) {
+    if (alias.category !== 'medication') continue;
+    const normalizedAlias = normalizeSurfaceText(alias.alias);
+    const aliasTokens = tokenize(normalizedAlias);
+    if (
+      aliasTokens.length !== 2 ||
+      findNormalizedPhraseIndex(normalizedQuery, normalizedAlias) >= 0 ||
+      !fuzzyPhraseSpan(normalizedQuery, normalizedAlias)
+    ) {
+      continue;
+    }
+    canonicalTerms.add(normalizeSurfaceText(alias.canonicalTerm));
+  }
+  return canonicalTerms;
+}
+
+function filterSuffixFallbackGroups(
+  groups: readonly SearchResultGroup[],
+  query: string,
+  aliases: MedicalAliasRecords,
+): readonly SearchResultGroup[] {
+  const canonicalTerms = suffixFallbackCanonicalTerms(query, aliases);
+  if (canonicalTerms.size === 0) return groups;
+
+  const canonicalGroups = groups.filter((group) =>
+    group.results.some((result) => canonicalTerms.has(normalizeSurfaceText(result.title))),
+  );
+  return canonicalGroups.length > 0 ? canonicalGroups : groups;
+}
+
 function groupResults(
   results: readonly SearchResult[],
   preferredSectionType: 'diagnostics' | 'routing' | 'treatment' | null,
   demoteMetaSections: boolean,
+  query: string,
+  searchTerms: readonly string[],
+  aliases: MedicalAliasRecords,
+  documents: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
 ): readonly SearchResultGroup[] {
+  const medicationAliasCandidates = exactMedicationAliasCandidates(query, aliases);
+  const normalizedQuery = normalizeSurfaceText(query);
+  const exactPresentationAliasCandidates = medicationAliasCandidates.filter(
+    (candidate) => candidate.normalizedAlias === normalizedQuery,
+  );
   const byDocument = new Map<string, SearchResult[]>();
   for (const result of results) {
     const group = byDocument.get(result.documentId) ?? [];
     group.push(result);
     byDocument.set(result.documentId, group);
   }
-  return [...byDocument.entries()]
+  const groups = [...byDocument.entries()]
     .map(([documentId, documentResults]) => {
       const sorted = documentResults.toSorted((left, right) => {
         const preferredDifference = preferredSectionType
@@ -196,13 +450,34 @@ function groupResults(
         const metaDifference = demoteMetaSections
           ? Number(isMetaSection(left)) - Number(isMetaSection(right))
           : 0;
-        return preferredDifference || metaDifference || right.finalScore - left.finalScore;
+        const presentationAliasDifference =
+          presentationAliasSnippetBoost(right, exactPresentationAliasCandidates) -
+          presentationAliasSnippetBoost(left, exactPresentationAliasCandidates);
+        const snippetCoverageDifference =
+          snippetQueryTokenCoverage(right, searchTerms) -
+          snippetQueryTokenCoverage(left, searchTerms);
+        const originalQueryCoverageDifference =
+          snippetQueryTokenCoverage(right, [query]) - snippetQueryTokenCoverage(left, [query]);
+        return (
+          preferredDifference ||
+          metaDifference ||
+          presentationAliasDifference ||
+          originalQueryCoverageDifference ||
+          snippetCoverageDifference ||
+          right.finalScore - left.finalScore
+        );
       });
       const first = sorted[0];
       if (!first) throw new Error('Search group cannot be empty.');
+      const presentation = selectedGroupPresentation(
+        first,
+        query,
+        searchTerms,
+        medicationAliasCandidates,
+      );
       return {
         documentId,
-        title: first.title,
+        title: presentation ? `${presentation} · ${first.title}` : first.title,
         bestScore: Math.max(...documentResults.map((result) => result.finalScore)),
         categories: [...new Set(sorted.map((result) => result.category))],
         results: sorted,
@@ -215,6 +490,7 @@ function groupResults(
         : 0;
       return preferredDifference || right.bestScore - left.bestScore;
     });
+  return rankSearchGroupsByQuery(groups, query, documents);
 }
 
 function filterSupersededSummaryResults(
@@ -314,7 +590,7 @@ function vectorResult(
 ): SearchResult {
   const lexicalLikeHit: LexicalHit = { ...hit, rank: 0 };
   const matches = matchedTerms(lexicalLikeHit, terms);
-  const snippet = buildSnippet(hit.chunk.originalText, matches.length > 0 ? matches : terms);
+  const snippet = buildQueryAlignedSnippet(lexicalLikeHit, matches.length > 0 ? matches : terms);
   return {
     chunkId: hit.chunk.id,
     documentId: hit.document.id,
@@ -393,9 +669,15 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   const platform = options.platform ?? 'unknown';
   const seed = options.seed === undefined ? undefined : ContentPackSeedSchema.parse(options.seed);
   let initialized = false;
+  let aliasesPromise: Promise<Result<MedicalAliasRecords, LocalMedError>> | undefined;
+  let documentSummariesPromise:
+    | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
+    | undefined;
 
   const initialize = async (): Promise<Result<CoreStatus, LocalMedError>> => {
     try {
+      aliasesPromise = undefined;
+      documentSummariesPromise = undefined;
       const health = await options.store.initialize(seed);
       initialized = true;
       return ok({
@@ -429,13 +711,18 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   const getAliases = async (): Promise<
     Result<Awaited<ReturnType<MedicalStore['listAliases']>>, LocalMedError>
   > => {
-    const ready = await ensureInitialized();
-    if (!ready.ok) return err(ready.error);
-    try {
-      return ok(await options.store.listAliases());
-    } catch (error) {
-      return err(asLocalMedError(error));
-    }
+    aliasesPromise ??= (async () => {
+      const ready = await ensureInitialized();
+      if (!ready.ok) return err(ready.error);
+      try {
+        return ok(filterQueryAliases(await options.store.listAliases()));
+      } catch (error) {
+        return err(asLocalMedError(error));
+      }
+    })();
+    const result = await aliasesPromise;
+    if (!result.ok) aliasesPromise = undefined;
+    return result;
   };
 
   const analyze = async (
@@ -490,10 +777,6 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       nextChunkId: chunk.nextChunkId,
     };
   };
-
-  let documentSummariesPromise:
-    | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
-    | undefined;
 
   return {
     initialize,
@@ -582,31 +865,32 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
         }
 
-        const branchHits: {
-          branch: LexicalQueryBranchPlan;
-          hits: readonly LexicalHit[];
-        }[] = [];
-        const branchDiagnostics: SearchResponse['diagnostics']['branches'][number][] = [];
         const perBranchLimit = Math.max(parsed.data.limit * 5, 50);
-
-        for (const branch of plan.branches) {
-          const branchStartedAt = performance.now();
-          const hits = await options.store.search({
-            ftsQuery: branch.ftsQuery,
-            terms: branch.terms,
-            filters: parsed.data.filters,
-            limit: perBranchLimit,
-          });
-          branchHits.push({ branch, hits });
-          branchDiagnostics.push({
-            id: branch.id,
-            label: branch.label,
-            ftsQuery: branch.ftsQuery,
-            candidateCount: hits.length,
-            elapsedMs: performance.now() - branchStartedAt,
-            weight: branch.weight,
-          });
-        }
+        const branchSearches = await Promise.all(
+          plan.branches.map(async (branch) => {
+            const branchStartedAt = performance.now();
+            const hits = await options.store.search({
+              ftsQuery: branch.ftsQuery,
+              terms: branch.terms,
+              filters: parsed.data.filters,
+              limit: perBranchLimit,
+            });
+            return {
+              branch,
+              hits,
+              diagnostics: {
+                id: branch.id,
+                label: branch.label,
+                ftsQuery: branch.ftsQuery,
+                candidateCount: hits.length,
+                elapsedMs: performance.now() - branchStartedAt,
+                weight: branch.weight,
+              },
+            };
+          }),
+        );
+        const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
+        const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 
         const lexicalResults = fuseBranchHits(branchHits, perBranchLimit);
         const requestedMode = parsed.data.mode;
@@ -665,14 +949,8 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
 
         const rankedResults =
           modeUsed === 'lexical'
-            ? lexicalResults.slice(0, parsed.data.limit)
-            : fuseSemanticResults(
-                lexicalResults,
-                vectorHits,
-                plan.terms,
-                modeUsed,
-                parsed.data.limit,
-              );
+            ? lexicalResults
+            : fuseSemanticResults(lexicalResults, vectorHits, plan.terms, modeUsed, perBranchLimit);
         const documents = await options.store.listDocuments();
         const availableDocumentIds = new Set(documents.map((document) => document.id));
         const results = filterSupersededSummaryResults(rankedResults, availableDocumentIds);
@@ -680,6 +958,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
           ...vectorHits.map((hit) => hit.chunk.id),
         ]);
+        const groupedResults = filterSuffixFallbackGroups(
+          groupResults(
+            results,
+            requestedSectionType(plan.analysis.normalizedQuery),
+            !/ограничен/u.test(plan.analysis.normalizedQuery),
+            plan.analysis.normalizedQuery,
+            plan.terms,
+            aliasesResult.value,
+            documents,
+          ),
+          plan.analysis.normalizedQuery,
+          aliasesResult.value,
+        );
         return ok({
           requestId: requestId(),
           normalizedQuery: plan.analysis.normalizedQuery,
@@ -687,11 +978,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           modeUsed,
           analysis: plan.analysis,
           suggestions: plan.analysis.suggestions,
-          groups: groupResults(
-            results,
-            requestedSectionType(plan.analysis.normalizedQuery),
-            !/ограничен/u.test(plan.analysis.normalizedQuery),
-          ),
+          groups: groupedResults.slice(0, parsed.data.limit),
           diagnostics: {
             ftsQuery: plan.branches.map((branch) => branch.ftsQuery).join(' || '),
             candidateCount: candidateIds.size,
@@ -800,6 +1087,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     async close(): Promise<void> {
       await options.store.close();
       initialized = false;
+      aliasesPromise = undefined;
       documentSummariesPromise = undefined;
     },
   };

@@ -14,6 +14,11 @@
   --ui-switch-shift: 1.125rem;
 }
 
+.ui-switch--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .ui-switch__track {
   display: block;
   position: relative;

@@ -22,6 +22,27 @@ interface BottomNavBubbleTravel {
   readonly overscroll: number;
 }
 
+interface BottomNavButtonGeometry {
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
+  readonly center: number;
+}
+
+interface BottomNavGeometry {
+  readonly left: number;
+  readonly width: number;
+  readonly buttons: readonly BottomNavButtonGeometry[];
+}
+
+interface PendingBottomNavMove {
+  readonly pointerId: number;
+  readonly clientX: number;
+  readonly velocity: number;
+  readonly direction: number;
+}
+
 interface BottomNavGesture {
   readonly pointerId: number;
   readonly startX: number;
@@ -61,12 +82,39 @@ export function useBottomNav(options: {
   let bottomNavResizeObserver: ResizeObserver | undefined;
   let bottomNavGesture: BottomNavGesture | undefined;
   let bottomNavBubbleFrame: number | undefined;
+  let bottomNavPointerFrame: number | undefined;
+  let pendingBottomNavMove: PendingBottomNavMove | undefined;
   let bottomNavBubbleSettleTimer: ReturnType<typeof setTimeout> | undefined;
   let suppressNavClickUntil = 0;
   let transitionObserver: MutationObserver | undefined;
 
   const navButtons = (): readonly HTMLButtonElement[] =>
     bottomNav ? Array.from(bottomNav.querySelectorAll<HTMLButtonElement>('.app-nav-button')) : [];
+
+  const readBottomNavGeometry = (): BottomNavGeometry | undefined => {
+    if (!bottomNav) return undefined;
+    const navRect = bottomNav.getBoundingClientRect();
+    const buttons = navButtons()
+      .map((button) => {
+        const rect = button.getBoundingClientRect();
+        return {
+          left: rect.left - navRect.left,
+          top: rect.top - navRect.top,
+          width: rect.width,
+          height: rect.height,
+          center: rect.left - navRect.left + rect.width / 2,
+        };
+      })
+      .filter((button) => button.width > 0 && button.height > 0);
+    return buttons.length > 0 ? { left: navRect.left, width: navRect.width, buttons } : undefined;
+  };
+
+  let bottomNavGeometry: BottomNavGeometry | undefined;
+
+  const getBottomNavGeometry = (): BottomNavGeometry | undefined => {
+    if (!bottomNavGeometry) bottomNavGeometry = readBottomNavGeometry();
+    return bottomNavGeometry;
+  };
 
   const settleBottomNavBubbleMotion = (): void => {
     if (bottomNavBubbleSettleTimer) clearTimeout(bottomNavBubbleSettleTimer);
@@ -82,18 +130,16 @@ export function useBottomNav(options: {
     bottomNavBubbleFrame = requestAnimationFrame(() => {
       bottomNavBubbleFrame = requestAnimationFrame(() => {
         bottomNavBubbleFrame = undefined;
-        const nav = bottomNav;
         const activeIndex = ROOT_VIEW_ORDER.get(options.view()) ?? 0;
-        const button = navButtons()[activeIndex];
-        if (!nav || !button) return;
-        const navRect = nav.getBoundingClientRect();
-        const buttonRect = button.getBoundingClientRect();
-        if (buttonRect.width <= 0 || buttonRect.height <= 0) return;
+        bottomNavGeometry = readBottomNavGeometry();
+        const geometry = bottomNavGeometry;
+        const button = geometry?.buttons[activeIndex];
+        if (!geometry || !button) return;
         const next = {
-          left: buttonRect.left - navRect.left,
-          top: buttonRect.top - navRect.top,
-          width: buttonRect.width,
-          height: buttonRect.height,
+          left: button.left,
+          top: button.top,
+          width: button.width,
+          height: button.height,
         };
         const previous = bottomNavBubble();
         const dx = next.left - previous.left;
@@ -115,6 +161,7 @@ export function useBottomNav(options: {
 
   const bindNav = (element: HTMLElement): void => {
     bottomNav = element;
+    bottomNavGeometry = undefined;
     bottomNavResizeObserver?.disconnect();
     bottomNavResizeObserver = new ResizeObserver(() => scheduleBottomNavBubble());
     bottomNavResizeObserver.observe(element);
@@ -122,12 +169,11 @@ export function useBottomNav(options: {
   };
 
   const navIndexAtX = (clientX: number): number => {
-    const buttons = navButtons();
+    const buttons = getBottomNavGeometry()?.buttons ?? [];
     let closestIndex = 0;
     let closestDistance = Number.POSITIVE_INFINITY;
     buttons.forEach((button, index) => {
-      const rect = button.getBoundingClientRect();
-      const distance = Math.abs(clientX - (rect.left + rect.width / 2));
+      const distance = Math.abs(clientX - (button.center + (bottomNavGeometry?.left ?? 0)));
       if (distance < closestDistance) {
         closestDistance = distance;
         closestIndex = index;
@@ -137,26 +183,41 @@ export function useBottomNav(options: {
   };
 
   const moveBottomNavBubbleTo = (clientX: number): BottomNavBubbleTravel => {
-    const nav = bottomNav;
     const current = bottomNavBubble();
-    const buttons = navButtons();
-    const first = buttons[0];
-    const last = buttons[buttons.length - 1];
-    if (!nav || !current || !first || !last) return { edge: 0, overscroll: 0 };
-    const navRect = nav.getBoundingClientRect();
-    const firstRect = first.getBoundingClientRect();
-    const lastRect = last.getBoundingClientRect();
-    const minCenter = firstRect.left - navRect.left + firstRect.width / 2;
-    const maxCenter = lastRect.left - navRect.left + lastRect.width / 2;
-    const relativeX = clientX - navRect.left;
-    const edge: -1 | 0 | 1 = relativeX < 0 ? -1 : relativeX > navRect.width ? 1 : 0;
-    const outsideDistance = edge === -1 ? -relativeX : edge === 1 ? relativeX - navRect.width : 0;
-    const overscroll = Math.min(1, outsideDistance / Math.max(1, navRect.width * 0.35));
+    const geometry = getBottomNavGeometry();
+    const first = geometry?.buttons[0];
+    const last = geometry?.buttons.at(-1);
+    if (!geometry || !current || !first || !last) return { edge: 0, overscroll: 0 };
+    const minCenter = first.center;
+    const maxCenter = last.center;
+    const relativeX = clientX - geometry.left;
+    const edge: -1 | 0 | 1 = relativeX < 0 ? -1 : relativeX > geometry.width ? 1 : 0;
+    const outsideDistance = edge === -1 ? -relativeX : edge === 1 ? relativeX - geometry.width : 0;
+    const overscroll = Math.min(1, outsideDistance / Math.max(1, geometry.width * 0.35));
     const center = Math.max(minCenter, Math.min(maxCenter, relativeX));
     const left =
-      edge === -1 ? 0 : edge === 1 ? navRect.width - current.width : center - current.width / 2;
+      edge === -1 ? 0 : edge === 1 ? geometry.width - current.width : center - current.width / 2;
     setBottomNavBubble({ ...current, left });
     return { edge, overscroll };
+  };
+
+  const flushBottomNavPointerMove = (): void => {
+    bottomNavPointerFrame = undefined;
+    const pending = pendingBottomNavMove;
+    pendingBottomNavMove = undefined;
+    const gesture = bottomNavGesture;
+    if (!pending || !gesture?.moved) return;
+    if (gesture.pointerId !== pending.pointerId) return;
+    const travel = moveBottomNavBubbleTo(pending.clientX);
+    setBottomNavBubbleMotion({
+      origin: travel.edge === -1 ? 'left' : travel.edge === 1 ? 'right' : 'center',
+      scaleX: Math.max(0.38, 1 + pending.velocity * 0.72 - travel.overscroll * 0.62),
+      scaleY: 1 - pending.velocity * 0.18 + travel.overscroll * 0.12,
+      rotate: pending.direction * (pending.velocity * 8 + travel.overscroll * 2),
+    });
+    const nextIndex = navIndexAtX(pending.clientX);
+    if (nextIndex !== bottomNavDragIndex()) hapticFeedback('selection');
+    setBottomNavDragIndex(nextIndex);
   };
 
   const bubbleStyle = (): string => {
@@ -169,6 +230,15 @@ export function useBottomNav(options: {
   const finishBottomNavGesture = (event: PointerEvent | undefined, commit = true): void => {
     const gesture = bottomNavGesture;
     if (!gesture || (event && gesture.pointerId !== event.pointerId)) return;
+    if (commit && pendingBottomNavMove) {
+      if (bottomNavPointerFrame !== undefined) cancelAnimationFrame(bottomNavPointerFrame);
+      bottomNavPointerFrame = undefined;
+      flushBottomNavPointerMove();
+    } else {
+      if (bottomNavPointerFrame !== undefined) cancelAnimationFrame(bottomNavPointerFrame);
+      bottomNavPointerFrame = undefined;
+      pendingBottomNavMove = undefined;
+    }
     const targetIndex = bottomNavDragIndex() ?? gesture.startIndex;
     const target = ROOT_VIEWS[targetIndex];
     if (gesture.moved && commit) {
@@ -233,16 +303,15 @@ export function useBottomNav(options: {
     const velocity = Math.min(1, Math.abs(deltaSinceLastMove) / elapsed / 0.8);
     gesture.lastX = event.clientX;
     gesture.lastTime = now;
-    const travel = moveBottomNavBubbleTo(event.clientX);
-    setBottomNavBubbleMotion({
-      origin: travel.edge === -1 ? 'left' : travel.edge === 1 ? 'right' : 'center',
-      scaleX: Math.max(0.38, 1 + velocity * 0.72 - travel.overscroll * 0.62),
-      scaleY: 1 - velocity * 0.18 + travel.overscroll * 0.12,
-      rotate: gesture.lastDirection * (velocity * 8 + travel.overscroll * 2),
-    });
-    const nextIndex = navIndexAtX(event.clientX);
-    if (nextIndex !== bottomNavDragIndex()) hapticFeedback('selection');
-    setBottomNavDragIndex(nextIndex);
+    pendingBottomNavMove = {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      velocity,
+      direction: gesture.lastDirection,
+    };
+    if (bottomNavPointerFrame === undefined) {
+      bottomNavPointerFrame = requestAnimationFrame(flushBottomNavPointerMove);
+    }
   };
 
   const handleClick = (next: RootView): void => {
@@ -292,6 +361,7 @@ export function useBottomNav(options: {
     transitionObserver?.disconnect();
     bottomNavResizeObserver?.disconnect();
     if (bottomNavBubbleFrame !== undefined) cancelAnimationFrame(bottomNavBubbleFrame);
+    if (bottomNavPointerFrame !== undefined) cancelAnimationFrame(bottomNavPointerFrame);
     if (bottomNavBubbleSettleTimer) clearTimeout(bottomNavBubbleSettleTimer);
   });
 

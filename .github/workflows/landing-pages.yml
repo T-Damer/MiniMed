@@ -33,6 +33,7 @@ jobs:
       PUBLIC_GITHUB_URL: ${{ github.server_url }}/${{ github.repository }}
       PUBLIC_SITE_URL: https://${{ github.repository_owner }}.github.io
       PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+      VITE_USE_LOCAL_MODULE_ARTIFACTS: 'false'
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
@@ -62,8 +63,12 @@ jobs:
             --pattern "MiniMed-$version-core.db" --dir apps/app/public/content --clobber \
             || echo "MiniMed-$version-core.db not on v$version; Pages keeps the tracked core pack"
           if [ -f "apps/app/public/content/MiniMed-$version-core.db" ]; then
-            mv "apps/app/public/content/MiniMed-$version-core.db" apps/app/public/content/core-demo.db
+            mv "apps/app/public/content/MiniMed-$version-core.db" apps/app/public/content/core.db
           fi
+          mkdir -p apps/app/public/content/releases/models-preview-1
+          gh release download models-preview-1 --repo "$GITHUB_REPOSITORY" \
+            --pattern minimed-ecg-open-digitizer-2026.1-q8.zip \
+            --dir apps/app/public/content/releases/models-preview-1 --clobber
       - name: Build regulatory and reference databases
         run: |
           mkdir -p apps/app/public/content
@@ -87,6 +92,8 @@ jobs:
               cp "apps/app/public/content/$pack" "apps/app/dist/content/$pack"
             fi
           done
+          mkdir -p apps/app/dist/content/modules
+          cp apps/app/public/content/modules/*.db apps/app/dist/content/modules/
           mkdir -p apps/landing/dist/app
           cp -R apps/app/dist/. apps/landing/dist/app/
           touch apps/landing/dist/.nojekyll

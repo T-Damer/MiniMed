@@ -34,8 +34,8 @@ describe('assessment catalog', () => {
     expect(ASSESSMENT_CATALOG).toHaveLength(0);
     registerPsychologyAssessments();
     const catalog = getAssessmentCatalog();
-    expect(catalog).toHaveLength(5);
-    expect(new Set(catalog.map((item) => item.id)).size).toBe(5);
+    expect(catalog).toHaveLength(6);
+    expect(new Set(catalog.map((item) => item.id)).size).toBe(6);
     expect(catalog.every((item) => item.aliases.length > 0)).toBe(true);
   });
 
@@ -69,6 +69,8 @@ describe('assessment catalog', () => {
       'braverman-behavioral-profile',
     );
     expect(searchAssessments('Родитель Взрослый Ребёнок')[0]?.slug).toBe('personal-egogram');
+    expect(searchAssessments('SHAS')[0]?.slug).toBe('asthenic-state-shas');
+    expect(searchAssessments('Малкова')[0]?.bankId).toBe('psychiatry');
   });
 
   it('attributes established instruments without branding them as MiniMed inventions', async () => {
@@ -104,6 +106,12 @@ describe('assessment catalog', () => {
       catalog,
       searchAssessments('Белбин'),
     );
-    expect(belbinQuery.map((specialty) => specialty.id)).toEqual(['psychology']);
+    // Specialty descriptions also use fuzzy matching; exact instrument matches must stay visible.
+    expect(belbinQuery.map((specialty) => specialty.id)).toContain('psychology');
+    expect(
+      visibleAssessmentSpecialties('ШАС', catalog, searchAssessments('ШАС')).map(
+        (specialty) => specialty.id,
+      ),
+    ).toContain('psychiatry');
   });
 });

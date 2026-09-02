@@ -217,6 +217,15 @@
   width: fit-content;
 }
 
+.patient-note-record__title {
+  margin: 0;
+  color: var(--theme-text);
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
 .patient-note-record__markdown {
   --safe-markdown-heading-margin: 0.55rem 0 0.25rem;
   --safe-markdown-paragraph-margin: 0.25rem 0;
@@ -230,6 +239,252 @@
   overflow: hidden;
   font-size: 0.82rem;
   line-height: 1.48;
+}
+
+.patient-notes-templates {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.7rem;
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  text-align: left;
+}
+
+.patient-notes-templates__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.patient-notes-templates__icon-glyph {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.patient-notes-templates__copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.patient-notes-templates__title {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.patient-notes-templates__description {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.patient-notes-templates:focus-visible {
+  outline: 0.125rem solid var(--theme-accent);
+  outline-offset: 0.15rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .patient-notes-templates:hover {
+    border-color: var(--theme-accent);
+    background: var(--theme-accent-soft);
+  }
+}
+
+.notes-route-heading__card-title {
+  margin: 0.2rem 0 0;
+  color: var(--theme-text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.notes-route-heading__breadcrumb-editor {
+  display: inline-block;
+  min-width: 4rem;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 0.2rem;
+  color: var(--theme-kicker);
+  caret-color: currentColor;
+  outline: 0.125rem solid var(--theme-accent-soft);
+  outline-offset: 0.1rem;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.3;
+  text-overflow: clip;
+  white-space: nowrap;
+  cursor: text;
+}
+
+.notes-route-heading__breadcrumb-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--theme-text-muted);
+}
+
+.notes-route-heading__breadcrumb-editor:focus-visible {
+  outline-color: var(--theme-accent);
+}
+
+.patient-note-form__categories {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.patient-note-form__categories-label {
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--theme-type-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.patient-note-form__categories-control {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  min-height: 2.4rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
+}
+
+.patient-note-form__categories-control:focus-within {
+  border-color: var(--theme-accent);
+  outline: 0.125rem solid var(--theme-accent-soft);
+  outline-offset: 1px;
+}
+
+.patient-note-form__category {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.25rem 0.2rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 40%, var(--theme-border));
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-accent-soft);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.patient-note-form__category-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.patient-note-form__category-label-text {
+  display: inline-block;
+  min-width: max-content;
+}
+
+.patient-note-form__category-label-text--marquee {
+  animation: patient-note-category-marquee 10s ease-in-out infinite;
+}
+
+@keyframes patient-note-category-marquee {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+
+  55%,
+  80% {
+    transform: translateX(calc(-1 * var(--patient-note-category-shift)));
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .patient-note-form__category-label-text--marquee {
+    animation: none;
+  }
+}
+
+.patient-note-form__category-remove {
+  display: grid;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.patient-note-form__category-remove:focus-visible {
+  outline: 0.125rem solid var(--theme-accent);
+  outline-offset: 0.1rem;
+}
+
+.patient-note-form__category-remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.patient-note-form__category-remove-icon.app-glyph {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.patient-note-form__categories-input {
+  flex: 1 1 8rem;
+  min-width: 8rem;
+  width: auto;
+  padding: 0.25rem 0.15rem;
+  border: 0;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+}
+
+.patient-note-form__categories-input:focus-visible {
+  outline: 0;
+}
+
+.patient-note-form__categories-input::placeholder {
+  color: var(--theme-text-faint);
+}
+
+.patient-note-form__categories-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .patient-note-form__category-remove:hover {
+    color: #b3402f;
+    background: color-mix(in srgb, #b3402f 12%, transparent);
+  }
+}
+
+.patient-note-form__categories-hint {
+  color: var(--theme-text-faint);
+  font-size: var(--theme-type-label);
 }
 
 .note-reminder-link {
@@ -699,7 +954,7 @@
 }
 
 .note-markdown-editor__tool-group--fullscreen {
-  min-height: 2.25rem;
+  min-height: 0;
   padding: 0.125rem 0.2rem;
 }
 
@@ -1089,5 +1344,223 @@
     color: #b3402f;
     box-shadow: none;
     transform: none;
+  }
+}
+
+.note-templates-catalog {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.note-templates-catalog__search-chrome {
+  min-width: 0;
+  margin-bottom: 0.375rem;
+}
+
+.note-templates-catalog__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+}
+
+.note-templates-catalog__search {
+  width: auto;
+}
+
+.note-templates-catalog__toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.note-templates-catalog__breadcrumbs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-muted);
+  font-size: 0.72rem;
+}
+
+.note-templates-catalog__breadcrumb-icon.app-glyph {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  color: var(--theme-accent);
+}
+
+.note-templates-catalog__breadcrumb-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-templates-catalog__action.ui-button--icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  min-width: 2.6rem;
+  min-height: 2.6rem;
+  border-radius: 50%;
+}
+
+.note-templates-catalog__create.ui-button--icon {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.note-templates-catalog__action-icon.app-glyph {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.note-templates-catalog__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
+  align-items: stretch;
+  gap: var(--layout-gap);
+  padding-bottom: 2.5rem;
+}
+
+.note-templates-catalog__example,
+.note-templates-catalog__template {
+  display: grid;
+  min-width: 0;
+  min-height: 9.5rem;
+  align-content: start;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 0.85rem 0.6rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: var(--theme-radius-panel);
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-surface-raised) 92%, var(--theme-surface));
+  box-shadow: 0 0.35rem 1rem rgb(41 35 25 / 10%);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    background-color 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+
+.note-templates-catalog__card-icon {
+  display: grid;
+  width: 7rem;
+  height: 4.5rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--theme-text-muted) 28%, var(--theme-surface-raised));
+  border-radius: 0.7rem;
+  color: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-text-muted) 18%, var(--theme-surface-raised));
+}
+
+.note-templates-catalog__card-icon-glyph.app-glyph {
+  width: 1.9rem;
+  height: 1.9rem;
+}
+
+.note-templates-catalog__card-copy {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 0.15rem;
+  justify-items: center;
+}
+
+.note-templates-catalog__card-title {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-templates-catalog__card-meta {
+  max-width: 100%;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--theme-text) 78%, var(--theme-text-muted));
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-templates-catalog__empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  min-height: 9rem;
+  padding: 1rem;
+  color: var(--theme-text-muted);
+  text-align: center;
+}
+
+.note-templates-catalog__form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.note-templates-catalog__title-input {
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+}
+
+.note-templates-catalog__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note-templates-catalog__example:hover,
+  .note-templates-catalog__template:hover {
+    background: color-mix(in srgb, var(--theme-surface-raised) 94%, var(--theme-accent-soft));
+    box-shadow: 0 0.5rem 1.25rem rgb(41 35 25 / 14%);
+  }
+
+  .note-templates-catalog__action.ui-button--icon:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 38rem) {
+  .note-templates-catalog__actions {
+    gap: 0.375rem;
+  }
+
+  .note-templates-catalog__toolbar {
+    gap: 0.5rem;
+  }
+
+  .note-templates-catalog__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 22rem) {
+  .note-templates-catalog__list {
+    grid-template-columns: 1fr;
   }
 }

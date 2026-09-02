@@ -30,7 +30,7 @@ import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
-import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import type { SearchResultDocumentKind, SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
@@ -181,6 +181,20 @@ const INTENT_LABELS: Readonly<Record<NonNullable<QueryAnalysis['intent']>['prima
   'administrative-reference': 'Нормативный запрос',
   mixed: 'Смешанный клинический запрос',
   unknown: 'Свободный медицинский запрос',
+};
+
+const RESULT_KIND_VISUALS: Readonly<
+  Record<
+    SearchResultDocumentKind,
+    { readonly icon: Parameters<typeof AppGlyph>[0]['name']; readonly label: string }
+  >
+> = {
+  medication: { icon: 'prescription', label: 'Препарат' },
+  'clinical-recommendation': { icon: 'book-open', label: 'Клиническая рекомендация' },
+  legal: { icon: 'scales', label: 'Нормативный акт' },
+  calculator: { icon: 'calculator', label: 'Калькулятор' },
+  assessment: { icon: 'list-checks', label: 'Опросник' },
+  reference: { icon: 'notes', label: 'Норма / справочник' },
 };
 
 function resizeTextarea(element: HTMLTextAreaElement): void {
@@ -774,72 +788,87 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   data-testid="search-results"
                 >
                   <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
-                    {(group, groupIndex) => (
-                      <section class="result-group">
-                        <button
-                          type="button"
-                          class="result-group-header"
-                          onClick={() => openDocumentInArchive(group.documentId)}
-                        >
-                          <span class="result-group-header__index" aria-hidden="true">
-                            {String(groupIndex + 1).padStart(2, '0')}
-                          </span>
-                          <span class="result-group-header__body">
-                            <strong class="result-group-header__title">{group.title}</strong>
-                            <span class="result-group-header__note result-minimal-note">
-                              {group.results[0]?.sectionPath.join(' / ') ?? 'Релевантный источник'}
+                    {(group, groupIndex) => {
+                      const kind = () => RESULT_KIND_VISUALS[group.documentKind ?? 'reference'];
+                      return (
+                        <section class="result-group">
+                          <button
+                            type="button"
+                            class="result-group-header"
+                            onClick={() => openDocumentInArchive(group.documentId)}
+                          >
+                            <span class="result-group-header__index" aria-hidden="true">
+                              {String(groupIndex + 1).padStart(2, '0')}
                             </span>
-                          </span>
-                        </button>
-                        <div class="result-group__snippets">
-                          <For each={group.results}>
-                            {(result) => {
-                              const visual = CATEGORY_VISUALS[result.category];
-                              const pathSuffix = supplementalSectionPath(
-                                result.category,
-                                result.sectionPath,
-                              );
-                              return (
-                                <article
-                                  class="result-card"
-                                  classList={{
-                                    selected: context()?.focusChunkId === result.chunkId,
-                                  }}
-                                >
-                                  <button
-                                    class="result-open"
-                                    type="button"
-                                    data-testid="search-result"
-                                    onClick={() => void openResult(result)}
+                            <span class="result-group-header__kind" aria-hidden="true">
+                              <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
+                              <span class="result-group-header__kind-label">{kind().label}</span>
+                            </span>
+                            <span class="result-group-header__body">
+                              <span class="sr-only">{kind().label}. </span>
+                              <strong class="result-group-header__title">{group.title}</strong>
+                              <span class="result-group-header__note result-minimal-note">
+                                {group.results[0]?.sectionPath.join(' / ') ??
+                                  'Релевантный источник'}
+                              </span>
+                            </span>
+                          </button>
+                          <div class="result-group__snippets">
+                            <For
+                              each={
+                                group.documentKind === 'medication'
+                                  ? group.results.slice(0, 3)
+                                  : group.results
+                              }
+                            >
+                              {(result) => {
+                                const visual = CATEGORY_VISUALS[result.category];
+                                const pathSuffix = supplementalSectionPath(
+                                  result.category,
+                                  result.sectionPath,
+                                );
+                                return (
+                                  <article
+                                    class="result-card"
+                                    classList={{
+                                      selected: context()?.focusChunkId === result.chunkId,
+                                    }}
                                   >
-                                    <span class="result-category-line">
-                                      <span
-                                        class={`result-category-icon tone-${visual.tone}`}
-                                        aria-hidden="true"
-                                      >
-                                        <ClinicalGlyph name={visual.icon} />
+                                    <button
+                                      class="result-open"
+                                      type="button"
+                                      data-testid="search-result"
+                                      onClick={() => void openResult(result)}
+                                    >
+                                      <span class="result-category-line">
+                                        <span
+                                          class={`result-category-icon tone-${visual.tone}`}
+                                          aria-hidden="true"
+                                        >
+                                          <ClinicalGlyph name={visual.icon} />
+                                        </span>
+                                        <span class={`category-stamp tone-${visual.tone}`}>
+                                          {CATEGORY_LABELS[result.category]}
+                                        </span>
+                                        <Show when={pathSuffix}>
+                                          <span class="result-path">{pathSuffix}</span>
+                                        </Show>
                                       </span>
-                                      <span class={`category-stamp tone-${visual.tone}`}>
-                                        {CATEGORY_LABELS[result.category]}
-                                      </span>
-                                      <Show when={pathSuffix}>
-                                        <span class="result-path">{pathSuffix}</span>
-                                      </Show>
-                                    </span>
-                                    <p class="result-snippet">
-                                      <HighlightedText
-                                        text={result.snippet}
-                                        ranges={result.highlightedRanges}
-                                      />
-                                    </p>
-                                  </button>
-                                </article>
-                              );
-                            }}
-                          </For>
-                        </div>
-                      </section>
-                    )}
+                                      <p class="result-snippet">
+                                        <HighlightedText
+                                          text={result.snippet}
+                                          ranges={result.highlightedRanges}
+                                        />
+                                      </p>
+                                    </button>
+                                  </article>
+                                );
+                              }}
+                            </For>
+                          </div>
+                        </section>
+                      );
+                    }}
                   </LayoutVirtualizedGrid>
                 </div>
               </Show>

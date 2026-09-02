@@ -58,13 +58,13 @@ jobs:
           uv sync --project tools/ingest --all-groups --locked
           bun run verify
           bun run content:lint:pilot
-          bun run content:build:pilot
+          # Temporary demo override: keep reviewStatus unchanged while exposing proposed knowledge.
+          bun run content:build:pilot -- --include-unreviewed-knowledge
           bun run benchmark:pilot
           bun run benchmark:queries:coverage
           bun run benchmark:queries:contracts
           bun run content:rebuild:regulatory
-          cp data/build/rf-public-pilot.db apps/app/public/content/core-demo.db
-          cp data/build/rf-public-pilot-report.json apps/app/public/content/core-demo-report.json
+          # Keep the verified discovery core; the pilot is only benchmark input.
           bun run build:app
           bun run native:sync:android
 
@@ -80,13 +80,19 @@ jobs:
           apk_source="apps/app/android/app/build/outputs/apk/debug/app-debug.apk"
           apk="release-output/${APK_NAME}"
           apk_latest="release-output/${APK_LATEST_NAME}"
-          original_db="data/build/rf-public-pilot.db"
+          original_db="apps/app/public/content/core.db"
           release_db="release-output/${CORE_DATABASE_NAME}"
-          extracted_db="$RUNNER_TEMP/rf-public-pilot-from-apk.db"
+          example_ct="release-output/example-ct.dcm"
+          example_mri="release-output/example-mri.nii"
+          example_epub="release-output/pg11-images-3.epub"
+          extracted_db="$RUNNER_TEMP/core-from-apk.db"
 
           test -s "$apk_source"
           cp "$apk_source" "$apk"
           cp "$apk" "$apk_latest"
+          cp apps/app/src/assets/example-ct.dcm "$example_ct"
+          cp apps/app/src/assets/example-mri.nii "$example_mri"
+          cp examples/pg11-images-3.epub "$example_epub"
           # Info-ZIP exits 1 when warnings occurred but the operation succeeded. Aligned APKs
           # routinely trigger that, and pipefail would abort before corpus checks.
           unzip_apk() {
@@ -102,11 +108,11 @@ jobs:
           unzip_apk -l "$apk" | tee release-output/APK-CONTENTS.txt
           # Parse the listing file instead of `unzip -Z1 | awk … exit`, which SIGPIPEs on a
           # 490-file APK when the core pack is not last. unzip -l prints the full archive path
-          # as $NF (e.g. assets/public/content/core-demo.db), so match a path suffix, not a
+          # as $NF (e.g. assets/public/content/core.db), so match a path suffix, not a
           # bare filename token.
-          embedded_path="$(awk '$(NF) ~ /(^|\/)core-demo\.db$/ { print $NF; exit }' release-output/APK-CONTENTS.txt)"
+          embedded_path="$(awk '$(NF) ~ /(^|\/)core\.db$/ { print $NF; exit }' release-output/APK-CONTENTS.txt)"
           if [ -z "$embedded_path" ]; then
-            echo "APK is missing embedded core-demo.db" >&2
+            echo "APK is missing embedded core.db" >&2
             exit 1
           fi
           printf '%s\n' "$embedded_path" | tee release-output/EMBEDDED-DB-PATH.txt
@@ -126,20 +132,9 @@ jobs:
           import sqlite3
           from pathlib import Path
 
-          expected_recommendations = {'281_3', '360_3', '381_3', '563_2', '58_2', '714_2', '755_1'}
-          expected_medications = {
-              'drug.rf.paracetamol.pediatric-suspension',
-              'drug.rf.ibuprofen.pediatric-suspension',
-              'drug.rf.amoxicillin.tablets-500',
-              'drug.rf.amoxicillin-clavulanate.suspension-400-57',
-              'drug.rf.azithromycin.suspension-200mg-5ml',
-              'drug.rf.ceftriaxone.injection-1g',
-              'drug.rf.oral-rehydration-salts.powder-18-9g',
-              'drug.rf.oseltamivir.capsules-30mg',
-          }
           apk = Path(os.environ['APK_FILE'])
-          db_path = Path(os.environ['RUNNER_TEMP']) / 'rf-public-pilot-from-apk.db'
-          report = json.loads(Path('data/build/rf-public-pilot-report.json').read_text(encoding='utf-8'))
+          db_path = Path(os.environ['RUNNER_TEMP']) / 'core-from-apk.db'
+          report = json.loads(Path('apps/app/public/content/core-report.json').read_text(encoding='utf-8'))
           db = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
           try:
               quick_check = db.execute('PRAGMA quick_check').fetchone()[0]
@@ -155,79 +150,29 @@ jobs:
               aliases = db.execute('SELECT COUNT(*) FROM aliases').fetchone()[0]
               profiles = db.execute('SELECT COUNT(*) FROM embedding_profiles').fetchone()[0]
               embeddings = db.execute('SELECT COUNT(*) FROM chunk_embeddings').fetchone()[0]
-              version_types = {
-                  row[0]: row[1]
-                  for row in db.execute(
-                      'SELECT document_versions.id, documents.source_type '
-                      'FROM document_versions JOIN documents ON documents.id = document_versions.document_id'
-                  )
-              }
+              fts_chunks = db.execute('SELECT COUNT(*) FROM chunks_fts').fetchone()[0]
 
               assert quick_check == 'ok'
               assert foreign_key_violations == 0
-              assert pack and pack[0] == 'minimed.rf-public-pilot' and pack[2] >= 2
+              assert pack and pack[0] == 'minimed.core.ru' and pack[2] == 2
+              assert not report['errors']
               assert len(documents) == report['documents']
               assert sections == report['sections']
-              assert len(chunks) == report['chunks']
+              assert len(chunks) == fts_chunks == report['chunks']
               assert aliases == report['aliases']
-              assert profiles == report['embeddingProfiles'] == 1
-              assert embeddings == report['embeddings'] == len(chunks)
-
-              source_index = []
-              recommendation_ids = set()
-              registry_documents = 0
-              for document_id, title, source_type, metadata_raw in documents:
-                  metadata = json.loads(metadata_raw)
-                  assert metadata.get('syntheticFixture') is False
-                  assert metadata.get('publicPilot') is True
-                  if source_type == 'clinical_recommendation_summary':
-                      assert metadata['contentMode'] == 'source_linked_paraphrase'
-                      assert metadata['notSubstituteForOriginal'] is True
-                      assert metadata['officialSourceUrl'].startswith('https://cr.minzdrav.gov.ru/')
-                      assert metadata['publicMirrorUrl'].startswith('https://')
-                      recommendation_ids.add(str(metadata['officialId']))
-                  elif source_type == 'official_registry_summary':
-                      registry_documents += 1
-                      assert metadata['authorityTier'] == 'official-registry'
-                      assert metadata['contentMode'] == 'source_linked_summary'
-                      assert metadata['officialSourceUrl'].startswith('https://pots.minzdrav.gov.ru/')
-                      assert metadata['registryRecordId'] and metadata['registrationNumber']
-                  else:
-                      raise AssertionError(f'Unexpected source type: {source_type}')
-                  source_index.append({
-                      'documentId': document_id,
-                      'title': title,
-                      'sourceType': source_type,
-                      'metadata': metadata,
-                  })
-              assert recommendation_ids == expected_recommendations
-              assert registry_documents == len(expected_medications)
-              assert {row[0] for row in documents if row[2] == 'official_registry_summary'} == expected_medications
-
-              for _, document_version_id, original_text, metadata_raw in chunks:
-                  assert original_text.strip()
-                  metadata = json.loads(metadata_raw)
-                  assert isinstance(metadata.get('localOrder'), int)
-                  source_type = version_types[document_version_id]
-                  source_spans = metadata.get('sourceSpans', [])
-                  assert isinstance(source_spans, list)
-                  if source_type == 'clinical_recommendation_summary':
-                      assert source_spans
-                      for span in source_spans:
-                          assert span['contentMode'] == 'paraphrase'
-                          assert span['officialUrl'].startswith('https://cr.minzdrav.gov.ru/')
-                          assert span['publicUrl'].startswith('https://')
-                          assert span['sourceSection']
-                  else:
-                      for span in source_spans:
-                          assert span['contentMode'] == 'summary'
-                          assert span['officialUrl'].startswith('https://pots.minzdrav.gov.ru/')
-                          assert span['sourceSection']
+              assert profiles == report['embeddingProfiles']
+              assert embeddings == report['embeddings']
+              assert all(row[2].strip() for row in chunks)
+              source_index = [
+                  {'documentId': doc_id, 'title': title, 'sourceType': source_type}
+                  for doc_id, title, source_type, _ in documents
+              ]
           finally:
               db.close()
 
           apk_sha = hashlib.sha256(apk.read_bytes()).hexdigest()
           db_sha = hashlib.sha256(db_path.read_bytes()).hexdigest()
+          assert f'sha256:{db_sha}' == report['outputChecksum']
           evidence = {
               'releaseVersion': os.environ['RELEASE_VERSION'],
               'sourceCommit': os.environ['SOURCE_SHA'],
@@ -238,8 +183,6 @@ jobs:
                   'bytes': db_path.stat().st_size,
                   'pack': {'id': pack[0], 'version': pack[1], 'schemaVersion': pack[2]},
                   'documents': len(documents),
-                  'recommendationDocuments': len(recommendation_ids),
-                  'medicationDocuments': registry_documents,
                   'sections': sections,
                   'chunks': len(chunks),
                   'aliases': aliases,
@@ -284,37 +227,36 @@ jobs:
           apk="release-output/${APK_NAME}"
           apk_latest="release-output/${APK_LATEST_NAME}"
           release_db="release-output/${CORE_DATABASE_NAME}"
+          example_ct="release-output/example-ct.dcm"
+          example_mri="release-output/example-mri.nii"
+          example_epub="release-output/pg11-images-3.epub"
           notes=$(cat <<EOF
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
-          - a compact three-section workspace: search, knowledge base/documents, and personal notes;
-          - assessments with durable incomplete-attempt resume, completed-result history and local-only persistence;
-          - calculator catalog and reader UX with formula/limitation details, saved results and source-linked document navigation;
-          - document reading with reconstructed lists, exact anchors, a tracked outline and sticky current headings;
-          - the Primary Obsidian theme, responsive navigation icons and directional primary-route animation;
-          - a medication catalog that loads metadata in bounded batches and coalesces summary reads for responsive startup;
-          - five explicit document sections for medications, norms/calculations, laws/regulations, clinical recommendations and core;
-          - mode-specific search examples, swipe-open history, and source-scoped local retrieval;
-          - device-local notes with reminders, image attachments and local notifications without a hosted push service;
-          - resumable module downloads with automatic retry, three document slots and an independent model slot;
-          - the structured 744-recommendation snapshot catalog with individual and category installation;
-          - Android system-bar integration, native Back handling and three levels of haptic feedback;
-          - deterministic fallback when the model is absent, invalid, stale or fails.
+          - one lightweight core.db with medication names, disease aliases, keywords and download pointers;
+          - medication search across INN, brand names, forms, routes and colloquial queries;
+          - customizable patient questionnaires, longitudinal records and local patient-vault controls;
+          - pediatric feeding tools and experimental ECG photo/numeric workflows;
+          - improved document, spreadsheet and medical-image readers, printing and native navigation;
+          - resumable, bulk-loaded SQLite composition with faster final validation in the authoring tools;
+          - updated regulatory status for the qualification requirements effective 1 September 2026;
+          - optional CT, MRI and EPUB examples as separate release assets.
 
           The browser application is published with the landing site under /app/.
 
           Important boundaries:
-          - medication registry content remains source-linked identity metadata; it is not a complete Russian medication corpus and does not establish verified regimens;
+          - core.db is a discovery index, not the full medication instructions database; the local unified medication build is not included in this release;
+          - diagnosis, dosage and ECG features are not clinically qualified and do not replace source verification;
           - model weights are downloaded separately and are not bundled in the APK;
           - tested sub-4B local models are not qualified for grounded clinical answers;
           - native Android GPU/NPU acceleration, production signing and physical-device qualification remain follow-up gates.
           EOF
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" --clobber
+            gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" "$example_epub" --clobber
           else
-            gh release create "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
+            gh release create "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" "$example_epub" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
           fi
           if gh release view android-latest >/dev/null 2>&1; then
             gh release upload android-latest "$apk_latest" --clobber

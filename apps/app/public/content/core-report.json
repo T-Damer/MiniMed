@@ -1,0 +1,15 @@
+{
+  "documents": 4083,
+  "sections": 11798,
+  "chunks": 11810,
+  "aliases": 31949,
+  "embeddingProfiles": 0,
+  "embeddings": 0,
+  "warnings": [
+    "knowledge: 9 entities, 8 facts (5 reviewed), 1 relations (0 reviewed), 3 review tasks"
+  ],
+  "errors": [],
+  "outputChecksum": "sha256:fb7f54ac5e185ad3c7dc7785632b1774ff3699ed5c4dfd22930f74c851085b80",
+  "sqliteIntegrity": "ok",
+  "foreignKeyViolations": 0
+}

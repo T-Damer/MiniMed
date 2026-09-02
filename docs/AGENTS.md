@@ -48,6 +48,8 @@ roadmap ideas.
   `.route-sticky-chrome.sticky-surface--stuck`, `.module-catalog-toolbar.sticky-surface--stuck`,
   `.medication-route-heading.sticky-surface--stuck`, and `.search-home__backdrop-blur--visible`.
   Blur layers animate through opacity only (never `display`).
+- The CT/MRI viewer status bar uses `--medical-image-status-bar-color`, matching the toolbar safe-area
+  fill; its dark surface requires light icons, and leaving the viewer restores the system default.
 
 ## Downloads and models
 

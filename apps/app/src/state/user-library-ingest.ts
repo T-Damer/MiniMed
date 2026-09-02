@@ -8,6 +8,7 @@ import {
   getUserLibraryDocument,
   getUserLibraryFile,
   isUserLibraryImageMime,
+  isUserLibraryOcrSupported,
   isUserLibraryPdfMime,
   isUserLibraryTextLikeMime,
   listUserLibraryDocuments,
@@ -19,7 +20,11 @@ import {
   type UserLibraryWordBox,
 } from '@/state/user-library';
 import { extractUserLibraryText, userLibraryArchiveHasImages } from '@/state/user-library-formats';
-import { pageHasEnoughNativeText } from '@/state/user-library-ingest-helpers';
+import { pageHasEnoughNativeText, pdfPageHasTextLayer } from '@/state/user-library-ingest-helpers';
+import {
+  normalizeUserLibraryTextPages,
+  splitUserLibraryTextPages,
+} from '@/state/user-library-text-pages';
 
 const TEXT_CHUNK_SIZE = 1200;
 const OCR_PAGE_DELAY_MS = 600;
@@ -33,12 +38,19 @@ let ocrWorker: Worker | undefined;
 let ocrWorkerInitAttempts = 0;
 
 function splitTextIntoPages(text: string, mimeType: string): readonly string[] {
-  const normalized = text.replace(/\r\n/gu, '\n');
+  const normalized = normalizeUserLibraryTextPages(text);
+  const explicitPages = splitUserLibraryTextPages(normalized);
+  if (explicitPages.length > 1) return explicitPages;
   if (!normalized.trim()) return [''];
   // Markdown structure must survive ingestion so headings, lists and fenced blocks can be rendered
   // and indexed consistently. Keep Markdown as one logical page instead of cutting syntax at an
   // arbitrary character boundary.
-  if (mimeType === 'text/markdown') return [normalized];
+  if (
+    mimeType === 'text/markdown' ||
+    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ) {
+    return [normalized];
+  }
   const pages: string[] = [];
   let offset = 0;
   while (offset < normalized.length) {
@@ -299,7 +311,12 @@ async function disposeOcrWorker(): Promise<void> {
 
 async function resumeQueuedOcr(documentId: string): Promise<void> {
   const current = await getUserLibraryDocument(documentId);
-  if (!current || current.status !== 'ready' || !current.ocrPriority) return;
+  if (
+    current?.status !== 'ready' ||
+    !current.ocrPriority ||
+    !isUserLibraryOcrSupported(current.mimeType, current.fileName)
+  )
+    return;
   const { requestUserLibraryOcr } = await import('@/state/user-library');
   await requestUserLibraryOcr(documentId, current.ocrQuality);
 }
@@ -309,7 +326,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
   const meta = await getUserLibraryDocument(documentId);
   if (!blob || !meta || meta.status !== 'inspecting') return;
 
-  if (isUserLibraryTextLikeMime(meta.mimeType)) {
+  if (isUserLibraryTextLikeMime(meta.mimeType, meta.fileName)) {
     const data = await blob.arrayBuffer();
     const text = await extractUserLibraryText(meta.fileName, meta.mimeType, data);
     const chunks = splitTextIntoPages(text, meta.mimeType);
@@ -369,11 +386,13 @@ export async function processNewDocument(documentId: string): Promise<void> {
     const pageCount = pdf.numPages;
     let nativeTextPages = 0;
     let ocrNeededPages = 0;
+    let hasTextLayer = false;
 
     for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
       const page = await pdf.getPage(pageIndex + 1);
       try {
         const { text: nativeText, words } = await extractPdfPageContent(page);
+        hasTextLayer ||= pdfPageHasTextLayer(nativeText);
         if (pageHasEnoughNativeText(nativeText)) {
           nativeTextPages += 1;
           await putUserLibraryPage(
@@ -395,6 +414,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
       ocrNeededPages,
       ocrDonePages: 0,
       hasImages: true,
+      hasTextLayer,
       // OCR is opt-in: the document lands ready and the user picks
       // «Распознать текст» from the card menu when they want it.
       status: 'ready',

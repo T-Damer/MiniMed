@@ -1,3 +1,13 @@
+import {
+  USER_LIBRARY_FILE_CAPABILITIES,
+  userLibraryFileCapability,
+  userLibraryFileExtension,
+} from '@/state/user-library-capabilities';
+import {
+  normalizeUserLibraryTextPages,
+  splitUserLibraryTextPages,
+  USER_LIBRARY_TEXT_PAGE_BREAK,
+} from '@/state/user-library-text-pages';
 import { listZipEntries, readZipEntry } from '@/state/user-library-zip';
 
 function decodeBytes(bytes: Uint8Array): string {
@@ -184,21 +194,6 @@ function extractRtfText(rtf: string): string {
     .replace(/\\n\s*/gu, '\n')
     .trim();
 }
-function extractXmlText(xml: string, tagNames: readonly string[]): string {
-  const doc = new DOMParser().parseFromString(xml, 'application/xml');
-  const parts: string[] = [];
-  for (const tagName of tagNames) {
-    for (const element of Array.from(doc.getElementsByTagName(tagName))) {
-      const content = element.textContent?.trim();
-      if (content) parts.push(content);
-    }
-  }
-  return parts
-    .join('\n')
-    .replace(/[ \t]+/gu, ' ')
-    .trim();
-}
-
 function extractFb2Text(xml: string): string {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
   const parts: string[] = [];
@@ -219,37 +214,114 @@ function extractFb2Text(xml: string): string {
 const WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const DRAWING_NS = 'http://schemas.openxmlformats.org/drawingml/2006/main';
 
-function textFromNamespacedElement(element: Element, namespace: string, localName: string): string {
-  return Array.from(element.getElementsByTagNameNS(namespace, localName))
-    .map((node) => node.textContent ?? '')
-    .join('')
-    .trim();
+function appendDocxPageBreak(output: string[]): void {
+  while (output.at(-1) === '\n') output.pop();
+  if (output.at(-1) !== USER_LIBRARY_TEXT_PAGE_BREAK) {
+    output.push(USER_LIBRARY_TEXT_PAGE_BREAK);
+  }
+}
+
+function appendDocxParagraphBreak(output: string[]): void {
+  const previous = output.at(-1);
+  if (previous !== undefined && previous !== '\n' && previous !== USER_LIBRARY_TEXT_PAGE_BREAK) {
+    output.push('\n');
+  }
+}
+
+function appendDocxNodeText(node: Node, output: string[]): void {
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
+  const element = node as Element;
+  if (element.namespaceURI === WORD_NS && element.localName === 't') {
+    output.push(element.textContent ?? '');
+    return;
+  }
+  if (element.namespaceURI === WORD_NS && element.localName === 'tab') {
+    output.push('\t');
+    return;
+  }
+  if (element.namespaceURI === WORD_NS && element.localName === 'lastRenderedPageBreak') {
+    appendDocxPageBreak(output);
+    return;
+  }
+  if (element.namespaceURI === WORD_NS && element.localName === 'br') {
+    const type = element.getAttributeNS(WORD_NS, 'type') ?? element.getAttribute('w:type');
+    if (type === 'page') appendDocxPageBreak(output);
+    else output.push('\n');
+    return;
+  }
+  for (const child of Array.from(element.childNodes)) appendDocxNodeText(child, output);
+}
+
+function appendDocxContainer(container: Element, output: string[]): void {
+  for (const child of Array.from(container.children)) {
+    if (child.namespaceURI !== WORD_NS) continue;
+    if (child.localName === 'p') {
+      for (const node of Array.from(child.childNodes)) appendDocxNodeText(node, output);
+      if (child.getElementsByTagNameNS(WORD_NS, 'sectPr').length > 0) {
+        appendDocxPageBreak(output);
+      } else {
+        appendDocxParagraphBreak(output);
+      }
+      continue;
+    }
+    if (child.localName !== 'tbl') continue;
+    const rows = Array.from(child.children).filter(
+      (row) => row.namespaceURI === WORD_NS && row.localName === 'tr',
+    );
+    for (const row of rows) {
+      const cells = Array.from(row.children).filter(
+        (cell) => cell.namespaceURI === WORD_NS && cell.localName === 'tc',
+      );
+      cells.forEach((cell, index) => {
+        appendDocxContainer(cell, output);
+        if (index < cells.length - 1) output.push('\t');
+      });
+      appendDocxParagraphBreak(output);
+    }
+  }
+}
+
+function normalizeDocxExtractedText(value: string): string {
+  return value
+    .replace(/[ \t]+\n/gu, '\n')
+    .replace(/\n{3,}/gu, '\n\n')
+    .replace(/\n*\f\n*/gu, USER_LIBRARY_TEXT_PAGE_BREAK)
+    .replace(/^[ \t\n]+|[ \t\n]+$/gu, '');
+}
+
+function decodeDocxXmlEntities(value: string): string {
+  return value
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'")
+    .replaceAll('&amp;', '&');
+}
+
+function extractDocxTextFallback(xml: string): string {
+  const withStructure = xml
+    .replace(
+      /<w:br\b(?=[^>]*\bw:type\s*=\s*["']page["'])[^>]*\/?\s*>/giu,
+      USER_LIBRARY_TEXT_PAGE_BREAK,
+    )
+    .replace(/<w:lastRenderedPageBreak\b[^>]*\/?\s*>/giu, USER_LIBRARY_TEXT_PAGE_BREAK)
+    .replace(/<w:tab\b[^>]*\/?\s*>/giu, '\t')
+    .replace(/<w:br\b[^>]*\/?\s*>/giu, '\n')
+    .replace(/<\/w:tc>/giu, '\t')
+    .replace(/<\/w:tr>/giu, '\n')
+    .replace(/<\/w:p>/giu, '\n')
+    .replace(/<[^>]+>/gu, '');
+  return normalizeDocxExtractedText(decodeDocxXmlEntities(withStructure));
 }
 
 function extractDocxText(xml: string): string {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
   const body = doc.getElementsByTagNameNS(WORD_NS, 'body')[0];
-  if (!body) return extractXmlText(xml, ['w:t']);
+  if (!body) return extractDocxTextFallback(xml);
 
   const parts: string[] = [];
-  for (const child of Array.from(body.children)) {
-    if (child.localName === 'p') {
-      const paragraph = textFromNamespacedElement(child, WORD_NS, 't');
-      if (paragraph) parts.push(paragraph);
-      continue;
-    }
-    if (child.localName !== 'tbl') continue;
-    for (const row of Array.from(child.getElementsByTagNameNS(WORD_NS, 'tr'))) {
-      const cells = Array.from(row.getElementsByTagNameNS(WORD_NS, 'tc'))
-        .map((cell) => textFromNamespacedElement(cell, WORD_NS, 't'))
-        .filter(Boolean);
-      if (cells.length > 0) parts.push(cells.join('\t'));
-    }
-  }
-  return parts
-    .join('\n')
-    .replace(/[ \t]+\n/gu, '\n')
-    .trim();
+  appendDocxContainer(body, parts);
+  return normalizeDocxExtractedText(parts.join(''));
 }
 
 function resolveOpfPath(containerXml: string): string | null {
@@ -312,42 +384,16 @@ async function extractEpubText(data: ArrayBuffer): Promise<string> {
     .trim();
 }
 
-function isPrintableAscii(char: number): boolean {
-  return char >= 32 && char <= 126;
-}
-
-function extractBinaryText(data: Uint8Array): string {
-  const runs: string[] = [];
-  let asciiRun = '';
-  for (let index = 0; index < data.length; index += 1) {
-    const byte = data[index] ?? 0;
-    if (isPrintableAscii(byte)) {
-      asciiRun += String.fromCharCode(byte);
-    } else if (asciiRun.length >= 8) {
-      runs.push(asciiRun);
-      asciiRun = '';
-    } else {
-      asciiRun = '';
-    }
-  }
-  if (asciiRun.length >= 8) runs.push(asciiRun);
-
-  let utf16Run = '';
-  for (let index = 0; index < data.length - 1; index += 2) {
-    const code = (data[index] ?? 0) | ((data[index + 1] ?? 0) << 8);
-    if ((code >= 32 && code <= 126) || (code >= 0x0400 && code <= 0x04ff)) {
-      utf16Run += String.fromCharCode(code);
-    } else if (utf16Run.length >= 8) {
-      runs.push(utf16Run);
-      utf16Run = '';
-    } else {
-      utf16Run = '';
-    }
-  }
-  if (utf16Run.length >= 8) runs.push(utf16Run);
-
-  return [...new Set(runs.map((run) => run.replace(/\s+/gu, ' ').trim()).filter(Boolean))]
-    .join('\n')
+async function extractSpreadsheetText(data: ArrayBuffer): Promise<string> {
+  const XLSX = await import('xlsx');
+  const workbook = XLSX.read(data, { type: 'array', codepage: 65001 });
+  return workbook.SheetNames.map((sheetName) => {
+    const sheet = workbook.Sheets[sheetName];
+    const rows = sheet ? XLSX.utils.sheet_to_csv(sheet, { blankrows: false }) : '';
+    return [sheetName, rows.trim()].filter(Boolean).join('\n');
+  })
+    .filter(Boolean)
+    .join('\n\n')
     .trim();
 }
 
@@ -374,34 +420,8 @@ async function extractPptxText(data: ArrayBuffer): Promise<string> {
   return slides.join('\n\n').trim();
 }
 
-async function extractPagesText(data: ArrayBuffer): Promise<string> {
-  const entries = await listZipEntries(data);
-  const xmlCandidates = entries.filter((path) => /(^|\/)(index|document)\.xml$/iu.test(path));
-  const parts: string[] = [];
-  for (const path of xmlCandidates) {
-    const bytes = await readZipEntry(data, path);
-    if (!bytes) continue;
-    const text = extractXmlText(decodeBytes(bytes), ['sf:p', 'sf:span', 'text']);
-    if (text) parts.push(text);
-  }
-  if (parts.length > 0) return parts.join('\n').trim();
-
-  // Modern .pages stores content in Protobuf/IWA streams. We do not attempt to interpret layout
-  // here, but extracting sufficiently long UTF-8/UTF-16 runs still gives search a useful textual
-  // fallback without executing embedded content.
-  for (const path of entries.filter((entry) => entry.toLowerCase().endsWith('.iwa'))) {
-    const bytes = await readZipEntry(data, path);
-    if (!bytes) continue;
-    const text = extractBinaryText(bytes);
-    if (text) parts.push(text);
-  }
-  return [...new Set(parts)].join('\n').trim();
-}
-
 function extensionOf(fileName: string): string {
-  const lower = fileName.toLocaleLowerCase('ru-RU');
-  const dot = lower.lastIndexOf('.');
-  return dot >= 0 ? lower.slice(dot + 1) : '';
+  return userLibraryFileExtension(fileName);
 }
 
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -451,13 +471,16 @@ function createRtfText(text: string): string {
 }
 
 function createDocxDocumentXml(text: string): string {
-  const paragraphs = text
-    .replace(/\r\n?/gu, '\n')
-    .split('\n')
-    .map((line) => {
-      const content = escapeXml(line);
-      return `<w:p><w:r><w:t xml:space="preserve">${content}</w:t></w:r></w:p>`;
+  const paragraphs = splitUserLibraryTextPages(text).flatMap((page, pageIndex, pages) => {
+    const content = page.split('\n').map((line) => {
+      const escaped = escapeXml(line);
+      return `<w:p><w:r><w:t xml:space="preserve">${escaped}</w:t></w:r></w:p>`;
     });
+    if (pageIndex < pages.length - 1) {
+      content.push('<w:p><w:r><w:br w:type="page"/></w:r></w:p>');
+    }
+    return content;
+  });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>${paragraphs.join('')}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body>
@@ -552,7 +575,7 @@ export function createEditableUserLibraryFile(
     throw new Error('Этот тип файла нельзя редактировать во встроенном редакторе.');
   }
   const extension = extensionOf(fileName);
-  const normalized = text.replace(/\r\n?/gu, '\n');
+  const normalized = normalizeUserLibraryTextPages(text);
   if (extension === 'rtf') {
     return new File([createRtfText(normalized)], fileName, { type: mimeType });
   }
@@ -573,15 +596,13 @@ export function createEditableUserLibraryFile(
   return new File([normalized], fileName, { type: mimeType });
 }
 
-function isZipOfficeFormat(extension: string, mimeType: string): boolean {
+function isZipOfficeFormat(fileName: string, mimeType: string): boolean {
+  const capability = userLibraryFileCapability(mimeType, fileName);
   return (
-    extension === 'docx' ||
-    extension === 'pptx' ||
-    extension === 'pages' ||
-    extension === 'epub' ||
-    mimeType.includes('openxmlformats') ||
-    mimeType === 'application/vnd.apple.pages' ||
-    mimeType === 'application/epub+zip'
+    capability === USER_LIBRARY_FILE_CAPABILITIES.docx ||
+    capability === USER_LIBRARY_FILE_CAPABILITIES.pptx ||
+    capability === USER_LIBRARY_FILE_CAPABILITIES.epub ||
+    capability === USER_LIBRARY_FILE_CAPABILITIES.xlsx
   );
 }
 
@@ -606,26 +627,26 @@ export async function validateUserLibraryFile(
     }
   }
 
-  if (isZipOfficeFormat(extension, mimeType)) {
+  if (isZipOfficeFormat(fileName, mimeType)) {
     let entries: readonly string[];
     try {
       entries = await listZipEntries(data);
     } catch {
       throw new Error('Не удалось проверить структуру ZIP-документа.');
     }
+    const extraction = userLibraryFileCapability(mimeType, fileName).textExtraction;
     const requiredEntry =
-      extension === 'docx'
+      extraction === 'docx'
         ? 'word/document.xml'
-        : extension === 'pptx'
+        : extraction === 'pptx'
           ? 'ppt/presentation.xml'
-          : extension === 'epub'
-            ? 'META-INF/container.xml'
-            : null;
+          : extraction === 'spreadsheet'
+            ? 'xl/workbook.xml'
+            : extraction === 'epub'
+              ? 'META-INF/container.xml'
+              : null;
     if (requiredEntry && !entries.includes(requiredEntry)) {
       throw new Error(`Файл ${extension.toUpperCase()} не содержит обязательную структуру.`);
-    }
-    if (extension === 'pages' && !entries.some((entry) => entry.endsWith('.iwa'))) {
-      throw new Error('Файл Pages не содержит читаемых данных.');
     }
     return;
   }
@@ -646,8 +667,7 @@ export async function userLibraryArchiveHasImages(
   mimeType: string,
   data: ArrayBuffer,
 ): Promise<boolean> {
-  const extension = extensionOf(fileName);
-  if (!isZipOfficeFormat(extension, mimeType)) return false;
+  if (!isZipOfficeFormat(fileName, mimeType)) return false;
   try {
     const entries = await listZipEntries(data);
     return entries.some((path) =>
@@ -666,66 +686,26 @@ export async function extractUserLibraryText(
   data: ArrayBuffer,
 ): Promise<string> {
   const bytes = new Uint8Array(data);
-  const extension = extensionOf(fileName);
-
-  if (mimeType === 'text/html' || extension === 'html' || extension === 'htm') {
-    return extractHtmlText(decodeBytes(bytes));
+  switch (userLibraryFileCapability(mimeType, fileName).textExtraction) {
+    case 'html':
+      return extractHtmlText(decodeBytes(bytes));
+    case 'rtf':
+      return extractRtfText(decodeRtfBytes(bytes));
+    case 'fb2':
+      return extractFb2Text(decodeXmlBytes(bytes, 'windows-1251'));
+    case 'docx': {
+      const documentXml = await readZipEntry(data, 'word/document.xml');
+      return documentXml ? extractDocxText(decodeBytes(documentXml)) : '';
+    }
+    case 'pptx':
+      return extractPptxText(data);
+    case 'epub':
+      return extractEpubText(data);
+    case 'spreadsheet':
+      return extractSpreadsheetText(data);
+    case 'plain':
+      return extractPlainText(bytes);
+    case 'none':
+      return '';
   }
-
-  if (mimeType === 'text/rtf' || mimeType === 'application/rtf' || extension === 'rtf') {
-    return extractRtfText(decodeRtfBytes(bytes));
-  }
-
-  if (mimeType === 'application/vnd.apple.pages' || extension === 'pages') {
-    // iWork '08-style packages keep plain index.xml; newer ones use Snappy
-    // streams and fall through to the generic-file panel.
-    const indexBytes = await readZipEntry(data, 'index.xml');
-    if (indexBytes) return extractHtmlText(decodeBytes(indexBytes));
-    return '';
-  }
-
-  if (
-    mimeType === 'application/x-fictionbook+xml' ||
-    extension === 'fb2' ||
-    (extension === 'xml' &&
-      bytes.length > 4 &&
-      /<FictionBook(?:\s|>)/iu.test(decodeXmlBytes(bytes.slice(0, 100), 'windows-1251')))
-  ) {
-    return extractFb2Text(decodeXmlBytes(bytes, 'windows-1251'));
-  }
-
-  if (
-    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-    extension === 'docx'
-  ) {
-    const documentXml = await readZipEntry(data, 'word/document.xml');
-    if (!documentXml) return '';
-    return extractDocxText(decodeBytes(documentXml));
-  }
-
-  if (
-    mimeType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-    extension === 'pptx'
-  ) {
-    return await extractPptxText(data);
-  }
-
-  if (mimeType === 'application/epub+zip' || extension === 'epub') {
-    return await extractEpubText(data);
-  }
-
-  if (mimeType === 'application/vnd.apple.pages' || extension === 'pages') {
-    return await extractPagesText(data);
-  }
-
-  if (
-    mimeType === 'application/msword' ||
-    mimeType === 'application/vnd.ms-powerpoint' ||
-    extension === 'doc' ||
-    extension === 'ppt'
-  ) {
-    return extractBinaryText(bytes);
-  }
-
-  return extractPlainText(bytes);
 }

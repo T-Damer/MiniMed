@@ -10,6 +10,8 @@ import {
   readAssessmentRoute,
   sectionPath,
   specialtyPath,
+  userQuestionnaireEditPath,
+  userQuestionnairePath,
 } from '@/features/assessments/assessment-routing';
 import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
 
@@ -44,6 +46,23 @@ describe('assessment routing', () => {
       specialtyId: 'psychology',
       slug: 'braverman-behavioral-profile',
     });
+  });
+
+  it('routes local questionnaire files separately from downloaded instruments', () => {
+    expect(readAssessmentRoute('#/assessments/mine')).toEqual({ kind: 'user-index' });
+    expect(readAssessmentRoute('#/assessments/mine/new')).toEqual({ kind: 'user-editor' });
+    expect(readAssessmentRoute(userQuestionnaireEditPath('локальный файл'))).toEqual({
+      kind: 'user-editor',
+      fileId: 'локальный файл',
+    });
+    expect(readAssessmentRoute('#/assessments/mine/local-1/results/result-1')).toEqual({
+      kind: 'user-result',
+      fileId: 'local-1',
+      recordId: 'result-1',
+    });
+    expect(assessmentParentHash('assessments/mine/local-1/edit')).toBe(
+      userQuestionnairePath('local-1'),
+    );
   });
 
   it('returns the owning section from a questionnaire', () => {

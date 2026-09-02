@@ -4,5 +4,6 @@ import Capacitor
 final class LocalMedBridgeViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         bridge?.registerPluginInstance(LocalMedDatabasePlugin())
+        bridge?.registerPluginInstance(LocalMedPatientVaultPlugin())
     }
 }

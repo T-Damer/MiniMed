@@ -14,6 +14,8 @@ function distance(a: { x: number; y: number }, b: { x: number; y: number }): num
 export interface PinchZoomOptions {
   /** Grow the host so overflow:auto can reach every edge of the scaled content. */
   readonly expandScrollPort?: boolean;
+  /** Keep the scaled content inside the host's horizontal bounds. */
+  readonly lockHorizontalPan?: boolean;
 }
 
 export interface PinchZoomControls {
@@ -28,6 +30,7 @@ export interface PinchZoomControls {
 /** In-place pinch zoom (1–3×) with vertical scroll preserved for single-finger pans. */
 export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls {
   const expandScrollPort = options.expandScrollPort === true;
+  const lockHorizontalPan = options.lockHorizontalPan === true;
   let root: HTMLElement | undefined;
   let content: HTMLElement | undefined;
   let scale = PINCH_ZOOM_MIN;
@@ -42,6 +45,7 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
   let pinchStartCenter: { x: number; y: number } | null = null;
   let pinchStartTranslate = { x: 0, y: 0 };
   let resetTimer: number | undefined;
+  let pinchFrame: number | undefined;
 
   const measureNatural = (): void => {
     if (!content || scale > PINCH_ZOOM_MIN + 0.001) return;
@@ -79,8 +83,13 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
     content.style.minHeight = `${naturalHeight}px`;
     content.style.maxHeight = `${naturalHeight}px`;
     content.style.transformOrigin = '0 0';
-    root.style.width = `${width}px`;
-    root.style.minWidth = `${width}px`;
+    if (lockHorizontalPan) {
+      root.style.width = '';
+      root.style.minWidth = '';
+    } else {
+      root.style.width = `${width}px`;
+      root.style.minWidth = `${width}px`;
+    }
     root.style.height = `${height}px`;
     root.style.minHeight = `${height}px`;
   };
@@ -113,11 +122,17 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
 
   const onPointerDown = (event: PointerEvent): void => {
     if (!root || event.pointerType === 'mouse') return;
+    const nearestSurface =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-pinch-zoom-surface]')
+        : null;
+    if (nearestSurface && nearestSurface !== root) return;
     root.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, localPoint(event.clientX, event.clientY));
     if (pointers.size === 2) {
       const [first, second] = [...pointers.values()];
       if (!first || !second) return;
+      if (expandScrollPort) measureNatural();
       pinchStartDistance = distance(first, second);
       pinchStartScale = scale;
       pinchStartCenter = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
@@ -125,11 +140,9 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
     }
   };
 
-  const onPointerMove = (event: PointerEvent): void => {
-    if (!pointers.has(event.pointerId)) return;
-    pointers.set(event.pointerId, localPoint(event.clientX, event.clientY));
+  const applyPinch = (): void => {
+    pinchFrame = undefined;
     if (pointers.size !== 2 || pinchStartDistance === null || !pinchStartCenter) return;
-    event.preventDefault();
     const [first, second] = [...pointers.values()];
     if (!first || !second) return;
     const nextDistance = distance(first, second);
@@ -149,7 +162,24 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
     applyTransform();
   };
 
+  const schedulePinch = (): void => {
+    if (pinchFrame !== undefined) return;
+    pinchFrame = requestAnimationFrame(applyPinch);
+  };
+
+  const onPointerMove = (event: PointerEvent): void => {
+    if (!pointers.has(event.pointerId)) return;
+    pointers.set(event.pointerId, localPoint(event.clientX, event.clientY));
+    if (pointers.size !== 2 || pinchStartDistance === null || !pinchStartCenter) return;
+    event.preventDefault();
+    schedulePinch();
+  };
+
   const onPointerUp = (event: PointerEvent): void => {
+    if (pinchFrame !== undefined) {
+      cancelAnimationFrame(pinchFrame);
+      applyPinch();
+    }
     pointers.delete(event.pointerId);
     if (pointers.size < 2) {
       pinchStartDistance = null;
@@ -167,7 +197,7 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
 
   const bindRoot = (element: HTMLElement): void => {
     root = element;
-    element.style.touchAction = expandScrollPort ? 'pan-x pan-y' : 'pan-y';
+    element.style.touchAction = expandScrollPort && !lockHorizontalPan ? 'pan-x pan-y' : 'pan-y';
     element.addEventListener('pointerdown', onPointerDown);
     element.addEventListener('pointermove', onPointerMove);
     element.addEventListener('pointerup', onPointerUp);
@@ -177,6 +207,7 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
       element.removeEventListener('pointermove', onPointerMove);
       element.removeEventListener('pointerup', onPointerUp);
       element.removeEventListener('pointercancel', onPointerUp);
+      if (pinchFrame !== undefined) cancelAnimationFrame(pinchFrame);
       if (resetTimer !== undefined) window.clearTimeout(resetTimer);
     });
   };

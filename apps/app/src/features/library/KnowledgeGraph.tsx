@@ -125,10 +125,12 @@ function shortLabel(value: string, limit: number): string {
 
 export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let canvas: HTMLCanvasElement | undefined;
-  let frame = 0;
+  let frame: number | undefined;
   let observer: ResizeObserver | undefined;
+  let visibilityObserver: IntersectionObserver | undefined;
   let nodes: GraphNode[] = [];
   let edges: GraphEdge[] = [];
+  let nodesById = new Map<string, GraphNode>();
   let width = 900;
   let height = 540;
   let scale = 1;
@@ -146,15 +148,12 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let moved = false;
   let simulationActive = true;
   let animationFrameActive = true;
+  let graphVisible = true;
   let graphTheme: GraphTheme = readGraphThemeColors(document.documentElement);
   let themeObserver: MutationObserver | undefined;
 
-  const wakeSimulation = (): void => {
-    simulationActive = true;
-  };
-
   const shouldSimulate = (): boolean =>
-    animationFrameActive && props.simulationActive !== false && simulationActive;
+    graphVisible && animationFrameActive && props.simulationActive !== false && simulationActive;
 
   const resize = (): void => {
     if (!canvas) return;
@@ -215,10 +214,9 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       }
     }
 
-    const byId = new Map(nodes.map((node) => [node.id, node] as const));
     for (const edge of edges) {
-      const from = byId.get(edge.from);
-      const to = byId.get(edge.to);
+      const from = nodesById.get(edge.from);
+      const to = nodesById.get(edge.to);
       if (!from || !to) continue;
       const dx = to.x - from.x;
       const dy = to.y - from.y;
@@ -264,13 +262,12 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     context.translate(width / 2 + panX, height / 2 + panY);
     context.scale(scale, scale);
 
-    const byId = new Map(nodes.map((node) => [node.id, node] as const));
     context.lineWidth = 1 / scale;
     context.strokeStyle = theme.graphStroke;
     context.globalAlpha = 0.35;
     for (const edge of edges) {
-      const from = byId.get(edge.from);
-      const to = byId.get(edge.to);
+      const from = nodesById.get(edge.from);
+      const to = nodesById.get(edge.to);
       if (!from || !to) continue;
       context.beginPath();
       context.moveTo(from.x, from.y);
@@ -325,10 +322,18 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     context.restore();
   };
 
-  const animate = (): void => {
-    if (shouldSimulate()) simulationActive = stepSimulation();
+  function animate(): void {
+    frame = undefined;
+    if (!shouldSimulate()) return;
+    simulationActive = stepSimulation();
     draw();
-    frame = requestAnimationFrame(animate);
+    if (simulationActive) frame = requestAnimationFrame(animate);
+  }
+
+  const wakeSimulation = (): void => {
+    if (!graphVisible || !animationFrameActive || props.simulationActive === false) return;
+    simulationActive = true;
+    if (frame === undefined) frame = requestAnimationFrame(animate);
   };
 
   createEffect(() => {
@@ -340,6 +345,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     const graph = buildGraph(props.documents, graphTheme.dark);
     nodes = graph.nodes;
     edges = graph.edges;
+    nodesById = new Map(nodes.map((node) => [node.id, node] as const));
     scale = 1;
     panX = 0;
     panY = 0;
@@ -353,11 +359,24 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     const graph = buildGraph(props.documents, graphTheme.dark);
     nodes = graph.nodes;
     edges = graph.edges;
+    nodesById = new Map(nodes.map((node) => [node.id, node] as const));
     draw();
   };
 
   onMount(() => {
     if (!canvas) return;
+    visibilityObserver = new IntersectionObserver(([entry]) => {
+      const nextVisible = entry?.isIntersecting ?? false;
+      if (nextVisible === graphVisible) return;
+      graphVisible = nextVisible;
+      if (graphVisible) {
+        wakeSimulation();
+      } else if (frame !== undefined) {
+        cancelAnimationFrame(frame);
+        frame = undefined;
+      }
+    });
+    visibilityObserver.observe(canvas);
     observer = new ResizeObserver(resize);
     observer.observe(canvas);
     themeObserver = new MutationObserver(refreshGraphTheme);
@@ -367,11 +386,12 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     });
     refreshGraphTheme();
     resize();
-    frame = requestAnimationFrame(animate);
+    wakeSimulation();
   });
 
   onCleanup(() => {
-    cancelAnimationFrame(frame);
+    if (frame !== undefined) cancelAnimationFrame(frame);
+    visibilityObserver?.disconnect();
     observer?.disconnect();
     themeObserver?.disconnect();
   });

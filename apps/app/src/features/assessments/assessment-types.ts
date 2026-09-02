@@ -1,10 +1,24 @@
-import type { ToolSourceLink } from '@localmed/contracts';
+import type {
+  EvaluationStatus,
+  ObservationMapping,
+  ReferenceVerdict,
+  ToolEvaluation,
+  ToolSourceLink,
+} from '@localmed/contracts';
 
 export type AssessmentResponseValue = number;
 
 export interface AssessmentResponseOption {
   readonly value: AssessmentResponseValue;
   readonly label: string;
+  /** Shows a local questionnaire answer without its internal response value. */
+  readonly hideValue?: true;
+}
+
+export interface AssessmentImage {
+  readonly id: string;
+  readonly alt: string;
+  readonly dataUrl: string;
 }
 
 export interface AssessmentScaleDefinition {
@@ -17,6 +31,9 @@ export interface AssessmentScaleDefinition {
 export interface AssessmentQuestion {
   readonly id: string;
   readonly prompt: string;
+  /** Optional explanatory text supplied by a local user-created questionnaire. */
+  readonly text?: string;
+  readonly images?: readonly AssessmentImage[];
   readonly scaleId: string;
   readonly reverse?: true;
   /**
@@ -47,6 +64,10 @@ export interface AssessmentInterpretationBand {
 }
 
 export interface AssessmentDefinition {
+  /** v2 is the only persisted tool contract. Local drafts may omit this while being edited. */
+  readonly schemaVersion?: 2;
+  /** Immutable content-pack version captured with completed results. */
+  readonly version?: string;
   readonly id: string;
   readonly slug: string;
   readonly title: string;
@@ -58,12 +79,19 @@ export interface AssessmentDefinition {
   readonly description: string;
   readonly estimatedMinutes: number;
   readonly audience: string;
+  /** Optional explanatory text and images supplied by a local user-created questionnaire. */
+  readonly intro?: string;
+  readonly images?: readonly AssessmentImage[];
   readonly responseOptions: readonly AssessmentResponseOption[];
   readonly scales: readonly AssessmentScaleDefinition[];
+  /** Local questionnaires may record chosen answers without calculating a score. */
+  readonly scoringMode?: 'responses-only';
   readonly questions: readonly AssessmentQuestion[];
   readonly disclaimer: string;
   readonly evidenceNote: string;
   readonly interpretations?: readonly AssessmentInterpretationBand[];
+  readonly evaluation?: ToolEvaluation;
+  readonly observationMappings?: readonly ObservationMapping[];
   readonly license: AssessmentLicense;
   readonly sourceLinks?: readonly ToolSourceLink[];
 }
@@ -78,6 +106,14 @@ export interface AssessmentScaleScore {
   readonly percent: number;
 }
 
+export interface AssessmentEvaluation {
+  readonly status: EvaluationStatus;
+  readonly verdict?: ReferenceVerdict;
+  readonly missingContext: readonly string[];
+  readonly reason?: string;
+  readonly sourceIds: readonly string[];
+}
+
 export interface ScoredAssessment {
   readonly assessmentId: string;
   readonly completedAt: string;
@@ -86,6 +122,7 @@ export interface ScoredAssessment {
   readonly headline: string;
   readonly summary: string;
   readonly disclaimer: string;
+  readonly evaluation?: AssessmentEvaluation;
 }
 
 export type AssessmentAnswers = Readonly<Record<string, AssessmentResponseValue>>;
@@ -95,6 +132,11 @@ interface AssessmentRecordBase {
   readonly assessmentId: string;
   readonly subjectLabel: string;
   readonly createdAt: string;
+  /** Set only after an explicit protected patient selection. */
+  readonly patientId?: string;
+  readonly episodeId?: string;
+  readonly definitionVersion?: string;
+  readonly contextSnapshot?: Readonly<Record<string, string | number>>;
 }
 
 export interface CompletedAssessmentRecord extends AssessmentRecordBase {

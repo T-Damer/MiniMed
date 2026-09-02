@@ -1,8 +1,12 @@
-import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry';
+import {
+  CALCULATOR_REGISTRY,
+  ECG_PHOTO_CALIPER_ID,
+} from '@/features/calculators/calculator-registry';
 import type {
   CalculatorCategory,
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
+import { PEDIATRIC_FEEDING_PLAN_ID } from '@/features/calculators/pediatric-feeding-plan';
 
 export type CalculatorSectionId = CalculatorCategory;
 
@@ -38,6 +42,7 @@ const SECTION_IDS = new Set<CalculatorSectionId>([
   'cardiology',
   'gastroenterology',
   'hematology',
+  'pediatrics',
   'neonatology',
 ]);
 
@@ -50,10 +55,14 @@ export function setDatabaseCalculatorIds(ids: readonly string[]): void {
 }
 
 /**
- * Calculators with no specialty tie (unlike renal/obstetrics/etc.) that stay usable without an
- * explicit section download. Keep this list short and only add calculators nothing else depends on.
+ * Bundled tools that stay usable without an explicit section download. Keep this list short and
+ * only add tools that have no external content-pack dependency.
  */
-export const CORE_CALCULATOR_IDS: ReadonlySet<string> = new Set(['unit-conversion']);
+export const CORE_CALCULATOR_IDS: ReadonlySet<string> = new Set([
+  'unit-conversion',
+  ECG_PHOTO_CALIPER_ID,
+  PEDIATRIC_FEEDING_PLAN_ID,
+]);
 
 /** Maps calculator sections to downloadable tool-module catalog ids. */
 export const CALCULATOR_SECTION_MODULE_IDS: Readonly<Partial<Record<CalculatorSectionId, string>>> =
@@ -94,6 +103,7 @@ export const CALCULATOR_SECTION_CATEGORY_IDS: Readonly<
   cardiology: [],
   gastroenterology: ['minimed.clinical.pediatrics.gastro-nutrition'],
   hematology: [],
+  pediatrics: ['minimed.clinical.pediatrics.gastro-nutrition'],
   neonatology: ['minimed.clinical.neonatology.ru'],
 };
 
@@ -141,7 +151,7 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
   {
     id: 'cardiology',
     title: 'Кардиология',
-    description: 'Риск инсульта при фибрилляции предсердий и коррекция QT.',
+    description: 'Измерения по фото ЭКГ, коррекция QT и риск инсульта при фибрилляции предсердий.',
   },
   {
     id: 'gastroenterology',
@@ -157,6 +167,11 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
     id: 'neonatology',
     title: 'Неонатология',
     description: 'Инфузия глюкозы, физиологическая убыль массы и гестационный возраст.',
+  },
+  {
+    id: 'pediatrics',
+    title: 'Педиатрия',
+    description: 'Кормления, прикорм и дневной рацион для детей до 3 лет.',
   },
 ];
 
@@ -174,8 +189,15 @@ function availableDefinitions(
   sectionId: CalculatorSectionId,
 ): readonly CalculatorDefinition[] {
   return definitions.filter(
-    (definition) => definition.category === sectionId && definition.state === 'available',
+    (definition) => belongsToSection(definition, sectionId) && definition.state === 'available',
   );
+}
+
+function belongsToSection(
+  definition: CalculatorDefinition,
+  sectionId: CalculatorSectionId,
+): boolean {
+  return definition.category === sectionId || (definition.tags ?? []).includes(sectionId);
 }
 
 function sectionIdsFromSnapshot(value: unknown): readonly CalculatorSectionId[] {
@@ -214,7 +236,7 @@ function installedIdsFromSections(
         (definition) =>
           definition.state === 'available' &&
           (CORE_CALCULATOR_IDS.has(definition.id) ||
-            sectionIds.has(definition.category) ||
+            [...sectionIds].some((sectionId) => belongsToSection(definition, sectionId)) ||
             calculatorIds.has(definition.id) ||
             databaseCalculatorIds.has(definition.id)),
       )
@@ -263,7 +285,7 @@ export function calculatorIdsInSection(
   definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
 ): readonly string[] {
   return definitions
-    .filter((definition) => definition.category === sectionId)
+    .filter((definition) => belongsToSection(definition, sectionId))
     .map((definition) => definition.id);
 }
 
@@ -271,7 +293,7 @@ export function calculatorsInSection(
   sectionId: CalculatorSectionId,
   definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
 ): readonly CalculatorDefinition[] {
-  return definitions.filter((definition) => definition.category === sectionId);
+  return definitions.filter((definition) => belongsToSection(definition, sectionId));
 }
 
 export function isCalculatorSectionComplete(
@@ -354,14 +376,16 @@ export function installCalculator(
   const sectionIds = new Set(current.sectionIds);
   const calculatorIds = new Set(current.calculatorIds);
   calculatorIds.add(definition.id);
-  const available = availableDefinitions(definitions, definition.category);
-  if (
-    available.every(
-      (candidate) => current.installedIds.has(candidate.id) || candidate.id === definition.id,
-    )
-  ) {
-    sectionIds.add(definition.category);
-    for (const candidate of available) calculatorIds.delete(candidate.id);
+  for (const sectionId of [definition.category, ...(definition.tags ?? [])]) {
+    const available = availableDefinitions(definitions, sectionId);
+    if (
+      available.every(
+        (candidate) => current.installedIds.has(candidate.id) || candidate.id === definition.id,
+      )
+    ) {
+      sectionIds.add(sectionId);
+      for (const candidate of available) calculatorIds.delete(candidate.id);
+    }
   }
   return persist(sectionIds, calculatorIds, definitions);
 }

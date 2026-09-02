@@ -49,6 +49,7 @@ import {
 import {
   CALCULATOR_REGISTRY,
   clearDownloadedCalculators,
+  ECG_PHOTO_CALIPER_ID,
   findCalculator,
   getCalculatorRegistry,
   registerDownloadedCalculator,
@@ -70,6 +71,11 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
+import { EcgPhotoCaliper } from '@/features/calculators/EcgPhotoCaliper';
+import {
+  PEDIATRIC_FEEDING_PLAN_ID,
+  parsePediatricFeedingPlan,
+} from '@/features/calculators/pediatric-feeding-plan';
 import {
   convertQuantity,
   type QuantityFamily,
@@ -397,6 +403,8 @@ function CalculatorForm(props: {
     for (const input of schema.inputs) {
       if (input.options?.[0]) {
         defaults[input.id] = String(input.options[0].value);
+      } else if (input.kind === 'checkbox') {
+        defaults[input.id] = '0';
       }
     }
     setSchemaValues(defaults);
@@ -574,38 +582,28 @@ function CalculatorForm(props: {
         {(schema) => (
           <For each={schema().inputs.filter((input) => input.step <= schemaStep())}>
             {(input) => (
-              <label>
+              <label
+                for={`calculator-input-${input.id}`}
+                classList={{ 'calculator-form__field--checkbox': input.kind === 'checkbox' }}
+              >
                 <span>
                   {input.label}
                   {input.unit ? `, ${input.unit}` : ''}
                   {input.note ? ` — ${input.note}` : ''}
                 </span>
-                <Show
-                  when={(input.options?.length ?? 0) > 0}
-                  fallback={
-                    <Show
-                      when={input.kind === 'date'}
-                      fallback={
-                        <input
-                          type="number"
-                          inputmode={input.integer ? 'numeric' : 'decimal'}
-                          min={input.minimum}
-                          max={input.maximum}
-                          step={input.inputStep ?? (input.integer ? 1 : 'any')}
-                          value={schemaValues()[input.id] ?? ''}
-                          onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                        />
-                      }
-                    >
-                      <input
-                        type="date"
-                        value={schemaValues()[input.id] ?? ''}
-                        onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                      />
-                    </Show>
-                  }
-                >
+                {input.kind === 'checkbox' ? (
+                  <input
+                    id={`calculator-input-${input.id}`}
+                    class="calculator-form__checkbox"
+                    type="checkbox"
+                    checked={(schemaValues()[input.id] ?? '0') === '1'}
+                    onChange={(event) =>
+                      setSchemaValue(input.id, event.currentTarget.checked ? '1' : '0')
+                    }
+                  />
+                ) : (input.options?.length ?? 0) > 0 ? (
                   <select
+                    id={`calculator-input-${input.id}`}
                     class="calculator-form__select"
                     value={schemaValues()[input.id] ?? String(input.options?.[0]?.value ?? '')}
                     onChange={(event) => setSchemaValue(input.id, event.currentTarget.value)}
@@ -614,7 +612,32 @@ function CalculatorForm(props: {
                       {(option) => <option value={String(option.value)}>{option.label}</option>}
                     </For>
                   </select>
-                </Show>
+                ) : input.kind === 'date' ? (
+                  <input
+                    id={`calculator-input-${input.id}`}
+                    type="date"
+                    value={schemaValues()[input.id] ?? ''}
+                    onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                  />
+                ) : input.kind === 'text' ? (
+                  <input
+                    id={`calculator-input-${input.id}`}
+                    type="text"
+                    value={schemaValues()[input.id] ?? ''}
+                    onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                  />
+                ) : (
+                  <input
+                    id={`calculator-input-${input.id}`}
+                    type="number"
+                    inputmode={input.integer ? 'numeric' : 'decimal'}
+                    min={input.minimum}
+                    max={input.maximum}
+                    step={input.inputStep ?? (input.integer ? 1 : 'any')}
+                    value={schemaValues()[input.id] ?? ''}
+                    onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                  />
+                )}
               </label>
             )}
           </For>
@@ -692,6 +715,10 @@ function CalculationResultPanel(props: {
   const [newCardTitle, setNewCardTitle] = createSignal('');
 
   const outputs = () => calculationRecordOutputs(props.record);
+  const feedingPlan = () =>
+    props.record.calculatorId === PEDIATRIC_FEEDING_PLAN_ID && 'textValues' in props.record.result
+      ? parsePediatricFeedingPlan(props.record.result.textValues)
+      : undefined;
 
   const saveToNote = (): void => {
     let cardId = selectedCardId();
@@ -726,54 +753,145 @@ function CalculationResultPanel(props: {
 
   return (
     <section class="calculator-result paper-card" data-testid="calculator-result">
-      <header>
-        <p class="archive-kicker">Результат сохранён локально</p>
-        <h2>{props.definition.shortTitle}</h2>
-        <small>{props.record.inputSummary}</small>
-      </header>
-
-      <div class="calculator-output-list">
-        <For each={outputs()}>
-          {(item) => (
-            <div>
-              <span>{item.label}</span>
-              <strong>{item.display}</strong>
+      <Show
+        when={feedingPlan()}
+        fallback={
+          <>
+            <header>
+              <p class="archive-kicker">Результат сохранён локально</p>
+              <h2>{props.definition.shortTitle}</h2>
+              <small>{props.record.inputSummary}</small>
+            </header>
+            <div class="calculator-output-list">
+              <For each={outputs()}>
+                {(item) => (
+                  <div>
+                    <span>{item.label}</span>
+                    <strong>{item.display}</strong>
+                  </div>
+                )}
+              </For>
             </div>
-          )}
-        </For>
-      </div>
-
-      <For each={props.record.result.visuals ?? []}>
-        {(chart, index) => (
-          <CalculatorChart
-            title={`График ${index() + 1}`}
-            spec={chart}
-            {...(chart.heightPx === undefined ? {} : { heightPx: chart.heightPx })}
-          />
+            <For each={props.record.result.visuals ?? []}>
+              {(chart, index) => (
+                <CalculatorChart
+                  title={`График ${index() + 1}`}
+                  spec={chart}
+                  {...(chart.heightPx === undefined ? {} : { heightPx: chart.heightPx })}
+                />
+              )}
+            </For>
+            <div class="calculator-result-details">
+              <Button
+                variant="secondary"
+                icon={<AppGlyph name="list" />}
+                onClick={() => setDetailsOpen('formula')}
+              >
+                Формула и шаги
+              </Button>
+              <Button
+                variant="quiet"
+                icon={<AppGlyph name="book-open" />}
+                onClick={() => setDetailsOpen('sources')}
+              >
+                Источники и ограничения
+              </Button>
+            </div>
+            <Show when={props.record.result.warnings.length > 0}>
+              <div class="calculator-warnings">
+                <For each={props.record.result.warnings}>
+                  {(warning) => <p>{warning.message}</p>}
+                </For>
+              </div>
+            </Show>
+          </>
+        }
+      >
+        {(plan) => (
+          <article class="calculator-output-list calculator-output-list--feeding feeding-ration">
+            <header class="feeding-ration__header">
+              <p class="feeding-ration__kicker">Рацион на один день</p>
+              <h2 class="feeding-ration__title">Рацион ребёнка</h2>
+              <p class="feeding-ration__meta">
+                {props.record.subjectLabel || 'Имя не указано'} · {plan().details}
+              </p>
+            </header>
+            <p class="feeding-ration__guide">{plan().guide}</p>
+            <dl class="feeding-ration__summary">
+              <div class="feeding-ration__summary-item">
+                <dt class="feeding-ration__summary-label">Частота</dt>
+                <dd class="feeding-ration__summary-value">{plan().frequency}</dd>
+              </div>
+              <div class="feeding-ration__summary-item">
+                <dt class="feeding-ration__summary-label">За сутки</dt>
+                <dd class="feeding-ration__summary-value">{plan().dailyVolume}</dd>
+              </div>
+              <div class="feeding-ration__summary-item">
+                <dt class="feeding-ration__summary-label">Калорийность</dt>
+                <dd class="feeding-ration__summary-value">{plan().dailyCalories}</dd>
+              </div>
+            </dl>
+            <Show when={plan().allergyPlan}>
+              <p class="feeding-ration__allergy">{plan().allergyPlan}</p>
+            </Show>
+            <section class="feeding-ration__table-wrap" aria-label="Кормления">
+              <table class="feeding-ration__table">
+                <thead>
+                  <tr>
+                    <th class="feeding-ration__heading" scope="col">
+                      Время
+                    </th>
+                    <th class="feeding-ration__heading" scope="col">
+                      Что предложить
+                    </th>
+                    <th class="feeding-ration__heading" scope="col">
+                      Объём
+                    </th>
+                    <th class="feeding-ration__heading" scope="col">
+                      Ккал
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={plan().meals}>
+                    {(meal) => (
+                      <tr class="feeding-ration__meal">
+                        <th class="feeding-ration__cell feeding-ration__cell--time" scope="row">
+                          {meal.time}
+                        </th>
+                        <td class="feeding-ration__cell">{meal.food}</td>
+                        <td class="feeding-ration__cell feeding-ration__cell--number">
+                          {meal.volume}
+                        </td>
+                        <td class="feeding-ration__cell feeding-ration__cell--number">
+                          {meal.calories}
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </section>
+            <Show when={plan().calendar.length > 0}>
+              <section class="feeding-ration__calendar">
+                <h3 class="feeding-ration__calendar-title">Календарь введения прикорма</h3>
+                <ol class="feeding-ration__calendar-list">
+                  <For each={plan().calendar}>
+                    {(item) => (
+                      <li class="feeding-ration__calendar-item">
+                        <b class="feeding-ration__calendar-day">{item.day}</b>
+                        {item.instruction}
+                      </li>
+                    )}
+                  </For>
+                </ol>
+              </section>
+            </Show>
+            <span class="feeding-ration__emoji" aria-hidden="true">
+              👩‍🍼
+            </span>
+          </article>
         )}
-      </For>
-
-      <div class="calculator-result-details">
-        <Button
-          variant="secondary"
-          icon={<AppGlyph name="list" />}
-          onClick={() => setDetailsOpen('formula')}
-        >
-          Формула и шаги
-        </Button>
-        <Button
-          variant="quiet"
-          icon={<AppGlyph name="book-open" />}
-          onClick={() => setDetailsOpen('sources')}
-        >
-          Источники и ограничения
-        </Button>
-      </div>
-
-      <Show when={props.record.result.warnings.length > 0}>
-        <div class="calculator-warnings">
-          <For each={props.record.result.warnings}>{(warning) => <p>{warning.message}</p>}</For>
-        </div>
       </Show>
 
       <div class="calculator-result-actions">
@@ -840,11 +958,21 @@ function CalculationResultPanel(props: {
           </ul>
           <For each={props.definition.sources}>
             {(source) => (
-              <p>
-                <a href={source.url} target="_blank" rel="noreferrer">
-                  {source.title}
-                </a>{' '}
-                · {source.version} · проверено {source.reviewedAt}
+              <p class="calculator-source-reference">
+                <Show
+                  when={source.url}
+                  fallback={<span class="calculator-source-reference__title">{source.title}</span>}
+                >
+                  <a
+                    class="calculator-source-reference__link"
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {source.title}
+                  </a>
+                </Show>{' '}
+                · {source.publisher} · {source.version} · проверено {source.reviewedAt}
               </p>
             )}
           </For>
@@ -1158,8 +1286,8 @@ export function CalculatorsView(): JSX.Element {
                             {(record) => (
                               <button type="button" onClick={() => openHistoryRecord(record)}>
                                 <strong>
-                                  {findCalculator(record.calculatorId)?.title ??
-                                    record.calculatorId}
+                                  {findCalculator(record.calculatorId, calculatorRegistry())
+                                    ?.title ?? record.calculatorId}
                                 </strong>
                                 <span>{record.subjectLabel || record.inputSummary}</span>
                                 <small>
@@ -1253,14 +1381,21 @@ export function CalculatorsView(): JSX.Element {
               </div>
             </header>
 
-            <CalculatorForm
-              definition={definition()}
-              onMessage={notify}
-              onRecord={(record) => {
-                setActiveRecord(record);
-                setHistory(loadCalculationHistory());
-              }}
-            />
+            <Show
+              when={definition().id === ECG_PHOTO_CALIPER_ID}
+              fallback={
+                <CalculatorForm
+                  definition={definition()}
+                  onMessage={notify}
+                  onRecord={(record) => {
+                    setActiveRecord(record);
+                    setHistory(loadCalculationHistory());
+                  }}
+                />
+              }
+            >
+              <EcgPhotoCaliper />
+            </Show>
 
             <Show when={activeRecord()}>
               {(record) => (

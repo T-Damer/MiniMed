@@ -8,16 +8,20 @@ import pytest
 import yaml
 
 from localmed_ingest.knowledge import (
+    KnowledgeDocumentLink,
     KnowledgeEntity,
     KnowledgeEvidence,
     KnowledgeFact,
     KnowledgeRelation,
     KnowledgeWorkspace,
+    MedicationProfile,
     RelationWeightComponents,
     ReviewStatus,
     apply_search_projection,
     approve_knowledge,
+    export_ai_fact_review_tasks,
     export_chatgpt_tasks,
+    import_ai_fact_reviews,
     import_chatgpt_responses,
     validate_knowledge_workspace,
     write_knowledge_sqlite,
@@ -74,6 +78,7 @@ def evidence(
         section_id="section.demo",
         chunk_id="chunk.demo",
         quote=quote,
+        source_locator={"anchor": "doc@1/treatment#chunk-demo"},
     )
 
 
@@ -124,6 +129,101 @@ def test_exact_source_quote_is_required() -> None:
         validate_knowledge_workspace(current, documents())
 
 
+def test_evidence_requires_exact_section_chunk_path() -> None:
+    current = workspace()
+    current.facts[0].evidence[0].section_id = "section.other"
+    with pytest.raises(ValueError, match="evidence section"):
+        validate_knowledge_workspace(current, documents())
+
+
+def test_evidence_requires_current_document_version() -> None:
+    current = workspace()
+    current.facts[0].evidence[0].document_version_id = "doc.demo@old"
+    with pytest.raises(ValueError, match="document version"):
+        validate_knowledge_workspace(current, documents())
+
+
+def test_evidence_requires_non_empty_usable_locator() -> None:
+    current = workspace()
+    current.facts[0].evidence[0].source_locator = {}
+    with pytest.raises(ValueError, match="source locator"):
+        validate_knowledge_workspace(current, documents())
+
+
+def test_exact_current_evidence_and_document_link_are_valid() -> None:
+    current = workspace()
+    current.document_links.append(
+        KnowledgeDocumentLink(
+            id="link.a",
+            entity_id="drug.a",
+            document_id="doc.demo",
+            document_version_id="doc.demo@1",
+            section_id="section.demo",
+            chunk_id="chunk.demo",
+        )
+    )
+    validate_knowledge_workspace(current, documents())
+
+
+def test_document_link_cannot_mix_section_and_chunk() -> None:
+    current = workspace()
+    current.document_links.append(
+        KnowledgeDocumentLink(
+            id="link.mismatch",
+            entity_id="drug.a",
+            document_id="doc.demo",
+            document_version_id="doc.demo@1",
+            section_id="section.other",
+            chunk_id="chunk.demo",
+        )
+    )
+    with pytest.raises(ValueError, match="invalid section"):
+        validate_knowledge_workspace(current, documents())
+
+
+def test_document_link_with_chunk_must_name_its_section() -> None:
+    current = workspace()
+    current.document_links.append(
+        KnowledgeDocumentLink(
+            id="link.chunk-without-section",
+            entity_id="drug.a",
+            document_id="doc.demo",
+            document_version_id="doc.demo@1",
+            chunk_id="chunk.demo",
+        )
+    )
+    with pytest.raises(ValueError, match="sectionId"):
+        validate_knowledge_workspace(current, documents())
+
+
+def test_document_link_requires_current_document_version() -> None:
+    current = workspace()
+    current.document_links.append(
+        KnowledgeDocumentLink(
+            id="link.old-version",
+            entity_id="drug.a",
+            document_id="doc.demo",
+            document_version_id="doc.demo@old",
+            section_id="section.demo",
+            chunk_id="chunk.demo",
+        )
+    )
+    with pytest.raises(ValueError, match="unknown document version"):
+        validate_knowledge_workspace(current, documents())
+
+
+def test_registry_style_non_empty_locators_remain_valid() -> None:
+    locators: tuple[dict[str, object], ...] = (
+        {"registrationNumber": "ЛП-TEST"},
+        {"url": "https://example.test/source", "endpoint": "/record"},
+    )
+    for locator in locators:
+        current = workspace()
+        current.facts[0].evidence[0].source_locator = locator
+        current.relations[0].evidence[0].source_locator = locator
+        validate_knowledge_workspace(current, documents())
+
+
 def test_only_reviewed_knowledge_enters_chunk_projection() -> None:
     reviewed_documents = documents()
     apply_search_projection(reviewed_documents, workspace("reviewed"))
@@ -135,6 +235,14 @@ def test_only_reviewed_knowledge_enters_chunk_projection() -> None:
     apply_search_projection(proposed_documents, workspace("proposed"))
     proposed_chunk = proposed_documents[0].sections[0].chunks[0]
     assert "knowledgeProjectionVersion" not in proposed_chunk.metadata
+
+    demo_documents = documents()
+    apply_search_projection(demo_documents, workspace("proposed"), include_unreviewed=True)
+    assert demo_documents[0].sections[0].chunks[0].metadata["knowledgeProjectionVersion"] == 1
+
+    rejected_documents = documents()
+    apply_search_projection(rejected_documents, workspace("rejected"), include_unreviewed=True)
+    assert "knowledgeProjectionVersion" not in rejected_documents[0].sections[0].chunks[0].metadata
 
     reference_documents = documents()
     reference_workspace = workspace("proposed")
@@ -334,6 +442,102 @@ def test_chatgpt_export_requires_derivative_processing_rights(
         "licenseId": "contract-1",
         "allowsDerivativeProcessing": True,
     }
+
+
+def test_dual_ai_fact_review_requires_immutable_consensus(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    quote = "Взрослым: разовая доза 10 мг два раза в сутки."
+    source_documents = documents()
+    source_documents[0].sections[0].chunks[0].original_text = quote
+    source_documents[0].metadata = {
+        "rights": {
+            "licenseId": "test-ai-processing",
+            "allowsDerivativeProcessing": True,
+        }
+    }
+    proposed = KnowledgeWorkspace(
+        entities=[
+            KnowledgeEntity(
+                id="drug.dose",
+                entity_type="medication",
+                canonical_name="Препарат дозы",
+                medication=MedicationProfile(registration_number="ЛП-TEST"),
+            )
+        ],
+        facts=[
+            KnowledgeFact(
+                id="fact.dose",
+                entity_id="drug.dose",
+                fact_type="dosage",
+                text=quote,
+                structured={
+                    "doseExpressions": [{"value": 10, "unit": "мг", "role": "single"}],
+                    "frequencyExpressions": [{"value": 2, "period": "day"}],
+                },
+                population={"ageGroup": "adults"},
+                approval_status="registered",
+                authority_tier="official-label",
+                review_status="proposed",
+                evidence=[evidence(quote)],
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "localmed_ingest.knowledge.load_workspace_documents", lambda _path: source_documents
+    )
+    source_path = tmp_path / "knowledge.json"
+    source_path.write_text(
+        json.dumps(proposed.model_dump(by_alias=True, mode="json"), ensure_ascii=False),
+        encoding="utf-8",
+    )
+    tasks_path = tmp_path / "tasks.jsonl"
+    assert export_ai_fact_review_tasks(tmp_path, source_path, tasks_path) == 1
+    task = json.loads(tasks_path.read_text(encoding="utf-8"))
+    assert task["fact"]["registrationNumber"] == "ЛП-TEST"
+
+    response_paths = [tmp_path / "review-a.jsonl", tmp_path / "review-b.jsonl"]
+    for index, path in enumerate(response_paths, start=1):
+        path.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "reviewId": f"review-{index}",
+                    "modelId": f"model-{index}",
+                    "factId": "fact.dose",
+                    "factFingerprint": task["factFingerprint"],
+                    "decision": "accept",
+                    "evidenceQuote": quote,
+                    "confidence": 0.99,
+                    "missingFields": [],
+                    "rationale": "Exact amount, population and frequency are present.",
+                },
+                ensure_ascii=False,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    output = tmp_path / "reviewed.json"
+    report = import_ai_fact_reviews(
+        tmp_path,
+        source_path,
+        response_paths,
+        output,
+        reviewed_at="2026-09-01T00:00:00Z",
+    )
+    reviewed = KnowledgeWorkspace.model_validate_json(output.read_text(encoding="utf-8"))
+    assert report.reviewed == 1
+    assert reviewed.facts[0].review_status == "reviewed"
+    assert reviewed.facts[0].metadata["reviewedBy"] == "ai-consensus"
+    ai_review = reviewed.facts[0].metadata["aiReview"]
+    assert isinstance(ai_review, dict)
+    assert ai_review["reviewIds"] == ["review-1", "review-2"]
+
+    tampered = json.loads(response_paths[1].read_text(encoding="utf-8"))
+    tampered["factFingerprint"] = "sha256:" + "0" * 64
+    response_paths[1].write_text(json.dumps(tampered) + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="fingerprint"):
+        import_ai_fact_reviews(tmp_path, source_path, response_paths, tmp_path / "rejected.json")
 
 
 def test_chatgpt_import_does_not_merge_medications_by_display_name(

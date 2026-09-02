@@ -1,13 +1,4 @@
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  type JSX,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
@@ -19,26 +10,29 @@ import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
+import { userQuestionnairePath } from '@/features/assessments/assessment-routing';
 import { createLibraryDropHandlers, FOLDER_DRAG_TYPE } from '@/features/library/user-library-drag';
 import {
   openUserLibraryDocument,
   parseUserLibraryFolderRoute,
   userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
+import { notesTemplatesPath } from '@/features/notes/notes-routing';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import { shareSystemFile } from '@/state/native-share';
-import { schedulePatientNotesLibrarySync } from '@/state/note-library-sync';
-import { attachmentThumbnails } from '@/state/thumbnails';
+import { syncPatientNotesToUserLibrary } from '@/state/note-library-sync';
 import {
   addUserLibraryFile,
   createUserLibraryFolder,
   createUserLibraryPdfFromImages,
-  ensureUserLibraryMedicalExamples,
+  downloadUserLibraryExample,
+  ensureUserLibraryThumbnail,
   getUserLibraryFile,
   isUserLibraryArchive,
   isUserLibraryImageMime,
+  isUserLibraryOcrSupported,
+  isUserLibraryQuestionnaire,
   isUserLibrarySystemFolder,
-  isUserLibraryVisualMime,
   listUserLibraryDocuments,
   listUserLibraryFolders,
   markUserLibraryDocumentOpened,
@@ -49,10 +43,21 @@ import {
   renameUserLibraryDocument,
   renameUserLibraryFolder,
   requestUserLibraryOcr,
+  setUserLibraryDocumentColor,
+  setUserLibraryFolderColor,
+  USER_LIBRARY_BOOKS_FOLDER_ID,
+  USER_LIBRARY_COLORS,
   USER_LIBRARY_EVENT,
+  USER_LIBRARY_EXAMPLE_SLOTS,
   USER_LIBRARY_NAME_MAX_LENGTH,
   USER_LIBRARY_NOTES_FOLDER_ID,
+  USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
+  USER_LIBRARY_RESEARCH_FOLDER_ID,
+  USER_LIBRARY_TEMPLATES_FOLDER_ID,
+  type UserLibraryColor,
   type UserLibraryDocument,
+  type UserLibraryExampleId,
+  type UserLibraryExampleSlot,
   type UserLibraryFileKind,
   type UserLibraryFolder,
   type UserLibraryOcrQuality,
@@ -80,6 +85,53 @@ const SORT_MODE_LABEL: Record<SortMode, string> = {
   name: 'По названию',
   type: 'По типу',
 };
+
+const USER_LIBRARY_COLOR_LABEL: Record<UserLibraryColor, string> = {
+  red: 'Красный',
+  orange: 'Оранжевый',
+  yellow: 'Жёлтый',
+  green: 'Зелёный',
+  blue: 'Синий',
+  purple: 'Фиолетовый',
+  gray: 'Серый',
+};
+
+function userLibraryColorActions(
+  currentColor: UserLibraryColor | undefined,
+  onSelect: (color: UserLibraryColor | null) => void,
+): readonly AppContextMenuAction[] {
+  return [
+    {
+      id: 'none',
+      label: 'Без цвета',
+      icon: 'circle',
+      iconClass: 'app-context-menu__item-icon--color-none',
+      onSelect: () => onSelect(null),
+    },
+    ...USER_LIBRARY_COLORS.map((color) => ({
+      id: color,
+      label:
+        currentColor === color
+          ? `${USER_LIBRARY_COLOR_LABEL[color]} ✓`
+          : USER_LIBRARY_COLOR_LABEL[color],
+      icon: 'circle' as const,
+      iconClass: `app-context-menu__item-icon--color-${color}`,
+      onSelect: () => onSelect(color),
+    })),
+  ];
+}
+
+function userLibraryColorAction(
+  currentColor: UserLibraryColor | undefined,
+  onSelect: (color: UserLibraryColor | null) => void,
+): AppContextMenuAction {
+  return {
+    id: 'color',
+    label: currentColor ? `Цвет: ${USER_LIBRARY_COLOR_LABEL[currentColor]}` : 'Цвет',
+    icon: 'palette',
+    children: userLibraryColorActions(currentColor, onSelect),
+  };
+}
 
 function breadcrumbLabel(value: string): string {
   const characters = [...value];
@@ -109,6 +161,7 @@ function formatDateTime(value: string | undefined): string {
 }
 
 const FILE_KIND_GLYPHS: Record<UserLibraryFileKind, AppGlyphName> = {
+  questionnaire: 'list-checks',
   pdf: 'file-pdf',
   dicom: 'disc',
   volume: 'disc',
@@ -142,45 +195,16 @@ const FILE_KIND_SORT_RANK: Record<UserLibraryFileKind | 'folder', number> = {
   video: 12,
   archive: 13,
   binary: 14,
+  questionnaire: 15,
 };
 
-interface FreePosition {
-  readonly x: number;
-  readonly y: number;
-}
-
-const FREE_LAYOUT_PREFIX = 'minimed.freeLayout.';
-
-function clampPercent(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.min(96, Math.max(0, value));
-}
-
-function readFreeLayout(scope: string): Record<string, FreePosition> {
-  try {
-    const raw = localStorage.getItem(FREE_LAYOUT_PREFIX + scope);
-    const parsed: unknown = raw ? JSON.parse(raw) : null;
-    if (!parsed || typeof parsed !== 'object') return {};
-    const result: Record<string, FreePosition> = {};
-    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
-      const candidate = value as Partial<FreePosition> | null;
-      if (candidate && typeof candidate.x === 'number' && typeof candidate.y === 'number') {
-        result[id] = { x: clampPercent(candidate.x), y: clampPercent(candidate.y) };
-      }
-    }
-    return result;
-  } catch {
-    return {};
-  }
-}
-
-function writeFreeLayout(scope: string, positions: Readonly<Record<string, FreePosition>>): void {
-  try {
-    localStorage.setItem(FREE_LAYOUT_PREFIX + scope, JSON.stringify(positions));
-  } catch {
-    // ignore
-  }
-}
+const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
+  [USER_LIBRARY_BOOKS_FOLDER_ID]: 'book-open',
+  [USER_LIBRARY_RESEARCH_FOLDER_ID]: 'microscope',
+  [USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID]: 'list-checks',
+  [USER_LIBRARY_TEMPLATES_FOLDER_ID]: 'notepad',
+  [USER_LIBRARY_NOTES_FOLDER_ID]: 'notes',
+};
 
 /** Reference-stability guard: keeps virtualizer rows from re-measuring when a
  * refresh brings back an identical list (e.g. unrelated library writes). */
@@ -210,7 +234,8 @@ function activeOcrDocumentId(documents: readonly UserLibraryDocument[]): string 
 function statusLabel(document: UserLibraryDocument, activeOcrId: string | null): string {
   if (document.status === 'inspecting') return 'Читаем файл…';
   if (document.status === 'ready') {
-    return `${formatFileSize(document.byteLength)} · изменён ${formatDateTime(document.updatedAt)}`;
+    const textLayer = document.hasTextLayer ? 'Текстовый слой найден · ' : '';
+    return `${textLayer}${formatFileSize(document.byteLength)} · изменён ${formatDateTime(document.updatedAt)}`;
   }
   if (document.status === 'failed') {
     return document.errorMessage ?? 'Не удалось обработать файл';
@@ -235,6 +260,15 @@ function folderDescendants(folders: readonly UserLibraryFolder[], folderId: stri
   return result;
 }
 
+function isExampleSlotFilled(
+  slot: UserLibraryExampleSlot,
+  documents: readonly UserLibraryDocument[],
+): boolean {
+  return documents.some(
+    (document) => document.exampleId === slot.id || document.fileName === slot.fileName,
+  );
+}
+
 interface LibraryEntry {
   readonly key: string;
   readonly kind: 'folder' | 'document';
@@ -242,6 +276,31 @@ interface LibraryEntry {
   readonly updatedAt: string;
   readonly folder?: UserLibraryFolder;
   readonly document?: UserLibraryDocument;
+  readonly example?: UserLibraryExampleSlot;
+}
+
+interface ExampleUploadState {
+  readonly progress: number;
+  readonly uploading: boolean;
+  readonly error?: string;
+}
+
+interface TouchDragSource {
+  readonly kind: 'document' | 'folder';
+  readonly id: string;
+  readonly key: string;
+}
+
+function canUseNativeLibraryDrag(): boolean {
+  return typeof window === 'undefined' || window.matchMedia('(pointer: fine)').matches;
+}
+
+function libraryDropTargetAt(clientX: number, clientY: number): string | null | undefined {
+  const element = document.elementFromPoint(clientX, clientY);
+  const target = element?.closest<HTMLElement>('[data-user-library-drop-target]');
+  if (!target) return undefined;
+  const folderId = target.getAttribute('data-user-library-drop-target');
+  return folderId === 'root' ? null : folderId || undefined;
 }
 
 function UserLibraryAttachmentPreview(props: {
@@ -249,49 +308,91 @@ function UserLibraryAttachmentPreview(props: {
 }): JSX.Element {
   const [source, setSource] = createSignal<string>();
   const [decodeFailed, setDecodeFailed] = createSignal(false);
+  let previewHost: HTMLSpanElement | undefined;
+  let observer: IntersectionObserver | undefined;
+  let idleCallback: number | undefined;
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
   let disposed = false;
+  let started = false;
 
-  onMount(() => {
-    void getUserLibraryFile(props.document.id)
-      .then(async (blob) => {
-        if (!blob) return;
-        const preview = await attachmentThumbnails.forFile(
-          blob,
-          props.document.mimeType,
-          props.document.fileName,
-        );
+  const loadPreview = (): void => {
+    if (started) return;
+    started = true;
+    void ensureUserLibraryThumbnail(props.document)
+      .then((preview) => {
         if (!disposed && preview) setSource(preview);
       })
       .catch(() => {
         if (!disposed) setDecodeFailed(true);
       });
+  };
+
+  const schedulePreview = (): void => {
+    if ('requestIdleCallback' in window) {
+      idleCallback = window.requestIdleCallback(loadPreview, { timeout: 500 });
+    } else {
+      idleTimer = setTimeout(loadPreview, 0);
+    }
+  };
+
+  onMount(() => {
+    if (!previewHost || typeof IntersectionObserver !== 'function') {
+      schedulePreview();
+      return;
+    }
+    observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        observer?.disconnect();
+        observer = undefined;
+        schedulePreview();
+      },
+      { rootMargin: '360px 0px' },
+    );
+    observer.observe(previewHost);
   });
   onCleanup(() => {
     disposed = true;
+    observer?.disconnect();
+    if (idleCallback !== undefined) window.cancelIdleCallback(idleCallback);
+    if (idleTimer !== undefined) window.clearTimeout(idleTimer);
   });
 
   // HEIC and other platform-specific formats may fail to decode — fall back to
   // the kind glyph by dropping the broken <img>.
   return (
-    <Show when={!decodeFailed() ? source() : undefined} fallback={null}>
-      {(url) => (
-        <img
-          class="user-library-card__preview-image"
-          src={url()}
-          alt=""
-          draggable={false}
-          onError={() => setDecodeFailed(true)}
-        />
-      )}
-    </Show>
+    <span
+      ref={(element) => {
+        previewHost = element;
+      }}
+      class="user-library-card__preview-sentinel"
+      aria-hidden="true"
+    >
+      <Show when={!decodeFailed() ? source() : undefined} fallback={null}>
+        {(url) => (
+          <img
+            class="user-library-card__preview-image"
+            src={url()}
+            alt=""
+            draggable={false}
+            onError={() => setDecodeFailed(true)}
+          />
+        )}
+      </Show>
+    </span>
   );
 }
 
 export function UserLibraryPage(): JSX.Element {
-  const folderIdFromLocation = (): string | null =>
-    parseUserLibraryFolderRoute(window.location.hash.replace(/^#\/?/u, ''));
+  const folderIdFromLocation = (): string | null => {
+    const folderId = parseUserLibraryFolderRoute(window.location.hash.replace(/^#\/?/u, ''));
+    return folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID ? null : folderId;
+  };
   const [documents, setDocuments] = createSignal<readonly UserLibraryDocument[]>([]);
   const [folders, setFolders] = createSignal<readonly UserLibraryFolder[]>([]);
+  const [exampleUploads, setExampleUploads] = createSignal<
+    Partial<Record<UserLibraryExampleId, ExampleUploadState>>
+  >({});
   const [currentFolderId, setCurrentFolderId] = createSignal<string | null>(folderIdFromLocation());
   const [dragTarget, setDragTarget] = createSignal<string | null | undefined>(undefined);
   const [renameTarget, setRenameTarget] = createSignal<RenameTarget | null>(null);
@@ -306,15 +407,12 @@ export function UserLibraryPage(): JSX.Element {
   const [confirmExitSelection, setConfirmExitSelection] = createSignal(false);
   const [confirmBulkDelete, setConfirmBulkDelete] = createSignal(false);
   const [creatingPdf, setCreatingPdf] = createSignal(false);
-  const [viewMode, setViewMode] = createSignal<'grid' | 'list' | 'free'>(initialViewMode());
+  const [viewMode, setViewMode] = createSignal<'grid' | 'list'>(initialViewMode());
   const [sortMode, setSortMode] = createSignal<SortMode>(initialSortMode());
-  const [freePositions, setFreePositions] = createSignal<Readonly<Record<string, FreePosition>>>(
-    {},
-  );
   const [draggingKey, setDraggingKey] = createSignal<string | null>(null);
   const [mediaDocument, setMediaDocument] = createSignal<UserLibraryDocument | null>(null);
   const [mediaUrl, setMediaUrl] = createSignal('');
-  function initialViewMode(): 'grid' | 'list' | 'free' {
+  function initialViewMode(): 'grid' | 'list' {
     try {
       const stored = localStorage.getItem('minimed.libraryView');
       return stored === 'list' ? 'list' : 'grid';
@@ -351,43 +449,77 @@ export function UserLibraryPage(): JSX.Element {
 
   useStickySurface(headingElement);
 
-  const refresh = (): void => {
+  const refresh = async (): Promise<void> => {
     const generation = ++refreshGeneration;
-    void Promise.all([listUserLibraryDocuments(), listUserLibraryFolders()])
-      .then(([nextDocuments, nextFolders]) => {
-        if (generation !== refreshGeneration) return;
-        setDocuments((previous) =>
-          libraryListsEqual(previous, nextDocuments) ? previous : nextDocuments,
-        );
-        setFolders((previous) =>
-          libraryListsEqual(previous, nextFolders) ? previous : nextFolders,
-        );
-        const current = currentFolderId();
-        if (current && !nextFolders.some((folder) => folder.id === current)) {
-          setCurrentFolderId(null);
-        }
-      })
-      .catch((cause) => {
-        toast.error(
-          cause instanceof Error ? cause.message : 'Не удалось прочитать личную библиотеку.',
-        );
-      });
+    try {
+      const [nextDocuments, nextFolders] = await Promise.all([
+        listUserLibraryDocuments(),
+        listUserLibraryFolders(),
+      ]);
+      if (generation !== refreshGeneration) return;
+      setDocuments((previous) =>
+        libraryListsEqual(previous, nextDocuments) ? previous : nextDocuments,
+      );
+      setFolders((previous) => (libraryListsEqual(previous, nextFolders) ? previous : nextFolders));
+      const current = currentFolderId();
+      if (current && !nextFolders.some((folder) => folder.id === current)) {
+        setCurrentFolderId(null);
+      }
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : 'Не удалось прочитать личную библиотеку.',
+      );
+    }
   };
 
   onMount(() => {
     const syncFolderFromLocation = (): void => {
-      const nextFolderId = folderIdFromLocation();
+      const requestedFolderId = parseUserLibraryFolderRoute(
+        window.location.hash.replace(/^#\/?/u, ''),
+      );
+      if (requestedFolderId === USER_LIBRARY_TEMPLATES_FOLDER_ID) {
+        window.location.hash = notesTemplatesPath();
+        return;
+      }
+      const nextFolderId = requestedFolderId;
       if (nextFolderId !== currentFolderId()) setCurrentFolderId(nextFolderId);
     };
     syncFolderFromLocation();
     refresh();
-    schedulePatientNotesLibrarySync();
     window.addEventListener(USER_LIBRARY_EVENT, refresh);
-    void ensureUserLibraryMedicalExamples().catch((cause) => {
-      toast.error(cause instanceof Error ? cause.message : 'Не удалось добавить примеры КТ/МРТ.');
-    });
+    let cancelled = false;
+    const syncNotes = async (): Promise<void> => {
+      try {
+        await syncPatientNotesToUserLibrary();
+      } catch (cause) {
+        if (!cancelled) {
+          console.warn(
+            cause instanceof Error
+              ? `Не удалось синхронизировать заметки с файлами: ${cause.message}`
+              : 'Не удалось синхронизировать заметки с файлами.',
+          );
+        }
+      }
+    };
+    const runNoteSync = (): void => {
+      idleCallback = undefined;
+      idleTimer = undefined;
+      if (!cancelled) void syncNotes();
+    };
+    let idleCallback: number | undefined;
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    if ('requestIdleCallback' in window) {
+      idleCallback = window.requestIdleCallback(runNoteSync, { timeout: 2000 });
+    } else {
+      idleTimer = setTimeout(runNoteSync, 1000);
+    }
     window.addEventListener('hashchange', syncFolderFromLocation);
-    onCleanup(() => window.removeEventListener('hashchange', syncFolderFromLocation));
+    onCleanup(() => {
+      cancelled = true;
+      if (idleCallback !== undefined) window.cancelIdleCallback(idleCallback);
+      if (idleTimer !== undefined) window.clearTimeout(idleTimer);
+      window.removeEventListener('hashchange', syncFolderFromLocation);
+    });
   });
   onCleanup(() => window.removeEventListener(USER_LIBRARY_EVENT, refresh));
 
@@ -497,89 +629,10 @@ export function UserLibraryPage(): JSX.Element {
     folders().find((folder) => folder.id === currentFolderId()),
   );
 
-  let freeContainer: HTMLElement | undefined;
   let lastInteractedKey: string | null = null;
-
-  createEffect(() => {
-    if (viewMode() !== 'free') return;
-    setFreePositions(readFreeLayout(currentFolderId() ?? 'root'));
-  });
-
-  const freePositionFor = (entryKey: string, index: number): FreePosition => {
-    const stored = freePositions()[entryKey];
-    if (stored) return stored;
-    const rect = freeContainer?.getBoundingClientRect();
-    const width = rect?.width || 800;
-    const height = rect?.height || 600;
-    // ponytail: fixed seed grid, upgrade to collision-aware packing if auto-layout becomes a requirement
-    const tileWidth = Math.min(224, Math.max(160, width * 0.86));
-    const gap = 24;
-    const columns = Math.max(1, Math.floor((width + gap) / (tileWidth + gap)));
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    return {
-      x: clampPercent(((column * (tileWidth + gap)) / width) * 100),
-      y: clampPercent(((row * 168) / Math.max(1, height)) * 100),
-    };
-  };
-
-  /**
-   * Whole-block free drag: press anywhere outside an action control, and the
-   * block follows the pointer. A clean tap (no movement) still opens the item
-   * through the regular click path.
-   */
-  const startFreeDrag = (event: PointerEvent, entryKey: string): void => {
-    if (selectionMode()) return;
-    if (!freeContainer) return;
-    const item = event.currentTarget;
-    if (!(item instanceof HTMLElement)) return;
-    // Text fields and action buttons keep their native pointer interaction;
-    // the rest of the tile remains a drag handle.
-    if (
-      event.target instanceof Element &&
-      event.target.closest(
-        'input, textarea, select, .app-context-menu__more, .user-library-card__check, .user-library-card__rename-action',
-      )
-    )
-      return;
-    const containerRect = freeContainer.getBoundingClientRect();
-    const startX = event.clientX;
-    const startY = event.clientY;
-    const startLeft = item.offsetLeft;
-    const startTop = item.offsetTop;
-    let moved = false;
-    const onMove = (moveEvent: PointerEvent): void => {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-      if (!moved && Math.hypot(dx, dy) <= 5) return;
-      if (!moved) {
-        moved = true;
-        setDraggingKey(entryKey);
-        try {
-          item.setPointerCapture(moveEvent.pointerId);
-        } catch {
-          // ignore — drag continues without capture
-        }
-      }
-      moveEvent.preventDefault();
-      const x = clampPercent(((startLeft + dx) / containerRect.width) * 100);
-      const y = clampPercent(((startTop + dy) / Math.max(1, containerRect.height)) * 100);
-      setFreePositions((current) => ({ ...current, [entryKey]: { x, y } }));
-    };
-    const onUp = (): void => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointercancel', onUp);
-      if (moved) {
-        lastInteractedKey = entryKey;
-        writeFreeLayout(currentFolderId() ?? 'root', freePositions());
-      }
-      setDraggingKey(null);
-    };
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-    window.addEventListener('pointercancel', onUp);
-  };
+  let stopTouchDrag: () => void = () => undefined;
+  let touchDragActive = false;
+  let suppressTouchContextMenuUntil = 0;
 
   let mediaObjectUrl = '';
   let mediaRequestToken = 0;
@@ -617,7 +670,10 @@ export function UserLibraryPage(): JSX.Element {
   });
 
   const visibleFolders = createMemo(() =>
-    folders().filter((folder) => folder.parentId === currentFolderId()),
+    folders().filter(
+      (folder) =>
+        folder.parentId === currentFolderId() && folder.id !== USER_LIBRARY_TEMPLATES_FOLDER_ID,
+    ),
   );
   const visibleDocuments = createMemo(() => {
     const query = searchQuery().trim();
@@ -626,7 +682,15 @@ export function UserLibraryPage(): JSX.Element {
       return !query || matchesFuzzyQuery(query, [document.title, document.fileName]);
     });
   });
-
+  const visibleExampleSlots = createMemo(() => {
+    const query = searchQuery().trim();
+    return USER_LIBRARY_EXAMPLE_SLOTS.filter(
+      (slot) =>
+        slot.folderId === currentFolderId() &&
+        !isExampleSlotFilled(slot, documents()) &&
+        (!query || matchesFuzzyQuery(query, [slot.title, slot.fileName])),
+    );
+  });
   const imageDocumentsForFolder = (folderId: string): readonly UserLibraryDocument[] => {
     const childDocuments = documents().filter((document) => document.folderId === folderId);
     if (
@@ -662,13 +726,26 @@ export function UserLibraryPage(): JSX.Element {
         document,
       }),
     );
+    const exampleEntries = visibleExampleSlots().map(
+      (example): LibraryEntry => ({
+        key: `example:${example.id}`,
+        kind: 'document',
+        title: example.title,
+        updatedAt: '9999-12-31T23:59:59.999Z',
+        example,
+      }),
+    );
     const mode = sortMode();
-    return [...folderEntries, ...documentEntries].toSorted((left, right) => {
+    return [...folderEntries, ...documentEntries, ...exampleEntries].toSorted((left, right) => {
       if (mode === 'name') return left.title.localeCompare(right.title, 'ru-RU');
       if (mode === 'type') {
         const rankOf = (entry: LibraryEntry): number => {
-          if (entry.kind === 'folder' || !entry.document) return FILE_KIND_SORT_RANK.folder;
-          const kind = userLibraryFileKind(entry.document.mimeType, entry.document.fileName);
+          if (entry.kind === 'folder') return FILE_KIND_SORT_RANK.folder;
+          const kind = entry.example
+            ? userLibraryFileKind(entry.example.mimeType, entry.example.fileName)
+            : entry.document
+              ? userLibraryFileKind(entry.document.mimeType, entry.document.fileName)
+              : 'binary';
           return FILE_KIND_SORT_RANK[kind];
         };
         const leftRank = rankOf(left);
@@ -692,6 +769,18 @@ export function UserLibraryPage(): JSX.Element {
     return trail;
   });
 
+  const updateExampleUpload = (
+    id: UserLibraryExampleId,
+    state: ExampleUploadState | null,
+  ): void => {
+    setExampleUploads((current) => {
+      const next = { ...current };
+      if (state) next[id] = state;
+      else delete next[id];
+      return next;
+    });
+  };
+
   const appendFiles = async (
     files: FileList | null | undefined,
     folderId: string | null = currentFolderId(),
@@ -714,7 +803,33 @@ export function UserLibraryPage(): JSX.Element {
     refresh();
   };
 
-  const openFilePicker = (): void => fileInputElement?.click();
+  const downloadExample = async (slot: UserLibraryExampleSlot): Promise<void> => {
+    if (exampleUploads()[slot.id]?.uploading) return;
+    updateExampleUpload(slot.id, { progress: 0, uploading: true });
+    try {
+      await downloadUserLibraryExample(slot, (progress) =>
+        updateExampleUpload(slot.id, { progress, uploading: true }),
+      );
+      await refresh();
+      updateExampleUpload(slot.id, null);
+      toast.success(`Добавлен пример «${slot.title}».`);
+    } catch (cause) {
+      updateExampleUpload(slot.id, {
+        progress: 0,
+        uploading: false,
+        error: cause instanceof Error ? cause.message : 'Не удалось скачать пример.',
+      });
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать пример.');
+    }
+  };
+
+  const openFilePicker = (): void => {
+    if (fileInputElement) {
+      fileInputElement.accept = '';
+      fileInputElement.multiple = true;
+      fileInputElement.click();
+    }
+  };
 
   const startRename = (target: RenameTarget): void => {
     setRenameTarget(target);
@@ -771,6 +886,131 @@ export function UserLibraryPage(): JSX.Element {
     }
   };
 
+  const preventTouchContextMenu = (event: MouseEvent): void => {
+    if (event.target instanceof Element && event.target.closest('.app-context-menu__more')) return;
+    if (!touchDragActive && performance.now() >= suppressTouchContextMenuUntil) return;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const startTouchDrag = (event: PointerEvent, source: TouchDragSource): void => {
+    if (
+      event.pointerType !== 'touch' ||
+      selectionMode() ||
+      (event.target instanceof Element &&
+        event.target.closest(
+          'input, textarea, select, .app-context-menu__more, .user-library-card__check, .user-library-card__rename-action, .user-library-card__icon-action',
+        ))
+    ) {
+      return;
+    }
+
+    stopTouchDrag();
+    const item = event.currentTarget;
+    if (!(item instanceof HTMLElement)) return;
+    const pointerId = event.pointerId;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    let dragging = false;
+    let finished = false;
+    let timer = 0;
+    let dropFrame: number | undefined;
+    let pendingDropPoint: { readonly x: number; readonly y: number } | undefined;
+
+    const cleanup = (): void => {
+      window.clearTimeout(timer);
+      if (dropFrame !== undefined) cancelAnimationFrame(dropFrame);
+      dropFrame = undefined;
+      pendingDropPoint = undefined;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      if (dragging) {
+        setDraggingKey(null);
+        setDragTarget(undefined);
+        document.body.classList.remove('user-library-touch-dragging');
+        touchDragActive = false;
+      }
+      if (stopTouchDrag === cancel) stopTouchDrag = () => undefined;
+    };
+
+    const updateDropTarget = (clientX: number, clientY: number): string | null | undefined => {
+      const target = libraryDropTargetAt(clientX, clientY);
+      if (target !== undefined) setDragTarget(target);
+      return target;
+    };
+
+    const scheduleDropTarget = (clientX: number, clientY: number): void => {
+      pendingDropPoint = { x: clientX, y: clientY };
+      if (dropFrame !== undefined) return;
+      dropFrame = requestAnimationFrame(() => {
+        dropFrame = undefined;
+        const point = pendingDropPoint;
+        pendingDropPoint = undefined;
+        if (point) updateDropTarget(point.x, point.y);
+      });
+    };
+
+    const finish = (drop: boolean, releaseEvent?: PointerEvent): void => {
+      if (finished) return;
+      finished = true;
+      const wasDragging = dragging;
+      const target =
+        wasDragging && drop && releaseEvent
+          ? updateDropTarget(releaseEvent.clientX, releaseEvent.clientY)
+          : undefined;
+      if (wasDragging && releaseEvent) {
+        releaseEvent.preventDefault();
+        releaseEvent.stopPropagation();
+        suppressTouchContextMenuUntil = performance.now() + 600;
+      }
+      cleanup();
+      if (!wasDragging) return;
+      lastInteractedKey = source.key;
+      if (target === undefined) return;
+      if (source.kind === 'document') void moveDocument(source.id, target);
+      else void moveFolder(source.id, target);
+    };
+
+    const cancel = (): void => finish(false);
+    const onMove = (moveEvent: PointerEvent): void => {
+      if (moveEvent.pointerId !== pointerId) return;
+      if (!dragging) {
+        if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) > 8) cancel();
+        return;
+      }
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      scheduleDropTarget(moveEvent.clientX, moveEvent.clientY);
+    };
+    const onUp = (upEvent: PointerEvent): void => {
+      if (upEvent.pointerId === pointerId) finish(true, upEvent);
+    };
+    const onCancel = (cancelEvent: PointerEvent): void => {
+      if (cancelEvent.pointerId === pointerId) cancel();
+    };
+
+    timer = window.setTimeout(() => {
+      if (finished) return;
+      dragging = true;
+      touchDragActive = true;
+      setDraggingKey(source.key);
+      document.body.classList.add('user-library-touch-dragging');
+      try {
+        item.setPointerCapture(pointerId);
+      } catch {
+        // Pointer capture is optional; window listeners still finish the drag.
+      }
+      updateDropTarget(startX, startY);
+    }, 350);
+    window.addEventListener('pointermove', onMove, { passive: false });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+    stopTouchDrag = cancel;
+  };
+
+  onCleanup(() => stopTouchDrag());
+
   const requestOcr = async (
     document: UserLibraryDocument,
     quality: UserLibraryOcrQuality,
@@ -812,6 +1052,28 @@ export function UserLibraryPage(): JSX.Element {
       });
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : 'Не удалось отправить файл.');
+    }
+  };
+
+  const changeDocumentColor = async (
+    document: UserLibraryDocument,
+    color: UserLibraryColor | null,
+  ): Promise<void> => {
+    try {
+      await setUserLibraryDocumentColor(document.id, color);
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось изменить цвет файла.');
+    }
+  };
+
+  const changeFolderColor = async (
+    folder: UserLibraryFolder,
+    color: UserLibraryColor | null,
+  ): Promise<void> => {
+    try {
+      await setUserLibraryFolderColor(folder.id, color);
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось изменить цвет папки.');
     }
   };
 
@@ -899,7 +1161,8 @@ export function UserLibraryPage(): JSX.Element {
       icon: 'folder-open',
       children: moveDocumentActions(document),
     },
-    ...(isUserLibraryVisualMime(document.mimeType)
+    userLibraryColorAction(document.color, (color) => void changeDocumentColor(document, color)),
+    ...(isUserLibraryOcrSupported(document.mimeType, document.fileName)
       ? [
           {
             id: 'ocr',
@@ -909,16 +1172,19 @@ export function UserLibraryPage(): JSX.Element {
               {
                 id: 'ocr-fast',
                 label: 'Быстро',
+                icon: 'clock',
                 onSelect: () => void requestOcr(document, 'fast'),
               },
               {
                 id: 'ocr-balanced',
                 label: 'Обычно',
+                icon: 'notches',
                 onSelect: () => void requestOcr(document, 'balanced'),
               },
               {
                 id: 'ocr-quality',
                 label: 'Качественно',
+                icon: 'magnifying-glass-plus',
                 onSelect: () => void requestOcr(document, 'quality'),
               },
             ],
@@ -937,6 +1203,7 @@ export function UserLibraryPage(): JSX.Element {
   const folderActions = (folder: UserLibraryFolder): readonly AppContextMenuAction[] => {
     if (isUserLibrarySystemFolder(folder)) {
       return [
+        userLibraryColorAction(folder.color, (color) => void changeFolderColor(folder, color)),
         {
           id: 'system',
           label: 'Системная папка: нельзя удалить или переместить',
@@ -957,6 +1224,7 @@ export function UserLibraryPage(): JSX.Element {
             } satisfies AppContextMenuAction,
           ]
         : []),
+      userLibraryColorAction(folder.color, (color) => void changeFolderColor(folder, color)),
       {
         id: 'rename',
         label: 'Переименовать',
@@ -979,7 +1247,7 @@ export function UserLibraryPage(): JSX.Element {
     ];
   };
 
-  const pageActions: readonly AppContextMenuAction[] = [
+  const pageActions = (): readonly AppContextMenuAction[] => [
     {
       id: 'folder',
       label: 'Создать папку',
@@ -1001,7 +1269,14 @@ export function UserLibraryPage(): JSX.Element {
     (mode) => ({
       id: mode,
       label: SORT_MODE_LABEL[mode],
-      ...(sortMode() === mode ? { icon: 'check' } : {}),
+      icon:
+        sortMode() === mode
+          ? 'check'
+          : mode === 'time'
+            ? 'clock'
+            : mode === 'name'
+              ? 'text-aa'
+              : 'file-text',
       onSelect: () => applySortMode(mode),
     }),
   );
@@ -1089,6 +1364,10 @@ export function UserLibraryPage(): JSX.Element {
       }
       if (props.document.status === 'inspecting') return;
       void markUserLibraryDocumentOpened(props.document.id);
+      if (isUserLibraryQuestionnaire(props.document)) {
+        window.location.hash = userQuestionnairePath(props.document.id);
+        return;
+      }
       if (kind() === 'video' || kind() === 'audio') {
         void openMediaPlayer(props.document);
         return;
@@ -1126,12 +1405,23 @@ export function UserLibraryPage(): JSX.Element {
         <article
           class={`user-library-card paper-card user-library-card--${viewMode()}`}
           classList={{
+            'user-library-card--colored': Boolean(props.document.color),
+            'user-library-card--touch-dragging': draggingKey() === props.document.id,
             'user-library-card--selected': selectionMode() && selected(),
             'user-library-card--selecting': selectionMode(),
           }}
+          data-library-color={props.document.color}
           draggable={
-            viewMode() !== 'free' && props.document.status !== 'inspecting' && !selectionMode()
+            canUseNativeLibraryDrag() && props.document.status !== 'inspecting' && !selectionMode()
           }
+          onPointerDown={(event) =>
+            startTouchDrag(event, {
+              kind: 'document',
+              id: props.document.id,
+              key: props.document.id,
+            })
+          }
+          onContextMenu={preventTouchContextMenu}
           onClick={handleCardActivation}
           onKeyDown={handleCardKeyDown}
           onDragStart={(event) => {
@@ -1155,9 +1445,14 @@ export function UserLibraryPage(): JSX.Element {
               </Show>
             </button>
           </Show>
-          <div class={`user-library-card__open user-library-card__open--${viewMode()}`}>
+          <div
+            class={`user-library-card__open user-library-card__open--${viewMode()}`}
+            classList={{ 'user-library-card__open--colored': Boolean(props.document.color) }}
+          >
             <span
               class={`user-library-card__figure user-library-card__figure--${viewMode()} user-library-kind--${kind()}`}
+              classList={{ 'user-library-card__figure--colored': Boolean(props.document.color) }}
+              data-library-color={props.document.color}
               aria-hidden="true"
             >
               <UserLibraryAttachmentPreview document={props.document} />
@@ -1242,11 +1537,77 @@ export function UserLibraryPage(): JSX.Element {
     );
   };
 
+  const LibraryExampleCard = (props: { readonly slot: UserLibraryExampleSlot }): JSX.Element => {
+    const title = (): string => props.slot.title;
+    const fileName = (): string => props.slot.fileName;
+    const upload = (): ExampleUploadState | undefined => exampleUploads()[props.slot.id];
+    const progressPercent = (): number => Math.round((upload()?.progress ?? 0) * 100);
+    const actionLabel = (): string => `Скачать пример «${title()}»`;
+    const addExample = (): void => {
+      void downloadExample(props.slot);
+    };
+    return (
+      <button
+        type="button"
+        class={`user-library-example-card paper-card user-library-example-card--${viewMode()}`}
+        aria-busy={upload()?.uploading || undefined}
+        aria-label={actionLabel()}
+        onClick={addExample}
+      >
+        <span
+          class={`user-library-example-card__open user-library-example-card__open--${viewMode()}`}
+        >
+          <span
+            class={`user-library-example-card__figure user-library-example-card__figure--${viewMode()}`}
+          >
+            <Show
+              when={upload()?.uploading}
+              fallback={
+                <span class="user-library-example-card__upload" aria-hidden="true">
+                  <AppGlyph name="file-arrow-down" class="user-library-example-card__upload-icon" />
+                </span>
+              }
+            >
+              <span class="user-library-example-card__progress">
+                <progress
+                  class="user-library-example-card__progress-bar"
+                  max={1}
+                  value={upload()?.progress ?? 0}
+                  aria-label={`Прогресс скачивания «${title()}»: ${progressPercent()}%`}
+                  title={`Скачивание… ${progressPercent()}%`}
+                />
+              </span>
+            </Show>
+          </span>
+          <span
+            class={`user-library-example-card__text user-library-example-card__text--${viewMode()}`}
+          >
+            <strong class="user-library-example-card__file-name">{title()}</strong>
+            <small
+              class="user-library-example-card__meta"
+              classList={{ 'user-library-example-card__meta--error': Boolean(upload()?.error) }}
+              title={upload()?.error ?? fileName()}
+            >
+              {upload()?.uploading
+                ? `Скачивание… ${progressPercent()}%`
+                : (upload()?.error ?? fileName())}
+            </small>
+          </span>
+        </span>
+      </button>
+    );
+  };
+
   const LibraryFolderCard = (props: { readonly folder: UserLibraryFolder }): JSX.Element => {
     const renaming = (): boolean =>
       renameTarget()?.kind === 'folder' && renameTarget()?.id === props.folder.id;
     const fileCount = (): number =>
-      documents().filter((item) => item.folderId === props.folder.id).length;
+      documents().filter((item) => item.folderId === props.folder.id).length +
+      USER_LIBRARY_EXAMPLE_SLOTS.filter(
+        (slot) => slot.folderId === props.folder.id && !isExampleSlotFilled(slot, documents()),
+      ).length;
+    const attachmentCount = (): number =>
+      fileCount() + folders().filter((item) => item.parentId === props.folder.id).length;
     const drops = folderDropsFor(props.folder.id);
     const openThisFolder = (): void => {
       if (lastInteractedKey === props.folder.id) {
@@ -1265,11 +1626,23 @@ export function UserLibraryPage(): JSX.Element {
       >
         <article
           class={`user-library-folder-card paper-card user-library-folder-card--${viewMode()}`}
+          data-library-color={props.folder.color}
           classList={{
+            'user-library-folder-card--colored': Boolean(props.folder.color),
             'user-library-folder-card--drop-target': dragTarget() === props.folder.id,
+            'user-library-folder-card--touch-dragging': draggingKey() === props.folder.id,
             'user-library-folder-card--system': isUserLibrarySystemFolder(props.folder),
           }}
-          draggable={viewMode() !== 'free' && !isUserLibrarySystemFolder(props.folder)}
+          data-user-library-drop-target={props.folder.id}
+          draggable={canUseNativeLibraryDrag() && !isUserLibrarySystemFolder(props.folder)}
+          onPointerDown={(event) =>
+            startTouchDrag(event, {
+              kind: 'folder',
+              id: props.folder.id,
+              key: props.folder.id,
+            })
+          }
+          onContextMenu={preventTouchContextMenu}
           onDragStart={(event) => {
             event.dataTransfer?.setData(FOLDER_DRAG_TYPE, props.folder.id);
             if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
@@ -1306,6 +1679,9 @@ export function UserLibraryPage(): JSX.Element {
             <button
               type="button"
               class={`user-library-folder-card__open user-library-folder-card__open--${viewMode()}`}
+              classList={{
+                'user-library-folder-card__open--colored': Boolean(props.folder.color),
+              }}
               aria-label={`Открыть папку «${props.folder.title}»`}
               onClick={(event) => {
                 event.stopPropagation();
@@ -1321,23 +1697,38 @@ export function UserLibraryPage(): JSX.Element {
                   <span class="user-library-folder-card__document" />
                 </Show>
                 <span class="user-library-folder-card__front">
-                  <Show when={props.folder.id === USER_LIBRARY_NOTES_FOLDER_ID}>
-                    <AppGlyph name="notes" class="user-library-folder-card__note-icon" />
+                  <Show when={USER_LIBRARY_FOLDER_GLYPHS[props.folder.id]}>
+                    {(glyph) => (
+                      <AppGlyph name={glyph()} class="user-library-folder-card__system-icon" />
+                    )}
                   </Show>
                 </span>
               </span>
-              <strong
-                class={`user-library-folder-card__title user-library-folder-card__title--${viewMode()}`}
+              <Show
+                when={viewMode() === 'list'}
+                fallback={
+                  <>
+                    <strong
+                      class={`user-library-folder-card__title user-library-folder-card__title--${viewMode()}`}
+                    >
+                      {props.folder.title}
+                    </strong>
+                    <small
+                      class={`user-library-folder-card__details user-library-folder-card__details--${viewMode()}`}
+                      title={timesTitleFor(props.folder)}
+                    >
+                      {attachmentCount()} вложений
+                    </small>
+                  </>
+                }
               >
-                {props.folder.title}
-              </strong>
-              <small
-                class={`user-library-folder-card__details user-library-folder-card__details--${viewMode()}`}
-                title={timesTitleFor(props.folder)}
-              >
-                {folders().filter((item) => item.parentId === props.folder.id).length} папок ·{' '}
-                {fileCount()} файлов
-              </small>
+                <span class="user-library-card__text user-library-card__text--list">
+                  <strong class="user-library-card__file-name">{props.folder.title}</strong>
+                  <small class="user-library-card__meta" title={timesTitleFor(props.folder)}>
+                    {attachmentCount()} вложений
+                  </small>
+                </span>
+              </Show>
             </button>
           </Show>
         </article>
@@ -1350,6 +1741,7 @@ export function UserLibraryPage(): JSX.Element {
 
   const renderLibraryEntry = (entry: LibraryEntry): JSX.Element | null => {
     if (entry.folder) return <LibraryFolderCard folder={entry.folder} />;
+    if (entry.example) return <LibraryExampleCard slot={entry.example} />;
     return entry.document ? <LibraryCard document={entry.document} /> : null;
   };
 
@@ -1359,7 +1751,6 @@ export function UserLibraryPage(): JSX.Element {
       classList={{
         'user-library-view-toggle--grid': viewMode() === 'grid',
         'user-library-view-toggle--list': viewMode() === 'list',
-        'user-library-view-toggle--free': viewMode() === 'free',
       }}
       aria-label="Вид списка"
     >
@@ -1403,15 +1794,16 @@ export function UserLibraryPage(): JSX.Element {
 
   return (
     <section class="user-library-page" aria-label="Ваши документы">
-      <AppContextMenu actions={pageActions} hideButton class="user-library-page__area-context">
+      <AppContextMenu actions={pageActions()} hideButton class="user-library-page__area-context">
         <div
           ref={setHeadingElement}
           class="user-library-page__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading route-sticky-chrome"
         >
           <NavBack
             class="knowledge-back-button knowledge-subroute-heading__control"
-            aria-label={backTargetLabel()}
-            onClick={goUpFolderHierarchy}
+            aria-label={searchQuery().length > 0 ? 'Очистить поиск' : backTargetLabel()}
+            onClick={() => (searchQuery().length > 0 ? setSearchQuery('') : goUpFolderHierarchy())}
+            icon={<AppGlyph name={searchQuery().length > 0 ? 'close' : 'arrow-left'} />}
           />
           <SearchField
             class="route-search knowledge-subroute-heading__control"
@@ -1432,6 +1824,7 @@ export function UserLibraryPage(): JSX.Element {
                 'user-library-breadcrumbs__button--active': currentFolderId() === null,
                 'user-library-breadcrumbs__button--drop': dragTarget() === null,
               }}
+              data-user-library-drop-target="root"
               aria-current={currentFolderId() === null ? 'page' : undefined}
               onClick={() => openFolder(null)}
               {...rootDrops}
@@ -1454,6 +1847,7 @@ export function UserLibraryPage(): JSX.Element {
                         'user-library-breadcrumbs__button--active': currentFolderId() === folder.id,
                         'user-library-breadcrumbs__button--drop': dragTarget() === folder.id,
                       }}
+                      data-user-library-drop-target={folder.id}
                       aria-current={currentFolderId() === folder.id ? 'page' : undefined}
                       onClick={() => openFolder(folder.id)}
                       {...drops}
@@ -1471,7 +1865,7 @@ export function UserLibraryPage(): JSX.Element {
             {sortMenu()}
             {viewToggle()}
             <AppContextMenu
-              actions={pageActions}
+              actions={pageActions()}
               class="user-library-page__page-actions"
               buttonClass="user-library-page__add-button"
               buttonIcon="plus"
@@ -1549,71 +1943,31 @@ export function UserLibraryPage(): JSX.Element {
             </Show>
           }
         >
-          <Show
-            when={viewMode() === 'free'}
-            fallback={
-              <div
-                class="user-library-page__list"
-                classList={{
-                  'user-library-page__list--grid': viewMode() === 'grid',
-                  'user-library-page__list--list': viewMode() === 'list',
-                }}
-              >
-                <Show
-                  when={viewMode() === 'grid'}
-                  fallback={
-                    <LayoutVirtualizedGrid
-                      data={visibleEntries()}
-                      bufferSize={500}
-                      maxColumns={3}
-                      minTwoColumnWidth={320}
-                    >
-                      {(entry) => renderLibraryEntry(entry)}
-                    </LayoutVirtualizedGrid>
-                  }
-                >
-                  <LayoutVirtualizedGrid
-                    data={visibleEntries()}
-                    bufferSize={500}
-                    maxColumns={6}
-                    minTwoColumnWidth={320}
-                  >
-                    {(entry) => renderLibraryEntry(entry)}
-                  </LayoutVirtualizedGrid>
-                </Show>
-              </div>
-            }
+          <div
+            class="user-library-page__list"
+            classList={{
+              'user-library-page__list--grid': viewMode() === 'grid',
+              'user-library-page__list--list': viewMode() === 'list',
+            }}
           >
-            <div
-              class="user-library-page__free"
-              ref={(element) => {
-                freeContainer = element;
-              }}
+            <Show
+              when={viewMode() === 'grid'}
+              fallback={
+                <LayoutVirtualizedGrid data={visibleEntries()} bufferSize={500} maxColumns={3}>
+                  {(entry) => renderLibraryEntry(entry)}
+                </LayoutVirtualizedGrid>
+              }
             >
-              <For each={visibleEntries()}>
-                {(entry, index) => {
-                  const position = (): FreePosition => freePositionFor(entry.key, index());
-                  const card = entry.folder ? (
-                    <LibraryFolderCard folder={entry.folder} />
-                  ) : entry.document ? (
-                    <LibraryCard document={entry.document} />
-                  ) : null;
-                  return (
-                    <div
-                      class="user-library-page__free-item"
-                      classList={{
-                        'user-library-page__free-item--dragging': draggingKey() === entry.key,
-                      }}
-                      style={{ left: `${position().x}%`, top: `${position().y}%` }}
-                      onPointerDown={(event) => startFreeDrag(event, entry.key)}
-                    >
-                      {card}
-                    </div>
-                  );
-                }}
-              </For>
-            </div>
-          </Show>
+              <LayoutVirtualizedGrid
+                data={visibleEntries()}
+                bufferSize={500}
+                maxColumns={6}
+                minColumns={2}
+              >
+                {(entry) => renderLibraryEntry(entry)}
+              </LayoutVirtualizedGrid>
+            </Show>
+          </div>
         </Show>
 
         <Show when={selectionMode()}>

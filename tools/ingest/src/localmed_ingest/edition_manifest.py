@@ -114,11 +114,17 @@ def validate_edition_manifest(
     validate_pack_publication(pack)
 
 
-def validate_local_edition_manifest(manifest: EditionManifest, database: Path) -> None:
+def validate_local_edition_manifest(
+    manifest: EditionManifest,
+    database: Path,
+    *,
+    database_sha256: str | None = None,
+) -> None:
     """Validate a local-development manifest without loading authoring artifacts."""
     if manifest.publishability != "local-dev":
         raise ValueError("Composer can only produce local-development editions.")
-    if manifest.database_sha256 != sha256_file(database):
+    actual_database_sha256 = database_sha256 or sha256_file(database)
+    if manifest.database_sha256 != actual_database_sha256:
         raise ValueError("Edition manifest does not match the database checksum.")
 
     connection = sqlite3.connect(database)

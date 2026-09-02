@@ -86,9 +86,14 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
       >
         <NavBack
           class="laws-documents-page__back knowledge-back-button knowledge-subroute-heading__control"
-          aria-label="Назад к наборам документов"
-          onClick={props.onBack}
-          icon={<AppGlyph name="arrow-left" class="laws-documents-page__back-icon" />}
+          aria-label={query().length > 0 ? 'Очистить поиск' : 'Назад к наборам документов'}
+          onClick={() => (query().length > 0 ? setQuery('') : props.onBack())}
+          icon={
+            <AppGlyph
+              name={query().length > 0 ? 'close' : 'arrow-left'}
+              class="laws-documents-page__back-icon"
+            />
+          }
         />
         <SearchField
           class="laws-documents-page__search route-search knowledge-subroute-heading__control"
@@ -142,11 +147,12 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
           fallback={<p class="laws-documents-page__empty">Документы не найдены.</p>}
         >
           <div class="laws-documents-page__list">
-            <LayoutVirtualizedGrid data={documents()} maxColumns={2} minTwoColumnWidth={320}>
+            <LayoutVirtualizedGrid data={documents()} maxColumns={2}>
               {(document) => {
                 const canActivate = () => props.installed || props.downloadAvailable;
                 const documentWorking = () =>
-                  working() && requestedDocumentId() === document.documentId;
+                  working() &&
+                  (requestedDocumentId() === null || requestedDocumentId() === document.documentId);
                 const status =
                   document.status === 'active'
                     ? 'действующая редакция'
@@ -173,7 +179,7 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
                         class="medication-product-card__open-icon module-document-card__action-icon"
                       />
                     </Show>
-                    <strong class="medication-product-card__title module-document-card__title">
+                    <strong class="module-document-card__title">
                       {props.documentTitle(document)}
                     </strong>
                     <p class="medication-product-card-meta module-document-card__meta">

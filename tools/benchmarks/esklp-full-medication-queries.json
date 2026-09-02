@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "id": "minimed-esklp-full-medication-identity-v1",
+  "description": "Source-derived ESKLP medication identity and evidence retrieval queries; not a dose or treatment benchmark.",
+  "trustedDoseData": false,
+  "queries": [
+    {
+      "id": "esklp-paracetamol-mnn",
+      "query": "парацетамол",
+      "requiredEntityIds": ["esklp.mnn.парацетамол"],
+      "identityTop1EntityId": "esklp.mnn.парацетамол"
+    },
+    {
+      "id": "esklp-nurofen-tn-tablets",
+      "query": "нурофен",
+      "requiredEntityIds": ["esklp.mnn.ибупрофен"],
+      "identityTop1EntityId": "esklp.mnn.ибупрофен",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.ибупрофен",
+          "allOf": ["Нурофен", "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ", "200.0 мг"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-nurofen-suspension",
+      "query": "нурофен суспензия",
+      "requiredEntityIds": ["esklp.mnn.ибупрофен"],
+      "identityTop1EntityId": "esklp.mnn.ибупрофен",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.ибупрофен",
+          "allOf": ["Нурофен для детей", "СУСПЕНЗИЯ ДЛЯ ПРИЕМА ВНУТРЬ", "100 мг/5 мл"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-nurofen-spirop",
+      "query": "нурофен спироп",
+      "requiredEntityIds": ["esklp.mnn.ибупрофен"],
+      "identityTop1EntityId": "esklp.mnn.ибупрофен",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.ибупрофен",
+          "allOf": ["Нурофен для детей", "СУСПЕНЗИЯ ДЛЯ ПРИЕМА ВНУТРЬ", "100 мг/5 мл"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-nurofen-plus",
+      "query": "нурофен плюс",
+      "requiredEntityIds": ["esklp.mnn.ибупрофен-кодеин"],
+      "identityTop1EntityId": "esklp.mnn.ибупрофен-кодеин",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.ибупрофен-кодеин",
+          "allOf": ["Нурофен плюс", "ИБУПРОФЕН+КОДЕИН", "200 мг+10 мг"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-nurofen-intensive",
+      "query": "нурофен интенсив",
+      "requiredEntityIds": ["esklp.mnn.ибупрофен-парацетамол"],
+      "identityTop1EntityId": "esklp.mnn.ибупрофен-парацетамол",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.ибупрофен-парацетамол",
+          "allOf": ["Нурофен Интенсив", "ИБУПРОФЕН+ПАРАЦЕТАМОЛ", "200 мг + 500 мг"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-turbuhaler",
+      "query": "турбухалер",
+      "requiredEntityIds": [
+        "esklp.mnn.будесонид",
+        "esklp.mnn.будесонид-формотерол",
+        "esklp.mnn.формотерол"
+      ],
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.будесонид",
+          "allOf": ["Пульмикорт Турбухалер", "ПОРОШОК ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ"]
+        },
+        {
+          "entityId": "esklp.mnn.будесонид-формотерол",
+          "allOf": ["Симбикорт Турбухалер", "ПОРОШОК ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ"]
+        },
+        {
+          "entityId": "esklp.mnn.формотерол",
+          "allOf": ["Оксис Турбухалер", "ПОРОШОК ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-turbuhaer-typo",
+      "query": "турбухаер",
+      "requiredEntityIds": [
+        "esklp.mnn.будесонид",
+        "esklp.mnn.будесонид-формотерол",
+        "esklp.mnn.формотерол"
+      ],
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.будесонид",
+          "allOf": ["Пульмикорт Турбухалер", "ПОРОШОК ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ"]
+        },
+        {
+          "entityId": "esklp.mnn.будесонид-формотерол",
+          "allOf": ["Симбикорт Турбухалер", "ПОРОШОК ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ"]
+        },
+        {
+          "entityId": "esklp.mnn.формотерол",
+          "allOf": ["Оксис Турбухалер", "ПОРОШОК ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-salbutamol-mnn",
+      "query": "сальбутамол",
+      "requiredEntityIds": ["esklp.mnn.сальбутамол"],
+      "identityTop1EntityId": "esklp.mnn.сальбутамол"
+    },
+    {
+      "id": "esklp-salbutamol-aerosol",
+      "query": "сальбутамол аэрозоль",
+      "requiredEntityIds": ["esklp.mnn.сальбутамол"],
+      "identityTop1EntityId": "esklp.mnn.сальбутамол",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.сальбутамол",
+          "allOf": ["100 мкг/доза"],
+          "anyOf": [
+            "АЭРОЗОЛЬ ДЛЯ МЕСТНОГО ПРИМЕНЕНИЯ ДОЗИРОВАННЫЙ",
+            "АЭРОЗОЛЬ ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "esklp-erythromycin-mnn",
+      "query": "эритромицин",
+      "requiredEntityIds": ["esklp.mnn.эритромицин"],
+      "identityTop1EntityId": "esklp.mnn.эритромицин"
+    },
+    {
+      "id": "esklp-ceftriaxone-mnn",
+      "query": "цефтриаксон",
+      "requiredEntityIds": ["esklp.mnn.цефтриаксон"],
+      "identityTop1EntityId": "esklp.mnn.цефтриаксон"
+    },
+    {
+      "id": "esklp-ceftriaxone-im",
+      "query": "цефтриаксон внутримышечно",
+      "requiredEntityIds": ["esklp.mnn.цефтриаксон"],
+      "identityTop1EntityId": "esklp.mnn.цефтриаксон",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.цефтриаксон",
+          "allOf": ["ПОРОШОК ДЛЯ ПРИГОТОВЛЕНИЯ РАСТВОРА ДЛЯ ВНУТРИМЫШЕЧНОГО ВВЕДЕНИЯ"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-ceftriaxone-iv",
+      "query": "цефтриаксон внутривенно",
+      "requiredEntityIds": ["esklp.mnn.цефтриаксон"],
+      "identityTop1EntityId": "esklp.mnn.цефтриаксон",
+      "evidence": [
+        {
+          "entityId": "esklp.mnn.цефтриаксон",
+          "allOf": ["ПОРОШОК ДЛЯ ПРИГОТОВЛЕНИЯ РАСТВОРА ДЛЯ ВНУТРИВЕННОГО ВВЕДЕНИЯ"]
+        }
+      ]
+    },
+    {
+      "id": "esklp-cefepim-mnn",
+      "query": "цефепим",
+      "requiredEntityIds": ["esklp.mnn.цефепим"],
+      "identityTop1EntityId": "esklp.mnn.цефепим"
+    },
+    {
+      "id": "esklp-cefipim-typo",
+      "query": "цефипим",
+      "requiredEntityIds": ["esklp.mnn.цефепим"],
+      "identityTop1EntityId": "esklp.mnn.цефепим"
+    }
+  ]
+}

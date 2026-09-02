@@ -11,9 +11,9 @@ uv sync --all-groups
 uv run medbase lint --input ../../content/fixtures
 uv run medbase build \
   --input ../../content/fixtures \
-  --output ../../data/build/core-demo.db \
+  --output ../../data/build/core.db \
   --json-output ../../packages/test-fixtures/src/generated/core-demo.json \
-  --report ../../data/build/core-demo-report.json
+  --report ../../data/build/core-report.json
 ```
 
 ## Private PDF/TXT preparation

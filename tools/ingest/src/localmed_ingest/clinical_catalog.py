@@ -146,10 +146,29 @@ class CoverageOverrideFile(CatalogModel):
     records: dict[str, CoverageOverride] = Field(default_factory=dict)
 
 
+class ClinicalMedicationLink(CatalogModel):
+    relation_id: str
+    mnn_document_id: str
+    inn: str
+    target_document_id: str
+    predicate: Literal["recommended-for"] = "recommended-for"
+    relation_status: Literal["guideline"] = "guideline"
+    review_status: Literal["proposed"] = "proposed"
+    age_groups: list[str] = Field(default_factory=list)
+    evidence_quote: str
+    source_anchor: str
+    source_section_id: str
+    source_chunk_id: str
+
+
 class ClinicalCatalogRecord(CatalogModel):
     record_id: str
     official_id: str
     title: str
+    entity_type: Literal["disease", "reference"] = "disease"
+    aliases: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    clinical_medication_links: list[ClinicalMedicationLink] = Field(default_factory=list)
     version_label: str
     status: RecordStatus
     application_status: str | None = None

@@ -9,32 +9,35 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
 import { stripKnownHtmlMarkupInline } from '@/components/html-markup';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
+import { Heading } from '@/components/Text';
 import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
 import {
   documentFromSummary,
   processMedicationSummariesInBatches,
 } from '@/features/medications/medication-loading';
+import { openMedicationProduct } from '@/features/medications/medication-navigation';
 import {
+  composeMedicationProducts,
   type MedicationProduct,
   medicationDocumentRegistration,
   parseAllmedMedicationProduct,
+  parseEsklpMedicationProducts,
   parseMedicationProduct,
-  readableMedicationDocumentId,
 } from '@/features/medications/medication-record';
 import {
   legacyMedicationRegistrationFromHash,
   MEDICATION_CATALOG_HASH,
 } from '@/features/medications/medication-routing';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
-import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface MedicationCatalogViewProps {
   readonly core: MedicalCore;
@@ -61,25 +64,111 @@ function productVariants(product: MedicationProduct): readonly PackageVariant[] 
   );
 }
 
-function toProducts(
+interface MedicationSummaryMetadata extends Readonly<Record<string, unknown>> {
+  readonly contentMode?: unknown;
+}
+
+function metadataContentMode(metadata: MedicalDocument['metadata'] | undefined): string | null {
+  if (!metadata || typeof metadata !== 'object') return null;
+  const contentMode = (metadata as MedicationSummaryMetadata).contentMode;
+  return typeof contentMode === 'string' ? contentMode : null;
+}
+
+interface ParsedMedicationProducts {
+  readonly registry: readonly MedicationProduct[];
+  readonly allmed: readonly MedicationProduct[];
+}
+
+function parseProducts(
   documents: readonly MedicalDocument[],
   instructions: ReadonlyMap<string, string>,
-): readonly MedicationProduct[] {
-  const registryProducts = documents
-    .filter((document) => document.sourceType === 'official_registry_summary')
-    .flatMap((document) => {
+): ParsedMedicationProducts {
+  const registry: MedicationProduct[] = [];
+  const allmed: MedicationProduct[] = [];
+  for (const document of documents) {
+    if (metadataContentMode(document.metadata) === 'esklp-mnn') {
+      registry.push(...parseEsklpMedicationProducts(document, instructions));
+      continue;
+    }
+    if (document.sourceType === 'official_registry_summary') {
       const registration = medicationDocumentRegistration(document);
       const product = parseMedicationProduct(
         document,
         registration ? (instructions.get(registration) ?? null) : null,
       );
-      return product ? [product] : [];
-    });
-  const allmedProducts = documents.flatMap((document) => {
+      if (product) registry.push(product);
+      continue;
+    }
     const product = parseAllmedMedicationProduct(document);
-    return product ? [product] : [];
+    if (product) allmed.push(product);
+  }
+  return { registry, allmed };
+}
+
+function medicationProductKey(product: MedicationProduct): string {
+  return [
+    product.sourceKind,
+    product.registrationDocumentId,
+    product.mnnDocumentId ?? '',
+    product.registrationNumber,
+    product.tradeName,
+    product.inn,
+    product.smnnCode ?? '',
+    ...product.smnnCodes,
+    ...product.presentations.flatMap((presentation) => [
+      presentation.dosageForm,
+      presentation.strength ?? '',
+      presentation.route ?? '',
+    ]),
+  ].join('\u001f');
+}
+
+function addProducts(
+  target: Map<string, MedicationProduct>,
+  products: readonly MedicationProduct[],
+): void {
+  for (const product of products) {
+    target.set(medicationProductKey(product), product);
+  }
+}
+
+function sortProducts(products: readonly MedicationProduct[]): readonly MedicationProduct[] {
+  return [...products].toSorted((left, right) => {
+    const leftForm = left.presentations[0]?.dosageForm ?? '';
+    const rightForm = right.presentations[0]?.dosageForm ?? '';
+    return (
+      left.tradeName.localeCompare(right.tradeName, 'ru') ||
+      left.registrationNumber.localeCompare(right.registrationNumber, 'ru') ||
+      leftForm.localeCompare(rightForm, 'ru')
+    );
   });
-  return [...registryProducts, ...allmedProducts];
+}
+
+function toProducts(
+  registryProducts: ReadonlyMap<string, MedicationProduct>,
+  allmedProducts: ReadonlyMap<string, MedicationProduct>,
+): readonly MedicationProduct[] {
+  return sortProducts(
+    composeMedicationProducts([...registryProducts.values()], [...allmedProducts.values()]),
+  );
+}
+
+function isMedicationSummary(
+  metadata: MedicalDocument['metadata'] | undefined,
+  sourceType: string,
+): boolean {
+  if (sourceType === 'allmed_reference' || sourceType === 'official_drug_instruction') return true;
+  if (sourceType === 'official_registry_summary') return true;
+  return metadataContentMode(metadata) === 'esklp-mnn';
+}
+
+function productDescription(product: MedicationProduct): string {
+  const presentation = product.presentations[0];
+  return stripKnownHtmlMarkupInline(
+    product.shortDescription ??
+      product.supplementalDescription ??
+      [presentation?.dosageForm, presentation?.strength].filter(Boolean).join(' '),
+  );
 }
 
 /**
@@ -94,9 +183,7 @@ async function loadProducts(
   const summaries = await core.listDocuments();
   if (!summaries.ok) throw new Error(summaries.error.message);
   const medicationSummaries = summaries.value.filter((document) =>
-    ['allmed_reference', 'official_drug_instruction', 'official_registry_summary'].includes(
-      document.sourceType,
-    ),
+    isMedicationSummary(document.metadata, document.sourceType),
   );
   const instructionSummaries = medicationSummaries.filter(
     (document) => document.sourceType === 'official_drug_instruction',
@@ -114,14 +201,15 @@ async function loadProducts(
     }),
   );
 
-  let accumulated: readonly MedicationProduct[] = [];
+  const registryProducts = new Map<string, MedicationProduct>();
+  const allmedProducts = new Map<string, MedicationProduct>();
   await processMedicationSummariesInBatches(otherSummaries, (batchDocuments) => {
-    accumulated = accumulated.concat(toProducts(batchDocuments, instructions));
-    onUpdate(accumulated);
+    const parsed = parseProducts(batchDocuments, instructions);
+    addProducts(registryProducts, parsed.registry);
+    addProducts(allmedProducts, parsed.allmed);
+    onUpdate(toProducts(registryProducts, allmedProducts));
   });
-  return [...accumulated].toSorted((left, right) =>
-    left.tradeName.localeCompare(right.tradeName, 'ru'),
-  );
+  return toProducts(registryProducts, allmedProducts);
 }
 
 export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.Element {
@@ -184,15 +272,13 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     const product = legacyProduct();
     const registration = legacyRegistration();
     if (!registration || !product) return;
-    const documentId = readableMedicationDocumentId(product);
-    if (!documentId) return;
     window.history.replaceState(
       { view: 'modules', route: 'documents/medications' },
       '',
       MEDICATION_CATALOG_HASH,
     );
     setLegacyRegistration(null);
-    openDocumentOverlay(documentId);
+    openMedicationProduct(product);
   });
 
   const deferredSearchQuery = createDeferred(searchQuery, { timeoutMs: 120 });
@@ -201,25 +287,41 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   );
 
   const openProduct = (product: MedicationProduct): void => {
-    const documentId = readableMedicationDocumentId(product);
-    if (documentId) openDocumentOverlay(documentId);
+    openMedicationProduct(product);
   };
 
   return (
     <section class="medication-page">
+      <Page
+        class="medication-page-header"
+        navigation={
+          <NavBack
+            class="knowledge-back-button"
+            aria-label="К базе знаний"
+            onClick={props.onBack}
+          />
+        }
+        breadcrumbs={
+          <AppBreadcrumbs
+            items={[{ label: 'База знаний', href: '#/modules/documents' }, { label: 'Препараты' }]}
+            onNavigate={(href) => {
+              window.location.hash = href;
+            }}
+          />
+        }
+        icon={<AppGlyph name="pill" class="page__icon-glyph" />}
+        title={<Heading depth={1}>Препараты</Heading>}
+        description="Локальный справочник препаратов и официальных инструкций, доступный без сети."
+      />
       <div
         ref={setHeadingElement}
         class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading route-sticky-chrome"
       >
-        <NavBack
-          class="knowledge-back-button knowledge-subroute-heading__control"
-          aria-label="Назад"
-          onClick={() => props.onBack()}
-        />
         <SearchField
           class="route-search knowledge-subroute-heading__control"
           value={searchQuery()}
           onInput={setSearchQuery}
+          onClear={() => setSearchQuery('')}
           label="Поиск по препаратам"
           hideLabel
           placeholder="Название, МНН или показание"
@@ -247,8 +349,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
           <LayoutVirtualizedGrid data={visibleProducts()} bufferSize={500}>
             {(product) => {
               const variants = () => productVariants(product);
-              const description = () =>
-                stripKnownHtmlMarkupInline(product.presentations[0]?.dosageForm ?? '');
+              const description = () => productDescription(product);
               return (
                 <button
                   type="button"

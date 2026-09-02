@@ -1,6 +1,8 @@
+import type { ToolEvaluation } from '@localmed/contracts';
 import type {
   AssessmentAnswers,
   AssessmentDefinition,
+  AssessmentEvaluation,
   AssessmentQuestion,
   AssessmentRecord,
   AssessmentResponseOption,
@@ -8,6 +10,10 @@ import type {
   AssessmentScaleScore,
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
+import {
+  type CalculatorValue,
+  evaluateCalculatorExpression,
+} from '@/features/calculators/calculator-expression';
 
 function questionResponseOptions(
   definition: AssessmentDefinition,
@@ -27,6 +33,86 @@ function scoreForResponse(
   maximum: number,
 ): number {
   return reverse ? minimum + maximum - value : value;
+}
+
+function definitionEvaluation(definition: AssessmentDefinition): ToolEvaluation {
+  return (
+    definition.evaluation ?? {
+      status: 'unavailable',
+      rules: [],
+      missingContext: [],
+      reason: 'Для этого опросника не объявлен проверенный референс.',
+      sourceIds: [],
+    }
+  );
+}
+
+function assessmentEvaluation(
+  definition: AssessmentDefinition,
+  scores: readonly AssessmentScaleScore[],
+): AssessmentEvaluation {
+  const declared = definitionEvaluation(definition);
+  const base: AssessmentEvaluation = {
+    status: declared.status,
+    missingContext: declared.missingContext,
+    sourceIds: declared.sourceIds,
+    ...(declared.reason ? { reason: declared.reason } : {}),
+  };
+  // Interpretation copy can explain a result, but only an evaluated declarative rule can create
+  // a persisted reference verdict. Presentation strings are never part of this decision.
+  if (declared.status !== 'verdict') return base;
+  if (declared.rules.length === 0) {
+    return {
+      ...base,
+      status: 'unavailable',
+      reason: base.reason ?? 'Для этого результата не объявлено вычисляемое правило оценки.',
+    };
+  }
+  const scope = assessmentScoreScope(scores);
+  for (const rule of declared.rules) {
+    let match: CalculatorValue;
+    try {
+      match = evaluateCalculatorExpression(rule.when, scope);
+    } catch {
+      return {
+        ...base,
+        status: 'unavailable',
+        reason: 'Правило оценки ссылается на недоступный балл.',
+      };
+    }
+    if (match === 1) {
+      return {
+        ...base,
+        status: 'verdict',
+        verdict: rule.verdict,
+        sourceIds: rule.verdict.sourceIds.length > 0 ? rule.verdict.sourceIds : declared.sourceIds,
+      };
+    }
+  }
+  return {
+    ...base,
+    status: 'unavailable',
+    reason: 'Ни одно объявленное правило оценки не подошло к рассчитанным баллам.',
+  };
+}
+
+function assessmentScoreScope(
+  scores: readonly AssessmentScaleScore[],
+): Readonly<Record<string, number>> {
+  const scope: Record<string, number> = {};
+  for (const score of scores) {
+    const stableId = score.scaleId.replaceAll('-', '_');
+    if (/^[A-Za-z_][A-Za-z0-9_]*$/u.test(score.scaleId)) scope[score.scaleId] = score.rawScore;
+    scope[stableId] = score.rawScore;
+    scope[`score_${stableId}`] = score.rawScore;
+  }
+  if (scores.length === 1) {
+    const only = scores[0];
+    if (only) {
+      Object.assign(scope, { score: only.rawScore, total: only.rawScore });
+    }
+  }
+  return scope;
 }
 
 function roundedPercent(value: number): number {
@@ -91,23 +177,11 @@ function epdsInterpretation(
   const selfHarmAnswer = answers['postnatal-mood-epds-10'] ?? 0;
   const safetyNote =
     selfHarmAnswer > 0
-      ? ' Ответ на пункт о мыслях о причинении себе вреда — выше нуля: рекомендуется как можно скорее обратиться к врачу, а при непосредственной опасности — вызвать скорую помощь.'
+      ? ' Ответ на пункт 10 о причинении себе вреда — выше нуля: нужна немедленная оценка специалистом, а при непосредственной опасности — вызовите скорую помощь.'
       : '';
-  if (raw >= 13) {
-    return {
-      headline: `Результат указывает на вероятный депрессивный эпизод: ${raw} из 30`,
-      summary: `13 баллов и более по принятой интерпретации соответствуют высокой вероятности депрессивного эпизода и являются поводом для консультации специалиста.${safetyNote} EPDS — скрининговый, а не диагностический инструмент.`,
-    };
-  }
-  if (raw >= 10) {
-    return {
-      headline: `Пограничный результат: ${raw} из 30`,
-      summary: `10–12 баллов — пограничная зона; рекомендуется повторная оценка через 2 недели или консультация специалиста при сохранении симптомов.${safetyNote} EPDS — скрининговый, а не диагностический инструмент.`,
-    };
-  }
   return {
-    headline: `Низкая вероятность депрессивного эпизода: ${raw} из 30`,
-    summary: `Менее 10 баллов обычно не указывает на депрессивный эпизод, но не исключает его полностью.${safetyNote} EPDS — скрининговый, а не диагностический инструмент.`,
+    headline: `${raw >= 8 ? 'Достигнут нижний скрининговый ориентир' : 'Результат ниже скринингового ориентира'}: ${raw} из 30`,
+    summary: `В инструкции В. В. Голубович (2003, с. 4) указан ориентир 8–9 баллов и выше. ${raw >= 8 ? 'Результат достигает нижней границы этого ориентира; необходимо клиническое интервью для уточнения состояния.' : 'Результат ниже этого ориентира, но не исключает депрессию; при жалобах обратитесь к специалисту.'}${safetyNote} EPDS — скрининговый, а не диагностический инструмент.`,
   };
 }
 
@@ -245,6 +319,38 @@ export function scoreAssessment(
   answers: AssessmentAnswers,
   completedAt = new Date().toISOString(),
 ): AssessmentScoringResult {
+  if (definition.scoringMode === 'responses-only') {
+    for (const question of definition.questions) {
+      const values = questionResponseOptions(definition, question).map((option) => option.value);
+      if (
+        values.length < 2 ||
+        values.some((value) => !Number.isFinite(value)) ||
+        new Set(values).size !== values.length
+      ) {
+        return { ok: false, error: 'У опросника неверно настроены варианты ответов.' };
+      }
+      const answer = answers[question.id];
+      if (answer === undefined) {
+        return { ok: false, error: `Не заполнен пункт: «${question.prompt}».` };
+      }
+      if (!values.includes(answer)) {
+        return { ok: false, error: `Недопустимое значение ответа для пункта ${question.id}.` };
+      }
+    }
+    return {
+      ok: true,
+      value: {
+        assessmentId: definition.id,
+        completedAt,
+        scores: [],
+        primaryScaleIds: [],
+        headline: 'Опросник заполнен',
+        summary: 'Выбранные ответы сохранены без подсчёта баллов.',
+        disclaimer: definition.disclaimer,
+        evaluation: assessmentEvaluation(definition, []),
+      },
+    };
+  }
   const totals = new Map<
     string,
     { rawScore: number; minimumScore: number; maximumScore: number }
@@ -323,6 +429,7 @@ export function scoreAssessment(
       headline,
       summary: buildSummary(definition, scores, answers),
       disclaimer: definition.disclaimer,
+      evaluation: assessmentEvaluation(definition, scores),
     },
   };
 }
@@ -356,9 +463,7 @@ export function formatCompletedAssessment(
     result.headline,
     result.summary,
     '',
-    'Шкалы:',
-    scores,
-    '',
+    ...(scores ? ['Шкалы:', scores, ''] : []),
     `Ограничение: ${result.disclaimer}`,
     `Версия: ${definition.id}`,
   ].join('\n');
@@ -368,20 +473,27 @@ export function formatBlankAssessment(definition: AssessmentDefinition): string 
   const hasPerQuestionOptions = definition.questions.some(
     (question) => question.responseOptions !== undefined,
   );
-  const sharedOptionsText = definition.responseOptions
-    .map((option) => `${option.value} — ${option.label}`)
-    .join('; ');
+  const optionText = (option: AssessmentResponseOption): string =>
+    option.hideValue ? option.label : `${option.value} — ${option.label}`;
+  const showsValues = definition.questions.some((question) =>
+    questionResponseOptions(definition, question).some((option) => !option.hideValue),
+  );
+  const sharedOptionsText = definition.responseOptions.map(optionText).join('; ');
   const questions = definition.questions
     .map((question, index) => {
       const options = questionResponseOptions(definition, question);
-      const bracket = `[ ${options.map((option) => option.value).join('  ')} ]`;
-      if (!question.responseOptions) return `${index + 1}. ${question.prompt}  ${bracket}`;
-      const optionsText = options.map((option) => `${option.value} — ${option.label}`).join('; ');
-      return `${index + 1}. ${question.prompt}  ${bracket}\n   ${optionsText}`;
+      const bracket = options.some((option) => !option.hideValue)
+        ? `  [ ${options.map((option) => option.value).join('  ')} ]`
+        : '';
+      if (!question.responseOptions) return `${index + 1}. ${question.prompt}${bracket}`;
+      const optionsText = options.map(optionText).join('; ');
+      return `${index + 1}. ${question.prompt}${bracket}\n   ${optionsText}`;
     })
     .join('\n');
   const instruction = hasPerQuestionOptions
-    ? 'Инструкция: для каждого пункта отметьте подходящий вариант ответа (значения указаны рядом с пунктом).'
+    ? showsValues
+      ? 'Инструкция: для каждого пункта отметьте подходящий вариант ответа (значения указаны рядом с пунктом).'
+      : 'Инструкция: для каждого пункта отметьте подходящий вариант ответа.'
     : `Инструкция: оцените, насколько каждое утверждение похоже на вас. ${sharedOptionsText}.`;
   return [
     definition.title,

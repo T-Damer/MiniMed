@@ -124,6 +124,12 @@ function getMessage(
   return message;
 }
 
+/** Select a CLDR plural suffix using the same locale as the message catalog. */
+export function getPluralMessage(messageName: string, count: number): string {
+  const category = new Intl.PluralRules(getActiveCatalogLocale()).select(count);
+  return getMessage(`${messageName}_${category}`, String(count));
+}
+
 function getUILanguage(): string {
   if (uiLanguageOverride !== undefined) return uiLanguageOverride;
   return readNavigatorLanguage() ?? DEFAULT_UI_LANGUAGE;

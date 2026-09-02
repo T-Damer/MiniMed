@@ -13,9 +13,10 @@ export interface HardQueryEvaluation {
   readonly acceptableRank: number | null;
   readonly requiredAt1: boolean;
   readonly requiredAt3: boolean;
-  readonly requiredAt5: boolean;
+  readonly recallAt5: number;
+  readonly hitAt5: boolean;
   readonly acceptableOrRequiredAt5: boolean;
-  readonly expectedSectionAt5: boolean;
+  readonly sectionHitAt5: boolean;
   readonly forbiddenAt5: boolean;
   readonly reciprocalRank: number;
   readonly retrievedNdcgAt5: number;
@@ -28,10 +29,11 @@ export interface HardBenchmarkAggregate {
   readonly recallAt1: number;
   readonly recallAt3: number;
   readonly recallAt5: number;
+  readonly hitAt5: number;
   readonly acceptableOrRequiredRecallAt5: number;
   readonly mrrAt5: number;
   readonly retrievedNdcgAt5: number;
-  readonly expectedSectionRecallAt5: number;
+  readonly sectionHitAt5: number;
   readonly forbiddenRateAt5: number;
   readonly latencyMs: {
     readonly p50: number;
@@ -80,6 +82,20 @@ function firstMatchingRank(
   return index < 0 ? null : index + 1;
 }
 
+function recallForLimit(
+  groups: readonly SearchResultGroup[],
+  needles: readonly string[],
+  limit: number,
+): number {
+  const distinctNeedles = [
+    ...new Set(needles.map(normalize).filter((needle) => needle.length > 0)),
+  ];
+  if (distinctNeedles.length === 0) return 0;
+  const texts = groups.slice(0, limit).map(resultText);
+  const found = distinctNeedles.filter((needle) => texts.some((text) => text.includes(needle)));
+  return found.length / distinctNeedles.length;
+}
+
 function dcg(gains: readonly number[]): number {
   return gains.reduce(
     (total, gain, index) => total + (2 ** Math.max(gain, 0) - 1) / Math.log2(index + 2),
@@ -110,7 +126,7 @@ export function evaluateHardQuery(
   const requiredRank = firstMatchingRank(groups, fixture.required_entities, 5);
   const acceptableRank = firstMatchingRank(groups, fixture.acceptable_entities, 5);
   const expectedSections = fixture.expected_sections.map((value) => value.replaceAll('_', '-'));
-  const expectedSectionAt5 = top5.some((group) =>
+  const sectionHitAt5 = top5.some((group) =>
     group.results.some(
       (result) => result.sectionType !== null && expectedSections.includes(result.sectionType),
     ),
@@ -139,9 +155,10 @@ export function evaluateHardQuery(
     acceptableRank,
     requiredAt1: requiredRank === 1,
     requiredAt3: requiredRank !== null && requiredRank <= 3,
-    requiredAt5: requiredRank !== null,
+    recallAt5: recallForLimit(groups, fixture.required_entities, 5),
+    hitAt5: requiredRank !== null,
     acceptableOrRequiredAt5: requiredRank !== null || acceptableRank !== null,
-    expectedSectionAt5,
+    sectionHitAt5,
     forbiddenAt5,
     reciprocalRank: requiredRank === null ? 0 : 1 / requiredRank,
     retrievedNdcgAt5: idealDcg === 0 ? 0 : dcg(gains) / idealDcg,
@@ -158,11 +175,12 @@ export function aggregateHardQueryEvaluations(
     queryCount: rows.length,
     recallAt1: mean(rows.map((row) => Number(row.requiredAt1))),
     recallAt3: mean(rows.map((row) => Number(row.requiredAt3))),
-    recallAt5: mean(rows.map((row) => Number(row.requiredAt5))),
+    recallAt5: mean(rows.map((row) => row.recallAt5)),
+    hitAt5: mean(rows.map((row) => Number(row.hitAt5))),
     acceptableOrRequiredRecallAt5: mean(rows.map((row) => Number(row.acceptableOrRequiredAt5))),
     mrrAt5: mean(rows.map((row) => row.reciprocalRank)),
     retrievedNdcgAt5: mean(rows.map((row) => row.retrievedNdcgAt5)),
-    expectedSectionRecallAt5: mean(rows.map((row) => Number(row.expectedSectionAt5))),
+    sectionHitAt5: mean(rows.map((row) => Number(row.sectionHitAt5))),
     forbiddenRateAt5: mean(rows.map((row) => Number(row.forbiddenAt5))),
     latencyMs: {
       p50: percentile(elapsed, 50),

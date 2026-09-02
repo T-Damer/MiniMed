@@ -23,7 +23,7 @@ SyncStatus = Literal[
     "local",
     "unchanged",
 ]
-ContentType = Literal["auto", "pdf", "text", "markdown"]
+ContentType = Literal["auto", "binary", "pdf", "text", "markdown"]
 
 
 class SyncSource(BaseModel):
@@ -69,6 +69,8 @@ class SyncedSource(BaseModel):
     materialized: bool
     etag: str | None = None
     last_modified: str | None = None
+    content_disposition: str | None = None
+    content_length: int | None = Field(default=None, ge=0)
     final_url: str | None = None
     warning: str | None = None
 
@@ -96,6 +98,8 @@ class CachedRemoteMetadata(BaseModel):
     bytes: int = Field(ge=0)
     etag: str | None = None
     last_modified: str | None = None
+    content_disposition: str | None = None
+    content_length: int | None = Field(default=None, ge=0)
     fetched_at: str
     content_type: ContentType
 
@@ -169,6 +173,8 @@ def _resolved_content_type(source: SyncSource) -> ContentType:
     if source.content_type != "auto":
         return source.content_type
     suffix = Path(source.target).suffix.lower()
+    if suffix in {".zip", ".xlsx"}:
+        return "binary"
     if suffix == ".pdf":
         return "pdf"
     if suffix in {".md", ".markdown"}:
@@ -186,6 +192,8 @@ def _validate_payload(payload: bytes, content_type: ContentType, source_id: str)
     if content_type == "pdf":
         if not payload.startswith(b"%PDF-"):
             raise ValueError(f"Source {source_id} is not a valid PDF payload.")
+        return
+    if content_type == "binary":
         return
     try:
         payload.decode("utf-8")
@@ -332,38 +340,99 @@ def _sync_remote(
         request = urllib.request.Request(source.location, headers=headers)
         try:
 
-            def download_remote() -> tuple[bytes, str, str | None, str | None]:
+            def download_remote() -> tuple[
+                bytes,
+                str,
+                str | None,
+                str | None,
+                str | None,
+                int | None,
+            ]:
                 with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
                     payload = _read_limited(response, source.max_bytes)
+                    raw_length = response.headers.get("Content-Length")
                     return (
                         payload,
                         str(response.geturl()),
                         response.headers.get("ETag"),
                         response.headers.get("Last-Modified"),
+                        response.headers.get("Content-Disposition"),
+                        int(raw_length) if raw_length and raw_length.isdigit() else None,
                     )
 
-            payload, final_url, etag, last_modified = retry_on_transient_http(
-                download_remote,
-                operation_name=f"Remote source sync for {source.id}",
-            )
-            _validate_payload(payload, content_type, source.id)
-            checksum = _sha256_bytes(payload)
-            if source.sha256 is not None and checksum.lower() != source.sha256.lower():
-                raise ValueError(f"Checksum mismatch for remote source {source.id}.")
-            _validate_remote_url(final_url)
-            _write_atomic(cache_path, payload)
-            metadata = CachedRemoteMetadata(
-                location=source.location,
-                final_url=final_url,
-                sha256=checksum,
-                bytes=len(payload),
-                etag=etag,
-                last_modified=last_modified,
-                fetched_at=_utc_now(),
-                content_type=content_type,
-            )
-            _write_json_atomic(metadata_path, metadata.model_dump(mode="json"))
-            status = "downloaded"
+            preflight_matches = False
+            if (
+                cached_valid
+                and metadata is not None
+                and not force_refresh
+                and not metadata.etag
+                and not metadata.last_modified
+                and metadata.content_disposition
+                and metadata.content_length is not None
+            ):
+                cached_content_disposition = metadata.content_disposition
+                cached_content_length = metadata.content_length
+
+                def check_remote_headers() -> bool:
+                    head_request = urllib.request.Request(
+                        source.location,
+                        headers=headers,
+                        method="HEAD",
+                    )
+                    with urllib.request.urlopen(head_request, timeout=timeout_seconds) as response:
+                        _validate_remote_url(str(response.geturl()))
+                        raw_length = response.headers.get("Content-Length")
+                        return (
+                            response.headers.get("Content-Disposition")
+                            == cached_content_disposition
+                            and raw_length is not None
+                            and raw_length.isdigit()
+                            and int(raw_length) == cached_content_length
+                        )
+
+                try:
+                    preflight_matches = retry_on_transient_http(
+                        check_remote_headers,
+                        operation_name=f"Remote source preflight for {source.id}",
+                    )
+                except urllib.error.HTTPError as error:
+                    if error.code not in {405, 501}:
+                        raise
+
+            if preflight_matches:
+                status = "not-modified"
+            else:
+                (
+                    payload,
+                    final_url,
+                    etag,
+                    last_modified,
+                    content_disposition,
+                    content_length,
+                ) = retry_on_transient_http(
+                    download_remote,
+                    operation_name=f"Remote source sync for {source.id}",
+                )
+                _validate_payload(payload, content_type, source.id)
+                checksum = _sha256_bytes(payload)
+                if source.sha256 is not None and checksum.lower() != source.sha256.lower():
+                    raise ValueError(f"Checksum mismatch for remote source {source.id}.")
+                _validate_remote_url(final_url)
+                _write_atomic(cache_path, payload)
+                metadata = CachedRemoteMetadata(
+                    location=source.location,
+                    final_url=final_url,
+                    sha256=checksum,
+                    bytes=len(payload),
+                    etag=etag,
+                    last_modified=last_modified,
+                    content_disposition=content_disposition,
+                    content_length=content_length if content_length is not None else len(payload),
+                    fetched_at=_utc_now(),
+                    content_type=content_type,
+                )
+                _write_json_atomic(metadata_path, metadata.model_dump(mode="json"))
+                status = "downloaded"
         except urllib.error.HTTPError as error:
             if error.code == 304 and cached_valid and metadata is not None:
                 status = "not-modified"
@@ -397,6 +466,8 @@ def _sync_remote(
         materialized=materialized,
         etag=metadata.etag,
         last_modified=metadata.last_modified,
+        content_disposition=metadata.content_disposition,
+        content_length=metadata.content_length,
         final_url=metadata.final_url,
         warning=warning,
     )

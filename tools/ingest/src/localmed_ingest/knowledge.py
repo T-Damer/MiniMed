@@ -303,6 +303,27 @@ class AiImportReport(CamelModel):
     output: str
 
 
+class AiFactReviewResponse(CamelModel):
+    schema_version: int = Field(default=1, ge=1)
+    review_id: str = Field(min_length=1)
+    model_id: str = Field(min_length=1)
+    fact_id: str = Field(min_length=1)
+    fact_fingerprint: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    decision: Literal["accept", "reject", "abstain"]
+    evidence_quote: str = Field(min_length=1)
+    confidence: float = Field(ge=0, le=1)
+    missing_fields: list[str] = Field(default_factory=list)
+    rationale: str = Field(min_length=1)
+
+
+class AiFactReviewImportReport(CamelModel):
+    reviewed: int
+    rejected: int
+    abstained: int
+    responses: int
+    output: str
+
+
 def _utc_now() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -488,6 +509,21 @@ def _document_maps(
     return document_map, section_map, chunk_map
 
 
+def _has_usable_source_locator(locator: dict[str, object]) -> bool:
+    if not locator:
+        return False
+    for key, value in locator.items():
+        if not key.strip():
+            continue
+        if isinstance(value, str) and value.strip():
+            return True
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return True
+        if isinstance(value, (dict, list, tuple)) and value:
+            return True
+    return False
+
+
 def validate_knowledge_workspace(
     workspace: KnowledgeWorkspace, documents: list[PackDocument]
 ) -> None:
@@ -504,10 +540,14 @@ def validate_knowledge_workspace(
             raise ValueError(f"{owner_id} evidence document version does not match its chunk.")
         if evidence.section_id != section.id:
             raise ValueError(f"{owner_id} evidence section does not match its chunk.")
+        if not evidence.quote.strip():
+            raise ValueError(f"{owner_id} evidence quote must be non-empty.")
         if evidence.quote not in chunk.original_text:
             raise ValueError(
                 f"{owner_id} evidence quote is not an exact substring of chunk {chunk.id}."
             )
+        if not _has_usable_source_locator(evidence.source_locator):
+            raise ValueError(f"{owner_id} evidence source locator must be non-empty and usable.")
 
     for fact in workspace.facts:
         for evidence in fact.evidence:
@@ -519,13 +559,24 @@ def validate_knowledge_workspace(
         document = document_map.get(link.document_id)
         if document is None or document.version.id != link.document_version_id:
             raise ValueError(f"Document link {link.id} references an unknown document version.")
+        if link.chunk_id is not None and link.section_id is None:
+            raise ValueError(f"Document link {link.id} must provide sectionId when chunkId is set.")
         if link.section_id is not None:
             resolved_section = section_map.get(link.section_id)
-            if resolved_section is None or resolved_section[0].id != link.document_id:
+            if (
+                resolved_section is None
+                or resolved_section[0].id != link.document_id
+                or resolved_section[0].version.id != link.document_version_id
+            ):
                 raise ValueError(f"Document link {link.id} references an invalid section.")
         if link.chunk_id is not None:
             resolved_chunk = chunk_map.get(link.chunk_id)
-            if resolved_chunk is None or resolved_chunk[0].id != link.document_id:
+            if (
+                resolved_chunk is None
+                or resolved_chunk[0].id != link.document_id
+                or resolved_chunk[0].version.id != link.document_version_id
+                or resolved_chunk[1].id != link.section_id
+            ):
                 raise ValueError(f"Document link {link.id} references an invalid chunk.")
 
 
@@ -571,7 +622,12 @@ def knowledge_summary(workspace: KnowledgeWorkspace) -> KnowledgeSummary:
     )
 
 
-def apply_search_projection(documents: list[PackDocument], workspace: KnowledgeWorkspace) -> None:
+def apply_search_projection(
+    documents: list[PackDocument],
+    workspace: KnowledgeWorkspace,
+    *,
+    include_unreviewed: bool = False,
+) -> None:
     if not workspace.entities:
         return
     _, _, chunk_map = _document_maps(documents)
@@ -596,7 +652,7 @@ def apply_search_projection(documents: list[PackDocument], workspace: KnowledgeW
             projections[chunk_id].update(value for value in medication_values if value)
 
     for fact in workspace.facts:
-        if fact.review_status != "reviewed":
+        if not _is_search_indexable_review_status(fact.review_status, include_unreviewed):
             continue
         for evidence in fact.evidence:
             add_entity(evidence.chunk_id, fact.entity_id)
@@ -605,7 +661,7 @@ def apply_search_projection(documents: list[PackDocument], workspace: KnowledgeW
             projections[evidence.chunk_id].update(str(value) for value in fact.population.values())
 
     for relation in workspace.relations:
-        if not is_search_indexable_relation(relation):
+        if not is_search_indexable_relation(relation, include_unreviewed=include_unreviewed):
             continue
         for evidence in relation.evidence:
             add_entity(evidence.chunk_id, relation.subject_entity_id)
@@ -615,7 +671,9 @@ def apply_search_projection(documents: list[PackDocument], workspace: KnowledgeW
             )
 
     for link in workspace.document_links:
-        if link.review_status != "reviewed" or link.chunk_id is None:
+        if not _is_search_indexable_review_status(link.review_status, include_unreviewed):
+            continue
+        if link.chunk_id is None:
             continue
         add_entity(link.chunk_id, link.entity_id)
         projections[link.chunk_id].add(link.link_type)
@@ -637,9 +695,19 @@ def apply_search_projection(documents: list[PackDocument], workspace: KnowledgeW
         chunk.metadata["knowledgeProjectionText"] = projection_text
 
 
-def is_search_indexable_relation(relation: KnowledgeRelation) -> bool:
-    """Allow exact professional-reference links into search without editorial promotion."""
-    return relation.review_status == "reviewed" or (
+def _is_search_indexable_review_status(
+    review_status: ReviewStatus, include_unreviewed: bool
+) -> bool:
+    return review_status == "reviewed" or (include_unreviewed and review_status == "proposed")
+
+
+def is_search_indexable_relation(
+    relation: KnowledgeRelation, *, include_unreviewed: bool = False
+) -> bool:
+    """Keep reviewed/reference links searchable, with an explicit demo proposal override."""
+    if relation.review_status == "rejected":
+        return False
+    return _is_search_indexable_review_status(relation.review_status, include_unreviewed) or (
         relation.authority_tier == "professional-reference"
         and relation.relation_status == "reference-only"
     )
@@ -649,7 +717,9 @@ def _json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
 
-def write_knowledge_sqlite(path: Path, workspace: KnowledgeWorkspace) -> None:
+def write_knowledge_sqlite(
+    path: Path, workspace: KnowledgeWorkspace, *, include_unreviewed: bool = False
+) -> None:
     connection = sqlite3.connect(path)
     try:
         with connection:
@@ -806,13 +876,15 @@ def write_knowledge_sqlite(path: Path, workspace: KnowledgeWorkspace) -> None:
                     ),
                 )
 
-            reviewed_facts: dict[str, list[str]] = defaultdict(list)
-            reviewed_relations: dict[str, list[str]] = defaultdict(list)
+            indexed_facts: dict[str, list[str]] = defaultdict(list)
+            indexed_relations: dict[str, list[str]] = defaultdict(list)
             for fact in workspace.facts:
-                if fact.review_status == "reviewed":
-                    reviewed_facts[fact.entity_id].extend([fact.fact_type, fact.text])
+                if _is_search_indexable_review_status(fact.review_status, include_unreviewed):
+                    indexed_facts[fact.entity_id].extend([fact.fact_type, fact.text])
             for relation in workspace.relations:
-                if not is_search_indexable_relation(relation):
+                if not is_search_indexable_relation(
+                    relation, include_unreviewed=include_unreviewed
+                ):
                     continue
                 subject = entity_map[relation.subject_entity_id]
                 obj = entity_map[relation.object_entity_id]
@@ -820,12 +892,12 @@ def write_knowledge_sqlite(path: Path, workspace: KnowledgeWorkspace) -> None:
                     f"{subject.canonical_name} {relation.predicate} "
                     f"{obj.canonical_name} {relation.relation_status}"
                 )
-                reviewed_relations[relation.subject_entity_id].append(text)
-                reviewed_relations[relation.object_entity_id].append(text)
+                indexed_relations[relation.subject_entity_id].append(text)
+                indexed_relations[relation.object_entity_id].append(text)
             for entity in workspace.entities:
                 names = " ".join([entity.canonical_name, *(name.name for name in entity.names)])
-                facts = " ".join(reviewed_facts[entity.id])
-                relations = " ".join(reviewed_relations[entity.id])
+                facts = " ".join(indexed_facts[entity.id])
+                relations = " ".join(indexed_relations[entity.id])
                 if not facts and not relations:
                     continue
                 connection.execute(
@@ -929,6 +1001,86 @@ def export_chatgpt_tasks(input_dir: Path, output: Path) -> int:
     return len(rows)
 
 
+def _fact_review_fingerprint(fact: KnowledgeFact) -> str:
+    payload = json.dumps(
+        fact.model_dump(by_alias=True, mode="json"),
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return f"sha256:{hashlib.sha256(payload).hexdigest()}"
+
+
+def export_ai_fact_review_tasks(input_dir: Path, source_path: Path, output: Path) -> int:
+    """Export immutable proposed dosage facts for independent AI review."""
+    documents = load_workspace_documents(input_dir)
+    workspace = KnowledgeWorkspace.model_validate(_read_yaml_mapping(source_path))
+    validate_knowledge_workspace(workspace, documents)
+    _, _, chunk_map = _document_maps(documents)
+    entities = {entity.id: entity for entity in workspace.entities}
+    rows: list[str] = []
+    for fact in workspace.facts:
+        if fact.fact_type != "dosage" or fact.review_status != "proposed":
+            continue
+        if len(fact.evidence) != 1:
+            raise ValueError(f"{fact.id}: AI fact review requires exactly one evidence item.")
+        evidence = fact.evidence[0]
+        resolved = chunk_map.get(evidence.chunk_id)
+        if resolved is None:
+            raise ValueError(f"{fact.id}: AI fact review references an unknown source chunk.")
+        document, section, chunk = resolved
+        processing_license_id = require_ai_processing_license(document)
+        entity = entities[fact.entity_id]
+        registration_number = (
+            entity.medication.registration_number if entity.medication is not None else None
+        )
+        payload = {
+            "schemaVersion": 1,
+            "taskId": fact.id,
+            "factFingerprint": _fact_review_fingerprint(fact),
+            "fact": {
+                "id": fact.id,
+                "entityId": fact.entity_id,
+                "registrationNumber": registration_number,
+                "factType": fact.fact_type,
+                "text": fact.text,
+                "structured": fact.structured,
+                "population": fact.population,
+                "approvalStatus": fact.approval_status,
+                "authorityTier": fact.authority_tier,
+                "evidenceQuote": evidence.quote,
+            },
+            "source": {
+                "documentId": document.id,
+                "documentVersionId": document.version.id,
+                "title": document.title,
+                "sectionId": section.id,
+                "sectionPath": section.section_path,
+                "chunkId": chunk.id,
+                "anchor": chunk.anchor,
+                "context": chunk.original_text,
+                "rights": {
+                    "licenseId": processing_license_id,
+                    "allowsDerivativeProcessing": True,
+                },
+            },
+            "rules": [
+                "Do not change the fact, structured values, population, or evidence quote.",
+                "Accept only when every structured value is explicitly supported by the context.",
+                "Reject measurements, concentrations, negated regimens, and mixed populations.",
+                (
+                    "Abstain when dose meaning, population, route, frequency, "
+                    "or context is incomplete."
+                ),
+                "Return one AiFactReviewResponse JSON object and never invent missing values.",
+            ],
+        }
+        rows.append(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text("\n".join(rows) + ("\n" if rows else ""), encoding="utf-8")
+    return len(rows)
+
+
 def _load_jsonl(path: Path) -> list[object]:
     values: list[object] = []
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
@@ -939,6 +1091,130 @@ def _load_jsonl(path: Path) -> list[object]:
         except json.JSONDecodeError as error:
             raise ValueError(f"Invalid JSONL at {path}:{line_number}: {error}") from error
     return values
+
+
+def _file_digest(path: Path) -> str:
+    return f"sha256:{hashlib.sha256(path.read_bytes()).hexdigest()}"
+
+
+def _dose_review_missing_fields(fact: KnowledgeFact) -> list[str]:
+    missing: list[str] = []
+    expressions = fact.structured.get("doseExpressions")
+    if not isinstance(expressions, list) or not expressions:
+        missing.append("doseExpressions")
+        expressions = []
+    applicability_keys = {"ageGroup", "ageRange", "weight", "weightRange", "route"}
+    if not any(fact.population.get(key) not in (None, "", [], {}) for key in applicability_keys):
+        missing.append("populationOrRoute")
+    has_timing = any(
+        fact.structured.get(key) not in (None, "", [], {})
+        for key in ("frequencyExpressions", "intervalExpressions")
+    ) or any(
+        isinstance(expression, dict)
+        and expression.get("role")
+        in {"single", "daily", "maximum-daily", "course", "administration-rate"}
+        for expression in expressions
+    )
+    if not has_timing:
+        missing.append("frequencyIntervalOrDoseRole")
+    return missing
+
+
+def import_ai_fact_reviews(
+    input_dir: Path,
+    source_path: Path,
+    response_paths: list[Path],
+    output_path: Path,
+    *,
+    reviewed_at: str | None = None,
+) -> AiFactReviewImportReport:
+    """Apply only dual, immutable AI consensus to proposed dosage facts."""
+    if len(response_paths) != 2:
+        raise ValueError("AI fact review requires exactly two independent response files.")
+    if source_path.resolve() == output_path.resolve():
+        raise ValueError("AI fact review output must not overwrite its source workspace.")
+    documents = load_workspace_documents(input_dir)
+    workspace = KnowledgeWorkspace.model_validate(_read_yaml_mapping(source_path))
+    validate_knowledge_workspace(workspace, documents)
+    facts = {fact.id: fact for fact in workspace.facts}
+    response_sets: list[dict[str, AiFactReviewResponse]] = []
+    for path in response_paths:
+        responses = [AiFactReviewResponse.model_validate(item) for item in _load_jsonl(path)]
+        by_fact = {response.fact_id: response for response in responses}
+        if len(by_fact) != len(responses):
+            raise ValueError(f"{path}: duplicate factId in AI review responses.")
+        response_sets.append(by_fact)
+    if set(response_sets[0]) != set(response_sets[1]):
+        raise ValueError("Independent AI review response files must contain the same fact ids.")
+
+    reviewed = 0
+    rejected = 0
+    abstained = 0
+    timestamp = reviewed_at or _utc_now()
+    response_digests = [_file_digest(path) for path in response_paths]
+    for fact_id in sorted(response_sets[0]):
+        fact = facts.get(fact_id)
+        if fact is None or fact.fact_type != "dosage" or fact.review_status != "proposed":
+            raise ValueError(f"{fact_id}: AI review target must be a proposed dosage fact.")
+        first = response_sets[0][fact_id]
+        second = response_sets[1][fact_id]
+        if first.review_id == second.review_id:
+            raise ValueError(f"{fact_id}: AI reviews must use distinct reviewId values.")
+        fingerprint = _fact_review_fingerprint(fact)
+        for response in (first, second):
+            if response.fact_fingerprint != fingerprint:
+                raise ValueError(f"{fact_id}: stale or mismatched fact fingerprint.")
+            if len(fact.evidence) != 1 or response.evidence_quote != fact.evidence[0].quote:
+                raise ValueError(f"{fact_id}: AI review evidence quote does not match the fact.")
+        decisions = [first.decision, second.decision]
+        missing = _dose_review_missing_fields(fact)
+        accepted = (
+            decisions == ["accept", "accept"]
+            and first.confidence >= 0.95
+            and second.confidence >= 0.95
+            and not first.missing_fields
+            and not second.missing_fields
+            and not missing
+        )
+        review_metadata = {
+            "method": "dual-independent-ai-consensus-v1",
+            "reviewIds": [first.review_id, second.review_id],
+            "modelIds": [first.model_id, second.model_id],
+            "decisions": decisions,
+            "confidence": [first.confidence, second.confidence],
+            "responseDigests": response_digests,
+            "missingFields": sorted(set([*missing, *first.missing_fields, *second.missing_fields])),
+            "reviewedAt": timestamp,
+        }
+        fact.metadata["aiReview"] = review_metadata
+        if accepted:
+            fact.review_status = "reviewed"
+            fact.metadata["reviewedBy"] = "ai-consensus"
+            fact.metadata["reviewedAt"] = timestamp
+            reviewed += 1
+        elif decisions == ["reject", "reject"]:
+            fact.review_status = "rejected"
+            rejected += 1
+        else:
+            abstained += 1
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        json.dumps(
+            workspace.model_dump(by_alias=True, mode="json"),
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return AiFactReviewImportReport(
+        reviewed=reviewed,
+        rejected=rejected,
+        abstained=abstained,
+        responses=len(response_sets[0]) * 2,
+        output=str(output_path),
+    )
 
 
 def import_chatgpt_responses(

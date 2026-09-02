@@ -14,7 +14,7 @@ import {
   clipNativePrintShareText,
   shareNativePrintContent,
 } from '@/features/printing/native-print-share';
-import { nativeAndroidShareText } from '@/state/native-share';
+import { nativeAndroidShareText, shareSystemFile } from '@/state/native-share';
 
 function removePreview(): void {
   document.querySelector<HTMLElement>('.native-print-preview')?.remove();
@@ -45,6 +45,35 @@ function stripHtmlText(html: string): string {
   return parsed.body.textContent?.replace(/\s+/gu, ' ').trim() ?? '';
 }
 
+async function blobToDataUrl(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 32_768) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 32_768));
+  }
+  return `data:${blob.type || 'application/octet-stream'};base64,${btoa(binary)}`;
+}
+
+async function inlineBlobImages(html: string): Promise<string> {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  for (const image of Array.from(parsed.querySelectorAll<HTMLImageElement>('img[src^="blob:"]'))) {
+    const source = image.getAttribute('src');
+    if (!source) continue;
+    const response = await fetch(source);
+    if (!response.ok) throw new Error('Не удалось подготовить изображение к передаче.');
+    image.setAttribute('src', await blobToDataUrl(await response.blob()));
+  }
+  return `<!doctype html>\n${parsed.documentElement.outerHTML}`;
+}
+
+function nativePrintFileName(title: string): string {
+  const safeTitle = title
+    .replace(/[^\p{L}\p{N}._-]+/gu, '-')
+    .replace(/^-+|-+$/gu, '')
+    .slice(0, 64);
+  return `${safeTitle || 'minimed-print'}.html`;
+}
+
 function fitPreviewSheet(sheet: HTMLElement, content: HTMLElement, scaler: HTMLElement): void {
   const styles = getComputedStyle(sheet);
   const paddingX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight);
@@ -70,6 +99,13 @@ async function shareOrPrint(title: string, html: string): Promise<void> {
     title,
     text,
     platform: Capacitor.getPlatform(),
+    fileShare: async () =>
+      shareSystemFile({
+        title,
+        fileName: nativePrintFileName(title),
+        mimeType: 'text/html',
+        blob: new Blob([await inlineBlobImages(html)], { type: 'text/html;charset=utf-8' }),
+      }),
     androidShare: (payload) => nativeAndroidShareText(payload.title, payload.text),
     ...(canWebShare
       ? {
@@ -127,25 +163,47 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
   const stage = document.createElement('div');
   stage.className = 'native-print-preview__stage';
 
-  const sheet = document.createElement('article');
-  sheet.className = 'native-print-preview__sheet';
-
-  const scaler = document.createElement('div');
-  scaler.className = 'native-print-preview__sheet-scaler';
-
-  const content = document.createElement('div');
-  content.className = 'native-print-preview__content';
-  content.innerHTML = parsed.body.innerHTML;
-  for (const table of Array.from(content.querySelectorAll('table'))) {
-    table.classList.add('native-print-preview__table');
+  const presentationSlides = Array.from(
+    parsed.querySelectorAll<HTMLElement>('.rich-pptx__slide, .pptx-preview-slide-wrapper'),
+  );
+  if (presentationSlides.length > 0) {
+    preview.classList.add('native-print-preview--presentation');
   }
-  for (const cell of Array.from(content.querySelectorAll('th, td'))) {
-    cell.classList.add('native-print-preview__cell');
+  if (parsed.querySelector('.rich-sheet')) {
+    preview.classList.add('native-print-preview--landscape');
   }
+  const printableFragments =
+    presentationSlides.length > 0
+      ? presentationSlides.map((slide) => slide.outerHTML)
+      : [parsed.body.innerHTML];
 
-  scaler.append(content);
-  sheet.append(scaler);
-  stage.append(sheet);
+  for (const fragment of printableFragments) {
+    const sheet = document.createElement('article');
+    sheet.className = 'native-print-preview__sheet';
+
+    const scaler = document.createElement('div');
+    scaler.className = 'native-print-preview__sheet-scaler';
+
+    const content = document.createElement('div');
+    content.className = 'native-print-preview__content';
+    const headStyles = Array.from(parsed.head.querySelectorAll('style'))
+      .map((style) => style.outerHTML)
+      .join('');
+    content.innerHTML = `${headStyles}${fragment}`;
+    for (const table of Array.from(content.querySelectorAll('table'))) {
+      table.classList.add('native-print-preview__table');
+    }
+    for (const cell of Array.from(content.querySelectorAll('th, td'))) {
+      cell.classList.add('native-print-preview__cell');
+    }
+
+    scaler.append(content);
+    sheet.append(scaler);
+    stage.append(sheet);
+    window.requestAnimationFrame(() => {
+      fitPreviewSheet(sheet, content, scaler);
+    });
+  }
   preview.append(header, stage);
 
   removePreview();
@@ -153,10 +211,6 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
   document.body.append(preview);
   document.documentElement.classList.add('native-print-active');
   window.addEventListener('afterprint', removePreview, { once: true });
-
-  window.requestAnimationFrame(() => {
-    fitPreviewSheet(sheet, content, scaler);
-  });
 
   return true;
 }

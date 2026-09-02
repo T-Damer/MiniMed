@@ -53,6 +53,7 @@ const phases = [
   },
   { label: 'retrieval-benchmarks', command: bun, args: ['run', 'benchmark:all'] },
   { label: 'native-contract', command: bun, args: ['run', 'native:source:check'] },
+  { label: 'secret-scan-regression', command: bun, args: ['scripts/no-secrets.test.mjs'] },
   { label: 'secret-scan', command: bun, args: ['run', 'secrets:check'] },
 ];
 

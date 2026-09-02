@@ -33,11 +33,7 @@ import {
   sourceTypeReaderLabel,
   visibleReaderSections,
 } from '@/features/library/document-display';
-import {
-  type DocumentFindUnit,
-  hasSearchableDocumentUnits,
-  rangesForFindUnit,
-} from '@/features/library/document-find';
+import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
@@ -52,7 +48,18 @@ import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
-import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
+import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
+import {
+  ALLMED_SOURCE_URL,
+  type ResolvedMedicationPackagingImage,
+  resolveMedicationPackagingImage,
+} from '@/features/medications/medication-packaging-images';
+import type {
+  MedicationProduct,
+  TradeNameSupplement,
+} from '@/features/medications/medication-record';
+import { formatFullTextDownloadLabel, formatModuleBytes } from '@/features/modules/module-display';
+import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
 import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-navigation';
 import type { DocumentTrail } from '@/state/document-trail';
 
@@ -60,10 +67,18 @@ interface OfficialDocumentReaderProps {
   readonly document: MedicalDocument | undefined;
   readonly pendingTitle?: string;
   readonly availableDocuments?: readonly MedicalDocumentSummary[];
+  readonly medicationProduct?: MedicationProduct;
+  readonly supplementalPanels?: readonly TradeNameSupplement[];
+  readonly clinicalMedicationLinks?: readonly ClinicalMedicationLink[];
   readonly initialAnchor?: string | null;
   readonly trail: DocumentTrail | null;
   readonly openError?: string | null;
+  readonly modulePointer?: ModulePointerResolution | null;
+  readonly modulePointerPending?: boolean;
+  readonly modulePointerProgress?: number | null;
+  readonly modulePointerInstallError?: string | null;
   readonly onNavigate: (href: string) => void;
+  readonly onInstallModulePointer?: () => Promise<void>;
   readonly onRequestFullText: (
     document: MedicalDocument,
     onProgress?: (fraction: number | null) => void,
@@ -124,6 +139,161 @@ function cancelIdleWork(handle: number): void {
     return;
   }
   window.clearTimeout(handle);
+}
+
+function AllmedSupplementPanel(props: { readonly supplement: TradeNameSupplement }): JSX.Element {
+  const [image, setImage] = createSignal<ResolvedMedicationPackagingImage | null>(null);
+
+  onMount(() => {
+    const reference = props.supplement.product.imageReference;
+    if (!reference) return;
+    void resolveMedicationPackagingImage(reference).then(setImage);
+  });
+
+  return (
+    <details class="document-allmed-supplement">
+      <summary class="document-allmed-supplement__summary">
+        {props.supplement.product.tradeName}
+      </summary>
+      <div class="document-allmed-supplement__body">
+        <Show when={image()}>
+          {(resolvedImage) => (
+            <figure class="document-allmed-supplement__figure">
+              <img
+                class="document-allmed-supplement__image"
+                src={resolvedImage().url}
+                alt={`Фото упаковки: ${props.supplement.product.tradeName}`}
+                loading="lazy"
+              />
+              <figcaption class="document-allmed-supplement__caption">
+                Фото упаковки из справочного материала Allmed
+              </figcaption>
+            </figure>
+          )}
+        </Show>
+        <Show when={props.supplement.product.shortDescription}>
+          {(description) => <p class="document-allmed-supplement__description">{description()}</p>}
+        </Show>
+        <a
+          class="document-allmed-supplement__source"
+          href={ALLMED_SOURCE_URL}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Источник: allmed.pro
+        </a>
+      </div>
+    </details>
+  );
+}
+
+function MedicationProductPanel(props: {
+  readonly product: MedicationProduct;
+  readonly currentDocumentId: string;
+}): JSX.Element {
+  const sources = () => [
+    ...(props.product.sourceKind === 'esklp' ? ['ЕСКЛП'] : []),
+    ...(props.product.grlsRegistrationDocumentId || props.product.instructionDocumentId
+      ? ['ГРЛС']
+      : []),
+    ...(props.product.supplementalDescription || props.product.imageReference ? ['Allmed'] : []),
+  ];
+  const links = () =>
+    [
+      props.product.mnnDocumentId
+        ? { id: props.product.mnnDocumentId, label: 'Карточка МНН' }
+        : null,
+      props.product.grlsRegistrationDocumentId
+        ? { id: props.product.grlsRegistrationDocumentId, label: 'Регистрация ГРЛС' }
+        : null,
+      props.product.instructionDocumentId
+        ? { id: props.product.instructionDocumentId, label: 'Инструкция' }
+        : null,
+    ].filter(
+      (item): item is { readonly id: string; readonly label: string } =>
+        item !== null && item.id !== props.currentDocumentId,
+    );
+
+  return (
+    <section class="document-medication-product" aria-label="Карточка препарата">
+      <h2 class="document-medication-product__title">
+        {props.product.tradeName} · {props.product.inn}
+      </h2>
+      <div class="document-medication-product__presentations">
+        <For each={props.product.presentations}>
+          {(presentation) => (
+            <p class="document-medication-product__presentation">
+              {presentation.dosageForm}
+              <Show when={presentation.strength}> · {presentation.strength}</Show>
+            </p>
+          )}
+        </For>
+      </div>
+      <Show when={links().length > 0}>
+        <div class="document-medication-product__links">
+          <For each={links()}>
+            {(link) => (
+              <Button
+                type="button"
+                variant="secondary"
+                class="document-medication-product__link"
+                onClick={() => openDocumentOverlay(link.id, null, { preferSummary: true })}
+              >
+                {link.label}
+              </Button>
+            )}
+          </For>
+        </div>
+      </Show>
+      <Show when={sources().length > 0}>
+        <p class="document-medication-product__source">Источник: {sources().join(' · ')}</p>
+      </Show>
+    </section>
+  );
+}
+
+function ClinicalMedicationLinksPanel(props: {
+  readonly links: readonly ClinicalMedicationLink[];
+}): JSX.Element {
+  return (
+    <section
+      class="document-clinical-medication-links"
+      aria-labelledby="document-clinical-medication-links-title"
+    >
+      <h2
+        id="document-clinical-medication-links-title"
+        class="document-clinical-medication-links__title"
+      >
+        Клинические рекомендации
+      </h2>
+      <div class="document-clinical-medication-links__list">
+        <For each={props.links}>
+          {(link) => (
+            <article class="document-clinical-medication-links__item">
+              <Button
+                type="button"
+                variant="secondary"
+                class="document-clinical-medication-links__link"
+                onClick={() =>
+                  openDocumentOverlay(link.pointerDocumentId, link.sourceAnchor, {
+                    preferSummary: true,
+                  })
+                }
+              >
+                {link.recommendationTitle}
+              </Button>
+              <Show when={link.ageGroups.length > 0}>
+                <p class="document-clinical-medication-links__population">
+                  Популяция: {link.ageGroups.join(', ')}
+                </p>
+              </Show>
+            </article>
+          )}
+        </For>
+      </div>
+      <p class="document-clinical-medication-links__source">Источник: клинические рекомендации</p>
+    </section>
+  );
 }
 
 export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.Element {
@@ -217,11 +387,21 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     return units;
   });
 
-  const findSearchable = createMemo(() => hasSearchableDocumentUnits(findUnits()));
+  const findSearchable = createMemo(() => {
+    const document = props.document;
+    return Boolean(
+      document &&
+        (displayDocumentTitle(document).trim().length > 0 ||
+          orderedSections().some(
+            (section) => section.title.trim().length > 0 || section.chunks.length > 0,
+          )),
+    );
+  });
 
+  const findMatches = createMemo(() => findState().matches);
   const rangesByUnit = createMemo(() => {
     const map = new Map<string, TextRange[]>();
-    for (const match of findState().matches) {
+    for (const match of findMatches()) {
       const existing = map.get(match.unitId) ?? [];
       existing.push({ start: match.start, end: match.end });
       map.set(match.unitId, existing);
@@ -231,7 +411,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
 
   const activeMatch = createMemo(() => {
     const state = findState();
-    return state.matches[state.activeIndex];
+    return findMatches()[state.activeIndex];
   });
   let lastScrolledMatchKey = '';
 
@@ -373,6 +553,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       Boolean(fullTextDocumentId()),
     );
 
+  const modulePointerButtonLabel = (): string => {
+    if (!props.modulePointerPending) return 'Скачать набор';
+    if (props.modulePointerProgress !== null && props.modulePointerProgress !== undefined) {
+      return `${Math.min(100, Math.round(props.modulePointerProgress * 100))}%`;
+    }
+    return 'Загружаем набор…';
+  };
+
   const pageTitle = (): string =>
     props.document
       ? displayDocumentTitle(props.document)
@@ -415,6 +603,32 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
               });
             }}
           />
+        </Show>
+      }
+      printButton={
+        <Show when={props.document}>
+          {(documentValue) => (
+            <div class="document-page__reader-actions">
+              <Button
+                type="button"
+                variant="icon"
+                class="document-page__reader-action document-page__print-button"
+                aria-label="Распечатать документ"
+                title="Распечатать документ"
+                onClick={() => {
+                  if (!printDocument(documentValue())) {
+                    toast.error('Не удалось открыть окно печати.');
+                  }
+                }}
+                icon={
+                  <AppGlyph
+                    name="printer"
+                    class="document-page__reader-action-icon document-page__print-icon"
+                  />
+                }
+              />
+            </div>
+          )}
         </Show>
       }
       bodyError={
@@ -536,6 +750,65 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       Это краткая выжимка. Полная рекомендация загрузится и откроется здесь.
                     </p>
                   </Show>
+                  <Show when={props.modulePointer}>
+                    {(resolution) => (
+                      <section
+                        class="document-module-pointer"
+                        aria-labelledby="document-module-pointer-title"
+                      >
+                        <p class="document-module-pointer__eyebrow">Дополнительный набор</p>
+                        <h2
+                          id="document-module-pointer-title"
+                          class="document-module-pointer__title"
+                        >
+                          Полный документ доступен после загрузки
+                        </h2>
+                        <Show when={resolution().module}>
+                          {(module) => (
+                            <p class="document-module-pointer__details">
+                              {module().title} · {formatModuleBytes(module().sizes.downloadBytes)}
+                            </p>
+                          )}
+                        </Show>
+                        <Show when={resolution().message}>
+                          {(message) => (
+                            <p class="document-module-pointer__message" role="status">
+                              {message()}
+                            </p>
+                          )}
+                        </Show>
+                        <Show when={props.modulePointerInstallError}>
+                          {(message) => (
+                            <p class="document-module-pointer__error" role="alert">
+                              {message()}
+                            </p>
+                          )}
+                        </Show>
+                        <Show
+                          when={
+                            resolution().state === 'available' &&
+                            Boolean(props.onInstallModulePointer)
+                          }
+                        >
+                          <Button
+                            type="button"
+                            variant="primary"
+                            class="document-module-pointer__action"
+                            disabled={props.modulePointerPending}
+                            onClick={() => void props.onInstallModulePointer?.()}
+                            icon={
+                              <AppGlyph
+                                name={props.modulePointerPending ? 'refresh' : 'download'}
+                                class="document-module-pointer__action-icon"
+                              />
+                            }
+                          >
+                            {modulePointerButtonLabel()}
+                          </Button>
+                        </Show>
+                      </section>
+                    )}
+                  </Show>
                   <div class="document-overlay-paper__actions">
                     <Show when={isClinicalSummary()}>
                       <Button
@@ -555,21 +828,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         {fullTextButtonLabel()}
                       </Button>
                     </Show>
-                    <Button
-                      type="button"
-                      class="document-overlay-action-button"
-                      aria-label="Распечатать документ"
-                      onClick={() => {
-                        if (!printDocument(documentValue())) {
-                          toast.error('Не удалось открыть окно печати.');
-                        }
-                      }}
-                      icon={
-                        <AppGlyph name="printer" class="document-overlay-action-button__icon" />
-                      }
-                    >
-                      Распечатать
-                    </Button>
                     <Show when={documentValue().sourceType === 'medical_reference'}>
                       <Button
                         type="button"
@@ -595,6 +853,38 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     </Show>
                   </div>
                 </header>
+
+                <Show when={props.medicationProduct}>
+                  {(product) => (
+                    <MedicationProductPanel
+                      product={product()}
+                      currentDocumentId={documentValue().id}
+                    />
+                  )}
+                </Show>
+
+                <Show when={(props.clinicalMedicationLinks?.length ?? 0) > 0}>
+                  <ClinicalMedicationLinksPanel links={props.clinicalMedicationLinks ?? []} />
+                </Show>
+
+                <Show when={(props.supplementalPanels?.length ?? 0) > 0}>
+                  <section
+                    class="document-allmed-supplements"
+                    aria-labelledby="document-allmed-supplements-title"
+                  >
+                    <h2
+                      id="document-allmed-supplements-title"
+                      class="document-allmed-supplements__title"
+                    >
+                      Справочные материалы Allmed
+                    </h2>
+                    <div class="document-allmed-supplements__list">
+                      <For each={props.supplementalPanels ?? []}>
+                        {(supplement) => <AllmedSupplementPanel supplement={supplement} />}
+                      </For>
+                    </div>
+                  </section>
+                </Show>
 
                 <For each={visibleSectionTree()}>
                   {(node) => {

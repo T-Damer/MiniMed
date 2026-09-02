@@ -7,8 +7,8 @@ self.addEventListener('install', (event) => {
       .then((cache) =>
         cache.addAll([
           './',
-          './content/core-demo.db',
-          './content/core-demo-report.json',
+          './content/core.db',
+          './content/core-report.json',
           './content/medications.db',
           './content/regulatory.db',
           './content/regulatory-report.json',

@@ -89,6 +89,11 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     description: 'Типологические опросники для описания устойчивых особенностей реагирования.',
   },
   {
+    id: 'asthenia',
+    title: 'Астенические состояния',
+    description: 'Опросники для оценки выраженности астенических жалоб.',
+  },
+  {
     id: 'newborn-screening',
     title: 'Оценка новорождённого',
     description: 'Стандартизированная оценка состояния новорождённого сразу после рождения.',
@@ -151,6 +156,7 @@ export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSe
     'work-style': 'minimed.tools.psychology.ru',
     'team-role': 'minimed.tools.psychology.ru',
     temperament: 'minimed.tools.psychology.ru',
+    asthenia: 'minimed.tools.psychology.ru',
     'newborn-screening': 'minimed.tools.obstetrics-gynecology.ru',
     'perinatal-mood': 'minimed.tools.obstetrics-gynecology.ru',
     'gynecologic-endocrinology': 'minimed.tools.obstetrics-gynecology.ru',
@@ -170,6 +176,7 @@ export function moduleIdForAssessmentSection(sectionId: AssessmentSectionId): st
 /** Maps assessment specialty banks to downloadable tool-module catalog ids. */
 export const ASSESSMENT_SPECIALTY_MODULE_IDS: Readonly<Record<string, string>> = {
   psychology: 'minimed.tools.psychology.ru',
+  psychiatry: 'minimed.tools.psychology.ru',
   obstetrics: 'minimed.tools.obstetrics-gynecology.ru',
   neonatology: 'minimed.tools.neonatology.ru',
   gastroenterology: 'minimed.tools.gastroenterology.ru',

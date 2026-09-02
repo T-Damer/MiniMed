@@ -35,6 +35,11 @@ browserI18n.getMessage('my_feature_title');
 
 Substitutions follow the WebExtensions convention: `$1`, `$2`, or named placeholders declared in `placeholders`.
 
+For new count labels, use `getPluralMessage(baseKey, count)` from `@/i18n/browser-i18n`.
+It selects an `Intl.PluralRules` suffix using the active catalog locale and substitutes `$1`.
+Provide `baseKey_one/few/many/other` in Russian and `baseKey_one/other` in English;
+`assessmentCountLabel` uses this for test counters.
+
 ## Rules
 
 - Keep English slugs in data (`pediatrics`, `pulmonology`); localize only at the UI boundary.

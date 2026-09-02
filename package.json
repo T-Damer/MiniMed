@@ -94,9 +94,9 @@
     "content:lint:private": "uv run --project tools/ingest medbase lint --input data/intermediate/private-pilot",
     "content:build:private": "uv run --project tools/ingest medbase build --input data/intermediate/private-pilot --output data/build/private-pilot.db --report data/build/private-pilot-report.json",
     "python:check": "uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests && uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests && uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests && uv run --project tools/ingest pytest tools/ingest/tests",
-    "needle:check": "uv run --project tools/needle ruff format --check tools/needle/src tools/needle/tests && uv run --project tools/needle ruff check tools/needle/src tools/needle/tests && uv run --project tools/needle pyright tools/needle/src tools/needle/tests && uv run --project tools/needle pytest tools/needle/tests",
-    "needle:data": "uv run --project tools/needle python -m needle_med.dataset",
-    "needle:eval": "uv run --project tools/needle --group train python tools/needle/eval_model.py --data data/needle/val.jsonl",
+    "giga:check": "env -i PATH=\"$PATH\" PYTHONUTF8=1 python3 tools/benchmarks/giga_embeddings_poc.py --self-test",
+    "giga:candidates": "env -i PATH=\"$PATH\" bun run --filter @localmed/benchmarks benchmark:giga-candidates",
+    "giga:eval": "bun run giga:candidates && env -i PATH=\"$PATH\" PYTHONUTF8=1 HF_HOME=\"$PWD/.cache/giga-embeddings\" UV_CACHE_DIR=\"$PWD/.cache/uv-giga\" TOKENIZERS_PARALLELISM=false uv run tools/benchmarks/giga_embeddings_poc.py",
     "benchmark:search": "bun run --filter @localmed/benchmarks benchmark:search",
     "benchmark:pilot": "bun run --filter @localmed/benchmarks benchmark:pilot",
     "benchmark:regulatory": "bun run --filter @localmed/benchmarks benchmark:regulatory",
@@ -123,11 +123,12 @@
     "verify:all": "bun scripts/verify.mjs && bun run test:e2e",
     "secrets:check": "bun scripts/no-secrets.mjs",
     "content:test": "bun run test:python",
-    "content:compile": "uv run --project tools/ingest medbase build --input content/fixtures --output data/build/core-demo.db --json-output packages/test-fixtures/src/generated/core-demo.json --report data/build/core-demo-report.json",
+    "content:compile": "uv run --project tools/ingest medbase build --input content/fixtures --output data/build/core.db --json-output packages/test-fixtures/src/generated/core-demo.json --report data/build/core-report.json",
     "content:publish": "bun scripts/publish-demo-pack.mjs",
     "benchmark:cases": "bun run --filter @localmed/benchmarks benchmark:cases",
     "benchmark:all": "bun run benchmark:search && bun run benchmark:cases",
-    "native:source:check": "bun scripts/check-native-bridge.mjs"
+    "native:source:check": "bun scripts/check-native-bridge.mjs",
+    "models:publish": "bash scripts/publish-model-assets.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",

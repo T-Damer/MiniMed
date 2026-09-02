@@ -2485,3 +2485,15 @@ main {
     transition-duration: 0.01ms;
   }
 }
+html.patient-vault--privacy-curtain::after {
+  content: "MiniMed заблокирован";
+  position: fixed;
+  z-index: 2147483647;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: 700 1rem / 1.4 var(--font-sans);
+}

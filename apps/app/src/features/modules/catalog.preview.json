@@ -1,7 +1,7 @@
 {
-  "catalogVersion": "clinical-json-2026.07.27-13991c1feee5",
+  "catalogVersion": "preview-2026.09.01-47d4d4dd1e08",
   "channel": "preview",
-  "publishedAt": "2026-07-27T16:04:58Z",
+  "publishedAt": "2026-08-28T00:00:00Z",
   "categories": [
     {
       "id": "minimed.clinical.emergency-critical.ru",
@@ -194,7 +194,7 @@
   "modules": [
     {
       "id": "minimed.core.ru",
-      "version": "1.0.0-preview.1",
+      "version": "1.0.0-preview.3",
       "kind": "core",
       "collection": "core",
       "title": "Ядро MiniMed",
@@ -216,13 +216,13 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": null,
+      "sourceSetDigest": "sha256:fb6b81dc769d23148170f990177b23a693e65ca31850817d3984df7d6d042508",
       "dependencies": [],
       "sizes": {
         "downloadBytes": 0,
-        "installedBytes": null,
+        "installedBytes": 97431552,
         "sourceAssetsDownloadBytes": null,
-        "precision": "unknown"
+        "precision": "exact"
       },
       "capabilities": {
         "search": true,
@@ -235,7 +235,7 @@
       },
       "artifacts": [],
       "documents": [],
-      "previewDocumentCount": 15
+      "previewDocumentCount": 4083
     },
     {
       "id": "minimed.clinical.pediatrics.general",
@@ -650,11 +650,11 @@
     },
     {
       "id": "minimed.medications.ru",
-      "version": "0.3.1-preview",
+      "version": "allmed-c8e85a688094",
       "kind": "medication",
       "collection": "shared",
-      "title": "Лекарственные препараты РФ",
-      "description": "Официальная регистрационная идентичность и полные инструкции; дозы и показания становятся доверенными только после проверки.",
+      "title": "Лекарственные препараты — дополнительный справочник Allmed",
+      "description": "Локальный дополнительный справочник Allmed с названиями, формами и справочными сведениями; не является официальным реестром ГРЛС, полной инструкцией или источником доверенных дозировок.",
       "required": false,
       "releaseState": "preview",
       "specialties": [],
@@ -663,8 +663,8 @@
       ],
       "tags": [
         "drugs",
-        "instructions",
-        "registry"
+        "allmed",
+        "supplemental-reference"
       ],
       "compatibility": {
         "minAppVersion": "0.3.1",
@@ -672,7 +672,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": null,
+      "sourceSetDigest": "sha256:7b8a22cef1a7bb7338765106b57dfdf52f60f21f7b8570a4bf74443d34b55200",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -682,22 +682,22 @@
       ],
       "sizes": {
         "downloadBytes": null,
-        "installedBytes": null,
+        "installedBytes": 514322432,
         "sourceAssetsDownloadBytes": null,
-        "precision": "unknown"
+        "precision": "exact"
       },
       "capabilities": {
         "search": true,
         "fullText": true,
         "structuredTables": true,
         "images": false,
-        "originalPdf": true,
-        "structuredKnowledge": true,
+        "originalPdf": false,
+        "structuredKnowledge": false,
         "calculations": false
       },
       "artifacts": [],
       "documents": [],
-      "previewDocumentCount": 8
+      "previewDocumentCount": 4708
     },
     {
       "id": "minimed.regulatory.pediatrics.ru",
@@ -61460,7 +61460,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:18c921866fb511c678b4ec2675ddb3547f0d4350aa8f439c36a4035738d15e08",
+      "sourceSetDigest": "sha256:b9b33039e24f2dd3f64ec7546aaddd745f64636fbce3a8d162033c02b79e1f21",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61489,10 +61489,10 @@
           "kind": "index",
           "required": true,
           "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-gastroenterology-0.1.0-preview.2.db",
-          "sha256": "sha256:f2f2469aaa098cdddf0ad7d8821938a231be662a990f90dfae0417df3b2d2936",
-          "sizeBytes": 344064,
+          "sha256": "sha256:f56597e989b674785131d3df0ea2d841936586de2f24b78fd54412211849a958",
+          "sizeBytes": 356352,
           "compression": "none",
-          "sourceSetDigest": "sha256:18c921866fb511c678b4ec2675ddb3547f0d4350aa8f439c36a4035738d15e08"
+          "sourceSetDigest": "sha256:b9b33039e24f2dd3f64ec7546aaddd745f64636fbce3a8d162033c02b79e1f21"
         }
       ],
       "documents": [],
@@ -61533,7 +61533,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:93f1b25a01647f2322a461ee84052f809bb799f9bee474a5731d018766a88151",
+      "sourceSetDigest": "sha256:fef07f8b9294d3a8ec144d759ed4a64ca38a4d13031a8dbf9079245a58d140d9",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61562,10 +61562,10 @@
           "kind": "index",
           "required": true,
           "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-neonatology-0.1.0-preview.2.db",
-          "sha256": "sha256:7da8d07240b4ad1d25da72163dd38855b419d8dc452121570f6f566a39a960d4",
-          "sizeBytes": 368640,
+          "sha256": "sha256:39294c78cc1d945ceee1de7b3a39355429e4541506ad28778d5f26f5727c97fd",
+          "sizeBytes": 372736,
           "compression": "none",
-          "sourceSetDigest": "sha256:93f1b25a01647f2322a461ee84052f809bb799f9bee474a5731d018766a88151"
+          "sourceSetDigest": "sha256:fef07f8b9294d3a8ec144d759ed4a64ca38a4d13031a8dbf9079245a58d140d9"
         }
       ],
       "documents": [],
@@ -61611,7 +61611,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:81ad0527fbc6e785cd7688894d6d6951c09fdb8714cb0262058c2dd732e0204f",
+      "sourceSetDigest": "sha256:de953f6ceac8ed015581da741733436c1127e6f5148144ef0a50d85a59f8a103",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61640,10 +61640,10 @@
           "kind": "index",
           "required": true,
           "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-core-clinical-0.1.0-preview.2.db",
-          "sha256": "sha256:4829158b72ddaebcefa3379371f1bd135f5b3d734f4c7d04927a644b0d0948f1",
-          "sizeBytes": 417792,
+          "sha256": "sha256:37d3cd739229d9bc7f365480d4bd88d33df2c993f67276d484684531daadfaca",
+          "sizeBytes": 430080,
           "compression": "none",
-          "sourceSetDigest": "sha256:81ad0527fbc6e785cd7688894d6d6951c09fdb8714cb0262058c2dd732e0204f"
+          "sourceSetDigest": "sha256:de953f6ceac8ed015581da741733436c1127e6f5148144ef0a50d85a59f8a103"
         }
       ],
       "documents": [],
@@ -61655,7 +61655,7 @@
     },
     {
       "id": "minimed.tools.pediatrics.ru",
-      "version": "0.1.0-preview.1",
+      "version": "0.1.0-preview.2",
       "kind": "tool",
       "collection": "tool",
       "title": "Инструменты педиатрии",
@@ -61682,7 +61682,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:ef8a746fdd99af8d32ae9a346557c92a58890a1378563eb4421cdb25597a6b39",
+      "sourceSetDigest": "sha256:1b99a1c0e928e6576e881b6ecb858c0cb35d4c748f0448448975d8e168d5a88c",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61691,8 +61691,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 315392,
-        "installedBytes": 315392,
+        "downloadBytes": 344064,
+        "installedBytes": 344064,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -61707,14 +61707,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.pediatrics.ru-index-0.1.0-preview.1",
+          "id": "minimed.tools.pediatrics.ru-index-0.1.0-preview.2",
           "kind": "index",
           "required": true,
-          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-pediatrics-0.1.0-preview.1.db",
-          "sha256": "sha256:94e0fb71719dafb447ea32f6b67fc98b7ce7d233a9267563f60eb99c096ef160",
-          "sizeBytes": 315392,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-pediatrics-0.1.0-preview.2.db",
+          "sha256": "sha256:878258f31e1a51f51f17374840593b7af326edea41c79dc01f4a2a2c8afc2004",
+          "sizeBytes": 344064,
           "compression": "none",
-          "sourceSetDigest": "sha256:ef8a746fdd99af8d32ae9a346557c92a58890a1378563eb4421cdb25597a6b39"
+          "sourceSetDigest": "sha256:1b99a1c0e928e6576e881b6ecb858c0cb35d4c748f0448448975d8e168d5a88c"
         }
       ],
       "documents": [],
@@ -61723,7 +61723,77 @@
         "assessment",
         "calculator"
       ],
-      "toolCount": 2
+      "toolCount": 3
+    },
+    {
+      "id": "minimed.tools.pediatrics-growth-demo.ru",
+      "version": "0.1.0-preview.1",
+      "kind": "tool",
+      "collection": "tool",
+      "title": "Демо визуализаций роста",
+      "description": "Экспериментальный калькулятор веса к возрасту с графиками коридора ВОЗ. Значения кривых приближённые и не предназначены для клинических решений.",
+      "required": false,
+      "releaseState": "published",
+      "specialties": [
+        "pediatrics"
+      ],
+      "populations": [
+        "Дети"
+      ],
+      "tags": [
+        "tool-pack",
+        "calculator",
+        "pediatrics",
+        "growth",
+        "demo"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.0",
+        "maxAppVersion": null,
+        "schemaVersion": 2,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:b515d1f9ab1dbfd5744572903637f7d20bd18733f054805c34a3b4d1207a1726",
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "versionRange": "^1.0.0",
+          "required": true
+        }
+      ],
+      "sizes": {
+        "downloadBytes": 311296,
+        "installedBytes": 311296,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      },
+      "capabilities": {
+        "search": false,
+        "fullText": false,
+        "structuredTables": true,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": true,
+        "calculations": true
+      },
+      "artifacts": [
+        {
+          "id": "minimed.tools.pediatrics-growth-demo.ru-index-0.1.0-preview.1",
+          "kind": "index",
+          "required": true,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-pediatrics-growth-demo-0.1.0-preview.1.db",
+          "sha256": "sha256:019a937e1d7f613a69ed225ec6a3ba30797ca4565b89e3c536662bebb439f7fb",
+          "sizeBytes": 311296,
+          "compression": "none",
+          "sourceSetDigest": "sha256:b515d1f9ab1dbfd5744572903637f7d20bd18733f054805c34a3b4d1207a1726"
+        }
+      ],
+      "documents": [],
+      "previewDocumentCount": 0,
+      "toolKinds": [
+        "calculator"
+      ],
+      "toolCount": 1
     },
     {
       "id": "minimed.tools.emergency.ru",
@@ -61753,7 +61823,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:2440fef35905adec1069a2cf6e1f17c39f282bf826b70e73c3cc76f57f81b842",
+      "sourceSetDigest": "sha256:55ca8c66a3d62a50a0c74f08fa22d6b1f3d0f73a81fbb692933a5c3cfd0a8ff5",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61782,10 +61852,10 @@
           "kind": "index",
           "required": true,
           "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-emergency-0.1.0-preview.1.db",
-          "sha256": "sha256:e4cea6e028d51864f6ce5078f11e79550ce9fd157a0107a328af3e4dcf18f77c",
-          "sizeBytes": 323584,
+          "sha256": "sha256:b666742f1fe5f08e6c4eb5892491b71b96430b720ac4fbac2ab3b638a8c362ed",
+          "sizeBytes": 327680,
           "compression": "none",
-          "sourceSetDigest": "sha256:2440fef35905adec1069a2cf6e1f17c39f282bf826b70e73c3cc76f57f81b842"
+          "sourceSetDigest": "sha256:55ca8c66a3d62a50a0c74f08fa22d6b1f3d0f73a81fbb692933a5c3cfd0a8ff5"
         }
       ],
       "documents": [],
@@ -61798,7 +61868,7 @@
     },
     {
       "id": "minimed.tools.obstetrics-gynecology.ru",
-      "version": "0.1.0-preview.2",
+      "version": "0.1.0-preview.3",
       "kind": "tool",
       "collection": "tool",
       "title": "Инструменты акушерства и гинекологии",
@@ -61826,7 +61896,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:2f6453041e481389d14ee76da1630b59d61948695cfbb4bbbaca77e8f77e093d",
+      "sourceSetDigest": "sha256:f5209c5fea703bfb5a1838067205f9f4d4ad5c101ac3dd23e829df8e98a23192",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61852,34 +61922,35 @@
       "toolCount": 21,
       "artifacts": [
         {
-          "id": "minimed.tools.obstetrics-gynecology.ru-index-0.1.0-preview.2",
+          "id": "minimed.tools.obstetrics-gynecology.ru-index-0.1.0-preview.3",
           "kind": "index",
           "required": true,
-          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-obstetrics-gynecology-0.1.0-preview.2.db",
-          "sha256": "sha256:bc8c7956b074ab36a2b11be7af45df12a40deea348487cc56566affe665192d6",
-          "sizeBytes": 430080,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-obstetrics-gynecology-0.1.0-preview.3.db",
+          "sha256": "sha256:b9423c9b072baa8c1e144500244a533d1d63b68b3c2360ea8eded1e90fe1e15a",
+          "sizeBytes": 450560,
           "compression": "none",
-          "sourceSetDigest": "sha256:2f6453041e481389d14ee76da1630b59d61948695cfbb4bbbaca77e8f77e093d"
+          "sourceSetDigest": "sha256:f5209c5fea703bfb5a1838067205f9f4d4ad5c101ac3dd23e829df8e98a23192"
         }
       ],
       "sizes": {
-        "downloadBytes": 430080,
-        "installedBytes": 430080,
+        "downloadBytes": 450560,
+        "installedBytes": 450560,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       }
     },
     {
       "id": "minimed.tools.psychology.ru",
-      "version": "0.1.0-preview.1",
+      "version": "0.1.0-preview.2",
       "kind": "tool",
       "collection": "tool",
-      "title": "Инструменты психологии и психодиагностики",
-      "description": "Скачиваемый пакет психологических опросников для саморефлексии, рабочего стиля и командных ролей.",
+      "title": "Инструменты психологии и психиатрии",
+      "description": "Психологические опросники для саморефлексии, рабочего стиля и командных ролей; шкала астенического состояния (ШАС) в разделе психиатрии.",
       "required": false,
       "releaseState": "published",
       "specialties": [
-        "psychology"
+        "psychology",
+        "psychiatry"
       ],
       "populations": [
         "Взрослые"
@@ -61887,7 +61958,8 @@
       "tags": [
         "tool-pack",
         "assessment",
-        "psychology"
+        "psychology",
+        "psychiatry"
       ],
       "compatibility": {
         "minAppVersion": "0.6.0",
@@ -61895,7 +61967,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:f9acb539bc5c38bec811f2456622e40d6ad802e339c0eddc1c7a2fdbc0183afe",
+      "sourceSetDigest": "sha256:d1700c6dbb4970d6007407f28d037eeb2734df58093bf38ff9f5f0be9a6bf38f",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61917,25 +61989,910 @@
       "toolKinds": [
         "assessment"
       ],
-      "toolCount": 5,
+      "toolCount": 6,
       "artifacts": [
         {
-          "id": "minimed.tools.psychology.ru-index-0.1.0-preview.1",
+          "id": "minimed.tools.psychology.ru-index-0.1.0-preview.2",
           "kind": "index",
           "required": true,
-          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-psychology-0.1.0-preview.1.db",
-          "sha256": "sha256:b3f3f19102d6399bad0528f9c15f93133654e5e5fa2aab379e2717f5144d3848",
-          "sizeBytes": 356352,
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-psychology-0.1.0-preview.2.db",
+          "sha256": "sha256:189c4bdd5ddeb541df45441c173d221c7390080c52b65e7516dbb1b1ba92d813",
+          "sizeBytes": 372736,
           "compression": "none",
-          "sourceSetDigest": "sha256:f9acb539bc5c38bec811f2456622e40d6ad802e339c0eddc1c7a2fdbc0183afe"
+          "sourceSetDigest": "sha256:d1700c6dbb4970d6007407f28d037eeb2734df58093bf38ff9f5f0be9a6bf38f"
         }
       ],
       "sizes": {
-        "downloadBytes": 356352,
-        "installedBytes": 356352,
+        "downloadBytes": 372736,
+        "installedBytes": 372736,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       }
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.alimentary-metabolism.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:4da244c14714a973d7ba8913ffaccd0f71e40769f3cb526f99f8b05da3883fef",
+          "sizeBytes": 286683136,
+          "sourceSetDigest": "sha256:1cac06c436def28cfec9b32f6a236cb252268bd68cf698ca503db64d220ba520",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.alimentary-metabolism.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Пищеварительный тракт и обмен веществ. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.alimentary-metabolism.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 394,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 286683136,
+        "installedBytes": 286683136,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:1cac06c436def28cfec9b32f6a236cb252268bd68cf698ca503db64d220ba520",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Пищеварительный тракт и обмен веществ",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.antiinfectives.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:a7ec1ca41a654e76196ca6c5a9837f98d672e5b8894940186c85cf8736f17ef1",
+          "sizeBytes": 243523584,
+          "sourceSetDigest": "sha256:058bd7638aaeef509560497c3d2540642373d720d8eefba339399d16f0f94d94",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.antiinfectives.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Противоинфекционные препараты системного действия. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.antiinfectives.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 345,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 243523584,
+        "installedBytes": 243523584,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:058bd7638aaeef509560497c3d2540642373d720d8eefba339399d16f0f94d94",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Противоинфекционные препараты системного действия",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.antineoplastic-immunomodulating.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:3bda272ddfca0dad701690a39ff9f045dd3df61ec4663a0dde30d64aede74e2e",
+          "sizeBytes": 109019136,
+          "sourceSetDigest": "sha256:e1cb02026803916dbce590eecb93e907b6bafafa4bea73e9495fb56db1ae5004",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.antineoplastic-immunomodulating.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Противоопухолевые и иммуномодулирующие препараты. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.antineoplastic-immunomodulating.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 327,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 109019136,
+        "installedBytes": 109019136,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:e1cb02026803916dbce590eecb93e907b6bafafa4bea73e9495fb56db1ae5004",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Противоопухолевые и иммуномодулирующие препараты",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.antiparasitic.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:757185931d8c9ac2967b7dc5100260e3964984b74d1225de903f0a32a07ed83c",
+          "sizeBytes": 4788224,
+          "sourceSetDigest": "sha256:3b7c9ed091e03a5f40edcf5e3ee69d8cdae2fa37d5c9a9c7be7dde6f00b3d0bd",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.antiparasitic.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Противопаразитарные препараты и репелленты. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.antiparasitic.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 16,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 4788224,
+        "installedBytes": 4788224,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:3b7c9ed091e03a5f40edcf5e3ee69d8cdae2fa37d5c9a9c7be7dde6f00b3d0bd",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Противопаразитарные препараты и репелленты",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.blood.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:79bfd9b38a7f344f4e8a73886596974e8b1329281983a48814b7464e6be2cb32",
+          "sizeBytes": 183304192,
+          "sourceSetDigest": "sha256:70faa6d0e3f6950d03a1ef89a623ba90046d9a356d147997c265bf051e1fe5d5",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.blood.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Кровь и кроветворение. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.blood.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 170,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 183304192,
+        "installedBytes": 183304192,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:70faa6d0e3f6950d03a1ef89a623ba90046d9a356d147997c265bf051e1fe5d5",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Кровь и кроветворение",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.cardiovascular.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:e2c596e33b6613439a0f88e298b3d94ee784fc689836758a1f06a0f84eba99ed",
+          "sizeBytes": 339599360,
+          "sourceSetDigest": "sha256:5e265b2d61c1f7124c31fefb64a7afe7da92f87d94b09402b57516a06da471e4",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.cardiovascular.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Сердечно-сосудистая система. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.cardiovascular.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 246,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 339599360,
+        "installedBytes": 339599360,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:5e265b2d61c1f7124c31fefb64a7afe7da92f87d94b09402b57516a06da471e4",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Сердечно-сосудистая система",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.dermatological.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:896173f3d6e821bc8b543542fdff95a2d30d010d60197a60b9206becc8f0b9b7",
+          "sizeBytes": 166326272,
+          "sourceSetDigest": "sha256:a310d0cbffe73081c0e9feac3f56467ba928d48264eb5ef55a59e538df93d550",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.dermatological.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Дерматологические препараты. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.dermatological.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 190,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 166326272,
+        "installedBytes": 166326272,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:a310d0cbffe73081c0e9feac3f56467ba928d48264eb5ef55a59e538df93d550",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Дерматологические препараты",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.genitourinary-hormones.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:27d09f5e08f103c1e9d3fc7e5268e463eeb386ebbd3520906e93867f72aa6085",
+          "sizeBytes": 34787328,
+          "sourceSetDigest": "sha256:fc4a74840d95dccef5552c229edee3699423a2ea4b48dab3fa779cf87ed9d26b",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.genitourinary-hormones.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Мочеполовая система и половые гормоны. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.genitourinary-hormones.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 160,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 34787328,
+        "installedBytes": 34787328,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:fc4a74840d95dccef5552c229edee3699423a2ea4b48dab3fa779cf87ed9d26b",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Мочеполовая система и половые гормоны",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.musculoskeletal.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:6006c8ad4feaf7090ed713b7b840cf0c09ebfd4832dce4e012e6dee6f3a81471",
+          "sizeBytes": 135643136,
+          "sourceSetDigest": "sha256:3e94c8ca8899de5ae447acbfae94cf6a147b2b4fd6813b6f8e2ea0e1d3e71803",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.musculoskeletal.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Костно-мышечная система. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.musculoskeletal.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 125,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 135643136,
+        "installedBytes": 135643136,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:3e94c8ca8899de5ae447acbfae94cf6a147b2b4fd6813b6f8e2ea0e1d3e71803",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Костно-мышечная система",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.nervous-system.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:b38c47817d4e9da1d9c0c8a6d5ceac9174110a1c1a3b649432ff42c3f13b71ff",
+          "sizeBytes": 239632384,
+          "sourceSetDigest": "sha256:938275b66650bee8212597a05d281cb6d142b6eb9ded84fddcbcebdaa9606b07",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.nervous-system.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Нервная система. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.nervous-system.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 325,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 239632384,
+        "installedBytes": 239632384,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:938275b66650bee8212597a05d281cb6d142b6eb9ded84fddcbcebdaa9606b07",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Нервная система",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.respiratory.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:1f39911f549a56114f0788176fc86d81e65ca7b1f547697b1e9f1372a21c1d34",
+          "sizeBytes": 93052928,
+          "sourceSetDigest": "sha256:dda501030fb51b84cfb56932e3720a8fe109e68ba917d4fa5706eb0d1c49f5ac",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.respiratory.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Дыхательная система. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.respiratory.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 223,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 93052928,
+        "installedBytes": 93052928,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:dda501030fb51b84cfb56932e3720a8fe109e68ba917d4fa5706eb0d1c49f5ac",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Дыхательная система",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.sensory-organs.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:49ff0e4807dc2e4656f2e6fb4e581f52ff77d0cbfd9b6fe307641a48cf8020f7",
+          "sizeBytes": 13373440,
+          "sourceSetDigest": "sha256:9118d3e96050c3b2ece62cb063e39bde624af3344b313b5c6d0c4d49f5904a68",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.sensory-organs.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Органы чувств. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.sensory-organs.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 87,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 13373440,
+        "installedBytes": 13373440,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:9118d3e96050c3b2ece62cb063e39bde624af3344b313b5c6d0c4d49f5904a68",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Органы чувств",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.systemic-hormones.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:bfb5a146527b792614951454d881af12862a6ad8d69cc16c6f1382d782d90f8f",
+          "sizeBytes": 16941056,
+          "sourceSetDigest": "sha256:3dff9d577a077204082a6448316f973d478bafdf408e1b6f029dfc4180cc5787",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.systemic-hormones.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Системные гормональные препараты. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.systemic-hormones.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 29,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 16941056,
+        "installedBytes": 16941056,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:3dff9d577a077204082a6448316f973d478bafdf408e1b6f029dfc4180cc5787",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Системные гормональные препараты",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.unclassified.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:b31f980943ab4f79cd6d9eaedbd3a2795a13ee9624329728d747edd14dc67a35",
+          "sizeBytes": 85422080,
+          "sourceSetDigest": "sha256:5023ddd7529b31fe564021ee8bc8439d20fac7aa41337916023325da1cae04be",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.unclassified.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Препараты без подтвержденной ATC-классификации. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.unclassified.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 559,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 85422080,
+        "installedBytes": 85422080,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:5023ddd7529b31fe564021ee8bc8439d20fac7aa41337916023325da1cae04be",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Препараты без подтвержденной ATC-классификации",
+      "version": "2026-08-28"
+    },
+    {
+      "artifacts": [
+        {
+          "compression": "none",
+          "id": "minimed.medications.various.ru-index-2026-08-28",
+          "kind": "index",
+          "required": true,
+          "sha256": "sha256:890abb90729de38b596537dc05821bdf84d43b6d6f43e537ea1b2c345f9b38a3",
+          "sizeBytes": 40456192,
+          "sourceSetDigest": "sha256:9373fc0de0435018eed937f9bb39832cf8d433b2b5f3720fb6a3c355d5b8f9c2",
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.various.ru.db"
+        }
+      ],
+      "capabilities": {
+        "calculations": false,
+        "fullText": true,
+        "images": false,
+        "originalPdf": false,
+        "search": true,
+        "structuredKnowledge": true,
+        "structuredTables": false
+      },
+      "collection": "esklp",
+      "compatibility": {
+        "coreCatalogVersion": "1",
+        "maxAppVersion": null,
+        "minAppVersion": "0.6.0",
+        "schemaVersion": 2
+      },
+      "dependencies": [
+        {
+          "moduleId": "minimed.core.ru",
+          "required": true,
+          "versionRange": "^1.0.0"
+        }
+      ],
+      "description": "ЕСКЛП: Прочие препараты и диагностические средства. Регистрационные данные о лекарственных препаратах.",
+      "documents": [],
+      "id": "minimed.medications.various.ru",
+      "kind": "medication",
+      "populations": [],
+      "previewDocumentCount": 128,
+      "releaseState": "preview",
+      "required": false,
+      "sizes": {
+        "downloadBytes": 40456192,
+        "installedBytes": 40456192,
+        "precision": "exact",
+        "sourceAssetsDownloadBytes": null
+      },
+      "sourceSetDigest": "sha256:9373fc0de0435018eed937f9bb39832cf8d433b2b5f3720fb6a3c355d5b8f9c2",
+      "specialties": [],
+      "tags": [
+        "esklp",
+        "official-registry"
+      ],
+      "title": "Прочие препараты и диагностические средства",
+      "version": "2026-08-28"
     }
   ]
 }

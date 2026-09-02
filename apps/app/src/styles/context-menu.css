@@ -35,6 +35,8 @@
   width: min(20rem, calc(100vw - 1.5rem));
   min-width: min(12.5rem, calc(100vw - 1.5rem));
   max-width: min(22rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 1.5rem);
+  overflow-y: auto;
   padding: 0.35rem;
   border: 1px solid var(--theme-border);
   border-radius: var(--theme-radius-panel);
@@ -46,6 +48,7 @@
 }
 
 .app-context-menu--sub {
+  width: min(11.5rem, calc(100vw - 1.5rem));
   min-width: min(11.5rem, calc(100vw - 1.5rem));
 }
 
@@ -99,6 +102,38 @@
 .app-context-menu__item-icon {
   width: 1rem;
   height: 1rem;
+}
+
+.app-context-menu__item-icon--color-red {
+  color: #d95555;
+}
+
+.app-context-menu__item-icon--color-orange {
+  color: #d9822b;
+}
+
+.app-context-menu__item-icon--color-yellow {
+  color: #bf8a00;
+}
+
+.app-context-menu__item-icon--color-green {
+  color: #4d9564;
+}
+
+.app-context-menu__item-icon--color-blue {
+  color: #4f7fbf;
+}
+
+.app-context-menu__item-icon--color-purple {
+  color: #8a63b8;
+}
+
+.app-context-menu__item-icon--color-gray {
+  color: #8b8580;
+}
+
+.app-context-menu__item-icon--color-none {
+  color: var(--theme-text-muted);
 }
 
 .app-context-menu__submenu-arrow {

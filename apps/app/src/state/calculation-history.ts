@@ -1,6 +1,6 @@
 import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
 
-const STORAGE_KEY = 'minimed.calculation-history.v1';
+const STORAGE_KEY = 'minimed.calculation-history.v2';
 const MAX_RECORDS = 100;
 
 export type { StoredCalculationResult };
@@ -12,6 +12,12 @@ export interface CalculationRecord {
   readonly createdAt: string;
   readonly inputSummary: string;
   readonly result: StoredCalculationResult;
+  /** Protected patient identity; records with this field never enter localStorage history. */
+  readonly patientId?: string;
+  readonly episodeId?: string;
+  readonly definitionVersion?: string;
+  readonly normalizedInputs?: Readonly<Record<string, string | number>>;
+  readonly contextSnapshot?: Readonly<Record<string, string | number>>;
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -49,10 +55,15 @@ export function loadCalculationHistory(): readonly CalculationRecord[] {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(isCalculationRecord)
-      .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt))
-      .slice(0, MAX_RECORDS);
+    return (
+      parsed
+        .filter(isCalculationRecord)
+        // A patient-bound result belongs to the encrypted vault. Ignore any stale or tampered
+        // localStorage entry rather than exposing a protected identity through ordinary history.
+        .filter((record) => record.patientId === undefined)
+        .toSorted((left, right) => right.createdAt.localeCompare(left.createdAt))
+        .slice(0, MAX_RECORDS)
+    );
   } catch {
     return [];
   }
@@ -71,6 +82,11 @@ export function createCalculationRecord(input: {
   readonly subjectLabel: string;
   readonly inputSummary: string;
   readonly result: StoredCalculationResult;
+  readonly patientId?: string;
+  readonly episodeId?: string;
+  readonly definitionVersion?: string;
+  readonly normalizedInputs?: Readonly<Record<string, string | number>>;
+  readonly contextSnapshot?: Readonly<Record<string, string | number>>;
 }): CalculationRecord {
   return {
     id: crypto.randomUUID(),
@@ -79,10 +95,16 @@ export function createCalculationRecord(input: {
     createdAt: new Date().toISOString(),
     inputSummary: input.inputSummary,
     result: input.result,
+    ...(input.patientId ? { patientId: input.patientId } : {}),
+    ...(input.episodeId ? { episodeId: input.episodeId } : {}),
+    ...(input.definitionVersion ? { definitionVersion: input.definitionVersion } : {}),
+    ...(input.normalizedInputs ? { normalizedInputs: input.normalizedInputs } : {}),
+    ...(input.contextSnapshot ? { contextSnapshot: input.contextSnapshot } : {}),
   };
 }
 
 export function saveCalculationRecord(record: CalculationRecord): readonly CalculationRecord[] {
+  if (record.patientId) return loadCalculationHistory();
   const next = [record, ...loadCalculationHistory().filter((item) => item.id !== record.id)].slice(
     0,
     MAX_RECORDS,

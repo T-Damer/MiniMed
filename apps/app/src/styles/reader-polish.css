@@ -55,6 +55,14 @@
   background: var(--theme-surface-raised);
 }
 
+@media (prefers-color-scheme: light) {
+  .user-document-reader__paper .document-overlay-paper__header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom-color: var(--folder-dark);
+  }
+}
+
 .user-document-reader__canvas {
   display: block;
   width: 100%;
@@ -75,6 +83,11 @@
   font-family: Arial, Helvetica, sans-serif;
   font-size: 0.98rem;
   line-height: 1.68;
+}
+
+.safe-markdown__block--lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 8rem;
 }
 
 .safe-markdown h1,
@@ -133,6 +146,12 @@
 
 .safe-markdown__math-inline {
   color: var(--theme-accent);
+}
+
+.safe-markdown__mark {
+  padding-inline: 0.12em;
+  border-radius: 0.18em;
+  background: var(--theme-accent-soft);
 }
 
 .safe-markdown__code,
@@ -198,6 +217,15 @@
   display: block;
   max-width: 100%;
   max-height: 28rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+}
+
+.safe-markdown__image {
+  display: block;
+  max-width: 100%;
+  max-height: 28rem;
+  margin: 0.5rem auto;
   border: 1px solid var(--theme-border);
   border-radius: var(--theme-radius-control);
 }

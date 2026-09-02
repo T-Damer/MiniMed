@@ -36,6 +36,32 @@ class _SourceHandler(BaseHTTPRequestHandler):
         del format, args
 
 
+class _ArchiveHandler(BaseHTTPRequestHandler):
+    payload: ClassVar[bytes] = b"PK\x03\x04archive-v1"
+    filename: ClassVar[str] = "esklp_20260828.zip"
+    get_count: ClassVar[int] = 0
+    head_count: ClassVar[int] = 0
+
+    def _headers(self) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "application/octet-stream")
+        self.send_header("Content-Length", str(len(self.payload)))
+        self.send_header("Content-Disposition", f"attachment;filename={self.filename}")
+        self.end_headers()
+
+    def do_HEAD(self) -> None:
+        type(self).head_count += 1
+        self._headers()
+
+    def do_GET(self) -> None:
+        type(self).get_count += 1
+        self._headers()
+        self.wfile.write(self.payload)
+
+    def log_message(self, format: str, *args: object) -> None:
+        del format, args
+
+
 def _write_manifest(path: Path, sources: list[dict[str, object]]) -> None:
     path.write_text(
         yaml.safe_dump({"version": 1, "sources": sources}, sort_keys=False),
@@ -117,6 +143,50 @@ def test_remote_sync_uses_conditional_request_and_stale_cache(tmp_path: Path) ->
     assert (output / "recommendation.json").read_bytes() == _SourceHandler.payload
     assert _SourceHandler.request_count == 2
     assert _SourceHandler.user_agent == "MiniMed/0.5"
+
+
+def test_remote_binary_archive_uses_header_preflight_before_redownload(tmp_path: Path) -> None:
+    _ArchiveHandler.payload = b"PK\x03\x04archive-v1"
+    _ArchiveHandler.filename = "esklp_20260828.zip"
+    _ArchiveHandler.get_count = 0
+    _ArchiveHandler.head_count = 0
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _ArchiveHandler)
+    host, port = server.server_address[:2]
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    manifest = tmp_path / "sources.yaml"
+    _write_manifest(
+        manifest,
+        [
+            {
+                "id": "esklp-archive",
+                "location": f"http://{host}:{port}/download/stable-uuid",
+                "target": "esklp/latest.zip",
+                "content_type": "binary",
+            }
+        ],
+    )
+    output = tmp_path / "output"
+    cache = tmp_path / "cache"
+
+    try:
+        first = sync_source_manifest(manifest, output, cache)
+        second = sync_source_manifest(manifest, output, cache)
+        _ArchiveHandler.filename = "esklp_20260830.zip"
+        _ArchiveHandler.payload = b"PK\x03\x04archive-v2"
+        third = sync_source_manifest(manifest, output, cache)
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+    assert first.sources[0].status == "downloaded"
+    assert second.sources[0].status == "not-modified"
+    assert third.sources[0].status == "downloaded"
+    assert third.sources[0].content_disposition == "attachment;filename=esklp_20260830.zip"
+    assert _ArchiveHandler.get_count == 2
+    assert _ArchiveHandler.head_count == 2
+    assert (output / "esklp/latest.zip").read_bytes() == _ArchiveHandler.payload
 
 
 def test_offline_mode_requires_and_reuses_validated_cache(tmp_path: Path) -> None:

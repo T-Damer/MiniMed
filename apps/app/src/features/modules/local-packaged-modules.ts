@@ -7,8 +7,8 @@ import type { OverviewDocumentCounts } from '@/features/modules/overview-documen
 import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 
 export const MEDICATIONS_COMPANION_MODULE_ID = 'minimed.medications.ru';
-// Exact size of the bundled medications.db companion; update when that packaged artifact changes.
-export const PACKAGED_MEDICATIONS_SIZE_BYTES = 441_143_296;
+// Exact size of the bundled local Allmed companion; update when that packaged artifact changes.
+export const PACKAGED_MEDICATIONS_SIZE_BYTES = 514_322_432;
 
 /**
  * A module the catalog lets the user install right now: everything published,
@@ -92,13 +92,13 @@ export function catalogModuleHidesRemoveAction(
 
 export function localPackagedModulesToInstall(
   catalog: ContentModuleCatalog,
-  installedIds: ReadonlySet<string>,
+  installedVersions: ReadonlyMap<string, string>,
 ): readonly ContentModuleCatalogEntry[] {
   return catalog.modules.filter(
     (module) =>
       module.kind === 'tool' &&
       module.releaseState === 'published' &&
-      !installedIds.has(module.id) &&
+      installedVersions.get(module.id) !== module.version &&
       module.artifacts.some((artifact) => artifact.kind === 'index' && Boolean(artifact.url)),
   );
 }

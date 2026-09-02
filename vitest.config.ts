@@ -5,6 +5,7 @@ import { defineConfig } from 'vitest/config';
 const appSrc = fileURLToPath(new URL('./apps/app/src', import.meta.url));
 
 export default defineConfig({
+  root: fileURLToPath(new URL('.', import.meta.url)),
   resolve: {
     alias: {
       '@': appSrc,

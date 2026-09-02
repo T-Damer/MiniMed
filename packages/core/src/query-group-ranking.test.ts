@@ -1,19 +1,88 @@
-import type { SearchResultGroup } from '@localmed/contracts';
+import type { MedicalDocumentSummary, SearchResult, SearchResultGroup } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { queryGroupRelevanceBoost, rankSearchGroupsByQuery } from './query-group-ranking';
 
-function group(documentId: string, title: string, bestScore: number): SearchResultGroup {
+function result(
+  documentId: string,
+  title: string,
+  snippet: string,
+  matchedTerms: readonly string[] = ['парацетамол', 'суспензия'],
+): SearchResult {
+  return {
+    chunkId: `${documentId}.chunk`,
+    documentId,
+    documentVersionId: `${documentId}.v1`,
+    sectionId: `${documentId}.section`,
+    anchor: 'registration-1',
+    title,
+    sectionPath: ['Регистрационные сведения'],
+    snippet,
+    highlightedRanges: [],
+    lexicalScore: 1,
+    semanticScore: null,
+    finalScore: 1,
+    matchedTerms,
+    matchedBranches: [],
+    sectionType: 'definition',
+    category: 'overview',
+  };
+}
+
+function group(
+  documentId: string,
+  title: string,
+  bestScore: number,
+  results: readonly SearchResult[] = [],
+): SearchResultGroup {
   return {
     documentId,
     title,
     bestScore,
     categories: ['other'],
-    results: [],
+    results,
+  };
+}
+
+function document(
+  id: string,
+  sourceType: string,
+  metadata?: MedicalDocumentSummary['metadata'],
+): MedicalDocumentSummary {
+  return {
+    id,
+    title: id,
+    shortTitle: null,
+    sourceType,
+    status: 'active',
+    specialties: [],
+    versionId: `${id}.v1`,
+    versionLabel: '1',
+    effectiveFrom: null,
+    ...(metadata ? { metadata } : {}),
   };
 }
 
 describe('query-aware group ranking', () => {
+  it('does not promote generic legal titles above the requested health-group section', () => {
+    const groups = [
+      group('tuberculosis', 'Диспансерное наблюдение больных туберкулезом', 0.9),
+      group('health', 'Группы здоровья взрослого населения — приказ № 404н', 0.72),
+    ];
+    for (const sourceType of ['regulatory_act_summary', 'medical_reference']) {
+      const documents = groups.map((entry) =>
+        document(entry.documentId, sourceType, { notLegalAdvice: true }),
+      );
+      expect(
+        rankSearchGroupsByQuery(
+          groups,
+          'У взрослого пациента ХОБЛ и требуется диспансерное наблюдение. Какая группа здоровья?',
+          documents,
+        )[0]?.documentId,
+      ).toBe('health');
+    }
+  });
+
   it('gives an explicit legal document number priority over generic wording matches', () => {
     const ranked = rankSearchGroupsByQuery(
       [
@@ -108,6 +177,27 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['ceftriaxone', 'cefazolin']);
   });
 
+  it('uses the ESKLP pointer as the canonical medication result unless a source is requested', () => {
+    const groups = [
+      group('instruction', 'Нурофен: инструкция', 3),
+      group('registry', 'Нурофен: регистрационная карточка ГРЛС', 2.5),
+      group('mnn', 'Нурофен · ИБУПРОФЕН', 0.4),
+    ];
+    const documents = [
+      document('instruction', 'official_drug_instruction'),
+      document('registry', 'official_registry_summary'),
+      document('mnn', 'core_catalog_pointer', { catalogFamily: 'medication' }),
+    ];
+
+    expect(rankSearchGroupsByQuery(groups, 'нурофен', documents)[0]?.documentId).toBe('mnn');
+    expect(rankSearchGroupsByQuery(groups, 'инструкция нурофен', documents)[0]?.documentId).toBe(
+      'instruction',
+    );
+    expect(
+      rankSearchGroupsByQuery(groups, 'регистрационный номер нурофен', documents)[0]?.documentId,
+    ).toBe('registry');
+  });
+
   it('ranks a dedicated paracetamol card above combinations and documents that only mention it', () => {
     const ranked = rankSearchGroupsByQuery(
       [
@@ -121,6 +211,62 @@ describe('query-aware group ranking', () => {
 
     expect(ranked[0]?.documentId).toBe('paracetamol');
     expect(ranked.map((item) => item.documentId).slice(0, 2)).toEqual(['paracetamol', 'combo']);
+  });
+
+  it('ranks the direct medication title above a combination when both have suspension evidence', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('combination', 'ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН', 1, [
+          result(
+            'combination',
+            'ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН',
+            'Лекарственная форма: СУСПЕНЗИЯ ДЛЯ ПРИЕМА ВНУТРЬ.',
+          ),
+        ]),
+        group('direct', 'ПАРАЦЕТАМОЛ', 0.4, [
+          result('direct', 'ПАРАЦЕТАМОЛ', 'Лекарственная форма: СУСПЕНЗИЯ ДЛЯ ПРИЕМА ВНУТРЬ.'),
+        ]),
+      ],
+      'ПАРАЦЕТАМОЛ СУСПЕНЗИЯ',
+    );
+
+    expect(ranked[0]?.documentId).toBe('direct');
+  });
+
+  it('does not mistake a presentation heading with a repeated MNN for a combination', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('combination', 'ПАРАЦЕТАМОЛ+ХЛОРФЕНАМИН', 1.48),
+        group('direct', 'ПАРАЦЕТАМОЛ СИРОП · ПАРАЦЕТАМОЛ', 0.4),
+      ],
+      'ПАРАЦЕТАМОЛ СИРОП',
+    );
+
+    expect(ranked[0]?.documentId).toBe('direct');
+  });
+
+  it('lets a specific title term beat a higher-scoring frequent body match', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('pneumonia', 'Внебольничная пневмония у детей', 1.48),
+        group('drug', 'Цефтриаксон — порошок для инъекций 1 г', 0.97),
+      ],
+      'Цефтриаксон ребенку 3 лет вес 20 кг при пневмонии как второй антибиотик',
+    );
+
+    expect(ranked.map((item) => item.documentId)).toEqual(['drug', 'pneumonia']);
+  });
+
+  it('does not promote a failed prior medication over the condition card', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
+        group('pneumonia', 'Внебольничная пневмония у детей', 0.84),
+      ],
+      'чем лечить пневмонию у ребенка если амоксициллин не помог',
+    );
+
+    expect(ranked.map((item) => item.documentId)).toEqual(['pneumonia', 'drug']);
   });
 
   it('recognizes compact and hyphenated document numbers as the same reference', () => {

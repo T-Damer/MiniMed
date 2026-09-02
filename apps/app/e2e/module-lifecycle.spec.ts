@@ -87,6 +87,10 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await hideBuiltInRegulatoryPack(page);
 
   await mountBuiltApp(page, { persistentOrigin: true });
+  await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
+  await page.getByTestId('search-input').fill(REGULATORY_QUERY);
+  await page.getByTestId('search-submit').click();
+  await expect(page.getByTestId('search-results')).toBeVisible();
   await navigationButton(page, 'База знаний').click();
   await regulatorySection(page).click();
 
@@ -96,16 +100,15 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   });
 
   await navigationButton(page, 'Поиск').click();
-  const legalScope = page.getByRole('radio', { name: /Правовые документы/u });
-  await expect(legalScope).toBeEnabled({ timeout: 30_000 });
-  await legalScope.click();
-  await page.getByTestId('search-input').fill(REGULATORY_QUERY);
-  await page.getByTestId('search-submit').click();
+  await expect(page.getByTestId('search-input')).toHaveValue(REGULATORY_QUERY);
   await expect
     .poll(() => page.getByTestId('search-results').locator('.result-group').count(), {
       timeout: 20_000,
     })
     .toBeGreaterThan(0);
+  await expect(page.locator('.result-group-header__kind-label').first()).toHaveText(
+    'Нормативный акт',
+  );
   await expect(page.locator('.error-card')).toHaveCount(0);
 
   await navigationButton(page, 'База знаний').click();

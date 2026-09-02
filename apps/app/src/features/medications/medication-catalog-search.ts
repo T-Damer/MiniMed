@@ -6,6 +6,8 @@ export function medicationSearchText(product: MedicationProduct): string {
   return [
     product.tradeName,
     product.inn,
+    product.shortDescription ?? '',
+    product.supplementalDescription ?? '',
     product.registrationNumber,
     product.registrationStatus,
     product.prescriptionStatus ?? '',
@@ -25,14 +27,28 @@ function stems(value: string): readonly string[] {
   return tokenize(normalizeSurfaceText(value)).map((token) => lightStemRussian(token));
 }
 
-function queryStemsMatch(fieldStems: ReadonlySet<string>, queryStems: readonly string[]): boolean {
-  return queryStems.every(
-    (queryStem) =>
-      fieldStems.has(queryStem) ||
+const FORM_SYNONYM_STEMS = new Set([
+  lightStemRussian('сироп'),
+  lightStemRussian('спироп'),
+  lightStemRussian('суспензия'),
+]);
+
+function stemAlternatives(stem: string): readonly string[] {
+  return FORM_SYNONYM_STEMS.has(stem) ? [...FORM_SYNONYM_STEMS] : [stem];
+}
+
+function fieldContainsStem(fieldStems: ReadonlySet<string>, queryStem: string): boolean {
+  return stemAlternatives(queryStem).some(
+    (alternative) =>
+      fieldStems.has(alternative) ||
       [...fieldStems].some(
-        (fieldStem) => fieldStem.startsWith(queryStem) || queryStem.startsWith(fieldStem),
+        (fieldStem) => fieldStem.startsWith(alternative) || alternative.startsWith(fieldStem),
       ),
   );
+}
+
+function queryStemsMatch(fieldStems: ReadonlySet<string>, queryStems: readonly string[]): boolean {
+  return queryStems.every((queryStem) => fieldContainsStem(fieldStems, queryStem));
 }
 
 function isCombinationName(value: string): boolean {
@@ -46,6 +62,7 @@ interface MedicationSearchEntry {
   readonly innStems: ReadonlySet<string>;
   readonly tradeCombination: boolean;
   readonly innCombination: boolean;
+  readonly presentationStems: readonly ReadonlySet<string>[];
   readonly haystack: string;
 }
 
@@ -63,6 +80,19 @@ function medicationSearchEntry(product: MedicationProduct): MedicationSearchEntr
     innStems: new Set(stems(inn)),
     tradeCombination: isCombinationName(trade),
     innCombination: isCombinationName(inn),
+    presentationStems: product.presentations.map(
+      (presentation) =>
+        new Set(
+          stems(
+            [
+              presentation.dosageForm,
+              presentation.strength ?? '',
+              presentation.route ?? '',
+              ...presentation.packages.map((item) => item.description),
+            ].join(' '),
+          ),
+        ),
+    ),
     haystack: normalizeSurfaceText(medicationSearchText(product)),
   };
   medicationSearchEntries.set(product, entry);
@@ -103,8 +133,20 @@ function medicationCatalogEntryScore(
     return 36;
   }
 
+  const presentationMatch = entry.presentationStems.some((presentation) =>
+    queryStemsMatch(new Set([...entry.tradeStems, ...presentation]), queryStems),
+  );
+  if (presentationMatch && !entry.tradeCombination) return 88;
+  if (presentationMatch) return 76;
+
   if (entry.haystack.includes(normalizedQuery)) return 18;
-  if (queryStems.every((stem) => entry.haystack.includes(stem))) return 12;
+  if (
+    queryStems.every((stem) =>
+      stemAlternatives(stem).some((alternative) => entry.haystack.includes(alternative)),
+    )
+  ) {
+    return 12;
+  }
   return 0;
 }
 

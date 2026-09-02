@@ -351,6 +351,24 @@
     var(--document-paper-fill);
 }
 
+.document-overlay-paper::before {
+  position: fixed;
+  z-index: var(--z-heading-h6);
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--safe-top, 0px);
+  background: var(--document-paper-fill);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+html.app-chrome-hidden .document-overlay-paper::before {
+  opacity: 1;
+}
+
 .document-overlay-paper__header {
   margin-bottom: 1.875rem;
   padding-bottom: 1.25rem;
@@ -391,7 +409,7 @@
 }
 
 .document-overlay-section {
-  scroll-margin-top: var(--document-heading-h2-top);
+  scroll-margin-top: var(--document-heading-h6-top);
   margin: 0 0 1.875rem;
 }
 
@@ -419,7 +437,11 @@
 }
 
 .document-overlay-section__title--h1,
-.document-overlay-section__title--h2 {
+.document-overlay-section__title--h2,
+.document-overlay-section__title--h3,
+.document-overlay-section__title--h4,
+.document-overlay-section__title--h5,
+.document-overlay-section__title--h6 {
   position: sticky;
   z-index: var(--z-heading-h1);
   top: calc(var(--document-heading-h1-top) - 1px);
@@ -427,6 +449,11 @@
   padding-inline: var(--document-paper-inline-padding);
   background: var(--document-paper-fill);
   box-shadow: 0 1px 0 var(--paper-line);
+  transition: top 180ms ease;
+}
+
+.document-overlay-section__title--h1,
+.document-overlay-section__title--h2 {
   display: -webkit-box;
   max-height: calc(2.4em + 0.8rem);
   overflow: hidden;
@@ -439,20 +466,90 @@
   top: calc(var(--document-heading-h2-top) - 1px);
 }
 
+html.app-chrome-hidden .document-overlay-section__title--h1 {
+  top: calc(var(--safe-top, 0px) - 1px);
+}
+
+html.app-chrome-hidden .document-overlay-section__title--h2 {
+  top: calc(var(--safe-top, 0px) + var(--document-heading-h1-height) - 1px);
+}
+
 .document-overlay-section__title--h3 {
+  z-index: var(--z-heading-h3);
+  top: calc(var(--document-heading-h3-top) - 1px);
   font-size: clamp(1.125rem, 2.5vw, 1.5rem);
 }
 
 .document-overlay-section__title--h4 {
+  z-index: var(--z-heading-h4);
+  top: calc(var(--document-heading-h4-top) - 1px);
   font-size: clamp(1rem, 2vw, 1.25rem);
 }
 
 .document-overlay-section__title--h5 {
+  z-index: var(--z-heading-h5);
+  top: calc(var(--document-heading-h5-top) - 1px);
   font-size: clamp(1rem, 2vw, 1.25rem);
 }
 
 .document-overlay-section__title--h6 {
+  z-index: var(--z-heading-h6);
+  top: calc(var(--document-heading-h6-top) - 1px);
   font-size: clamp(1rem, 2vw, 1.25rem);
+}
+
+html.app-chrome-hidden .document-overlay-section__title--h3 {
+  top: calc(
+    var(--safe-top, 0px) +
+    var(--document-heading-h1-height) +
+    var(--document-heading-h2-height) -
+    1px
+  );
+}
+
+html.app-chrome-hidden .document-overlay-section__title--h4 {
+  top: calc(
+    var(--safe-top, 0px) +
+    var(--document-heading-h1-height) +
+    var(--document-heading-h2-height) +
+    var(--document-heading-h3-height) -
+    1px
+  );
+}
+
+html.app-chrome-hidden .document-overlay-section__title--h5 {
+  top: calc(
+    var(--safe-top, 0px) +
+    var(--document-heading-h1-height) +
+    var(--document-heading-h2-height) +
+    var(--document-heading-h3-height) +
+    var(--document-heading-h4-height) -
+    1px
+  );
+}
+
+html.app-chrome-hidden .document-overlay-section__title--h6 {
+  top: calc(
+    var(--safe-top, 0px) +
+    var(--document-heading-h1-height) +
+    var(--document-heading-h2-height) +
+    var(--document-heading-h3-height) +
+    var(--document-heading-h4-height) +
+    var(--document-heading-h5-height) -
+    1px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .document-overlay-paper::before,
+  .document-overlay-section__title--h1,
+  .document-overlay-section__title--h2,
+  .document-overlay-section__title--h3,
+  .document-overlay-section__title--h4,
+  .document-overlay-section__title--h5,
+  .document-overlay-section__title--h6 {
+    transition: none;
+  }
 }
 
 .document-overlay-section__title--copy {
@@ -1654,16 +1751,16 @@
   }
 }
 
-/* Resizable outline column (desktop): width via --outline-column-width */
+@media (min-width: 761px) {
+  /* Resizable outline column (desktop): width via --outline-column-width */
+  .document-overlay-layout:not(.document-overlay-layout--outline-hidden) {
+    grid-template-columns: var(--outline-column-width, minmax(13.5rem, 16.5rem)) minmax(0, 1fr);
+  }
 
-.document-overlay-layout:not(.document-overlay-layout--outline-hidden) {
-  grid-template-columns: var(--outline-column-width, minmax(13.5rem, 16.5rem)) minmax(0, 1fr);
-}
-
-/* The track owns the width; beat reader-polish's fixed clamp on the aside. */
-
-.document-overlay-layout:not(.document-overlay-layout--outline-hidden) .document-overlay-outline {
-  width: auto;
+  /* The track owns the width; beat reader-polish's fixed clamp on the aside. */
+  .document-overlay-layout:not(.document-overlay-layout--outline-hidden) .document-overlay-outline {
+    width: auto;
+  }
 }
 
 .document-overlay-outline-resize:not(:disabled) {

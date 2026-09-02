@@ -42,9 +42,18 @@
         "estimatedMinutes": 3,
         "audience": "Дети и подростки с язвенным колитом; заполняет медицинский специалист",
         "responseOptions": [
-          { "value": 0, "label": "0" },
-          { "value": 5, "label": "5" },
-          { "value": 10, "label": "10" }
+          {
+            "value": 0,
+            "label": "0"
+          },
+          {
+            "value": 5,
+            "label": "5"
+          },
+          {
+            "value": 10,
+            "label": "10"
+          }
         ],
         "scales": [
           {
@@ -60,9 +69,18 @@
             "prompt": "Боль в животе за последние 48 часов",
             "scaleId": "pucai-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет боли" },
-              { "value": 5, "label": "Боль можно игнорировать" },
-              { "value": 10, "label": "Боль нельзя игнорировать" }
+              {
+                "value": 0,
+                "label": "Нет боли"
+              },
+              {
+                "value": 5,
+                "label": "Боль можно игнорировать"
+              },
+              {
+                "value": 10,
+                "label": "Боль нельзя игнорировать"
+              }
             ]
           },
           {
@@ -70,10 +88,22 @@
             "prompt": "Ректальное кровотечение за последние 48 часов",
             "scaleId": "pucai-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет крови" },
-              { "value": 10, "label": "Небольшое количество крови менее чем в половине стула" },
-              { "value": 20, "label": "Небольшое количество крови более чем в половине стула" },
-              { "value": 30, "label": "Большое количество крови" }
+              {
+                "value": 0,
+                "label": "Нет крови"
+              },
+              {
+                "value": 10,
+                "label": "Небольшое количество крови менее чем в половине стула"
+              },
+              {
+                "value": 20,
+                "label": "Небольшое количество крови более чем в половине стула"
+              },
+              {
+                "value": 30,
+                "label": "Большое количество крови"
+              }
             ]
           },
           {
@@ -81,9 +111,18 @@
             "prompt": "Консистенция большинства стулов",
             "scaleId": "pucai-total",
             "responseOptions": [
-              { "value": 0, "label": "Оформленный стул" },
-              { "value": 5, "label": "Частично оформленный стул" },
-              { "value": 10, "label": "Полностью неоформленный стул" }
+              {
+                "value": 0,
+                "label": "Оформленный стул"
+              },
+              {
+                "value": 5,
+                "label": "Частично оформленный стул"
+              },
+              {
+                "value": 10,
+                "label": "Полностью неоформленный стул"
+              }
             ]
           },
           {
@@ -91,26 +130,56 @@
             "prompt": "Количество стулов за 24 часа",
             "scaleId": "pucai-total",
             "responseOptions": [
-              { "value": 0, "label": "0–2" },
-              { "value": 5, "label": "3–5" },
-              { "value": 10, "label": "6–8" },
-              { "value": 15, "label": "Более 8" }
+              {
+                "value": 0,
+                "label": "0–2"
+              },
+              {
+                "value": 5,
+                "label": "3–5"
+              },
+              {
+                "value": 10,
+                "label": "6–8"
+              },
+              {
+                "value": 15,
+                "label": "Более 8"
+              }
             ]
           },
           {
             "id": "pucai-nocturnal-stools",
             "prompt": "Ночные пробуждения из-за необходимости дефекации",
             "scaleId": "pucai-total",
-            "responseOptions": [{ "value": 0, "label": "Нет" }, { "value": 10, "label": "Да" }]
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 10,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "pucai-activity",
             "prompt": "Уровень активности ребёнка",
             "scaleId": "pucai-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет ограничений" },
-              { "value": 5, "label": "Иногда ограничена" },
-              { "value": 10, "label": "Сильно ограничена" }
+              {
+                "value": 0,
+                "label": "Нет ограничений"
+              },
+              {
+                "value": 5,
+                "label": "Иногда ограничена"
+              },
+              {
+                "value": 10,
+                "label": "Сильно ограничена"
+              }
             ]
           }
         ],
@@ -150,7 +219,24 @@
           "kind": "third-party-attributed",
           "notice": "Используется с атрибуцией оригинальной публикации Turner et al.; MiniMed не является правообладателем инструмента.",
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/17681163/"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": ["pucai-turner-2007", "pucai-kr-391-3"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.pucai.pucai-total",
+            "label": "Активность язвенного колита",
+            "unit": "баллы",
+            "scaleId": "pucai-total",
+            "method": "assessment:minimed.assessment.pucai"
+          }
+        ]
       },
       "sources": [
         {
@@ -192,7 +278,7 @@
       "estimatedMinutes": 2,
       "audience": "Дети; используется медицинским специалистом вместе с оценкой обезвоживания",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.pediatric-ors-ongoing-losses",
         "slug": "pediatric-ors-ongoing-losses",
         "title": "ОРС у детей — продолжающиеся потери",
@@ -223,7 +309,13 @@
             "minimum": 0.5,
             "maximum": 200,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "diarrheaEpisodes",
@@ -316,6 +408,36 @@
             "url": "https://www.who.int/publications/i/item/9241593180",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["ors-who-2005", "ors-kr-pediatrics"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.pediatric-ors-ongoing-losses.ongoingLosses",
+            "label": "ОРС на продолжающиеся потери",
+            "unit": "мл",
+            "stepId": "ongoingLosses",
+            "method": "calculator:minimed.calculator.pediatric-ors-ongoing-losses"
+          },
+          {
+            "metricId": "minimed.calculator.pediatric-ors-ongoing-losses.maintenanceDaily",
+            "label": "Поддерживающая потребность за сутки",
+            "unit": "мл/сут",
+            "stepId": "maintenanceDaily",
+            "method": "calculator:minimed.calculator.pediatric-ors-ongoing-losses"
+          },
+          {
+            "metricId": "minimed.calculator.pediatric-ors-ongoing-losses.rehydrationFourHours",
+            "label": "Ориентир регидратации за 4 часа",
+            "unit": "мл",
+            "stepId": "rehydrationFourHours",
+            "method": "calculator:minimed.calculator.pediatric-ors-ongoing-losses"
+          }
         ]
       },
       "sources": [
@@ -352,7 +474,7 @@
       "estimatedMinutes": 1,
       "audience": "Взрослые и дети; заполняет медицинский специалист",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.bristol-stool-form-scale",
         "slug": "bristol-stool-form-scale",
         "title": "Bristol Stool Form Scale",
@@ -379,13 +501,34 @@
             "kind": "select",
             "required": true,
             "options": [
-              { "value": 1, "label": "1 — отдельные твёрдые комочки (орехи)" },
-              { "value": 2, "label": "2 — колбасообразный, комковатый стул" },
-              { "value": 3, "label": "3 — отдельные мягкие комочки с трещинами" },
-              { "value": 4, "label": "4 — комок/колбаса, гладкая поверхность" },
-              { "value": 5, "label": "5 — мягкие фрагменты с рыхлой структурой" },
-              { "value": 6, "label": "6 — мягкий кашицеобразный" },
-              { "value": 7, "label": "7 — кашица без твёрдых кусочков" }
+              {
+                "value": 1,
+                "label": "1 — отдельные твёрдые комочки (орехи)"
+              },
+              {
+                "value": 2,
+                "label": "2 — колбасообразный, комковатый стул"
+              },
+              {
+                "value": 3,
+                "label": "3 — отдельные мягкие комочки с трещинами"
+              },
+              {
+                "value": 4,
+                "label": "4 — комок/колбаса, гладкая поверхность"
+              },
+              {
+                "value": 5,
+                "label": "5 — мягкие фрагменты с рыхлой структурой"
+              },
+              {
+                "value": 6,
+                "label": "6 — мягкий кашицеобразный"
+              },
+              {
+                "value": 7,
+                "label": "7 — кашица без твёрдых кусочков"
+              }
             ]
           }
         ],
@@ -431,6 +574,52 @@
             "page": "page 1",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "selectedBristolType <= 2",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "Типы 1–2 соответствуют запорной/очень плотной консистенции. При затяжной картине чаще оценивают хронический запор и целесообразность дообследования",
+                "explanation": "Типы 1–2 соответствуют запорной/очень плотной консистенции. При затяжной картине чаще оценивают хронический запор и целесообразность дообследования",
+                "attentionLevel": "none",
+                "sourceIds": ["bristol-rome-2021", "constipation-kr-274-3"]
+              }
+            },
+            {
+              "when": "selectedBristolType >= 6",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "Типы 6–7 соответствуют жидкому или водянисто-рыхлому стулу и чаще ассоциированы с диареей/ускоренным транзитом кишечника",
+                "explanation": "Типы 6–7 соответствуют жидкому или водянисто-рыхлому стулу и чаще ассоциированы с диареей/ускоренным транзитом кишечника",
+                "attentionLevel": "none",
+                "sourceIds": ["bristol-rome-2021", "constipation-kr-274-3"]
+              }
+            },
+            {
+              "when": "cond(selectedBristolType >= 3, cond(selectedBristolType <= 5, 1, 0), 0)",
+              "verdict": {
+                "rangeId": "legacy-3",
+                "title": "Типы 3–5 обычно соответствуют сформированному/нормальному диапазону формы стула.",
+                "explanation": "Типы 3–5 обычно соответствуют сформированному/нормальному диапазону формы стула.",
+                "attentionLevel": "none",
+                "sourceIds": ["bristol-rome-2021", "constipation-kr-274-3"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["bristol-rome-2021", "constipation-kr-274-3"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.bristol-stool-form-scale.selectedBristolType",
+            "label": "Выбранный тип по Bristol",
+            "unit": "тип",
+            "stepId": "selectedBristolType",
+            "method": "calculator:minimed.calculator.bristol-stool-form-scale"
+          }
         ]
       },
       "sources": [
@@ -473,7 +662,7 @@
       "estimatedMinutes": 3,
       "audience": "Взрослые с болезнью Крона; заполняет медицинский специалист",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.harvey-bradshaw-index",
         "slug": "harvey-bradshaw-index",
         "title": "Индекс Harvey–Bradshaw (HBI)",
@@ -502,11 +691,26 @@
             "kind": "select",
             "required": true,
             "options": [
-              { "value": 0, "label": "0 — очень хорошо" },
-              { "value": 1, "label": "1 — слегка ниже нормы" },
-              { "value": 2, "label": "2 — плохо" },
-              { "value": 3, "label": "3 — очень плохо" },
-              { "value": 4, "label": "4 — ужасно" }
+              {
+                "value": 0,
+                "label": "0 — очень хорошо"
+              },
+              {
+                "value": 1,
+                "label": "1 — слегка ниже нормы"
+              },
+              {
+                "value": 2,
+                "label": "2 — плохо"
+              },
+              {
+                "value": 3,
+                "label": "3 — очень плохо"
+              },
+              {
+                "value": 4,
+                "label": "4 — ужасно"
+              }
             ]
           },
           {
@@ -515,10 +719,22 @@
             "kind": "select",
             "required": true,
             "options": [
-              { "value": 0, "label": "0 — нет" },
-              { "value": 1, "label": "1 — лёгкая" },
-              { "value": 2, "label": "2 — умеренная" },
-              { "value": 3, "label": "3 — тяжёлая" }
+              {
+                "value": 0,
+                "label": "0 — нет"
+              },
+              {
+                "value": 1,
+                "label": "1 — лёгкая"
+              },
+              {
+                "value": 2,
+                "label": "2 — умеренная"
+              },
+              {
+                "value": 3,
+                "label": "3 — тяжёлая"
+              }
             ]
           },
           {
@@ -537,10 +753,22 @@
             "kind": "select",
             "required": true,
             "options": [
-              { "value": 0, "label": "0 — нет" },
-              { "value": 1, "label": "1 — сомнительная" },
-              { "value": 2, "label": "2 — определённая" },
-              { "value": 3, "label": "3 — определённая и болезненная" }
+              {
+                "value": 0,
+                "label": "0 — нет"
+              },
+              {
+                "value": 1,
+                "label": "1 — сомнительная"
+              },
+              {
+                "value": 2,
+                "label": "2 — определённая"
+              },
+              {
+                "value": 3,
+                "label": "3 — определённая и болезненная"
+              }
             ]
           },
           {
@@ -548,56 +776,128 @@
             "label": "Артралгия",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "uveitis",
             "label": "Увеит",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "erythemaNodosum",
             "label": "Узловатая эритема",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "aphthousUlcers",
             "label": "Афтозные язвы",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "pyodermaGangrenosum",
             "label": "Пиодермия гангренозная",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "analFissure",
             "label": "Анальная трещина",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "newFistula",
             "label": "Новый свищ",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           },
           {
             "id": "abscess",
             "label": "Абсцесс",
             "kind": "select",
             "required": true,
-            "options": [{ "value": 0, "label": "Нет" }, { "value": 1, "label": "Да" }]
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
           }
         ],
         "steps": [
@@ -664,6 +964,62 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/16670555/",
             "reviewedAt": "2026-08-17"
           }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "hbi < 5",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "HBI <5 соответствует ремиссии (CDAI <150) по сопоставлению Best, 2006.",
+                "explanation": "HBI <5 соответствует ремиссии (CDAI <150) по сопоставлению Best, 2006.",
+                "attentionLevel": "none",
+                "sourceIds": ["hbi-harvey-1980", "hbi-best-2006-bands"]
+              }
+            },
+            {
+              "when": "cond(hbi >= 5, cond(hbi <= 7, 1, 0), 0)",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "HBI 5–7 соответствует лёгкой активности (CDAI 150–220) по сопоставлению Best, 2006.",
+                "explanation": "HBI 5–7 соответствует лёгкой активности (CDAI 150–220) по сопоставлению Best, 2006.",
+                "attentionLevel": "none",
+                "sourceIds": ["hbi-harvey-1980", "hbi-best-2006-bands"]
+              }
+            },
+            {
+              "when": "cond(hbi >= 8, cond(hbi <= 16, 1, 0), 0)",
+              "verdict": {
+                "rangeId": "legacy-3",
+                "title": "HBI 8–16 соответствует умеренной активности (CDAI 220–450) по сопоставлению Best, 2006.",
+                "explanation": "HBI 8–16 соответствует умеренной активности (CDAI 220–450) по сопоставлению Best, 2006.",
+                "attentionLevel": "none",
+                "sourceIds": ["hbi-harvey-1980", "hbi-best-2006-bands"]
+              }
+            },
+            {
+              "when": "hbi > 16",
+              "verdict": {
+                "rangeId": "legacy-4",
+                "title": "HBI >16 соответствует тяжёлой активности (CDAI >450) по сопоставлению Best, 2006.",
+                "explanation": "HBI >16 соответствует тяжёлой активности (CDAI >450) по сопоставлению Best, 2006.",
+                "attentionLevel": "none",
+                "sourceIds": ["hbi-harvey-1980", "hbi-best-2006-bands"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["hbi-harvey-1980", "hbi-best-2006-bands"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.harvey-bradshaw-index.hbi",
+            "label": "Индекс Harvey–Bradshaw",
+            "unit": "балла",
+            "stepId": "hbi",
+            "method": "calculator:minimed.calculator.harvey-bradshaw-index"
+          }
         ]
       },
       "sources": [
@@ -712,10 +1068,22 @@
         "estimatedMinutes": 3,
         "audience": "Дети с острым гастроэнтеритом; заполняет медицинский специалист",
         "responseOptions": [
-          { "value": 0, "label": "0" },
-          { "value": 1, "label": "1" },
-          { "value": 2, "label": "2" },
-          { "value": 3, "label": "3" }
+          {
+            "value": 0,
+            "label": "0"
+          },
+          {
+            "value": 1,
+            "label": "1"
+          },
+          {
+            "value": 2,
+            "label": "2"
+          },
+          {
+            "value": 3,
+            "label": "3"
+          }
         ],
         "scales": [
           {
@@ -731,10 +1099,22 @@
             "prompt": "Продолжительность диареи",
             "scaleId": "vesikari-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "1–4 дня" },
-              { "value": 2, "label": "5 дней" },
-              { "value": 3, "label": "≥6 дней" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "1–4 дня"
+              },
+              {
+                "value": 2,
+                "label": "5 дней"
+              },
+              {
+                "value": 3,
+                "label": "≥6 дней"
+              }
             ]
           },
           {
@@ -742,10 +1122,22 @@
             "prompt": "Максимальное число стулов за 24 часа",
             "scaleId": "vesikari-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "1–3" },
-              { "value": 2, "label": "4–5" },
-              { "value": 3, "label": "≥6" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "1–3"
+              },
+              {
+                "value": 2,
+                "label": "4–5"
+              },
+              {
+                "value": 3,
+                "label": "≥6"
+              }
             ]
           },
           {
@@ -753,10 +1145,22 @@
             "prompt": "Продолжительность рвоты",
             "scaleId": "vesikari-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "1 день" },
-              { "value": 2, "label": "2 дня" },
-              { "value": 3, "label": "≥3 дней" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "1 день"
+              },
+              {
+                "value": 2,
+                "label": "2 дня"
+              },
+              {
+                "value": 3,
+                "label": "≥3 дней"
+              }
             ]
           },
           {
@@ -764,10 +1168,22 @@
             "prompt": "Максимальное число эпизодов рвоты за 24 часа",
             "scaleId": "vesikari-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2–4" },
-              { "value": 3, "label": "≥5" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2–4"
+              },
+              {
+                "value": 3,
+                "label": "≥5"
+              }
             ]
           },
           {
@@ -775,10 +1191,22 @@
             "prompt": "Максимальная температура",
             "scaleId": "vesikari-total",
             "responseOptions": [
-              { "value": 0, "label": "<37,1 °C" },
-              { "value": 1, "label": "37,1–38,4 °C" },
-              { "value": 2, "label": "38,5–38,9 °C" },
-              { "value": 3, "label": "≥39,0 °C" }
+              {
+                "value": 0,
+                "label": "<37,1 °C"
+              },
+              {
+                "value": 1,
+                "label": "37,1–38,4 °C"
+              },
+              {
+                "value": 2,
+                "label": "38,5–38,9 °C"
+              },
+              {
+                "value": 3,
+                "label": "≥39,0 °C"
+              }
             ]
           },
           {
@@ -786,9 +1214,18 @@
             "prompt": "Обезвоживание",
             "scaleId": "vesikari-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет" },
-              { "value": 2, "label": "1–5% (лёгкое/умеренное)" },
-              { "value": 3, "label": "≥6% (тяжёлое)" }
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 2,
+                "label": "1–5% (лёгкое/умеренное)"
+              },
+              {
+                "value": 3,
+                "label": "≥6% (тяжёлое)"
+              }
             ]
           },
           {
@@ -796,9 +1233,18 @@
             "prompt": "Лечение",
             "scaleId": "vesikari-total",
             "responseOptions": [
-              { "value": 0, "label": "Не требуется" },
-              { "value": 1, "label": "Регидратация" },
-              { "value": 2, "label": "Госпитализация" }
+              {
+                "value": 0,
+                "label": "Не требуется"
+              },
+              {
+                "value": 1,
+                "label": "Регидратация"
+              },
+              {
+                "value": 2,
+                "label": "Госпитализация"
+              }
             ]
           }
         ],
@@ -831,7 +1277,24 @@
           "kind": "third-party-attributed",
           "notice": "Шкала Vesikari описана в оригинальной публикации Vesikari et al.; MiniMed не является правообладателем инструмента.",
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/2172984/"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": ["vesikari-ruuska-1990", "vesikari-ruuska-1990-interpretation"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.vesikari-gastroenteritis.vesikari-total",
+            "label": "Суммарный балл Vesikari",
+            "unit": "баллы",
+            "scaleId": "vesikari-total",
+            "method": "assessment:minimed.assessment.vesikari-gastroenteritis"
+          }
+        ]
       },
       "sources": [
         {
@@ -879,10 +1342,22 @@
         "estimatedMinutes": 2,
         "audience": "Взрослые с язвенным колитом; заполняет медицинский специалист",
         "responseOptions": [
-          { "value": 0, "label": "0" },
-          { "value": 1, "label": "1" },
-          { "value": 2, "label": "2" },
-          { "value": 3, "label": "3" }
+          {
+            "value": 0,
+            "label": "0"
+          },
+          {
+            "value": 1,
+            "label": "1"
+          },
+          {
+            "value": 2,
+            "label": "2"
+          },
+          {
+            "value": 3,
+            "label": "3"
+          }
         ],
         "scales": [
           {
@@ -898,10 +1373,22 @@
             "prompt": "Частота стула (относительно обычной для пациента)",
             "scaleId": "partial-mayo-total",
             "responseOptions": [
-              { "value": 0, "label": "0 — нормальное число стулов" },
-              { "value": 1, "label": "1 — на 1–2 стула больше обычного" },
-              { "value": 2, "label": "2 — на 3–4 стула больше обычного" },
-              { "value": 3, "label": "3 — на 5 и более стулов больше обычного" }
+              {
+                "value": 0,
+                "label": "0 — нормальное число стулов"
+              },
+              {
+                "value": 1,
+                "label": "1 — на 1–2 стула больше обычного"
+              },
+              {
+                "value": 2,
+                "label": "2 — на 3–4 стула больше обычного"
+              },
+              {
+                "value": 3,
+                "label": "3 — на 5 и более стулов больше обычного"
+              }
             ]
           },
           {
@@ -909,10 +1396,22 @@
             "prompt": "Ректальное кровотечение",
             "scaleId": "partial-mayo-total",
             "responseOptions": [
-              { "value": 0, "label": "0 — нет крови" },
-              { "value": 1, "label": "1 — полосы крови менее чем в половине стула" },
-              { "value": 2, "label": "2 — явная кровь в большинстве стула" },
-              { "value": 3, "label": "3 — только кровь" }
+              {
+                "value": 0,
+                "label": "0 — нет крови"
+              },
+              {
+                "value": 1,
+                "label": "1 — полосы крови менее чем в половине стула"
+              },
+              {
+                "value": 2,
+                "label": "2 — явная кровь в большинстве стула"
+              },
+              {
+                "value": 3,
+                "label": "3 — только кровь"
+              }
             ]
           },
           {
@@ -920,10 +1419,22 @@
             "prompt": "Глобальная оценка врача",
             "scaleId": "partial-mayo-total",
             "responseOptions": [
-              { "value": 0, "label": "0 — норма" },
-              { "value": 1, "label": "1 — лёгкая болезнь" },
-              { "value": 2, "label": "2 — умеренная болезнь" },
-              { "value": 3, "label": "3 — тяжёлая болезнь" }
+              {
+                "value": 0,
+                "label": "0 — норма"
+              },
+              {
+                "value": 1,
+                "label": "1 — лёгкая болезнь"
+              },
+              {
+                "value": 2,
+                "label": "2 — умеренная болезнь"
+              },
+              {
+                "value": 3,
+                "label": "3 — тяжёлая болезнь"
+              }
             ]
           }
         ],
@@ -963,7 +1474,24 @@
           "kind": "third-party-attributed",
           "notice": "Частичный индекс Mayo описан в публикации Lewis et al.; MiniMed не является правообладателем инструмента.",
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/18471528/"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": ["partial-mayo-lewis-2008", "partial-mayo-lewis-2008-interpretation"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.partial-mayo-score.partial-mayo-total",
+            "label": "Частичный индекс Mayo",
+            "unit": "баллы",
+            "scaleId": "partial-mayo-total",
+            "method": "assessment:minimed.assessment.partial-mayo-score"
+          }
+        ]
       },
       "sources": [
         {

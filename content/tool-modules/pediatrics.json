@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.pediatrics.ru",
-  "version": "0.1.0-preview.1",
+  "version": "0.1.0-preview.2",
   "title": "Инструменты педиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-08-17T00:00:00Z",
+  "builtAt": "2026-08-31T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.flacc-pain-scale",
@@ -50,9 +50,18 @@
           "Не предназначена как единственный критерий для решения о вмешательстве без учёта контекста, седации и сопутствующих состояний."
         ],
         "responseOptions": [
-          { "value": 0, "label": "0 баллов" },
-          { "value": 1, "label": "1 балл" },
-          { "value": 2, "label": "2 балла" }
+          {
+            "value": 0,
+            "label": "0 баллов"
+          },
+          {
+            "value": 1,
+            "label": "1 балл"
+          },
+          {
+            "value": 2,
+            "label": "2 балла"
+          }
         ],
         "scales": [
           {
@@ -68,12 +77,18 @@
             "prompt": "Лицо (Face)",
             "scaleId": "flacc-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет особого выражения или улыбка" },
+              {
+                "value": 0,
+                "label": "Нет особого выражения или улыбка"
+              },
               {
                 "value": 1,
                 "label": "Случайная гримаса или хмурость, отстранённость, незаинтересованность"
               },
-              { "value": 2, "label": "Частое или постоянное дрожание подбородка, сжатая челюсть" }
+              {
+                "value": 2,
+                "label": "Частое или постоянное дрожание подбородка, сжатая челюсть"
+              }
             ]
           },
           {
@@ -81,9 +96,18 @@
             "prompt": "Ноги (Legs)",
             "scaleId": "flacc-total",
             "responseOptions": [
-              { "value": 0, "label": "Нормальное положение или расслаблены" },
-              { "value": 1, "label": "Беспокойны, напряжены, не находят покоя" },
-              { "value": 2, "label": "Пинание или ноги подтянуты" }
+              {
+                "value": 0,
+                "label": "Нормальное положение или расслаблены"
+              },
+              {
+                "value": 1,
+                "label": "Беспокойны, напряжены, не находят покоя"
+              },
+              {
+                "value": 2,
+                "label": "Пинание или ноги подтянуты"
+              }
             ]
           },
           {
@@ -91,9 +115,18 @@
             "prompt": "Активность (Activity)",
             "scaleId": "flacc-total",
             "responseOptions": [
-              { "value": 0, "label": "Лежит спокойно, нормальное положение, легко двигается" },
-              { "value": 1, "label": "Извивается, переминается, напряжён" },
-              { "value": 2, "label": "Прогибается, ригиден или дёргается" }
+              {
+                "value": 0,
+                "label": "Лежит спокойно, нормальное положение, легко двигается"
+              },
+              {
+                "value": 1,
+                "label": "Извивается, переминается, напряжён"
+              },
+              {
+                "value": 2,
+                "label": "Прогибается, ригиден или дёргается"
+              }
             ]
           },
           {
@@ -101,9 +134,18 @@
             "prompt": "Плач (Cry)",
             "scaleId": "flacc-total",
             "responseOptions": [
-              { "value": 0, "label": "Нет плача (бодрствует или спит)" },
-              { "value": 1, "label": "Стоны или всхлипы, периодические жалобы" },
-              { "value": 2, "label": "Постоянный плач, крики или рыдания, частые жалобы" }
+              {
+                "value": 0,
+                "label": "Нет плача (бодрствует или спит)"
+              },
+              {
+                "value": 1,
+                "label": "Стоны или всхлипы, периодические жалобы"
+              },
+              {
+                "value": 2,
+                "label": "Постоянный плач, крики или рыдания, частые жалобы"
+              }
             ]
           },
           {
@@ -111,12 +153,18 @@
             "prompt": "Успокаиваемость (Consolability)",
             "scaleId": "flacc-total",
             "responseOptions": [
-              { "value": 0, "label": "Спокоен, расслаблен" },
+              {
+                "value": 0,
+                "label": "Спокоен, расслаблен"
+              },
               {
                 "value": 1,
                 "label": "Успокаивается от случайных прикосновений, объятий или разговора; отвлекается"
               },
-              { "value": 2, "label": "Трудно успокоить или утешить" }
+              {
+                "value": 2,
+                "label": "Трудно успокоить или утешить"
+              }
             ]
           }
         ],
@@ -126,7 +174,24 @@
           "kind": "third-party-attributed",
           "notice": "Шкала FLACC описана Merkel S.I. et al. (Pediatric Nursing, 1997); MiniMed использует формулировки источника без изменения методики.",
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/9220806/"
-        }
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
+          "sourceIds": ["flacc-merkel-1997", "flacc-voepel-lewis-2003"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.flacc-pain-scale.flacc-total",
+            "label": "Суммарный балл FLACC",
+            "unit": "баллы",
+            "scaleId": "flacc-total",
+            "method": "assessment:minimed.assessment.flacc-pain-scale"
+          }
+        ]
       },
       "sources": [
         {
@@ -168,7 +233,7 @@
       "estimatedMinutes": 1,
       "audience": "Недоношенные дети; используется медицинским специалистом при оценке развития и роста",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.preterm-corrected-age",
         "slug": "preterm-corrected-age",
         "title": "Корригированный возраст недоношенного",
@@ -265,6 +330,22 @@
             "url": "https://doi.org/10.1111/j.1744-6155.2009.00215.x",
             "reviewedAt": "2026-08-17"
           }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["corrected-age-aap-healthychildren", "corrected-age-aap-evidentiary-review"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.preterm-corrected-age.correctedAgeWeeks",
+            "label": "Корригированный возраст",
+            "unit": "нед.",
+            "stepId": "correctedAgeWeeks",
+            "method": "calculator:minimed.calculator.preterm-corrected-age"
+          }
         ]
       },
       "sources": [
@@ -283,6 +364,558 @@
           "title": "An Evidentiary Review Regarding the Use of Chronological and Adjusted Age in the Assessment of Preterm Infants",
           "url": "https://doi.org/10.1111/j.1744-6155.2009.00215.x",
           "reviewedAt": "2026-08-17"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.pediatric-feeding-plan",
+      "kind": "calculator",
+      "version": "2.0.0",
+      "slug": "pediatric-feeding-plan",
+      "title": "Рацион и прикорм до 3 лет",
+      "shortTitle": "Рацион ребёнка",
+      "aliases": ["кормление ребёнка", "прикорм", "детский рацион", "меню ребёнка"],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Расчёт частоты, объёма и калорийности кормлений с печатным рационом и календарём прикорма.",
+      "estimatedMinutes": 3,
+      "audience": "Дети от рождения до 35,9 месяца; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.pediatric-feeding-plan",
+        "slug": "pediatric-feeding-plan",
+        "title": "Рацион и прикорм до 3 лет",
+        "shortTitle": "Рацион ребёнка",
+        "aliases": ["кормление ребёнка", "прикорм", "детский рацион", "меню ребёнка"],
+        "summary": "Расчёт частоты, объёма и калорийности кормлений с печатным рационом и календарём прикорма.",
+        "audience": "pediatric",
+        "category": "pediatrics",
+        "tags": ["fluids"],
+        "clinical": true,
+        "formulaDisplay": "До 12 месяцев: возрастная потребность в энергии × фактическая масса; после года: возрастная суточная потребность. Объём смеси учитывает её энергетическую плотность.",
+        "population": "Доношенные дети от рождения до 35,9 месяца; лечебный рацион требует подтверждённого диагноза и клинического выбора смеси.",
+        "limitations": [
+          "Расчётные объёмы грудного молока являются ориентиром; кормление у груди сохраняют по требованию.",
+          "Недоношенность, болезнь, нарушение набора массы и множественная пищевая аллергия требуют индивидуального плана."
+        ],
+        "inputs": [
+          {
+            "id": "ageMonths",
+            "label": "Возраст ребёнка",
+            "unit": "мес.",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 35.9,
+            "inputStep": 0.1,
+            "required": true
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса ребёнка",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 30,
+            "inputStep": 0.1,
+            "required": true
+          },
+          {
+            "id": "feedingMode",
+            "label": "Тип вскармливания",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": "breast", "label": "Грудное" },
+              { "value": "mixed", "label": "Смешанное" },
+              { "value": "formula", "label": "Искусственное" }
+            ]
+          },
+          {
+            "id": "complementaryStatus",
+            "label": "Прикорм",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": "not-started", "label": "Ещё не начат" },
+              { "value": "starting", "label": "Начинаем введение" },
+              { "value": "established", "label": "Уже введён" }
+            ]
+          },
+          {
+            "id": "feedsPerDay",
+            "label": "Кормлений в сутки до 6 месяцев",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 12,
+            "integer": true,
+            "required": false,
+            "defaultExpression": "6"
+          },
+          {
+            "id": "formulaKcalPer100Ml",
+            "label": "Энергетическая плотность смеси",
+            "unit": "ккал/100 мл",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "inputStep": 0.1,
+            "required": false,
+            "defaultExpression": "67",
+            "note": "по маркировке смеси"
+          },
+          {
+            "id": "measuredBreastMilkPerFeedMl",
+            "label": "Измеренный объём грудного молока за кормление",
+            "unit": "мл",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 500,
+            "inputStep": 1,
+            "required": false,
+            "defaultExpression": "0",
+            "note": "для смешанного вскармливания"
+          },
+          {
+            "id": "allergic",
+            "label": "Ребёнок аллергичный",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "intoleranceCategory",
+            "label": "Что не переносит ребёнок",
+            "kind": "select",
+            "required": true,
+            "options": [
+              { "value": "none", "label": "Нет исключений" },
+              { "value": "milk", "label": "Белок коровьего молока / молочные продукты" },
+              { "value": "gluten", "label": "Пшеница / глютен" },
+              { "value": "egg", "label": "Яйцо" },
+              { "value": "fish", "label": "Рыба" },
+              { "value": "other", "label": "Другое" }
+            ]
+          },
+          {
+            "id": "excludedFoods",
+            "label": "Конкретные продукты для исключения",
+            "kind": "text",
+            "required": false,
+            "defaultExpression": "\"\"",
+            "note": "через запятую"
+          },
+          {
+            "id": "includeCalendar",
+            "label": "Добавить календарь введения прикорма",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          }
+        ],
+        "steps": [
+          {
+            "id": "dailyCalories",
+            "label": "Калорийность за сутки",
+            "unit": "ккал",
+            "expression": "cond(ageMonths < 7, round(weightKg * 115), cond(ageMonths < 12, round(weightKg * 110), cond(ageMonths < 24, 1200, 1400)))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "volumeCap",
+            "label": "Возрастной предел объёма",
+            "unit": "мл",
+            "expression": "cond(ageMonths >= 5, 1000, cond(ageMonths >= 4, 900, cond(ageMonths >= 3, 850, 10000)))",
+            "displayPrecision": 0
+          },
+          {
+            "id": "rawMilkVolume",
+            "label": "Объём по энергетической плотности",
+            "unit": "мл",
+            "expression": "round(dailyCalories * 100 / formulaKcalPer100Ml)",
+            "displayPrecision": 0
+          },
+          {
+            "id": "dailyVolume",
+            "label": "Объём за сутки",
+            "unit": "г/мл",
+            "expression": "cond(ageMonths < 6, min(rawMilkVolume, volumeCap), cond(ageMonths < 8, 840, cond(ageMonths < 9, 940, cond(ageMonths < 12, 1000, cond(ageMonths < 18, 1100, 1350)))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "feedingCount",
+            "label": "Частота",
+            "unit": "раз/сут",
+            "expression": "cond(ageMonths < 6, feedsPerDay, 5)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "oneFeedVolume",
+            "label": "Средний объём одного кормления",
+            "unit": "г/мл",
+            "expression": "round(dailyVolume / feedingCount)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "oneFeedCalories",
+            "label": "Средняя калорийность одного кормления",
+            "unit": "ккал",
+            "expression": "round(dailyCalories / feedingCount)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "mixedSupplementPerFeed",
+            "label": "Докорм смесью за одно кормление",
+            "unit": "мл",
+            "expression": "max(0, round(oneFeedVolume - measuredBreastMilkPerFeedMl))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "ageMonthsOut",
+            "label": "Возраст",
+            "unit": "мес.",
+            "expression": "ageMonths",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "allergicOut",
+            "label": "Аллергический анамнез",
+            "unit": "0/1",
+            "expression": "allergic",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "includeCalendarOut",
+            "label": "Календарь прикорма",
+            "unit": "0/1",
+            "expression": "includeCalendar",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "feedingModeOut",
+            "label": "Режим",
+            "unit": "текст",
+            "expression": "feedingMode",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "intoleranceCategoryOut",
+            "label": "Категория исключения",
+            "unit": "текст",
+            "expression": "intoleranceCategory",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "excludedFoodsOut",
+            "label": "Исключить",
+            "unit": "текст",
+            "expression": "excludedFoods",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "milkFood",
+            "label": "Молочное кормление",
+            "unit": "текст",
+            "expression": "cond(feedingMode == \"breast\", \"Грудное молоко по требованию\", cond(feedingMode == \"mixed\", \"Грудное молоко и рассчитанный докорм смесью\", cond(intoleranceCategory == \"milk\", \"Лечебная смесь, выбранная врачом\", \"Адаптированная смесь\")))",
+            "valueKind": "text"
+          },
+          {
+            "id": "allergyAlternative",
+            "label": "Исключения и замены",
+            "unit": "текст",
+            "expression": "cond(allergic == 0, \"\", cond(intoleranceCategory == \"milk\", \"Молочные продукты заменить разрешённой врачом лечебной смесью или безмолочным блюдом.\", cond(intoleranceCategory == \"gluten\", \"Пшеницу и глютен заменить гречневой, рисовой или кукурузной крупой.\", cond(intoleranceCategory == \"egg\", \"Яйцо заменить мясом, рыбой или бобовыми при переносимости.\", cond(intoleranceCategory == \"fish\", \"Рыбу заменить мясом, яйцом или бобовыми при переносимости.\", \"Равноценную замену по белку и энергии указывает врач.\")))))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal1Time",
+            "label": "Кормление 1 — время",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"По требованию\", cond(ageMonths < 12, \"06:00\", \"08:00\"))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal1Food",
+            "label": "Кормление 1",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 12, milkFood, cond(intoleranceCategory == \"gluten\", \"Безглютеновая каша, фрукт и разрешённый молочный продукт\", cond(intoleranceCategory == \"milk\", \"Каша, фрукт и разрешённое безмолочное блюдо\", \"Каша, фрукт и молочный продукт\")))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal1Volume",
+            "label": "Кормление 1 — объём",
+            "unit": "г/мл",
+            "expression": "cond(ageMonths < 6, oneFeedVolume, cond(ageMonths < 8, 180, cond(ageMonths < 12, 200, cond(ageMonths < 18, 250, 300))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal1Calories",
+            "label": "Кормление 1 — калорийность",
+            "unit": "ккал",
+            "expression": "cond(ageMonths < 12, oneFeedCalories, round(dailyCalories * 0.25))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal2Time",
+            "label": "Кормление 2 — время",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, \"10:00\", \"11:00\"))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal2Food",
+            "label": "Кормление 2",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, cond(complementaryStatus == \"not-started\", milkFood, cond(complementaryStatus == \"starting\", \"Новый однокомпонентный продукт утром, затем привычное молочное кормление\", cond(intoleranceCategory == \"gluten\", \"Безглютеновая каша с фруктом\", \"Каша с фруктом\"))), cond(intoleranceCategory == \"milk\", \"Фрукт или овощ и разрешённое безмолочное блюдо\", \"Фрукт или овощ и несладкий кисломолочный продукт\")))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal2Volume",
+            "label": "Кормление 2 — объём",
+            "unit": "г/мл",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 8, 150, cond(ageMonths < 9, 180, cond(ageMonths < 12, 200, cond(ageMonths < 18, 150, 200)))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal2Calories",
+            "label": "Кормление 2 — калорийность",
+            "unit": "ккал",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 12, oneFeedCalories, round(dailyCalories * 0.1)))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal3Time",
+            "label": "Кормление 3 — время",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, \"14:00\", \"14:00\"))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal3Food",
+            "label": "Кормление 3",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, cond(complementaryStatus == \"established\", cond(intoleranceCategory == \"fish\", \"Овощи с мясом или бобовыми при переносимости\", \"Овощи с мясом или рыбой\"), milkFood), cond(intoleranceCategory == \"egg\", \"Овощи, картофель или крупа, мясо или рыба и хлеб\", cond(intoleranceCategory == \"fish\", \"Овощи, картофель или крупа, мясо или яйцо и хлеб\", \"Овощи, картофель или крупа, мясо, рыба или яйцо и хлеб\"))))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal3Volume",
+            "label": "Кормление 3 — объём",
+            "unit": "г/мл",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 8, 180, cond(ageMonths < 9, 180, cond(ageMonths < 12, 200, cond(ageMonths < 18, 300, 350)))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal3Calories",
+            "label": "Кормление 3 — калорийность",
+            "unit": "ккал",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 12, oneFeedCalories, round(dailyCalories * 0.35)))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal4Time",
+            "label": "Кормление 4 — время",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, \"18:00\", \"17:00\"))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal4Food",
+            "label": "Кормление 4",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, cond(complementaryStatus == \"established\", cond(intoleranceCategory == \"milk\", \"Фруктовое пюре и разрешённое безмолочное блюдо\", \"Фруктовое пюре и знакомый кисломолочный продукт\"), milkFood), cond(intoleranceCategory == \"milk\", \"Фрукт и разрешённое безмолочное блюдо\", \"Творог или кисломолочный продукт и фрукт\")))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal4Volume",
+            "label": "Кормление 4 — объём",
+            "unit": "г/мл",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 8, 150, cond(ageMonths < 9, 180, cond(ageMonths < 12, 200, cond(ageMonths < 18, 150, 200)))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal4Calories",
+            "label": "Кормление 4 — калорийность",
+            "unit": "ккал",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 12, oneFeedCalories, round(dailyCalories * 0.1)))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal5Time",
+            "label": "Кормление 5 — время",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, \"22:00\", \"20:00\"))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal5Food",
+            "label": "Кормление 5",
+            "unit": "текст",
+            "expression": "cond(ageMonths < 6, \"\", cond(ageMonths < 12, milkFood, cond(intoleranceCategory == \"milk\", \"Овощное или крупяное безмолочное блюдо\", \"Овощное, крупяное или молочное блюдо\")))",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "meal5Volume",
+            "label": "Кормление 5 — объём",
+            "unit": "г/мл",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 8, 180, cond(ageMonths < 9, 200, cond(ageMonths < 12, 200, cond(ageMonths < 18, 250, 300)))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "meal5Calories",
+            "label": "Кормление 5 — калорийность",
+            "unit": "ккал",
+            "expression": "cond(ageMonths < 6, 0, cond(ageMonths < 12, dailyCalories - meal1Calories - meal2Calories - meal3Calories - meal4Calories, dailyCalories - meal1Calories - meal2Calories - meal3Calories - meal4Calories))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "calendarDay1",
+            "label": "День 1",
+            "unit": "текст",
+            "expression": "cond((includeCalendar == 1) * (ageMonths < 12), \"Утром 1/2 ч. л. нового однокомпонентного продукта; отметить реакцию.\", \"\")",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "calendarDay2",
+            "label": "День 2",
+            "unit": "текст",
+            "expression": "cond((includeCalendar == 1) * (ageMonths < 12), \"Тот же продукт; при переносимости постепенно увеличить объём.\", \"\")",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "calendarDay3",
+            "label": "День 3",
+            "unit": "текст",
+            "expression": "cond((includeCalendar == 1) * (ageMonths < 12), \"Тот же продукт; оценить кожу, стул и самочувствие.\", \"\")",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "calendarDay4",
+            "label": "День 4",
+            "unit": "текст",
+            "expression": "cond((includeCalendar == 1) * (ageMonths < 12), \"Продолжить увеличение к возрастной порции.\", \"\")",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "calendarDay5",
+            "label": "День 5",
+            "unit": "текст",
+            "expression": "cond((includeCalendar == 1) * (ageMonths < 12), \"Тот же продукт; новый продукт не добавлять.\", \"\")",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "calendarDay6",
+            "label": "День 6",
+            "unit": "текст",
+            "expression": "cond((includeCalendar == 1) * (ageMonths < 12), \"Закрепить переносимый объём.\", \"\")",
+            "valueKind": "text",
+            "isOutput": true
+          },
+          {
+            "id": "calendarDay7",
+            "label": "День 7",
+            "unit": "текст",
+            "expression": "cond((includeCalendar == 1) * (ageMonths < 12), \"Подвести итог; следующий продукт планировать отдельно.\", \"\")",
+            "valueKind": "text",
+            "isOutput": true
+          }
+        ],
+        "warnings": [],
+        "interpretations": [],
+        "assertions": [
+          {
+            "when": "(feedingMode == \"mixed\") * (ageMonths < 12) * (measuredBreastMilkPerFeedMl <= 0)",
+            "error": "Для смешанного вскармливания укажите измеренный объём грудного молока за кормление."
+          },
+          {
+            "when": "(allergic == 1) * (intoleranceCategory == \"none\")",
+            "error": "Для ребёнка с аллергией укажите продукт или группу продуктов для исключения."
+          },
+          {
+            "when": "(ageMonths >= 12) * (complementaryStatus != \"established\")",
+            "error": "Если прикорм не введён к 12 месяцам, рацион должен составить педиатр."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Программа оптимизации вскармливания детей первого года жизни в Российской Федерации",
+            "publisher": "Союз педиатров России",
+            "version": "2019",
+            "url": "https://www.pediatr-russia.ru/information/dokumenty/other-docs/nacprog1year_2019.pdf",
+            "reviewedAt": "2026-08-31"
+          },
+          {
+            "title": "Программа оптимизации питания детей в возрасте от 1 года до 3 лет",
+            "publisher": "Союз педиатров России",
+            "version": "2019",
+            "url": "https://www.pediatr-russia.ru/information/dokumenty/other-docs/optimizatsii-pitaniya-detej-v-vozraste-1-god-3-let-v-rf.pdf",
+            "reviewedAt": "2026-08-31"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Рацион не является референсной оценкой или диагнозом.",
+          "sourceIds": [
+            "national-program-infant-feeding-2019",
+            "national-program-toddler-feeding-2019"
+          ]
+        },
+        "observationMappings": []
+      },
+      "sources": [
+        {
+          "id": "national-program-infant-feeding-2019",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Программа оптимизации вскармливания детей первого года жизни в Российской Федерации",
+          "url": "https://www.pediatr-russia.ru/information/dokumenty/other-docs/nacprog1year_2019.pdf",
+          "reviewedAt": "2026-08-31"
+        },
+        {
+          "id": "national-program-toddler-feeding-2019",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Программа оптимизации питания детей в возрасте от 1 года до 3 лет",
+          "url": "https://www.pediatr-russia.ru/information/dokumenty/other-docs/optimizatsii-pitaniya-detej-v-vozraste-1-god-3-let-v-rf.pdf",
+          "reviewedAt": "2026-08-31"
         }
       ]
     }

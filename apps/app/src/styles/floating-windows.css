@@ -5,6 +5,10 @@
   pointer-events: none;
 }
 
+.floating-windows-layer--fullscreen {
+  z-index: var(--z-overlay);
+}
+
 .floating-window {
   --floating-window-toolbar-height: 2.125rem;
   position: fixed;
@@ -49,6 +53,14 @@
   visibility: hidden;
 }
 
+.floating-window--inactive .floating-window__button {
+  pointer-events: none;
+}
+
+.floating-window--inactive .floating-window__resize-corner {
+  pointer-events: none;
+}
+
 .floating-window__toolbar {
   position: static;
   display: grid;
@@ -69,6 +81,11 @@
 
 .floating-window__toolbar:active {
   cursor: grabbing;
+}
+
+.floating-window__toolbar--fullscreen {
+  min-height: calc(var(--floating-window-toolbar-height) + var(--safe-top));
+  padding-top: calc(0.1875rem + var(--safe-top));
 }
 
 .floating-window__title {
@@ -157,7 +174,7 @@
 .floating-window-controls {
   --floating-window-control-size: 2.6875rem;
   position: fixed;
-  z-index: var(--z-float);
+  z-index: var(--z-scroll-top);
   right: max(0.75rem, var(--safe-right));
   bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom)));
   display: flex;
@@ -168,7 +185,6 @@
 
 .floating-window-controls .floating-window-toggle,
 .floating-window-controls .scroll-top-button,
-.floating-window-controls .document-book-mode-button,
 .floating-window-controls .patient-notes-fab,
 .floating-window-controls .assessment-next-button {
   width: var(--floating-window-control-size);
@@ -194,9 +210,11 @@
   cursor: pointer;
 }
 
-.floating-window-toggle:hover {
-  color: #fff;
-  background: #5a574f;
+@media (hover: hover) and (pointer: fine) {
+  .floating-window-toggle:hover {
+    color: #fff;
+    background: #5a574f;
+  }
 }
 
 .floating-window-toggle__icon {
@@ -245,13 +263,23 @@ html:has(.app-shell--floating-child) body {
   scrollbar-width: none;
 }
 
+html:has(.floating-windows-layer),
+html:has(.floating-windows-layer) body {
+  min-width: 0;
+  overflow-x: clip;
+}
+
 html:has(.app-shell--floating-child)::-webkit-scrollbar,
 html:has(.app-shell--floating-child) body::-webkit-scrollbar {
   display: none;
 }
 
 .app-shell--floating-child {
-  --floating-window-button-size: clamp(2rem, 10vw, 2.25rem);
+  --floating-window-button-size: clamp(1.875rem, 10vw, 2.25rem);
+  --page-content-width: 100%;
+  --page-board-width: 100%;
+  --page-measure: 100%;
+  --page-inline-padding: clamp(0.5rem, 4vw, 1rem);
   --ui-button-gap: 0.35rem;
   --ui-button-height: var(--floating-window-button-size);
   --ui-button-padding-block: 0.4rem;
@@ -261,14 +289,24 @@ html:has(.app-shell--floating-child) body::-webkit-scrollbar {
 }
 
 .app-main--floating-child {
+  width: 100%;
+  min-width: 0;
   min-height: 100%;
+  overflow-x: clip;
+}
+
+.app-view--floating-child {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin-inline: 0;
   overflow-x: clip;
 }
 
 .app-shell--floating-child-scaled {
   --floating-content-scale: clamp(0.78, calc(100vw / 366px), 1);
-  width: calc(100vw / var(--floating-content-scale));
-  min-height: calc(100dvh / var(--floating-content-scale));
+  width: calc(var(--floating-viewport-width, 100vw) / var(--floating-content-scale));
+  min-height: calc(var(--floating-viewport-height, 100dvh) / var(--floating-content-scale));
   overflow-x: clip;
   zoom: var(--floating-content-scale);
 }
@@ -277,8 +315,93 @@ html:has(.app-shell--floating-child) body::-webkit-scrollbar {
   width: 100%;
 }
 
-.app-view.app-view--floating-child-scaled {
+.app-view--floating-child-scaled {
   max-width: none;
+}
+
+.app-shell--floating-child
+  :is(
+    .search-home,
+    .knowledge-base-page,
+    .module-page,
+    .medication-page,
+    .user-library-page,
+    .assessments-page,
+    .calculators-page,
+    .patient-notes-view,
+    .settings-page,
+    .document-page
+  ) {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 100dvh;
+  margin-bottom: 0;
+  box-sizing: border-box;
+  padding-inline: var(--page-inline-padding);
+  padding-bottom: max(0.75rem, var(--safe-bottom));
+  scroll-padding-bottom: max(0.75rem, var(--safe-bottom));
+}
+
+.app-shell--floating-child :is(.page-surface, .model-status-view) {
+  min-height: 100dvh;
+  padding-inline: var(--page-inline-padding);
+  padding-bottom: max(0.75rem, var(--safe-bottom));
+}
+
+.app-shell--floating-child .search-mode-picker {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  touch-action: auto;
+}
+
+.app-shell--floating-child .search-mode-picker__option {
+  flex: 1 1 calc(50% - 0.125rem);
+}
+
+.app-shell--floating-child .search-workspace-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell--floating-child .knowledge-status-grid,
+.app-shell--floating-child .assessment-history__entry {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell--floating-child .knowledge-subroute-heading,
+.app-shell--floating-child .module-catalog-heading,
+.app-shell--floating-child .module-catalog-toolbar,
+.app-shell--floating-child .medication-route-heading,
+.app-shell--floating-child .calculator-section-page-header,
+.app-shell--floating-child .settings-section__heading {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.app-shell--floating-child :is(.search-mode-heading, .subpage-heading, .settings-page__title-row) {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+html:has(.floating-windows-layer--fullscreen),
+html:has(.floating-windows-layer--fullscreen) body {
+  overflow: hidden;
+}
+
+.floating-window--fullscreen {
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+}
+
+.floating-window--fullscreen .floating-window__content {
+  min-height: 0;
+}
+
+.floating-window--fullscreen .floating-window__resize-corner {
+  display: none;
 }
 
 @media (max-width: 44rem) {
@@ -303,6 +426,11 @@ html:has(.app-shell--floating-child) body::-webkit-scrollbar {
   .floating-window {
     max-width: calc(100vw - 0.5rem);
     max-height: calc(100dvh - 0.5rem);
+  }
+
+  .floating-window--fullscreen {
+    max-width: none;
+    max-height: none;
   }
 
   .floating-window-controls {

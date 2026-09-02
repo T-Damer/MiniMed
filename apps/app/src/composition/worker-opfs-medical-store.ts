@@ -8,6 +8,7 @@ import type {
   VectorHit,
   VectorSearchRequest,
 } from '@localmed/storage';
+import type { SqliteIntegrityReport } from '@localmed/storage-sqlite';
 
 import type {
   OpfsPackWorkerCallArgs,
@@ -55,7 +56,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public static async open(options: OpfsPackWorkerOpenOptions): Promise<WorkerOpfsMedicalStore> {
-    const optionsKey = JSON.stringify([options.url, options.databaseName, options.fetchTimeoutMs]);
+    const optionsKey = JSON.stringify([options.databaseName, options.fetchTimeoutMs]);
     const existing = WorkerOpfsMedicalStore.sharedStores.get(options.poolName);
     if (existing) {
       if (existing.optionsKey !== optionsKey) {
@@ -119,6 +120,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
 
   public getHealth(): Promise<StorageHealth> {
     return this.call('getHealth', []);
+  }
+
+  public inspectIntegrity(): Promise<SqliteIntegrityReport> {
+    return this.owner.request('call', 'inspectIntegrity', []) as Promise<SqliteIntegrityReport>;
   }
 
   public listDocuments(): Promise<readonly DocumentRecord[]> {
@@ -227,12 +232,12 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     });
   }
 
-  private call<M extends OpfsPackWorkerMethod>(
+  private call<M extends Exclude<OpfsPackWorkerMethod, 'inspectIntegrity'>>(
     method: M,
     args: OpfsPackWorkerCallArgs[M],
-  ): Promise<Awaited<ReturnType<MedicalStore[M]>>> {
+  ): Promise<Awaited<ReturnType<MedicalStore[Extract<M, keyof MedicalStore>]>>> {
     return this.owner.request('call', method, args) as Promise<
-      Awaited<ReturnType<MedicalStore[M]>>
+      Awaited<ReturnType<MedicalStore[Extract<M, keyof MedicalStore>]>>
     >;
   }
 

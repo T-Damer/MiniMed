@@ -16,6 +16,23 @@ describe('clipNativePrintShareText', () => {
 });
 
 describe('shareNativePrintContent', () => {
+  it('prefers sharing the rendered file when one is available', async () => {
+    const fileShare = vi.fn(async () => 'shared' as const);
+    const androidShare = vi.fn(async () => undefined);
+    await expect(
+      shareNativePrintContent({
+        title: 'Title',
+        text: 'Body',
+        platform: 'android',
+        androidShare,
+        fileShare,
+        print: vi.fn(),
+      }),
+    ).resolves.toBe('shared');
+    expect(fileShare).toHaveBeenCalledOnce();
+    expect(androidShare).not.toHaveBeenCalled();
+  });
+
   it('uses the Android share sheet and never prints', async () => {
     const androidShare = vi.fn(async () => undefined);
     const print = vi.fn();

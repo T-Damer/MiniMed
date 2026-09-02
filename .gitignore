@@ -6,9 +6,11 @@ playwright-report/
 test-results/
 .playwright-cli/
 .playwright-mcp/
+.firecrawl/
 output/
 .astro/
 .cache/
+.local/
 .DS_Store
 .env
 .env.*
@@ -21,8 +23,6 @@ __pycache__/
 .ruff_cache/
 .pyright/
 tools/ingest/.venv/
-tools/needle/.venv/
-data/needle/*
 checkpoints/
 *.cact
 data/raw/*
@@ -34,6 +34,7 @@ data/synced/*
 data/build/*
 !data/build/.gitkeep
 release-clinical/
+model-mirror/
 apps/app/android/.gradle/
 apps/app/android/local.properties
 apps/app/android/app/build/
@@ -76,6 +77,8 @@ Med/
 
 # Local QA evidence is generated during development; committed history remains tracked.
 .omo/evidence/*
+apps/app/.omo/
+.tmp-home/
 
 # Local test/QA artifacts (screenshots, playwright dumps) — never committed.
 .artifacts/

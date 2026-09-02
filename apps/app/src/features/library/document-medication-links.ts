@@ -268,8 +268,7 @@ export function createDocumentLinkMatcher(
 export function buildMedicationLinkPhrases(
   documents: readonly MedicalDocumentSummary[],
 ): readonly MedicationLinkPhrase[] {
-  const phrases: MedicationLinkPhrase[] = [];
-  const seen = new Set<string>();
+  const candidatesByPhrase = new Map<string, Map<string, MedicationLinkPhrase>>();
 
   for (const document of documents) {
     if (document.sourceType !== 'official_registry_summary') continue;
@@ -279,14 +278,20 @@ export function buildMedicationLinkPhrases(
     ].filter((value) => value.length >= 4);
 
     for (const phrase of candidates) {
-      const key = normalizePhrase(phrase);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      phrases.push({ phrase, documentId: document.id, kind: 'medication' });
+      const key = foldPhrase(phrase);
+      if (!key) continue;
+      const candidates = candidatesByPhrase.get(key) ?? new Map();
+      if (!candidates.has(document.id)) {
+        candidates.set(document.id, { phrase, documentId: document.id, kind: 'medication' });
+      }
+      candidatesByPhrase.set(key, candidates);
     }
   }
 
-  return phrases.toSorted((left, right) => right.phrase.length - left.phrase.length);
+  return [...candidatesByPhrase.values()]
+    .filter((candidates) => candidates.size === 1)
+    .flatMap((candidates) => [...candidates.values()])
+    .toSorted((left, right) => right.phrase.length - left.phrase.length);
 }
 
 function documentPhraseCandidates(document: MedicalDocumentSummary): readonly string[] {
@@ -310,15 +315,14 @@ export function buildDocumentLinkPhrases(
     'medical_reference',
     'rls_mkb_reference',
   ]);
-  const phrases: DocumentLinkPhrase[] = [];
-  const seen = new Set<string>();
+  const candidatesByPhrase = new Map<string, Map<string, DocumentLinkPhrase>>();
   const currentDocument = documents.find((document) => document.id === currentDocumentId);
   const blockedPhrases = new Set(
     (currentDocument
       ? [currentDocument.shortTitle?.trim() ?? '', currentDocument.title.trim()]
       : []
     )
-      .map(normalizePhrase)
+      .map(foldPhrase)
       .filter((value) => value.length > 0),
   );
 
@@ -330,18 +334,24 @@ export function buildDocumentLinkPhrases(
       continue;
     }
     for (const phrase of documentPhraseCandidates(document)) {
-      const key = normalizePhrase(phrase);
-      if (!key || seen.has(key) || blockedPhrases.has(key)) continue;
-      seen.add(key);
-      phrases.push({
-        phrase,
-        documentId: document.id,
-        kind: linkKindForSourceType(document.sourceType),
-      });
+      const key = foldPhrase(phrase);
+      if (!key || blockedPhrases.has(key)) continue;
+      const candidates = candidatesByPhrase.get(key) ?? new Map();
+      if (!candidates.has(document.id)) {
+        candidates.set(document.id, {
+          phrase,
+          documentId: document.id,
+          kind: linkKindForSourceType(document.sourceType),
+        });
+      }
+      candidatesByPhrase.set(key, candidates);
     }
   }
 
-  return phrases.toSorted((left, right) => right.phrase.length - left.phrase.length);
+  return [...candidatesByPhrase.values()]
+    .filter((candidates) => candidates.size === 1)
+    .flatMap((candidates) => [...candidates.values()])
+    .toSorted((left, right) => right.phrase.length - left.phrase.length);
 }
 
 export function segmentTextWithMedicationLinks(

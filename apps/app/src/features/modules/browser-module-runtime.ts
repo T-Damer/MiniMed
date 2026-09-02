@@ -13,12 +13,14 @@ import {
   type StagedContentModuleArtifact,
 } from '@localmed/core';
 import {
+  type InstalledModuleRegistry,
   type MedicalStoreMount,
   PersistentInstalledModuleRegistry,
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
 
+import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import {
   getAssessmentCatalog,
   preloadAssessmentDefinitions,
@@ -34,6 +36,7 @@ import {
   isModuleReleased,
   localPackagedModulesToInstall,
 } from '@/features/modules/local-packaged-modules';
+import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
   dequeuePendingModuleInstall,
@@ -49,11 +52,9 @@ const DATABASE_VERSION = 1;
 const VERSIONS_STORE = 'versions';
 const ACTIVE_STORE = 'active';
 const CORE_MODULE_ID = 'minimed.core.ru';
-const CORE_VERSION = '1.0.0-preview.1';
-const CORE_SOURCE_SET_DIGEST =
-  'sha256:6feb828182adfc45907c902bc39428dbf53c95fb25d09dd29281989660678acf';
 const MODULE_RETRY_DELAYS_MS = [1_000, 2_500, 5_000] as const;
 const MODULE_REQUEUE_DELAY_MS = 15_000;
+const MODULE_OPFS_FETCH_TIMEOUT_MS = 180_000;
 
 type ModuleArtifact = ContentModuleCatalogEntry['artifacts'][number];
 
@@ -62,8 +63,15 @@ interface StoredModuleVersion {
   readonly moduleId: string;
   readonly version: string;
   readonly bytes: ArrayBuffer;
+  readonly sourceAssets?: readonly StoredModuleArtifact[];
   readonly sourceSetDigest: string;
   readonly installedAt: string;
+}
+
+interface StoredModuleArtifact {
+  readonly artifactId: string;
+  readonly compression: 'zip';
+  readonly bytes: ArrayBuffer;
 }
 
 interface ActiveModulePointer {
@@ -117,6 +125,37 @@ function versionKey(moduleId: string, version: string): string {
   return `${moduleId}@${version}`;
 }
 
+function moduleOpfsKey(moduleId: string, version: string): string {
+  return `minimed-module-${encodeURIComponent(versionKey(moduleId, version))}`;
+}
+
+async function openModuleStore(
+  moduleId: string,
+  version: string,
+  bytes: Uint8Array,
+): Promise<SqliteMedicalStore | WorkerOpfsMedicalStore> {
+  if (bytes.byteLength <= SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
+    return SqliteMedicalStore.createFromBytes(bytes);
+  }
+
+  const key = moduleOpfsKey(moduleId, version);
+  // ponytail: OPFS copies survive remove/rollback; IndexedDB stays authoritative. Add per-version
+  // OPFS deletion only with a cache lifecycle API.
+  const url = URL.createObjectURL(
+    new Blob([new Uint8Array(bytes)], { type: 'application/vnd.sqlite3' }),
+  );
+  try {
+    return await WorkerOpfsMedicalStore.open({
+      url,
+      databaseName: `${key}.db`,
+      fetchTimeoutMs: MODULE_OPFS_FETCH_TIMEOUT_MS,
+      poolName: key,
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function readActivePointers(database: IDBDatabase): Promise<readonly ActiveModulePointer[]> {
   const transaction = database.transaction(ACTIVE_STORE, 'readonly');
   const pointers = await requestResult(
@@ -141,6 +180,27 @@ async function readVersion(
   return value ?? null;
 }
 
+export async function readActiveInstalledSourceAssets(
+  moduleId: string,
+  artifactId?: string,
+): Promise<Uint8Array | null> {
+  if (!('indexedDB' in globalThis)) return null;
+  const database = await openDatabase();
+  try {
+    const active = (await readActivePointers(database)).find(
+      (pointer) => pointer.moduleId === moduleId,
+    );
+    if (!active) return null;
+    const stored = await readVersion(database, moduleId, active.version);
+    const artifact = stored?.sourceAssets?.find(
+      (candidate) => artifactId === undefined || candidate.artifactId === artifactId,
+    );
+    return artifact ? new Uint8Array(artifact.bytes.slice(0)) : null;
+  } finally {
+    database.close();
+  }
+}
+
 class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
   public async download(
     artifact: ModuleArtifact,
@@ -148,8 +208,11 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     onProgress: (progress: { downloadedBytes: number; totalBytes: number | null }) => void,
   ): Promise<Uint8Array> {
     if (!artifact.url) throw new Error('Для набора не указан адрес загрузки.');
-    if (artifact.compression !== 'none') {
-      throw new Error('Сжатые наборы пока не поддерживаются этим установщиком.');
+    if (
+      artifact.compression !== 'none' &&
+      !(artifact.kind === 'source-assets' && artifact.compression === 'zip')
+    ) {
+      throw new Error('Поддерживаются только несжатый index и ZIP source-assets.');
     }
     const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
     const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
@@ -164,7 +227,7 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
   }
 }
 
-class BrowserModuleBackend implements ContentModuleArtifactBackend {
+export class BrowserModuleBackend implements ContentModuleArtifactBackend {
   private readonly staged = new Map<string, StagedBytes>();
 
   public async stage(
@@ -190,6 +253,33 @@ class BrowserModuleBackend implements ContentModuleArtifactBackend {
     if (!index) throw new Error('В наборе нет поисковой базы.');
     const staged = this.staged.get(index.token);
     if (!staged) throw new Error('Временный файл набора потерян.');
+    if (staged.artifact.compression !== 'none') {
+      throw new Error('Index набора должен быть несжатым.');
+    }
+    const sourceAssets = module.artifacts
+      .filter((artifact) => artifact.kind === 'source-assets')
+      .map((artifact) => {
+        const stagedArtifact = artifacts.find(
+          (candidate) => candidate.artifactId === artifact.id && candidate.kind === 'source-assets',
+        );
+        if (!stagedArtifact) {
+          if (artifact.required) {
+            throw new Error(`Обязательный source-assets артефакт ${artifact.id} потерян.`);
+          }
+          return null;
+        }
+        const source = this.staged.get(stagedArtifact.token);
+        if (!source) throw new Error('Временный файл source-assets набора потерян.');
+        if (source.artifact.compression !== 'zip') {
+          throw new Error(`Source-assets артефакт ${artifact.id} должен быть ZIP.`);
+        }
+        return {
+          artifactId: artifact.id,
+          compression: 'zip' as const,
+          bytes: Uint8Array.from(source.bytes).buffer,
+        };
+      })
+      .filter((artifact): artifact is StoredModuleArtifact => artifact !== null);
     const database = await openDatabase();
     try {
       const previousTransaction = database.transaction(ACTIVE_STORE, 'readonly');
@@ -207,6 +297,7 @@ class BrowserModuleBackend implements ContentModuleArtifactBackend {
         moduleId: module.id,
         version: module.version,
         bytes: storedBytes,
+        ...(sourceAssets.length > 0 ? { sourceAssets } : {}),
         sourceSetDigest: module.sourceSetDigest ?? '',
         installedAt: new Date().toISOString(),
       };
@@ -217,7 +308,9 @@ class BrowserModuleBackend implements ContentModuleArtifactBackend {
       return {
         moduleId: module.id,
         version: module.version,
-        installedSizeBytes: staged.bytes.byteLength,
+        installedSizeBytes:
+          staged.bytes.byteLength +
+          sourceAssets.reduce((total, artifact) => total + artifact.bytes.byteLength, 0),
         token: JSON.stringify(previous ?? null),
       };
     } finally {
@@ -287,11 +380,11 @@ class BrowserModuleBackend implements ContentModuleArtifactBackend {
   }
 }
 
-class BrowserModuleValidator implements ContentModuleIndexValidator {
+export class BrowserModuleValidator implements ContentModuleIndexValidator {
   public async validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array) {
-    let store: SqliteMedicalStore | null = null;
+    let store: SqliteMedicalStore | WorkerOpfsMedicalStore | null = null;
     try {
-      store = await SqliteMedicalStore.createFromBytes(indexBytes);
+      store = await openModuleStore(module.id, module.version, indexBytes);
       const health = await store.initialize();
       const integrity = await store.inspectIntegrity();
       const schemaCompatible = health.schemaVersion === module.compatibility.schemaVersion;
@@ -325,28 +418,40 @@ class BrowserModuleValidator implements ContentModuleIndexValidator {
   }
 }
 
+export function ensureBundledCore(
+  registry: InstalledModuleRegistry,
+  now = new Date().toISOString(),
+): void {
+  const current = registry.get(CORE_MODULE_ID);
+  if (
+    current?.version === BUNDLED_CORE_MODULE.version &&
+    current.activeSourceSetDigest === BUNDLED_CORE_MODULE.sourceSetDigest
+  ) {
+    return;
+  }
+  registry.activate({
+    moduleId: CORE_MODULE_ID,
+    version: BUNDLED_CORE_MODULE.version,
+    required: true,
+    installedAt: current?.installedAt ?? now,
+    installedSizeBytes: BUNDLED_CORE_MODULE.sizes.installedBytes,
+    sourceSetDigest: BUNDLED_CORE_MODULE.sourceSetDigest,
+    validation: {
+      checkedAt: now,
+      valid: true,
+      checksumValid: true,
+      schemaCompatible: true,
+      sqliteIntegrity: 'ok',
+      message: 'Встроенное ядро MiniMed.',
+    },
+  });
+}
+
 function createRegistry(): PersistentInstalledModuleRegistry {
   const registry = new PersistentInstalledModuleRegistry(
     new WebStorageInstalledModuleRegistryPersistence(window.localStorage),
   );
-  if (!registry.get(CORE_MODULE_ID)) {
-    registry.activate({
-      moduleId: CORE_MODULE_ID,
-      version: CORE_VERSION,
-      required: true,
-      installedAt: new Date().toISOString(),
-      installedSizeBytes: 0,
-      sourceSetDigest: CORE_SOURCE_SET_DIGEST,
-      validation: {
-        checkedAt: new Date().toISOString(),
-        valid: true,
-        checksumValid: true,
-        schemaCompatible: true,
-        sqliteIntegrity: 'ok',
-        message: 'Встроенное ядро MiniMed.',
-      },
-    });
-  }
+  ensureBundledCore(registry);
   return registry;
 }
 
@@ -442,7 +547,7 @@ export class BrowserContentModuleRuntime {
   private async ensureLocalPackagedModules(): Promise<void> {
     const candidates = localPackagedModulesToInstall(
       this.catalog,
-      new Set(this.listInstalled().map((module) => module.moduleId)),
+      new Map(this.listInstalled().map((module) => [module.moduleId, module.version])),
     );
     await Promise.all(
       candidates.map(async (module) => {
@@ -453,7 +558,12 @@ export class BrowserContentModuleRuntime {
           resolveContentModuleArtifactUrl(artifact.url),
         );
         if (!reachable || this.disposed) return;
-        if (this.listInstalled().some((installed) => installed.moduleId === module.id)) return;
+        if (
+          this.listInstalled().some(
+            (installed) => installed.moduleId === module.id && installed.version === module.version,
+          )
+        )
+          return;
         try {
           const task = this.install(module);
           await this.wait(task.id);
@@ -646,11 +756,14 @@ export class BrowserContentModuleRuntime {
 
   public install(module: ContentModuleCatalogEntry): ContentModuleDownloadTask {
     this.clearRetry(module.id, module.version);
-    enqueuePendingModuleInstall(module.id, module.version, false);
+    const includeSourceAssets = module.artifacts.some(
+      (artifact) => artifact.kind === 'source-assets',
+    );
+    enqueuePendingModuleInstall(module.id, module.version, includeSourceAssets);
     return this.installer.install({
       moduleId: module.id,
       version: module.version,
-      includeSourceAssets: false,
+      includeSourceAssets,
     });
   }
 
@@ -779,14 +892,10 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
     for (const pointer of pointers) {
       const stored = await readVersion(database, pointer.moduleId, pointer.version);
       if (!stored) continue;
-      if (stored.bytes.byteLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
-        console.warn(
-          `Skipping content module ${pointer.moduleId}: too large to deserialize into SQLite WASM (${stored.bytes.byteLength} bytes).`,
-        );
-        continue;
-      }
       try {
-        const store = await SqliteMedicalStore.createFromBytes(
+        const store = await openModuleStore(
+          pointer.moduleId,
+          pointer.version,
           new Uint8Array(stored.bytes.slice(0)),
         );
         mounts.push({ moduleId: pointer.moduleId, store, enabled: true, searchWeight: 1 });

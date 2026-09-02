@@ -2,11 +2,8 @@ import {
   Enums as CornerstoneEnums,
   type Types as CornerstoneTypes,
   cache,
-  imageLoader,
-  init as initCornerstone,
   RenderingEngine,
 } from '@cornerstonejs/core';
-import { init as initDicomImageLoader } from '@cornerstonejs/dicom-image-loader';
 import {
   metaData as dicomMetaData,
   utilities as dicomUtilities,
@@ -27,12 +24,27 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { initializeDicomRuntime } from '@/features/library/dicom-runtime';
 import {
   MedicalImageAnnotationLayer,
   type MedicalImageAnnotationTool,
   MedicalImageAnnotationToolbar,
 } from '@/features/library/MedicalImageAnnotations';
-import { MedicalImageTitle } from '@/features/library/MedicalImageTitle';
+import { MedicalImagePrintDialog } from '@/features/library/MedicalImagePrintDialog';
+import {
+  hasPhysicalKeyboard,
+  MedicalImageSliceIndicator,
+  MedicalImageSliceNavigation,
+  MedicalImageViewerToolbar,
+} from '@/features/library/MedicalImageViewerToolbar';
+import {
+  captureMedicalImageFrame,
+  type MedicalImagePrintDetail as MedicalImageDetail,
+  type MedicalImagePrintCaptureOptions,
+  type MedicalImagePrintDirection,
+  type MedicalImagePrintFrame,
+  waitForMedicalImagePaint,
+} from '@/features/library/medical-image-print';
 import {
   createMedicalImagePressRepeat,
   medicalImageSliceDragSteps,
@@ -49,6 +61,8 @@ import {
 } from '@/state/user-library';
 import '@/styles/dicom-viewer.css';
 
+export { createDicomThumbnail } from './dicom-thumbnail';
+
 interface DicomViewerProps {
   readonly documentId: string;
   readonly title: string;
@@ -56,6 +70,33 @@ interface DicomViewerProps {
 }
 
 type ViewerTool = 'window' | 'pan' | 'zoom' | 'none';
+type DicomTouchMode = 'slice' | 'window';
+
+const TOUCH_SWIPE_THRESHOLD = 10;
+
+interface DicomTouchGestureState {
+  readonly pointerId: number;
+  readonly startX: number;
+  readonly startY: number;
+  readonly target: HTMLElement;
+  readonly mode: DicomTouchMode;
+  currentX: number;
+  currentY: number;
+  appliedSteps: number;
+  swiping: boolean;
+}
+
+interface DicomPinchGestureState {
+  readonly pointerIds: readonly [number, number];
+  readonly target: HTMLElement;
+  firstX: number;
+  firstY: number;
+  secondX: number;
+  secondY: number;
+  lastDistance: number;
+  lastMidpointX: number;
+  lastMidpointY: number;
+}
 
 interface NaturalizedDicom {
   readonly PatientName?: unknown;
@@ -70,12 +111,6 @@ interface NaturalizedDicom {
   readonly ImageComments?: unknown;
   readonly SeriesInstanceUID?: unknown;
   readonly InstanceNumber?: unknown;
-}
-
-interface MedicalImageDetail {
-  readonly label: string;
-  readonly value: string;
-  readonly wide?: boolean;
 }
 
 interface RegisteredDicom {
@@ -97,13 +132,8 @@ interface DicomSliceDragState {
 let cornerstoneInitialization: Promise<void> | undefined;
 
 function initializeCornerstone(): Promise<void> {
-  cornerstoneInitialization ??= Promise.resolve().then(() => {
+  cornerstoneInitialization ??= initializeDicomRuntime().then(() => {
     dcmjs.log.getLogger('validation.dcmjs').setLevel('silent');
-    initCornerstone();
-    initDicomImageLoader({
-      maxWebWorkers: Math.max(1, Math.min(4, Math.floor((navigator.hardwareConcurrency || 2) / 2))),
-      wasmBasePath: new URL('cornerstone-codecs', document.baseURI).toString(),
-    });
     initCornerstoneTools();
     addTool(WindowLevelTool);
     addTool(PanTool);
@@ -212,70 +242,6 @@ async function registerDicom(
   };
 }
 
-function thumbnailCanvas(image: CornerstoneTypes.IImage): string | undefined {
-  const width = image.width;
-  const height = image.height;
-  const pixels = image.getPixelData();
-  if (!width || !height || !pixels?.length) return undefined;
-  const maxEdge = 320;
-  const scale = Math.min(1, maxEdge / Math.max(width, height));
-  const targetWidth = Math.max(1, Math.round(width * scale));
-  const targetHeight = Math.max(1, Math.round(height * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
-  const context = canvas.getContext('2d');
-  if (!context) return undefined;
-  const frame = context.createImageData(targetWidth, targetHeight);
-  const center = Number(
-    Array.isArray(image.windowCenter) ? image.windowCenter[0] : image.windowCenter,
-  );
-  const windowWidth = Number(
-    Array.isArray(image.windowWidth) ? image.windowWidth[0] : image.windowWidth,
-  );
-  const minimum = Number.isFinite(image.minPixelValue) ? image.minPixelValue : 0;
-  const maximum = Number.isFinite(image.maxPixelValue) ? image.maxPixelValue : minimum + 1;
-  const low = Number.isFinite(center) && windowWidth > 0 ? center - windowWidth / 2 : minimum;
-  const high = Number.isFinite(center) && windowWidth > 0 ? center + windowWidth / 2 : maximum;
-  const range = Math.max(1, high - low);
-  for (let y = 0; y < targetHeight; y += 1) {
-    const sourceY = Math.min(height - 1, Math.floor(y / scale));
-    for (let x = 0; x < targetWidth; x += 1) {
-      const sourceX = Math.min(width - 1, Math.floor(x / scale));
-      const value = Number(pixels[sourceY * width + sourceX]);
-      const gray = Math.round(Math.min(255, Math.max(0, ((value - low) / range) * 255)));
-      const output = image.invert ? 255 - gray : gray;
-      const offset = (y * targetWidth + x) * 4;
-      frame.data[offset] = output;
-      frame.data[offset + 1] = output;
-      frame.data[offset + 2] = output;
-      frame.data[offset + 3] = 255;
-    }
-  }
-  context.putImageData(frame, 0, 0);
-  return canvas.toDataURL('image/jpeg', 0.76);
-}
-
-export async function createDicomThumbnail(blob: Blob): Promise<string | undefined> {
-  await initializeCornerstone();
-  const baseImageId = `dicomfile:minimed-thumbnail-${crypto.randomUUID()}`;
-  let imageId = baseImageId;
-  try {
-    await dicomUtilities.addDicomPart10Instance(baseImageId, await blob.arrayBuffer());
-    imageId = framesFor(baseImageId)[0] ?? baseImageId;
-    const image = await withViewerTimeout(
-      imageLoader.loadAndCacheImage(imageId),
-      'Превью DICOM создаётся слишком долго.',
-    );
-    return thumbnailCanvas(image);
-  } catch {
-    return undefined;
-  } finally {
-    if (cache.getImageLoadObject(imageId)) cache.removeImageLoadObject(imageId, { force: true });
-    dicomMetaData.clearQuery(MetadataEnums.MetadataModules.NATURALIZED, baseImageId);
-  }
-}
-
 function errorMessage(cause: unknown): string {
   if (cause instanceof Error) return cause.message;
   if (cause && typeof cause === 'object' && 'error' in cause) {
@@ -289,15 +255,17 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
   const [progress, setProgress] = createSignal(0);
   const [loadingText, setLoadingText] = createSignal('Подготавливаем DICOM…');
   const [error, setError] = createSignal<string | null>(null);
-  const [activeTool, setActiveTool] = createSignal<ViewerTool>('window');
+  const [activeTool, setActiveTool] = createSignal<ViewerTool>('none');
   const [sliceIndex, setSliceIndex] = createSignal(0);
   const [sliceCount, setSliceCount] = createSignal(0);
   const [details, setDetails] = createSignal<readonly MedicalImageDetail[]>([]);
   const [detailsOpen, setDetailsOpen] = createSignal(false);
+  const [printOpen, setPrintOpen] = createSignal(false);
   const [annotationTool, setAnnotationTool] = createSignal<MedicalImageAnnotationTool>('none');
   const [annotationColor, setAnnotationColor] =
     createSignal<UserLibraryMedicalAnnotationColor>('red');
   let viewportElement: HTMLDivElement | undefined;
+  let stageElement: HTMLDivElement | undefined;
   let viewport: CornerstoneTypes.IStackViewport | undefined;
   let toolGroup: ReturnType<typeof ToolGroupManager.createToolGroup>;
   let renderingEngine: RenderingEngine | undefined;
@@ -305,6 +273,18 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
   let sliceDrag: DicomSliceDragState | undefined;
   let registeredBaseImageIds: string[] = [];
   let imageIds: readonly string[] = [];
+  let sliceMoveFrame: number | undefined;
+  let pendingSliceIndex: number | undefined;
+  let sliceMoveInFlight = false;
+  let touchGesture: DicomTouchGestureState | undefined;
+  let pinchGesture: DicomPinchGestureState | undefined;
+  let pinchFrame: number | undefined;
+  let pendingWindowDelta = { x: 0, y: 0 };
+  let windowFrame: number | undefined;
+  let seriesDiscoveryFrame: number | undefined;
+  let seriesDiscoveryTimer: number | undefined;
+  let printCaptureQueue: Promise<void> = Promise.resolve();
+  let viewerDisposed = false;
   const uid = crypto.randomUUID();
   const renderingEngineId = `minimed-dicom-engine-${uid}`;
   const viewportId = `minimed-dicom-viewport-${uid}`;
@@ -317,19 +297,21 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
   };
 
   const setPrimaryTool = (next: ViewerTool): void => {
-    if (!toolGroup || next === 'none') return;
-    const toolName =
-      next === 'window'
-        ? WindowLevelTool.toolName
-        : next === 'pan'
-          ? PanTool.toolName
-          : ZoomTool.toolName;
+    if (!toolGroup) return;
     for (const candidate of [WindowLevelTool.toolName, PanTool.toolName, ZoomTool.toolName]) {
       toolGroup.setToolPassive(candidate);
     }
-    toolGroup.setToolActive(toolName, {
-      bindings: [{ mouseButton: ToolEnums.MouseBindings.Primary }],
-    });
+    if (next !== 'none') {
+      const toolName =
+        next === 'window'
+          ? WindowLevelTool.toolName
+          : next === 'pan'
+            ? PanTool.toolName
+            : ZoomTool.toolName;
+      toolGroup.setToolActive(toolName, {
+        bindings: [{ mouseButton: ToolEnums.MouseBindings.Primary }],
+      });
+    }
     setAnnotationTool('none');
     setActiveTool(next);
   };
@@ -337,7 +319,7 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
   const setAnnotationMode = (next: MedicalImageAnnotationTool): void => {
     if (!toolGroup) return;
     if (next === 'none') {
-      setPrimaryTool('window');
+      setPrimaryTool('none');
       return;
     }
     for (const candidate of [WindowLevelTool.toolName, PanTool.toolName, ZoomTool.toolName]) {
@@ -347,13 +329,42 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
     setAnnotationTool(next);
   };
 
+  const flushSliceMove = (): void => {
+    sliceMoveFrame = undefined;
+    const next = pendingSliceIndex;
+    pendingSliceIndex = undefined;
+    if (!viewport || next === undefined) return;
+    if (sliceMoveInFlight) {
+      pendingSliceIndex = next;
+      return;
+    }
+    if (next === viewport.getCurrentImageIdIndex()) return;
+    sliceMoveInFlight = true;
+    void viewport.setImageIdIndex(next).then(
+      () => {
+        sliceMoveInFlight = false;
+        if (pendingSliceIndex !== undefined && sliceMoveFrame === undefined) {
+          sliceMoveFrame = requestAnimationFrame(flushSliceMove);
+        }
+      },
+      (cause: unknown) => {
+        sliceMoveInFlight = false;
+        if (!viewerDisposed) setError(errorMessage(cause));
+        if (pendingSliceIndex !== undefined && sliceMoveFrame === undefined) {
+          sliceMoveFrame = requestAnimationFrame(flushSliceMove);
+        }
+      },
+    );
+  };
+
   const moveSlice = (delta: number): void => {
     if (!viewport || imageIds.length < 2) return;
-    const next = Math.min(
-      imageIds.length - 1,
-      Math.max(0, viewport.getCurrentImageIdIndex() + delta),
-    );
-    if (next !== viewport.getCurrentImageIdIndex()) void viewport.setImageIdIndex(next);
+    const current = pendingSliceIndex ?? viewport.getCurrentImageIdIndex();
+    const next = Math.min(imageIds.length - 1, Math.max(0, current + delta));
+    if (next === current) return;
+    pendingSliceIndex = next;
+    if (sliceMoveInFlight || sliceMoveFrame !== undefined) return;
+    sliceMoveFrame = requestAnimationFrame(flushSliceMove);
   };
 
   const previousSliceRepeat = createMedicalImagePressRepeat(
@@ -429,9 +440,277 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
     viewport.render();
   };
 
+  const printDirections = (): readonly MedicalImagePrintDirection[] => [
+    {
+      id: 'series',
+      label: 'Серия DICOM',
+      icon: 'film-strip',
+      count: imageIds.length || sliceCount(),
+      current: Math.max(1, sliceIndex()),
+    },
+  ];
+
+  const capturePrintFrames = async (
+    options: MedicalImagePrintCaptureOptions,
+  ): Promise<readonly MedicalImagePrintFrame[]> => {
+    const currentViewport = viewport;
+    const currentStage = stageElement;
+    if (!currentViewport || !currentStage || imageIds.length === 0) return [];
+
+    let releaseCapture: (() => void) | undefined;
+    const captureSlot = new Promise<void>((resolve) => {
+      releaseCapture = resolve;
+    });
+    const previousCapture = printCaptureQueue;
+    printCaptureQueue = previousCapture.then(() => captureSlot);
+    await previousCapture;
+    if (options.signal?.aborted) {
+      releaseCapture?.();
+      return [];
+    }
+
+    const originalIndex = currentViewport.getCurrentImageIdIndex();
+    const originalProperties = currentViewport.getProperties();
+    const result: MedicalImagePrintFrame[] = [];
+    const patient = details().find((detail) => detail.label === 'Пациент')?.value;
+    const series = details().find((detail) => detail.label === 'Серия')?.value || props.title;
+
+    try {
+      for (const requestedSlice of options.slices) {
+        if (options.signal?.aborted) return result;
+        const index = Math.min(imageIds.length - 1, Math.max(0, requestedSlice - 1));
+        await currentViewport.setImageIdIndex(index);
+        await waitForMedicalImagePaint();
+        if (options.signal?.aborted) return result;
+        const captured = captureMedicalImageFrame(currentStage, options.includeAnnotations, () =>
+          currentViewport.render(),
+        );
+        if (!captured) continue;
+        const sliceLabel = `Срез ${String(index + 1)} из ${String(imageIds.length)}`;
+        result.push({
+          ...captured,
+          directionLabel: 'DICOM',
+          sliceLabel,
+          ...(patient ? { patient } : {}),
+          series,
+          details: [...details(), { label: 'Срез', value: sliceLabel }],
+        });
+      }
+    } finally {
+      try {
+        await currentViewport.setImageIdIndex(originalIndex);
+        currentViewport.setProperties(originalProperties);
+        currentViewport.render();
+        syncSlice();
+      } finally {
+        releaseCapture?.();
+      }
+    }
+    return result;
+  };
+
+  const scheduleWindowLevel = (deltaX: number, deltaY: number): void => {
+    pendingWindowDelta.x += deltaX;
+    pendingWindowDelta.y += deltaY;
+    if (windowFrame !== undefined) return;
+    windowFrame = requestAnimationFrame(() => {
+      windowFrame = undefined;
+      const delta = pendingWindowDelta;
+      pendingWindowDelta = { x: 0, y: 0 };
+      if (!viewport || (delta.x === 0 && delta.y === 0)) return;
+      const { lower, upper } = viewport.getProperties().voiRange ?? { lower: 0, upper: 1 };
+      const width = Math.max(1, upper - lower) + delta.x * 4;
+      const center = (upper + lower) / 2 + delta.y * 4;
+      const nextWidth = Math.max(1, width);
+      viewport.setProperties({
+        voiRange: {
+          lower: center - nextWidth / 2,
+          upper: center + nextWidth / 2,
+        },
+      });
+      viewport.render();
+    });
+  };
+
+  const flushPinch = (): void => {
+    pinchFrame = undefined;
+    const pinch = pinchGesture;
+    if (!viewport || !pinch) return;
+    const distance = Math.hypot(pinch.secondX - pinch.firstX, pinch.secondY - pinch.firstY);
+    const midpointX = (pinch.firstX + pinch.secondX) / 2;
+    const midpointY = (pinch.firstY + pinch.secondY) / 2;
+    const zoomFactor = pinch.lastDistance > 0 ? distance / pinch.lastDistance : 1;
+    const pan = viewport.getPan();
+    viewport.setPan([
+      pan[0] + midpointX - pinch.lastMidpointX,
+      pan[1] + midpointY - pinch.lastMidpointY,
+    ]);
+    if (zoomFactor > 0 && zoomFactor !== 1) viewport.setZoom(viewport.getZoom() * zoomFactor);
+    viewport.render();
+    pinch.lastDistance = distance;
+    pinch.lastMidpointX = midpointX;
+    pinch.lastMidpointY = midpointY;
+  };
+
+  const schedulePinch = (): void => {
+    if (pinchFrame !== undefined) return;
+    pinchFrame = requestAnimationFrame(flushPinch);
+  };
+
+  const handlePinchMove = (event: PointerEvent): void => {
+    const pinch = pinchGesture;
+    if (!pinch?.pointerIds.includes(event.pointerId)) return;
+    event.preventDefault();
+    if (event.pointerId === pinch.pointerIds[0]) {
+      pinch.firstX = event.clientX;
+      pinch.firstY = event.clientY;
+    } else {
+      pinch.secondX = event.clientX;
+      pinch.secondY = event.clientY;
+    }
+    schedulePinch();
+  };
+
+  const finishPinch = (event?: PointerEvent): void => {
+    const pinch = pinchGesture;
+    if (!pinch || (event && !pinch.pointerIds.includes(event.pointerId))) return;
+    event?.preventDefault();
+    flushPinch();
+    for (const pointerId of pinch.pointerIds) {
+      if (pinch.target.hasPointerCapture(pointerId)) pinch.target.releasePointerCapture(pointerId);
+    }
+    pinchGesture = undefined;
+    touchGesture = undefined;
+  };
+
+  const beginTouchGesture = (event: PointerEvent): boolean => {
+    if (
+      !viewportElement ||
+      event.pointerType === 'mouse' ||
+      loading() ||
+      annotationTool() !== 'none'
+    ) {
+      return false;
+    }
+    const existing = touchGesture;
+    if (existing && event.pointerId !== existing.pointerId) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      const target = event.currentTarget as HTMLElement;
+      target.setPointerCapture(event.pointerId);
+      const midpointX = (existing.currentX + event.clientX) / 2;
+      const midpointY = (existing.currentY + event.clientY) / 2;
+      pinchGesture = {
+        pointerIds: [existing.pointerId, event.pointerId],
+        target,
+        firstX: existing.currentX,
+        firstY: existing.currentY,
+        secondX: event.clientX,
+        secondY: event.clientY,
+        lastDistance: Math.hypot(
+          event.clientX - existing.currentX,
+          event.clientY - existing.currentY,
+        ),
+        lastMidpointX: midpointX,
+        lastMidpointY: midpointY,
+      };
+      touchGesture = undefined;
+      pendingWindowDelta = { x: 0, y: 0 };
+      return true;
+    }
+    if (!event.isPrimary) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    const target = event.currentTarget as HTMLElement;
+    target.setPointerCapture(event.pointerId);
+    touchGesture = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      target,
+      mode: activeTool() === 'window' ? 'window' : 'slice',
+      currentX: event.clientX,
+      currentY: event.clientY,
+      appliedSteps: 0,
+      swiping: false,
+    };
+    return true;
+  };
+
+  const handleTouchMove = (event: PointerEvent): void => {
+    const gesture = touchGesture;
+    if (!gesture || event.pointerId !== gesture.pointerId) return;
+    const deltaX = event.clientX - gesture.currentX;
+    const deltaY = event.clientY - gesture.currentY;
+    gesture.currentX = event.clientX;
+    gesture.currentY = event.clientY;
+    const distance = Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY);
+    if (!gesture.swiping) {
+      if (distance < TOUCH_SWIPE_THRESHOLD) return;
+      gesture.swiping = true;
+    }
+    event.preventDefault();
+    if (gesture.mode === 'window') {
+      scheduleWindowLevel(deltaX, deltaY);
+      return;
+    }
+    const pixelsPerStep = Math.max(2, Math.min(12, window.innerHeight / (sliceCount() - 1)));
+    const steps = medicalImageSliceDragSteps(gesture.startY, event.clientY, pixelsPerStep);
+    const delta = steps - gesture.appliedSteps;
+    if (delta === 0) return;
+    gesture.appliedSteps = steps;
+    moveSlice(delta);
+  };
+
+  const finishTouchGesture = (event?: PointerEvent): void => {
+    const gesture = touchGesture;
+    if (!gesture || (event && event.pointerId !== gesture.pointerId)) return;
+    event?.preventDefault();
+    touchGesture = undefined;
+    if (gesture.target.hasPointerCapture(gesture.pointerId)) {
+      gesture.target.releasePointerCapture(gesture.pointerId);
+    }
+  };
+
+  const handleViewerShortcut = (event: KeyboardEvent): void => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const target = event.target;
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable)
+    ) {
+      return;
+    }
+    const key = event.key.toLowerCase();
+    if (key === 'r') resetView();
+    else if (key === 'i') setDetailsOpen((open) => !open);
+    else if (key === 'backspace') props.onBack();
+    else if (key === 'c') setPrimaryTool('window');
+    else if (key === 'p') setPrimaryTool('pan');
+    else if (key === 'z') setPrimaryTool('zoom');
+    else if (key === 'd') setAnnotationMode('pen');
+    else if (key === 'e') setAnnotationMode('eraser');
+    else return;
+    event.preventDefault();
+  };
+
   onMount(() => {
     let cancelled = false;
     const abortController = new AbortController();
+    const blockNativeTouch = (event: TouchEvent): void => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    window.addEventListener('pointermove', handleTouchMove, { passive: false });
+    window.addEventListener('pointermove', handlePinchMove, { passive: false });
+    window.addEventListener('keydown', handleViewerShortcut);
+    window.addEventListener('pointerup', finishPinch);
+    window.addEventListener('pointerup', finishTouchGesture);
+    window.addEventListener('pointercancel', finishPinch);
+    window.addEventListener('pointercancel', finishTouchGesture);
 
     const open = async (): Promise<void> => {
       if (!viewportElement) return;
@@ -475,9 +754,26 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
       toolGroup.setToolActive(StackScrollTool.toolName, {
         bindings: [{ mouseButton: ToolEnums.MouseBindings.Wheel }],
       });
-      setPrimaryTool('window');
+      setPrimaryTool('none');
 
       viewportElement.addEventListener(CornerstoneEnums.Events.STACK_NEW_IMAGE, syncSlice);
+      viewportElement.addEventListener('pointerdown', beginTouchGesture, true);
+      viewportElement.addEventListener('touchstart', blockNativeTouch, {
+        capture: true,
+        passive: false,
+      });
+      viewportElement.addEventListener('touchmove', blockNativeTouch, {
+        capture: true,
+        passive: false,
+      });
+      viewportElement.addEventListener('touchend', blockNativeTouch, {
+        capture: true,
+        passive: false,
+      });
+      viewportElement.addEventListener('touchcancel', blockNativeTouch, {
+        capture: true,
+        passive: false,
+      });
       setLoadingText('Декодируем первый срез…');
       setProgress(0.72);
       await withViewerTimeout(
@@ -492,54 +788,69 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
       setLoading(false);
 
       if (!registeredCurrent.seriesUid) return;
-      try {
-        const siblings = (await listUserLibraryDocuments()).filter(
-          (document) =>
-            document.id !== current.id &&
-            (document.folderId ?? null) === (current.folderId ?? null) &&
-            isUserLibraryDicomFile(document.mimeType, document.fileName),
-        );
-        for (const sibling of siblings) {
-          if (cancelled) return;
-          try {
-            const candidate = await registerDicom(sibling);
-            if (cancelled) {
-              dicomMetaData.clearQuery(
-                MetadataEnums.MetadataModules.NATURALIZED,
-                candidate.baseImageId,
+      const discoverSeries = async (): Promise<void> => {
+        try {
+          const siblings = (await listUserLibraryDocuments()).filter(
+            (document) =>
+              document.id !== current.id &&
+              (document.folderId ?? null) === (current.folderId ?? null) &&
+              isUserLibraryDicomFile(document.mimeType, document.fileName),
+          );
+          for (const sibling of siblings) {
+            if (cancelled) return;
+            try {
+              const candidate = await registerDicom(
+                sibling,
+                () => undefined,
+                abortController.signal,
               );
-              return;
+              if (cancelled) {
+                dicomMetaData.clearQuery(
+                  MetadataEnums.MetadataModules.NATURALIZED,
+                  candidate.baseImageId,
+                );
+                return;
+              }
+              registeredBaseImageIds.push(candidate.baseImageId);
+              if (candidate.seriesUid === registeredCurrent.seriesUid) registered.push(candidate);
+            } catch {
+              // A damaged sibling must not prevent the selected, valid image from opening.
             }
-            registeredBaseImageIds.push(candidate.baseImageId);
-            if (candidate.seriesUid === registeredCurrent.seriesUid) registered.push(candidate);
-          } catch {
-            // A damaged sibling must not prevent the selected, valid image from opening.
           }
+          if (cancelled || registered.length === 1) return;
+          registered.sort(
+            (left, right) =>
+              left.instanceNumber - right.instanceNumber ||
+              left.documentId.localeCompare(right.documentId),
+          );
+          imageIds = registered.flatMap((entry) => entry.imageIds);
+          const initialIndex = Math.max(
+            0,
+            registered
+              .slice(
+                0,
+                registered.findIndex((entry) => entry.documentId === current.id),
+              )
+              .reduce((count, entry) => count + entry.imageIds.length, 0),
+          );
+          const currentViewport = viewport;
+          if (!currentViewport) return;
+          await currentViewport.setStack([...imageIds], initialIndex);
+          if (!cancelled) {
+            currentViewport.render();
+            syncSlice();
+          }
+        } catch {
+          // Series discovery is optional after the selected image has rendered.
         }
-        if (cancelled || registered.length === 1) return;
-        registered.sort(
-          (left, right) =>
-            left.instanceNumber - right.instanceNumber ||
-            left.documentId.localeCompare(right.documentId),
-        );
-        imageIds = registered.flatMap((entry) => entry.imageIds);
-        const initialIndex = Math.max(
-          0,
-          registered
-            .slice(
-              0,
-              registered.findIndex((entry) => entry.documentId === current.id),
-            )
-            .reduce((count, entry) => count + entry.imageIds.length, 0),
-        );
-        await viewport.setStack([...imageIds], initialIndex);
-        if (!cancelled) {
-          viewport.render();
-          syncSlice();
-        }
-      } catch {
-        // Series discovery is optional after the selected image has rendered.
-      }
+      };
+      seriesDiscoveryFrame = requestAnimationFrame(() => {
+        seriesDiscoveryFrame = undefined;
+        seriesDiscoveryTimer = window.setTimeout(() => {
+          seriesDiscoveryTimer = undefined;
+          void discoverSeries();
+        }, 0);
+      });
     };
 
     void open().catch((cause: unknown) => {
@@ -551,11 +862,35 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
 
     onCleanup(() => {
       cancelled = true;
+      viewerDisposed = true;
       abortController.abort();
+      if (sliceMoveFrame !== undefined) cancelAnimationFrame(sliceMoveFrame);
+      if (pinchFrame !== undefined) cancelAnimationFrame(pinchFrame);
+      if (windowFrame !== undefined) cancelAnimationFrame(windowFrame);
+      if (seriesDiscoveryFrame !== undefined) cancelAnimationFrame(seriesDiscoveryFrame);
+      if (seriesDiscoveryTimer !== undefined) window.clearTimeout(seriesDiscoveryTimer);
+      window.removeEventListener('pointermove', handleTouchMove);
+      window.removeEventListener('pointermove', handlePinchMove);
+      window.removeEventListener('keydown', handleViewerShortcut);
+      window.removeEventListener('pointerup', finishPinch);
+      window.removeEventListener('pointerup', finishTouchGesture);
+      window.removeEventListener('pointercancel', finishPinch);
+      window.removeEventListener('pointercancel', finishTouchGesture);
+      sliceMoveFrame = undefined;
+      pendingSliceIndex = undefined;
+      pinchFrame = undefined;
+      windowFrame = undefined;
+      seriesDiscoveryFrame = undefined;
+      seriesDiscoveryTimer = undefined;
       resizeObserver?.disconnect();
       previousSliceRepeat.dispose();
       nextSliceRepeat.dispose();
       viewportElement?.removeEventListener(CornerstoneEnums.Events.STACK_NEW_IMAGE, syncSlice);
+      viewportElement?.removeEventListener('pointerdown', beginTouchGesture, true);
+      viewportElement?.removeEventListener('touchstart', blockNativeTouch, true);
+      viewportElement?.removeEventListener('touchmove', blockNativeTouch, true);
+      viewportElement?.removeEventListener('touchend', blockNativeTouch, true);
+      viewportElement?.removeEventListener('touchcancel', blockNativeTouch, true);
       ToolGroupManager.destroyToolGroup(toolGroupId);
       renderingEngine?.destroy();
       for (const imageId of imageIds) {
@@ -571,146 +906,142 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
   const toolIcon = (name: AppGlyphName): JSX.Element => (
     <AppGlyph name={name} class="medical-image-viewer__tool-icon" />
   );
+  const showShortcuts = hasPhysicalKeyboard();
 
   return (
     <section
       class="medical-image-viewer medical-image-viewer--fullscreen"
       aria-label={`DICOM: ${props.title}`}
     >
-      <nav class="medical-image-viewer__toolbar" aria-label="Инструменты DICOM">
-        <div class="medical-image-viewer__toolbar-locked medical-image-viewer__toolbar-locked--leading">
-          <Button
-            class="medical-image-viewer__tool medical-image-viewer__tool--icon"
-            variant="icon"
-            aria-label="Назад"
-            title="Назад"
-            onClick={props.onBack}
-            icon={toolIcon('arrow-left')}
+      <MedicalImageViewerToolbar
+        title={props.title}
+        ariaLabel="Инструменты DICOM"
+        loading={loading()}
+        hasError={Boolean(error())}
+        detailsOpen={detailsOpen()}
+        showShortcuts={showShortcuts}
+        onBack={props.onBack}
+        onPrint={() => setPrintOpen(true)}
+        onReset={resetView}
+        onDetailsToggle={() => setDetailsOpen((open) => !open)}
+        sliceNavigation={
+          <MedicalImageSliceNavigation
+            indicator={
+              <MedicalImageSliceIndicator
+                index={sliceIndex()}
+                count={sliceCount()}
+                disabled={!canDragSlice()}
+                onPointerDown={beginSliceDrag}
+                onPointerMove={handleSliceDragMove}
+                onPointerUp={finishSliceDrag}
+                onPointerCancel={finishSliceDrag}
+                onKeyDown={handleSliceKeyDown}
+              />
+            }
+            previousDisabled={loading() || sliceIndex() <= 1}
+            nextDisabled={loading() || sliceIndex() >= sliceCount()}
+            onPreviousStart={previousSliceRepeat.start}
+            onPreviousStop={previousSliceRepeat.stop}
+            onPrevious={previousSliceRepeat.activate}
+            onNextStart={nextSliceRepeat.start}
+            onNextStop={nextSliceRepeat.stop}
+            onNext={nextSliceRepeat.activate}
           />
-          <MedicalImageTitle title={props.title} />
-        </div>
-        <div class="medical-image-viewer__toolbar-scroll">
-          <div class="medical-image-viewer__toolbar-scroll-content">
-            <fieldset class="medical-image-viewer__tool-group">
-              <legend class="medical-image-viewer__tool-group-label">Режим указателя</legend>
-              <Button
-                class="medical-image-viewer__tool"
-                variant={activeTool() === 'window' ? 'primary' : 'secondary'}
-                aria-pressed={activeTool() === 'window'}
-                onClick={() => setPrimaryTool('window')}
-                icon={toolIcon('circle-half')}
-              >
-                Контраст
-              </Button>
-              <Button
-                class="medical-image-viewer__tool"
-                variant={activeTool() === 'pan' ? 'primary' : 'secondary'}
-                aria-pressed={activeTool() === 'pan'}
-                onClick={() => setPrimaryTool('pan')}
-                icon={toolIcon('hand')}
-              >
-                Перемещение
-              </Button>
-              <Button
-                class="medical-image-viewer__tool"
-                variant={activeTool() === 'zoom' ? 'primary' : 'secondary'}
-                aria-pressed={activeTool() === 'zoom'}
-                onClick={() => setPrimaryTool('zoom')}
-                icon={toolIcon('magnifying-glass-plus')}
-              >
-                Масштаб
-              </Button>
-            </fieldset>
-            <MedicalImageAnnotationToolbar
-              tool={annotationTool()}
-              color={annotationColor()}
-              disabled={loading()}
-              onToolChange={setAnnotationMode}
-              onColorChange={setAnnotationColor}
-            />
-          </div>
-        </div>
-        <div class="medical-image-viewer__toolbar-locked medical-image-viewer__toolbar-locked--trailing">
+        }
+      >
+        <fieldset class="medical-image-viewer__tool-group">
+          <legend class="medical-image-viewer__tool-group-label">Режим указателя</legend>
           <Button
-            class="medical-image-viewer__tool medical-image-viewer__tool--icon"
-            variant="icon"
-            aria-label="Сбросить вид"
-            title="Сбросить вид"
-            disabled={loading()}
-            onClick={resetView}
-            icon={toolIcon('arrow-counter-clockwise')}
-          />
-          <Button
-            class="medical-image-viewer__tool medical-image-viewer__tool--icon"
-            variant={detailsOpen() ? 'primary' : 'icon'}
-            aria-label="Информация об исследовании"
-            title="Информация об исследовании"
-            aria-pressed={detailsOpen()}
-            aria-expanded={detailsOpen()}
-            onClick={() => setDetailsOpen((open) => !open)}
-            icon={toolIcon('info')}
-          />
-          <fieldset
-            class="medical-image-viewer__slice-navigation"
-            onContextMenu={(event) => event.preventDefault()}
+            class="medical-image-viewer__tool medical-image-viewer__tool--shortcut"
+            variant={activeTool() === 'window' ? 'primary' : 'secondary'}
+            aria-label="Режим: настройка контраста (C)"
+            title="Режим: настройка контраста (C)"
+            aria-pressed={activeTool() === 'window'}
+            onClick={() => setPrimaryTool('window')}
+            icon={
+              <>
+                {toolIcon('circle-half')}
+                <Show when={showShortcuts}>
+                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
+                    (c)
+                  </span>
+                </Show>
+              </>
+            }
           >
-            <legend class="medical-image-viewer__tool-group-label">Навигация по срезам</legend>
-            <Button
-              class="medical-image-viewer__tool medical-image-viewer__tool--icon"
-              variant="icon"
-              aria-label="Предыдущий срез"
-              title="Предыдущий срез"
-              disabled={loading() || sliceIndex() <= 1}
-              onPointerDown={previousSliceRepeat.start}
-              onPointerUp={previousSliceRepeat.stop}
-              onPointerCancel={previousSliceRepeat.stop}
-              onPointerLeave={previousSliceRepeat.stop}
-              onClick={previousSliceRepeat.activate}
-              icon={toolIcon('caret-left')}
-            />
-            <span
-              class="medical-image-viewer__slice"
-              role="slider"
-              tabIndex={annotationTool() === 'none' ? 0 : -1}
-              aria-label="Номер среза"
-              aria-disabled={!canDragSlice()}
-              aria-orientation="vertical"
-              aria-valuemin={1}
-              aria-valuemax={Math.max(1, sliceCount())}
-              aria-valuenow={Math.max(1, sliceIndex())}
-              aria-valuetext={`${String(sliceIndex())} из ${String(sliceCount())}`}
-              onPointerDown={beginSliceDrag}
-              onPointerMove={handleSliceDragMove}
-              onPointerUp={finishSliceDrag}
-              onPointerCancel={finishSliceDrag}
-              onKeyDown={handleSliceKeyDown}
-            >
-              {sliceCount() > 0 ? `${String(sliceIndex())} / ${String(sliceCount())}` : '— / —'}
-            </span>
-            <Button
-              class="medical-image-viewer__tool medical-image-viewer__tool--icon"
-              variant="icon"
-              aria-label="Следующий срез"
-              title="Следующий срез"
-              disabled={loading() || sliceIndex() >= sliceCount()}
-              onPointerDown={nextSliceRepeat.start}
-              onPointerUp={nextSliceRepeat.stop}
-              onPointerCancel={nextSliceRepeat.stop}
-              onPointerLeave={nextSliceRepeat.stop}
-              onClick={nextSliceRepeat.activate}
-              icon={toolIcon('caret-right')}
-            />
-          </fieldset>
-        </div>
-      </nav>
-      <div class="medical-image-viewer__stage">
+            Контраст
+          </Button>
+          <Button
+            class="medical-image-viewer__tool medical-image-viewer__tool--shortcut"
+            variant={activeTool() === 'pan' ? 'primary' : 'secondary'}
+            aria-label="Режим: перемещение изображения (P)"
+            title="Режим: перемещение изображения (P)"
+            aria-pressed={activeTool() === 'pan'}
+            onClick={() => setPrimaryTool('pan')}
+            icon={
+              <>
+                {toolIcon('hand')}
+                <Show when={showShortcuts}>
+                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
+                    (p)
+                  </span>
+                </Show>
+              </>
+            }
+          >
+            Перемещение
+          </Button>
+          <Button
+            class="medical-image-viewer__tool medical-image-viewer__tool--shortcut"
+            variant={activeTool() === 'zoom' ? 'primary' : 'secondary'}
+            aria-label="Режим: масштаб изображения (Z)"
+            title="Режим: масштаб изображения (Z)"
+            aria-pressed={activeTool() === 'zoom'}
+            onClick={() => setPrimaryTool('zoom')}
+            icon={
+              <>
+                {toolIcon('magnifying-glass-plus')}
+                <Show when={showShortcuts}>
+                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
+                    (z)
+                  </span>
+                </Show>
+              </>
+            }
+          >
+            Масштаб
+          </Button>
+        </fieldset>
+        <MedicalImageAnnotationToolbar
+          tool={annotationTool()}
+          color={annotationColor()}
+          disabled={loading()}
+          showShortcuts={showShortcuts}
+          onToolChange={setAnnotationMode}
+          onColorChange={setAnnotationColor}
+        />
+      </MedicalImageViewerToolbar>
+      <div
+        class="medical-image-viewer__stage"
+        ref={(element) => {
+          stageElement = element;
+        }}
+      >
         <div
           ref={(element) => {
             viewportElement = element;
           }}
           class="medical-image-viewer__viewport"
           role="application"
-          aria-label="Область просмотра DICOM"
+          aria-label={`Область просмотра DICOM: режим ${
+            activeTool() === 'window'
+              ? 'настройка контраста'
+              : activeTool() === 'pan'
+                ? 'перемещение'
+                : activeTool() === 'zoom'
+                  ? 'масштаб'
+                  : 'смена срезов'
+          }`}
           onContextMenu={(event) => event.preventDefault()}
         />
         <MedicalImageAnnotationLayer
@@ -756,6 +1087,15 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
           )}
         </Show>
       </div>
+      <MedicalImagePrintDialog
+        open={printOpen()}
+        documentId={props.documentId}
+        title={props.title}
+        directions={printDirections()}
+        initialDirectionId="series"
+        capture={capturePrintFrames}
+        onClose={() => setPrintOpen(false)}
+      />
     </section>
   );
 }

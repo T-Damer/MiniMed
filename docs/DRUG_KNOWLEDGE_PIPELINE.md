@@ -18,7 +18,38 @@ The relational layer is the source of truth for structured drug data. Vectors ar
 - records that a vendor/manual export is still required;
 - blocks an enabled source when the catalog does not affirm offline-storage rights.
 
-The catalog records separate permissions for offline storage, derivative processing, and redistribution. Derivative processing must be allowed before a source is sent through the ChatGPT handoff. The example catalog deliberately leaves Allmed, GRLS, ESKLP, and commercial datasets disabled until a supported export and appropriate terms are supplied.
+The catalog records separate permissions for offline storage, derivative processing, and
+redistribution. Owner-supplied Allmed data and packaging assets may be used in a private local pack
+for this personal project. Public releases still require an explicit redistribution decision: the
+[Allmed terms](https://allmed.pro/information/rules) require written permission for copying,
+distribution, and publication while the footer contains a contradictory source-link allowance.
+GRLS text sent to an external AI remains a separate third-party-processing decision. The verified
+ESKLP preview is published separately as identity-only content.
+
+The verified ESKLP 2026-08-28 archive now has a published fifteen-module preview release for
+identity/registration lookup. Those modules remain metadata-only (`trustedDoseData: false`) and are
+gated by the Experimental setting. ESKLP authority here covers identity and registration facts, not
+indications or dosing; exact measured core coverage is recorded in [CURRENT_STATE.md](CURRENT_STATE.md).
+
+### Local Allmed packaging-image candidate
+
+The current non-published candidate is stored under
+`/private/tmp/minimed-allmed-images.WoT7jU` and was revalidated on 2 September 2026:
+
+- module: `minimed.medications.packaging-images.ru@allmed-images-c8e85a688094`;
+- 4,244 source references, 4,218 distinct references, 4,214 downloaded images, 4 failures;
+- `index.db`: 307,200 bytes, SHA-256
+  `6db13ac2f494b5ff7e3114fb020a219bb53283172bc5a8fd134f3b0daa1f21d1`;
+- `source-assets.zip`: 280,899,019 bytes, SHA-256
+  `fdfc8bb715908c5b5bcdb0c9e4969815ccb94d222b2ca96338cfaa6546fdfd21`;
+- source-set digest:
+  `sha256:040d384670c8d75ffbc62d593f30a629a80d24afd44df93ec546131d627de48a`.
+
+The generated catalog fragment deliberately keeps both artifact URLs `null`. The Settings card,
+download/install/remove flow, source-assets resolver, per-image checksum validation, and medication
+reader rendering are implemented, but the production catalog must not include this module until
+written redistribution permission resolves the contradictory Allmed terms/footer language. The
+temporary directory is not a release archive and may be removed by the operating system.
 
 ## End-to-end workflow
 
@@ -125,7 +156,9 @@ bun run content:build:private
 `medbase build` now loads optional `knowledge.yaml`, validates every evidence pointer, adds reviewed terms
 and exact `professional-reference` links to the linked chunk’s FTS projection, and writes the complete graph
 into SQLite. Proposed/rejected facts and unrelated proposed relations stay in the relational audit layer but
-do not enter search projections.
+do not enter search projections in normal builds. The public demo release temporarily passes
+`--include-unreviewed-knowledge`, which indexes proposed records without changing their `reviewStatus` and
+continues to exclude rejected records; remove that flag after the demo.
 
 ## Relational model
 

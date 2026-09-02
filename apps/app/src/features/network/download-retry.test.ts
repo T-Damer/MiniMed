@@ -132,6 +132,26 @@ describe('downloadWithRetry', () => {
     vi.unstubAllGlobals();
   });
 
+  it('does not retry a missing asset when it is known to be published already', async () => {
+    const fetchMock = vi
+      .fn<() => Promise<Response>>()
+      .mockResolvedValue(new Response(null, { status: 404 }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('indexedDB', undefined);
+
+    await expect(
+      downloadWithRetry({
+        url: 'https://example.com/published.gguf',
+        cacheKey: 'sha256:published',
+        retryMissingAssets: false,
+        retryDelaysMs: NO_DELAYS,
+      }),
+    ).rejects.toThrow('HTTP 404');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+
   it('resumes from the bytes it kept when a transfer drops mid-download', async () => {
     const store = new Map<string, PartialDownloadRecordDouble>();
     // Slow writes on purpose: the retry starts immediately, so the download must wait for its partial

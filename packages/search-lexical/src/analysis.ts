@@ -1,7 +1,11 @@
 import type {
+  ClinicalContextFact,
+  ClinicalContextFactKind,
+  LegacyQueryFactKind,
   QueryAnalysis,
   QueryBranch,
   QueryBranchKind,
+  QueryClinicalContext,
   QueryFact,
   QueryFactKind,
   QueryFactPolarity,
@@ -137,7 +141,23 @@ const QUERY_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
   контоля: ['контроль', 'контроля'],
   ссаденой: ['ссадина', 'ссадиной'],
   ссаденая: ['ссадина'],
+  детский: ['детей'],
+  сироп: ['суспензия для приема внутрь'],
+  спироп: ['сироп', 'суспензия для приема внутрь'],
+  суспенз: ['сироп'],
+  суспензи: ['сироп'],
 };
+
+const QUERY_PHRASE_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
+  'в/м': ['внутримышечно'],
+  'в/в': ['внутривенно'],
+};
+
+const QUERY_EXPANSION_PHRASES = new Set(
+  Object.values(QUERY_EXPANSIONS)
+    .flat()
+    .filter((value) => value.includes(' ')),
+);
 
 const INTENT_BRANCH: Readonly<
   Record<QueryIntent['primary'], { label: string; terms: string; weight: number }>
@@ -188,26 +208,31 @@ function factId(kind: QueryFactKind, start: number, end: number): string {
   return `${kind}:${start}:${end}`;
 }
 
-function addFact(
-  facts: QueryFact[],
-  input: {
-    readonly kind: QueryFactKind;
-    readonly label: string;
-    readonly value: string;
-    readonly normalizedValue?: string;
-    readonly unit?: string | null;
-    readonly polarity?: QueryFactPolarity;
-    readonly start: number;
-    readonly end: number;
-  },
-): void {
+function addFact(facts: QueryFact[], input: FactInput<LegacyQueryFactKind>): void {
   if (input.end <= input.start) return;
   const duplicate = facts.some(
     (fact) =>
       fact.kind === input.kind && fact.range.start === input.start && fact.range.end === input.end,
   );
   if (duplicate) return;
-  facts.push({
+  const fact = makeFact(input);
+  if (fact) facts.push(fact);
+}
+
+interface FactInput<Kind extends QueryFactKind> {
+  readonly kind: Kind;
+  readonly label: string;
+  readonly value: string;
+  readonly normalizedValue?: string;
+  readonly unit?: string | null;
+  readonly polarity?: QueryFactPolarity;
+  readonly start: number;
+  readonly end: number;
+}
+
+function makeFact<Kind extends QueryFactKind>(input: FactInput<Kind>): QueryFact<Kind> | null {
+  if (input.end <= input.start) return null;
+  return {
     id: factId(input.kind, input.start, input.end),
     kind: input.kind,
     label: input.label,
@@ -216,7 +241,21 @@ function addFact(
     unit: input.unit ?? null,
     polarity: input.polarity ?? 'positive',
     range: range(input.start, input.end),
-  });
+  };
+}
+
+function addContextFact<Kind extends ClinicalContextFactKind>(
+  facts: ClinicalContextFact<Kind>[],
+  input: FactInput<Kind>,
+  skipRanges: readonly TextRange[] = [],
+): void {
+  const factRange = range(input.start, input.end);
+  if (skipRanges.some((skipRange) => overlaps(skipRange, factRange))) return;
+  if (facts.some((fact) => fact.kind === input.kind && overlaps(fact.range, factRange))) {
+    return;
+  }
+  const fact = makeFact(input);
+  if (fact) facts.push(fact);
 }
 
 function groupRange(match: RegExpMatchArray, groupIndex: number): TextRange {
@@ -237,8 +276,14 @@ function hasFact(facts: readonly QueryFact[], kind: QueryFactKind): boolean {
 
 function extractSex(query: string, facts: QueryFact[]): void {
   const patterns: readonly [RegExp, string][] = [
-    [/(?:мальчик|мальчику|мужчина|мужчине|пациент|пол\s*[:=]?\s*мужской)/iu, 'мужской'],
-    [/(?:девочка|девочке|женщина|женщине|пациентка|пол\s*[:=]?\s*женский)/iu, 'женский'],
+    [
+      /(?:мальчику|мальчик|мужчине|мужчина|пациент|пол\s*[:=]?\s*мужской)(?=$|[^а-яёa-z])/iu,
+      'мужской',
+    ],
+    [
+      /(?:девочке|девочка|женщине|женщина|пациентка|пол\s*[:=]?\s*женский)(?=$|[^а-яёa-z])/iu,
+      'женский',
+    ],
   ];
   for (const [pattern, normalizedValue] of patterns) {
     const match = pattern.exec(query);
@@ -256,10 +301,90 @@ function extractSex(query: string, facts: QueryFact[]): void {
   }
 }
 
+function russianPluralUnit(amount: number, forms: readonly [string, string, string]): string {
+  const mod100 = amount % 100;
+  const mod10 = amount % 10;
+  if (mod10 === 1 && mod100 !== 11) return forms[0];
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return forms[1];
+  return forms[2];
+}
+
 function extractAge(query: string, facts: QueryFact[]): void {
+  const protectedAgeRanges: TextRange[] = [];
+  const compoundPattern =
+    /(?:^|[^а-яёa-z])((\d{1,3})\s*год(?:а|ов)?\s+(\d{1,2})\s*месяц(?:а|ев)?)(?=$|[^а-яёa-z])/giu;
+  for (const match of query.matchAll(compoundPattern)) {
+    const matchRange = groupRange(match, 1);
+    const years = Number(match[2] ?? '');
+    const months = Number(match[3] ?? '');
+    if (!Number.isInteger(years) || !Number.isInteger(months)) continue;
+    const totalMonths = years * 12 + months;
+    const unit = russianPluralUnit(totalMonths, ['месяц', 'месяца', 'месяцев']);
+    protectedAgeRanges.push(matchRange);
+    addFact(facts, {
+      kind: 'age',
+      label: 'Возраст',
+      value: match[1] ?? match[0],
+      normalizedValue: `${totalMonths} ${unit}`,
+      unit,
+      start: matchRange.start,
+      end: matchRange.end,
+    });
+  }
+
+  const halfYearPattern = /(?:^|[^а-яёa-z])(полтора\s+года)(?=$|[^а-яёa-z])/giu;
+  for (const match of query.matchAll(halfYearPattern)) {
+    const matchRange = groupRange(match, 1);
+    const unit = russianPluralUnit(18, ['месяц', 'месяца', 'месяцев']);
+    protectedAgeRanges.push(matchRange);
+    addFact(facts, {
+      kind: 'age',
+      label: 'Возраст',
+      value: match[1] ?? match[0],
+      normalizedValue: `18 ${unit}`,
+      unit,
+      start: matchRange.start,
+      end: matchRange.end,
+    });
+  }
+
+  const abbreviatedMonthsPattern = /(?:^|[^а-яёa-z])((\d{1,3})\s*мес\.?)(?=$|[^а-яёa-z])/giu;
+  for (const match of query.matchAll(abbreviatedMonthsPattern)) {
+    const matchRange = groupRange(match, 1);
+    const amount = Number(match[2] ?? '');
+    if (!Number.isInteger(amount)) continue;
+    const unit = russianPluralUnit(amount, ['месяц', 'месяца', 'месяцев']);
+    protectedAgeRanges.push(matchRange);
+    addFact(facts, {
+      kind: 'age',
+      label: 'Возраст',
+      value: match[1] ?? match[0],
+      normalizedValue: `${amount} ${unit}`,
+      unit,
+      start: matchRange.start,
+      end: matchRange.end,
+    });
+  }
+
+  const newbornPattern =
+    /(?:^|[^а-яёa-z])((?:новорождённый|новорожденный|новорождённая|новорожденная|новорождённое|новорожденное))(?=$|[^а-яёa-z])/giu;
+  for (const match of query.matchAll(newbornPattern)) {
+    const matchRange = groupRange(match, 1);
+    protectedAgeRanges.push(matchRange);
+    addFact(facts, {
+      kind: 'age',
+      label: 'Возрастной этап',
+      value: match[1] ?? match[0],
+      normalizedValue: 'неонатальный период',
+      unit: null,
+      start: matchRange.start,
+      end: matchRange.end,
+    });
+  }
+
   const patterns = [
     /возраст(?:ом)?\s*[:=]?\s*(\d{1,3})\s*(дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
-    /(?:мальчик|мальчику|девочка|девочке|ребенок|ребёнок|ребенку|ребёнку|пациент|пациентка|мужчина|женщина|младенец)\s*,?\s*(\d{1,3})\s*(дн(?:я|ей)?|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
+    /(?:мальчик|мальчику|девочка|девочке|ребенок|ребёнок|ребенку|ребёнку|пациент|пациентка|мужчина|женщина|младенец|подрост(?:ок|ка|ку|ком|ке))\s*,?\s*(\d{1,3})\s*(дн(?:я|ей)?|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
     /(\d{1,3})\s*(месяц(?:а|ев)?|лет|год(?:а|ов)?)\s*,?\s*(?:мальчик|девочка|ребенок|ребёнок|пациент|пациентка|мужчина|женщина|младенец)/giu,
     /(?:у\s+)?(?:ребенка|ребёнка|ребенку|ребёнку|мальчика|девочки|младенца)\s+(?:в\s+возрасте\s+|в\s+)?(\d{1,3})\s*(дн(?:я|ей)?|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|лет|год(?:а|ов)?)/giu,
     /(\d{1,3})\s*[- ]\s*(?:летн|месячн|дневн)[а-я]*/giu,
@@ -267,6 +392,10 @@ function extractAge(query: string, facts: QueryFact[]): void {
   for (const pattern of patterns) {
     for (const match of query.matchAll(pattern)) {
       const start = match.index ?? 0;
+      const matchRange = range(start, start + match[0].length);
+      if (protectedAgeRanges.some((protectedRange) => overlaps(protectedRange, matchRange))) {
+        continue;
+      }
       const amount = match[1] ?? '';
       const unit = match[2] ?? (match[0].includes('месяч') ? 'месяцев' : 'лет');
       addFact(facts, {
@@ -276,7 +405,7 @@ function extractAge(query: string, facts: QueryFact[]): void {
         normalizedValue: `${amount} ${unit}`.trim(),
         unit,
         start,
-        end: start + match[0].length,
+        end: matchRange.end,
       });
     }
   }
@@ -303,8 +432,8 @@ function extractAge(query: string, facts: QueryFact[]): void {
 
 function extractTemperature(query: string, facts: QueryFact[]): void {
   const patterns = [
-    /(?:температур[а-я]*|лихорадк[а-я]*|t)\s*(?:до|около|примерно|=|:)?\s*((?:3[0-9]|4[0-3])(?:[.,]\d)?)\s*(?:°\s*)?[cс]?/giu,
-    /((?:3[5-9]|4[0-3])(?:[.,]\d)?)\s*°\s*[cс]?/giu,
+    /(?:температур[а-я]*|лихорадк[а-я]*|t)\s*(?:до|около|примерно|=|:)?\s*((?:3[0-9]|4[0-3])(?:[.,]\d)?)(?:\s*°(?:\s*[cс])?)?/giu,
+    /((?:3[5-9]|4[0-3])(?:[.,]\d)?)\s*°(?:\s*[cс])?/giu,
   ] as const;
   for (const pattern of patterns) {
     for (const match of query.matchAll(pattern)) {
@@ -324,25 +453,46 @@ function extractTemperature(query: string, facts: QueryFact[]): void {
 
 function extractDuration(query: string, facts: QueryFact[]): void {
   const ageRanges = facts.filter((fact) => fact.kind === 'age').map((fact) => fact.range);
+  const gestationalAgeRanges = GESTATIONAL_AGE_PATTERNS.flatMap((pattern) =>
+    [...query.matchAll(pattern)].map((match) => groupRange(match, 1)),
+  );
+  const excludedRanges = [...ageRanges, ...gestationalAgeRanges];
   const patterns = [
-    /(?:в\s+течение|уже|болеет|длительность\s*[:=]?|жалобы\s+в\s+течение)?\s*(\d{1,3})\s*(час(?:а|ов)?|дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?)\s*(?:назад|подряд)?/giu,
+    /(?:в\s+течение|уже|болеет|длительность\s*[:=]?|жалобы\s+в\s+течение)?\s*(\d{1,3}(?:\s*[-–—−]\s*\d{1,3})?)\s*(час(?:а|ов)?|дн(?:я|ей)?|день|дней|недел(?:я|и|ь|ю)?|месяц(?:а|ев)?|сут(?:ок|ки)?)(?:\s+(?:назад|подряд))?/giu,
     /(?:первый|второй|третий|четвертый|четвёртый|пятый|шестой|седьмой)\s+день/giu,
     /(?:сегодня|вчера|позавчера|несколько\s+дней|около\s+недели)/giu,
   ] as const;
   for (const pattern of patterns) {
     for (const match of query.matchAll(pattern)) {
       const start = match.index ?? 0;
-      const matchRange = range(start, start + match[0].length);
-      if (ageRanges.some((ageRange) => overlaps(ageRange, matchRange))) continue;
+      const matchRange = match[1]
+        ? range(groupRange(match, 1).start, start + match[0].length)
+        : range(start, start + match[0].length);
+      if (excludedRanges.some((excludedRange) => overlaps(excludedRange, matchRange))) continue;
       addFact(facts, {
         kind: 'duration',
         label: 'Длительность',
-        value: match[0],
+        value: query.slice(matchRange.start, matchRange.end),
+        normalizedValue: query
+          .slice(matchRange.start, matchRange.end)
+          .replace(/\s*[-–—−]\s*/gu, '-'),
         unit: match[2] ?? null,
         start: matchRange.start,
         end: matchRange.end,
       });
     }
+  }
+  for (const match of query.matchAll(/(?:до\s+еды|после\s+еды|с\s+рождения)/giu)) {
+    const start = match.index ?? 0;
+    addFact(facts, {
+      kind: 'duration',
+      label: 'Временная привязка',
+      value: match[0],
+      normalizedValue: match[0],
+      unit: null,
+      start,
+      end: start + match[0].length,
+    });
   }
 }
 
@@ -357,6 +507,12 @@ function extractMeasurements(query: string, facts: QueryFact[]): void {
       pattern: /(?:вес|масса)\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*(кг|г)/giu,
       label: 'Масса',
       unit: null,
+      normalizer: (match) => `${match[1] ?? ''} ${match[2] ?? ''}`.trim(),
+    },
+    {
+      pattern: /(?<![\d.,])(\d+(?:[.,]\d+)?)\s*(кг)(?=$|[^а-яёa-z])/giu,
+      label: 'Масса',
+      unit: 'кг',
       normalizer: (match) => `${match[1] ?? ''} ${match[2] ?? ''}`.trim(),
     },
     {
@@ -378,15 +534,42 @@ function extractMeasurements(query: string, facts: QueryFact[]): void {
       normalizer: (match) => match[1] ?? match[0],
     },
     {
-      pattern: /(?:ад|давление)\s*[:=]?\s*(\d{2,3})\s*\/\s*(\d{2,3})/giu,
+      pattern: /(?:ад|давлен[а-я]*)\s*[:=]?\s*(\d{2,3})\s*(?:\/\s*|на\s+)(\d{2,3})/giu,
       label: 'АД',
       unit: 'мм рт. ст.',
       normalizer: (match) => `${match[1] ?? ''}/${match[2] ?? ''}`,
+    },
+    {
+      pattern: /(?<![\d.,])\d{2,3}\s*\/\s*\d{2,3}(?![\d.,])/gu,
+      label: 'АД',
+      unit: 'мм рт. ст.',
+      normalizer: (match) => match[0].replace(/\s+/gu, ''),
     },
   ];
   for (const item of patterns) {
     for (const match of query.matchAll(item.pattern)) {
       const start = match.index ?? 0;
+      const matchRange = range(start, start + match[0].length);
+      if (
+        item.label === 'Масса' &&
+        facts.some(
+          (fact) =>
+            fact.kind === 'measurement' &&
+            fact.label === 'Масса' &&
+            overlaps(fact.range, matchRange),
+        )
+      ) {
+        continue;
+      }
+      if (
+        item.label === 'АД' &&
+        facts.some(
+          (fact) =>
+            fact.kind === 'measurement' && fact.label === 'АД' && overlaps(fact.range, matchRange),
+        )
+      ) {
+        continue;
+      }
       addFact(facts, {
         kind: 'measurement',
         label: item.label,
@@ -394,10 +577,455 @@ function extractMeasurements(query: string, facts: QueryFact[]): void {
         normalizedValue: item.normalizer?.(match) ?? match[0],
         unit: match[2] && item.label === 'Масса' ? match[2] : item.unit,
         start,
+        end: matchRange.end,
+      });
+    }
+  }
+}
+
+const RUSSIAN_NUMBER_VALUES: Readonly<Record<string, number>> = {
+  ноль: 0,
+  один: 1,
+  одна: 1,
+  одно: 1,
+  два: 2,
+  две: 2,
+  три: 3,
+  четыре: 4,
+  пять: 5,
+  шесть: 6,
+  семь: 7,
+  восемь: 8,
+  девять: 9,
+  десять: 10,
+  одиннадцать: 11,
+  двенадцать: 12,
+  тринадцать: 13,
+  четырнадцать: 14,
+  пятнадцать: 15,
+  шестнадцать: 16,
+  семнадцать: 17,
+  восемнадцать: 18,
+  девятнадцать: 19,
+  двадцать: 20,
+  тридцать: 30,
+  сорок: 40,
+  пятьдесят: 50,
+  шестьдесят: 60,
+  семьдесят: 70,
+  восемьдесят: 80,
+  девяносто: 90,
+};
+
+const RUSSIAN_NUMBER_WORDS = Object.keys(RUSSIAN_NUMBER_VALUES).join('|');
+const WEIGHT_AMOUNT_PATTERN = `(?:\\d+(?:[.,]\\d+)?|(?:${RUSSIAN_NUMBER_WORDS})(?:\\s+(?:${RUSSIAN_NUMBER_WORDS})){0,2})`;
+const WEIGHT_KILOGRAM_UNIT_PATTERN = '(?:кг\\.?|килограмм(?:а|ов)?)';
+const WEIGHT_UNIT_PATTERN = '(?:кг\\.?|килограмм(?:а|ов)?|г\\.?|грамм(?:а|ов)?)';
+
+const WEIGHT_PREFIX_PATTERN = new RegExp(
+  `(?:вес(?:ом)?|масс(?:а|ой|у|е)?)\\s*[:=]?\\s*(?:примерно\\s+|около\\s+|приблизительно\\s+)?(${WEIGHT_AMOUNT_PATTERN})\\s*(${WEIGHT_UNIT_PATTERN})`,
+  'giu',
+);
+const APPROXIMATE_WEIGHT_PATTERN = new RegExp(
+  `(?:примерно|около|приблизительно)\\s+(${WEIGHT_AMOUNT_PATTERN})\\s*(${WEIGHT_KILOGRAM_UNIT_PATTERN})(?=$|[^а-яёa-z])`,
+  'giu',
+);
+const BARE_WEIGHT_PATTERN = new RegExp(
+  `(?<![\\d.,а-яёa-z])(${WEIGHT_AMOUNT_PATTERN})\\s*(${WEIGHT_KILOGRAM_UNIT_PATTERN})(?=$|[^а-яёa-z])`,
+  'giu',
+);
+const WEIGHT_TEXT_PATTERN = new RegExp(
+  `(${WEIGHT_AMOUNT_PATTERN})\\s*(${WEIGHT_UNIT_PATTERN})`,
+  'iu',
+);
+
+interface NormalizedWeight {
+  readonly normalizedValue: string;
+  readonly unit: 'кг';
+}
+
+function parseRussianNumber(value: string): number | null {
+  const tokens = normalizeSurfaceText(value).split(' ').filter(Boolean);
+  if (tokens.length === 0 || tokens.some((token) => !(token in RUSSIAN_NUMBER_VALUES))) {
+    return null;
+  }
+  return tokens.reduce((sum, token) => sum + (RUSSIAN_NUMBER_VALUES[token] ?? 0), 0);
+}
+
+function parseWeightAmount(amount: string, unit: string): NormalizedWeight | null {
+  const normalizedAmount = normalizeSurfaceText(amount).replace(',', '.');
+  const numericAmount = /^\d+(?:\.\d+)?$/u.test(normalizedAmount)
+    ? Number(normalizedAmount)
+    : parseRussianNumber(normalizedAmount);
+  if (numericAmount === null || !Number.isFinite(numericAmount)) return null;
+  const normalizedUnit = normalizeSurfaceText(unit);
+  const kilograms =
+    normalizedUnit.startsWith('г') || normalizedUnit.startsWith('грамм')
+      ? numericAmount / 1_000
+      : numericAmount;
+  const formatted = Number(kilograms.toFixed(6)).toString();
+  return { normalizedValue: `${formatted} кг`, unit: 'кг' };
+}
+
+function parseWeightText(value: string): NormalizedWeight | null {
+  const match = WEIGHT_TEXT_PATTERN.exec(value);
+  if (!match) return null;
+  return parseWeightAmount(match[1] ?? '', match[2] ?? '');
+}
+
+function extractWeightContext(
+  query: string,
+  facts: readonly QueryFact[],
+): readonly ClinicalContextFact<'weight'>[] {
+  const weights: ClinicalContextFact<'weight'>[] = [];
+  for (const pattern of [WEIGHT_PREFIX_PATTERN, APPROXIMATE_WEIGHT_PATTERN, BARE_WEIGHT_PATTERN]) {
+    for (const match of query.matchAll(pattern)) {
+      const normalized = parseWeightAmount(match[1] ?? '', match[2] ?? '');
+      if (!normalized) continue;
+      const start = match.index ?? 0;
+      addContextFact(weights, {
+        kind: 'weight',
+        label: 'Масса',
+        value: match[0],
+        normalizedValue: normalized.normalizedValue,
+        unit: normalized.unit,
+        start,
         end: start + match[0].length,
       });
     }
   }
+
+  for (const fact of facts) {
+    if (fact.kind !== 'measurement' || fact.label !== 'Масса') continue;
+    const normalized = parseWeightText(fact.value);
+    if (!normalized) continue;
+    addContextFact(weights, {
+      kind: 'weight',
+      label: 'Масса',
+      value: fact.value,
+      normalizedValue: normalized.normalizedValue,
+      unit: normalized.unit,
+      polarity: fact.polarity,
+      start: fact.range.start,
+      end: fact.range.end,
+    });
+  }
+  return weights;
+}
+
+const ROUTE_PATTERNS: readonly [RegExp, string][] = [
+  [/(?:^|[^а-яёa-z])(в\s*\/\s*м|вм|внутримышечно)(?=$|[^а-яёa-z])/giu, 'внутримышечно'],
+  [/(?:^|[^а-яёa-z])(в\s*\/\s*в|в\s+вену|внутривенно)(?=$|[^а-яёa-z])/giu, 'внутривенно'],
+  [/(?:^|[^а-яёa-z])(per\s+os|peros|перорально)(?=$|[^а-яёa-z])/giu, 'перорально'],
+  [/(?:^|[^а-яёa-z])(под\s+язык)(?=$|[^а-яёa-z])/giu, 'сублингвально'],
+  [/(?:^|[^а-яёa-z])(ингаляционно)(?=$|[^а-яёa-z])/giu, 'ингаляционно'],
+  [/(?:^|[^а-яёa-z])(ректально)(?=$|[^а-яёa-z])/giu, 'ректально'],
+  [/(?:^|[^а-яёa-z])(местно)(?=$|[^а-яёa-z])/giu, 'местно'],
+  [/(?:^|[^а-яёa-z])(в\s+обе\s+ноздр(?:и|ю))(?:$|[^а-яёa-z])/giu, 'интраназально'],
+];
+
+function extractRouteContext(query: string): readonly ClinicalContextFact<'route'>[] {
+  const routes: ClinicalContextFact<'route'>[] = [];
+  for (const [pattern, normalizedValue] of ROUTE_PATTERNS) {
+    for (const match of query.matchAll(pattern)) {
+      const routeRange = groupRange(match, 1);
+      addContextFact(routes, {
+        kind: 'route',
+        label: 'Путь введения',
+        value: match[1] ?? match[0],
+        normalizedValue,
+        start: routeRange.start,
+        end: routeRange.end,
+      });
+    }
+  }
+  return routes;
+}
+
+const DOSE_FORM_PATTERN =
+  /(?:^|[^а-яёa-z])(суспенз(?:ия|ии|ию|ией)?|сироп(?:а|ом|е)?|спироп(?:а|ом|е)?|таблетк(?:а|и|у|ами|ах)?|маз(?:ь|и|ью)|кап(?:ля|ли|ель|лями))(?=$|[^а-яёa-z])/giu;
+
+function doseFormValue(value: string): string {
+  const normalized = normalizeSurfaceText(value);
+  if (normalized.startsWith('суспенз')) return 'суспензия';
+  if (normalized.startsWith('сироп') || normalized.startsWith('спироп')) return 'сироп';
+  if (normalized.startsWith('таблет')) return 'таблетки';
+  if (normalized.startsWith('маз')) return 'мазь';
+  return 'капли';
+}
+
+function extractDoseFormContext(query: string): readonly ClinicalContextFact<'dose-form'>[] {
+  const forms: ClinicalContextFact<'dose-form'>[] = [];
+  for (const match of query.matchAll(DOSE_FORM_PATTERN)) {
+    const formRange = groupRange(match, 1);
+    addContextFact(forms, {
+      kind: 'dose-form',
+      label: 'Лекарственная форма',
+      value: match[1] ?? match[0],
+      normalizedValue: doseFormValue(match[1] ?? match[0]),
+      start: formRange.start,
+      end: formRange.end,
+    });
+  }
+  return forms;
+}
+
+function decimalValue(value: string): string {
+  return value.replace(',', '.');
+}
+
+const STRENGTH_CONCENTRATION_PATTERN =
+  /(\d+(?:[.,]\d+)?)\s*(мг|г|мкг)\s*(?:\/\s*|\s+в\s+)(?:(\d+(?:[.,]\d+)?)\s*)?(мл|доз[ауы]?)/giu;
+const STRENGTH_PERCENT_PATTERN = /(\d+(?:[.,]\d+)?)\s*%/giu;
+const STRENGTH_VIAL_PATTERN = /(\d+(?:[.,]\d+)?)\s*(мг|г|мкг)\s+(?:во|в)\s+флаконе/giu;
+const STRENGTH_AMOUNT_PATTERN = /(?<![\d.,])((?:\d+(?:[.,]\d+)?))\s*(мг|г|мкг)(?=$|[^а-яёa-z])/giu;
+
+function strengthFromMatch(match: RegExpMatchArray): { normalizedValue: string; unit: string } {
+  const amount = decimalValue(match[1] ?? '');
+  const baseUnit = normalizeSurfaceText(match[2] ?? '');
+  const denominator = match[3] ? decimalValue(match[3]) : '';
+  const denominatorUnit = normalizeSurfaceText(match[4] ?? '');
+  if (denominatorUnit) {
+    const denominatorValue = denominator ? `${denominator} ` : '';
+    const unit = `${baseUnit}/${denominatorValue}${denominatorUnit}`;
+    return { normalizedValue: `${amount} ${unit}`, unit };
+  }
+  return { normalizedValue: `${amount} ${baseUnit}`, unit: baseUnit };
+}
+
+function extractStrengthContext(
+  query: string,
+  facts: readonly QueryFact[],
+): readonly ClinicalContextFact<'strength'>[] {
+  const strengths: ClinicalContextFact<'strength'>[] = [];
+  const reservedRanges = facts
+    .filter((fact) => fact.kind === 'measurement')
+    .map((fact) => fact.range);
+  const patterns = [
+    STRENGTH_CONCENTRATION_PATTERN,
+    STRENGTH_PERCENT_PATTERN,
+    STRENGTH_VIAL_PATTERN,
+    STRENGTH_AMOUNT_PATTERN,
+  ] as const;
+  for (const pattern of patterns) {
+    for (const match of query.matchAll(pattern)) {
+      const normalized =
+        pattern === STRENGTH_PERCENT_PATTERN
+          ? { normalizedValue: `${decimalValue(match[1] ?? '')}%`, unit: '%' }
+          : strengthFromMatch(match);
+      const start = match.index ?? 0;
+      addContextFact(
+        strengths,
+        {
+          kind: 'strength',
+          label: 'Сила/концентрация',
+          value: match[0],
+          normalizedValue: normalized.normalizedValue,
+          unit: normalized.unit,
+          start,
+          end: start + match[0].length,
+        },
+        reservedRanges,
+      );
+    }
+  }
+  return strengths;
+}
+
+const FREQUENCY_PATTERNS: readonly RegExp[] = [
+  /\d+(?:[.,]\d+)?\s*раз(?:а|у)?\s+в\s+(?:день|сутки|суток)/giu,
+  /(?:дважды|два\s+раза)\s+в\s+(?:день|сутки|суток)/giu,
+  /каждые\s+\d+(?:[.,]\d+)?\s*час(?:а|ов)?/giu,
+  /утром\s+и\s+вечером/giu,
+  /(?<!\d)\d+\s*-\s*\d+\s*-\s*\d+(?!\d)/gu,
+  /однократно|на\s+ночь|по\s+необходимости/giu,
+];
+
+function frequencyValue(value: string): { normalizedValue: string; unit: string | null } {
+  const normalized = normalizeSurfaceText(value).replace(/\s*-\s*/gu, '-');
+  if (/(?:дважды|два\s+раза)/u.test(normalized)) {
+    return { normalizedValue: '2 раза в сутки', unit: 'раз/сут' };
+  }
+  const times = normalized.match(/^(\d+(?:\.\d+)?)\s*раз(?:а|у)?\s+в\s+/u);
+  if (times) {
+    return { normalizedValue: `${times[1]} раза в сутки`, unit: 'раз/сут' };
+  }
+  if (/^каждые\s+/u.test(normalized)) return { normalizedValue: normalized, unit: 'ч' };
+  return { normalizedValue: normalized, unit: null };
+}
+
+function extractFrequencyContext(query: string): readonly ClinicalContextFact<'frequency'>[] {
+  const frequencies: ClinicalContextFact<'frequency'>[] = [];
+  for (const pattern of FREQUENCY_PATTERNS) {
+    for (const match of query.matchAll(pattern)) {
+      const normalized = frequencyValue(match[0]);
+      const start = match.index ?? 0;
+      addContextFact(frequencies, {
+        kind: 'frequency',
+        label: 'Кратность',
+        value: match[0],
+        normalizedValue: normalized.normalizedValue,
+        unit: normalized.unit,
+        start,
+        end: start + match[0].length,
+      });
+    }
+  }
+  return frequencies;
+}
+
+const GESTATIONAL_AGE_PATTERNS: readonly RegExp[] = [
+  /(?:^|[^а-яёa-z])((\d{1,3})\s*(недел(?:я|и|ь|ей|ю)?|нед\.?)\s+гестации)(?=$|[^а-яёa-z])/giu,
+  /(?:^|[^а-яёa-z])беременность\s+((\d{1,3})\s*(недел(?:я|и|ь|ей|ю)?|нед\.?))(?=$|[^а-яёa-z])/giu,
+];
+
+function extractGestationalAgeContext(
+  query: string,
+): readonly ClinicalContextFact<'gestational-age'>[] {
+  const gestationalAges: ClinicalContextFact<'gestational-age'>[] = [];
+  for (const pattern of GESTATIONAL_AGE_PATTERNS) {
+    for (const match of query.matchAll(pattern)) {
+      const matchRange = groupRange(match, 1);
+      const amount = Number(match[2] ?? '');
+      if (!Number.isInteger(amount)) continue;
+      const unit = russianPluralUnit(amount, ['неделя', 'недели', 'недель']);
+      addContextFact(gestationalAges, {
+        kind: 'gestational-age',
+        label: 'Срок беременности',
+        value: match[1] ?? match[0],
+        normalizedValue: `${amount} ${unit}`,
+        unit,
+        start: matchRange.start,
+        end: matchRange.end,
+      });
+    }
+  }
+  return gestationalAges;
+}
+
+const PREGNANCY_PATTERN =
+  /(?:^|[^а-яёa-z])((?:не\s+беременна|не\s+беременен|не\s+беременны|нет\s+беременности|беременности\s+нет|беременность(?:\s+\d{1,3}\s+недел(?:я|и|ь|ей|ю)?)))(?=$|[^а-яёa-z])/giu;
+
+function extractPregnancyContext(query: string): readonly ClinicalContextFact<'pregnancy'>[] {
+  const pregnancies: ClinicalContextFact<'pregnancy'>[] = [];
+  for (const match of query.matchAll(PREGNANCY_PATTERN)) {
+    const matchRange = groupRange(match, 1);
+    const value = match[1] ?? match[0];
+    const normalized = normalizeSurfaceText(value);
+    const polarity: QueryFactPolarity = /^(?:не\s+|нет\s+)|\s+нет$/u.test(normalized)
+      ? 'negative'
+      : 'positive';
+    addContextFact(pregnancies, {
+      kind: 'pregnancy',
+      label: 'Беременность',
+      value,
+      normalizedValue: 'беременность',
+      polarity,
+      start: matchRange.start,
+      end: matchRange.end,
+    });
+  }
+  return pregnancies;
+}
+
+const ORGAN_FUNCTION_PATTERN =
+  /(?:^|[^а-яёa-z])((?:(?:без|нет|не\s+было|не\s+наблюдается)\s+)?(?:почечн(?:ая|ой|ую|ом|ей)|печеночн(?:ая|ой|ую|ом|ей)|печёночн(?:ая|ой|ую|ом|ей))\s+недостаточн(?:ость|ости|остью)(?:\s+(?:нет|не\s+было|не\s+наблюдается))?)(?=$|[^а-яёa-z])/giu;
+
+function extractOrganFunctionContext(
+  query: string,
+): readonly ClinicalContextFact<'organ-function'>[] {
+  const organFunctions: ClinicalContextFact<'organ-function'>[] = [];
+  for (const match of query.matchAll(ORGAN_FUNCTION_PATTERN)) {
+    const matchRange = groupRange(match, 1);
+    const value = match[1] ?? match[0];
+    const normalized = normalizeSurfaceText(value);
+    const concept = normalized
+      .replace(/^(?:без|нет|не\s+было|не\s+наблюдается)\s+/u, '')
+      .replace(/\s+(?:нет|не\s+было|не\s+наблюдается)$/u, '')
+      .replace(/почечной\s+недостаточности/u, 'почечная недостаточность')
+      .replace(/печеночной\s+недостаточности/u, 'печеночная недостаточность');
+    const polarity: QueryFactPolarity =
+      /^(?:без|нет|не\s+было|не\s+наблюдается)\s+/u.test(normalized) ||
+      /\s+(?:нет|не\s+было|не\s+наблюдается)$/u.test(normalized)
+        ? 'negative'
+        : 'positive';
+    addContextFact(organFunctions, {
+      kind: 'organ-function',
+      label: 'Функция органа',
+      value,
+      normalizedValue: concept,
+      polarity,
+      start: matchRange.start,
+      end: matchRange.end,
+    });
+  }
+  return organFunctions;
+}
+
+const ALLERGY_PATTERN =
+  /(?:^|[^а-яёa-z])((?:аллерг(?:ия|ии|ию|ией|иями)\s+на\s+[^,.;:—–/\s](?:[^,.;:—–/\n]*[^,.;:—–/\s])?|нет\s+аллерги(?:и|я)|аллерги(?:я|и)\s+(?:нет|не\s+было|не\s+отмечается)))(?=$|[^а-яёa-z])/giu;
+
+function extractAllergyContext(query: string): readonly ClinicalContextFact<'allergy'>[] {
+  const allergies: ClinicalContextFact<'allergy'>[] = [];
+  for (const match of query.matchAll(ALLERGY_PATTERN)) {
+    const matchRange = groupRange(match, 1);
+    const value = match[1] ?? match[0];
+    const normalized = normalizeSurfaceText(value);
+    const polarity: QueryFactPolarity =
+      /^(?:нет\s+аллерги|аллерги(?:я|и)\s+(?:нет|не\s+было|не\s+отмечается))/u.test(normalized)
+        ? 'negative'
+        : 'positive';
+    const normalizedValue =
+      polarity === 'negative'
+        ? 'аллергия'
+        : `аллергия на ${normalized.replace(/^аллерги(?:я|и|ю|ией|иями)\s+на\s+/u, '')}`;
+    addContextFact(allergies, {
+      kind: 'allergy',
+      label: 'Аллергия',
+      value,
+      normalizedValue,
+      polarity,
+      start: matchRange.start,
+      end: matchRange.end,
+    });
+  }
+  return allergies;
+}
+
+function buildClinicalContext(query: string, facts: readonly QueryFact[]): QueryClinicalContext {
+  const age = facts.filter((fact): fact is ClinicalContextFact<'age'> => fact.kind === 'age');
+  const sex = facts.filter((fact): fact is QueryFact<'sex'> => fact.kind === 'sex');
+  const duration = facts.filter((fact): fact is QueryFact<'duration'> => fact.kind === 'duration');
+  const measurements = facts.filter(
+    (fact): fact is ClinicalContextFact<'measurement'> => fact.kind === 'measurement',
+  );
+  const positiveFindings = facts.filter(
+    (fact) =>
+      fact.polarity === 'positive' &&
+      (fact.kind === 'symptom' || fact.kind === 'temperature' || fact.kind === 'measurement'),
+  );
+  const negativeFindings = facts.filter((fact) => fact.polarity === 'negative');
+  const currentMedicines = facts.filter(
+    (fact): fact is QueryFact<'medication'> => fact.kind === 'medication',
+  );
+  return {
+    age,
+    gestationalAge: extractGestationalAgeContext(query),
+    sex,
+    duration,
+    weight: extractWeightContext(query, facts),
+    route: extractRouteContext(query),
+    doseForm: extractDoseFormContext(query),
+    strength: extractStrengthContext(query, facts),
+    frequency: extractFrequencyContext(query),
+    measurements,
+    positiveFindings,
+    negativeFindings,
+    currentMedicines,
+    pregnancy: extractPregnancyContext(query),
+    organFunction: extractOrganFunctionContext(query),
+    allergies: extractAllergyContext(query),
+  };
 }
 
 function trimPrefixNegation(captured: string, aliases: readonly AliasRecord[]): string {
@@ -433,7 +1061,7 @@ function extractNegations(
   facts: QueryFact[],
 ): void {
   const prefixPattern =
-    /(?:без|нет|отрицает|не\s+было|не\s+отмечается|не\s+отмечает|не\s+наблюдается)\s+([^,.;:\n]{2,80})/giu;
+    /(?:без|нет|отрицает|не\s+было|не\s+отмечается|не\s+отмечает|не\s+наблюдается)\s+([^,.;:—/\n]{2,80})/giu;
   for (const match of query.matchAll(prefixPattern)) {
     const captured = match[1] ?? '';
     const shortened = trimPrefixNegation(captured, aliases);
@@ -449,7 +1077,7 @@ function extractNegations(
     });
   }
   const postfixPattern =
-    /([^,.;:\n]{2,50}?)\s+(?:нет|не\s+было|не\s+отмечается|не\s+наблюдается)(?=[,.;:\n]|$)/giu;
+    /([^,.;:—/\n]{2,50}?)\s+(?:нет|не\s+было|не\s+отмечается|не\s+наблюдается|не\s+помог(?:ло|ла|ли)?|не\s+принимал(?:а|и)?|не\s+принима(?:ет|ют|ю|ешь|ете))(?=\s*[,.;:—/\n]|$)/giu;
   for (const match of query.matchAll(postfixPattern)) {
     const captured = (match[1] ?? '').trim();
     if (!captured) continue;
@@ -469,7 +1097,7 @@ function extractNegations(
 function addTermFact(
   query: string,
   facts: QueryFact[],
-  kind: QueryFactKind,
+  kind: LegacyQueryFactKind,
   label: string,
   term: string,
 ): void {
@@ -497,7 +1125,7 @@ function extractAliasFacts(
     const normalizedAlias = normalizeSurfaceText(alias.alias);
     const index = findNormalizedPhraseIndex(normalizedQuery, normalizedAlias);
     if (index < 0) continue;
-    const kindByCategory: Readonly<Record<string, QueryFactKind>> = {
+    const kindByCategory: Readonly<Record<string, LegacyQueryFactKind>> = {
       symptom: 'symptom',
       investigation: 'investigation',
       measurement: 'measurement',
@@ -819,12 +1447,16 @@ function ftsToken(term: string): string {
 const ICD10_CODE_PATTERN =
   /(?<![A-ZА-Я0-9])(?<code>[A-ZА-Я]?\s*\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])/giu;
 
-function icd10LegacyFtsQueries(value: string): readonly string[] {
+function icd10LegacyFtsQueries(
+  value: string,
+  excludedNumericTerms?: ReadonlySet<string>,
+): readonly string[] {
   const queries = new Set<string>();
   for (const match of value.matchAll(ICD10_CODE_PATTERN)) {
+    // biome-ignore lint/complexity/useLiteralKeys: named RegExp groups use an index signature.
     const compact = match.groups?.['code']?.replace(/[.\-\s]/gu, '').toLowerCase();
     const numeric = compact?.replace(/^[a-zа-я]/u, '');
-    if (!numeric || numeric.length < 3) continue;
+    if (!numeric || numeric.length < 3 || excludedNumericTerms?.has(numeric)) continue;
     const prefix = numeric.slice(0, 2);
     const suffix = numeric.slice(2);
     queries.add(`(${ftsToken(prefix)} AND ${ftsToken(suffix)})`);
@@ -833,8 +1465,14 @@ function icd10LegacyFtsQueries(value: string): readonly string[] {
   return [...queries];
 }
 
-function buildFtsQuery(query: string, terms: readonly string[]): string {
-  return [...new Set([...terms.map(ftsToken), ...icd10LegacyFtsQueries(query)])].join(' OR ');
+function buildFtsQuery(
+  query: string,
+  terms: readonly string[],
+  excludedNumericTerms?: ReadonlySet<string>,
+): string {
+  return [
+    ...new Set([...terms.map(ftsToken), ...icd10LegacyFtsQueries(query, excludedNumericTerms)]),
+  ].join(' OR ');
 }
 
 function icd10CodeFragments(values: readonly string[]): ReadonlySet<string> {
@@ -851,6 +1489,7 @@ function icd10SearchTerms(values: readonly string[]): readonly string[] {
   const terms = new Set<string>();
   for (const value of values) {
     for (const match of value.matchAll(ICD10_CODE_PATTERN)) {
+      // biome-ignore lint/complexity/useLiteralKeys: named RegExp groups use an index signature.
       const compact = match.groups?.['code']?.replace(/[.\-\s]/gu, '').toLowerCase();
       if (!compact || compact.length < 3) continue;
       terms.add(compact);
@@ -861,23 +1500,63 @@ function icd10SearchTerms(values: readonly string[]): readonly string[] {
   return [...terms];
 }
 
-function termsWithStems(values: readonly string[]): readonly string[] {
+function termsWithStems(
+  values: readonly string[],
+  excludedNumericTerms?: ReadonlySet<string>,
+): readonly string[] {
   const terms = new Set<string>();
   const icd10Fragments = icd10CodeFragments(values);
   for (const value of values) {
+    const normalizedValue = normalizeSurfaceText(value);
+    const paddedValue = ` ${normalizedValue} `;
+    for (const [phrase, expansions] of Object.entries(QUERY_PHRASE_EXPANSIONS)) {
+      if (!paddedValue.includes(` ${phrase} `)) continue;
+      for (const expansion of expansions) {
+        terms.add(expansion);
+        terms.add(lightStemRussian(expansion));
+      }
+    }
+    if (QUERY_EXPANSION_PHRASES.has(normalizedValue)) {
+      terms.add(normalizedValue);
+      continue;
+    }
     for (const token of tokenize(value)) {
       if (icd10Fragments.has(token)) continue;
       if (/^\d+$/u.test(token) || STRUCTURAL_TERMS.has(token)) continue;
       terms.add(token);
       terms.add(lightStemRussian(token));
-      for (const expansion of QUERY_EXPANSIONS[token] ?? []) {
-        terms.add(expansion);
-        terms.add(lightStemRussian(expansion));
+      const expansionKeys = new Set([token, lightStemRussian(token)]);
+      for (const expansionKey of expansionKeys) {
+        for (const expansion of QUERY_EXPANSIONS[expansionKey] ?? []) {
+          terms.add(expansion);
+          if (!QUERY_EXPANSION_PHRASES.has(expansion)) terms.add(lightStemRussian(expansion));
+        }
       }
     }
   }
-  for (const term of icd10SearchTerms(values)) terms.add(term);
+  for (const term of icd10SearchTerms(values)) {
+    if (!excludedNumericTerms?.has(term)) terms.add(term);
+  }
   return [...terms].filter((term) => term.length >= 2).slice(0, MAX_FTS_TERMS);
+}
+
+function strengthPresentationFtsQuery(values: readonly string[]): string {
+  return values
+    .map((value) => {
+      const normalized = normalizeSurfaceText(value);
+      const [numerator = normalized, denominator] = normalized.split(/\s*\/\s*/u);
+      const numeratorTerms = termsWithStems([numerator]).filter((term) => !term.includes(' '));
+      const denominatorTerms = denominator
+        ? termsWithStems([denominator]).filter(
+            (term) => !term.includes(' ') && !/^\d+$/u.test(term),
+          )
+        : [];
+      const terms = [...new Set([...numeratorTerms, ...denominatorTerms])];
+      return terms.length > 0 ? terms.map(ftsToken).join(' AND ') : ftsToken(normalized);
+    })
+    .filter((query) => query.length > 0)
+    .map((query) => `(${query})`)
+    .join(' OR ');
 }
 
 function makeBranch(
@@ -887,8 +1566,9 @@ function makeBranch(
   query: string,
   values: readonly string[],
   weight: number,
+  excludedNumericTerms?: ReadonlySet<string>,
 ): LexicalQueryBranchPlan | null {
-  const terms = termsWithStems(values);
+  const terms = termsWithStems(values, excludedNumericTerms);
   if (terms.length === 0) return null;
   return {
     id,
@@ -898,8 +1578,19 @@ function makeBranch(
     normalizedQuery: normalizeSurfaceText(query),
     terms,
     weight,
-    ftsQuery: buildFtsQuery(query, terms),
+    ftsQuery: buildFtsQuery(query, terms, excludedNumericTerms),
   };
+}
+
+function measurementNumericTerms(facts: readonly QueryFact[]): ReadonlySet<string> {
+  const terms = new Set<string>();
+  for (const fact of facts) {
+    if (fact.kind !== 'measurement') continue;
+    for (const token of tokenize(fact.normalizedValue)) {
+      if (/^\d+$/u.test(token)) terms.add(token);
+    }
+  }
+  return terms;
 }
 
 function termsInsideNegativeFacts(facts: readonly QueryFact[]): ReadonlySet<string> {
@@ -915,12 +1606,14 @@ function buildBranches(
   query: string,
   aliases: readonly AliasRecord[],
   facts: readonly QueryFact[],
+  clinicalContext: QueryClinicalContext,
   intent: QueryIntent,
 ): readonly LexicalQueryBranchPlan[] {
   const normalizedQuery = normalizeSurfaceText(query);
   const expansion = expandAliases(normalizedQuery, aliases);
   const negativeTerms = termsInsideNegativeFacts(facts);
-  const originalTerms = termsWithStems([normalizedQuery]);
+  const measurementTerms = measurementNumericTerms(facts);
+  const originalTerms = termsWithStems([normalizedQuery], measurementTerms);
   const positiveTerms = originalTerms.filter((term) => !negativeTerms.has(term));
   const negativeRanges = facts
     .filter((fact) => fact.kind === 'negative-finding')
@@ -934,16 +1627,75 @@ function buildBranches(
       .filter((matchSpan) => matchSpan.matchType === 'exact')
       .map((matchSpan) => matchSpan.alias.canonicalTerm),
   );
-  const fuzzyCanonicalTerms = termsWithStems(
+  const fuzzyTerms = termsWithStems(
     positiveMatches
       .filter((matchSpan) => matchSpan.matchType === 'fuzzy')
-      .map((matchSpan) => matchSpan.alias.canonicalTerm),
+      .flatMap((matchSpan) =>
+        matchSpan.alias.category === 'medication'
+          ? [matchSpan.alias.canonicalTerm, matchSpan.alias.alias]
+          : [matchSpan.alias.canonicalTerm],
+      ),
   );
   const clinicalTerms = [...new Set([...positiveTerms, ...exactCanonicalTerms])].slice(
     0,
     MAX_FTS_TERMS,
   );
   const branches: LexicalQueryBranchPlan[] = [];
+  const exactMedicationAliases = positiveMatches
+    .filter(
+      (matchSpan) =>
+        matchSpan.matchType === 'exact' &&
+        matchSpan.alias.category === 'medication' &&
+        normalizeSurfaceText(matchSpan.alias.alias) !==
+          normalizeSurfaceText(matchSpan.alias.canonicalTerm),
+    )
+    .map((matchSpan) => matchSpan.alias.alias);
+  const strengthValues = clinicalContext.strength
+    .filter((fact) => fact.polarity === 'positive')
+    .map((fact) => fact.normalizedValue);
+  const presentationTermGroups = [
+    termsWithStems(exactMedicationAliases),
+    termsWithStems(
+      clinicalContext.doseForm
+        .filter((fact) => fact.polarity === 'positive')
+        .map((fact) => fact.normalizedValue),
+    ),
+    termsWithStems(
+      clinicalContext.route
+        .filter((fact) => fact.polarity === 'positive')
+        .map((fact) => fact.normalizedValue),
+    ),
+    [
+      ...termsWithStems(strengthValues),
+      ...strengthValues.map((value) => normalizeSurfaceText(value)),
+    ],
+  ].map((terms) => [...new Set(terms)]);
+  const presentationFtsQueries = presentationTermGroups.map((terms, index) =>
+    index === 3 ? strengthPresentationFtsQuery(strengthValues) : terms.map(ftsToken).join(' OR '),
+  );
+  const presentationGroups = presentationTermGroups
+    .map((terms, index) => ({ terms, ftsQuery: presentationFtsQueries[index] ?? '' }))
+    .filter((group) => group.terms.length > 0 && group.ftsQuery.length > 0);
+  const [medicationAliasGroup, ...structuredPresentationGroups] = presentationGroups;
+  if (medicationAliasGroup && structuredPresentationGroups.length > 0) {
+    branches.push({
+      id: 'medication-presentation',
+      kind: 'medication',
+      label: 'Точная форма препарата',
+      query,
+      normalizedQuery,
+      terms: [
+        ...new Set([
+          ...medicationAliasGroup.terms,
+          ...structuredPresentationGroups.flatMap((group) => group.terms),
+        ]),
+      ].slice(0, MAX_FTS_TERMS),
+      weight: 1.7,
+      ftsQuery: [medicationAliasGroup, ...structuredPresentationGroups]
+        .map((group) => `(${group.ftsQuery})`)
+        .join(' AND '),
+    });
+  }
   const clinicalWeight = intent.primary === 'diagnosis' ? 1.32 : 1.18;
   const clinical = makeBranch(
     'clinical',
@@ -952,14 +1704,15 @@ function buildBranches(
     query,
     clinicalTerms,
     clinicalWeight,
+    measurementTerms,
   );
   if (clinical) branches.push(clinical);
   const fuzzyAliases = makeBranch(
     'fuzzy-aliases',
     'clinical',
     'Похожие клинические термины',
-    fuzzyCanonicalTerms.join(' '),
-    fuzzyCanonicalTerms,
+    fuzzyTerms.join(' '),
+    fuzzyTerms,
     0.72,
   );
   if (fuzzyAliases && exactCanonicalTerms.length === 0) branches.push(fuzzyAliases);
@@ -973,6 +1726,7 @@ function buildBranches(
       query,
       [normalizedQuery, intentSpec.terms],
       intentSpec.weight,
+      measurementTerms,
     );
     if (branch && !branches.some((item) => item.ftsQuery === branch.ftsQuery))
       branches.push(branch);
@@ -985,6 +1739,7 @@ function buildBranches(
     query,
     positiveTerms,
     1,
+    measurementTerms,
   );
   if (original && !branches.some((item) => item.ftsQuery === original.ftsQuery))
     branches.push(original);
@@ -1031,6 +1786,7 @@ function buildBranches(
         clause,
         [clause],
         0.82,
+        measurementTerms,
       );
       if (branch && !branches.some((item) => item.ftsQuery === branch.ftsQuery))
         branches.push(branch);
@@ -1044,6 +1800,7 @@ function buildBranches(
       query,
       [normalizedQuery, 'дифференциальная диагностика отличия критерии'],
       1.38,
+      measurementTerms,
     );
     if (differential) branches.unshift(differential);
   }
@@ -1059,6 +1816,7 @@ function buildBranches(
       query,
       [normalizedQuery, 'диагностика обследование лабораторная инструментальная'],
       1.4,
+      measurementTerms,
     );
     if (nextDiagnostics) branches.unshift(nextDiagnostics);
   }
@@ -1085,7 +1843,8 @@ export function analyzeClinicalQuery(
   extractKnownTerms(query, facts);
   extractMedicationPhrase(query, facts);
   const orderedFacts = facts.toSorted((left, right) => left.range.start - right.range.start);
-  const branches = buildBranches(query, aliases, orderedFacts, intent);
+  const clinicalContext = buildClinicalContext(query, orderedFacts);
+  const branches = buildBranches(query, aliases, orderedFacts, clinicalContext, intent);
   const expansion = expandAliases(normalizedQuery, aliases);
   const suggestions = includeSuggestions
     ? buildSuggestions(normalizedQuery, orderedFacts, intent)
@@ -1095,6 +1854,7 @@ export function analyzeClinicalQuery(
     normalizedQuery,
     intent,
     facts: orderedFacts,
+    clinicalContext,
     branches: branches.map(({ ftsQuery: _ftsQuery, ...branch }) => branch),
     suggestions,
     warnings: buildWarnings(normalizedQuery, orderedFacts),

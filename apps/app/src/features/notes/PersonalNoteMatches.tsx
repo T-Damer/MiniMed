@@ -1,4 +1,5 @@
 import {
+  createDeferred,
   createEffect,
   createMemo,
   createSignal,
@@ -8,24 +9,114 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-import { AppGlyph } from '@/components/AppGlyph';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { openUserLibraryDocument } from '@/features/library/user-library-routing';
+import { notesPatientsPath } from '@/features/notes/notes-routing';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import type { PatientProfile } from '@/state/patient-domain';
 import {
   PATIENT_NOTES_EVENT,
   type PatientNoteMatch,
   searchPatientNotes,
 } from '@/state/patient-notes';
 import {
+  isPatientVaultUnlocked,
+  PATIENT_VAULT_EVENT,
+  PATIENT_VAULT_LOCK_EVENT,
+  readPatientVault,
+} from '@/state/patient-vault';
+import { personalMatchScore, personalQueryStems } from '@/state/personal-stem-match';
+import {
   listUserLibraryDocuments,
   searchUserLibrary,
   USER_LIBRARY_EVENT,
+  type UserLibraryFileKind,
   type UserLibraryMatch,
+  userLibraryFileKind,
 } from '@/state/user-library';
 
 type PersonalHit =
+  | { readonly kind: 'patient'; readonly match: PatientProfileMatch }
   | { readonly kind: 'note'; readonly match: PatientNoteMatch }
   | { readonly kind: 'library'; readonly match: UserLibraryMatch };
+
+interface PatientProfileMatch {
+  readonly profile: PatientProfile;
+  readonly score: number;
+  readonly snippet: string;
+}
+
+function patientProfileSearchText(profile: PatientProfile): string {
+  return [
+    profile.displayName,
+    profile.localRecordNumber,
+    profile.birthDate,
+    profile.biologicalSex,
+    profile.summary,
+    ...Object.values(profile.context ?? {}).map(String),
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(' ');
+}
+
+function patientProfileSnippet(profile: PatientProfile): string {
+  return (
+    [
+      profile.localRecordNumber ? `№ ${profile.localRecordNumber}` : '',
+      profile.birthDate ? `рожд. ${profile.birthDate}` : '',
+      profile.biologicalSex ?? '',
+      profile.summary ?? '',
+    ]
+      .filter(Boolean)
+      .join(' · ') || 'Локальная карточка пациента'
+  );
+}
+
+function searchPatientProfiles(
+  profiles: readonly PatientProfile[],
+  query: string,
+  limit = 5,
+): readonly PatientProfileMatch[] {
+  const queryStems = personalQueryStems(query);
+  return profiles
+    .map((profile) => ({
+      profile,
+      score: personalMatchScore(queryStems, patientProfileSearchText(profile)),
+      snippet: patientProfileSnippet(profile),
+    }))
+    .filter((match) => match.score > 0)
+    .toSorted(
+      (left, right) =>
+        right.score - left.score || right.profile.updatedAt.localeCompare(left.profile.updatedAt),
+    )
+    .slice(0, limit);
+}
+
+const PERSONAL_FILE_PRESENTATION = {
+  questionnaire: { icon: 'list-checks', label: 'Опросник' },
+  pdf: { icon: 'file-pdf', label: 'Личный PDF' },
+  dicom: { icon: 'disc', label: 'Медицинское изображение' },
+  volume: { icon: 'cube', label: 'Медицинский том' },
+  image: { icon: 'image', label: 'Изображение' },
+  video: { icon: 'film-slate', label: 'Видео' },
+  audio: { icon: 'music-notes', label: 'Аудио' },
+  archive: { icon: 'file-zip', label: 'Архив' },
+  code: { icon: 'code', label: 'Код' },
+  presentation: { icon: 'file-ppt', label: 'Презентация' },
+  sheet: { icon: 'file-xls', label: 'Таблица' },
+  doc: { icon: 'file-doc', label: 'Документ' },
+  ebook: { icon: 'book-open', label: 'Личная книга' },
+  text: { icon: 'file-txt', label: 'Текстовый файл' },
+  binary: { icon: 'binary', label: 'Файл' },
+} satisfies Record<UserLibraryFileKind, { readonly icon: AppGlyphName; readonly label: string }>;
+
+function personalLibraryPresentation(document: UserLibraryMatch['document']): {
+  readonly icon: AppGlyphName;
+  readonly label: string;
+} {
+  if (document.source?.kind === 'note') return { icon: 'notes', label: 'Личные записи' };
+  return PERSONAL_FILE_PRESENTATION[userLibraryFileKind(document.mimeType, document.fileName)];
+}
 
 interface PersonalNoteMatchesProps {
   readonly query: string;
@@ -43,6 +134,8 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
   const [collapsed, setCollapsed] = createSignal(props.scope !== 'personal');
   const [hasUserLibrary, setHasUserLibrary] = createSignal(false);
   const [libraryMatches, setLibraryMatches] = createSignal<readonly UserLibraryMatch[]>([]);
+  const [patientProfiles, setPatientProfiles] = createSignal<readonly PatientProfile[]>([]);
+  let patientReadRequest = 0;
 
   const refreshLibraryPresence = (): void => {
     void listUserLibraryDocuments()
@@ -53,22 +146,49 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
       });
   };
 
+  const refreshPatientProfiles = (): void => {
+    const request = ++patientReadRequest;
+    if (!isPatientVaultUnlocked()) {
+      setPatientProfiles([]);
+      return;
+    }
+    void readPatientVault()
+      .then((snapshot) => {
+        if (request === patientReadRequest && isPatientVaultUnlocked()) {
+          setPatientProfiles(snapshot.profiles);
+        }
+      })
+      .catch((cause) => {
+        if (request !== patientReadRequest) return;
+        setPatientProfiles([]);
+        console.error('Не удалось прочитать карточки пациентов для поиска.', cause);
+      });
+  };
+
   const bump = (): void => {
     setRevision((current) => current + 1);
     refreshLibraryPresence();
+    refreshPatientProfiles();
   };
 
   onMount(() => {
     window.addEventListener(PATIENT_NOTES_EVENT, bump);
+    window.addEventListener(PATIENT_VAULT_EVENT, bump);
+    window.addEventListener(PATIENT_VAULT_LOCK_EVENT, bump);
     window.addEventListener(USER_LIBRARY_EVENT, bump);
     refreshLibraryPresence();
+    refreshPatientProfiles();
   });
   onCleanup(() => {
     window.removeEventListener(PATIENT_NOTES_EVENT, bump);
+    window.removeEventListener(PATIENT_VAULT_EVENT, bump);
+    window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, bump);
     window.removeEventListener(USER_LIBRARY_EVENT, bump);
+    patientReadRequest += 1;
   });
 
   const trimmedQuery = createMemo(() => props.query.trim());
+  const deferredQuery = createDeferred(trimmedQuery, { timeoutMs: 120 });
 
   createEffect(() => {
     trimmedQuery();
@@ -77,7 +197,7 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
 
   createEffect(() => {
     revision();
-    const query = trimmedQuery();
+    const query = deferredQuery();
     if (query.length <= 1) {
       setLibraryMatches([]);
       return;
@@ -92,12 +212,18 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
 
   const noteMatches = createMemo(() => {
     revision();
-    const query = trimmedQuery();
+    const query = deferredQuery();
     return query.length > 1 ? searchPatientNotes(query, 5) : [];
+  });
+
+  const patientMatches = createMemo(() => {
+    const query = deferredQuery();
+    return query.length > 1 ? searchPatientProfiles(patientProfiles(), query, 5) : [];
   });
 
   const combinedMatches = createMemo((): readonly PersonalHit[] => {
     const hits: PersonalHit[] = [
+      ...patientMatches().map((match) => ({ kind: 'patient' as const, match })),
       ...noteMatches().map((match) => ({ kind: 'note' as const, match })),
       ...libraryMatches().map((match) => ({ kind: 'library' as const, match })),
     ];
@@ -110,7 +236,10 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
   });
 
   const sectionLabel = createMemo(() =>
-    props.scope === 'personal' || hasUserLibrary() || libraryMatches().length > 0
+    props.scope === 'personal' ||
+    hasUserLibrary() ||
+    libraryMatches().length > 0 ||
+    patientMatches().length > 0
       ? 'Ваши данные'
       : 'Личные записи',
   );
@@ -157,7 +286,29 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
               <For each={combinedMatches()}>
                 {(hit) => (
                   <li class="personal-note-matches__item">
-                    {hit.kind === 'note' ? (
+                    {hit.kind === 'patient' ? (
+                      <button
+                        type="button"
+                        class="personal-note-matches__card personal-note-matches__card--hit"
+                        onClick={() => {
+                          window.location.hash = notesPatientsPath(hit.match.profile.id);
+                        }}
+                      >
+                        <AppGlyph name="users" class="personal-note-matches__icon" />
+                        <div class="personal-note-matches__body">
+                          <span class="personal-note-badge personal-note-badge--inline">
+                            Карточка пациента
+                          </span>
+                          <strong class="personal-note-matches__title">
+                            {hit.match.profile.displayName}
+                          </strong>
+                          <p class="personal-note-matches__snippet">{hit.match.snippet}</p>
+                          <small class="personal-note-matches__meta">
+                            Открыть локальную карточку
+                          </small>
+                        </div>
+                      </button>
+                    ) : hit.kind === 'note' ? (
                       <article class="personal-note-matches__card">
                         <AppGlyph name="notes" class="personal-note-matches__icon" />
                         <div class="personal-note-matches__body">
@@ -186,10 +337,13 @@ export function PersonalNoteMatches(props: PersonalNoteMatchesProps): JSX.Elemen
                           })
                         }
                       >
-                        <AppGlyph name="notepad" class="personal-note-matches__icon" />
+                        <AppGlyph
+                          name={personalLibraryPresentation(hit.match.document).icon}
+                          class="personal-note-matches__icon"
+                        />
                         <div class="personal-note-matches__body">
                           <span class="personal-note-badge personal-note-badge--inline">
-                            Личная книга
+                            {personalLibraryPresentation(hit.match.document).label}
                           </span>
                           <strong class="personal-note-matches__title">
                             {hit.match.document.title}

@@ -24,8 +24,11 @@ export function loadToolModuleRecords(
   const records: ToolDefinitionRecord[] = [];
   for (const relativePath of files) {
     const source = JSON.parse(readFileSync(resolve(process.cwd(), relativePath), 'utf8')) as {
+      schemaVersion?: unknown;
       tools: readonly unknown[];
     };
+    if (source.schemaVersion !== 2)
+      throw new Error(`Unsupported tool-module schema in ${relativePath}; expected v2.`);
     for (const rawTool of source.tools) {
       records.push(ToolDefinitionRecordSchema.parse(rawTool));
     }

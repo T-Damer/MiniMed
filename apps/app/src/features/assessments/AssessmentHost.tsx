@@ -57,7 +57,7 @@ export function AssessmentHost(): JSX.Element {
         >
           <AppGlyph name="close" class="assessment-overlay-close__icon" />
         </button>
-        <AssessmentsView />
+        <AssessmentsView active={open()} />
       </div>
     </Show>
   );

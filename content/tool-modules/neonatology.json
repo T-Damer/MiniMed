@@ -25,7 +25,7 @@
       "estimatedMinutes": 1,
       "audience": "Новорождённые с гипогликемией; применять только врачом в рамках клинического маршрута",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.neonatal-glucose-infusion-rate",
         "slug": "neonatal-glucose-infusion-rate",
         "title": "Неонатология — GIR (скорость инфузии глюкозы)",
@@ -56,7 +56,13 @@
             "minimum": 0.25,
             "maximum": 8,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "glucosePercent",
@@ -107,6 +113,22 @@
             "url": "https://www.brighamandwomens.org/assets/bwh/pediatric-newborn-medicine/pdfs/dpnm-hypoglycemia-revised-12-19-16.pdf",
             "page": "P4, section GIR (line 121-122)",
             "reviewedAt": "2026-08-15"
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": ["gir-bwh-2016", "gir-neonatology-222n"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.neonatal-glucose-infusion-rate.gir",
+            "label": "GIR, мг/кг/мин",
+            "unit": "мг/кг/мин",
+            "stepId": "gir",
+            "method": "calculator:minimed.calculator.neonatal-glucose-infusion-rate"
           }
         ]
       },
@@ -349,6 +371,23 @@
             "page": "PDF pages 6–8, Table 14.2",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": ["silverman-andersen-newbornwhocc", "silverman-andersen-222n"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.silverman-andersen-respiratory-distress.silverman-andersen-total",
+            "label": "Итоговый балл по шкале Silverman–Andersen",
+            "unit": "баллы",
+            "scaleId": "silverman-andersen-total",
+            "method": "assessment:minimed.assessment.silverman-andersen-respiratory-distress"
+          }
         ]
       },
       "sources": [
@@ -573,6 +612,26 @@
             "section": "Respiratory Distress  > Severity grading",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": [
+            "downes-vidyasagar-aiims-2019",
+            "downes-vidyasagar-neonatology-clinical-222n"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.downes-vidyasagar-respiratory-distress.downes-vidyasagar-total",
+            "label": "Итоговый балл по шкале Downes–Vidyasagar",
+            "unit": "баллы",
+            "scaleId": "downes-vidyasagar-total",
+            "method": "assessment:minimed.assessment.downes-vidyasagar-respiratory-distress"
+          }
         ]
       },
       "sources": [
@@ -616,7 +675,7 @@
       "estimatedMinutes": 1,
       "audience": "Медицинский специалист, оценивающий ранние потери массы у новорождённых на раннем постнатальном этапе",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.neonatal-physiologic-weight-loss",
         "slug": "neonatal-physiologic-weight-loss",
         "title": "Неонатология — физиологическая потеря массы тела",
@@ -657,7 +716,13 @@
             "minimum": 0.25,
             "maximum": 8,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
           },
           {
             "id": "ageDays",
@@ -710,6 +775,42 @@
             "page": "line 195 states '>10% of birth weight requires further evaluation'",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "weightLossPercent <= 10",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "Потеря в пределах часто встречающегося физиологического окна для доношенных в первые дни; при жалобах/симптомах требуется повторная оценка.",
+                "explanation": "Потеря в пределах часто встречающегося физиологического окна для доношенных в первые дни; при жалобах/симптомах требуется повторная оценка.",
+                "attentionLevel": "none",
+                "sourceIds": ["weight-loss-aap-2026", "weight-loss-neonatology-clinical-222n"]
+              }
+            },
+            {
+              "when": "weightLossPercent > 10",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "Потеря более 10% массы тела требует более детальной оценки и неотложного решения о дообследовании/наблюдении.",
+                "explanation": "Потеря более 10% массы тела требует более детальной оценки и неотложного решения о дообследовании/наблюдении.",
+                "attentionLevel": "none",
+                "sourceIds": ["weight-loss-aap-2026", "weight-loss-neonatology-clinical-222n"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["weight-loss-aap-2026", "weight-loss-neonatology-clinical-222n"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.neonatal-physiologic-weight-loss.weightLossPercent",
+            "label": "Потеря массы тела",
+            "unit": "%",
+            "stepId": "weightLossPercent",
+            "method": "calculator:minimed.calculator.neonatal-physiologic-weight-loss"
+          }
         ]
       },
       "sources": [
@@ -754,7 +855,7 @@
       "estimatedMinutes": 3,
       "audience": "Врач неонатолог / неонатальный персонал, применяющий шкалу на практике.",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.calculator.ballard-neonatal-gestational-age",
         "slug": "ballard-neonatal-gestational-age",
         "title": "Неонатология — New Ballard: гестационный возраст",
@@ -785,13 +886,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
-              { "value": 0, "label": "0" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2" },
-              { "value": 3, "label": "3" },
-              { "value": 4, "label": "4" },
-              { "value": 5, "label": "5" }
+              {
+                "value": -1,
+                "label": "−1 (минимальная зрелость по шкале Ballard)"
+              },
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              },
+              {
+                "value": 4,
+                "label": "4"
+              },
+              {
+                "value": 5,
+                "label": "5"
+              }
             ]
           },
           {
@@ -801,13 +923,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
-              { "value": 0, "label": "0" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2" },
-              { "value": 3, "label": "3" },
-              { "value": 4, "label": "4" },
-              { "value": 5, "label": "5" }
+              {
+                "value": -1,
+                "label": "−1 (минимальная зрелость по шкале Ballard)"
+              },
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              },
+              {
+                "value": 4,
+                "label": "4"
+              },
+              {
+                "value": 5,
+                "label": "5"
+              }
             ]
           },
           {
@@ -817,13 +960,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
-              { "value": 0, "label": "0" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2" },
-              { "value": 3, "label": "3" },
-              { "value": 4, "label": "4" },
-              { "value": 5, "label": "5" }
+              {
+                "value": -1,
+                "label": "−1 (минимальная зрелость по шкале Ballard)"
+              },
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              },
+              {
+                "value": 4,
+                "label": "4"
+              },
+              {
+                "value": 5,
+                "label": "5"
+              }
             ]
           },
           {
@@ -833,13 +997,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
-              { "value": 0, "label": "0" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2" },
-              { "value": 3, "label": "3" },
-              { "value": 4, "label": "4" },
-              { "value": 5, "label": "5" }
+              {
+                "value": -1,
+                "label": "−1 (минимальная зрелость по шкале Ballard)"
+              },
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              },
+              {
+                "value": 4,
+                "label": "4"
+              },
+              {
+                "value": 5,
+                "label": "5"
+              }
             ]
           },
           {
@@ -849,13 +1034,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 (минимальная зрелость по шкале Ballard)" },
-              { "value": 0, "label": "0" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2" },
-              { "value": 3, "label": "3" },
-              { "value": 4, "label": "4" },
-              { "value": 5, "label": "5" }
+              {
+                "value": -1,
+                "label": "−1 (минимальная зрелость по шкале Ballard)"
+              },
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              },
+              {
+                "value": 4,
+                "label": "4"
+              },
+              {
+                "value": 5,
+                "label": "5"
+              }
             ]
           },
           {
@@ -865,13 +1071,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 (ухо)" },
-              { "value": 0, "label": "0 (нос)" },
-              { "value": 1, "label": "1 (подбородок)" },
-              { "value": 2, "label": "2 (грудная линия)" },
-              { "value": 3, "label": "3 (пупочная область)" },
-              { "value": 4, "label": "4 (паховая складка)" },
-              { "value": 5, "label": "5 (выраженно отведается)" }
+              {
+                "value": -1,
+                "label": "−1 (ухо)"
+              },
+              {
+                "value": 0,
+                "label": "0 (нос)"
+              },
+              {
+                "value": 1,
+                "label": "1 (подбородок)"
+              },
+              {
+                "value": 2,
+                "label": "2 (грудная линия)"
+              },
+              {
+                "value": 3,
+                "label": "3 (пупочная область)"
+              },
+              {
+                "value": 4,
+                "label": "4 (паховая складка)"
+              },
+              {
+                "value": 5,
+                "label": "5 (выраженно отведается)"
+              }
             ]
           },
           {
@@ -881,13 +1108,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 — прозрачная/клейкая" },
-              { "value": 0, "label": "0 — желатинозная, красная, прозрачная" },
-              { "value": 1, "label": "1 — розовая с видимыми венами" },
-              { "value": 2, "label": "2 — поверхностная шелушащаяся/сыпь, редкие вены" },
-              { "value": 3, "label": "3 — трещины, бледные зоны, редкие вены" },
-              { "value": 4, "label": "4 — плотная, глубокие трещины, без сосудов" },
-              { "value": 5, "label": "5 — кожистая, треснувшая, морщинистая" }
+              {
+                "value": -1,
+                "label": "−1 — прозрачная/клейкая"
+              },
+              {
+                "value": 0,
+                "label": "0 — желатинозная, красная, прозрачная"
+              },
+              {
+                "value": 1,
+                "label": "1 — розовая с видимыми венами"
+              },
+              {
+                "value": 2,
+                "label": "2 — поверхностная шелушащаяся/сыпь, редкие вены"
+              },
+              {
+                "value": 3,
+                "label": "3 — трещины, бледные зоны, редкие вены"
+              },
+              {
+                "value": 4,
+                "label": "4 — плотная, глубокие трещины, без сосудов"
+              },
+              {
+                "value": 5,
+                "label": "5 — кожистая, треснувшая, морщинистая"
+              }
             ]
           },
           {
@@ -897,13 +1145,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 — отсутствует/очень мало" },
-              { "value": 0, "label": "0" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2" },
-              { "value": 3, "label": "3" },
-              { "value": 4, "label": "4" },
-              { "value": 5, "label": "5" }
+              {
+                "value": -1,
+                "label": "−1 — отсутствует/очень мало"
+              },
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              },
+              {
+                "value": 4,
+                "label": "4"
+              },
+              {
+                "value": 5,
+                "label": "5"
+              }
             ]
           },
           {
@@ -913,14 +1182,38 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -2, "label": "−2 — <40 мм" },
-              { "value": -1, "label": "−1 — 40–50 мм" },
-              { "value": 0, "label": "0 — >50 мм, без складок" },
-              { "value": 1, "label": "1 — лёгкие красные штрихи/складки" },
-              { "value": 2, "label": "2 — передние поперечные складки" },
-              { "value": 3, "label": "3 — складки по 2/3 стопы" },
-              { "value": 4, "label": "4 — полные складки всей подошвы" },
-              { "value": 5, "label": "5 — глубокие складки всей подошвы" }
+              {
+                "value": -2,
+                "label": "−2 — <40 мм"
+              },
+              {
+                "value": -1,
+                "label": "−1 — 40–50 мм"
+              },
+              {
+                "value": 0,
+                "label": "0 — >50 мм, без складок"
+              },
+              {
+                "value": 1,
+                "label": "1 — лёгкие красные штрихи/складки"
+              },
+              {
+                "value": 2,
+                "label": "2 — передние поперечные складки"
+              },
+              {
+                "value": 3,
+                "label": "3 — складки по 2/3 стопы"
+              },
+              {
+                "value": 4,
+                "label": "4 — полные складки всей подошвы"
+              },
+              {
+                "value": 5,
+                "label": "5 — глубокие складки всей подошвы"
+              }
             ]
           },
           {
@@ -930,13 +1223,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 — не определяется" },
-              { "value": 0, "label": "0 — едва заметен" },
-              { "value": 1, "label": "1 — едва заметная ареола, без бугорка" },
-              { "value": 2, "label": "2 — пятно/лёгкий бугорок 1–2 мм" },
-              { "value": 3, "label": "3 — выраженная ареола, бугорок 3–4 мм" },
-              { "value": 4, "label": "4 — плотная ареола/бугорок 5–10 мм" },
-              { "value": 5, "label": "5 — зрелая ткань соска" }
+              {
+                "value": -1,
+                "label": "−1 — не определяется"
+              },
+              {
+                "value": 0,
+                "label": "0 — едва заметен"
+              },
+              {
+                "value": 1,
+                "label": "1 — едва заметная ареола, без бугорка"
+              },
+              {
+                "value": 2,
+                "label": "2 — пятно/лёгкий бугорок 1–2 мм"
+              },
+              {
+                "value": 3,
+                "label": "3 — выраженная ареола, бугорок 3–4 мм"
+              },
+              {
+                "value": 4,
+                "label": "4 — плотная ареола/бугорок 5–10 мм"
+              },
+              {
+                "value": 5,
+                "label": "5 — зрелая ткань соска"
+              }
             ]
           },
           {
@@ -946,13 +1260,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 — плотное слитное сложение век" },
-              { "value": 0, "label": "0 — не полностью открыты/хрупкие" },
-              { "value": 1, "label": "1 — открываются частично" },
-              { "value": 2, "label": "2 — открылся край, хрящевая пластинка мягкая" },
-              { "value": 3, "label": "3 — ушная раковина упругая, быстро возвращается" },
-              { "value": 4, "label": "4 — хорошо сформированный ушной хрящ" },
-              { "value": 5, "label": "5 — сформированные контуры, быстрый рефлекс" }
+              {
+                "value": -1,
+                "label": "−1 — плотное слитное сложение век"
+              },
+              {
+                "value": 0,
+                "label": "0 — не полностью открыты/хрупкие"
+              },
+              {
+                "value": 1,
+                "label": "1 — открываются частично"
+              },
+              {
+                "value": 2,
+                "label": "2 — открылся край, хрящевая пластинка мягкая"
+              },
+              {
+                "value": 3,
+                "label": "3 — ушная раковина упругая, быстро возвращается"
+              },
+              {
+                "value": 4,
+                "label": "4 — хорошо сформированный ушной хрящ"
+              },
+              {
+                "value": 5,
+                "label": "5 — сформированные контуры, быстрый рефлекс"
+              }
             ]
           },
           {
@@ -962,13 +1297,34 @@
             "required": true,
             "step": 0,
             "options": [
-              { "value": -1, "label": "−1 — минимальное половое развитие для срока" },
-              { "value": 0, "label": "0" },
-              { "value": 1, "label": "1" },
-              { "value": 2, "label": "2" },
-              { "value": 3, "label": "3" },
-              { "value": 4, "label": "4" },
-              { "value": 5, "label": "5" }
+              {
+                "value": -1,
+                "label": "−1 — минимальное половое развитие для срока"
+              },
+              {
+                "value": 0,
+                "label": "0"
+              },
+              {
+                "value": 1,
+                "label": "1"
+              },
+              {
+                "value": 2,
+                "label": "2"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              },
+              {
+                "value": 4,
+                "label": "4"
+              },
+              {
+                "value": 5,
+                "label": "5"
+              }
             ]
           }
         ],
@@ -1098,6 +1454,72 @@
             "page": "p. 34–52",
             "reviewedAt": "2026-08-15"
           }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "gestationalAgeByScoreWeeks < 26",
+              "verdict": {
+                "rangeId": "legacy-1",
+                "title": "Результат попадает в зону очень раннего срока; нужна клиническая верификация по всем доступным данным.",
+                "explanation": "Результат попадает в зону очень раннего срока; нужна клиническая верификация по всем доступным данным.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "ballard-score-sheet",
+                  "ballard-score-faq",
+                  "ballard-score-cdc",
+                  "ballard-score-neonatology-clinical-222n"
+                ]
+              }
+            },
+            {
+              "when": "cond(gestationalAgeByScoreWeeks >= 26, cond(gestationalAgeByScoreWeeks <= 38, 1, 0), 0)",
+              "verdict": {
+                "rangeId": "legacy-2",
+                "title": "Срок в пределах доношенного-раннего посттерминального окна; итог всегда проверяйте в контексте состояния и датирования.",
+                "explanation": "Срок в пределах доношенного-раннего посттерминального окна; итог всегда проверяйте в контексте состояния и датирования.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "ballard-score-sheet",
+                  "ballard-score-faq",
+                  "ballard-score-cdc",
+                  "ballard-score-neonatology-clinical-222n"
+                ]
+              }
+            },
+            {
+              "when": "gestationalAgeByScoreWeeks >= 39",
+              "verdict": {
+                "rangeId": "legacy-3",
+                "title": "Срок ≥39 недель; при клинической подозрительности на более поздний гестационный возраст учитывайте и перинатальные данные.",
+                "explanation": "Срок ≥39 недель; при клинической подозрительности на более поздний гестационный возраст учитывайте и перинатальные данные.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "ballard-score-sheet",
+                  "ballard-score-faq",
+                  "ballard-score-cdc",
+                  "ballard-score-neonatology-clinical-222n"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "ballard-score-sheet",
+            "ballard-score-faq",
+            "ballard-score-cdc",
+            "ballard-score-neonatology-clinical-222n"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.ballard-neonatal-gestational-age.gestationalAgeByScoreWeeks",
+            "label": "Срок по New Ballard",
+            "unit": "недели",
+            "stepId": "gestationalAgeByScoreWeeks",
+            "method": "calculator:minimed.calculator.ballard-neonatal-gestational-age"
+          }
         ]
       },
       "sources": [
@@ -1158,7 +1580,7 @@
       "estimatedMinutes": 1,
       "audience": "Медицинский персонал неонатологических отделений; интерпретация и тактика — врачом в рамках локального протокола.",
       "definition": {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "id": "minimed.assessment.nips-neonatal-infant-pain-scale",
         "slug": "neonatal-infant-pain-scale",
         "title": "Неонатальная шкала боли NIPS",
@@ -1185,9 +1607,18 @@
           "NIPS ориентирована на поведенческие признаки, не включает все физиологические маркеры боли и не подходит как единственный источник для длительной оценки боли в реанимации."
         ],
         "responseOptions": [
-          { "value": 0, "label": "0" },
-          { "value": 1, "label": "1" },
-          { "value": 2, "label": "2" }
+          {
+            "value": 0,
+            "label": "0"
+          },
+          {
+            "value": 1,
+            "label": "1"
+          },
+          {
+            "value": 2,
+            "label": "2"
+          }
         ],
         "scales": [
           {
@@ -1203,8 +1634,14 @@
             "prompt": "Выражение лица",
             "scaleId": "nips-total",
             "responseOptions": [
-              { "value": 0, "label": "Расслабленные мышцы, спокойное лицо" },
-              { "value": 1, "label": "Гримаса" }
+              {
+                "value": 0,
+                "label": "Расслабленные мышцы, спокойное лицо"
+              },
+              {
+                "value": 1,
+                "label": "Гримаса"
+              }
             ]
           },
           {
@@ -1212,8 +1649,14 @@
             "prompt": "Плач",
             "scaleId": "nips-total",
             "responseOptions": [
-              { "value": 0, "label": "Отсутствует" },
-              { "value": 1, "label": "Хныканье, мягкий прерывистый плач" },
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Хныканье, мягкий прерывистый плач"
+              },
               {
                 "value": 2,
                 "label": "Сильный/напряжённый плач или беззвучный плач по движению рта и лица"
@@ -1225,7 +1668,10 @@
             "prompt": "Дыхание",
             "scaleId": "nips-total",
             "responseOptions": [
-              { "value": 0, "label": "Расслабленное, обычное для ребенка" },
+              {
+                "value": 0,
+                "label": "Расслабленное, обычное для ребенка"
+              },
               {
                 "value": 1,
                 "label": "Изменение дыхания: нерегулярное, учащённое, глотательные движения"
@@ -1237,8 +1683,14 @@
             "prompt": "Положение рук",
             "scaleId": "nips-total",
             "responseOptions": [
-              { "value": 0, "label": "Рука расслаблена" },
-              { "value": 1, "label": "Сгибание/разгибание, ригидность, быстрые выпрямления" }
+              {
+                "value": 0,
+                "label": "Рука расслаблена"
+              },
+              {
+                "value": 1,
+                "label": "Сгибание/разгибание, ригидность, быстрые выпрямления"
+              }
             ]
           },
           {
@@ -1246,8 +1698,14 @@
             "prompt": "Положение ног",
             "scaleId": "nips-total",
             "responseOptions": [
-              { "value": 0, "label": "Ноги расслаблены" },
-              { "value": 1, "label": "Сгибание/разгибание, ригидность, быстрые выпрямления" }
+              {
+                "value": 0,
+                "label": "Ноги расслаблены"
+              },
+              {
+                "value": 1,
+                "label": "Сгибание/разгибание, ригидность, быстрые выпрямления"
+              }
             ]
           },
           {
@@ -1255,8 +1713,14 @@
             "prompt": "Состояние возбуждения",
             "scaleId": "nips-total",
             "responseOptions": [
-              { "value": 0, "label": "Спокоен: сон/бодрствование без беспокойства" },
-              { "value": 1, "label": "Беспокойный/тревожный, беспорядочные движения" }
+              {
+                "value": 0,
+                "label": "Спокоен: сон/бодрствование без беспокойства"
+              },
+              {
+                "value": 1,
+                "label": "Беспокойный/тревожный, беспорядочные движения"
+              }
             ]
           }
         ],
@@ -1319,6 +1783,22 @@
             "version": "Lawrence et al. 1993",
             "url": "https://pubmed.ncbi.nlm.nih.gov/8413140/",
             "reviewedAt": "2026-08-15"
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
+          "sourceIds": ["nips-ncbi-table", "nips-sudact", "nips-lawrence-1993"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.nips-neonatal-infant-pain-scale.nips-total",
+            "label": "Суммарный балл NIPS",
+            "unit": "баллы",
+            "scaleId": "nips-total",
+            "method": "assessment:minimed.assessment.nips-neonatal-infant-pain-scale"
           }
         ]
       },

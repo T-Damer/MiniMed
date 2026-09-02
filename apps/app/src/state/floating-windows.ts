@@ -20,6 +20,7 @@ const STORAGE_KEY = 'minimed.floating-windows.v3';
 const MIN_WIDTH = 260;
 const MIN_HEIGHT = 340;
 const MAX_WINDOW_COUNT = 3;
+const CASCADE_OFFSET = 34;
 
 function isRootView(value: unknown): value is RootView {
   return (
@@ -60,6 +61,32 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
 }
 
+function requestFrame(callback: FrameRequestCallback): number | undefined {
+  if (typeof window.requestAnimationFrame !== 'function') {
+    callback(0);
+    return undefined;
+  }
+  return window.requestAnimationFrame(callback);
+}
+
+function cancelFrame(frame: number | undefined): void {
+  if (frame !== undefined && typeof window.cancelAnimationFrame === 'function') {
+    window.cancelAnimationFrame(frame);
+  }
+}
+
+function viewportSize(): { readonly width: number; readonly height: number } {
+  const width =
+    typeof document !== 'undefined' && document.documentElement.clientWidth > 0
+      ? document.documentElement.clientWidth
+      : window.innerWidth;
+  const height =
+    typeof document !== 'undefined' && document.documentElement.clientHeight > 0
+      ? document.documentElement.clientHeight
+      : window.innerHeight;
+  return { width, height };
+}
+
 function readStoredWindows(): readonly FloatingWindowState[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -75,10 +102,15 @@ function readStoredWindows(): readonly FloatingWindowState[] {
           isRootView(candidate.view) &&
           isRoute(candidate.route) &&
           typeof candidate.x === 'number' &&
+          Number.isFinite(candidate.x) &&
           typeof candidate.y === 'number' &&
+          Number.isFinite(candidate.y) &&
           typeof candidate.width === 'number' &&
+          Number.isFinite(candidate.width) &&
           typeof candidate.height === 'number' &&
-          typeof candidate.zIndex === 'number'
+          Number.isFinite(candidate.height) &&
+          typeof candidate.zIndex === 'number' &&
+          Number.isFinite(candidate.zIndex)
         )
       )
         return [];
@@ -125,22 +157,23 @@ function defaultWindow(
   route: string,
   zIndex: number,
 ): FloatingWindowState {
+  const { width: viewportWidth, height: viewportHeight } = viewportSize();
   const width = clamp(
-    Math.round(window.innerWidth * 0.25),
-    Math.min(MIN_WIDTH, window.innerWidth),
-    window.innerWidth,
+    Math.round(viewportWidth * 0.25),
+    Math.min(MIN_WIDTH, viewportWidth),
+    viewportWidth,
   );
   const height = clamp(
     Math.round(width * 1.35),
-    Math.min(MIN_HEIGHT, window.innerHeight),
-    window.innerHeight,
+    Math.min(MIN_HEIGHT, viewportHeight),
+    viewportHeight,
   );
   return {
     id,
     view,
     route,
-    x: window.innerWidth - width,
-    y: clamp(72, 0, window.innerHeight - height),
+    x: viewportWidth - width,
+    y: clamp(72, 0, viewportHeight - height),
     width,
     height,
     zIndex,
@@ -149,16 +182,17 @@ function defaultWindow(
 }
 
 function clampWindow(windowState: FloatingWindowState): FloatingWindowState {
-  const minWidth = Math.min(MIN_WIDTH, window.innerWidth);
-  const minHeight = Math.min(MIN_HEIGHT, window.innerHeight);
-  const width = Math.min(Math.max(minWidth, windowState.width), window.innerWidth);
-  const height = Math.min(Math.max(minHeight, windowState.height), window.innerHeight);
+  const { width: viewportWidth, height: viewportHeight } = viewportSize();
+  const minWidth = Math.min(MIN_WIDTH, viewportWidth);
+  const minHeight = Math.min(MIN_HEIGHT, viewportHeight);
+  const width = Math.min(Math.max(minWidth, windowState.width), viewportWidth);
+  const height = Math.min(Math.max(minHeight, windowState.height), viewportHeight);
   return {
     ...windowState,
     width,
     height,
-    x: clamp(windowState.x, 0, window.innerWidth - width),
-    y: clamp(windowState.y, 0, window.innerHeight - height),
+    x: clamp(windowState.x, 0, viewportWidth - width),
+    y: clamp(windowState.y, 0, viewportHeight - height),
   };
 }
 
@@ -168,7 +202,7 @@ export function createFloatingWindows() {
       .filter((windowState) => windowState.view !== 'settings')
       .sort((left, right) => left.zIndex - right.zIndex)
       .slice(-MAX_WINDOW_COUNT),
-  );
+  ).map(clampWindow);
   const [windows, setWindows] = createSignal<readonly FloatingWindowState[]>(restoredWindows);
   const [activeWindowId, setActiveWindowId] = createSignal<string | undefined>(
     restoredWindows.at(-1)?.id,
@@ -178,6 +212,7 @@ export function createFloatingWindows() {
   const [dragPreview, setDragPreview] = createSignal<readonly FloatingWindowState[]>();
   const [resizingWindowId, setResizingWindowId] = createSignal<string>();
   const [loadingWindowIds, setLoadingWindowIds] = createSignal<ReadonlySet<string>>(new Set());
+  const [fullscreenWindowId, setFullscreenWindowId] = createSignal<string>();
   let nextZIndex = Math.max(100, ...windows().map((windowState) => windowState.zIndex + 1));
   let activeDrag:
     | {
@@ -200,6 +235,10 @@ export function createFloatingWindows() {
         readonly corner: FloatingWindowResizeCorner;
       }
     | undefined;
+  let resizeFrame: number | undefined;
+  let pendingResizeMove: PointerEvent | undefined;
+  let dragFrame: number | undefined;
+  let pendingDragMove: PointerEvent | undefined;
   const frameListeners = new Map<
     string,
     {
@@ -221,6 +260,37 @@ export function createFloatingWindows() {
     const normalized = normalizeWindowSizes(next);
     setWindows(normalized);
     persistWindows(normalized);
+  };
+
+  const displayWindows = (): readonly FloatingWindowState[] =>
+    resizePreview() ?? dragPreview() ?? windows();
+
+  const cascadeOffsetFor = (id: string): { readonly x: number; readonly y: number } => {
+    const { width: viewportWidth, height: viewportHeight } = viewportSize();
+    const orderedWindows = [...displayWindows()].sort((left, right) => right.zIndex - left.zIndex);
+    const index = orderedWindows.findIndex((windowState) => windowState.id === id);
+    if (index < 0 || orderedWindows.length < 2) return { x: 0, y: 0 };
+    const lead = orderedWindows[0];
+    if (!lead) return { x: 0, y: 0 };
+    const depth = orderedWindows.length - 1;
+    const cascadeOffset = Math.max(
+      0,
+      Math.min(
+        CASCADE_OFFSET,
+        (viewportWidth - lead.width) / depth,
+        (viewportHeight - lead.height) / depth,
+      ),
+    );
+    const minX = lead.x - depth * cascadeOffset;
+    const maxX = lead.x + lead.width;
+    const minY = lead.y - depth * cascadeOffset;
+    const maxY = lead.y + lead.height;
+    const correctionX = minX < 0 ? -minX : maxX > viewportWidth ? viewportWidth - maxX : 0;
+    const correctionY = minY < 0 ? -minY : maxY > viewportHeight ? viewportHeight - maxY : 0;
+    return {
+      x: correctionX - index * cascadeOffset,
+      y: correctionY - index * cascadeOffset,
+    };
   };
 
   const setStackedMode = (): void => {
@@ -288,6 +358,7 @@ export function createFloatingWindows() {
     const resolvedId = resolveWindowId(id);
     if (!resolvedId) return;
     setFrameLoading(resolvedId, false);
+    if (fullscreenWindowId() === resolvedId) setFullscreenWindowId(undefined);
     const next = windows().filter((windowState) => windowState.id !== resolvedId);
     if (activeWindowId() === resolvedId) {
       const nextActive = [...next].sort((left, right) => right.zIndex - left.zIndex)[0]?.id;
@@ -330,6 +401,17 @@ export function createFloatingWindows() {
     );
   };
 
+  const toggleFullscreen = (id: string): void => {
+    const resolvedId = resolveWindowId(id);
+    if (!resolvedId) return;
+    if (fullscreenWindowId() === resolvedId) {
+      setFullscreenWindowId(undefined);
+      return;
+    }
+    focus(resolvedId);
+    setFullscreenWindowId(resolvedId);
+  };
+
   const setFrameLoading = (id: string, loading: boolean): void => {
     setLoadingWindowIds((current) => {
       const next = new Set(current);
@@ -341,6 +423,11 @@ export function createFloatingWindows() {
 
   const stopResize = (): void => {
     if (!activeResize) return;
+    cancelFrame(resizeFrame);
+    resizeFrame = undefined;
+    const pending = pendingResizeMove;
+    pendingResizeMove = undefined;
+    if (pending) applyResizeMove(pending);
     const preview = resizePreview();
     window.removeEventListener('pointermove', handleResizeMove);
     window.removeEventListener('pointerup', stopResize);
@@ -351,7 +438,7 @@ export function createFloatingWindows() {
     setResizingWindowId(undefined);
   };
 
-  const handleResizeMove = (event: PointerEvent): void => {
+  const applyResizeMove = (event: PointerEvent): void => {
     const resize = activeResize;
     if (!resize || event.pointerId !== resize.pointerId) return;
     const deltaX = event.clientX - resize.startX;
@@ -375,6 +462,20 @@ export function createFloatingWindows() {
     );
   };
 
+  const handleResizeMove = (event: PointerEvent): void => {
+    const resize = activeResize;
+    if (!resize || event.pointerId !== resize.pointerId) return;
+    pendingResizeMove = event;
+    if (resizeFrame === undefined) {
+      resizeFrame = requestFrame(() => {
+        resizeFrame = undefined;
+        const pending = pendingResizeMove;
+        pendingResizeMove = undefined;
+        if (pending) applyResizeMove(pending);
+      });
+    }
+  };
+
   const beginResize = (
     id: string,
     event: PointerEvent,
@@ -383,7 +484,7 @@ export function createFloatingWindows() {
     if (event.button !== 0) return;
     const resolvedId = resolveWindowId(id);
     const origin = windows().find((windowState) => windowState.id === resolvedId);
-    if (!origin) return;
+    if (!origin || activeWindowId() !== origin.id) return;
     event.preventDefault();
     activeResize = {
       id: origin.id,
@@ -402,6 +503,11 @@ export function createFloatingWindows() {
 
   const stopDrag = (): void => {
     if (!activeDrag) return;
+    cancelFrame(dragFrame);
+    dragFrame = undefined;
+    const pending = pendingDragMove;
+    pendingDragMove = undefined;
+    if (pending) applyDragMove(pending);
     const drag = activeDrag;
     window.removeEventListener('pointermove', handlePointerMove);
     window.removeEventListener('pointerup', stopDrag);
@@ -415,7 +521,7 @@ export function createFloatingWindows() {
     }
   };
 
-  const handlePointerMove = (event: PointerEvent): void => {
+  const applyDragMove = (event: PointerEvent): void => {
     const drag = activeDrag;
     if (!drag || event.pointerId !== drag.pointerId) return;
     drag.moved = true;
@@ -428,6 +534,20 @@ export function createFloatingWindows() {
         return clampWindow({ ...windowState, x: origin.x + deltaX, y: origin.y + deltaY });
       }),
     );
+  };
+
+  const handlePointerMove = (event: PointerEvent): void => {
+    const drag = activeDrag;
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    pendingDragMove = event;
+    if (dragFrame === undefined) {
+      dragFrame = requestFrame(() => {
+        dragFrame = undefined;
+        const pending = pendingDragMove;
+        pendingDragMove = undefined;
+        if (pending) applyDragMove(pending);
+      });
+    }
   };
 
   const beginDrag = (id: string, event: PointerEvent): void => {
@@ -508,6 +628,7 @@ export function createFloatingWindows() {
   return {
     windows,
     activeWindowId,
+    fullscreenWindowId,
     stacked,
     isFloating: (view: RootView, route?: string): boolean =>
       windows().some(
@@ -521,9 +642,8 @@ export function createFloatingWindows() {
     windowForRoute: (view: RootView, route: string): FloatingWindowState | undefined =>
       windows().find((windowState) => windowState.view === view && windowState.route === route),
     displayWindowFor: (id: string): FloatingWindowState | undefined =>
-      resizePreview()?.find((windowState) => windowState.id === id) ??
-      dragPreview()?.find((windowState) => windowState.id === id) ??
-      windows().find((windowState) => windowState.id === id),
+      displayWindows().find((windowState) => windowState.id === id),
+    cascadeOffsetFor,
     resizingWindowId,
     isFrameLoading: (id: string): boolean => loadingWindowIds().has(id),
     open,
@@ -536,5 +656,6 @@ export function createFloatingWindows() {
     unbindFrame,
     setRoute,
     toggleCollapsed,
+    toggleFullscreen,
   };
 }

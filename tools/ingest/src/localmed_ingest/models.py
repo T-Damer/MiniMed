@@ -341,6 +341,7 @@ class PreparedSourceReport(CamelModel):
     included_blocks: int = Field(ge=0)
     pages: int = Field(ge=0)
     requires_review: bool
+    extraction_reused: bool = False
     warnings: list[str] = Field(default_factory=list)
 
 
@@ -349,5 +350,7 @@ class PrepareReport(CamelModel):
     pack_version: str
     sources: int = Field(ge=0)
     review_required: int = Field(ge=0)
+    reused_sources: int = Field(default=0, ge=0)
+    extracted_sources: int = Field(default=0, ge=0)
     warnings: list[str] = Field(default_factory=list)
     prepared: list[PreparedSourceReport] = Field(default_factory=list)

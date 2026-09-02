@@ -1,3 +1,4 @@
+import type { EvaluationStatus, ReferenceVerdict } from '@localmed/contracts';
 import type { CalculationTraceStep } from '@/features/calculators/calculator-types';
 
 export type CreatinineUnit = 'mg/dl' | 'umol/l';
@@ -6,6 +7,14 @@ export type BiologicalSex = 'female' | 'male';
 export interface CalculatorWarning {
   readonly code: string;
   readonly message: string;
+}
+
+export interface CalculationEvaluation {
+  readonly status: EvaluationStatus;
+  readonly verdict?: ReferenceVerdict;
+  readonly missingContext?: readonly string[];
+  readonly reason?: string;
+  readonly sourceIds?: readonly string[];
 }
 
 /** Serializable Chart.js-ready chart spec emitted by schema visuals (see calculator-schema-engine). */
@@ -25,9 +34,11 @@ export interface NumericCalculationResult {
   readonly formula: string;
   readonly value: number;
   readonly unit: string;
+  readonly outputId?: string;
   readonly displayPrecision: number;
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
 }
 
@@ -36,6 +47,7 @@ export interface DualCalculationResult {
   readonly calculatorId: string;
   readonly formula: string;
   readonly values: readonly {
+    readonly id?: string;
     readonly label: string;
     readonly value: number;
     readonly unit: string;
@@ -43,6 +55,7 @@ export interface DualCalculationResult {
   }[];
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
 }
 
@@ -51,11 +64,13 @@ export interface TextCalculationResult {
   readonly calculatorId: string;
   readonly formula: string;
   readonly textValues: readonly {
+    readonly id?: string;
     readonly label: string;
     readonly text: string;
   }[];
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
 }
 

@@ -1,25 +1,132 @@
 # Current state
 
-> Updated: 27 August 2026
-> Repository version: `0.6.31`
-> Active target: `0.6.31` public prerelease toward `1.0`
+> Updated: 2 September 2026
+> Repository version: `0.6.32`
+> Active target: `0.6.32` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### 0.6.32 release preparation
+
+- Android and Pages workflows now use the canonical tracked `core.db`; pilot rebuild jobs no longer
+  replace it or commit a smaller demonstration corpus over the discovery index.
+- Secret scanning covers Git-tracked and new publishable source, excluding ignored caches and build
+  outputs. A regression check also covers deleted files, symlinks and filename-only error reporting.
+- Browser E2E uses a loopback HTTP preview server for real pack downloads: embedding the 93 MiB core
+  in a base64 Playwright route response exceeded Chromium's 100 MiB DevTools message limit.
+- Medication title-term boosts no longer apply to legal acts or legal crosswalks. The 61-query
+  regulatory release benchmark passes its existing ranking, section and metadata gates.
+- Qualification cards mark 206n superseded and 436n active from 1 September 2026. The transition was
+  checked against pages 1–2 of the [official Ministry of Health PDF](https://edu.rosminzdrav.ru/fileadmin/user_upload/documents/mz/2026/436n_14.05.2026_kvalifikacionnye_trebovanija__2_.pdf)
+  on 2 September; document IDs are preserved and changed cards receive a new edition label.
+
+### Data + search snapshot (measured)
+
+- Production `apps/app/public/content/core.db` is `minimed.core.ru@1.0.0-preview.3`,
+  `97,431,552` bytes, SHA-256
+  `fb7f54ac5e185ad3c7dc7785632b1774ff3699ed5c4dfd22930f74c851085b80`, source-set digest
+  `sha256:fb6b81dc769d23148170f990177b23a693e65ca31850817d3984df7d6d042508`; it contains 4,083
+  documents, 11,798 sections, 11,810 chunks, and 31,949 aliases. FTS coverage is `11,810/11,810`,
+  SQLite integrity is `ok`, and foreign-key violations are `0`.
+- The runtime file is now canonically named `core.db`; the former `core-demo.db` name is retired in
+  application loading, service-worker caching, native bridge checks, tests, and publish scripts.
+  Per ADR 0017, this database is the lightweight discovery index: medication names, aliases,
+  clinical disease synonyms/keywords, provenance, and module pointers stay in core, while complete
+  ESKLP/GRLS/Allmed reader data belongs in the separate `medications.db` pack.
+- The bundled-core registry now derives version, source-set digest, and installed size from the
+  validated module catalog entry. The catalog and runtime therefore both advertise preview.3 and
+  cannot silently retain preview.2 metadata after a core replacement.
+- The core contains lightweight ESKLP medication pointers: 3,324 documents, 10,996 sections,
+  11,008 chunks, and 21,610 aliases. It also contains 744 clinical-recommendation disease pointers,
+  744 exact recommendation-module IDs, 791 disease aliases/synonyms, and 1,205 explicit keyword
+  values (992 normalized-unique) across 159 recommendations. All 744 clinical databases were
+  scanned and all 744 had a `Ключевые слова` section heading; only 162 chunks contained non-empty
+  keyword-section text, yielding accepted values in 159 records. The baseline merge artifact had
+  161 records and 1,282 values; the conservative pass removed 77 misleading TOC/abbreviation
+  values from two sections and added zero new safe source terms, preserving the current 159/1,205
+  coverage. Keyword provenance retains the source section, chunk, and source text. Those keyword
+  values improve recall; they are not treated as exact diagnoses or as clinical assertions. TOC
+  leakage and abbreviation entries from malformed keyword blocks are excluded automatically.
+- A deterministic clinical-recommendation/MNN candidate extractor links exact ESKLP MNN
+  identities to source-exact positive recommendation passages without rebuilding the source
+  databases. On the 723 locally available clinical modules it produced 1,049 `proposed` relations
+  across 271 recommendations and 455 unique MNN identities; all retain document-level age groups,
+  exact chunk evidence, and whether the source section was under a parsed treatment branch. The
+  audit found zero negative-recommendation passages and zero residual generic `ЙОД` matches. Eight
+  workers completed the pass in 45.421 seconds after reusing one compiled 3,324-MNN index, versus
+  119.111 seconds when each module rebuilt that index. Candidate checkpoints retain the clinical
+  version/source checksum and MNN-index digest; a verified `--resume` pass reused all 723 JSON files
+  in 0.217 seconds, while stale inputs are rebuilt. The core stores all 1,049 links in clinical
+  pointer metadata without indexing their MNN names as disease aliases. A medication card can show
+  related recommendations, population, and the exact source anchor; every link remains visibly
+  `proposed` and outside treatment-capable search until reviewed. No clinical SQLite module was
+  modified or rebuilt.
+- Core-only search can surface a missing full document or medicine from its pointer and offer the
+  exact module download. Fifteen ESKLP preview modules are published in the
+  [GitHub pre-release](https://github.com/T-Damer/MiniMed/releases/tag/esklp-2026-08-28) behind the
+  Experimental setting. ESKLP is trusted for identity and registration facts, not for doses or
+  indications.
+- Required core and downloaded SQLite modules larger than 32 MiB use OPFS; small SQLite packs remain
+  on the WASM path. The medication presentation branch joins brand with form, route, and strength;
+  `сироп`/`спироп` and suspension are search-equivalent without rewriting source labels. Measured
+  smoke cases put the correct ESKLP suspension section first for `нурофен суспензия` and
+  `100 мг/5 мл`, return no result for `нурофен мазь`, and keep ceftriaxone intravenous lookup
+  correct. These are identity-retrieval checks, not dose support.
+- The SQLite composer uses `ATTACH` and set-based bulk copies, creates secondary indexes and FTS
+  after loading, checkpoints after each module, and reuses validated manifests/checksums. The final
+  core was rebuilt from the existing pointer databases; the fifteen ESKLP source databases were
+  reused and were not rebuilt.
+- Composer FTS consistency checks now group expected/actual identity streams instead of joining
+  each expected row to an unindexed FTS identity column. The 212,758-chunk medication-stage
+  identity check completed in 0.41 seconds; this is not a timing for the whole integrity suite.
+  Missing, extra, duplicate, and null identities still fail validation for both FTS tables.
+  Resume recognizes an already committed finalization, verifies input fingerprints and the stored
+  source-set digest, and skips rebuilding its FTS/indexes while retaining every final integrity
+  and manifest check. The composer/builder/edition-manifest suites pass 44 tests, including bounded
+  SQLite-operation regression tests and finalized-stage recovery without rewriting the database.
+- Local `data/build/medications-unified.db` now composes existing Allmed, 189 GRLS instructions
+  plus their 189 registry cards, and full ESKLP: 8,410 documents, 84,445 sections, 212,758 chunks,
+  and 45,649 aliases. Finalized-stage resume finished in 35.214 seconds with SQLite integrity `ok`
+  and zero foreign-key violations. Size: 3,028,381,696 bytes; SHA-256:
+  `75b23c797bad9421eb8a79e70cc1de4a5e54e2314482c4c22e90ccfdbd3bc564`.
+  The edition manifest is beside it. This is a local build artifact, not a replacement of the
+  bundled `medications.db` and not a published download. The pre-fix stage/checkpoint backup is
+  retained locally; source databases were reused without changes.
+
 ### Product and retrieval
 
 - SolidJS browser app behind the UI-independent `MedicalCore` contract.
 - SQLite/FTS5 retrieval with SQLite WASM fallback and compatible native read-only storage adapters.
+  Native database leases stay open across core replacement, so reconnecting installed packs cannot
+  close the replacement store underneath document reading.
 - Deterministic portable embeddings and hybrid lexical/vector fusion. Browser WASM vector search
   runs as a two-phase top-K scan (light embedding rows first, heavy hydration only for candidates,
   mirroring the native adapter), and lexical search widens its SQL pre-limit while specialty or
   age-group filters are active so filtered result lists no longer come back short.
 - Russian patient-case parsing, negative findings, bounded query branches, medical abbreviations, and
   missing-field prompts; the symptom lexicon recognizes nosebleed phrases such as `кровотечение из
-  носа` and expands them to searchable `носовое кровотечение`/`эпистаксис` terms.
+  носа`, rhinitis phrases such as `насморк`, and sore-throat phrases such as `боль в горле`, with
+  searchable canonical terms. Medication intent includes nasal drops and antipyretic requests.
+  Blood-pressure readings such as `200/120` remain atomic patient facts: their numbers are excluded
+  from lexical branches so they cannot collide with medicine strengths, while an unlabelled medicine
+  strength such as `1 г` remains searchable.
+- The Phase 2 deterministic parser benchmark now freezes 29 fixed/held-out queries, including
+  regressions found by generated surfaces for `спироп`, inflected sex terms, degree-less temperature
+  spans before spaced punctuation,
+  spaced negation punctuation, and allergy boundaries. A structured seeded generator renders nine
+  semantic scenarios into 72 unique cases (36 fixed, 36 held-out) with word-order, spacing,
+  punctuation, case, `е/ё`, decimal, abbreviation, inflection, common-typo, polite-filler, irrelevant
+  number, and irrelevant-measurement mutations. CI seed `20260831` and exploratory seed `20260832`
+  both pass intent/entity F1, critical-context exactness, and negation polarity at `1.00` on both
+  splits. The corpus remains synthetic and bounded; rotating-seed scheduling and model-assisted
+  paraphrase mining are not yet release evidence.
+- The installed pilot corpus does not yet contain reviewed, evidence-backed relations for general
+  allergy, rhinitis, sore-throat, antipyretic, or hypertensive-crisis treatment queries. Search does
+  not infer these treatment edges from ESKLP metadata; adding them requires applicable clinical or
+  regulatory source passages and explicit graph relations.
 - Search after 500 ms of inactivity with stale-response cancellation. A transient search-worker
   boot failure retries on the next query instead of silently falling back to main-thread search for
   the whole session.
@@ -29,9 +136,13 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Search is hidden until the user selects a scope; scopes with no installed documents are disabled.
 - Query analysis and deterministic retrieval run in a Web Worker, and long result sets are window
   virtualized.
+- MedicalCore loads aliases once per initialized core lifetime and executes independent bounded
+  lexical query branches concurrently while preserving deterministic branch order.
 - Results are grouped by document and window-virtualized; compact result cards show numbered matches,
   source/category metadata, up to four snippet lines, and open the exact fragment without expanding
-  the result group. The document group header opens the full document. Retrieval stats and search mode
+  the result group. Group headers watermark the source family (medication, recommendation, legal act,
+  calculator, assessment, or reference) with a matching icon, and medication groups render at most
+  three fragment actions. The document group header opens the full document. Retrieval stats and search mode
   sit inside the expandable query-analysis details panel, whose collapsed row is a hoverable card
   with a details badge and centered summary text. The source preview is a body-level overlay above navigation chrome, vertically
   centered in the viewport, with the shared primary button to open the full document; opening the full
@@ -41,7 +152,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   personal: `#/modules/documents/user/<id>` (optional `/p/<page>`). On tablet and desktop the outline
   is a full-viewport left column; sticky chrome and paper sit in the right column so the page header
   cannot overlap the TOC. Mobile TOC is a full-height drawer above the bottom nav.   Nested headings in the document body keep a full-width sticky bar for in-text
-  `h1`/`h2` only; the paper document title is not pinned. Sticky heading fill matches the paper
+  `h1`–`h6`; the paper document title is not pinned. Sticky heading fill matches the paper
   and extends through the page padding so scrolling content cannot show gaps beside the title.
   Print and clinical full-text sit in one paper-title
   row; full-text is a primary button with in-button loading instead of a page overlay. Outline
@@ -59,9 +170,17 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   referentially stable so already-mounted sections are not rebuilt while later batches append.   Outline sections are paper blocks in default, hover, and active states. Initial open keeps the
   same page chrome with a full page surface and centered spinner; clinical full-text loading stays
   inside the primary button. Nested document links navigate to another documents hash page and append a breadcrumb
-  instead of stacking reader dialogs. Own documents can switch to a paper-free book mode from a
-  control above scroll-to-top; pinch-zoom works on the page without opening preview, and a horizontal
-  swipe opens or hides the outline. Find is disabled when an upload has no extractable text.
+  instead of stacking reader dialogs. Supported text/Markdown documents can switch to a paper-free book mode
+  from the reader menu; pinch-zoom scales the whole document in place without opening preview, and a horizontal
+  swipe opens or hides the outline. Reader actions are capability-driven: print/fullscreen are exposed only
+  for renderers that support them, reading mode is limited to text/Markdown, and the PDF two-page spread
+  stays PDF-only; PDF zoom controls and pinch zoom keep the horizontal scroll locked; safe-area chrome stays sticky until
+  downward scrolling hides it and upward scrolling shows it again, while reader content reserves
+  the bottom-navigation band; sticky document headings follow the hidden chrome to the safe-area edge
+  and keep an opaque paper fill. Fullscreen keeps the existing selectable text surfaces in place.
+  PPTX slide clicks still open the zoomable media viewer; PDF pages zoom in place and keep their
+  selectable text layer.
+  Find is disabled when an upload has no extractable text.
 - Search-result context remaps stale pilot-summary chunks to installed full-text siblings and falls back
   to the readable document when an exact chunk cannot be resolved.
 - Поиск по полному документу работает как поиск на странице: он точно сопоставляет введённую фразу
@@ -70,11 +189,17 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   markdown-ссылки, ссылки на инструменты, таблицы и подписи к изображениям.
 - В режиме поиска по полному документу и длинному источнику кнопка «Назад» превращается в «×» и
   закрывает поиск; обычные поиски по карточкам сохраняют навигацию назад.
+- В каталогах активный поиск также заменяет доступную кнопку «Назад» на «×» для очистки запроса;
+  если навигации назад нет, крестик показывается внутри поля поиска.
 - Within-document ranking uses query intent to prefer the relevant diagnostic, routing, or treatment
   section; the public benchmark currently has perfect section retrieval and top-section accuracy.
+- Document-group ranking also gives concrete query terms in titles priority over frequent body
+  mentions, while suppressing title priority for a failed prior treatment; snippets strip known HTML
+  markup before computing highlights; personal search cards use source/file-type glyphs for notes,
+  books, medical images, and other local files.
 - Search scopes cover diagnosis support, clinical recommendations, medications, legal documents,
   deterministic search across all installed sources, and a personal overlay («Ваши данные») for local
-  notes and uploaded books only.
+  notes and uploaded personal files.
 - Only diagnosis scope may call the optional grounded local-model wrapper; the other scopes constrain
   deterministic retrieval by installed source type.
 - A realistic pediatric workflow query — `Цефтриаксон ребенку 3 лет вес 20 кг при пневмонии как
@@ -82,6 +207,12 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ### Browser workspace
 
+- Медицинские файлы DICOM/NIfTI открываются на весь экран без прокрутки; печать снимков доступна
+  через адаптивное модальное окно с сохранением настроек, кнопками направлений с иконками,
+  двухточечными диапазонами срезов, постоянной галереей с drag-select и переключателем пометок.
+  Печатный кадр содержит крупное изображение и компактные подписи пациента, серии и среза;
+  сеточный режим собирает монтажи 4×4 и ограничивает их четырьмя на листе, а предпросмотр A4
+  открывается отдельной выдвижной панелью.
 - Pointer clicks do not show the system blue tap flash or leftover focus rings; keyboard Tab/arrow
   focus rings stay. Overlay dialogs trap Tab inside the panel, restore focus to the invoking
   element on close, and Escape is suppressed only by a media viewer layered over the same dialog.
@@ -96,16 +227,17 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   the button fill. Root navigation commits immediately; the incoming
   view overlays the stationary outgoing view with a strictly horizontal CSS slide and temporary page
   shadow, without an opacity transition, while the status-bar blur remains between the old and new views.
-  The bottom navigation remains fixed and interactive. Root tab slide animation is not suppressed by
+  The bottom navigation remains fixed and interactive, and hides with the reader header while scrolling
+  down before returning on upward scroll. Root tab slide animation is not suppressed by
   leftover overlay history in the URL. Stale overlay query params (`o`, legacy `dialog`/`section`) are
   stripped on root hash changes when no document page (`#/modules/documents/d/…` or
   `#/modules/documents/user/<id>`) is open. Rapid tab changes
   do not wait on View Transition snapshots; document read routes, note, and local-model subroutes remain instant. The
   scroll-to-top control
-  reserves the bottom-navigation band on long pages, and the notes add control mounts only while the
-  notes root is active. All floating page controls (book mode, mini-window toggle, scroll-to-top,
-  notes add) share one fixed vertical stack at the right edge with one uniform control size; only
-  their z-index and visibility vary by context.
+  reserves the bottom-navigation band on long pages, and the notes add control and questionnaire
+  next control mount only while their root is active. All remaining floating page controls (mini-window
+  toggle, scroll-to-top, notes add, questionnaire next) share one fixed vertical stack at
+  the right edge with one uniform control size; only their z-index and visibility vary by context.
 - Root navigation snapshots the route that was left, not the already-updated hash, so returning from a
   questionnaire or nested tool restores the same Documents subroute. Root panes are keep-alive: a view
   constructs its component on first visit and stays mounted (hidden) afterwards, so tab switches
@@ -131,7 +263,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   controls appear only when more content exists in that direction; the submit button expands into the
   composer only after a mode is selected. The strips accept horizontal touch input and vertical
   mouse-wheel input. Search text expands to a bounded height before scrolling internally, while note
-  editors expand with their content.
+  editors expand with their content. Search text controls stay at least `1rem` on compact layouts,
+  preventing iOS WebView focus from zooming the page while preserving pinch zoom.
 - Recent device-local search history opens from its floating control or a rightward swipe from the
   search page's left edge, preserves the selected source scope, and can show the current-session
   result cache immediately while refreshing in the background. The detected request type is presented
@@ -140,12 +273,17 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   full document; opening the full document from the source preview closes the preview first.
 - The paper/archive design uses one top-level semantic color palette in light and dark modes, a
   65-character reading measure (`--page-measure`) for questionnaires and document text, and a wider
-  board (`--page-board-width`) for card catalogs. Phone keeps one card column; from tablet (760px)
-  upward `--layout-cols` is two and the board caps at 72rem so ultrawide screens stay centered
-  instead of stretching. Virtualized lists chunk
-  rows in JS so WindowVirtualizer can still measure height. Compact cards, controls, result rows,
-  responsive spacing, and consistent hover/focus feedback stay shared. Warm page surfaces share a reusable
-  low-opacity fine fractal-grain layer constrained to the page content measure; sticky search/medication
+  board (`--page-board-width`) for card catalogs. Phone keeps one card column except the personal-file
+  tile grid, which keeps at least two; the personal-file grid uses five columns from tablet (760px)
+  and six on wide desktop, while `--layout-cols` remains two for other tablet layouts and the board
+  caps at 72rem so ultrawide screens stay centered
+  instead of stretching. Virtualized grids measure their containing block with `ResizeObserver` and chunk
+  rows in JS so WindowVirtualizer can still measure height; incomplete final rows use only their
+  occupied CSS tracks. Compact cards, controls, result rows,
+  responsive spacing, and consistent hover/focus feedback stay shared. Non-reader page headers use the
+  shared two-row `Page` layout: navigation and breadcrumbs above the icon/title row and description;
+  document readers keep their own chrome. Warm page surfaces share a reusable low-opacity fine
+  fractal-grain layer constrained to the page content measure; sticky search/medication
   blurs use the same centered content width. Dark mode swaps those tokens for black-alpha noise with
   multiply blending so the film stays a dark speckle instead of a light wash. Cards and
   text remain untextured. The document uses one
@@ -157,10 +295,22 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   open in `OfficialDocumentReader` with shared `document-reader-chrome.tsx` and
   `document-reader-outline.ts`; user PDFs/OCR stay in `UserDocumentReader`. Opening large official
   documents no longer freezes the main thread on per-chunk regex compilation or full synchronous mount.
+- Personal-library previews use the shared `previewExtractor`: supported thumbnails are generated after
+  upload/replacement and stored beside the original blob under a stable IndexedDB thumbnail key; old
+  documents are backfilled lazily when their cards appear. PDF previews use the configured PDF.js worker.
+- The personal library exposes only its maintained virtualized grid and list layouts; the unreachable
+  free-position layout and its unused persistence/CSS path have been removed.
+- В списочном виде папки используют ту же двухколоночную строку, что и файлы: иконка слева, название
+  и метаданные вертикально; различается только тип иконки.
+- Файлам и папкам в личной библиотеке можно назначить цвет из общей macOS-подобной палитры;
+  выбор сохраняется в IndexedDB и меняет только цвет поверхности файла или иконки папки. Карточки
+  папок показывают единый счётчик вложений, включая вложенные папки.
 - Personal cards use a responsive three-column sticker board and a focused creation dialog opened
   from a floating add button. Card timelines and dated-record editors use nested note routes; card
   edit/delete actions are compact icon controls. Timeline records render sanitized Markdown previews
-  instead of raw markup. The note editor is a Milkdown-based WYSIWYG surface (bundled offline in a
+  instead of raw markup. Markdown reading and previews use a unified AST renderer with GFM, math,
+  and highlight marks; large documents parse in a reusable Worker and offscreen blocks use native
+  content-visibility. The note editor is a Milkdown-based WYSIWYG surface (bundled offline in a
   lazy chunk with KaTeX): typing Markdown converts to styled HTML immediately, a Raw Markdown mode
   was removed in favour of a single editable preview, and the formatting toolbar (Phosphor icons:
   headings, bold, italic, bullet/numbered lists, `==highlight==` marks, inline LaTeX `$…$` via
@@ -175,13 +325,15 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   to a real bottom margin, shows
   a live reader-styled table of contents (open/close toggle, empty-state hint) that updates as
   headings are inserted and scrolls to them on click, offers in-note search via CSS Custom
-  Highlights, and prints the rendered note through the shared print pipeline. Record editors guard
+  Highlights, and prints the rendered note through the shared print pipeline with its optional record
+  title, creation date, 14px Arial body text, and serif headings. Record editors guard
   unsaved drafts, accept attachments of any file type (stored as blobs in IndexedDB with generated
   thumbnails: images, video frames, PDF first pages, HEIC embedded previews; unreadable types offer
   a save-to-device prompt; Markdown attachments open in a sanitized reading view with a raw-source
   toggle; voice recordings capture through MediaRecorder and play back as
-  waveforms), and keep tags, reminders (edited in a dialog through native-picker trigger fields),
-  images, and related sources in distinct blocks. The previous-revision control is enabled only when the stored revision
+  waveforms), and keep editable tags, reminders (edited in a dialog through native-picker trigger fields),
+  images, and related sources in distinct blocks. Tags are committed on spaces, commas, and semicolons,
+  shown as removable chips, and kept in the note's categories array; record titles are edited from the final breadcrumb or its trailing pencil action. The previous-revision control is enabled only when the stored revision
   differs from the current draft; its review mode is shown inside the editor card with dashed borders,
   disabled text/image inputs, hidden reminders/related sources, and disabled back/delete actions. On
   first launch, an editable colleague card and record introduce the local notes workflow; once removed,
@@ -200,7 +352,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Drilldown exposes two-column module collections with user-facing release states and inspectable
   document lists, all 21 recommendation sections without an extra reveal step, full-document opening,
   bulk download, background update pause on the documents root catalog only, rollback to retained older versions, and nested URLs for
-  opened collections and sections. Leaf catalog download controls are icon-only and use primary accent
+  opened collections and sections. Downloadable overview sections have their own download action;
+  bulk and section installs mark every affected card as queued or active, with animation reserved for
+  active work. A completed install swaps the mounted search core immediately and refreshes any active
+  search query in the background. Leaf catalog download controls are icon-only and use primary accent
   when published; only unpublished rows stay muted.
   Regulatory packs open as a documents sub-route (`#/modules/documents/laws/pediatrics`, alias
   `paediatrics`) with in-page search and the same transparent stuck-chrome blur as other knowledge
@@ -223,8 +378,12 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Medication catalog cards use a responsive two-column layout and live rendering so progressive
   batches populate both columns; its route header uses the shared compact catalog search field.
   Catalog cards open the official document reader (`#/modules/documents/d/<token>`); legacy
-  `medications/<registration>` hashes redirect there after catalog lookup, and the Allmed
-  «Карточка препарата» section is omitted in the reader as a duplicate of the document title.
+  `medications/<registration>` hashes redirect there after catalog lookup. The selected product
+  context now renders one compact card with `ТН · МНН`, exact form/strength, and links to its ESKLP
+  MNN card, GRLS registration card, and instruction. ESKLP and GRLS rows compose only on exact MNN,
+  registration number, normalized trade name, and compatible SMNN; unmatched or multiply matched
+  rows remain separate. Allmed text/photo is applied after that merge and filtered to the selected
+  normalized trade name.
 - The personal notes index has local full-text filtering, and Ctrl/Cmd+F focuses the visible
   search field with the highest stacking order (the field inside the topmost dialog when one is open).
   A second Ctrl/Cmd+F within 700ms does not intercept, so the browser find bar can open.
@@ -236,7 +395,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   contains an update-checker card (current version, check, and apply).
 - Search, module-catalog, medication-catalog, and laws-document sticky headers use transparent,
   page-width masked backdrop blur with a subtle grain layer that stays hidden until the header is
-  actually stuck. Document reader chrome stays opaque; in-text `h1`/`h2` sticky offsets are measured
+  actually stuck. Document reader chrome stays opaque; in-text `h1`–`h6` sticky offsets are measured
   from the real chrome (the paper title is not pinned). On native Android the page itself draws under a
   translucent status bar (`.app-shell--native` has no top desk padding). Page surfaces keep a negative
   `--safe-top` margin so the folder paint sits under the bar, and double `--safe-top` padding so text
@@ -287,7 +446,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   calculators use Kobalte breadcrumbs (`Тесты` / specialty / section, `Калькуляторы` / section) instead
   of the old “скачан на устройство” kicker, and
   installed tools keep specialty section cards open dedicated sub-routes containing the full grid, and
-  every assessment category shipped in the tool modules has a matching routable section. Printed
+  every assessment category shipped in the tool modules has a matching routable section. Assessment
+  and calculator section headers share the `Page` component, including theme-aware descriptions.
+  Printed
   assessments and calculator results link only to the public MiniMed app; assessment printouts omit
   internal limitation/version lines, and note-linked results place the note card title beside the date.
   Pasted document links with `?o=` (or legacy `dialog` + `section`) migrate to
@@ -298,8 +459,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   also stored in the existing device-local results store, restored by their history entry with an
   `incomplete` tag and answered-count, and replaced by the completed result when submitted. Leaving
   a questionnaire and opening the same test again restores the latest incomplete draft. The
-  questionnaire next control stacks under scroll-to-top on long forms, scrolls to the next unanswered
-  question with a brief highlight, and the remaining-count badge
+  questionnaire next control stacks under scroll-to-top on long forms, keeps its progress ring
+  anchored to itself when other floating controls appear, scrolls to the next unanswered question
+  with a brief highlight, and the remaining-count badge
   animates on change. Response cards hide the radio; the score sits as a bold background numeral,
   the answer is centered in body text, and long labels scroll inside the card. When a saved return destination exists, questionnaire and missing-test screens
   show one back control that opens a destination chooser (catalog vs saved route). On mobile the
@@ -307,19 +469,323 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   stretch with the sheet. Questionnaire URLs
   are `#/assessments/{specialty}/{slug}` so Back returns to the
   owning section rather than the assessments root; a test may later appear in several sections via tags.
-  Runtime TypeScript keeps only `unit-conversion` in `CALCULATOR_REGISTRY`; every other calculator
+  Runtime TypeScript keeps two dependency-free tools in `CALCULATOR_REGISTRY`: `unit-conversion` and
+  the adult-alpha `ecg-photo-caliper`. `minimed.calculator.pediatric-feeding-plan` is a declarative schema in the bundled
+  pediatrics tool pack and covers birth to 35.9 months. It calculates daily and per-feed energy/volume,
+  derives mixed-feeding supplement from measured breast-milk intake, supports explicit food exclusions
+  and allergy alternatives, and can add a seven-day complementary-food introduction calendar. Its
+  primary section is `pediatrics`; declarative section tags also list the same schema in `fluids`
+  without duplicating the calculator definition. Tool-pack section membership uses the primary
+  category plus these tags. Published local tool packs are reconciled by module id and version, so
+  an installed older pack is upgraded instead of hiding newly added schemas.
+  result surface is the same compact ration that prints as one A4 page; formula/source panels are hidden
+  for this patient handout, and the caregiver emoji stays inside the bottom-right page boundary. The
+  calculation-history list resolves saved ids and legacy slugs through the currently loaded registry,
+  so downloaded schema tools are labelled by calculator title after their pack becomes ready.
+  The
+  ECG tool imports an image without uploading it, uses a fixed
+  50 мм/с and 10 мм/мВ profile (1 мм = 20 мс), calibrates five large grid cells (25 мм) from two
+  points, and converts manual RR/P/PR/QRS/QT calipers into milliseconds, heart rate, and
+  Bazett/Fridericia/Framingham QTc. After explicit confirmation of age 18+, the 50 мм/с and 10 мм/мВ profile with all 12 leads,
+  a suitable horizontal image, and calibration, its
+  dependency-free rule layer reports measured rate/interval features with threshold evidence and,
+  when the clinician explicitly marks every required lead-level morphology criterion, an
+  AHA/ACCF/HRS-compatible hypothesis of a complete right or left bundle-branch-block pattern;
+  missing measurements are listed explicitly and cannot produce a normal verdict. Its manual view supports
+  button/two-finger zoom plus draggable interval boundaries and ranges; file drag-and-drop is disabled.
+  It warns on sub-1200×600 or portrait images. Before patient input, the upload workspace shows a
+  public-domain 12-lead ECG photo as a framing example; its printed 25 мм/с profile is explicitly
+  distinguished from the tool's required 50 мм/с profile.
+  Settings presents trusted ECG modules instead of a ZIP picker. The tool offers one install-all
+  action with an expandable module breakdown and installs the Open ECG
+  Digitizer segmentation model from the `models-preview-1` release. The 19.1 MB q8 bundle is
+  downloaded through the CORS-safe Pages/DEV
+  mirror and resumable retry layer, verified by exact size and SHA-256, validated, and activated in
+  an atomic device-local cache. The ECG tool can then run local ONNX/WASM segmentation, distinguish
+  the supported 12×1 layout from the legacy 3×4+1R review path, and report coverage plus RR/heart
+  rate. The browser postprocessor mirrors the upstream sparse-probability normalization, crops page
+  margins from the model's own grid mask, and adds a narrowly gated blue-ink trace channel when a
+  coloured ECG curve is clearly separable from the paper grid. Selecting a photo starts this
+  extraction automatically when the digitizer is installed; installing it while a photo is retained
+  starts the pending extraction after returning. Upload opens the local extraction progress dialog
+  automatically. A usable result offers one action to accept the RR/heart-rate draft and continue,
+  but keeps that action disabled unless the extractor identified 12×1 and the user confirms that the
+  source itself states 50 mm/s and 10 mm/mV; clearing the confirmation removes the automatic draft
+  from the numeric form;
+  `review`, `failed`, and runtime-error outcomes open the numbered manual calibration/interval
+  workflow with measurement instructions. Closing that workflow exposes the numeric calculation and
+  diagnostic-hypothesis step. The manual viewer can toggle between the source and locally rectified
+  preview after the four paper corners are marked; switching views rescales the existing calibration
+  and interval coordinates instead of erasing the clinician's work. A repeatable browser regression
+  installs both published packs, sends the strongly blurred non-patient fixture through the rejected
+  automatic path, opens the manual workflow, draws calibration and RR, verifies that RR/heart rate and
+  completion marks survive both view switches, and confirms no page-level horizontal overflow at
+  390×844. After that first run it disables the browser context network and repeats extraction from
+  the installed local pack successfully. Automatic extraction also returns the normalized
+  grid region; the app creates a device-local cropped preview from it and makes that image the primary
+  workspace without changing the source file. A separate top notice states the supported
+  12-lead 12×1, 50 мм/с, 10 мм/мВ profile before upload. The untouched source and extracted curves open
+  from separate actions in overlay dialogs.
+  Links from both ECG model notices remember the tool route, and Settings exposes a working return
+  control. Automatic RR/heart rate stay a
+  visible draft until the clinician explicitly accepts them; review/failed results never enter the
+  rule layer, and manual calipers remain authoritative.
+  A `usable` extraction also renders all 12 waveforms in mV with heuristic Q/R/S/T markers.
+  A separate explicit action copies the resulting 24 amplitude drafts into the editable numeric
+  form; `review`/`failed` results offer no amplitude transfer, and selecting another photo clears
+  age, measurements and prior estimates before the next extraction. These one-complex markers are a
+  review aid rather than validated delineation and cannot start a diagnostic estimate by themselves.
+  A separate optional 0.26 MB adult numeric pack is selected and downloaded from the same settings
+  section. It uses 30 clinician-confirmed intervals/amplitudes in ms/mV, blocks incomplete input and
+  ages below 18, and reports calibrated `NORM`, `MI`, `STTC`, `CD`, and `HYP` hypotheses with a
+  per-class abstention zone. The numeric form works without a photo, starts with collapsed sections,
+  and can explicitly copy the six values available from manual calipers; the framing example prefills
+  only values printed or directly derivable from its header. Every manual field has a compact help
+  dialog with a marked ECG fragment, the target feature, measurement method and input example. The
+  form never fills missing amplitudes with medians. An exact TypeScript replay of the published
+  `2026.2` pack on 2,130 complete in-range adult PTB-XL fold-10 records measured macro-AUC 0.913,
+  Brier 0.090, ECE 0.025 and 93.7% class-record coverage, but also 403/1,740 (23.2%) confident
+  false-negative pathology labels. A local, unpublished `2026.3` candidate therefore keeps the same
+  calibrated HGB probabilities and positive cutoffs but uses per-class negative cutoffs selected only
+  on validation fold 9. On untouched fold 10 it reduced confident pathology false negatives to
+  92/1,740 (5.3%), with 65.6% pathology coverage and 71.2% overall coverage. Its format-version-2
+  parser and compatibility with the published version-1 format have focused tests. The candidate ZIP
+  is 263,321 bytes with SHA-256
+  `814f7ed2ff6acb1af3c44edbca11b8f29cd8b358bcb72d6c7c14a5acd8429010`; selection and runtime
+  share the same inclusive negative boundary. It is not in the catalog
+  because release access and external end-to-end validation are still absent. Diagnostic
+  image CNNs remain absent from the runtime and in research documentation only. Model weights remain
+  outside Git and the APK. Automatic extraction now also runs a local document-image quality gate
+  before a result can enter the Solver. It detects and localizes blocking blur, glare, and missing
+  calibration plus an informational cropped-paper warning; blocking findings downgrade an otherwise
+  `usable` extraction to `review` and are drawn over the rectified primary image. The same findings
+  appear as accessible text in the extraction dialog and route the user to manual review. Focused
+  deterministic tests cover a sharp calibrated sheet and each defect class. Browser QA on a
+  localized-glare case passed at 1440×1000 and 390×844; screenshots are stored as
+  `output/playwright/ecg-qc-glare-desktop.png` and
+  `output/playwright/ecg-qc-glare-mobile.png` with SHA-256
+  `71ab16c4c05f9103faed46570cd5593c903f4523372bae5c7c2b09a0aa787b15` and
+  `2f063989ea62f85180f6d4122c6dd290c3cf1ad286bed11ce3141d8306d9ed0c`.
+  These are conservative image heuristics, not evidence that a source is a clinically valid ECG;
+  format confirmation and lead/coverage gates remain independent. The separate ECG
+  waveform review now delineates optional P/PR/QRS/ST/QT ranges per lead at 100 Hz, but only QRS is
+  exported as an editable automatic interval: it requires a `usable` 12×1 result and agreement from
+  at least eight distinct standard leads. The preliminary 20-record check has been superseded by
+  disjoint 100-record adult PTB-XL fold-9 validation and fold-10 test cohorts with complete PTB-XL+
+  12SL global measurements. Median local QRS durations systematically underestimated the global
+  interval; selecting the upper quartile on validation reduced QRS MAE from 13.25 to 11.79 ms. The
+  same fixed choice reduced test MAE from 16.50 to 11.96 ms at unchanged 48% coverage; 87.5% of the
+  48 returned test values were within 20 ms and 97.9% within 40 ms. QT improved from 35.89 to
+  27.33 ms MAE but reached only 36% test coverage, while P/PR remained too sparse and inaccurate.
+  Therefore P, PR, QT and QTc remain visual review aids and are not copied into the Solver. On the
+  same ideal digital test signals, the 24 amplitude drafts had macro MAE 0.123 mV, median absolute
+  error 0.055 mV, macro Pearson r 0.713, and 73.4% were within 0.1 mV; weak Q/S and inverted-lead
+  features prevent treating them as confirmed measurements. They still require explicit clinician
+  review and the final all-measurement confirmation. The external validation and test reports have
+  SHA-256 `0a4ad4a7f7675cf80b3ee97ee2dcb0df5051baa4a2bb6c7fc3ce81c6e8d04eae` and
+  `57134dcef0362df06b507f539e1bd3891e1bfe42ae42f9f2eeedd351ef8c1584`. Loading a patient photo
+  now remounts the numeric form rather than retaining the framing example: browser regression
+  confirmed blank age/axis and `0/6` intervals after upload, while the example remains prefilled
+  before upload. Patient routing now uses one calendar source of truth: date of birth plus ECG date,
+  calculated without local-time conversion into exact age in days, full years, and one of the eleven
+  pediatric groups or the adult `18+` group. The former independent `18+` checkbox has been removed.
+  Adult interval rules, numeric rules, HGB estimates, and cross-checks are hard-gated to the adult
+  route. For patients under 18 the same photo QC, digitization, and editable measurements remain
+  available, but the adult Solver is not called; after clinician confirmation the UI can show only
+  the sourced AHA/ACCF/HRS QRS reference boundary (`90 ms` below age four, `100 ms` from age four
+  through fifteen), explicitly abstaining from inventing a threshold for the 16–17 transition group.
+  Five focused calendar tests cover leap day, invalid/reversed/over-120 dates, every group boundary,
+  the 18th birthday, both QRS boundaries, and transitional abstention. Browser QA confirmed the adult
+  and pediatric states, absence of adult findings in the pediatric route, a disabled adult estimate
+  action, and no horizontal overflow at 1280 px or 390 px. The separate ECG
+  training-manifest preflight now validates the fixed
+  12-lead 12×1, 50 mm/s, 10 mm/mV profile, source revision/license/rights, diagnostic ground truth,
+  exact pediatric age, patient/base-ECG-disjoint splits, and test-only placement of real-phone records;
+  it also reports deterministic coverage by split, source, cohort, input kind, and pediatric age group.
+  When `age_days` is available, a conservative `6575`-day boundary prevents a day-only record from
+  being promoted to adult before adulthood is unambiguous. A separate strict adult GPU gate requires
+  non-empty train/calibration/validation/test splits, signal training data, a
+  synthetic render outside test, an immutable real-phone test holdout, pinned source revisions,
+  lowercase SHA-256 for every render/phone artifact, and phone coverage of every adult target label.
+  Current source-only manifests intentionally fail this gate, so H200 rental remains unauthorized.
+  The existing 49-case ECG image dataset
+  remains a smoke fixture and is not promoted to training or clinical-validation evidence. Its fixed
+  final browser regression completed all 49 cases in four clean-browser chunks: 11 were internally
+  `usable`, 33 required review, and five failed, versus 12/32/5 before the 12×1 safety gate. RR was
+  available in 37 cases, mean rhythm coverage was 79.1%, and mean lead coverage was 9.24 of 12. All
+  49 were correctly kept in the legacy 3×4+1R layout, so even the 11 internally usable extractions
+  could not enter the fixed-profile Solver. A continuous 49-case browser session stalled at case 36,
+  while the same case and all bounded chunks completed in clean browsers; long-session worker-memory
+  accumulation remains a benchmark/runtime stress issue rather than a reason to increase the timeout.
+  Most classification images use an unsupported 25 mm/s profile, so their doubled heart
+  rates are a format-gating regression rather than accuracy evidence. On two external synthetic 50 mm/s
+  renders from PTB-XL records, RR differed from an independent waveform oracle by 20 and 10 ms, while
+  only 6 and 8 of 12 leads were extracted; both therefore remained safely in `review`. An immutable
+  standard-layout 12×1 render of PTB-XL record 00003 initially reproduced the same failure mode as the
+  previous 3×4-only path: 7/12 leads, 6% lead-II coverage, and no RR. After 12-row detection plus the
+  blue-ink fallback it produced 12/12 leads, 97% lead-II coverage, RR 940 ms, and heart rate 64/min,
+  exactly matching the independent waveform oracle; the browser result is stored outside the repo as
+  `/tmp/minimed-ecg-12x1-50mm-blue-ink-result-20260901.json` with SHA-256
+  `a33abc6a8758818014cd76f89a5c28d01a279fc41210c816157e504cce114e40`. The official full Python
+  Open ECG Digitizer pipeline produced no finite lead samples on that same coloured render, so the
+  successful result is specific to MiniMed's explicit colour fallback rather than evidence of broad
+  pretrained-model coverage. The first three deterministic phone-like variants added perspective,
+  illumination gradients, blur, and JPEG compression but contained no calibration pulse. The quality
+  gate therefore correctly changed all three from the previously reported `usable` state to `review`;
+  the corrected output has SHA-256
+  `2202970c36ff7506a531d81a9dc93d3e3ae104c5bee665841344fc62d2479778`.
+  A replacement synthetic set adds a visible pulse to every row before applying the phone-like
+  transformations. Its mild and medium variants remained 12/12 `usable`, with 96–97% lead-II coverage,
+  RR 980/960 ms, and heart rate 61/63 per minute; the harder blur/JPEG variant retained 12/12 and 98%
+  coverage but safely fell to `review` because calibration was no longer reliable. The output has
+  SHA-256 `d7824dccdf285d9ccaa0f2a47a97c40d53466be017c36e9cad5a20296ba28ad4`.
+  A separate negative set produced `failed` plus localized blur for a strongly blurred sheet, and
+  `review` plus localized glare for an otherwise readable sheet; neither could feed the Solver. Its
+  output has SHA-256 `ffe407dd6c576a9f91110c99dce501dc3e84f85b3e2d216833afbceb6da909ef`.
+  The browser benchmark now records stable issue codes rather than relying on Russian display text,
+  validates its untrusted local manifest/result JSON, and has a CLI evaluator that fails on an exact
+  quality mismatch, a missing expected defect, a missing expected case, or any forbidden promotion to
+  `usable`. New runs also record layout, detected-lead count, rhythm coverage, duration, RR and heart
+  rate as validated numeric fields. The evaluator reports quality/defect distributions, mean lead and
+  rhythm coverage, RR/heart-rate availability, and MAE wherever the immutable manifest declares an
+  independent RR or heart-rate reference; omitting a declared reference measurement is a hard failure.
+  Setting `ECG_BENCHMARK_STRICT_REAL_PHONE=1` now turns the same browser runner into a holdout gate:
+  the manifest must be test-only, fixed to 12×1/50 mm/s/10 mm/mV, carry pinned revision and
+  license/rights metadata, and identify every photo as a real-phone capture with base-ECG ID,
+  device/condition, explicit patient-data status, unique image/reference-signal SHA-256, and an
+  independent RR or heart-rate reference. Relative-path checks prevent fixtures escaping the holdout
+  directory, and both image and reference bytes are hashed before browser execution. This gate can
+  validate a no-patient printed-synthetic digitization set; the separate clinical gate additionally
+  requires classification labels, patient-data provenance, and patient IDs and therefore remains
+  unavailable without a consented or suitably licensed clinical source.
+  A deterministic stdlib-only capture-pack generator now creates physically printable A4-landscape
+  pages and reference signals without patient data. The first external pack contains 60 five-second
+  12×1 pages at 50 mm/s and 10 mm/mV, split 30 dev/30 immutable-test before rendering, with a 250 mm
+  time axis, 1 mV calibration pulses, per-page/reference SHA-256, and planned filenames for two phone
+  devices. It is stored at `/tmp/minimed-ecg-phone-capture-pack-v1-20260901` (44 MB); the capture-plan
+  SHA-256 is `f52e2e344524496a50f505a0e4ef9e6497e4b302b04212e8e9fc9b302ff2c9da` and the printable HTML
+  SHA-256 is `fb0772edf9a98be7ffd4c1ccafca288380a40ab1851e75f524f61d97f1584775`.
+  Browser rendering was visually checked on `synthetic-001`; its screenshot SHA-256 is
+  `e834e3414207a8dec19c845685e02a90f1bccff7862e590c67b0b7eda50267ed`. These pages are not phone
+  captures until they are printed at 100% and photographed, and they can validate only capture/QC and
+  digitization—not diagnostic sensitivity, specificity, or CNN integration.
+  The immutable-test half was also rasterized outside the repository into 30 clean 1782×1260 PNG
+  controls and run through the production browser/WASM path. The first run accepted 24/30; the other
+  six all inferred an impossible 17.8–18.1 second duration because waveform energy contaminated the
+  grid-period estimate. The shared digitizer now independently estimates pixels/mm from the repeated
+  1 mV calibration pulses in at least eight 12×1 rows and uses that scale only when the primary grid
+  estimate implies a duration outside 4–12 seconds. The final run accepted 30/30 with all 12 leads,
+  mean rhythm coverage 99.3%, RR MAE 15.73 ms, heart-rate MAE 1.37/min, 24/30 RR values within 20 ms,
+  and a 44 ms maximum error. The external manifest SHA-256 is
+  `2119b60dc9b5c8894cfe33c7828bea80221eeac992a553c144c23f4a00972240`; the final result SHA-256 is
+  `77720cc77fff3c21564aae2e5f57dd07a051fde1fd97c55a99f78c27e12b5b54`. This is a clean synthetic
+  digital baseline, not phone-camera evidence, and does not authorize a CNN or H200 run.
+  A focused browser success-path regression now takes `synthetic-031` through local installation,
+  12/12 `usable` extraction, explicit profile confirmation, and draft acceptance. It verifies that RR,
+  QRS, and all 24 amplitude drafts appear in the editable numeric form while the all-measurement
+  confirmation remains clear and the Solver action remains disabled. The same installed pack reruns
+  successfully with the browser offline, and the accepted/manual-review state has no page-level
+  horizontal overflow at 390×844. The same complete online/offline test also passed the calibrated
+  medium phone-like JPEG with perspective and blur (SHA-256
+  `d942cbd62cb3962d697b5de4400187c825f464fec1780d3012bec56058861fdb`). This is end-to-end
+  workflow evidence on generated sources, not a substitute for the required physical real-phone
+  holdout.
+  Both the three-case calibrated set and the two-case blur/glare set passed their declared
+  expectations; their external manifest SHA-256 values are
+  `1e5db76b4713c0e91404776c8a5fc6232a153cc209c035a139b149847328a6c6` and
+  `c3dcd9d199a6c35053cb8b14397cbbb89fff6003255eb4d3e59126c4f3513ac6`.
+  These outputs remain synthetic, not a real-phone holdout. The three existing PM-ECG-ID phone captures stayed in the legacy 3×4+1R
+  `review` path at 9/12 leads and 81–83% rhythm coverage, demonstrating that the blue fallback did not
+  silently promote those unrelated photos; that regression output has SHA-256
+  `4b0e9d2639da979d6a5dff4c2037fe7aad725eaf82a9538afc9a4a2f890c9194`. Three additional
+  CRC-verified PM-ECG-ID iPhone, Samsung, and Doogee photos use a true 12-row layout but explicitly
+  state the unsupported 25 mm/s speed. After calibration-pulse layout detection independent of trace
+  colour, all three still stayed in `review` and none could feed the Solver; the newest negative-control
+  output is stored outside the repo with SHA-256
+  `1edb5336813e60f06d4c355e393ccaeb3ea41fe598d5ce46484d0b3008c54a30`.
+  A range-only inventory of the same 33.9 GB ZIP found 27 such 12×1 phone photos derived from only
+  nine PTB-XL ECGs, all at 25 mm/s. The separate Ahus ECG Image Database has real iPhone/OnePlus
+  captures at 50 mm/s and 10 mm/mV for 266 ECGs, but each 12-lead recording is split across two
+  pages rather than the supported single 12×1 page. PM-ECG-ID therefore remains a speed-negative
+  control and Ahus a future paired-page benchmark, not a positive fixed-profile holdout.
+  A third public negative source is the CC BY 4.0 Figshare `Real world ECG image dataset` v3. Its
+  published `2_photo` folder contains complete 12×1 paper photographs, but every inspected header
+  explicitly states 25.0 mm/s, masks gain as `XX mm/mV`, and does not report the capture device. Six
+  diagnosis-diverse cases (AF, AV block, LBBB, sinus rhythm, RBBB, and sinus bradycardia) were run
+  through the browser/WASM path: all six remained `review`, none was `usable`, mean accepted-lead
+  count was 5.67/12, and mean rhythm coverage was 74.9%. The first run falsely joined independent
+  white header/margin blocks into glare regions. Glare detection now keeps only connected internal
+  bright components surrounded by ECG-grid tint or dense structure; the focused synthetic regression
+  and all six photographs now report no glare, while every photograph still stays in `review` for
+  incomplete leads or rhythm-strip evidence. The three RR drafts illustrate the expected approximately
+  doubled-rate failure if a 25 mm/s source were falsely treated as 50 mm/s, so explicit profile
+  confirmation remains a safety gate. The external manifest and final result SHA-256 values are
+  `adbf80385af009767981d25156012bc7edff8f56a7c762527ee16d46864379c2` and
+  `882ce62cecc774a787f1f40b67820e820abbeceebc85dfa519abceb68ded6811`; the source archive SHA-256
+  is `34b02f3d29ec8182c599e15e24d868382f43f97d33ae65a49a240890ef2da0ba`. Because speed, gain, and
+  device provenance fail the fixed-profile contract, this set is not the required positive holdout.
+  The Apache-2.0 Open ECG Digitizer visual-abstract asset at revision
+  `97a15087d4abcda843da8c58ee74b1d8f47e6f9a` provides the complementary real-phone control: its
+  paper explicitly states 50 mm/s and 10 mm/mV, but it is page 2/2 with only V1-V6. MiniMed recovered
+  the printed 55/min as 55/min but kept the image in `review` and out of the Solver because the
+  12-lead layout was incomplete; the newest calibration-aware output SHA-256 is
+  `626b92b10ca2d367e6bb3bddf81315e5e1393d1bb0379ff3351f2dd9bd47f3bc`. An immutable
+  50 mm/s real-phone holdout is still absent, so neither image-CNN training nor GPU rental is
+  authorized yet. A range-only preflight avoided downloading all 33.9 GB of PM-ECG-ID and extracted
+  one CRC-verified 3×4+1R paper photo of the same base ECG from iPhone, Samsung, and Doogee captures.
+  Grid-ROI cropping raised all three to 9/12 leads and 81–83% rhythm coverage, versus 9/12 and 75% on
+  iPhone and 6/12 and 72% on Samsung/Doogee. It also produced RR drafts, but every case still safely
+  required review because repeated lead II disagreed and the recording speed is not printed; these
+  remain layout/QC evidence rather than the required fixed-profile holdout. A
+  metadata-only builder now reproduces the official PhysioNet Challenge 2024 PTB-XL/PTB-XL+ label
+  mapping, filters the initial branch to adults, and emits a validated external manifest atomically.
+  On checksum-matched PTB-XL 1.0.3 and PTB-XL+ 1.0.1 metadata it retained 21,382 labelled adult ECGs
+  with patient-disjoint folds 1–8/9/10 mapped to 17,075 train, 2,148 validation, and 2,159 test
+  records; its per-class counts match an independent standard-library oracle. The current fixed-profile
+  rebuild is `/tmp/minimed-ptb-xl-adult-training-manifest-v2-20260901.json`, SHA-256
+  `23e95d1e1e94ba832679ffcd6c09bb3bb46975116e841da48e5d951d49fd4360`. The strict GPU gate rejects
+  it at the first missing requirement (`calibration`); its summary also contains zero renders and zero
+  real-phone records. It is therefore not evidence for image-CNN training or integration. A second metadata-only builder now covers
+  the checksum-matched ZZU-pECG v1 pediatric source without translating its AHA/CHN/ICD-10 codes into
+  adult labels. It retained all 12,334 twelve-lead records from 10,355 children/patients as 9,809
+  train, 1,270 validation, and 1,255 test records, excluded 1,856 nine-lead records, and reproduced
+  the patient split with an independent standard-library oracle with zero patient leakage. All
+  pediatric diagnostic ground truth remains empty; exact age in days and source-native codes are
+  preserved only for a future age-specific reference branch. The raw 4 GB waveforms were not
+  downloaded, and ZZU-pECG contains neither phone photos nor ages 15–17, so this manifest is not
+  evidence for pediatric diagnosis, image-CNN training, or full under-18 coverage. Every other calculator
   schema and all assessments live in `content/tool-modules/*.json`, build to
   `apps/app/public/content/modules/minimed-tools-*.db`, and are auto-installed from those bundled
-  artifacts in development and production (`VITE_USE_LOCAL_MODULE_ARTIFACTS`, on by default). Once a tool
-  pack is on the device, every questionnaire and calculator in it is available immediately — there is
-  no second per-item download/remove toggle. Remote-artifact QA can explicitly disable the local URL
-  rewrite and still install a pack through `ContentModuleRuntime.install`. Section-to-module mapping is in
+  artifacts in local/Android builds (`VITE_USE_LOCAL_MODULE_ARTIFACTS`, on by default); Pages resolves
+  release artifacts through the CORS-safe remote mirror. Once a tool pack is on the device, every
+  questionnaire and calculator in it is available immediately — there is no second per-item
+  download/remove toggle. Remote-artifact QA can explicitly disable the local URL rewrite and still
+  install a pack through `ContentModuleRuntime.install`. Section-to-module mapping is in
   `CALCULATOR_SECTION_MODULE_IDS` and `ASSESSMENT_SECTION_MODULE_IDS`. Published packs:
   `minimed.tools.core-clinical.ru` preview.2 (the original 17 renal/emergency/cardiology/hepatology/
   hematology calculators plus BSA, CKD-EPI 2021, Schwartz 2009, maintenance fluids, and paediatric
-  ORS); `minimed.tools.obstetrics-gynecology.ru` (full ObCalc set plus Apgar, EPDS, Ferriman–Gallwey,
-  and Whooley); `minimed.tools.psychology.ru` (Braverman, egogram, PAEI, team roles, temperament);
-  plus gastroenterology preview.2, neonatology, pediatrics, and emergency. Assessment score bands for
+  ORS); `minimed.tools.obstetrics-gynecology.ru` preview.3 (full ObCalc set plus Apgar, EPDS, Ferriman–Gallwey,
+  and Whooley); `minimed.tools.psychology.ru` preview.2 (Braverman, egogram, PAEI, team roles,
+  temperament, and SHAS);
+  plus gastroenterology preview.2, neonatology, pediatrics, and emergency, plus the separate
+  `minimed.tools.pediatrics-growth-demo.ru` pack with the non-clinical approximate growth-chart demo.
+  EPDS `1.1.0` uses V. V. Golubovich's 2003 Russian adaptation: all ten prompts and answers match
+  [instruction 158–1203](https://med.by/methods/pdf/full/158-1203.pdf), appendix 2, pp. 7–8;
+  item order, IDs and the 0–30 key are preserved. Interpretation now cites the source's 8–9-point
+  screening guide (pp. 3–4), flags scores from its lower bound of 8 for clinical assessment,
+  and does not invent an individual probability or a diagnostic verdict from that guide.
+  Any positive answer to item 10 still prompts immediate safety assessment regardless of total.
+  Provenance distinguishes the original Cox scale, Golubovich text, Psytests listing and COPE
+  safety guidance; the bundled SQLite module and catalog checksums are rebuilt from authored JSON.
+  SHAS `1.0.0` is available under «Психиатрия → Астенические состояния» from the shared psychology
+  pack. Its 30 original prompts and four response options come from Shabrov et al. (2022),
+  appendix 1, p. 60, published under CC BY 4.0; the supplied Markdown paraphrases are not the form.
+  The direct 30–120 sum and all four inclusive bands (30–50, 51–75, 76–100, 101–120) use existing
+  declarative scoring and persist source-backed scale grades, not diagnoses. The authored JSON,
+  rebuilt SQLite artifact and catalog checksums agree; boundary and browser checks cover the new form.
+  Assessment catalog counters use i18n plural messages selected by the active locale's
+  `Intl.PluralRules` (Russian «тест / теста / тестов»), including counts shown on section cards.
+  Assessment score bands for
   downloaded questionnaires come from JSON `interpretations` (`minScore`/`maxScore`/`headline`/`message`),
   not hardcoded engine branches. Hadlock gestational age by biometry (`obstetric-ga-biometry`) is a
   CalculatorSchema in `minimed.tools.obstetrics-gynecology.ru` preview.2; the expression language has
@@ -329,6 +795,43 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   section, or tool) reset window scroll to top; root-tab scroll restore is unchanged. Unit tests
   evaluate every tool-module calculator schema across each input’s domain and assert the engine never
   throws.
+- Locally authored questionnaires are standalone `.minimed-questionnaire` JSON files in the protected
+  «Мои файлы / Опросники» system folder. The assessments home opens «Мои опросники» as its first
+  notepad card; its local catalog puts search above the page heading, uses the primary theme for
+  import and the `+` icon beside search for creation, pluralizes question counts, and writes each edit as a local draft;
+  it supports explanatory text, weighted choices, and image groups
+  rendered as a two-row horizontal carousel with a lightbox. Files export/import through the platform
+  share/download flow, a file rename updates the questionnaire title in its JSON payload, and blank
+  forms print on A4 through `PrintManager`. A local Whooley example is seeded with its source notice;
+  it remains explicitly a screening example rather than a diagnosis.
+- Calculator and questionnaire definitions in the bundled tool modules now use contract schema v2.
+  Each declares evaluation status/provenance and stable observation mappings; deterministic numeric
+  outputs can be recorded as longitudinal patient observations without guessing a reference range.
+- Patient cards are a separate local domain from ordinary notes. On Android/iOS, IndexedDB stores
+  `PatientProfile`, dated `ClinicalEpisode`, immutable tool/manual/laboratory/medication
+  `PatientEvent` records, and `PatientObservation` snapshots under AES-256-GCM with a data key wrapped
+  transparently by Android Keystore or iOS Keychain. The browser offers a plaintext IndexedDB mode
+  only after an explicit warning; no application password or biometric prompt is used. Patient
+  selectors use an explicit `patientId`, and locked patient data
+  is excluded from ordinary history/search/notifications; while the vault is unlocked, patient
+  profiles appear in the personal part of the global search. Calculators and questionnaires expose one
+  searchable patient/case combobox: free text stays unbound, while locked or unmatched search offers
+  the patient unlock action. The patient route includes manual events,
+  explicitly plaintext portable backup/import, cascading deletion, and `#/notes/patients/<id>/dynamics`
+  with Chart.js series and source tables. The patient index has a safe-area-aware sticky header,
+  local profile search, and a themed primary create action with backup/destructive actions grouped
+  in its header menu. Calculator and assessment results can target the selected
+  open episode or an explicitly standalone event; immutable source title and URL/document targets
+  are captured with each tool result. Source links are restricted to HTTP(S) at the tool-contract and
+  backup boundaries, and patient surfaces render only those safe targets. Binding a
+  questionnaire to a patient removes its ordinary local draft and clears answers before protected
+  continuation; unbinding clears protected answers as well. Dynamics opens a source's original
+  episode through the patient route and selects its examination card; a closed historical episode
+  remains viewable but is never used as the target for a new event. Manual and laboratory
+  observations can be corrected through a revision action, including after the linked episode is
+  closed; laboratory revisions retain their kind and report range while tool results remain immutable.
+  Shared vault mutations are serialized, and locked patient surfaces acknowledge state removal before
+  the privacy curtain is released. The prior DEV vault database is dropped without migration.
 - Module and model downloads share retry/backoff and resumable partial bytes, but use independent
   network lanes: up to three document installs run concurrently while additional documents remain
   queued, and the selected model always receives its own download slot. Content-pack progress is a pie
@@ -353,13 +856,18 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   from the optional local model and expose model size, requirements, advantages, limitations, and
   model selection.
 - Device preferences in Settings persist vibration on/off (default on), remember-search-mode
-  (default off), and zen-pack UI sound volume (default 20%; zero mutes and stops playback).
+  (default off), floating windows (default off), Experimental modules (default on), and zen-pack UI
+  sound volume (default 20%; zero mutes and stops playback).
   The Settings heading keeps back and title on one row (no in-heading app icon). Android, iOS, and browser
   favicons use the same mark; prepared packs are installed with `bun run icons:install <pack.zip>` and
   verified with `bun run icons:check`. GitHub and Android APK links at the bottom of Settings use
   `--theme-link` in both themes.
 - Haptics: Android uses `performHapticFeedback` via `LocalMedHaptics` (selection/light/medium/heavy);
   iOS uses Capacitor Haptics impact/selection; web does not call `navigator.vibrate`.
+- The NiiVue volume viewer uses the low-cost mobile render profile at DPR `0.75`, disables anti-aliasing,
+  and does not render the 3D tile in multiplanar mode; the fullscreen image toolbar includes the native safe-area
+  inset so controls stay below the Android status bar and exposes horizontal-scroll arrows. Root tabs prefetch their lazy chunks and skip
+  the enter animation on first mount.
 - Zen-pack UI sounds go through one `UiSoundController`: cards, buttons, sliders, links, horizontal
   scroll ticks, and fine-pointer hover (touch pointers stay silent). Volume is the single mute/gain
   control. Web Audio unlocks from the first pointer or keyboard gesture on the app shell.
@@ -368,13 +876,15 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   delete, and snap on toggles.
 - Browser application updates install in the background but wait for explicit approval on the search
   sticky toolbar or the Settings checker (compact percent while an APK downloads) before the new
-  service worker activates and reloads the page. Android checks the latest GitHub release, downloads a
-  newer APK through explicit `CapacitorHttp.get` (global CapacitorHttp stays disabled so module
-  `fetch` is not patched), writes it in chunks through `LocalMedUpdate`, and hands the file to the
-  system installer. Published tool packs (`minimed.tools.*`) auto-install at boot; the medications
-  companion stays user-initiated. The packaged web
-  assets include only the Core SQLite (`core-demo.db`); companion databases stay optional local-dev
-  files and are stripped from `dist`. Android aapt ignores those companion filenames explicitly —
+  service worker activates and reloads the page. Android does not register that worker; before an
+  APK update the native updater removes old worker registrations and CacheStorage so hashed bundles
+  cannot leave a blank screen. Android checks the latest GitHub release, downloads a newer APK through
+  explicit `CapacitorHttp.get` (global CapacitorHttp stays disabled so module `fetch` is not patched),
+  writes it in chunks through `LocalMedUpdate`, and hands the file to the system installer. Published
+  tool packs (`minimed.tools.*`) auto-install at boot; the medications companion stays user-initiated.
+  The packaged web assets include the Core SQLite (`core.db`) and all tracked local module
+  SQLite files; large companion databases stay optional local-dev or release assets and are stripped
+  from `dist` when unavailable. Android aapt ignores those companion filenames explicitly —
   a blanket database glob would also drop the bundled core pack, because aapt `!` only silences skip
   warnings. If the core pack cannot open, boot throws `Не удалось открыть ядро MiniMed`; there is no
   embedded JSON seed fallback in `create-browser-core.ts` (`DEMO_CONTENT_PACK` remains for unit tests
@@ -393,20 +903,27 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Vertical mouse-wheel delta is translated into horizontal movement for the shared overflowing-strip
   component, including mixed diagonal wheel input; touch and trackpad scrolling remain native.
 - Android draws the page background beneath its transparent status bar while sticky chrome and
-  page surfaces add `--safe-top` themselves; there is no solid desk-colored status-bar plate.
+  page surfaces add `--safe-top` themselves; there is no solid desk-colored status-bar plate. Sticky
+  document-heading paper fill extends beneath the status bar while its text remains below the safe area.
+  On native iOS/Android, the top blur/grain is shown only while transparent route chrome is actually
+  stuck, and those headers keep their controls below the status bar during keyboard viewport resize.
+  Bundled WebView resources clear their cache once per binary version so an APK update cannot keep
+  serving an older `index.html` or hashed stylesheet.
   The launch splash and in-app boot screen fill the viewport with paper (`@color/splashBackground`
   on the splash theme; there is no second `drawable/splash.xml` beside Capacitor's `splash.png`).
   Android keeps the window edge-to-edge from `onCreate` (before the WebView) and does not use
   `windowFullscreen`, so splash/boot do not first layout between the system bars and then stretch
-  under them. System-bar icon contrast
-  follows the device theme. Hardware Back closes the
+  under them. System-bar icon contrast follows the device theme; medical-image readers explicitly
+  force the light status-bar appearance; dark-header modal dialogs use the same appearance while open,
+  and the device theme is restored after the last such surface closes. Hardware Back closes the
   active dialog or drawer, returns through nested routes and root sections, then minimizes the app at
   the search root. Native-like haptics respect the vibration preference and platform capabilities
   (see device preferences above).
 - Native print actions use an in-app preview over the desk background: one A4 sheet with content
-  scaled to fit, document-chrome circle Back/Share buttons, and a breadcrumb title. Android Share
-  opens the system share sheet through `LocalMedShare` (`ACTION_SEND`) instead of WebView
-  `navigator.share` / `window.print()`, which do nothing there. Hardware Back can exit the preview.
+  scaled to fit, document-chrome circle Back/Share buttons, and a breadcrumb title. Rendered
+  documents are shared as self-contained HTML, while original PDFs use the original file through
+  `LocalMedShare` (`ACTION_SEND`); WebView `navigator.share` / `window.print()` are not relied on.
+  Hardware Back can exit the preview.
 - In-document tables and images pinch-zoom 1–3× with an opaque fill, a dimmed lightbox, and a smooth
   reset on scroll or a click beside the figure. The fullscreen media viewer zooms from the top-left
   and grows its scrollport to the scaled size on both axes so every edge is reachable, with − / 100% /
@@ -431,8 +948,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ### Personal notes
 
-- Device-local patient cards support editable summaries and a flat dated record timeline; the former
-  nested-reply editor is no longer exposed. Card and record deletion require an accessible Kobalte
+- Device-local patient cards use a flat dated record timeline without a separate context block; card
+  and record titles are edited from their final breadcrumbs. The former nested-reply editor is no longer exposed. Card and record deletion require an accessible Kobalte
   alert-dialog confirmation.
 - New and edited notes receive deterministic topic labels, are mirrored to IndexedDB, and are
   enriched through the search worker after the editor yields. Related sources appear only with
@@ -450,7 +967,12 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - The user library always exposes a protected root folder named «Заметки». Notes are mirrored there as
   Markdown files and note attachments as regular local-library files; the current note stores remain
   the source of truth and synchronize on note or attachment changes. Editing a mirrored Markdown note
-  in the file reader writes its text back to the note record.
+  in the file reader writes its text back to the note record. Mirrored note filenames use the card title
+  and append the record title only when it exists, so body text does not become a document heading.
+- Notes exposes a separate «Ваши шаблоны» catalog, backed by a protected local folder but not shown
+  in «Ваши документы». Its patient-note-style root card and plus action open the catalog with the
+  new-template dialog; it can create blank Markdown templates, upload local templates, and add an
+  editable «Осмотр на дому» example; template printing uses A4 with 10 mm margins.
 - Personal matches appear in search with an explicit personal-source label and outside the official
   result container, so they cannot be mistaken for installed medical content. The block collapses by
   default, shows up to five combined note and book hits sorted by score, and can expand like an
@@ -460,17 +982,24 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Personal hits require every distinctive query stem (inflected forms still count); a shared leftover
   such as «дети» or «мг» no longer surfaces a book or note that does not contain the specific term.
 - User documents open in their original form where possible: EPUB renders through epub.js in a
-  continuous scroll and DOC/DOCX through docx-preview (both bundled offline); EPUB/FB2 extraction
-  honors legacy Cyrillic XML encodings while extracted text still powers search.
+  continuous scroll, PPTX renders every slide in the document flow, and DOCX through docx-preview
+  (all bundled offline; legacy DOC remains downloadable); EPUB/FB2 extraction honors legacy Cyrillic XML encodings while extracted text
+  still powers search. Presentation print sends one rendered slide per A4 landscape page; text-oriented
+  print uses ГОСТ 7.32-2017 margins (30/15/20/20 mm), 1.5 line spacing, and a 12.5 mm first-line indent
+  without overriding document fonts.
   Persistent text highlights are stored per document/page in IndexedDB and painted with CSS Custom
-  Highlights; selecting text offers add/remove actions. PDFs print as the original file, OCR runs
+  Highlights; selecting text offers add/remove actions. PDFs are shared/printed as the original file;
+  EPUBs are rendered through epub.js before printing.
+  OCR runs
   only when requested from the card menu, book mode and in-document search stay disabled without
   extractable text, and the reading-mode paper keeps its light fill. Files support multi-select
   (long-press on touch, «Выбрать» in the context menu) with a bottom bubble showing count and total
   size, single-file and bulk download, bulk delete, and drag-and-drop onto folder cards and breadcrumbs with hover
   highlight. Renamed document titles update directly on library cards, and the protected «Заметки»
   folder carries a note glyph on its animated front panel. Document sharing falls back to a local
-  download when desktop Web Share is unavailable, rejects the file type, or denies permission.
+  download when desktop Web Share is unavailable, rejects the file type, or denies permission. File
+  context menus stop propagation, avoid viewport edges, close on navigation, and show an icon for
+  every action.
 - User-uploaded PDFs, images, and text-like files live in IndexedDB as a personal overlay: PDF pages
   with insufficient native text use throttled tesseract.js WASM OCR in a background worker, while
   images remain visual-only until the user explicitly requests OCR, which creates a PDF copy. Only
@@ -478,25 +1007,44 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Medical images stay local as well: Cornerstone opens DICOM Part 10 files and sibling series, while
   NiiVue opens native NIfTI, NRRD, MIF, MGH/MGZ, MetaImage, Analyze, AFNI, and NumPy volumes. Both
   readers expose progress and explicit errors and generate first-frame/slice thumbnails for the file
-  grid. The app bundle seeds a real anonymized 139-slice chest CT and 130-slice MRI; both are verified
-  through the same viewer paths as uploads and expose icon-only reset and slice navigation controls.
+  grid. The personal library shows empty example slots for a CT and MRI in «Исследования» and an
+  EPUB in «Книги». The whole example card is the download button; its file-download icon is visual
+  only. A stored example is reused by its stable slot id/file name, so repeated clicks do not create
+  duplicate documents. Downloads use the versioned GitHub Release, using the CORS-safe raw URL for
+  the same tagged source in the browser; progress and errors are shown. The example files are
+  separate release assets and are not included in the app bundle.
   Medical-image readers own the full page (including back navigation), hide the global bottom nav,
   expose available patient/study/region/comments metadata, and keep the multiplanar 3D crosshair in
   sync with slice navigation and its three-plane 3D cutaway. Their fixed navigation controls stay
   visible while the tool strip scrolls horizontally, and the canvas resizes with narrow and rotated
   phone viewports; clipped CT/MRI titles use an overflow-aware marquee. Dragging inside a 3D volume
-  tile depth-picks and moves the crosshair, immediately aligns the three-plane cutaway to that
-  position. An active-by-default floating sphere control stays in the render tile's top-right corner
-  and switches between 3D rotation and crosshair movement. Volume renders open from 45° above the
-  posterior-left side and reset back to that view.
-  MRI/volume readers expose the same ROI contrast adjustment on an explicit toolbar toggle for
-  primary mouse and touch input, while secondary-click contrast remains available.
+  tile depth-picks and moves the crosshair for mouse input, immediately aligning the three-plane
+  cutaway to that position. On touch, single-plane taps move the crosshair and vertical swipes scrub
+  slices; the 3D view exposes a cycling X/Y/Z slice-axis control and vertical touch swipes scrub the
+  selected axis instead of relying on imprecise cursor clicks. An active-by-default floating sphere
+  control stays in the render tile's top-right corner and switches between 3D rotation and crosshair
+  movement for mouse input. Volume renders open from 45° above the posterior-left side and reset back
+  to that view.
+  DICOM uses the file's automatic/default VOI on open; contrast is opt-in. On phones, one-finger
+  swipes change slices and two fingers pan and zoom. On desktop, the mouse wheel changes slices while
+  the contrast, pan, and zoom modes remain available as explicit controls.
+  MRI/volume readers expose contrast adjustment on an explicit toolbar toggle: primary mouse input
+  keeps ROI selection, while touch uses direct window/level swipes; secondary-click contrast remains
+  available.
   Single-plane volume views scrub slices by vertical mouse/touch drag on either the
   canvas or slice number, while holding either reader's previous/next control continuously advances
   slices without opening a native context menu. The DICOM slice number also captures mouse/touch
-  drag for continuous scrubbing, and phone multiplanar mode uses a 2×2 grid. DICOM annotations persist as
+  drag for continuous scrubbing, and both readers show the current/total slice as a stacked fraction;
+  NiiVue double-touch input is disabled; two-finger pinch zoom is handled by the app for individual
+  volume slices and 3D. Phone multiplanar mode uses a 2×2 grid with a clipped per-plane crosshair
+  overlay. Viewer controls expose their modes through accessible labels and visible keyboard hints:
+  `R` resets, `I` opens image data, `Backspace` returns to navigation, `C` toggles contrast, `P/Z`
+  select DICOM pan/zoom, and `D/E` select pencil/eraser. DICOM annotations persist as
   normalized vectors per document, plane, and slice; volume annotations persist as a NiiVue voxel
   bitmap visible in 3D, with red/blue drawing, erasing, and a 24-step undo/redo history.
+  Both viewers expose a toolbar printer that captures the current CT/MRI frame or selected slices,
+  including annotations and compact patient/series/slice overlays, and lays them out on A4 pages;
+  volume grid printing uses 4×4 slice montages.
   Active volume drawing locks rotation and slice navigation; a completed pencil stroke returns the
   pointer to its normal mode so accidental follow-up strokes are not created.
 - Voice recordings captured in the note editor render as full-width Telegram-style bubbles with a
@@ -510,23 +1058,26 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   the in-flight download by terminating the worker. Whisper downloads report monotonic total-model
   progress and retry transient fetch/network failures twice before surfacing a localized error.
 - The five user-facing root sections and document/file readers can be opened in same-origin
-  mini-windows from the fixed action button; settings stays in the main route.
+  mini-windows from the fixed action button; settings stays in the main route. Floating windows are
+  disabled by default; Settings can enable or disable the button and close existing mini-windows.
   The normal route remains separate; only the current root view and the outgoing view remain mounted
   during the CSS transition, then the outgoing view is disposed. Each mini-window keeps its own hash
   route and geometry while sharing the browser's IndexedDB/localStorage data layer. The single
   floating-window manager persists route, position, size, and stacking order, keeps at most three
   windows with one active visual window, allows separate windows for separate routes in the same root
-  section, keeps a shared geometry for all windows, keeps headers in a visible cascade, and promotes
-  any clicked header to the top. Expanding a mini-window restores its saved route in the main view.
-  It moves stacked windows as a group, hides inner scrollbars, shows a centered iframe loading state,
-  renders only the active mini-window iframe, and resizes through four invisible desktop corner
-  handles with blurred content until the gesture ends; mobile exposes the Phosphor `notches` handle
-  at the bottom-left corner. Collapsed windows are header-only, titles marquee only when clipped, and
-  embedded Button controls derive their compact size from `--floating-window-button-size`.
-  The opt-in embedded scale flag adapts to the
-  window width so compact iframe headers and controls do not dominate the content.
-  Add `?minimed-floating-scale=1` to try the reduced embedded-content scale. Embedded windows skip the
-  optional OPFS medications companion so multiple frames do not contend for one access handle.
+  section, keeps a shared geometry for all windows, keeps headers in a fixed 45-degree diagonal
+  cascade clamped to the viewport, and promotes any clicked header to the top. Inactive headers stay
+  visible but their buttons and resize handles are inert. Expanding a mini-window restores its saved
+  route in the main view. It moves stacked windows as a group, hides inner scrollbars, shows a centered
+  iframe loading state, renders only the active mini-window iframe, and resizes through four invisible
+  desktop corner handles with blurred content until the gesture ends; mobile exposes the Phosphor
+  `notches` handle at the bottom-left corner. Collapsed windows are header-only, titles marquee only
+  when clipped, and embedded Button controls derive their compact size from
+  `--floating-window-button-size`. An active mini-window can temporarily occupy the whole viewport;
+  its toolbar remains as an ExtraHeader with controls to return to the mini-window. Embedded frames
+  receive `minimed-floating=1&minimed-floating-scale=1`; JavaScript mirrors their viewport into CSS
+  variables so the shared compact layout adapts after resize. Embedded windows skip the optional OPFS
+  medications companion so multiple frames do not contend for one access handle.
 - «Ваши документы» opens a dedicated catalog at `#/modules/documents/user` with nested local folders
   whose current folder is preserved in `?folder=<folderId>` navigation,
   visible folder breadcrumbs, page-level plus actions, move/rename/delete actions, file drag-and-drop
@@ -535,11 +1086,14 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   `#/modules/documents/user/<documentId>` (optional `/p/<pageIndex>`) with breadcrumbs
   (origin — Поиск or Ваши документы — then nested titles via Kobalte); a pasted user-document URL
   parents back to the user catalog, in-document search,
-  outline, selectable OCR/native word overlay on page images, and print of extracted text.
+  outline, selectable OCR/native word overlay on page images, and print of extracted text. Native PDF
+  text uses a PDF.js selection layer, and inspection records whether the source PDF already exposed
+  text while keeping the manual OCR action available.
   TXT/Markdown/RTF/DOCX files can be opened in an explicit draft editor; the original IndexedDB
   file is replaced only after «Сохранить черновик», with navigation and browser-close guards for
-  unsaved changes. Markdown drafts reuse the notes WYSIWYG editor and toolbar; DOCX/RTF drafts
-  preserve plain text rather than rich source formatting. Markdown draft editors also support `/`
+  unsaved changes. Markdown drafts reuse the notes WYSIWYG editor and toolbar; DOCX drafts retain
+  Word page markers and edit as separate A4-like pages, while DOCX/RTF source formatting remains
+  plain-text-only. Markdown draft editors also support `/`
   insert commands; uploaded files are stored in the current user-library folder.
   Markdown preview renders a small sanitized GitHub-style HTML subset (for example `mark`,
   `details`, tables, and links) while dropping scripts, event handlers, unsafe URLs, and styles;
@@ -553,18 +1107,30 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   including multi-select and system file sharing; mobile controls wrap below breadcrumbs, grid keeps two columns on phones,
   and expands to six columns on wide screens. Folder
   creation uses a dialog; drop targets share one helper that highlights hovered folders/breadcrumbs for
-  both OS file drops and in-app file/folder moves; folders can be dragged into other folders with
+  both OS file drops and in-app file/folder moves; on touch devices cards use long-press drag with a
+  movement threshold so ordinary swipes keep scrolling without text selection or native callouts; folders can be dragged into other folders with
   cycle protection; names are limited to 256 Unicode characters; ZIP, RAR, and tarball archives
   unpack into the current folder with nested directories and bounded, path-safe extraction; list rows show image
   previews when present; HEIC/HEIF upload is accepted with native-decode previews where the platform
   supports them (glyph fallback elsewhere). Part 10 `.dcm`/`.dicom` files open in a lazy-loaded,
   offline Cornerstone viewer with locally bundled codecs, window/level, pan, zoom, slice navigation,
   and automatic background same-series grouping by `SeriesInstanceUID` after the selected image is
-  rendered. The root user
-  library receives one removable, anonymized example CT file on first open. The floating
-  book button is the single reading-mode control,
-  opening a menu with book mode and the PDF two-page spread; the PDF header zoom pill was removed
-  (pinch-zoom per page remains).
+  rendered. Medical viewers use the same dark full-viewport surface under the native status bar; the light
+  status-bar appearance is forced while they are open, and the toolbar
+  `--medical-image-status-bar-color` fills both the native status bar and the toolbar safe-area
+  inset while controls remain below it. The root user library shows
+  empty example slots for CT and MRI files in «Исследования» and an EPUB in «Книги»;
+  «Книги» and «Исследования» are created once as ordinary user folders. Example cards download their
+  sample from the versioned GitHub Release (the browser uses the CORS-safe raw URL for that tag),
+  with download progress and errors; stored slots are idempotent and no sample files are included in
+  the app bundle. Reader file kinds
+  and actions come from one capability matrix: unsupported legacy DOC/PPT/Pages stay download-only,
+  XLS/XLSX/XLSM/CSV share one spreadsheet reader: XLSX/XLSM preserve merged cells, colors, fonts,
+  borders, alignment, and row/column dimensions; sheet names appear in the TOC and tabs; cells can
+  be edited and saved locally; fullscreen keeps the same active sheet in a dedicated editor shell
+  with a formula bar, selection highlight, save status, and bottom sheet tabs. XLS/CSV use the same UI and
+  remain searchable and printable in A4 landscape. XLSM macros are preserved but never executed.
+  The PDF header zoom pill was removed (pinch-zoom now scales the whole document).
 - Document text links installed medications, recommendations, and laws into nested
   `#/modules/documents/d/…` pages and
   show kind icons beside each link, with a traveling wavy underline on hover.
@@ -600,35 +1166,43 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 The model cannot open the network, change the corpus, create a citation, calculate a dose, or hide the
 ordinary search response when validation fails.
 
-### Needle tool-calling fine-tune (worktree branch `feat/needle-finetune`)
+### GigaEmbeddings retrieval POC
 
-- `tools/needle/` holds a Cactus Needle 2 LoRA fine-tune slice: one static tool schema
-  (`minimed_tools.json`, nine tools) and a deterministic seeded dataset generator grounded in real
-  repository content — calculator ids and inputs from `content/tool-modules/*.json` (~21 trainable
-  calculators plus a synthetic `dose-by-weight`), assessment slugs from shipped modules, search
-  queries verbatim from `tools/benchmarks/*` with their expected scope/section metadata as labels.
-- The generator validates every sample before writing: answers must reference declared tools,
-  satisfy JSON-schema type/enum/range constraints, ground non-selection argument values in the query
-  text, keep off-topic samples at `answers: []`, and stay duplicate-free. Volume: ~1045 samples
-  (~935 train / ~110 val) across nine tools.
-- `eval_model.py` scores a checkpoint on the held-out split (parse rate, name match, argument
-  exactness, off-topic refusal, exact match) against the full nine-tool catalog. Checks:
-  `bun run needle:check`; data: `bun run needle:data`.
-- Scope/section enums mirror the real contracts (`ScopedMedicalCore` source families and
-  `SearchResultCategory`); audience and intent stay deterministic and are not model arguments.
-- Status: dataset and harness are done and green; LoRA training is blocked in the current macOS
-  environment — JAX on CPU wedges after a few optimizer steps regardless of batch size, sequence
-  length, or thread settings (compile alone takes ~15–20 minutes). The base Needle 2 model scores
-  0% exact on this Russian medical split, so the tuned adapter is required for any capability.
-  Training must run on a Linux/GPU machine or a fixed JAX build before integration; the engine also
-  needs an upstream fix for truncated multi-byte UTF-8 output (worked around in the eval harness).
-- Not integrated into the app yet; `dose-by-weight` has no runtime calculator until one is added to
-  the pediatrics tool module.
+- The unsuccessful Needle 2 tool-calling fine-tune was removed: the base model scored 0% exact on
+  the Russian split, three local training iterations did not produce a usable checkpoint, and no
+  Needle code had been integrated into the app.
+- `tools/benchmarks/giga_embeddings_poc.py` evaluates the frozen
+  `ai-sage/Giga-Embeddings-instruct-480M-0826` revision
+  `2d0c1a92716eef0e5b6972df85b5883eb5b4f57a`. Query-only instruction, mean pooling and L2
+  normalization follow the model card; vectors are quantized to the pack contract's signed `int8`,
+  and weights stay in the ignored local cache. `export-giga-base-candidates.ts` obtains the comparison
+  candidates from the real deterministic/hash `MedicalCore` path rather than reimplementing it.
+- The recorded comparison on the same 61 public-pilot queries and 58 source chunks (before the
+  title-aware group-ordering change) measured deterministic/hash Recall@1 `0.984`, Recall@5 `1.000`,
+  MRR@5 `0.988`, section recall `1.000`, and top-section accuracy `1.000`. Int8 semantic-only Giga
+  measured `0.967`, `1.000`, `0.979`, `1.000`, and `0.967`. Adding Giga after that hybrid with the
+  existing fusion weights measured `0.984`, `0.984`, `0.984`, `1.000`, and `1.000`: it added no win and pushed
+  `drug.ceftriaxone.pediatric-pneumonia-workflow` out of the top five.
+- Repeated cached offline runs on Apple Silicon MPS loaded in `1.5–1.7 s`, used `652–669 MB` peak
+  RSS, and encoded a warm single query at p50 `35–36 ms` / p95 `47–49 ms` across ten samples per
+  run. A local `llama.cpp` conversion also preserved the model's mean pooling and non-causal
+  attention: the Q8_0 GGUF is `520209504` bytes with SHA-256
+  `d64618ea1ac16be1e71930cacc2d8dff047c4dc91b78b797bf8db09128b25ac2`. Across eight short Russian
+  query/document probes, cosine parity against the original BF16 runtime was `0.99896` minimum and
+  `0.99911` mean. This is a desktop conversion probe, not mobile qualification. The upstream
+  repository still publishes only BF16 safetensors plus custom
+  bidirectional Qwen3 code, not an immutable GGUF/ONNX artifact for the app's runtimes; no neural
+  profile, model catalog entry, or runtime dependency was added to the app.
 
 ### Content and downloads
 
 - Deterministic preparation, Markdown validation, stable IDs, provenance, and SQLite building.
 - Public/private source registries with rights metadata and extraction diagnostics.
+- Remote binary sources without `ETag`/`Last-Modified` use a `HEAD` preflight: unchanged
+  `Content-Disposition` plus `Content-Length` reuses the checksum-validated cache, while any change
+  downloads the archive and records a new SHA-256. The ESKLP public ZIP remains a disabled
+  build-time source and is never checked during app startup; its verified identity-only preview
+  modules are published separately.
 - Official Ministry API inventory for 744 recommendations, a resumable structured-JSON sync plan, and
   one deterministic source registry per recommendation.
 - Official JSON is validated at the ingestion boundary and compiled into one SQLite module per
@@ -649,14 +1223,178 @@ ordinary search response when validation fails.
   reconnects.
 - Official GRLS inventory contains 38,815 unique registration records from 140,274 status/version rows,
   with the source ZIP, edition, and checksums retained locally.
+- The read-only ESKLP↔GRLS crosswalk indexes 29,300 exact registration numbers from the full ESKLP
+  pack and carries the matched MNN document, standardized INN, SMNN, presentation, and KLP codes into
+  GRLS knowledge metadata. A 24-record real GRLS sample resolves 20 exact registrations, leaves four
+  unmatched, and produces zero ambiguous merges. A registration associated with multiple MNN documents
+  fails closed. Exact registration plus exact normalized trade name keeps `Нурофен`, `Нурофен плюс`,
+  and `Нурофен Интенсив` attached respectively to ibuprofen, ibuprofen+codeine, and
+  ibuprofen+paracetamol instead of merging by their shared brand prefix.
+- GRLS brand entities now aggregate the MNN and ESKLP identifiers of their distinct registrations
+  instead of requiring every registration with the same trade name to have identical metadata.
+  Registration entities and presentations remain separate; this fixes the real multi-registration
+  `Зверобоя трава` collision without weakening exact registration matching.
+- The public command `medbase-regulated-catalog esklp --archive --taxonomy --output [--generated-at]`
+  verifies the real read-only 2026-08-28 archive: 3,324 MNN cards, 7,672 SMNN, 42,240 TN, 604,213 KLP,
+  and zero warnings; the ledger is ~619 MiB with measured ~2.3 GiB RSS. A synthetic two-KLP-shard
+  fixture builds through the metadata workspace into temporary SQLite/FTS, keeping MNN/TN/form/compound
+  `Мирамистин мазь` in one document with `metadata-only`/`trustedDoseData: false`. The verified
+  identity-only release is split into fifteen preview SQLite modules; existing source databases are
+  preserved read-only.
+- The SQLite composer stages modules through ATTACH and set-based `INSERT ... SELECT`, builds FTS and
+  secondary indexes after loading, and checkpoints each completed module for exact-config/input-fingerprint
+  resume. Pair replacement rolls back on process exceptions but cannot be cross-file atomic across SIGKILL
+  or power loss; its local-dev EditionManifest remains unsigned and validation-bound, never published.
+- The generic pack builder now defers secondary indexes, writes ordinary rows in bulk, and builds FTS
+  with one set-based `INSERT ... SELECT` from the loaded document tables instead of Python
+  `executemany`. On the 5,000 largest real Allmed chunks, the FTS stage fell from 2.31 s to 1.39 s with
+  the same 42,176,512-byte output. The full 4,708-document/75,156-chunk Allmed shadow build now takes
+  836.50 s (13 min 56.5 s), down from 2,927.89 s immediately before the set-based FTS/cache change and
+  ~3,294 s in the older path. The 511,971,328-byte result has no staging remainder, passes
+  integrity/foreign-key checks, and is logically identical to production across documents, versions,
+  sections, chunks, aliases, embeddings, and FTS.
+- ESKLP preview modules remain metadata-only (`trustedDoseData: false`): registry authority and
+  provenance support identity/catalog facts, not treatment indications or dosing.
+- Medication search promotes the longest exact source alias (including a verified TN+form pair) into
+  the result-group heading beside its canonical MNN and ranks that group accordingly. The exact
+  presentation branch combines brand with form/route/strength, while age and weight only refine the
+  match. A public `MedicalCore.search()` fixture with competing ointment and capsule cards verifies
+  both the valid `Мирамистин мазь` presentation and refusal to claim the nonexistent
+  `Мирамистин капсулы` pair.
+- A measured 75-card ESKLP audit pack built from the verified 2026-08-28 ledger passes 13 common-drug
+  queries through `MedicalCore.search()`: direct paracetamol, salbutamol, erythromycin, ceftriaxone,
+  and cefepime cards stay above fixed combinations; `цефипим` resolves to `ЦЕФЕПИМ`; Nurofen TN,
+  paediatric, and suspension queries expose source-faithful rows; and `турбухалер`/`турбухаер` return
+  exactly the budesonide, budesonide+formoterol, and formoterol cards. Search limits are applied after
+  document grouping, component aliases cannot rewrite an MNN query into a combination, and the first
+  snippet favours exact TN fields and query-specific forms while stripping known disclosure markup.
+  This audit does not publish or replace the full ESKLP pack.
+- The read-only full-ESKLP benchmark now freezes 16 source-audited medication queries. Recall@5,
+  MRR@5, exact supported identity Top-1, and source-evidence hit are all `1.00`; p95 is 8.93 s and mean
+  latency is 4.86 s on the 1,982,984,192-byte local pack. Its explicit `Нурофен плюс` and
+  `Нурофен Интенсив` cases require the combination-specific MNN IDs and source strength evidence.
+- Medication-form recall is generic rather than TN-specific: `сироп` and the common typo `спироп`
+  also search the exact source phrase `СУСПЕНЗИЯ ДЛЯ ПРИЕМА ВНУТРЬ`, while inflected suspension
+  queries can find registered syrups. Exact source forms and direct MNN cards rank first; injection
+  and external suspensions are not treated as syrup evidence. The extended read-only ESKLP check
+  passes 20/20 queries, including Nurofen, Children's Panadol, Ascoril Expectorant, and paracetamol.
+- Medication-route search recognizes full intramuscular/intravenous wording and `в/м`/`в/в`, keeps
+  the direct MNN above fixed combinations, and prefers a source fragment with the requested route.
+  Bare kilogram measurements are extracted from pediatric queries without treating a bare gram drug
+  strength as body mass or duplicating an explicitly labelled weight. Eight read-only ceftriaxone
+  queries pass against the real ESKLP audit pack; no individualized dose is inferred from registry data.
 - Current official instruction synchronization covers nine pilot medications; eight text-layer PDFs
   build into a 147-chunk SQLite pack and the oseltamivir scan remains explicitly blocked on OCR.
-- The local Allmed companion `apps/app/public/content/medications.db` (~421 MB, 4,708
-  `allmed_reference` cards) is the full drug catalog for local/dev use. Browser sqlite-wasm no longer
-  deserializes that file into the WASM heap (that path OOM'd). The window thread streams it into a
-  dedicated OPFS worker (`minimed-sah-pack`) so the main sqlite-wasm singleton only holds the small
-  core/regulatory/reference packs. The first boot copies ~421 MB into origin-private storage, later
-  boots reuse it. Core reloads share that worker through ref-counted leases, preventing concurrent
+- The resumable GRLS downloader now uses 1–8 bounded workers, one cookie session per worker, and commits
+  PDFs/state in deterministic plan order while retaining at most `workers` PDF results in memory. A
+  real four-registration smoke run completed 4/4 downloads in 4.57 s and a current-site regression for
+  `ЛП-000348` resolves the official 5,511,986-byte PDF in 7.96 s. Official PDF paths with Cyrillic are
+  percent-encoded before download; `ЛП-000167` resolves its 1,158,161-byte PDF in 3.23 s. Two bounded
+  100-target batches added 79 valid current instructions, so the registry now contains 116
+  checksum-valid current PDFs, all OCR candidates. This is verified pipeline behavior, not complete
+  GRLS instruction or dose coverage.
+- The generic `medbase prepare` stage accepts `--workers 1..8`. Extraction/OCR runs concurrently,
+  while Markdown, diagnostics, and the report are committed in registry order with at most `workers`
+  extracted sources waiting in memory. The default remains one worker. The preserved sequential
+  116-instruction run completed in 501.97 s (8 min 22 s); a separate four-worker run completed in
+  about 237 s (3 min 57 s), a measured 2.1x speed-up without replacing the original workspace.
+- The 116 current OCR instructions now build together with 116 normalized GRLS registration cards
+  into `data/build/grls-instructions-current-116.db`: 232 documents, 1,724 sections, 1,507 chunks/FTS
+  rows, 503 knowledge entities, 418 relations, and 453 document links in 22,282,240 bytes. The final
+  build takes 2.11 s and passes lint, SQLite integrity, and foreign-key checks. Exact registration +
+  TN crosswalk links 99 cards to ESKLP MNN/SMNN/KLP identity, leaves 17 explicitly unmatched, and
+  produces zero ambiguous links. All 116 instruction documents retain the OCR review requirement;
+  this local evidence pack is not yet a reviewed dose corpus.
+- Exact known instruction headings are now recognized even when OCR loses font emphasis. The separate
+  `current-116-v2` build contains 480 source-exact proposed facts linked to registration entities:
+  administration for 58 registrations, contraindications for 58, indications for 51, adverse reactions
+  for 52, warnings for 50, and storage for 66. All 480 evidence quotes are exact chunk substrings;
+  SQLite integrity and foreign keys pass. These are navigable official-label excerpts, not yet parsed
+  or reviewed dose regimens.
+- `medbase prepare --reuse-from` reuses only source-file/checksum-matched extraction JSON and
+  regenerates Markdown/diagnostics in registry order; an expansion from 121 to 123 instructions reused
+  121 extractions and processed only two new PDFs. The latest preserved local build
+  `grls-instructions-current-123-v2.db` contains 123 instructions plus 123 registration cards,
+  632 entities, 176 parsed presentations, 548 proposed source-exact facts, 881 relations, and 761
+  document links. Exact ESKLP
+  crosswalk covers 106 registrations, with zero ambiguous and 17 unmatched. It adds complete section
+  groups for current salbutamol, oral/tablet paracetamol, Symbicort Turbuhaler, cefepime, and Nurofen
+  tablet registrations; older Nurofen suspension/Plus registration searches remain unresolved at the
+  GRLS site and are not substituted by name.
+- The GRLS batch scheduler now stops retrying a failed registration after a configurable
+  `--max-attempts` limit (default 3) and advances to later plan entries. Before the fix, an 8-worker
+  smoke run spent 7.1 seconds retrying the same eight 5–6-attempt failures and produced 0/8 PDFs;
+  after the fix, the next bounded run skipped 21 exhausted failures and downloaded 8/8 new
+  checksum-valid PDFs in 8.0 seconds. A new registry contains 131 sources. `medbase prepare
+  --workers 8 --reuse-from` reused 123 extractions and processed only the eight additions in 25.0
+  seconds; normalization against the preserved full ESKLP pack took 20.1 seconds. The separately
+  preserved `grls-instructions-current-131-v2.db` contains 131 instructions plus 131 registration
+  cards, 2,336 sections, 2,020 chunks, 184 presentations, 668 entities, 775 proposed facts, 927
+  relations, and 809 document links. Exact crosswalk coverage is 114 matched, zero ambiguous, and 17
+  unmatched; the 36,745,216-byte database has SHA-256
+  `f106933bdb7c670d41d82b3ce1af894d4f2a5f043b25f9c119b91da7a9d24e22`, integrity `ok`, and zero
+  foreign-key violations. The previous 123-instruction databases remain unchanged.
+- A subsequent bounded 32-target run added 29 checksum-valid PDFs in 22.0 seconds with eight
+  workers. `medbase prepare --workers 8 --reuse-from` reused all 131 prior extractions and processed
+  only the 29 additions in about 55.5 seconds. The preserved
+  `grls-instructions-current-160-v2.db` contains 160 instructions plus 160 registration cards, 2,870
+  sections, 2,486 chunks, 223 presentations, 790 entities, 931 proposed facts, 1,123 relations, 993
+  document links, and 193 review tasks. Exact ESKLP crosswalk coverage is 141 matched, zero
+  ambiguous, and 19 unmatched. The 45,293,568-byte database has SHA-256
+  `e40665735a04f7c17474e047a5d406ca3c67057b27e818f1562ca11e8837a04b`, integrity `ok`, and zero
+  foreign-key violations. All earlier GRLS databases and extraction workspaces remain preserved.
+- A temporary end-to-end edition composed the current core with the 131-instruction GRLS pack in
+  97.619 seconds using the set-based composer: 4,345 documents, 14,134 sections, 13,830 chunks,
+  31,949 aliases, 133,029,888 bytes, integrity `ok`, and zero foreign-key violations. The first
+  unified search run exposed a real source-order regression: GRLS instructions outranked the
+  canonical ESKLP pointer for plain `нурофен`, `нурофен спироп`, and typo `цефипим`, reducing exact
+  identity Top-1 to 0.786. Query ranking now uses the already-loaded document metadata: a plain drug
+  query prefers the ESKLP medication pointer, while an explicit instruction or registration query
+  prefers the corresponding GRLS source. The repeated 16-query run restored Recall@5, MRR@5, and
+  exact identity Top-1 to `1.00`. Compact-core source-evidence hit remains at its unchanged `0.80`
+  baseline for the two Nurofen evidence fixtures; the full ESKLP pack remains the authoritative
+  evidence benchmark.
+- A deterministic GRLS dose-candidate projection now extracts only paragraphs with explicit numeric
+  dose expressions from administration sections. The preserved
+  `grls-instructions-current-123-dose-candidates-v2.db` contains 199 proposed `dosage` facts in
+  addition to the previous 548 exact section facts; 57 dosage facts have explicit
+  population/applicability data from the same paragraph, with 21 age-group, 23 weight-based, and 15
+  same-paragraph route annotations. Forty-nine retain explicit
+  frequency expressions and eight retain administration intervals. Every dosage evidence quote is an
+  exact source-chunk substring; the quality check found no concentration-only `мг/мл`, `мг/доза`, or
+  `мкг/доза` paragraph promoted as a dosage fact. Normalization reused the prepared corpus and took
+  about 19.5 seconds; SQLite build took about 4.5 seconds, with no OCR rebuild. The 34,660,352-byte
+  database has SHA-256 `e6ddc8d3258b080cb9717ced1ce74b62fbe6f44ccd1cf4e3981a32d0f8f187b6`,
+  integrity `ok`, and zero foreign-key violations. All extracted doses remain `proposed`; the
+  capability manifest therefore reports zero clinically supported dose entities until automated
+  source/applicability review promotes individual regimen facts.
+- `medbase ai-fact-review-export` and `ai-fact-review-import` implement immutable dual-AI review for
+  existing proposed dosage facts. Export fingerprints the complete fact, preserves the exact evidence
+  and source context, and never permits a model to rewrite structured values. Import requires exactly
+  two response files, distinct review IDs, matching fingerprints and evidence, confidence at least
+  0.95 from both reviewers, full consensus, and deterministic applicability/timing completeness before
+  setting `reviewed`; dual rejection sets `rejected`, while disagreement or missing data abstains. The
+  123 current instruction documents do not yet declare `allowsDerivativeProcessing`, so the real
+  export currently fails closed at the rights boundary and no dosage fact has been promoted.
+- GRLS presentation parsing now locates the first numeric strength/unit field instead of assuming the
+  second comma-separated token is a dose. Forms such as `таблетки, покрытые оболочкой, 200 мг` retain
+  the complete form and produce an exact `clinical-drug` presentation; this raised parsed presentations
+  in the 123-instruction pack from 78 to 176. The current Nurofen EAEU record resolves to `Нурофен® ·
+  Ибупрофен`, `таблетки, покрытые оболочкой · 200 мг`, with exact ESKLP MNN/SMNN identity.
+- The local Allmed companion `apps/app/public/content/medications.db` is a 514,322,432-byte Allmed
+  supplemental reference snapshot for local/dev use (4,708 `allmed_reference` documents, 66,430
+  sections, and 75,156 combined chunk/FTS rows; SHA-256
+  `sha256:5291b2da4dc34b4cf08323c2fd1a24a3a60fddc60a7034772c08124b817922c6`). The preserved previous
+  database backup is `/tmp/minimed-medications-production-backup.IPpNak/medications.db`. The
+  crosswalk is MNN-only: 3,538 linked, 41 ambiguous, 1,129 unmatched, and 4,236 safe image
+  references. Rendering/merging requires exact MNN plus exact normalized trade name. Each row remains
+  an Allmed `TradeNameSupplement`, preserving its trade name, `allmedId`, and image reference; it is
+  not an ESKLP SMNN/KLP/registration record and does not establish trusted doses.
+  Browser sqlite-wasm no longer deserializes that file into the WASM heap (that path OOM'd). The window
+  thread streams it into a dedicated OPFS worker (`minimed-sah-pack`) so the large companion stays out
+  of the WASM heap. The first boot copies 514,322,432 bytes (~490.5 MiB) into origin-private storage,
+  later boots reuse it. Core reloads share that
+  worker through ref-counted leases, preventing concurrent
   access handles for the same SAH pool. Opening that companion no longer hydrates every document record as a boot-time
   warm-up; worker `open` already validates the pack through `initialize`. A truncated, empty, or legacy OPFS copy is discarded and re-imported instead of
   failing MultiMedicalStore composition and blocking app boot; OPFS virtual filenames use the required
@@ -665,10 +1403,15 @@ ordinary search response when validation fails.
   WASM heap. SQLITE_NOMEM or any other failure opening Allmed skips the companion and leaves core search
   usable. IndexedDB-installed modules larger than 32 MiB are not deserialized into WASM. When Allmed is
   mounted, in-app search stays on the window core (`searchExecution: 'direct-only'`)
-  so the search worker does not open a second 421 MB copy. `mkb.db` / `ambulatory.db` still stay
+  so the search worker does not open a second 514,322,432-byte copy. `mkb.db` / `ambulatory.db` still stay
   closed unless `VITE_OPEN_UNSAFE_WASM_COMPANIONS` names them. Core still contributes eight
   `source_linked_summary` registry cards. The 560 KB `data/build/medications.db` GRLS pilot is a
-  separate one-drug pipeline artifact, not this catalog.
+  separate one-drug pipeline artifact, not this catalog. The newer 116-instruction/116-registration
+  local crosswalk pack is recorded above and is not mounted or published automatically.
+  Allmed preparation also preserves `pharma_effect` as the compact catalog description and imports
+  `recipe`/`recipe_ru` as clearly labelled reference examples inside the document. Those examples are
+  not a prescription, do not establish `По рецепту`/`Без рецепта`, and remain separate from official
+  GRLS/ESKLP status fields.
 - Optional local-dev `mkb.db` companion (`minimed.mkb.ru`) contains the full RLS MKB index (9,841
   nodes) plus the default `I67.9` detail page, 138 grouped trade-name cards, 4,956 unique MNN/form/
   dosage/package/manufacturer rows, stable medication brand/substance IDs, trade-name→MNN aliases,
@@ -693,7 +1436,9 @@ ordinary search response when validation fails.
   verification notes and source lists, but remain `reviewStatus: proposed` with open review tasks until
   a licensed human reviewer records approval through the ingestion workflow. The import pipeline also
   forces new model output to `proposed` and cannot self-promote it. Rights-based flags (`requiresReview`
-  on the local MKB companion) are legal blockers, not content reviews, and remain in place.
+  on the local MKB companion) are legal blockers, not content reviews, and remain in place. The public
+  demo build temporarily passes `--include-unreviewed-knowledge`, which makes proposed records searchable
+  without changing their review status; remove the flag after the demo.
 - Exact RLS MKB links use the dedicated `professional-reference` authority tier. They remain
   `reference-only` rather than treatment recommendations, but are included in the lexical knowledge
   index because their evidence points directly to the RLS MKB page.
@@ -719,9 +1464,9 @@ ordinary search response when validation fails.
   inline view and a full-screen overlay for wide tables. The current 192н
   pilot artifact is still a source-linked summary without the official specialist-visit schedule table;
   that content gap must be filled from a reviewed full source before it is used as a clinical schedule.
-- Browser artifact QA can set `VITE_CONTENT_BASE_URL` to the remote `apps/app/public/` root and
-  `VITE_USE_LOCAL_MODULE_ARTIFACTS=false`; this fetches packaged databases and catalog modules from
-  their published remote URLs without using local `public/content` copies.
+- Browser artifact QA and the Pages build can set `VITE_CONTENT_BASE_URL` to the remote
+  `apps/app/public/` root and `VITE_USE_LOCAL_MODULE_ARTIFACTS=false`; this fetches packaged databases
+  and catalog modules from their published remote URLs without relying on local `public/content` copies.
 - A unit gate verifies that catalog checksums and sizes match every thematic database hosted from the
   repository.
 
@@ -738,10 +1483,10 @@ The current benchmark contains 61 Russian clinical, medication, and realistic do
 retrieval cases:
 
 - every expected document is found in the first five results;
-- 60 of 61 expected documents are ranked first in all-source mode;
+- all 61 expected documents are ranked first in all-source mode;
 - section recall and top-section accuracy are both `1.00`;
-- the pediatric ceftriaxone workflow ranks the pneumonia recommendation first and the ceftriaxone
-  registry card second in all-source mode; medication scope removes the unrelated clinical document;
+- the pediatric ceftriaxone workflow ranks the exact ceftriaxone registry title first and the pneumonia
+  recommendation second in all-source mode; medication scope removes the unrelated clinical document;
 - exact context, section, and source-metadata resolution remain release gates.
 
 Chromium coverage includes search onboarding, source scopes, the history drawer, mounted-route state,
@@ -749,7 +1494,7 @@ document reading, source-context expansion, module lifecycle, responsive navigat
 and follow-up reminders.
 A browser QA pass also verifies that HTML or other non-SQLite responses at packaged database paths are
 rejected before WASM deserialization, so missing optional assets no longer block core boot; a missing or
-corrupt `core-demo.db` fails boot with `Не удалось открыть ядро MiniMed` instead of an embedded JSON
+corrupt `core.db` fails boot with `Не удалось открыть ядро MiniMed` instead of an embedded JSON
 seed fallback.
 The local 0.6.10 gate includes 26 Chromium flows; the large-model download and standalone dev-server
 smokes remain intentionally conditional. CI and Android artifact verification run from the release
@@ -775,24 +1520,269 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 - Text-layer drug PDFs can still lose visually distinct subheadings that use the same font size as
   body text. Preserved layout metadata prevents list continuations from absorbing adjacent text, but
   complex layouts still require reviewed structure extraction before publication.
+- The PDF reader now bounds page rasterization, cancels offscreen renders, and releases inactive
+  canvases promptly; a 160-page Android stress scroll completed without a WebView crash, while
+  broader large-PDF memory qualification remains a release follow-up.
+- Scroll-driven app-chrome hiding is scoped to generic document readers; CT/MRI and ordinary
+  application pages keep their normal navigation chrome.
 - Medication registry cards establish identity, form, strength, and registration status; they do not
   establish a verified regimen.
 - The GRLS `data/build/medications.db` pipeline proof is still one-drug; it is not the local Allmed
   catalog. Allmed cards are reference snapshots, not verified dosing. Similar products, normalized
   dosing facts, ATC classification, and additional dosage forms remain absent from the official
   instruction pack.
+- The verified ESKLP archive is available through fifteen preview identity modules and the bundled
+  core's lightweight pointers. It remains metadata-only (`trustedDoseData: false`): neither the
+  preview modules nor the core establish a verified dose or indication corpus.
 - The MKB companion is a local-dev reference pack: the full-detail crawl is network-heavy and must be
   explicitly requested, while its code-to-medicine relations remain proposed/reference-only rather
   than treatment guidance. The public AJAX endpoint is used for forms and manufacturers; raw HTML is
   not bundled.
+- The local RLS MKB companion is a classification/reference index with sparse downloaded detail
+  content and medicine mentions, not a complete drug-instruction or dosing corpus. The local GRLS
+  instruction builds are selected/current samples rather than complete coverage. There is no released
+  deterministic linker yet from exact terms inside instructions (for example, `синдром Жильбера`) to
+  stable local condition cards, and ambiguous abbreviations are not context-disambiguated.
 - The published corpus still lacks complete verified drug instructions, legal/normative material,
   vaccination calendars, nutrition, growth, development, and calculation-rule sources. The complete
   clinical-recommendation snapshot is not yet a complete physician knowledge base.
+- A separate Allmed packaging-image pack is built locally with 4,214 images and 4 rejected source
+  references; its exact local ZIP/index artifacts are recorded in
+  [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md). It is not published or in the application
+  catalog because the source terms require written permission for copying, distribution, and
+  publication while the footer is contradictory, so the pack remains local-dev only and packaging
+  images remain outside the production core. The Settings card, module installer/remover, installed
+  source-assets resolver, image checksum validation, and medication-reader rendering are already
+  implemented and activate when an authorized catalog entry is supplied. Dose/indication coverage and clinical-grade
+  diagnostic/dose validation are also not complete. The larger generated clinician-query benchmark
+  for Recall@5, MRR@5, and section recall remains pending.
 - The full GRLS export has no confirmed ATC field, so most catalog records remain visibly unclassified.
 - The installed corpus must abstain from dose output when no supplied source contains the exact regimen.
 - Small local models can satisfy a JSON shape while citing semantically irrelevant exact text; the
   20-case tester-box result is a screening benchmark, not clinical qualification.
 - Browser inference is CPU/WASM; model download size and latency remain substantial.
+- The ECG photo tool has experimental automatic waveform extraction for the fixed 3x4+1R layout,
+  but still falls back to manual calipers when its quality gate does not pass. Its adult-alpha rule
+  layer does not infer morphology, rhythm, infarction, or bundle/AV block from intervals alone.
+  Complete RBBB/LBBB hypotheses require explicit clinician-entered morphology and are worded as
+  review-required patterns rather than diagnoses; automatic morphology extraction, full
+  perspective/layout correction and clinical validation remain absent. No diagnostic CNN is shipped
+  or accepted by the ECG bundle validator; candidate classifiers remain documentation-only.
+  A patient-disjoint direct-image ResNet18 experiment was subsequently trained on 21,251 adult
+  PTB-XL synthetic 12x1 renders (folds 1-8/9/10, with all patients behind three real-phone holdout
+  ECGs excluded). It reached test macro-AUC 0.912 and macro-F1 0.727, and its exported ONNX matched
+  PyTorch on the nine phone files within 0.000192 probability. This did not transfer to real PM-ECG-ID
+  photographs: three base ECGs photographed by iPhone, Samsung and Doogee produced only 2/9 exact
+  multi-label matches, micro-F1 0.444, zero NORM recall (0/6), six MI false positives and three CD
+  false positives. EXIF-orientation correction and a grid-crop recheck did not change the rejection.
+  The same three ECGs as clean renders matched 2/3, isolating a material synthetic-to-phone domain
+  shift. The candidate is therefore rejected for runtime integration and probability fusion; the
+  reproducible scripts and measured report are under `tools/ecg-cnn/`, while weights remain outside
+  Git with SHA-256 recorded there.
+  The downloadable Ribeiro 1D ResNet was reproduced locally from its checksum-matched official
+  weights. On the authors' 827-record test artifacts, the selected seed retained macro-F1 0.925 and
+  macro-AUROC 0.998; averaging ten published seeds without refitting thresholds reduced macro-F1 to
+  0.900 despite a small average-precision gain. On the existing 20-record MiniMed smoke set, the
+  native 500 Hz signal found both available sinus-bradycardia labels but missed the one AF label;
+  after the 100 Hz/3x4/Open-ECG path, both the selected seed and mean-of-ten ensemble found none of
+  the three available positive target labels when short segments were kept at their real times.
+  Repeating each 2.5-second segment recovered only one bradycardia and still missed AF. This small,
+  label-sparse smoke is not a general sensitivity estimate, but it rejects Ribeiro and a naive
+  same-family ensemble as ready diagnostic heads for the current photo representation.
+  On 20 licensed ECG Image Kit images, matching upstream sparse normalization and the `0.1` signal
+  threshold increased clean-image `usable` results from 6/20 to 9/20 and RR extraction from 17/20 to
+  18/20. All 20 synthetic 7° rotations and all 20 affine-skew variants stayed outside `usable`, so
+  phone-like geometry still fails closed instead of feeding the rule layer.
+  A separate 15-record PTB-XL/PTB-XL+ numeric smoke test found no complete-BBB false positive in
+  five NORM controls, but strict AHA RBBB morphology matched only 2/5 CRBBB-labelled 12SL feature
+  rows; the published table lacks the core LBBB notch/slur flag. Therefore 12SL-derived feature names
+  are not mapped automatically into MiniMed morphology observations, and this small check is not a
+  sensitivity/specificity claim.
+  OpenECG `boundary_int8.tflite` was also checked as a measurement-only candidate on 15 continuous
+  10-second LUDB/QTDB records: pooled six-boundary macro-F1 was 0.951 in the local wiring smoke, but
+  QTDB overlaps the model's training domain. On ten held-out LUDB records, zero-padded central crops
+  collapsed to 0.066 at 2.5 seconds and 0.097 at 5 seconds. It is therefore not integrated: the
+  current photo digitizer exposes short sequential lead segments rather than a reviewed continuous
+  10-second trace, and OpenECG rhythm/diagnostic heads remain out of scope.
+  PTE-ECG `1.0.0-alpha.1` was also rejected after a fixed 15-record PTB-XL/PTB-XL+ comparison. Its
+  QRS and PR mean absolute errors against Uni-G were 52.8 and 48.6 ms, and it detected none of nine
+  Uni-G QRS durations at or above 120 ms. The implementation measures QRS from Q peak to S peak and
+  derives axis from R amplitudes in I/aVF, so its 1930 extracted features are not interchangeable
+  with the equipment-style inputs required by the rules or numeric pack.
+  A broader numeric-algorithm review found no permissive ready-made 12-lead rule engine. Construe is
+  a real knowledge-based rhythm interpreter but is AGPL/Python; Minnesota/NOVACODE and PEDMEANS are
+  useful public rule specifications rather than reusable engines. The public MEANS physician manual
+  is the most complete description found of an equipment-style numeric interpreter — lead/global
+  measurements, boolean criteria, scoring and suppression rules — but its engine and rule base are
+  not open source. The new MIT `ecg-interpreter` 0.1.0 package was rejected because it is single-lead,
+  uses unsafe proxy diagnoses, and tests only its own synthetic signals.
+  A follow-up search found RECGDT, the closest new executable candidate: its R pipeline converts
+  delineated ECG measurements into six disease scores and ships model files, but it remains unsuitable
+  for the app because the code is GPL-3.0, the pipeline depends on its own raw-waveform delineation,
+  and the training provenance/external validation of the bundled models is insufficient. SCP-ECG v3.0
+  and DICOM waveform templates standardize statements, certainty and provenance but do not calculate
+  diagnoses; they remain possible future interchange vocabularies rather than engines.
+  The official PTB-XL+ split was reproduced locally. ECGDeli was rejected for manual-input training
+  after its P/PR/QRS/QT distributions disagreed strongly with both equipment algorithms; Uni-G and
+  12SL nearly matched in standard ms/mV. The final adult-only 30-field Uni-G HGB achieved test
+  macro-AUC 0.913, macro-F1 0.720 and calibrated Brier 0.090. Without retraining, independent 12SL
+  test measurements retained macro-AUC 0.908/F1 0.719, supporting cross-measurer portability. With a
+  ±0.10 abstention band the Uni-G test answered 93.6% of class-record pairs at macro-F1 0.755 among
+  answered pairs. A reproducible evaluator now executes the exact validated release JSON rather than
+  the Python training object and records immutable input hashes plus per-class threshold, calibration,
+  abstention, and false-negative metrics. Of 2151 eligible adult 18–120 fold-10 rows, 2130 passed the
+  app's complete/in-range contract (16 had a missing feature and five were out of range). It
+  reproduced macro-AUC 0.913, threshold macro-F1 0.719, Brier 0.090, 10-bin ECE 0.025, and 93.7%
+  coverage at answered macro-F1 0.754. Current abstention remains insufficient for a standalone
+  negative conclusion: 403 of 1740 positive pathology labels were confident false negatives (23.2%
+  pooled), including 111/530 MI, 96/484 STTC, 122/470 CD, and 74/256 HYP. The pack remains only a
+  probabilistic hypothesis above confirmed measurements and rules. The external report is
+  `/tmp/minimed-ecg-numeric-release-eval-20260901/report-v2.json`, SHA-256
+  `a729197c9aaadb1631852ac052de82fec198bb06799287c1d0f5bed5647ab854`.
+  The released JSON inference was also cross-checked on the same 2130 complete adult fold-10
+  rows against the independent rule layer: CD captured 164/168 wide-QRS findings but 246/410 positive
+  CD hypotheses had QRS below 120 ms; only 94/208 positive HYP hypotheses met Sokolow–Lyon; and
+  154/963 positive NORM hypotheses coexisted with at least one literal rule finding. These are
+  different scopes, not grounds for model veto. The UI now explains support or mismatch after each
+  estimate and never lets a NORM hypothesis hide measured deviations.
+  The current browser digitizer was also exercised end-to-end on 15 external images: 4 passed its
+  `usable` gate, 10 required review and one failed, with no runtime crash. These images cannot validate
+  RR accuracy because many use a recording speed other than the fixed 50 mm/s profile. More
+  importantly, the digitizer currently returns waveforms/RR/heart rate but not the 24 P/Q/R/S/T
+  amplitudes as validated equipment measurements. MiniMed now derives visible one-complex Q/R/S/T
+  drafts from `usable` waveforms and can copy all 24 amplitudes into the numeric form after an
+  explicit action, but this heuristic has only synthetic unit coverage plus browser smoke evidence;
+  every field stays editable and a complete 30-field form is still required. Independently of the
+  probabilistic pack, the numeric form now calls the same pure adult interval-rule core as the photo
+  workflow, so manual RR/PR/QRS/QT/QTc input produces explainable findings without an image or model;
+  a directly entered Framingham QTc is accepted. The numeric form asks for sex and applies AHA QTc
+  review thresholds `>450 ms` for men and `≥460 ms` for women; without sex it keeps the conservative
+  `>470 ms` threshold, while `≥500 ms` remains urgent. When QRS is at least 120 ms, ordinary QTc
+  classification is suppressed in favor of an explicit QT/JT-correction review finding. It also
+  evaluates an optional adult QRS axis and the
+  Sokolow–Lyon voltage criterion from S V1 plus R V5/V6, showing the exact measurements and explicitly
+  avoiding a negative-LVH claim. The axis threshold was compared locally with strict machine statements in
+  MIMIC-IV-ECG: 747,252 comparable rows produced 0.970 sensitivity, 0.915 specificity and 0.608 PPV
+  for binary out-of-range agreement. Because missing machine statements are not clinical negatives
+  and results vary by `cart_id`, the UI reports only the measured deviation and does not infer its
+  cause. On the same source, strict interval-statement agreement was strongest for rate ≥100
+  (sensitivity/specificity 0.990/0.997) and PR >200 (0.953/0.987), while QRS ≥120
+  (0.927/0.903, PPV 0.451) and Framingham QTc >470 (0.678/0.936, PPV 0.343) confirmed that these
+  outputs must remain literal measurements/review findings rather than diagnoses.
+  The numeric form now upgrades PR >200 ms to a review-required first-degree AV-delay pattern only
+  when the clinician explicitly confirms that every P wave conducts to QRS 1:1; unknown or non-1:1
+  conduction leaves the output at the literal prolonged-PR finding.
+  It also reports a review-required adult WPW-type ventricular-preexcitation pattern only when
+  PR <120 ms, QRS >120 ms and a clinician explicitly confirms a delta wave. Missing/boundary
+  criteria abstain, and a complete bundle-branch pattern is suppressed when the preexcitation rule
+  is complete because preexcitation itself changes QRS morphology; the UI does not call this WPW
+  syndrome.
+  A review-required AF pattern is available only after the clinician manually confirms all three
+  ACC/AHA ECG observations: RR intervals irregular without a repeating pattern, no distinct
+  repeating P waves, and irregular atrial activity/fibrillatory waves. A contradictory 1:1 P→QRS
+  observation suppresses the pattern. The digitizer now exports and shows the consecutive RR
+  intervals from the full rhythm-II row as an editable automatic draft in addition to median RR and
+  heart rate. A 15-image rhythm smoke (3 each NORM, AFIB/AFL, PAC, PVC and TACHY) produced only 6
+  `usable`, 8 `review` and 1 `failed` extraction; a conservative short-window irregularity candidate
+  fired on two AF examples (only one `usable`), not on the flutter example and not on the 12
+  non-AF examples. Automatic AF remains disabled because those image labels do not provide beat-wise
+  RR/P-wave reference annotations and the quality-qualified positive sample is far too small.
+  A repeated 2026 search found no better permissive numeric diagnostic engine: ECG-R1 exposes a
+  simplified generative prompt rather than executable validated rules, ECGomics publishes no source
+  pipeline, FeatureDB has no explicit code license or diagnostic layer, and OpenECG's broad rhythm
+  output comes from a learned single-lead codec. These remain research comparators; runtime stays on
+  confirmed measurements, independent deterministic rules and the separate adult numeric pack.
+  A subsequent device-contract audit reached the same implementation boundary. The official Philips
+  guide shows that broad apparatus statements depend on representative beat groups plus per-lead
+  P/P'/Q/R/S/R'/S'/T amplitudes, durations and areas, QRS notch/delta/VAT, several ST points and
+  quality/suppression state; MIMIC-IV-ECG v1.0 exposes only global fiducials/axes and machine text.
+  ECGDataKit is a useful Apache-2.0 reference for importing digital ECG formats but contains no
+  diagnostic engine. CardioDiag trains global-measurement XGBoost models against patient ICD codes,
+  has no reusable weights or explicit repository license, and predicts associated clinical diagnoses
+  rather than a formal interpretation of the presented trace. No additional runtime rule was added:
+  the next safe expansion is a validated per-lead measurement contract, not another global-score
+  heuristic.
+  A strict five-field adult LAFB candidate was also preflighted against PTB-XL fold 10 and 12SL
+  measurements: it matched only 16/158 LAFB-labelled rows but 0/1,998 negatives. It is now exposed
+  only as a positive adult compatible-pattern rule when QRS <120 ms, axis is −90…−45°, qR in aVL,
+  aVL R-peak time ≥45 ms and rS in II/III/aVF are all manually confirmed; ventricular origin,
+  pacing, pre-excitation or any unknown field suppresses the result. Its absence never excludes
+  LAFB. The fixed 15-case image smoke still shows why photo-auto LAFB remains disabled. Separate
+  X/Y grid calibration fixed clean amplitude
+  gain from 1.772 to 0.945, and a derivative-energy RR detector reduced heart-rate MAE to 1.73 bpm
+  on clean and 0.87 bpm on phone-like renders. Clean median lead correlation is 0.981, but phone-like
+  correlation remains 0.410; a repeated-lead-II consistency gate now leaves all 15 clean renders
+  `usable` while 11/15 phone-like renders require review. The pipeline still cannot supply the QRS
+  axis/duration, aVL R-peak time or qR/rS morphology needed by the rule. Photo-derived values remain
+  editable drafts, not diagnostic measurements.
+  The numeric panel now enforces that boundary in runtime: deterministic findings and the optional
+  numeric model remain disabled until the user explicitly confirms that intervals, axis, amplitudes
+  and morphology were checked against the source ECG. Importing another draft or editing any checked
+  measurement/morphology clears confirmation and removes the findings until they are rechecked.
+  A strict adult LPFB candidate was rejected after a PTB-XL+/12SL preflight: on human-validated fold
+  10 it matched 4/15 LPFB rows but also 8 non-LPFB rows (specificity 99.63%, PPV 33.3%). Normal/RAD,
+  IRBBB and infarct/ST-T records produced the same numeric morphology, so the app does not infer LPFB
+  without the unavailable clinical exclusions for other causes of right-axis deviation.
+  Confirmed manual beat-sequence observations can now produce five adult AV-conduction patterns:
+  Mobitz I requires periodic non-conducted P waves plus progressive PR lengthening; Mobitz II
+  requires periodic non-conducted P waves plus constant PR around the dropped QRS; 2:1 is kept as
+  its own pattern and is never relabelled as either Mobitz type. High-grade requires at least two
+  consecutive non-conducted P waves while some AV conduction remains; complete AV block requires
+  AV dissociation and no evidence of P→QRS conduction. The latter two request urgent review. All
+  require distinct P waves, non-1:1 conduction, no pacing and explicit exclusion of a blocked
+  premature atrial beat. Unknown fields, conflicting conduction/dissociation or PR observations,
+  and any missing suppression abstain; a negative pattern is never emitted.
+  The numeric panel can now accept ordered P- and QRS-onset times in milliseconds and draft those
+  same tri-state observations before clinician confirmation. Applying another sequence or changing
+  the event times clears the derived observations, confirmation and findings; pacing and blocked-PAC
+  exclusions remain explicit manual inputs. The production TypeScript sequence analyzer plus the
+  existing interpreter reproduced the 15 fixed OpenECG oracle-boundary cases 15/15, and the browser
+  flow was checked for Mobitz I, complete AV block and stale-draft invalidation. This remains a
+  synthetic wiring test, not clinical validation of the heuristic event-association thresholds.
+  A further open-source refresh found two useful comparators but no embeddable broad numeric engine.
+  RECGDT publishes GPL R code and six `.rds` disease-score models over RR/PR/QRS/Q/QRS amplitudes,
+  QTc and ST features, but does not document enough cohort/calibration evidence for clinical reuse.
+  Construe is a genuine AGPL knowledge-based rhythm interpreter, but consumes waveforms rather than
+  the confirmed numeric contract. The May 2026 `ecg-interpreter` package was rejected because it
+  labels STEMI from a single mean ST threshold and complete AV block from rate plus QRS width.
+  A newer MIT ECG-Reasoning-Benchmark publishes 6,403 explicit criterion/finding/grounding/decision
+  chains across 17 ECG diagnoses and is the best source found for deterministic regression fixtures.
+  It is not a runtime engine: its U-Net-based measurement/diagnosis pipeline is unpublished, several
+  diagnosis groups were regenerated in pre-release 0.0.2 after systematic issues, and its rule
+  thresholds still require independent clinical sourcing before implementation. Its published
+  third-degree-AV-block paths also omit separate fields for absence of all P→QRS conduction and for
+  two consecutive non-conducted P waves, so they cannot validate the stricter MiniMed rule without
+  leaking the target label into the inputs.
+  A newer broad Python/YAML `ecg-rule-engine` was also audited locally at commit `84abdf7`; all 45
+  unit tests passed and its 138-field adult/pediatric measurement contract is the closest public
+  example of the desired architecture. It is not reusable: package metadata declares it proprietary,
+  its rules are transcribed from the GE 12SL guide, and its reported PTB-XL comparison uses GE 12SL
+  measurements against GE 12SL statements rather than independent clinical truth. Its own
+  measurements-only report also leaves beat-dependent AF/flutter/pacing/ectopy paths at zero
+  sensitivity and reduces complete AV block to a partial atrial-minus-ventricular-rate surrogate.
+  OpenECG's Apache-2.0 synthetic AV generator then closed only the numeric wiring gap: 15 fixed-seed
+  clean lead-II boundary cases (Mobitz I, Mobitz II, 2:1, complete block, paced and VT controls)
+  matched the production MiniMed sequence analyzer and interpreter 15/15 when they saw only P/QRS
+  event arrays and an explicit pacing observation. This is synthetic oracle-boundary evidence, not clinical accuracy;
+  it does not validate high-grade block because the upstream Mobitz generators never drop two
+  consecutive P waves while preserving some conduction. No generator or external rule engine was
+  added to the app; only the derived numeric event contract is used at runtime.
+  An oracle perspective-rectification preflight on the same 15 phone-like renders restored median lead
+  correlation from 0.410 to 0.980, amplitude gain from 0.411 to 0.987, and made all 15 usable. A naive
+  red-grid corner detector was rejected despite 12/15 `usable` outputs because its median correlation
+  was only 0.299. Rectification is therefore the next proven image-pipeline layer, but automatic corners
+  require a grayscale/background-diverse benchmark before runtime use. The app instead exposes an
+  explicit four-corner editor: confirmed normalized corners are validated, perspective-warped locally
+  in the digitizer worker, and then passed to the existing segmentation/quality pipeline. Arrow keys
+  provide fine adjustment; the original photo remains unchanged.
+  The 261,070-byte
+  release asset is verified by exact size and
+  SHA-256; exported JSON inference matched sklearn on all 2,185 adult test rows, and a real browser
+  install/control inference passed. Adult models reject pediatric ECGs.
+- The patient vault is browser-tested at the domain/contract level, but native Keychain/Keystore
+  failure, memory pressure, and recovery after background suspension still require physical Android
+  and iOS device qualification. It intentionally has no cloud sync or server-side backup; portable
+  backups are plaintext and require the user's own secure handling.
 - Physical Android interruption, memory-pressure, and local-model inference qualification remain release
   follow-up checks even when the debug APK and browser automation are green.
 - Personal notes use unencrypted device-local browser storage and are a notebook rather than an
@@ -807,22 +1797,32 @@ review-required intermediate draft. Neither pilot has been run with provider cre
    per book/edition/page ([LITERATURE_BANK.md](LITERATURE_BANK.md)) — MiniMed itself is never the cited
    source — but redistribution review still applies before any extracted table or excerpt publishes.
    Anything uncertain found while extracting goes to [LITERATURE_REVIEW_QUEUE.md](LITERATURE_REVIEW_QUEUE.md)
-   for review rather than being silently trusted.
+   for review rather than being silently trusted. In the same content phase, expand official GRLS
+   instruction coverage and extend the current recommendation terminology layer: classification
+   IDs/hierarchy, synonyms, eponyms, abbreviations, sourced concept explanations, and exact
+   source-mention links from instructions to local concept cards. Do not create a second glossary
+   database or treat an RLS MKB medicine mention as dosing/treatment authority.
 2. Verify the 0.6.10 prerelease on a physical Android device, including system-bar insets, native Back,
    locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
-3. Validate the one-drug `medications.db` pipeline, then expand it without hand-editing generated
-   SQLite.
+3. Build and qualify the missing dose/indication corpus from source-backed rules, including
+   clarification/abstention behavior; resolve Allmed packaging-image rights before considering a
+   distributable/cataloged module, while keeping image assets outside the core database.
 4. Add verified OCR for the blocked drug instruction.
 5. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
 6. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
    on-device transcriber.
 7. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
-   presenting diagnostic assistance as a 1.0 capability.
-8. Needle tool-calling slice: measure the fine-tuned checkpoint against the deterministic baseline
-   (`tools/needle/eval_model.py`), add the runtime `dose-by-weight` schema calculator to the
-   pediatrics module, then wire a validated tool-call loop behind `MedicalCore` without letting
-   model text replace retrieval or computed results (see [NEEDLE_FINETUNE.md](NEEDLE_FINETUNE.md)).
+   presenting diagnostic assistance as a 1.0 capability. For ECG, qualify the digitizer and
+   deterministic measurement/rule pipeline on licensed phone-photo fixtures, compare the integrated
+   numeric pack with independent Minnesota/AHA/MEANS-derived rule specifications, and test manual
+   measurements on an external adult population. Diagnostic CNNs remain research-only. LearnECG
+   remains an external manual smoke-test source until redistribution permission is explicit.
+8. Keep GigaEmbeddings benchmark-only until a physician-authored real-corpus benchmark shows a gain
+   over the current hybrid and the locally verified Q8_0 conversion has an immutable hosted artifact
+   plus Android parity, latency, memory, storage, battery, and thermal qualification. The public pilot
+   currently shows one Recall@5 regression when Giga is added with the existing fusion weights. Keep
+   the deterministic/hash hybrid and lexical fallback.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
 No cross-language runtime migration should start before shared golden fixtures demonstrate parity.

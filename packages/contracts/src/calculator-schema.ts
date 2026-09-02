@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+import {
+  CalculatorPatientBindingSchema,
+  HttpUrlSchema,
+  ObservationMappingSchema,
+  ToolEvaluationSchema,
+} from './clinical-observations';
+
 /**
  * A declarative calculator definition: inputs, a restricted formula expression per step, sources, and
  * population/limitation text. Interpreted by a generic engine (see `evaluateCalculatorSchema` in
@@ -24,13 +31,14 @@ export const CalculatorCategorySchema = z.enum([
   'gastroenterology',
   'hematology',
   'neonatology',
+  'pediatrics',
 ]);
 
 export const CalculatorSourceReferenceSchema = z.object({
   title: z.string().min(1),
   publisher: z.string().min(1),
   version: z.string().min(1),
-  url: z.string().min(1).optional(),
+  url: HttpUrlSchema.optional(),
   edition: z.string().min(1).optional(),
   page: z.string().min(1).optional(),
   reviewedAt: z.string().min(1),
@@ -47,7 +55,7 @@ export const CalculatorInputSchema = z.object({
   unit: z.string().min(1).optional(),
   /** 'date' inputs render as a native date picker and pass an ISO string (YYYY-MM-DD) to expressions
    *  — combine with the `today()`/`addDays()`/`daysBetween()` expression functions. */
-  kind: z.enum(['number', 'select', 'date']),
+  kind: z.enum(['number', 'select', 'date', 'text', 'checkbox']),
   options: z.array(CalculatorInputOptionSchema).optional(),
   minimum: z.number().optional(),
   maximum: z.number().optional(),
@@ -62,6 +70,8 @@ export const CalculatorInputSchema = z.object({
   defaultExpression: z.string().min(1).optional(),
   /** Form stage at which this input becomes visible and required, starting at 0. */
   step: z.number().int().min(0).default(0),
+  /** Explicitly allowed profile lookup; free-text labels are never used for autofill. */
+  patientBinding: CalculatorPatientBindingSchema.optional(),
 });
 
 export const CalculatorWarningSchema = z.object({
@@ -82,7 +92,7 @@ export const CalculatorStepSchema = z.object({
   /** 'date' steps must evaluate to an ISO date string (typically via `addDays()`); they render as
    *  formatted text output and are not traced as a numeric step (CalculationTraceStep.value is always
    *  a number) — use a separate 'number' step to trace the underlying day-count if that matters. */
-  valueKind: z.enum(['number', 'date']).default('number'),
+  valueKind: z.enum(['number', 'date', 'text']).default('number'),
   /** Form stage at which this derived value becomes available, starting at 0. */
   stepRequired: z.number().int().min(0).default(0),
 });
@@ -128,7 +138,7 @@ export const CalculatorVisualSchema = z.object({
 
 export const CalculatorSchemaSchema = z
   .object({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.literal(2),
     id: z.string().min(1),
     slug: z.string().min(1),
     title: z.string().min(1),
@@ -137,6 +147,8 @@ export const CalculatorSchemaSchema = z
     summary: z.string().min(1),
     audience: CalculatorAudienceSchema,
     category: CalculatorCategorySchema,
+    /** Additional calculator sections where this same definition is listed. */
+    tags: z.array(CalculatorCategorySchema).default([]),
     clinical: z.boolean(),
     formulaDisplay: z.string().min(1),
     population: z.string().min(1),
@@ -145,6 +157,10 @@ export const CalculatorSchemaSchema = z
     steps: z.array(CalculatorStepSchema).min(1),
     warnings: z.array(CalculatorWarningSchema).default([]),
     interpretations: z.array(CalculatorInterpretationSchema).default([]),
+    /** Deterministic reference evaluation or an explicit unavailable/not-applicable declaration. */
+    evaluation: ToolEvaluationSchema,
+    /** Stable longitudinal metrics emitted by input/step/output definitions. */
+    observationMappings: z.array(ObservationMappingSchema).default([]),
     assertions: z.array(CalculatorAssertionSchema).default([]),
     visuals: z.array(CalculatorVisualSchema).default([]),
     sources: z.array(CalculatorSourceReferenceSchema).min(1),

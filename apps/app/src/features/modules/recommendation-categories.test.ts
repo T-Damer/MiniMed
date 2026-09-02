@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   moduleGroupDownloadProgress,
+  moduleGroupTaskState,
   modulesInCategory,
   recommendationCategoryDownloadProgress,
   recommendationCategoryStats,
@@ -154,6 +155,26 @@ describe('recommendation-categories', () => {
     );
 
     expect(progress.byteProgress).toBe(0.625);
+  });
+
+  it('distinguishes queued cards from the actively downloading card', () => {
+    const modules = [module('a'), module('b')];
+    const task = (moduleId: string, state: 'queued' | 'downloading') => ({
+      id: `task-${moduleId}`,
+      moduleId,
+      version: '1.0.0',
+      state,
+      downloadedBytes: 0,
+      totalBytes: 1_000_000,
+      includeSourceAssets: false,
+      runsInBackground: false,
+      errorMessage: null,
+    });
+
+    expect(moduleGroupTaskState(modules, [task('a', 'queued')])).toBe('queued');
+    expect(moduleGroupTaskState(modules, [task('a', 'queued'), task('b', 'downloading')])).toBe(
+      'active',
+    );
   });
 
   it('does not show a shared category as fully loaded while overlapping modules download', () => {

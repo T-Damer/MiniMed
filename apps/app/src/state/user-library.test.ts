@@ -1,16 +1,29 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const previewExtractorMock = vi.hoisted(() => ({
+  forFile: vi.fn(async () => 'data:image/jpeg;base64,thumb'),
+}));
+const downloadWithRetryMock = vi.hoisted(() => ({
+  downloadWithRetry: vi.fn(),
+}));
+
 vi.mock('@/state/user-library-ingest', () => ({
   processNewDocument: vi.fn(async () => undefined),
   ensureUserLibraryIngestRunning: vi.fn(),
 }));
 
+vi.mock('@/state/thumbnails', () => ({ previewExtractor: previewExtractorMock }));
+vi.mock('@/features/network/download-retry', () => downloadWithRetryMock);
+
 import {
   addUserLibraryFile,
   buildUserLibraryImagePdf,
-  ensureUserLibraryMedicalExamples,
+  createUserLibraryFolder,
+  downloadUserLibraryExample,
+  getUserLibraryFile,
   getUserLibraryMedicalAnnotationBitmap,
   getUserLibraryMedicalAnnotations,
+  getUserLibraryThumbnail,
   listUserLibraryDocuments,
   listUserLibraryFolders,
   listUserLibraryPages,
@@ -21,9 +34,18 @@ import {
   removeUserLibraryFolder,
   renameUserLibraryDocument,
   searchUserLibrary,
-  USER_LIBRARY_EXAMPLE_CT_FILE_NAME,
-  USER_LIBRARY_EXAMPLE_MRI_FILE_NAME,
+  setUserLibraryDocumentColor,
+  setUserLibraryFolderColor,
+  USER_LIBRARY_BOOKS_FOLDER_ID,
+  USER_LIBRARY_BOOKS_FOLDER_TITLE,
+  USER_LIBRARY_EXAMPLE_SLOTS,
   USER_LIBRARY_NOTES_FOLDER_ID,
+  USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE,
+  USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
+  USER_LIBRARY_RESEARCH_FOLDER_ID,
+  USER_LIBRARY_RESEARCH_FOLDER_TITLE,
+  USER_LIBRARY_TEMPLATES_FOLDER_ID,
+  USER_LIBRARY_TEMPLATES_FOLDER_TITLE,
   userLibraryFileKind,
   userLibraryProgressFraction,
   userLibrarySearchableCount,
@@ -142,6 +164,8 @@ function installUserLibraryIndexedDb(): void {
 describe('user-library storage', () => {
   beforeEach(() => {
     vi.resetModules();
+    previewExtractorMock.forFile.mockClear();
+    downloadWithRetryMock.downloadWithRetry.mockReset();
   });
 
   afterEach(() => {
@@ -162,7 +186,7 @@ describe('user-library storage', () => {
     expect(source).toContain('xref\n0 9');
   });
 
-  it('creates a protected notes folder', async () => {
+  it('creates protected notes, templates, and questionnaires folders', async () => {
     installUserLibraryIndexedDb();
     const folders = await listUserLibraryFolders();
     expect(folders).toContainEqual(
@@ -175,6 +199,78 @@ describe('user-library storage', () => {
     );
     await expect(removeUserLibraryFolder(USER_LIBRARY_NOTES_FOLDER_ID)).rejects.toThrow(
       'нельзя удалить',
+    );
+    expect(folders).toContainEqual(
+      expect.objectContaining({
+        id: USER_LIBRARY_TEMPLATES_FOLDER_ID,
+        title: USER_LIBRARY_TEMPLATES_FOLDER_TITLE,
+        parentId: null,
+        isSystem: true,
+      }),
+    );
+    await expect(removeUserLibraryFolder(USER_LIBRARY_TEMPLATES_FOLDER_ID)).rejects.toThrow(
+      'нельзя удалить',
+    );
+    expect(folders).toContainEqual(
+      expect.objectContaining({
+        id: USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
+        title: 'Опросники',
+        parentId: null,
+        isSystem: true,
+      }),
+    );
+    await expect(removeUserLibraryFolder(USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID)).rejects.toThrow(
+      'нельзя удалить',
+    );
+  });
+
+  it('creates the default books and research folders once', async () => {
+    installUserLibraryIndexedDb();
+    const storage = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+    });
+
+    const folders = await listUserLibraryFolders();
+    expect(folders).toContainEqual(
+      expect.objectContaining({
+        id: USER_LIBRARY_BOOKS_FOLDER_ID,
+        title: USER_LIBRARY_BOOKS_FOLDER_TITLE,
+        parentId: null,
+      }),
+    );
+    expect(folders).toContainEqual(
+      expect.objectContaining({
+        id: USER_LIBRARY_RESEARCH_FOLDER_ID,
+        title: USER_LIBRARY_RESEARCH_FOLDER_TITLE,
+        parentId: null,
+      }),
+    );
+    expect(await listUserLibraryFolders()).toEqual(folders);
+  });
+
+  it('persists colors for documents and folders', async () => {
+    installUserLibraryIndexedDb();
+    const folder = await createUserLibraryFolder('Цветная папка');
+    const document = await addUserLibraryFile(new File(['content'], 'case.txt'));
+
+    await setUserLibraryDocumentColor(document.id, 'blue');
+    await setUserLibraryFolderColor(folder.id, 'purple');
+    expect(await listUserLibraryDocuments()).toContainEqual(
+      expect.objectContaining({ id: document.id, color: 'blue' }),
+    );
+    expect(await listUserLibraryFolders()).toContainEqual(
+      expect.objectContaining({ id: folder.id, color: 'purple' }),
+    );
+
+    await setUserLibraryDocumentColor(document.id, null);
+    await setUserLibraryFolderColor(folder.id, null);
+    expect((await listUserLibraryDocuments()).find((item) => item.id === document.id)?.color).toBe(
+      undefined,
+    );
+    expect((await listUserLibraryFolders()).find((item) => item.id === folder.id)?.color).toBe(
+      undefined,
     );
   });
 
@@ -217,6 +313,46 @@ describe('user-library storage', () => {
 
     const pageList = await listUserLibraryPages(created.id);
     expect(pageList[0]?.kind).toBe('native');
+  });
+
+  it('keeps questionnaire contents synchronized with a file rename', async () => {
+    installUserLibraryIndexedDb();
+    const created = await addUserLibraryFile(
+      new File(
+        [JSON.stringify({ format: 'minimed-questionnaire', title: 'Исходное название' })],
+        'Исходное название.minimed-questionnaire',
+        { type: USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE },
+      ),
+      USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
+      undefined,
+      { skipProcessing: true },
+    );
+
+    await renameUserLibraryDocument(created.id, 'Новое название');
+
+    const renamed = (await listUserLibraryDocuments()).find((item) => item.id === created.id);
+    expect(renamed).toMatchObject({
+      title: 'Новое название',
+      fileName: 'Новое название.minimed-questionnaire',
+    });
+    const file = await getUserLibraryFile(created.id);
+    if (!file) throw new Error('Переименованный опросник не найден.');
+    expect(JSON.parse(await file.text())).toMatchObject({ title: 'Новое название' });
+  });
+
+  it('extracts and persists a thumbnail beside the original file', async () => {
+    installUserLibraryIndexedDb();
+    const file = new File(['%PDF-1.7'], 'scan.pdf', { type: 'application/pdf' });
+    const created = await addUserLibraryFile(file);
+
+    await vi.waitFor(async () => {
+      expect(await getUserLibraryThumbnail(created.id)).toBe('data:image/jpeg;base64,thumb');
+    });
+    expect(previewExtractorMock.forFile).toHaveBeenCalledWith(
+      expect.any(File),
+      'application/pdf',
+      'scan.pdf',
+    );
   });
 
   it('tracks OCR progress fraction from native and OCR pages', async () => {
@@ -323,83 +459,118 @@ describe('user-library storage', () => {
     expect(await getUserLibraryMedicalAnnotationBitmap('volume-1')).toBeNull();
   });
 
-  it('adds the bundled CT and MRI examples only once', async () => {
-    installUserLibraryIndexedDb();
-    const storage = new Map<string, string>();
-    vi.stubGlobal('localStorage', {
-      getItem: (key: string) => storage.get(key) ?? null,
-      setItem: (key: string, value: string) => storage.set(key, value),
-    });
-    const bytes = new Uint8Array(132);
-    bytes.set(new TextEncoder().encode('DICM'), 128);
-    const fetchSample = vi.fn(async () => ({
-      ok: true,
-      blob: async () => new Blob([bytes], { type: 'application/dicom' }),
-    }));
-    vi.stubGlobal('fetch', fetchSample);
-
-    expect(await ensureUserLibraryMedicalExamples()).toBe(true);
-    expect(await ensureUserLibraryMedicalExamples()).toBe(false);
-    expect(
-      (await listUserLibraryDocuments()).filter(
-        (document) => document.fileName === USER_LIBRARY_EXAMPLE_CT_FILE_NAME,
-      ),
-    ).toHaveLength(1);
-    expect(
-      (await listUserLibraryDocuments()).filter(
-        (document) => document.fileName === USER_LIBRARY_EXAMPLE_MRI_FILE_NAME,
-      ),
-    ).toHaveLength(1);
-    expect(fetchSample).toHaveBeenCalledTimes(2);
+  it('declares GitHub Release sources for CT, MRI and EPUB example slots', () => {
+    expect(USER_LIBRARY_EXAMPLE_SLOTS).toEqual([
+      expect.objectContaining({
+        id: 'ct',
+        folderId: USER_LIBRARY_RESEARCH_FOLDER_ID,
+        fileName: 'Пример КТ.dcm',
+      }),
+      expect.objectContaining({
+        id: 'mri',
+        folderId: USER_LIBRARY_RESEARCH_FOLDER_ID,
+        fileName: 'Пример МРТ.nii',
+      }),
+      expect.objectContaining({
+        id: 'epub',
+        folderId: USER_LIBRARY_BOOKS_FOLDER_ID,
+        fileName: "Alice's Adventures in Wonderland.epub",
+      }),
+    ]);
+    for (const slot of USER_LIBRARY_EXAMPLE_SLOTS) {
+      expect(slot.url).toMatch(
+        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/v\d+\.\d+\.\d+\//u,
+      );
+      expect(slot.browserUrl).toContain('https://raw.githubusercontent.com/T-Damer/MiniMed/v');
+      expect(slot.expectedBytes).toBeGreaterThan(0);
+    }
   });
 
-  it('upgrades the previous CT example without rewriting the real MRI', async () => {
+  it('downloads an example release asset and reports progress', async () => {
     installUserLibraryIndexedDb();
-    const storage = new Map([
-      ['minimed.userLibrary.medicalExamplesSeeded.v2', '1'],
-      ['minimed.userLibrary.medicalExamplesSeeded.v3', '1'],
-      ['minimed.userLibrary.medicalExamplesSeeded.v4', '1'],
-    ]);
-    vi.stubGlobal('localStorage', {
-      getItem: (key: string) => storage.get(key) ?? null,
-      setItem: (key: string, value: string) => storage.set(key, value),
-    });
-    const previousCt = new Uint8Array(132);
-    previousCt.set(new TextEncoder().encode('DICM'), 128);
-    const previousMri = new Uint8Array(136);
-    await addUserLibraryFile(
-      new File([previousCt], USER_LIBRARY_EXAMPLE_CT_FILE_NAME, {
-        type: 'application/dicom',
-      }),
+    const bytes = new Uint8Array(132);
+    bytes.set(new TextEncoder().encode('DICM'), 128);
+    downloadWithRetryMock.downloadWithRetry.mockImplementationOnce(
+      async (options: {
+        readonly onProgress?: (progress: {
+          readonly downloadedBytes: number;
+          readonly totalBytes: number | null;
+        }) => void;
+      }) => {
+        options.onProgress?.({ downloadedBytes: bytes.byteLength, totalBytes: bytes.byteLength });
+        return bytes;
+      },
     );
-    await addUserLibraryFile(
-      new File([previousMri], USER_LIBRARY_EXAMPLE_MRI_FILE_NAME, {
-        type: 'application/x-nifti',
-      }),
-    );
-    const replacement = new Uint8Array(140);
-    replacement.set(new TextEncoder().encode('DICM'), 128);
-    const fetchSample = vi.fn(async () => ({
-      ok: true,
-      blob: async () => new Blob([replacement]),
-    }));
-    vi.stubGlobal('fetch', fetchSample);
+    const progress: number[] = [];
+    const slot = USER_LIBRARY_EXAMPLE_SLOTS.find((item) => item.id === 'ct');
+    if (!slot) throw new Error('CT example slot is missing.');
 
-    expect(await ensureUserLibraryMedicalExamples()).toBe(true);
-    const examples = (await listUserLibraryDocuments()).filter((document) =>
-      [USER_LIBRARY_EXAMPLE_CT_FILE_NAME, USER_LIBRARY_EXAMPLE_MRI_FILE_NAME].includes(
-        document.fileName,
-      ),
+    const created = await downloadUserLibraryExample(slot, (value) => progress.push(value));
+
+    expect(downloadWithRetryMock.downloadWithRetry).toHaveBeenCalledWith(
+      expect.objectContaining({ url: slot.browserUrl, expectedBytes: slot.expectedBytes }),
     );
-    expect(examples).toHaveLength(2);
+    expect(created.exampleId).toBe('ct');
+    expect(progress[0]).toBe(0);
+    expect(progress.at(-1)).toBe(1);
+    expect(progress.some((value) => value > 0 && value < 1)).toBe(true);
+  });
+
+  it('does not download an example twice after it is stored', async () => {
+    installUserLibraryIndexedDb();
+    const bytes = new Uint8Array(132);
+    bytes.set(new TextEncoder().encode('DICM'), 128);
+    downloadWithRetryMock.downloadWithRetry.mockImplementation(async () => bytes);
+    const slot = USER_LIBRARY_EXAMPLE_SLOTS.find((item) => item.id === 'ct');
+    if (!slot) throw new Error('CT example slot is missing.');
+
+    const first = await downloadUserLibraryExample(slot);
+    const second = await downloadUserLibraryExample(slot);
+
+    expect(second.id).toBe(first.id);
+    expect(downloadWithRetryMock.downloadWithRetry).toHaveBeenCalledTimes(1);
     expect(
-      examples.find((document) => document.fileName === USER_LIBRARY_EXAMPLE_CT_FILE_NAME)
-        ?.byteLength,
-    ).toBe(replacement.byteLength);
-    expect(
-      examples.find((document) => document.fileName === USER_LIBRARY_EXAMPLE_MRI_FILE_NAME)
-        ?.byteLength,
-    ).toBe(previousMri.byteLength);
-    expect(fetchSample).toHaveBeenCalledTimes(1);
+      (await listUserLibraryDocuments()).filter((item) => item.exampleId === 'ct'),
+    ).toHaveLength(1);
+  });
+
+  it('reports when an example is missing from the GitHub Release', async () => {
+    const slot = USER_LIBRARY_EXAMPLE_SLOTS[0];
+    downloadWithRetryMock.downloadWithRetry.mockRejectedValueOnce(
+      new Error('Сервер ответил HTTP 404.'),
+    );
+
+    await expect(downloadUserLibraryExample(slot)).rejects.toThrow(
+      'Пример «Пример КТ» ещё не опубликован в GitHub Release.',
+    );
+  });
+
+  it('stores the example slot and reports upload progress', async () => {
+    installUserLibraryIndexedDb();
+    const bytes = new Uint8Array(132);
+    bytes.set(new TextEncoder().encode('DICM'), 128);
+    const progress: number[] = [];
+    const created = await addUserLibraryFile(
+      new File([bytes], 'uploaded-ct.dcm', { type: 'application/dicom' }),
+      USER_LIBRARY_RESEARCH_FOLDER_ID,
+      undefined,
+      { exampleId: 'ct', onProgress: (value) => progress.push(value) },
+    );
+
+    expect(created.exampleId).toBe('ct');
+    expect(progress[0]).toBe(0);
+    expect(progress.at(-1)).toBe(1);
+    expect(progress.some((value) => value > 0 && value < 1)).toBe(true);
+    expect(await listUserLibraryDocuments()).toContainEqual(
+      expect.objectContaining({ id: created.id, exampleId: 'ct' }),
+    );
+    await expect(
+      addUserLibraryFile(
+        new File(['wrong'], 'wrong.epub', { type: 'application/epub+zip' }),
+        USER_LIBRARY_RESEARCH_FOLDER_ID,
+        undefined,
+        { exampleId: 'ct' },
+      ),
+    ).rejects.toThrow('Файл не подходит');
   });
 });

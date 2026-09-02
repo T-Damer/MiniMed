@@ -1,7 +1,8 @@
 # Technical plan
 
 This document is the concise target architecture and acceptance plan. Implemented status and ordered
-next tasks live in [CURRENT_STATE.md](CURRENT_STATE.md).
+next tasks live in [CURRENT_STATE.md](CURRENT_STATE.md). The executable completion specification for
+the data and deterministic-search work is [DATA_SEARCH_COMPLETION_GOAL.md](DATA_SEARCH_COMPLETION_GOAL.md).
 
 ## Architecture
 
@@ -32,18 +33,20 @@ Rules:
 
 ## Runtime corpus edition
 
-The 1.0 runtime reads one immutable curated `core.db` per corpus edition. It contains canonical
-searchable chunks and reader payload for the selected clinical, medication, legal, and reference
-sources; it is not a claim that every medical source is installed. Individual documents and
-categories remain preparation/review/build units, not simultaneously mounted runtime databases.
+The 1.0 runtime always reads one lightweight `core.db` discovery edition. It contains canonical
+titles, aliases, source keywords, stable identifiers, provenance, and pointers to optional detail
+packs; it does not contain full medication cards or source documents. Installed domain packs such as
+`medications.db` provide the full reader payload and are mounted behind the same `MedicalCore`
+contract. See [ADR 0017](adr/0017-lightweight-core-index-and-domain-packs.md).
 
-Every result belongs to the active edition and resolves to the same document version, source checksum,
-and anchor in its reader payload. Activation and rollback move one whole-edition pointer. The edition
-manifest records source-level rights, jurisdiction, validity/status, and build provenance; unknown or
-revoked rights exclude a source from a published edition.
+The core discovery vocabulary also retains canonical titles, disease aliases/synonyms, and explicit
+terms from valid `Ключевые слова` sections of clinical recommendations, including pointers to full
+documents supplied by optional modules. These terms improve recall only: they do not establish a
+diagnosis, treatment relation, or dose without a cited source passage.
 
-Runtime sharding is deferred until a real edition breaches a measured supported-device budget. See
-[ADR 0012](adr/0012-curated-core-edition-before-sharding.md).
+Every installed pack has an independent manifest and resolves its own document version, source
+checksum, and anchor. A core-only result resolves to a pointer and exact module target until that pack
+is installed. Unknown or revoked redistribution rights exclude source content from a public pack.
 
 ## Browser runtime
 
@@ -100,6 +103,31 @@ Acceptance:
 
 Current demo and pilot measurements are recorded in `CURRENT_STATE.md`; they do not establish the
 real-corpus edition gates above.
+
+## Medical terminology and cross-document navigation
+
+The corpus uses one canonical medical-concept layer rather than separate vocabularies for search,
+drug instructions, and disease pages. It covers conditions, syndromes, findings, interventions,
+investigations, anatomy, and other clinically meaningful concepts. Preferred names, synonyms,
+eponyms, abbreviations, transliterations, and common spelling variants resolve to stable concept IDs;
+an ambiguous term may retain several candidates until its document context disambiguates it.
+
+RLS MKB/ICD and other classifications contribute identifiers, hierarchy, and names, but do not by
+themselves establish a clinical definition or treatment claim. Definitions and explanations remain
+source-backed content from an eligible recommendation, official reference, or licensed handbook.
+Each exact mention in a versioned source may link to a local concept card without changing the source
+text. For example, `синдром Жильбера` in a drug instruction opens the same condition card found by
+search; that card can expose synonyms, classification identifiers, sourced explanations, related
+documents, investigations, and medicines. Missing or ambiguous concepts remain plain text and create
+an extraction/review gap instead of receiving a guessed link.
+
+Acceptance:
+
+- search aliases and in-document links resolve to the same stable concept;
+- a resolved mention opens a local concept card and its cited source spans with no network;
+- abbreviation and homonym fixtures never create an incorrect automatic link;
+- generated navigation does not modify or replace the original source passage;
+- concept IDs and links remain stable across reproducible edition rebuilds.
 
 ## Clinical model contract
 
@@ -167,19 +195,43 @@ declare source → prepare → inspect diagnostics → lint → build → benchm
 The runtime validates a new whole edition before activation, retains the previous edition for rollback,
 and exposes update status. A source update may not activate a partial mixed-version corpus.
 
+## Protected patient workspace and longitudinal observations
+
+Patient-specific calculator and questionnaire results use a separate schema-v2 domain and trust
+boundary. `PatientProfile` stores identity and stable context; dated `ClinicalEpisode` records group
+`PatientEvent` entries; final numeric `PatientObservation` values feed the `Dynamics` view. Ordinary
+notes remain a separate local notebook and continue to work while the patient vault is locked.
+
+The native vault stores one atomic AES-256-GCM encrypted IndexedDB snapshot plus encrypted patient
+files. Its random data key is wrapped transparently by Android Keystore or iOS Keychain; MiniMed does
+not request an application password or biometric authentication. When device-bound key storage is
+unavailable, including the browser build, the user may continue only after an explicit warning; that
+mode stores the separate patient workspace in plaintext IndexedDB. Patient data remains excluded from
+localStorage, search, logs, notifications, and backend integrations in both modes. Locking, privacy
+curtain, explicitly plaintext portable export, and cascading deletion are required lifecycle
+operations. DEV schema changes may drop the prior patient database without migration.
+
+Calculator and questionnaire definitions use `schemaVersion: 2` only. They declare explicit patient
+bindings, evaluation state, provenance, and observation mappings. A selected `patientId` is required
+for context autofill and persistence; no name matching is performed. Verdicts and context are saved
+as historical snapshots. Tool results are immutable, manual corrections are revisions, and dynamics
+never merge incompatible metrics, units, methods, scales, or versions. Missing references remain
+explicitly unavailable rather than being guessed; laboratory ranges come only from the user's report.
+
 ## Milestones toward 1.0
 
-### 1. Validated offline corpus edition
+### 1. Validated offline corpus editions
 
 - ingest complete owner-provided documents;
 - preserve page/block provenance and tables;
-- compile selected approved sources into one versioned `core.db` edition;
+- compile canonical names, aliases, keywords, and module pointers into versioned `core.db`;
+- compile approved full reader payloads into independently versioned domain packs;
 - implement FTS, aliases, and deterministic medication typo correction;
 - add runtime corpus-specific golden benchmarks.
 
-Done when a clean machine can reproduce the edition, every displayed result opens the expected source
-span, no network request follows a completed offline install, and the edition meets measured Web,
-Android, and iOS deterministic-search budgets.
+Done when a clean machine can reproduce core and domain editions, core-only results offer the exact
+missing pack, installed results open the expected source span, no network request follows a completed
+offline install, and the mounted corpus meets measured Web, Android, and iOS search budgets.
 
 ### 2. Evidence-backed clinician workflows
 

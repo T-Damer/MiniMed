@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   APP_PREFERENCES_KEY,
   clearSearchScope,
+  getFloatingWindowsEnabled,
   getRememberSearchMode,
   getSoundVolume,
   getVibrationEnabled,
@@ -11,6 +12,7 @@ import {
   SEARCH_SCOPE_KEY,
   saveAppPreferences,
   saveSearchScope,
+  setFloatingWindowsEnabled,
   setRememberSearchMode,
   setSoundVolume,
   setVibrationEnabled,
@@ -64,7 +66,8 @@ describe('app-preferences', () => {
       rememberSearchMode: false,
       soundVolume: 0.2,
       bookReadingMode: false,
-      experimentalModulesEnabled: false,
+      floatingWindowsEnabled: false,
+      experimentalModulesEnabled: true,
     });
   });
 
@@ -83,7 +86,8 @@ describe('app-preferences', () => {
       rememberSearchMode: false,
       soundVolume: 1,
       bookReadingMode: false,
-      experimentalModulesEnabled: false,
+      floatingWindowsEnabled: false,
+      experimentalModulesEnabled: true,
     });
   });
 
@@ -123,6 +127,14 @@ describe('app-preferences', () => {
     expect(getSoundVolume()).toBe(0.45);
     saveAppPreferences({ ...loadAppPreferences(), soundVolume: -1 });
     expect(getSoundVolume()).toBe(0);
+  });
+
+  it('persists the floating-window preference', () => {
+    expect(getFloatingWindowsEnabled()).toBe(false);
+    setFloatingWindowsEnabled(true);
+    expect(getFloatingWindowsEnabled()).toBe(true);
+    setFloatingWindowsEnabled(false);
+    expect(getFloatingWindowsEnabled()).toBe(false);
   });
 
   it('reads remember search mode from storage', () => {

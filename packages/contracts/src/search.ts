@@ -43,19 +43,76 @@ export type QueryFactKind =
   | 'medication'
   | 'location'
   | 'epidemiology'
-  | 'negative-finding';
+  | 'negative-finding'
+  | 'weight'
+  | 'route'
+  | 'dose-form'
+  | 'strength'
+  | 'frequency'
+  | 'gestational-age'
+  | 'pregnancy'
+  | 'organ-function'
+  | 'allergy';
+
+export type LegacyQueryFactKind = Exclude<
+  QueryFactKind,
+  | 'weight'
+  | 'route'
+  | 'dose-form'
+  | 'strength'
+  | 'frequency'
+  | 'gestational-age'
+  | 'pregnancy'
+  | 'organ-function'
+  | 'allergy'
+>;
+
+export type ClinicalContextFactKind =
+  | 'age'
+  | 'measurement'
+  | 'weight'
+  | 'route'
+  | 'dose-form'
+  | 'strength'
+  | 'frequency'
+  | 'gestational-age'
+  | 'pregnancy'
+  | 'organ-function'
+  | 'allergy';
 
 export type QueryFactPolarity = 'positive' | 'negative' | 'uncertain';
 
-export interface QueryFact {
+export interface QueryFact<Kind extends QueryFactKind = LegacyQueryFactKind> {
   readonly id: string;
-  readonly kind: QueryFactKind;
+  readonly kind: Kind;
   readonly label: string;
   readonly value: string;
   readonly normalizedValue: string;
   readonly unit: string | null;
   readonly polarity: QueryFactPolarity;
   readonly range: TextRange;
+}
+
+export type ClinicalContextFact<Kind extends ClinicalContextFactKind = ClinicalContextFactKind> =
+  QueryFact<Kind>;
+
+export interface QueryClinicalContext {
+  readonly age: readonly ClinicalContextFact<'age'>[];
+  readonly gestationalAge: readonly ClinicalContextFact<'gestational-age'>[];
+  readonly sex: readonly QueryFact<'sex'>[];
+  readonly duration: readonly QueryFact<'duration'>[];
+  readonly weight: readonly ClinicalContextFact<'weight'>[];
+  readonly route: readonly ClinicalContextFact<'route'>[];
+  readonly doseForm: readonly ClinicalContextFact<'dose-form'>[];
+  readonly strength: readonly ClinicalContextFact<'strength'>[];
+  readonly frequency: readonly ClinicalContextFact<'frequency'>[];
+  readonly measurements: readonly ClinicalContextFact<'measurement'>[];
+  readonly positiveFindings: readonly QueryFact[];
+  readonly negativeFindings: readonly QueryFact[];
+  readonly currentMedicines: readonly QueryFact<'medication'>[];
+  readonly pregnancy: readonly ClinicalContextFact<'pregnancy'>[];
+  readonly organFunction: readonly ClinicalContextFact<'organ-function'>[];
+  readonly allergies: readonly ClinicalContextFact<'allergy'>[];
 }
 
 export type SearchIntentKind =
@@ -124,6 +181,8 @@ export interface QueryAnalysis {
   readonly normalizedQuery: string;
   readonly intent?: QueryIntent;
   readonly facts: readonly QueryFact[];
+  /** Optional for adapters that only return a legacy analysis; lexical analysis populates it. */
+  readonly clinicalContext?: QueryClinicalContext;
   readonly branches: readonly QueryBranch[];
   readonly suggestions: readonly SearchSuggestion[];
   readonly warnings: readonly string[];
@@ -163,6 +222,13 @@ export interface SearchResultGroup {
   readonly title: string;
   readonly bestScore: number;
   readonly categories: readonly SearchResultCategory[];
+  readonly documentKind?:
+    | 'medication'
+    | 'clinical-recommendation'
+    | 'legal'
+    | 'calculator'
+    | 'assessment'
+    | 'reference';
   readonly ageGroups?: readonly string[];
   readonly results: readonly SearchResult[];
 }

@@ -82,6 +82,7 @@ html.calculator-route-open body {
 
 .calculator-search,
 .calculator-form label,
+.calculator-form__field,
 .calculator-note-panel label {
   display: grid;
   gap: 0.35rem;
@@ -92,6 +93,7 @@ html.calculator-route-open body {
 }
 
 .calculator-form label span,
+.calculator-form__label,
 .calculator-note-panel label span {
   font-size: 0.78rem;
   font-weight: 700;
@@ -100,6 +102,7 @@ html.calculator-route-open body {
 }
 
 .calculator-form input,
+.calculator-form__input,
 .calculator-note-panel__input {
   width: 100%;
   min-height: 2.8rem;
@@ -291,7 +294,7 @@ html.calculator-route-open body {
   line-height: 1;
 }
 
-.calculator-section-page-header > div > p:last-child {
+.calculator-section-page-header .page__description {
   max-width: 58ch;
   margin-top: 0.35rem;
   color: var(--theme-text-muted);
@@ -384,7 +387,7 @@ html.calculator-route-open body {
 
 .calculator-card {
   display: flex;
-  max-width: min(100%, 22rem);
+  max-width: 100%;
   flex-direction: column;
   gap: 0.7rem;
   min-height: 0;
@@ -509,9 +512,28 @@ html.calculator-route-open body {
   grid-column: 1 / -1;
 }
 
+.calculator-patient-context {
+  display: grid;
+  gap: 0.25rem;
+}
+
 .calculator-result {
   display: grid;
   gap: 1rem;
+}
+
+.calculator-result-evaluation {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.8rem;
+  border-left: 0.3rem solid var(--theme-accent);
+  border-radius: 0.4rem;
+  background: var(--theme-accent-soft);
+}
+
+.calculator-result-evaluation__title,
+.calculator-result-evaluation__text {
+  margin: 0;
 }
 
 .calculator-step-preview {
@@ -552,6 +574,166 @@ html.calculator-route-open body {
 .calculator-output-list strong {
   color: var(--theme-text);
   font-size: clamp(1.25rem, 4vw, 2rem);
+}
+
+.calculator-form__checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: 1.25rem;
+  margin: 0.25rem 0 0;
+  accent-color: var(--theme-accent);
+}
+
+.calculator-form__field--checkbox {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.calculator-output-list--feeding {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) 4.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface-raised);
+}
+
+.feeding-ration__header {
+  margin-bottom: 1rem;
+}
+
+.feeding-ration__kicker,
+.feeding-ration__meta,
+.feeding-ration__guide,
+.feeding-ration__allergy,
+.feeding-ration__title,
+.feeding-ration__calendar-title {
+  margin: 0;
+}
+
+.feeding-ration__kicker {
+  color: var(--theme-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.feeding-ration__title {
+  margin-top: 0.2rem;
+  font-family: Georgia, serif;
+  font-size: clamp(1.7rem, 5vw, 2.4rem);
+}
+
+.feeding-ration__meta {
+  margin-top: 0.35rem;
+  color: var(--theme-text-muted);
+}
+
+.feeding-ration__guide,
+.feeding-ration__allergy {
+  padding: 0.8rem 0.9rem;
+  border-left: 0.28rem solid var(--theme-accent);
+  border-radius: 0.45rem;
+  background: var(--theme-accent-soft);
+  font-weight: 700;
+}
+
+.feeding-ration__allergy {
+  margin-top: 0.8rem;
+  border-left-color: var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.feeding-ration__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.feeding-ration__summary-item {
+  padding: 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.55rem;
+}
+
+.feeding-ration__summary-label {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.feeding-ration__summary-value {
+  margin: 0.25rem 0 0;
+  font-weight: 800;
+}
+
+.feeding-ration__table-wrap {
+  overflow-x: auto;
+  margin-top: 0.9rem;
+}
+
+.feeding-ration__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.feeding-ration__heading,
+.feeding-ration__cell {
+  padding: 0.7rem;
+  border: 1px solid var(--theme-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.feeding-ration__heading,
+.feeding-ration__cell--time {
+  background: color-mix(in srgb, var(--theme-surface-raised) 86%, var(--theme-accent));
+  color: var(--theme-text);
+}
+
+.feeding-ration__cell--number {
+  white-space: nowrap;
+}
+
+.feeding-ration__calendar {
+  margin-top: 1rem;
+}
+
+.feeding-ration__calendar-title {
+  font-family: Georgia, serif;
+  font-size: 1.2rem;
+}
+
+.feeding-ration__calendar-list {
+  display: grid;
+  gap: 0.35rem;
+  padding-left: 1.4rem;
+}
+
+.feeding-ration__calendar-item {
+  padding-left: 0.2rem;
+}
+
+.feeding-ration__calendar-day {
+  margin-right: 0.4rem;
+}
+
+.feeding-ration__emoji {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.4rem;
+  font-size: 3.8rem;
+  line-height: 1;
+  opacity: 0.18;
+}
+
+@media (max-width: 680px) {
+  .feeding-ration__summary {
+    grid-template-columns: 1fr;
+  }
 }
 
 .calculator-result details {

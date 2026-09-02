@@ -4,6 +4,7 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
@@ -21,6 +22,7 @@ import {
   isAssessmentSectionFromDatabase,
 } from '@/features/assessments/assessment-packs';
 import { assessmentCatalogCrumbs } from '@/features/assessments/assessment-routing';
+import { assessmentCountLabel } from '@/i18n/labels';
 
 export type AssessmentCatalogEntry = ReturnType<typeof searchAssessments>[number];
 
@@ -134,13 +136,17 @@ export function AssessmentCatalogPage(props: {
 
   return (
     <>
-      <header class="subpage-heading assessments-heading assessment-specialty-heading">
-        <div class="assessment-subpage-header__nav">
+      <Page
+        class="assessment-specialty-page-header"
+        navigation={
           <NavBack
             class="knowledge-back-button"
-            aria-label="К разделам тестов"
-            onClick={props.onBack}
+            aria-label={props.query.length > 0 ? 'Очистить поиск' : 'К разделам тестов'}
+            onClick={() => (props.query.length > 0 ? props.onQuery('') : props.onBack())}
+            icon={<AppGlyph name={props.query.length > 0 ? 'close' : 'arrow-left'} />}
           />
+        }
+        breadcrumbs={
           <AppBreadcrumbs
             items={assessmentCatalogCrumbs(
               props.specialty.title,
@@ -153,26 +159,22 @@ export function AssessmentCatalogPage(props: {
               window.location.hash = href;
             }}
           />
-        </div>
-        <div class="assessment-subpage-header__body">
-          <div class="assessment-subpage-header__content">
-            <div class="tool-page-title">
-              <AppGlyph name="list-checks" />
-              <Heading depth={2}>{props.specialty.title}</Heading>
-            </div>
-            <p class="assessments-heading__description">{props.specialty.description}</p>
-          </div>
-        </div>
-      </header>
-
-      <SearchField
-        class="assessment-search"
-        value={props.query}
-        placeholder="Например: Белбин, темперамент, эгограмма"
-        label="Найти тест"
-        hideLabel
-        onInput={props.onQuery}
+        }
+        icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}
+        title={<Heading depth={2}>{props.specialty.title}</Heading>}
+        description={props.specialty.description}
       />
+
+      <div class="assessment-search-row">
+        <SearchField
+          class="assessment-search"
+          value={props.query}
+          placeholder="Например: Белбин, темперамент, эгограмма"
+          label="Найти тест"
+          hideLabel
+          onInput={props.onQuery}
+        />
+      </div>
 
       <Show when={props.definitions.length > 0} fallback={<QueryEmptyState />}>
         <div class="assessment-section-list">
@@ -221,8 +223,8 @@ export function AssessmentCatalogPage(props: {
                         </p>
                         <small class="assessment-section-header__meta">
                           {fromDatabase()
-                            ? `${sectionAssessmentIds().length} тестов на устройстве`
-                            : `${installedCount()}/${sectionAssessmentIds().length} тестов на устройстве · ${
+                            ? `${assessmentCountLabel(sectionAssessmentIds().length)} на устройстве`
+                            : `${installedCount()}/${assessmentCountLabel(sectionAssessmentIds().length)} на устройстве · ${
                                 complete() ? 'раздел скачан' : 'раздел не скачан'
                               }`}
                         </small>

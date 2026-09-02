@@ -4,6 +4,9 @@ import json
 import re
 import shutil
 import uuid
+from collections import deque
+from collections.abc import Iterator
+from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 from typing import Literal
 
@@ -20,7 +23,7 @@ from .models import (
     SourceRegistry,
 )
 from .normalization import normalize_surface_text
-from .pdf_import import extract_pdf
+from .pdf_import import extract_pdf, sha256_file
 from .text_import import extract_text
 
 
@@ -214,6 +217,9 @@ def _prepare_into(
     registry: SourceRegistry,
     source_root: Path,
     output_dir: Path,
+    *,
+    workers: int,
+    reuse_from: Path | None,
 ) -> PrepareReport:
     output_dir.mkdir(parents=True, exist_ok=True)
     internal = output_dir / ".localmed"
@@ -221,6 +227,7 @@ def _prepare_into(
     diagnostics = internal / "diagnostics"
     prepared_reports: list[PreparedSourceReport] = []
     aggregate_warnings: list[str] = []
+    reused_sources = 0
 
     manifest = registry.pack.model_dump(by_alias=True, mode="json")
     (output_dir / "manifest.yaml").write_text(
@@ -235,9 +242,13 @@ def _prepare_into(
         encoding="utf-8",
     )
 
-    for source in registry.sources:
-        source_path = _resolve_source_path(source_root, source.path)
-        extracted = extract_source(source, source_path)
+    for source, extracted, reused in _extract_sources(
+        registry.sources,
+        source_root,
+        workers,
+        reuse_from,
+    ):
+        reused_sources += int(reused)
         stem = _safe_file_stem(source.id)
         markdown_path = output_dir / f"{stem}.md"
         extraction_path = extractions / f"{stem}.json"
@@ -264,6 +275,7 @@ def _prepare_into(
                 included_blocks=extracted.diagnostics.included_block_count,
                 pages=extracted.diagnostics.page_count,
                 requires_review=extracted.diagnostics.requires_review,
+                extraction_reused=reused,
                 warnings=source_warnings,
             )
         )
@@ -273,11 +285,79 @@ def _prepare_into(
         pack_version=registry.pack.version,
         sources=len(prepared_reports),
         review_required=sum(item.requires_review for item in prepared_reports),
+        reused_sources=reused_sources,
+        extracted_sources=len(prepared_reports) - reused_sources,
         warnings=aggregate_warnings,
         prepared=prepared_reports,
     )
     _write_json(output_dir / "prepare-report.json", report.model_dump(by_alias=True, mode="json"))
     return report
+
+
+def _extract_sources(
+    sources: list[RegistrySource],
+    source_root: Path,
+    workers: int,
+    reuse_from: Path | None,
+) -> Iterator[tuple[RegistrySource, ExtractedSource, bool]]:
+    if workers == 1:
+        for source in sources:
+            extracted, reused = _extract_or_reuse(source, source_root, reuse_from)
+            yield source, extracted, reused
+        return
+
+    source_iterator = iter(sources)
+    pending: deque[tuple[RegistrySource, Future[tuple[ExtractedSource, bool]]]] = deque()
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="medbase-prepare") as executor:
+        for _ in range(workers):
+            source = next(source_iterator, None)
+            if source is None:
+                break
+            pending.append(
+                (source, executor.submit(_extract_or_reuse, source, source_root, reuse_from))
+            )
+
+        while pending:
+            source, future = pending.popleft()
+            extracted, reused = future.result()
+            yield source, extracted, reused
+            next_source = next(source_iterator, None)
+            if next_source is not None:
+                pending.append(
+                    (
+                        next_source,
+                        executor.submit(_extract_or_reuse, next_source, source_root, reuse_from),
+                    )
+                )
+
+
+def _extract_or_reuse(
+    source: RegistrySource,
+    source_root: Path,
+    reuse_from: Path | None,
+) -> tuple[ExtractedSource, bool]:
+    source_path = _resolve_source_path(source_root, source.path)
+    if reuse_from is not None:
+        extraction_path = (
+            reuse_from / ".localmed" / "extractions" / f"{_safe_file_stem(source.id)}.json"
+        )
+        if extraction_path.is_file():
+            try:
+                payload: object = json.loads(extraction_path.read_text(encoding="utf-8"))
+                extracted = ExtractedSource.model_validate(payload)
+            except (OSError, ValueError, json.JSONDecodeError):
+                extracted = None
+            expected_checksum = source.metadata.get("pdfSha256")
+            if not isinstance(expected_checksum, str):
+                expected_checksum = sha256_file(source_path)
+            if (
+                extracted is not None
+                and extracted.source_file == source_path.name
+                and extracted.source_format == _source_format(source, source_path)
+                and extracted.source_checksum == expected_checksum
+            ):
+                return extracted, True
+    return extract_source(source, source_path), False
 
 
 def prepare_registry(
@@ -286,8 +366,14 @@ def prepare_registry(
     output_dir: Path,
     *,
     force: bool = False,
+    workers: int = 1,
+    reuse_from: Path | None = None,
 ) -> PrepareReport:
+    if not 1 <= workers <= 8:
+        raise ValueError("Prepare workers must be between 1 and 8.")
     registry = load_source_registry(registry_path)
+    if reuse_from is not None and not reuse_from.is_dir():
+        raise ValueError(f"Reuse workspace is not a directory: {reuse_from}")
     source_root_resolved = source_root.resolve()
     target = output_dir.resolve()
     if target == source_root_resolved or source_root_resolved.is_relative_to(target):
@@ -302,7 +388,13 @@ def prepare_registry(
     temporary = target.with_name(f".{target.name}.tmp-{nonce}")
     backup = target.with_name(f".{target.name}.backup-{nonce}")
     try:
-        report = _prepare_into(registry, source_root_resolved, temporary)
+        report = _prepare_into(
+            registry,
+            source_root_resolved,
+            temporary,
+            workers=workers,
+            reuse_from=reuse_from.resolve() if reuse_from is not None else None,
+        )
         if target.exists():
             target.replace(backup)
         temporary.replace(target)

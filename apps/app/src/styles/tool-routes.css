@@ -33,6 +33,11 @@
   text-align: start;
 }
 
+.page__description,
+.subpage-heading p.page__description {
+  color: var(--theme-text-muted);
+}
+
 .assessment-result-page {
   width: 100%;
   max-width: none;

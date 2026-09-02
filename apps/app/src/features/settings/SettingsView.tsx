@@ -4,6 +4,7 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { Switch } from '@/components/Switch';
 import { AsrSettings } from '@/features/asr/AsrSettings';
@@ -12,6 +13,8 @@ import { ModelSettings } from '@/features/models/ModelSettings';
 import type { LocalModelState } from '@/features/models/types';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
+import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
+import { PackagingImagesSettings } from '@/features/settings/PackagingImagesSettings';
 import {
   readSettingsRoute,
   SETTINGS_DOWNLOADS_HASH,
@@ -21,10 +24,12 @@ import {
 import { StatusPanel } from '@/features/status/StatusPanel';
 import {
   getExperimentalModulesEnabled,
+  getFloatingWindowsEnabled,
   getRememberSearchMode,
   getSoundVolume,
   getVibrationEnabled,
   setExperimentalModulesEnabled,
+  setFloatingWindowsEnabled,
   setRememberSearchMode,
   setSoundVolume,
   setVibrationEnabled,
@@ -57,6 +62,9 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   const [vibrationEnabled, setVibrationEnabledState] = createSignal(getVibrationEnabled());
   const [rememberSearchMode, setRememberSearchModeState] = createSignal(getRememberSearchMode());
   const [soundVolume, setSoundVolumeState] = createSignal(getSoundVolume());
+  const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
+    getFloatingWindowsEnabled(),
+  );
   const [experimentalModulesEnabled, setExperimentalModulesEnabledState] = createSignal(
     getExperimentalModulesEnabled(),
   );
@@ -82,6 +90,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
       setVibrationEnabledState(preferences.vibrationEnabled);
       setRememberSearchModeState(preferences.rememberSearchMode);
       setSoundVolumeState(preferences.soundVolume);
+      setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
       setExperimentalModulesEnabledState(preferences.experimentalModulesEnabled);
     });
     const unsubscribeModel = props.controller.subscribe(setModel);
@@ -98,46 +107,47 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   return (
     <section class="settings-page page-surface page-grain">
       <Show when={route() === 'downloads'}>
-        <header class="settings-page__heading settings-page__heading--subroute subpage-heading">
-          <div class="settings-page__heading-main">
-            <p class="archive-kicker">Устройство</p>
-            <div class="settings-page__title-row">
-              <NavBack
-                class="knowledge-back-button"
-                aria-label="К настройкам"
-                onClick={() => {
-                  window.location.hash = SETTINGS_ROOT_HASH;
-                }}
-                icon={<AppGlyph name="arrow-left" class="settings-page__back-icon" />}
-              />
-              <h1 class="settings-page__title">Загрузки</h1>
-            </div>
-          </div>
-        </header>
+        <Page
+          class="settings-page__heading settings-page__heading--subroute"
+          navigation={
+            <NavBack
+              class="knowledge-back-button"
+              aria-label="К настройкам"
+              onClick={() => {
+                window.location.hash = SETTINGS_ROOT_HASH;
+              }}
+              icon={<AppGlyph name="arrow-left" class="settings-page__back-icon" />}
+            />
+          }
+          icon={<AppGlyph name="download" class="page__icon-glyph" />}
+          title={<h1 class="settings-page__title">Загрузки</h1>}
+          description="Наборы документов, прогресс и повтор прерванных загрузок."
+        />
         <ContentDownloadStatus />
+        <PackagingImagesSettings />
       </Show>
       <Show when={route() === 'index'}>
-        <header class="settings-page__heading subpage-heading">
-          <div class="settings-page__heading-main">
-            <p class="archive-kicker">Устройство</p>
-            <div class="settings-page__title-row">
-              <Show when={returnTo()}>
-                {(returnTo) => (
-                  <Button
-                    type="button"
-                    variant="icon"
-                    class="knowledge-back-button return-navigation-button settings-page__return"
-                    aria-label={returnToControlLabel(returnTo())}
-                    title={returnToControlLabel(returnTo())}
-                    onClick={() => consumeAndRestoreReturnTo()}
-                    icon={<AppGlyph name={returnToControlIcon(returnTo())} />}
-                  />
-                )}
-              </Show>
-              <h1 class="settings-page__title">Настройки</h1>
-            </div>
-          </div>
-        </header>
+        <Page
+          class="settings-page__heading"
+          navigation={
+            <Show when={returnTo()}>
+              {(returnTo) => (
+                <Button
+                  type="button"
+                  variant="icon"
+                  class="knowledge-back-button return-navigation-button settings-page__return"
+                  aria-label={returnToControlLabel(returnTo())}
+                  title={returnToControlLabel(returnTo())}
+                  onClick={() => consumeAndRestoreReturnTo()}
+                  icon={<AppGlyph name={returnToControlIcon(returnTo())} />}
+                />
+              )}
+            </Show>
+          }
+          icon={<AppGlyph name="system" class="page__icon-glyph" />}
+          title={<h1 class="settings-page__title">Настройки</h1>}
+          description="Параметры интерфейса, локальных данных и моделей MiniMed."
+        />
 
         <AppUpdateChecker
           ready={() => props.appUpdateReady}
@@ -165,7 +175,10 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
 
           <div class="settings-row">
             <div class="settings-row__text">
-              <span class="settings-row__label">Вибрация</span>
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph name="vibrate" class="settings-row__label-icon" aria-hidden="true" />
+                Вибрация
+              </span>
             </div>
             <Switch
               checked={vibrationEnabled()}
@@ -176,7 +189,31 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
 
           <div class="settings-row">
             <div class="settings-row__text">
-              <span class="settings-row__label">Запоминать режим поиска</span>
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph
+                  name="frame-corners"
+                  class="settings-row__label-icon"
+                  aria-hidden="true"
+                />
+                Отключить плавающие окна
+              </span>
+              <p class="settings-row__helper">
+                Скрыть кнопку и закрыть уже открытые маленькие окна
+              </p>
+            </div>
+            <Switch
+              checked={!floatingWindowsEnabled()}
+              aria-label="Отключить плавающие окна"
+              onChange={(disabled) => setFloatingWindowsEnabled(!disabled)}
+            />
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row__text">
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph name="search" class="settings-row__label-icon" aria-hidden="true" />
+                Запоминать режим поиска
+              </span>
               <p class="settings-row__helper">Открывать поиск с последним выбранным режимом</p>
             </div>
             <Switch
@@ -188,7 +225,10 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
 
           <div class="settings-row">
             <div class="settings-row__text">
-              <span class="settings-row__label">Experimental</span>
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph name="cube" class="settings-row__label-icon" aria-hidden="true" />
+                Experimental
+              </span>
               <p class="settings-row__helper">
                 Показывать загрузку предварительных баз препаратов, калькуляторов и опросников. Они
                 могут быть неполными или измениться без обратной совместимости.
@@ -203,7 +243,10 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
 
           <div class="settings-slider range-input">
             <div class="range-input__header">
-              <span class="range-input__label">Звуки</span>
+              <span class="range-input__label range-input__label--with-icon">
+                <AppGlyph name="speaker-high" class="range-input__label-icon" aria-hidden="true" />
+                Звуки
+              </span>
               <span class="range-input__value">{soundPercent()}%</span>
             </div>
             <input
@@ -245,6 +288,8 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         </a>
 
         <ModelSettings controller={props.controller} />
+
+        <EcgModelSettings />
 
         <AsrSettings />
 

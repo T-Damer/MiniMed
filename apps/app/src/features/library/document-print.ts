@@ -8,7 +8,7 @@ import {
   resolveDocumentChunkItems,
   visibleImageCaption,
 } from '@/features/library/document-rich-block-data';
-import { printHtmlInNativeShell } from '@/features/printing/native-print';
+import { PrintManager } from '@/features/printing/print-manager';
 
 function escapeHtml(value: string): string {
   return value
@@ -56,7 +56,7 @@ function renderTextBlocks(text: string): string {
       html.push(`<li>${escapeHtml(block.text)}</li>`);
     } else {
       closeList();
-      html.push(`<p>${escapeHtml(block.text)}</p>`);
+      html.push(`<p class="doc-print__paragraph">${escapeHtml(block.text)}</p>`);
     }
   }
   closeList();
@@ -109,7 +109,6 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
   <title>${escapeHtml(document.title)}</title>
   <style>
     :root {
-      --print-page-margin: 14mm;
       --print-accent: #405b4e;
       --print-ink: #292720;
       --print-ink-muted: #585349;
@@ -117,9 +116,9 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
       --print-title-font: Georgia, "Times New Roman", Times, serif;
       --print-body-font: system-ui, -apple-system, sans-serif;
     }
-    @page { size: A4; margin: var(--print-page-margin); }
+    @page { size: A4; margin: 20mm 15mm 20mm 30mm; }
     * { box-sizing: border-box; }
-    body { max-width: 190mm; margin: 0 auto; padding: 0 4mm; font-family: var(--print-body-font); color: var(--print-ink); font-size: 10pt; line-height: 1.42; }
+    body { margin: 0; padding: 0; font-family: var(--print-body-font); color: var(--print-ink); font-size: 10pt; line-height: 1.5; }
     .doc-print__kicker { font-family: var(--print-body-font); font-size: 8pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--print-accent); margin: 0 0 2mm; }
     .doc-print__title { font-family: var(--print-title-font); font-size: 20pt; line-height: 1.15; margin: 0 0 1mm; border-bottom: 1.4pt solid var(--print-accent); padding-bottom: 3mm; }
     .doc-print__meta { font-size: 8pt; color: var(--print-ink-muted); margin: 2mm 0 6mm; }
@@ -127,7 +126,7 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
     .doc-print__section h2 { font-family: var(--print-title-font); font-size: 13pt; color: var(--print-accent); margin: 0 0 2mm; border-top: 0.6pt solid var(--print-rule); padding-top: 3mm; }
     .doc-print__section h3 { font-size: 11.5pt; margin: 3mm 0 1.5mm; }
     .doc-print__section h4, .doc-print__section h5, .doc-print__section h6 { font-size: 10.5pt; margin: 2.5mm 0 1mm; }
-    .doc-print__section p { margin: 0 0 2mm; }
+    .doc-print__paragraph { margin: 0 0 2mm; line-height: 1.5; text-indent: 12.5mm; }
     .doc-print__list { margin: 0 0 2mm; padding-left: 4.5mm; }
     .doc-print__list li { margin-bottom: 0.8mm; break-inside: avoid; }
     .doc-print__table { border-collapse: collapse; width: 100%; margin: 2mm 0 3mm; font-size: 9pt; break-inside: avoid; }
@@ -159,25 +158,9 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
 </html>`;
 }
 
-export function printHtml(html: string, title: string): boolean {
-  if (printHtmlInNativeShell(html, title)) return true;
-  const popup = window.open('', '_blank');
-  if (!popup) return false;
-  popup.opener = null;
-  popup.document.open();
-  popup.document.write(html);
-  popup.document.close();
-  popup.onafterprint = () => popup.close();
-  window.setTimeout(() => {
-    popup.focus();
-    popup.print();
-  }, 50);
-  return true;
-}
-
 export function printDocument(document: MedicalDocument): boolean {
   const html = printableDocumentHtml(document, window.location.href);
-  return printHtml(html, document.title);
+  return PrintManager.html(html, document.title);
 }
 
 function summaryText(document: MedicalDocument): string {
@@ -200,21 +183,4 @@ export async function shareDocument(document: MedicalDocument): Promise<'shared'
   }
   await navigator.clipboard.writeText(text);
   return 'copied';
-}
-
-export function printElementHtml(element: HTMLElement, title: string): boolean {
-  const styles = Array.from(element.querySelectorAll('style'))
-    .map((style) => `<style>${style.textContent ?? ''}</style>`)
-    .join('');
-  const html = `<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8" />
-<title>${escapeHtml(title)}</title>
-<style>@page { size: A4; margin: 10mm; } body { margin: 0; background: #fff; }</style>
-${styles}
-</head>
-<body>${element.outerHTML}</body>
-</html>`;
-  return printHtml(html, title);
 }

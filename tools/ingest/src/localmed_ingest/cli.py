@@ -7,14 +7,22 @@ from typing import Annotated
 
 import typer
 
-from .allmed_reference import export_allmed_reference, prepare_allmed_medications
+from .allmed_images import build_allmed_image_pack
+from .allmed_reference import (
+    export_allmed_reference,
+    load_esklp_mnn_identities,
+    prepare_allmed_medications,
+)
 from .builder import build_content_pack, lint_content_pack, load_content_pack
+from .catalog_module_builder import CatalogFamily, build_core_catalog_pointers
 from .clinical_queries import import_real_pocqi_benchmark
 from .drug_sources import collect_drug_sources
 from .instruction_card_drafts import export_instruction_card_drafts
 from .knowledge import (
     approve_knowledge,
+    export_ai_fact_review_tasks,
     export_chatgpt_tasks,
+    import_ai_fact_reviews,
     import_chatgpt_responses,
     knowledge_summary,
     load_knowledge_workspace,
@@ -56,9 +64,69 @@ def export_allmed_reference_command(
 def prepare_allmed_medications_command(
     input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
     output: Annotated[Path, typer.Option("--output")],
+    esklp_ledger: Annotated[
+        Path | None,
+        typer.Option(
+            "--esklp-ledger",
+            exists=True,
+            dir_okay=False,
+            help="JSON identity ledger or validated ESKLP pointer SQLite database.",
+        ),
+    ] = None,
 ) -> None:
     """Prepare one local Allmed snapshot as a lexical medications workspace."""
-    report = prepare_allmed_medications(input_path, output)
+    identities = load_esklp_mnn_identities(esklp_ledger) if esklp_ledger else None
+    report = prepare_allmed_medications(
+        input_path,
+        output,
+        esklp_identities=identities,
+    )
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("build-allmed-image-pack")
+def build_allmed_image_pack_command(
+    input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    workers: Annotated[int, typer.Option("--workers", min=1, max=64)] = 16,
+    retries: Annotated[int, typer.Option("--retries", min=0, max=8)] = 3,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 30.0,
+    resume: Annotated[bool, typer.Option("--resume")] = False,
+) -> None:
+    """Download Allmed packaging images and build a resumable source-assets pack."""
+    report = build_allmed_image_pack(
+        input_path,
+        output,
+        workers=workers,
+        retries=retries,
+        timeout_seconds=timeout_seconds,
+        resume=resume,
+    )
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("build-core-catalog-pointers")
+def build_core_catalog_pointers_command(
+    ledger: Annotated[Path, typer.Option("--ledger", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    version: Annotated[str, typer.Option("--version")],
+    family: Annotated[CatalogFamily, typer.Option("--family")] = "medication",
+    core_module_id: Annotated[str, typer.Option("--core-module-id")] = "minimed.core.ru",
+    core_module_title: Annotated[str, typer.Option("--core-module-title")] = "Ядро MiniMed",
+    built_at: Annotated[str | None, typer.Option("--built-at")] = None,
+    force: Annotated[bool, typer.Option("--force")] = False,
+) -> None:
+    """Build compact core pointers for one catalog-family ledger."""
+    report = build_core_catalog_pointers(
+        ledger,
+        output,
+        family=family,
+        version=version,
+        core_module_id=core_module_id,
+        core_module_title=core_module_title,
+        built_at=built_at,
+        force=force,
+    )
     typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 
 
@@ -232,9 +300,26 @@ def prepare_command(
     source_root: Annotated[Path, typer.Option("--source-root", exists=True, file_okay=False)],
     output: Annotated[Path, typer.Option("--output")],
     force: Annotated[bool, typer.Option("--force")] = False,
+    workers: Annotated[int, typer.Option("--workers", min=1, max=8)] = 1,
+    reuse_from: Annotated[
+        Path | None,
+        typer.Option(
+            "--reuse-from",
+            exists=True,
+            file_okay=False,
+            help="Reuse checksum-matched extraction JSON from a prepared workspace.",
+        ),
+    ] = None,
 ) -> None:
     """Prepare private PDF/TXT sources as a build-ready Markdown workspace."""
-    prepare_report = prepare_registry(registry, source_root, output, force=force)
+    prepare_report = prepare_registry(
+        registry,
+        source_root,
+        output,
+        force=force,
+        workers=workers,
+        reuse_from=reuse_from,
+    )
     typer.echo(json.dumps(prepare_report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 
 
@@ -257,6 +342,38 @@ def ai_import_command(
 ) -> None:
     """Validate ChatGPT JSONL proposals and write a proposed knowledge workspace."""
     report = import_chatgpt_responses(input_dir, responses, output, base_path=base)
+    typer.echo(
+        json.dumps(report.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
+    )
+
+
+@app.command("ai-fact-review-export")
+def ai_fact_review_export_command(
+    input_dir: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    source: Annotated[Path, typer.Option("--source", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Export immutable proposed dosage facts for independent AI review."""
+    tasks = export_ai_fact_review_tasks(input_dir, source, output)
+    typer.echo(json.dumps({"tasks": tasks, "output": str(output)}, ensure_ascii=False, indent=2))
+
+
+@app.command("ai-fact-review-import")
+def ai_fact_review_import_command(
+    input_dir: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    source: Annotated[Path, typer.Option("--source", exists=True, dir_okay=False)],
+    responses: Annotated[list[Path], typer.Option("--responses", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    reviewed_at: Annotated[str | None, typer.Option("--reviewed-at")] = None,
+) -> None:
+    """Apply dual independent AI consensus to immutable dosage facts."""
+    report = import_ai_fact_reviews(
+        input_dir,
+        source,
+        responses,
+        output,
+        reviewed_at=reviewed_at,
+    )
     typer.echo(
         json.dumps(report.model_dump(by_alias=True, mode="json"), ensure_ascii=False, indent=2)
     )
@@ -302,6 +419,13 @@ def build(
     report: Annotated[Path | None, typer.Option("--report")] = None,
     edition_manifest: Annotated[Path | None, typer.Option("--edition-manifest")] = None,
     lexical_only: Annotated[bool, typer.Option("--lexical-only")] = False,
+    include_unreviewed_knowledge: Annotated[
+        bool,
+        typer.Option(
+            "--include-unreviewed-knowledge",
+            help="Demo-only: include proposed knowledge in search projections.",
+        ),
+    ] = False,
 ) -> None:
     """Build a SQLite pack and optional JSON seed from Markdown sources."""
     _, build_report = build_content_pack(
@@ -311,6 +435,7 @@ def build(
         report,
         edition_manifest,
         include_embeddings=not lexical_only,
+        include_unreviewed_knowledge=include_unreviewed_knowledge,
     )
     typer.echo(json.dumps(build_report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 
@@ -342,6 +467,7 @@ def compose_command(
     built_at: Annotated[str, typer.Option("--built-at")],
     schema_version: Annotated[int, typer.Option("--schema-version", min=1)] = 2,
     compact: Annotated[bool, typer.Option("--compact")] = False,
+    resume: Annotated[bool, typer.Option("--resume")] = False,
 ) -> None:
     """Compose existing compatible SQLite packs into one local-development edition."""
     report = compose_sqlite_packs(
@@ -354,6 +480,7 @@ def compose_command(
         built_at=built_at,
         schema_version=schema_version,
         compact=compact,
+        resume=resume,
     )
     typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 

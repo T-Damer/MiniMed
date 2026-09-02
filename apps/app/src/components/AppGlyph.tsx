@@ -26,6 +26,7 @@ import caretLeftBold from '@phosphor-icons/core/assets/bold/caret-left-bold.svg?
 import caretRightBold from '@phosphor-icons/core/assets/bold/caret-right-bold.svg?raw';
 import caretUpBold from '@phosphor-icons/core/assets/bold/caret-up-bold.svg?raw';
 import checkBold from '@phosphor-icons/core/assets/bold/check-bold.svg?raw';
+import circleBold from '@phosphor-icons/core/assets/bold/circle-bold.svg?raw';
 import circleHalfBold from '@phosphor-icons/core/assets/bold/circle-half-bold.svg?raw';
 import clockBold from '@phosphor-icons/core/assets/bold/clock-bold.svg?raw';
 import clockCounterClockwiseBold from '@phosphor-icons/core/assets/bold/clock-counter-clockwise-bold.svg?raw';
@@ -33,9 +34,11 @@ import codeBold from '@phosphor-icons/core/assets/bold/code-bold.svg?raw';
 import cubeBold from '@phosphor-icons/core/assets/bold/cube-bold.svg?raw';
 import diamondsFourBold from '@phosphor-icons/core/assets/bold/diamonds-four-bold.svg?raw';
 import discBold from '@phosphor-icons/core/assets/bold/disc-bold.svg?raw';
+import dotsThreeVerticalBold from '@phosphor-icons/core/assets/bold/dots-three-vertical-bold.svg?raw';
 import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
 import envelopeSimpleBold from '@phosphor-icons/core/assets/bold/envelope-simple-bold.svg?raw';
 import eraserBold from '@phosphor-icons/core/assets/bold/eraser-bold.svg?raw';
+import fileArrowDownBold from '@phosphor-icons/core/assets/bold/file-arrow-down-bold.svg?raw';
 import fileDocBold from '@phosphor-icons/core/assets/bold/file-doc-bold.svg?raw';
 import filePdfBold from '@phosphor-icons/core/assets/bold/file-pdf-bold.svg?raw';
 import filePlusBold from '@phosphor-icons/core/assets/bold/file-plus-bold.svg?raw';
@@ -60,6 +63,7 @@ import listBulletsBold from '@phosphor-icons/core/assets/bold/list-bullets-bold.
 import listChecksBold from '@phosphor-icons/core/assets/bold/list-checks-bold.svg?raw';
 import listDashesBold from '@phosphor-icons/core/assets/bold/list-dashes-bold.svg?raw';
 import listNumbersBold from '@phosphor-icons/core/assets/bold/list-numbers-bold.svg?raw';
+import lockSimpleBold from '@phosphor-icons/core/assets/bold/lock-simple-bold.svg?raw';
 import magnifyingGlassBold from '@phosphor-icons/core/assets/bold/magnifying-glass-bold.svg?raw';
 import magnifyingGlassPlusBold from '@phosphor-icons/core/assets/bold/magnifying-glass-plus-bold.svg?raw';
 import mathOperationsBold from '@phosphor-icons/core/assets/bold/math-operations-bold.svg?raw';
@@ -70,11 +74,14 @@ import musicNotesBold from '@phosphor-icons/core/assets/bold/music-notes-bold.sv
 import notchesBold from '@phosphor-icons/core/assets/bold/notches-bold.svg?raw';
 import noteBold from '@phosphor-icons/core/assets/bold/note-bold.svg?raw';
 import notepadBold from '@phosphor-icons/core/assets/bold/notepad-bold.svg?raw';
+import paletteBold from '@phosphor-icons/core/assets/bold/palette-bold.svg?raw';
 import pencilSimpleBold from '@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw';
 import pillBold from '@phosphor-icons/core/assets/bold/pill-bold.svg?raw';
 import plusBold from '@phosphor-icons/core/assets/bold/plus-bold.svg?raw';
+import prescriptionBold from '@phosphor-icons/core/assets/bold/prescription-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
 import questionMarkBold from '@phosphor-icons/core/assets/bold/question-mark-bold.svg?raw';
+import scalesBold from '@phosphor-icons/core/assets/bold/scales-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
 import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
 import speakerHighBold from '@phosphor-icons/core/assets/bold/speaker-high-bold.svg?raw';
@@ -87,7 +94,10 @@ import textColumnsBold from '@phosphor-icons/core/assets/bold/text-columns-bold.
 import textHTwoBold from '@phosphor-icons/core/assets/bold/text-h-two-bold.svg?raw';
 import textItalicBold from '@phosphor-icons/core/assets/bold/text-italic-bold.svg?raw';
 import trashBold from '@phosphor-icons/core/assets/bold/trash-bold.svg?raw';
+import usersBold from '@phosphor-icons/core/assets/bold/users-bold.svg?raw';
+import vibrateBold from '@phosphor-icons/core/assets/bold/vibrate-bold.svg?raw';
 import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
+import pencilSimpleFill from '@phosphor-icons/core/assets/fill/pencil-simple-fill.svg?raw';
 import stopCircleFill from '@phosphor-icons/core/assets/fill/stop-circle-fill.svg?raw';
 import type { JSX } from 'solid-js';
 
@@ -116,6 +126,7 @@ export type AppGlyphName =
   | 'caret-right'
   | 'caret-up'
   | 'circle-half'
+  | 'circle'
   | 'refresh'
   | 'download'
   | 'envelope-simple'
@@ -133,10 +144,15 @@ export type AppGlyphName =
   | 'frame-corners'
   | 'check'
   | 'edit'
+  | 'edit-fill'
   | 'eraser'
   | 'trash'
+  | 'users'
+  | 'vibrate'
   | 'printer'
+  | 'prescription'
   | 'question'
+  | 'scales'
   | 'share'
   | 'share-fat'
   | 'stop-circle'
@@ -147,6 +163,7 @@ export type AppGlyphName =
   | 'arrow-u-up-right'
   | 'file-text'
   | 'file-plus'
+  | 'file-arrow-down'
   | 'image'
   | 'info'
   | 'clock'
@@ -160,15 +177,18 @@ export type AppGlyphName =
   | 'text-italic'
   | 'list-bullets'
   | 'list-numbers'
+  | 'lock'
   | 'math-operations'
   | 'at'
   | 'speaker-high'
   | 'pill'
+  | 'palette'
   | 'text-columns'
   | 'squares-four'
   | 'list-dashes'
   | 'diamonds-four'
   | 'disc'
+  | 'dots-three-vertical'
   | 'file-pdf'
   | 'file-doc'
   | 'file-ppt'
@@ -214,6 +234,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'caret-right': svgBody(caretRightBold),
   'caret-up': svgBody(caretUpBold),
   'circle-half': svgBody(circleHalfBold),
+  circle: svgBody(circleBold),
   refresh: svgBody(arrowsClockwiseBold),
   download: svgBody(downloadSimpleBold),
   'envelope-simple': svgBody(envelopeSimpleBold),
@@ -231,10 +252,15 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'frame-corners': svgBody(frameCornersBold),
   check: svgBody(checkBold),
   edit: svgBody(pencilSimpleBold),
+  'edit-fill': svgBody(pencilSimpleFill),
   eraser: svgBody(eraserBold),
   trash: svgBody(trashBold),
+  users: svgBody(usersBold),
+  vibrate: svgBody(vibrateBold),
   printer: svgBody(printerBold),
+  prescription: svgBody(prescriptionBold),
   question: svgBody(questionMarkBold),
+  scales: svgBody(scalesBold),
   share: svgBody(shareNetworkBold),
   'share-fat': svgBody(shareFatBold),
   'stop-circle': svgBody(stopCircleFill),
@@ -245,6 +271,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'arrow-u-up-right': svgBody(arrowUUpRightBold),
   'file-text': svgBody(fileTextBold),
   'file-plus': svgBody(filePlusBold),
+  'file-arrow-down': svgBody(fileArrowDownBold),
   image: svgBody(imageSquareBold),
   info: svgBody(infoBold),
   clock: svgBody(clockBold),
@@ -255,6 +282,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'text-italic': svgBody(textItalicBold),
   'list-bullets': svgBody(listBulletsBold),
   'list-numbers': svgBody(listNumbersBold),
+  lock: svgBody(lockSimpleBold),
   'math-operations': svgBody(mathOperationsBold),
   at: svgBody(atBold),
   'speaker-high': svgBody(speakerHighBold),
@@ -262,11 +290,13 @@ const glyphBodies: Record<AppGlyphName, string> = {
   highlighter: svgBody(highlighterBold),
   calendar: svgBody(calendarBlankBold),
   pill: svgBody(pillBold),
+  palette: svgBody(paletteBold),
   'text-columns': svgBody(textColumnsBold),
   'squares-four': svgBody(squaresFourBold),
   'list-dashes': svgBody(listDashesBold),
   'diamonds-four': svgBody(diamondsFourBold),
   disc: svgBody(discBold),
+  'dots-three-vertical': svgBody(dotsThreeVerticalBold),
   'file-pdf': svgBody(filePdfBold),
   'file-doc': svgBody(fileDocBold),
   'file-ppt': svgBody(filePptBold),

@@ -100,6 +100,7 @@ export function escapePrintHtml(value: string): string {
 export function buildUserDocumentPrintHtml(
   title: string,
   pages: readonly UserLibraryPage[],
+  template = false,
 ): string {
   const sections = pages
     .map((page) => {
@@ -116,10 +117,13 @@ export function buildUserDocumentPrintHtml(
   <meta charset="utf-8">
   <title>${escapePrintHtml(title)}</title>
   <style>
-    body { font-family: sans-serif; margin: 1rem; }
-    pre { white-space: pre-wrap; word-break: break-word; }
+    @page { size: A4; margin: ${template ? '10mm' : '20mm 15mm 20mm 30mm'}; }
+    body { font-family: sans-serif; margin: 0; line-height: 1.5; }
+    pre { white-space: pre-wrap; word-break: break-word; line-height: 1.5; text-indent: 12.5mm; }
     h1 { font-size: 1.25rem; }
     h2 { font-size: 1rem; margin-top: 1rem; }
+    .user-doc-print__section { break-after: page; page-break-after: always; }
+    .user-doc-print__section:last-of-type { break-after: auto; page-break-after: auto; }
   </style>
 </head>
 <body>

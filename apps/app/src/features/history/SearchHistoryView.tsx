@@ -1,6 +1,8 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Page } from '@/components/Page';
+import { Heading } from '@/components/Text';
 import {
   clearSearchHistory,
   loadSearchHistory,
@@ -55,27 +57,26 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
 
   return (
     <section class="history-view page-surface page-grain" aria-label="История поиска">
-      <header class="subpage-heading">
-        <div>
-          <p class="archive-kicker">Локальный журнал</p>
-          <h1>История поиска</h1>
-          <p>
-            Запросы хранятся только на этом устройстве. Клинический текст не отправляется в сеть.
-          </p>
-        </div>
-        <Show when={entries().length > 0}>
-          <button
-            class="subtle-action"
-            type="button"
-            onClick={() => {
-              clearSearchHistory();
-              setEntries([]);
-            }}
-          >
-            Очистить журнал
-          </button>
-        </Show>
-      </header>
+      <Page
+        class="history-page-header"
+        icon={<AppGlyph name="history" class="page__icon-glyph" />}
+        title={<Heading depth={1}>История поиска</Heading>}
+        description="Запросы хранятся только на этом устройстве. Клинический текст не отправляется в сеть."
+        actions={
+          <Show when={entries().length > 0}>
+            <button
+              class="subtle-action"
+              type="button"
+              onClick={() => {
+                clearSearchHistory();
+                setEntries([]);
+              }}
+            >
+              Очистить журнал
+            </button>
+          </Show>
+        }
+      />
 
       <Show
         when={entries().length > 0}

@@ -83,7 +83,10 @@ def apply_icd10_search_projection(documents: list[PackDocument]) -> None:
 
 
 def _load_content_pack(
-    input_dir: Path, *, include_embeddings: bool = True
+    input_dir: Path,
+    *,
+    include_embeddings: bool = True,
+    include_unreviewed_knowledge: bool = False,
 ) -> tuple[ContentPack, KnowledgeWorkspace]:
     manifest_data = read_yaml_mapping(input_dir / "manifest.yaml")
     manifest_data["checksum"] = calculate_pack_checksum(input_dir)
@@ -104,7 +107,7 @@ def _load_content_pack(
         raise ValueError("Duplicate document id in content pack.")
 
     knowledge = load_knowledge_modules(input_dir, documents)
-    apply_search_projection(documents, knowledge)
+    apply_search_projection(documents, knowledge, include_unreviewed=include_unreviewed_knowledge)
     apply_icd10_search_projection(documents)
 
     embeddings = (
@@ -140,8 +143,17 @@ def _load_content_pack(
     return pack, knowledge
 
 
-def load_content_pack(input_dir: Path, *, include_embeddings: bool = True) -> ContentPack:
-    pack, _knowledge = _load_content_pack(input_dir, include_embeddings=include_embeddings)
+def load_content_pack(
+    input_dir: Path,
+    *,
+    include_embeddings: bool = True,
+    include_unreviewed_knowledge: bool = False,
+) -> ContentPack:
+    pack, _knowledge = _load_content_pack(
+        input_dir,
+        include_embeddings=include_embeddings,
+        include_unreviewed_knowledge=include_unreviewed_knowledge,
+    )
     return pack
 
 
@@ -230,13 +242,18 @@ def build_content_pack(
     report_path: Path | None = None,
     edition_manifest_output: Path | None = None,
     include_embeddings: bool = True,
+    include_unreviewed_knowledge: bool = False,
 ) -> tuple[ContentPack, BuildReport]:
-    pack, knowledge = _load_content_pack(input_dir, include_embeddings=include_embeddings)
+    pack, knowledge = _load_content_pack(
+        input_dir,
+        include_embeddings=include_embeddings,
+        include_unreviewed_knowledge=include_unreviewed_knowledge,
+    )
     errors = lint_content_pack(pack)
     if errors:
         raise ValueError("Content lint failed:\n" + "\n".join(errors))
     write_sqlite_pack(pack, output, vacuum=False)
-    write_knowledge_sqlite(output, knowledge)
+    write_knowledge_sqlite(output, knowledge, include_unreviewed=include_unreviewed_knowledge)
     integrity, foreign_keys, chunk_count, fts_rows, profile_count, embedding_count = (
         inspect_integrity(output)
     )

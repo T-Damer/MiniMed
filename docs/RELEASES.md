@@ -4,7 +4,9 @@
 
 1. Update `CHANGELOG.md` and root `release.json`; update the corpus manifest only when its snapshot
    version also changes.
-2. Rebuild generated content artifacts.
+2. Verify the existing generated artifacts; rebuild only artifacts whose inputs changed. Never replace
+   `apps/app/public/content/core.db` with the smaller pilot/fixture pack. Source SQLite databases and
+   private full medication builds remain untouched by application publication.
 3. Run `bun run verify`.
 4. Run browser E2E.
 5. Run the relevant native smoke checklist.
@@ -15,6 +17,10 @@
 
 Application and embedded-corpus versions are independent. An app-only release may reuse the current
 verified corpus version; release evidence records both versions.
+
+Android verifies the bundled `core.db` against the tracked build report, checksum, SQLite integrity,
+foreign keys and FTS counts. Automatic pilot rebuilds produce benchmark evidence only; they do not
+commit a replacement core. GitHub Pages and Android use the same canonical filename.
 
 ```bash
 git status --short

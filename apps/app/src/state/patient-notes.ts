@@ -87,6 +87,7 @@ export interface PatientNote {
   readonly cardId: string;
   /** Notes nest inside notes, so a visit can hold its own follow-ups. */
   readonly parentNoteId: string | null;
+  readonly title: string;
   readonly text: string;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -103,7 +104,9 @@ export interface PatientNotesSnapshot {
 
 export interface PatientNoteDraft {
   readonly noteId: string;
+  readonly title?: string;
   readonly text: string;
+  readonly categories?: string;
   readonly reminderDate: string;
   readonly reminderTime: string;
   readonly savedAt: string;
@@ -143,7 +146,9 @@ function isPatientNoteDraft(value: unknown): value is PatientNoteDraft {
   const candidate = value as Partial<PatientNoteDraft>;
   return (
     typeof candidate.noteId === 'string' &&
+    (candidate.title === undefined || typeof candidate.title === 'string') &&
     typeof candidate.text === 'string' &&
+    (candidate.categories === undefined || typeof candidate.categories === 'string') &&
     typeof candidate.reminderDate === 'string' &&
     typeof candidate.reminderTime === 'string' &&
     typeof candidate.savedAt === 'string'
@@ -294,7 +299,7 @@ function isCalculatorSchemaSnapshot(value: unknown): value is CalculatorSchema {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<CalculatorSchema>;
   return (
-    candidate.schemaVersion === 1 &&
+    candidate.schemaVersion === 2 &&
     typeof candidate.id === 'string' &&
     typeof candidate.title === 'string' &&
     Array.isArray(candidate.inputs) &&
@@ -342,6 +347,7 @@ function isNote(value: unknown): value is PatientNote {
     typeof candidate.id === 'string' &&
     typeof candidate.cardId === 'string' &&
     (candidate.parentNoteId === null || typeof candidate.parentNoteId === 'string') &&
+    (candidate.title === undefined || typeof candidate.title === 'string') &&
     typeof candidate.text === 'string' &&
     typeof candidate.createdAt === 'string' &&
     typeof candidate.updatedAt === 'string' &&
@@ -377,19 +383,25 @@ function noteAttachedSearchText(result: NoteAttachedResult): string {
   ].join(' ');
 }
 
-function noteSearchableText(text: string, attachedResults?: readonly NoteAttachedResult[]): string {
+function noteSearchableText(
+  text: string,
+  attachedResults?: readonly NoteAttachedResult[],
+  title = '',
+): string {
   const attachmentText = (attachedResults ?? []).map(noteAttachedSearchText).join(' ');
-  return `${text} ${attachmentText}`.trim();
+  return `${title} ${text} ${attachmentText}`.trim();
 }
 
 function normalizedNote(note: PatientNote): PatientNote {
   const { attachedResults: rawAttachedResults, ...rest } = note;
+  const title = typeof note.title === 'string' ? note.title.trim() : '';
   const attachedResults = normalizedAttachedResults(rawAttachedResults);
-  const searchableText = noteSearchableText(note.text, attachedResults);
+  const searchableText = noteSearchableText(note.text, attachedResults, title);
   const normalized = {
     ...rest,
+    title,
     categories: Array.isArray(note.categories)
-      ? note.categories.filter((category): category is string => typeof category === 'string')
+      ? normalizeNoteCategories(note.categories)
       : categorizeNoteText(searchableText),
     relatedDocumentIds: Array.isArray(note.relatedDocumentIds)
       ? note.relatedDocumentIds.filter(
@@ -407,6 +419,10 @@ function normalizedNote(note: PatientNote): PatientNote {
         },
       }
     : normalized;
+}
+
+function normalizeNoteCategories(categories: readonly string[]): readonly string[] {
+  return [...new Set(categories.map((category) => category.trim()).filter(Boolean))];
 }
 
 export function categorizeNoteText(text: string): readonly string[] {
@@ -493,6 +509,7 @@ export function injectColleagueNote(): PatientNotesSnapshot {
         id: COLLEAGUE_NOTE_ID,
         cardId: COLLEAGUE_CARD_ID,
         parentNoteId: null,
+        title: '',
         text: COLLEAGUE_NOTE_TEXT,
         createdAt: now,
         updatedAt: now,
@@ -621,8 +638,13 @@ export function addPatientNote(
   cardId: string,
   text: string,
   parentNoteId: string | null = null,
-  options?: { readonly attachedResults?: readonly NoteAttachedResult[] },
+  options?: {
+    readonly attachedResults?: readonly NoteAttachedResult[];
+    readonly categories?: readonly string[];
+    readonly title?: string;
+  },
 ): PatientNotesSnapshot {
+  const title = options?.title?.trim() ?? '';
   const trimmed = text.trim();
   const attachedResults = normalizedAttachedResults(options?.attachedResults);
   const hasAttachments = (attachedResults?.length ?? 0) > 0;
@@ -636,10 +658,14 @@ export function addPatientNote(
     id: createId('note'),
     cardId,
     parentNoteId,
+    title,
     text: trimmed,
     createdAt: now,
     updatedAt: now,
-    categories: categorizeNoteText(noteSearchableText(trimmed, attachedResults)),
+    categories:
+      options?.categories === undefined
+        ? categorizeNoteText(noteSearchableText(trimmed, attachedResults, title))
+        : normalizeNoteCategories(options.categories),
     relatedDocumentIds: [],
     ...(attachedResults ? { attachedResults } : {}),
   };
@@ -663,10 +689,46 @@ export function updatePatientNote(noteId: string, text: string): PatientNotesSna
         ? {
             ...note,
             text: trimmed,
-            categories: categorizeNoteText(noteSearchableText(trimmed, note.attachedResults)),
             updatedAt: now,
           }
         : note,
+    ),
+  });
+}
+
+export function updatePatientNoteTitle(noteId: string, title: string): PatientNotesSnapshot {
+  const trimmed = title.trim();
+  const current = loadPatientNotes();
+  const existing = current.notes.find((note) => note.id === noteId);
+  if (!existing || existing.title === trimmed) return current;
+  const now = new Date().toISOString();
+  return persist({
+    cards: current.cards,
+    notes: current.notes.map((note) =>
+      note.id === noteId
+        ? {
+            ...note,
+            title: trimmed,
+            updatedAt: now,
+          }
+        : note,
+    ),
+  });
+}
+
+export function updatePatientNoteCategories(
+  noteId: string,
+  categories: readonly string[],
+): PatientNotesSnapshot {
+  const normalized = normalizeNoteCategories(categories);
+  const current = loadPatientNotes();
+  const existing = current.notes.find((note) => note.id === noteId);
+  if (!existing || existing.categories.join('\u0000') === normalized.join('\u0000')) return current;
+  const now = new Date().toISOString();
+  return persist({
+    cards: current.cards,
+    notes: current.notes.map((note) =>
+      note.id === noteId ? { ...note, categories: normalized, updatedAt: now } : note,
     ),
   });
 }
@@ -675,7 +737,7 @@ export async function enrichPatientNote(noteId: string, core: MedicalCore): Prom
   const current = loadPatientNotes();
   const note = current.notes.find((item) => item.id === noteId);
   if (!note) return;
-  const query = noteSearchableText(note.text, note.attachedResults);
+  const query = noteSearchableText(note.text, note.attachedResults, note.title);
   if (!query) return;
   const result = await core.search({
     query,
@@ -858,7 +920,7 @@ export function searchPatientNotes(query: string, limit = 8): readonly PatientNo
   for (const note of snapshot.notes) {
     const card = cardsById.get(note.cardId);
     if (!card) continue;
-    const searchableText = noteSearchableText(note.text, note.attachedResults);
+    const searchableText = noteSearchableText(note.text, note.attachedResults, note.title);
     const score = scoreOf(searchableText);
     if (score > 0) {
       matches.push({ card, note, score, snippet: snippetFor(searchableText, queryStems) });

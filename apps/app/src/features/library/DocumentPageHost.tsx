@@ -14,13 +14,29 @@ import { shouldReloadOfficialDocument } from '@/features/library/document-page-l
 import { OfficialDocumentReader } from '@/features/library/OfficialDocumentReader';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
+import {
+  type ClinicalMedicationLink,
+  parseClinicalMedicationLinks,
+} from '@/features/medications/clinical-medication-links';
+import { consumeMedicationProductContext } from '@/features/medications/medication-navigation';
+import {
+  type MedicationProduct,
+  parseTradeNameSupplement,
+  type TradeNameSupplement,
+} from '@/features/medications/medication-record';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
+import {
+  installModulePointer,
+  type ModulePointerResolution,
+  parseModulePointerMetadata,
+  resolveModulePointer,
+} from '@/features/modules/module-pointer-install';
 import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
-import { consumePreferSummaryDocumentId } from '@/state/document-navigation';
+import { consumePreferSummaryDocumentId, openDocumentOverlay } from '@/state/document-navigation';
 import {
   buildOfficialDocumentHash,
   type DocumentReadRoute,
@@ -45,6 +61,46 @@ interface DocumentPageHostProps {
   readonly reconnectContent?: () => Promise<void>;
 }
 
+function normalizedTradeName(value: string): string {
+  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').replace(/\s+/gu, ' ').trim();
+}
+
+function linkedAllmedSummaries(
+  summaries: readonly MedicalDocumentSummary[],
+  mnnDocumentId: string,
+): readonly MedicalDocumentSummary[] {
+  return summaries.filter((summary) => {
+    const metadata = summary.metadata;
+    return (
+      summary.sourceType === 'allmed_reference' &&
+      metadata?.['contentMode'] === 'allmed-snapshot' &&
+      metadata['linkedMnnDocumentId'] === mnnDocumentId
+    );
+  });
+}
+
+async function loadTradeNameSupplements(
+  core: MedicalCore,
+  summaries: readonly MedicalDocumentSummary[],
+  mnnDocumentId: string,
+  tradeName?: string,
+): Promise<readonly TradeNameSupplement[]> {
+  const candidates = linkedAllmedSummaries(summaries, mnnDocumentId).filter(
+    (summary) =>
+      !tradeName || normalizedTradeName(summary.title) === normalizedTradeName(tradeName),
+  );
+  const documents = await Promise.all(candidates.map((summary) => core.getDocument(summary.id)));
+  const uniqueByTradeName = new Map<string, TradeNameSupplement>();
+  for (const result of documents) {
+    if (!result.ok) continue;
+    const supplement = parseTradeNameSupplement(result.value);
+    if (!supplement || supplement.product.linkedMnnDocumentId !== mnnDocumentId) continue;
+    const key = normalizedTradeName(supplement.product.tradeName);
+    if (!uniqueByTradeName.has(key)) uniqueByTradeName.set(key, supplement);
+  }
+  return [...uniqueByTradeName.values()];
+}
+
 function userFacingOpenError(message: string): string {
   if (message.includes('Document not found')) {
     return 'Документ пока не подключён к поиску. Подождите завершения установки или нажмите «Повторить» в разделе скачивания.';
@@ -61,7 +117,20 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const [availableDocuments, setAvailableDocuments] = createSignal<
     readonly MedicalDocumentSummary[]
   >([]);
+  const [supplementalPanels, setSupplementalPanels] = createSignal<readonly TradeNameSupplement[]>(
+    [],
+  );
+  const [medicationProduct, setMedicationProduct] = createSignal<MedicationProduct>();
+  const [clinicalMedicationLinks, setClinicalMedicationLinks] = createSignal<
+    readonly ClinicalMedicationLink[]
+  >([]);
   const [openError, setOpenError] = createSignal<string | null>(null);
+  const [modulePointer, setModulePointer] = createSignal<ModulePointerResolution | null>(null);
+  const [modulePointerPending, setModulePointerPending] = createSignal(false);
+  const [modulePointerProgress, setModulePointerProgress] = createSignal<number | null>(null);
+  const [modulePointerInstallError, setModulePointerInstallError] = createSignal<string | null>(
+    null,
+  );
   let loadingDocumentId: string | null = null;
   let loadedOfficialRequestId: string | null = null;
 
@@ -106,6 +175,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
 
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
     const documentId = parsed.documentId;
+    const selectedMedicationProduct = consumeMedicationProductContext(documentId) ?? undefined;
+    setMedicationProduct(selectedMedicationProduct);
     setInitialAnchor(parsed.section ?? null);
 
     if (
@@ -113,7 +184,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         loadedOfficialRequestId ?? document()?.id,
         documentId,
         loadingDocumentId,
-      )
+      ) &&
+      !selectedMedicationProduct
     ) {
       return;
     }
@@ -121,10 +193,14 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     loadingDocumentId = documentId;
     loadedOfficialRequestId = null;
     setOpenError(null);
+    setModulePointer(null);
+    setModulePointerInstallError(null);
+    setSupplementalPanels([]);
+    setClinicalMedicationLinks([]);
     setDocument(undefined);
     setPendingTitle('Открываем документ');
 
-    const core = props.getCore();
+    let core = props.getCore();
     if (!core) {
       loadingDocumentId = null;
       setOpenError('Локальный поиск ещё не готов.');
@@ -135,13 +211,32 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const preferSummary = preferSummaryId === documentId;
 
     try {
-      const listed = await listDocuments(core);
+      let listed = await listDocuments(core);
       if (loadingDocumentId !== documentId) return;
       setAvailableDocuments(listed);
       const availableIds = new Set(listed.map((item) => item.id));
       const readableId = preferSummary
         ? documentId
         : resolveReadableDocumentId(documentId, availableIds);
+      const pointerSummary = listed.find((item) => item.id === documentId);
+      const pointerMetadata = pointerSummary?.metadata;
+      const pointer = parseModulePointerMetadata(pointerMetadata);
+      if (pointer) {
+        const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+        const resolution = resolveModulePointer(
+          pointer,
+          runtime.getCatalog(),
+          runtime.listInstalled(),
+        );
+        setModulePointer(resolution);
+        if (
+          pointer.targetDocumentId !== documentId &&
+          (availableIds.has(pointer.targetDocumentId) || resolution.state === 'installed')
+        ) {
+          openDocumentOverlay(pointer.targetDocumentId, initialAnchor(), { preferSummary: true });
+          return;
+        }
+      }
       const summary = listed.find((item) => item.id === readableId);
       if (summary) {
         setPendingTitle(displayDocumentTitle(summary));
@@ -160,6 +255,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           setOpenError('Локальный поиск ещё не готов.');
           return;
         }
+        core = refreshedCore;
         const refreshedId = preferSummary
           ? documentId
           : resolveReadableDocumentId(documentId, availableIds);
@@ -173,6 +269,25 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       setDocument(result.value);
       loadedOfficialRequestId = documentId;
       setPendingTitle(undefined);
+      if (result.value.metadata['contentMode'] === 'esklp-mnn') {
+        const refreshedSummaries = await listDocuments(core);
+        if (loadingDocumentId !== documentId) return;
+        listed = refreshedSummaries;
+        setAvailableDocuments(listed);
+        setClinicalMedicationLinks(
+          selectedMedicationProduct?.mnnDocumentId
+            ? parseClinicalMedicationLinks(listed, selectedMedicationProduct.mnnDocumentId)
+            : [],
+        );
+        setSupplementalPanels(
+          await loadTradeNameSupplements(
+            core,
+            listed,
+            result.value.id,
+            selectedMedicationProduct?.tradeName,
+          ),
+        );
+      }
       let currentTrail = trail();
       if (currentTrail) {
         currentTrail = updateCurrentCrumbTitle(currentTrail, displayDocumentTitle(result.value));
@@ -185,6 +300,39 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       if (loadingDocumentId === documentId) {
         loadingDocumentId = null;
       }
+    }
+  };
+
+  const requestModulePointerInstall = async (): Promise<void> => {
+    const resolution = modulePointer();
+    if (resolution?.state !== 'available' || modulePointerPending()) return;
+    const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+    setModulePointerPending(true);
+    setModulePointerProgress(null);
+    setModulePointerInstallError(null);
+    try {
+      await installModulePointer(runtime, resolution, setModulePointerProgress);
+      if (!props.reconnectContent) {
+        throw new Error('Набор загружен, но локальный поиск не удалось обновить.');
+      }
+      await props.reconnectContent();
+      const refreshedCore = props.getCore();
+      if (!refreshedCore) throw new Error('Локальный поиск ещё не готов.');
+      const listed = await listDocuments(refreshedCore);
+      setAvailableDocuments(listed);
+      if (!listed.some((item) => item.id === resolution.pointer.targetDocumentId)) {
+        throw new Error('Набор загружен, но целевой документ не подключился к поиску.');
+      }
+      openDocumentOverlay(resolution.pointer.targetDocumentId, initialAnchor(), {
+        preferSummary: true,
+      });
+    } catch (cause) {
+      setModulePointerInstallError(
+        cause instanceof Error ? cause.message : 'Не удалось загрузить набор документа.',
+      );
+    } finally {
+      setModulePointerPending(false);
+      setModulePointerProgress(null);
     }
   };
 
@@ -257,6 +405,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     if (!result.ok) throw new Error(userFacingOpenError(result.error.message));
     setAvailableDocuments(documents);
     setDocument(result.value);
+    setSupplementalPanels([]);
+    setClinicalMedicationLinks([]);
+    setMedicationProduct(undefined);
     loadedOfficialRequestId = fullDocumentId;
     setInitialAnchor(null);
 
@@ -284,8 +435,13 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       loadingDocumentId = null;
       loadedOfficialRequestId = null;
       setDocument(undefined);
+      setSupplementalPanels([]);
+      setClinicalMedicationLinks([]);
+      setMedicationProduct(undefined);
       setPendingTitle(undefined);
       setOpenError(null);
+      setModulePointer(null);
+      setModulePointerInstallError(null);
       clearDocumentTrail();
       setTrail(null);
       return;
@@ -296,9 +452,14 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       return;
     }
     setDocument(undefined);
+    setSupplementalPanels([]);
+    setClinicalMedicationLinks([]);
+    setMedicationProduct(undefined);
     loadedOfficialRequestId = null;
     setPendingTitle(undefined);
     setOpenError(null);
+    setModulePointer(null);
+    setModulePointerInstallError(null);
     const userTitle =
       currentTrail.crumbs[currentTrail.crumbs.length - 1]?.title ?? 'Личный документ';
     if (currentTrail.crumbs.length > 0) {
@@ -347,10 +508,20 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                 document={document()}
                 {...(pendingTitle() ? { pendingTitle: pendingTitle() as string } : {})}
                 availableDocuments={availableDocuments()}
+                {...(medicationProduct()
+                  ? { medicationProduct: medicationProduct() as MedicationProduct }
+                  : {})}
+                supplementalPanels={supplementalPanels()}
+                clinicalMedicationLinks={clinicalMedicationLinks()}
                 initialAnchor={initialAnchor()}
                 trail={trail()}
                 openError={openError()}
+                modulePointer={modulePointer()}
+                modulePointerPending={modulePointerPending()}
+                modulePointerProgress={modulePointerProgress()}
+                modulePointerInstallError={modulePointerInstallError()}
                 onNavigate={navigateTrail}
+                onInstallModulePointer={requestModulePointerInstall}
                 onRequestFullText={requestFullText}
               />
             </Show>

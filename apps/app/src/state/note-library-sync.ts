@@ -24,6 +24,7 @@ let running: Promise<void> | null = null;
 let rerun = false;
 
 function noteTitle(note: PatientNote): string {
+  if (note.title.trim()) return note.title.trim();
   const firstLine = note.text
     .split('\n')
     .map((line) => line.replace(/^#+\s*|^[-*+]\s*|[*_`>]/gu, '').trim())
@@ -43,7 +44,8 @@ function mirrorFileName(base: string, extension: string): string {
 }
 
 function noteFileName(card: PatientCard, note: PatientNote): string {
-  return mirrorFileName(`${card.title} — ${noteTitle(note)}`, '.md');
+  const recordTitle = note.title.trim();
+  return mirrorFileName(recordTitle ? `${card.title} — ${recordTitle}` : card.title, '.md');
 }
 
 function sourceKey(source: UserLibraryDocumentSource): string {

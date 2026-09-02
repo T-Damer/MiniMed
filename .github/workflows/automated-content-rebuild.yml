@@ -14,7 +14,7 @@ on:
         type: boolean
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: automated-content-rebuild-${{ github.ref }}
@@ -31,6 +31,8 @@ jobs:
           fetch-depth: 1
 
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
 
       - uses: astral-sh/setup-uv@v7
         with:
@@ -92,8 +94,7 @@ jobs:
           uv run --project tools/ingest medbase lint --input data/synced/rf-public-pilot
           bun run content:build:synced
           bun run benchmark:pilot
-          cp data/build/rf-public-pilot.db apps/app/public/content/core-demo.db
-          cp data/build/rf-public-pilot-report.json apps/app/public/content/core-demo-report.json
+          # The pilot is benchmark evidence, not a replacement for the discovery core.
           bun run build:app
 
       - name: Save validated source cache
@@ -114,18 +115,3 @@ jobs:
             data/build/source-sync-report.json
             data/build/rf-public-pilot-report.json
             data/build/rf-public-pilot-benchmark.json
-
-      - name: Commit changed application database
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps/app/public/content/core-demo.db apps/app/public/content/core-demo-report.json
-          if git diff --cached --quiet; then
-            echo 'The compiled application database is already current.'
-            exit 0
-          fi
-          git commit -m 'chore(content): rebuild vectorized database [skip db rebuild]'
-          git push origin HEAD:main

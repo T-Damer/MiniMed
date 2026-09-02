@@ -44,7 +44,18 @@ describe('assessment print layout', () => {
       },
     });
 
-    expect(printBlankAssessment(definition)).toBe(true);
+    expect(
+      printBlankAssessment({
+        ...definition,
+        images: [
+          {
+            id: 'print-image',
+            alt: 'Схема для печати',
+            dataUrl: 'data:image/png;base64,aA==',
+          },
+        ],
+      }),
+    ).toBe(true);
 
     const markup = popupDocument.write.mock.calls[0]?.[0];
     expect(markup).toContain(`<h1>${definition.title}</h1>`);
@@ -55,6 +66,8 @@ describe('assessment print layout', () => {
     expect(markup).not.toContain('Ограничение:');
     expect(markup).not.toContain('Версия:');
     expect(markup).toContain('class="footer-qr"');
+    expect(markup).toContain('class="images"');
+    expect(markup).toContain('Схема для печати');
   });
 
   it('omits technical lines and prints an attached note title beside the date', async () => {

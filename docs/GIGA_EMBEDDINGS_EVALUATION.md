@@ -10,14 +10,14 @@
 | Распознавание симптомов и прочих фактов | **Частично, как вспомогательный слой** | Подбор похожих терминов, intent/specialty classification и entity linking по кандидатам. Модель сама не извлекает spans и не гарантирует отрицание, время, дозировку, возраст или валидную JSON-схему. |
 | Семантический поиск / RAG | **Да, кандидат для POC** | Это прямое назначение линейки. Для MiniMed ценность должна быть доказана на его корпусе и устройствах; lexical fallback остается обязательным. |
 
-Поэтому не стоит заменять этой линейкой Needle или текущий детерминированный разбор запроса. Для JSON нужен отдельный генеративный model/tool-calling контур с валидацией схемы либо расширение детерминированного parser; для retrieval обучение Giga-Embeddings сначала вообще не требуется.
+Поэтому не стоит заменять этой линейкой текущий детерминированный разбор запроса. Для JSON нужен отдельный генеративный model/tool-calling контур с валидацией схемы либо расширение детерминированного parser; для retrieval обучение Giga-Embeddings сначала вообще не требуется.
 
 ## Проверенные характеристики
 
 | Модель | Архитектура | Вектор | Рабочий лимит | Параметры / официальные BF16-веса | ruMTEB Mean(Task) |
 | --- | --- | ---: | ---: | --- | ---: |
 | 480M | `Qwen3BidirectionalModel`, non-causal | 1024 | 8192 токенов | 483.7M / 0.967 GB | 70.96 |
-| 3B | `Qwen3BidirectionalModel`, non-causal | 2048 | 8192 токенов | 3.151B / 6.301 GB | 74.55 |
+| 3B | `Qwen3BidirectionalModel`, non-causal | 2048 | 8192 токенов | 3.151B / 6.301 GB | 74.57 |
 | 10B-A1.8B | `DeepseekV3BidirectionalModel`, MoE, 64 routed experts, 4 active + 1 shared | 1536 | 8192 токенов в поставляемом SentenceTransformers recipe | 10.476B total, около 1.8B active / 20.952 GB | 74.99 |
 
 Архитектура, размеры hidden state и non-causal режим зафиксированы в официальных конфигах [480M](https://huggingface.co/ai-sage/Giga-Embeddings-instruct-480M-0826/blob/2d0c1a92716eef0e5b6972df85b5883eb5b4f57a/config.json), [3B](https://huggingface.co/ai-sage/Giga-Embeddings-instruct-3B-0826/blob/ed7db5c91b900b39381b27b6e9c0a3d31137cd29/config.json) и [10B](https://huggingface.co/ai-sage/Giga-Embeddings-instruct-10B-A1.8B-0826/blob/1cb3ad3374dbf0eb9130546ca38b262de5f60287/config.json). У 10B внутренний RoPE-limit равен 262144, но поставляемый SentenceTransformers-конфиг ограничивает последовательность 8192, поэтому именно 8192 следует считать проверенным integration contract: [480M](https://huggingface.co/ai-sage/Giga-Embeddings-instruct-480M-0826/blob/2d0c1a92716eef0e5b6972df85b5883eb5b4f57a/sentence_bert_config.json), [3B](https://huggingface.co/ai-sage/Giga-Embeddings-instruct-3B-0826/blob/ed7db5c91b900b39381b27b6e9c0a3d31137cd29/sentence_bert_config.json), [10B](https://huggingface.co/ai-sage/Giga-Embeddings-instruct-10B-A1.8B-0826/blob/1cb3ad3374dbf0eb9130546ca38b262de5f60287/sentence_bert_config.json).
@@ -35,7 +35,7 @@ Query: {text}
 
 ## Проверка публичных заявлений
 
-- **74.99 и первое место:** подтверждается по максимальному `Mean(Task)` в текущих данных [MTEB(rus, v1.1)](https://mteb-leaderboard-backend.hf.space/v1/benchmarks/MTEB%28rus%2C%20v1.1%29/scores). Интерфейс leaderboard при этом может показывать одинаковый Borda-rank 1 для 10B и 3B; 74.99 — именно лучший mean score, а не уникальный rank во всех вариантах сортировки.
+- **74.99 и первое место:** подтверждается по максимальному `Mean(Task)` в текущих данных [MTEB(rus, v1.1)](https://mteb-leaderboard-backend.hf.space/v1/benchmarks/MTEB%28rus%2C%20v1.1%29/scores). Интерфейс leaderboard при этом может показывать одинаковый Borda-rank 1 для 10B и 3B; 74.99 — именно лучший mean score, а не уникальный rank во всех вариантах сортировки. Карточка 3B указывает 74.57; прежнее значение 74.55 было округлением/старым срезом.
 - **480M — лучшая модель до 500M:** подтверждается текущими строками того же [официального leaderboard](https://mteb-leaderboard.hf.space/benchmark/MTEB%28rus%2C%20v1.1%29); это меняющийся рейтинг, поэтому вывод датирован.
 - **Код 62.37 → 76.93 (+14.56):** эти значения опубликованы в [официальной карточке 10B](https://huggingface.co/ai-sage/Giga-Embeddings-instruct-10B-A1.8B-0826/blob/1cb3ad3374dbf0eb9130546ca38b262de5f60287/README.md).
 - **Скорость 1.6× / 2×:** в карточке 10B есть абсолютный throughput на H100, batch 16, через vLLM, но нет сопоставимого замера предыдущего Giga checkpoint; точные множители по доступным первичным материалам **не верифицируются** и ничего не говорят о CPU/mobile latency.
@@ -63,9 +63,9 @@ Query: {text}
 
 ## Рекомендация по моделям
 
-- **GPU desktop / исследовательский локальный сервер:** начинать с **3B**. Она почти достигает 10B на ruMTEB (74.55 против 74.99), но BF16 weights примерно в 3.3 раза меньше. 10B прогнать один раз как quality ceiling только при уже доступной подходящей GPU; не делать ее default.
+- **GPU desktop / исследовательский локальный сервер:** начинать с **3B**. Она почти достигает 10B на ruMTEB (74.57 против 74.99), но BF16 weights примерно в 3.3 раза меньше. 10B прогнать один раз как quality ceiling только при уже доступной подходящей GPU; не делать ее default.
 - **Offline mobile:** проверять только **480M**, и пока не включать в продукт. Даже ее официальные BF16 weights около 0.97 GB, а готового mobile runtime/кванта нет. Нужны отдельные conversion/parity, peak-RAM, latency, battery/thermal и physical-device gates. До этого сохранять portable hash + lexical fallback.
-- **JSON/tool call:** продолжать отдельный путь из [NEEDLE_FINETUNE.md](NEEDLE_FINETUNE.md) либо усиливать детерминированный parser. Не тренировать embedding-модель ради генерации JSON.
+- **JSON/tool call:** усиливать детерминированный parser либо добавлять отдельный валидируемый генеративный контур. Не тренировать embedding-модель ради генерации JSON.
 
 ## Минимальный POC без обучения
 

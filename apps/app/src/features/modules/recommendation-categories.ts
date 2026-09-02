@@ -89,6 +89,20 @@ const TERMINAL_TASK_STATES = new Set<ContentModuleDownloadTask['state']>([
   'cancelled',
 ]);
 
+export type ModuleGroupTaskState = 'queued' | 'active' | null;
+
+export function moduleGroupTaskState(
+  modules: readonly ContentModuleCatalogEntry[],
+  tasks: readonly ContentModuleDownloadTask[],
+): ModuleGroupTaskState {
+  const moduleIds = new Set(modules.map((module) => module.id));
+  const states = tasks
+    .filter((task) => moduleIds.has(task.moduleId) && !TERMINAL_TASK_STATES.has(task.state))
+    .map((task) => task.state);
+  if (states.some((state) => state !== 'queued')) return 'active';
+  return states.includes('queued') ? 'queued' : null;
+}
+
 export interface RecommendationCategoryDownloadProgress {
   readonly publishedCount: number;
   readonly installedCount: number;

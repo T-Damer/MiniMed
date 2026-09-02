@@ -4,7 +4,6 @@ import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
-import { printHtml } from '@/features/library/document-print';
 import {
   type DocumentRenderBlock,
   type DocumentTableBlock,
@@ -13,6 +12,7 @@ import {
 } from '@/features/library/document-rich-block-data';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
 import { usePinchZoom } from '@/features/library/use-pinch-zoom';
+import { PrintManager } from '@/features/printing/print-manager';
 
 interface RichBlockHighlightProps {
   readonly query?: string | undefined;
@@ -89,10 +89,10 @@ function buildImagePrintHtml(image: {
   return printableMediaPage(caption || 'Изображение', figure);
 }
 
-function MediaViewer(props: {
+export function MediaViewer(props: {
   readonly open: boolean;
   readonly title: string;
-  readonly printHtmlContent: string;
+  readonly printHtmlContent?: () => string;
   readonly onClose: () => void;
   readonly children: JSX.Element;
 }): JSX.Element {
@@ -116,10 +116,13 @@ function MediaViewer(props: {
   });
 
   const handlePrint = (): void => {
-    props.onClose();
-    if (!printHtml(props.printHtmlContent, props.title)) {
+    const printHtmlContent = props.printHtmlContent;
+    if (!printHtmlContent) return;
+    if (!PrintManager.html(printHtmlContent(), props.title)) {
       toast.error('Не удалось открыть окно печати.');
+      return;
     }
+    props.onClose();
   };
 
   return (
@@ -167,15 +170,17 @@ function MediaViewer(props: {
                 </button>
               </div>
               <div class="media-viewer__toolbar-group">
-                <button
-                  type="button"
-                  class="media-viewer__toolbar-button"
-                  aria-label="Печать"
-                  title="Печать"
-                  onClick={handlePrint}
-                >
-                  <AppGlyph name="printer" class="media-viewer__toolbar-icon" />
-                </button>
+                <Show when={props.printHtmlContent}>
+                  <button
+                    type="button"
+                    class="media-viewer__toolbar-button"
+                    aria-label="Печать"
+                    title="Печать"
+                    onClick={handlePrint}
+                  >
+                    <AppGlyph name="printer" class="media-viewer__toolbar-icon" />
+                  </button>
+                </Show>
                 <button
                   type="button"
                   class="media-viewer__toolbar-button"
@@ -300,7 +305,7 @@ function ZoomableImage(props: {
       <MediaViewer
         open={open()}
         title={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
-        printHtmlContent={buildImagePrintHtml(props.image)}
+        printHtmlContent={() => buildImagePrintHtml(props.image)}
         onClose={() => setOpen(false)}
       >
         <figure class="media-viewer__figure">
@@ -367,7 +372,7 @@ function ZoomableTable(props: {
       <MediaViewer
         open={open()}
         title={title()}
-        printHtmlContent={buildTablePrintHtml(props.block)}
+        printHtmlContent={() => buildTablePrintHtml(props.block)}
         onClose={() => setOpen(false)}
       >
         <div class="media-viewer__table-wrap">

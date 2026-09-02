@@ -17,7 +17,7 @@ const FIXTURE: HardMedicalQuery = {
   difficulty: 'medium',
   answerability: 'answerable',
   split: 'validation',
-  required_entities: ['бронхиолит'],
+  required_entities: ['бронхиолит', 'бронхообструктивный синдром', 'БРОНХИОЛИТ'],
   acceptable_entities: ['бронхообструктивный синдром'],
   forbidden_or_dangerous: ['регистрационная запись антибиотика'],
   expected_sections: ['clinical_picture'],
@@ -69,6 +69,12 @@ describe('hard query scoring', () => {
     const rows = [
       group('irrelevant', 'Регистрационная запись антибиотика', 'other', 'Амоксициллин'),
       group('bronchiolitis', 'Бронхиолит у детей', 'clinical-picture', 'Свистящее дыхание'),
+      group(
+        'bronchiolitis-duplicate',
+        'Бронхиолит у детей',
+        'clinical-picture',
+        'Свистящее дыхание',
+      ),
     ];
 
     const evaluation = evaluateHardQuery(FIXTURE, rows, 12);
@@ -76,8 +82,9 @@ describe('hard query scoring', () => {
       requiredRank: 2,
       requiredAt1: false,
       requiredAt3: true,
-      requiredAt5: true,
-      expectedSectionAt5: true,
+      recallAt5: 0.5,
+      hitAt5: true,
+      sectionHitAt5: true,
       forbiddenAt5: true,
       reciprocalRank: 0.5,
     });
@@ -91,16 +98,21 @@ describe('hard query scoring', () => {
     );
     const second = evaluateHardQuery(
       { ...FIXTURE, query_id: 'MED-TEST-2' },
-      [group('other', 'Острый бронхит', 'treatment', 'Наблюдение')],
+      [
+        group('other', 'Нерелевантный результат', 'other', 'Наблюдение'),
+        group('obstructive', 'Бронхообструктивный синдром', 'treatment', 'Наблюдение'),
+      ],
       30,
     );
 
     expect(aggregateHardQueryEvaluations([first, second])).toMatchObject({
       queryCount: 2,
       recallAt1: 0.5,
+      recallAt3: 1,
       recallAt5: 0.5,
-      mrrAt5: 0.5,
-      expectedSectionRecallAt5: 0.5,
+      hitAt5: 1,
+      mrrAt5: 0.75,
+      sectionHitAt5: 0.5,
       forbiddenRateAt5: 0,
       latencyMs: { p50: 10, p95: 30, p99: 30 },
     });

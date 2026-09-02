@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { type UserLibraryDocument, userLibraryProgressFraction } from '@/state/user-library';
-import { pageHasEnoughNativeText } from '@/state/user-library-ingest-helpers';
+import { pageHasEnoughNativeText, pdfPageHasTextLayer } from '@/state/user-library-ingest-helpers';
 
 describe('user-library ingest helpers', () => {
   it('treats pages with enough native text as digital', () => {
@@ -10,6 +10,12 @@ describe('user-library ingest helpers', () => {
         'Достаточно длинный фрагмент текста для пропуска OCR на этой странице.',
       ),
     ).toBe(true);
+  });
+
+  it('detects any existing PDF text layer separately from the OCR threshold', () => {
+    expect(pdfPageHasTextLayer(' Заголовок ')).toBe(true);
+    expect(pdfPageHasTextLayer('   ')).toBe(false);
+    expect(pdfPageHasTextLayer('Коротко')).toBe(true);
   });
 
   it('marks a PDF as ready when no OCR pages remain', () => {

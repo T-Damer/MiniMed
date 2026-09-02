@@ -1,6 +1,8 @@
 import * as pdfjs from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
+const PDF_CANVAS_MAX_AREA_BYTES = 16 * 1024 * 1024;
+
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 function assetUrl(path: string): string {
@@ -23,6 +25,7 @@ export async function loadPdfJsDocument(blob: Blob): Promise<PdfDocumentProxy> {
     iccUrl: assetUrl('iccs/'),
     useWasm: true,
     useWorkerFetch: true,
+    canvasMaxAreaInBytes: PDF_CANVAS_MAX_AREA_BYTES,
   });
   const document = await loadingTask.promise;
   return Object.assign(document, { destroy: () => loadingTask.destroy() });

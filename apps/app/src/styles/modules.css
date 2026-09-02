@@ -863,6 +863,16 @@
 
 .module-document-card__title {
   overflow-wrap: anywhere;
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .module-document-card__title {
+    font-size: 1.125rem;
+    line-height: 1.25;
+  }
 }
 
 .module-document-card__meta,

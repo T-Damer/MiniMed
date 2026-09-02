@@ -30,6 +30,86 @@ import {
   type OpenPackOptions,
 } from './plugin';
 
+interface NativeDatabaseSession {
+  readonly key: string;
+  readonly health: NativeDatabaseHealth;
+  references: number;
+}
+
+interface NativePluginState {
+  session: NativeDatabaseSession | undefined;
+  tail: Promise<void>;
+}
+
+const nativePluginStates = new WeakMap<LocalMedDatabasePlugin, NativePluginState>();
+
+function nativePluginState(plugin: LocalMedDatabasePlugin): NativePluginState {
+  const existing = nativePluginStates.get(plugin);
+  if (existing) return existing;
+  const state: NativePluginState = { session: undefined, tail: Promise.resolve() };
+  nativePluginStates.set(plugin, state);
+  return state;
+}
+
+async function withNativePluginLock<T>(
+  plugin: LocalMedDatabasePlugin,
+  task: (state: NativePluginState) => Promise<T>,
+): Promise<T> {
+  const state = nativePluginState(plugin);
+  const previous = state.tail;
+  let release!: () => void;
+  state.tail = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await previous;
+  try {
+    return await task(state);
+  } finally {
+    release();
+  }
+}
+
+function nativeDatabaseKey(options: OpenPackOptions): string {
+  return JSON.stringify([options.assetPath, options.databaseName, options.expectedSha256]);
+}
+
+async function acquireNativeDatabase(
+  plugin: LocalMedDatabasePlugin,
+  options: OpenPackOptions,
+): Promise<NativeDatabaseSession> {
+  const key = nativeDatabaseKey(options);
+  return withNativePluginLock(plugin, async (state) => {
+    if (state.session) {
+      if (state.session.key !== key) {
+        throw new Error('A different packaged native SQLite database is already open.');
+      }
+      state.session.references += 1;
+      return state.session;
+    }
+
+    const session: NativeDatabaseSession = {
+      key,
+      health: await plugin.openPack(options),
+      references: 1,
+    };
+    state.session = session;
+    return session;
+  });
+}
+
+async function releaseNativeDatabase(
+  plugin: LocalMedDatabasePlugin,
+  session: NativeDatabaseSession,
+): Promise<void> {
+  await withNativePluginLock(plugin, async (state) => {
+    if (state.session !== session) return;
+    session.references -= 1;
+    if (session.references > 0) return;
+    state.session = undefined;
+    await plugin.close();
+  });
+}
+
 function readString(row: NativeSqlRow, column: string): string {
   const value = row[column];
   if (typeof value !== 'string') throw new Error(`Expected string column: ${column}`);
@@ -242,6 +322,7 @@ export class CapacitorMedicalStore implements MedicalStore {
   private readonly plugin: LocalMedDatabasePlugin;
   private initialized = false;
   private nativeHealth: NativeDatabaseHealth | undefined;
+  private nativeSession: NativeDatabaseSession | undefined;
 
   public constructor(private readonly options: CapacitorMedicalStoreOptions) {
     this.plugin = options.plugin ?? LocalMedDatabase;
@@ -252,11 +333,12 @@ export class CapacitorMedicalStore implements MedicalStore {
       throw new Error('The native SQLite store accepts compiled content packs only.');
     }
     if (!this.initialized) {
-      this.nativeHealth = await this.plugin.openPack({
+      this.nativeSession = await acquireNativeDatabase(this.plugin, {
         assetPath: this.options.assetPath,
         databaseName: this.options.databaseName,
         expectedSha256: this.options.expectedSha256,
       });
+      this.nativeHealth = this.nativeSession.health;
       this.initialized = true;
     }
     return this.getHealth();
@@ -426,65 +508,96 @@ export class CapacitorMedicalStore implements MedicalStore {
   }
 
   public async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
+    // Keep the FTS phase narrow: bm25 only needs the matching virtual-table row. The expensive
+    // chunk/section/document projection is hydrated after the candidate window is bounded.
+    const candidateLimit = Math.min(500, Math.max(request.limit * 5, 50));
     const clauses = ['chunks_fts MATCH ?'];
     const bind: NativeSqlValue[] = [request.ftsQuery];
+    const joins: string[] = [];
+    let documentsJoined = false;
+    let sectionsJoined = false;
+
+    const joinDocuments = (): void => {
+      if (documentsJoined) return;
+      joins.push('JOIN documents d ON d.id = chunks_fts.document_id');
+      documentsJoined = true;
+    };
+    const joinSections = (): void => {
+      if (sectionsJoined) return;
+      joins.push('JOIN chunks c ON c.id = chunks_fts.chunk_id');
+      joins.push('JOIN sections s ON s.id = c.section_id');
+      sectionsJoined = true;
+    };
 
     if (request.filters.documentIds?.length) {
+      joinDocuments();
       clauses.push(`d.id IN (${placeholders(request.filters.documentIds.length)})`);
       bind.push(...request.filters.documentIds);
     }
     if (request.filters.sectionTypes?.length) {
+      joinSections();
       clauses.push(`s.section_type IN (${placeholders(request.filters.sectionTypes.length)})`);
       bind.push(...request.filters.sectionTypes);
     }
-    appendMetadataFilterClauses(clauses, bind, request.filters);
-    bind.push(Math.max(request.limit * 5, 50));
+    if (request.filters.specialties?.length || request.filters.ageGroups?.length) {
+      joinDocuments();
+      appendMetadataFilterClauses(clauses, bind, request.filters);
+    }
+
+    const candidateRows = await this.query(
+      `SELECT chunks_fts.chunk_id AS chunk_id,
+        bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
+       FROM chunks_fts
+       ${joins.join('\n       ')}
+       WHERE ${clauses.join(' AND ')}
+       ORDER BY bm25_rank
+       LIMIT ?`,
+      [...bind, candidateLimit],
+    );
+    if (candidateRows.length === 0) return [];
+
+    const rankByChunk = new Map<string, number>();
+    const orderByChunk = new Map<string, number>();
+    for (const [index, row] of candidateRows.entries()) {
+      const chunkId = readString(row, 'chunk_id');
+      const rawRank = readNumber(row, 'bm25_rank');
+      rankByChunk.set(chunkId, rawRank < 0 ? -rawRank : 1 / (1 + rawRank));
+      orderByChunk.set(chunkId, index);
+    }
 
     const rows = await this.query(
-      `SELECT
-        c.id AS chunk_id, c.document_version_id, c.section_id,
-        c.order_index AS chunk_order_index, c.original_text, c.normalized_text,
-        c.page_start AS chunk_page_start, c.page_end AS chunk_page_end,
-        c.char_start, c.char_end, c.previous_chunk_id, c.next_chunk_id,
-        c.anchor AS chunk_anchor, c.metadata_json AS chunk_metadata_json,
-        s.parent_section_id, s.title AS section_title, s.normalized_title,
-        s.section_type, s.depth, s.order_index AS section_order_index,
-        s.page_start AS section_page_start, s.page_end AS section_page_end,
-        s.anchor AS section_anchor, s.path_json,
-        d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
-        d.specialty_json, d.metadata_json,
-        dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
-        dv.source_checksum, dv.extracted_at,
-        bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
-      FROM chunks_fts
-      JOIN chunks c ON c.id = chunks_fts.chunk_id
-      JOIN sections s ON s.id = c.section_id
-      JOIN documents d ON d.id = chunks_fts.document_id
-      JOIN document_versions dv ON dv.id = c.document_version_id
-      WHERE ${clauses.join(' AND ')}
-      ORDER BY bm25_rank
-      LIMIT ?`,
-      bind,
+      `${VECTOR_HIT_SELECT} WHERE c.id IN (${placeholders(rankByChunk.size)})`,
+      [...rankByChunk.keys()],
     );
 
     return rows
-      .map((row): LexicalHit => {
-        const rawRank = readNumber(row, 'bm25_rank');
+      .map((row): LexicalHit | null => {
+        const chunk = toChunk(row);
+        const rank = rankByChunk.get(chunk.id);
+        if (rank === undefined) return null;
         return {
-          chunk: toChunk(row),
+          chunk,
           section: toSection(row),
           document: toDocument(row),
-          rank: rawRank < 0 ? -rawRank : 1 / (1 + rawRank),
+          rank,
         };
       })
+      .filter((hit): hit is LexicalHit => hit !== null)
       .filter((hit) => matchesPostFilters(hit.document, request.filters))
+      .toSorted(
+        (left, right) =>
+          (orderByChunk.get(left.chunk.id) ?? Number.MAX_SAFE_INTEGER) -
+          (orderByChunk.get(right.chunk.id) ?? Number.MAX_SAFE_INTEGER),
+      )
       .slice(0, request.limit);
   }
 
   public async close(): Promise<void> {
-    if (this.initialized) await this.plugin.close();
+    const session = this.nativeSession;
+    this.nativeSession = undefined;
     this.nativeHealth = undefined;
     this.initialized = false;
+    if (session) await releaseNativeDatabase(this.plugin, session);
   }
 
   private async query(sql: string, args: readonly NativeSqlValue[] = []): Promise<NativeSqlRow[]> {

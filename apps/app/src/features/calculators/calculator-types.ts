@@ -13,6 +13,7 @@ export type CalculatorCategory =
   | 'cardiology'
   | 'gastroenterology'
   | 'hematology'
+  | 'pediatrics'
   | 'neonatology';
 
 export interface CalculatorSourceReference {
@@ -34,6 +35,8 @@ export interface CalculatorInputConstraint {
 
 export interface AvailableCalculatorDefinition {
   readonly id: string;
+  /** Immutable content-pack version captured with tool results. */
+  readonly version: string;
   readonly slug: string;
   readonly state: 'available';
   readonly title: string;
@@ -42,6 +45,7 @@ export interface AvailableCalculatorDefinition {
   readonly summary: string;
   readonly audience: CalculatorAudience;
   readonly category: CalculatorCategory;
+  readonly tags?: readonly CalculatorCategory[];
   readonly clinical: boolean;
   readonly formula: string;
   readonly population: string;
@@ -57,6 +61,7 @@ export interface PlannedCalculatorDefinition {
   readonly summary: string;
   readonly audience: CalculatorAudience;
   readonly category: CalculatorCategory;
+  readonly tags?: readonly CalculatorCategory[];
   readonly clinical: boolean;
   readonly sourceRequirement: string;
 }
@@ -64,6 +69,8 @@ export interface PlannedCalculatorDefinition {
 export type CalculatorDefinition = AvailableCalculatorDefinition | PlannedCalculatorDefinition;
 
 export interface CalculationTraceStep {
+  /** Declarative step id when emitted by a schema-driven calculator. */
+  readonly id?: string;
   readonly label: string;
   readonly expression: string;
   readonly value: number;

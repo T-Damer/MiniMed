@@ -52,7 +52,7 @@ describe('search-context', () => {
     expect(resolved.ok).toBe(true);
     if (resolved.ok) {
       expect(resolved.value.document.id).toBe('kr.rf.714_2.pneumonia');
-      expect(resolved.value.section.sectionType).toBe('clinical-picture');
+      expect(resolved.value.section.sectionType).toBe(fullHit.sectionType);
     }
 
     await core.close();

@@ -1,0 +1,4 @@
+12 lead ECG of a 26 year old male
+Author: MoodyGroove
+Source: https://commons.wikimedia.org/wiki/File:12_lead_ECG_of_a_26_year_old_male.jpg
+License: Public domain (released by the author)

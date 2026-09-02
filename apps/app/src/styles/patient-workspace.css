@@ -1,0 +1,421 @@
+.patient-workspace {
+  display: grid;
+  gap: 1rem;
+  min-height: 100%;
+  color: var(--theme-text);
+}
+
+.patient-workspace__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.patient-workspace__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.patient-workspace__search-chrome {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-chrome);
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.25rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.patient-workspace__search-chrome.sticky-surface--stuck {
+  margin-top: calc(-1 * var(--safe-top));
+  padding-top: calc(var(--safe-top) + 0.25rem);
+}
+
+.patient-workspace__back-button {
+  flex: 0 0 auto;
+}
+
+.patient-workspace__search-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.patient-workspace__new-button {
+  --ui-icon-button-size: 2.7rem;
+}
+
+.patient-workspace__menu {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.patient-workspace__menu-button {
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+}
+
+.patient-workspace__search {
+  width: auto;
+  margin: 0;
+}
+
+.patient-workspace__page {
+  margin-bottom: 0.25rem;
+}
+
+.patient-workspace__empty {
+  display: grid;
+  min-height: 8rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.patient-workspace__empty-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--theme-accent);
+  opacity: 0.82;
+}
+
+.patient-workspace__empty-text {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.patient-workspace__unlock,
+.patient-workspace__panel,
+.patient-workspace__event-form,
+.patient-workspace__sources {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.patient-workspace__unlock {
+  max-width: 30rem;
+  margin: 4rem auto;
+}
+
+.patient-workspace__unlock-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.patient-workspace__form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.patient-workspace__field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.patient-workspace__label {
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.patient-workspace__hint {
+  color: var(--theme-text-muted);
+}
+
+.patient-workspace__control {
+  width: 100%;
+  min-height: 2.25rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.5rem;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+}
+
+.patient-workspace__control[rows] {
+  resize: vertical;
+}
+
+.patient-workspace__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.patient-workspace__error {
+  color: var(--theme-danger);
+  margin: 0;
+}
+
+.patient-workspace__warning {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--theme-attention, #b36b00) 45%, transparent);
+  border-radius: 0.5rem;
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-attention, #b36b00) 12%, transparent);
+}
+
+.patient-workspace__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+
+.patient-workspace__patient-card {
+  display: grid;
+  gap: 0.35rem;
+  border: 1px solid var(--theme-border);
+  padding: 1rem;
+  text-align: left;
+  color: var(--theme-text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.patient-workspace__patient-name {
+  color: var(--theme-text);
+}
+
+.patient-workspace__patient-meta,
+.patient-workspace__patient-measurement,
+.patient-workspace__event-time,
+.patient-workspace__event-description,
+.patient-workspace__event-observation,
+.patient-workspace__event-text {
+  color: var(--theme-text-muted);
+}
+
+.patient-workspace__event {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.75rem 1rem;
+}
+
+.patient-workspace__timeline {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.patient-workspace__section-title {
+  margin: 0;
+}
+
+.patient-workspace__quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.patient-workspace__quick-action,
+.patient-workspace__source,
+.patient-workspace__source-details-link,
+.patient-workspace__back,
+.patient-workspace__event-action {
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--theme-text);
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.patient-workspace__event-revision {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.25rem;
+}
+
+.patient-workspace__event-revision-label {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.patient-workspace__event-revision-input {
+  width: min(14rem, 100%);
+  min-height: 2.25rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.5rem;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+}
+
+.patient-workspace__event-revision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.patient-workspace__event-revision-status {
+  color: var(--theme-text-muted);
+  font-style: italic;
+}
+
+.patient-workspace__sources-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.patient-workspace__sources-label {
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.patient-workspace__source--hidden {
+  opacity: 0.5;
+}
+
+.patient-workspace__back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  color: var(--theme-accent);
+  padding-inline: 0;
+}
+
+.patient-dynamics {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.patient-dynamics__series {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.patient-dynamics__series--hidden {
+  opacity: 0.65;
+}
+
+.patient-dynamics__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.patient-dynamics__heading {
+  min-width: 0;
+}
+
+.patient-dynamics__series-title,
+.patient-dynamics__page-title {
+  margin: 0;
+}
+
+.patient-dynamics__meta {
+  color: var(--theme-text-muted);
+}
+
+.patient-dynamics__toggle {
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--theme-text);
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.patient-workspace__source-details {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+}
+
+.patient-workspace__source-details-title {
+  color: var(--theme-text);
+}
+
+.patient-workspace__source-details-text {
+  color: var(--theme-text-muted);
+}
+
+.patient-workspace__source-details-link {
+  justify-self: start;
+}
+
+.patient-dynamics-chart {
+  height: 18rem;
+}
+
+.patient-dynamics-chart__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.patient-dynamics__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.patient-dynamics__table-cell {
+  border-bottom: 1px solid var(--theme-border);
+  padding: 0.45rem;
+  text-align: left;
+}
+
+.patient-dynamics__caption {
+  margin-bottom: 0.35rem;
+  text-align: left;
+  color: var(--theme-text-muted);
+}
+
+@media (max-width: 640px) {
+  .patient-workspace__toolbar {
+    display: grid;
+  }
+
+  .patient-workspace__search-chrome {
+    gap: 0.35rem;
+  }
+
+  .patient-workspace__new-button {
+    --ui-icon-button-size: 2.5rem;
+  }
+
+  .patient-workspace__search {
+    width: 100%;
+  }
+
+  .patient-workspace__form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .patient-workspace__patient-card:hover,
+  .patient-workspace__quick-action:hover,
+  .patient-workspace__source:hover,
+  .patient-workspace__source-details-link:hover,
+  .patient-workspace__event-action:hover,
+  .patient-dynamics__toggle:hover,
+  .patient-workspace__back:hover {
+    border-color: var(--theme-accent);
+    background: var(--theme-accent-soft);
+  }
+}

@@ -4,6 +4,38 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.32] - 2026-09-02
+
+### Added
+
+- Lightweight `core.db` discovery index with medication names, disease aliases, clinical keywords
+  and download pointers; full medication instructions remain separate downloadable content.
+- Custom patient questionnaires, longitudinal observations, patient-vault controls and reusable
+  note templates; pediatric feeding tools and experimental ECG photo/numeric workflows.
+- Spreadsheet reading, expanded medical-image printing and separately downloadable EPUB examples.
+
+### Changed
+
+- Medication search handles INN, brands, forms, routes, common misspellings and colloquial liquid
+  forms; related source documents remain accessible from medication cards.
+- SQLite composition uses bulk transfer, deferred indexing, module checkpoints and resumable final
+  validation. Full local medication builds are not bundled with the application release.
+- Release jobs preserve the verified discovery core instead of replacing it with pilot fixtures.
+- Qualification references now mark order 206n superseded and order 436n active from 1 September 2026.
+
+### Fixed
+
+- Reduced NIfTI 3D rendering cost on mobile and kept medical-image controls below the native status bar.
+- Prevented native APK updates from reusing stale service-worker bundles.
+- Removed quadratic FTS identity validation while retaining missing, duplicate and orphan checks.
+- Kept medication title boosts from displacing relevant legal sections in regulatory search.
+
+### Release boundaries
+
+- SQL/content-pack schema remains version 2. Patient data, private corpora and model weights are
+  not committed; no source databases are rebuilt or removed as part of application publication.
+- This remains a debug-signed engineering prerelease, without clinical or physical-device qualification.
+
 ## [0.6.31] - 2026-08-27
 
 ### Added

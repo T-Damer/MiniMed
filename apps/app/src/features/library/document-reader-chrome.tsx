@@ -82,6 +82,7 @@ export function useDocumentReaderChrome(
   let outlineScrollbars: OverlayScrollbarsComponentRef | undefined;
   let paper: HTMLElement | undefined;
   let detachOutlineViewportScroll: (() => void) | undefined;
+  let outlineSearchFrame: number | undefined;
 
   useStickySurface(chromeElement);
 
@@ -139,6 +140,13 @@ export function useDocumentReaderChrome(
     const scrollTop = viewport?.scrollTop ?? outline?.scrollTop ?? 0;
     setOutlineSearchStuck(scrollTop > 1);
   };
+  const scheduleOutlineSearchSticky = (): void => {
+    if (outlineSearchFrame !== undefined) return;
+    outlineSearchFrame = requestAnimationFrame(() => {
+      outlineSearchFrame = undefined;
+      updateOutlineSearchSticky();
+    });
+  };
 
   onMount(() => {
     if (isDesktopReaderLayout()) {
@@ -155,11 +163,12 @@ export function useDocumentReaderChrome(
         // ignore storage errors
       }
     }
-    outline?.addEventListener('scroll', updateOutlineSearchSticky, { passive: true });
-    updateOutlineSearchSticky();
+    outline?.addEventListener('scroll', scheduleOutlineSearchSticky, { passive: true });
+    scheduleOutlineSearchSticky();
     onCleanup(() => {
       detachOutlineViewportScroll?.();
-      outline?.removeEventListener('scroll', updateOutlineSearchSticky);
+      outline?.removeEventListener('scroll', scheduleOutlineSearchSticky);
+      if (outlineSearchFrame !== undefined) cancelAnimationFrame(outlineSearchFrame);
     });
   });
 
@@ -261,10 +270,10 @@ export function useDocumentReaderChrome(
 
   const bindOutlineScrollbars = (instance: OverlayScrollbarsInstance): void => {
     const viewport = instance.elements().viewport;
-    viewport?.addEventListener('scroll', updateOutlineSearchSticky, { passive: true });
-    updateOutlineSearchSticky();
+    viewport?.addEventListener('scroll', scheduleOutlineSearchSticky, { passive: true });
+    scheduleOutlineSearchSticky();
     detachOutlineViewportScroll = () => {
-      viewport?.removeEventListener('scroll', updateOutlineSearchSticky);
+      viewport?.removeEventListener('scroll', scheduleOutlineSearchSticky);
     };
   };
 
@@ -320,6 +329,7 @@ export interface DocumentReaderChromeShellProps {
   readonly classList?: Record<string, boolean | undefined>;
   readonly chromeClass?: string;
   readonly chromeClassList?: Record<string, boolean | undefined>;
+  readonly layoutClassList?: Record<string, boolean | undefined>;
   readonly bodyClassList?: Record<string, boolean | undefined>;
   readonly chrome: DocumentReaderChromeController;
   readonly trail?: DocumentTrail | null;
@@ -373,6 +383,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
           ref={outlineSwipe.ref}
           class="document-overlay-layout"
           classList={{
+            ...props.layoutClassList,
             'document-overlay-layout--outline-hidden':
               props.outlineEnabled === false || !chrome.outlineOpen(),
             'document-overlay-layout--outline-disabled': props.outlineEnabled === false,
@@ -481,6 +492,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
               }
               classList={{
                 'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
+                'document-page__chrome--with-print': Boolean(props.printButton),
                 ...props.chromeClassList,
               }}
             >
@@ -524,6 +536,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
             class={props.chromeClass ?? 'document-page__chrome sticky-surface route-sticky-chrome'}
             classList={{
               'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
+              'document-page__chrome--with-print': Boolean(props.printButton),
               ...props.chromeClassList,
             }}
           >

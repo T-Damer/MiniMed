@@ -6,10 +6,14 @@ import http.cookiejar
 import json
 import os
 import re
+import threading
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-from collections import Counter
+from collections import Counter, deque
+from collections.abc import Sequence
+from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
@@ -29,6 +33,8 @@ _MAX_PDF_BYTES = 64 * 1024 * 1024
 _MAX_XLSX_MEMBER_BYTES = 128 * 1024 * 1024
 _XML_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 _LEGACY_REGISTRATION_NUMBER = re.compile(r"^\d+(?:/\d+)+$")
+_DEFAULT_GRLS_WORKERS = 4
+_MAX_GRLS_WORKERS = 8
 
 
 def _utc_now() -> str:
@@ -383,6 +389,12 @@ def _instruction_url(payload: bytes) -> tuple[str, str]:
         raise ValueError("GRLS returned no instruction PDF.")
     path, label = max(images, key=lambda item: item[0])
     url = urllib.parse.urljoin(GRLS_PAGE, path.replace("\\", "/"))
+    parsed_url = urllib.parse.urlsplit(url)
+    url = urllib.parse.urlunsplit(
+        parsed_url._replace(
+            path=urllib.parse.quote(urllib.parse.unquote(parsed_url.path), safe="/")
+        )
+    )
     _validate_grls_url(url)
     return url, label
 
@@ -449,6 +461,14 @@ def _instruction_plan_status(registration_number: str) -> tuple[str, str | None]
             "legacy-registration-number-not-supported-by-interactive-search",
         )
     return "eligible", None
+
+
+@dataclass(frozen=True)
+class _InstructionBatchEntry:
+    registration_number: str
+    target_relative: str
+    previous_attempts: int
+    deferred_reason: str | None
 
 
 def build_grls_instruction_plan(catalog_path: Path, output: Path) -> dict[str, object]:
@@ -594,6 +614,32 @@ def _append_instruction_state(state_path: Path, result: dict[str, object]) -> No
         os.fsync(handle.fileno())
 
 
+def _build_grls_opener() -> urllib.request.OpenerDirector:
+    return urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar())
+    )
+
+
+def _initialize_grls_download_worker(worker_state: threading.local) -> None:
+    worker_state.opener = _build_grls_opener()
+
+
+def _download_grls_instruction_in_worker(
+    registration_number: str,
+    *,
+    timeout_seconds: float,
+    worker_state: threading.local,
+) -> tuple[str, str, bytes]:
+    opener = getattr(worker_state, "opener", None)
+    if not isinstance(opener, urllib.request.OpenerDirector):
+        raise RuntimeError("GRLS download worker has no initialized opener.")
+    return _download_grls_instruction(
+        registration_number,
+        timeout_seconds=timeout_seconds,
+        opener=opener,
+    )
+
+
 def _download_grls_instruction(
     registration_number: str,
     *,
@@ -670,18 +716,38 @@ def run_grls_instruction_batch(
     *,
     limit: int,
     timeout_seconds: float = 30.0,
+    workers: int = _DEFAULT_GRLS_WORKERS,
+    max_attempts: int = 3,
+    registrations: Sequence[str] | None = None,
 ) -> dict[str, object]:
     """Fetch a bounded, resumable batch without interpreting source content."""
     if limit < 1:
         raise ValueError("GRLS instruction batch limit must be positive.")
+    if workers < 1 or workers > _MAX_GRLS_WORKERS:
+        raise ValueError(
+            f"GRLS instruction batch workers must be between 1 and {_MAX_GRLS_WORKERS}."
+        )
+    if max_attempts < 1:
+        raise ValueError("GRLS instruction batch max attempts must be positive.")
     plan = _read_instruction_plan(plan_path)
     state = _load_instruction_state(state_path)
     catalog_checksum = cast(str, plan["catalogChecksum"])
     catalog_edition = cast(str, plan["catalogEdition"])
-    attempted = succeeded = failed = skipped = deferred = 0
-    opener = urllib.request.build_opener(
-        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar())
-    )
+    requested_registrations = {value.strip() for value in registrations or [] if value.strip()}
+    plan_registrations = {
+        registration_number
+        for raw in cast(list[object], plan["items"])
+        if isinstance(raw, dict)
+        and isinstance((registration_number := raw.get("registrationNumber")), str)
+    }
+    unknown_registrations = sorted(requested_registrations - plan_registrations)
+    if unknown_registrations:
+        raise ValueError(
+            "GRLS instruction registrations are absent from the active plan: "
+            + ", ".join(unknown_registrations)
+        )
+    attempted = succeeded = failed = skipped = deferred = retry_exhausted = 0
+    batch: list[_InstructionBatchEntry] = []
     for raw in cast(list[object], plan["items"]):
         if attempted >= limit:
             break
@@ -691,55 +757,84 @@ def run_grls_instruction_batch(
         target_relative = raw.get("target")
         if not isinstance(registration_number, str) or not isinstance(target_relative, str):
             raise ValueError("GRLS instruction plan item requires registrationNumber and target.")
+        if requested_registrations and registration_number not in requested_registrations:
+            continue
         existing = state.get((registration_number, catalog_checksum))
         if existing is not None and existing.get("state") == "success":
             skipped += 1
+            continue
+        previous_attempts = existing.get("attempts", 0) if existing else 0
+        if not isinstance(previous_attempts, int) or previous_attempts < 0:
+            raise ValueError(
+                f"GRLS instruction state has invalid attempts for {registration_number}."
+            )
+        if (
+            existing is not None
+            and existing.get("state") == "failed"
+            and previous_attempts >= max_attempts
+        ):
+            retry_exhausted += 1
             continue
         status, deferred_reason = _instruction_plan_status(registration_number)
         if status == "deferred":
             if existing is not None and existing.get("state") == "deferred":
                 skipped += 1
                 continue
-            previous_attempts = existing.get("attempts", 0) if existing else 0
-            if not isinstance(previous_attempts, int) or previous_attempts < 0:
-                raise ValueError(
-                    f"GRLS instruction state has invalid attempts for {registration_number}."
+            batch.append(
+                _InstructionBatchEntry(
+                    registration_number,
+                    target_relative,
+                    previous_attempts,
+                    deferred_reason,
                 )
-            result = {
-                "schemaVersion": 1,
-                "recordedAt": _utc_now(),
-                "registrationNumber": registration_number,
-                "catalogEdition": catalog_edition,
-                "catalogChecksum": catalog_checksum,
-                "attempts": previous_attempts,
-                "target": target_relative,
-                "instructionUrl": None,
-                "instructionLabel": None,
-                "resolvedRegistrationNumber": None,
-                "pdfSha256": None,
-                "pdfBytes": None,
-                "state": "deferred",
-                "error": deferred_reason,
-            }
-            _append_instruction_state(state_path, result)
-            state[(registration_number, catalog_checksum)] = result
-            deferred += 1
+            )
             continue
         attempted += 1
-        previous_attempts = existing.get("attempts", 0) if existing else 0
-        if not isinstance(previous_attempts, int) or previous_attempts < 0:
-            raise ValueError(
-                f"GRLS instruction state has invalid attempts for {registration_number}."
+        batch.append(
+            _InstructionBatchEntry(
+                registration_number,
+                target_relative,
+                previous_attempts,
+                None,
             )
-        attempts = previous_attempts + 1
+        )
+
+    def commit_deferred(entry: _InstructionBatchEntry) -> None:
+        nonlocal deferred
+        result = {
+            "schemaVersion": 1,
+            "recordedAt": _utc_now(),
+            "registrationNumber": entry.registration_number,
+            "catalogEdition": catalog_edition,
+            "catalogChecksum": catalog_checksum,
+            "attempts": entry.previous_attempts,
+            "target": entry.target_relative,
+            "instructionUrl": None,
+            "instructionLabel": None,
+            "resolvedRegistrationNumber": None,
+            "pdfSha256": None,
+            "pdfBytes": None,
+            "state": "deferred",
+            "error": entry.deferred_reason,
+        }
+        _append_instruction_state(state_path, result)
+        state[(entry.registration_number, catalog_checksum)] = result
+        deferred += 1
+
+    def commit_download(
+        entry: _InstructionBatchEntry,
+        future: Future[tuple[str, str, bytes]],
+    ) -> None:
+        nonlocal failed, succeeded
+        attempts = entry.previous_attempts + 1
         base = {
             "schemaVersion": 1,
             "recordedAt": _utc_now(),
-            "registrationNumber": registration_number,
+            "registrationNumber": entry.registration_number,
             "catalogEdition": catalog_edition,
             "catalogChecksum": catalog_checksum,
             "attempts": attempts,
-            "target": target_relative,
+            "target": entry.target_relative,
             "instructionUrl": None,
             "instructionLabel": None,
             "resolvedRegistrationNumber": None,
@@ -748,19 +843,15 @@ def run_grls_instruction_batch(
             "error": None,
         }
         try:
-            instruction_url, label, pdf = _download_grls_instruction(
-                registration_number,
-                timeout_seconds=timeout_seconds,
-                opener=opener,
-            )
-            target = _safe_target(output_root, target_relative)
+            instruction_url, label, pdf = future.result()
+            target = _safe_target(output_root, entry.target_relative)
             _write(target, pdf)
             result = {
                 **base,
                 "state": "success",
                 "instructionUrl": instruction_url,
                 "instructionLabel": label,
-                "resolvedRegistrationNumber": registration_number,
+                "resolvedRegistrationNumber": entry.registration_number,
                 "pdfSha256": _sha256(pdf),
                 "pdfBytes": len(pdf),
             }
@@ -769,8 +860,40 @@ def run_grls_instruction_batch(
             result = {**base, "state": "failed", "error": str(error)}
             failed += 1
         _append_instruction_state(state_path, result)
-        state[(registration_number, catalog_checksum)] = result
-    return {
+        state[(entry.registration_number, catalog_checksum)] = result
+
+    worker_state = threading.local()
+    pending: deque[tuple[_InstructionBatchEntry, Future[tuple[str, str, bytes]]]] = deque()
+    with ThreadPoolExecutor(
+        max_workers=workers,
+        initializer=_initialize_grls_download_worker,
+        initargs=(worker_state,),
+    ) as executor:
+        for entry in batch:
+            if entry.deferred_reason is not None:
+                while pending:
+                    previous_entry, previous_future = pending.popleft()
+                    commit_download(previous_entry, previous_future)
+                commit_deferred(entry)
+                continue
+            if len(pending) >= workers:
+                previous_entry, previous_future = pending.popleft()
+                commit_download(previous_entry, previous_future)
+            pending.append(
+                (
+                    entry,
+                    executor.submit(
+                        _download_grls_instruction_in_worker,
+                        entry.registration_number,
+                        timeout_seconds=timeout_seconds,
+                        worker_state=worker_state,
+                    ),
+                )
+            )
+        while pending:
+            previous_entry, previous_future = pending.popleft()
+            commit_download(previous_entry, previous_future)
+    summary: dict[str, object] = {
         "plan": str(plan_path),
         "state": str(state_path),
         "catalogEdition": catalog_edition,
@@ -780,7 +903,11 @@ def run_grls_instruction_batch(
         "failed": failed,
         "skipped": skipped,
         "deferred": deferred,
+        "retryExhausted": retry_exhausted,
     }
+    if requested_registrations:
+        summary["requestedRegistrations"] = sorted(requested_registrations)
+    return summary
 
 
 def build_grls_instruction_source_registry(

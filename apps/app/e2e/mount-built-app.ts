@@ -1,51 +1,12 @@
 import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import { extname, join, normalize, relative, resolve } from 'node:path';
-import type { Page, Route } from '@playwright/test';
+import { join, resolve } from 'node:path';
+import type { Page } from '@playwright/test';
 
-export const E2E_ASSET_ORIGIN = 'https://localmed-assets.example.com';
-const DIST_ROOT = resolve(import.meta.dirname, '../dist');
+export const E2E_ASSET_ORIGIN = 'http://127.0.0.1:4173';
 const PUBLIC_CONTENT_ROOT = resolve(import.meta.dirname, '../public/content');
 
 export function hasLocalCompanionPack(name: string): boolean {
   return existsSync(join(PUBLIC_CONTENT_ROOT, name));
-}
-
-const CONTENT_TYPES: Readonly<Record<string, string>> = {
-  '.css': 'text/css; charset=utf-8',
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.map': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.wasm': 'application/wasm',
-};
-
-async function serveBuiltAsset(route: Route): Promise<void> {
-  const url = new URL(route.request().url());
-  const requestedPath = decodeURIComponent(url.pathname).replace(/^\/+/, '') || 'index.html';
-  const filePath = normalize(join(DIST_ROOT, requestedPath));
-  const pathFromRoot = relative(DIST_ROOT, filePath);
-
-  if (pathFromRoot.startsWith('..') || pathFromRoot.includes('/../')) {
-    await route.fulfill({ status: 400, body: 'Invalid asset path.' });
-    return;
-  }
-
-  try {
-    const body = await readFile(filePath);
-    await route.fulfill({
-      status: 200,
-      body,
-      contentType: CONTENT_TYPES[extname(filePath)] ?? 'application/octet-stream',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Cross-Origin-Resource-Policy': 'cross-origin',
-      },
-    });
-  } catch {
-    await route.fulfill({ status: 404, body: `Asset not found: ${requestedPath}` });
-  }
 }
 
 export interface MountBuiltAppOptions {
@@ -73,7 +34,6 @@ async function waitForWorkspace(page: Page): Promise<void> {
 
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   const origin = options.origin ?? E2E_ASSET_ORIGIN;
-  if (!options.origin) await page.route(`${origin}/**`, serveBuiltAsset);
   const skippedCompanionPacks = new Set([
     'ambulatory.db',
     ...(options.includeMkbCompanionPack ? [] : ['mkb.db']),
