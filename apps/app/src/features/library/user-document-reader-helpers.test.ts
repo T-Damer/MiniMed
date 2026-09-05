@@ -4,6 +4,8 @@ import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
   filterOutlineItems,
+  findEpubOutlineAnchor,
+  flattenEpubNavigation,
   pageAnchorId,
   textMatchesDocumentQuery,
 } from '@/features/library/user-document-reader-helpers';
@@ -65,6 +67,32 @@ describe('user-document-reader-helpers', () => {
       },
     ]);
     expect(items[0]?.label).toBe('Часть 1');
+  });
+
+  it('keeps EPUB navigation labels, nesting, and chapter hrefs', () => {
+    const items = flattenEpubNavigation([
+      {
+        href: 'text/part.xhtml',
+        label: ' Часть первая ',
+        subitems: [{ href: 'text/chapter.xhtml#one', label: 'Глава I' }],
+      },
+    ]);
+
+    expect(items).toEqual([
+      {
+        anchor: 'text/part.xhtml',
+        label: 'Часть первая',
+        depth: 1,
+        searchTexts: [' Часть первая '],
+      },
+      {
+        anchor: 'text/chapter.xhtml#one',
+        label: 'Глава I',
+        depth: 2,
+        searchTexts: ['Глава I'],
+      },
+    ]);
+    expect(findEpubOutlineAnchor(items, 'text/chapter.xhtml')).toBe('text/chapter.xhtml#one');
   });
 
   it('filters outline items with fuzzy query', () => {

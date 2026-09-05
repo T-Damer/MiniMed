@@ -717,8 +717,8 @@ export function SpreadsheetRenderer(props: SpreadsheetRendererProps): JSX.Elemen
             <button
               type="button"
               class="rich-sheet__exit"
-              aria-label="Выйти из полноэкранного режима"
-              title="Выйти из полноэкранного режима"
+              aria-label="Завершить редактирование"
+              title="Завершить редактирование"
               onClick={() => props.onExitFullscreen?.()}
             >
               <AppGlyph name="close" class="rich-sheet__exit-icon" />

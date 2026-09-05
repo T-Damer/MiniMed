@@ -13,15 +13,20 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
   const message = event.data;
   try {
     if (message.type === 'open') {
+      if (store) throw new Error('OPFS pack worker is already open.');
+      // A pool owns exclusive filesystem handles until its worker terminates. Keep the matching
+      // browser lock for that lifetime so a reload waits for the old worker's teardown.
+      await new Promise<void>((resolve, reject) => {
+        void navigator.locks
+          .request(`minimed-opfs:${message.poolName}`, () => new Promise<void>(() => resolve()))
+          .catch(reject);
+      });
       const next = await SqliteMedicalStore.createFromOpfsUrl(message.url, message.databaseName, {
         fetchTimeoutMs: message.fetchTimeoutMs,
         poolName: message.poolName,
       });
       const health = await next.initialize();
-      const previous = store;
       store = next;
-      // Teardown of the replaced handle; a close failure on the old pack is not actionable.
-      if (previous) void previous.close().catch(() => undefined);
       self.postMessage({ id: message.id, result: health } satisfies OpfsPackWorkerResponse);
       return;
     }

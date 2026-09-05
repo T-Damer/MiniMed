@@ -1,7 +1,7 @@
 import { z } from 'zod';
-
 import type { LocalMedError } from './errors';
 import type { Result } from './result';
+import { ToolCatalogEntrySchema } from './tool-modules';
 
 export const ContentModuleKindSchema = z.enum([
   'core',
@@ -134,6 +134,7 @@ export const ContentModuleCatalogEntrySchema = z
     artifacts: z.array(ContentModuleArtifactSchema).default([]),
     documents: z.array(ContentModuleDocumentVersionSchema).default([]),
     previewDocumentCount: z.number().int().nonnegative().default(0),
+    tools: z.array(ToolCatalogEntrySchema).optional(),
     toolKinds: z.array(z.enum(['calculator', 'assessment'])).optional(),
     toolCount: z.number().int().nonnegative().optional(),
   })

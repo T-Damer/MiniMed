@@ -23,6 +23,11 @@ describe('app update label', () => {
   it('shows activation copy for service worker updates', () => {
     expect(formatAppUpdateLabel(true, { phase: 'activate' })).toBe('Активация…');
   });
+
+  it('waits for verification and then names the separate installer action', () => {
+    expect(formatAppUpdateLabel(true, { phase: 'verifying' })).toBe('Проверяем файл…');
+    expect(formatAppUpdateLabel(false, { phase: 'ready' })).toBe('Установить');
+  });
 });
 
 describe('app update checker copy', () => {
@@ -113,5 +118,28 @@ describe('Android APK update selection', () => {
         },
       ]),
     ).toEqual({ version: '9.0.2', url: 'https://example.test/new.apk' });
+  });
+
+  it('keeps an asset digest optional while using it when GitHub provides one', () => {
+    expect(
+      selectLatestApkUpdate([
+        {
+          tag_name: 'v9.0.2',
+          draft: false,
+          assets: [
+            {
+              browser_download_url: 'https://example.test/new.apk',
+              digest: `sha256:${'a'.repeat(64)}`,
+              size: 4096,
+            },
+          ],
+        },
+      ]),
+    ).toEqual({
+      version: '9.0.2',
+      url: 'https://example.test/new.apk',
+      expectedSha256: `sha256:${'a'.repeat(64)}`,
+      expectedBytes: 4096,
+    });
   });
 });

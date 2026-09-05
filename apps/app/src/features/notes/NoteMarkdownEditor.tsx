@@ -28,7 +28,14 @@ import {
 } from '@/features/library/document-reader-chrome';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { AttachmentViewerDialog, type ViewerState } from '@/features/notes/NoteAttachmentViewer';
+import { NoteDrawingEditor, NoteDrawingPreview } from '@/features/notes/NoteDrawingEditor';
 import { NoteSearchToggle, NoteTextSearch } from '@/features/notes/NoteTextSearch';
+import {
+  createDrawingFile,
+  createEmptyDrawing,
+  type DrawingDocument,
+  parseDrawingBlob,
+} from '@/features/notes/note-drawing';
 import { buildNotePrintHtml } from '@/features/notes/note-print';
 import type { NoteWysiwyg } from '@/features/notes/note-wysiwyg';
 import {
@@ -47,11 +54,19 @@ import '@/styles/note-markdown-editor.css';
 export interface EditorFileAttachment {
   readonly key: string;
   readonly name: string;
-  readonly kind: 'image' | 'video' | 'audio' | 'pdf' | 'text' | 'download';
+  readonly kind: 'image' | 'video' | 'audio' | 'pdf' | 'text' | 'download' | 'drawing';
   readonly src?: string;
   readonly sizeBytes: number;
   readonly datesLabel: string;
   readonly viewer: ViewerState;
+  readonly drawing?: EditorDrawingAttachment;
+}
+
+export interface EditorDrawingAttachment {
+  readonly id?: string;
+  readonly name: string;
+  readonly blob: Blob;
+  readonly pendingFile?: File;
 }
 
 interface NoteMarkdownEditorProps {
@@ -67,6 +82,7 @@ interface NoteMarkdownEditorProps {
   readonly onOpenImages?: () => void;
   readonly onOpenFiles?: () => void;
   readonly fileAttachments?: readonly EditorFileAttachment[];
+  readonly onSaveDrawing?: (file: File, previous?: EditorDrawingAttachment) => void | Promise<void>;
   readonly recordingOwnerId?: string;
   readonly onRecordAudio?: (
     file: File,
@@ -99,7 +115,7 @@ interface MentionSuggestion {
   readonly priority?: boolean;
 }
 
-type SlashCommandId = 'reminder' | 'voice' | 'attachment' | 'file';
+type SlashCommandId = 'reminder' | 'voice' | 'attachment' | 'file' | 'drawing';
 
 interface SlashCommand {
   readonly id: SlashCommandId;
@@ -138,6 +154,13 @@ const SLASH_COMMANDS: readonly SlashCommand[] = [
     aliases: ['file', 'файл', 'документ'],
     icon: 'file-text',
   },
+  {
+    id: 'drawing',
+    label: 'Схема',
+    hint: 'Нарисовать и сохранить редактируемую схему',
+    aliases: ['drawing', 'draw', 'схема', 'рисунок', 'чертёж', 'чертеж'],
+    icon: 'edit',
+  },
 ];
 
 interface PendingRecording {
@@ -154,6 +177,7 @@ const FILE_BLOCK_GLYPHS: Record<EditorFileAttachment['kind'], AppGlyphName> = {
   pdf: 'file-text',
   text: 'file-text',
   download: 'file-plus',
+  drawing: 'edit',
 };
 
 function formatFileSize(bytes: number): string {
@@ -293,6 +317,10 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
   const [transcribingKey, setTranscribingKey] = createSignal<string | null>(null);
   const [mentionActive, setMentionActive] = createSignal(0);
   const [fileViewer, setFileViewer] = createSignal<ViewerState | null>(null);
+  const [drawingEditor, setDrawingEditor] = createSignal<{
+    readonly document: DrawingDocument;
+    readonly attachment?: EditorDrawingAttachment;
+  } | null>(null);
 
   let wysiwyg: NoteWysiwyg | null = null;
   let editorSurfaceRoot: HTMLElement | undefined;
@@ -324,6 +352,32 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     setText(value);
     props.onChange(value);
     scheduleTocRefresh();
+  };
+
+  const openNewDrawing = (): void => {
+    if (!props.onSaveDrawing || props.disabled) return;
+    setDrawingEditor({ document: createEmptyDrawing() });
+  };
+
+  const openExistingDrawing = async (attachment: EditorDrawingAttachment): Promise<void> => {
+    if (!props.onSaveDrawing || props.disabled) return;
+    const document = await parseDrawingBlob(attachment.blob);
+    if (!document) {
+      toast.error(`Не удалось открыть схему «${attachment.name}».`);
+      return;
+    }
+    setDrawingEditor({ document, attachment });
+  };
+
+  const saveDrawing = async (
+    document: DrawingDocument,
+    attachment?: EditorDrawingAttachment,
+  ): Promise<void> => {
+    if (!props.onSaveDrawing) return;
+    const name =
+      attachment?.name ?? `Схема-${new Date().toISOString().slice(0, 10)}.excalidraw.json`;
+    await props.onSaveDrawing(createDrawingFile(document, name), attachment);
+    setDrawingEditor(null);
   };
 
   createEffect(() => {
@@ -582,6 +636,10 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
   const activateSlashCommand = (command: SlashCommand): void => {
     wysiwyg?.deleteBeforeCursor('/');
     closeSlashMenu(false);
+    if (command.id === 'drawing') {
+      openNewDrawing();
+      return;
+    }
     if (command.id === 'reminder') {
       if (props.onOpenReminders) {
         props.onOpenReminders();
@@ -788,6 +846,56 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     for (const recording of pendingRecordings()) URL.revokeObjectURL(recording.url);
   });
 
+  const renderFileAttachment = (file: EditorFileAttachment): JSX.Element => {
+    const drawing = file.drawing;
+    if (file.kind === 'drawing' && drawing) {
+      return (
+        <button
+          type="button"
+          class="note-drawing-attachment"
+          aria-label={`Открыть схему «${file.name}»`}
+          title={file.name}
+          disabled={props.disabled}
+          onClick={() => void openExistingDrawing(drawing)}
+        >
+          <span class="note-drawing-attachment__preview">
+            <NoteDrawingPreview blob={drawing.blob} label={file.name} />
+          </span>
+          <span class="note-drawing-attachment__info">
+            <strong class="note-drawing-attachment__name">{file.name}</strong>
+            <small class="note-drawing-attachment__hint">Открыть и изменить схему</small>
+            <small class="note-drawing-attachment__hint">{file.datesLabel}</small>
+          </span>
+        </button>
+      );
+    }
+    return (
+      <button
+        type="button"
+        class="note-file-block paper-card"
+        aria-label={`Открыть «${file.name}»`}
+        title={file.name}
+        onClick={() => setFileViewer(file.viewer)}
+      >
+        <span class={`note-file-block__thumb note-file-kind--${file.kind}`} aria-hidden="true">
+          <Show
+            when={file.kind === 'image' && file.src}
+            fallback={
+              <AppGlyph name={FILE_BLOCK_GLYPHS[file.kind]} class="note-file-block__glyph" />
+            }
+          >
+            {(src) => <img class="note-file-block__image" src={src()} alt="" loading="lazy" />}
+          </Show>
+        </span>
+        <span class="note-file-block__info">
+          <strong class="note-file-block__name">{file.name}</strong>
+          <small class="note-file-block__meta">{file.datesLabel}</small>
+          <small class="note-file-block__meta">{formatFileSize(file.sizeBytes)}</small>
+        </span>
+      </button>
+    );
+  };
+
   const scrollToHeading = (index: number): void => {
     const entry = toc()[index];
     if (!entry) return;
@@ -961,6 +1069,18 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
           >
             <AppGlyph name="math-operations" class="note-markdown-editor__tool-icon" />
           </button>
+          <Show when={props.onSaveDrawing}>
+            <button
+              class="note-markdown-editor__tool"
+              type="button"
+              aria-label="Добавить схему"
+              title="Схема"
+              disabled={props.disabled}
+              onClick={openNewDrawing}
+            >
+              <AppGlyph name="edit" class="note-markdown-editor__tool-icon" />
+            </button>
+          </Show>
         </fieldset>
         <fieldset class={toolGroupClass} aria-label="Дополнительные действия">
           <Show when={props.onOpenReminders}>
@@ -1211,41 +1331,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       </Show>
       <Show when={visibleFileAttachments().length > 0}>
         <div class="note-file-blocks">
-          <For each={visibleFileAttachments()}>
-            {(file) => (
-              <button
-                type="button"
-                class="note-file-block paper-card"
-                aria-label={`Открыть «${file.name}»`}
-                title={file.name}
-                onClick={() => setFileViewer(file.viewer)}
-              >
-                <span
-                  class={`note-file-block__thumb note-file-kind--${file.kind}`}
-                  aria-hidden="true"
-                >
-                  <Show
-                    when={file.kind === 'image' && file.src}
-                    fallback={
-                      <AppGlyph
-                        name={FILE_BLOCK_GLYPHS[file.kind]}
-                        class="note-file-block__glyph"
-                      />
-                    }
-                  >
-                    {(src) => (
-                      <img class="note-file-block__image" src={src()} alt="" loading="lazy" />
-                    )}
-                  </Show>
-                </span>
-                <span class="note-file-block__info">
-                  <strong class="note-file-block__name">{file.name}</strong>
-                  <small class="note-file-block__meta">{file.datesLabel}</small>
-                  <small class="note-file-block__meta">{formatFileSize(file.sizeBytes)}</small>
-                </span>
-              </button>
-            )}
-          </For>
+          <For each={visibleFileAttachments()}>{(file) => renderFileAttachment(file)}</For>
         </div>
       </Show>
       <AttachmentViewerDialog state={fileViewer()} onClose={() => setFileViewer(null)} />
@@ -1438,6 +1524,16 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
               </button>
             </div>
           </Portal>
+        )}
+      </Show>
+      <Show when={drawingEditor()} keyed>
+        {(current) => (
+          <NoteDrawingEditor
+            initial={current.document}
+            title={current.attachment?.name ?? 'Новая схема'}
+            onSave={(document) => saveDrawing(document, current.attachment)}
+            onCancel={() => setDrawingEditor(null)}
+          />
         )}
       </Show>
     </>

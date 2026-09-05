@@ -315,7 +315,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
       />
       <div
         ref={setHeadingElement}
-        class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading route-sticky-chrome"
+        class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading route-sticky-chrome route-sticky-chrome--transparent"
       >
         <SearchField
           class="route-search knowledge-subroute-heading__control"

@@ -488,7 +488,8 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
             <header
               ref={chrome.setChromeElement}
               class={
-                props.chromeClass ?? 'document-page__chrome sticky-surface route-sticky-chrome'
+                props.chromeClass ??
+                'document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque'
               }
               classList={{
                 'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
@@ -533,7 +534,10 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
         <>
           <header
             ref={chrome.setChromeElement}
-            class={props.chromeClass ?? 'document-page__chrome sticky-surface route-sticky-chrome'}
+            class={
+              props.chromeClass ??
+              'document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque'
+            }
             classList={{
               'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
               'document-page__chrome--with-print': Boolean(props.printButton),

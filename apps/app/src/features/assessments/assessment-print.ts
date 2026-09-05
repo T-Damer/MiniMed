@@ -1,5 +1,5 @@
 import * as QRCode from 'qrcode';
-
+import { assessmentChartPrintSvg } from '@/features/assessments/assessment-chart-print';
 import {
   formatAssessmentRecord,
   formatBlankAssessment,
@@ -62,6 +62,7 @@ function printableHtml(
   text: string,
   pageLink: string,
   images: readonly AssessmentImage[] = [],
+  extraHtml = '',
 ): string {
   const paragraphs = escapeHtml(text)
     .split('\n')
@@ -107,6 +108,17 @@ function printableHtml(
     .image { break-inside: avoid; margin: 0; }
     .image img { display: block; width: 100%; max-height: 78mm; object-fit: contain; border: 1px solid var(--print-rule-color); }
     .image figcaption { margin-top: 1mm; font-size: var(--print-footer-size); }
+    .schema-chart-print { max-width: 145mm; margin: 0 auto 4mm; break-inside: avoid; }
+    .schema-chart-print__svg { display: block; width: 100%; height: auto; color: #17201c; }
+    .schema-chart-print__field { fill: #fff; stroke: #84968d; stroke-width: 1; }
+    .schema-chart-print__ring { fill: none; stroke: #b7c4bd; stroke-width: 1; stroke-dasharray: 2 4; }
+    .schema-chart-print__axis { stroke: #405b4e; stroke-width: 1.4; }
+    .schema-chart-print__quadrant { fill: currentColor; font-size: 14px; font-weight: 750; text-transform: uppercase; }
+    .schema-chart-print__axis-label { fill: #405b4e; font-size: 11px; font-weight: 700; }
+    .schema-chart-print__point-halo { fill: #d56745; opacity: 0.2; }
+    .schema-chart-print__point { fill: #b84424; stroke: #fff; stroke-width: 2; }
+    .schema-chart-print__point-label { fill: #8d3019; font-size: 11px; font-weight: 800; }
+    .schema-chart-print__caption { margin-top: 1mm; color: #405b4e; font-size: 7pt; }
     .footer { display: flex; align-items: center; gap: var(--print-inline-gap); margin-top: var(--print-footer-gap); padding-top: var(--print-footer-padding); border-top: var(--print-border-width) solid var(--print-rule-color); font-size: var(--print-footer-size); line-height: 1.1; }
     .footer-link { overflow-wrap: anywhere; }
     .footer-qr { flex: 0 0 auto; width: var(--print-qr-size); height: var(--print-qr-size); fill: var(--print-ink-color); }
@@ -115,6 +127,7 @@ function printableHtml(
 <body>
   <h1>${escapeHtml(title)}</h1>
   ${imageGrid}
+  ${extraHtml}
   <div class="document">${paragraphs}</div>
   <footer class="footer">
     <span>MiniMed</span>
@@ -131,8 +144,12 @@ export function printText(
   title: string,
   text: string,
   images: readonly AssessmentImage[] = [],
+  extraHtml = '',
 ): boolean {
-  return PrintManager.html(printableHtml(title, text, MINIMED_WEB_APP_URL, images), title);
+  return PrintManager.html(
+    printableHtml(title, text, MINIMED_WEB_APP_URL, images, extraHtml),
+    title,
+  );
 }
 
 export function printBlankAssessment(definition: AssessmentDefinition): boolean {
@@ -156,13 +173,41 @@ export function printAssessmentRecord(
   definition: AssessmentDefinition,
   record: AssessmentRecord,
   noteTitle = '',
+  includeQuestions = false,
 ): boolean {
+  const questions =
+    includeQuestions && record.kind === 'completed'
+      ? [
+          '',
+          'Вопросы и ответы:',
+          ...definition.questions.flatMap((question, index) => {
+            const answer = record.answers[question.id];
+            const options = question.responseOptions ?? definition.responseOptions;
+            const answerLabel = options.find((option) => option.value === answer)?.label;
+            return [
+              `${index + 1}. ${question.prompt}`,
+              `   Ответ: ${answerLabel ?? String(answer ?? 'не указан')}`,
+            ];
+          }),
+        ].join('\n')
+      : '';
+  const charts =
+    record.kind === 'completed'
+      ? (record.result.visuals ?? []).map(assessmentChartPrintSvg).join('')
+      : '';
   return printText(
     definition.title,
-    printableAssessmentText(
-      removeLeadingTitle(definition.title, formatAssessmentRecord(definition, record)),
-      noteTitle,
-    ),
+    [
+      printableAssessmentText(
+        removeLeadingTitle(definition.title, formatAssessmentRecord(definition, record)),
+        noteTitle,
+      ),
+      questions,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+    [],
+    charts,
   );
 }
 

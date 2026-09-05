@@ -5,14 +5,26 @@
  */
 
 import {
+  calculateAapBpCategory,
+  calculateAapBpHeightPercentile,
+  calculateAapBpThreshold,
+  formatAapBpCategory,
+} from '@/features/calculators/aap-pediatric-bp-reference-data';
+import {
   type CervicalCytology,
   type CervicalHpvStatus,
   calculateCervicalRiskBand,
   calculateGailRisk,
   type GailRace,
 } from '@/features/calculators/calculator-models';
+import {
+  calculateWhoGrowthBand,
+  calculateWhoGrowthPercentile,
+  calculateWhoGrowthValueAtZ,
+  calculateWhoGrowthZScore,
+} from '@/features/calculators/who-growth-reference-data';
 
-export type CalculatorValue = number | string;
+export type CalculatorValue = number | string | undefined;
 export type CalculatorScope = Readonly<Record<string, CalculatorValue>>;
 
 export class CalculatorExpressionError extends Error {}
@@ -112,10 +124,20 @@ const KNOWN_FUNCTIONS: Readonly<Record<string, number>> = {
   pow: 2,
   exp: 1,
   cond: 3,
+  optional: 2,
   present: 1,
   today: 0,
   addDays: 2,
   daysBetween: 2,
+  yearsBetween: 2,
+  whoLmsZ: 4,
+  whoLmsValue: 4,
+  whoPercentile: 1,
+  whoBand: 2,
+  aapBpHeightPercentile: 3,
+  aapBpThreshold: 5,
+  aapBpCategory: 5,
+  aapBpCategoryLabel: 1,
   gailRisk: 8,
   asccpRiskBand: 6,
 };
@@ -368,6 +390,15 @@ function evaluateCall(
   args: readonly ExpressionNode[],
   scope: CalculatorScope,
 ): CalculatorValue {
+  if (name === 'optional') {
+    const condition = args[0];
+    const whenPresent = args[1];
+    if (!condition || !whenPresent) {
+      throw new CalculatorExpressionError('optional() requires 2 arguments.');
+    }
+    const conditionValue = evaluateExpressionNode(condition, scope);
+    return conditionValue === 1 ? evaluateExpressionNode(whenPresent, scope) : undefined;
+  }
   if (name === 'cond') {
     const test = args[0];
     const whenTrue = args[1];
@@ -406,6 +437,88 @@ function evaluateCall(
     const from = parseIsoDateValue(evaluateExpressionNode(fromArg, scope), 'daysBetween');
     const to = parseIsoDateValue(evaluateExpressionNode(toArg, scope), 'daysBetween');
     return Math.round((to.getTime() - from.getTime()) / DAY_MS);
+  }
+  if (name === 'yearsBetween') {
+    const fromArg = args[0];
+    const toArg = args[1];
+    if (!fromArg || !toArg)
+      throw new CalculatorExpressionError('yearsBetween() requires 2 arguments.');
+    const from = parseIsoDateValue(evaluateExpressionNode(fromArg, scope), 'yearsBetween');
+    const to = parseIsoDateValue(evaluateExpressionNode(toArg, scope), 'yearsBetween');
+    let years = to.getFullYear() - from.getFullYear();
+    if (
+      to.getMonth() < from.getMonth() ||
+      (to.getMonth() === from.getMonth() && to.getDate() < from.getDate())
+    ) {
+      years -= 1;
+    }
+    return years;
+  }
+  if (name === 'whoLmsZ') {
+    const values = args.map((arg) => evaluateExpressionNode(arg, scope));
+    return calculateWhoGrowthZScore(
+      asString(values[0] ?? undefined),
+      asString(values[1] ?? undefined),
+      asNumber(values[2] ?? undefined),
+      asNumber(values[3] ?? undefined),
+    );
+  }
+  if (name === 'whoLmsValue') {
+    const values = args.map((arg) => evaluateExpressionNode(arg, scope));
+    return calculateWhoGrowthValueAtZ(
+      asString(values[0] ?? undefined),
+      asString(values[1] ?? undefined),
+      asNumber(values[2] ?? undefined),
+      asNumber(values[3] ?? undefined),
+    );
+  }
+  if (name === 'whoPercentile') {
+    const zScore = args[0];
+    if (!zScore) throw new CalculatorExpressionError('whoPercentile() requires 1 argument.');
+    return calculateWhoGrowthPercentile(asNumber(evaluateExpressionNode(zScore, scope)));
+  }
+  if (name === 'whoBand') {
+    const indicatorArg = args[0];
+    const zScoreArg = args[1];
+    if (!indicatorArg || !zScoreArg) {
+      throw new CalculatorExpressionError('whoBand() requires 2 arguments.');
+    }
+    const indicator = asString(evaluateExpressionNode(indicatorArg, scope));
+    const zScore = asNumber(evaluateExpressionNode(zScoreArg, scope));
+    return calculateWhoGrowthBand(indicator, zScore);
+  }
+  if (name === 'aapBpHeightPercentile') {
+    const values = args.map((arg) => evaluateExpressionNode(arg, scope));
+    return calculateAapBpHeightPercentile(
+      asString(values[0] ?? undefined),
+      asNumber(values[1] ?? undefined),
+      asNumber(values[2] ?? undefined),
+    );
+  }
+  if (name === 'aapBpThreshold') {
+    const values = args.map((arg) => evaluateExpressionNode(arg, scope));
+    return calculateAapBpThreshold(
+      asString(values[0] ?? undefined),
+      asNumber(values[1] ?? undefined),
+      asNumber(values[2] ?? undefined),
+      asString(values[3] ?? undefined),
+      asNumber(values[4] ?? undefined),
+    );
+  }
+  if (name === 'aapBpCategory') {
+    const values = args.map((arg) => evaluateExpressionNode(arg, scope));
+    return calculateAapBpCategory(
+      asString(values[0] ?? undefined),
+      asNumber(values[1] ?? undefined),
+      asNumber(values[2] ?? undefined),
+      asNumber(values[3] ?? undefined),
+      asNumber(values[4] ?? undefined),
+    );
+  }
+  if (name === 'aapBpCategoryLabel') {
+    const category = args[0];
+    if (!category) throw new CalculatorExpressionError('aapBpCategoryLabel() requires 1 argument.');
+    return formatAapBpCategory(asString(evaluateExpressionNode(category, scope)));
   }
   if (name === 'gailRisk') {
     const values = args.map((arg) => evaluateExpressionNode(arg, scope));
@@ -462,6 +575,7 @@ export function evaluateCalculatorExpression(
 }
 
 function formatValue(value: CalculatorValue): string {
+  if (value === undefined) return '—';
   if (typeof value === 'string') return `"${value}"`;
   return Number.isInteger(value)
     ? String(value)

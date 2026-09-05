@@ -84,6 +84,65 @@ describe('calculator expression parser/evaluator', () => {
     );
   });
 
+  it('supports lazy optional() branches for absent measurements', () => {
+    expect(
+      evaluateCalculatorExpression('optional(present(weight), weight * 2)', {}),
+    ).toBeUndefined();
+    expect(
+      evaluateCalculatorExpression('optional(present(weight), weight * 2)', { weight: 7.5 }),
+    ).toBe(15);
+  });
+
+  it('exposes the embedded WHO LMS functions to the restricted expression language', () => {
+    const z = evaluateCalculatorExpression('whoLmsZ("who0-wfa", "female", 0, 3.2322)', {});
+    expect(z).toBeTypeOf('number');
+    expect(z).toBeCloseTo(0, 2);
+    expect(evaluateCalculatorExpression('whoLmsValue("who0-wfa", "female", 0, 0)', {})).toBeCloseTo(
+      3.2322,
+      3,
+    );
+    expect(evaluateCalculatorExpression('whoPercentile(0)', {})).toBeCloseTo(50, 3);
+  });
+
+  it('matches published AAP pediatric blood-pressure table boundaries', () => {
+    const scope = { sex: 'female', age: 12, height: 154.8 };
+    expect(evaluateCalculatorExpression('aapBpHeightPercentile(sex, age, height)', scope)).toBe(50);
+    expect(
+      evaluateCalculatorExpression('aapBpThreshold(sex, age, height, "systolic", 90)', scope),
+    ).toBe(118);
+    expect(
+      evaluateCalculatorExpression('aapBpThreshold(sex, age, height, "diastolic", 95)', scope),
+    ).toBe(78);
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 117, 74)', scope)).toBe(
+      'normal',
+    );
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 118, 75)', scope)).toBe(
+      'elevated',
+    );
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 122, 78)', scope)).toBe(
+      'stage1',
+    );
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 134, 90)', scope)).toBe(
+      'stage2',
+    );
+  });
+
+  it('uses absolute AAP categories from the 13th birthday', () => {
+    const scope = { sex: 'female', age: 13, height: 154.8 };
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 119, 79)', scope)).toBe(
+      'normal',
+    );
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 120, 79)', scope)).toBe(
+      'elevated',
+    );
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 120, 80)', scope)).toBe(
+      'stage1',
+    );
+    expect(evaluateCalculatorExpression('aapBpCategory(sex, age, height, 140, 90)', scope)).toBe(
+      'stage2',
+    );
+  });
+
   it('never reaches JS eval/Function — a string containing JS syntax just fails to parse', () => {
     expect(() => evaluateCalculatorExpression('require("node:fs")', {})).toThrow(
       CalculatorExpressionError,
@@ -120,6 +179,21 @@ describe('date functions (addDays/daysBetween/today)', () => {
         asOf: '2026-03-15',
       }),
     ).toBe(73);
+  });
+
+  it('yearsBetween changes completed age on the calendar birthday', () => {
+    expect(
+      evaluateCalculatorExpression('yearsBetween(birth, measured)', {
+        birth: '2013-09-03',
+        measured: '2026-09-02',
+      }),
+    ).toBe(12);
+    expect(
+      evaluateCalculatorExpression('yearsBetween(birth, measured)', {
+        birth: '2013-09-03',
+        measured: '2026-09-03',
+      }),
+    ).toBe(13);
   });
 
   it("daysBetween mirrors calculateEddByLmp/calculateGestationalAgeFromEdd's day math exactly", () => {

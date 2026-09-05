@@ -61,11 +61,17 @@ Forbidden without a dedicated ADR:
 - Never log clinical query text, secrets, source-document contents, or raw native SQL arguments.
 - Change SQLite only through a numbered migration.
 - Preserve stable document, section, chunk, and anchor identifiers.
+- An OPFS pool has one worker owner. Search must reuse that owner rather than reopen the same pool
+  in a nested worker; reload must wait for the previous owner's handles to close.
+- Pointer downloads require exact target membership in a verified index artifact; an installed pack
+  alone is not proof that its document is readable. Preserve source anchors when opening excerpts.
 - Preserve raw-file checksum and source spans when transforming authoring artifacts.
 - Reject source paths that escape the configured private root.
 - Do not catch and discard errors.
 - Assessment copy must attribute or accurately describe real instruments and explain how to
   interpret results; never brand an established instrument or questionnaire as a MiniMed invention.
+- Assessment and calculator behavior, interpretations, and charts must be declared in tool schemas;
+  UI and print code may render schema data but must not branch on tool ids or slugs.
 - Overview-card counters must name the entity they summarize: section/module counts are never
   labelled as documents, and concrete document counts come from the catalog manifest rather than
   incidental documents already mounted in the search core.
@@ -120,3 +126,14 @@ were not tested.
 - Never add selectors shaped like `.class <node />` (for example `.block svg`); use a specific class on the styled node instead.
 - Keep state selectors class-based (`.block--active`) and avoid selector chains whose meaning depends on DOM nesting.
 - Use normal flex/grid/document flow for layout. Use `position: absolute` only for intentional overlays, such as a full-card hit area or an icon layered over content; do not use it for ordinary actions or spacing.
+
+## Native sticky chrome
+
+- Read `docs/NATIVE_STICKY_CHROME.md` before changing safe-area, sticky-header, backdrop blur/grain,
+  document-reader chrome, or scroll-direction visibility behavior.
+- Transparent route chrome and opaque reader chrome are different modes. Do not share safe-area
+  padding or backdrop treatment between them.
+- Do not add feature-specific `--safe-top` padding or negative safe-area margins to
+  `.route-sticky-chrome--transparent`; the shared shell contract owns that geometry.
+- Preserve the reader rule: scrolling down hides controls, scrolling up reveals them, and the opaque
+  reader header continues to paint behind the native status bar.

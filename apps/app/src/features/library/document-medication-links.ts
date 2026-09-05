@@ -3,10 +3,28 @@ import { isSameDocumentFamily } from '@localmed/core';
 
 export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
 
+export interface DocumentLinkPreview {
+  readonly title: string;
+  readonly definition: string;
+  readonly source?: {
+    readonly label: string;
+    readonly documentId: string;
+    readonly anchor?: string;
+  };
+}
+
 export interface DocumentLinkPhrase {
   readonly phrase: string;
   readonly documentId: string;
   readonly kind: DocumentInlineLinkKind;
+  readonly title?: string;
+  readonly preview?: DocumentLinkPreview;
+}
+
+export interface DocumentLinkAlternative {
+  readonly documentId: string;
+  readonly title: string;
+  readonly preview?: DocumentLinkPreview;
 }
 
 export type MedicationLinkPhrase = DocumentLinkPhrase;
@@ -14,7 +32,8 @@ export type MedicationLinkPhrase = DocumentLinkPhrase;
 export type DocumentTextBlock =
   | { readonly kind: 'paragraph'; readonly text: string }
   | { readonly kind: 'bullet'; readonly text: string }
-  | { readonly kind: 'ordered'; readonly text: string; readonly ordinal: number };
+  | { readonly kind: 'ordered'; readonly text: string; readonly ordinal: number }
+  | { readonly kind: 'image'; readonly alt: string; readonly source: string };
 
 export type LinkedTextSegment =
   | { readonly kind: 'text'; readonly value: string }
@@ -23,6 +42,8 @@ export type LinkedTextSegment =
       readonly value: string;
       readonly documentId: string;
       readonly linkKind: DocumentInlineLinkKind;
+      readonly preview?: DocumentLinkPreview;
+      readonly alternatives?: readonly DocumentLinkAlternative[];
     };
 
 function linkKindForSourceType(
@@ -92,6 +113,23 @@ export function parseDocumentText(
 
   for (const [lineIndex, line] of lines.entries()) {
     if (!line.text) continue;
+    const image = /^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)$/u.exec(line.text);
+    if (image?.[2]) {
+      blocks.push({ kind: 'image', alt: image[1]?.trim() ?? '', source: image[2] });
+      activeListIndent = undefined;
+      previousSourceIndex = line.sourceIndex;
+      continue;
+    }
+    const imageSource = /^\[Источник изображения\]\((https?:\/\/[^\s)]+)\)$/u.exec(line.text);
+    const previousImage = blocks.at(-1);
+    if (
+      imageSource?.[1] &&
+      previousImage?.kind === 'image' &&
+      previousImage.source === imageSource[1]
+    ) {
+      previousSourceIndex = line.sourceIndex;
+      continue;
+    }
     const bullet = /^[•▪◦●○*+-]\s+(.+)$/u.exec(line.text);
     if (bullet?.[1]) {
       blocks.push({ kind: 'bullet', text: bullet[1] });
@@ -157,7 +195,7 @@ function foldPhrase(value: string): string {
   return normalizePhrase(value).replace(/\s+/gu, ' ');
 }
 
-const PREFIX_LENGTH = 4;
+const PREFIX_LENGTH = 3;
 
 function foldedPrefixAt(text: string, start: number): string | null {
   if (start + PREFIX_LENGTH > text.length) return null;
@@ -174,6 +212,8 @@ interface IndexedDocumentLink {
   readonly documentId: string;
   readonly linkKind: DocumentInlineLinkKind;
   readonly folded: string;
+  readonly preview?: DocumentLinkPreview;
+  readonly title: string;
 }
 
 function matchFoldedPhraseAt(text: string, start: number, folded: string): number {
@@ -212,6 +252,8 @@ export function createDocumentLinkMatcher(
       documentId: link.documentId,
       linkKind: link.kind,
       folded,
+      title: link.title ?? link.preview?.title ?? link.phrase,
+      ...(link.preview ? { preview: link.preview } : {}),
     });
     buckets.set(prefix, bucket);
   }
@@ -242,6 +284,25 @@ export function createDocumentLinkMatcher(
           }
         }
         if (best) {
+          const folded = best.link.folded;
+          const alternatives = [
+            ...new Map(
+              candidates
+                ?.filter((link) => link.folded === folded)
+                .map((link): [string, DocumentLinkAlternative] => [
+                  link.documentId,
+                  {
+                    documentId: link.documentId,
+                    title: link.title,
+                    ...(link.preview ? { preview: link.preview } : {}),
+                  },
+                ]),
+            ).values(),
+          ].toSorted(
+            (left, right) =>
+              left.title.localeCompare(right.title, 'ru') ||
+              left.documentId.localeCompare(right.documentId),
+          );
           if (index > cursor) {
             segments.push({ kind: 'text', value: text.slice(cursor, index) });
           }
@@ -250,6 +311,8 @@ export function createDocumentLinkMatcher(
             value: text.slice(index, best.end),
             documentId: best.link.documentId,
             linkKind: best.link.linkKind,
+            ...(best.link.preview ? { preview: best.link.preview } : {}),
+            ...(alternatives.length > 1 ? { alternatives } : {}),
           });
           cursor = best.end;
           index = best.end;
@@ -269,6 +332,7 @@ export function buildMedicationLinkPhrases(
   documents: readonly MedicalDocumentSummary[],
 ): readonly MedicationLinkPhrase[] {
   const candidatesByPhrase = new Map<string, Map<string, MedicationLinkPhrase>>();
+  const documentsById = new Map(documents.map((document) => [document.id, document]));
 
   for (const document of documents) {
     if (document.sourceType !== 'official_registry_summary') continue;
@@ -289,9 +353,20 @@ export function buildMedicationLinkPhrases(
   }
 
   return [...candidatesByPhrase.values()]
-    .filter((candidates) => candidates.size === 1)
-    .flatMap((candidates) => [...candidates.values()])
-    .toSorted((left, right) => right.phrase.length - left.phrase.length);
+    .flatMap((candidates) =>
+      [...candidates.values()].map((candidate) =>
+        candidates.size > 1
+          ? {
+              ...candidate,
+              title: documentsById.get(candidate.documentId)?.title ?? candidate.phrase,
+            }
+          : candidate,
+      ),
+    )
+    .toSorted(
+      (left, right) =>
+        right.phrase.length - left.phrase.length || left.documentId.localeCompare(right.documentId),
+    );
 }
 
 function documentPhraseCandidates(document: MedicalDocumentSummary): readonly string[] {
@@ -299,9 +374,48 @@ function documentPhraseCandidates(document: MedicalDocumentSummary): readonly st
     .replace(/^клинические рекомендации\s*[—:.-]\s*/iu, '')
     .replace(/\s*\([^)]*\)\s*$/u, '')
     .trim();
-  return [document.shortTitle?.trim() ?? '', title.split('—')[0]?.trim() ?? ''].filter(
-    (value) => value.length >= 5,
-  );
+  const metadataPhrases = ['declaredAliases', 'navigationAliases'].flatMap((key) => {
+    const value = document.metadata?.[key];
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string')
+      : [];
+  });
+  return [document.shortTitle?.trim() ?? '', title.split('—')[0]?.trim() ?? '', ...metadataPhrases]
+    .map((value) => value.trim())
+    .filter((value) => value.length >= PREFIX_LENGTH);
+}
+
+function documentLinkPreview(
+  document: MedicalDocumentSummary,
+  documents: ReadonlyMap<string, MedicalDocumentSummary>,
+): DocumentLinkPreview | undefined {
+  const value = document.metadata?.['canonicalDefinition'];
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const definition = (value as Record<string, unknown>)['text'];
+  if (typeof definition !== 'string' || !definition.trim()) return undefined;
+  const source = value as Record<string, unknown>;
+  const sourceId = source['sourceDocumentId'];
+  const anchor = source['sourceAnchor'];
+  const section = source['sourceSectionTitle'];
+  return {
+    title: document.title,
+    definition: definition.trim(),
+    ...(typeof sourceId === 'string' && typeof anchor === 'string'
+      ? {
+          source: {
+            label: [
+              document.title,
+              document.versionLabel,
+              typeof section === 'string' ? section : null,
+            ]
+              .filter(Boolean)
+              .join(' · '),
+            documentId: documents.has(sourceId) ? sourceId : document.id,
+            anchor,
+          },
+        }
+      : {}),
+  };
 }
 
 export function buildDocumentLinkPhrases(
@@ -314,34 +428,40 @@ export function buildDocumentLinkPhrases(
     'regulatory_act',
     'medical_reference',
     'rls_mkb_reference',
+    'core_catalog_pointer',
   ]);
   const candidatesByPhrase = new Map<string, Map<string, DocumentLinkPhrase>>();
-  const currentDocument = documents.find((document) => document.id === currentDocumentId);
-  const blockedPhrases = new Set(
-    (currentDocument
-      ? [currentDocument.shortTitle?.trim() ?? '', currentDocument.title.trim()]
-      : []
-    )
-      .map(foldPhrase)
-      .filter((value) => value.length > 0),
-  );
+  const documentsById = new Map(documents.map((document) => [document.id, document]));
 
   for (const document of documents) {
+    const pointerTarget = document.metadata?.['targetDocumentId'];
+    const installedTarget =
+      document.sourceType === 'core_catalog_pointer' && typeof pointerTarget === 'string'
+        ? documentsById.get(pointerTarget)
+        : undefined;
+    const target = installedTarget ?? document;
     if (
-      (currentDocumentId && isSameDocumentFamily(document.id, currentDocumentId)) ||
+      (currentDocumentId && isSameDocumentFamily(target.id, currentDocumentId)) ||
       !linkableSourceTypes.has(document.sourceType)
     ) {
       continue;
     }
+    const preview =
+      documentLinkPreview(document, documentsById) ?? documentLinkPreview(target, documentsById);
     for (const phrase of documentPhraseCandidates(document)) {
       const key = foldPhrase(phrase);
-      if (!key || blockedPhrases.has(key)) continue;
+      if (!key) continue;
       const candidates = candidatesByPhrase.get(key) ?? new Map();
-      if (!candidates.has(document.id)) {
-        candidates.set(document.id, {
+      const existing = candidates.get(target.id);
+      if (!existing || (!existing.preview && preview)) {
+        candidates.set(target.id, {
           phrase,
-          documentId: document.id,
-          kind: linkKindForSourceType(document.sourceType),
+          documentId: target.id,
+          kind:
+            document.metadata?.['catalogFamily'] === 'medication'
+              ? 'medication'
+              : linkKindForSourceType(target.sourceType),
+          ...(preview ? { preview } : {}),
         });
       }
       candidatesByPhrase.set(key, candidates);
@@ -349,9 +469,20 @@ export function buildDocumentLinkPhrases(
   }
 
   return [...candidatesByPhrase.values()]
-    .filter((candidates) => candidates.size === 1)
-    .flatMap((candidates) => [...candidates.values()])
-    .toSorted((left, right) => right.phrase.length - left.phrase.length);
+    .flatMap((candidates) =>
+      [...candidates.values()].map((candidate) =>
+        candidates.size > 1
+          ? {
+              ...candidate,
+              title: documentsById.get(candidate.documentId)?.title ?? candidate.phrase,
+            }
+          : candidate,
+      ),
+    )
+    .toSorted(
+      (left, right) =>
+        right.phrase.length - left.phrase.length || left.documentId.localeCompare(right.documentId),
+    );
 }
 
 export function segmentTextWithMedicationLinks(

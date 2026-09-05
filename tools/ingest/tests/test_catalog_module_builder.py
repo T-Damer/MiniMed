@@ -852,6 +852,19 @@ def test_builds_compact_clinical_core_pointer(tmp_path: Path) -> None:
                 "entityType": "disease",
                 "aliases": ["ВП у детей"],
                 "keywords": ["детская пневмония"],
+                "canonicalDefinition": {
+                    "definitionId": "clinical.definition.714_2.fixture",
+                    "text": "Острое инфекционное заболевание лёгких.",
+                    "sourceDocumentId": target_id,
+                    "sourceDocumentVersionId": f"{target_id}@714_2-2025",
+                    "sourceSectionId": "section.definition",
+                    "sourceChunkId": "chunk.definition",
+                    "sourceAnchor": "terms#chunk-definition",
+                    "sourceSectionTitle": "Термины и определения",
+                    "sourceQuote": (
+                        "Внебольничная пневмония – острое инфекционное заболевание лёгких."
+                    ),
+                },
                 "icd10Codes": ["J18"],
                 "specialties": ["pediatrics", "pulmonology"],
                 "ageCategories": ["Дети"],
@@ -914,6 +927,10 @@ def test_builds_compact_clinical_core_pointer(tmp_path: Path) -> None:
     assert "Дети" in pointer_text
     assert "ВП у детей" in pointer_text
     assert "детская пневмония" in pointer_text
+    assert "# Определение" in pointer_text
+    assert "Острое инфекционное заболевание лёгких." in pointer_text
+    assert "canonicalDefinition:" in pointer_text
+    assert "clinical.definition.714_2.fixture" in pointer_text
     assert "АМОКСИЦИЛЛИН" in pointer_text
     assert "clinicalMedicationLinks:" in pointer_text
     assert "Клиническое утверждение" not in pointer_text

@@ -77,15 +77,66 @@ const RUSSIAN_SUFFIXES = [
   'о',
 ].toSorted((left, right) => right.length - left.length);
 
+const ICD10_CYRILLIC_LOOKALIKE_MAP: Readonly<Record<string, string>> = {
+  А: 'A',
+  а: 'a',
+  В: 'B',
+  в: 'b',
+  С: 'C',
+  с: 'c',
+  Е: 'E',
+  е: 'e',
+  Н: 'H',
+  н: 'h',
+  К: 'K',
+  к: 'k',
+  М: 'M',
+  м: 'm',
+  О: 'O',
+  о: 'o',
+  Р: 'P',
+  р: 'p',
+  Т: 'T',
+  т: 't',
+  Х: 'X',
+  х: 'x',
+  У: 'Y',
+  у: 'y',
+};
+
+const ICD10_CODE_LIKE_PATTERN =
+  /(?<![0-9A-Za-zА-Яа-я])(?<code>[A-Za-zА-Яа-я]\d{2}(?:[.-]\d+|\d+)?)(?![0-9A-Za-zА-Яа-я])/gu;
+
+/** Maps Cyrillic lookalikes only inside an ICD-10-shaped token. */
+export function normalizeIcd10Lookalikes(value: string): string {
+  return value.replace(ICD10_CODE_LIKE_PATTERN, (token) =>
+    [...token].map((character) => ICD10_CYRILLIC_LOOKALIKE_MAP[character] ?? character).join(''),
+  );
+}
+
 export function normalizeSurfaceText(value: string): string {
-  return value
-    .normalize('NFKC')
-    .toLowerCase()
-    .replaceAll('ё', 'е')
-    .replace(/[‐‑‒–—−]/gu, '-')
-    .replace(/[^0-9a-zа-я\s.,:+/%-]/gu, ' ')
-    .replace(/\s+/gu, ' ')
-    .trim();
+  return normalizeIcd10Lookalikes(
+    value
+      .normalize('NFKC')
+      .toLowerCase()
+      .replaceAll('ё', 'е')
+      .replace(/[‐‑‒–—−]/gu, '-')
+      .replace(/[^0-9a-zа-я\s.,:+/%-]/gu, ' ')
+      .replace(/\s+/gu, ' ')
+      .trim(),
+  );
+}
+
+/** Remove a navigation preamble, not words inside a disease name or clinical narrative. */
+export function searchSubjectText(value: string): string {
+  const normalized = normalizeSurfaceText(value);
+  const subject = normalized
+    .replace(
+      /^(?:(?:найти|покажи|показать)\s+)?(?:описание\s+(?:болезни|заболевания)|(?:документы|материалы|информация)\s+(?:по\s+заболеванию|о\s+заболевании|по\s+болезни))\s+/u,
+      '',
+    )
+    .replace(/^(?:найти|покажи|показать)\s+(?:документы|материалы)\s*:?\s+/u, '');
+  return subject.trim() || normalized;
 }
 
 export interface NormalizedTextOffset {
@@ -126,8 +177,9 @@ export function normalizeSurfaceTextWithOffsets(value: string): NormalizedTextWi
   let last = normalizedChars.length;
   while (first < last && normalizedChars[first] === ' ') first += 1;
   while (last > first && normalizedChars[last - 1] === ' ') last -= 1;
+  const text = normalizedChars.slice(first, last).join('');
   return {
-    text: normalizedChars.slice(first, last).join(''),
+    text: normalizeIcd10Lookalikes(text),
     offsets: offsets.slice(first, last),
   };
 }

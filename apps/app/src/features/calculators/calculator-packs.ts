@@ -2,11 +2,14 @@ import {
   CALCULATOR_REGISTRY,
   ECG_PHOTO_CALIPER_ID,
 } from '@/features/calculators/calculator-registry';
+import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import type {
   CalculatorCategory,
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 import { PEDIATRIC_FEEDING_PLAN_ID } from '@/features/calculators/pediatric-feeding-plan';
+
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 
 export type CalculatorSectionId = CalculatorCategory;
 
@@ -79,8 +82,33 @@ export const CALCULATOR_SECTION_MODULE_IDS: Readonly<Partial<Record<CalculatorSe
     gynecology: 'minimed.tools.obstetrics-gynecology.ru',
   };
 
+const CALCULATOR_SECTION_EXTRA_MODULE_IDS: Readonly<
+  Partial<Record<CalculatorSectionId, readonly string[]>>
+> = {
+  anthropometry: ['minimed.tools.pediatrics-growth.ru'],
+};
+
 export function moduleIdForCalculatorSection(sectionId: CalculatorSectionId): string | undefined {
   return CALCULATOR_SECTION_MODULE_IDS[sectionId];
+}
+
+export function moduleIdsForCalculatorSection(sectionId: CalculatorSectionId): readonly string[] {
+  const primary = moduleIdForCalculatorSection(sectionId);
+  return [
+    ...new Set([
+      ...(primary ? [primary] : []),
+      ...(CALCULATOR_SECTION_EXTRA_MODULE_IDS[sectionId] ?? []),
+      ...MODULE_CATALOG.modules
+        .filter((module) =>
+          (module.tools ?? []).some(
+            (tool) =>
+              tool.kind === 'calculator' &&
+              (tool.preview.category === sectionId || tool.preview.tags.includes(sectionId)),
+          ),
+        )
+        .map((module) => module.id),
+    ]),
+  ];
 }
 
 /**
@@ -116,7 +144,7 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
   {
     id: 'anthropometry',
     title: 'Антропометрия',
-    description: 'Площадь поверхности тела и будущие возрастные нормы роста и массы.',
+    description: 'Площадь поверхности тела, z-score и перцентили роста и массы детей.',
   },
   {
     id: 'renal',
@@ -235,6 +263,8 @@ function installedIdsFromSections(
       .filter(
         (definition) =>
           definition.state === 'available' &&
+          (CALCULATOR_REGISTRY.some((entry) => entry.id === definition.id) ||
+            getCalculatorSchema(definition.id) !== undefined) &&
           (CORE_CALCULATOR_IDS.has(definition.id) ||
             [...sectionIds].some((sectionId) => belongsToSection(definition, sectionId)) ||
             calculatorIds.has(definition.id) ||

@@ -93,6 +93,8 @@ export const ObservationMappingSchema = z
     outputId: MappingIdSchema.optional(),
     scaleId: MappingIdSchema.optional(),
     method: z.string().min(1).optional(),
+    /** Multiplies the numeric source value before it is stored in the canonical observation unit. */
+    valueMultiplier: z.number().finite().positive().optional(),
   })
   .refine(
     (mapping) =>
@@ -120,6 +122,8 @@ export const CalculatorPatientBindingSchema = z
     metricId: MappingIdSchema.optional(),
     unit: z.string().min(1).optional(),
     maxAgeDays: z.number().int().nonnegative().optional(),
+    /** Multiplies a numeric patient value before it is placed into the calculator input. */
+    valueMultiplier: z.number().finite().positive().optional(),
   })
   .refine(
     (binding) =>

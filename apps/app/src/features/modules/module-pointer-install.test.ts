@@ -10,6 +10,7 @@ import {
   installModulePointer,
   type ModulePointerDescriptor,
   type ModulePointerRuntime,
+  modulePointerTargetAnchor,
   parseModulePointerMetadata,
   resolveModulePointer,
   selectModuleForPointer,
@@ -57,7 +58,18 @@ function moduleEntry(
       structuredKnowledge: false,
       calculations: false,
     },
-    artifacts: [],
+    artifacts: [
+      {
+        id: 'index',
+        kind: 'index',
+        required: true,
+        url: 'https://example.com/index.db',
+        sha256: CHECKSUM,
+        sizeBytes: 100,
+        compression: 'none',
+        sourceSetDigest: CHECKSUM,
+      },
+    ],
     documents: documentIds.map((documentId) => ({
       documentId,
       documentVersionId: `${documentId}@1`,
@@ -127,6 +139,37 @@ describe('module-pointer-install', () => {
       ]),
     );
     expect(selected?.id).toBe('fallback');
+  });
+
+  it('rejects unverified membership and missing index artifacts', () => {
+    expect(selectModuleForPointer(pointer(), catalog([moduleEntry('primary', [])]))).toBeNull();
+    expect(
+      selectModuleForPointer(
+        pointer(),
+        catalog([{ ...moduleEntry('primary', ['target.document']), artifacts: [] }]),
+      ),
+    ).toBeNull();
+  });
+
+  it('uses a released alternative when the primary is unavailable', () => {
+    expect(
+      selectModuleForPointer(
+        pointer(),
+        catalog([
+          moduleEntry('primary', ['target.document'], 'planned'),
+          moduleEntry('fallback', ['target.document']),
+        ]),
+      )?.id,
+    ).toBe('fallback');
+  });
+
+  it('maps a local definition excerpt back to its original source anchor', () => {
+    const metadata = {
+      definitionPreviewAnchor: 'preview#definition',
+      canonicalDefinition: { sourceAnchor: 'source#paragraph' },
+    };
+    expect(modulePointerTargetAnchor(metadata, 'preview#definition')).toBe('source#paragraph');
+    expect(modulePointerTargetAnchor(metadata, 'source#other')).toBe('source#other');
   });
 
   it('reports available, installed, and unavailable pointer states', () => {

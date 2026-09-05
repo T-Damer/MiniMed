@@ -443,7 +443,12 @@ export async function createBrowserCore() {
       store,
       platform,
       embedder: QUERY_EMBEDDER,
-      searchExecution: companions.medicationsStore ? 'direct-only' : undefined,
+      // SQL already runs in the OPFS owner worker. A second search core would reopen its
+      // exclusive pool and wait on the live owner's lock.
+      searchExecution:
+        coreStore instanceof WorkerOpfsMedicalStore || companions.medicationsStore
+          ? 'direct-only'
+          : undefined,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

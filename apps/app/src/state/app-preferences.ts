@@ -7,6 +7,7 @@ export interface AppPreferences {
   readonly bookReadingMode: boolean;
   readonly floatingWindowsEnabled: boolean;
   readonly experimentalModulesEnabled: boolean;
+  readonly moduleAutoUpdatesEnabled: boolean;
 }
 
 export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
@@ -20,6 +21,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   bookReadingMode: false,
   floatingWindowsEnabled: false,
   experimentalModulesEnabled: true,
+  moduleAutoUpdatesEnabled: true,
 };
 
 const VALID_SCOPES = new Set<SearchScope>([
@@ -45,8 +47,13 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly bookReadingMode?: unknown;
     readonly floatingWindowsEnabled?: unknown;
     readonly experimentalModulesEnabled?: unknown;
+    readonly moduleAutoUpdatesEnabled?: unknown;
   };
   return {
+    moduleAutoUpdatesEnabled:
+      typeof candidate.moduleAutoUpdatesEnabled === 'boolean'
+        ? candidate.moduleAutoUpdatesEnabled
+        : DEFAULT_PREFERENCES.moduleAutoUpdatesEnabled,
     vibrationEnabled:
       typeof candidate.vibrationEnabled === 'boolean'
         ? candidate.vibrationEnabled
@@ -94,8 +101,15 @@ function persist(preferences: AppPreferences): AppPreferences {
 export function loadAppPreferences(): AppPreferences {
   try {
     const raw = window.localStorage.getItem(APP_PREFERENCES_KEY);
-    if (!raw) return DEFAULT_PREFERENCES;
-    return normalizePreferences(JSON.parse(raw));
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    const preferences = normalizePreferences(parsed);
+    if (parsed && typeof parsed === 'object' && 'moduleAutoUpdatesEnabled' in parsed)
+      return preferences;
+    return {
+      ...preferences,
+      moduleAutoUpdatesEnabled:
+        window.localStorage.getItem('minimed.module-auto-updates-paused.v1') !== 'true',
+    };
   } catch {
     return DEFAULT_PREFERENCES;
   }
@@ -103,6 +117,14 @@ export function loadAppPreferences(): AppPreferences {
 
 export function saveAppPreferences(preferences: AppPreferences): AppPreferences {
   return persist(normalizePreferences(preferences));
+}
+
+export function getModuleAutoUpdatesEnabled(): boolean {
+  return loadAppPreferences().moduleAutoUpdatesEnabled;
+}
+
+export function setModuleAutoUpdatesEnabled(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), moduleAutoUpdatesEnabled: enabled });
 }
 
 export function getVibrationEnabled(): boolean {

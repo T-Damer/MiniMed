@@ -18,13 +18,52 @@ export interface CalculationEvaluation {
 }
 
 /** Serializable Chart.js-ready chart spec emitted by schema visuals (see calculator-schema-engine). */
+export interface CalculationChartPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface CalculationChartAxis {
+  readonly label: string;
+  readonly minimum?: number | undefined;
+  readonly maximum?: number | undefined;
+  readonly minimumLabel?: string | undefined;
+  readonly maximumLabel?: string | undefined;
+  readonly reverse?: boolean | undefined;
+}
+
 export interface CalculationChartSpec {
-  readonly type: 'bar' | 'line' | 'pie' | 'doughnut';
+  readonly type: 'bar' | 'line' | 'pie' | 'doughnut' | 'scatter';
+  readonly title?: string;
+  readonly caption?: string;
   readonly labels: readonly string[];
   readonly heightPx?: number;
+  readonly xAxis?: CalculationChartAxis;
+  readonly yAxis?: CalculationChartAxis;
+  readonly annotations?: readonly (
+    | {
+        readonly kind: 'quadrants';
+        readonly x: number;
+        readonly y: number;
+        readonly labels: Readonly<{
+          topLeft: string;
+          topRight: string;
+          bottomLeft: string;
+          bottomRight: string;
+        }>;
+      }
+    | {
+        readonly kind: 'rings';
+        readonly x: number;
+        readonly y: number;
+        readonly radiusPercent: readonly number[];
+      }
+  )[];
   readonly datasets: readonly {
     readonly label: string;
-    readonly data: readonly number[];
+    readonly data: readonly (number | CalculationChartPoint)[];
+    readonly render?: 'line' | 'point';
+    readonly tone?: 'neutral' | 'danger' | 'warning' | 'success' | 'accent';
   }[];
 }
 

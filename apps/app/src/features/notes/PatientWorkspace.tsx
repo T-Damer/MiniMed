@@ -851,7 +851,7 @@ function PatientList(props: {
     <>
       <header
         ref={setHeadingElement}
-        class="patient-workspace__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred sticky-surface route-sticky-chrome"
+        class="patient-workspace__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred sticky-surface route-sticky-chrome route-sticky-chrome--transparent"
       >
         <NavBack
           class="patient-workspace__back-button knowledge-back-button knowledge-subroute-heading__control"
@@ -1321,20 +1321,22 @@ function DynamicsView(props: {
       <section class="patient-workspace__sources paper-card">
         <span class="patient-workspace__sources-label">Источники рядов</span>
         <div class="patient-workspace__sources-list">
-          {series().map((item) => (
-            <button
-              class="patient-workspace__source"
-              type="button"
-              aria-pressed={!hidden().has(item.key)}
-              classList={{ 'patient-workspace__source--hidden': hidden().has(item.key) }}
-              onClick={() => {
-                toggle(item.key);
-                setSelectedSource(item.observations[0]);
-              }}
-            >
-              {item.metricId} · {item.unit} · {item.method}
-            </button>
-          ))}
+          <For each={series()}>
+            {(item) => (
+              <button
+                class="patient-workspace__source"
+                type="button"
+                aria-pressed={!hidden().has(item.key)}
+                classList={{ 'patient-workspace__source--hidden': hidden().has(item.key) }}
+                onClick={() => {
+                  toggle(item.key);
+                  setSelectedSource(item.observations[0]);
+                }}
+              >
+                {item.metricId} · {item.unit} · {item.method}
+              </button>
+            )}
+          </For>
         </div>
       </section>
       <Show when={selectedSource()}>

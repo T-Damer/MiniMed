@@ -1,5 +1,11 @@
-import type { MedicalDocumentSummary, SearchResultGroup } from '@localmed/contracts';
-import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
+import type { MedicalDocumentSummary, QueryAnalysis, SearchResultGroup } from '@localmed/contracts';
+import {
+  findNormalizedPhraseIndex,
+  lightStemRussian,
+  normalizeSurfaceText,
+  searchSubjectText,
+  tokenize,
+} from '@localmed/search-lexical';
 
 const GENERIC_QUERY_TERMS = new Set([
   'какой',
@@ -27,6 +33,20 @@ const REGISTRY_QUERY =
   /(?:грлс|регистрационн[а-я]*\s+(?:номер|карточк|запис)|регистрац[а-я]*\s+препарат)/u;
 
 type SearchDocumentDescriptor = Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>;
+
+export function matchesDocumentAlias(
+  query: string,
+  document: Pick<MedicalDocumentSummary, 'metadata'> | undefined,
+): boolean {
+  const subject = searchSubjectText(query);
+  return ['declaredAliases', 'navigationAliases'].some((key) => {
+    const aliases = document?.metadata?.[key];
+    return (
+      Array.isArray(aliases) &&
+      aliases.some((alias) => typeof alias === 'string' && normalizeSurfaceText(alias) === subject)
+    );
+  });
+}
 
 function compactReference(value: string): string {
   return normalizeSurfaceText(value).replace(/[^0-9a-zа-я]+/gu, '');
@@ -138,15 +158,17 @@ function stemToken(token: string): string {
 function tokensMatch(queryToken: string, titleToken: string): boolean {
   if (
     titleToken === queryToken ||
-    titleToken.startsWith(queryToken) ||
-    queryToken.startsWith(titleToken)
+    (Math.min(titleToken.length, queryToken.length) >= 5 &&
+      (titleToken.startsWith(queryToken) || queryToken.startsWith(titleToken)))
   ) {
     return true;
   }
   const queryStem = stemToken(queryToken);
   const titleStem = stemToken(titleToken);
   return (
-    titleStem === queryStem || titleStem.startsWith(queryStem) || queryStem.startsWith(titleStem)
+    titleStem === queryStem ||
+    (Math.min(titleStem.length, queryStem.length) >= 5 &&
+      (titleStem.startsWith(queryStem) || queryStem.startsWith(titleStem)))
   );
 }
 
@@ -222,7 +244,7 @@ const TITLE_CONTEXT_STEMS = new Set(
 );
 
 function isTitleQueryTerm(term: string): boolean {
-  return term.length >= 4 && !TITLE_CONTEXT_STEMS.has(stemToken(term));
+  return term.length >= 3 && !TITLE_CONTEXT_STEMS.has(stemToken(term));
 }
 
 function isFailedQueryTerm(query: string, term: string): boolean {
@@ -284,9 +306,19 @@ function groupRankingText(group: SearchResultGroup): string {
 function medicationDocumentBoost(
   query: string,
   document: SearchDocumentDescriptor | undefined,
+  title: string,
 ): number {
   if (!document) return 0;
   const normalizedQuery = normalizeSurfaceText(query);
+  // Source preference applies to a named medicine, not incidental symptom/body matches.
+  const titleTerms = new Set(tokenize(title).map(stemToken));
+  if (
+    !tokenize(normalizedQuery).some(
+      (term) =>
+        isTitleQueryTerm(term) && !isFormOrStrengthToken(term) && titleTerms.has(stemToken(term)),
+    )
+  )
+    return 0;
   if (document.sourceType === 'official_drug_instruction') {
     return INSTRUCTION_QUERY.test(normalizedQuery) ? 8 : 0;
   }
@@ -309,25 +341,103 @@ export function rankSearchGroupsByQuery(
   groups: readonly SearchResultGroup[],
   query: string,
   documents: readonly SearchDocumentDescriptor[] = [],
+  analysis?: QueryAnalysis,
 ): readonly SearchResultGroup[] {
+  const subjectSearch = searchSubjectText(query) !== normalizeSurfaceText(query);
+  query = searchSubjectText(query);
+  const namedMedication =
+    !analysis ||
+    analysis.facts.some((fact) => fact.kind === 'medication' && fact.polarity === 'positive');
+  const clinicalNarrative =
+    analysis?.intent?.primary !== 'medication' &&
+    analysis?.facts.some((fact) => fact.kind === 'symptom' && fact.polarity === 'positive');
+  const negativeTerms = new Set(
+    analysis?.facts
+      .filter((fact) => fact.polarity === 'negative')
+      .flatMap((fact) => tokenize(fact.normalizedValue).map(stemToken)),
+  );
+  const positiveQuery =
+    negativeTerms.size > 0
+      ? tokenize(query)
+          .filter((term) => !negativeTerms.has(stemToken(term)))
+          .join(' ')
+      : query;
+  const evidenceTerms = clinicalNarrative
+    ? [
+        ...new Set(
+          tokenize(query).filter(
+            (term) =>
+              isTitleQueryTerm(term) &&
+              !GENERIC_QUERY_TERMS.has(term) &&
+              !negativeTerms.has(stemToken(term)),
+          ),
+        ),
+      ]
+    : [];
+  const positiveFindings =
+    clinicalNarrative && analysis
+      ? analysis.facts
+          .filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive')
+          .flatMap((fact) => [tokenize(fact.value), tokenize(fact.normalizedValue)])
+          .filter((terms) => terms.length > 0)
+      : [];
   // ponytail: scan the bounded candidate window; use corpus-wide document frequencies if this grows hot.
+  const phrase = normalizeSurfaceText(query);
+  const hasSourcePhrase = tokenize(phrase).length >= (subjectSearch ? 2 : 3);
   const candidateTerms = groups.map((group) => new Set(tokenize(groupRankingText(group))));
+  const findingWords =
+    positiveFindings.length > 0
+      ? groups.map((group) =>
+          tokenize([group.title, ...group.results.map((result) => result.snippet)].join(' ')),
+        )
+      : [];
   const documentsById = new Map(documents.map((document) => [document.id, document]));
   return groups
     .map((group, index) => ({
       group,
       index,
+      exactAlias: matchesDocumentAlias(query, documentsById.get(group.documentId)),
+      hasPositiveFinding: positiveFindings.some((terms) =>
+        terms.every((term) => (findingWords[index] ?? []).some((word) => tokensMatch(term, word))),
+      ),
+      sourcePhrase:
+        hasSourcePhrase &&
+        ((subjectSearch &&
+          findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
+          group.results.some((result) => normalizeSurfaceText(result.snippet).includes(phrase))),
       score:
         group.bestScore +
-        queryGroupRelevanceBoost(query, groupRankingText(group)) +
+        (evidenceTerms.length >= 3
+          ? 8 *
+            Math.max(
+              0,
+              ...group.results.map((result) => {
+                const words = tokenize(result.snippet);
+                return (
+                  evidenceTerms.filter((term) => words.some((word) => tokensMatch(term, word)))
+                    .length / evidenceTerms.length
+                );
+              }),
+            )
+          : 0) +
+        queryGroupRelevanceBoost(positiveQuery, groupRankingText(group)) +
         // Drug-name title boosts must not outweigh legal references and subject sections.
         (documentsById.get(group.documentId)?.sourceType === 'regulatory_act_summary' ||
         documentsById.get(group.documentId)?.metadata?.['notLegalAdvice'] === true
           ? 0
-          : titleTermBoost(query, group.title, candidateTerms)) +
-        exactTitleMatchBoost(query, group.title) +
-        medicationDocumentBoost(query, documentsById.get(group.documentId)),
+          : titleTermBoost(positiveQuery, group.title, candidateTerms)) +
+        exactTitleMatchBoost(positiveQuery, group.title) +
+        (clinicalNarrative || !namedMedication
+          ? 0
+          : medicationDocumentBoost(query, documentsById.get(group.documentId), group.title)),
     }))
-    .toSorted((left, right) => right.score - left.score || left.index - right.index)
+    .toSorted(
+      (left, right) =>
+        Number(right.exactAlias) - Number(left.exactAlias) ||
+        Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
+        Number(right.hasPositiveFinding) - Number(left.hasPositiveFinding) ||
+        right.score - left.score ||
+        left.index - right.index,
+    )
     .map((entry) => entry.group);
 }

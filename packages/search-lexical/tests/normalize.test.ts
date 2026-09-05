@@ -1,6 +1,39 @@
 import { describe, expect, it } from 'vitest';
 
-import { isCloseToken, levenshteinDistance } from '../src/index';
+import {
+  isCloseToken,
+  levenshteinDistance,
+  normalizeIcd10Lookalikes,
+  normalizeSurfaceText,
+  normalizeSurfaceTextWithOffsets,
+} from '../src/index';
+
+describe('ICD-10 lookalike normalization', () => {
+  it.each([
+    ['А09', 'a09'],
+    ['С50', 'c50'],
+    ['Е11', 'e11'],
+    ['М16.1', 'm16.1'],
+  ])('normalizes Cyrillic lookalikes in code-shaped tokens: %s', (value, expected) => {
+    expect(normalizeSurfaceText(value)).toBe(expected);
+  });
+
+  it('leaves Russian prose and spaced unit values unchanged', () => {
+    expect(normalizeSurfaceText('с молоком')).toBe('с молоком');
+    expect(normalizeSurfaceText('С 50 мг')).toBe('с 50 мг');
+  });
+
+  it('keeps source offsets aligned after replacing a lookalike', () => {
+    const normalized = normalizeSurfaceTextWithOffsets('МКБ: А09');
+
+    expect(normalized.text).toBe('мкб: a09');
+    expect(normalized.offsets[5]).toEqual({ start: 5, end: 6 });
+  });
+
+  it('normalizes lookalikes without changing token length', () => {
+    expect(normalizeIcd10Lookalikes('А09 С50 Е11 М16')).toBe('A09 C50 E11 M16');
+  });
+});
 
 describe('levenshteinDistance', () => {
   it('returns 0 for identical strings', () => {

@@ -41,7 +41,7 @@ describe('nativeBackAction', () => {
       nativeBackAction('assessments/psychology/braverman-behavioral-profile', 'assessments', false),
     ).toEqual({
       type: 'parent',
-      hash: '#/assessments',
+      hash: '#/assessments/psychology/self-reflection',
     });
   });
 
@@ -54,9 +54,11 @@ describe('nativeBackAction', () => {
       nativeBackAction('calculators/body-surface-area-mosteller', 'calculators', false),
     ).toEqual({
       type: 'parent',
-      hash: '#/calculators',
+      hash: '#/calculators/section/anthropometry',
     });
-    expect(hierarchicalParentHash('calculators/body-surface-area-mosteller')).toBe('#/calculators');
+    expect(hierarchicalParentHash('calculators/body-surface-area-mosteller')).toBe(
+      '#/calculators/section/anthropometry',
+    );
   });
 
   it('returns through nested routes before minimizing the search root', () => {

@@ -98,6 +98,20 @@ export function medicalImageSliceDragSteps(
   return Math.trunc((startY - currentY) / Math.max(1, pixelsPerStep));
 }
 
+export function medicalImageZoomAroundPoint(
+  pan: readonly [number, number, number, number],
+  zoom: number,
+  pointMM: readonly [number, number, number],
+): [number, number, number, number] {
+  const zoomChange = pan[3] - zoom;
+  return [
+    pan[0] + zoomChange * pointMM[0],
+    pan[1] + zoomChange * pointMM[1],
+    pan[2] + zoomChange * pointMM[2],
+    zoom,
+  ];
+}
+
 export function medicalImagePointerAction(
   view: 'multiplanar' | 'axial' | 'coronal' | 'sagittal' | 'render',
   isRenderTile: boolean,

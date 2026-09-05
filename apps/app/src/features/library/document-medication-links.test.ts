@@ -35,6 +35,45 @@ const recommendation = (
 });
 
 describe('document-medication-links', () => {
+  it('offers every meaning of МКБ and preserves the longer classification alias and source anchor', () => {
+    const documents: MedicalDocumentSummary[] = [
+      {
+        ...recommendation('disease', 'Мочекаменная болезнь'),
+        metadata: {
+          declaredAliases: ['МКБ'],
+          canonicalDefinition: {
+            text: 'Определение из рекомендаций.',
+            sourceDocumentId: 'disease',
+            sourceAnchor: 'definition',
+          },
+        },
+      },
+      {
+        ...recommendation('classification', 'Международная классификация болезней'),
+        sourceType: 'medical_reference',
+        metadata: { navigationAliases: ['МКБ', 'МКБ-10'] },
+      },
+    ];
+    const matcher = createDocumentLinkMatcher(buildDocumentLinkPhrases(documents));
+    const [ambiguous, , specific] = matcher.segment('МКБ и МКБ-10');
+    expect(ambiguous?.kind).toBe('link');
+    if (ambiguous?.kind !== 'link') throw new Error('Missing abbreviation link');
+    expect(ambiguous.alternatives?.map((item) => item.documentId)).toEqual([
+      'classification',
+      'disease',
+    ]);
+    expect(ambiguous.alternatives?.[1]?.preview?.source).toMatchObject({
+      documentId: 'disease',
+      anchor: 'definition',
+    });
+    expect(specific).toMatchObject({ kind: 'link', value: 'МКБ-10', documentId: 'classification' });
+    expect(specific?.kind === 'link' && specific.alternatives).toBeUndefined();
+    const [other] = createDocumentLinkMatcher(
+      buildDocumentLinkPhrases(documents, 'disease'),
+    ).segment('МКБ');
+    expect(other).toMatchObject({ kind: 'link', documentId: 'classification' });
+  });
+
   it('turns OCR bullets into list items without losing the text', () => {
     expect(
       parseDocumentText(
@@ -54,6 +93,21 @@ describe('document-medication-links', () => {
     expect(parseDocumentText('1. Первый шаг\n\n2. Второй шаг')).toEqual([
       { kind: 'ordered', ordinal: 1, text: 'Первый шаг' },
       { kind: 'ordered', ordinal: 2, text: 'Второй шаг' },
+    ]);
+  });
+
+  it('keeps localizable reference illustrations as image blocks', () => {
+    expect(
+      parseDocumentText(
+        'Описание заболевания.\n\n![Иллюстрация](https://www.krasotaimedicina.ru/upload/iblock/a/a.jpg)\n\n[Источник изображения](https://www.krasotaimedicina.ru/upload/iblock/a/a.jpg)',
+      ),
+    ).toEqual([
+      { kind: 'paragraph', text: 'Описание заболевания.' },
+      {
+        kind: 'image',
+        alt: 'Иллюстрация',
+        source: 'https://www.krasotaimedicina.ru/upload/iblock/a/a.jpg',
+      },
     ]);
   });
 
@@ -116,7 +170,7 @@ describe('document-medication-links', () => {
     ]);
   });
 
-  it('drops ambiguous medication phrases while preserving a unique longer phrase', () => {
+  it('keeps all medication targets while preferring a unique longer phrase', () => {
     const documents = [
       medication('drug.rf.paracetamol.tablet', 'Парацетамол 500 мг — таблетки', 'Парацетамол'),
       medication(
@@ -129,7 +183,7 @@ describe('document-medication-links', () => {
     const forward = buildMedicationLinkPhrases(documents);
     const reverse = buildMedicationLinkPhrases([...documents].reverse());
 
-    expect(forward).toEqual([
+    expect(forward.filter((link) => link.phrase === 'Парацетамол 500 мг')).toEqual([
       {
         phrase: 'Парацетамол 500 мг',
         documentId: 'drug.rf.paracetamol.tablet',
@@ -137,7 +191,12 @@ describe('document-medication-links', () => {
       },
     ]);
     expect(reverse).toEqual(forward);
-    expect(forward.some((link) => link.phrase === 'Парацетамол')).toBe(false);
+    const [segment] = createDocumentLinkMatcher(forward).segment('Парацетамол');
+    expect(segment?.kind).toBe('link');
+    if (segment?.kind === 'link')
+      expect(segment.alternatives?.map((item) => item.documentId).toSorted()).toEqual(
+        documents.map((item) => item.id).toSorted(),
+      );
   });
 
   it('indexes installed conditions and laws as cross-links', () => {
@@ -167,7 +226,61 @@ describe('document-medication-links', () => {
     );
   });
 
-  it('drops ambiguous condition phrases while preserving a unique longer phrase', () => {
+  it('indexes bundled disease pointers by title and aliases, not broad search keywords', () => {
+    const pointer: MedicalDocumentSummary = {
+      ...medication('core.catalog.pointer.clinical.kr.rf.1006_1', 'Острая ишемия конечностей'),
+      sourceType: 'core_catalog_pointer',
+      metadata: {
+        entityType: 'disease',
+        declaredAliases: ['ОИК'],
+        keywords: ['острая артериальная окклюзия'],
+        canonicalDefinition: { text: 'Острое снижение кровотока в конечности.' },
+      },
+    };
+    const preview = {
+      title: 'Острая ишемия конечностей',
+      definition: 'Острое снижение кровотока в конечности.',
+    };
+
+    expect(buildDocumentLinkPhrases([pointer])).toEqual([
+      {
+        phrase: 'Острая ишемия конечностей',
+        documentId: pointer.id,
+        kind: 'document',
+        preview,
+      },
+      { phrase: 'ОИК', documentId: pointer.id, kind: 'document', preview },
+    ]);
+  });
+
+  it('routes pointer aliases and definitions to an installed full document', () => {
+    const full = recommendation('kr.rf.1006_1', 'Острая ишемия конечностей');
+    const pointer: MedicalDocumentSummary = {
+      ...medication('core.catalog.pointer.clinical.kr.rf.1006_1', 'Острая ишемия конечностей'),
+      sourceType: 'core_catalog_pointer',
+      metadata: {
+        targetDocumentId: full.id,
+        declaredAliases: ['ОИК'],
+        canonicalDefinition: { text: 'Острое снижение кровотока в конечности.' },
+      },
+    };
+    const preview = {
+      title: 'Острая ишемия конечностей',
+      definition: 'Острое снижение кровотока в конечности.',
+    };
+
+    expect(buildDocumentLinkPhrases([pointer, full])).toEqual([
+      {
+        phrase: 'Острая ишемия конечностей',
+        documentId: full.id,
+        kind: 'recommendation',
+        preview,
+      },
+      { phrase: 'ОИК', documentId: full.id, kind: 'recommendation', preview },
+    ]);
+  });
+
+  it('keeps all condition targets while preferring a unique longer phrase', () => {
     const documents: MedicalDocumentSummary[] = [
       recommendation(
         'condition-one',
@@ -187,7 +300,7 @@ describe('document-medication-links', () => {
     const forward = buildDocumentLinkPhrases(documents);
     const reverse = buildDocumentLinkPhrases([...documents].reverse());
 
-    expect(forward).toEqual([
+    expect(forward.filter((link) => link.phrase === 'Пневмония у детей тяжелая')).toEqual([
       {
         phrase: 'Пневмония у детей тяжелая',
         documentId: 'condition-one',
@@ -195,7 +308,13 @@ describe('document-medication-links', () => {
       },
     ]);
     expect(reverse).toEqual(forward);
-    expect(forward.some((link) => link.phrase === 'Пневмония у детей')).toBe(false);
+    const [segment] = createDocumentLinkMatcher(forward).segment('Пневмония у детей');
+    expect(segment?.kind).toBe('link');
+    if (segment?.kind === 'link')
+      expect(segment.alternatives?.map((item) => item.documentId)).toEqual([
+        'condition-one',
+        'reference-one',
+      ]);
   });
 
   it('does not link a recommendation to its own topic card or title', () => {
@@ -283,4 +402,29 @@ describe('document-medication-links', () => {
     expect(hits).toBe(paragraphs.length);
     expect(elapsed).toBeLessThan(800);
   });
+});
+
+it('keeps exact definition source navigation when the source is installed', () => {
+  const source = recommendation('kr.rf.source', 'Источник');
+  const pointer: MedicalDocumentSummary = {
+    ...recommendation('pointer', 'Термин'),
+    sourceType: 'core_catalog_pointer',
+    metadata: {
+      targetDocumentId: source.id,
+      canonicalDefinition: {
+        text: 'Точная цитата.',
+        sourceDocumentId: source.id,
+        sourceAnchor: 'source/definition',
+        sourceSectionTitle: 'Определение',
+      },
+    },
+  };
+  const link = buildDocumentLinkPhrases([pointer, source]).find((item) => item.phrase === 'Термин');
+  expect(link?.preview?.source).toMatchObject({
+    documentId: source.id,
+    anchor: 'source/definition',
+  });
+  const missing = buildDocumentLinkPhrases([pointer])[0];
+  expect(missing?.preview?.source?.documentId).toBe(pointer.id);
+  expect(missing?.preview?.source?.anchor).toBe('source/definition');
 });

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-
+import { CalculatorSchemaSchema, CalculatorVisualSchema } from './calculator-schema';
 import {
   HttpUrlSchema,
   ObservationMappingSchema,
@@ -9,6 +9,34 @@ import {
 export const ToolModuleKindSchema = z.enum(['calculator', 'assessment']);
 
 const AssessmentResponseValueSchema = z.number().int().min(0).max(100);
+
+const AssessmentInterpretationSchema = z
+  .object({
+    minScore: z.number().optional(),
+    maxScore: z.number().optional(),
+    scaleId: z.string().min(1).optional(),
+    when: z.string().min(1).optional(),
+    headline: z.string().min(1),
+    message: z.string().min(1),
+  })
+  .superRefine((interpretation, context) => {
+    const hasBand = interpretation.minScore !== undefined || interpretation.maxScore !== undefined;
+    if (Boolean(interpretation.when) === hasBand) {
+      context.addIssue({
+        code: 'custom',
+        message: 'exactly one of when or minScore/maxScore is required',
+      });
+    }
+    if (
+      hasBand &&
+      (interpretation.minScore === undefined || interpretation.maxScore === undefined)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'minScore and maxScore must be provided together',
+      });
+    }
+  });
 
 export const AssessmentDefinitionSchema = z.object({
   schemaVersion: z.literal(2),
@@ -47,17 +75,8 @@ export const AssessmentDefinitionSchema = z.object({
   ),
   disclaimer: z.string().min(1),
   evidenceNote: z.string().min(1),
-  interpretations: z
-    .array(
-      z.object({
-        minScore: z.number(),
-        maxScore: z.number(),
-        scaleId: z.string().min(1).optional(),
-        headline: z.string().min(1),
-        message: z.string().min(1),
-      }),
-    )
-    .optional(),
+  interpretations: z.array(AssessmentInterpretationSchema).optional(),
+  visuals: z.array(CalculatorVisualSchema).default([]),
   evaluation: ToolEvaluationSchema,
   observationMappings: z.array(ObservationMappingSchema).default([]),
   license: z.object({
@@ -97,5 +116,39 @@ export const ToolDefinitionRecordSchema = z.object({
 });
 
 export type ToolModuleKind = z.infer<typeof ToolModuleKindSchema>;
+export type AssessmentVisualDefinition = z.infer<typeof CalculatorVisualSchema>;
 export type ToolSourceLink = z.infer<typeof ToolSourceLinkSchema>;
 export type ToolDefinitionRecord = z.infer<typeof ToolDefinitionRecordSchema>;
+
+/** Descriptive core metadata only: executable steps and questionnaire questions stay in packs. */
+export const CalculatorToolPreviewSchema = z.object({ ...CalculatorSchemaSchema.shape }).pick({
+  summary: true,
+  audience: true,
+  category: true,
+  tags: true,
+  clinical: true,
+  formulaDisplay: true,
+  population: true,
+  limitations: true,
+  inputs: true,
+  sources: true,
+});
+
+const ToolCatalogMetadataSchema = ToolDefinitionRecordSchema.omit({
+  definition: true,
+  sources: true,
+});
+
+export const ToolCatalogEntrySchema = z.discriminatedUnion('kind', [
+  ToolCatalogMetadataSchema.extend({
+    kind: z.literal('calculator'),
+    preview: CalculatorToolPreviewSchema,
+  }),
+  ToolCatalogMetadataSchema.extend({
+    kind: z.literal('assessment'),
+    estimatedMinutes: z.number().int().positive(),
+  }),
+]);
+
+export type ToolCatalogEntry = z.infer<typeof ToolCatalogEntrySchema>;
+export type CalculatorToolPreview = z.infer<typeof CalculatorToolPreviewSchema>;

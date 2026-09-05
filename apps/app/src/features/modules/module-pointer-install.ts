@@ -78,27 +78,51 @@ export function parseModulePointerMetadata(
   };
 }
 
+/** Discovery excerpts have local anchors; full documents use the original source anchor. */
+export function modulePointerTargetAnchor(
+  metadata: Readonly<Record<string, unknown>> | undefined,
+  anchor: string | null,
+): string | null {
+  if (!anchor || metadata?.['definitionPreviewAnchor'] !== anchor) return anchor;
+  const definition = metadata['canonicalDefinition'];
+  if (!definition || typeof definition !== 'object' || !('sourceAnchor' in definition))
+    return anchor;
+  return typeof definition.sourceAnchor === 'string' ? definition.sourceAnchor : anchor;
+}
+
 function moduleContainsTarget(
   module: ContentModuleCatalogEntry,
   targetDocumentId: string,
 ): boolean {
-  return module.documents.some((document) => document.documentId === targetDocumentId);
+  return module.documents.some(
+    (document) =>
+      document.documentId === targetDocumentId &&
+      module.artifacts.some(
+        (artifact) =>
+          artifact.id === document.indexArtifactId &&
+          artifact.kind === 'index' &&
+          artifact.required &&
+          Boolean(artifact.url && artifact.sha256),
+      ),
+  );
 }
 
 export function selectModuleForPointer(
   pointer: ModulePointerDescriptor,
   catalog: ContentModuleCatalog,
+  installed: readonly InstalledContentModule[] = [],
 ): ContentModuleCatalogEntry | null {
   const allowedIds = new Set([pointer.primaryModuleId, ...pointer.moduleIds]);
   const candidates = catalog.modules.filter((module) => allowedIds.has(module.id));
-  const targetCandidates = candidates.filter((module) =>
-    moduleContainsTarget(module, pointer.targetDocumentId),
+  const targetCandidates = candidates.filter(
+    (module) =>
+      moduleContainsTarget(module, pointer.targetDocumentId) &&
+      (isModuleReleased(module) || Boolean(installedModuleVersion(module, installed))),
   );
   return (
+    targetCandidates.find((module) => installedModuleVersion(module, installed)) ??
     targetCandidates.find((module) => module.id === pointer.primaryModuleId) ??
     targetCandidates[0] ??
-    candidates.find((module) => module.id === pointer.primaryModuleId) ??
-    candidates[0] ??
     null
   );
 }
@@ -112,6 +136,7 @@ function installedModuleVersion(
       (candidate) =>
         candidate.moduleId === module.id &&
         candidate.version === module.version &&
+        candidate.activeSourceSetDigest === module.sourceSetDigest &&
         candidate.enabled &&
         candidate.state === 'installed',
     ) ?? null
@@ -123,7 +148,7 @@ export function resolveModulePointer(
   catalog: ContentModuleCatalog,
   installed: readonly InstalledContentModule[],
 ): ModulePointerResolution {
-  const module = selectModuleForPointer(pointer, catalog);
+  const module = selectModuleForPointer(pointer, catalog, installed);
   if (!module) {
     return {
       state: 'unavailable',
@@ -134,14 +159,6 @@ export function resolveModulePointer(
   }
   if (installedModuleVersion(module, installed)) {
     return { state: 'installed', pointer, module, message: null };
-  }
-  if (!isModuleReleased(module)) {
-    return {
-      state: 'unavailable',
-      pointer,
-      module: null,
-      message: 'Этот набор пока недоступен для загрузки.',
-    };
   }
   return { state: 'available', pointer, module, message: null };
 }

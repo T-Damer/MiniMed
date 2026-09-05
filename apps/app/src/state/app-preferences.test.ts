@@ -4,6 +4,7 @@ import {
   APP_PREFERENCES_KEY,
   clearSearchScope,
   getFloatingWindowsEnabled,
+  getModuleAutoUpdatesEnabled,
   getRememberSearchMode,
   getSoundVolume,
   getVibrationEnabled,
@@ -13,6 +14,7 @@ import {
   saveAppPreferences,
   saveSearchScope,
   setFloatingWindowsEnabled,
+  setModuleAutoUpdatesEnabled,
   setRememberSearchMode,
   setSoundVolume,
   setVibrationEnabled,
@@ -68,6 +70,7 @@ describe('app-preferences', () => {
       bookReadingMode: false,
       floatingWindowsEnabled: false,
       experimentalModulesEnabled: true,
+      moduleAutoUpdatesEnabled: true,
     });
   });
 
@@ -88,7 +91,23 @@ describe('app-preferences', () => {
       bookReadingMode: false,
       floatingWindowsEnabled: false,
       experimentalModulesEnabled: true,
+      moduleAutoUpdatesEnabled: true,
     });
+  });
+
+  it('preserves the previous auto-update pause and broadcasts changes from settings', () => {
+    window.localStorage.setItem('minimed.module-auto-updates-paused.v1', 'true');
+    expect(getModuleAutoUpdatesEnabled()).toBe(false);
+    setSoundVolume(0.5);
+    expect(getModuleAutoUpdatesEnabled()).toBe(false);
+    const listener = vi.fn();
+    const unsubscribe = subscribeAppPreferences(listener);
+    setModuleAutoUpdatesEnabled(true);
+    expect(getModuleAutoUpdatesEnabled()).toBe(true);
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({ moduleAutoUpdatesEnabled: true }),
+    );
+    unsubscribe();
   });
 
   it('dispatches change events and updates getters', () => {

@@ -71,6 +71,18 @@ block the others.
 The lexical layer applies Unicode normalization, lowercase, `ё → е`, safe punctuation handling,
 light transparent Russian suffix normalization, and additive aliases. Abbreviations match only at
 word boundaries, so a short form such as `АД` cannot expand from the middle of an unrelated word.
+Every meaning of an exact abbreviation remains distinct. Longer exact names suppress embedded
+shorter aliases only at the same occurrence: `МКБ-10` means the classifier, while a separate `МКБ`
+in the same query retains both meanings. Ambiguous clinical facts have separate ids and uncertain
+polarity. Exact declared/navigation aliases keep their documents through chunk fusion and ahead of
+incidental mentions in document ranking.
+
+Search and the structured source reader use the same inline preview: an ambiguous phrase lists
+all available target cards, with verbatim definitions and anchored sources when supplied by the
+catalog. Choosing a target opens that card; opening/dismissing the preview keeps the reading position.
+Classifier shorthand is editorial `navigationAliases`, separate from source `declaredAliases`.
+This does not yet annotate imported Markdown, EPUB or PDF text in the personal file reader.
+
 Example fixture aliases:
 
 ```text
@@ -150,6 +162,66 @@ fact/branch types, negative spans, and exclusion of negated terms from the posit
 branch. These fixtures protect mechanics only; a physician-authored real-corpus golden set is still
 required before judging medical retrieval quality.
 
+`bun run benchmark:runtime` runs the application `MedicalCore`, `ScopedMedicalCore` and
+`MultiMedicalStore` against the canonical SQLite core, without a model or the research prototype's
+ranking. Repeat `--pack=/absolute/path/to/pack.db` to compare core-only and installed editions;
+`--report=/absolute/path/to/report.json` selects the report location. The default contract set checks
+brands, forms, a concentration with its denominator, route, negation, Cyrillic ICD input, exact source
+anchors and the document behind a download pointer. Missing catalog document membership fails the
+download check; finding a plausible module name is not proof that its artifact contains the source.
+Use `--case-prefix=syndrome-` (or another fixture ID prefix) to rerun a selected family; reports record
+the filter and reject an empty selection.
+Use `--edition=installed` with `--pack=...` to audit an installed corpus without repeating the
+core-only run, or `--edition=core-only` for discovery alone. The default still evaluates both modes
+when packs are supplied; reports record the selected edition.
+
+`--fixtures=rag500` reuses the prototype's deterministic 500-query generator and frozen corpus
+selection from local `data/build/rag-prototype-500.sqlite`, but reads no vectors or prototype scores.
+It evaluates the same 380 official-source queries in each edition. The other 120 tool/personal
+scenarios are explicitly excluded with reasons because those use separate application surfaces.
+Reports record input checksums, per-query checks, recall@5, MRR@5, exact-context failures and
+unverified download targets. Requests match the UI (`auto`, limit 20, suggestions enabled), while
+scoring remains top-5. With no query embedder the runtime records its lexical fallback; browser/WASM
+latency and optional semantic retrieval require separate checks. Reports separate local/discovery/
+absent coverage and expose covered recall, so missing corpus is not counted as a ranking failure.
+Expected and retrieved canonical target IDs remain in each row for diagnosis. This is a regression measurement, not clinical qualification.
+
+The frozen symptom cohort expects three legacy full-document IDs in `data/build/full-respiratory-rf.db`.
+Those IDs are absent from core and from the medication/ambulatory/MKB/reference/regulatory pack set;
+the old 0/60 result cannot establish a ranking failure. Pass that respiratory pack explicitly to
+measure retrieval with the expected corpus present; retain the same query and target IDs.
+
+Disease navigation preambles such as «описание болезни» and «документы по заболеванию» are removed
+from lexical subject terms and title ranking, while original query text and fact offsets are retained.
+Words inside names, including «болезнь Крона», remain intact. Short title terms such as «рак» count,
+but a short prefix like «боль» no longer matches «большой» for title/source bonuses. Medication source
+bonuses require a named medication; clinical narratives also score coverage of positive clues within
+one source snippet, excluding negated clues from that coverage.
+The same exclusion applies after alias/intent/clause expansion, so a canonical inflected form cannot
+silently reintroduce an explicitly negated finding into an FTS branch or title bonus.
+
+The literal respiratory vocabulary adds apnea, rales, chest retractions, nasal flaring, percussion
+dullness, respiratory insufficiency and hypoxemia without linking those findings to a diagnosis.
+Source trace: `data/build/full-respiratory-rf.db`, chunks `chunk.c7e1cac4a1101bc4` (apnea/hypoxemia),
+`chunk.3b544cd56d7485aa` (rales/retractions/nasal flaring), `chunk.6b50cf108dfddf0b` (percussion), and
+`chunk.77045c30fcc05cd6` (respiratory insufficiency). Inflected forms are lexical variants; source
+paragraphs are unchanged. One-letter aliases are excluded at MedicalCore's alias boundary: the
+source dictionary's vaccine alias «С» must not turn «гепатит С» into a medication request.
+The component-alias filter also compares inflected forms: «инфекции» must not expand to an entire
+combination vaccine whose name contains «инфекций». Plain symptom descriptions with unknown intent
+receive the same positive-symptom branch as diagnostic questions; explicit treatment/medication
+intent keeps its existing branches, and negated symptoms stay excluded.
+Within symptom narratives, a literal or canonical positive finding in the title or displayed source
+snippets takes precedence over incidental background-word coverage. Alias/branch matched-term lists
+alone do not establish that source evidence. Exact source phrases retain their existing priority;
+this is source retrieval, not a rule inferring a diagnosis from a symptom.
+
+Lexical and hybrid fusion preserve exact subject-title matches through the chunk cutoff, so a source
+with many chunks cannot discard an exact-title document before document ranking considers its name.
+Other candidates retain the existing cutoff; the response document limit and SQL/vector candidate
+limits are unchanged. Retaining every branch candidate was tested and rejected because symptom
+retrieval regressed when weak matches filled the document-ranking window.
+
 ## Semantic alpha
 
 The content builder precomputes one compact vector per chunk. Runtime work is limited to embedding
@@ -170,3 +242,30 @@ neural medical embedding. Every response records profile ID, semantic candidate 
 and fallback reason. See [`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
 
 A separate vector server is not required for the local MVP.
+
+## Discovery excerpts and package membership
+
+The composer indexes validated, verbatim definition previews as discovery chunks when no original
+pointer chunk already contains the definition. Existing source rows and their identifiers remain
+unchanged. Each excerpt keeps its source locator; opening an installed/downloaded full document
+translates the preview anchor to the original paragraph anchor. Exact source phrases receive a
+separate lexical branch and priority over partial word matches.
+
+A pointer download requires catalog document membership referencing a required index artifact with
+an immutable URL/checksum. An installed module must match its source-set digest, and opening the
+full document checks readability. A primary module that lacks the target cannot be a fallback.
+
+To regenerate membership from verified local release artifacts:
+
+```sh
+bun scripts/hydrate-catalog-membership.ts CATALOG.json OUTPUT.json PACK.db [PACK.db ...]
+```
+
+The command matches artifact SHA-256 before reading SQLite document/version/checksum rows. It never
+changes release URLs/checksums to accommodate different local bytes. Unmatched files are reported;
+if none match, no catalog is written. Missing exact release artifacts remain a content-release gap.
+
+The current catalog includes verified membership for all 15 ESKLP release artifacts: 3,324 documents,
+covering every medication discovery pointer. Preview installation follows the experimental-modules
+preference. Runtime benchmark download checks enable previews explicitly, matching the current UI
+default, and record that choice in `experimentalModulesEnabled`.

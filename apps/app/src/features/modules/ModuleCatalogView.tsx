@@ -32,6 +32,7 @@ import {
   CALCULATOR_SECTION_CATEGORY_IDS,
   CALCULATOR_SECTIONS,
 } from '@/features/calculators/calculator-packs';
+import { buildConditionCatalog } from '@/features/conditions/condition-catalog';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { openUserLibraryCatalog } from '@/features/library/user-library-routing';
 import { ContentModuleCard } from '@/features/modules/ContentModuleCard';
@@ -63,7 +64,10 @@ import {
   moduleListedDocumentCount,
   primaryModuleDocumentId,
 } from '@/features/modules/module-display';
-import { selectBulkDownloadModules } from '@/features/modules/module-download-selection';
+import {
+  estimateDownloadStorage,
+  selectBulkDownloadModules,
+} from '@/features/modules/module-download-selection';
 import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
@@ -89,6 +93,7 @@ import {
   recommendationCountLabel,
   sectionCountLabel,
 } from '@/i18n/labels';
+import { getModuleAutoUpdatesEnabled, subscribeAppPreferences } from '@/state/app-preferences';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
@@ -116,7 +121,6 @@ interface ModuleLoadError {
 }
 
 const INDIVIDUAL_RECOMMENDATION_TAG = 'individual-recommendation';
-const AUTO_UPDATES_PAUSED_KEY = 'minimed.module-auto-updates-paused.v1';
 
 function downloadProgressPercent(progress: ReturnType<typeof moduleGroupDownloadProgress>): number {
   return Math.round((progress.byteProgress ?? progress.installedFraction) * 100);
@@ -185,9 +189,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     readonly id: string;
     readonly title: string;
   } | null>(null);
-  const [autoUpdatesPaused, setAutoUpdatesPaused] = createSignal(
-    window.localStorage.getItem(AUTO_UPDATES_PAUSED_KEY) === 'true',
+  const [moduleAutoUpdatesEnabled, setModuleAutoUpdatesEnabled] = createSignal(
+    getModuleAutoUpdatesEnabled(),
   );
+  const [pendingBulkDownload, setPendingBulkDownload] = createSignal<
+    readonly ContentModuleCatalogEntry[] | null
+  >(null);
+  const pendingStorage = createMemo(() => estimateDownloadStorage(pendingBulkDownload() ?? []));
   const [returnTo, setReturnTo] = createSignal(peekReturnTo());
   const catalogSearchHasBack = (): boolean =>
     coreLibraryOpen() ||
@@ -252,11 +260,16 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const openMedications = (): void => {
     window.location.hash = '#/modules/documents/medications';
   };
+  const openConditions = (): void => {
+    window.location.hash = '#/modules/documents/conditions';
+  };
+  const [overviewConditionCount, setOverviewConditionCount] = createSignal(0);
 
   const refreshOverviewDocumentCounts = (): void => {
     void props.core.listDocuments().then((result) => {
       if (!result.ok) return;
       setOverviewDocumentCounts(countDocumentsByOverviewBucket(result.value));
+      setOverviewConditionCount(buildConditionCatalog(result.value).length);
     });
   };
 
@@ -273,6 +286,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
   onMount(() => {
     bindRuntime(catalog());
+    onCleanup(
+      subscribeAppPreferences((preferences) =>
+        setModuleAutoUpdatesEnabled(preferences.moduleAutoUpdatesEnabled),
+      ),
+    );
     syncSelectionFromLocation();
     const initialCountsFrame = requestAnimationFrame(refreshOverviewDocumentCounts);
     window.addEventListener('hashchange', syncSelectionFromLocation);
@@ -341,6 +359,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   );
   const medicationCatalogModules = createMemo(() =>
     catalog().modules.filter((module) => module.kind === 'medication'),
+  );
+  const conditionCatalogModules = createMemo(() =>
+    catalog().modules.filter((module) => module.collection === 'conditions'),
   );
   const medicationCollectionStats = createMemo(() =>
     moduleCollectionStats(medicationCatalogModules(), installedById()),
@@ -604,9 +625,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     await installModuleGroup(categoryId, categoryModules(categoryId));
   };
 
-  const installAllAvailable = async (): Promise<void> => {
+  const installAllAvailable = async (
+    modules: readonly ContentModuleCatalogEntry[],
+  ): Promise<void> => {
     if (installingAll()) return;
-    const pendingModules = bulkDownloadModules().filter(
+    const pendingModules = modules.filter(
       (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
     );
     setInstallingAll(true);
@@ -615,7 +638,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     try {
       const result = await installPublishedCategoryModules(
         runtime(),
-        bulkDownloadModules(),
+        modules,
         installedModuleIds(),
       );
       setTasks(runtime().listTasks());
@@ -627,7 +650,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       setInstallErrors((current) => ({
         ...current,
         ...Object.fromEntries(
-          bulkDownloadModules()
+          modules
             .filter((module) => isModuleReleased(module) && !installedModuleIds().has(module.id))
             .map((module) => [module.id, message]),
         ),
@@ -652,14 +675,19 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     title: string,
     modules: () => readonly ContentModuleCatalogEntry[],
   ): JSX.Element => {
+    const installableModules = () => modules().filter(isModuleReleased);
     const progress = () => moduleGroupDownloadProgress(modules(), installedModuleIds(), tasks());
     const taskState = () => moduleGroupTaskState(modules(), tasks());
     const selectedByBulk = () =>
       modules().some((module) => bulkInstallingModuleIds().has(module.id));
     const working = () => isCategoryBusy(groupId) || taskState() !== null || selectedByBulk();
     const pendingCount = () =>
-      modules().filter((module) => isModuleReleased(module) && !installedModuleIds().has(module.id))
-        .length;
+      installableModules().filter((module) => !installedModuleIds().has(module.id)).length;
+    const availableModulesInstalled = () => installableModules().length > 0 && pendingCount() === 0;
+    const unavailableLabel = () =>
+      modules().some((module) => module.releaseState === 'preview')
+        ? 'Включите Experimental в настройках'
+        : 'Раздел пока не опубликован';
     const progressValue = () => progress().byteProgress ?? progress().installedFraction;
     const percent = () => Math.round(progressValue() * 100);
 
@@ -716,6 +744,32 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             aria-valuenow={percent()}
           >
             <i class="recommendation-section-progress__fill" style={{ width: `${percent()}%` }} />
+          </div>
+        </Show>
+        <Show when={!working() && pendingCount() === 0}>
+          <div class="recommendation-section-actions recommendation-section-card__actions">
+            <Show
+              when={availableModulesInstalled()}
+              fallback={
+                <button
+                  type="button"
+                  class="recommendation-section-actions__download recommendation-section-actions__download--unavailable"
+                  aria-label={`Раздел «${title}» недоступен для скачивания: ${unavailableLabel()}`}
+                  title={unavailableLabel()}
+                  disabled
+                >
+                  <AppGlyph name="download" class="recommendation-section-actions__icon" />
+                </button>
+              }
+            >
+              <span
+                class="recommendation-section-actions__state recommendation-section-actions__state--installed"
+                title="Доступные наборы загружены"
+              >
+                <AppGlyph name="check" class="recommendation-section-actions__icon" />
+                <span class="sr-only">Доступные наборы раздела «{title}» загружены</span>
+              </span>
+            </Show>
           </div>
         </Show>
       </>
@@ -788,18 +842,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     }
   };
 
-  const toggleAutoUpdates = (): void => {
-    const next = !autoUpdatesPaused();
-    setAutoUpdatesPaused(next);
-    window.localStorage.setItem(AUTO_UPDATES_PAUSED_KEY, String(next));
-  };
-
   createEffect(() => {
     props.onAvailableUpdates?.(availableCount(catalog()));
   });
 
   createEffect(() => {
-    if (autoUpdatesPaused()) return;
+    if (!moduleAutoUpdatesEnabled()) return;
     const activeTasks = new Set(
       tasks()
         .filter((task) => !['completed', 'failed', 'cancelled'].includes(task.state))
@@ -846,7 +894,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 }
                 class="module-download-all"
                 disabled={installingAll()}
-                onClick={() => void installAllAvailable()}
+                onClick={() =>
+                  setPendingBulkDownload(
+                    bulkDownloadModules().filter(
+                      (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
+                    ),
+                  )
+                }
               >
                 <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
                   <AppGlyph name="download" class="module-download-all__icon" />
@@ -866,7 +920,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       >
         <div
           ref={moduleCatalogHeading}
-          class="module-catalog-toolbar knowledge-subroute-heading--blurred route-sticky-chrome"
+          class="module-catalog-toolbar knowledge-subroute-heading--blurred route-sticky-chrome route-sticky-chrome--transparent"
         >
           <div class="knowledge-subroute-heading module-catalog-heading module-catalog-heading--in-toolbar">
             <Show
@@ -931,56 +985,35 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               hideLabel
               placeholder="Поиск в текущем разделе"
             />
-          </div>
-          <Show when={!coreLibraryOpen()}>
-            <div class="module-catalog-actions module-catalog-actions--heading module-catalog-actions--toolbar">
-              <Show when={pendingDownloadCount() > 0 && !recommendationCategory()}>
-                <button
-                  type="button"
-                  aria-label={
-                    installingAll()
-                      ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
-                      : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
-                  }
-                  class="module-download-all"
-                  disabled={installingAll()}
-                  onClick={() => void installAllAvailable()}
-                >
-                  <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
-                    <AppGlyph name="download" class="module-download-all__icon" />
-                  </Show>
-                  <span>
-                    {installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}
-                  </span>
-                </button>
-              </Show>
-              <Show
-                when={
-                  !recommendationBrowserOpen() &&
-                  !browsingSection() &&
-                  !browsingSearch() &&
-                  !regularCollection()
+            <Show
+              when={!coreLibraryOpen() && pendingDownloadCount() > 0 && !recommendationCategory()}
+            >
+              <button
+                type="button"
+                aria-label={
+                  installingAll()
+                    ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
+                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
+                }
+                class="module-download-all module-download-all--toolbar"
+                disabled={installingAll()}
+                onClick={() =>
+                  setPendingBulkDownload(
+                    bulkDownloadModules().filter(
+                      (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
+                    ),
+                  )
                 }
               >
-                <button
-                  type="button"
-                  class="module-auto-update-toggle"
-                  classList={{ paused: autoUpdatesPaused() }}
-                  aria-label={
-                    autoUpdatesPaused()
-                      ? 'Возобновить автообновление'
-                      : 'Приостановить автообновление'
-                  }
-                  onClick={toggleAutoUpdates}
-                >
-                  <AppGlyph name="refresh" />
-                  <span>
-                    {autoUpdatesPaused() ? 'Автообновление выключено' : 'Автообновление включено'}
-                  </span>
-                </button>
-              </Show>
-            </div>
-          </Show>
+                <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
+                  <AppGlyph name="download" class="module-download-all__icon" />
+                </Show>
+                <span>
+                  {installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}
+                </span>
+              </button>
+            </Show>
+          </div>
         </div>
       </Show>
 
@@ -1078,9 +1111,42 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <section class="module-collection">
             <div class="module-collection-heading">
               <h2 class="module-collection-heading__title">Наборы документов</h2>
-              <CountBadge value={5 + (regularSectionModules('tool').length > 0 ? 1 : 0)} />
+              <CountBadge value={6 + (regularSectionModules('tool').length > 0 ? 1 : 0)} />
             </div>
             <div class="recommendation-section-grid recommendation-section-grid-compact">
+              <Show
+                when={matchesCatalogQuery(catalogQuery(), [
+                  'Заболевания и состояния',
+                  'Заболевания',
+                  'Состояния',
+                  'Синдромы',
+                  'Симптомы',
+                  'МКБ-10',
+                ])}
+              >
+                <article
+                  class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--downloadable"
+                  tabindex="0"
+                  aria-label="Открыть перечень заболеваний и состояний"
+                  onClick={openConditions}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') openConditions();
+                  }}
+                >
+                  <AppGlyph name="book-open" class="recommendation-section-card-icon" />
+                  <strong class="recommendation-section-card-title">Заболевания и состояния</strong>
+                  <span class="recommendation-section-card-meta">
+                    {overviewConditionCount() > 0
+                      ? `${overviewConditionCount()} записей · МКБ-10, рекомендации и справочники`
+                      : 'МКБ-10, рекомендации и справочники'}
+                  </span>
+                  {sectionDownloadControls(
+                    'conditions',
+                    'Заболевания и состояния',
+                    conditionCatalogModules,
+                  )}
+                </article>
+              </Show>
               <Show
                 when={matchesCatalogQuery(catalogQuery(), [
                   'Лекарства',
@@ -1790,6 +1856,25 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           )}
         </Show>
       </OverlayDialog>
+
+      <ConfirmationDialog
+        open={pendingBulkDownload() !== null}
+        title="Скачать всё"
+        description={
+          pendingStorage().incomplete
+            ? `Хотите скачать все пакеты знаний${catalogOverviewVisible() ? '' : ' этого раздела'}? Для пакетов с известным размером потребуется примерно ${formatModuleBytes(pendingStorage().bytes)} на вашем устройстве. Размер остальных пакетов пока не указан.`
+            : `Хотите скачать все пакеты знаний${catalogOverviewVisible() ? '' : ' этого раздела'}? Это займёт примерно ${formatModuleBytes(pendingStorage().bytes)} на вашем устройстве.`
+        }
+        confirmLabel="Скачать всё"
+        onConfirm={() => {
+          const modules = pendingBulkDownload();
+          setPendingBulkDownload(null);
+          if (modules) void installAllAvailable(modules);
+        }}
+        onOpenChange={(open) => {
+          if (!open) setPendingBulkDownload(null);
+        }}
+      />
 
       <ConfirmationDialog
         open={pendingRemoval() !== null}

@@ -82,10 +82,12 @@ export function analyzeClinicalQuery(
   includeSuggestions = true,
 ): ClinicalQueryPlan {
   const plan = analyzeClinicalQueryRaw(query, aliases, includeSuggestions);
-  if (plan.analysis.intent?.primary !== 'diagnosis') return plan;
+  const intent = plan.analysis.intent?.primary;
+  if (intent !== 'diagnosis' && intent !== 'unknown') return plan;
 
-  const sanitized = sanitizeDiagnosticBranches(plan);
+  const sanitized = intent === 'diagnosis' ? sanitizeDiagnosticBranches(plan) : plan.branches;
   const canonicalSymptoms = symptomBranch(plan);
+  if (intent === 'unknown' && !canonicalSymptoms) return plan;
   const branches = canonicalSymptoms
     ? [
         canonicalSymptoms,

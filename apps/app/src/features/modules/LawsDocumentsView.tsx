@@ -82,7 +82,7 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
     <section class="laws-documents-page module-documents-page" aria-label={props.module.title}>
       <header
         ref={headingElement}
-        class="laws-documents-page__header knowledge-subroute-heading knowledge-subroute-heading--blurred route-sticky-chrome"
+        class="laws-documents-page__header knowledge-subroute-heading knowledge-subroute-heading--blurred route-sticky-chrome route-sticky-chrome--transparent"
       >
         <NavBack
           class="laws-documents-page__back knowledge-back-button knowledge-subroute-heading__control"

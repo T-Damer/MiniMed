@@ -168,6 +168,11 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@sqlite.org/sqlite-wasm'],
     include: [
+      // Keep lazy viewers and thumbnails on one Cornerstone runtime/cache.
+      '@cornerstonejs/core',
+      '@cornerstonejs/tools',
+      '@cornerstonejs/metadata',
+      '@cornerstonejs/dicom-image-loader',
       '@cornerstonejs/codec-charls/decodewasmjs',
       '@cornerstonejs/codec-libjpeg-turbo-8bit/decodewasmjs',
       '@cornerstonejs/codec-openjpeg/decodewasmjs',

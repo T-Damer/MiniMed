@@ -58,16 +58,21 @@ test('patient list has a safe sticky header, local search, and grouped actions',
   });
   await expect(header).toHaveClass(/sticky-surface--stuck/u);
   await expect
-    .poll(async () => header.evaluate((element) => element.getBoundingClientRect().top))
-    .toBeGreaterThanOrEqual(43);
+    .poll(() =>
+      header.evaluate((element) => {
+        const safeTop = Number.parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
+        );
+        return element.getBoundingClientRect().top - safeTop;
+      }),
+    )
+    .toBeCloseTo(8, 0);
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(header).not.toHaveClass(/sticky-surface--stuck/u);
 
   await page.getByRole('button', { name: 'Поиск', exact: true }).click();
-  const personalScope = page.getByRole('radio', { name: 'Ваши данные', exact: true });
-  await expect(personalScope).toBeEnabled();
-  await personalScope.check();
   await page.getByTestId('search-input').fill('Пациент для поиска');
+  await page.getByRole('button', { name: 'Развернуть раздел «Ваши данные»' }).click();
   await expect(
     page.locator('.personal-note-matches__card--hit').filter({ hasText: 'Пациент для поиска' }),
   ).toBeVisible();

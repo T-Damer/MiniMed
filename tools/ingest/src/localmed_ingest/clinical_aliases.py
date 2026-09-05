@@ -13,6 +13,7 @@ from pydantic import Field
 
 from .clinical_catalog import (
     CatalogModel,
+    ClinicalCanonicalDefinition,
     ClinicalCoverageLedger,
     ClinicalMedicationLink,
 )
@@ -23,7 +24,13 @@ _PARENTHETICAL_PATTERN = re.compile(r"^(?P<base>[^()]+?)\s*\((?P<detail>[^()]+)\
 _INLINE_PARENTHETICAL_PATTERN = re.compile(
     r"^(?P<prefix>[^\s()]+)\s+\((?P<detail>[^\s()]+)\)\s+(?P<suffix>[^()]+)$"
 )
-_DASHED_ENTRY_PATTERN = re.compile(r"^(?P<left>.+?)\s*[–—-]\s*(?P<right>.+)$", re.DOTALL)
+_DASHED_ENTRY_PATTERN = re.compile(
+    r"^(?P<left>.+?)(?:\s+[–—-]\s+|\s*[–—]\s*)(?P<right>.+)$", re.DOTALL
+)
+_DEFINITION_ENTRY_PATTERN = re.compile(
+    r"^(?P<left>(?:[^()]|\([^()]*\))+?)(?:\s+[–—-]\s+|\s*[–—]\s*)(?P<right>.+)$",
+    re.DOTALL,
+)
 _SYNONYM_PATTERN = re.compile(
     r"^(?:синоним(?:ы)?|другое название)\s*[:–—-]\s*(?P<value>.+)$",
     re.IGNORECASE | re.DOTALL,
@@ -98,6 +105,7 @@ class ClinicalAliasRecordReport(CatalogModel):
     keywords: list[ClinicalKeywordProvenance] = Field(
         default_factory=lambda: list[ClinicalKeywordProvenance]()
     )
+    canonical_definition: ClinicalCanonicalDefinition | None = None
     medication_links: list[ClinicalMedicationLink] = Field(
         default_factory=lambda: list[ClinicalMedicationLink]()
     )
@@ -117,6 +125,7 @@ class ClinicalAliasEnrichmentSummary(CatalogModel):
     aliases_total: int
     records_with_keywords: int
     keywords_total: int
+    records_with_definitions: int
     records_with_medication_links: int
     medication_links_total: int
     unmatched_records: int
@@ -137,9 +146,12 @@ class ClinicalAliasEnrichmentReport(CatalogModel):
 
 @dataclass(frozen=True)
 class _SourceChunk:
+    document_version_id: str
     section_id: str
     section_title: str
+    section_type: str | None
     chunk_id: str
+    anchor: str
     source_text: str
     page_start: int | None
     page_end: int | None
@@ -304,6 +316,8 @@ def _sha256_file(path: Path) -> str:
 
 
 def _database_official_id(path: Path) -> str | None:
+    if re.fullmatch(r"\d+_\d+", path.stem):
+        return path.stem
     prefix = "clinical-"
     marker = "-clinical-"
     if not path.name.startswith(prefix) or not path.name.endswith(".db"):
@@ -314,7 +328,7 @@ def _database_official_id(path: Path) -> str | None:
 
 def _database_index(directory: Path) -> dict[str, list[Path]]:
     index: dict[str, list[Path]] = {}
-    for path in sorted(directory.glob("clinical-*.db"), key=lambda item: item.name):
+    for path in sorted(directory.glob("*.db"), key=lambda item: item.name):
         official_id = _database_official_id(path)
         if official_id is not None:
             index.setdefault(official_id, []).append(path)
@@ -415,13 +429,21 @@ def _keyword_section(title: str) -> bool:
     return _KEYWORD_SECTION_PATTERN.fullmatch(_normalized(title)) is not None
 
 
+def _definition_section(title: str) -> bool:
+    normalized = _normalized(title)
+    return bool(
+        re.match(r"^(?:1\.1\.?\s*)?определение заболевания\b", normalized)
+        or ("термин" in normalized and "определен" in normalized)
+    )
+
+
 def _candidate_section(title: str) -> bool:
     normalized = _normalized(title)
     return (
         _keyword_section(title)
         or "сокращен" in normalized
         or "синоним" in normalized
-        or ("термин" in normalized and "определен" in normalized)
+        or _definition_section(title)
     )
 
 
@@ -434,12 +456,15 @@ def _read_source_chunks(
     diagnostics: list[str],
 ) -> list[_SourceChunk]:
     section_rows = connection.execute(
-        "SELECT id, title FROM sections ORDER BY order_index, id"
+        "SELECT id, title, section_type FROM sections ORDER BY order_index, id"
     ).fetchall()
-    all_sections = {cast(str, section_id): cast(str, title) for section_id, title in section_rows}
+    all_sections = {
+        cast(str, section_id): (cast(str, title), cast(str | None, section_type))
+        for section_id, title, section_type in section_rows
+    }
     candidate_sections = {
         cast(str, section_id): cast(str, title)
-        for section_id, title in section_rows
+        for section_id, title, _section_type in section_rows
         if _candidate_section(cast(str, title))
     }
     connection.create_function("minimed_normalized", 1, _sqlite_normalized, deterministic=True)
@@ -449,8 +474,8 @@ def _read_source_chunks(
         placeholders = ",".join("?" for _item in candidate_sections)
         section_condition = f"section_id IN ({placeholders}) OR "
     rows = connection.execute(
-        f"""SELECT id, section_id, original_text, page_start, page_end,
-                   char_start, char_end, metadata_json
+        f"""SELECT id, document_version_id, section_id, original_text, page_start, page_end,
+                   char_start, char_end, anchor, metadata_json
             FROM chunks
             WHERE {section_condition}
                   instr(minimed_normalized(original_text), 'ключевые слова:') > 0
@@ -459,9 +484,12 @@ def _read_source_chunks(
     ).fetchall()
     return [
         _SourceChunk(
+            document_version_id=cast(str, document_version_id),
             section_id=cast(str, section_id),
-            section_title=all_sections[cast(str, section_id)],
+            section_title=all_sections[cast(str, section_id)][0],
+            section_type=all_sections[cast(str, section_id)][1],
             chunk_id=cast(str, chunk_id),
+            anchor=cast(str, anchor),
             source_text=cast(str, source_text),
             page_start=cast(int | None, page_start),
             page_end=cast(int | None, page_end),
@@ -471,12 +499,14 @@ def _read_source_chunks(
         )
         for (
             chunk_id,
+            document_version_id,
             section_id,
             source_text,
             page_start,
             page_end,
             char_start,
             char_end,
+            anchor,
             metadata_json,
         ) in rows
     ]
@@ -514,6 +544,99 @@ def _validated_chunks(
 
 def _source_blocks(source_text: str) -> list[str]:
     return [block.strip() for block in re.split(r"\n\s*\n", source_text) if block.strip()]
+
+
+def _definition_match_quality(label: str, title_variants: list[str]) -> int:
+    label_phrase = " ".join(_TOKEN_PATTERN.findall(_normalized(label.split("(", 1)[0])))
+    label_words = label_phrase.split()
+    if not label_words:
+        return 0
+    for index, value in enumerate(title_variants):
+        phrase = " ".join(_TOKEN_PATTERN.findall(_normalized(value.split("(", 1)[0])))
+        words = phrase.split()
+        if not words:
+            continue
+        if phrase == label_phrase and (index == 0 or len(words) > 1 or _looks_like_acronym(value)):
+            return 10_000 - index * 10 + len(words)
+    return 0
+
+
+def _definition_candidate_blocks(source_text: str) -> list[str]:
+    blocks = _source_blocks(source_text)
+    candidates: list[str] = []
+    for index, block in enumerate(blocks):
+        entry = _DEFINITION_ENTRY_PATTERN.fullmatch(_clean(block))
+        if entry is None:
+            continue
+        candidate = block
+        definition_tail = _clean(entry.group("right"))
+        if re.search(r"[.!?](?:\s|$)", definition_tail):
+            candidates.append(candidate)
+            continue
+        for continuation in blocks[index + 1 :]:
+            cleaned = continuation.lstrip()
+            if (
+                not cleaned
+                or cleaned[0].isupper()
+                or _DEFINITION_ENTRY_PATTERN.fullmatch(_clean(cleaned))
+            ):
+                break
+            candidate = f"{candidate}\n\n{continuation}"
+            if re.search(r"[.!?](?:\s|$)", _clean(candidate)):
+                break
+        candidates.append(candidate)
+    return candidates
+
+
+def _canonical_definition(
+    *,
+    record_id: str,
+    official_id: str,
+    chunks: list[_SourceChunk],
+    title_variants: list[str],
+) -> ClinicalCanonicalDefinition | None:
+    candidates: list[tuple[int, ClinicalCanonicalDefinition]] = []
+    for chunk in chunks:
+        if not _definition_section(chunk.section_title):
+            continue
+        for source_block in _definition_candidate_blocks(chunk.source_text):
+            compact = _clean(source_block)
+            entry = _DEFINITION_ENTRY_PATTERN.fullmatch(compact)
+            if entry is None:
+                continue
+            label = _clean(entry.group("left"))
+            definition_tail = _clean(entry.group("right"))
+            sentence = re.match(r"^.+?[.!?](?:\s|$)", definition_tail)
+            if sentence is None:
+                continue
+            definition = _clean(sentence.group(0))
+            match_quality = _definition_match_quality(label, title_variants)
+            if match_quality == 0 or len(definition) < 24 or len(definition) > 1_200:
+                continue
+            source_quote = _clean(compact[: entry.start("right")] + definition)
+            digest = hashlib.sha256(f"{chunk.anchor}\0{source_quote}".encode()).hexdigest()[:20]
+            candidates.append(
+                (
+                    match_quality,
+                    ClinicalCanonicalDefinition(
+                        definition_id=f"clinical.definition.{official_id}.{digest}",
+                        text=definition,
+                        source_document_id=record_id,
+                        source_document_version_id=chunk.document_version_id,
+                        source_section_id=chunk.section_id,
+                        source_chunk_id=chunk.chunk_id,
+                        source_anchor=chunk.anchor,
+                        source_section_title=chunk.section_title,
+                        source_quote=source_quote,
+                        page_start=chunk.page_start,
+                        page_end=chunk.page_end,
+                        char_start=chunk.char_start,
+                        char_end=chunk.char_end,
+                        source_spans=chunk.source_spans,
+                    ),
+                )
+            )
+    return max(candidates, key=lambda item: (item[0], len(item[1].text)))[1] if candidates else None
 
 
 def _section_aliases(chunk: _SourceChunk, title_variants: list[str]) -> list[tuple[str, str]]:
@@ -811,7 +934,16 @@ def enrich_clinical_aliases(
 
         record.aliases = aliases
         record.keywords = keywords
-        record.clinical_medication_links = medication_relation_index.get(record.official_id, [])
+        extracted_definition = _canonical_definition(
+            record_id=record.record_id,
+            official_id=record.official_id,
+            chunks=chunks,
+            title_variants=comparison_titles,
+        )
+        if extracted_definition is not None:
+            record.canonical_definition = extracted_definition
+        if medication_relations_directory is not None:
+            record.clinical_medication_links = medication_relation_index.get(record.official_id, [])
         exact_module_id: str | None = None
         if database_path is not None:
             exact_module_id = f"minimed.clinical.recommendation.{record.official_id}"
@@ -835,6 +967,7 @@ def enrich_clinical_aliases(
                 db_filename=db_filename,
                 aliases=provenance,
                 keywords=keyword_provenance,
+                canonical_definition=record.canonical_definition,
                 medication_links=record.clinical_medication_links,
                 diagnostics=diagnostics,
             )
@@ -856,6 +989,9 @@ def enrich_clinical_aliases(
             aliases_total=sum(len(record.aliases) for record in ledger.records),
             records_with_keywords=sum(bool(record.keywords) for record in ledger.records),
             keywords_total=sum(len(record.keywords) for record in ledger.records),
+            records_with_definitions=sum(
+                record.canonical_definition is not None for record in ledger.records
+            ),
             records_with_medication_links=sum(
                 bool(record.clinical_medication_links) for record in ledger.records
             ),

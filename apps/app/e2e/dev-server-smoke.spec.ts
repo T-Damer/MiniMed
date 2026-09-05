@@ -24,7 +24,6 @@ test('dev server smoke: search, knowledge base, settings', async ({ page, reques
   );
   await expect(page.getByText('Что вы хотите найти?')).toBeVisible();
 
-  await page.getByRole('radio', { name: /В клин\. рекомендациях/u }).click();
   const searchInput = page.getByTestId('search-input');
   await expect(searchInput).toBeVisible();
   await searchInput.fill('пневмония');

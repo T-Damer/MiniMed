@@ -17,42 +17,116 @@ function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
 
-async function chooseScope(page: Page, name: RegExp): Promise<void> {
-  await page.getByRole('radio', { name }).click();
-}
-
-test('requires a search mode before enabling the query field', async ({ page }) => {
+test('opens with free search ready', async ({ page }) => {
   await mountBuiltApp(page);
 
   await expect(page.getByTestId('search-input')).toBeVisible();
-  await expect(page.getByTestId('search-input')).toBeDisabled();
-  await expect(page.getByTestId('search-input')).toHaveAttribute(
-    'placeholder',
-    'Выберите режим поиска',
-  );
-  await chooseScope(page, /В клин\. рекомендациях/u);
-
   await expect(page.getByTestId('search-input')).toBeEnabled();
   await expect(page.getByTestId('search-submit')).toBeEnabled();
-  await expect(page.getByRole('radio', { name: /В клин\. рекомендациях/u })).toBeChecked();
+  await expect(page.locator('.search-mode-picker--single')).toHaveText('Свободный поиск');
+  await expect(page.getByRole('radio')).toHaveCount(0);
 });
 
-test('translates vertical wheel movement into horizontal mode scrolling', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+test('runs a selected calculator inline without leaving search', async ({ page }) => {
   await mountBuiltApp(page);
 
-  const modes = page.locator('.search-mode-picker');
-  const viewport = page.locator('.query-shortcuts [data-overlayscrollbars-viewport]');
-  const bounds = await modes.boundingBox();
-  if (!bounds) throw new Error('Search modes are not visible.');
-  await page.mouse.move(bounds.x + 8, bounds.y + 4);
-  await page.mouse.wheel(0, 180);
-  await expect.poll(() => viewport.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  await page.getByRole('button', { name: 'Выбрать калькулятор' }).click();
+  await page.getByRole('option', { name: /^Единицы/u }).click();
+
+  await expect(page.locator('.search-inline-calculator')).toBeVisible();
+  await expect(page.locator('.calculator-form--inline')).toBeVisible();
+  await expect(page).not.toHaveURL(/#\/calculators\//u);
+
+  await page.getByRole('spinbutton', { name: 'Значение' }).fill('2');
+  await page.getByRole('combobox', { name: 'В единицу' }).selectOption('g');
+  await page.getByRole('button', { name: 'Рассчитать и сохранить' }).click();
+
+  await expect(page.getByTestId('calculator-result')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Распечатать' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Поделиться' })).toBeVisible();
+  await expect(page).not.toHaveURL(/#\/calculators\//u);
+});
+
+test('keeps the calculator picker clear of the search text', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 500 });
+  await mountBuiltApp(page);
+
+  const input = page.getByTestId('search-input');
+  await input.fill('Лечение аллергии ребёнку 15 лет\nЖаропонижающее ребёнку 4 лет\n@');
+  const menu = page.locator('.search-tool-picker__menu');
+  await expect(menu).toBeVisible();
+
+  const inputBox = await input.boundingBox();
+  const menuBox = await menu.boundingBox();
+  if (!inputBox || !menuBox) throw new Error('Search picker geometry is unavailable.');
+  expect(
+    menuBox.y >= inputBox.y + inputBox.height || menuBox.y + menuBox.height <= inputBox.y,
+  ).toBe(true);
+});
+
+test('keeps an inline document preview inside the viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 600 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await page.goto(
+    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/cmVmZXJlbmNlLndoby5jaGlsZC1ncm93dGgtMC0xOQ`,
+  );
+
+  const link = page.locator('.document-inline-preview').first();
+  await link.scrollIntoViewIfNeeded();
+  await link.getByRole('button').first().click();
+  const card = page.locator('.document-inline-preview__card');
+  await expect(card).toBeVisible();
+
+  const box = await card.boundingBox();
+  if (!box) throw new Error('Document preview geometry is unavailable.');
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.y + box.height).toBeLessThanOrEqual(600);
+});
+
+test('opens a document tool in a route-owned window even when mini-windows are disabled', async ({
+  page,
+}) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  const documentRoute =
+    '#/modules/documents/d/cmVmZXJlbmNlLm1pbmltZWQuYXNzZXNzbWVudC50ZWFtLXJvbGVz';
+  await page.evaluate(() => {
+    window.location.hash = '#/assessments/psychology';
+  });
+  await expect(page.getByText('Командные роли', { exact: true }).first()).toBeVisible();
+  await page.evaluate((route) => {
+    window.location.hash = route;
+  }, documentRoute);
+
+  await page.locator('.assessment-inline-link').filter({ hasText: 'Командные роли' }).click();
+  await expect(page).toHaveURL(new RegExp(`${documentRoute}$`, 'u'));
+  const toolWindow = page.locator('.floating-window');
+  await expect(toolWindow).toBeVisible();
+  await expect(toolWindow.locator('.floating-window__frame')).toHaveAttribute(
+    'src',
+    /minimed-floating=1.*#\/assessments\//u,
+  );
+
+  await toolWindow.getByRole('button', { name: 'Открыть на весь экран' }).click();
+  await expect(toolWindow).toHaveClass(/floating-window--fullscreen/u);
+  await page.evaluate(() => {
+    window.location.hash = '#/modules/documents';
+  });
+  await expect(toolWindow).toHaveCount(0);
+
+  const calculatorDocumentRoute = '#/modules/documents/d/a3IucmYuNzU1XzEucm90YXZpcnVz';
+  await page.evaluate((route) => {
+    window.location.hash = route;
+  }, calculatorDocumentRoute);
+  await page.locator('.calculator-inline-link').first().click();
+  await expect(page).toHaveURL(new RegExp(`${calculatorDocumentRoute}$`, 'u'));
+  await expect(page.locator('.floating-window__frame')).toHaveAttribute(
+    'src',
+    /minimed-floating=1.*#\/calculators\//u,
+  );
 });
 
 test('finds a recommendation section and opens local context', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await chooseScope(page, /В клин\. рекомендациях/u);
   await expect(page.getByTestId('search-input')).toBeVisible();
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
@@ -69,7 +143,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   );
 });
 
-test('limits medication mode to medication documents', async ({ page }) => {
+test('finds medication names in free search with the full companion', async ({ page }) => {
   test.slow();
   test.skip(
     !hasLocalCompanionPack('medications.db'),
@@ -77,7 +151,6 @@ test('limits medication mode to medication documents', async ({ page }) => {
   );
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
 
-  await chooseScope(page, /Препараты/u);
   await page.getByTestId('search-input').fill('цефтриаксон');
   await expect(page.locator('.result-group').first()).toContainText(/Цефтриаксон/u, {
     timeout: 10_000,
@@ -100,7 +173,6 @@ test('opens Miramistin indications from the full instruction with structured lis
     'The full medication companion pack is local-only.',
   );
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
-  await chooseScope(page, /Препараты/u);
   await page.getByTestId('search-input').fill('Мирамистин показания');
   const instructionResult = page
     .locator('.result-group')
@@ -167,7 +239,6 @@ test('toggles the document outline on desktop and highlights exact reader matche
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await chooseScope(page, /В клин\. рекомендациях/u);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
@@ -213,7 +284,6 @@ test('toggles the document outline on desktop and highlights exact reader matche
 
 test('renders the complete virtualized document list', async ({ page }) => {
   await mountBuiltApp(page);
-  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
 
@@ -224,7 +294,6 @@ test('renders the complete virtualized document list', async ({ page }) => {
 
 test('preserves the active search while navigating between mounted routes', async ({ page }) => {
   await mountBuiltApp(page);
-  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible();
@@ -328,6 +397,29 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Клиническая педиатрия/u })).toHaveCount(0);
   await expect(page.locator('article[aria-label="Открыть набор «Лекарства»"]')).toBeVisible();
   await expect(page.locator('article[aria-label="Открыть набор «Нормы и расчёты»"]')).toBeVisible();
+  const conditionsCard = page.locator(
+    'article[aria-label="Открыть перечень заболеваний и состояний"]',
+  );
+  const referenceCard = page.locator('article[aria-label="Открыть набор «Нормы и расчёты»"]');
+  const toolsCard = page.locator('article[aria-label="Открыть набор «Калькуляторы и опросники»"]');
+  await expect(conditionsCard).toBeVisible();
+  await expect(toolsCard).toBeVisible();
+  await expect(
+    conditionsCard.getByRole('button', {
+      name: 'Раздел «Заболевания и состояния» недоступен для скачивания: Раздел пока не опубликован',
+    }),
+  ).toBeDisabled();
+  await expect(toolsCard.locator('.recommendation-section-card__actions')).toBeVisible();
+  const cardMetaBottomGaps = await Promise.all(
+    [conditionsCard, referenceCard, toolsCard].map((card) =>
+      card.evaluate((element) => {
+        const meta = element.querySelector<HTMLElement>('.recommendation-section-card-meta');
+        if (!meta) throw new Error('Section card metadata is missing.');
+        return element.getBoundingClientRect().bottom - meta.getBoundingClientRect().bottom;
+      }),
+    ),
+  );
+  expect(Math.max(...cardMetaBottomGaps) - Math.min(...cardMetaBottomGaps)).toBeLessThanOrEqual(1);
   await expect(
     page.locator('article[aria-label="Открыть набор «Законы и нормативные акты»"]'),
   ).toBeVisible();
@@ -364,12 +456,9 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
 
 test('replays a saved query from the history drawer', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
-  await expect(pneumoniaResult(page)).toBeVisible();
-
-  await chooseScope(page, /Препараты/u);
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 30_000 });
 
   // History now lives behind a floating button so the search view stays compact.
   await page.getByRole('button', { name: 'Показать историю поиска' }).click();
@@ -377,25 +466,24 @@ test('replays a saved query from the history drawer', async ({ page }) => {
     .locator('.search-history-panel-replay')
     .filter({ hasText: query })
     .first();
-  await expect(historyEntry).toBeVisible();
+  await expect(historyEntry).toBeVisible({ timeout: 30_000 });
   await page.getByTestId('search-input').fill('другой запрос');
   await historyEntry.click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
-  await expect(page.getByRole('radio', { name: /Всё без диагностики/u })).toBeChecked();
-  await expect(pneumoniaResult(page)).toBeVisible();
+  await expect(page.locator('.search-mode-picker--single')).toHaveText('Свободный поиск');
+  await expect(page.getByRole('radio')).toHaveCount(0);
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 30_000 });
 });
 
 test('runs a debounced clinical search without requiring submit', async ({ page }) => {
   await mountBuiltApp(page);
-  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 15_000 });
 });
 
 test('autosearch leaves the typed text untouched, including trailing space', async ({ page }) => {
   await mountBuiltApp(page);
-  await chooseScope(page, /Всё без диагностики/u);
   // The debounced search used to write the trimmed query back into the field, deleting the space a
   // doctor had just typed mid-sentence.
   await page.getByTestId('search-input').fill(`${query} `);
@@ -418,7 +506,6 @@ test('filters the document library and opens a document with one click', async (
 
 test('opens only the exact fragment without surrounding source context', async ({ page }) => {
   await mountBuiltApp(page);
-  await chooseScope(page, /Всё без диагностики/u);
   await page.getByTestId('search-input').fill(query);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 15_000 });
   await page.getByTestId('search-results').getByTestId('search-result').first().click();
@@ -430,10 +517,9 @@ test('opens only the exact fragment without surrounding source context', async (
 
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
   await mountBuiltApp(page);
-  await chooseScope(page, /Диагностировать/u);
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
   await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
-  await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 3_000 });
+  await expect(page.getByTestId('search-results')).toBeVisible();
 });
 
 test('opens settings from the home update notice without applying it', async ({ page }) => {

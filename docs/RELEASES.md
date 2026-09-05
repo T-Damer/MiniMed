@@ -4,7 +4,8 @@
 
 1. Update `CHANGELOG.md` and root `release.json`; update the corpus manifest only when its snapshot
    version also changes.
-2. Verify the existing generated artifacts; rebuild only artifacts whose inputs changed. Never replace
+2. Run `bun run content:restore:core` to restore the checksum-verified compressed discovery core.
+   Verify the existing generated artifacts; rebuild only artifacts whose inputs changed. Never replace
    `apps/app/public/content/core.db` with the smaller pilot/fixture pack. Source SQLite databases and
    private full medication builds remain untouched by application publication.
 3. Run `bun run verify`.
@@ -20,7 +21,9 @@ verified corpus version; release evidence records both versions.
 
 Android verifies the bundled `core.db` against the tracked build report, checksum, SQLite integrity,
 foreign keys and FTS counts. Automatic pilot rebuilds produce benchmark evidence only; they do not
-commit a replacement core. GitHub Pages and Android use the same canonical filename.
+commit a replacement core. GitHub Pages and Android use the same canonical filename. Git stores `content/bundled/core.db.gz`
+(the uncompressed database exceeds GitHub’s file limit); update that archive together with the
+report whenever the discovery core changes. Dev/build/verification restore and checksum-check it.
 
 ```bash
 git status --short

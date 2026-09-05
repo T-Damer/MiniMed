@@ -1,6 +1,11 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import {
+  AppContextMenu,
+  type AppContextMenuAction,
+  requestContextMenu,
+} from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
@@ -16,6 +21,7 @@ import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { Chart } from '@/features/calculators/CalculatorChart';
 import {
   attachedResultNoteTitle,
   snapshotAssessmentForNote,
@@ -51,17 +57,33 @@ export function AssessmentResultPage(props: {
   const [shareMessage, setShareMessage] = createSignal('');
   const completed = () => (props.record.kind === 'completed' ? props.record.result : undefined);
   const manualText = () => (props.record.kind === 'manual' ? props.record.text : '');
-  const printResult = (): void => {
+  const printResult = (includeQuestions = false): void => {
     if (
       !printAssessmentRecord(
         props.definition,
         props.record,
         attachedResultNoteTitle(props.notes, props.record.id),
+        includeQuestions,
       )
     ) {
       props.onMessage('Не удалось открыть окно печати.');
     }
   };
+  const printActions = (): readonly AppContextMenuAction[] => [
+    {
+      id: 'result',
+      label: 'Печатать результат',
+      icon: 'printer',
+      onSelect: () => printResult(),
+    },
+    {
+      id: 'result-with-questions',
+      label: 'Печатать вместе с вопросами',
+      icon: 'list-checks',
+      disabled: props.record.kind !== 'completed',
+      onSelect: () => printResult(true),
+    },
+  ];
 
   onMount(() => {
     const hideFloatingControls = (): void => {
@@ -133,15 +155,21 @@ export function AssessmentResultPage(props: {
         description={`${props.definition.description} · ${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`}
         actions={
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
-            <Button
-              type="button"
-              variant="icon"
-              class="knowledge-back-button assessment-result-print-button"
-              aria-label="Распечатать результат"
-              title="Распечатать результат"
-              onClick={printResult}
-              icon={<AppGlyph name="printer" class="assessment-questionnaire-print__icon" />}
-            />
+            <AppContextMenu
+              actions={printActions()}
+              hideButton
+              class="assessment-result-print-menu"
+            >
+              <Button
+                type="button"
+                variant="icon"
+                class="knowledge-back-button assessment-result-print-button"
+                aria-label="Печать результата"
+                title="Печать результата"
+                onClick={requestContextMenu}
+                icon={<AppGlyph name="printer" class="assessment-result-print-button__icon" />}
+              />
+            </AppContextMenu>
             <Button
               type="button"
               variant="icon"
@@ -210,6 +238,15 @@ export function AssessmentResultPage(props: {
             <Show when={result().summary.trim()}>
               <p class="assessment-result-summary__text">{result().summary}</p>
             </Show>
+            <For each={result().visuals ?? []}>
+              {(visual) => (
+                <Chart
+                  title={visual.title ?? props.definition.title}
+                  spec={visual}
+                  {...(visual.heightPx === undefined ? {} : { heightPx: visual.heightPx })}
+                />
+              )}
+            </For>
             <Show when={result().scores.length > 0}>
               <div class="assessment-score-list">
                 <For each={result().scores}>

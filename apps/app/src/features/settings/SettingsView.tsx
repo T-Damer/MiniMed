@@ -8,9 +8,6 @@ import { Page } from '@/components/Page';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { Switch } from '@/components/Switch';
 import { AsrSettings } from '@/features/asr/AsrSettings';
-import type { LocalModelController } from '@/features/models/controller';
-import { ModelSettings } from '@/features/models/ModelSettings';
-import type { LocalModelState } from '@/features/models/types';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
@@ -25,12 +22,12 @@ import { StatusPanel } from '@/features/status/StatusPanel';
 import {
   getExperimentalModulesEnabled,
   getFloatingWindowsEnabled,
-  getRememberSearchMode,
+  getModuleAutoUpdatesEnabled,
   getSoundVolume,
   getVibrationEnabled,
   setExperimentalModulesEnabled,
   setFloatingWindowsEnabled,
-  setRememberSearchMode,
+  setModuleAutoUpdatesEnabled,
   setSoundVolume,
   setVibrationEnabled,
   subscribeAppPreferences,
@@ -45,7 +42,6 @@ import {
 } from '@/state/return-navigation';
 
 interface SettingsViewProps {
-  readonly controller: LocalModelController;
   readonly status: CoreStatus;
   readonly appUpdateReady: boolean;
   readonly appUpdating: boolean;
@@ -53,14 +49,18 @@ interface SettingsViewProps {
   readonly appUpdateUpToDate: boolean;
   readonly appUpdateProgress: AppUpdateProgress | undefined;
   readonly appUpdateError: string | undefined;
+  readonly appUpdateCancellable: boolean;
   readonly onCheckAppUpdate: () => void;
   readonly onActivateAppUpdate: () => void;
+  readonly onCancelAppUpdate: () => void;
 }
 
 export function SettingsView(props: SettingsViewProps): JSX.Element {
+  const [moduleAutoUpdatesEnabled, setModuleAutoUpdatesEnabledState] = createSignal(
+    getModuleAutoUpdatesEnabled(),
+  );
   const [route, setRoute] = createSignal<SettingsRoute>(readSettingsRoute());
   const [vibrationEnabled, setVibrationEnabledState] = createSignal(getVibrationEnabled());
-  const [rememberSearchMode, setRememberSearchModeState] = createSignal(getRememberSearchMode());
   const [soundVolume, setSoundVolumeState] = createSignal(getSoundVolume());
   const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
     getFloatingWindowsEnabled(),
@@ -68,7 +68,6 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   const [experimentalModulesEnabled, setExperimentalModulesEnabledState] = createSignal(
     getExperimentalModulesEnabled(),
   );
-  const [model, setModel] = createSignal<LocalModelState>(props.controller.getState());
   const [returnTo, setReturnTo] = createSignal(peekReturnTo());
 
   const refreshRoute = (): void => {
@@ -88,17 +87,15 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
     window.addEventListener(RETURN_TO_EVENT, syncReturnTo);
     const unsubscribePreferences = subscribeAppPreferences((preferences) => {
       setVibrationEnabledState(preferences.vibrationEnabled);
-      setRememberSearchModeState(preferences.rememberSearchMode);
       setSoundVolumeState(preferences.soundVolume);
       setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
       setExperimentalModulesEnabledState(preferences.experimentalModulesEnabled);
+      setModuleAutoUpdatesEnabledState(preferences.moduleAutoUpdatesEnabled);
     });
-    const unsubscribeModel = props.controller.subscribe(setModel);
     onCleanup(() => {
       window.removeEventListener('hashchange', refreshRoute);
       window.removeEventListener(RETURN_TO_EVENT, syncReturnTo);
       unsubscribePreferences();
-      unsubscribeModel();
     });
   });
 
@@ -156,8 +153,10 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           updating={() => props.appUpdating}
           progress={() => props.appUpdateProgress}
           error={() => props.appUpdateError}
+          cancellable={() => props.appUpdateCancellable}
           onCheck={props.onCheckAppUpdate}
           onActivate={props.onActivateAppUpdate}
+          onCancel={props.onCancelAppUpdate}
         />
 
         <section
@@ -211,21 +210,6 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           <div class="settings-row">
             <div class="settings-row__text">
               <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph name="search" class="settings-row__label-icon" aria-hidden="true" />
-                Запоминать режим поиска
-              </span>
-              <p class="settings-row__helper">Открывать поиск с последним выбранным режимом</p>
-            </div>
-            <Switch
-              checked={rememberSearchMode()}
-              aria-label="Запоминать режим поиска"
-              onChange={(checked) => setRememberSearchMode(checked)}
-            />
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row__text">
-              <span class="settings-row__label settings-row__label--with-icon">
                 <AppGlyph name="cube" class="settings-row__label-icon" aria-hidden="true" />
                 Experimental
               </span>
@@ -238,6 +222,20 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
               checked={experimentalModulesEnabled()}
               aria-label="Экспериментальные базы"
               onChange={(checked) => setExperimentalModulesEnabled(checked)}
+            />
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row__text">
+              <span class="settings-row__label">Автообновление пакетов знаний</span>
+              <p class="settings-row__helper">
+                Автоматически скачивать новые версии уже установленных пакетов.
+              </p>
+            </div>
+            <Switch
+              checked={moduleAutoUpdatesEnabled()}
+              aria-label="Автообновление пакетов знаний"
+              onChange={setModuleAutoUpdatesEnabled}
             />
           </div>
 
@@ -287,8 +285,6 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           <ContentDownloadStatus compact />
         </a>
 
-        <ModelSettings controller={props.controller} />
-
         <EcgModelSettings />
 
         <AsrSettings />
@@ -304,40 +300,6 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
               aria-hidden="true"
             />
           </summary>
-          <section class="system-model-technical">
-            <h3>Локальная модель</h3>
-            <div class="model-settings-summary">
-              <div>
-                <span>Режим</span>
-                <strong>
-                  {props.controller.getPreference().automatic ? 'автоматический' : 'ручной'}
-                </strong>
-              </div>
-              <div>
-                <span>Каталог</span>
-                <strong>{model().catalogSource ?? 'не загружен'}</strong>
-              </div>
-              <div>
-                <span>Устройство</span>
-                <strong>
-                  {model().device
-                    ? `${model().device?.platform} · ${model().device?.deviceMemoryGb ?? '?'} ГБ`
-                    : 'не проверено'}
-                </strong>
-              </div>
-              <Show when={model().benchmark}>
-                {(benchmark) => (
-                  <div>
-                    <span>Последний тест</span>
-                    <strong>
-                      {Math.round(benchmark().loadMs)} мс / {Math.round(benchmark().generationMs)}{' '}
-                      мс
-                    </strong>
-                  </div>
-                )}
-              </Show>
-            </div>
-          </section>
           <StatusPanel initialStatus={props.status} />
         </details>
 

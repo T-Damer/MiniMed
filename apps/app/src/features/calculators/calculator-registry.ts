@@ -1,4 +1,4 @@
-import type { ToolDefinitionRecord } from '@localmed/contracts';
+import type { CalculatorToolPreview, ToolDefinitionRecord } from '@localmed/contracts';
 import {
   clearDownloadedCalculatorSchemas,
   registerDownloadedCalculatorSchema,
@@ -8,6 +8,8 @@ import type {
   AvailableCalculatorDefinition,
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
+
+import { TOOL_CATALOG } from '@/features/modules/module-catalog';
 
 const DOWNLOADED_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
 
@@ -135,10 +137,17 @@ export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
   },
 ];
 
+const CORE_CALCULATOR_CATALOG = TOOL_CATALOG.filter((entry) => entry.kind === 'calculator').map(
+  (entry) => calculatorCatalogDefinition(entry, entry.preview),
+);
+
 export function getCalculatorRegistry(): readonly CalculatorDefinition[] {
   return [
-    ...CALCULATOR_REGISTRY.filter((definition) => !DOWNLOADED_CALCULATORS.has(definition.id)),
-    ...DOWNLOADED_CALCULATORS.values(),
+    ...new Map<string, CalculatorDefinition>(
+      [...CALCULATOR_REGISTRY, ...CORE_CALCULATOR_CATALOG, ...DOWNLOADED_CALCULATORS.values()].map(
+        (definition) => [definition.id, definition],
+      ),
+    ).values(),
   ];
 }
 
@@ -150,7 +159,17 @@ export function registerDownloadedCalculator(record: ToolDefinitionRecord): void
   }
   const schema = validation.schema;
   registerDownloadedCalculatorSchema(record);
-  DOWNLOADED_CALCULATORS.set(record.id, {
+  DOWNLOADED_CALCULATORS.set(record.id, calculatorCatalogDefinition(record, schema));
+}
+
+function calculatorCatalogDefinition(
+  record: Pick<
+    ToolDefinitionRecord,
+    'id' | 'version' | 'slug' | 'title' | 'shortTitle' | 'aliases'
+  >,
+  schema: CalculatorToolPreview,
+): AvailableCalculatorDefinition {
+  return {
     id: record.id,
     version: record.version,
     slug: record.slug,
@@ -181,7 +200,7 @@ export function registerDownloadedCalculator(record: ToolDefinitionRecord): void
       url: source.url ?? '',
       reviewedAt: source.reviewedAt,
     })),
-  });
+  };
 }
 
 export const AVAILABLE_CALCULATORS: readonly AvailableCalculatorDefinition[] =

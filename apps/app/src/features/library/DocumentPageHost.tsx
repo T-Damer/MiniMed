@@ -29,6 +29,7 @@ import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
   installModulePointer,
   type ModulePointerResolution,
+  modulePointerTargetAnchor,
   parseModulePointerMetadata,
   resolveModulePointer,
 } from '@/features/modules/module-pointer-install';
@@ -233,8 +234,19 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           pointer.targetDocumentId !== documentId &&
           (availableIds.has(pointer.targetDocumentId) || resolution.state === 'installed')
         ) {
-          openDocumentOverlay(pointer.targetDocumentId, initialAnchor(), { preferSummary: true });
-          return;
+          const target = await core.getDocument(pointer.targetDocumentId);
+          if (loadingDocumentId !== documentId) return;
+          if (target.ok && target.value.sections.some((section) => section.chunks.length > 0)) {
+            openDocumentOverlay(
+              pointer.targetDocumentId,
+              modulePointerTargetAnchor(pointerMetadata, initialAnchor()),
+              { preferSummary: true },
+            );
+            return;
+          }
+          setModulePointerInstallError(
+            'Набор установлен, но полный документ недоступен. Повторите подключение в разделе скачивания.',
+          );
         }
       }
       const summary = listed.find((item) => item.id === readableId);
@@ -307,6 +319,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const resolution = modulePointer();
     if (resolution?.state !== 'available' || modulePointerPending()) return;
     const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+    const targetAnchor = modulePointerTargetAnchor(document()?.metadata, initialAnchor());
+    const pointerDocumentId = document()?.id;
     setModulePointerPending(true);
     setModulePointerProgress(null);
     setModulePointerInstallError(null);
@@ -323,7 +337,12 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       if (!listed.some((item) => item.id === resolution.pointer.targetDocumentId)) {
         throw new Error('Набор загружен, но целевой документ не подключился к поиску.');
       }
-      openDocumentOverlay(resolution.pointer.targetDocumentId, initialAnchor(), {
+      const target = await refreshedCore.getDocument(resolution.pointer.targetDocumentId);
+      if (!target.ok || !target.value.sections.some((section) => section.chunks.length > 0)) {
+        throw new Error('Набор загружен, но полный документ не удалось прочитать.');
+      }
+      if (document()?.id !== pointerDocumentId) return;
+      openDocumentOverlay(resolution.pointer.targetDocumentId, targetAnchor, {
         preferSummary: true,
       });
     } catch (cause) {
@@ -505,6 +524,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
             </Show>
             <Show when={parsed.kind === 'official' ? parsed.documentId : null} keyed>
               <OfficialDocumentReader
+                core={props.getCore()}
                 document={document()}
                 {...(pendingTitle() ? { pendingTitle: pendingTitle() as string } : {})}
                 availableDocuments={availableDocuments()}

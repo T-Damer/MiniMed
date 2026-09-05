@@ -9,17 +9,19 @@ export interface AppUpdateReadyDetail {
 }
 
 export interface AppUpdateProgress {
-  readonly phase: 'download' | 'activate';
+  readonly phase: 'download' | 'verifying' | 'ready' | 'install' | 'activate';
   readonly loaded?: number;
-  readonly total?: number;
+  readonly total?: number | null;
 }
 
 export function formatAppUpdateLabel(
   updating: boolean,
   progress: AppUpdateProgress | undefined,
 ): string {
-  if (!updating) return 'Обновить';
+  if (!updating) return progress?.phase === 'ready' ? 'Установить' : 'Обновить';
   if (!progress || progress.phase === 'activate') return 'Активация…';
+  if (progress.phase === 'install') return 'Открываем установщик…';
+  if (progress.phase === 'verifying') return 'Проверяем файл…';
   if (progress.total && progress.total > 0) {
     const percent = Math.min(100, Math.round(((progress.loaded ?? 0) / progress.total) * 100));
     return `Загрузка ${percent}%`;
@@ -59,6 +61,12 @@ interface GitHubReleasePayload {
   readonly assets?: unknown;
 }
 
+interface GitHubReleaseAsset {
+  readonly browser_download_url?: unknown;
+  readonly digest?: unknown;
+  readonly size?: unknown;
+}
+
 function parseVersion(value: string): readonly [number, number, number] | null {
   const parts = value.replace(/^v/u, '').split('.').map(Number);
   if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
@@ -80,21 +88,44 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function releaseApkUrl(release: GitHubReleasePayload): string | null {
+function isGitHubReleaseAsset(value: unknown): value is GitHubReleaseAsset {
+  return isRecord(value);
+}
+
+function optionalReleaseDigest(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim().toLowerCase();
+  return /^sha256:[a-f0-9]{64}$/u.test(normalized) ? normalized : undefined;
+}
+
+function optionalReleaseSize(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : undefined;
+}
+
+function releaseApk(release: GitHubReleasePayload): Omit<AvailableApkUpdate, 'version'> | null {
   if (release.draft === true || !Array.isArray(release.assets)) return null;
   const asset = release.assets.find((candidate) => {
-    if (!isRecord(candidate)) return false;
-    const url = candidate['browser_download_url'];
+    if (!isGitHubReleaseAsset(candidate)) return false;
+    const url = candidate.browser_download_url;
     return typeof url === 'string' && url.toLowerCase().endsWith('.apk');
   });
-  if (!isRecord(asset)) return null;
-  const url = asset['browser_download_url'];
-  return typeof url === 'string' ? url : null;
+  if (!isGitHubReleaseAsset(asset)) return null;
+  const url = asset.browser_download_url;
+  if (typeof url !== 'string') return null;
+  const expectedSha256 = optionalReleaseDigest(asset.digest);
+  const expectedBytes = optionalReleaseSize(asset.size);
+  return {
+    url,
+    ...(expectedSha256 ? { expectedSha256 } : {}),
+    ...(expectedBytes ? { expectedBytes } : {}),
+  };
 }
 
 export interface AvailableApkUpdate {
   readonly version: string;
   readonly url: string;
+  readonly expectedSha256?: string;
+  readonly expectedBytes?: number;
 }
 
 export function appUpdateVersionFromWorker(
@@ -118,21 +149,29 @@ export function selectLatestApkUpdate(
   const current = parseVersion(RELEASE_VERSION);
   if (!current) return null;
 
-  let selected: {
-    readonly version: readonly [number, number, number];
-    readonly label: string;
-    readonly url: string;
-  } | null = null;
+  let selected:
+    | ({
+        readonly version: readonly [number, number, number];
+        readonly label: string;
+      } & Omit<AvailableApkUpdate, 'version'>)
+    | null = null;
   for (const release of releases) {
     if (typeof release.tag_name !== 'string') continue;
     const version = parseVersion(release.tag_name);
-    const url = releaseApkUrl(release);
-    if (!version || !url || compareVersions(version, current) <= 0) continue;
+    const apk = releaseApk(release);
+    if (!version || !apk || compareVersions(version, current) <= 0) continue;
     if (!selected || compareVersions(version, selected.version) > 0) {
-      selected = { version, label: release.tag_name.replace(/^v/u, ''), url };
+      selected = { version, label: release.tag_name.replace(/^v/u, ''), ...apk };
     }
   }
-  return selected ? { version: selected.label, url: selected.url } : null;
+  return selected
+    ? {
+        version: selected.label,
+        url: selected.url,
+        ...(selected.expectedSha256 ? { expectedSha256: selected.expectedSha256 } : {}),
+        ...(selected.expectedBytes ? { expectedBytes: selected.expectedBytes } : {}),
+      }
+    : null;
 }
 
 export async function checkNativeApkUpdate(): Promise<AvailableApkUpdate | null> {

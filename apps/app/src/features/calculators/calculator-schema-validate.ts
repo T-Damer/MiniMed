@@ -67,6 +67,14 @@ export function validateCalculatorSchema(candidate: unknown): CalculatorSchemaVa
   const schema = parsed.data;
   const errors: string[] = [];
   const knownIds = new Set(schema.inputs.map((input) => input.id));
+  const earlierInputIds = new Set<string>();
+
+  for (const input of schema.inputs) {
+    if (input.requiresInput && !earlierInputIds.has(input.requiresInput)) {
+      errors.push(`input "${input.id}": requires unknown or later input "${input.requiresInput}".`);
+    }
+    earlierInputIds.add(input.id);
+  }
 
   for (const step of schema.steps) {
     let node: ExpressionNode;
@@ -89,28 +97,45 @@ export function validateCalculatorSchema(candidate: unknown): CalculatorSchemaVa
 
   for (const visual of schema.visuals) {
     for (const dataset of visual.datasets) {
-      for (const [index, entry] of dataset.data.entries()) {
-        if (typeof entry === 'number') continue;
+      const validateEntry = (
+        entry: number | string,
+        location: string,
+        allowedIds: ReadonlySet<string>,
+      ): void => {
+        if (typeof entry === 'number') return;
         let node: ExpressionNode;
         try {
           node = parseCalculatorExpression(entry);
         } catch (error) {
           const message =
             error instanceof CalculatorExpressionError ? error.message : String(error);
-          errors.push(
-            `visual "${visual.id}" dataset "${dataset.label}" point ${index + 1}: ${message}`,
-          );
-          continue;
+          errors.push(`${location}: ${message}`);
+          return;
         }
         const referenced = new Set<string>();
         referencedVariables(node, referenced);
         for (const name of referenced) {
-          if (!knownIds.has(name)) {
-            errors.push(
-              `visual "${visual.id}" dataset "${dataset.label}" point ${index + 1}: references unknown variable "${name}".`,
-            );
+          if (!allowedIds.has(name)) {
+            errors.push(`${location}: references unknown variable "${name}".`);
           }
         }
+      };
+      const location = `visual "${visual.id}" dataset "${dataset.label}"`;
+      for (const [index, entry] of dataset.data?.entries() ?? []) {
+        validateEntry(entry, `${location} point ${index + 1}`, knownIds);
+      }
+      for (const [index, point] of dataset.points?.entries() ?? []) {
+        validateEntry(point.x, `${location} point ${index + 1} X`, knownIds);
+        validateEntry(point.y, `${location} point ${index + 1} Y`, knownIds);
+      }
+      if (dataset.sample) {
+        if (knownIds.has(dataset.sample.variable)) {
+          errors.push(`${location}: sample variable "${dataset.sample.variable}" shadows a value.`);
+        }
+        const sampleIds = new Set(knownIds);
+        sampleIds.add(dataset.sample.variable);
+        validateEntry(dataset.sample.x, `${location} sample X`, sampleIds);
+        validateEntry(dataset.sample.y, `${location} sample Y`, sampleIds);
       }
     }
   }

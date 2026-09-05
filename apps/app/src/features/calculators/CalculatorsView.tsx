@@ -1,4 +1,4 @@
-import type { CalculatorSchema } from '@localmed/contracts';
+import type { CalculatorSchema, ContentModuleCatalogEntry } from '@localmed/contracts';
 import {
   createEffect,
   createMemo,
@@ -23,6 +23,7 @@ import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { CalculatorChart } from '@/features/calculators/CalculatorChart';
+import { consumeCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
 import type {
   CalculatorInstallationState,
   CalculatorSectionId,
@@ -39,6 +40,7 @@ import {
   isCalculatorSectionFromDatabase,
   loadCalculatorInstallationState,
   moduleIdForCalculatorSection,
+  moduleIdsForCalculatorSection,
   removeCalculatorSection,
   setDatabaseCalculatorIds,
 } from '@/features/calculators/calculator-packs';
@@ -48,7 +50,6 @@ import {
   shareCalculationRecord,
 } from '@/features/calculators/calculator-print';
 import {
-  CALCULATOR_REGISTRY,
   clearDownloadedCalculators,
   ECG_PHOTO_CALIPER_ID,
   findCalculator,
@@ -64,7 +65,9 @@ import {
 import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import {
   type CalculatorSchemaEvaluation,
+  calculatorSchemaInputsReady,
   evaluateCalculatorSchema,
+  initialCalculatorSchemaValues,
   toStoredCalculationResult,
 } from '@/features/calculators/calculator-schema-engine';
 import type {
@@ -82,13 +85,19 @@ import {
   type QuantityFamily,
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import {
+  contentModuleNeedsInstall,
+  isModuleReleased,
+} from '@/features/modules/local-packaged-modules';
+import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
+import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import {
   attachedResultNoteTitle,
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
 import { notesPatientsPath } from '@/features/notes/notes-routing';
+import { getExperimentalModulesEnabled, subscribeAppPreferences } from '@/state/app-preferences';
 import {
   type CalculationRecord,
   createCalculationRecord,
@@ -218,6 +227,8 @@ function CalculatorSectionCard(props: {
   readonly section: (typeof CALCULATOR_SECTIONS)[number];
   readonly installation: CalculatorInstallationState;
   readonly definitions: readonly CalculatorDefinition[];
+  readonly downloadableModules: readonly ContentModuleCatalogEntry[];
+  readonly downloadLabel: string;
   readonly onOpenSection: (sectionId: CalculatorSectionId) => void;
   readonly onInstall: (sectionId: CalculatorSectionId) => void;
   readonly onRemove: (sectionId: CalculatorSectionId) => void;
@@ -235,6 +246,8 @@ function CalculatorSectionCard(props: {
   const core = () => isCalculatorSectionCore(props.section.id, props.definitions);
   const bundled = () =>
     core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions);
+  const hasDownloads = () => props.downloadableModules.length > 0;
+  const removable = () => !hasDownloads() && !bundled() && complete();
 
   return (
     <section
@@ -253,33 +266,35 @@ function CalculatorSectionCard(props: {
           <h2>{props.section.title}</h2>
           <p>{props.section.description}</p>
           <small>
-            {availableCount() === 0
-              ? 'Доступных инструментов пока нет · источники и правила ещё проверяются'
-              : core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions)
-                ? 'Всегда доступно, без скачивания'
-                : `${installedCount()}/${availableCount()} скачано на устройство`}
+            {hasDownloads()
+              ? `${bundled() || installedCount() > 0 ? 'Доступно офлайн · ' : ''}${props.downloadLabel}: ${props.downloadableModules.map((module) => `${module.title} (${formatModuleBytes(module.sizes.downloadBytes)})`).join(', ')}`
+              : availableCount() === 0
+                ? 'Доступных инструментов пока нет · источники и правила ещё проверяются'
+                : core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions)
+                  ? 'Доступно офлайн'
+                  : `Доступно офлайн: ${installedCount()} из ${availableCount()}`}
           </small>
         </div>
         <div class="calculator-section-actions">
-          <Show when={availableCount() > 0 && !bundled()}>
+          <Show when={hasDownloads() || (availableCount() > 0 && !bundled())}>
             <Button
               type="button"
               variant="icon"
               class="calculator-section-action"
-              classList={{ 'calculator-section-remove': complete() }}
+              classList={{ 'calculator-section-remove': removable() }}
               aria-label={
-                complete()
+                removable()
                   ? `Удалить раздел «${props.section.title}»`
-                  : `Скачать раздел «${props.section.title}»`
+                  : `${props.downloadLabel} — ${props.section.title}`
               }
-              title={complete() ? 'Удалить раздел' : 'Скачать раздел'}
+              title={removable() ? 'Удалить раздел' : props.downloadLabel}
               onClick={() =>
-                complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
+                removable() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
               }
               icon={
                 <AppGlyph
                   class="calculator-section-action-icon"
-                  name={complete() ? 'trash' : 'download'}
+                  name={removable() ? 'trash' : 'download'}
                 />
               }
             />
@@ -294,6 +309,8 @@ function CalculatorSectionPage(props: {
   readonly section: (typeof CALCULATOR_SECTIONS)[number];
   readonly installation: CalculatorInstallationState;
   readonly definitions: readonly CalculatorDefinition[];
+  readonly downloadableModules: readonly ContentModuleCatalogEntry[];
+  readonly downloadLabel: string;
   readonly onOpen: (definition: AvailableCalculatorDefinition) => void;
   readonly onInstallCalculator: (definition: AvailableCalculatorDefinition) => void;
   readonly onBack: () => void;
@@ -308,6 +325,8 @@ function CalculatorSectionPage(props: {
   const core = () => isCalculatorSectionCore(props.section.id, props.definitions);
   const bundled = () =>
     core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions);
+  const hasDownloads = () => props.downloadableModules.length > 0;
+  const removable = () => !hasDownloads() && !bundled() && complete();
 
   return (
     <section class="calculator-section-page">
@@ -328,30 +347,38 @@ function CalculatorSectionPage(props: {
           <Heading depth={2}>{props.section.title}</Heading>
           <p>{props.section.description}</p>
         </div>
-        <Show when={!bundled() && availableCount() > 0}>
+        <Show when={hasDownloads() || (!bundled() && availableCount() > 0)}>
           <Button
             type="button"
             variant="icon"
             class="calculator-section-action"
-            classList={{ 'calculator-section-remove': complete() }}
+            classList={{ 'calculator-section-remove': removable() }}
             aria-label={
-              complete()
+              removable()
                 ? `Удалить раздел «${props.section.title}»`
-                : `Скачать раздел «${props.section.title}»`
+                : `${props.downloadLabel} — ${props.section.title}`
             }
-            title={complete() ? 'Удалить раздел' : 'Скачать раздел'}
+            title={removable() ? 'Удалить раздел' : props.downloadLabel}
             onClick={() =>
-              complete() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
+              removable() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
             }
             icon={
               <AppGlyph
                 class="calculator-section-action-icon"
-                name={complete() ? 'trash' : 'download'}
+                name={removable() ? 'trash' : 'download'}
               />
             }
           />
         </Show>
       </header>
+      <Show when={hasDownloads()}>
+        <p class="calculator-section-page__status" role="status">
+          {props.downloadLabel}:{' '}
+          {props.downloadableModules
+            .map((module) => `${module.title} (${formatModuleBytes(module.sizes.downloadBytes)})`)
+            .join(', ')}
+        </p>
+      </Show>
       <Show when={availableCount() === 0}>
         <p class="calculator-section-page__status" role="status">
           В этом разделе пока нет доступных калькуляторов. Инструменты находятся в подготовке.
@@ -385,8 +412,47 @@ function CalculatorSectionPage(props: {
   );
 }
 
+function CalculatorInputTooltip(props: {
+  readonly inputId: string;
+  readonly label: string;
+  readonly text: string;
+}): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const tooltipId = `calculator-input-${props.inputId}-tooltip`;
+  let root: HTMLSpanElement | undefined;
+  createEffect(() => {
+    if (!open()) return;
+    const closeOnOutsidePointer = (event: PointerEvent): void => {
+      if (event.target instanceof Node && !root?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    onCleanup(() => document.removeEventListener('pointerdown', closeOnOutsidePointer));
+  });
+  return (
+    <span class="calculator-form__tooltip" ref={root}>
+      <button
+        type="button"
+        class="calculator-form__tooltip-button"
+        aria-label={`Подсказка: ${props.label}`}
+        aria-expanded={open()}
+        aria-controls={tooltipId}
+        onClick={() => setOpen((current) => !current)}
+      >
+        ?
+      </button>
+      <Show when={open()}>
+        <span id={tooltipId} class="calculator-form__tooltip-content" role="tooltip">
+          {props.text}
+        </span>
+      </Show>
+    </span>
+  );
+}
+
 function CalculatorForm(props: {
   readonly definition: AvailableCalculatorDefinition;
+  readonly initialValues?: Readonly<Record<string, string | number>>;
+  readonly inline?: boolean;
   readonly onRecord: (record: CalculationRecord) => void;
   readonly onMessage: (message: string) => void;
 }): JSX.Element {
@@ -427,6 +493,12 @@ function CalculatorForm(props: {
     const schema = getCalculatorSchema(props.definition.id);
     return schema !== undefined && schemaStep() < maxSchemaStep(schema);
   };
+  const schemaInputsReady = (): boolean => {
+    const schema = getCalculatorSchema(props.definition.id);
+    return (
+      schema === undefined || calculatorSchemaInputsReady(schema, schemaValues(), schemaStep())
+    );
+  };
   const setSchemaValue = (id: string, fieldValue: string): void => {
     setSchemaValues((previous) => ({ ...previous, [id]: fieldValue }));
   };
@@ -436,15 +508,16 @@ function CalculatorForm(props: {
   createEffect(() => {
     const schema = getCalculatorSchema(props.definition.id);
     if (!schema) return;
-    const defaults: Record<string, string> = {};
-    for (const input of schema.inputs) {
-      if (input.options?.[0]) {
-        defaults[input.id] = String(input.options[0].value);
-      } else if (input.kind === 'checkbox') {
-        defaults[input.id] = '0';
-      }
-    }
-    setSchemaValues(defaults);
+    setSchemaValues({
+      ...initialCalculatorSchemaValues(schema),
+      ...consumeCalculatorLaunchDraft(props.definition.id, schema.inputs),
+      ...Object.fromEntries(
+        Object.entries(props.initialValues ?? {}).map(([id, fieldValue]) => [
+          id,
+          String(fieldValue),
+        ]),
+      ),
+    });
     setSchemaStep(0);
     setSchemaPreview(undefined);
   });
@@ -496,6 +569,7 @@ function CalculatorForm(props: {
     if (patientId()) {
       try {
         const schema = getCalculatorSchema(props.definition.id);
+        const measurementDate = rawInputs['measurement_date'];
         const saved = await recordCalculatorResultForPatient({
           patientId: patientId(),
           ...(episodeId() ? { episodeId: episodeId() } : {}),
@@ -506,7 +580,10 @@ function CalculatorForm(props: {
           ...(schema ? { schema } : {}),
           result,
           rawInputs,
-          occurredAt: record.createdAt,
+          occurredAt:
+            typeof measurementDate === 'string'
+              ? `${measurementDate}T00:00:00.000Z`
+              : record.createdAt,
         });
         props.onMessage(
           saved.created
@@ -599,6 +676,7 @@ function CalculatorForm(props: {
   return (
     <form
       class="calculator-form paper-card"
+      classList={{ 'calculator-form--inline': props.inline ?? false }}
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
@@ -617,7 +695,7 @@ function CalculatorForm(props: {
       />
 
       <Show when={selectedPatient()}>
-        <label class="calculator-wide-field">
+        <label class="calculator-form__field calculator-wide-field">
           <span>Осмотр — необязательно</span>
           <select
             class="calculator-form__select"
@@ -638,7 +716,7 @@ function CalculatorForm(props: {
       </Show>
 
       <Show when={props.definition.id === 'unit-conversion'}>
-        <label>
+        <label class="calculator-form__field">
           <span>Величина</span>
           <select
             class="calculator-form__select calculator-form__select--compact"
@@ -650,7 +728,7 @@ function CalculatorForm(props: {
             <option value="volume">Объём</option>
           </select>
         </label>
-        <label>
+        <label class="calculator-form__field">
           <span>Значение</span>
           <input
             type="number"
@@ -661,7 +739,7 @@ function CalculatorForm(props: {
             onInput={(event) => setValue(event.currentTarget.value)}
           />
         </label>
-        <label>
+        <label class="calculator-form__field">
           <span>Из единицы</span>
           <select
             class="calculator-form__select calculator-form__select--compact"
@@ -673,7 +751,7 @@ function CalculatorForm(props: {
             </For>
           </select>
         </label>
-        <label>
+        <label class="calculator-form__field">
           <span>В единицу</span>
           <select
             class="calculator-form__select calculator-form__select--compact"
@@ -693,64 +771,132 @@ function CalculatorForm(props: {
       <Show when={getCalculatorSchema(props.definition.id)}>
         {(schema) => (
           <For each={schema().inputs.filter((input) => input.step <= schemaStep())}>
-            {(input) => (
-              <label
-                for={`calculator-input-${input.id}`}
-                classList={{ 'calculator-form__field--checkbox': input.kind === 'checkbox' }}
-              >
-                <span>
-                  {input.label}
-                  {input.unit ? `, ${input.unit}` : ''}
-                  {input.note ? ` — ${input.note}` : ''}
-                </span>
-                {input.kind === 'checkbox' ? (
-                  <input
-                    id={`calculator-input-${input.id}`}
-                    class="calculator-form__checkbox"
-                    type="checkbox"
-                    checked={(schemaValues()[input.id] ?? '0') === '1'}
-                    onChange={(event) =>
-                      setSchemaValue(input.id, event.currentTarget.checked ? '1' : '0')
-                    }
-                  />
-                ) : (input.options?.length ?? 0) > 0 ? (
-                  <select
-                    id={`calculator-input-${input.id}`}
-                    class="calculator-form__select"
-                    value={schemaValues()[input.id] ?? String(input.options?.[0]?.value ?? '')}
-                    onChange={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                  >
-                    <For each={input.options ?? []}>
-                      {(option) => <option value={String(option.value)}>{option.label}</option>}
-                    </For>
-                  </select>
-                ) : input.kind === 'date' ? (
-                  <input
-                    id={`calculator-input-${input.id}`}
-                    type="date"
-                    value={schemaValues()[input.id] ?? ''}
-                    onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                  />
-                ) : input.kind === 'text' ? (
-                  <input
-                    id={`calculator-input-${input.id}`}
-                    type="text"
-                    value={schemaValues()[input.id] ?? ''}
-                    onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                  />
-                ) : (
-                  <input
-                    id={`calculator-input-${input.id}`}
-                    type="number"
-                    inputmode={input.integer ? 'numeric' : 'decimal'}
-                    min={input.minimum}
-                    max={input.maximum}
-                    step={input.inputStep ?? (input.integer ? 1 : 'any')}
-                    value={schemaValues()[input.id] ?? ''}
-                    onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
-                  />
-                )}
-              </label>
+            {(input) => {
+              const groupedRequirement = schema().inputRequirements.find((requirement) =>
+                requirement.inputIds.includes(input.id),
+              );
+              const disabled = (): boolean =>
+                input.requiresInput !== undefined && !schemaValues()[input.requiresInput];
+              const disabledTitle = (): string | undefined => {
+                if (!disabled()) return undefined;
+                const required = schema().inputs.find(
+                  (candidate) => candidate.id === input.requiresInput,
+                );
+                return required ? `Сначала заполните поле «${required.label}».` : undefined;
+              };
+              return (
+                <div
+                  class="calculator-form__field"
+                  classList={{ 'calculator-form__field--checkbox': input.kind === 'checkbox' }}
+                >
+                  <div class="calculator-form__label-row">
+                    <label class="calculator-form__label" for={`calculator-input-${input.id}`}>
+                      {input.label}
+                      {input.unit ? `, ${input.unit}` : ''}
+                      {input.note ? ` — ${input.note}` : ''}
+                      <Show when={input.required || groupedRequirement}>
+                        <span
+                          class="calculator-form__required-marker"
+                          title={
+                            input.required
+                              ? 'Обязательное поле'
+                              : 'Обязательно заполнить хотя бы одно поле этой группы'
+                          }
+                          aria-hidden="true"
+                        >
+                          *
+                        </span>
+                      </Show>
+                    </label>
+                    <Show when={input.labelTooltip}>
+                      {(tooltip) => (
+                        <CalculatorInputTooltip
+                          inputId={input.id}
+                          label={input.label}
+                          text={tooltip()}
+                        />
+                      )}
+                    </Show>
+                  </div>
+                  {input.kind === 'checkbox' ? (
+                    <input
+                      id={`calculator-input-${input.id}`}
+                      class="calculator-form__checkbox"
+                      type="checkbox"
+                      disabled={disabled()}
+                      title={disabledTitle()}
+                      checked={(schemaValues()[input.id] ?? '0') === '1'}
+                      onChange={(event) =>
+                        setSchemaValue(input.id, event.currentTarget.checked ? '1' : '0')
+                      }
+                    />
+                  ) : (input.options?.length ?? 0) > 0 ? (
+                    <select
+                      id={`calculator-input-${input.id}`}
+                      class="calculator-form__select"
+                      disabled={disabled()}
+                      title={disabledTitle()}
+                      value={schemaValues()[input.id] ?? String(input.options?.[0]?.value ?? '')}
+                      onChange={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                    >
+                      <For each={input.options ?? []}>
+                        {(option) => <option value={String(option.value)}>{option.label}</option>}
+                      </For>
+                    </select>
+                  ) : input.kind === 'date' ? (
+                    <input
+                      id={`calculator-input-${input.id}`}
+                      type="date"
+                      disabled={disabled()}
+                      title={disabledTitle()}
+                      value={schemaValues()[input.id] ?? ''}
+                      onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                    />
+                  ) : input.kind === 'text' ? (
+                    <input
+                      id={`calculator-input-${input.id}`}
+                      type="text"
+                      disabled={disabled()}
+                      title={disabledTitle()}
+                      value={schemaValues()[input.id] ?? ''}
+                      onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                    />
+                  ) : (
+                    <input
+                      id={`calculator-input-${input.id}`}
+                      type="number"
+                      inputmode={input.integer ? 'numeric' : 'decimal'}
+                      min={input.minimum}
+                      max={input.maximum}
+                      step={input.inputStep ?? (input.integer ? 1 : 'any')}
+                      disabled={disabled()}
+                      title={disabledTitle()}
+                      value={schemaValues()[input.id] ?? ''}
+                      onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                    />
+                  )}
+                </div>
+              );
+            }}
+          </For>
+        )}
+      </Show>
+
+      <Show when={getCalculatorSchema(props.definition.id)}>
+        {(schema) => (
+          <For
+            each={schema().inputRequirements.filter(
+              (requirement) =>
+                !requirement.inputIds.some((id) => {
+                  const value = schemaValues()[id];
+                  return value !== undefined && value !== '';
+                }),
+            )}
+          >
+            {(requirement) => (
+              <p class="calculator-form__requirement" role="note">
+                * {requirement.message}
+              </p>
             )}
           </For>
         )}
@@ -804,6 +950,7 @@ function CalculatorForm(props: {
         type="submit"
         variant="primary"
         data-testid="calculator-submit"
+        disabled={!schemaInputsReady()}
         icon={<AppGlyph name="calculator" />}
       >
         <Show when={schemaHasNextStep()} fallback="Рассчитать и сохранить">
@@ -817,7 +964,8 @@ function CalculatorForm(props: {
 function CalculationResultPanel(props: {
   readonly record: CalculationRecord;
   readonly definition: AvailableCalculatorDefinition;
-  readonly onDelete: () => void;
+  readonly inline?: boolean;
+  readonly onDelete?: () => void;
   readonly onMessage: (message: string) => void;
 }): JSX.Element {
   const [notes, setNotes] = createSignal(loadPatientNotes());
@@ -864,7 +1012,11 @@ function CalculationResultPanel(props: {
   };
 
   return (
-    <section class="calculator-result paper-card" data-testid="calculator-result">
+    <section
+      class="calculator-result paper-card"
+      classList={{ 'calculator-result--inline': props.inline ?? false }}
+      data-testid="calculator-result"
+    >
       <Show
         when={feedingPlan()}
         fallback={
@@ -891,7 +1043,7 @@ function CalculationResultPanel(props: {
             <For each={props.record.result.visuals ?? []}>
               {(chart, index) => (
                 <CalculatorChart
-                  title={`График ${index() + 1}`}
+                  title={chart.title ?? `График ${index() + 1}`}
                   spec={chart}
                   {...(chart.heightPx === undefined ? {} : { heightPx: chart.heightPx })}
                 />
@@ -1041,9 +1193,13 @@ function CalculationResultPanel(props: {
         >
           Записать
         </Button>
-        <Button variant="danger" icon={<AppGlyph name="trash" />} onClick={props.onDelete}>
-          Удалить
-        </Button>
+        <Show when={props.onDelete}>
+          {(onDelete) => (
+            <Button variant="danger" icon={<AppGlyph name="trash" />} onClick={onDelete()}>
+              Удалить
+            </Button>
+          )}
+        </Show>
       </div>
 
       <OverlayDialog
@@ -1135,13 +1291,65 @@ function CalculationResultPanel(props: {
   );
 }
 
+export function InlineCalculatorWorkspace(props: {
+  readonly definition: AvailableCalculatorDefinition;
+  readonly initialValues?: Readonly<Record<string, string | number>>;
+}): JSX.Element {
+  const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
+  const notify = (message: string): void => {
+    toast(message, { duration: 3200 });
+  };
+  const clearProtectedResult = (): void => {
+    if (activeRecord()?.patientId) setActiveRecord(undefined);
+  };
+
+  createEffect(() => {
+    const calculatorId = props.definition.id;
+    setActiveRecord((record) => (record?.calculatorId === calculatorId ? record : undefined));
+  });
+  onMount(() => window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult));
+  onCleanup(() => window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult));
+
+  return (
+    <div class="inline-calculator-workspace">
+      <Show
+        when={props.definition.id === ECG_PHOTO_CALIPER_ID}
+        fallback={
+          <CalculatorForm
+            definition={props.definition}
+            {...(props.initialValues === undefined ? {} : { initialValues: props.initialValues })}
+            inline
+            onMessage={notify}
+            onRecord={setActiveRecord}
+          />
+        }
+      >
+        <EcgPhotoCaliper />
+      </Show>
+      <Show when={activeRecord()}>
+        {(record) => (
+          <CalculationResultPanel
+            record={record()}
+            definition={props.definition}
+            inline
+            onMessage={notify}
+          />
+        )}
+      </Show>
+    </div>
+  );
+}
+
 export function CalculatorsView(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
   const [query, setQuery] = createSignal('');
   const [installation, setInstallation] = createSignal<CalculatorInstallationState>(
-    loadCalculatorInstallationState(CALCULATOR_REGISTRY),
+    loadCalculatorInstallationState(getCalculatorRegistry()),
   );
-  const [calculatorRegistry, setCalculatorRegistry] = createSignal(CALCULATOR_REGISTRY);
+  const [calculatorRegistry, setCalculatorRegistry] = createSignal(getCalculatorRegistry());
+  const [experimentalModulesEnabled, setExperimentalModulesEnabled] = createSignal(
+    getExperimentalModulesEnabled(),
+  );
   const [history, setHistory] = createSignal<readonly CalculationRecord[]>(
     loadCalculationHistory(),
   );
@@ -1189,6 +1397,7 @@ export function CalculatorsView(): JSX.Element {
     return downloadedToolsRefresh;
   };
   let unsubscribeToolTasks: (() => void) | undefined;
+  let unsubscribeAppPreferences: (() => void) | undefined;
   const handleStorage = (event: StorageEvent): void => {
     if (!event.key || event.key === 'minimed.calculator-packs.v1') refreshInstallation();
   };
@@ -1203,6 +1412,9 @@ export function CalculatorsView(): JSX.Element {
     unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
       if (task.state === 'completed') void refreshDownloadedTools();
     });
+    unsubscribeAppPreferences = subscribeAppPreferences((preferences) => {
+      setExperimentalModulesEnabled(preferences.experimentalModulesEnabled);
+    });
     void refreshDownloadedTools();
   });
   onCleanup(() => window.removeEventListener('hashchange', refresh));
@@ -1210,6 +1422,7 @@ export function CalculatorsView(): JSX.Element {
   onCleanup(() => window.removeEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation));
   onCleanup(() => window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult));
   onCleanup(() => unsubscribeToolTasks?.());
+  onCleanup(() => unsubscribeAppPreferences?.());
   const notify = (text: string): void => {
     toast(text, { duration: 3200 });
   };
@@ -1234,6 +1447,42 @@ export function CalculatorsView(): JSX.Element {
     calculatorRegistry();
     return searchCalculators(query());
   });
+  const installedModules = createMemo(() => {
+    calculatorRegistry();
+    return new Map(
+      getContentModuleRuntime(MODULE_CATALOG)
+        .listInstalled()
+        .map((module) => [module.moduleId, module] as const),
+    );
+  });
+  const downloadableModulesForSection = (
+    sectionId: CalculatorSectionId,
+  ): readonly ContentModuleCatalogEntry[] => {
+    experimentalModulesEnabled();
+    const moduleIds = moduleIdsForCalculatorSection(sectionId);
+    const sectionAlreadyAvailable =
+      isCalculatorSectionCore(sectionId, calculatorRegistry()) ||
+      isCalculatorSectionFromDatabase(sectionId, calculatorRegistry());
+    const candidateIds = sectionAlreadyAvailable
+      ? moduleIds.filter((moduleId) => moduleId !== moduleIdForCalculatorSection(sectionId))
+      : moduleIds;
+    return candidateIds
+      .map((moduleId) => MODULE_CATALOG.modules.find((module) => module.id === moduleId))
+      .filter(
+        (module): module is ContentModuleCatalogEntry =>
+          module !== undefined &&
+          isModuleReleased(module) &&
+          contentModuleNeedsInstall(module, installedModules().get(module.id)),
+      );
+  };
+
+  const sectionDownloadLabel = (sectionId: CalculatorSectionId): string => {
+    const modules = downloadableModulesForSection(sectionId);
+    if (modules.some((module) => installedModules().has(module.id))) return 'Есть обновление';
+    return isCalculatorSectionComplete(sectionId, installation(), calculatorRegistry())
+      ? 'Скачать дополнения'
+      : 'Скачать раздел';
+  };
 
   const openCalculator = (definition: AvailableCalculatorDefinition): void => {
     setActiveRecord(undefined);
@@ -1263,9 +1512,10 @@ export function CalculatorsView(): JSX.Element {
   const installToolModule = async (moduleId: string | undefined): Promise<void> => {
     if (!moduleId) return;
     const runtime = getContentModuleRuntime(MODULE_CATALOG);
-    if (runtime.listInstalled().some((item) => item.moduleId === moduleId)) return;
     const module = MODULE_CATALOG.modules.find((entry) => entry.id === moduleId);
     if (!module) throw new Error('Модуль инструментов не найден в каталоге.');
+    const installed = runtime.listInstalled().find((item) => item.moduleId === moduleId);
+    if (!contentModuleNeedsInstall(module, installed)) return;
     const task = runtime.install(module);
     const completed = await runtime.wait(task.id);
     if (completed.state !== 'completed') {
@@ -1275,16 +1525,16 @@ export function CalculatorsView(): JSX.Element {
   };
 
   const installSection = (sectionId: CalculatorSectionId): void => {
-    const moduleId = moduleIdForCalculatorSection(sectionId);
+    const modules = downloadableModulesForSection(sectionId);
     const hasBundledCalculator = calculatorsInSection(sectionId, calculatorRegistry()).some(
       (definition) => definition.state === 'available',
     );
-    if (!moduleId && !hasBundledCalculator) return;
+    if (modules.length === 0 && !hasBundledCalculator) return;
     void (async () => {
       try {
         notify('Скачиваем модуль…');
-        await installToolModule(moduleId);
-        setInstallation(installCalculatorSection(sectionId));
+        for (const module of modules) await installToolModule(module.id);
+        setInstallation(installCalculatorSection(sectionId, calculatorRegistry()));
         const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
         notify(`«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`);
       } catch (cause) {
@@ -1296,8 +1546,12 @@ export function CalculatorsView(): JSX.Element {
     void (async () => {
       try {
         notify('Скачиваем модуль…');
-        await installToolModule(moduleIdForCalculatorSection(definition.category));
-        setInstallation(installCalculator(definition.id));
+        await installToolModule(
+          moduleForTool(definition.id)?.id ?? moduleIdForCalculatorSection(definition.category),
+        );
+        if (!getCalculatorSchema(definition.id))
+          throw new Error('Схема инструмента отсутствует в скачанном модуле.');
+        setInstallation(installCalculator(definition.id, calculatorRegistry()));
         notify(`«${definition.title}» скачан. Инструмент доступен офлайн.`);
       } catch (cause) {
         notify(cause instanceof Error ? cause.message : 'Не удалось скачать инструмент.');
@@ -1324,7 +1578,9 @@ export function CalculatorsView(): JSX.Element {
     setPendingDeletion(null);
     if (!pending) return;
     if (pending.kind === 'section') {
-      setInstallation(removeCalculatorSection(pending.id as CalculatorSectionId));
+      setInstallation(
+        removeCalculatorSection(pending.id as CalculatorSectionId, calculatorRegistry()),
+      );
       notify('Раздел удалён. История расчётов сохранена.');
       return;
     }
@@ -1362,9 +1618,9 @@ export function CalculatorsView(): JSX.Element {
                         <p class="archive-kicker">Разделы инструментов</p>
                         <Heading depth={1}>Калькуляторы</Heading>
                         <p>
-                          Скачайте нужный раздел на устройство. После этого его инструменты работают
-                          без сети, а каждый результат сохраняется с формулой и границами
-                          применения.
+                          Откройте нужный калькулятор — установленные инструменты работают без сети.
+                          Дополнительные инструменты можно скачать. Результат сохраняется на
+                          устройстве вместе с формулой и границами применения.
                         </p>
                       </div>
                     </header>
@@ -1390,6 +1646,8 @@ export function CalculatorsView(): JSX.Element {
                               section={section}
                               installation={installation()}
                               definitions={calculatorRegistry()}
+                              downloadableModules={downloadableModulesForSection(section.id)}
+                              downloadLabel={sectionDownloadLabel(section.id)}
                               onOpenSection={openSection}
                               onInstall={installSection}
                               onRemove={removeSection}
@@ -1464,6 +1722,8 @@ export function CalculatorsView(): JSX.Element {
                 section={section()}
                 installation={installation()}
                 definitions={calculatorRegistry()}
+                downloadableModules={downloadableModulesForSection(section().id)}
+                downloadLabel={sectionDownloadLabel(section().id)}
                 onOpen={openCalculator}
                 onBack={backToCatalog}
                 onInstall={installSection}
@@ -1499,6 +1759,27 @@ export function CalculatorsView(): JSX.Element {
                   {definition().title}
                 </Heading>
                 <p class="calculator-subpage-summary">{definition().summary}</p>
+                <details class="calculator-subpage-sources">
+                  <summary class="calculator-subpage-sources__summary">
+                    Источники ({definition().sources.length})
+                  </summary>
+                  <ul class="calculator-subpage-sources__list">
+                    <For each={definition().sources}>
+                      {(source) => (
+                        <li class="calculator-subpage-sources__item">
+                          <a
+                            class="calculator-subpage-sources__link"
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {source.title}
+                          </a>
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                </details>
               </div>
             </header>
 

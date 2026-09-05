@@ -10,6 +10,18 @@ export function shouldResetKnowledgeCatalogScroll(hash: string): boolean {
 }
 
 export function knowledgeDocumentBackHash(route: string): string | null {
+  const conditionDetailMatch = route.match(
+    /^modules\/documents\/conditions\/(diseases|conditions|syndromes|symptoms)\//u,
+  );
+  if (conditionDetailMatch?.[1]) {
+    return `#/modules/documents/conditions/${conditionDetailMatch[1]}`;
+  }
+  if (
+    route === 'modules/documents/conditions' ||
+    /^modules\/documents\/conditions\/(diseases|conditions|syndromes|symptoms)$/u.test(route)
+  ) {
+    return '#/modules/documents';
+  }
   if (route.startsWith('modules/documents/category/')) {
     return '#/modules/documents/recommendations';
   }

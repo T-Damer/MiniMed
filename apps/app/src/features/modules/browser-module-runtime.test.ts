@@ -314,11 +314,11 @@ describe('browser module runtime storage', () => {
     ensureBundledCore(registry, '2026-09-01T00:00:00.000Z');
 
     expect(registry.get('minimed.core.ru')).toMatchObject({
-      version: '1.0.0-preview.3',
+      version: '1.0.0-preview.8',
       installedAt: '2026-08-01T00:00:00.000Z',
-      installedSizeBytes: 97_431_552,
+      installedSizeBytes: 513_986_560,
       activeSourceSetDigest:
-        'sha256:fb6b81dc769d23148170f990177b23a693e65ca31850817d3984df7d6d042508',
+        'sha256:8e68982002d4fe01efe765ba06969cd13d72a94ce6ff6fce46c51cf2479e1993',
     });
   });
 
@@ -326,11 +326,11 @@ describe('browser module runtime storage', () => {
     const registry = new InMemoryInstalledModuleRegistry();
     registry.activate({
       moduleId: 'minimed.core.ru',
-      version: '1.0.0-preview.3',
+      version: '1.0.0-preview.8',
       required: true,
       installedAt: '2026-08-01T00:00:00.000Z',
       installedSizeBytes: 97_431_552,
-      sourceSetDigest: 'sha256:fb6b81dc769d23148170f990177b23a693e65ca31850817d3984df7d6d042508',
+      sourceSetDigest: 'sha256:8e68982002d4fe01efe765ba06969cd13d72a94ce6ff6fce46c51cf2479e1993',
       validation: {
         checkedAt: '2026-08-01T00:00:00.000Z',
         valid: true,

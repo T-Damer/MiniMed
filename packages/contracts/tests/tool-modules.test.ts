@@ -54,6 +54,35 @@ describe('tool module contracts', () => {
           message: '0–1 балл по тестовой шкале.',
         },
       ],
+      visuals: [
+        {
+          id: 'example_chart',
+          title: 'Пример графика',
+          kind: 'scatter',
+          datasets: [
+            {
+              label: 'Результат',
+              points: [{ x: 'percent_example_total', y: 50 }],
+              render: 'point',
+            },
+          ],
+          xAxis: { label: 'Ось X', minimum: 0, maximum: 100 },
+          yAxis: { label: 'Ось Y', minimum: 0, maximum: 100, reverse: true },
+          annotations: [
+            {
+              kind: 'quadrants',
+              x: 50,
+              y: 50,
+              labels: {
+                topLeft: 'A',
+                topRight: 'B',
+                bottomLeft: 'C',
+                bottomRight: 'D',
+              },
+            },
+          ],
+        },
+      ],
       evaluation: {
         status: 'unavailable',
         rules: [],
@@ -78,5 +107,6 @@ describe('tool module contracts', () => {
 
     expect(result.interpretations).toHaveLength(1);
     expect(result.interpretations?.[0]?.headline).toBe('Низкий результат');
+    expect(result.visuals[0]?.kind).toBe('scatter');
   });
 });

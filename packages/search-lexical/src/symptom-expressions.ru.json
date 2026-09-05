@@ -3,6 +3,55 @@
   "language": "ru",
   "entries": [
     {
+      "id": "symptom.apnea",
+      "canonical": "апноэ",
+      "label": "Апноэ",
+      "system": "respiratory",
+      "phrases": ["апноэ"]
+    },
+    {
+      "id": "symptom.rales",
+      "canonical": "хрипы",
+      "label": "Хрипы",
+      "system": "respiratory",
+      "phrases": ["хрипы", "хрипами", "хрипов"]
+    },
+    {
+      "id": "symptom.chest-retractions",
+      "canonical": "втяжение грудной клетки",
+      "label": "Втяжение грудной клетки",
+      "system": "respiratory",
+      "phrases": ["втяжение грудной клетки", "втяжения грудной клетки"]
+    },
+    {
+      "id": "symptom.nasal-flaring",
+      "canonical": "раздувание крыльев носа",
+      "label": "Раздувание крыльев носа",
+      "system": "respiratory",
+      "phrases": ["раздувание крыльев носа", "раздуванием крыльев носа"]
+    },
+    {
+      "id": "symptom.percussion-dullness",
+      "canonical": "притупление перкуторного звука",
+      "label": "Притупление перкуторного звука",
+      "system": "respiratory",
+      "phrases": ["притупление перкуторного звука", "притуплением перкуторного звука"]
+    },
+    {
+      "id": "symptom.respiratory-insufficiency",
+      "canonical": "дыхательная недостаточность",
+      "label": "Дыхательная недостаточность",
+      "system": "respiratory",
+      "phrases": ["дыхательная недостаточность", "дыхательной недостаточности"]
+    },
+    {
+      "id": "symptom.hypoxemia",
+      "canonical": "гипоксемия",
+      "label": "Гипоксемия",
+      "system": "respiratory",
+      "phrases": ["гипоксемия", "гипоксемии", "гипоксемией"]
+    },
+    {
       "id": "symptom.abdominal-distension",
       "canonical": "вздутие живота метеоризм",
       "label": "Вздутие живота",

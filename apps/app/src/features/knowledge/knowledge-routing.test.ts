@@ -29,6 +29,16 @@ describe('knowledgeDocumentBackHash', () => {
       '#/modules/documents',
     );
     expect(knowledgeDocumentBackHash('modules/documents/core-library')).toBe('#/modules/documents');
+    expect(knowledgeDocumentBackHash('modules/documents/conditions')).toBe('#/modules/documents');
+    expect(knowledgeDocumentBackHash('modules/documents/conditions/symptoms')).toBe(
+      '#/modules/documents',
+    );
+  });
+
+  it('returns the active condition section for condition details', () => {
+    expect(knowledgeDocumentBackHash('modules/documents/conditions/diseases/code%3AI10')).toBe(
+      '#/modules/documents/conditions/diseases',
+    );
   });
 
   it('returns no parent for official document read pages so native back uses history', () => {

@@ -37,13 +37,33 @@ export {
 };
 
 export function displayDocumentTitle(
-  document: Pick<MedicalDocumentSummary, 'title' | 'shortTitle' | 'sourceType'>,
+  document: Pick<MedicalDocumentSummary, 'title' | 'shortTitle' | 'sourceType' | 'metadata'>,
 ): string {
   if (document.sourceType === 'official_registry_summary') {
     const inn = document.title.split('—')[0]?.trim();
     if (inn) return inn;
   }
-  return document.shortTitle ?? document.title;
+  const title = document.shortTitle ?? document.title;
+  const metadata = document.metadata;
+  const code = metadata?.['mkbCode'];
+  const path = metadata?.['classificationPath'];
+  const parent: unknown = Array.isArray(path) ? path[0] : undefined;
+  if (
+    (document.sourceType === 'rls_mkb_reference' ||
+      metadata?.['sourceType'] === 'rls_mkb_reference') &&
+    typeof code === 'string' &&
+    code.includes('.') &&
+    parent &&
+    typeof parent === 'object' &&
+    'title' in parent &&
+    typeof parent.title === 'string' &&
+    parent.title.trim()
+  ) {
+    const prefix = `${code} `;
+    const subject = title.startsWith(prefix) ? title.slice(prefix.length) : title;
+    return `${prefix}${parent.title.trim()} — ${subject}`;
+  }
+  return title;
 }
 
 export function displayDocumentSubtitle(
