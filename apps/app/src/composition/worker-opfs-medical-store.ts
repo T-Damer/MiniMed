@@ -37,6 +37,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   private connectionClosed = false;
   private leaseClosed = false;
   private leaseCount = 1;
+  private closing: Promise<void> | undefined;
 
   private constructor(
     private readonly worker: Worker,
@@ -63,6 +64,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
         throw new Error(`SAH pool ${options.poolName} is already open for another database.`);
       }
       const owner = await existing.owner;
+      if (owner.closing) {
+        await owner.closing;
+        return WorkerOpfsMedicalStore.open(options);
+      }
       if (owner.connectionClosed) {
         WorkerOpfsMedicalStore.sharedStores.delete(options.poolName);
         return WorkerOpfsMedicalStore.open(options);
@@ -187,17 +192,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   private async release(): Promise<void> {
     this.leaseCount -= 1;
     if (this.leaseCount > 0 || this.connectionClosed) return;
-    if (
-      this.shared &&
-      WorkerOpfsMedicalStore.sharedStores.get(this.shared.poolName) === this.shared
-    ) {
-      WorkerOpfsMedicalStore.sharedStores.delete(this.shared.poolName);
-    }
-    try {
-      await this.call('close', []);
-    } finally {
+    this.closing = this.call('close', []).finally(() => {
       this.shutdown(new Error('OPFS pack worker closed.'));
-    }
+    });
+    await this.closing;
   }
 
   private request(type: 'open', options: OpfsPackWorkerOpenOptions): Promise<StorageHealth>;

@@ -67,8 +67,17 @@ jobs:
               assert connection.execute('SELECT COUNT(*) FROM knowledge_evidence').fetchone()[0] == 9
               assert connection.execute('SELECT COUNT(*) FROM knowledge_document_links').fetchone()[0] == 9
               assert connection.execute('SELECT COUNT(*) FROM knowledge_review_tasks').fetchone()[0] == 3
-              assert connection.execute("SELECT COUNT(*) FROM knowledge_facts WHERE review_status = 'reviewed'").fetchone()[0] == 0
-              assert connection.execute('SELECT COUNT(*) FROM knowledge_fts').fetchone()[0] == 0
+              source_facts = [
+                  fact
+                  for path in Path('content/pilot-rf').glob('knowledge*.json')
+                  for fact in json.loads(path.read_text(encoding='utf-8')).get('facts', [])
+              ]
+              assert dict(connection.execute('SELECT id, review_status FROM knowledge_facts')) == {
+                  fact['id']: fact.get('reviewStatus', 'proposed') for fact in source_facts
+              }
+              indexed_facts = ' '.join(row[0] for row in connection.execute('SELECT facts FROM knowledge_fts'))
+              for fact in source_facts:
+                  assert (fact['text'] in indexed_facts) == (fact.get('reviewStatus', 'proposed') == 'reviewed')
           finally:
               connection.close()
           PY

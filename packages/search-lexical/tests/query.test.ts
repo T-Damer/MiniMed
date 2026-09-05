@@ -3,9 +3,63 @@ import { describe, expect, it } from 'vitest';
 import {
   analyzeClinicalQuery,
   buildLexicalQueryPlan,
+  expandAliases,
   lightStemRussian,
   normalizeForIndex,
 } from '../src/index';
+
+it('retains all abbreviation meanings but prefers an explicit longer name', () => {
+  const dictionary = [
+    { id: 'stone', alias: 'МКБ', canonicalTerm: 'Мочекаменная болезнь', weight: 1 },
+    {
+      id: 'classification',
+      alias: 'МКБ',
+      canonicalTerm: 'Международная классификация болезней',
+      weight: 1,
+    },
+    {
+      id: 'classification-10',
+      alias: 'МКБ-10',
+      canonicalTerm: 'Международная классификация болезней',
+      weight: 1,
+    },
+  ];
+  expect(
+    expandAliases('МКБ', dictionary)
+      .matchedAliases.map((alias) => alias.id)
+      .toSorted(),
+  ).toEqual(['classification', 'stone']);
+  const repeated = expandAliases('МКБ-10 и МКБ', dictionary);
+  expect(repeated.matchedAliases.map((alias) => alias.id).toSorted()).toEqual([
+    'classification',
+    'classification-10',
+    'stone',
+  ]);
+  expect(repeated.matchSpans.find((match) => match.alias.id === 'stone')?.range).toEqual({
+    start: 9,
+    end: 12,
+  });
+  expect(expandAliases('МКБ-10', dictionary).matchedAliases.map((alias) => alias.id)).toEqual([
+    'classification-10',
+  ]);
+});
+
+it('keeps ambiguous alias facts as distinct uncertain meanings instead of choosing the first', () => {
+  const dictionary = ['Первое средство', 'Второе средство'].map((canonicalTerm, index) => ({
+    id: `meaning-${index}`,
+    alias: 'АБ',
+    canonicalTerm,
+    category: 'medication',
+    weight: 1,
+  }));
+  const { analysis } = analyzeClinicalQuery('АБ', dictionary);
+  const facts = analysis.facts.filter((fact) => fact.kind === 'medication');
+  expect(facts.map((fact) => fact.normalizedValue).toSorted()).toEqual(
+    dictionary.map((alias) => alias.canonicalTerm.toLocaleLowerCase()).toSorted(),
+  );
+  expect(facts.every((fact) => fact.polarity === 'uncertain')).toBe(true);
+  expect(new Set(facts.map((fact) => fact.id)).size).toBe(2);
+});
 
 const aliases = [
   {
@@ -44,6 +98,44 @@ const aliases = [
     weight: 1,
   },
 ];
+
+it('keeps the disease subject and abbreviation expansion without navigation boilerplate', () => {
+  const plan = buildLexicalQueryPlan('документы по заболеванию ОНПЛ', [
+    {
+      id: 'onpl',
+      alias: 'ОНПЛ',
+      canonicalTerm: 'Опухоли невыявленной первичной локализации',
+      category: 'clinical-recommendation',
+      weight: 1,
+    },
+  ]);
+  expect(plan.terms).toContain('онпл');
+  expect(plan.terms).toContain('опухоли');
+  expect(plan.terms).not.toContain('документы');
+  expect(plan.terms).not.toContain('заболеванию');
+  expect(buildLexicalQueryPlan('болезнь Крона', []).terms).toContain('болезнь');
+  expect(buildLexicalQueryPlan('найти документы: кашель тахипноэ', []).terms).not.toContain(
+    'документы',
+  );
+});
+
+it('does not resurrect a negated diagnosis through a positive alias or intent branch', () => {
+  const plan = buildLexicalQueryPlan(
+    'кашель после инфекции без признаков пневмонии, что проверить',
+    [
+      {
+        id: 'broad-source-alias',
+        alias: 'инфекции',
+        canonicalTerm: 'пневмония инфекции',
+        category: 'clinical-recommendation',
+        weight: 1,
+      },
+    ],
+  );
+  expect(
+    plan.branches.every((branch) => !branch.terms.some((term) => term.startsWith('пневмон'))),
+  ).toBe(true);
+});
 
 const TURBUHALER_ALIASES = [
   {
@@ -85,6 +177,33 @@ const TURBUHALER_ALIAS_MATCHES = [
   'Оксис Турбухалер → ФОРМОТЕРОЛ',
 ];
 
+const PARACETAMOL_ALIASES = [
+  {
+    id: 'alias.paracetamol',
+    canonicalTerm: 'парацетамол',
+    alias: 'парацетамол',
+    category: 'medication',
+    weight: 1,
+  },
+  {
+    id: 'alias.paracetamol.inflected',
+    canonicalTerm: 'парацетамол',
+    alias: 'парацетамола',
+    category: 'medication',
+    weight: 1,
+  },
+] as const;
+
+const TRAMADOL_ALIASES = [
+  {
+    id: 'alias.tramadol',
+    canonicalTerm: 'трамадол',
+    alias: 'трамадол',
+    category: 'medication',
+    weight: 1,
+  },
+] as const;
+
 describe('lexical query planning', () => {
   it('normalizes Russian morphology in the same way as the corpus builder', () => {
     expect(lightStemRussian('пневмонией')).toBe('пневмони');
@@ -101,6 +220,23 @@ describe('lexical query planning', () => {
       expect(plan.ftsQuery).toContain('AND');
     },
   );
+
+  it.each([
+    ['А09', 'a09'],
+    ['С50', 'c50'],
+    ['Е11', 'e11'],
+    ['М16', 'm16'],
+  ])('canonicalizes Cyrillic ICD-10 lookalikes: %s', (query, expected) => {
+    const plan = buildLexicalQueryPlan(query, []);
+
+    expect(plan.terms).toContain(expected);
+  });
+
+  it('does not reinterpret a spaced concentration as an ICD-10 code', () => {
+    const plan = buildLexicalQueryPlan('С 50 мг', []);
+
+    expect(plan.terms).not.toContain('с50');
+  });
 
   it('adds canonical terms from a colloquial alias', () => {
     const plan = buildLexicalQueryPlan('Ребёнок часто дышит второй день', aliases);
@@ -395,4 +531,104 @@ describe('lexical query planning', () => {
     const plan = analyzeClinicalQuery('ОАТ без изменений', aliases);
     expect(plan.aliasMatches).not.toContain('ОАК → общий анализ крови');
   });
+
+  it('recognizes an explicit medication-dose query without changing retrieval planning', () => {
+    const plan = analyzeClinicalQuery('Доза парацетамола ребенку 6 лет 12кг', PARACETAMOL_ALIASES);
+
+    expect(plan.analysis.calculation).toEqual({
+      kind: 'medication-dose',
+      medicationCandidates: [
+        { canonicalTerm: 'парацетамол', matchedText: 'парацетамола', matchType: 'exact' },
+      ],
+    });
+    expect(plan.terms).toEqual(expect.arrayContaining(['парацетамол']));
+    expect(plan.branches.map((branch) => branch.id)).toContain('clinical');
+  });
+
+  it('marks a fuzzy medication match in a dose query', () => {
+    const plan = analyzeClinicalQuery('Рассчитать дозу парацетамолл ребенку', [
+      PARACETAMOL_ALIASES[0],
+    ]);
+
+    expect(plan.analysis.calculation).toEqual({
+      kind: 'medication-dose',
+      medicationCandidates: [
+        { canonicalTerm: 'парацетамол', matchedText: 'парацетамолл', matchType: 'fuzzy' },
+      ],
+    });
+  });
+
+  it('recognizes an implicit pediatric medication-dose query from patient context', () => {
+    const plan = analyzeClinicalQuery('Трамадол ребенку 8 лет', TRAMADOL_ALIASES);
+
+    expect(plan.analysis.calculation).toEqual({
+      kind: 'medication-dose',
+      medicationCandidates: [
+        { canonicalTerm: 'трамадол', matchedText: 'трамадол', matchType: 'exact' },
+      ],
+    });
+  });
+
+  it('recognizes a disease-driven infusion-volume query without inventing a medication', () => {
+    const plan = analyzeClinicalQuery('Объем инфузии при отравлении алкоголем 80кг', []);
+
+    expect(plan.analysis.calculation).toEqual({ kind: 'infusion-volume' });
+    expect(plan.analysis.clinicalContext?.weight).toEqual([
+      expect.objectContaining({ normalizedValue: '80 кг' }),
+    ]);
+  });
+
+  it.each([
+    'После уже введенного раствора уточнить объем инфузии',
+    'Инфузионная терапия: противопоказания',
+  ])('does not route an unsafe or informational infusion query: %s', (query) => {
+    expect(analyzeClinicalQuery(query, []).analysis.calculation).toBeUndefined();
+  });
+
+  it.each([
+    'Трамадол противопоказания ребенку 8 лет',
+    'Можно ли трамадол ребенку 8 лет',
+    'Трамадол инструкция для детей 8 лет',
+  ])('keeps an informational pediatric medication query out of calculator routing: %s', (query) => {
+    expect(analyzeClinicalQuery(query, TRAMADOL_ALIASES).analysis.calculation).toBeUndefined();
+  });
+
+  it.each([
+    'парацетамол инструкция',
+    'парацетамол дозированный аэрозоль',
+    'Передозировка парацетамола, что делать',
+    'Рассчитать дозу парацетамола, уже принял',
+    'Уже принятая доза парацетамола: что делать',
+  ])('does not offer a medication calculator for %s', (query) => {
+    expect(analyzeClinicalQuery(query, PARACETAMOL_ALIASES).analysis.calculation).toBeUndefined();
+  });
+});
+
+it('anchors every instruction branch to the named medication before retrieval is limited', () => {
+  const plan = analyzeClinicalQuery(
+    'инструкция и документы НАРАТРИПТАН',
+    [
+      {
+        id: 'naratriptan',
+        alias: 'наратриптан',
+        canonicalTerm: 'наратриптан',
+        category: 'medication',
+        weight: 1,
+      },
+    ],
+    true,
+  );
+  expect(plan.branches.length).toBeGreaterThan(0);
+  for (const branch of plan.branches) expect(branch.ftsQuery).toMatch(/AND .*наратриптан/u);
+});
+
+it('retrieves complete source phrases before broad term expansion', () => {
+  const plan = analyzeClinicalQuery(
+    'двигательной заторможенностью и нарушением мышления',
+    [],
+    false,
+  );
+  expect(plan.branches.find((branch) => branch.id === 'source-phrase')?.ftsQuery).toBe(
+    '"двигательной заторможенностью и нарушением мышления"',
+  );
 });

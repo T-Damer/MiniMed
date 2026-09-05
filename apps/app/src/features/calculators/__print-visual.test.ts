@@ -12,7 +12,14 @@ test('print chart', () => {
   const schema = CalculatorSchemaSchema.parse(
     ToolDefinitionRecordSchema.parse(mod.tools[0]).definition,
   );
-  const r = evaluateCalculatorSchema(schema, { age_months: 6, weight_kg: 7.5 });
+  const r = evaluateCalculatorSchema(schema, {
+    date_of_birth: '2025-01-01',
+    measurement_date: '2025-07-01',
+    biological_sex: 'female',
+    measure_position: 'auto',
+    length_height_cm: 65,
+    weight_g: 7_500,
+  });
   expect(r.ok).toBe(true);
   if (!r.ok) return;
   const lines = r.outputs.map((o) =>

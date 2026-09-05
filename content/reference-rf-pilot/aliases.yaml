@@ -1,4 +1,29 @@
 aliases:
+  - id: reference-laboratory-ranges-analysis-norms
+    canonicalTerm: лабораторные референсные интервалы
+    alias: нормы анализов
+    category: laboratory-reference
+    weight: 1.5
+  - id: reference-laboratory-ranges-blood
+    canonicalTerm: лабораторные референсные интервалы
+    alias: нормы крови
+    category: laboratory-reference
+    weight: 1.4
+  - id: reference-laboratory-ranges-biochemistry
+    canonicalTerm: лабораторные референсные интервалы
+    alias: нормы биохимии
+    category: laboratory-reference
+    weight: 1.4
+  - id: reference-laboratory-ranges-urine
+    canonicalTerm: лабораторные референсные интервалы
+    alias: нормы мочи
+    category: laboratory-reference
+    weight: 1.4
+  - id: reference-laboratory-ranges-csf
+    canonicalTerm: лабораторные референсные интервалы
+    alias: нормы ликвора
+    category: laboratory-reference
+    weight: 1.4
   - id: reference-bmi-ru
     canonicalTerm: индекс массы тела
     alias: ИМТ

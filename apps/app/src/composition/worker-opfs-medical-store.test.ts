@@ -227,3 +227,41 @@ describe('WorkerOpfsMedicalStore', () => {
     expect(terminate).toHaveBeenCalledOnce();
   });
 });
+
+it('waits for the last lease to close before opening the same pool again', async () => {
+  const workers: Array<{
+    postMessage: ReturnType<typeof vi.fn>;
+    terminate: ReturnType<typeof vi.fn>;
+    onmessage?: (event: MessageEvent) => void;
+  }> = [];
+  vi.stubGlobal(
+    'Worker',
+    vi.fn(function FakeWorker(this: (typeof workers)[number]) {
+      this.postMessage = vi.fn();
+      this.terminate = vi.fn();
+      workers.push(this);
+    }),
+  );
+  const options = {
+    url: 'https://example.test/core.db',
+    databaseName: 'core.db',
+    poolName: 'reload-test',
+    fetchTimeoutMs: 5000,
+  };
+  const firstOpen = WorkerOpfsMedicalStore.open(options);
+  workers[0]?.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+  const first = await firstOpen;
+  const closing = first.close();
+  const reopening = WorkerOpfsMedicalStore.open(options);
+  await Promise.resolve();
+  expect(workers).toHaveLength(1);
+  workers[0]?.onmessage?.({ data: { id: 2, result: undefined } } as MessageEvent);
+  await closing;
+  await vi.waitFor(() => expect(workers).toHaveLength(2));
+  workers[1]?.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+  const second = await reopening;
+  const closed = second.close();
+  workers[1]?.onmessage?.({ data: { id: 2, result: undefined } } as MessageEvent);
+  await closed;
+  expect(workers[0]?.terminate).toHaveBeenCalledOnce();
+});

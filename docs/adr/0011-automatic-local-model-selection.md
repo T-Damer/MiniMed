@@ -7,10 +7,9 @@
 - Amended: 2026-08-13 (catalog trim)
 - Amended: 2026-08-13 (search-assistant scope narrowed)
 
-The runtime and selection decision remains active. Decision 12 described the original runtime-only
-slice; model output is now connected to query understanding and a coarse relevance-based reorder of
-already-retrieved sources under `docs/GROUNDED_LOCAL_ASSISTANT.md` — an earlier citation/dose
-extraction design was tried and dropped (see the search-assistant scope amendment below).
+The runtime and selection decision remains active as research infrastructure. Decision 12 described
+the original runtime-only slice; the later search connection was retired by the 4 September 2026
+amendment below.
 
 ## Context
 
@@ -185,3 +184,17 @@ citation-matching parser, and their UI in `GroundedAssistantStatus` were deleted
 dormant. If citation-grounded clinical extraction is revisited later, it should be scoped and tested
 as a deliberately opt-in, separately-paced feature rather than bundled into every search's default
 path.
+
+## Retrieval-only search amendment
+
+The generative `GroundedMedicalCore` query-planning and H/M/L reranking wrapper was removed from the
+product search path on 4 September 2026. Search now opens in the all-source free-form scope, returns
+at most 20 document groups with exact source fragments, and uses only the deterministic
+FTS/portable-vector pipeline. Diagnosis scope applies a deterministic source policy: clinical
+recommendations first, then reference material.
+
+Local-model catalogs and runtimes remain available for isolated research, but no released search
+control loads or selects a generative model. A future cloud answer may operate only as a separate
+explicit action over user-selected documents; personal notes and patient records are excluded by
+default. Neural retrieval remains eligible only after the existing real-query and physical-device
+qualification gates are met.

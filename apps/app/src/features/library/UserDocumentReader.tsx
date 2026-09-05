@@ -26,6 +26,7 @@ import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
+import { isDesktopReaderLayout } from '@/features/library/document-reader-outline';
 import {
   markMedicalImageViewerActive,
   markUserDocumentPdf,
@@ -53,6 +54,7 @@ import {
   escapePrintHtml,
   pageAnchorId,
   pageCanvasId,
+  type UserDocumentOutlineItem,
 } from '@/features/library/user-document-reader-helpers';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
 import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
@@ -212,6 +214,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   );
   const [sheetNames, setSheetNames] = createSignal<readonly string[]>([]);
   const [activeSheetName, setActiveSheetName] = createSignal('');
+  const [epubOutlineItems, setEpubOutlineItems] = createSignal<readonly UserDocumentOutlineItem[]>(
+    [],
+  );
+  let navigateEpub: ((href: string) => void) | null = null;
   const [parsedMarkdown, setParsedMarkdown] = createSignal<ParsedMarkdownDocument | null>(null);
   let activePdf: PdfDocumentProxy | null = null;
   let pdfLoadGeneration = 0;
@@ -302,6 +308,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     const current = meta();
     if (!current) return [];
     if (isMarkdown()) return parsedMarkdown()?.outline ?? [];
+    if (readerCapability().reader.renderer === 'epub') return epubOutlineItems();
     if (isSheet()) {
       return sheetNames().map((sheetName) => ({
         anchor: sheetAnchorId(current.id, sheetName),
@@ -404,7 +411,8 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const chrome = useDocumentReaderChrome({
     sectionSelector: '[data-user-doc-anchor]',
     outlineItemAttr: 'data-outline-anchor',
-    scrollSpyWhen: () => Boolean(meta()) && outlineItems().length > 0,
+    scrollSpyWhen: () =>
+      Boolean(meta()) && readerCapability().reader.renderer !== 'epub' && outlineItems().length > 0,
   });
 
   const handleSheetNamesChange = (names: readonly string[]): void => {
@@ -850,8 +858,8 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     if (hasReaderAction('fullscreen')) {
       actions.push({
         id: 'fullscreen',
-        label: fullscreen() ? 'Выйти из полноэкранного режима' : 'На весь экран',
-        icon: fullscreen() ? 'arrows-in' : 'arrows-out',
+        label: fullscreen() ? 'Завершить редактирование' : 'Редактировать таблицу',
+        icon: fullscreen() ? 'check' : 'edit',
         onSelect: toggleFullscreen,
       });
     }
@@ -891,7 +899,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           'user-document-reader--sheet': isSheet(),
           'user-document-reader--sheet-fullscreen': isSheet() && fullscreen(),
         }}
-        chromeClass="document-page__chrome sticky-surface route-sticky-chrome"
+        chromeClass="document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque"
         chromeClassList={{
           'document-page__chrome--medical-hidden': isMedicalImage(),
           'document-page__chrome--sheet-fullscreen': isSheet() && fullscreen(),
@@ -999,6 +1007,12 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   }}
                   aria-current={chrome.activeAnchor() === item.anchor ? 'location' : undefined}
                   onClick={() => {
+                    if (readerCapability().reader.renderer === 'epub') {
+                      chrome.setActiveAnchor(item.anchor);
+                      if (!isDesktopReaderLayout()) chrome.closeOutline();
+                      navigateEpub?.(item.anchor);
+                      return;
+                    }
                     if (!isSheet()) {
                       chrome.scrollTo(item.anchor);
                       return;
@@ -1327,13 +1341,22 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                                 onActiveSheetChange={handleActiveSheetChange}
                                 onExitFullscreen={() => setFullscreen(false)}
                                 onPresentationSlideClick={openPresentationPreview}
+                                onEpubOutlineChange={setEpubOutlineItems}
+                                onEpubNavigateReady={(navigate) => {
+                                  navigateEpub = navigate;
+                                }}
+                                onEpubActiveOutlineChange={chrome.setActiveAnchor}
                               />
                             )}
                           </Show>
                         )}
                       </Show>
 
-                      <Show when={isTextLike() && meta()}>
+                      <Show
+                        when={
+                          (isTextLike() || readerCapability().reader.renderer === 'docx') && meta()
+                        }
+                      >
                         {(current) => (
                           <UserDocumentHighlights
                             documentId={current().id}

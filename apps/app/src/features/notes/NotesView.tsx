@@ -36,8 +36,13 @@ import {
   type ViewerState,
 } from '@/features/notes/NoteAttachmentViewer';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
-import { type EditorFileAttachment, NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
+import {
+  type EditorDrawingAttachment,
+  type EditorFileAttachment,
+  NoteMarkdownEditor,
+} from '@/features/notes/NoteMarkdownEditor';
 import { NoteTemplatesCatalog } from '@/features/notes/NoteTemplatesCatalog';
+import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-drawing';
 import {
   notesNewPatientPath,
   notesPath,
@@ -56,6 +61,7 @@ import {
   NOTE_FILES_EVENT,
   type NoteFile,
   noteFileSrc,
+  replaceNoteFile,
 } from '@/state/note-files';
 import {
   addNoteImages,
@@ -577,7 +583,6 @@ export function NotesView(props: {
   /** Files shown as inline blocks inside the note editor (saved + pending). */
   const editorFileAttachments = createMemo<readonly EditorFileAttachment[]>(() => {
     const noteId = activeNote()?.id;
-    if (!noteId) return [];
     const dateFormat = new Intl.DateTimeFormat('ru-RU', {
       day: '2-digit',
       month: 'short',
@@ -591,9 +596,16 @@ export function NotesView(props: {
         return '';
       }
     };
-    const saved: readonly EditorFileAttachment[] = (recordFiles().get(noteId) ?? []).map(
-      (record) => {
-        const kind = attachmentViewerKind(record.mimeType);
+    const saved: readonly EditorFileAttachment[] =
+      (noteId ? recordFiles().get(noteId) : [])?.map((record) => {
+        const drawing = isNoteDrawingMime(record.mimeType)
+          ? ({
+              id: record.id,
+              name: record.name,
+              blob: record.blob,
+            } satisfies EditorDrawingAttachment)
+          : undefined;
+        const kind = drawing ? 'drawing' : attachmentViewerKind(record.mimeType);
         return {
           key: `file:${record.id}`,
           name: record.name,
@@ -604,29 +616,35 @@ export function NotesView(props: {
           sizeBytes: record.size,
           datesLabel: `добавлен ${fmt(record.createdAt)}`,
           viewer: recordToViewerState(record),
+          ...(drawing ? { drawing } : {}),
         };
-      },
-    );
-    const pending: readonly EditorFileAttachment[] = pendingImages().map((file, index) => {
-      const kind = attachmentViewerKind(file.type || '');
-      const url = pendingFileUrl(file);
-      return {
-        key: `pending:${index}`,
-        name: file.name,
-        kind,
-        ...(kind === 'image' ? { src: url } : {}),
-        sizeBytes: file.size,
-        datesLabel: `создан ${fmt(new Date(file.lastModified).toISOString())}`,
-        viewer:
-          kind === 'image'
-            ? { kind: 'image', name: file.name, src: url }
-            : kind === 'video'
-              ? { kind: 'video', name: file.name, src: url }
-              : kind === 'audio'
-                ? { kind: 'audio', name: file.name, src: url }
-                : { kind: 'text', name: file.name, blob: file },
-      };
-    });
+      }) ?? [];
+    const pending: readonly EditorFileAttachment[] = pendingImages()
+      .filter((file) => noteId !== undefined || isNoteDrawingFile(file))
+      .map((file, index) => {
+        const drawing = isNoteDrawingFile(file)
+          ? ({ name: file.name, blob: file, pendingFile: file } satisfies EditorDrawingAttachment)
+          : undefined;
+        const kind = drawing ? 'drawing' : attachmentViewerKind(file.type || '');
+        const url = pendingFileUrl(file);
+        return {
+          key: `pending:${index}`,
+          name: file.name,
+          kind,
+          ...(kind === 'image' ? { src: url } : {}),
+          sizeBytes: file.size,
+          datesLabel: `создан ${fmt(new Date(file.lastModified).toISOString())}`,
+          viewer:
+            kind === 'image'
+              ? { kind: 'image', name: file.name, src: url }
+              : kind === 'video'
+                ? { kind: 'video', name: file.name, src: url }
+                : kind === 'audio'
+                  ? { kind: 'audio', name: file.name, src: url }
+                  : { kind: 'text', name: file.name, blob: file },
+          ...(drawing ? { drawing } : {}),
+        };
+      });
     return [...saved, ...pending];
   });
 
@@ -1551,6 +1569,25 @@ export function NotesView(props: {
                     onChange={setNoteDraft}
                     documents={documents()}
                     priorityDocumentIds={note()?.relatedDocumentIds ?? []}
+                    onSaveDrawing={(file, previous) => {
+                      const noteId = activeNote()?.id;
+                      if (noteId) {
+                        const save = previous?.id
+                          ? replaceNoteFile(previous.id, file).then(() => undefined)
+                          : addNoteFiles(noteId, [file]).then(() => undefined);
+                        return save.then(() => refreshImages());
+                      }
+                      setPendingImages((current) => {
+                        const previousFile = previous?.pendingFile;
+                        if (!previousFile) return [...current, file];
+                        const index = current.indexOf(previousFile);
+                        if (index < 0) return [...current, file];
+                        return current.map((item, currentIndex) =>
+                          currentIndex === index ? file : item,
+                        );
+                      });
+                      return;
+                    }}
                     onOpenImages={() =>
                       document
                         .querySelector<HTMLInputElement>('[data-note-image-picker-input="true"]')

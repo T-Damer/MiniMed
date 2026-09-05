@@ -1112,7 +1112,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 }
 
 html.app-chrome-hidden .route-sticky-chrome {
-  transform: translateY(calc(-100% - var(--safe-top)));
+  transform: translateY(calc(-100% - var(--sticky-header-top)));
 }
 
 html.app-chrome-hidden .app-bottom-nav {
@@ -2210,11 +2210,6 @@ fieldset.search-mode-picker {
   gap: 0.75rem;
   align-items: center;
   padding: 0.35rem 0 0.75rem;
-}
-
-.laws-documents-page__header.sticky-surface--stuck {
-  margin-top: calc(-1 * var(--safe-top));
-  padding-top: calc(var(--safe-top) + 0.35rem);
 }
 
 .laws-documents-page__download {
@@ -3518,4 +3513,17 @@ html.native-print-active #root {
 
 .app-heading--depth-3 {
   font-size: clamp(1rem, 2vw, 1.2rem);
+}
+
+.search-mode-picker--single {
+  padding: 0.5rem 0.75rem;
+  color: var(--theme-accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.result-group-header__content-kind {
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
 }

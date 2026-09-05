@@ -934,7 +934,7 @@
 
 .note-markdown-editor__chrome-tools {
   position: sticky;
-  top: var(--document-chrome-height, 3.25rem);
+  top: calc(var(--sticky-header-top) + var(--document-chrome-height, 3.25rem));
   z-index: calc(var(--z-sticky-chrome, 30) - 1);
 }
 

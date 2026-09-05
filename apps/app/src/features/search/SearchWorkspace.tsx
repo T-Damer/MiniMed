@@ -1,6 +1,8 @@
+import { Popover } from '@kobalte/core/popover';
 import type {
   ChunkContext,
   MedicalCore,
+  MedicalDocumentSummary,
   QueryAnalysis,
   QueryFact,
   SearchResponse,
@@ -14,9 +16,11 @@ import {
   createSignal,
   For,
   type JSX,
+  lazy,
   onCleanup,
   onMount,
   Show,
+  Suspense,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
@@ -28,8 +32,38 @@ import { HighlightedText } from '@/components/HighlightedText';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
+import { saveCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
+import {
+  CALCULATOR_PACKS_EVENT,
+  loadCalculatorInstallationState,
+  setDatabaseCalculatorIds,
+} from '@/features/calculators/calculator-packs';
+import {
+  clearDownloadedCalculators,
+  getCalculatorRegistry,
+  registerDownloadedCalculator,
+  searchCalculators,
+} from '@/features/calculators/calculator-registry';
+import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
+import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
+import {
+  buildDocumentLinkPhrases,
+  createDocumentLinkMatcher,
+} from '@/features/library/document-medication-links';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
+import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
+import {
+  type CalculatorSchemaWithSearch,
+  resolveCalculatorSuggestion,
+} from '@/features/search/calculator-suggestion';
+import {
+  calculatorToolTrigger,
+  parseCalculatorToolMention,
+  replaceCalculatorToolTrigger,
+} from '@/features/search/calculator-tool-mention';
 import type { SearchResultDocumentKind, SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
@@ -39,16 +73,6 @@ import {
   SEARCH_REPLAY_EVENT,
   type SearchReplayDetail,
 } from '@/state/search-history';
-
-/**
- * A minimal, core-agnostic view of a `GroundedMedicalCore`-style background enhancement, so this
- * component can upgrade its results in place without importing model-feature types directly.
- */
-export interface SearchEnhancementState {
-  readonly phase: 'running' | 'applied' | 'fallback';
-  readonly query: string | null;
-  readonly enhancedResponse: SearchResponse | null;
-}
 
 interface SearchWorkspaceProps {
   readonly core: MedicalCore;
@@ -60,17 +84,12 @@ interface SearchWorkspaceProps {
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
   /** Collapse to a single-line bar until focused or typed into; used when embedded above a scrollable list. */
   readonly compact?: boolean;
-  /** Rendered between the search form and the results list — e.g. local-model assistant status. */
-  readonly resultsHeader?: JSX.Element;
-  /** Rendered in the query-actions row alongside "Очистить"/"Найти сейчас" — e.g. an AI-assist toggle. */
-  readonly queryActionsExtra?: JSX.Element;
-  /**
-   * Reactive accessor for a background model enhancement of the current results. Deterministic
-   * results are always shown first; when this reports a matching query and a reorder, it is
-   * merged in place instead of blocking the initial render.
-   */
-  readonly enhancement?: () => SearchEnhancementState | undefined;
 }
+
+const SearchInlineCalculatorWorkspace = lazy(async () => {
+  const calculatorModule = await import('@/features/calculators/CalculatorsView');
+  return { default: calculatorModule.InlineCalculatorWorkspace };
+});
 
 const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
   diagnosis: [
@@ -212,16 +231,72 @@ function factDisplayValue(fact: QueryFact): string {
   return fact.value;
 }
 
+function installedCalculatorSchemas(): readonly CalculatorSchemaWithSearch[] {
+  const registry = getCalculatorRegistry();
+  const installedIds = loadCalculatorInstallationState(registry).installedIds;
+  return registry
+    .filter((definition) => definition.state === 'available' && installedIds.has(definition.id))
+    .map((definition) => getCalculatorSchema(definition.id))
+    .filter((schema): schema is CalculatorSchemaWithSearch => schema !== undefined);
+}
+
+let downloadedCalculatorRefresh: Promise<void> | undefined;
+
+function refreshDownloadedCalculatorDefinitions(): Promise<void> {
+  if (downloadedCalculatorRefresh) return downloadedCalculatorRefresh;
+  downloadedCalculatorRefresh = (async () => {
+    const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    await runtime.whenLocalPackagedModulesReady();
+    const definitions = await runtime.listInstalledToolDefinitions();
+    clearDownloadedCalculators();
+    definitions.forEach(registerDownloadedCalculator);
+    setDatabaseCalculatorIds(
+      definitions
+        .filter((definition) => definition.kind === 'calculator')
+        .map((definition) => definition.id),
+    );
+  })().finally(() => {
+    downloadedCalculatorRefresh = undefined;
+  });
+  return downloadedCalculatorRefresh;
+}
+
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [query, setQuery] = createSignal('');
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
   const [response, setResponse] = createSignal<SearchResponse>();
   const [context, setContext] = createSignal<ChunkContext>();
+  const [contextDocuments, setContextDocuments] = createSignal<readonly MedicalDocumentSummary[]>(
+    [],
+  );
+  const contextLinkMatcher = createMemo(() =>
+    createDocumentLinkMatcher(buildDocumentLinkPhrases(contextDocuments(), context()?.document.id)),
+  );
+  const queryLinkMatcher = createMemo(() =>
+    createDocumentLinkMatcher(buildDocumentLinkPhrases(contextDocuments())),
+  );
+  const ambiguousPhrases = createMemo(() => [
+    ...new Set(
+      queryLinkMatcher()
+        .segment(response()?.analysis.originalQuery ?? '')
+        .flatMap((segment) =>
+          segment.kind === 'link' && (segment.alternatives?.length ?? 0) > 1 ? [segment.value] : [],
+        ),
+    ),
+  ]);
   const [loading, setLoading] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
   const [contextLoading, setContextLoading] = createSignal(false);
   const [error, setError] = createSignal<string>();
   const [focused, setFocused] = createSignal(false);
+  const [toolPickerOpen, setToolPickerOpen] = createSignal(false);
+  const [toolPickerQuery, setToolPickerQuery] = createSignal('');
+  const [toolPickerActive, setToolPickerActive] = createSignal(0);
+  const [calculatorPacksRevision, setCalculatorPacksRevision] = createSignal(0);
+  const [requestedInlineCalculator, setRequestedInlineCalculator] = createSignal<{
+    readonly id: string;
+    readonly values: Readonly<Record<string, string | number>>;
+  }>();
   const expanded = createMemo(() => !props.compact || focused() || query().length > 0);
   let textarea: HTMLTextAreaElement | undefined;
   let analysisTimer: ReturnType<typeof setTimeout> | undefined;
@@ -233,9 +308,42 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   let searchWasAllowed = props.searchAllowed !== false;
   let activeScope = props.scope;
 
+  const installedCalculatorDefinitions = createMemo(() => {
+    calculatorPacksRevision();
+    const registry = getCalculatorRegistry();
+    const installedIds = loadCalculatorInstallationState(registry).installedIds;
+    return registry.filter(
+      (definition): definition is AvailableCalculatorDefinition =>
+        definition.state === 'available' && installedIds.has(definition.id),
+    );
+  });
+  const parsedToolMention = createMemo(() =>
+    parseCalculatorToolMention(query(), installedCalculatorDefinitions()),
+  );
+  const searchableQuery = (value: string): string =>
+    parseCalculatorToolMention(value, installedCalculatorDefinitions()).query;
+  const explicitCalculator = createMemo(() =>
+    installedCalculatorDefinitions().find(
+      (definition) => definition.id === parsedToolMention().calculatorId,
+    ),
+  );
+  const toolSuggestions = createMemo(() => {
+    const installedIds = new Set(
+      installedCalculatorDefinitions().map((definition) => definition.id),
+    );
+    return searchCalculators(toolPickerQuery())
+      .filter(
+        (definition): definition is AvailableCalculatorDefinition =>
+          definition.state === 'available' && installedIds.has(definition.id),
+      )
+      .slice(0, 8);
+  });
+
   const activeAnalysis = createMemo(() => {
     const searched = response();
-    if (searched && searched.analysis.originalQuery === query().trim()) return searched.analysis;
+    if (searched && searched.analysis.originalQuery === searchableQuery(query())) {
+      return searched.analysis;
+    }
     return draftAnalysis();
   });
 
@@ -243,6 +351,43 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     () => response()?.groups.reduce((total, group) => total + group.results.length, 0) ?? 0,
   );
   const visibleGroups = createMemo(() => response()?.groups ?? []);
+
+  const calculatorSchemas = createMemo(() => {
+    calculatorPacksRevision();
+    return installedCalculatorSchemas();
+  });
+  const calculatorSuggestion = createMemo(() => {
+    const searched = response();
+    if (
+      explicitCalculator() ||
+      !searched ||
+      props.scope === 'personal' ||
+      props.scope === 'legal'
+    ) {
+      return undefined;
+    }
+    return resolveCalculatorSuggestion(searched.analysis, calculatorSchemas());
+  });
+  const explicitCalculatorDraft = createMemo(() => {
+    const calculator = explicitCalculator();
+    const analysis = activeAnalysis();
+    if (!calculator || !analysis) return {};
+    const suggestion = resolveCalculatorSuggestion(analysis, calculatorSchemas());
+    return (
+      suggestion?.candidates.find((candidate) => candidate.calculatorId === calculator.id)
+        ?.draftInputs ?? {}
+    );
+  });
+  const inlineCalculatorDefinition = createMemo(
+    () =>
+      explicitCalculator() ??
+      installedCalculatorDefinitions().find(
+        (definition) => definition.id === requestedInlineCalculator()?.id,
+      ),
+  );
+  const inlineCalculatorValues = createMemo(() =>
+    explicitCalculator() ? explicitCalculatorDraft() : (requestedInlineCalculator()?.values ?? {}),
+  );
 
   const visibleContextChunks = createMemo(() => {
     const resolved = context();
@@ -254,7 +399,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const allowed = props.searchAllowed !== false;
     const scopeChanged = activeScope !== props.scope;
     activeScope = props.scope;
-    const trimmed = query().trim();
+    const trimmed = searchableQuery(query());
     if (allowed && trimmed.length >= 2) {
       const cached = response();
       const hasMatchingCache = Boolean(
@@ -273,24 +418,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     searchWasAllowed = allowed;
   });
 
-  // Deterministic results render immediately; when a background model enhancement reports a
-  // reorder for the query currently on screen, swap it in without re-running the search.
-  createEffect(() => {
-    const enhancement = props.enhancement?.();
-    if (!enhancement?.enhancedResponse) return;
-    if (enhancement.query !== response()?.analysis.originalQuery) return;
-    setResponse(enhancement.enhancedResponse);
-  });
-
-  const aiRefining = createMemo(() => {
-    const enhancement = props.enhancement?.();
-    return Boolean(
-      enhancement &&
-        enhancement.phase === 'running' &&
-        enhancement.query === response()?.analysis.originalQuery,
-    );
-  });
-
   createEffect(() => {
     if (expanded() && textarea) resizeTextarea(textarea);
   });
@@ -301,7 +428,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (!replayQuery?.trim() || replay.detail.entry.scope !== props.scope) return;
     updateQuery(replayQuery, false);
     if (replay.detail.cachedResponse) {
-      lastSearchedQuery = replayQuery.trim();
+      lastSearchedQuery = searchableQuery(replayQuery);
       setResponse(replay.detail.cachedResponse);
       setDraftAnalysis(replay.detail.cachedResponse.analysis);
     }
@@ -313,23 +440,57 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   const handleContentChanged = (): void => {
     setContext(undefined);
+    setContextDocuments([]);
     setError(undefined);
     const trimmed = query().trim();
     if (trimmed) void runSearch(trimmed, false);
+  };
+  const handleCalculatorPacksChanged = (): void => {
+    setCalculatorPacksRevision((revision) => revision + 1);
+  };
+  const showCalculatorInline = (
+    calculatorId: string,
+    values: Readonly<Record<string, string | number>>,
+  ): void => {
+    if (!installedCalculatorDefinitions().some((definition) => definition.id === calculatorId)) {
+      return;
+    }
+    setRequestedInlineCalculator({ id: calculatorId, values });
+  };
+  const openCalculatorPage = (
+    calculatorId: string,
+    values: Readonly<Record<string, string | number>>,
+  ): void => {
+    const definition = installedCalculatorDefinitions().find(
+      (candidate) => candidate.id === calculatorId,
+    );
+    if (!definition) return;
+    saveCalculatorLaunchDraft(calculatorId, values);
+    window.location.hash = `#/calculators/${definition.slug}`;
   };
   const handleReaderKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && context()) closeContext();
   };
 
   onMount(() => {
+    void refreshDownloadedCalculatorDefinitions()
+      .then(handleCalculatorPacksChanged)
+      .catch((cause: unknown) => {
+        console.warn(
+          'Installed calculator definitions are unavailable for search suggestions.',
+          cause,
+        );
+      });
     window.addEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
     window.addEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
+    window.addEventListener(CALCULATOR_PACKS_EVENT, handleCalculatorPacksChanged);
     window.addEventListener('keydown', handleReaderKeyDown);
   });
 
   onCleanup(() => {
     window.removeEventListener(SEARCH_REPLAY_EVENT, handleReplaySearch);
     window.removeEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
+    window.removeEventListener(CALCULATOR_PACKS_EVENT, handleCalculatorPacksChanged);
     window.removeEventListener('keydown', handleReaderKeyDown);
     if (analysisTimer) clearTimeout(analysisTimer);
     if (searchTimer) clearTimeout(searchTimer);
@@ -338,7 +499,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   function scheduleAnalysis(value: string): void {
     if (analysisTimer) clearTimeout(analysisTimer);
-    const trimmed = value.trim();
+    const trimmed = searchableQuery(value);
     if (trimmed.length < 2) {
       lastAnalyzedQuery = '';
       setDraftAnalysis(undefined);
@@ -361,7 +522,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setAnalysisLoading(true);
     analysisTimer = setTimeout(async () => {
       const result = await props.core.analyzeQuery({ query: trimmed, includeSuggestions: true });
-      if (query().trim() !== trimmed) return;
+      if (searchableQuery(query()) !== trimmed) return;
       setAnalysisLoading(false);
       if (result.ok) {
         lastAnalyzedQuery = trimmed;
@@ -373,7 +534,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   function scheduleSearch(value: string): void {
     if (searchTimer) clearTimeout(searchTimer);
-    const trimmed = value.trim();
+    const trimmed = searchableQuery(value);
     if (trimmed.length < 2) {
       searchGeneration += 1;
       lastSearchedQuery = '';
@@ -388,8 +549,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   function updateQuery(value: string, debounce = true): void {
+    if (searchableQuery(value) !== searchableQuery(query())) setRequestedInlineCalculator();
     setQuery(value);
-    if (response()?.analysis.originalQuery !== value.trim()) {
+    if (response()?.analysis.originalQuery !== searchableQuery(value)) {
       setResponse(undefined);
       setContext(undefined);
     }
@@ -398,8 +560,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   async function runSearch(nextQuery = query(), recordHistory = true): Promise<void> {
-    const trimmed = nextQuery.trim();
-    if (!trimmed) return;
+    const rawQuery = nextQuery.trim();
+    const trimmed = searchableQuery(nextQuery);
+    if (!trimmed) {
+      setResponse(undefined);
+      setDraftAnalysis(undefined);
+      setLoading(false);
+      return;
+    }
     if (props.searchAllowed === false) {
       setLoading(false);
       return;
@@ -413,15 +581,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setError(undefined);
     setContext(undefined);
 
-    const result = await props.core.search({
-      query: trimmed,
-      mode: 'auto',
-      filters: {},
-      limit: 28,
-      includeSuggestions: true,
-    });
+    const [result, available] = await Promise.all([
+      props.core.search({
+        query: trimmed,
+        mode: 'auto',
+        filters: {},
+        limit: 20,
+        includeSuggestions: true,
+      }),
+      contextDocuments().length === 0 ? props.core.listDocuments() : undefined,
+    ]);
 
-    if (generation !== searchGeneration || query().trim() !== trimmed) return;
+    if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
     setLoading(false);
     if (!result.ok) {
       setError(result.error.message);
@@ -429,15 +600,22 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
 
     lastSearchedQuery = trimmed;
+    if (available?.ok) setContextDocuments(available.value);
+    else if (available) setError(available.error.message);
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
-    if (recordHistory) appendSearchHistory(trimmed, props.scope, result.value);
+    if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value);
   }
 
   async function openResult(result: SearchResult): Promise<void> {
     setContextLoading(true);
     setError(undefined);
-    const resolved = await props.core.getSearchResultContext(result, 3);
+    const [resolved, available] = await Promise.all([
+      props.core.getSearchResultContext(result, 3),
+      props.core.listDocuments(),
+    ]);
+    setContextDocuments(available.ok ? available.value : []);
+    if (!available.ok) setError(available.error.message);
     setContextLoading(false);
     if (!resolved.ok) {
       const documents = await props.core.listDocuments();
@@ -487,6 +665,27 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   function handleKeyDown(event: KeyboardEvent): void {
+    if (toolPickerOpen()) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const delta = event.key === 'ArrowDown' ? 1 : -1;
+        const last = Math.max(0, toolSuggestions().length - 1);
+        setActiveTool(Math.min(last, Math.max(0, toolPickerActive() + delta)));
+        return;
+      }
+      if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey) {
+        const definition = toolSuggestions()[toolPickerActive()];
+        if (definition?.state !== 'available') return;
+        event.preventDefault();
+        selectCalculatorTool(definition.slug);
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setToolPickerOpen(false);
+        return;
+      }
+    }
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       void runSearch(query(), true);
@@ -501,6 +700,59 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     closeContext();
     updateQuery(reference, false);
     void runSearch(reference, true);
+  }
+
+  function syncToolPicker(value: string, caret: number): void {
+    const trigger = calculatorToolTrigger(value, caret);
+    if (trigger === undefined) {
+      setToolPickerOpen(false);
+      return;
+    }
+    setToolPickerQuery(trigger);
+    setActiveTool(0);
+    setToolPickerOpen(true);
+  }
+
+  function setActiveTool(index: number): void {
+    setToolPickerActive(index);
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`search-calculator-tool-${index}`)
+        ?.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  function openToolPicker(): void {
+    if (toolPickerOpen()) {
+      setToolPickerOpen(false);
+      return;
+    }
+    const caret = textarea?.selectionStart ?? query().length;
+    const prefix = caret > 0 && !/\s$/u.test(query().slice(0, caret)) ? ' @' : '@';
+    const value = `${query().slice(0, caret)}${prefix}${query().slice(caret)}`;
+    const nextCaret = caret + prefix.length;
+    updateQuery(value);
+    setToolPickerQuery('');
+    setActiveTool(0);
+    setToolPickerOpen(true);
+    requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(nextCaret, nextCaret);
+    });
+  }
+
+  function selectCalculatorTool(slug: string): void {
+    const caret = textarea?.selectionStart ?? query().length;
+    const next = replaceCalculatorToolTrigger(query(), caret, slug);
+    setRequestedInlineCalculator();
+    updateQuery(next.value);
+    setToolPickerOpen(false);
+    requestAnimationFrame(() => {
+      if (!textarea) return;
+      resizeTextarea(textarea);
+      textarea.focus();
+      textarea.setSelectionRange(next.caret, next.caret);
+    });
   }
 
   return (
@@ -548,10 +800,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             id="clinical-query"
             data-testid="search-input"
             data-search-focus-target="true"
+            aria-controls={toolPickerOpen() ? 'search-calculator-tools' : undefined}
+            aria-activedescendant={
+              toolPickerOpen() ? `search-calculator-tool-${toolPickerActive()}` : undefined
+            }
             value={query()}
             onInput={(event) => {
               updateQuery(event.currentTarget.value);
               resizeTextarea(event.currentTarget);
+              syncToolPicker(
+                event.currentTarget.value,
+                event.currentTarget.selectionStart ?? event.currentTarget.value.length,
+              );
             }}
             onKeyDown={handleKeyDown}
             onFocus={() => setFocused(true)}
@@ -573,7 +833,77 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 </strong>
               </Show>
               <div class="query-buttons">
-                {props.queryActionsExtra}
+                <Popover
+                  open={toolPickerOpen()}
+                  onOpenChange={setToolPickerOpen}
+                  placement="bottom-start"
+                  gutter={8}
+                  flip={false}
+                  slide
+                  fitViewport
+                  overflowPadding={8}
+                >
+                  <Popover.Anchor class="search-tool-picker">
+                    <button
+                      class="search-tool-picker__trigger"
+                      classList={{ 'search-tool-picker__trigger--active': toolPickerOpen() }}
+                      type="button"
+                      aria-label="Выбрать калькулятор"
+                      aria-expanded={toolPickerOpen()}
+                      aria-controls="search-calculator-tools"
+                      title="Вставить калькулятор (@)"
+                      disabled={props.searchAllowed === false}
+                      onClick={openToolPicker}
+                    >
+                      <AppGlyph class="search-tool-picker__trigger-icon" name="at" />
+                    </button>
+                  </Popover.Anchor>
+                  <Popover.Portal>
+                    <Popover.Content
+                      class="search-tool-picker__menu"
+                      id="search-calculator-tools"
+                      role="listbox"
+                      aria-label="Калькуляторы"
+                      onOpenAutoFocus={(event) => event.preventDefault()}
+                      onFocusOutside={(event) => event.preventDefault()}
+                    >
+                      <p class="search-tool-picker__heading">Калькуляторы</p>
+                      <For each={toolSuggestions()}>
+                        {(definition, index) => (
+                          <button
+                            class="search-tool-picker__option"
+                            classList={{
+                              'search-tool-picker__option--active': toolPickerActive() === index(),
+                            }}
+                            id={`search-calculator-tool-${index()}`}
+                            type="button"
+                            role="option"
+                            aria-selected={toolPickerActive() === index()}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onMouseEnter={() => setToolPickerActive(index())}
+                            onClick={() =>
+                              definition.state === 'available' &&
+                              selectCalculatorTool(definition.slug)
+                            }
+                          >
+                            <AppGlyph class="search-tool-picker__option-icon" name="calculator" />
+                            <span class="search-tool-picker__option-copy">
+                              <strong class="search-tool-picker__option-title">
+                                {definition.shortTitle}
+                              </strong>
+                              <span class="search-tool-picker__option-detail">
+                                {definition.title}
+                              </span>
+                            </span>
+                          </button>
+                        )}
+                      </For>
+                      <Show when={toolSuggestions().length === 0}>
+                        <p class="search-tool-picker__empty">Установленный калькулятор не найден</p>
+                      </Show>
+                    </Popover.Content>
+                  </Popover.Portal>
+                </Popover>
                 <Show when={query().length > 0}>
                   <button class="text-button clear-query-button" type="button" onClick={clearQuery}>
                     <AppGlyph name="trash" />
@@ -608,6 +938,23 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             </div>
           </Show>
         </form>
+
+        <Show when={ambiguousPhrases().length > 0}>
+          <aside class="search-ambiguities" aria-label="Значения сокращений">
+            <span class="search-ambiguities__label">Несколько значений — выберите нужное</span>
+            <For each={ambiguousPhrases()}>
+              {(phrase) => (
+                <DocumentText
+                  text={phrase}
+                  paragraphClass="search-ambiguities__term"
+                  documentLinkMatcher={queryLinkMatcher()}
+                  onDocumentLink={openDocumentInArchive}
+                  core={props.core}
+                />
+              )}
+            </For>
+          </aside>
+        </Show>
 
         <Show when={activeAnalysis()}>
           {(analysis) => (
@@ -730,7 +1077,41 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           )}
         </Show>
 
-        {props.resultsHeader}
+        <Show when={inlineCalculatorDefinition()}>
+          {(calculator) => (
+            <section class="search-inline-calculator" aria-label="Калькулятор в поиске">
+              <header class="search-inline-calculator__header">
+                <div class="search-inline-calculator__heading">
+                  <p class="search-inline-calculator__kicker">
+                    {explicitCalculator() ? 'Выбран через @' : 'Инструмент поиска'}
+                  </p>
+                  <h2 class="search-inline-calculator__title">{calculator().shortTitle}</h2>
+                  <p class="search-inline-calculator__summary">{calculator().summary}</p>
+                </div>
+                <Button
+                  class="search-inline-calculator__open-page"
+                  type="button"
+                  variant="secondary"
+                  onClick={() => openCalculatorPage(calculator().id, inlineCalculatorValues())}
+                >
+                  Открыть отдельно
+                </Button>
+              </header>
+              <Suspense
+                fallback={
+                  <p class="search-inline-calculator__loading" role="status">
+                    Открываем калькулятор…
+                  </p>
+                }
+              >
+                <SearchInlineCalculatorWorkspace
+                  definition={calculator()}
+                  initialValues={inlineCalculatorValues()}
+                />
+              </Suspense>
+            </section>
+          )}
+        </Show>
 
         <Show when={props.searchAllowed !== false && !response() && query().length === 0}>
           <SearchExamples
@@ -741,6 +1122,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             }}
           />
         </Show>
+
+        <PersonalNoteMatches query={searchableQuery(query())} scope={props.scope} />
 
         <Show when={loading() && !response() && props.scope !== 'personal'}>
           <div
@@ -779,7 +1162,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 </div>
               </Show>
 
-              <PersonalNoteMatches query={query()} scope={props.scope} />
+              <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>
+                {(suggestion) => (
+                  <CalculatorSuggestionCard
+                    suggestion={suggestion()}
+                    schemas={calculatorSchemas()}
+                    onCalculate={showCalculatorInline}
+                  />
+                )}
+              </Show>
 
               <Show when={props.scope !== 'personal'}>
                 <div
@@ -790,6 +1181,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
                     {(group, groupIndex) => {
                       const kind = () => RESULT_KIND_VISUALS[group.documentKind ?? 'reference'];
+                      const contentLabel = () =>
+                        group.contentKind === 'summary'
+                          ? 'Краткий обзор'
+                          : group.contentKind === 'pointer'
+                            ? 'Карточка источника'
+                            : 'Полный текст';
                       return (
                         <section class="result-group">
                           <button
@@ -806,6 +1203,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                             </span>
                             <span class="result-group-header__body">
                               <span class="sr-only">{kind().label}. </span>
+                              <span class="result-group-header__content-kind">
+                                {contentLabel()}
+                              </span>
                               <strong class="result-group-header__title">{group.title}</strong>
                               <span class="result-group-header__note result-minimal-note">
                                 {group.results[0]?.sectionPath.join(' / ') ??
@@ -870,22 +1270,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       );
                     }}
                   </LayoutVirtualizedGrid>
-                </div>
-              </Show>
-              <Show when={aiRefining()}>
-                <div
-                  class="search-results-skeleton search-results-skeleton--inline"
-                  role="status"
-                  aria-label="Локальная модель уточняет порядок источников"
-                >
-                  <div class="search-results-skeleton__row">
-                    <span class="search-results-skeleton__marker" aria-hidden="true" />
-                    <div class="search-results-skeleton__copy">
-                      <span class="search-results-skeleton__line search-results-skeleton__line--long" />
-                      <span class="search-results-skeleton__line" />
-                    </div>
-                    <span class="search-results-skeleton__tail" aria-hidden="true" />
-                  </div>
                 </div>
               </Show>
             </>
@@ -960,6 +1344,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                             text={chunk.originalText}
                             paragraphClass="document-text__paragraph"
                             onReference={searchReference}
+                            core={props.core}
+                            documentLinkMatcher={contextLinkMatcher()}
+                            onDocumentLink={openDocumentInArchive}
                           />
                         </div>
                       )}
@@ -970,13 +1357,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             </Show>
           </aside>
         </Portal>
-      </Show>
-
-      <Show when={aiRefining()}>
-        <div class="ai-refine-toast" role="status" aria-live="polite">
-          <span class="ai-refine-toast__spinner" aria-hidden="true" />
-          Локальная модель уточняет порядок источников…
-        </div>
       </Show>
     </section>
   );

@@ -315,10 +315,23 @@
   translate: 0 -1px;
 }
 
-.medical-image-viewer__rotation-button.ui-button {
+.medical-image-viewer__render-controls {
   position: absolute;
   z-index: 3;
-  translate: -100% 0;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.medical-image-viewer__render-axis-button.ui-button {
+  width: var(--ui-icon-button-size, 2.5rem);
+  min-width: var(--ui-icon-button-size, 2.5rem);
+  padding: 0;
+  font-weight: 800;
 }
 
 .medical-image-viewer__canvas--contrast {

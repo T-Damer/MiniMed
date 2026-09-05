@@ -19,8 +19,6 @@ const TOOL_MODULES = [
   'content/tool-modules/pediatrics-growth.json',
 ] as const;
 
-const NON_TRACKABLE_CALCULATOR_IDS = new Set(['minimed.calculator.weight-for-age-girls-who-demo']);
-
 function mappingReference(mapping: {
   readonly inputId?: string;
   readonly stepId?: string;
@@ -144,11 +142,7 @@ function lintRecord(record: ToolDefinitionRecord): readonly string[] {
     for (const output of schema.steps.filter(
       (step) => step.isOutput && step.valueKind === 'number',
     )) {
-      if (
-        !mappedNumericOutputs.has(output.id) &&
-        schema.evaluation.status !== 'not-applicable' &&
-        !NON_TRACKABLE_CALCULATOR_IDS.has(record.id)
-      ) {
+      if (!mappedNumericOutputs.has(output.id) && schema.evaluation.status !== 'not-applicable') {
         errors.push(`${record.id}: numeric output needs an observation mapping (${output.id})`);
       }
     }
@@ -232,9 +226,9 @@ async function main(): Promise<void> {
     const errors = records.flatMap(lintRecord);
     const calculators = records.filter((record) => record.kind === 'calculator').length;
     const assessments = records.filter((record) => record.kind === 'assessment').length;
-    if (calculators !== 49 || assessments !== 19) {
+    if (calculators !== 50 || assessments !== 19) {
       errors.push(
-        `expected 49 calculators and 19 assessments, got ${calculators} and ${assessments}`,
+        `expected 50 calculators and 19 assessments, got ${calculators} and ${assessments}`,
       );
     }
     if (errors.length > 0) {

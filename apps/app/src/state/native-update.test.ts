@@ -1,68 +1,111 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  apkDownloadCacheKey,
   assertHttpsApkUrl,
-  decodeCapacitorHttpBody,
-  encodeBytesToBase64,
-  splitBytesForBridge,
-  writeApkBytesToNative,
+  cancelAndroidApkDownload,
+  getAndroidApkTaskStatus,
+  getLatestAndroidApkTaskStatus,
+  installAndroidApk,
+  startAndroidApkDownload,
+  watchAndroidApkTasks,
 } from '@/state/native-update';
 
-describe('Android APK fetch install helpers', () => {
+describe('Android APK updater bridge', () => {
   it('rejects non-HTTPS URLs', () => {
-    expect(() => assertHttpsApkUrl('http://example.test/app.apk')).toThrow(
-      'Only HTTPS APK URLs are allowed.',
-    );
+    for (const url of [
+      'http://example.test/app.apk',
+      'https://user@example.test/app.apk',
+      'not a URL',
+    ]) {
+      expect(() => assertHttpsApkUrl(url)).toThrow('Only HTTPS APK URLs are allowed.');
+    }
   });
 
-  it('keys the resumable cache to the APK URL', () => {
-    expect(apkDownloadCacheKey('https://example.test/app.apk')).toBe(
-      'apk:https://example.test/app.apk',
-    );
-  });
+  it('starts a native task without materializing APK bytes in JavaScript', async () => {
+    const startApkDownload = vi.fn(async () => ({ taskId: 'task-1' }));
 
-  it('encodes a binary chunk as base64', () => {
-    expect(encodeBytesToBase64(Uint8Array.from([77, 105, 110, 105]))).toBe(btoa('Mini'));
-  });
-
-  it('decodes CapacitorHttp binary bodies from base64, latin-1 APK bytes, and ArrayBuffers', () => {
-    const bytes = Uint8Array.from([1, 2, 3, 4]);
-    expect(decodeCapacitorHttpBody(btoa('Mini'))).toEqual(Uint8Array.from([77, 105, 110, 105]));
-    expect(
-      decodeCapacitorHttpBody(
-        `data:application/vnd.android.package-archive;base64,${btoa('Mini')}`,
+    await expect(
+      startAndroidApkDownload(
+        {
+          url: 'https://example.test/app.apk',
+          releaseVersion: '1.0.1',
+          expectedSha256: `sha256:${'a'.repeat(64)}`,
+          expectedBytes: 1024,
+        },
+        { startApkDownload },
       ),
-    ).toEqual(Uint8Array.from([77, 105, 110, 105]));
-    expect(decodeCapacitorHttpBody('PK\u0003\u0004ab')).toEqual(
-      Uint8Array.from([80, 75, 3, 4, 97, 98]),
-    );
-    expect(decodeCapacitorHttpBody(bytes.buffer)).toEqual(bytes);
-    expect(decodeCapacitorHttpBody(bytes)).toEqual(bytes);
-    expect(() => decodeCapacitorHttpBody({ unexpected: true })).toThrow(
-      'CapacitorHttp returned an unsupported APK body type.',
-    );
+    ).resolves.toEqual({ taskId: 'task-1' });
+
+    expect(startApkDownload).toHaveBeenCalledWith({
+      url: 'https://example.test/app.apk',
+      releaseVersion: '1.0.1',
+      expectedSha256: `sha256:${'a'.repeat(64)}`,
+      expectedBytes: 1024,
+    });
   });
 
-  it('writes fetched bytes to the native installer in chunks', async () => {
-    const plugin = {
-      prepareApkFile: vi.fn(async () => ({ path: '/tmp/minimed-update.apk' })),
-      appendApkChunk: vi.fn(async () => ({ bytes: 4 })),
-      installPreparedApk: vi.fn(async () => ({ path: '/tmp/minimed-update.apk' })),
-    };
-    const bytes = Uint8Array.from([1, 2, 3, 4]);
+  it('uses task IDs for status, cancellation, and installation', async () => {
+    const getApkDownloadStatus = vi.fn(async () => ({
+      taskId: 'task-1',
+      state: 'ready' as const,
+      downloadedBytes: 1024,
+      totalBytes: 1024,
+      errorCode: null,
+    }));
+    const cancelApkDownload = vi.fn(async () => undefined);
+    const installDownloadedApk = vi.fn(async () => undefined);
 
-    await writeApkBytesToNative(bytes, plugin, 2);
+    await expect(
+      getAndroidApkTaskStatus('task-1', { getApkDownloadStatus }),
+    ).resolves.toMatchObject({ state: 'ready' });
+    await cancelAndroidApkDownload('task-1', { cancelApkDownload });
+    await installAndroidApk('task-1', { installDownloadedApk });
 
-    expect(plugin.prepareApkFile).toHaveBeenCalledTimes(1);
-    expect(plugin.appendApkChunk).toHaveBeenCalledTimes(2);
-    expect(plugin.appendApkChunk).toHaveBeenNthCalledWith(1, {
-      chunk: encodeBytesToBase64(Uint8Array.from([1, 2])),
+    expect(getApkDownloadStatus).toHaveBeenCalledWith({ taskId: 'task-1' });
+    expect(cancelApkDownload).toHaveBeenCalledWith({ taskId: 'task-1' });
+    expect(installDownloadedApk).toHaveBeenCalledWith({ taskId: 'task-1' });
+  });
+
+  it('restores only a task for the available release artifact', async () => {
+    const getLatestApkDownloadStatus = vi.fn(async () => ({
+      status: {
+        taskId: 'task-1',
+        state: 'failed' as const,
+        downloadedBytes: 512,
+        totalBytes: 1024,
+        errorCode: 'interrupted',
+      },
+    }));
+
+    await expect(
+      getLatestAndroidApkTaskStatus(
+        {
+          url: 'https://example.test/app.apk',
+          releaseVersion: '1.0.1',
+          expectedSha256: `sha256:${'a'.repeat(64)}`,
+          expectedBytes: 1024,
+        },
+        { getLatestApkDownloadStatus },
+      ),
+    ).resolves.toMatchObject({ taskId: 'task-1', errorCode: 'interrupted' });
+
+    expect(getLatestApkDownloadStatus).toHaveBeenCalledWith({
+      url: 'https://example.test/app.apk',
+      releaseVersion: '1.0.1',
+      expectedSha256: `sha256:${'a'.repeat(64)}`,
+      expectedBytes: 1024,
     });
-    expect(plugin.appendApkChunk).toHaveBeenNthCalledWith(2, {
-      chunk: encodeBytesToBase64(Uint8Array.from([3, 4])),
-    });
-    expect(plugin.installPreparedApk).toHaveBeenCalledTimes(1);
-    expect(splitBytesForBridge(bytes, 2)).toHaveLength(2);
+  });
+
+  it('subscribes to native task snapshots', async () => {
+    const remove = vi.fn(async () => undefined);
+    const addListener = vi.fn(async () => ({ remove }));
+    const listener = vi.fn();
+
+    const handle = await watchAndroidApkTasks(listener, { addListener });
+
+    expect(addListener).toHaveBeenCalledWith('apkDownloadProgress', listener);
+    await handle.remove();
+    expect(remove).toHaveBeenCalledTimes(1);
   });
 });

@@ -465,6 +465,54 @@ afterEach(async () => {
 });
 
 describe('MedicalCore', () => {
+  it('does not treat an inflected component of a vaccine name as a medicine', async () => {
+    const core = createInMemoryMedicalCore({
+      ...DEMO_CONTENT_PACK,
+      aliases: [
+        {
+          id: 'vaccine-component',
+          alias: 'ИНФЕКЦИИ',
+          canonicalTerm: 'ВАКЦИНА ДЛЯ ПРОФИЛАКТИКИ ДИФТЕРИИ И ИНФЕКЦИЙ',
+          category: 'medication',
+          weight: 1,
+        },
+      ],
+    });
+    cores.push(core);
+    const response = await core.analyzeQuery({
+      query: 'апноэ у грудного ребенка на фоне вирусной инфекции',
+      includeSuggestions: false,
+    });
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.facts.some((fact) => fact.kind === 'medication')).toBe(false);
+    expect(response.value.branches.flatMap((branch) => branch.terms)).not.toContain('вакцина');
+  });
+
+  it('does not interpret a one-letter virus type or preposition as a medication alias', async () => {
+    const core = createInMemoryMedicalCore({
+      ...DEMO_CONTENT_PACK,
+      aliases: [
+        ...DEMO_CONTENT_PACK.aliases,
+        {
+          id: 'invalid-single-letter',
+          alias: 'С',
+          canonicalTerm: 'Вакцина',
+          category: 'medication',
+          weight: 1,
+        },
+      ],
+    });
+    cores.push(core);
+    const response = await core.analyzeQuery({
+      query: 'острый гепатит С',
+      includeSuggestions: true,
+    });
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.facts.some((fact) => fact.kind === 'medication')).toBe(false);
+    expect(response.value.branches.flatMap((branch) => branch.terms)).not.toContain('вакцина');
+  });
   it('recognizes medication indication requests as treatment lookups', () => {
     expect(requestedSectionType('мирамистин показания')).toBe('treatment');
   });

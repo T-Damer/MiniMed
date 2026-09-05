@@ -21,6 +21,35 @@ export interface UserDocumentOutlineItem {
   readonly searchTexts: readonly string[];
 }
 
+export interface EpubNavigationItem {
+  readonly href: string;
+  readonly label: string;
+  readonly subitems?: readonly EpubNavigationItem[];
+}
+
+export function flattenEpubNavigation(
+  items: readonly EpubNavigationItem[],
+  depth = 1,
+): readonly UserDocumentOutlineItem[] {
+  return items.flatMap((item) => [
+    {
+      anchor: item.href,
+      label: item.label.trim(),
+      depth,
+      searchTexts: [item.label],
+    },
+    ...flattenEpubNavigation(item.subitems ?? [], depth + 1),
+  ]);
+}
+
+export function findEpubOutlineAnchor(
+  items: readonly UserDocumentOutlineItem[],
+  href: string,
+): string | undefined {
+  const path = href.split('#', 1)[0];
+  return items.find((item) => item.anchor.split('#', 1)[0] === path)?.anchor;
+}
+
 function markdownOutlineItems(pageText: string, pageAnchor: string): UserDocumentOutlineItem[] {
   const items: UserDocumentOutlineItem[] = [];
   for (const line of pageText.split('\n')) {

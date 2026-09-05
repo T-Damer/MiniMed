@@ -1,6 +1,7 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
-
+import { ConditionCatalogView } from '@/features/conditions/ConditionCatalogView';
+import { isConditionCatalogRoute } from '@/features/conditions/condition-routing';
 import {
   knowledgeDocumentBackHash,
   shouldResetKnowledgeCatalogScroll,
@@ -14,7 +15,7 @@ import { MedicationCatalogView } from '@/features/medications/MedicationCatalogV
 import { isMedicationCatalogRoute } from '@/features/medications/medication-routing';
 import { ModuleCatalogView } from '@/features/modules/ModuleCatalogView';
 
-type KnowledgeRoute = 'documents' | 'medications';
+type KnowledgeRoute = 'conditions' | 'documents' | 'medications';
 
 interface KnowledgeBaseViewProps {
   readonly core: MedicalCore;
@@ -27,6 +28,9 @@ interface KnowledgeBaseViewProps {
 function routeFromLocation(): KnowledgeRoute {
   if (isMedicationCatalogRoute(window.location.hash)) {
     return 'medications';
+  }
+  if (isConditionCatalogRoute(window.location.hash)) {
+    return 'conditions';
   }
   return 'documents';
 }
@@ -94,6 +98,10 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
       <Show when={route() === 'medications'}>
         <MedicationCatalogView core={props.core} onBack={navigateBack} />
+      </Show>
+
+      <Show when={route() === 'conditions'}>
+        <ConditionCatalogView core={props.core} onBack={navigateBack} />
       </Show>
     </section>
   );

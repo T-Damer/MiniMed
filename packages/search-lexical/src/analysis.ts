@@ -5,11 +5,13 @@ import type {
   QueryAnalysis,
   QueryBranch,
   QueryBranchKind,
+  QueryCalculation,
   QueryClinicalContext,
   QueryFact,
   QueryFactKind,
   QueryFactPolarity,
   QueryIntent,
+  QueryMedicationCandidate,
   SearchSuggestion,
   SearchSuggestionField,
   TextRange,
@@ -18,7 +20,7 @@ import type { AliasRecord } from '@localmed/domain';
 
 import { expandAliases, findNormalizedPhraseIndex } from './aliases';
 import { classifyMedicalQueryIntent } from './intent';
-import { lightStemRussian, normalizeSurfaceText, tokenize } from './normalize';
+import { lightStemRussian, normalizeSurfaceText, searchSubjectText, tokenize } from './normalize';
 import symptomExpressions from './symptom-expressions.ru.json';
 
 export interface LexicalQueryBranchPlan extends QueryBranch {
@@ -35,6 +37,53 @@ export interface ClinicalQueryPlan {
 
 const MAX_FTS_TERMS = 34;
 const MAX_BRANCHES = 8;
+
+const MEDICATION_DOSE_QUERY_PATTERNS: readonly RegExp[] = [
+  /(?:^|[^а-яa-z])доз(?:а|у|ы|е|ой|ою|ами|ам|ах)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])дозиров[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:рассчит|расчет|вычисл|посчит)[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])сколько\s+(?:дать|принять|принимать|выпить|таблетк[а-яa-z]*|мг|мл)(?=$|[^а-яa-z])/u,
+  /(?:^|[^0-9а-яa-z])\d+(?:[.,]\d+)?\s*(?:мг|мкг|г)\s*(?:\/\s*(?:кг|доз[а-яa-z]*|сут[а-яa-z]*|день)|на\s+(?:кг|сут[а-яa-z]*|день))(?=$|[^а-яa-z])/u,
+];
+
+const MEDICATION_DOSE_EXCLUSION_PATTERNS: readonly RegExp[] = [
+  /(?:^|[^а-яa-z])(?:передоз[а-яa-z]*|отрав[а-яa-z]*|интоксикац[а-яa-z]*|токсич[а-яa-z]*)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])дозированн[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:уже\s+)?прин(?:ял|яла|яли|ят[а-яa-z]*)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:уже\s+)?приним(?:ал|ала|али|ает|ают|аю|аешь|аете)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:уже\s+)?вып(?:ил|ила|или|ито|ита|иты)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:уже\s+)?дал(?:а|и)?(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:уже\s+)?получ(?:ил|ила|или|ен|ена|ено|ены)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:лишн[а-яa-z]*|слишком\s+много)\s+доз[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])после\s+прием[а-яa-z]*(?=$|[^а-яa-z])/u,
+];
+
+const MEDICATION_INFORMATIONAL_QUERY_PATTERNS: readonly RegExp[] = [
+  /(?:^|[^а-яa-z])инструкц[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])противопоказ[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])побочн[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])взаимодейств[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])совместим[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])аналоги?(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])состав(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])показани[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])можно\s+ли(?=$|[^а-яa-z])/u,
+];
+
+const INFUSION_VOLUME_QUERY_PATTERNS: readonly RegExp[] = [
+  /(?:^|[^а-яa-z])объем\s+(?:жидкост[а-яa-z]*|инфузи[а-яa-z]*)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])рас(?:с)?чет\s+объем[а-яa-z]*\s+инфузи[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])сколько\s+раствор[а-яa-z]*\s+внутривенно(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])инфузионн[а-яa-z]*\s+терапи[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])в\s*\/\s*в\s+объем(?=$|[^а-яa-z])/u,
+];
+
+const INFUSION_VOLUME_EXCLUSION_PATTERNS: readonly RegExp[] = [
+  /(?:^|[^а-яa-z])(?:уже\s+)?введен[а-яa-z]*(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])(?:уже\s+)?получ(?:ил|ила|или|ен|ена|ено|ены)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])передоз[а-яa-z]*\s+(?:раствор[а-яa-z]*|инфузи[а-яa-z]*)(?=$|[^а-яa-z])/u,
+  /(?:^|[^а-яa-z])не\s+назначать\s+самостоятельно(?=$|[^а-яa-z])/u,
+];
 
 const STRUCTURAL_TERMS = new Set([
   'возраст',
@@ -1117,14 +1166,15 @@ function addTermFact(
 
 function extractAliasFacts(
   query: string,
-  aliases: readonly AliasRecord[],
+  matches: ReturnType<typeof expandAliases>['matchSpans'],
   facts: QueryFact[],
 ): void {
-  const normalizedQuery = normalizeSurfaceText(query);
-  for (const alias of aliases) {
+  const aliases = matches.map((match) => match.alias);
+  for (const match of matches) {
+    if (match.matchType !== 'exact') continue;
+    const alias = match.alias;
     const normalizedAlias = normalizeSurfaceText(alias.alias);
-    const index = findNormalizedPhraseIndex(normalizedQuery, normalizedAlias);
-    if (index < 0) continue;
+    const index = match.range.start;
     const kindByCategory: Readonly<Record<string, LegacyQueryFactKind>> = {
       symptom: 'symptom',
       investigation: 'investigation',
@@ -1140,14 +1190,26 @@ function extractAliasFacts(
       (fact) => fact.kind === 'negative-finding' && overlaps(fact.range, aliasRange),
     );
     if (isNegated) continue;
-    addFact(facts, {
+    const meanings = new Set(
+      aliases
+        .filter((candidate) => normalizeSurfaceText(candidate.alias) === normalizedAlias)
+        .map((candidate) => normalizeSurfaceText(candidate.canonicalTerm)),
+    );
+    const input: FactInput<LegacyQueryFactKind> = {
       kind,
       label: alias.category === 'medication' ? 'Препарат' : 'Распознанный термин',
       value: query.slice(index, index + alias.alias.length),
       normalizedValue: alias.canonicalTerm,
       start: index,
       end: index + alias.alias.length,
-    });
+    };
+    if (meanings.size > 1) {
+      const fact = makeFact({ ...input, polarity: 'uncertain' });
+      if (fact) {
+        const id = `${fact.id}:${encodeURIComponent(normalizeSurfaceText(alias.canonicalTerm))}`;
+        if (!facts.some((existing) => existing.id === id)) facts.push({ ...fact, id });
+      }
+    } else addFact(facts, input);
   }
 }
 
@@ -1445,7 +1507,7 @@ function ftsToken(term: string): string {
 }
 
 const ICD10_CODE_PATTERN =
-  /(?<![A-ZА-Я0-9])(?<code>[A-ZА-Я]?\s*\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])/giu;
+  /(?<![A-ZА-Я0-9])(?<code>[A-ZА-Я]?\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])/giu;
 
 function icd10LegacyFtsQueries(
   value: string,
@@ -1599,7 +1661,75 @@ function termsInsideNegativeFacts(facts: readonly QueryFact[]): ReadonlySet<stri
     if (fact.kind !== 'negative-finding') continue;
     for (const term of termsWithStems([fact.normalizedValue])) terms.add(term);
   }
-  return terms;
+  // Include the shared stem of inflected/generated forms (пневмонии → пневмони → пневмон).
+  return new Set([...terms, ...[...terms].map(lightStemRussian)]);
+}
+
+function buildMedicationDoseCalculation(
+  normalizedQuery: string,
+  expansion: ReturnType<typeof expandAliases>,
+  facts: readonly QueryFact[],
+  clinicalContext: QueryClinicalContext,
+): QueryCalculation | undefined {
+  const hasExplicitDoseIntent = MEDICATION_DOSE_QUERY_PATTERNS.some((pattern) =>
+    pattern.test(normalizedQuery),
+  );
+  const hasPatientContext = clinicalContext.age.length > 0 || clinicalContext.weight.length > 0;
+  if (!hasExplicitDoseIntent && !hasPatientContext) {
+    return undefined;
+  }
+  if (MEDICATION_DOSE_EXCLUSION_PATTERNS.some((pattern) => pattern.test(normalizedQuery))) {
+    return undefined;
+  }
+  if (MEDICATION_INFORMATIONAL_QUERY_PATTERNS.some((pattern) => pattern.test(normalizedQuery))) {
+    return undefined;
+  }
+
+  const negativeRanges = facts
+    .filter((fact) => fact.kind === 'negative-finding')
+    .map((fact) => fact.range);
+  const candidates = new Map<string, QueryMedicationCandidate>();
+  for (const matchSpan of expansion.matchSpans) {
+    if (matchSpan.alias.category !== 'medication') continue;
+    if (negativeRanges.some((negativeRange) => overlaps(negativeRange, matchSpan.range))) continue;
+    const matchedText = normalizedQuery.slice(matchSpan.range.start, matchSpan.range.end);
+    if (!matchedText) continue;
+
+    const candidate = {
+      canonicalTerm: matchSpan.alias.canonicalTerm,
+      matchedText,
+      matchType: matchSpan.matchType,
+    } as const;
+    const key = normalizeSurfaceText(candidate.canonicalTerm);
+    const current = candidates.get(key);
+    if (!current || (current.matchType === 'fuzzy' && candidate.matchType === 'exact')) {
+      candidates.set(key, candidate);
+    }
+  }
+  if (candidates.size === 0) return undefined;
+  return { kind: 'medication-dose', medicationCandidates: [...candidates.values()] };
+}
+
+function buildInfusionVolumeCalculation(
+  normalizedQuery: string,
+  clinicalContext: QueryClinicalContext,
+): QueryCalculation | undefined {
+  const hasExplicitIntent = INFUSION_VOLUME_QUERY_PATTERNS.some((pattern) =>
+    pattern.test(normalizedQuery),
+  );
+  const hasContextualIntent =
+    /(?:^|[^а-яa-z])инфузи(?:я|и)(?=$|[^а-яa-z])/u.test(normalizedQuery) &&
+    (clinicalContext.age.length > 0 || clinicalContext.weight.length > 0);
+  if (!hasExplicitIntent && !hasContextualIntent) {
+    return undefined;
+  }
+  if (
+    INFUSION_VOLUME_EXCLUSION_PATTERNS.some((pattern) => pattern.test(normalizedQuery)) ||
+    MEDICATION_INFORMATIONAL_QUERY_PATTERNS.some((pattern) => pattern.test(normalizedQuery))
+  ) {
+    return undefined;
+  }
+  return { kind: 'infusion-volume' };
 }
 
 function buildBranches(
@@ -1613,7 +1743,8 @@ function buildBranches(
   const expansion = expandAliases(normalizedQuery, aliases);
   const negativeTerms = termsInsideNegativeFacts(facts);
   const measurementTerms = measurementNumericTerms(facts);
-  const originalTerms = termsWithStems([normalizedQuery], measurementTerms);
+  const subjectQuery = searchSubjectText(query);
+  const originalTerms = termsWithStems([subjectQuery], measurementTerms);
   const positiveTerms = originalTerms.filter((term) => !negativeTerms.has(term));
   const negativeRanges = facts
     .filter((fact) => fact.kind === 'negative-finding')
@@ -1707,6 +1838,24 @@ function buildBranches(
     measurementTerms,
   );
   if (clinical) branches.push(clinical);
+  const phrase = subjectQuery;
+  if (
+    (tokenize(phrase).length >= 3 ||
+      (subjectQuery !== normalizedQuery && tokenize(phrase).length >= 2)) &&
+    negativeTerms.size === 0
+  ) {
+    branches.push({
+      id: 'source-phrase',
+      kind: 'original',
+      label: 'Точная фраза источника',
+      query,
+      normalizedQuery,
+      terms: positiveTerms,
+      weight: 1.7,
+      ftsQuery: `"${phrase.replaceAll('"', '""')}"`,
+    });
+  }
+
   const fuzzyAliases = makeBranch(
     'fuzzy-aliases',
     'clinical',
@@ -1724,7 +1873,7 @@ function buildBranches(
       'intent',
       intentSpec.label,
       query,
-      [normalizedQuery, intentSpec.terms],
+      [subjectQuery, intentSpec.terms],
       intentSpec.weight,
       measurementTerms,
     );
@@ -1820,7 +1969,46 @@ function buildBranches(
     );
     if (nextDiagnostics) branches.unshift(nextDiagnostics);
   }
-  return branches.slice(0, MAX_BRANCHES);
+  const selected = branches.slice(0, MAX_BRANCHES).flatMap((branch) => {
+    const terms = branch.terms.filter(
+      (term) => !negativeTerms.has(term) && !negativeTerms.has(lightStemRussian(term)),
+    );
+    if (terms.length === branch.terms.length) return [branch];
+    if (terms.length === 0) return [];
+    // Alias/intent/clause expansion must not reintroduce a finding excluded in the original query.
+    return [{ ...branch, terms, ftsQuery: terms.map(ftsToken).join(' OR ') }];
+  });
+  // Informational words such as “instruction” must not fill the candidate window with other drugs.
+  // Keep clinical/mixed queries broad; only explicit medication intent requires a named product.
+  if (
+    intent.primary !== 'medication' &&
+    !(
+      intent.primary === 'unknown' &&
+      MEDICATION_INFORMATIONAL_QUERY_PATTERNS.some((pattern) => pattern.test(normalizedQuery))
+    )
+  )
+    return selected;
+  const namedMedications = facts.filter(
+    (fact) => fact.kind === 'medication' && fact.polarity === 'positive',
+  );
+  const names = [
+    ...new Set(namedMedications.flatMap((fact) => [fact.value, fact.normalizedValue])),
+  ];
+  const medicationQuery = names
+    .map((name) =>
+      tokenize(normalizeSurfaceText(name))
+        .map((term) => `(${termsWithStems([term]).map(ftsToken).join(' OR ')})`)
+        .join(' AND '),
+    )
+    .filter(Boolean)
+    .map((name) => `(${name})`)
+    .join(' OR ');
+  return medicationQuery
+    ? selected.map((branch) => ({
+        ...branch,
+        ftsQuery: `(${branch.ftsQuery}) AND (${medicationQuery})`,
+      }))
+    : selected;
 }
 
 export function analyzeClinicalQuery(
@@ -1830,6 +2018,7 @@ export function analyzeClinicalQuery(
 ): ClinicalQueryPlan {
   const normalizedQuery = normalizeSurfaceText(query);
   const intent = classifyMedicalQueryIntent(query);
+  const expansion = expandAliases(normalizedQuery, aliases);
   const facts: QueryFact[] = [];
   extractSex(query, facts);
   extractAge(query, facts);
@@ -1839,20 +2028,23 @@ export function analyzeClinicalQuery(
   extractNegations(query, aliases, facts);
   extractSymptomExpressions(query, facts);
   extractSymptoms(query, facts);
-  extractAliasFacts(query, aliases, facts);
+  extractAliasFacts(query, expansion.matchSpans, facts);
   extractKnownTerms(query, facts);
   extractMedicationPhrase(query, facts);
   const orderedFacts = facts.toSorted((left, right) => left.range.start - right.range.start);
   const clinicalContext = buildClinicalContext(query, orderedFacts);
   const branches = buildBranches(query, aliases, orderedFacts, clinicalContext, intent);
-  const expansion = expandAliases(normalizedQuery, aliases);
   const suggestions = includeSuggestions
     ? buildSuggestions(normalizedQuery, orderedFacts, intent)
     : [];
+  const calculation =
+    buildMedicationDoseCalculation(normalizedQuery, expansion, orderedFacts, clinicalContext) ??
+    buildInfusionVolumeCalculation(normalizedQuery, clinicalContext);
   const analysis: QueryAnalysis = {
     originalQuery: query,
     normalizedQuery,
     intent,
+    ...(calculation ? { calculation } : {}),
     facts: orderedFacts,
     clinicalContext,
     branches: branches.map(({ ftsQuery: _ftsQuery, ...branch }) => branch),

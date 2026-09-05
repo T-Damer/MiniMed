@@ -161,6 +161,23 @@ class ClinicalMedicationLink(CatalogModel):
     source_chunk_id: str
 
 
+class ClinicalCanonicalDefinition(CatalogModel):
+    definition_id: str
+    text: str
+    source_document_id: str
+    source_document_version_id: str
+    source_section_id: str
+    source_chunk_id: str
+    source_anchor: str
+    source_section_title: str
+    source_quote: str
+    page_start: int | None = None
+    page_end: int | None = None
+    char_start: int | None = None
+    char_end: int | None = None
+    source_spans: list[dict[str, object]] = Field(default_factory=lambda: list[dict[str, object]]())
+
+
 class ClinicalCatalogRecord(CatalogModel):
     record_id: str
     official_id: str
@@ -168,6 +185,7 @@ class ClinicalCatalogRecord(CatalogModel):
     entity_type: Literal["disease", "reference"] = "disease"
     aliases: list[str] = Field(default_factory=list)
     keywords: list[str] = Field(default_factory=list)
+    canonical_definition: ClinicalCanonicalDefinition | None = None
     clinical_medication_links: list[ClinicalMedicationLink] = Field(default_factory=list)
     version_label: str
     status: RecordStatus

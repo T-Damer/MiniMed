@@ -61,11 +61,10 @@ test('completes a psychology questionnaire and writes the result to a patient no
   await page
     .getByRole('button', { name: 'Открыть раздел «Самооценка и личностный профиль»' })
     .click();
-  const installSection = page.getByTestId('assessment-section-self-reflection');
-  if (await installSection.count()) {
-    await installSection.click();
-    await expect(page.getByText('Раздел опросников скачан на устройство.')).toBeVisible();
-  }
+  // Published local tool packs install in the background; wait for the executable schema.
+  await expect(page.getByTestId('assessment-open-braverman-behavioral-profile')).toBeEnabled({
+    timeout: 30_000,
+  });
   await page.getByTestId('assessment-open-braverman-behavioral-profile').click();
   await expect(page).toHaveURL(/#\/assessments\/psychology\/braverman-behavioral-profile$/u);
   await expect(
@@ -124,5 +123,7 @@ test('completes a psychology questionnaire and writes the result to a patient no
   await expect(page.locator('.patient-note-record')).toContainText('Тест Бравермана');
 
   await page.reload();
-  await expect(page.locator('.patient-note-record')).toContainText('Тест Бравермана');
+  await expect(page.locator('.patient-note-record')).toContainText('Тест Бравермана', {
+    timeout: 25_000,
+  });
 });

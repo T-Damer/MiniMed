@@ -1,5 +1,6 @@
 :root {
   --safe-top: max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px));
+  --sticky-header-top: calc(var(--safe-top) + 0.5rem);
   --safe-right: max(var(--safe-area-inset-right, 0px), env(safe-area-inset-right, 0px));
   --safe-bottom: max(var(--safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
   --safe-left: max(var(--safe-area-inset-left, 0px), env(safe-area-inset-left, 0px));
@@ -94,21 +95,30 @@ body {
 }
 
 .app-shell--native .search-home__backdrop-blur,
-.app-shell--native .knowledge-subroute-heading--blurred::before,
 .app-shell--native .search-mode-tools::before {
   display: none;
   opacity: 0;
 }
 
-.app-shell--native:has(.app-view.active .search-mode-tools.sticky-surface--stuck)::before,
-.app-shell--native:has(
-  .app-view.active .knowledge-subroute-heading--blurred.sticky-surface--stuck
-)::before {
+.app-shell--native:has(.app-view.active .search-mode-tools.sticky-surface--stuck)::before {
   opacity: 1;
 }
 
-.app-shell--native .knowledge-subroute-heading--blurred.route-sticky-chrome {
-  top: var(--safe-top);
+.route-sticky-chrome.route-sticky-chrome--transparent,
+.search-mode-tools.route-sticky-chrome--transparent {
+  top: var(--sticky-header-top);
+  padding-top: 0.25rem;
+}
+
+.route-sticky-chrome--transparent.sticky-surface--stuck {
+  margin-top: 0;
+  padding-top: 0.25rem;
+}
+
+/* Reader chrome owns the safe area: its opaque fill starts at the viewport edge and its padding
+   keeps controls below the status bar. Transparent route chrome instead sits below --safe-top. */
+.route-sticky-chrome--opaque {
+  top: 0;
 }
 
 .app-shell--native:has(.app-view.active .document-page)::before,

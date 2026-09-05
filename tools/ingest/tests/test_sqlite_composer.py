@@ -1072,3 +1072,205 @@ def test_chunk_source_query_scans_source_rows_without_sort_or_full_row_lookup(
         ]
     finally:
         connection.close()
+
+
+def test_classification_navigation_alias_does_not_replace_other_mkb_meanings(
+    tmp_path: Path,
+) -> None:
+    pack = source_pack("reference", "pointer.classification", "Указатель классификации.")
+    doc = pack.documents[0]
+    doc.title = "Международная классификация болезней (МКБ-10)"
+    doc.source_type = "core_catalog_pointer"
+    doc.metadata.update(
+        {"targetDocumentId": "rls.mkb.classification", "catalogFamily": "reference"}
+    )
+    pack.aliases.append(
+        Alias(
+            id="disease-mkb",
+            alias="МКБ",
+            canonical_term="Мочекаменная болезнь",
+            category="clinical-recommendation",
+        )
+    )
+    source = tmp_path / "source.db"
+    write_sqlite_pack(pack, source)
+    for index in range(2):
+        output = tmp_path / f"core-{index}.db"
+        compose_sqlite_packs(
+            [source],
+            output,
+            tmp_path / f"manifest-{index}.json",
+            edition_id="core",
+            edition_version="1",
+            title="Core",
+            built_at="2026-09-05T00:00:00Z",
+        )
+        with sqlite3.connect(output) as db:
+            assert set(
+                db.execute("SELECT canonical_term FROM aliases WHERE alias = 'МКБ'").fetchall()
+            ) == {(doc.title,), ("Мочекаменная болезнь",)}
+            assert (
+                db.execute(
+                    "SELECT count(*) FROM aliases WHERE id LIKE 'core.navigation-alias.%'"
+                ).fetchone()[0]
+                == 3
+            )
+            metadata = json.loads(
+                db.execute(
+                    "SELECT metadata_json FROM documents WHERE id = ?", (doc.id,)
+                ).fetchone()[0]
+            )
+            assert metadata["navigationAliases"] == ["МКБ", "МКБ-10", "МКБ 10"]
+            assert (
+                db.execute("SELECT original_text FROM chunks").fetchone()[0]
+                == "Указатель классификации."
+            )
+            assert db.execute("PRAGMA foreign_key_check").fetchall() == []
+        source = output
+
+
+def test_core_pointer_knowledge_preserves_sources_and_stable_links(tmp_path: Path) -> None:
+    packs: list[Path] = []
+    for suffix in ("one", "two"):
+        pack = source_pack(
+            f"source.{suffix}",
+            f"pointer.{suffix}",
+            "МКБ-10: J18.9. Указатель источника."
+            + (" Точное определение one." if suffix == "one" else ""),
+        )
+        doc = pack.documents[0]
+        doc.title = "Одинаковый термин"
+        doc.source_type = "core_catalog_pointer"
+        doc.metadata.update(
+            {
+                "targetDocumentId": f"full.{suffix}",
+                "catalogFamily": "clinical",
+                "entityType": "disease",
+                "moduleIds": [f"module.{suffix}"],
+                "primaryModuleId": f"module.{suffix}",
+                "declaredAliases": ["ОТ"],
+                "keywords": ["широкое ключевое слово"],
+                "icd10Codes": ["J18.9"],
+                "canonicalDefinition": {
+                    "definitionId": f"definition.{suffix}",
+                    "text": f"Точное определение {suffix}.",
+                    "sourceDocumentId": f"full.{suffix}",
+                    "sourceDocumentVersionId": f"full.{suffix}@1",
+                    "sourceSectionId": f"section.full.{suffix}",
+                    "sourceChunkId": f"chunk.full.{suffix}",
+                    "sourceAnchor": f"full.{suffix}/definition",
+                },
+            }
+        )
+        path = tmp_path / f"{suffix}.db"
+        write_source(path, pack)
+        packs.append(path)
+    output = tmp_path / "core.db"
+    compose_sqlite_packs(
+        packs,
+        output,
+        tmp_path / "core-manifest.json",
+        edition_id="core",
+        edition_version="1",
+        title="Core",
+        built_at="2026-09-04T00:00:00Z",
+    )
+    with sqlite3.connect(output) as db:
+        assert db.execute("SELECT count(*) FROM chunks").fetchone()[0] == 3
+        excerpt = db.execute(
+            "SELECT c.original_text, c.metadata_json, d.metadata_json FROM chunks_fts f "
+            "JOIN chunks c ON c.id = f.chunk_id "
+            "JOIN documents d ON d.id = f.document_id "
+            "WHERE chunks_fts MATCH ?",
+            ('"two"',),
+        ).fetchone()
+        assert excerpt[0] == "Точное определение two."
+        assert json.loads(excerpt[1])["sourceLocator"]["sourceAnchor"] == "full.two/definition"
+        assert json.loads(excerpt[2])["definitionPreviewAnchor"]
+        assert db.execute("SELECT count(*) FROM knowledge_entities").fetchone()[0] == 3
+        assert db.execute("SELECT count(*) FROM knowledge_facts").fetchone()[0] == 1
+        assert db.execute("SELECT count(*) FROM knowledge_relations").fetchone()[0] == 2
+        assert db.execute("SELECT count(*) FROM knowledge_document_links").fetchone()[0] == 4
+        assert (
+            db.execute(
+                "SELECT name FROM knowledge_names WHERE name = 'широкое ключевое слово'"
+            ).fetchall()
+            == []
+        )
+        assert (
+            db.execute(
+                "SELECT count(*) FROM knowledge_facts WHERE review_status = 'reviewed'"
+            ).fetchone()[0]
+            == 0
+        )
+        evidence = db.execute(
+            "SELECT evidence_quote, original_text, source_locator_json FROM knowledge_evidence "
+            "JOIN chunks ON chunks.id = chunk_id WHERE fact_id IS NOT NULL"
+        ).fetchall()
+        assert len(evidence) == 1
+        for quote, text, locator in evidence:
+            assert quote in text
+            assert json.loads(locator)["sourceChunkId"].startswith("chunk.full.")
+        assert db.execute("PRAGMA foreign_key_check").fetchall() == []
+        snapshot = {
+            table: db.execute(f"SELECT * FROM {table} ORDER BY id").fetchall()
+            for table in (
+                "knowledge_entities",
+                "knowledge_names",
+                "knowledge_facts",
+                "knowledge_relations",
+                "knowledge_document_links",
+                "chunks",
+            )
+        }
+    # Compiling a previously projected pack must not duplicate records or change stable anchors.
+    rebuilt = tmp_path / "rebuilt.db"
+    compose_sqlite_packs(
+        [output],
+        rebuilt,
+        tmp_path / "rebuilt-manifest.json",
+        edition_id="core",
+        edition_version="1",
+        title="Core",
+        built_at="2026-09-04T00:00:00Z",
+    )
+    with sqlite3.connect(rebuilt) as db:
+        for table, rows in snapshot.items():
+            assert db.execute(f"SELECT * FROM {table} ORDER BY id").fetchall() == rows
+    with sqlite3.connect(packs[0]) as db:
+        assert db.execute("SELECT count(*) FROM knowledge_entities").fetchone()[0] == 0
+        assert db.execute("SELECT count(*) FROM chunks").fetchone()[0] == 1
+
+
+def test_core_definition_rejects_another_source_document(tmp_path: Path) -> None:
+    pack = source_pack("source.one", "pointer.one", "Исходный текст.")
+    doc = pack.documents[0]
+    doc.source_type = "core_catalog_pointer"
+    doc.metadata.update(
+        {
+            "targetDocumentId": "full.one",
+            "canonicalDefinition": {
+                "definitionId": "def",
+                "text": "Цитата",
+                "sourceDocumentId": "wrong",
+                "sourceDocumentVersionId": "wrong@1",
+                "sourceSectionId": "section",
+                "sourceChunkId": "chunk",
+                "sourceAnchor": "anchor",
+            },
+        }
+    )
+    source = tmp_path / "source.db"
+    write_source(source, pack)
+    output = tmp_path / "core.db"
+    with pytest.raises(ValueError, match="does not belong"):
+        compose_sqlite_packs(
+            [source],
+            output,
+            tmp_path / "manifest.json",
+            edition_id="core",
+            edition_version="1",
+            title="Core",
+            built_at="2026-09-04T00:00:00Z",
+        )
+    assert not output.exists()

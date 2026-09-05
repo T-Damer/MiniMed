@@ -33,6 +33,7 @@ import {
 } from '@/features/assessments/assessment-packs';
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 import {
+  contentModuleNeedsInstall,
   isModuleReleased,
   localPackagedModulesToInstall,
 } from '@/features/modules/local-packaged-modules';
@@ -547,7 +548,7 @@ export class BrowserContentModuleRuntime {
   private async ensureLocalPackagedModules(): Promise<void> {
     const candidates = localPackagedModulesToInstall(
       this.catalog,
-      new Map(this.listInstalled().map((module) => [module.moduleId, module.version])),
+      new Map(this.listInstalled().map((module) => [module.moduleId, module])),
     );
     await Promise.all(
       candidates.map(async (module) => {
@@ -558,12 +559,8 @@ export class BrowserContentModuleRuntime {
           resolveContentModuleArtifactUrl(artifact.url),
         );
         if (!reachable || this.disposed) return;
-        if (
-          this.listInstalled().some(
-            (installed) => installed.moduleId === module.id && installed.version === module.version,
-          )
-        )
-          return;
+        const installed = this.listInstalled().find((entry) => entry.moduleId === module.id);
+        if (!contentModuleNeedsInstall(module, installed)) return;
         try {
           const task = this.install(module);
           await this.wait(task.id);

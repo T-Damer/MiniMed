@@ -3,12 +3,12 @@ import { resolve } from 'node:path';
 
 import { ToolDefinitionRecordSchema } from '@localmed/contracts';
 import { afterEach, describe, expect, it } from 'vitest';
-
 import {
   clearDownloadedCalculators,
   getCalculatorRegistry,
   registerDownloadedCalculator,
 } from '@/features/calculators/calculator-registry';
+import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 
 describe('downloaded calculator modules', () => {
   afterEach(() => clearDownloadedCalculators());
@@ -23,8 +23,10 @@ describe('downloaded calculator modules', () => {
       registerDownloadedCalculator(record);
     }
 
-    const downloaded = getCalculatorRegistry().filter((calculator) =>
-      calculator.id.startsWith('minimed.calculator.'),
+    const downloaded = getCalculatorRegistry().filter(
+      (calculator) =>
+        calculator.id.startsWith('minimed.calculator.') &&
+        getCalculatorSchema(calculator.id) !== undefined,
     );
     expect(downloaded).toHaveLength(17);
     expect(downloaded.map((calculator) => calculator.id)).toContain(

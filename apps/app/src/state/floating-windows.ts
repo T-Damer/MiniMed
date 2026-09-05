@@ -14,6 +14,7 @@ export interface FloatingWindowState {
   readonly height: number;
   readonly zIndex: number;
   readonly collapsed: boolean;
+  readonly ownerRoute?: string;
 }
 
 const STORAGE_KEY = 'minimed.floating-windows.v3';
@@ -139,7 +140,10 @@ function readStoredWindows(): readonly FloatingWindowState[] {
 function persistWindows(windows: readonly FloatingWindowState[]): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(windows));
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(windows.filter((windowState) => !windowState.ownerRoute)),
+    );
   } catch {
     // Floating layout is optional; the page remains usable when storage is unavailable.
   }
@@ -156,6 +160,7 @@ function defaultWindow(
   view: RootView,
   route: string,
   zIndex: number,
+  ownerRoute?: string,
 ): FloatingWindowState {
   const { width: viewportWidth, height: viewportHeight } = viewportSize();
   const width = clamp(
@@ -178,6 +183,7 @@ function defaultWindow(
     height,
     zIndex,
     collapsed: false,
+    ...(ownerRoute ? { ownerRoute } : {}),
   };
 }
 
@@ -325,19 +331,28 @@ export function createFloatingWindows() {
     );
   };
 
-  const open = (view: RootView, route = defaultRoute(view)): void => {
-    if (view === 'settings') return;
+  const openWindow = (view: RootView, route: string, ownerRoute?: string): boolean => {
+    if (
+      view === 'settings' ||
+      !isRoute(route) ||
+      !routeBelongsToView(route, view) ||
+      (ownerRoute !== undefined && !isRoute(ownerRoute))
+    )
+      return false;
     const existingWindow = windows().find(
-      (windowState) => windowState.view === view && windowState.route === route,
+      (windowState) =>
+        windowState.view === view &&
+        windowState.route === route &&
+        windowState.ownerRoute === ownerRoute,
     );
     if (existingWindow) {
       focus(existingWindow.id);
-      return;
+      return true;
     }
-    if (windows().length >= MAX_WINDOW_COUNT) return;
+    if (windows().length >= MAX_WINDOW_COUNT) return false;
     const existing = windows();
     const first = existing[0];
-    const nextWindow = defaultWindow(createWindowId(view), view, route, nextZIndex++);
+    const nextWindow = defaultWindow(createWindowId(view), view, route, nextZIndex++, ownerRoute);
     setActiveWindowId(nextWindow.id);
     commit([
       ...existing,
@@ -352,6 +367,20 @@ export function createFloatingWindows() {
         : nextWindow,
     ]);
     setStackedMode();
+    return true;
+  };
+
+  const open = (view: RootView, route = defaultRoute(view)): void => {
+    openWindow(view, route);
+  };
+
+  const openTransient = (view: RootView, route: string, ownerRoute: string): boolean =>
+    openWindow(view, route, ownerRoute);
+
+  const closeTransientOutside = (ownerRoute: string): void => {
+    for (const windowState of windows()) {
+      if (windowState.ownerRoute && windowState.ownerRoute !== ownerRoute) close(windowState.id);
+    }
   };
 
   const close = (id: string): void => {
@@ -646,7 +675,10 @@ export function createFloatingWindows() {
     cascadeOffsetFor,
     resizingWindowId,
     isFrameLoading: (id: string): boolean => loadingWindowIds().has(id),
+    hasTransientWindows: (): boolean => windows().some((windowState) => windowState.ownerRoute),
     open,
+    openTransient,
+    closeTransientOutside,
     close,
     toggle,
     focus,

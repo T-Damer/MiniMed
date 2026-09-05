@@ -138,11 +138,6 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   line-height: 1.6;
 }
 
-.user-document-reader--fullscreen .rich-document-renderer--epub {
-  height: calc(100dvh - var(--document-chrome-height, 3.25rem) - 1rem);
-  min-height: 0;
-}
-
 .user-document-reader__pdf-zoom-controls {
   display: flex;
   justify-content: flex-end;
@@ -246,15 +241,6 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   max-width: 92vw;
   max-height: 92dvh;
   margin: 0 auto;
-}
-
-/* EPUB host: epub.js paginates inside a fixed-height frame; the browser must
-   not scroll the host itself or the first page stretches. */
-
-.rich-document-renderer--epub {
-  height: calc(100dvh - 16rem);
-  min-height: 24rem;
-  overflow: hidden;
 }
 
 /* XLS/XLSX/XLSM/CSV sheets */

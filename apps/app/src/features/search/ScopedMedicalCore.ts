@@ -166,13 +166,13 @@ function medicationContextMatchScore(
   result: SearchResult,
   groupTitle: string,
   isMedicationPointer: boolean,
-  aliasFacts: readonly QueryFact<'medication'>[],
+  medicationFacts: readonly QueryFact<'medication'>[],
   structuredFacts: readonly QueryFact<'dose-form' | 'route' | 'strength'>[],
 ): number {
   const text = medicationResultText(result, isMedicationPointer ? undefined : groupTitle);
   const textStems = new Set(stemmedTokens(text));
   if (
-    !aliasFacts.some((fact) => containsStemmedValue(textStems, fact.value)) ||
+    !medicationFacts.some((fact) => containsStemmedValue(textStems, fact.value)) ||
     !structuredFacts.every((fact) => containsStructuredMedicationFact(textStems, fact))
   ) {
     return 0;
@@ -215,9 +215,6 @@ function filterMedicationDocuments(
     (fact): fact is QueryFact<'medication'> =>
       fact.kind === 'medication' && fact.polarity === 'positive',
   );
-  const aliasFacts = positiveMedicationFacts.filter(
-    (fact) => normalizeSurfaceText(fact.value) !== normalizeSurfaceText(fact.normalizedValue),
-  );
   const clinicalContext = response.analysis.clinicalContext;
   const structuredFacts: readonly QueryFact<'dose-form' | 'route' | 'strength'>[] = [
     ...(clinicalContext?.doseForm ?? []),
@@ -230,7 +227,7 @@ function filterMedicationDocuments(
     positiveMedicationFacts.length === 0 &&
     primaryIntent !== 'medication' &&
     primaryIntent !== 'mixed';
-  const requireSameResult = aliasFacts.length > 0 && structuredFacts.length > 0;
+  const requireSameResult = positiveMedicationFacts.length > 0 && structuredFacts.length > 0;
   if (!excludeByIntent && !requireSameResult) return response;
 
   const documentsById = new Map(documents.map((document) => [document.id, document]));
@@ -251,7 +248,7 @@ function filterMedicationDocuments(
             result,
             group.title,
             isMedicationPointer,
-            aliasFacts,
+            positiveMedicationFacts,
             structuredFacts,
           ),
         }))
@@ -361,31 +358,45 @@ export function rankSearchGroupsByAudience(
     .map((entry) => entry.group);
 }
 
+function diagnosisSourcePriority(kind: SearchResultDocumentKind | undefined): number {
+  if (kind === 'clinical-recommendation') return 0;
+  if (kind === 'reference') return 1;
+  return 2;
+}
+
+export function rankDiagnosisGroups(
+  groups: readonly SearchResultGroup[],
+): readonly SearchResultGroup[] {
+  return groups
+    .map((group, index) => ({ group, index }))
+    .toSorted(
+      (left, right) =>
+        diagnosisSourcePriority(left.group.documentKind) -
+          diagnosisSourcePriority(right.group.documentKind) || left.index - right.index,
+    )
+    .map((entry) => entry.group);
+}
+
 /**
  * A UI-level core view that keeps the public MedicalCore contract intact while constraining
  * retrieval to the source family explicitly chosen by the clinician.
  *
- * Diagnosis is the only scope allowed to use the optional grounded local-model wrapper. All other
- * scopes call the deterministic base core directly.
+ * Every scope uses the deterministic base core. Optional cloud generation is outside this contract
+ * and receives documents only after an explicit user action.
  */
 export class ScopedMedicalCore implements MedicalCore {
   public constructor(
     private readonly base: MedicalCore,
-    private readonly assistant: MedicalCore | undefined,
     private readonly scope: SearchScope,
     private readonly includedDocumentIds?: ReadonlySet<string>,
   ) {}
-
-  private target(): MedicalCore {
-    return this.scope === 'diagnosis' && this.assistant ? this.assistant : this.base;
-  }
 
   public initialize(): Promise<Result<CoreStatus, LocalMedError>> {
     return this.base.initialize();
   }
 
   public getCapabilities(): Promise<Result<CoreCapabilities, LocalMedError>> {
-    return this.target().getCapabilities();
+    return this.base.getCapabilities();
   }
 
   public listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>> {
@@ -393,7 +404,7 @@ export class ScopedMedicalCore implements MedicalCore {
   }
 
   public analyzeQuery(request: AnalyzeQueryRequest): Promise<Result<QueryAnalysis, LocalMedError>> {
-    return this.target().analyzeQuery(request);
+    return this.base.analyzeQuery(request);
   }
 
   public async search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
@@ -403,7 +414,7 @@ export class ScopedMedicalCore implements MedicalCore {
     const sourceTypes = SOURCE_TYPES_BY_SCOPE[this.scope];
     let result: Result<SearchResponse, LocalMedError>;
     if (!sourceTypes) {
-      result = await this.target().search(request);
+      result = await this.base.search(request);
     } else {
       const availableDocumentIds = documents.value
         .filter(
@@ -437,15 +448,28 @@ export class ScopedMedicalCore implements MedicalCore {
       documents.value,
       this.scope,
     );
+    const audienceRanked = rankSearchGroupsByAudience(
+      scopedResponse.groups,
+      documents.value,
+      inferRequestedAudience(request.query),
+    );
+    const summaries = new Map(documents.value.map((document) => [document.id, document]));
+    const ranked =
+      this.scope === 'diagnosis' ? rankDiagnosisGroups(audienceRanked) : audienceRanked;
     return {
       ok: true,
       value: {
         ...scopedResponse,
-        groups: rankSearchGroupsByAudience(
-          scopedResponse.groups,
-          documents.value,
-          inferRequestedAudience(request.query),
-        ),
+        groups: ranked.map((group) => {
+          const document = summaries.get(group.documentId);
+          const contentKind =
+            document?.metadata?.['contentMode'] === 'module-pointer'
+              ? 'pointer'
+              : document?.sourceType.endsWith('_summary')
+                ? 'summary'
+                : 'full-text';
+          return { ...group, contentKind };
+        }),
       },
     };
   }
@@ -476,7 +500,7 @@ export class ScopedMedicalCore implements MedicalCore {
   }
 
   public ask(request: AskRequest): Promise<Result<AskResponse, LocalMedError>> {
-    return this.target().ask(request);
+    return this.base.ask(request);
   }
 
   public installContentPack(

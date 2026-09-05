@@ -1,166 +1,36 @@
 import type { MedicalCore } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createMemo, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import brainDownloadIcon from '@/assets/brainDownload.svg';
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { useStickySurface } from '@/components/sticky-surface';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
-import type { LocalModelController } from '@/features/models/controller';
-import { GroundedAssistantStatus } from '@/features/models/GroundedAssistantStatus';
-import type {
-  GroundedAssistantState,
-  GroundedMedicalCore,
-} from '@/features/models/GroundedMedicalCore';
-import type { LocalModelState } from '@/features/models/types';
-import {
-  documentMatchesSearchScope,
-  ScopedMedicalCore,
-  type SearchScope,
-} from '@/features/search/ScopedMedicalCore';
-import { type SearchEnhancementState, SearchWorkspace } from '@/features/search/SearchWorkspace';
-import {
-  getRememberSearchMode,
-  loadSearchScope,
-  saveSearchScope,
-  subscribeAppPreferences,
-} from '@/state/app-preferences';
-import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
+import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import {
   ignoreAppUpdate,
   isHomeAppUpdateVisible,
   loadIgnoredAppUpdates,
 } from '@/state/ignored-app-updates';
-import { loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
-import {
-  isPatientVaultUnlocked,
-  PATIENT_VAULT_EVENT,
-  PATIENT_VAULT_LOCK_EVENT,
-  readPatientVault,
-} from '@/state/patient-vault';
 import { replaySearch, type SearchHistoryEntry } from '@/state/search-history';
-import { USER_LIBRARY_EVENT, userLibrarySearchableCount } from '@/state/user-library';
 
 interface SearchHomeProps {
   readonly baseCore: MedicalCore;
-  readonly assistantCore?: GroundedMedicalCore | undefined;
-  readonly localModelController: LocalModelController;
   readonly active: boolean;
   readonly onOpenKnowledgeBase: () => void;
-  readonly onOpenModelSettings: () => void;
   readonly appUpdateVersion?: string;
   readonly onOpenAppUpdateSettings?: () => void;
 }
 
-interface SearchScopeOption {
-  readonly id: SearchScope;
-  readonly label: string;
-  readonly shortLabel: string;
-  readonly description: string;
-}
-
-const SEARCH_SCOPES: readonly SearchScopeOption[] = [
-  {
-    id: 'diagnosis',
-    label: 'Диагностировать',
-    shortLabel: 'Диагноз',
-    description: 'Разобрать клинический случай и проверить кандидатов по локальным источникам.',
-  },
-  {
-    id: 'guidelines',
-    label: 'В клин. рекомендациях',
-    shortLabel: 'КР и нормы',
-    description: 'Искать в клинических рекомендациях, медицинских нормах и формулах.',
-  },
-  {
-    id: 'medications',
-    label: 'Препараты',
-    shortLabel: 'Препараты',
-    description: 'Искать в реестровых карточках и официальных инструкциях.',
-  },
-  {
-    id: 'legal',
-    label: 'Правовые документы',
-    shortLabel: 'Право',
-    description: 'Искать только в установленных нормативных и организационных документах.',
-  },
-  {
-    id: 'all',
-    label: 'Всё без диагностики',
-    shortLabel: 'Все источники',
-    description: 'Обычный локальный поиск по всем установленным источникам без генерации.',
-  },
-  {
-    id: 'personal',
-    label: 'Ваши данные',
-    shortLabel: 'Ваши данные',
-    description: 'Поиск только в личных заметках и загруженных книгах.',
-  },
-] as const;
-
-const AI_ASSIST_KEY = 'minimed.diagnosis-ai-assist.v1';
-
-function loadAiAssistPreference(): boolean {
-  try {
-    return window.localStorage.getItem(AI_ASSIST_KEY) !== 'off';
-  } catch {
-    return true;
-  }
-}
-
-function saveAiAssistPreference(enabled: boolean): void {
-  try {
-    window.localStorage.setItem(AI_ASSIST_KEY, enabled ? 'on' : 'off');
-  } catch {
-    // Best effort — the toggle still works for the current session.
-  }
-}
-
 export function SearchHome(props: SearchHomeProps): JSX.Element {
-  const [scope, setScope] = createSignal<SearchScope>();
-  const [documentCountsLoaded, setDocumentCountsLoaded] = createSignal(false);
-  const [documentCounts, setDocumentCounts] = createSignal<Readonly<Record<SearchScope, number>>>({
-    diagnosis: 0,
-    guidelines: 0,
-    medications: 0,
-    legal: 0,
-    all: 0,
-    personal: 0,
-  });
   const [helpOpen, setHelpOpen] = createSignal(false);
-  const [aiAssistEnabled, setAiAssistEnabled] = createSignal(loadAiAssistPreference());
-  const [assistantState, setAssistantState] = createSignal<GroundedAssistantState>();
-  const [localModelReady, setLocalModelReady] = createSignal(
-    props.localModelController.canRunStructuredTasks(),
-  );
-  const [localModelState, setLocalModelState] = createSignal<LocalModelState>(
-    props.localModelController.getState(),
-  );
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
   const [ignoredAppUpdates, setIgnoredAppUpdates] = createSignal(loadIgnoredAppUpdates());
   let searchModeTools: HTMLElement | undefined;
   let searchScrollFrame: number | undefined;
   useStickySurface(() => searchModeTools);
 
-  const toggleAiAssist = (): void => {
-    setAiAssistEnabled((previous) => {
-      const next = !previous;
-      saveAiAssistPreference(next);
-      return next;
-    });
-  };
-
   onMount(() => {
-    if (getRememberSearchMode()) {
-      const stored = loadSearchScope();
-      if (stored) setScope(stored);
-    }
-    const unsubscribePreferences = subscribeAppPreferences((preferences) => {
-      const selected = scope();
-      if (preferences.rememberSearchMode && selected) saveSearchScope(selected);
-    });
-    onCleanup(unsubscribePreferences);
-
     const updateSearchScroll = (): void => {
       if (searchScrollFrame !== undefined) return;
       searchScrollFrame = requestAnimationFrame(() => {
@@ -171,118 +41,16 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     updateSearchScroll();
     window.addEventListener('scroll', updateSearchScroll, { passive: true });
     onCleanup(() => window.removeEventListener('scroll', updateSearchScroll));
-
-    const unsubscribeModel = props.localModelController.subscribe((state) => {
-      setLocalModelState(state);
-      setLocalModelReady(props.localModelController.canRunStructuredTasks());
-    });
-    onCleanup(unsubscribeModel);
-
-    if (!props.assistantCore) return;
-    const unsubscribe = props.assistantCore.subscribeAssistant(setAssistantState);
-    onCleanup(unsubscribe);
   });
 
-  const enhancement = createMemo((): SearchEnhancementState | undefined => {
-    if (!aiAssistEnabled() || scope() !== 'diagnosis') return undefined;
-    const state = assistantState();
-    if (!state || state.phase === 'idle' || !state.query) return undefined;
-    return {
-      phase: state.phase,
-      query: state.query,
-      enhancedResponse: state.enhancedResponse,
-    };
-  });
-
-  const refreshPersonalCount = (): void => {
-    const patientProfileCount = isPatientVaultUnlocked()
-      ? readPatientVault()
-          .then((snapshot) => snapshot.profiles.length)
-          .catch((cause) => {
-            console.error('Не удалось посчитать карточки пациентов.', cause);
-            return 0;
-          })
-      : Promise.resolve(0);
-    void Promise.all([userLibrarySearchableCount(), patientProfileCount])
-      .then(([libraryCount, patientCount]) => {
-        const snapshot = loadPatientNotes();
-        const noteCorpus = snapshot.cards.length + snapshot.notes.length;
-        let personal = libraryCount + noteCorpus + patientCount;
-        if (snapshot.cards.length > 0 && personal === 0) personal = 1;
-        setDocumentCounts((current) => ({ ...current, personal }));
-      })
-      .catch((cause) => {
-        console.error('Не удалось посчитать личные источники.', cause);
-      });
-  };
-
-  const refreshDocumentCounts = (): void => {
-    void props.baseCore.listDocuments().then((result) => {
-      if (result.ok) {
-        const all = result.value.length;
-        setDocumentCounts((current) => ({
-          ...current,
-          diagnosis: all,
-          all,
-          guidelines: result.value.filter((document) =>
-            documentMatchesSearchScope(document, 'guidelines'),
-          ).length,
-          medications: result.value.filter((document) =>
-            documentMatchesSearchScope(document, 'medications'),
-          ).length,
-          legal: result.value.filter((document) => documentMatchesSearchScope(document, 'legal'))
-            .length,
-        }));
-      }
-      setDocumentCountsLoaded(true);
-      refreshPersonalCount();
-    });
-  };
-
-  onMount(() => {
-    const initialCountsFrame = requestAnimationFrame(refreshDocumentCounts);
-    window.addEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts);
-    window.addEventListener(USER_LIBRARY_EVENT, refreshPersonalCount);
-    window.addEventListener(PATIENT_NOTES_EVENT, refreshPersonalCount);
-    window.addEventListener(PATIENT_VAULT_EVENT, refreshPersonalCount);
-    window.addEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPersonalCount);
-    onCleanup(() => cancelAnimationFrame(initialCountsFrame));
-  });
   onCleanup(() => {
-    window.removeEventListener(CONTENT_CHANGED_EVENT, refreshDocumentCounts);
-    window.removeEventListener(USER_LIBRARY_EVENT, refreshPersonalCount);
-    window.removeEventListener(PATIENT_NOTES_EVENT, refreshPersonalCount);
-    window.removeEventListener(PATIENT_VAULT_EVENT, refreshPersonalCount);
-    window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPersonalCount);
     if (searchScrollFrame !== undefined) cancelAnimationFrame(searchScrollFrame);
   });
 
-  const scopedCore = createMemo(() => {
-    const selected = scope();
-    const assistant = aiAssistEnabled() ? props.assistantCore : undefined;
-    return selected ? new ScopedMedicalCore(props.baseCore, assistant, selected) : undefined;
-  });
-  const selectedScopeUnavailable = createMemo(() => {
-    const selected = scope();
-    if (selected === 'personal') return false;
-    return Boolean(selected && documentCountsLoaded() && documentCounts()[selected] === 0);
-  });
-
-  const selectScope = (next: SearchScope): void => {
-    setScope(next);
-    if (getRememberSearchMode()) saveSearchScope(next);
-  };
-
+  const scopedCore = createMemo(() => new ScopedMedicalCore(props.baseCore, 'all'));
   const replayHistory = (entry: SearchHistoryEntry): void => {
-    selectScope(entry.scope);
-    requestAnimationFrame(() => replaySearch(entry));
+    replaySearch({ ...entry, scope: 'all' });
   };
-
-  const modelDownloadProgress = createMemo((): number => {
-    const state = localModelState();
-    if (state.phase !== 'downloading' && state.phase !== 'loading') return 0;
-    return state.progress ?? 0;
-  });
 
   return (
     <section class="search-home page-grain" aria-label="Поиск MiniMed">
@@ -292,7 +60,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         aria-hidden="true"
       />
       <div
-        class="search-mode-tools"
+        class="search-mode-tools route-sticky-chrome--transparent"
         ref={(element) => {
           searchModeTools = element;
         }}
@@ -319,145 +87,40 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         <button
           class="search-mode-help"
           type="button"
-          aria-label="Как работает диагностический режим"
+          aria-label="Как работает поиск"
           onClick={() => setHelpOpen(true)}
         >
           ?
         </button>
       </div>
 
-      <Show when={selectedScopeUnavailable()}>
-        <div class="search-scope-unavailable paper-card">
-          <div>
-            <strong>Такие документы ещё не установлены</strong>
-            <p>Откройте базу знаний и скачайте подходящий раздел. Остальные режимы работают.</p>
-          </div>
-          <button type="button" onClick={props.onOpenKnowledgeBase}>
-            Открыть базу знаний
-          </button>
-        </div>
-      </Show>
-
       <div class="search-workspace-main">
         <SearchWorkspace
-          core={scopedCore() ?? props.baseCore}
-          scope={scope() ?? 'all'}
-          searchAllowed={Boolean(scope()) && !selectedScopeUnavailable()}
-          enhancement={enhancement}
-          resultsHeader={
-            <Show when={scope() === 'diagnosis' && aiAssistEnabled() && props.assistantCore}>
-              <GroundedAssistantStatus assistant={props.assistantCore as GroundedMedicalCore} />
-            </Show>
-          }
-          queryActionsExtra={
-            <Show when={scope() === 'diagnosis'}>
-              <button
-                type="button"
-                class="ai-assist-toggle"
-                classList={{
-                  active: localModelReady() && aiAssistEnabled(),
-                  'ai-assist-toggle--download': !localModelReady(),
-                }}
-                aria-label={
-                  localModelReady()
-                    ? aiAssistEnabled()
-                      ? 'Выключить локальную модель'
-                      : 'Включить локальную модель'
-                    : 'Загрузить локальную модель'
-                }
-                aria-pressed={localModelReady() ? aiAssistEnabled() : undefined}
-                title={
-                  localModelReady()
-                    ? aiAssistEnabled()
-                      ? 'Локальная модель включена: разбирает запрос и уточняет порядок источников'
-                      : 'Локальная модель выключена: обычный детерминированный поиск'
-                    : 'Загрузить локальную модель для AI-поиска'
-                }
-                onClick={() => (localModelReady() ? toggleAiAssist() : props.onOpenModelSettings())}
-              >
-                <Show
-                  when={localModelReady()}
-                  fallback={
-                    <span
-                      class="ai-assist-toggle__download"
-                      style={{ '--download-progress': String(modelDownloadProgress()) }}
-                    >
-                      <img
-                        class="ai-assist-toggle__icon ai-assist-toggle__download-icon"
-                        src={brainDownloadIcon}
-                        alt=""
-                        aria-hidden="true"
-                      />
-                    </span>
-                  }
-                >
-                  <AppGlyph class="ai-assist-toggle__icon" name="brain" />
-                </Show>
-                <span class="sr-only">
-                  {localModelReady()
-                    ? aiAssistEnabled()
-                      ? 'Выключить локальную модель'
-                      : 'Включить локальную модель'
-                    : 'Загрузить локальную модель'}
-                </span>
-              </button>
-            </Show>
-          }
-          placeholder={
-            scope()
-              ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
-              : 'Выберите режим поиска'
-          }
+          core={scopedCore()}
+          scope="all"
+          searchAllowed
+          placeholder="Например: 5 лет, мальчик, второй день кашляет и температурит…"
           modePicker={
-            <fieldset class="search-mode-picker">
-              <legend class="visually-hidden">Режим поиска</legend>
-              <For each={SEARCH_SCOPES}>
-                {(option) => (
-                  <label
-                    class="search-mode-picker__option"
-                    classList={{
-                      active: scope() === option.id,
-                      unavailable: documentCountsLoaded() && documentCounts()[option.id] === 0,
-                    }}
-                    title={option.description}
-                  >
-                    <input
-                      type="radio"
-                      name="minimed-search-scope"
-                      value={option.id}
-                      aria-label={option.label}
-                      checked={scope() === option.id}
-                      disabled={documentCountsLoaded() && documentCounts()[option.id] === 0}
-                      onChange={() => selectScope(option.id)}
-                    />
-                    <span class="search-mode-option-copy">
-                      <strong>{option.shortLabel}</strong>
-                      <small>{documentCounts()[option.id]}</small>
-                    </span>
-                  </label>
-                )}
-              </For>
-            </fieldset>
+            <span class="search-mode-picker search-mode-picker--single">Свободный поиск</span>
           }
         />
       </div>
 
       <OverlayDialog
         open={helpOpen()}
-        title="Диагностический режим"
+        title="Как работает поиск"
         class="diagnosis-help-dialog"
         onClose={() => setHelpOpen(false)}
       >
         <div class="diagnosis-help-copy">
           <p>
-            MiniMed сначала ищет подходящие фрагменты в установленных источниках. Локальная модель
-            может затем выделить диагностические кандидаты, уточняющие вопросы и подтверждённые
-            выдержки.
+            MiniMed локально ищет и ранжирует подходящие файлы в установленных источниках. Поиск не
+            генерирует медицинский ответ и остаётся доступен без сети.
           </p>
           <ul>
-            <li>Модель работает на устройстве и может ошибаться.</li>
-            <li>Ответ без точной ссылки на установленный источник не считается подтверждённым.</li>
-            <li>При сбое модели остаётся обычный детерминированный поиск.</li>
+            <li>В выдаче показываются только исходные документы и точные фрагменты.</li>
+            <li>Для клинического случая сначала показываются клинические рекомендации.</li>
+            <li>Личные данные ищутся отдельно и не смешиваются с официальными источниками.</li>
             <li>Результат не заменяет осмотр, клиническое мышление и ответственность врача.</li>
           </ul>
         </div>

@@ -136,10 +136,6 @@
     opacity: 1;
   }
 
-  img.ai-assist-toggle__icon {
-    filter: invert(1) hue-rotate(180deg);
-  }
-
   .assessment-question__legend {
     background: color-mix(in srgb, var(--theme-warning) 38%, var(--theme-surface-raised));
   }

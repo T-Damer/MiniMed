@@ -11,6 +11,7 @@ from time import perf_counter
 from typing import cast
 from uuid import uuid4
 
+from .core_knowledge import project_core_knowledge
 from .edition_manifest import (
     EditionManifest,
     EditionManifestSource,
@@ -1147,10 +1148,11 @@ def _finalize_staging_database(
     config: _ComposeConfig,
 ) -> str:
     target.execute("BEGIN")
-    _rebuild_chunks_fts(target)
-    _rebuild_knowledge_fts(target)
     for statement in secondary_indexes_sql():
         target.execute(statement)
+    project_core_knowledge(target)
+    _rebuild_chunks_fts(target)
+    _rebuild_knowledge_fts(target)
     source_digest = _source_set_digest(target)
     target.execute(
         """INSERT INTO app_metadata(key, value) VALUES ('source_set_digest', ?)

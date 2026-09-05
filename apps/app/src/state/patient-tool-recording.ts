@@ -21,10 +21,6 @@ import {
   writePatientVault,
 } from '@/state/patient-vault';
 
-const PATIENT_RECORDING_BLOCKED_CALCULATORS = new Set([
-  'minimed.calculator.weight-for-age-girls-who-demo',
-]);
-
 export interface PatientToolRecordOutcome {
   readonly snapshot: PatientVaultSnapshot;
   readonly event?: PatientEvent;
@@ -127,7 +123,7 @@ export function patientBoundCalculatorInputs(
       !(input.options ?? []).some((option) => String(option.value) === String(value))
     )
       continue;
-    values[input.id] = value;
+    values[input.id] = typeof value === 'number' ? value * (binding.valueMultiplier ?? 1) : value;
   }
   return values;
 }
@@ -137,17 +133,17 @@ function calculatorObservationValue(
   result: StoredCalculationResult,
   rawInputs: Readonly<Record<string, string | number>>,
 ): number | undefined {
-  if (mapping.inputId) return finiteNumber(rawInputs[mapping.inputId]);
+  let value: number | undefined;
+  if (mapping.inputId) value = finiteNumber(rawInputs[mapping.inputId]);
   if (mapping.stepId) {
-    return result.trace.find((step) => step.id === mapping.stepId)?.value;
+    value = result.trace.find((step) => step.id === mapping.stepId)?.value;
   }
   if (mapping.outputId) {
-    if ('value' in result && result.outputId === mapping.outputId) return result.value;
+    if ('value' in result && result.outputId === mapping.outputId) value = result.value;
     if ('values' in result)
-      return result.values.find((output) => output.id === mapping.outputId)?.value;
-    return undefined;
+      value = result.values.find((output) => output.id === mapping.outputId)?.value;
   }
-  return undefined;
+  return value === undefined ? undefined : value * (mapping.valueMultiplier ?? 1);
 }
 
 function assessmentObservationValues(
@@ -211,9 +207,6 @@ export async function recordCalculatorResultForPatient(input: {
   readonly rawInputs: Readonly<Record<string, string | number>>;
   readonly occurredAt?: string;
 }): Promise<PatientToolRecordOutcome> {
-  if (PATIENT_RECORDING_BLOCKED_CALCULATORS.has(input.calculatorId)) {
-    throw new Error('Приближённый WHO demo не записывается в карточку пациента.');
-  }
   return withPatientVaultMutation(async () => {
     if (!isPatientVaultUnlocked())
       throw new Error('Разблокируйте карточки пациентов перед записью результата.');

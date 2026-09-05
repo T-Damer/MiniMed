@@ -26,8 +26,10 @@ import {
   findNormalizedPhraseIndex,
   fuzzyPhraseSpan,
   type LexicalQueryBranchPlan,
+  lightStemRussian,
   MIN_FUZZY_TOKEN_LENGTH,
   normalizeSurfaceText,
+  searchSubjectText,
   tokenize,
 } from '@localmed/search-lexical';
 import { profilesCompatible, type QueryEmbedder } from '@localmed/search-semantic';
@@ -40,7 +42,7 @@ import {
   toMedicalDocument,
   toMedicalSection,
 } from './mappers';
-import { rankSearchGroupsByQuery } from './query-group-ranking';
+import { matchesDocumentAlias, rankSearchGroupsByQuery } from './query-group-ranking';
 import {
   resolveSearchResultContext,
   type SearchResultContextHint,
@@ -315,12 +317,18 @@ function isComponentMedicationAlias(alias: MedicalAliasRecord): boolean {
   return (
     normalizedAlias !== normalizedCanonicalTerm &&
     isFixedCombinationTerm(normalizedCanonicalTerm) &&
-    findNormalizedPhraseIndex(normalizedCanonicalTerm, normalizedAlias) >= 0
+    // The light stemmer needs a second pass to align «инфекции» and «инфекций».
+    findNormalizedPhraseIndex(
+      tokenize(normalizedCanonicalTerm).map(lightStemRussian).map(lightStemRussian).join(' '),
+      tokenize(normalizedAlias).map(lightStemRussian).map(lightStemRussian).join(' '),
+    ) >= 0
   );
 }
 
 function filterQueryAliases(aliases: MedicalAliasRecords): MedicalAliasRecords {
-  return aliases.filter((alias) => !isComponentMedicationAlias(alias));
+  return aliases.filter(
+    (alias) => normalizeSurfaceText(alias.alias).length >= 2 && !isComponentMedicationAlias(alias),
+  );
 }
 
 function exactMedicationAliasCandidates(
@@ -428,6 +436,7 @@ function groupResults(
   searchTerms: readonly string[],
   aliases: MedicalAliasRecords,
   documents: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
+  analysis: QueryAnalysis,
 ): readonly SearchResultGroup[] {
   const medicationAliasCandidates = exactMedicationAliasCandidates(query, aliases);
   const normalizedQuery = normalizeSurfaceText(query);
@@ -490,7 +499,7 @@ function groupResults(
         : 0;
       return preferredDifference || right.bestScore - left.bestScore;
     });
-  return rankSearchGroupsByQuery(groups, query, documents);
+  return rankSearchGroupsByQuery(groups, query, documents, analysis);
 }
 
 function filterSupersededSummaryResults(
@@ -533,6 +542,8 @@ function fuseBranchHits(
     readonly hits: readonly LexicalHit[];
   }[],
   limit: number,
+  query: string,
+  exactAliasDocumentIds: ReadonlySet<string>,
 ): readonly SearchResult[] {
   const aggregateByChunk = new Map<string, AggregatedHit>();
 
@@ -577,9 +588,15 @@ function fuseBranchHits(
     aggregate.score = strongest + corroboration + aggregate.sectionBoost;
   }
 
+  const subject = searchSubjectText(query);
   return [...aggregateByChunk.values()]
     .toSorted((left, right) => right.score - left.score)
-    .slice(0, limit)
+    .filter(
+      (aggregate, index) =>
+        index < limit ||
+        exactAliasDocumentIds.has(aggregate.hit.document.id) ||
+        normalizeSurfaceText(aggregate.hit.document.title) === subject,
+    )
     .map(toSearchResult);
 }
 
@@ -617,6 +634,8 @@ function fuseSemanticResults(
   terms: readonly string[],
   mode: 'semantic' | 'hybrid',
   limit: number,
+  query: string,
+  exactAliasDocumentIds: ReadonlySet<string>,
 ): readonly SearchResult[] {
   const maximumLexical = Math.max(0.000_001, ...lexicalResults.map((result) => result.finalScore));
   const byChunk = new Map<string, SearchResult>();
@@ -650,9 +669,15 @@ function fuseSemanticResults(
     });
   }
 
+  const subject = searchSubjectText(query);
   return [...byChunk.values()]
     .toSorted((left, right) => right.finalScore - left.finalScore)
-    .slice(0, limit);
+    .filter(
+      (result, index) =>
+        index < limit ||
+        exactAliasDocumentIds.has(result.documentId) ||
+        normalizeSurfaceText(result.title) === subject,
+    );
 }
 
 function semanticQueryText(analysis: QueryAnalysis): string {
@@ -892,7 +917,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
         const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 
-        const lexicalResults = fuseBranchHits(branchHits, perBranchLimit);
+        const documents = await options.store.listDocuments();
+        const exactAliasDocumentIds = new Set(
+          documents
+            .filter((document) => matchesDocumentAlias(parsed.data.query, document))
+            .map((document) => document.id),
+        );
+        // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
+        const lexicalResults = fuseBranchHits(
+          branchHits,
+          perBranchLimit,
+          parsed.data.query,
+          exactAliasDocumentIds,
+        );
         const requestedMode = parsed.data.mode;
         let modeUsed: SearchResponse['modeUsed'] = 'lexical';
         let vectorHits: readonly VectorHit[] = [];
@@ -950,8 +987,15 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const rankedResults =
           modeUsed === 'lexical'
             ? lexicalResults
-            : fuseSemanticResults(lexicalResults, vectorHits, plan.terms, modeUsed, perBranchLimit);
-        const documents = await options.store.listDocuments();
+            : fuseSemanticResults(
+                lexicalResults,
+                vectorHits,
+                plan.terms,
+                modeUsed,
+                perBranchLimit,
+                parsed.data.query,
+                exactAliasDocumentIds,
+              );
         const availableDocumentIds = new Set(documents.map((document) => document.id));
         const results = filterSupersededSummaryResults(rankedResults, availableDocumentIds);
         const candidateIds = new Set([
@@ -967,6 +1011,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             plan.terms,
             aliasesResult.value,
             documents,
+            plan.analysis,
           ),
           plan.analysis.normalizedQuery,
           aliasesResult.value,

@@ -4,6 +4,7 @@ import {
   loadAssessmentDefinition,
   registerDownloadedAssessment,
 } from '@/features/assessments/assessment-catalog';
+import { scoreAssessment } from '@/features/assessments/assessment-engine';
 import {
   printAssessmentRecord,
   printBlankAssessment,
@@ -135,5 +136,47 @@ describe('assessment print layout', () => {
     await expect(shareAssessmentRecord(definition, record)).rejects.toThrow(
       'clipboard unavailable',
     );
+  });
+
+  it('prints a schema chart and can append the completed questions and answers', async () => {
+    const definition = await loadAssessmentDefinition('temperament-profile');
+    const answers = Object.fromEntries(
+      definition.questions.map((question) => [question.id, question.reverse ? 1 : 5]),
+    );
+    const result = scoreAssessment(definition, answers, '2026-09-04T10:00:00.000Z');
+    if (!result.ok) throw new Error(result.error);
+    const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
+    const popup = { document: popupDocument, focus: vi.fn(), print: vi.fn() };
+    vi.stubGlobal('window', {
+      open: vi.fn(() => popup),
+      setTimeout: (callback: () => void) => {
+        callback();
+        return 0;
+      },
+    });
+
+    expect(
+      printAssessmentRecord(
+        definition,
+        {
+          id: 'temperament-print-test',
+          assessmentId: definition.id,
+          subjectLabel: 'Пациент',
+          createdAt: result.value.completedAt,
+          kind: 'completed',
+          answers,
+          result: result.value,
+        },
+        '',
+        true,
+      ),
+    ).toBe(true);
+
+    const markup = popupDocument.write.mock.calls[0]?.[0];
+    expect(markup).toContain('class="schema-chart-print__svg"');
+    expect(markup).toContain('Профиль темперамента: 100%, 100%');
+    expect(markup).toContain('Вопросы и ответы:');
+    expect(markup).toContain(definition.questions[0]?.prompt);
+    expect(markup).toContain('Ответ: Очень похоже на меня');
   });
 });

@@ -123,7 +123,6 @@ test('keeps patient note records local, editable in nested routes, and findable 
 
   // Searching finds it, labelled as personal and outside the official results container.
   await navigationButton(page, 'Поиск').click();
-  await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
   await page.getByTestId('search-input').fill('цефтриаксон пневмония');
 
   const personal = page.locator('.personal-note-matches');

@@ -1,9 +1,7 @@
-import { type Accessor, type JSX, lazy, Show, Suspense } from 'solid-js';
+import { type Accessor, For, type JSX, lazy, Show, Suspense } from 'solid-js';
 
 import { ROOT_VIEW_ORDER, ROOT_VIEWS, type RootView } from '@/app/root-view';
 import { AppGlyph } from '@/components/AppGlyph';
-import type { LocalModelController } from '@/features/models/controller';
-import { ModelNavIndicator } from '@/features/models/ModelNavIndicator';
 
 const ContentDownloadNavIndicator = lazy(() =>
   import('@/features/modules/ContentDownloadNavIndicator').then(
@@ -24,7 +22,6 @@ export function AppBottomNav(props: {
   readonly downloadedModuleCount: Accessor<number>;
   readonly dueReminderCount: Accessor<number>;
   readonly appUpdateReady: Accessor<boolean>;
-  readonly modelController: LocalModelController;
   readonly bubbleStyle: () => string;
   readonly bindNav: (element: HTMLElement) => void;
   readonly onPrefetch: (next: RootView) => void;
@@ -49,66 +46,67 @@ export function AppBottomNav(props: {
       onPointerCancel={props.onPointerCancel}
     >
       <span class="app-bottom-nav__bubble" style={props.bubbleStyle()} aria-hidden="true" />
-      {ROOT_VIEWS.map((item, index) => {
-        const selected = () =>
-          (props.dragIndex() ?? ROOT_VIEW_ORDER.get(props.view()) ?? 0) === index;
-        const label = () => {
-          if (item.id === 'modules') {
-            return `${item.label}, доступно: ${props.availableModuleCount()}, загружено: ${props.downloadedModuleCount()}`;
-          }
-          if (item.id === 'notes' && props.dueReminderCount() > 0) {
-            return `${item.label}, напоминаний: ${props.dueReminderCount()}`;
-          }
-          if (item.id === 'settings' && props.appUpdateReady()) {
-            return `${item.label}, доступно обновление приложения`;
-          }
-          return item.label;
-        };
-        return (
-          <div class="app-nav-item">
-            <Show when={item.id === 'settings'}>
-              <Suspense>
-                <ContentDownloadNavIndicator />
-              </Suspense>
-              <ModelNavIndicator controller={props.modelController} />
-            </Show>
-            <button
-              class="app-nav-button"
-              classList={{ 'app-nav-button--active': selected() }}
-              type="button"
-              aria-label={label()}
-              aria-current={props.view() === item.id ? 'page' : undefined}
-              title={label()}
-              onPointerEnter={() => props.onPrefetch(item.id)}
-              onPointerDown={() => props.onPrefetch(item.id)}
-              onClick={() => props.onItemClick(item.id)}
-            >
-              <AppGlyph
-                name={item.icon}
-                class={`app-nav-button__icon${selected() ? ' app-nav-button__icon--active' : ''}`}
-              />
-              <Show when={item.id === 'settings' && props.appUpdateReady()}>
-                <span class="app-nav-badge app-nav-badge--app-update" aria-hidden="true" />
+      <For each={ROOT_VIEWS}>
+        {(item, index) => {
+          const selected = () =>
+            (props.dragIndex() ?? ROOT_VIEW_ORDER.get(props.view()) ?? 0) === index();
+          const label = () => {
+            if (item.id === 'modules') {
+              return `${item.label}, доступно: ${props.availableModuleCount()}, загружено: ${props.downloadedModuleCount()}`;
+            }
+            if (item.id === 'notes' && props.dueReminderCount() > 0) {
+              return `${item.label}, напоминаний: ${props.dueReminderCount()}`;
+            }
+            if (item.id === 'settings' && props.appUpdateReady()) {
+              return `${item.label}, доступно обновление приложения`;
+            }
+            return item.label;
+          };
+          return (
+            <div class="app-nav-item">
+              <Show when={item.id === 'settings'}>
+                <Suspense>
+                  <ContentDownloadNavIndicator />
+                </Suspense>
               </Show>
-              <Show when={item.id === 'modules' && props.availableModuleCount() > 0}>
-                <span class="app-nav-badge app-nav-badge--available" aria-hidden="true">
-                  {compactCount(props.availableModuleCount(), 99)}
-                </span>
-              </Show>
-              <Show when={item.id === 'modules' && props.downloadedModuleCount() > 0}>
-                <span class="app-nav-badge app-nav-badge--downloaded" aria-hidden="true">
-                  {compactCount(props.downloadedModuleCount(), 99)}
-                </span>
-              </Show>
-              <Show when={item.id === 'notes' && props.dueReminderCount() > 0}>
-                <span class="app-nav-badge app-nav-badge--reminder" aria-hidden="true">
-                  {compactCount(props.dueReminderCount(), 9)}
-                </span>
-              </Show>
-            </button>
-          </div>
-        );
-      })}
+              <button
+                class="app-nav-button"
+                classList={{ 'app-nav-button--active': selected() }}
+                type="button"
+                aria-label={label()}
+                aria-current={props.view() === item.id ? 'page' : undefined}
+                title={label()}
+                onPointerEnter={() => props.onPrefetch(item.id)}
+                onPointerDown={() => props.onPrefetch(item.id)}
+                onClick={() => props.onItemClick(item.id)}
+              >
+                <AppGlyph
+                  name={item.icon}
+                  class={`app-nav-button__icon${selected() ? ' app-nav-button__icon--active' : ''}`}
+                />
+                <Show when={item.id === 'settings' && props.appUpdateReady()}>
+                  <span class="app-nav-badge app-nav-badge--app-update" aria-hidden="true" />
+                </Show>
+                <Show when={item.id === 'modules' && props.availableModuleCount() > 0}>
+                  <span class="app-nav-badge app-nav-badge--available" aria-hidden="true">
+                    {compactCount(props.availableModuleCount(), 99)}
+                  </span>
+                </Show>
+                <Show when={item.id === 'modules' && props.downloadedModuleCount() > 0}>
+                  <span class="app-nav-badge app-nav-badge--downloaded" aria-hidden="true">
+                    {compactCount(props.downloadedModuleCount(), 99)}
+                  </span>
+                </Show>
+                <Show when={item.id === 'notes' && props.dueReminderCount() > 0}>
+                  <span class="app-nav-badge app-nav-badge--reminder" aria-hidden="true">
+                    {compactCount(props.dueReminderCount(), 9)}
+                  </span>
+                </Show>
+              </button>
+            </div>
+          );
+        }}
+      </For>
     </nav>
   );
 }

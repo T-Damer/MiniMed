@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import sqlite3
 from pathlib import Path
@@ -14,7 +15,11 @@ from .allmed_reference import (
     prepare_allmed_medications,
 )
 from .builder import build_content_pack, lint_content_pack, load_content_pack
-from .catalog_module_builder import CatalogFamily, build_core_catalog_pointers
+from .catalog_module_builder import (
+    CatalogFamily,
+    build_core_catalog_pointers,
+    build_core_reference_pointers,
+)
 from .clinical_queries import import_real_pocqi_benchmark
 from .drug_sources import collect_drug_sources
 from .instruction_card_drafts import export_instruction_card_drafts
@@ -28,6 +33,8 @@ from .knowledge import (
     load_knowledge_workspace,
     load_workspace_documents,
 )
+from .krasotaimedicina_crawl import DEFAULT_SEEDS, crawl_krasotaimedicina
+from .krasotaimedicina_prepare import prepare_krasotaimedicina
 from .mkb_reference_upgrade import upgrade_mkb_reference_database, write_upgrade_report
 from .pdf_import import import_pdf
 from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
@@ -130,6 +137,29 @@ def build_core_catalog_pointers_command(
     typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 
 
+@app.command("build-core-reference-pointers")
+def build_core_reference_pointers_command(
+    source: Annotated[Path, typer.Option("--source", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    version: Annotated[str, typer.Option("--version")],
+    module_id: Annotated[str, typer.Option("--module-id")],
+    module_title: Annotated[str, typer.Option("--module-title")],
+    built_at: Annotated[str | None, typer.Option("--built-at")] = None,
+    force: Annotated[bool, typer.Option("--force")] = False,
+) -> None:
+    """Build compact core pointers from a MiniMed reference-pack SQLite database."""
+    report = build_core_reference_pointers(
+        source,
+        output,
+        module_id=module_id,
+        module_title=module_title,
+        version=version,
+        built_at=built_at,
+        force=force,
+    )
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
 @app.command("export-instruction-card-drafts")
 def export_instruction_card_drafts_command(
     input_path: Annotated[Path, typer.Option("--input", exists=True, dir_okay=False)],
@@ -201,6 +231,37 @@ def scrape_rls_mkb_command(
     typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
     if report.failures:
         raise typer.Exit(code=1)
+
+
+@app.command("crawl-krasotaimedicina")
+def crawl_krasotaimedicina_command(
+    output: Annotated[Path, typer.Option("--output")],
+    seed_urls: Annotated[list[str] | None, typer.Option("--seed-url")] = None,
+    max_pages: Annotated[int, typer.Option("--max-pages", min=1)] = 25_000,
+    requests_per_minute: Annotated[int, typer.Option("--requests-per-minute", min=1, max=120)] = 30,
+    download_images: Annotated[bool, typer.Option("--download-images/--skip-images")] = True,
+) -> None:
+    """Crawl the public medical-reference sections into private resumable raw staging."""
+    report = asyncio.run(
+        crawl_krasotaimedicina(
+            output,
+            seeds=tuple(seed_urls or DEFAULT_SEEDS),
+            max_pages=max_pages,
+            requests_per_minute=requests_per_minute,
+            download_images=download_images,
+        )
+    )
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-krasotaimedicina")
+def prepare_krasotaimedicina_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Prepare checksummed disease articles from private crawl staging."""
+    report = prepare_krasotaimedicina(raw_input, output)
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
 
 
 @app.command("sync")

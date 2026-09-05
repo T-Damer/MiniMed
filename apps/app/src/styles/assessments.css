@@ -529,6 +529,7 @@
 }
 
 .assessment-questionnaire-print__icon.app-glyph,
+.assessment-result-print-button__icon.app-glyph,
 .assessment-help-button__icon.app-glyph,
 .assessment-questionnaire__header-menu-icon.app-glyph {
   display: block;
@@ -539,6 +540,10 @@
 .assessment-questionnaire__header-menu {
   display: flex;
   flex: 0 0 auto;
+}
+
+.assessment-result-print-menu {
+  display: flex;
 }
 
 .assessment-questionnaire__header-menu-button {

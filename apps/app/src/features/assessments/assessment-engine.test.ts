@@ -74,7 +74,14 @@ describe('assessment scoring', () => {
     ) as AssessmentAnswers;
     const result = scoreAssessment(definition, answers);
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.value.headline).toContain('сангвинический');
+    if (result.ok) {
+      expect(result.value.headline).toContain('сангвинический');
+      expect(result.value.visuals?.[0]).toMatchObject({
+        type: 'scatter',
+        datasets: [{ data: [{ x: 100, y: 100 }] }],
+        annotations: [{ kind: 'quadrants' }, { kind: 'rings' }],
+      });
+    }
   });
 
   it('reports questionnaire completion', async () => {
@@ -90,7 +97,7 @@ describe('assessment scoring', () => {
     if (!epds) throw new Error('EPDS is missing from the obstetrics module.');
     registerDownloadedAssessment(epds);
     const definition = await loadAssessmentDefinition('postnatal-mood-epds');
-    expect(definition.version).toBe('1.1.0');
+    expect(definition.version).toBe('1.2.0');
     expect(definition.questions).toHaveLength(10);
     expect(definition.questions[0]?.prompt).toBe(
       'Я была готова смеяться и видеть светлую сторону происходящего',

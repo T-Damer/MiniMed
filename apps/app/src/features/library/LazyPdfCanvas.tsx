@@ -3,7 +3,7 @@ import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
 import type { PdfDocumentProxy, PdfPageProxy } from '@/state/pdfjs-document';
 
-const PDF_RENDER_SCALE = 1.25;
+const PDF_RENDER_OVERSAMPLE = 1.25;
 const PDF_MAX_CANVAS_PIXELS = 2_500_000;
 const PDF_PAGE_RELEASE_DELAY_MS = 1_200;
 const PDF_CLEANUP_DELAY_MS = 250;
@@ -41,10 +41,11 @@ export function LazyPdfCanvas(props: LazyPdfCanvasProps): JSX.Element {
   let generation = 0;
   let releaseTimer: ReturnType<typeof setTimeout> | undefined;
   let observer: IntersectionObserver | undefined;
-  let textLayerResizeObserver: ResizeObserver | undefined;
+  let surfaceResizeObserver: ResizeObserver | undefined;
   let textLayer: TextLayer | undefined;
   let textLayerPage: PdfPageProxy | undefined;
   let textLayerPageWidth = 0;
+  let renderedSurfaceWidth = 0;
   let renderTask: ReturnType<PdfPageProxy['render']> | undefined;
 
   const clearTextLayer = (): void => {
@@ -72,6 +73,7 @@ export function LazyPdfCanvas(props: LazyPdfCanvasProps): JSX.Element {
     renderTask = undefined;
     generation += 1;
     rendered = false;
+    renderedSurfaceWidth = 0;
     clearTextLayer();
     canvas.width = 1;
     canvas.height = 1;
@@ -101,18 +103,19 @@ export function LazyPdfCanvas(props: LazyPdfCanvasProps): JSX.Element {
         const baseViewport = page.getViewport({ scale: 1 });
         const displayScale =
           ((pageSurface?.clientWidth || baseViewport.width) / baseViewport.width) *
-          PDF_RENDER_SCALE;
+          PDF_RENDER_OVERSAMPLE;
         const pixelScale = Math.sqrt(
           PDF_MAX_CANVAS_PIXELS / (baseViewport.width * baseViewport.height),
         );
         const viewport = page.getViewport({
-          scale: Math.min(PDF_RENDER_SCALE, displayScale, pixelScale),
+          scale: Math.min(displayScale, pixelScale),
         });
         const textContentPromise = page.getTextContent();
         const context = canvas.getContext('2d');
         if (!context) return;
         canvas.width = Math.max(1, Math.floor(viewport.width));
         canvas.height = Math.max(1, Math.floor(viewport.height));
+        renderedSurfaceWidth = pageSurface?.clientWidth ?? 0;
         const nextRenderTask = page.render({ canvasContext: context, viewport, canvas });
         renderTask = nextRenderTask;
         try {
@@ -158,8 +161,15 @@ export function LazyPdfCanvas(props: LazyPdfCanvasProps): JSX.Element {
 
   onMount(() => {
     if (!canvas) return;
-    textLayerResizeObserver = new ResizeObserver(updateTextLayerViewport);
-    if (pageSurface) textLayerResizeObserver.observe(pageSurface);
+    surfaceResizeObserver = new ResizeObserver(() => {
+      updateTextLayerViewport();
+      const width = pageSurface?.clientWidth ?? 0;
+      if (visible && rendered && width > renderedSurfaceWidth + 1) {
+        clearCanvas();
+        void renderPage();
+      }
+    });
+    if (pageSurface) surfaceResizeObserver.observe(pageSurface);
     const touchDevice =
       navigator.maxTouchPoints > 0 ||
       (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches);
@@ -195,7 +205,7 @@ export function LazyPdfCanvas(props: LazyPdfCanvasProps): JSX.Element {
 
   onCleanup(() => {
     observer?.disconnect();
-    textLayerResizeObserver?.disconnect();
+    surfaceResizeObserver?.disconnect();
     if (releaseTimer) clearTimeout(releaseTimer);
     clearCanvas();
   });

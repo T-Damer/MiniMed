@@ -14,6 +14,10 @@ import {
   type CalculatorValue,
   evaluateCalculatorExpression,
 } from '@/features/calculators/calculator-expression';
+import {
+  type CalculatorChartSpec,
+  evaluateCalculatorVisual,
+} from '@/features/calculators/calculator-schema-engine';
 
 function questionResponseOptions(
   definition: AssessmentDefinition,
@@ -98,6 +102,7 @@ function assessmentEvaluation(
 
 function assessmentScoreScope(
   scores: readonly AssessmentScaleScore[],
+  answers: AssessmentAnswers = {},
 ): Readonly<Record<string, number>> {
   const scope: Record<string, number> = {};
   for (const score of scores) {
@@ -105,6 +110,10 @@ function assessmentScoreScope(
     if (/^[A-Za-z_][A-Za-z0-9_]*$/u.test(score.scaleId)) scope[score.scaleId] = score.rawScore;
     scope[stableId] = score.rawScore;
     scope[`score_${stableId}`] = score.rawScore;
+    scope[`percent_${stableId}`] = score.percent;
+  }
+  for (const [questionId, answer] of Object.entries(answers)) {
+    scope[`answer_${questionId.replaceAll('-', '_')}`] = answer;
   }
   if (scores.length === 1) {
     const only = scores[0];
@@ -119,21 +128,6 @@ function roundedPercent(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-function temperamentHeadline(scores: readonly AssessmentScaleScore[]): string {
-  const extraversion = scores.find((score) => score.scaleId === 'extraversion')?.percent ?? 50;
-  const stability = scores.find((score) => score.scaleId === 'emotional-stability')?.percent ?? 50;
-  if (extraversion >= 50 && stability >= 50) {
-    return 'Классический ориентир: сангвинический профиль';
-  }
-  if (extraversion >= 50 && stability < 50) {
-    return 'Классический ориентир: холерический профиль';
-  }
-  if (extraversion < 50 && stability >= 50) {
-    return 'Классический ориентир: флегматический профиль';
-  }
-  return 'Классический ориентир: меланхолический профиль';
-}
-
 function genericHeadline(scores: readonly AssessmentScaleScore[]): string {
   const leading = scores.slice(0, 2).map((score) => score.label);
   return leading.length > 1
@@ -145,122 +139,6 @@ interface ClinicalInterpretation {
   readonly headline: string;
   readonly summary: string;
 }
-
-function apgarInterpretation(scores: readonly AssessmentScaleScore[]): ClinicalInterpretation {
-  const raw = scores.find((score) => score.scaleId === 'apgar-total')?.rawScore ?? 0;
-  if (raw >= 7) {
-    return {
-      headline: `Показатели в пределах нормы: ${raw} из 10`,
-      summary:
-        '7–10 баллов по принятой интерпретации соответствуют удовлетворительной адаптации новорождённого. Оценка не заменяет полный клинический осмотр и стандартный протокол повторной оценки на 1-й и 5-й минутах.',
-    };
-  }
-  if (raw >= 4) {
-    return {
-      headline: `Умеренное угнетение адаптации: ${raw} из 10`,
-      summary:
-        '4–6 баллов по принятой интерпретации указывают на умеренное угнетение и могут потребовать дополнительной помощи по действующему протоколу реанимации новорождённых. Оценивайте вместе с полной клинической картиной.',
-    };
-  }
-  return {
-    headline: `Значительное угнетение: ${raw} из 10`,
-    summary:
-      '0–3 балла соответствуют выраженному угнетению состояния и обычно требуют немедленных реанимационных мероприятий по действующему протоколу. Оценивайте вместе с полной клинической картиной.',
-  };
-}
-
-function epdsInterpretation(
-  scores: readonly AssessmentScaleScore[],
-  answers: AssessmentAnswers,
-): ClinicalInterpretation {
-  const raw = scores.find((score) => score.scaleId === 'epds-total')?.rawScore ?? 0;
-  const selfHarmAnswer = answers['postnatal-mood-epds-10'] ?? 0;
-  const safetyNote =
-    selfHarmAnswer > 0
-      ? ' Ответ на пункт 10 о причинении себе вреда — выше нуля: нужна немедленная оценка специалистом, а при непосредственной опасности — вызовите скорую помощь.'
-      : '';
-  return {
-    headline: `${raw >= 8 ? 'Достигнут нижний скрининговый ориентир' : 'Результат ниже скринингового ориентира'}: ${raw} из 30`,
-    summary: `В инструкции В. В. Голубович (2003, с. 4) указан ориентир 8–9 баллов и выше. ${raw >= 8 ? 'Результат достигает нижней границы этого ориентира; необходимо клиническое интервью для уточнения состояния.' : 'Результат ниже этого ориентира, но не исключает депрессию; при жалобах обратитесь к специалисту.'}${safetyNote} EPDS — скрининговый, а не диагностический инструмент.`,
-  };
-}
-
-function ferrimanGallweyInterpretation(
-  scores: readonly AssessmentScaleScore[],
-): ClinicalInterpretation {
-  const raw = scores.find((score) => score.scaleId === 'fg-total')?.rawScore ?? 0;
-  if (raw >= 8) {
-    return {
-      headline: `Результат соответствует критериям гирсутизма: ${raw} из 36`,
-      summary:
-        'Порог 8 баллов и выше по модифицированной шкале Ферримана–Голлвея принят как критерий клинического гирсутизма в большинстве популяций. Оценивайте вместе с другими признаками (нарушения цикла, акне, лабораторные данные) при решении о дальнейшем обследовании.',
-    };
-  }
-  return {
-    headline: `Признаков гирсутизма не выявлено: ${raw} из 36`,
-    summary:
-      'Результат ниже принятого порога (8 баллов) для модифицированной шкалы Ферримана–Голлвея.',
-  };
-}
-
-function whooleyInterpretation(scores: readonly AssessmentScaleScore[]): ClinicalInterpretation {
-  const raw = scores.find((score) => score.scaleId === 'whooley-total')?.rawScore ?? 0;
-  if (raw > 0) {
-    return {
-      headline: 'Положительный результат скрининга',
-      summary:
-        'Положительный ответ хотя бы на один из вопросов — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента (например, EPDS) или консультации специалиста.',
-    };
-  }
-  return {
-    headline: 'Отрицательный результат скрининга',
-    summary:
-      'Отрицательные ответы на все вопросы связаны с низкой вероятностью текущего депрессивного эпизода, но не исключают его полностью.',
-  };
-}
-
-function pucaiInterpretation(scores: readonly AssessmentScaleScore[]): ClinicalInterpretation {
-  const raw = scores.find((score) => score.scaleId === 'pucai-total')?.rawScore ?? 0;
-  if (raw < 10) {
-    return {
-      headline: `Клиническая ремиссия по PUCAI: ${raw} из 85`,
-      summary:
-        'Менее 10 баллов соответствует ремиссии по принятой градации PUCAI. Индекс не заменяет клиническое наблюдение и оценку других данных.',
-    };
-  }
-  if (raw < 35) {
-    return {
-      headline: `Лёгкая активность по PUCAI: ${raw} из 85`,
-      summary:
-        '10–34 балла соответствуют лёгкой активности язвенного колита по принятой градации PUCAI.',
-    };
-  }
-  if (raw < 65) {
-    return {
-      headline: `Умеренная активность по PUCAI: ${raw} из 85`,
-      summary:
-        '35–64 балла соответствуют умеренной активности язвенного колита по принятой градации PUCAI.',
-    };
-  }
-  return {
-    headline: `Тяжёлая активность по PUCAI: ${raw} из 85`,
-    summary:
-      '65–85 баллов соответствуют тяжёлой активности язвенного колита по принятой градации PUCAI; нужна клиническая оценка срочности помощи по действующему протоколу.',
-  };
-}
-
-const CLINICAL_INTERPRETERS: Readonly<
-  Record<
-    string,
-    (scores: readonly AssessmentScaleScore[], answers: AssessmentAnswers) => ClinicalInterpretation
-  >
-> = {
-  'apgar-newborn-score': (scores) => apgarInterpretation(scores),
-  'postnatal-mood-epds': (scores, answers) => epdsInterpretation(scores, answers),
-  'ferriman-gallwey-hirsutism': (scores) => ferrimanGallweyInterpretation(scores),
-  'perinatal-mood-whooley': (scores) => whooleyInterpretation(scores),
-  'pediatric-ulcerative-colitis-activity-index': (scores) => pucaiInterpretation(scores),
-};
 
 function resolveScaleRawScore(
   definition: AssessmentDefinition,
@@ -275,12 +153,21 @@ function resolveScaleRawScore(
 function schemaDrivenInterpretation(
   definition: AssessmentDefinition,
   scores: readonly AssessmentScaleScore[],
+  answers: AssessmentAnswers,
 ): ClinicalInterpretation | undefined {
   const interpretations = definition.interpretations;
   if (!interpretations || interpretations.length === 0) return undefined;
+  const scope = assessmentScoreScope(scores, answers);
   for (const band of interpretations) {
+    if (band.when) {
+      if (evaluateCalculatorExpression(band.when, scope) === 1) {
+        return { headline: band.headline, summary: band.message };
+      }
+      continue;
+    }
     const rawScore = resolveScaleRawScore(definition, scores, band.scaleId);
-    if (rawScore === undefined) continue;
+    if (rawScore === undefined || band.minScore === undefined || band.maxScore === undefined)
+      continue;
     if (rawScore >= band.minScore && rawScore <= band.maxScore) {
       return { headline: band.headline, summary: band.message };
     }
@@ -293,24 +180,16 @@ function resolveClinicalInterpretation(
   scores: readonly AssessmentScaleScore[],
   answers: AssessmentAnswers,
 ): ClinicalInterpretation | undefined {
-  return (
-    schemaDrivenInterpretation(definition, scores) ??
-    CLINICAL_INTERPRETERS[definition.slug]?.(scores, answers)
-  );
+  return schemaDrivenInterpretation(definition, scores, answers);
 }
 
 function buildSummary(
-  definition: AssessmentDefinition,
   scores: readonly AssessmentScaleScore[],
-  answers: AssessmentAnswers,
+  clinical: ClinicalInterpretation | undefined,
 ): string {
-  const clinical = resolveClinicalInterpretation(definition, scores, answers);
   if (clinical) return clinical.summary;
   const top = scores.slice(0, Math.min(3, scores.length));
   const scoreText = top.map((score) => `${score.shortLabel} — ${score.percent}%`).join('; ');
-  if (definition.slug === 'temperament-profile') {
-    return `${temperamentHeadline(scores)}. По двум измерениям: ${scoreText}. Значения отражают ответы в момент прохождения и не являются клиническим заключением.`;
-  }
   return `${genericHeadline(scores)}. Нормированные показатели: ${scoreText}. Профиль показывает относительную выраженность шкал внутри этого опросника, а не сравнение с популяционной нормой.`;
 }
 
@@ -412,12 +291,18 @@ export function scoreAssessment(
     .filter((score) => highest - score.percent <= 5)
     .slice(0, 2)
     .map((score) => score.scaleId);
-  const clinical = resolveClinicalInterpretation(definition, scores, answers);
-  const headline =
-    clinical?.headline ??
-    (definition.slug === 'temperament-profile'
-      ? temperamentHeadline(scores)
-      : genericHeadline(scores));
+  let clinical: ClinicalInterpretation | undefined;
+  try {
+    clinical = resolveClinicalInterpretation(definition, scores, answers);
+  } catch {
+    return { ok: false, error: 'В схеме опросника неверно настроено правило интерпретации.' };
+  }
+  const visuals: CalculatorChartSpec[] = [];
+  for (const visual of definition.visuals ?? []) {
+    const evaluated = evaluateCalculatorVisual(visual, assessmentScoreScope(scores, answers));
+    if (!evaluated.ok) return { ok: false, error: evaluated.error };
+    if (evaluated.output) visuals.push(evaluated.output.chart);
+  }
 
   return {
     ok: true,
@@ -426,9 +311,10 @@ export function scoreAssessment(
       completedAt,
       scores,
       primaryScaleIds,
-      headline,
-      summary: buildSummary(definition, scores, answers),
+      headline: clinical?.headline ?? genericHeadline(scores),
+      summary: buildSummary(scores, clinical),
       disclaimer: definition.disclaimer,
+      ...(visuals.length > 0 ? { visuals } : {}),
       evaluation: assessmentEvaluation(definition, scores),
     },
   };

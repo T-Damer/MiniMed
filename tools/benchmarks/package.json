@@ -15,16 +15,24 @@
     "benchmark:hard": "tsx src/run-hard-queries.ts",
     "benchmark:clinician": "tsx src/run-curated-clinician.ts",
     "benchmark:esklp-full-medication": "bun src/run-esklp-full-medication.ts",
+    "benchmark:full-corpus:generate:diseases": "bun src/generate-full-corpus-search-fixtures.ts --source=diseases --database=../../data/build/diseases.db --output=../../data/build/diseases-full-search-queries.json",
+    "benchmark:full-corpus:generate:mkb-diseases": "bun src/generate-full-corpus-search-fixtures.ts --source=mkb-diseases --database=../../data/build/mkb-diseases.db --output=../../data/build/mkb-diseases-full-search-queries.json",
+    "benchmark:full-corpus:diseases": "bun src/run-full-corpus-search.ts --source=diseases --database=../../data/build/diseases.db --fixture=../../data/build/diseases-full-search-queries.json --report=../../data/build/diseases-full-search-report.json",
+    "benchmark:full-corpus:mkb-diseases": "bun src/run-full-corpus-search.ts --source=mkb-diseases --database=../../data/build/mkb-diseases.db --fixture=../../data/build/mkb-diseases-full-search-queries.json --report=../../data/build/mkb-diseases-full-search-report.json",
     "benchmark:parser": "tsx src/run-query-parser.ts",
     "benchmark:parser:generated": "tsx src/run-query-parser-generated.ts",
+    "benchmark:rag-500": "bun src/rag-500-benchmark.ts",
+    "benchmark:rag-prototype": "bun src/rag-prototype.ts",
     "ecg:check": "tsx src/check-ecg-image-dataset.ts",
     "ecg:collect": "tsx src/collect-ecg-images.ts",
     "ecg:evaluate": "tsx src/evaluate-ecg-photo-benchmark.ts",
     "ecg:evaluate:numeric": "tsx src/evaluate-ecg-numeric-solver.ts",
     "review:aliases": "tsx src/alias-review-batch.ts && tsx src/generate-review-ui.ts",
-    "verify:aliases": "tsx src/verify-alias-batch.ts"
+    "verify:aliases": "tsx src/verify-alias-batch.ts",
+    "benchmark:runtime": "bun src/run-runtime-retrieval.ts"
   },
   "dependencies": {
+    "@localmed/contracts": "workspace:*",
     "@localmed/core": "workspace:*",
     "@localmed/domain": "workspace:*",
     "@localmed/search-lexical": "workspace:*",
@@ -32,6 +40,7 @@
     "@localmed/storage-sqlite": "workspace:*",
     "@localmed/test-fixtures": "workspace:*",
     "@localmed/search-semantic": "workspace:*",
-    "yaml": "2.9.0"
+    "yaml": "2.9.0",
+    "@localmed/storage": "workspace:*"
   }
 }

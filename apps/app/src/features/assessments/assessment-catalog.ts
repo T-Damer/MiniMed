@@ -1,5 +1,6 @@
 import { AssessmentDefinitionSchema, type ToolDefinitionRecord } from '@localmed/contracts';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
+import { TOOL_CATALOG } from '@/features/modules/module-catalog';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
 export type AssessmentCategory = AssessmentDefinition['category'];
@@ -90,7 +91,9 @@ export function visibleAssessmentSpecialties(
   });
 }
 
-export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = [];
+export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = TOOL_CATALOG.filter(
+  (entry) => entry.kind === 'assessment',
+);
 
 const definitionPromises = new Map<string, Promise<AssessmentDefinition>>();
 const downloadedAssessments = new Map<string, AssessmentDefinition>();
@@ -100,8 +103,16 @@ export function clearDownloadedAssessments(): void {
   definitionPromises.clear();
 }
 
+export function isAssessmentDefinitionLoaded(id: string): boolean {
+  return downloadedAssessments.has(id);
+}
+
 export function getAssessmentCatalog(): readonly AssessmentCatalogEntry[] {
-  return [...downloadedAssessments.values()].map((definition) => ({
+  return [
+    ...new Map<string, AssessmentCatalogEntry>(
+      [...ASSESSMENT_CATALOG, ...downloadedAssessments.values()].map((entry) => [entry.id, entry]),
+    ).values(),
+  ].map((definition) => ({
     id: definition.id,
     slug: definition.slug,
     title: definition.title,
@@ -147,6 +158,7 @@ export function registerDownloadedAssessment(record: ToolDefinitionRecord): void
             headline: band.headline,
             message: band.message,
             ...(band.scaleId ? { scaleId: band.scaleId } : {}),
+            ...(band.when ? { when: band.when } : {}),
           })),
         }
       : {}),

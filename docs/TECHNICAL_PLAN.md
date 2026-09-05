@@ -9,9 +9,9 @@ the data and deterministic-search work is [DATA_SEARCH_COMPLETION_GOAL.md](DATA_
 ```text
 SolidJS UI
   → MedicalCore
-    → storage and model ports
+    → storage and optional retrieval-model ports
       → SQLite WASM/native adapters
-      → optional local-model adapter
+      → optional local embedding adapter
 
 private inputs
   → deterministic preparer
@@ -68,10 +68,10 @@ The browser is the primary target. It uses:
   scope.
 
 The primary navigation remains deliberately small: search, knowledge base, and personal notes.
-Documents and the optional local model are knowledge-base subroutes. Search history opens from the
-search screen as a drawer rather than becoming a top-level page. The ordinary deterministic search is
-immediately usable against all installed sources; source chips refine results. A local model is never
-required to interpret or return a search result.
+Documents are knowledge-base subroutes. Search history opens from the search screen as a drawer
+rather than becoming a top-level page. Search opens in the all-source free-form scope and is
+immediately usable against installed sources; source chips refine results. It returns document
+references and exact fragments, never requiring a generative model.
 
 Development and preview servers bind to `127.0.0.1`. Browser automation must not auto-download model
 weights unless explicitly enabled.
@@ -129,34 +129,17 @@ Acceptance:
 - generated navigation does not modify or replace the original source passage;
 - concept IDs and links remain stable across reproducible edition rebuilds.
 
-## Clinical model contract
+## Answer-generation boundary
 
-The model may produce only bounded structured JSON. Diagnostic and dose items must cite retrieved chunk
-IDs and copy exact source text.
+The 1.0 product path performs retrieval only. Any later cloud answer is a separate, explicit action
+over documents selected by the user from the local result. Patient records, personal notes, private
+books, raw personal queries, and their embeddings are excluded by default. A provider failure leaves
+the local references untouched.
 
-Deterministic code validates:
-
-- schema and length bounds;
-- allowed candidate IDs;
-- exact excerpt membership;
-- same-chunk support for each clinical label, excerpt, and applicable section type;
-- diagnosis-label presence;
-- treatment category for dose evidence;
-- numeric dose plus regimen cue;
-- stale-query generation.
-
-The model may not calculate a patient dose, fill missing clinical facts, create a source, or write to a
-content pack. A failed validation returns untouched deterministic results.
-
-Before clinical qualification, evaluate each supported model on a real-corpus clinician-reviewed set
-and prove a retrieval gain without losing recall. Evaluate:
-
-- exact-citation rate;
-- unsupported-claim rate;
-- correct abstention when evidence is absent;
-- negation and missing-input handling;
-- Russian extraction quality;
-- load time, generation latency, memory, and storage.
+Generated text may not create a source, calculate a patient dose, fill missing clinical facts, or
+write to a content pack. If answer generation is introduced after the no-backend milestone, its
+contract must allow-list selected document/chunk IDs, preserve exact citations, validate stale-query
+state, and abstain when evidence is missing or conflicting.
 
 ## Content pipeline
 
@@ -253,7 +236,7 @@ unverified content cannot be mistaken for official evidence.
 Done when every displayed dose resolves to a verified source span and strength-only records reliably
 abstain.
 
-### 4. Edition updates and optional local-model research
+### 4. Edition updates and optional neural-retrieval research
 
 - track owner-selected official source versions;
 - stage and checksum new documents;
@@ -263,8 +246,9 @@ abstain.
 - keep scheduled reminders local: native Android alarms when the app is closed and browser
   notifications only while the tab is open;
 - retain note images as local IndexedDB attachments and remove them with their owning note;
-- qualify a local model only after it beats the deterministic baseline on clinician-reviewed cases,
-  passes exact-evidence/abstention gates, and meets physical-device memory/thermal/latency budgets;
+- qualify a neural retrieval profile only after it beats the deterministic baseline on
+  clinician-reviewed cases and meets physical-device memory, storage, battery, thermal, and latency
+  budgets;
 - evaluate optional on-device Russian transcription without sending recordings to a service.
 
 Done when an update cannot silently change the active edition, the previous version remains

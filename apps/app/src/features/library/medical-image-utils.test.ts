@@ -4,6 +4,7 @@ import {
   createMedicalImagePressRepeat,
   medicalImagePointerAction,
   medicalImageSliceDragSteps,
+  medicalImageZoomAroundPoint,
   readBlobWithProgress,
   volumeCutawayPlanes,
 } from '@/features/library/medical-image-utils';
@@ -34,6 +35,10 @@ describe('medical image loading', () => {
     expect(medicalImageSliceDragSteps(100, 75, 10)).toBe(2);
     expect(medicalImageSliceDragSteps(100, 125, 10)).toBe(-2);
     expect(medicalImageSliceDragSteps(100, 94, 10)).toBe(0);
+  });
+
+  it('keeps the point between two fingers fixed while zooming', () => {
+    expect(medicalImageZoomAroundPoint([0, 0, 0, 1], 2, [10, -5, 2])).toEqual([-10, 5, -2, 2]);
   });
 
   it('routes drag in a 3D render tile to cursor movement instead of viewer rotation', () => {

@@ -35,6 +35,7 @@ State metadata does not infer dosing/indications/equivalence.
 | Term | Meaning |
 | --- | --- |
 | `MedicalConcept` | A stable, source-independent clinical meaning such as a condition, finding, intervention, investigation, anatomy, or care topic. A classification code or a phrase in one document identifies or mentions a concept; it does not become the concept itself. |
+| `CanonicalDefinition` | One exact, versioned, source-backed definition selected for a medical concept. Its stable identity points to the original source fragment; compact offline copies may repeat the text but must retain that identity and must not merge wording from several sources. |
 | `ConceptName` | A preferred term, synonym, eponym, abbreviation, transliteration, or spelling variant associated with a medical concept. Ambiguous names may refer to several concepts and require context before linking. |
 | `SourceMention` | An exact span in a versioned source that refers to a medical concept. Resolution adds navigation and provenance without rewriting the source text or turning the mention into a new clinical claim. |
 | `SourceKeyword` | An explicit keyword term published in a source section such as `Ключевые слова`. It is a recall aid for navigation and candidate retrieval, not an exact diagnosis, treatment assertion, or dose rule. |

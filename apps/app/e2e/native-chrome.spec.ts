@@ -43,6 +43,16 @@ test('keeps native status blur below sticky controls and above page content', as
   await page.evaluate(() => window.scrollTo(0, 160));
   await expect(page.locator('.search-mode-tools')).toHaveClass(/sticky-surface--stuck/u);
   await expect.poll(() => nativeBlurOpacity(page)).toBe('1');
+  await expect
+    .poll(() =>
+      page.locator('.search-mode-tools').evaluate((element) => {
+        const safeTop = Number.parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
+        );
+        return element.getBoundingClientRect().top - safeTop;
+      }),
+    )
+    .toBeCloseTo(8, 0);
   await expect.poll(() => nativeBlurGrain(page)).toContain("feFlood flood-color='white'");
   await expect(page.locator('.search-home__backdrop-blur')).toHaveCSS('opacity', '0');
 
@@ -100,6 +110,32 @@ test('keeps native status blur below the nested files header', async ({ page }) 
     y: searchInput.y + searchInput.height / 2,
   });
   expect(target).toContain('archive-search__input');
+
+  await page.evaluate(() => {
+    const spacer = document.createElement('div');
+    spacer.style.height = '1000px';
+    document.body.append(spacer);
+    window.scrollTo(0, 160);
+  });
+  const heading = page.locator('.user-library-page__search-chrome');
+  await expect(heading).toHaveClass(/sticky-surface--stuck/u);
+  await expect
+    .poll(() => heading.evaluate((element) => getComputedStyle(element, '::before').opacity))
+    .toBe('1');
+  const backdrop = await heading.evaluate((element) => {
+    const elementRect = element.getBoundingClientRect();
+    const styles = getComputedStyle(element, '::before');
+    const top = elementRect.top + Number.parseFloat(styles.top);
+    return {
+      top,
+      bottom: top + Number.parseFloat(styles.height),
+      elementBottom: elementRect.bottom,
+      mask: styles.maskImage || styles.webkitMaskImage,
+    };
+  });
+  expect(backdrop.top).toBeCloseTo(0, 0);
+  expect(backdrop.bottom).toBeGreaterThan(backdrop.elementBottom);
+  expect(backdrop.mask).toContain('linear-gradient');
 });
 
 test('keeps transparent route headers below the native status bar after viewport resize', async ({
@@ -127,9 +163,14 @@ test('keeps transparent route headers below the native status bar after viewport
     const safeTop = Number.parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
     );
-    return { top: element.getBoundingClientRect().top, safeTop };
+    return {
+      top: element.getBoundingClientRect().top,
+      paddingTop: Number.parseFloat(getComputedStyle(element).paddingTop),
+      safeTop,
+    };
   });
-  expect(geometry.top).toBeGreaterThanOrEqual(geometry.safeTop - 1);
+  expect(geometry.top - geometry.safeTop).toBeCloseTo(8, 0);
+  expect(geometry.paddingTop).toBeCloseTo(4, 0);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => window.dispatchEvent(new Event('resize')));
@@ -142,7 +183,7 @@ test('keeps transparent route headers below the native status bar after viewport
         return element.getBoundingClientRect().top - safeTop;
       }),
     )
-    .toBeLessThanOrEqual(1);
+    .toBeCloseTo(8, 0);
 });
 
 test('removes native status blur from routes without transparent sticky chrome', async ({
@@ -169,6 +210,22 @@ test('hides native status blur on document readers and medical viewers', async (
     .first()
     .click();
   await expect(page.locator('.document-page__chrome')).toBeVisible();
+  const readerChrome = await page.locator('.document-page__chrome').evaluate((element) => {
+    const styles = getComputedStyle(element);
+    const backButton = element.querySelector<HTMLElement>('.document-page__back');
+    const safeTop = Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
+    );
+    return {
+      top: element.getBoundingClientRect().top,
+      controlTop: backButton?.getBoundingClientRect().top ?? Number.NaN,
+      safeTop,
+      background: styles.backgroundColor,
+    };
+  });
+  expect(readerChrome.top).toBeCloseTo(0, 0);
+  expect(readerChrome.controlTop).toBeGreaterThanOrEqual(readerChrome.safeTop);
+  expect(readerChrome.background).not.toBe('rgba(0, 0, 0, 0)');
   await expect.poll(() => nativeBlurOpacity(page)).toBe('0');
 
   await page.evaluate(() =>
@@ -205,9 +262,11 @@ test('moves sticky document headings with the hidden reader chrome', async ({ pa
     const safeTop = Number.parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
     );
-    return element.getBoundingClientRect().top - (Number.isFinite(safeTop) ? safeTop : 0);
+    return (
+      Number.parseFloat(getComputedStyle(element).top) - (Number.isFinite(safeTop) ? safeTop : 0)
+    );
   });
-  expect(gap).toBeLessThanOrEqual(1);
+  expect(gap).toBeCloseTo(7, 0);
 
   const safeFill = await page.locator('.document-overlay-paper').evaluate((paper) => {
     const styles = getComputedStyle(paper, '::before');
@@ -216,4 +275,11 @@ test('moves sticky document headings with the hidden reader chrome', async ({ pa
   expect(safeFill.height).toBe('24px');
   expect(safeFill.background).not.toBe('rgba(0, 0, 0, 0)');
   expect(safeFill.opacity).toBe('1');
+
+  await page.evaluate(() => window.scrollTo(0, 300));
+  await expect
+    .poll(() =>
+      page.locator('html').evaluate((root) => root.classList.contains('app-chrome-hidden')),
+    )
+    .toBe(false);
 });

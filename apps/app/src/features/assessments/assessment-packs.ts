@@ -2,6 +2,7 @@ import type {
   AssessmentCatalogEntry,
   AssessmentCategory,
 } from '@/features/assessments/assessment-catalog';
+import { isAssessmentDefinitionLoaded } from '@/features/assessments/assessment-catalog';
 
 export type AssessmentSectionId = AssessmentCategory;
 
@@ -347,7 +348,7 @@ function installedIdsFromSnapshot(
   for (const dependency of Object.values(snapshot.moduleDependencies)) {
     for (const id of dependency.assessmentIds) installed.add(id);
   }
-  return installed;
+  return new Set([...installed].filter(isAssessmentDefinitionLoaded));
 }
 
 function stateFromSnapshot(

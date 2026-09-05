@@ -938,8 +938,14 @@
 }
 
 .rich-document-renderer--epub {
-  height: clamp(20rem, 72dvh, 52rem);
-  min-height: 20rem;
+  min-height: 0;
+  overflow: visible;
+  overflow-anchor: none;
+}
+
+/* epub.js compensates synchronously when it prepends or removes chapter frames. */
+.epub-page-scroll {
+  scroll-behavior: auto;
 }
 
 .rich-docx {
@@ -979,8 +985,24 @@
 
 /* Persistent user-document text highlights */
 
-::highlight(user-doc-highlights) {
+::highlight(user-doc-highlights-yellow) {
   background-color: rgb(255 213 79 / 55%);
+}
+
+::highlight(user-doc-highlights-blue) {
+  background-color: rgb(100 181 246 / 55%);
+}
+
+::highlight(user-doc-highlights-green) {
+  background-color: rgb(129 199 132 / 55%);
+}
+
+::highlight(user-doc-highlights-pink) {
+  background-color: rgb(244 143 177 / 55%);
+}
+
+::highlight(user-doc-highlights-red) {
+  background-color: rgb(239 83 80 / 55%);
 }
 
 .user-highlight-popup {
@@ -988,11 +1010,40 @@
   z-index: calc(var(--z-overlay) + 10);
   transform: translate(-50%, calc(-100% - 0.5rem));
   display: flex;
+  justify-content: center;
+  width: 15rem;
+  max-width: calc(100vw - 1rem);
+  min-inline-size: 0;
+  margin: 0;
   padding: 0.25rem;
   border: 1px solid var(--theme-border);
   border-radius: 0.55rem;
   background: var(--theme-surface-raised);
   box-shadow: 0 0.75rem 2rem rgb(29 27 22 / 26%);
+}
+
+.user-highlight-popup__color {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0.5rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  box-shadow: none;
+}
+
+.user-highlight-popup__swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid rgb(0 0 0 / 25%);
+  border-radius: 50%;
+  background: var(--highlight-color);
+}
+
+.user-highlight-popup__color:focus-visible {
+  outline: 0.125rem solid var(--theme-accent);
 }
 
 .user-highlight-popup__action {

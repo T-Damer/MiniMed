@@ -1,7 +1,7 @@
-# Local model harness
+# Local model research harness
 
-MiniMed's local model is optional. Search, source opening, history, and deterministic query analysis
-remain available when the model is absent, downloading, unloaded, unsupported, or broken.
+This harness is not connected to the product search UI. Search, source opening, history, and
+deterministic query analysis use the retrieval-only `MedicalCore` path.
 
 ## Current scope
 
@@ -16,10 +16,7 @@ The experimental slice implements:
   see "Android native behavior" below and `docs/adr/0014-native-llama-cpp-android-runtime.md`);
 - a short Russian constrained-output warm-up benchmark;
 - cached benchmark results and temporary failure suppression;
-- one smaller-candidate fallback;
-- a bottom status toast;
-- System-page controls for automatic selection, automatic loading, manual override, unload, and
-  explicit licence acceptance.
+- one smaller-candidate fallback.
 
 It does **not** yet:
 

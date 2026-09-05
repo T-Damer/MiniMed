@@ -4,6 +4,22 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.33] - 2026-09-05
+
+- All 770 catalog package artifacts are included in release archives, including experimental
+  medication and growth-tool packs; their preview/review status is preserved.
+- The bundled catalog previews all 69 downloadable calculators and assessments before installation.
+- Package auto-updates move to Settings; bulk download confirms the total installed size.
+- Disease cards, source-linked definitions, reference illustrations, large knowledge graphs,
+  document readers, notes and schema-driven tools include the current workspace improvements.
+- Android APK cancellation survives a concurrent network failure instead of scheduling a new download.
+- The discovery core is restored from a checksum-verified compressed artifact for GitHub's file limit.
+
+SQL/content-pack schema remains version 2; existing identifiers and anchors are preserved.
+This is a debug-signed engineering prerelease. Unreviewed content is included explicitly;
+clinical qualification and physical-device testing remain outstanding. Private source libraries
+and model weights are excluded from the application and knowledge-package archives.
+
 ## [0.6.32] - 2026-09-02
 
 ### Added

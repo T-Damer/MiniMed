@@ -333,15 +333,37 @@ describe('ScopedMedicalCore', () => {
     document('law-summary', 'regulatory_act_summary'),
   ];
 
+  it('distinguishes source pointers, summaries, and full documents in free search', async () => {
+    const sources = [
+      document('full', 'clinical_recommendation'),
+      document('summary', 'clinical_recommendation_summary'),
+      pointerDocument('pointer', 'clinical', 'disease'),
+    ];
+    const base = coreWithDocuments(sources);
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...response(),
+        groups: sources.map((source) => searchGroup(source.id, [searchResult(source.id, 'Текст')])),
+      },
+    });
+    const result = await new ScopedMedicalCore(base.core, 'all').search(request());
+    expect(
+      result.ok && result.value.groups.map((group) => [group.documentId, group.contentKind]),
+    ).toEqual([
+      ['full', 'full-text'],
+      ['summary', 'summary'],
+      ['pointer', 'pointer'],
+    ]);
+  });
+
   it('limits medication searches to installed medication documents', async () => {
     const base = coreWithDocuments(documents);
-    const assistant = coreWithDocuments(documents);
-    const scoped = new ScopedMedicalCore(base.core, assistant.core, 'medications');
+    const scoped = new ScopedMedicalCore(base.core, 'medications');
 
     await scoped.search(request());
 
     expect(base.search).toHaveBeenCalledOnce();
-    expect(assistant.search).not.toHaveBeenCalled();
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
       'mkb',
       'drug',
@@ -391,7 +413,7 @@ describe('ScopedMedicalCore', () => {
       ['legal', ['legal-pointer']],
     ] as const) {
       const base = coreWithDocuments(pointers);
-      const scoped = new ScopedMedicalCore(base.core, undefined, scope);
+      const scoped = new ScopedMedicalCore(base.core, scope);
 
       await scoped.search(request());
 
@@ -399,38 +421,41 @@ describe('ScopedMedicalCore', () => {
     }
   });
 
-  it('keeps a trade-name pointer only when the alias and dose form occur in one result', async () => {
-    const matching = pointerDocument('matching-pointer', 'medication', 'medication');
-    const combination = pointerDocument('combination-pointer', 'medication', 'medication');
-    const matchingResult = {
-      ...searchResult(matching.id, 'Детская суспензия 100 мг/5 мл.'),
-      matchedTerms: ['нурофен', 'суспензия', 'ибупрофен'],
-    };
-    const value = medicationAliasResponse({
-      query: 'нурофен суспензия',
-      alias: 'Нурофен',
-      canonical: 'ибупрофен',
-      doseForm: { value: 'суспензия' },
-      groups: [
-        searchGroup(matching.id, [matchingResult]),
-        searchGroup(
-          combination.id,
-          [searchResult(combination.id, 'Ибупрофен + кодеин. Таблетки 200 мг + 12,8 мг.')],
-          'Ибупрофен + кодеин',
-        ),
-      ],
-    });
-    const base = coreWithDocuments([matching, combination]);
-    base.search.mockResolvedValueOnce({ ok: true, value });
+  it.each(['Нурофен', 'ибупрофен'])(
+    'keeps %s only when the name and dose form occur in one result',
+    async (name) => {
+      const matching = pointerDocument('matching-pointer', 'medication', 'medication');
+      const combination = pointerDocument('combination-pointer', 'medication', 'medication');
+      const matchingResult = {
+        ...searchResult(matching.id, 'Детская суспензия 100 мг/5 мл.'),
+        matchedTerms: ['нурофен', 'суспензия', 'ибупрофен'],
+      };
+      const value = medicationAliasResponse({
+        query: `${name} суспензия`,
+        alias: name,
+        canonical: 'ибупрофен',
+        doseForm: { value: 'суспензия' },
+        groups: [
+          searchGroup(matching.id, [matchingResult]),
+          searchGroup(
+            combination.id,
+            [searchResult(combination.id, 'Ибупрофен + кодеин. Таблетки 200 мг + 12,8 мг.')],
+            'Ибупрофен + кодеин',
+          ),
+        ],
+      });
+      const base = coreWithDocuments([matching, combination]);
+      base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
-      queryRequest(value.analysis.originalQuery),
-    );
+      const result = await new ScopedMedicalCore(base.core, 'medications').search(
+        queryRequest(value.analysis.originalQuery),
+      );
 
-    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([
-      matching.id,
-    ]);
-  });
+      expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([
+        matching.id,
+      ]);
+    },
+  );
 
   it('keeps only matching presentation sections and recalculates the group score', async () => {
     const pointer = pointerDocument('strength-pointer', 'medication', 'medication');
@@ -458,7 +483,7 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([pointer]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
       queryRequest(value.analysis.originalQuery),
     );
 
@@ -489,7 +514,7 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([pointer]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
       queryRequest(value.analysis.originalQuery),
     );
 
@@ -512,7 +537,7 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([pointer]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
       queryRequest(value.analysis.originalQuery),
     );
 
@@ -538,14 +563,14 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([pointer]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
       queryRequest(value.analysis.originalQuery),
     );
 
     expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([pointer.id]);
   });
 
-  it('does not filter direct MNN or context-free trade-name queries', async () => {
+  it('filters mismatched forms for direct MNN but preserves context-free trade-name queries', async () => {
     const direct = pointerDocument('direct-pointer', 'medication', 'medication');
     const tradeOnly = pointerDocument('trade-only-pointer', 'medication', 'medication');
     const base = coreWithDocuments([direct, tradeOnly]);
@@ -557,7 +582,9 @@ describe('ScopedMedicalCore', () => {
           alias: 'ибупрофен',
           canonical: 'ибупрофен',
           doseForm: { value: 'мазь' },
-          groups: [searchGroup(direct.id, [searchResult(direct.id, 'Таблетки 200 мг.')])],
+          groups: [
+            searchGroup(direct.id, [searchResult(direct.id, 'Ибупрофен. Таблетки 200 мг.')]),
+          ],
         }),
       })
       .mockResolvedValueOnce({
@@ -569,14 +596,14 @@ describe('ScopedMedicalCore', () => {
           groups: [searchGroup(tradeOnly.id, [searchResult(tradeOnly.id, 'Ибупрофен.')])],
         }),
       });
-    const scoped = new ScopedMedicalCore(base.core, undefined, 'medications');
+    const scoped = new ScopedMedicalCore(base.core, 'medications');
 
     const directResult = await scoped.search(queryRequest('ибупрофен мазь'));
     const tradeOnlyResult = await scoped.search(queryRequest('нурофен'));
 
-    expect(directResult.ok && directResult.value.groups.map((group) => group.documentId)).toEqual([
-      direct.id,
-    ]);
+    expect(directResult.ok && directResult.value.groups.map((group) => group.documentId)).toEqual(
+      [],
+    );
     expect(
       tradeOnlyResult.ok && tradeOnlyResult.value.groups.map((group) => group.documentId),
     ).toEqual([tradeOnly.id]);
@@ -599,7 +626,7 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([pointer]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
       queryRequest(value.analysis.originalQuery),
     );
 
@@ -624,7 +651,7 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([registry]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
       queryRequest(value.analysis.originalQuery),
     );
 
@@ -655,7 +682,7 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([titleMatch, resultMatch]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'medications').search(
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
       queryRequest(value.analysis.originalQuery),
     );
 
@@ -698,7 +725,7 @@ describe('ScopedMedicalCore', () => {
     const base = coreWithDocuments([medication, registry, clinical, fullDocument]);
     base.search.mockResolvedValueOnce({ ok: true, value });
 
-    const result = await new ScopedMedicalCore(base.core, undefined, 'diagnosis').search(
+    const result = await new ScopedMedicalCore(base.core, 'diagnosis').search(
       queryRequest('лихорадка у ребенка'),
     );
 
@@ -736,12 +763,11 @@ describe('ScopedMedicalCore', () => {
       },
     });
 
-    const allResult = await new ScopedMedicalCore(allBase.core, undefined, 'all').search(
+    const allResult = await new ScopedMedicalCore(allBase.core, 'all').search(
       queryRequest('препарат'),
     );
     const medicationsResult = await new ScopedMedicalCore(
       medicationsBase.core,
-      undefined,
       'medications',
     ).search(queryRequest('лихорадка'));
 
@@ -756,7 +782,7 @@ describe('ScopedMedicalCore', () => {
   it('drops generic medication documents when the query names a specific drug', async () => {
     const base = coreWithDocuments(documents);
     base.search.mockResolvedValueOnce({ ok: true, value: medicationResponse() });
-    const scoped = new ScopedMedicalCore(base.core, undefined, 'medications');
+    const scoped = new ScopedMedicalCore(base.core, 'medications');
 
     const result = await scoped.search(request());
 
@@ -767,7 +793,7 @@ describe('ScopedMedicalCore', () => {
 
   it('intersects an existing document filter with the selected source family', async () => {
     const base = coreWithDocuments(documents);
-    const scoped = new ScopedMedicalCore(base.core, undefined, 'guidelines');
+    const scoped = new ScopedMedicalCore(base.core, 'guidelines');
 
     await scoped.search(request(['guideline-summary', 'drug']));
 
@@ -776,7 +802,7 @@ describe('ScopedMedicalCore', () => {
 
   it('includes medical references with recommendations and norms', async () => {
     const base = coreWithDocuments(documents);
-    const scoped = new ScopedMedicalCore(base.core, undefined, 'guidelines');
+    const scoped = new ScopedMedicalCore(base.core, 'guidelines');
 
     await scoped.search(request());
 
@@ -790,12 +816,7 @@ describe('ScopedMedicalCore', () => {
 
   it('can constrain a medication page to its own database documents', async () => {
     const base = coreWithDocuments(documents);
-    const scoped = new ScopedMedicalCore(
-      base.core,
-      undefined,
-      'medications',
-      new Set(['registry']),
-    );
+    const scoped = new ScopedMedicalCore(base.core, 'medications', new Set(['registry']));
 
     await scoped.search(request());
 
@@ -809,7 +830,7 @@ describe('ScopedMedicalCore', () => {
           item.sourceType !== 'regulatory_act' && item.sourceType !== 'regulatory_act_summary',
       ),
     );
-    const scoped = new ScopedMedicalCore(base.core, undefined, 'legal');
+    const scoped = new ScopedMedicalCore(base.core, 'legal');
 
     await scoped.search(request());
 
@@ -820,7 +841,7 @@ describe('ScopedMedicalCore', () => {
 
   it('returns no official documents for the personal scope', async () => {
     const base = coreWithDocuments(documents);
-    const scoped = new ScopedMedicalCore(base.core, undefined, 'personal');
+    const scoped = new ScopedMedicalCore(base.core, 'personal');
 
     await scoped.search(request());
 
@@ -831,24 +852,50 @@ describe('ScopedMedicalCore', () => {
 
   it('includes regulatory source cards and full acts in legal search', async () => {
     const base = coreWithDocuments(documents);
-    const scoped = new ScopedMedicalCore(base.core, undefined, 'legal');
+    const scoped = new ScopedMedicalCore(base.core, 'legal');
 
     await scoped.search(request());
 
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual(['law', 'law-summary']);
   });
 
-  it('uses the grounded assistant only for diagnosis', async () => {
+  it('puts clinical recommendations before references for a clinical case', async () => {
+    const clinical = document('clinical', 'clinical_recommendation');
+    const reference = document('reference', 'medical_reference');
+    const law = document('law', 'regulatory_act');
+    const base = coreWithDocuments([clinical, reference, law]);
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...response(),
+        groups: [
+          searchGroup(law.id, [searchResult(law.id, 'Порядок оказания помощи.')]),
+          searchGroup(reference.id, [searchResult(reference.id, 'Описание заболевания.')]),
+          searchGroup(clinical.id, [searchResult(clinical.id, 'Клиническая рекомендация.')]),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'diagnosis').search(
+      queryRequest('клинический случай'),
+    );
+
+    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([
+      clinical.id,
+      reference.id,
+      law.id,
+    ]);
+  });
+
+  it('uses deterministic retrieval for diagnosis', async () => {
     const base = coreWithDocuments(documents);
-    const assistant = coreWithDocuments(documents);
-    const scoped = new ScopedMedicalCore(base.core, assistant.core, 'diagnosis');
+    const scoped = new ScopedMedicalCore(base.core, 'diagnosis');
 
     await scoped.search(request());
     await scoped.analyzeQuery({ query: 'test', includeSuggestions: true });
 
-    expect(assistant.search).toHaveBeenCalledOnce();
-    expect(assistant.analyzeQuery).toHaveBeenCalledOnce();
-    expect(base.search).not.toHaveBeenCalled();
+    expect(base.search).toHaveBeenCalledOnce();
+    expect(base.analyzeQuery).toHaveBeenCalledOnce();
   });
 });
 

@@ -1,10 +1,12 @@
 import type {
+  AssessmentVisualDefinition,
   EvaluationStatus,
   ObservationMapping,
   ReferenceVerdict,
   ToolEvaluation,
   ToolSourceLink,
 } from '@localmed/contracts';
+import type { CalculationChartSpec } from '@/features/calculators/clinical-calculations';
 
 export type AssessmentResponseValue = number;
 
@@ -56,9 +58,10 @@ export interface AssessmentLicense {
 }
 
 export interface AssessmentInterpretationBand {
-  readonly minScore: number;
-  readonly maxScore: number;
+  readonly minScore?: number | undefined;
+  readonly maxScore?: number | undefined;
   readonly scaleId?: string;
+  readonly when?: string | undefined;
   readonly headline: string;
   readonly message: string;
 }
@@ -90,6 +93,7 @@ export interface AssessmentDefinition {
   readonly disclaimer: string;
   readonly evidenceNote: string;
   readonly interpretations?: readonly AssessmentInterpretationBand[];
+  readonly visuals?: readonly AssessmentVisualDefinition[];
   readonly evaluation?: ToolEvaluation;
   readonly observationMappings?: readonly ObservationMapping[];
   readonly license: AssessmentLicense;
@@ -122,6 +126,7 @@ export interface ScoredAssessment {
   readonly headline: string;
   readonly summary: string;
   readonly disclaimer: string;
+  readonly visuals?: readonly CalculationChartSpec[];
   readonly evaluation?: AssessmentEvaluation;
 }
 
