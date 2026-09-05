@@ -17,6 +17,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   restore `apps/app/public/content/core.db` and verify its checksum against `core-report.json`.
   Restoration validates a temporary file before replacing the existing database. The uncompressed
   core exceeds GitHub's per-file limit; its content and schema are unchanged by compression.
+- The drug-pilot CI gate compares persisted review states with the source JSON and checks that
+  proposed facts stay out of its default search index. Its obsolete zero-reviewed assertion
+  contradicted the five already-reviewed source facts; source statuses are unchanged.
 - ESKLP medication downloads use the checksum-preserving Git LFS media mirror on
   `datasets/esklp-2026-08-28`; ordinary release links previously resolved to missing main-branch
   files. The media endpoint supplies browser CORS and supports databases above Git’s file limit.
