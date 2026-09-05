@@ -15,6 +15,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Web E2E now downloads both from the catalog and verifies size/SHA-256 before testing; the suite
   runs in three isolated shards. Module lifecycle checks identify the installed order-192н result
   explicitly instead of assuming that the first free-search result is the installed legal source.
+  Five affected local scenarios passed, but fresh Linux runners still show core-reload and search
+  timeouts, including in the Typer-only comparison. The failing CI runs were cancelled after diagnosis;
+  complete browser qualification remains open in PR #163, whose JavaScript updates remain unmerged.
 - This release includes all 770 existing catalog artifacts, including preview packages, without
   changing their review status. Planned modules without built artifacts remain unavailable.
 - Git stores the compressed discovery core in `content/bundled/core.db.gz`; dev, build and verify
