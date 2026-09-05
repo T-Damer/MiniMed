@@ -135,6 +135,7 @@ describe('formatFullTextDownloadLabel', () => {
 
   it('shows percent while pending when progress is known', () => {
     expect(formatFullTextDownloadLabel(true, 0.512, false)).toBe('51%');
+    expect(formatFullTextDownloadLabel(true, 1, false)).toBe('Подготавливаем документ…');
   });
 
   it('shows generic pending label without progress', () => {

@@ -65,6 +65,7 @@ describe('calculator visuals', () => {
     if (visual?.kind !== 'visual') return;
     expect(visual.chart).toEqual({
       type: 'bar',
+      title: 'ИМТ до и после',
       labels: ['до', 'после'],
       datasets: [{ label: 'ИМТ', data: [expect.closeTo(22.857, 2), 24] }],
     });
@@ -87,6 +88,68 @@ describe('calculator visuals', () => {
     ]);
     const result = evaluateCalculatorSchema(schema, INPUTS);
     expect(result.ok).toBe(true);
+  });
+
+  it('samples reusable XY reference curves and preserves chart titles and axes', () => {
+    const schema = schemaWithVisuals([
+      {
+        id: 'growth_curve',
+        title: 'Масса к возрасту',
+        kind: 'line',
+        xAxis: { label: 'Возраст, мес', minimum: 0, maximum: 2 },
+        yAxis: { label: 'Масса, кг', minimum: 0 },
+        datasets: [
+          {
+            label: '50-й перцентиль',
+            render: 'line',
+            tone: 'success',
+            sample: {
+              variable: 'chart_age',
+              from: 0,
+              to: 2,
+              step: 1,
+              x: 'chart_age',
+              y: 'bmi + chart_age',
+            },
+          },
+          {
+            label: 'Ребёнок',
+            render: 'point',
+            tone: 'accent',
+            points: [{ x: 1, y: 'bmi' }],
+          },
+        ],
+      },
+    ]);
+    const result = evaluateCalculatorSchema(schema, INPUTS);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const visual = result.outputs.find((output) => output.kind === 'visual');
+    expect(visual?.kind).toBe('visual');
+    if (visual?.kind !== 'visual') return;
+    expect(visual.chart).toMatchObject({
+      title: 'Масса к возрасту',
+      xAxis: { label: 'Возраст, мес', minimum: 0, maximum: 2 },
+      yAxis: { label: 'Масса, кг', minimum: 0 },
+      datasets: [
+        {
+          label: '50-й перцентиль',
+          render: 'line',
+          tone: 'success',
+          data: [
+            { x: 0, y: expect.closeTo(22.857, 2) },
+            { x: 1, y: expect.closeTo(23.857, 2) },
+            { x: 2, y: expect.closeTo(24.857, 2) },
+          ],
+        },
+        {
+          label: 'Ребёнок',
+          render: 'point',
+          tone: 'accent',
+          data: [{ x: 1, y: expect.closeTo(22.857, 2) }],
+        },
+      ],
+    });
   });
 
   it('fails when a dataset expression references an unknown variable', () => {

@@ -128,6 +128,71 @@ export async function addNoteFiles(
   return records;
 }
 
+/** Replaces an attachment in one transaction; the new blob is written before the old one is removed. */
+export async function replaceNoteFile(fileId: string, file: File): Promise<NoteFile> {
+  if (!fileId) throw new Error('Неизвестное вложение.');
+  if (!('indexedDB' in globalThis) || !indexedDB) {
+    throw new Error('Хранилище файлов недоступно.');
+  }
+  validateFile(file);
+  let thumbnailDataUrl: string | undefined;
+  try {
+    thumbnailDataUrl = await attachmentThumbnails.forFile(file, file.type || '', file.name);
+  } catch {
+    thumbnailDataUrl = undefined;
+  }
+
+  const database = await openDatabase();
+  let replacement: NoteFile | undefined;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      let failed = false;
+      const fail = (cause: unknown): void => {
+        if (failed) return;
+        failed = true;
+        reject(cause instanceof Error ? cause : new Error('Не удалось обновить файл.'));
+      };
+      const request = store.get(fileId);
+      request.onsuccess = () => {
+        const previous = request.result as NoteFile | undefined;
+        if (!previous) {
+          fail(new Error('Вложение уже удалено.'));
+          transaction.abort();
+          return;
+        }
+        replacement = {
+          id: `file-${crypto.randomUUID()}`,
+          noteId: previous.noteId,
+          name: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          size: file.size,
+          blob: file,
+          ...(thumbnailDataUrl ? { thumbnailDataUrl } : {}),
+          createdAt: new Date().toISOString(),
+        };
+        // Keep the original until the replacement has been accepted by the same transaction.
+        store.put(replacement);
+        store.delete(fileId);
+      };
+      request.onerror = () => fail(request.error ?? new Error('Не удалось прочитать файл.'));
+      transaction.oncomplete = () => {
+        if (replacement) resolve();
+        else fail(new Error('Не удалось обновить файл.'));
+      };
+      transaction.onerror = () => fail(transaction.error ?? new Error('Не удалось обновить файл.'));
+      transaction.onabort = () => fail(new Error('Не удалось обновить файл.'));
+    });
+  } finally {
+    database.close();
+  }
+  if (!replacement) throw new Error('Не удалось обновить файл.');
+  window.dispatchEvent(new Event(NOTE_FILES_EVENT));
+  scheduleLibrarySync();
+  return replacement;
+}
+
 async function loadByNoteIds(
   noteIds: readonly string[],
 ): Promise<ReadonlyMap<string, readonly NoteFile[]>> {

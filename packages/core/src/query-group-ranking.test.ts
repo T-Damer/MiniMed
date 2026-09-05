@@ -1,7 +1,118 @@
 import type { MedicalDocumentSummary, SearchResult, SearchResultGroup } from '@localmed/contracts';
+import { analyzeClinicalQuery } from '@localmed/search-lexical';
 import { describe, expect, it } from 'vitest';
 
 import { queryGroupRelevanceBoost, rankSearchGroupsByQuery } from './query-group-ranking';
+
+it('keeps all explicitly declared abbreviation meanings ahead of incidental mentions', () => {
+  const documents = [
+    {
+      id: 'classifier',
+      sourceType: 'core_catalog_pointer',
+      metadata: { navigationAliases: ['МКБ', 'МКБ-10'] },
+    },
+    { id: 'disease', sourceType: 'core_catalog_pointer', metadata: { declaredAliases: ['МКБ'] } },
+  ] satisfies Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[];
+  const groups = [
+    group('incidental', 'Коды МКБ в документации', 10),
+    group('disease', 'Мочекаменная болезнь', 0.1),
+    group('classifier', 'Международная классификация болезней', 0.2),
+  ];
+  expect(
+    rankSearchGroupsByQuery(groups, 'МКБ', documents)
+      .slice(0, 2)
+      .map((g) => g.documentId)
+      .toSorted(),
+  ).toEqual(['classifier', 'disease']);
+  expect(rankSearchGroupsByQuery(groups, 'МКБ-10', documents)[0]?.documentId).toBe('classifier');
+});
+
+it('requires a positive symptom match before background words can promote a clinical result', () => {
+  const query = 'апноэ у грудного ребенка на фоне вирусной инфекции';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  const ranked = rankSearchGroupsByQuery(
+    [
+      group('background', 'Вирусная инфекция', 2, [
+        result('background', 'Вирусная инфекция', 'Вирусная инфекция у грудного ребенка.', [
+          'апноэ',
+        ]),
+      ]),
+      group('symptom', 'Клиническая картина', 1, [
+        result('symptom', 'Клиническая картина', 'Возможны эпизоды апноэ.'),
+      ]),
+    ],
+    query,
+    [],
+    analysis,
+  );
+  expect(ranked[0]?.documentId).toBe('symptom');
+});
+
+it('prefers several clinical clues in one passage over a single symptom in a title', () => {
+  const query = 'кашель высокая температура боль в груди у ребенка';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  const ranked = rankSearchGroupsByQuery(
+    [
+      group('cough', 'Кашель', 1.5, [result('cough', 'Кашель', 'Кашель — симптом.')]),
+      group('source', 'Клиническая картина', 1, [
+        result(
+          'source',
+          'Клиническая картина',
+          'Кашель, высокая температура и боль в груди у ребенка.',
+        ),
+      ]),
+    ],
+    query,
+    [],
+    analysis,
+  );
+  expect(ranked[0]?.documentId).toBe('source');
+});
+
+it('does not promote plant medicines for a chest pain query', () => {
+  const ranked = rankSearchGroupsByQuery(
+    [group('plant', 'ПОДОРОЖНИКА БОЛЬШОГО ЛИСТЬЯ', 0.9), group('clinical', 'Боль в груди', 1.1)],
+    'кашель высокая температура боль в груди у ребенка',
+    [
+      document('plant', 'core_catalog_pointer', { catalogFamily: 'medication' }),
+      document('clinical', 'medical_reference'),
+    ],
+  );
+  expect(ranked[0]?.documentId).toBe('clinical');
+});
+
+it('does not give a title bonus to an explicitly absent finding', () => {
+  const query = 'кашель без признаков пневмонии';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  const ranked = rankSearchGroupsByQuery(
+    [group('negative', 'Пневмония', 1.5), group('positive', 'Кашель', 1)],
+    query,
+    [],
+    analysis,
+  );
+  expect(ranked[0]?.documentId).toBe('positive');
+});
+
+it('ranks the named condition above narrower variants and preserves short disease terms', () => {
+  expect(
+    rankSearchGroupsByQuery(
+      [group('a', 'Острый гепатит А', 2), group('c', 'Острый гепатит С (ОГС) у взрослых', 1)],
+      'документы по заболеванию острый гепатит С',
+    )[0]?.documentId,
+  ).toBe('c');
+  expect(
+    rankSearchGroupsByQuery(
+      [group('child', 'Экзема у детей', 1.5), group('eczema', 'Экзема', 1)],
+      'описание болезни Экзема',
+    )[0]?.documentId,
+  ).toBe('eczema');
+  expect(
+    rankSearchGroupsByQuery(
+      [group('ulcer', 'Язвенная болезнь желудка', 1.5), group('cancer', 'Рак желудка', 1)],
+      'описание болезни Рак желудка',
+    )[0]?.documentId,
+  ).toBe('cancer');
+});
 
 function result(
   documentId: string,
@@ -283,4 +394,15 @@ describe('query-aware group ranking', () => {
       ),
     ).toBeGreaterThanOrEqual(1);
   });
+});
+
+it('ranks a verbatim source phrase above documents matching individual words in their titles', () => {
+  const query = 'двигательной заторможенностью и нарушением мышления';
+  const exact = group('source', 'Депрессия', 1, [
+    result('source', 'Депрессия', `Расстройство проявляется ${query}.`),
+  ]);
+  const generic = group('other', 'Нарушения мышления и двигательной активности', 2, [
+    result('other', 'Нарушения мышления', 'Иной текст.'),
+  ]);
+  expect(rankSearchGroupsByQuery([generic, exact], query)[0]?.documentId).toBe('source');
 });

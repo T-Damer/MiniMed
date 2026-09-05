@@ -4,6 +4,7 @@ import hashlib
 import json
 import sqlite3
 from collections import defaultdict
+from contextlib import nullcontext
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal, cast
@@ -718,11 +719,15 @@ def _json(value: object) -> str:
 
 
 def write_knowledge_sqlite(
-    path: Path, workspace: KnowledgeWorkspace, *, include_unreviewed: bool = False
+    path: Path | sqlite3.Connection,
+    workspace: KnowledgeWorkspace,
+    *,
+    include_unreviewed: bool = False,
 ) -> None:
-    connection = sqlite3.connect(path)
+    owns_connection = isinstance(path, Path)
+    connection = sqlite3.connect(path) if isinstance(path, Path) else path
     try:
-        with connection:
+        with connection if owns_connection else nullcontext():
             entity_map = {entity.id: entity for entity in workspace.entities}
             for entity in sorted(workspace.entities, key=lambda item: item.id):
                 connection.execute(
@@ -906,7 +911,7 @@ def write_knowledge_sqlite(
                     ) VALUES (?, ?, ?, ?, ?)""",
                     (entity.id, entity.canonical_name, names, facts, relations),
                 )
-        if (
+        if owns_connection and (
             workspace.entities
             or workspace.facts
             or workspace.relations
@@ -915,7 +920,8 @@ def write_knowledge_sqlite(
         ):
             connection.execute("VACUUM")
     finally:
-        connection.close()
+        if owns_connection:
+            connection.close()
 
 
 def _write_evidence(

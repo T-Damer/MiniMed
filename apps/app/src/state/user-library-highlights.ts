@@ -1,13 +1,29 @@
+export const USER_HIGHLIGHT_COLORS = [
+  { id: 'yellow', label: 'Жёлтый', fill: '#ffd54f' },
+  { id: 'blue', label: 'Синий', fill: '#64b5f6' },
+  { id: 'green', label: 'Зелёный', fill: '#81c784' },
+  { id: 'pink', label: 'Розовый', fill: '#f48fb1' },
+  { id: 'red', label: 'Красный', fill: '#ef5350' },
+] as const;
+
+export type UserHighlightColor = (typeof USER_HIGHLIGHT_COLORS)[number]['id'];
+
+export function userHighlightColor(value: unknown): (typeof USER_HIGHLIGHT_COLORS)[number] {
+  return USER_HIGHLIGHT_COLORS.find((color) => color.id === value) ?? USER_HIGHLIGHT_COLORS[0];
+}
+
 export interface UserDocumentHighlight {
   readonly id: string;
   readonly documentId: string;
-  /** Page section anchor (`user-document-reader__text-section` id). */
+  /** Text-section anchor, or the owning EPUB CFI for EPUB selections. */
   readonly pageAnchor: string;
   /** Character offsets within that page's plain text. */
   readonly start: number;
   readonly end: number;
   /** Quoted text for verification after re-extraction. */
   readonly quote: string;
+  readonly cfiRange?: string;
+  readonly color?: UserHighlightColor;
   readonly createdAt: string;
 }
 
@@ -38,6 +54,8 @@ export async function addUserHighlight(input: {
   readonly start: number;
   readonly end: number;
   readonly quote: string;
+  readonly cfiRange?: string;
+  readonly color?: UserHighlightColor;
 }): Promise<UserDocumentHighlight> {
   const record: UserDocumentHighlight = {
     id: `hl-${crypto.randomUUID()}`,
@@ -46,6 +64,8 @@ export async function addUserHighlight(input: {
     start: input.start,
     end: input.end,
     quote: input.quote,
+    color: userHighlightColor(input.color).id,
+    ...(input.cfiRange ? { cfiRange: input.cfiRange } : {}),
     createdAt: new Date().toISOString(),
   };
   const database = await openDatabase();

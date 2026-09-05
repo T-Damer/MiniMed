@@ -1797,7 +1797,7 @@ export function UserLibraryPage(): JSX.Element {
       <AppContextMenu actions={pageActions()} hideButton class="user-library-page__area-context">
         <div
           ref={setHeadingElement}
-          class="user-library-page__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading route-sticky-chrome"
+          class="user-library-page__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading route-sticky-chrome route-sticky-chrome--transparent"
         >
           <NavBack
             class="knowledge-back-button knowledge-subroute-heading__control"

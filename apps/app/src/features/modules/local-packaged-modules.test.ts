@@ -12,6 +12,7 @@ import {
   MEDICATIONS_COMPANION_MODULE_ID,
   mergePreinstalledModules,
   PACKAGED_MEDICATIONS_SIZE_BYTES,
+  preinstalledCatalogModule,
 } from '@/features/modules/local-packaged-modules';
 import { setExperimentalModulesEnabled } from '@/state/app-preferences';
 
@@ -118,6 +119,10 @@ const catalog: ContentModuleCatalog = {
   ],
 };
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe('local packaged modules', () => {
   const moduleById = (id: string): ContentModuleCatalogEntry => {
     const found = catalog.modules.find((entry) => entry.id === id);
@@ -153,20 +158,85 @@ describe('local packaged modules', () => {
   });
 
   it('selects published tool packs that are not already installed', () => {
+    const psychology = moduleById('minimed.tools.psychology.ru');
     expect(localPackagedModulesToInstall(catalog, new Map()).map((entry) => entry.id)).toEqual([
       'minimed.tools.psychology.ru',
     ]);
     expect(
-      localPackagedModulesToInstall(catalog, new Map([['minimed.tools.psychology.ru', '1.0.0']])),
+      localPackagedModulesToInstall(
+        catalog,
+        new Map([['minimed.tools.psychology.ru', preinstalledCatalogModule(psychology)]]),
+      ),
     ).toEqual([]);
   });
 
   it('selects a newer published version of an installed tool pack', () => {
-    const installedVersions = new Map([['minimed.tools.psychology.ru', '0.9.0']]);
+    const installed = {
+      ...preinstalledCatalogModule(moduleById('minimed.tools.psychology.ru')),
+      version: '0.9.0',
+    };
 
     expect(
-      localPackagedModulesToInstall(catalog, installedVersions).map((entry) => entry.id),
+      localPackagedModulesToInstall(
+        catalog,
+        new Map([['minimed.tools.psychology.ru', installed]]),
+      ).map((entry) => entry.id),
     ).toEqual(['minimed.tools.psychology.ru']);
+  });
+
+  it('selects a rebuilt pack when its source digest changed without a version change', () => {
+    const installed = {
+      ...preinstalledCatalogModule(moduleById('minimed.tools.psychology.ru')),
+      activeSourceSetDigest:
+        'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+    };
+
+    expect(
+      localPackagedModulesToInstall(
+        catalog,
+        new Map([['minimed.tools.psychology.ru', installed]]),
+      ).map((entry) => entry.id),
+    ).toEqual(['minimed.tools.psychology.ru']);
+  });
+
+  it('updates an installed preview tool pack while Experimental modules are enabled', () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: (key: string) => store.get(key) ?? null,
+        setItem: (key: string, value: string) => store.set(key, value),
+      },
+      dispatchEvent: () => undefined,
+    });
+    setExperimentalModulesEnabled(true);
+    const previewTool = module({
+      id: 'minimed.tools.preview.ru',
+      kind: 'tool',
+      required: false,
+      releaseState: 'preview',
+      version: '1.1.0',
+      artifacts: [
+        {
+          id: 'preview-index',
+          kind: 'index',
+          required: true,
+          url: 'https://example.test/preview.db',
+          sha256: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          sizeBytes: 12,
+          compression: 'none',
+          sourceSetDigest:
+            'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+      ],
+    });
+    const installed = { ...preinstalledCatalogModule(previewTool), version: '1.0.0' };
+
+    expect(
+      localPackagedModulesToInstall(
+        { ...catalog, modules: [...catalog.modules, previewTool] },
+        new Map([[previewTool.id, installed]]),
+      ).map((entry) => entry.id),
+    ).toContain(previewTool.id);
   });
 
   it('treats the medications companion as installed when mounted document counts exceed core cards', () => {

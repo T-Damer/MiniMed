@@ -133,6 +133,23 @@ export interface QueryIntent {
   readonly needsClarification: boolean;
 }
 
+export interface QueryMedicationCandidate {
+  readonly canonicalTerm: string;
+  readonly matchedText: string;
+  readonly matchType: 'exact' | 'fuzzy';
+}
+
+export interface QueryMedicationDoseCalculation {
+  readonly kind: 'medication-dose';
+  readonly medicationCandidates: readonly QueryMedicationCandidate[];
+}
+
+export interface QueryInfusionVolumeCalculation {
+  readonly kind: 'infusion-volume';
+}
+
+export type QueryCalculation = QueryMedicationDoseCalculation | QueryInfusionVolumeCalculation;
+
 export type QueryBranchKind =
   | 'clinical'
   | 'original'
@@ -180,6 +197,7 @@ export interface QueryAnalysis {
   readonly originalQuery: string;
   readonly normalizedQuery: string;
   readonly intent?: QueryIntent;
+  readonly calculation?: QueryCalculation;
   readonly facts: readonly QueryFact[];
   /** Optional for adapters that only return a legacy analysis; lexical analysis populates it. */
   readonly clinicalContext?: QueryClinicalContext;
@@ -230,6 +248,7 @@ export interface SearchResultGroup {
     | 'assessment'
     | 'reference';
   readonly ageGroups?: readonly string[];
+  readonly contentKind?: 'summary' | 'pointer' | 'full-text';
   readonly results: readonly SearchResult[];
 }
 

@@ -17,8 +17,10 @@ export function AppUpdateChecker(props: {
   readonly updating: Accessor<boolean>;
   readonly progress: Accessor<AppUpdateProgress | undefined>;
   readonly error: Accessor<string | undefined>;
+  readonly cancellable: Accessor<boolean>;
   readonly onCheck: () => void;
   readonly onActivate: () => void;
+  readonly onCancel: () => void;
 }): JSX.Element {
   const copy = () =>
     formatAppUpdateCheckerStatus({
@@ -75,6 +77,11 @@ export function AppUpdateChecker(props: {
             onClick={props.onActivate}
           >
             {formatAppUpdateLabel(props.updating(), props.progress())}
+          </Button>
+        </Show>
+        <Show when={props.updating() && props.cancellable()}>
+          <Button type="button" class="settings-update__cancel" onClick={props.onCancel}>
+            Отменить
           </Button>
         </Show>
       </div>

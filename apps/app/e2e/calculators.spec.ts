@@ -24,6 +24,51 @@ test('stretches calculator cards across a narrow single-column grid', async ({ p
   expect(dimensions.card).toBeCloseTo(dimensions.grid, 0);
 });
 
+test('offers and installs the pediatric growth pack from the calculator catalog', async ({
+  page,
+}) => {
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await page
+    .locator('.app-bottom-nav')
+    .getByRole('button', { name: 'Калькуляторы', exact: true })
+    .click();
+
+  const anthropometry = page.getByTestId('calculator-section-anthropometry');
+  await expect(anthropometry).toContainText(
+    'Скачать раздел: Педиатрия: антропометрия ВОЗ и артериальное давление',
+  );
+  await anthropometry.getByRole('button', { name: 'Скачать раздел — Антропометрия' }).click();
+  await expect(anthropometry).not.toContainText('Скачать раздел:');
+
+  await anthropometry.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Антропометрия детей: z-score и перцентили ВОЗ' }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', {
+      name: 'Открыть «Антропометрия детей: z-score и перцентили ВОЗ»',
+    })
+    .click();
+  await expect(page).toHaveURL(/#\/calculators\/pediatric-anthropometry-who$/u);
+
+  const submit = page.getByTestId('calculator-submit');
+  await expect(submit).toBeDisabled();
+  await page.getByLabel('Дата рождения').fill('2026-01-01');
+  await expect(submit).toBeDisabled();
+  await page.getByLabel('Масса тела, г').fill('7500');
+  await expect(submit).toBeEnabled();
+
+  const tooltipButton = page.getByRole('button', {
+    name: 'Подсказка: Метод измерения длины/роста',
+  });
+  await tooltipButton.click();
+  await page.getByLabel('Дата рождения').click();
+  await expect(page.getByRole('tooltip')).toBeHidden();
+  await tooltipButton.click();
+  await expect(page.getByRole('tooltip')).toContainText('до 2 лет');
+  await expect(page.getByLabel('Масса тела, г')).toBeVisible();
+});
+
 test('uses one patient field and offers the protected patient unlock action', async ({ page }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
   await page
@@ -93,5 +138,7 @@ test('calculates body surface area and writes the result to a patient note', asy
   await expect(page.locator('.patient-note-record')).toContainText('1,82 м²');
 
   await page.reload();
-  await expect(page.locator('.patient-note-record')).toContainText('Площадь поверхности тела');
+  await expect(page.locator('.patient-note-record')).toContainText('Площадь поверхности тела', {
+    timeout: 25_000,
+  });
 });

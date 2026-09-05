@@ -31,7 +31,12 @@ describe('calculator registry', () => {
       if (record.kind !== 'calculator') continue;
       registerDownloadedCalculator(record);
     }
-    const clinical = getCalculatorRegistry().filter(isAvailableClinicalCalculator);
+    const sourceIds = new Set(
+      loadToolModuleRecords(['content/tool-modules/core-clinical.json']).map((record) => record.id),
+    );
+    const clinical = getCalculatorRegistry()
+      .filter(isAvailableClinicalCalculator)
+      .filter((entry) => sourceIds.has(entry.id));
     expect(clinical.length).toBeGreaterThanOrEqual(4);
     for (const calculator of clinical) {
       expect(calculator.sources.length).toBeGreaterThan(0);

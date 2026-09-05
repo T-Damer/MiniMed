@@ -52,6 +52,15 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;${BUILD_TOOLS_VERSION}"
 
+      - name: Restore verified reference illustrations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.6.33 --repo "$GITHUB_REPOSITORY" \
+            --pattern reference-images.tar.gz --dir "$RUNNER_TEMP" --clobber
+          (cd "$RUNNER_TEMP" && sha256sum -c "$GITHUB_WORKSPACE/content/bundled/reference-images.sha256")
+          tar -xzf "$RUNNER_TEMP/reference-images.tar.gz" -C apps/app/public/content
+
       - name: Install and verify release tree
         run: |
           bun install --frozen-lockfile
@@ -234,23 +243,20 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Included in this APK:
-          - one lightweight core.db with medication names, disease aliases, keywords and download pointers;
-          - medication search across INN, brand names, forms, routes and colloquial queries;
-          - customizable patient questionnaires, longitudinal records and local patient-vault controls;
-          - pediatric feeding tools and experimental ECG photo/numeric workflows;
-          - improved document, spreadsheet and medical-image readers, printing and native navigation;
-          - resumable, bulk-loaded SQLite composition with faster final validation in the authoring tools;
-          - updated regulatory status for the qualification requirements effective 1 September 2026;
-          - optional CT, MRI and EPUB examples as separate release assets.
+          - checksum-verified discovery core with source-linked disease definitions and reference illustrations;
+          - previews for all 69 downloadable calculators and assessments;
+          - package auto-updates in Settings and bulk-download size confirmation;
+          - updated disease navigation, document readers, notes and large knowledge graphs;
+          - native APK downloads whose cancellation survives network failures.
 
-          The browser application is published with the landing site under /app/.
+          Release archives include all 770 catalog package files, including experimental packs.
+          Their preview/review status is preserved. The browser application is under /app/.
 
-          Important boundaries:
-          - core.db is a discovery index, not the full medication instructions database; the local unified medication build is not included in this release;
-          - diagnosis, dosage and ECG features are not clinically qualified and do not replace source verification;
-          - model weights are downloaded separately and are not bundled in the APK;
-          - tested sub-4B local models are not qualified for grounded clinical answers;
-          - native Android GPU/NPU acceleration, production signing and physical-device qualification remain follow-up gates.
+          Boundaries:
+          - SQL/content-pack schema remains version 2; source identifiers and anchors are preserved;
+          - unreviewed content and experimental tools are not clinically qualified;
+          - private source libraries, patient data and model weights are not bundled;
+          - production signing and physical-device qualification remain outstanding.
           EOF
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then

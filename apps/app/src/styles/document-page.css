@@ -1,6 +1,6 @@
 .document-page {
   --document-chrome-height: 3.25rem;
-  --document-heading-h1-top: calc(var(--safe-top, 0px) + var(--document-chrome-height));
+  --document-heading-h1-top: calc(var(--sticky-header-top) + var(--document-chrome-height));
   --document-heading-h1-height: 0px;
   --document-heading-h2-top: calc(
     var(--document-heading-h1-top) +

@@ -30,12 +30,12 @@ afterEach(() => {
 });
 
 describe('assessment catalog', () => {
-  it('starts empty and fills from downloaded tool modules', () => {
-    expect(ASSESSMENT_CATALOG).toHaveLength(0);
+  it('keeps all core catalog entries visible before and after downloading a module', () => {
+    expect(ASSESSMENT_CATALOG).toHaveLength(19);
     registerPsychologyAssessments();
     const catalog = getAssessmentCatalog();
-    expect(catalog).toHaveLength(6);
-    expect(new Set(catalog.map((item) => item.id)).size).toBe(6);
+    expect(catalog).toHaveLength(19);
+    expect(new Set(catalog.map((item) => item.id)).size).toBe(19);
     expect(catalog.every((item) => item.aliases.length > 0)).toBe(true);
   });
 
@@ -43,7 +43,9 @@ describe('assessment catalog', () => {
     registerPsychologyAssessments();
     const catalog = getAssessmentCatalog();
     const definitions = await Promise.all(
-      catalog.map((entry) => loadAssessmentDefinition(entry.id)),
+      catalog
+        .filter((entry) => entry.bankId === 'psychology' || entry.bankId === 'psychiatry')
+        .map((entry) => loadAssessmentDefinition(entry.id)),
     );
 
     for (const assessment of definitions) {
@@ -76,7 +78,9 @@ describe('assessment catalog', () => {
   it('attributes established instruments without branding them as MiniMed inventions', async () => {
     registerPsychologyAssessments();
     const definitions = await Promise.all(
-      getAssessmentCatalog().map((entry) => loadAssessmentDefinition(entry.id)),
+      getAssessmentCatalog()
+        .filter((entry) => entry.bankId === 'psychology' || entry.bankId === 'psychiatry')
+        .map((entry) => loadAssessmentDefinition(entry.id)),
     );
     const egogram = definitions.find((definition) => definition.slug === 'personal-egogram');
     expect(egogram?.description).not.toContain('Авторский');
@@ -99,7 +103,7 @@ describe('assessment catalog', () => {
       catalog,
       searchAssessments('педиатрия'),
     );
-    expect(pediatricsQuery.some((specialty) => specialty.id === 'pediatrics')).toBe(false);
+    expect(pediatricsQuery.some((specialty) => specialty.id === 'pediatrics')).toBe(true);
 
     const belbinQuery = visibleAssessmentSpecialties(
       'Белбин',

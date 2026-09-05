@@ -8,6 +8,8 @@ const phaseTimeoutMs = Number.parseInt(
 );
 
 const phases = [
+  { label: 'core-restoration', command: bun, args: ['scripts/restore-core.test.mjs'] },
+  { label: 'bundled-core', command: bun, args: ['run', 'content:restore:core'] },
   { label: 'content', command: bun, args: ['run', 'content:build'] },
   { label: 'icons', command: bun, args: ['run', 'icons:check'] },
   { label: 'format-and-lint', command: bun, args: ['run', 'check'] },

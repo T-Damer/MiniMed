@@ -5,6 +5,7 @@ import {
   parseMarkdownDocument,
 } from '@/features/library/markdown-parser';
 import { renderMarkdownHtml, sanitizeMarkdownHtml } from '@/features/library/markdown-renderer';
+import { requestRouteWindow } from '@/state/route-window-request';
 
 export {
   MARKDOWN_WORKER_THRESHOLD,
@@ -64,7 +65,16 @@ export function SafeMarkdown(props: {
       if (!(target instanceof Element)) return;
       const link = target.closest<HTMLAnchorElement>('a[href^="#"]');
       const href = link?.getAttribute('href') ?? '';
-      if (!link || !href || href.startsWith('#/')) return;
+      if (!link || !href) return;
+      if (href.startsWith('#/calculators/')) {
+        if (requestRouteWindow('calculators', href)) event.preventDefault();
+        return;
+      }
+      if (href.startsWith('#/assessments/')) {
+        if (requestRouteWindow('assessments', href)) event.preventDefault();
+        return;
+      }
+      if (href.startsWith('#/')) return;
       event.preventDefault();
       scrollToMarkdownAnchor(href);
     };

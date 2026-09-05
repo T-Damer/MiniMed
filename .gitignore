@@ -55,6 +55,9 @@ apps/app/public/content/medications.db
 # Local-dev ICD-10 reference pack built from RLS HTML.
 apps/app/public/content/mkb.db
 
+# Locally prepared reference illustrations; regenerate from the source crawl.
+apps/app/public/content/reference-images/
+
 # Optional companion databases and module packs must not ship in dist/APK builds.
 apps/app/dist/content/medications.db
 apps/app/dist/content/mkb.db
@@ -83,3 +86,7 @@ apps/app/.omo/
 # Local test/QA artifacts (screenshots, playwright dumps) — never committed.
 .artifacts/
 .playwright-mcp/
+
+# Restored from the checksum-verified compressed core during dev/build/verification.
+apps/app/public/content/core.db
+apps/app/public/content/core.db.restoring

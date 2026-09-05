@@ -23,6 +23,7 @@ const files = {
     'apps/app/android/app/src/main/java/dev/localmed/search/LlamaInferencePlugin.kt',
   androidUpdatePlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedUpdatePlugin.kt',
+  typescriptUpdatePlugin: 'apps/app/src/state/native-update.ts',
   androidSharePlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedSharePlugin.kt',
   androidPatientVaultPlugin:
@@ -74,8 +75,15 @@ requireText('androidActivity', 'registerPlugin(LlamaInferencePlugin.class)');
 requireText('androidLlamaPlugin', 'expectedSha256');
 requireText('androidLlamaCmake', `add_subdirectory(\${LLAMA_SRC} build-llama)`);
 
-for (const method of ['prepareApkFile', 'appendApkChunk', 'installPreparedApk']) {
+for (const method of [
+  'startApkDownload',
+  'getApkDownloadStatus',
+  'getLatestApkDownloadStatus',
+  'cancelApkDownload',
+  'installDownloadedApk',
+]) {
   requireText('androidUpdatePlugin', `fun ${method}(`);
+  requireText('typescriptUpdatePlugin', `${method}(`);
 }
 requireText('androidActivity', 'registerPlugin(LocalMedUpdatePlugin.class)');
 requireText('androidSharePlugin', 'fun shareText(');
@@ -85,6 +93,9 @@ requireText('typescriptSharePlugin', "registerPlugin<LocalMedSharePlugin>('Local
 requireText('androidActivity', 'installSplashScreen');
 requireText('androidActivity', 'setDecorFitsSystemWindows');
 requireText('androidUpdatePlugin', '@CapacitorPlugin(name = "LocalMedUpdate")');
+requireText('typescriptUpdatePlugin', "registerPlugin<LocalMedUpdatePlugin>('LocalMedUpdate')");
+requireText('androidUpdatePlugin', 'releaseVersion');
+requireText('typescriptUpdatePlugin', 'releaseVersion');
 
 for (const method of ['isAvailable', 'wrapKey', 'unwrapKey', 'deleteKey']) {
   requireText('typescriptPatientVaultPlugin', `${method}(`);

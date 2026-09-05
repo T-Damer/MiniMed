@@ -35,5 +35,19 @@ export function selectBulkDownloadModules(
     return input.recommendationModules;
   }
 
-  return input.regularModules;
+  return [...input.regularModules, ...input.recommendationModules];
+}
+
+export function estimateDownloadStorage(modules: readonly ContentModuleCatalogEntry[]): {
+  readonly bytes: number;
+  readonly incomplete: boolean;
+} {
+  let bytes = 0;
+  let incomplete = false;
+  for (const module of modules) {
+    const size = module.sizes.installedBytes ?? module.sizes.downloadBytes;
+    if (size === null) incomplete = true;
+    else bytes += size;
+  }
+  return { bytes, incomplete };
 }

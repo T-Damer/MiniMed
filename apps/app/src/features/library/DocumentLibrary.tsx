@@ -124,6 +124,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
               <button
                 classList={{ active: mode() === 'graph' }}
                 type="button"
+                disabled={documents().length === 0}
                 onClick={() => setMode('graph')}
               >
                 <AppGlyph name="graph" /> Карта связей
@@ -139,6 +140,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
             class="library-embedded-graph-button"
             variant="primary"
             type="button"
+            disabled={documents().length === 0}
             onClick={() => setMode('graph')}
             icon={<AppGlyph name="graph" class="library-embedded-graph-button__icon" />}
           >

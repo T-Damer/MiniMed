@@ -8,6 +8,11 @@ import {
   graphTonesForTheme,
   readGraphThemeColors,
 } from '@/features/library/graph-tones';
+import {
+  type KnowledgeGraphBounds,
+  layoutLargeKnowledgeGraph,
+  shouldUseStaticKnowledgeGraphLayout,
+} from '@/features/library/knowledge-graph-layout';
 import { browserI18n } from '@/i18n/browser-i18n';
 import { documentCountLabel, specialtyLabel } from '@/i18n/labels';
 
@@ -146,6 +151,9 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let draggedNode: GraphNode | null = null;
   let hoveredNodeId: string | null = null;
   let moved = false;
+  let viewInteracted = false;
+  let staticLayout = false;
+  let layoutBounds: KnowledgeGraphBounds | null = null;
   let simulationActive = true;
   let animationFrameActive = true;
   let graphVisible = true;
@@ -153,7 +161,31 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   let themeObserver: MutationObserver | undefined;
 
   const shouldSimulate = (): boolean =>
-    graphVisible && animationFrameActive && props.simulationActive !== false && simulationActive;
+    !staticLayout &&
+    graphVisible &&
+    animationFrameActive &&
+    props.simulationActive !== false &&
+    simulationActive;
+
+  const clampScale = (value: number): number => {
+    const staticMinimum =
+      staticLayout && layoutBounds
+        ? Math.max(
+            0.001,
+            Math.min(0.08, (width - 48) / layoutBounds.width, (height - 48) / layoutBounds.height),
+          )
+        : 0.08;
+    return Math.max(staticLayout ? staticMinimum : 0.55, Math.min(2.4, value));
+  };
+
+  const fitStaticLayout = (): void => {
+    if (!staticLayout || !layoutBounds) return;
+    const horizontalScale = (width - 48) / layoutBounds.width;
+    const verticalScale = (height - 48) / layoutBounds.height;
+    scale = clampScale(Math.min(horizontalScale, verticalScale));
+    panX = -((layoutBounds.minX + layoutBounds.maxX) / 2) * scale;
+    panY = -((layoutBounds.minY + layoutBounds.maxY) / 2) * scale;
+  };
 
   const resize = (): void => {
     if (!canvas) return;
@@ -165,6 +197,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     canvas.height = Math.round(height * dpr);
     const context = canvas.getContext('2d');
     context?.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (staticLayout && !viewInteracted) fitStaticLayout();
     draw();
   };
 
@@ -262,25 +295,62 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     context.translate(width / 2 + panX, height / 2 + panY);
     context.scale(scale, scale);
 
+    const viewport = {
+      left: (-width / 2 - panX) / scale - 80,
+      right: (width / 2 - panX) / scale + 80,
+      top: (-height / 2 - panY) / scale - 80,
+      bottom: (height / 2 - panY) / scale + 80,
+    };
+    const isVisible = (x: number, y: number, radius: number): boolean =>
+      x + radius >= viewport.left &&
+      x - radius <= viewport.right &&
+      y + radius >= viewport.top &&
+      y - radius <= viewport.bottom;
+    const focusedNodeIds = new Set<string>();
+    if (staticLayout) {
+      if (hoveredNodeId) focusedNodeIds.add(hoveredNodeId);
+      if (props.selectedId) focusedNodeIds.add(`document:${props.selectedId}`);
+    }
+    const showAllEdges = !staticLayout || scale >= 0.35;
+
     context.lineWidth = 1 / scale;
     context.strokeStyle = theme.graphStroke;
     context.globalAlpha = 0.35;
-    for (const edge of edges) {
-      const from = nodesById.get(edge.from);
-      const to = nodesById.get(edge.to);
-      if (!from || !to) continue;
-      context.beginPath();
-      context.moveTo(from.x, from.y);
-      context.lineTo(to.x, to.y);
-      context.stroke();
+    context.beginPath();
+    if (showAllEdges || focusedNodeIds.size > 0) {
+      for (const edge of edges) {
+        const from = nodesById.get(edge.from);
+        const to = nodesById.get(edge.to);
+        if (!from || !to) continue;
+        if (
+          (!showAllEdges && !focusedNodeIds.has(from.id) && !focusedNodeIds.has(to.id)) ||
+          Math.max(from.x, to.x) < viewport.left ||
+          Math.min(from.x, to.x) > viewport.right ||
+          Math.max(from.y, to.y) < viewport.top ||
+          Math.min(from.y, to.y) > viewport.bottom
+        ) {
+          continue;
+        }
+        context.moveTo(from.x, from.y);
+        context.lineTo(to.x, to.y);
+      }
     }
+    context.stroke();
     context.globalAlpha = 1;
 
+    const showLabels = scale >= (staticLayout ? 0.85 : 0.7);
+    const domainLabelBoxes: Array<{ left: number; right: number; top: number; bottom: number }> =
+      [];
     for (const node of nodes) {
       const selected = node.documentId === props.selectedId;
       const hovered = node.id === hoveredNodeId;
       const tone = node.kind === 'domain' ? tones.other : tones[node.tone];
       const radius = node.kind === 'domain' ? 26 : 17;
+      const showNodeLabel = node.kind === 'domain' || showLabels || selected || hovered;
+      const labelPadding = node.kind === 'domain' ? 120 / scale : 38;
+      if (!isVisible(node.x, node.y, radius + (showNodeLabel ? labelPadding : 0))) {
+        continue;
+      }
       const colors = node.areaColors.length > 0 ? node.areaColors : [tone.fill];
 
       if (colors.length === 1) {
@@ -305,18 +375,47 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
       context.beginPath();
       context.arc(node.x, node.y, radius, 0, Math.PI * 2);
       context.strokeStyle = selected ? theme.danger : theme.graphStroke;
-      context.lineWidth = (selected || hovered ? 2.8 : 1.35) / scale;
+      const strokeWidth =
+        selected || hovered
+          ? 2.8
+          : node.kind === 'document' && staticLayout && scale < 0.35
+            ? 0.35
+            : 1.35;
+      context.lineWidth = strokeWidth / scale;
       context.stroke();
 
-      context.textAlign = 'center';
-      context.textBaseline = 'top';
-      context.font = `${node.kind === 'domain' ? 600 : 500} ${node.kind === 'domain' ? 12 : 11}px Arial`;
-      context.fillStyle = theme.text;
-      context.fillText(
-        shortLabel(node.label, node.kind === 'domain' ? 26 : 32),
-        node.x,
-        node.y + 29,
-      );
+      if (showNodeLabel) {
+        context.textAlign = 'center';
+        context.textBaseline = 'top';
+        context.font = `${node.kind === 'domain' ? 600 : 500} ${node.kind === 'domain' ? 12 / scale : 11}px Arial`;
+        context.fillStyle = theme.text;
+        const label = shortLabel(node.label, node.kind === 'domain' ? 26 : 32);
+        if (node.kind === 'document') {
+          context.fillText(label, node.x, node.y + 29);
+        } else {
+          const labelY = node.y + radius + 8 / scale;
+          const screenX = width / 2 + panX + node.x * scale;
+          const screenY = height / 2 + panY + labelY * scale;
+          const labelWidth = context.measureText(label).width * scale;
+          const box = {
+            left: screenX - labelWidth / 2,
+            right: screenX + labelWidth / 2,
+            top: screenY,
+            bottom: screenY + 14,
+          };
+          const overlaps = domainLabelBoxes.some(
+            (other) =>
+              box.left < other.right &&
+              box.right > other.left &&
+              box.top < other.bottom &&
+              box.bottom > other.top,
+          );
+          if (!overlaps || hovered) {
+            domainLabelBoxes.push(box);
+            context.fillText(label, node.x, labelY);
+          }
+        }
+      }
     }
 
     context.restore();
@@ -331,9 +430,37 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   }
 
   const wakeSimulation = (): void => {
+    if (staticLayout) {
+      simulationActive = false;
+      return;
+    }
     if (!graphVisible || !animationFrameActive || props.simulationActive === false) return;
     simulationActive = true;
     if (frame === undefined) frame = requestAnimationFrame(animate);
+  };
+
+  const rebuildGraph = (dark: boolean, fit = false): void => {
+    const graph = buildGraph(props.documents, dark);
+    nodes = graph.nodes;
+    edges = graph.edges;
+    nodesById = new Map(nodes.map((node) => [node.id, node] as const));
+    staticLayout = shouldUseStaticKnowledgeGraphLayout(nodes.length);
+    layoutBounds = staticLayout ? layoutLargeKnowledgeGraph(nodes, edges) : null;
+    if (fit) {
+      scale = 1;
+      panX = 0;
+      panY = 0;
+      hoveredNodeId = null;
+      viewInteracted = false;
+    }
+    if (staticLayout) {
+      simulationActive = false;
+      if (fit) fitStaticLayout();
+    } else {
+      simulationActive = true;
+      wakeSimulation();
+    }
+    draw();
   };
 
   createEffect(() => {
@@ -342,25 +469,23 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
   });
 
   createEffect(() => {
-    const graph = buildGraph(props.documents, graphTheme.dark);
-    nodes = graph.nodes;
-    edges = graph.edges;
-    nodesById = new Map(nodes.map((node) => [node.id, node] as const));
-    scale = 1;
-    panX = 0;
-    panY = 0;
-    hoveredNodeId = null;
-    wakeSimulation();
+    props.documents;
+    rebuildGraph(graphTheme.dark, true);
   });
 
   const refreshGraphTheme = (): void => {
     if (!canvas) return;
-    graphTheme = readGraphThemeColors(canvas);
-    const graph = buildGraph(props.documents, graphTheme.dark);
-    nodes = graph.nodes;
-    edges = graph.edges;
-    nodesById = new Map(nodes.map((node) => [node.id, node] as const));
-    draw();
+    const nextTheme = readGraphThemeColors(canvas);
+    const rebuild = nextTheme.dark !== graphTheme.dark;
+    const changed =
+      rebuild ||
+      nextTheme.text !== graphTheme.text ||
+      nextTheme.graphStroke !== graphTheme.graphStroke ||
+      nextTheme.danger !== graphTheme.danger ||
+      nextTheme.canvasFill !== graphTheme.canvasFill;
+    graphTheme = nextTheme;
+    if (rebuild) rebuildGraph(graphTheme.dark);
+    else if (changed) draw();
   };
 
   onMount(() => {
@@ -401,7 +526,6 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
     return { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) };
   };
 
-  const clampScale = (value: number): number => Math.max(0.55, Math.min(2.4, value));
   const endPointer = (event: PointerEvent): void => {
     activePointers.delete(event.pointerId);
     if (pinchStartDistance !== null) {
@@ -505,6 +629,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
               y: (first.y + second.y) / 2,
             };
             scale = clampScale(pinchStartScale * (distance / pinchStartDistance));
+            viewInteracted = true;
             panX = center.x - width / 2 - pinchStartWorld.x * scale;
             panY = center.y - height / 2 - pinchStartWorld.y * scale;
             wakeSimulation();
@@ -537,6 +662,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
             panX += dx;
             panY += dy;
           }
+          viewInteracted = true;
           pointerLast = point;
           wakeSimulation();
           draw();
@@ -552,6 +678,7 @@ export function KnowledgeGraph(props: KnowledgeGraphProps): JSX.Element {
           event.preventDefault();
           const factor = event.deltaY > 0 ? 0.9 : 1.1;
           scale = clampScale(scale * factor);
+          viewInteracted = true;
           wakeSimulation();
           draw();
         }}

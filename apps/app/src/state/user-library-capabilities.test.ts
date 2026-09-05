@@ -8,7 +8,20 @@ import {
 describe('user-library file capabilities', () => {
   it('keeps reader actions scoped to the file renderer', () => {
     const pdf = userLibraryFileCapability('application/pdf', 'scan.pdf');
-    expect(pdf.reader.actions).toEqual(['print', 'fullscreen', 'two-page', 'zoom']);
+    expect(pdf.reader.actions).toEqual(['print', 'two-page', 'zoom']);
+    expect(userLibraryFileCapability('application/epub+zip', 'book.epub').reader.actions).toEqual([
+      'print',
+    ]);
+    expect(
+      userLibraryFileCapability('application/x-fictionbook+xml', 'book.fb2').reader.actions,
+    ).toEqual(['print', 'reading-mode']);
+    expect(userLibraryFileCapability('image/jpeg', 'scan.jpg').reader.actions).toEqual(['print']);
+    expect(
+      userLibraryFileCapability(
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'document.docx',
+      ).reader.actions,
+    ).toEqual(['print']);
 
     for (const [mimeType, fileName] of [
       ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'table.xlsx'],

@@ -1,7 +1,47 @@
-import { type JSX, onCleanup, onMount } from 'solid-js';
+import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { toast } from 'solid-sonner';
 import { SpreadsheetRenderer } from '@/features/library/SpreadsheetRenderer';
-import { pageAnchorId } from '@/features/library/user-document-reader-helpers';
+import { UserHighlightPopup } from '@/features/library/UserHighlightPopup';
+import {
+  findEpubOutlineAnchor,
+  flattenEpubNavigation,
+  pageAnchorId,
+  type UserDocumentOutlineItem,
+} from '@/features/library/user-document-reader-helpers';
 import { getUserLibraryFile, userLibraryFileCapability } from '@/state/user-library';
+import {
+  addUserHighlight,
+  loadUserHighlights,
+  removeUserHighlight,
+  type UserDocumentHighlight,
+  type UserHighlightColor,
+  userHighlightColor,
+} from '@/state/user-library-highlights';
+
+interface EpubContents {
+  readonly document: Document;
+  readonly window: Window;
+}
+
+interface EpubLocation {
+  readonly start?: { readonly href?: string };
+}
+
+interface EpubHighlightPopup {
+  readonly x: number;
+  readonly y: number;
+  readonly remove: boolean;
+  readonly action: (color?: UserHighlightColor) => Promise<void>;
+}
+
+function popupPoint(contents: EpubContents, rect: DOMRect): { x: number; y: number } {
+  const frame = contents.window.frameElement;
+  const frameRect = frame instanceof HTMLElement ? frame.getBoundingClientRect() : new DOMRect();
+  return {
+    x: frameRect.left + rect.left + rect.width / 2,
+    y: frameRect.top + rect.top,
+  };
+}
 
 function isEpubMime(mimeType: string): boolean {
   return userLibraryFileCapability(mimeType).reader.renderer === 'epub';
@@ -43,6 +83,9 @@ export function RichDocumentRenderer(props: {
   readonly onActiveSheetChange?: (sheetName: string) => void;
   readonly onExitFullscreen?: () => void;
   readonly onPresentationSlideClick?: (slide: HTMLElement) => void;
+  readonly onEpubOutlineChange?: (items: readonly UserDocumentOutlineItem[]) => void;
+  readonly onEpubNavigateReady?: (navigate: ((href: string) => void) | null) => void;
+  readonly onEpubActiveOutlineChange?: (anchor: string) => void;
 }): JSX.Element {
   if (isSheetMime(props.mimeType)) {
     return (
@@ -60,10 +103,22 @@ export function RichDocumentRenderer(props: {
   }
 
   let host!: HTMLDivElement;
+  const [epubHighlightPopup, setEpubHighlightPopup] = createSignal<EpubHighlightPopup | null>(null);
 
   onMount(() => {
     let disposed = false;
     let destroyBook: (() => void) | undefined;
+    const dismissHighlightPopup = (event: Event): void => {
+      if (
+        event.target !== document &&
+        event.target !== window &&
+        event.target instanceof Node &&
+        !host.contains(event.target)
+      )
+        return;
+      setEpubHighlightPopup(null);
+    };
+    window.addEventListener('scroll', dismissHighlightPopup, { capture: true, passive: true });
     void getUserLibraryFile(props.documentId)
       .then(async (blob) => {
         if (!blob || disposed) return;
@@ -75,23 +130,147 @@ export function RichDocumentRenderer(props: {
             if (disposed) return;
             const book = ePub(buffer as ArrayBuffer);
             host.classList.add('rich-document-renderer--epub');
-            const rendition = book.renderTo(host, {
+            document.documentElement.classList.add('epub-page-scroll');
+            const renditionOptions = {
               width: '100%',
-              height: '100%',
               manager: 'continuous',
-              flow: 'scrolled-continuous',
-            });
-            await rendition.display();
-            if (disposed) {
-              await rendition.destroy();
-              await book.destroy();
-              return;
-            }
-            rendition.themes.fontSize('100%');
+              flow: 'scrolled',
+              fullsize: true,
+            };
+            const rendition = book.renderTo(host, renditionOptions);
             destroyBook = () => {
               void rendition.destroy();
               void book.destroy();
             };
+            const annotate = (highlight: UserDocumentHighlight): void => {
+              const cfiRange = highlight.cfiRange;
+              if (!cfiRange) return;
+              rendition.annotations.highlight(
+                cfiRange,
+                {},
+                (event: Event) => {
+                  // marks-pane clones pointer events without their coordinates; use the mark.
+                  if (!(event.currentTarget instanceof Element)) return;
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  setEpubHighlightPopup({
+                    x: rect.left + rect.width / 2,
+                    y: rect.top,
+                    remove: true,
+                    action: async () => {
+                      const saved = await loadUserHighlights(props.documentId);
+                      for (const item of saved) {
+                        if (item.cfiRange === cfiRange) await removeUserHighlight(item.id);
+                      }
+                      rendition.annotations.remove(cfiRange, 'highlight');
+                      setEpubHighlightPopup(null);
+                    },
+                  });
+                },
+                'epub-user-highlight',
+                {
+                  fill: userHighlightColor(highlight.color).fill,
+                  'fill-opacity': '0.55',
+                  'mix-blend-mode': 'multiply',
+                },
+              );
+            };
+            const preventSelectedContextMenu = (contents: EpubContents): void => {
+              contents.document.addEventListener('contextmenu', (event) => {
+                if (!contents.window.getSelection()?.isCollapsed) event.preventDefault();
+              });
+            };
+            rendition.hooks.content.register(preventSelectedContextMenu);
+            const handleSelected = (cfiRange: string, contents: EpubContents): void => {
+              const selection = contents.window.getSelection();
+              if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+              const quote = selection.toString().slice(0, 400);
+              if (!quote.trim()) return;
+              const point = popupPoint(contents, selection.getRangeAt(0).getBoundingClientRect());
+              setEpubHighlightPopup({
+                ...point,
+                remove: false,
+                action: async (color) => {
+                  const highlight = await addUserHighlight({
+                    documentId: props.documentId,
+                    pageAnchor: cfiRange,
+                    start: 0,
+                    end: quote.length,
+                    quote,
+                    cfiRange,
+                    ...(color ? { color } : {}),
+                  });
+                  annotate(highlight);
+                  selection.removeAllRanges();
+                  setEpubHighlightPopup(null);
+                },
+              });
+            };
+            rendition.on('selected', handleSelected);
+            const navigation = await book.loaded.navigation;
+            const outline = flattenEpubNavigation(navigation.toc);
+            let navigationRequest = 0;
+            const navigate = (href: string): void => {
+              const request = ++navigationRequest;
+              void rendition
+                .display(href)
+                .then(() => {
+                  if (disposed || request !== navigationRequest) return;
+                  const section = book.spine.get(href);
+                  if (!section) return;
+                  const frame = Array.from(host.querySelectorAll('iframe')).find(
+                    (frame) => frame.parentElement?.getAttribute('ref') === String(section.index),
+                  );
+                  if (!frame) return;
+                  const fragment = href.split('#')[1];
+                  const target = fragment
+                    ? frame.contentDocument?.getElementById(decodeURIComponent(fragment))
+                    : null;
+                  const chrome = host
+                    .closest('.document-page')
+                    ?.querySelector('.document-page__chrome');
+                  window.scrollTo({
+                    top:
+                      window.scrollY +
+                      frame.getBoundingClientRect().top +
+                      (target?.getBoundingClientRect().top ?? 0) -
+                      Math.max(0, chrome?.getBoundingClientRect().bottom ?? 0),
+                    behavior: 'instant',
+                  });
+                })
+                .catch(() => {
+                  if (!disposed) toast.error('Не удалось перейти к выбранному разделу.');
+                });
+            };
+            const handleRelocated = (location: EpubLocation): void => {
+              const href = location.start?.href;
+              if (!href) return;
+              const anchor = findEpubOutlineAnchor(outline, href);
+              if (anchor) props.onEpubActiveOutlineChange?.(anchor);
+            };
+            rendition.on('relocated', handleRelocated);
+            rendition.themes.fontSize('100%');
+            destroyBook = () => {
+              rendition.off('selected', handleSelected);
+              rendition.off('relocated', handleRelocated);
+              void rendition.destroy();
+              void book.destroy();
+            };
+            const savedHighlights = await loadUserHighlights(props.documentId);
+            if (disposed) {
+              destroyBook();
+              return;
+            }
+            savedHighlights.forEach(annotate);
+            void rendition
+              .display()
+              .then(() => {
+                if (disposed) return;
+                props.onEpubOutlineChange?.(outline);
+                props.onEpubNavigateReady?.(navigate);
+              })
+              .catch(() => {
+                if (!disposed) toast.error('Не удалось открыть EPUB-документ.');
+              });
             return;
           }
           if (isPresentationMime(props.mimeType)) {
@@ -160,10 +339,29 @@ export function RichDocumentRenderer(props: {
       });
     onCleanup(() => {
       disposed = true;
+      window.removeEventListener('scroll', dismissHighlightPopup, { capture: true });
+      props.onEpubOutlineChange?.([]);
+      props.onEpubNavigateReady?.(null);
+      document.documentElement.classList.remove('epub-page-scroll');
       destroyBook?.();
       host.replaceChildren();
     });
   });
 
-  return <div ref={host} class="rich-document-renderer" />;
+  return (
+    <>
+      <div ref={host} class="rich-document-renderer" />
+      <Show when={epubHighlightPopup()}>
+        {(popup) => (
+          <UserHighlightPopup
+            x={popup().x}
+            y={popup().y}
+            onAdd={popup().remove ? undefined : (color) => popup().action(color)}
+            onRemove={popup().remove ? () => popup().action() : undefined}
+            onClose={() => setEpubHighlightPopup(null)}
+          />
+        )}
+      </Show>
+    </>
+  );
 }

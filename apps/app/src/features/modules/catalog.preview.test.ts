@@ -32,11 +32,12 @@ describe('catalog.preview.json', () => {
     expect(result.data.modules.some((module) => module.kind === 'tool')).toBe(true);
 
     expect(
-      result.data.modules.find((module) => module.id === 'minimed.tools.pediatrics-growth-demo.ru'),
+      result.data.modules.find((module) => module.id === 'minimed.tools.pediatrics-growth.ru'),
     ).toMatchObject({
-      releaseState: 'published',
+      version: '0.3.0',
+      releaseState: 'preview',
       toolKinds: ['calculator'],
-      toolCount: 1,
+      toolCount: 2,
     });
 
     const medicationsModule = result.data.modules.find(
@@ -73,11 +74,11 @@ describe('catalog.preview.json', () => {
     expect(medicationsModule.tags).not.toContain('registry');
     expect(medicationsModule.tags).not.toContain('instructions');
     expect(result.data.modules.find((module) => module.id === 'minimed.core.ru')).toMatchObject({
-      version: '1.0.0-preview.3',
-      sourceSetDigest: 'sha256:fb6b81dc769d23148170f990177b23a693e65ca31850817d3984df7d6d042508',
+      version: '1.0.0-preview.8',
+      sourceSetDigest: 'sha256:8e68982002d4fe01efe765ba06969cd13d72a94ce6ff6fce46c51cf2479e1993',
       sizes: {
         downloadBytes: 0,
-        installedBytes: 97_431_552,
+        installedBytes: 513_986_560,
         precision: 'exact',
       },
     });
@@ -85,7 +86,13 @@ describe('catalog.preview.json', () => {
     expect(esklpModules.map((module) => module.id).sort()).toEqual([...ESKLP_MODULE_IDS].sort());
     for (const module of esklpModules) {
       expect(module.releaseState).toBe('preview');
-      expect(module.documents).toEqual([]);
+      expect(module.documents.length).toBeGreaterThan(0);
+      expect(new Set(module.documents.map((document) => document.documentId)).size).toBe(
+        module.previewDocumentCount,
+      );
+      for (const document of module.documents) {
+        expect(document.indexArtifactId).toBe(module.artifacts[0]?.id);
+      }
       expect(module.previewDocumentCount).toBeGreaterThan(0);
       expect(module.artifacts).toHaveLength(1);
       expect(module.artifacts[0]).toMatchObject({

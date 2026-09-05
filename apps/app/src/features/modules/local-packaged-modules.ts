@@ -90,15 +90,30 @@ export function catalogModuleHidesRemoveAction(
   return isPreinstalledCatalogModule(module, options) || module.kind === 'tool';
 }
 
+export function contentModuleNeedsInstall(
+  module: ContentModuleCatalogEntry,
+  installed: InstalledContentModule | undefined,
+): boolean {
+  return (
+    !installed ||
+    installed.version !== module.version ||
+    installed.activeSourceSetDigest !== module.sourceSetDigest
+  );
+}
+
 export function localPackagedModulesToInstall(
   catalog: ContentModuleCatalog,
-  installedVersions: ReadonlyMap<string, string>,
+  installedModules: ReadonlyMap<string, InstalledContentModule>,
 ): readonly ContentModuleCatalogEntry[] {
-  return catalog.modules.filter(
-    (module) =>
+  return catalog.modules.filter((module) => {
+    const installed = installedModules.get(module.id);
+    const autoInstallable =
+      module.releaseState === 'published' || (installed !== undefined && isModuleReleased(module));
+    return (
       module.kind === 'tool' &&
-      module.releaseState === 'published' &&
-      installedVersions.get(module.id) !== module.version &&
-      module.artifacts.some((artifact) => artifact.kind === 'index' && Boolean(artifact.url)),
-  );
+      autoInstallable &&
+      contentModuleNeedsInstall(module, installed) &&
+      module.artifacts.some((artifact) => artifact.kind === 'index' && Boolean(artifact.url))
+    );
+  });
 }

@@ -32,11 +32,6 @@
   padding: 0.25rem 0 0.5rem;
 }
 
-.patient-workspace__search-chrome.sticky-surface--stuck {
-  margin-top: calc(-1 * var(--safe-top));
-  padding-top: calc(var(--safe-top) + 0.25rem);
-}
-
 .patient-workspace__back-button {
   flex: 0 0 auto;
 }

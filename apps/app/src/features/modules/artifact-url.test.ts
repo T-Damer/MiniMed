@@ -21,6 +21,16 @@ describe('resolveContentModuleArtifactUrl', () => {
     );
   });
 
+  it('uses the CORS-safe LFS media mirror for large ESKLP packages', () => {
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.antiparasitic.ru.db',
+      ),
+    ).toBe(
+      'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/esklp-2026-08-28/modules/minimed.medications.antiparasitic.ru.db',
+    );
+  });
+
   it('keeps unrelated hosts unchanged', () => {
     const url = 'https://example.test/module.db';
     expect(resolveContentModuleArtifactUrl(url)).toBe(url);

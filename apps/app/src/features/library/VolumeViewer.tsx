@@ -26,6 +26,7 @@ import {
   createMedicalImagePressRepeat,
   medicalImagePointerAction,
   medicalImageSliceDragSteps,
+  medicalImageZoomAroundPoint,
   readBlobWithProgress,
   volumeCutawayPlanes,
   withViewerTimeout,
@@ -50,7 +51,7 @@ interface VolumeViewerProps {
 type VolumeView = 'multiplanar' | 'axial' | 'coronal' | 'sagittal' | 'render';
 type VolumeAxis = 0 | 1 | 2;
 type SliceDragSource = 'canvas' | 'indicator';
-type TouchGestureMode = 'single-plane' | 'contrast' | 'render-slice';
+type TouchGestureMode = 'single-plane' | 'contrast' | 'render-rotate' | 'render-slice';
 type GridCrosshairView = 'axial' | 'coronal' | 'sagittal';
 
 const DEFAULT_RENDER_AZIMUTH = 45;
@@ -154,8 +155,6 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
   const [contrastActive, setContrastActive] = createSignal(false);
   const [rotationActive, setRotationActive] = createSignal(true);
   const [gridCrosshairs, setGridCrosshairs] = createSignal<readonly GridCrosshairState[]>([]);
-  const [rotationButtonPosition, setRotationButtonPosition] =
-    createSignal<readonly [number, number]>();
   const [annotationTool, setAnnotationTool] = createSignal<MedicalImageAnnotationTool>('none');
   const [annotationColor, setAnnotationColor] =
     createSignal<UserLibraryMedicalAnnotationColor>('red');
@@ -178,6 +177,7 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
   let pendingContrastPosition: { x: number; y: number } | undefined;
   let pinchZoomFrame: number | undefined;
   let pendingPinchZoomFactor = 1;
+  let pendingPinchZoomCenter: { x: number; y: number } | undefined;
   let renderCursorFrame: number | undefined;
   let pendingRenderCursorPosition: { x: number; y: number } | undefined;
   let suppressCanvasInput = false;
@@ -269,26 +269,6 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
       return;
     }
     setGridCrosshairs(next);
-  };
-
-  const syncRotationButtonPosition = (): void => {
-    const currentViewer = viewer;
-    const renderTile = currentViewer?.screenSlices.find(
-      (slice) => slice.axCorSag === currentViewer.sliceTypeRender,
-    );
-    if (!currentViewer || !renderTile) {
-      setRotationButtonPosition(undefined);
-      return;
-    }
-    const left = Number(renderTile.leftTopWidthHeight[0] ?? 0);
-    const top = Number(renderTile.leftTopWidthHeight[1] ?? 0);
-    const width = Number(renderTile.leftTopWidthHeight[2] ?? 0);
-    if (width <= 0) {
-      setRotationButtonPosition(undefined);
-      return;
-    }
-    const dpr = currentViewer.uiData.dpr ?? window.devicePixelRatio;
-    setRotationButtonPosition([(left + width) / dpr - 8, top / dpr + 8]);
   };
 
   const handleLocationChange = (event: Event): void => {
@@ -457,14 +437,14 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
       syncSlice();
       syncAnnotationTool();
       syncContrastTool();
-      syncRotationButtonPosition();
       syncGridCrosshairs();
     });
   };
 
-  const cycleRenderSliceAxis = (): void => {
+  const selectRenderSliceAxis = (axis: VolumeAxis): void => {
     if (activeView() !== 'render') return;
-    setRenderSliceAxis((axis) => (axis === 2 ? 0 : ((axis + 1) as VolumeAxis)));
+    setRenderSliceAxis(axis);
+    setRotationActive(false);
     queueMicrotask(syncSlice);
   };
 
@@ -492,14 +472,38 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
   const flushPinchZoom = (): void => {
     pinchZoomFrame = undefined;
     const factor = pendingPinchZoomFactor;
+    const center = pendingPinchZoomCenter;
     pendingPinchZoomFactor = 1;
+    pendingPinchZoomCenter = undefined;
     if (!viewer || factor === 1 || (!isSinglePlane() && activeView() !== 'render')) return;
     if (isSinglePlane()) {
       const currentZoom = viewer.scene.pan2Dxyzmm[3];
-      viewer.scene.pan2Dxyzmm[3] = Math.min(
-        PINCH_ZOOM_MAX,
-        Math.max(PINCH_ZOOM_MIN, currentZoom * factor),
-      );
+      const zoom = Math.min(PINCH_ZOOM_MAX, Math.max(PINCH_ZOOM_MIN, currentZoom * factor));
+      if (center && canvas) {
+        const dpr = viewer.uiData.dpr ?? window.devicePixelRatio;
+        const bounds = canvas.getBoundingClientRect();
+        const fraction = viewer.canvasPos2frac([
+          (center.x - bounds.left) * dpr,
+          (center.y - bounds.top) * dpr,
+        ]);
+        if (fraction[0] >= 0) {
+          const pointMM = viewer.frac2mm(fraction);
+          const nextPan = medicalImageZoomAroundPoint(
+            [
+              viewer.scene.pan2Dxyzmm[0],
+              viewer.scene.pan2Dxyzmm[1],
+              viewer.scene.pan2Dxyzmm[2],
+              currentZoom,
+            ],
+            zoom,
+            [pointMM[0], pointMM[1], pointMM[2]],
+          );
+          viewer.scene.pan2Dxyzmm[0] = nextPan[0];
+          viewer.scene.pan2Dxyzmm[1] = nextPan[1];
+          viewer.scene.pan2Dxyzmm[2] = nextPan[2];
+        }
+      }
+      viewer.scene.pan2Dxyzmm[3] = zoom;
       viewer.drawScene();
       return;
     }
@@ -508,8 +512,9 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
     );
   };
 
-  const schedulePinchZoom = (factor: number): void => {
+  const schedulePinchZoom = (factor: number, center: { x: number; y: number }): void => {
     pendingPinchZoomFactor *= factor;
+    pendingPinchZoomCenter = center;
     if (pinchZoomFrame !== undefined) return;
     pinchZoomFrame = requestAnimationFrame(flushPinchZoom);
   };
@@ -543,7 +548,10 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
     }
     const distance = Math.hypot(pinch.secondX - pinch.firstX, pinch.secondY - pinch.firstY);
     if (pinch.lastDistance > 0 && distance > 0) {
-      schedulePinchZoom(distance / pinch.lastDistance);
+      schedulePinchZoom(distance / pinch.lastDistance, {
+        x: (pinch.firstX + pinch.secondX) / 2,
+        y: (pinch.firstY + pinch.secondY) / 2,
+      });
     }
     pinch.lastDistance = distance;
   };
@@ -652,7 +660,7 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
     const position = pendingContrastPosition;
     pendingContrastPosition = undefined;
     if (!viewer || !touchGesture || touchGesture.mode !== 'contrast' || !position) return;
-    viewer.windowingHandler(position.x, position.y);
+    viewer.windowingHandler(position.y, 0);
     viewer.drawScene();
   };
 
@@ -712,7 +720,9 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
         : isSinglePlane()
           ? 'single-plane'
           : activeView() === 'render'
-            ? 'render-slice'
+            ? rotationActive()
+              ? 'render-rotate'
+              : 'render-slice'
             : undefined;
     if (!mode) return false;
 
@@ -736,9 +746,12 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
     if (mode === 'contrast') {
       const position = renderCursorPosition(event);
       if (position) {
-        viewer.uiData.windowX = position.x;
-        viewer.uiData.windowY = position.y;
+        viewer.uiData.windowX = position.y;
+        viewer.uiData.windowY = 0;
       }
+    } else if (mode === 'render-rotate') {
+      const position = renderCursorPosition(event);
+      if (position) viewer.updateMousePos(position.x, position.y);
     }
     return true;
   };
@@ -757,6 +770,11 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
     if (gesture.mode === 'contrast') {
       const position = renderCursorPosition(event);
       if (position) scheduleContrastMove(position);
+      return;
+    }
+    if (gesture.mode === 'render-rotate') {
+      const position = renderCursorPosition(event);
+      if (position) viewer?.mouseMove(position.x, position.y);
       return;
     }
     const pixelsPerStep = Math.max(2, Math.min(12, window.innerHeight / (sliceCount() - 1)));
@@ -1118,7 +1136,6 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
     const mobileLayout = window.matchMedia('(max-width: 47.5rem)');
     const layoutObserver = new ResizeObserver(() => {
       requestAnimationFrame(() => {
-        syncRotationButtonPosition();
         syncGridCrosshairs();
       });
     });
@@ -1142,7 +1159,6 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
         mobileLayout.matches ? MULTIPLANAR_TYPE.GRID : MULTIPLANAR_TYPE.AUTO,
       );
       requestAnimationFrame(() => {
-        syncRotationButtonPosition();
         syncGridCrosshairs();
       });
     };
@@ -1296,6 +1312,7 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
       pendingSliceDelta = 0;
       pendingContrastPosition = undefined;
       pendingPinchZoomFactor = 1;
+      pendingPinchZoomCenter = undefined;
       pendingRenderCursorPosition = undefined;
       if (canvasInputReleaseTimer !== undefined) clearTimeout(canvasInputReleaseTimer);
       previousSliceRepeat.dispose();
@@ -1384,20 +1401,6 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
           )}
           {tool('sagittal', 'сагиттальная плоскость', 'arrows-out-simple')}
         </div>
-        <Show when={activeView() === 'render'}>
-          <fieldset class="medical-image-viewer__tool-group">
-            <legend class="medical-image-viewer__tool-group-label">Ось среза в 3D</legend>
-            <Button
-              class="medical-image-viewer__tool"
-              variant="secondary"
-              aria-label={`Режим: выбор оси среза ${VOLUME_AXIS_LABELS[renderSliceAxis()]}`}
-              title="Режим: выбор оси среза; нажмите для смены оси"
-              onClick={cycleRenderSliceAxis}
-            >
-              {VOLUME_AXIS_LABELS[renderSliceAxis()]}
-            </Button>
-          </fieldset>
-        </Show>
         <fieldset class="medical-image-viewer__tool-group">
           <legend class="medical-image-viewer__tool-group-label">Настройка изображения</legend>
           <Button
@@ -1417,6 +1420,17 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
                   </span>
                 </Show>
               </>
+            }
+          />
+          <Button
+            class="medical-image-viewer__tool medical-image-viewer__tool--icon"
+            variant="secondary"
+            aria-label="Сбросить контраст"
+            title="Сбросить контраст"
+            disabled={loading()}
+            onClick={() => viewer && resetVolumeContrast(viewer)}
+            icon={
+              <AppGlyph name="arrow-counter-clockwise" class="medical-image-viewer__tool-icon" />
             }
           />
         </fieldset>
@@ -1499,11 +1513,11 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
             </For>
           </div>
         </Show>
-        <Show when={!loading() && !error() && rotationButtonPosition()}>
-          {(position) => (
+        <Show when={!loading() && !error() && activeView() === 'render'}>
+          <fieldset class="medical-image-viewer__render-controls">
+            <legend class="medical-image-viewer__tool-group-label">Управление 3D</legend>
             <Button
               class="medical-image-viewer__tool medical-image-viewer__tool--icon medical-image-viewer__rotation-button"
-              style={{ left: `${String(position()[0])}px`, top: `${String(position()[1])}px` }}
               variant={rotationActive() ? 'primary' : 'secondary'}
               aria-label="Режим: вращение 3D"
               title="Режим: вращение 3D"
@@ -1523,7 +1537,23 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
               }}
               icon={<AppGlyph name="sphere" class="medical-image-viewer__tool-icon" />}
             />
-          )}
+            <For each={VOLUME_AXIS_LABELS}>
+              {(axis, index) => (
+                <Button
+                  class="medical-image-viewer__tool medical-image-viewer__render-axis-button"
+                  variant={
+                    !rotationActive() && renderSliceAxis() === index() ? 'primary' : 'secondary'
+                  }
+                  aria-label={`Ось среза ${axis}`}
+                  title={`Перемещать срез по оси ${axis}`}
+                  aria-pressed={!rotationActive() && renderSliceAxis() === index()}
+                  onClick={() => selectRenderSliceAxis(index() as VolumeAxis)}
+                >
+                  {axis}
+                </Button>
+              )}
+            </For>
+          </fieldset>
         </Show>
         <Show when={detailsOpen()}>
           <aside class="medical-image-viewer__details" aria-label="Информация об исследовании">

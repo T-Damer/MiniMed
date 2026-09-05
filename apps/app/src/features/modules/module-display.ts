@@ -88,7 +88,8 @@ export function formatFullTextDownloadLabel(
   hasFullText: boolean,
 ): string {
   if (!pending) return hasFullText ? 'Полный текст' : 'Загрузить полный текст';
-  if (progress !== null) return `${Math.min(100, Math.round(progress * 100))}%`;
+  if (progress !== null && progress >= 1) return 'Подготавливаем документ…';
+  if (progress !== null) return `${Math.min(99, Math.round(progress * 100))}%`;
   return 'Загружаем полную версию…';
 }
 

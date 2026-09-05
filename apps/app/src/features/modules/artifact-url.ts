@@ -54,6 +54,14 @@ export function resolveContentModuleArtifactUrl(url: string): string {
     const releaseTag = releaseMatch[3] ?? '';
     const fileName = releaseMatch[4] ?? '';
     if (owner === 'T-Damer' && repo === 'MiniMed' && fileName.length > 0 && releaseTag.length > 0) {
+      if (
+        releaseTag.startsWith('esklp-') &&
+        fileName.startsWith('minimed.medications.') &&
+        fileName.endsWith('.db')
+      ) {
+        // Large medication databases live in LFS; media URLs expose bytes with browser CORS.
+        return `https://media.githubusercontent.com/media/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
+      }
       if (fileName.startsWith('clinical-') && fileName.endsWith('.db')) {
         if (usesLocalModuleArtifacts && typeof window !== 'undefined') {
           return resolveRelativeModulePath(

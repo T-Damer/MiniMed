@@ -1,5 +1,6 @@
-import type { TextRange } from '@localmed/contracts';
-import { createMemo, For, type JSX } from 'solid-js';
+import { Popover } from '@kobalte/core/popover';
+import type { MedicalCore, TextRange } from '@localmed/contracts';
+import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
@@ -15,7 +16,13 @@ import {
   type LinkedTextSegment,
   parseDocumentText,
 } from '@/features/library/document-medication-links';
+import {
+  type MedicationPreviewExcerpt,
+  medicationPreviewExcerpts,
+} from '@/features/library/medication-link-preview';
+import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
+import { openDocumentOverlay } from '@/state/document-navigation';
 
 const EXTERNAL_URL_PATTERN = /https?:\/\/[^\s<>"')\]]+/gu;
 
@@ -95,6 +102,236 @@ function HighlightedLabel(props: {
   );
 }
 
+type LinkedDocumentSegment = Extract<LinkedTextSegment, { readonly kind: 'link' }>;
+
+function InlineDocumentLink(props: {
+  readonly segment: LinkedDocumentSegment;
+  readonly onOpen: (documentId: string) => void;
+  readonly core?: MedicalCore | undefined;
+  readonly query?: string | undefined;
+  readonly exactQuery?: boolean | undefined;
+  readonly fuzzyQuery?: boolean | undefined;
+  readonly highlightClass?: string | undefined;
+  readonly ranges?: readonly TextRange[] | undefined;
+  readonly unitId?: string | undefined;
+  readonly activeStart?: number | undefined;
+  readonly rangeOffset: number;
+}): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+
+  const [excerpts, setExcerpts] = createSignal<readonly MedicationPreviewExcerpt[]>();
+  const [previewError, setPreviewError] = createSignal<string>();
+  const [sourceLabel, setSourceLabel] = createSignal<string>();
+  const ambiguous = () => (props.segment.alternatives?.length ?? 0) > 1;
+  const canPreview = () =>
+    Boolean(
+      ambiguous() ||
+        props.segment.preview ||
+        (props.segment.linkKind === 'medication' && props.core),
+    );
+  const activate = async () => {
+    if (!canPreview()) {
+      props.onOpen(props.segment.documentId);
+      return;
+    }
+    setOpen((value) => !value);
+    if (!open() || ambiguous() || props.segment.preview || excerpts() || !props.core) return;
+    setPreviewError();
+    const result = await props.core.getDocument(props.segment.documentId);
+    if (!result.ok) {
+      setPreviewError(result.error.message);
+      return;
+    }
+    setSourceLabel(`${result.value.title} · ${result.value.versionLabel}`);
+    setExcerpts(medicationPreviewExcerpts(result.value, props.segment.value));
+  };
+
+  return (
+    <Popover
+      open={open()}
+      onOpenChange={setOpen}
+      placement="bottom-start"
+      gutter={7}
+      flip
+      slide
+      fitViewport
+      overflowPadding={8}
+    >
+      <Popover.Anchor as="span" class="document-inline-preview">
+        <button
+          type="button"
+          class="document-inline-link"
+          aria-expanded={canPreview() ? open() : undefined}
+          aria-haspopup={canPreview() ? 'dialog' : undefined}
+          onClick={activate}
+        >
+          <AppGlyph
+            name={glyphForDocumentLinkKind(ambiguous() ? 'document' : props.segment.linkKind)}
+            class="document-inline-link__icon"
+          />
+          <HighlightedLabel
+            text={props.segment.value}
+            query={props.query}
+            exactQuery={props.exactQuery}
+            fuzzyQuery={props.fuzzyQuery}
+            highlightClass={props.highlightClass}
+            ranges={props.ranges}
+            unitId={props.unitId}
+            activeStart={props.activeStart}
+            rangeOffset={props.rangeOffset}
+          />
+        </button>
+      </Popover.Anchor>
+      <Show when={canPreview()}>
+        <Popover.Portal>
+          <Popover.Content
+            class="document-inline-preview__card"
+            aria-label={
+              ambiguous()
+                ? `${props.segment.value}: значения`
+                : (props.segment.preview?.title ?? props.segment.value)
+            }
+            onOpenAutoFocus={(event) => {
+              if (!ambiguous()) event.preventDefault();
+            }}
+          >
+            <strong class="document-inline-preview__title">
+              {ambiguous()
+                ? `${props.segment.value}: выберите значение`
+                : (props.segment.preview?.title ?? props.segment.value)}
+            </strong>
+            <Show when={ambiguous()}>
+              <For each={props.segment.alternatives}>
+                {(alternative) => (
+                  <div class="document-inline-preview__meaning">
+                    <button
+                      type="button"
+                      class="document-inline-preview__meaning-link"
+                      onClick={() => {
+                        setOpen(false);
+                        props.onOpen(alternative.documentId);
+                      }}
+                    >
+                      {alternative.title}
+                    </button>
+                    <Show when={alternative.preview}>
+                      {(preview) => (
+                        <>
+                          <p class="document-inline-preview__definition document-inline-preview__definition--choice">
+                            {preview().definition}
+                          </p>
+                          <Show when={preview().source}>
+                            {(source) => (
+                              <button
+                                type="button"
+                                class="document-inline-preview__source"
+                                onClick={() => {
+                                  setOpen(false);
+                                  openDocumentOverlay(
+                                    source().documentId,
+                                    source().anchor ?? null,
+                                    { preferSummary: true },
+                                  );
+                                }}
+                              >
+                                Источник: {source().label}
+                              </button>
+                            )}
+                          </Show>
+                        </>
+                      )}
+                    </Show>
+                  </div>
+                )}
+              </For>
+            </Show>
+            <Show when={!ambiguous() && props.segment.preview}>
+              {(preview) => (
+                <>
+                  <p class="document-inline-preview__definition">{preview().definition}</p>
+                  <Show when={preview().source}>
+                    {(source) => (
+                      <button
+                        type="button"
+                        class="document-inline-preview__source"
+                        onClick={() => {
+                          setOpen(false);
+                          openDocumentOverlay(source().documentId, source().anchor ?? null, {
+                            preferSummary: true,
+                          });
+                        }}
+                      >
+                        Источник: {source().label}
+                      </button>
+                    )}
+                  </Show>
+                </>
+              )}
+            </Show>
+            <Show when={!ambiguous() && !props.segment.preview}>
+              <Show when={previewError()}>
+                {(error) => (
+                  <p class="document-inline-preview__definition" role="alert">
+                    {error()}
+                  </p>
+                )}
+              </Show>
+              <Show when={!excerpts() && !previewError()}>
+                <p class="document-inline-preview__definition" role="status">
+                  Открываем локальные данные…
+                </p>
+              </Show>
+              <For each={excerpts()}>
+                {(excerpt) => (
+                  <div class="document-inline-preview__excerpt">
+                    <p class="document-inline-preview__definition">{excerpt.text}</p>
+                    <Show when={excerpt.anchor}>
+                      {(anchor) => (
+                        <button
+                          type="button"
+                          class="document-inline-preview__source"
+                          onClick={() => {
+                            setOpen(false);
+                            openDocumentOverlay(props.segment.documentId, anchor());
+                          }}
+                        >
+                          Открыть фрагмент источника
+                        </button>
+                      )}
+                    </Show>
+                  </div>
+                )}
+              </For>
+              <Show when={excerpts()?.length === 0}>
+                <p class="document-inline-preview__definition">
+                  В локальных данных нет сведений о форме и концентрации.
+                </p>
+              </Show>
+              <p class="document-inline-preview__source-label">
+                Источник: {sourceLabel() ?? props.segment.value}. Сведения о препарате; не схема
+                дозирования.
+              </p>
+            </Show>
+            <Show when={!ambiguous()}>
+              <button
+                type="button"
+                class="document-inline-preview__open"
+                onClick={() => {
+                  setOpen(false);
+                  props.onOpen(props.segment.documentId);
+                }}
+              >
+                Открыть карточку и источники
+                <AppGlyph name="arrow-square-up-right" class="document-inline-preview__open-icon" />
+              </button>
+            </Show>
+          </Popover.Content>
+        </Popover.Portal>
+      </Show>
+    </Popover>
+  );
+}
+
 function LinkedPlainText(props: {
   readonly text: string;
   readonly query?: string | undefined;
@@ -161,7 +398,9 @@ function LinkedPlainText(props: {
             type="button"
             class={`document-inline-link document-inline-tool-link ${segment.kind}-inline-link`}
             onClick={() =>
-              assessment ? openAssessment(segment.slug) : openCalculator(segment.slug)
+              assessment
+                ? openAssessment(segment.slug, { preferWindow: true })
+                : openCalculator(segment.slug, { preferWindow: true })
             }
           >
             <AppGlyph
@@ -189,6 +428,7 @@ function LinkedPlainText(props: {
 function InlineDocumentText(props: {
   readonly segmentDocumentLinks?: ((text: string) => readonly LinkedTextSegment[]) | undefined;
   readonly onDocumentLink?: ((documentId: string) => void) | undefined;
+  readonly core?: MedicalCore | undefined;
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
   readonly query?: string | undefined;
@@ -244,27 +484,19 @@ function InlineDocumentText(props: {
           >
             {(segment) =>
               segment.kind === 'link' && props.onDocumentLink ? (
-                <button
-                  type="button"
-                  class="document-inline-link"
-                  onClick={() => props.onDocumentLink?.(segment.documentId)}
-                >
-                  <AppGlyph
-                    name={glyphForDocumentLinkKind(segment.linkKind)}
-                    class="document-inline-link__icon"
-                  />
-                  <HighlightedLabel
-                    text={segment.value}
-                    query={props.query}
-                    exactQuery={props.exactQuery}
-                    fuzzyQuery={props.fuzzyQuery}
-                    highlightClass={props.highlightClass}
-                    ranges={props.ranges}
-                    unitId={props.unitId}
-                    activeStart={props.activeStart}
-                    rangeOffset={(props.rangeOffset ?? 0) + part.offset + segment.offset}
-                  />
-                </button>
+                <InlineDocumentLink
+                  segment={segment}
+                  onOpen={props.onDocumentLink}
+                  core={props.core}
+                  query={props.query}
+                  exactQuery={props.exactQuery}
+                  fuzzyQuery={props.fuzzyQuery}
+                  highlightClass={props.highlightClass}
+                  ranges={props.ranges}
+                  unitId={props.unitId}
+                  activeStart={props.activeStart}
+                  rangeOffset={(props.rangeOffset ?? 0) + part.offset + segment.offset}
+                />
               ) : (
                 <LinkedPlainText
                   text={segment.value}
@@ -288,18 +520,22 @@ function InlineDocumentText(props: {
 
 type DocumentTextGroup =
   | { readonly kind: 'paragraph'; readonly items: readonly DocumentTextBlock[] }
-  | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlock[] };
+  | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlock[] }
+  | { readonly kind: 'image'; readonly items: readonly DocumentTextBlock[] };
 
 type DocumentTextBlockWithOffset = DocumentTextBlock & { readonly offset: number };
 type DocumentTextGroupWithOffsets =
   | { readonly kind: 'paragraph'; readonly items: readonly DocumentTextBlockWithOffset[] }
-  | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlockWithOffset[] };
+  | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlockWithOffset[] }
+  | { readonly kind: 'image'; readonly items: readonly DocumentTextBlockWithOffset[] };
 
 function groupBlocks(blocks: readonly DocumentTextBlock[]): readonly DocumentTextGroup[] {
   const groups: DocumentTextGroup[] = [];
   for (const block of blocks) {
     const previous = groups.at(-1);
-    if (block.kind !== 'paragraph' && previous?.kind === block.kind) {
+    if (block.kind === 'image') {
+      groups.push({ kind: 'image', items: [block] });
+    } else if (block.kind !== 'paragraph' && previous?.kind === block.kind) {
       groups[groups.length - 1] = { ...previous, items: [...previous.items, block] };
     } else {
       groups.push({ kind: block.kind, items: [block] });
@@ -315,7 +551,7 @@ function addSearchOffsets(
   return groups.map((group) => ({
     ...group,
     items: group.items.map((item) => {
-      const text = item.text.replaceAll('**', '');
+      const text = (item.kind === 'image' ? item.alt : item.text).replaceAll('**', '');
       const result = { ...item, text, offset };
       offset += text.length + 1;
       return result;
@@ -325,18 +561,95 @@ function addSearchOffsets(
 
 export function documentTextSearchText(text: string, sourceSpans?: unknown): string {
   return parseDocumentText(stripKnownHtmlMarkup(text), sourceSpans)
-    .map((block) => block.text.replaceAll('**', ''))
+    .map((block) => (block.kind === 'image' ? block.alt : block.text).replaceAll('**', ''))
     .join('\n');
+}
+
+function ReferenceImage(props: {
+  readonly documentId?: string | undefined;
+  readonly block: Extract<DocumentTextBlock, { readonly kind: 'image' }>;
+  readonly resolveImage?:
+    | ((documentId: string, source: string) => Promise<ResolvedReferenceImage | null>)
+    | undefined;
+}): JSX.Element {
+  const [image, setImage] = createSignal<ResolvedReferenceImage | null>();
+  const [failed, setFailed] = createSignal(false);
+  const [pending, setPending] = createSignal(true);
+  const [error, setError] = createSignal(false);
+  const resolved = () => image();
+
+  createEffect(() => {
+    const documentId = props.documentId;
+    if (!documentId || !props.resolveImage) return;
+    setFailed(false);
+    setError(false);
+    setPending(true);
+    void props
+      .resolveImage(documentId, props.block.source)
+      .then((value) => {
+        setImage(value);
+        setPending(false);
+      })
+      .catch(() => {
+        setError(true);
+        setPending(false);
+      });
+  });
+
+  return (
+    <Show when={props.resolveImage}>
+      <Show
+        when={failed() ? undefined : resolved()}
+        fallback={
+          <p class="document-reference-image__fallback">
+            {pending()
+              ? 'Загружаем иллюстрацию…'
+              : error()
+                ? 'Не удалось прочитать локальную иллюстрацию.'
+                : 'Иллюстрация недоступна в подключённом наборе.'}
+          </p>
+        }
+      >
+        {(value) => (
+          <figure class="document-reference-image">
+            <img
+              class="document-reference-image__image"
+              src={value().url}
+              alt={value().alt || props.block.alt}
+              loading="lazy"
+              onError={() => setFailed(true)}
+            />
+            <figcaption class="document-reference-image__caption">
+              <span>Источник: Красота и медицина</span>{' '}
+              <a
+                class="document-reference-image__source"
+                href={value().sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Открыть источник
+              </a>
+            </figcaption>
+          </figure>
+        )}
+      </Show>
+    </Show>
+  );
 }
 
 export function DocumentText(props: {
   readonly documentLinkMatcher?: DocumentLinkMatcher | undefined;
   readonly documentLinks?: readonly DocumentLinkPhrase[] | undefined;
   readonly onDocumentLink?: ((documentId: string) => void) | undefined;
+  readonly core?: MedicalCore | undefined;
   readonly sourceSpans?: unknown;
   readonly paragraphClass?: string | undefined;
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
+  readonly documentId?: string | undefined;
+  readonly resolveImage?:
+    | ((documentId: string, source: string) => Promise<ResolvedReferenceImage | null>)
+    | undefined;
   readonly query?: string | undefined;
   readonly exactQuery?: boolean | undefined;
   readonly fuzzyQuery?: boolean | undefined;
@@ -367,6 +680,7 @@ export function DocumentText(props: {
       text={text}
       segmentDocumentLinks={segmentDocumentLinks()}
       onDocumentLink={props.onDocumentLink}
+      core={props.core}
       onReference={props.onReference}
       query={props.query}
       exactQuery={props.exactQuery}
@@ -382,13 +696,25 @@ export function DocumentText(props: {
   return (
     <For each={groups()}>
       {(group) => {
+        if (group.kind === 'image') {
+          const item = group.items[0];
+          return item?.kind === 'image' ? (
+            <ReferenceImage
+              documentId={props.documentId}
+              block={item}
+              resolveImage={props.resolveImage}
+            />
+          ) : null;
+        }
         if (group.kind === 'bullet') {
           return (
             <ul class="document-text-list">
               <For each={group.items}>
-                {(item) => (
-                  <li class="document-text-list__item">{inline(item.text, item.offset)}</li>
-                )}
+                {(item) =>
+                  item.kind === 'bullet' ? (
+                    <li class="document-text-list__item">{inline(item.text, item.offset)}</li>
+                  ) : null
+                }
               </For>
             </ul>
           );
@@ -401,15 +727,19 @@ export function DocumentText(props: {
               start={first?.kind === 'ordered' ? first.ordinal : undefined}
             >
               <For each={group.items}>
-                {(item) => (
-                  <li class="document-text-list__item">{inline(item.text, item.offset)}</li>
-                )}
+                {(item) =>
+                  item.kind === 'ordered' ? (
+                    <li class="document-text-list__item">{inline(item.text, item.offset)}</li>
+                  ) : null
+                }
               </For>
             </ol>
           );
         }
         const item = group.items[0];
-        return <p class={props.paragraphClass}>{inline(item?.text ?? '', item?.offset ?? 0)}</p>;
+        return item?.kind === 'paragraph' ? (
+          <p class={props.paragraphClass}>{inline(item.text, item.offset)}</p>
+        ) : null;
       }}
     </For>
   );

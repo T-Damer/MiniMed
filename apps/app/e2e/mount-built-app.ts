@@ -3,10 +3,10 @@ import { join, resolve } from 'node:path';
 import type { Page } from '@playwright/test';
 
 export const E2E_ASSET_ORIGIN = 'http://127.0.0.1:4173';
-const PUBLIC_CONTENT_ROOT = resolve(import.meta.dirname, '../public/content');
+const BUILT_CONTENT_ROOT = resolve(import.meta.dirname, '../dist/content');
 
 export function hasLocalCompanionPack(name: string): boolean {
-  return existsSync(join(PUBLIC_CONTENT_ROOT, name));
+  return existsSync(join(BUILT_CONTENT_ROOT, name));
 }
 
 export interface MountBuiltAppOptions {

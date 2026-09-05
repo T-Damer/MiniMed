@@ -1,16 +1,130 @@
 # Current state
 
-> Updated: 2 September 2026
-> Repository version: `0.6.32`
-> Active target: `0.6.32` public prerelease toward `1.0`
+> Updated: 5 September 2026
+> Repository version: `0.6.33`
+> Active target: `0.6.33` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### 0.6.33 release preparation — 5 September 2026
+
+- This release includes all 770 existing catalog artifacts, including preview packages, without
+  changing their review status. Planned modules without built artifacts remain unavailable.
+- Git stores the compressed discovery core in `content/bundled/core.db.gz`; dev, build and verify
+  restore `apps/app/public/content/core.db` and verify its checksum against `core-report.json`.
+  Restoration validates a temporary file before replacing the existing database. The uncompressed
+  core exceeds GitHub's per-file limit; its content and schema are unchanged by compression.
+- ESKLP medication downloads use the checksum-preserving Git LFS media mirror on
+  `datasets/esklp-2026-08-28`; ordinary release links previously resolved to missing main-branch
+  files. The media endpoint supplies browser CORS and supports databases above Git’s file limit.
+- Release validation found a retrieval limitation on the expanded core: the broad query
+  «Какие дети подлежат диспансерному наблюдению после заболевания, травмы или отравления»
+  ranks ICD reference entries ahead of the installed regulatory source. Module lifecycle E2E uses
+  the explicit order-192н query to verify mounting; that does not qualify broad-query ranking.
+  Cold-core startup and search also exceed the former 3–5 second pilot-test waits; functional
+  browser checks now allow 25 seconds. Full-corpus latency/ranking remain qualification work.
+- Native APK retry/failure transitions respect cancellation and interruption under the manager lock.
+  A regression reproduces cancellation followed by an in-flight network read failure.
+
+
+Release checks: full `verify` passed; 770 SQLite packages passed quick-check and foreign-key
+validation. Browser scenarios passed after updating stale UI assertions and cold-core waits;
+physical devices and optional external-model/full-private-companion scenarios were not tested.
+The APK reports version 0.6.33 / code 46 and includes the exact core checksum plus 9,084 images.
+The standalone web archive includes illustrations; the smaller GitHub Pages deployment omits them.
+
+### Clinical definitions and source links — 5 September 2026
+
+- Condition details show all linked definitions, each with its source title and the correct
+  recommendation/reference label. An exact ICD entry retains its own code even when a linked
+  recommendation covers several codes. Excerpt links open the local preview anchor; installed
+  full texts retain the original source anchor through the existing pointer resolver.
+- Definition extraction also reads «1.1 Определение заболевания…», accepts exact single-word
+  disease titles and preserves dashes inside parenthetical labels. It retains source text rather
+  than generating a replacement description.
+- Numbered migration `006-clinical-definition-enrichment` added 194 verified definitions from
+  locally prepared official clinical recommendations and preserved the existing 79. Validation
+  matches document/version, section, chunk, anchor, quote, pages, character offsets and source
+  spans against read-only source databases. All earlier chunks, anchors, aliases and knowledge
+  tables remain unchanged. `output/clinical-definitions-added.csv` lists the additions and sources.
+- The exact-code coverage audit now finds linked definitions for 3,322 of 9,835 ICD nodes;
+  6,513 remain without one, and none are absent from the core. The updated gap list is
+  `output/ux-icd-missing-descriptions.csv`; full results are `output/clinical-icd-coverage.csv`.
+  These counts describe linked source definitions, not complete diagnostic or treatment guidance.
+- Reference readers render source illustrations from verified local assets, including the first
+  image in a compact disease pointer. The deterministic `localmed_ingest.reference_images` builder
+  produced 9,123 image references for 5,932 documents (9,084 unique files; one failed source
+  download is recorded). The 4.5 MB manifest is pinned by checksum; each requested image is checked
+  for document/source membership, size and checksum before rendering. No remote image hotlinks or
+  whole-archive reads are used. Locally generated files live in the Git-ignored
+  `apps/app/public/content/reference-images/`; rebuilding uses `data/raw/krasotaimedicina`.
+  The existing service worker caches viewed files on web; unseen web images need a first fetch.
+  This is a local corpus integration, not a published image-pack release.
+
+Validation: 2,707 TypeScript tests and 232 Python tests pass, along with TypeScript/Python type
+checks, Biome, builds, benchmarks and the native packaged-source checksum check. Browser checks
+cover attributed definitions, preview-anchor navigation, rendering a verified illustration and
+reopening it offline in the same session. Persistent offline reload of images and native devices
+were not tested. Two existing long test strings were wrapped without changing their values, so
+the earlier Python lint blockers are resolved.
+
+### First-use UX feedback — 5 September 2026
+
+- Search home exposes one «Свободный поиск» scope. Old saved scopes and history replay cannot switch
+  it to an invisible filter; the obsolete remember-mode control is hidden. Search results distinguish
+  summaries, source pointers and full texts using source metadata rather than a shared generic label.
+  Personal matches remain a separate collapsible section and do not wait for medical retrieval.
+- Condition catalog controls sit above their masked blur/grain backdrop. The wider КР shortcut sits
+  at the bottom right of its card and uses a book icon; the card retains its own navigation arrow. The clinical-recommendation
+  shortcut uses a wider themed button with a book icon. Single-source entries open the reader directly;
+  existing detail URLs replace the redundant selection step so Back returns to the catalog.
+- Calculator collections describe offline availability, optional downloads and updates separately,
+  including available download sizes. A completed transfer awaiting installation no longer says 100%
+  indefinitely: full-text downloads show «Подготавливаем документ…» while preparation finishes.
+- Knowledge graphs above 500 nodes use a deterministic layout linear in nodes plus edges; all nodes
+  remain present. Small graphs retain force layout. Large graphs auto-fit, cull offscreen drawing,
+  batch edges, and show document labels on zoom/hover, without a continuous quadratic simulation.
+  Browser verification on 20,040 documents measured 227 ms from opening to the first painted frame.
+
+- Numbered content migration `005-mkb-pointer-enrichment-v2` applies regenerated source-backed
+  classification context to all 9,835 MKB pointers. Pointer reader titles combine the exact code,
+  parent category and subject; bodies omit internal IDs and unavailable-download promises.
+  The staged artifact was checked for unchanged existing IDs, anchors, evidence quotes, definitions,
+  knowledge relations, unrelated documents and aliases before installation into `core.db`.
+- MKB coverage audit (`tools/ingest/scripts/audit_mkb_coverage.py`) joins exact normalized codes
+  against source-backed definitions in the application core; it does not inherit clinical claims
+  from parent codes. Of 9,835 nodes (7,514 exact subcodes, 2,035 categories, 286 ranges), 2,988 have
+  a definition and 6,847 remain classification-only. `output/ux-icd-missing-descriptions.csv`
+  lists the remaining gaps with source URLs and node types. Classification context clarifies a
+  code but does not fill the clinical-description gap or supply treatment recommendations.
+
+Validation for the UX/data slice: 2,701 TypeScript unit tests and 227 Python tests passed;
+TypeScript/Python type checks, Biome, app/landing builds, schema checks, both benchmark suites,
+and the native packaged-source checksum check passed. Browser checks cover sticky chrome,
+single-source navigation, free search/history/personal matches and the full core graph.
+`python:check` remains blocked by three existing Ruff findings in `clinical_aliases.py:606`,
+`test_catalog_module_builder.py:864` and `test_clinical_aliases.py:354`; the remaining Python
+checks were run independently. Native SDK builds and physical devices were not tested.
+
 ### 0.6.32 release preparation
 
+- Vite prebundles the complete Cornerstone runtime together for lazy DICOM viewers and thumbnails.
+  This prevents duplicate rendering-engine registries after dependency discovery in development;
+  the bundled 139-frame CT example opens and advances slices instead of reporting
+  `No rendering engines found`.
+  A fresh browser download and activation of Whisper Base q8 also completed successfully;
+  the reported speech-download failure was not reproduced.
+- Knowledge-base overview cards keep their metadata on one bottom baseline regardless of whether a
+  download action is present. Completed collections show an installed check, while collections with
+  no installable published artifact retain a disabled download affordance that explains why the pack
+  is unavailable instead of silently omitting the action.
+- Transparent sticky page chrome now uses one `safe-area-inset-top + 0.5rem` offset across search,
+  nested catalogs and patient lists without applying the native safe inset twice. Opaque document
+  readers start at the viewport edge, paint behind the status bar, and include the inset in their
+  internal control padding.
 - Android and Pages workflows now use the canonical tracked `core.db`; pilot rebuild jobs no longer
   replace it or commit a smaller demonstration corpus over the discovery index.
 - Secret scanning covers Git-tracked and new publishable source, excluding ignored caches and build
@@ -26,33 +140,222 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   checked against pages 1–2 of the [official Ministry of Health PDF](https://edu.rosminzdrav.ru/fileadmin/user_upload/documents/mz/2026/436n_14.05.2026_kvalifikacionnye_trebovanija__2_.pdf)
   on 2 September; document IDs are preserved and changed cards receive a new edition label.
 
+### Search and package fixes — 5 September 2026
+
+- Informational medication requests constrain candidate retrieval to the named medication before
+  generic instruction/document matches can exhaust the result window. A repeated 70-query run
+  recovered 70/70 targets in both core-only and installed modes (previous installed result 47/70).
+  This run uses UI settings (`auto`, limit 20, suggestions enabled), so it is not a latency comparison
+  with the previous lexical/limit-5 run. `runtime-medication-final-report.json` records MRR@5
+  0.9726 core-only and 0.9190 installed, with zero context-budget violations on the final core edition.
+- Exact source phrases have a separate lexical branch and rank ahead of partial word matches;
+  broad alias retrieval remains available. Definition snippets remain original source text.
+- Pointer package selection requires exact document membership plus a required index artifact with
+  URL and checksum. It prefers an installed matching edition, then the released primary/alternative;
+  experimental preview eligibility is preserved. A pack's installed state alone cannot redirect the
+  reader: the target must be readable. Download completion preserves the requested source anchor.
+- `scripts/hydrate-catalog-membership.ts CATALOG OUTPUT PACK.db ...` derives membership from actual
+  SQLite rows only when the file SHA-256 matches an existing catalog artifact. All 15 published ESKLP
+  release files were downloaded and verified; their 3,324 actual documents now populate the catalog,
+  covering all 3,324 medication pointers. URLs, checksums and preview release states are unchanged.
+  Experimental modules remain controlled by the existing preference (currently enabled by default).
+  Local MKB, regulatory and GRLS files with different checksums were not substituted for releases.
+- Initial source-anchor scrolling waits for the asynchronous document and its rendered section.
+  Loading another document resets the one-time scroll guard, including reopening the same source
+  through a discovery pointer; later section batches do not reset the reading position.
+- Runtime reports now include expected/retrieved targets, corpus coverage (`local`, `discovery`,
+  `absent`) and found/missed outcomes. Recall@5 still measures the first five of the UI's 20 groups;
+  covered recall excludes absent targets, and absence alone is not a retrieval failure gate.
+- The final 12-case contract run (`runtime-contracts-hydrated-report.json`) uses the exact clinical
+  and antiparasitic release files and explicitly enables preview downloads. Both modes retrieve
+  all seven expected targets at rank 1; form/strength, negation, Cyrillic ICD and context checks pass.
+  Five cases per mode still flag unavailable reference downloads: their `minimed.mkb.ru` module
+  has no catalog release. This is an unresolved content-release gap, not a passing download gate.
+- Validation: 2,681 TypeScript and 224 Python tests pass, along with typecheck, application build,
+  lint (existing warnings), and `benchmark:all`. Chromium verifies package install/reopen anchors,
+  experimental medication availability, repeated core reload and reader lookups; reader native-chrome
+  emulation also passes. No physical native device or private-corpus rebuild was used. The aggregate
+  `python:check` remains blocked by pre-existing formatting in `test_core_reference_pointers.py`;
+  changed Python files and the project's Pyright command pass.
+
+### Ambiguous abbreviations and inline navigation — 5 September 2026
+
+- Shared document links retain every distinct target for the same phrase instead of dropping the
+  link. Search and structured source readers show a keyboard-accessible choice preview, with
+  source definitions and exact anchors where present. A longer phrase wins at each occurrence.
+  Current-document families remain excluded from self-links. Personal Markdown/EPUB/PDF readers
+  do not yet receive this matcher; extending them needs a separate rendering integration.
+- Deterministic core projection adds editorial `navigationAliases` for the existing RLS classifier:
+  «МКБ», «МКБ-10», «МКБ 10». The source-declared «МКБ → Мочекаменная болезнь» remains intact.
+  Alias facts preserve different canonical meanings with uncertain polarity and distinct ids.
+  Exact longer names suppress embedded aliases, but a later standalone occurrence remains valid.
+- Exact declared/navigation aliases preserve every matching document through lexical/hybrid chunk
+  cutoffs and outrank incidental mentions. Real core-only checks put the classifier/disease at
+  ranks 1/2 for «МКБ» and the classifier first for «МКБ-10»
+  (`runtime-abbreviations-report.json`): 3/3 retrieval/context checks, download gate still false.
+- Core preview.8 was generated through `content:core:knowledge` and atomically published locally:
+  377,896,960 bytes, 44,214 aliases (+3), unchanged 19,987 document ids and 33,861 chunk ids;
+  SQLite integrity/FKs pass. SHA-256:
+  `b222441a936aa7993155c30cc60b40be25051ac470eb0f7acbed067e0746c911`.
+  Source-set digest, original source text and source anchors remain unchanged.
+- Installed medication contract regression (`runtime-contracts-ambiguity-report.json`): all 13
+  expected targets found across 20 cases, MRR@5 0.8718, zero context errors; form/strength, negation,
+  Cyrillic ICD and plant-avoidance checks pass. Thirteen queries still have unverified download
+  targets (including the unpublished MKB module), so the aggregate report is correctly false.
+- Chromium verifies both «МКБ» search choices, navigation to the selected disease/classifier,
+  and a multi-target preview inside the structured source reader. At 390×844 the definitions are
+  visually clamped to four lines so alternatives remain visible; full source text is preserved.
+  Escape closes the preview with unchanged reading position; its source action opens the selected
+  pointer with the original paragraph anchor. Screenshot:
+  `output/playwright/ambiguity-reader-mobile.png`.
+- Verification: 2,702 TypeScript and 227 Python tests pass; check, typecheck, build, benchmark:all
+  and Pyright pass. Aggregate python:check stops at pre-existing formatting in
+  `mkb_pointer_migration_005.py`. No native or private-corpus rebuild was needed.
+
+### Search precision follow-up — 5 September 2026
+
+- Lexical and hybrid chunk fusion now preserve exact subject-title candidates until document
+  ranking. This fixes the reproduced case where the store returned the exact «Сепсис» pointer but
+  fusion discarded it before title ranking. Other candidates keep their existing bound.
+- The positive-symptom branch also runs for plain descriptions with unknown intent. Inflected
+  component aliases are excluded from medication expansion: «инфекции» no longer means an entire
+  combination vaccine. Explicit medication/treatment intents keep their existing behavior.
+- Clinical results containing a literal/canonical positive finding in their title or displayed
+  snippets precede incidental background-word matches. Alias matched-term lists alone do not count
+  as source evidence; negated query findings remain excluded. No symptom-to-diagnosis rules were added.
+- An experiment retaining every branch candidate regressed respiratory retrieval to 48/60
+  (`runtime-symptoms-unbounded-report.json`) and was rejected. A subsequent intermediate 52/60
+  result (`runtime-symptoms-precise-report.json`) exposed one apnea wording regression, motivating
+  the source-evidence priority. These intermediate reports are not the final acceptance result.
+- Final named-condition retrieval: 60/60, MRR@5 0.8144 (previously 59/60, 0.8061), with MKB
+  installed (`runtime-diseases-accepted-report.json`). Final symptoms: 56/60, MRR@5 0.7028
+  (previously 51/60, 0.6417), using the three legacy full respiratory documents
+  (`runtime-symptoms-accepted-report.json`). Both have zero context errors. Four symptom misses
+  remain: plain/navigation variants of «лихорадка больше трех дней и дыхательная недостаточность»
+  and «острый кашель после инфекции без признаков пневмонии». Disease/symptom download gates
+  remain false (48/59 unverified queries respectively). These cohort snapshots use core preview.7,
+  before the abbreviation follow-up below; the legacy respiratory files are not a catalog release.
+- Medication regression: 70/70, MRR@5 0.9167, unchanged, with all 70 download-target checks verified
+  (`runtime-medications-precise-report.json`, core plus `medications-unified.db`). Syndromes: 40/40,
+  MRR@5 0.875 (`runtime-syndromes-precise-report.json`, core plus MKB). Both have zero context errors;
+  27 syndrome queries still have an unverified download target, so that report remains overall false.
+- Verification: 2,693 TypeScript and 224 Python tests, check, typecheck, build and the compact/long
+  benchmark suites pass. Check retains 18 pre-existing warnings and 229 infos. No UI/native code or
+  generated database was changed by this follow-up; browser/native/private-corpus rebuilds were not run.
+
+### Disease and symptom retrieval audit — 5 September 2026
+
+- Named-condition queries discard navigation preambles before FTS and title ranking, preserving
+  original text and fact offsets. Exact subject phrases keep virus-type letters in title matching;
+  short terms such as «рак» count, while «боль» does not title-match «большой».
+- MedicalCore filters one-letter source aliases before analysis, expansion and presentation lookup.
+  A real vaccine alias «С» previously misclassified «острый гепатит С» as a medication query.
+  Source-type medication bonuses now require a named medicine and do not apply to symptom narratives.
+- Symptom narratives score multiple positive clues in one source snippet. Seven literal respiratory
+  findings were added to the existing expression dictionary with source trace in `SEARCH.md`.
+  Negated findings are excluded from title bonuses and from alias/intent/clause branch expansion,
+  including inflected canonical forms; no symptom-to-diagnosis inference rules were added.
+- The frozen 60 symptom fixtures target three legacy full-document IDs. None exists in the old
+  core/medication/ambulatory/MKB/reference/regulatory benchmark composition. They do exist in
+  `data/build/full-respiratory-rf.db`, now explicitly mounted for this cohort. Queries and expected IDs
+  are unchanged; old 0/60 and the new covered-corpus result are not a like-for-like ranking comparison.
+- The same-input disease comparison improved from 51/60 in both modes to 59/60 core-only and 58/60
+  with MKB (`runtime-diseases-before-report.json`, `runtime-diseases-after-report.json`), before the
+  subsequent one-letter-alias/virus-title fixes. The first covered symptom run found 41/60; vocabulary
+  and alias corrections raised it to 51/60 (`runtime-symptoms-final-report.json`). Final reruns below
+  retain their exact pack composition rather than claiming a complete clinical corpus.
+- Final installed/MKB disease rerun: 59/60 (98.33%), MRR@5 0.8061, zero context errors
+  (`runtime-diseases-final-report.json`), compared with 51/60 and MRR@5 0.7194 on the same inputs.
+  «Острый гепатит С» is rank 1. `disease-42` (the specific expected sepsis document) remains a miss;
+  other sepsis sources are retrieved, which does not satisfy this fixture's exact target.
+- Final respiratory rerun: 51/60 (85%), MRR@5 0.6417, zero context errors
+  (`runtime-symptoms-final2-report.json`, core plus the legacy full respiratory pack). Nine present-
+  corpus misses remain: scenarios 2, 3 and 12 each miss two wording variants; scenario 18 misses all
+  three variants. These concern poor feeding/difficult breathing with rales, apnea with viral illness,
+  fever with respiratory insufficiency, and cough without pneumonia signs. They are unresolved
+  retrieval misses, not absent-corpus cases. The negative-branch/title fixes pass mechanism tests but
+  do not by themselves retrieve scenario 18's expected bronchitis source.
+- Medication regression with core plus `medications-unified.db` remains 70/70, MRR@5 0.9167,
+  with zero context errors and all 70 download checks verified
+  (`runtime-medications-regression-report.json`). This run is limited to that named medication pack,
+  not every optional package combination.
+- The expanded 16-case contract run (`runtime-diagnosis-contracts-report.json`) passes all nine
+  expected-target checks in each mode, form/strength checks, negative findings and Cyrillic ICD,
+  including `м16.1`; context errors are zero. Unavailable reference download targets remain a separate
+  failing gate. A virus-letter case was subsequently added to the permanent contract set.
+- Validation: 2,689 TypeScript tests and 224 Python tests pass, along with lint (existing warnings),
+  typecheck, app/landing build and `benchmark:all`. No UI, native or database-format changes were made;
+  browser/native/device checks and private-corpus rebuilds were not run for this slice.
+
 ### Data + search snapshot (measured)
 
-- Production `apps/app/public/content/core.db` is `minimed.core.ru@1.0.0-preview.3`,
-  `97,431,552` bytes, SHA-256
-  `fb7f54ac5e185ad3c7dc7785632b1774ff3699ed5c4dfd22930f74c851085b80`, source-set digest
-  `sha256:fb6b81dc769d23148170f990177b23a693e65ca31850817d3984df7d6d042508`; it contains 4,083
-  documents, 11,798 sections, 11,810 chunks, and 31,949 aliases. FTS coverage is `11,810/11,810`,
+- Production `apps/app/public/content/core.db` is `minimed.core.ru@1.0.0-preview.7`,
+  `377,892,864` bytes, SHA-256
+  `9bdb140bd5bec6c9533a7a39f4fdb44281cefcfd0a678df6cb07fd756dbcb273`, source-set digest
+  `sha256:8e68982002d4fe01efe765ba06969cd13d72a94ce6ff6fce46c51cf2479e1993`; it contains 19,987
+  documents, 33,849 sections, 33,861 chunks, and 44,211 aliases. FTS coverage is `33,861/33,861`,
   SQLite integrity is `ok`, and foreign-key violations are `0`.
+- The composer now projects source-backed navigation into the existing knowledge tables: 30,220
+  entities, 43,106 names, 17,994 relations, 87 facts and 26,128 document links. Stable concept IDs
+  derive from source document IDs, not names; identical names do not silently merge sources.
+  The projection links all 6,147 existing definition previews to their original document/version,
+  section, chunk and anchor. Only 79 definitions with an exact local chunk quote become additional
+  facts. Another 6,068 definitions now have verbatim discovery chunks and FTS rows, bringing
+  searchable definition links to 6,147. Existing version/section/chunk/alias rows are unchanged;
+  generated excerpt anchors map to the original source anchors when opening the full document.
+  Explicit synonyms become names; keywords, specialties, age categories and ICD codes stay tags.
+  ICD membership is proposed `classification-only` evidence, never automatic clinical approval.
+  Recomposition replaces only generated projection rows and preserves editorial knowledge.
+  `bun run content:core:knowledge` writes a staging edition for validation before publication.
 - The runtime file is now canonically named `core.db`; the former `core-demo.db` name is retired in
   application loading, service-worker caching, native bridge checks, tests, and publish scripts.
   Per ADR 0017, this database is the lightweight discovery index: medication names, aliases,
   clinical disease synonyms/keywords, provenance, and module pointers stay in core, while complete
   ESKLP/GRLS/Allmed reader data belongs in the separate `medications.db` pack.
 - The bundled-core registry now derives version, source-set digest, and installed size from the
-  validated module catalog entry. The catalog and runtime therefore both advertise preview.3 and
-  cannot silently retain preview.2 metadata after a core replacement.
+  validated module catalog entry. The catalog and runtime therefore both advertise preview.7 and
+  cannot silently retain older metadata after a core replacement.
 - The core contains lightweight ESKLP medication pointers: 3,324 documents, 10,996 sections,
   11,008 chunks, and 21,610 aliases. It also contains 744 clinical-recommendation disease pointers,
-  744 exact recommendation-module IDs, 791 disease aliases/synonyms, and 1,205 explicit keyword
-  values (992 normalized-unique) across 159 recommendations. All 744 clinical databases were
-  scanned and all 744 had a `Ключевые слова` section heading; only 162 chunks contained non-empty
-  keyword-section text, yielding accepted values in 159 records. The baseline merge artifact had
-  161 records and 1,282 values; the conservative pass removed 77 misleading TOC/abbreviation
-  values from two sections and added zero new safe source terms, preserving the current 159/1,205
-  coverage. Keyword provenance retains the source section, chunk, and source text. Those keyword
-  values improve recall; they are not treated as exact diagnoses or as clinical assertions. TOC
-  leakage and abbreviation entries from malformed keyword blocks are excluded automatically.
+  744 exact recommendation-module IDs, 580 audited disease aliases/synonyms, 79 strict source-backed
+  definitions, and 1,235 explicit keyword
+  values across 163 recommendations. Keyword provenance retains the source section, chunk, and source
+  text. Those values improve recall; they are not treated as exact diagnoses, inline-link aliases, or
+  clinical assertions. TOC leakage and abbreviation entries from malformed keyword blocks are excluded
+  automatically.
+- A further 15,904 compact MKB/RLS and disease-reference pointers add 12,432 diagnostic aliases while
+  leaving full article text and images in the separate companion database. Their raw declared types are
+  12,232 diseases, 2,548 conditions, 784 syndromes, 339 symptoms, and one classification entry. After
+  title/ICD grouping and runtime fixture filtering, the visible catalog contains 9,030 diseases, 2,547
+  conditions, 402 syndromes, and 339 symptoms (12,318 cards total).
+- The compact pointers carry 6,068 exact `Краткое описание` excerpts from the local disease-reference
+  corpus with source document/version/section/chunk anchors. Together with 79 strict KR definitions,
+  `core.db` exposes 6,147 source-backed definition previews without copying complete articles or images.
+- The 500-query full `mkb-diseases.db` retrieval gate passes with Recall@5 `0.938`, MRR@5 `0.9424`,
+  and top-1 `0.898`. Section recall is not measured by that fixture (`0` section-labelled queries).
+- Document readers include `core_catalog_pointer` titles and declared aliases in the prefix-bucket
+  inline-link matcher. Broad recommendation keywords remain searchable but are not link targets: for
+  example, `Магнитно-резонансная томография` cannot route to a disease merely because its recommendation
+  lists that method as a keyword. Three-letter abbreviations are supported; when the corresponding
+  full document is installed it replaces the pointer as the link target. This reuses the 4,068 bundled
+  catalog pointers instead of creating a second glossary or a catalog-sized regex.
+- Clinical pointers can now carry one exact canonical definition copied from the recommendation's
+  `Термины и определения` section. The definition retains a stable ID plus source
+  document/version/section/chunk/anchor, appears before technical pointer metadata in the reader, and is
+  shown directly on the unified condition card with a deep link back to the source recommendation. The
+  audited deterministic 2026-09-04 pass found 99 complete, title-specific definitions across 744
+  clinical records while preserving 800 aliases, 1,235 keywords, and all 1,049 existing proposed
+  medication links. Incomplete line fragments and matches through a generic one-word alias are rejected;
+  unmatched terms remain visibly definition-free rather than receiving generated text.
+- Reader links with a canonical definition open a compact in-place preview first and offer an explicit
+  card/document action. Reader Back traverses linked documents in reverse order before returning to the
+  originating search or catalog page.
+- The bundled `reference.db` and downloadable reference artifact now contain 18 documents, 94 sections,
+  94 chunks, and 29 aliases. The new sourced laboratory card covers selected age-specific CBC,
+  biochemistry, and CSF intervals plus explicitly adult-only urine orientation; its UI copy directs the
+  clinician to prefer the performing laboratory's method-specific interval. Both SQLite copies have
+  integrity `ok`, zero foreign-key violations, and SHA-256
+  `1822dede2898f6781236cc638cd8bf1c0885d821e864746940e271bcbada7213`.
 - A deterministic clinical-recommendation/MNN candidate extractor links exact ESKLP MNN
   identities to source-exact positive recommendation passages without rebuilding the source
   databases. On the 723 locally available clinical modules it produced 1,049 `proposed` relations
@@ -105,10 +408,25 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - SQLite/FTS5 retrieval with SQLite WASM fallback and compatible native read-only storage adapters.
   Native database leases stay open across core replacement, so reconnecting installed packs cannot
   close the replacement store underneath document reading.
+- ICD-10 search normalizes Cyrillic lookalikes in code-shaped tokens (`А09`, `С50`, `М16`) through
+  the shared lexical normalizer and the condition catalog. Russian prose and spaced concentration
+  phrases retain their original meaning, and normalized highlight offsets stay aligned with source text.
+  Medication form/route/strength filtering now also applies to canonical MNN queries, requiring those
+  facts in the same result instead of bypassing the check when no trade-name alias was used.
 - Deterministic portable embeddings and hybrid lexical/vector fusion. Browser WASM vector search
   runs as a two-phase top-K scan (light embedding rows first, heavy hydration only for candidates,
   mirroring the native adapter), and lexical search widens its SQL pre-limit while specialty or
   age-group filters are active so filtered result lists no longer come back short.
+- Search is retrieval-only: `Свободный поиск` is the default scope, returns at most 20 document
+  groups with exact source fragments, and does not run a generative model. The result count is a
+  display cap; retrieval quality is evaluated at the first four positions. Diagnosis scope preserves
+  deterministic clinical ordering by putting clinical recommendations before reference material.
+  Personal notes and unlocked patient cards remain a separate local result surface.
+- The throwaway E5 CLI prototype now canonicalizes pointer/summary/full recommendation families and
+  uses query-aware lexical/semantic interleaving. On the generated 500-query suite this raised
+  Recall@4 from `0.998` to `1.00`, Recall@1 from `0.924` to `0.940`, and MRR@20 from `0.9560` to
+  `0.9675`, with 13 improved ranks and one worsened rank. The 113 MiB model remains outside the app
+  until clinician-written blind queries and physical Android checks confirm the gain.
 - Russian patient-case parsing, negative findings, bounded query branches, medical abbreviations, and
   missing-field prompts; the symptom lexicon recognizes nosebleed phrases such as `кровотечение из
   носа`, rhinitis phrases such as `насморк`, and sore-throat phrases such as `боль в горле`, with
@@ -126,6 +444,24 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   both pass intent/entity F1, critical-context exactness, and negation polarity at `1.00` on both
   splits. The corpus remains synthetic and bounded; rotating-seed scheduling and model-assisted
   paraphrase mining are not yet release evidence.
+- Search analysis now distinguishes medication-dose and infusion-volume calculation intent. An
+  explicit dose phrase, or a recognized medicine plus patient age/weight, can offer an installed,
+  source-backed calculator before the unchanged document results; unsafe/already-administered and
+  informational wording abstains. Ambiguous or fuzzy medicine matches require selection. The card
+  prefills only schema-bound age, weight, formulation, route, and indication fields, preserving the
+  option order declared by the calculator. With no matching installed schema it is omitted. A
+  deterministic `proposed` benchmark generates 500 unique Russian routing cases: 225 medication
+  dose, 75 infusion volume, 50 other calculator, and 150 ordinary-search cases; all medication and
+  infusion cases are exercised against the current deterministic gating. No dose facts are inferred
+  from ESKLP metadata or published by this feature. The search field also has an offline `@`
+  calculator picker: it inserts
+  `@Калькулятор:<stable-slug>`, removes that control token before ordinary retrieval, and shows the
+  explicitly selected installed calculator as the first card even when the remaining query is
+  empty. Its viewport-aware list opens outside the search sheet's clipping boundary and keeps the
+  keyboard-active option visible. Selected and suggested calculators now run inline in search with
+  the same schema-driven inputs, guidance, results, charts, and actions as the calculator page;
+  opening that page remains an explicit secondary action. Free text may prefill only the same
+  unambiguous schema-bound fields; calculation starts after the user presses `Рассчитать`.
 - The installed pilot corpus does not yet contain reviewed, evidence-backed relations for general
   allergy, rhinitis, sore-throat, antipyretic, or hypertensive-crisis treatment queries. Search does
   not infer these treatment edges from ESKLP metadata; adding them requires applicable clinical or
@@ -136,7 +472,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Short name lookups promote a document or medication whose title/trade name *is* the query
   (for example `Парацетамол`) above combinations and sources that only mention the term. The
   medications catalog sorts those hits by the same name-first rule instead of alphabetically.
-- Search is hidden until the user selects a scope; scopes with no installed documents are disabled.
+- Search starts in the all-source `Свободный поиск` scope; narrower scopes with no installed
+  documents are disabled.
 - Query analysis and deterministic retrieval run in a Web Worker, and long result sets are window
   virtualized.
 - MedicalCore loads aliases once per initialized core lifetime and executes independent bounded
@@ -175,13 +512,14 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   inside the primary button. Nested document links navigate to another documents hash page and append a breadcrumb
   instead of stacking reader dialogs. Supported text/Markdown documents can switch to a paper-free book mode
   from the reader menu; pinch-zoom scales the whole document in place without opening preview, and a horizontal
-  swipe opens or hides the outline. Reader actions are capability-driven: print/fullscreen are exposed only
-  for renderers that support them, reading mode is limited to text/Markdown, and the PDF two-page spread
+  swipe opens or hides the outline. Reader actions are capability-driven: standard document readers use
+  the auto-hiding app chrome instead of a separate fullscreen mode, reading mode is limited to
+  text/Markdown, and the PDF two-page spread
   stays PDF-only; PDF zoom controls and pinch zoom keep the horizontal scroll locked; safe-area chrome stays sticky until
   downward scrolling hides it and upward scrolling shows it again, while reader content reserves
   the bottom-navigation band; sticky document headings follow the hidden chrome to the safe-area edge
-  and keep an opaque paper fill. Fullscreen keeps the existing selectable text surfaces in place.
-  PPTX slide clicks still open the zoomable media viewer; PDF pages zoom in place and keep their
+  and keep an opaque paper fill. PPTX slide clicks still open the zoomable media viewer; PDF pages
+  zoom in place, rerender at the enlarged surface width after layout changes, and keep their
   selectable text layer.
   Find is disabled when an upload has no extractable text.
 - Search-result context remaps stale pilot-summary chunks to installed full-text siblings and falls back
@@ -354,7 +692,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   collection is represented by the recommendation sections instead of a duplicate top-level card.
   Drilldown exposes two-column module collections with user-facing release states and inspectable
   document lists, all 21 recommendation sections without an extra reveal step, full-document opening,
-  bulk download, background update pause on the documents root catalog only, rollback to retained older versions, and nested URLs for
+  bulk download beside catalog search with a storage-size confirmation, knowledge-pack auto-updates in Settings (preserving the former pause preference), rollback to retained older versions, and nested URLs for
   opened collections and sections. Downloadable overview sections have their own download action;
   bulk and section installs mark every affected card as queued or active, with animation reserved for
   active work. A completed install swaps the mounted search core immediately and refreshes any active
@@ -402,9 +740,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   from the real chrome (the paper title is not pinned). On native Android the page itself draws under a
   translucent status bar (`.app-shell--native` has no top desk padding). Page surfaces keep a negative
   `--safe-top` margin so the folder paint sits under the bar, and double `--safe-top` padding so text
-  starts below it. Sticky catalog/search chrome adds `--safe-top` only once stuck; blur layers animate
-  through opacity in the page stacking context and stay under search fields and `/search` tools (the
-  shell no longer mirrors that blur over header controls). Official and user document readers extend
+  starts below it. Transparent catalog/search chrome stays below the status bar without adding a
+  second inset when stuck. Its per-surface blur/grain begins at the viewport top, covers the full
+  sticky element, and fades below it through a mask. Official and user document readers use an opaque
+  header from `top: 0`, include the inset inside their control padding, and extend
   the folder surface under the floating bottom nav with the same negative bottom margin as other
   full-height page surfaces. The bottom nav is portaled to
   `document.body` and uses only the locked `--nav-safe-bottom` inset (never a flickering
@@ -412,9 +751,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   bottom clearance to that same locked inset.
   Outgoing root views isolate their fixed overlays below the incoming navigation surface. Hover styles
   use `@media (hover: hover)`.
-- The diagnosis search actions expose the local-model control on the left; it toggles a ready model,
-  fills the brain-download icon with download progress, and opens Settings when the model is not
-  loaded yet.
+- Search actions expose only source retrieval and installed tools; generative-model controls are not
+  part of the search surface.
 - GitHub release links use a rolling `android-latest` APK asset, and the search history drawer shows
   text links to the repository and current Android build at its bottom.
 - The document library uses a virtualized full-width list. The embedded core library reuses the
@@ -437,6 +775,17 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   green rather than the inner input.
 - Allmed reference preparation converts known HTML fragments in medication sections and production
   metadata to readable Markdown while preserving the source SQLite snapshot unchanged.
+- Core discovery includes metadata for all 50 schema calculators and 19 assessments from all eight
+  tool packs, alongside the two built-in calculators. The mandatory bundled module catalog lists
+  each tool before any pack download, including its exact owning pack; `bun run content:catalog:tools`
+  regenerates these entries from `content/tool-modules/*.json`. Executable steps and questionnaire
+  questions remain in the downloadable packs. Catalog cards and search stay visible without those
+  packs; saved install flags alone never mark a missing payload ready. A tool download targets its
+  own pack, including tools sharing a section across packs, and loaded definitions replace catalog
+  metadata without duplicates. Preview-pack visibility does not change the experimental-install gate.
+  Browser QA with tool downloads blocked confirmed both catalogs remain visible; installing a
+  psychology card unlocked its pack, and downloading Child–Pugh from the gastroenterology section
+  fetched the core-clinical pack while leaving the separate gastroenterology tools uninstalled.
 - Assessment tests and medical calculators are grouped into downloadable sections. The assessments
   home search filters specialty cards (hiding empty or unavailable sections while searching) instead of
   replacing the grid with a flat test list; catalog, calculator, and assessment empty queries share
@@ -454,6 +803,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Printed
   assessments and calculator results link only to the public MiniMed app; assessment printouts omit
   internal limitation/version lines, and note-linked results place the note card title beside the date.
+  The temperament result uses the same four-quadrant target on screen and in print, with the
+  respondent marked by extraversion and emotional-stability scores. Completed assessment results can
+  print either alone or together with every question and selected answer.
   Pasted document links with `?o=` (or legacy `dialog` + `section`) migrate to
   `#/modules/documents/d/<token>` on load. Legacy `#/read/…` hashes migrate the same way.
   Schema calculators support staged inputs via `step`/`stepRequired`; the fluids section includes a
@@ -770,8 +1122,33 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   ORS); `minimed.tools.obstetrics-gynecology.ru` preview.3 (full ObCalc set plus Apgar, EPDS, Ferriman–Gallwey,
   and Whooley); `minimed.tools.psychology.ru` preview.2 (Braverman, egogram, PAEI, team roles,
   temperament, and SHAS);
-  plus gastroenterology preview.2, neonatology, pediatrics, and emergency, plus the separate
-  `minimed.tools.pediatrics-growth-demo.ru` pack with the non-clinical approximate growth-chart demo.
+  plus gastroenterology preview.2, neonatology, pediatrics, and emergency, plus the separate preview
+  `minimed.tools.pediatrics-growth.ru` 0.3.0 pack. Its ВОЗ calculator calculates filled growth, mass, BMI, head and
+  mid-upper-arm circumference indicators from embedded ВОЗ 0–5 and 5–19 LMS tables, emits z-scores,
+  percentiles and charts, prints through the shared calculator result path, and records both source
+  measurements and derived indicators into the selected patient's longitudinal observations using
+  the entered measurement date. Schema inputs may expose compact label tooltips and may remain
+  disabled until an earlier prerequisite input is filled; anthropometry uses this to gate all fields
+  after date of birth and to explain method and indicator-specific size ranges. Required inputs and
+  schema-declared `atLeastOne` groups are marked in the form, and Calculate remains disabled until
+  those constraints are satisfied. The form accepts
+  body mass in whole grams, converts it to kilograms for ВОЗ calculations and longitudinal storage,
+  and converts stored patient kilograms back to grams when prefilling the field. Age boundaries in
+  visible help use years/months rather than implementation day offsets, and tooltips dismiss on an
+  outside pointer action. Generic schema
+  visuals support bounded XY sampling, labelled axes, semantic line/point styles, and preserved chart
+  titles; the growth pack uses these for percentile curves with a separate child point. Its aliases cover
+  «z-score для детей», «перцентили детей»,
+  «детский рост» and «детский вес». Official WHO standards, WHO Anthro/AnthroPlus tools, and raw-table
+  provenance links are visible from the calculator page before data entry as well as from the saved
+  result. While Experimental modules are enabled, the calculator catalog and the anthropometry
+  section name this optional pack and install it directly without routing through the knowledge-base
+  catalog. The same pack now contains a separate AAP 2017 office-BP calculator for ages 1–17: it uses
+  completed calendar age, both mean SBP/DBP values and the nearest published height column below age
+  13, switches to fixed adolescent thresholds on the 13th birthday, and records height and BP in the
+  patient timeline. Its transcribed tables remain preview/experimental and require an AAP permissions
+  decision before a public release. Fenton 2025 remains blocked because the current LMS dataset is
+  distributed by University of Calgary on request without a public redistribution license.
   EPDS `1.1.0` uses V. V. Golubovich's 2003 Russian adaptation: all ten prompts and answers match
   [instruction 158–1203](https://med.by/methods/pdf/full/158-1203.pdf), appendix 2, pp. 7–8;
   item order, IDs and the 0–30 key are preserved. Interpretation now cites the source's 8–9-point
@@ -789,8 +1166,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   Assessment catalog counters use i18n plural messages selected by the active locale's
   `Intl.PluralRules` (Russian «тест / теста / тестов»), including counts shown on section cards.
   Assessment score bands for
-  downloaded questionnaires come from JSON `interpretations` (`minScore`/`maxScore`/`headline`/`message`),
-  not hardcoded engine branches. Hadlock gestational age by biometry (`obstetric-ga-biometry`) is a
+  downloaded questionnaires come from JSON `interpretations` (score bands or declarative `when`
+  expressions), not hardcoded engine branches. Questionnaire and calculator graphs share the JSON
+  `visuals` contract and the Chart.js renderer; the temperament profile declares its scatter point,
+  axes, endpoint labels, quadrants, rings, caption, and size in the psychology module schema. Hadlock
+  gestational age by biometry (`obstetric-ga-biometry`) is a
   CalculatorSchema in `minimed.tools.obstetrics-gynecology.ru` preview.2; the expression language has
   `present(name)` so optional biometric inputs can be averaged. Search query analysis still runs in a
   Web Worker after downloaded modules are installed (`createBrowserWorkerCore` remounts IndexedDB packs).
@@ -835,9 +1215,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   closed; laboratory revisions retain their kind and report range while tool results remain immutable.
   Shared vault mutations are serialized, and locked patient surfaces acknowledge state removal before
   the privacy curtain is released. The prior DEV vault database is dropped without migration.
-- Module and model downloads share retry/backoff and resumable partial bytes, but use independent
-  network lanes: up to three document installs run concurrently while additional documents remain
-  queued, and the selected model always receives its own download slot. Content-pack progress is a pie
+- Content-module downloads use retry/backoff and resumable partial bytes. Up to three document
+  installs run concurrently while additional documents remain queued. Content-pack progress is a pie
   on the top-right of the Settings icon while a pack is queued, transferring, or installing; failed or
   idle packs hide that pie. The manager lives at `#/settings/downloads` rather than a
   floating pill. A single document runtime
@@ -850,14 +1229,11 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - The knowledge graph remains interactive during hover/focus and visually distinguishes clinical,
   medication, legal, and personal-note sources; its canvas supports wheel zoom, pan, and two-finger
   pinch zoom on touch devices. The embedded graph dialog is 95dvh tall.
-- Model settings live in Settings (`#/settings`); the optional local model loader indicator sits on
-  the settings nav icon when no content-pack download pie is covering that corner. Settings sections
-  use paper-sheet cards with headed icons. The downloads card is a whole-card link to
+- Generative local-model selection is hidden from the product UI; its catalog, runtimes, and tests
+  remain research infrastructure. Task-specific installers remain product features: ECG digitizer,
+  ECG numeric diagnostic, and speech-recognition models are still downloadable from Settings and
+  run locally. Settings sections use paper-sheet cards with headed icons. The downloads card is a whole-card link to
   `#/settings/downloads`; hover uses the accent border, and an idle card reads «Тут будут ваши загрузки».
-  Model settings use the shared paper theme tokens, and the
-  available-models row uses a chevron disclosure. They distinguish always-available offline search
-  from the optional local model and expose model size, requirements, advantages, limitations, and
-  model selection.
 - Device preferences in Settings persist vibration on/off (default on), remember-search-mode
   (default off), floating windows (default off), Experimental modules (default on), and zen-pack UI
   sound volume (default 20%; zero mutes and stops playback).
@@ -880,11 +1256,20 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Browser application updates install in the background but wait for explicit approval on the search
   sticky toolbar or the Settings checker (compact percent while an APK downloads) before the new
   service worker activates and reloads the page. Android does not register that worker; before an
-  APK update the native updater removes old worker registrations and CacheStorage so hashed bundles
-  cannot leave a blank screen. Android checks the latest GitHub release, downloads a newer APK through
-  explicit `CapacitorHttp.get` (global CapacitorHttp stays disabled so module `fetch` is not patched),
-  writes it in chunks through `LocalMedUpdate`, and hands the file to the system installer. Published
-  tool packs (`minimed.tools.*`) auto-install at boot; the medications companion stays user-initiated.
+  APK update it preserves the WebView offline caches. Android checks the latest GitHub release and
+  streams its APK directly into an app-private `.part` file through `LocalMedUpdate`: JavaScript never
+  receives a file body. It follows HTTPS-only redirects, uses a 64 KiB buffer, atomically promotes a
+  complete file, and checks published size/digest when the release API supplies them; a failed replacement
+  retains an old ready APK. The task journal keeps artifact identity (including the
+  release version), progress, validators and status; resume reads the actual offset from the `.part`
+  file, rehashes it in full, restarts on a full, changed, or unverifiable range response, and accepts 416 only after
+  size/digest validation. Android 14+ runs the visible,
+  user-started transfer as a UIDT job; API 24–33 use one foreground data-sync service with progress and
+  cancellation notification when Android permits it. Interrupted work is recovered as resumable rather than a permanent
+  spinner, while user cancellation removes its partial file. Background completion never opens the
+  installer: only a later explicit ready-state action does. Global CapacitorHttp remains disabled so
+  module `fetch` is not patched. Published tool packs (`minimed.tools.*`) auto-install at boot; the
+  medications companion stays user-initiated.
   The packaged web assets include the Core SQLite (`core.db`) and all tracked local module
   SQLite files; large companion databases stay optional local-dev or release assets and are stripped
   from `dist` when unavailable. Android aapt ignores those companion filenames explicitly —
@@ -930,12 +1315,12 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - In-document tables and images pinch-zoom 1–3× with an opaque fill, a dimmed lightbox, and a smooth
   reset on scroll or a click beside the figure. The fullscreen media viewer zooms from the top-left
   and grows its scrollport to the scaled size on both axes so every edge is reachable, with − / 100% /
-  + controls on the left of the toolbar (100% restores 1×). Clinical full-text install progress and local-model download progress show in
-  the reader button and the diagnosis brain-download icon.
+  + controls on the left of the toolbar (100% restores 1×). Clinical full-text install progress shows
+  in the reader button.
 - Installed-content changes re-run the active query without clearing the visible results and announce
   the refresh state.
-- Diagnosis mode includes a visible explanation that local model output can be wrong, must remain
-  source-grounded, and does not replace clinical responsibility.
+- Search help explains that results are local source references, personal material stays separate,
+  and retrieval does not replace clinical responsibility.
 - The landing page and browser app are built together for GitHub Pages; the application is published
   below the site at `/app/`. Pages builds regulatory and reference databases in CI and treats
   `medications.db` / `ambulatory.db` as optional GitHub-release companions so a matching tag is not
@@ -967,6 +1352,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   scrollable row with explicit previous/next controls. Previews enlarge in-place, delete from an
   icon with confirmation, and support long-press multi-select. Saved images and files also render
   inline in the timeline record body and open through the attachment viewer.
+- Markdown notes can create and reopen editable Excalidraw diagrams through the toolbar or `/схема`.
+  The React editor, its fonts, and Russian UI load lazily from bundled assets; scenes remain local
+  Excalidraw JSON attachments with an inline preview and optional SVG export, and remote embeds are
+  disabled.
 - The user library always exposes a protected root folder named «Заметки». Notes are mirrored there as
   Markdown files and note attachments as regular local-library files; the current note stores remain
   the source of truth and synchronize on note or attachment changes. Editing a mirrored Markdown note
@@ -984,15 +1373,24 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   searches only personal notes and user-uploaded books and never queries the official SQLite corpus.
   Personal hits require every distinctive query stem (inflected forms still count); a shared leftover
   such as «дети» or «мг» no longer surfaces a book or note that does not contain the specific term.
-- User documents open in their original form where possible: EPUB renders through epub.js in a
-  continuous scroll, PPTX renders every slide in the document flow, and DOCX through docx-preview
+- User documents open in their original form where possible: EPUB renders through epub.js in the
+  page scroll flow, uses the book's own table of contents, and hides the shared app chrome on scroll;
+  EPUB and FB2 readers do not expose a separate fullscreen action;
+  PPTX renders every slide in the document flow, and DOCX through docx-preview
   (all bundled offline; legacy DOC remains downloadable); EPUB/FB2 extraction honors legacy Cyrillic XML encodings while extracted text
   still powers search. Presentation print sends one rendered slide per A4 landscape page; text-oriented
   print uses ГОСТ 7.32-2017 margins (30/15/20/20 mm), 1.5 line spacing, and a 12.5 mm first-line indent
   without overriding document fonts.
   Persistent text highlights are stored per document/page in IndexedDB and painted with CSS Custom
-  Highlights; selecting text offers add/remove actions. PDFs are shared/printed as the original file;
-  EPUBs are rendered through epub.js before printing.
+  Highlights; selecting text offers add/remove actions. EPUB selections use the same store with CFI
+  ranges so marks survive reopening. PDFs are shared/printed as the original file; EPUBs are rendered
+  through epub.js before printing.
+  EPUB navigation now uses the rendition queue and synchronous page scrolling: global smooth
+  scrolling and browser scroll anchoring no longer compete with epub.js chapter compensation.
+  Text, FB2, DOCX and EPUB selections offer yellow, blue, green, pink and red highlights; legacy
+  records remain yellow. Tapping a saved mark opens its removal action, and the shared palette stays
+  within the viewport. Native selection collapse no longer dismisses that removal action; the text
+  popup follows its source range during page scrolling and closes when that range leaves the viewport.
   OCR runs
   only when requested from the card menu, book mode and in-document search stay disabled without
   extractable text, and the reading-mode paper keeps its light fill. Files support multi-select
@@ -1023,23 +1421,24 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   phone viewports; clipped CT/MRI titles use an overflow-aware marquee. Dragging inside a 3D volume
   tile depth-picks and moves the crosshair for mouse input, immediately aligning the three-plane
   cutaway to that position. On touch, single-plane taps move the crosshair and vertical swipes scrub
-  slices; the 3D view exposes a cycling X/Y/Z slice-axis control and vertical touch swipes scrub the
-  selected axis instead of relying on imprecise cursor clicks. An active-by-default floating sphere
-  control stays in the render tile's top-right corner and switches between 3D rotation and crosshair
-  movement for mouse input. Volume renders open from 45° above the posterior-left side and reset back
-  to that view.
+  slices; the 3D view exposes separate X/Y/Z slice-axis controls over the render tile, and selecting
+  one makes vertical touch swipes scrub that axis instead of relying on imprecise cursor clicks. An
+  active-by-default floating sphere control shares that overlay and enables direct 3D rotation by
+  mouse or one-finger drag; turning it off restores crosshair movement on mouse and axis scrubbing on
+  touch. Volume renders open from 45° above the posterior-left side and reset back to that view.
   DICOM uses the file's automatic/default VOI on open; contrast is opt-in. On phones, one-finger
   swipes change slices and two fingers pan and zoom. On desktop, the mouse wheel changes slices while
   the contrast, pan, and zoom modes remain available as explicit controls.
   MRI/volume readers expose contrast adjustment on an explicit toolbar toggle: primary mouse input
-  keeps ROI selection, while touch uses direct window/level swipes; secondary-click contrast remains
-  available.
+  keeps ROI selection, while vertical touch swipes adjust the window width; secondary-click contrast
+  and a separate default-contrast reset remain available.
   Single-plane volume views scrub slices by vertical mouse/touch drag on either the
   canvas or slice number, while holding either reader's previous/next control continuously advances
   slices without opening a native context menu. The DICOM slice number also captures mouse/touch
   drag for continuous scrubbing, and both readers show the current/total slice as a stacked fraction;
   NiiVue double-touch input is disabled; two-finger pinch zoom is handled by the app for individual
-  volume slices and 3D. Phone multiplanar mode uses a 2×2 grid with a clipped per-plane crosshair
+  volume slices and 3D, with 2D zoom anchored at the point between the user's fingers. Phone
+  multiplanar mode uses a 2×2 grid with a clipped per-plane crosshair
   overlay. Viewer controls expose their modes through accessible labels and visible keyboard hints:
   `R` resets, `I` opens image data, `Backspace` returns to navigation, `C` toggles contrast, `P/Z`
   select DICOM pan/zoom, and `D/E` select pencil/eraser. DICOM annotations persist as
@@ -1081,6 +1480,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   receive `minimed-floating=1&minimed-floating-scale=1`; JavaScript mirrors their viewport into CSS
   variables so the shared compact layout adapts after resize. Embedded windows skip the optional OPFS
   medications companion so multiple frames do not contend for one access handle.
+  Calculator and questionnaire links inside an official document reuse the same window layer even
+  when optional floating windows are disabled. These reader-owned windows are not persisted and close
+  automatically when the parent document route changes; their compact and full-screen controls remain available.
 - «Ваши документы» opens a dedicated catalog at `#/modules/documents/user` with nested local folders
   whose current folder is preserved in `?folder=<folderId>` navigation,
   visible folder breadcrumbs, page-level plus actions, move/rename/delete actions, file drag-and-drop
@@ -1130,13 +1532,14 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   and actions come from one capability matrix: unsupported legacy DOC/PPT/Pages stay download-only,
   XLS/XLSX/XLSM/CSV share one spreadsheet reader: XLSX/XLSM preserve merged cells, colors, fonts,
   borders, alignment, and row/column dimensions; sheet names appear in the TOC and tabs; cells can
-  be edited and saved locally; fullscreen keeps the same active sheet in a dedicated editor shell
+  be edited and saved locally; «Редактировать таблицу» keeps the same active sheet in a dedicated editor shell
   with a formula bar, selection highlight, save status, and bottom sheet tabs. XLS/CSV use the same UI and
   remain searchable and printable in A4 landscape. XLSM macros are preserved but never executed.
   The PDF header zoom pill was removed (pinch-zoom now scales the whole document).
 - Document text links installed medications, recommendations, and laws into nested
   `#/modules/documents/d/…` pages and
-  show kind icons beside each link, with a traveling wavy underline on hover.
+  show kind icons beside each link, with a native CSS wavy underline on every wrapped text line;
+  the underline is static, including on hover.
   Links skip the open document and its family (summary, full text, revision, or topic card such as
   `kr.rf.281_3` → `kr.rf.281_3.uti`), so an abbreviation defined in a recommendation does not open
   that same work again or add a duplicate breadcrumb.
@@ -1159,10 +1562,9 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - A CLI `tester-box` builds a disposable full-corpus FTS index and compares the three catalog models
   across 20 clinician cases using direct and strict-JSON prompts, exact-quote/number validation,
   explicit dose-conflict detection, and one bounded repair attempt.
-- Optional compact query planning and coarse relevance-based reranking over at most six retrieved
-  chunks, applied in the background without delaying deterministic results.
-- The runtime model does not extract diagnoses, doses, or citations; failed or unrecognized model
-  output leaves the deterministic result order unchanged.
+- The former compact query-planning and generative relevance wrapper is no longer connected to
+  search. The runtime remains available as research infrastructure, but released search returns
+  source references from deterministic retrieval only.
 - The default browser path uses the catalog's immutable upstream model asset rather than an unavailable
   release mirror.
 
@@ -1415,10 +1817,9 @@ ordinary search response when validation fails.
   `recipe`/`recipe_ru` as clearly labelled reference examples inside the document. Those examples are
   not a prescription, do not establish `По рецепту`/`Без рецепта`, and remain separate from official
   GRLS/ESKLP status fields.
-- Optional local-dev `mkb.db` companion (`minimed.mkb.ru`) contains the full RLS MKB index (9,841
-  nodes) plus the default `I67.9` detail page, 138 grouped trade-name cards, 4,956 unique MNN/form/
-  dosage/package/manufacturer rows, stable medication brand/substance IDs, trade-name→MNN aliases,
-  exact evidence, and proposed code-to-medicine relations. RLS detail cards use the dedicated
+- Optional local-dev `mkb.db` companion (`minimed.mkb.ru`) contains 9,835 RLS MKB cards, 7,334
+  medication brands, 1,952 substances, stable medication IDs, trade-name→MNN aliases, exact
+  evidence, and proposed code-to-medicine relations. RLS detail cards use the dedicated
   `rls_mkb_reference` source type, so medication search sees only cards that mention medicines;
   generic medical references remain outside that scope. Clinical-catalog `icd10Codes` metadata is
   projected into FTS with punctuation-free variants so installed recommendations are found by
@@ -1427,11 +1828,38 @@ ordinary search response when validation fails.
   `bun run content:rebuild:mkb`; the builder reuses the validated knowledge workspace, batches
   SQLite writes, and performs one final compaction pass. Existing packs can receive the authority
   and knowledge-search upgrade with `bun run content:upgrade:mkb`, without reparsing Markdown.
+- `bun run content:rebuild:krasotaimedicina` deterministically prepares the checksummed private crawl
+  snapshot and builds a lexical-only `data/build/diseases.db`. It keeps article headings, links,
+  image source links, local asset metadata, exact raw selectors/checksums, and site-supplied ICD-10
+  codes; titles containing `синдром` are typed as syndromes. The completed 2026-09-04 snapshot contains
+  6,068 documents (5,419 diseases and 649 syndromes), 58,056 sections, and 73,148 chunks. The composed
+  `mkb-diseases.db` contains 15,904 documents, 107,239 sections, 250,000 chunks, and 18,929 aliases;
+  both databases pass SQLite integrity and foreign-key checks. Two frozen source-derived search
+  fixtures under ignored `data/build` exercise `MedicalCore.search()` with 500 lexical queries per
+  database; regenerate them explicitly with `bun run benchmark:full-corpus:generate` and run them with
+  `bun run benchmark:full-corpus`. `diseases.db`
+  measures Recall@5 `0.992`, MRR@5 `0.973`, and section recall `0.980`; `mkb-diseases.db` measures
+  Recall@5 `0.938` and MRR@5 `0.942`. These are identity, section-navigation, MKB-code, and composition
+  regression checks, not physician-authored clinical-relevance evidence. Neither local artifact is
+  published while redistribution review remains incomplete.
+- The knowledge base now exposes a unified `Заболевания и состояния` catalog at
+  `#/modules/documents/conditions`, with `Заболевания`, `Состояния`, `Синдромы`, and `Симптомы`
+  sections. It
+  groups MKB entries, clinical-recommendation pointers/full documents, and reference documents by
+  exact ICD-10 code, replaces a downloaded-module pointer with its full document, and keeps a
+  multi-code recommendation as one fallback entry when the MKB companion is absent. An explicit
+  disease/condition/syndrome/symptom type takes precedence; names containing `синдром` are grouped
+  as syndromes; otherwise ICD-10 chapter R is shown under
+  symptoms, S-T and V-Z under conditions, and remaining codes under diseases. The catalog therefore
+  works from bundled core pointers and expands automatically when optional content is mounted,
+  without creating source-specific duplicate disease cards. A catalog card opens the unified condition
+  page; its separate `КР ↗` action opens the full recommendation when installed or the core pointer,
+  outline, and module-download action when it is absent. Single-section document pointers hide the empty
+  outline and use compact reader-title typography.
 - Optional local `ambulatory.db` companion (`minimed.ambulatory.v1`) mounts private textbook/handbook
   extracts for site/call use. Build via `bun run content:rebuild:ambulatory` (anydoc text-layer +
-  macOS Vision OCR). Pack is gitignored — copyrighted sources stay local; GroundedMedicalCore already
-  cites whatever MultiMedicalStore returns, so diagnosis AI uses ambulatory chunks once mounted. See
-  `docs/AMBULATORY_CORPUS_V1.md`.
+  macOS Vision OCR). Pack is gitignored — copyrighted sources stay local; deterministic search uses
+  its chunks once the pack is mounted. See `docs/AMBULATORY_CORPUS_V1.md`.
 - Public Russian starter pack: seven clinical navigation cards and eight medication-registry identity
   cards.
 - Structured knowledge tables support proposed facts, exact evidence links, relations, and review tasks.
@@ -1513,6 +1941,49 @@ A cents-scale Replicate knowledge-extraction pilot is configured for four public
 It has a hard estimated cost cap of `$0.25`, persists no raw model prose, accepts only proposed records,
 and records schema validity plus exact-evidence-quote rate. A separate one-file OCR pilot writes only a
 review-required intermediate draft. Neither pilot has been run with provider credentials.
+
+### Reader lookups and core reload lifecycle
+
+- Full-source readers and search source context now use the same inline-link matcher and popover.
+  Definitions show their source and retain its exact anchor, including when the source first needs
+  downloading. Medication previews show source formulations, strength with its denominator, route
+  when supplied, and an explicit distinction from a dosing regimen. Opening or dismissing the
+  preview preserves the reading location; full cards remain available for additional presentations.
+- OPFS workers hold a browser Web Lock for the pool until worker termination. A reloaded document
+  waits for the old worker to release its synchronous file handles; the shared owner also remains
+  registered until an in-process close finishes. An OPFS-backed core declares direct search execution:
+  SQLite already runs in its owner worker, and opening another core inside the search worker would
+  wait on the live owner's exclusive pool. The browser regression reloads the real core three times
+  and searches afterward; the worker test covers reopening while the last lease is still closing.
+
+### Runtime retrieval benchmark — initial baseline
+
+- `bun run benchmark:runtime` exercises MedicalCore and the application's scope filtering against
+  SQLite, without prototype scoring or generation. The 11 targeted cases pass retrieval, exact source
+  context, form/strength/route, negation and Cyrillic ICD checks in both core-only and installed modes.
+  For the six cases with an expected document, recall@5 and MRR@5 are both 1 in each mode.
+- Download verification remains a failing gate: 9 of 10 checked core-only queries and 4 of 10 checked
+  installed queries contain a pointer whose target is neither installed nor declared in catalog
+  document membership. The installed contract run uses the local unified medication database and
+  recommendation `kr.rf.1006_1`. Exact module membership must be supplied from validated published
+  artifacts before those pointers can pass; module names alone are not treated as evidence.
+- The separate 500-query prototype shares its fixture generator with `--fixtures=rag500`. The runtime
+  comparison evaluates 380 official-source queries per edition and explicitly reports 120 excluded
+  calculator/personal queries belonging to other application surfaces. See [SEARCH.md](SEARCH.md)
+  for commands and report interpretation.
+- The completed 760-evaluation lexical run measured recall@5 of **205/380 (53.95%)** with core alone
+  and **210/380 (55.26%)** with local unified medications, ambulatory, MKB, reference and regulatory
+  packs. MRR@5 was 0.4896 and 0.4817 respectively. Exact-context errors were zero in both editions.
+  Download membership remained unverified in 343/363 checked core-only queries and 175/341 checked
+  installed queries; a query fails this gate if any returned pointer lacks verified membership.
+  These are the listed local packs, not the complete 744-recommendation corpus. The report is
+  `data/build/runtime-rag500-report.json`; its input checksums and fixture audit retain the exact
+  corpus and query set. All 500 generated queries are identical before and after graph projection.
+  Retrieval relevance and published package membership remain open gates; the prototype's ranking
+  results must not be reported as application quality.
+  In this run, medication recall fell from 70/70 to 47/70 after adding packs, while symptom queries
+  remained 0/60 in both editions. Document-title queries improved from 0/35 to 12/35 and exact-source
+  phrase queries from 0/35 to 7/35. These cohorts need separate coverage and ranking investigation.
 
 ## Known limits
 
@@ -1794,6 +2265,12 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 
 ## Ordered next work toward 1.0
 
+The private, resumable `krasotaimedicina.ru` discovery crawl uses Crawlee Python with a persistent
+request queue, robots enforcement, bounded same-host paths, raw HTML/image checksums, and per-page
+manifests. A preparer/build path exists for repeatable snapshots, but the crawl is still running. Raw
+and built output remains ignored private data with `rightsStatus: unresolved` and
+`publicationState: blocked`; it is not a publishable MiniMed content pack.
+
 1. Grow the content bank before further retrieval/model work — see [CONTENT_DATA_PLAN.md](CONTENT_DATA_PLAN.md)
    for the full cross-category priority list (regulatory acts, pediatric norms/calculators, assessments,
    diets, nutrition/feeding norms). A personal textbook library under `Med/` is an acceptable cited source
@@ -1813,6 +2290,8 @@ review-required intermediate draft. Neither pilot has been run with provider cre
    distributable/cataloged module, while keeping image assets outside the core database.
 4. Add verified OCR for the blocked drug instruction.
 5. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
+   The 70-query medication regression after pack installation is fixed. Use `benchmark:runtime` to investigate
+   symptom/phrase misses, and missing published document membership before claiming retrieval quality.
 6. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
    on-device transcriber.
 7. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before

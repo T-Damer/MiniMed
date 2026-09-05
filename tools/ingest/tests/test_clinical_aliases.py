@@ -33,10 +33,12 @@ def _write_database(
             CREATE TABLE sections (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
+                section_type TEXT,
                 order_index INTEGER NOT NULL
             );
             CREATE TABLE chunks (
                 id TEXT PRIMARY KEY,
+                document_version_id TEXT NOT NULL,
                 section_id TEXT NOT NULL,
                 order_index INTEGER NOT NULL,
                 original_text TEXT NOT NULL,
@@ -44,6 +46,7 @@ def _write_database(
                 page_end INTEGER,
                 char_start INTEGER,
                 char_end INTEGER,
+                anchor TEXT NOT NULL,
                 metadata_json TEXT NOT NULL
             );
             """
@@ -59,16 +62,17 @@ def _write_database(
         for order_index, (section_id, title, source_text) in enumerate(sections):
             chunk_id = f"chunk.{section_id}"
             connection.execute(
-                "INSERT INTO sections(id, title, order_index) VALUES (?, ?, ?)",
-                (section_id, title, order_index),
+                "INSERT INTO sections(id, title, section_type, order_index) VALUES (?, ?, ?, ?)",
+                (section_id, title, "other", order_index),
             )
             connection.execute(
                 """INSERT INTO chunks(
-                       id, section_id, order_index, original_text,
-                       page_start, page_end, char_start, char_end, metadata_json
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       id, document_version_id, section_id, order_index, original_text,
+                       page_start, page_end, char_start, char_end, anchor, metadata_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     chunk_id,
+                    f"kr.rf.{official_id}@fixture",
                     section_id,
                     order_index,
                     source_text,
@@ -76,6 +80,7 @@ def _write_database(
                     3,
                     10,
                     80,
+                    f"kr.rf.{official_id}@fixture/{section_id}#{chunk_id}",
                     json.dumps(
                         {"sourceSpans": [{"page": 3, "block": f"block-{section_id}"}]},
                         ensure_ascii=False,
@@ -285,6 +290,7 @@ def test_enriches_safe_aliases_and_exact_recommendation_modules(tmp_path: Path) 
         _record("404_1", "Несопоставленная болезнь"),
         _record("777_1", "Дублированная база"),
     ]
+    records[2]["aliases"] = ["Оспа"]
     ledger_path.write_text(
         json.dumps(
             {
@@ -341,6 +347,15 @@ def test_enriches_safe_aliases_and_exact_recommendation_modules(tmp_path: Path) 
                 "● лихорадка; кашель, антибактериальная терапия",
             ),
             (
+                "section.terms",
+                "Термины и определения",
+                "Внебольничная пневмония (вариант Минковского-Щоффара) – острое инфекционное\n\n"
+                "заболевание лёгких.\n\n"
+                "Медленно разрешающаяся внебольничная пневмония – заболевание "
+                "с отсроченным разрешением симптомов.\n\n"
+                "Антибактериальная терапия – лечение антибактериальными препаратами.",
+            ),
+            (
                 "section.incidental",
                 "Ключевое понятие",
                 "одышка",
@@ -366,6 +381,11 @@ def test_enriches_safe_aliases_and_exact_recommendation_modules(tmp_path: Path) 
                 "section.varicella",
                 "Синонимы",
                 "Синоним: Оспа ветряная\n\nСиноним: Герпес зостер\n\nСиноним без разделителя",
+            ),
+            (
+                "section.varicella-terms",
+                "Термины и определения",
+                "Оспа – общее название группы инфекционных заболеваний.",
             ),
         ],
     )
@@ -403,11 +423,19 @@ def test_enriches_safe_aliases_and_exact_recommendation_modules(tmp_path: Path) 
         "кашель",
         "антибактериальная терапия",
     ]
+    definition = by_id["654_2"]["canonicalDefinition"]
+    assert definition["text"] == "острое инфекционное заболевание лёгких."
+    assert definition["sourceDocumentId"] == "kr.rf.654_2"
+    assert definition["sourceDocumentVersionId"] == "kr.rf.654_2@fixture"
+    assert definition["sourceSectionId"] == "section.terms"
+    assert definition["sourceChunkId"] == "chunk.section.terms"
+    assert definition["sourceAnchor"].endswith("section.terms#chunk.section.terms")
     assert "одышка" not in by_id["654_2"]["keywords"]
     assert by_id["286_3"]["aliases"] == ["Сахарный диабет", "СД"]
     assert "СД2" not in by_id["286_3"]["aliases"]
-    assert by_id["999_1"]["aliases"] == ["Оспа ветряная"]
+    assert by_id["999_1"]["aliases"] == ["Оспа", "Оспа ветряная"]
     assert "Герпес зостер" not in by_id["999_1"]["aliases"]
+    assert by_id["999_1"]["canonicalDefinition"] is None
     assert by_id["123_1"]["aliases"] == [
         "Суправентрикулярные тахикардии",
         "Наджелудочковые тахикардии",
@@ -445,9 +473,10 @@ def test_enriches_safe_aliases_and_exact_recommendation_modules(tmp_path: Path) 
         "recordsTotal": 6,
         "matchedDatabases": 4,
         "recordsWithAliases": 4,
-        "aliasesTotal": 8,
+        "aliasesTotal": 9,
         "recordsWithKeywords": 1,
         "keywordsTotal": 3,
+        "recordsWithDefinitions": 1,
         "recordsWithMedicationLinks": 0,
         "medicationLinksTotal": 0,
         "unmatchedRecords": 2,
@@ -514,7 +543,7 @@ def test_enriches_safe_aliases_and_exact_recommendation_modules(tmp_path: Path) 
         ],
     )
     assert result.exit_code == 0, result.output
-    assert json.loads(result.output)["aliases"] == 8
+    assert json.loads(result.output)["aliases"] == 9
     assert json.loads(result.output)["keywords"] == 3
     assert cli_output.exists()
     assert cli_report.exists()

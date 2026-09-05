@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.3",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-09-02T00:00:00Z",
+  "builtAt": "2026-09-04T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.braverman-behavioral",
@@ -1217,7 +1217,7 @@
     {
       "id": "minimed.assessment.temperament",
       "kind": "assessment",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "temperament-profile",
       "title": "Тест на темперамент",
       "shortTitle": "Темперамент",
@@ -1396,6 +1396,85 @@
             "scaleId": "emotional-stability",
             "prompt": "Я часто ощущаю внутреннее беспокойство без ясной причины",
             "reverse": true
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "(percent_extraversion >= 50) * (percent_emotional_stability >= 50)",
+            "headline": "Классический ориентир: сангвинический профиль",
+            "message": "Высокие показатели экстраверсии и эмоциональной устойчивости соответствуют сангвиническому квадранту. Это описательная метафора, а не клиническое заключение."
+          },
+          {
+            "when": "(percent_extraversion >= 50) * (percent_emotional_stability < 50)",
+            "headline": "Классический ориентир: холерический профиль",
+            "message": "Высокая экстраверсия при более низкой эмоциональной устойчивости соответствует холерическому квадранту. Это описательная метафора, а не клиническое заключение."
+          },
+          {
+            "when": "(percent_extraversion < 50) * (percent_emotional_stability >= 50)",
+            "headline": "Классический ориентир: флегматический профиль",
+            "message": "Более низкая экстраверсия при высокой эмоциональной устойчивости соответствует флегматическому квадранту. Это описательная метафора, а не клиническое заключение."
+          },
+          {
+            "when": "(percent_extraversion < 50) * (percent_emotional_stability < 50)",
+            "headline": "Классический ориентир: меланхолический профиль",
+            "message": "Более низкие показатели экстраверсии и эмоциональной устойчивости соответствуют меланхолическому квадранту. Это описательная метафора, а не клиническое заключение."
+          }
+        ],
+        "visuals": [
+          {
+            "id": "temperament_target",
+            "title": "Профиль темперамента",
+            "kind": "scatter",
+            "labels": [],
+            "datasets": [
+              {
+                "label": "Положение пациента",
+                "points": [
+                  {
+                    "x": "percent_extraversion",
+                    "y": "percent_emotional_stability"
+                  }
+                ],
+                "render": "point",
+                "tone": "danger"
+              }
+            ],
+            "xAxis": {
+              "label": "Экстраверсия",
+              "minimum": 0,
+              "maximum": 100,
+              "minimumLabel": "Интроверсия",
+              "maximumLabel": "Экстраверсия"
+            },
+            "yAxis": {
+              "label": "Эмоциональная устойчивость",
+              "minimum": 0,
+              "maximum": 100,
+              "minimumLabel": "Чувствительность",
+              "maximumLabel": "Устойчивость",
+              "reverse": true
+            },
+            "annotations": [
+              {
+                "kind": "quadrants",
+                "x": 50,
+                "y": 50,
+                "labels": {
+                  "topLeft": "Меланхолик",
+                  "topRight": "Холерик",
+                  "bottomLeft": "Флегматик",
+                  "bottomRight": "Сангвиник"
+                }
+              },
+              {
+                "kind": "rings",
+                "x": 50,
+                "y": 50,
+                "radiusPercent": [12, 24, 36]
+              }
+            ],
+            "caption": "Горизонталь — экстраверсия, вертикаль — от чувствительности к эмоциональной устойчивости. Точка показывает текущий результат опросника.",
+            "heightPx": 380
           }
         ],
         "disclaimer": "Классические названия темпераментов являются упрощённой метафорой. Опросник не диагностирует тревожные, аффективные или личностные расстройства.",

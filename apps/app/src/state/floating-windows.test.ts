@@ -231,4 +231,27 @@ describe('floating windows', () => {
       dispose();
     });
   });
+
+  it('keeps a route-owned window transient and closes it after leaving its document', () => {
+    const { storage } = installWindowMock();
+    let manager: ReturnType<typeof createFloatingWindows> | undefined;
+    createRoot((dispose) => {
+      manager = createFloatingWindows();
+      expect(
+        manager.openTransient(
+          'assessments',
+          '#/assessments/psychology/team-roles',
+          '#/modules/documents/d/source',
+        ),
+      ).toBe(true);
+
+      expect(manager.windows()[0]?.ownerRoute).toBe('#/modules/documents/d/source');
+      expect(storage.get('minimed.floating-windows.v3')).toBe('[]');
+      manager.closeTransientOutside('#/modules/documents/d/source');
+      expect(manager.windows()).toHaveLength(1);
+      manager.closeTransientOutside('#/modules/documents');
+      expect(manager.windows()).toEqual([]);
+      dispose();
+    });
+  });
 });

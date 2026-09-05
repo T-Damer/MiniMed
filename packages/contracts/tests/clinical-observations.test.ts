@@ -65,6 +65,14 @@ describe('clinical observation contracts', () => {
         stepId: 'bmi',
       }).success,
     ).toBe(false);
+    expect(
+      ObservationMappingSchema.parse({
+        metricId: 'body-mass',
+        unit: 'кг',
+        inputId: 'weight_g',
+        valueMultiplier: 0.001,
+      }).valueMultiplier,
+    ).toBe(0.001);
   });
 
   it('requires a metric for latest-observation bindings', () => {
@@ -77,8 +85,16 @@ describe('clinical observation contracts', () => {
         metricId: 'body-mass',
         unit: 'кг',
         maxAgeDays: 30,
-      }).metricId,
-    ).toBe('body-mass');
+        valueMultiplier: 1_000,
+      }),
+    ).toMatchObject({ metricId: 'body-mass', valueMultiplier: 1_000 });
+    expect(
+      CalculatorPatientBindingSchema.safeParse({
+        kind: 'latestObservation',
+        metricId: 'body-mass',
+        valueMultiplier: 0,
+      }).success,
+    ).toBe(false);
   });
 
   it('keeps the reference verdict bounds and provenance in the snapshot shape', () => {

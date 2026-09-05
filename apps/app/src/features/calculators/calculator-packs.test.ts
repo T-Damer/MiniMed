@@ -8,6 +8,7 @@ import {
   isCalculatorSectionCore,
   isCalculatorSectionFromDatabase,
   loadCalculatorInstallationState,
+  moduleIdsForCalculatorSection,
   removeCalculatorSection,
   setDatabaseCalculatorIds,
 } from '@/features/calculators/calculator-packs';
@@ -68,6 +69,13 @@ describe('calculator packs', () => {
     expect(calculatorIdsInSection('pediatrics', getCalculatorRegistry())).toContain(
       'minimed.calculator.pediatric-feeding-plan',
     );
+  });
+
+  it('offers both clinical and WHO growth modules from anthropometry', () => {
+    expect(moduleIdsForCalculatorSection('anthropometry')).toEqual([
+      'minimed.tools.core-clinical.ru',
+      'minimed.tools.pediatrics-growth.ru',
+    ]);
   });
 
   it('places one schema-driven calculator in every tagged section', () => {

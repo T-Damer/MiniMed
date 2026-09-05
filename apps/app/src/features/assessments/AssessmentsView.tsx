@@ -61,7 +61,7 @@ import type {
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import {
   ASSESSMENT_RESULTS_EVENT,
@@ -442,7 +442,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
   const installDefinition = (id: string): void => {
     const entry = assessmentCatalog().find((definition) => definition.id === id);
     const moduleId = entry
-      ? (moduleIdForAssessmentSection(entry.category) ??
+      ? (moduleForTool(entry.id)?.id ??
+        moduleIdForAssessmentSection(entry.category) ??
         moduleIdForAssessmentSpecialty(entry.bankId))
       : undefined;
     void installIds(

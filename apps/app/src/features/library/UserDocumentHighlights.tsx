@@ -1,16 +1,18 @@
 import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
-import { Portal } from 'solid-js/web';
+import { toast } from 'solid-sonner';
 
-import { AppGlyph } from '@/components/AppGlyph';
+import { UserHighlightPopup } from '@/features/library/UserHighlightPopup';
 import {
   addUserHighlight,
   loadUserHighlights,
   removeUserHighlight,
+  USER_HIGHLIGHT_COLORS,
   USER_HIGHLIGHTS_EVENT,
   type UserDocumentHighlight,
+  userHighlightColor,
 } from '@/state/user-library-highlights';
 
-const HIGHLIGHT_NAME = 'user-doc-highlights';
+const highlightName = (color: string): string => `user-doc-highlights-${color}`;
 
 interface HighlightRegistryLike {
   set(name: string, highlight: Highlight): void;
@@ -74,7 +76,7 @@ function selectionTarget(surface: HTMLElement): SelectionTarget | null {
     range.commonAncestorContainer instanceof Element
       ? range.commonAncestorContainer
       : range.commonAncestorContainer.parentElement
-  )?.closest<HTMLElement>('.user-document-reader__text-section[id]');
+  )?.closest<HTMLElement>('.user-document-reader__text-section[id], [data-user-doc-anchor][id]');
   if (!section || !surface.contains(section)) return null;
   const anchor = section.id;
   const nodes = textNodesWithin(section);
@@ -119,7 +121,7 @@ export function UserDocumentHighlights(props: {
   const reload = (): void => {
     void loadUserHighlights(props.documentId)
       .then(setHighlights)
-      .catch(() => undefined);
+      .catch(() => toast.error('Не удалось загрузить выделения.'));
   };
 
   onMount(() => {
@@ -134,14 +136,15 @@ export function UserDocumentHighlights(props: {
       }
       const target = selectionTarget(surface);
       if (!target) {
-        setPopup(null);
+        // Clicking an existing mark also collapses the native selection asynchronously.
+        if (!popup()?.remove) setPopup(null);
         return;
       }
       const intersecting = highlights().find(
         (item) =>
           item.pageAnchor === target.pageAnchor &&
-          target.start >= item.start - 1 &&
-          target.end <= item.end + 1,
+          target.start < item.end &&
+          target.end > item.start,
       );
       setPopup({
         x: target.rect.left + target.rect.width / 2,
@@ -158,11 +161,53 @@ export function UserDocumentHighlights(props: {
         refreshPopup();
       });
     };
-    document.addEventListener('selectionchange', schedulePopupRefresh);
-    const dismissPopupOnScroll = (): void => {
-      setPopup(null);
+    const selectHighlight = (event: MouseEvent): void => {
+      const surface = props.surface();
+      if (!surface?.contains(event.target as Node) || !document.getSelection()?.isCollapsed) return;
+      for (const item of highlights().toReversed()) {
+        const section = surface.querySelector<HTMLElement>(`#${CSS.escape(item.pageAnchor)}`);
+        const range = section && rangeForCharRange(section, item.start, item.end);
+        const rect =
+          range &&
+          Array.from(range.getClientRects()).find(
+            (rect) =>
+              event.clientX >= rect.left &&
+              event.clientX <= rect.right &&
+              event.clientY >= rect.top &&
+              event.clientY <= rect.bottom,
+          );
+        if (!rect) continue;
+        if (popupFrame !== undefined) cancelAnimationFrame(popupFrame);
+        popupFrame = undefined;
+        setPopup({ x: event.clientX, y: rect.top, add: null, remove: item });
+        return;
+      }
     };
-    window.addEventListener('scroll', dismissPopupOnScroll, {
+    document.addEventListener('click', selectHighlight);
+    document.addEventListener('selectionchange', schedulePopupRefresh);
+    const repositionPopupOnScroll = (event: Event): void => {
+      if (
+        event.target !== document &&
+        event.target !== window &&
+        event.target instanceof Node &&
+        !props.surface()?.contains(event.target)
+      )
+        return;
+      const current = popup();
+      const target = current?.add ?? current?.remove;
+      if (!current || !target) return;
+      const section = props
+        .surface()
+        ?.querySelector<HTMLElement>(`#${CSS.escape(target.pageAnchor)}`);
+      const range = section && rangeForCharRange(section, target.start, target.end);
+      const rect = range?.getBoundingClientRect();
+      if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) {
+        setPopup(null);
+        return;
+      }
+      setPopup({ ...current, x: rect.left + rect.width / 2, y: rect.top });
+    };
+    window.addEventListener('scroll', repositionPopupOnScroll, {
       capture: true,
       passive: true,
     });
@@ -170,8 +215,9 @@ export function UserDocumentHighlights(props: {
       window.removeEventListener(USER_HIGHLIGHTS_EVENT, reload);
       document.removeEventListener('selectionchange', schedulePopupRefresh);
       if (popupFrame !== undefined) cancelAnimationFrame(popupFrame);
-      window.removeEventListener('scroll', dismissPopupOnScroll, { capture: true });
-      registry()?.delete(HIGHLIGHT_NAME);
+      window.removeEventListener('scroll', repositionPopupOnScroll, { capture: true });
+      document.removeEventListener('click', selectHighlight);
+      for (const color of USER_HIGHLIGHT_COLORS) registry()?.delete(highlightName(color.id));
     });
   });
 
@@ -180,74 +226,62 @@ export function UserDocumentHighlights(props: {
     const items = highlights();
     const highlightsRegistry = registry();
     if (!surface || !highlightsRegistry) return;
-    const ranges: Range[] = [];
-    for (const item of items) {
-      const section = surface.querySelector<HTMLElement>(`#${CSS.escape(item.pageAnchor)}`);
-      if (!section) continue;
-      const range = rangeForCharRange(section, item.start, item.end);
-      if (range) ranges.push(range);
-    }
-    if (ranges.length === 0) {
-      highlightsRegistry.delete(HIGHLIGHT_NAME);
-      return;
-    }
-    highlightsRegistry.set(HIGHLIGHT_NAME, new Highlight(...ranges));
+    const paint = (): void => {
+      for (const color of USER_HIGHLIGHT_COLORS) {
+        const ranges: Range[] = [];
+        for (const item of items) {
+          if (item.cfiRange || userHighlightColor(item.color).id !== color.id) continue;
+          const section = surface.querySelector<HTMLElement>(`#${CSS.escape(item.pageAnchor)}`);
+          if (!section) continue;
+          const range = rangeForCharRange(section, item.start, item.end);
+          if (range) ranges.push(range);
+        }
+        highlightsRegistry.set(highlightName(color.id), new Highlight(...ranges));
+      }
+    };
+    paint();
+    const observer = new MutationObserver(paint);
+    observer.observe(surface, { childList: true, subtree: true, characterData: true });
+    onCleanup(() => observer.disconnect());
   });
 
   return (
     <Show when={popup()}>
       {(popupValue) => (
-        <Portal>
-          <div
-            class="user-highlight-popup"
-            style={{ left: `${popupValue().x}px`, top: `${popupValue().y}px` }}
-          >
-            <Show
-              when={popupValue().remove}
-              fallback={
-                <button
-                  type="button"
-                  class="user-highlight-popup__action"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => {
-                    const target = popupValue().add;
-                    if (!target) return;
-                    void addUserHighlight({
-                      documentId: props.documentId,
-                      pageAnchor: target.pageAnchor,
-                      start: target.start,
-                      end: target.end,
-                      quote: target.quote,
-                    }).then(() => {
-                      document.getSelection()?.removeAllRanges();
-                      setPopup(null);
-                    });
-                  }}
-                >
-                  <AppGlyph name="highlighter" class="user-highlight-popup__icon" />
-                  Выделить
-                </button>
-              }
-            >
-              {(remove) => (
-                <button
-                  type="button"
-                  class="user-highlight-popup__action user-highlight-popup__action--remove"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => {
-                    void removeUserHighlight(remove().id).then(() => {
-                      document.getSelection()?.removeAllRanges();
-                      setPopup(null);
-                    });
-                  }}
-                >
-                  <AppGlyph name="trash" class="user-highlight-popup__icon" />
-                  Убрать выделение
-                </button>
-              )}
-            </Show>
-          </div>
-        </Portal>
+        <UserHighlightPopup
+          x={popupValue().x}
+          y={popupValue().y}
+          onClose={() => setPopup(null)}
+          onAdd={
+            popupValue().add
+              ? async (color) => {
+                  const target = popupValue().add;
+                  if (!target) return;
+                  await addUserHighlight({
+                    documentId: props.documentId,
+                    pageAnchor: target.pageAnchor,
+                    start: target.start,
+                    end: target.end,
+                    quote: target.quote,
+                    color,
+                  });
+                  document.getSelection()?.removeAllRanges();
+                  setPopup(null);
+                }
+              : undefined
+          }
+          onRemove={
+            popupValue().remove
+              ? async () => {
+                  const target = popupValue().remove;
+                  if (!target) return;
+                  await removeUserHighlight(target.id);
+                  document.getSelection()?.removeAllRanges();
+                  setPopup(null);
+                }
+              : undefined
+          }
+        />
       )}
     </Show>
   );

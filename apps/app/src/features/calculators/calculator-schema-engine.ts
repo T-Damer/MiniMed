@@ -6,7 +6,6 @@ import type {
   ReferenceVerdict,
 } from '@localmed/contracts';
 import {
-  CalculatorExpressionError,
   type CalculatorScope,
   type CalculatorValue,
   type ExpressionNode,
@@ -46,14 +45,62 @@ export type CalculatorSchemaOutput =
   | CalculatorSchemaTextOutput
   | CalculatorSchemaVisualOutput;
 
+export function initialCalculatorSchemaValues(schema: CalculatorSchema): Record<string, string> {
+  const defaults: Record<string, string> = {};
+  for (const input of schema.inputs) {
+    if (input.options?.[0]) {
+      defaults[input.id] = String(input.options[0].value);
+    } else if (input.kind === 'checkbox') {
+      defaults[input.id] = '0';
+    } else if (input.kind === 'date' && input.defaultExpression) {
+      defaults[input.id] = String(evaluateCalculatorExpression(input.defaultExpression, {}));
+    }
+  }
+  return defaults;
+}
+
+function inputValueIsPresent(value: string | number | undefined): boolean {
+  return value !== undefined && value !== '';
+}
+
+function activeInputRequirements(schema: CalculatorSchema, maxStep: number) {
+  const inputsById = new Map(schema.inputs.map((input) => [input.id, input]));
+  return schema.inputRequirements.filter((requirement) =>
+    requirement.inputIds.every((id) => (inputsById.get(id)?.step ?? 0) <= maxStep),
+  );
+}
+
+export function calculatorSchemaInputsReady(
+  schema: CalculatorSchema,
+  rawInputs: Readonly<Record<string, string | number>>,
+  maxStep = Number.MAX_SAFE_INTEGER,
+): boolean {
+  return (
+    schema.inputs
+      .filter((input) => input.step <= maxStep && input.required)
+      .every((input) => inputValueIsPresent(rawInputs[input.id])) &&
+    activeInputRequirements(schema, maxStep).every((requirement) =>
+      requirement.inputIds.some((id) => inputValueIsPresent(rawInputs[id])),
+    )
+  );
+}
+
 /** Plain serializable Chart.js-ready spec: the engine evaluates dataset expressions to finite
  *  numbers, so the UI can render (or re-render for print) without touching the expression scope. */
 export interface CalculatorChartSpec {
   readonly type: CalculatorVisualDefinition['kind'];
+  readonly title: string;
+  readonly caption?: string;
   readonly labels: readonly string[];
+  readonly heightPx?: number;
+  readonly xAxis?: NonNullable<CalculatorVisualDefinition['xAxis']>;
+  readonly yAxis?: NonNullable<CalculatorVisualDefinition['yAxis']>;
+  readonly annotations?: CalculatorVisualDefinition['annotations'];
   readonly datasets: readonly {
     readonly label: string;
-    readonly data: readonly number[];
+    readonly data: readonly (number | { readonly x: number; readonly y: number })[];
+    readonly render?: 'line' | 'point';
+    readonly tone?: 'neutral' | 'danger' | 'warning' | 'success' | 'accent';
   }[];
 }
 
@@ -115,7 +162,7 @@ function formatNumberOutputText(output: CalculatorSchemaNumberOutput): string {
 }
 
 function formatExpressionError(label: string, error: unknown): string {
-  const message = error instanceof CalculatorExpressionError ? error.message : String(error);
+  const message = error instanceof Error ? error.message : String(error);
   return `${label}: ${message}`;
 }
 
@@ -212,6 +259,11 @@ function evaluateCalculatorSchemaInner(
     }
   }
 
+  const unmetRequirement = activeInputRequirements(schema, maxStep).find(
+    (requirement) => !requirement.inputIds.some((id) => inputValueIsPresent(rawInputs[id])),
+  );
+  if (unmetRequirement) return failure(unmetRequirement.message);
+
   const trace: CalculationTraceStep[] = [];
   const outputs: CalculatorSchemaOutput[] = [];
 
@@ -229,6 +281,11 @@ function evaluateCalculatorSchemaInner(
     } catch (error) {
       return failure(formatStepError(step, error));
     }
+    // `optional(condition, expression)` is the schema-level way to omit a derived value when an
+    // optional measurement is blank or not applicable to the selected age. Omitted steps do not
+    // become trace rows, outputs, or scope variables, so a single schema can calculate every filled
+    // indicator without presenting a synthetic zero as a clinical result.
+    if (value === undefined) continue;
 
     if (step.valueKind === 'date') {
       if (typeof value !== 'string' || !ISO_DATE_PATTERN.test(value)) {
@@ -347,7 +404,7 @@ function evaluateCalculatorSchemaInner(
   for (const visual of schema.visuals) {
     const result = evaluateCalculatorVisual(visual, scope as CalculatorScope);
     if (!result.ok) return failure(result.error);
-    visualOutputs.push(result.output);
+    if (result.output) visualOutputs.push(result.output);
   }
   outputs.push(...visualOutputs);
 
@@ -363,45 +420,91 @@ function evaluateCalculatorSchemaInner(
 }
 
 type CalculatorVisualEvaluation =
-  | { readonly ok: true; readonly output: CalculatorSchemaVisualOutput }
+  | { readonly ok: true; readonly output?: CalculatorSchemaVisualOutput }
   | { readonly ok: false; readonly error: string };
 
-function evaluateCalculatorVisual(
+export function evaluateCalculatorVisual(
   visual: CalculatorVisualDefinition,
   scope: CalculatorScope,
 ): CalculatorVisualEvaluation {
-  const datasets: { label: string; data: number[] }[] = [];
+  const datasets: {
+    label: string;
+    data: (number | { x: number; y: number })[];
+    render?: 'line' | 'point';
+    tone?: 'neutral' | 'danger' | 'warning' | 'success' | 'accent';
+  }[] = [];
+
+  const evaluateValue = (
+    entry: number | string,
+    valueScope: CalculatorScope,
+    pointLabel: string,
+  ): number | undefined => {
+    let value: CalculatorValue;
+    try {
+      value = typeof entry === 'number' ? entry : evaluateCalculatorExpression(entry, valueScope);
+    } catch (error) {
+      throw new Error(formatExpressionError(pointLabel, error));
+    }
+    if (value === undefined) return undefined;
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new Error(`${pointLabel} не является конечным числом.`);
+    }
+    return value;
+  };
+
   for (const dataset of visual.datasets) {
-    const data: number[] = [];
-    for (const [index, entry] of dataset.data.entries()) {
-      let value: CalculatorValue;
-      if (typeof entry === 'number') {
-        value = entry;
-      } else {
-        try {
-          value = evaluateCalculatorExpression(entry, scope);
-        } catch (error) {
-          return {
-            ok: false,
-            error: `Визуализация «${visual.title}», ряд «${dataset.label}»: ${formatExpressionError(`точка ${index + 1}`, error)}`,
-          };
+    const data: (number | { x: number; y: number })[] = [];
+    try {
+      if (dataset.data) {
+        for (const [index, entry] of dataset.data.entries()) {
+          const value = evaluateValue(entry, scope, `точка ${index + 1}`);
+          if (value === undefined) return { ok: true };
+          data.push(value);
         }
-      }
-      if (typeof value !== 'number' || !Number.isFinite(value)) {
+      } else if (dataset.points) {
+        for (const [index, point] of dataset.points.entries()) {
+          const x = evaluateValue(point.x, scope, `точка ${index + 1}, X`);
+          const y = evaluateValue(point.y, scope, `точка ${index + 1}, Y`);
+          if (x === undefined || y === undefined) return { ok: true };
+          data.push({ x, y });
+        }
+      } else if (dataset.sample) {
+        const count =
+          Math.floor((dataset.sample.to - dataset.sample.from) / dataset.sample.step + 1e-9) + 1;
+        for (let index = 0; index < count; index += 1) {
+          const sampleScope: CalculatorScope = {
+            ...scope,
+            [dataset.sample.variable]: dataset.sample.from + index * dataset.sample.step,
+          };
+          const x = evaluateValue(dataset.sample.x, sampleScope, `точка ${index + 1}, X`);
+          const y = evaluateValue(dataset.sample.y, sampleScope, `точка ${index + 1}, Y`);
+          if (x === undefined || y === undefined) return { ok: true };
+          data.push({ x, y });
+        }
+      } else {
         return {
           ok: false,
-          error: `Визуализация «${visual.title}», ряд «${dataset.label}»: точка ${index + 1} не является конечным числом.`,
+          error: `Визуализация «${visual.title}», ряд «${dataset.label}»: не заданы данные.`,
         };
       }
-      data.push(value);
+    } catch (error) {
+      return {
+        ok: false,
+        error: `Визуализация «${visual.title}», ряд «${dataset.label}»: ${error instanceof Error ? error.message : String(error)}`,
+      };
     }
-    if (visual.labels.length > 0 && visual.labels.length !== data.length) {
+    if (dataset.data && visual.labels.length > 0 && visual.labels.length !== data.length) {
       return {
         ok: false,
         error: `Визуализация «${visual.title}», ряд «${dataset.label}»: число точек (${data.length}) не совпадает с числом подписей (${visual.labels.length}).`,
       };
     }
-    datasets.push({ label: dataset.label, data });
+    datasets.push({
+      label: dataset.label,
+      data,
+      ...(dataset.render ? { render: dataset.render } : {}),
+      ...(dataset.tone ? { tone: dataset.tone } : {}),
+    });
   }
   return {
     ok: true,
@@ -411,8 +514,13 @@ function evaluateCalculatorVisual(
       label: visual.title,
       chart: {
         type: visual.kind,
+        title: visual.title,
         labels: [...visual.labels],
         datasets,
+        ...(visual.xAxis ? { xAxis: visual.xAxis } : {}),
+        ...(visual.yAxis ? { yAxis: visual.yAxis } : {}),
+        ...(visual.annotations.length > 0 ? { annotations: visual.annotations } : {}),
+        ...(visual.caption ? { caption: visual.caption } : {}),
         ...(visual.heightPx === undefined ? {} : { heightPx: visual.heightPx }),
       },
     },

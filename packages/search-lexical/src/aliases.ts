@@ -101,10 +101,31 @@ export function expandAliases(query: string, aliases: readonly AliasRecord[]): A
     const normalizedAlias = normalizeSurfaceText(alias.alias);
     const exactIndex = findNormalizedPhraseIndex(normalizedQuery, normalizedAlias);
     const matchType: AliasMatchType = exactIndex >= 0 ? 'exact' : 'fuzzy';
-    const span: TextRange | null =
+    let span: TextRange | null =
       exactIndex >= 0
         ? { start: exactIndex, end: exactIndex + normalizedAlias.length }
         : fuzzyPhraseSpan(normalizedQuery, normalizedAlias);
+    if (!span) continue;
+    // Prefer an explicit longer name (МКБ-10) over an embedded abbreviation (МКБ),
+    // while retaining every meaning that matches the same complete span.
+    while (span) {
+      const current: TextRange = span;
+      const covered = matchSpans.some(
+        (match) =>
+          match.matchType === 'exact' &&
+          match.range.start <= current.start &&
+          match.range.end >= current.end &&
+          (match.range.start < current.start || match.range.end > current.end),
+      );
+      if (!covered) break;
+      const offset: number = span.end;
+      const next: number =
+        matchType === 'exact'
+          ? findNormalizedPhraseIndex(normalizedQuery.slice(offset), normalizedAlias)
+          : -1;
+      span =
+        next < 0 ? null : { start: offset + next, end: offset + next + normalizedAlias.length };
+    }
     if (!span) continue;
 
     matches.push(`${alias.alias} → ${alias.canonicalTerm}`);

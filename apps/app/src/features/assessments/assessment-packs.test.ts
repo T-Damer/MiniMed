@@ -27,7 +27,9 @@ function psychologyCatalog() {
   for (const record of loadToolModuleRecords(['content/tool-modules/psychology.json'])) {
     if (record.kind === 'assessment') registerDownloadedAssessment(record);
   }
-  return getAssessmentCatalog();
+  return getAssessmentCatalog().filter(
+    (entry) => entry.bankId === 'psychology' || entry.bankId === 'psychiatry',
+  );
 }
 
 interface InstalledStorage {

@@ -1,16 +1,14 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, onCleanup, onMount } from 'solid-js';
 
 import { countPublishedCatalogModules } from '@/app/root-view';
 import { createBrowserCore } from '@/composition/create-browser-core';
-import { createLocalModelController } from '@/composition/create-local-model-controller';
 import {
   type InitializedMedicalCore,
   initializeMedicalCore,
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
-import { GroundedMedicalCore } from '@/features/models/GroundedMedicalCore';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 import {
   APP_UPDATE_READY_EVENT,
@@ -23,7 +21,15 @@ import {
   checkWebAppUpdate,
 } from '@/state/app-update';
 import { notifyContentChanged } from '@/state/content-events';
-import { installAndroidApk } from '@/state/native-update';
+import {
+  type ApkTaskStatus,
+  cancelAndroidApkDownload,
+  getAndroidApkTaskStatus,
+  getLatestAndroidApkTaskStatus,
+  installAndroidApk,
+  startAndroidApkDownload,
+  watchAndroidApkTasks,
+} from '@/state/native-update';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 import { installUiFeedback } from '@/state/ui-feedback';
 import { ensureUserLibraryIngestRunning } from '@/state/user-library-ingest';
@@ -53,6 +59,18 @@ function scheduleIdle<T>(work: () => Promise<T>): Promise<T> {
   });
 }
 
+function sameApkUpdate(
+  left: AvailableApkUpdate | undefined,
+  right: AvailableApkUpdate | undefined,
+): boolean {
+  return (
+    left?.version === right?.version &&
+    left?.url === right?.url &&
+    left?.expectedSha256 === right?.expectedSha256 &&
+    left?.expectedBytes === right?.expectedBytes
+  );
+}
+
 export function useAppSession() {
   const isNativeShell = Capacitor.getPlatform() !== 'web';
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
@@ -68,8 +86,7 @@ export function useAppSession() {
   const [appUpdateUpToDate, setAppUpdateUpToDate] = createSignal(false);
   const [appUpdateProgress, setAppUpdateProgress] = createSignal<AppUpdateProgress>();
   const [appUpdateError, setAppUpdateError] = createSignal<string>();
-  const modelController = createLocalModelController();
-  const [assistantCore, setAssistantCore] = createSignal<GroundedMedicalCore>();
+  const [apkTask, setApkTask] = createSignal<ApkTaskStatus>();
   const [searchCore, setSearchCore] = createSignal<WorkerSearchMedicalCore>();
 
   let coreToClose: MedicalCore | undefined;
@@ -80,6 +97,8 @@ export function useAppSession() {
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
   let updateFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let apkTaskListener: PluginListenerHandle | undefined;
+  let observedApkTaskId: string | undefined;
   let disposed = false;
 
   const handleAppUpdate = (event: Event): void => {
@@ -89,6 +108,101 @@ export function useAppSession() {
 
   const describeUpdateError = (cause: unknown, fallback: string): string =>
     cause instanceof Error ? cause.message : fallback;
+
+  const describeApkTaskError = (status: ApkTaskStatus): string => {
+    switch (status.errorCode) {
+      case 'checksum_mismatch':
+        return 'Контрольная сумма обновления не совпала.';
+      case 'size_mismatch':
+        return 'Размер обновления не совпал с ожидаемым.';
+      case 'cancelled':
+        return 'Загрузка обновления отменена.';
+      case 'interrupted':
+      case 'download_failed':
+        return 'Загрузка была прервана. Нажмите «Обновить», чтобы продолжить.';
+      case 'insufficient_storage':
+        return 'Недостаточно места для обновления.';
+      default:
+        return 'Не удалось загрузить обновление.';
+    }
+  };
+
+  const applyApkTaskStatus = (status: ApkTaskStatus): void => {
+    if (observedApkTaskId && status.taskId !== observedApkTaskId) return;
+    setApkTask(status);
+    switch (status.state) {
+      case 'downloading':
+        setAppUpdating(true);
+        setAppUpdateProgress({
+          phase: 'download',
+          loaded: status.downloadedBytes,
+          total: status.totalBytes,
+        });
+        return;
+      case 'verifying':
+        setAppUpdating(true);
+        setAppUpdateProgress({
+          phase: 'verifying',
+          loaded: status.downloadedBytes,
+          total: status.totalBytes,
+        });
+        return;
+      case 'ready':
+        setAppUpdating(false);
+        setAppUpdateProgress({
+          phase: 'ready',
+          loaded: status.downloadedBytes,
+          total: status.totalBytes,
+        });
+        return;
+      case 'failed':
+      case 'cancelled':
+        setAppUpdating(false);
+        setAppUpdateProgress(undefined);
+        setAppUpdateError(describeApkTaskError(status));
+    }
+  };
+
+  const observeApkTask = async (taskId: string): Promise<void> => {
+    observedApkTaskId = taskId;
+    await apkTaskListener?.remove();
+    apkTaskListener = await watchAndroidApkTasks(applyApkTaskStatus);
+    applyApkTaskStatus(await getAndroidApkTaskStatus(taskId));
+  };
+
+  const refreshApkTask = (): void => {
+    if (document.visibilityState !== 'visible' || !observedApkTaskId) return;
+    void getAndroidApkTaskStatus(observedApkTaskId)
+      .then(applyApkTaskStatus)
+      .catch(() => undefined);
+  };
+
+  const recoverApkTask = (update: AvailableApkUpdate): void => {
+    if (observedApkTaskId || Capacitor.getPlatform() !== 'android') return;
+    void getLatestAndroidApkTaskStatus({
+      url: update.url,
+      releaseVersion: update.version,
+      ...(update.expectedSha256 ? { expectedSha256: update.expectedSha256 } : {}),
+      ...(update.expectedBytes ? { expectedBytes: update.expectedBytes } : {}),
+    })
+      .then((task) => {
+        if (disposed || !task || !sameApkUpdate(availableApk(), update)) return;
+        return observeApkTask(task.taskId);
+      })
+      .catch(() => undefined);
+  };
+
+  const setNextAvailableApk = (update: AvailableApkUpdate | undefined): void => {
+    if (!sameApkUpdate(availableApk(), update)) {
+      observedApkTaskId = undefined;
+      setApkTask(undefined);
+      setAppUpdateProgress(undefined);
+      void apkTaskListener?.remove();
+      apkTaskListener = undefined;
+    }
+    setAvailableApk(update);
+    if (update) recoverApkTask(update);
+  };
 
   const showUpToDateFeedback = (): void => {
     if (updateFeedbackTimer) clearTimeout(updateFeedbackTimer);
@@ -112,7 +226,7 @@ export function useAppSession() {
     const pending =
       Capacitor.getPlatform() === 'android'
         ? checkNativeApkUpdate().then((update) => {
-            setAvailableApk(update ?? undefined);
+            setNextAvailableApk(update ?? undefined);
             return Boolean(update);
           })
         : checkWebAppUpdate();
@@ -132,23 +246,49 @@ export function useAppSession() {
 
   const activateAvailableUpdate = (): void => {
     if (appUpdating()) return;
+    const task = apkTask();
+    if (task?.state === 'downloading' || task?.state === 'verifying') {
+      applyApkTaskStatus(task);
+      return;
+    }
     setAppUpdateUpToDate(false);
     setAppUpdating(true);
     setAppUpdateProgress(undefined);
     setAppUpdateError();
     const apkUrl = availableApk()?.url;
     if (apkUrl) {
-      void installAndroidApk(apkUrl, (progress) => {
-        setAppUpdateProgress({
-          phase: 'download',
-          loaded: progress.loaded,
-          total: progress.total,
-        });
+      if (task?.state === 'ready') {
+        setAppUpdateProgress({ phase: 'install' });
+        void installAndroidApk(task.taskId)
+          .catch((cause: unknown) => {
+            setAppUpdateError(describeUpdateError(cause, 'Не удалось открыть установщик.'));
+          })
+          .finally(() => {
+            setAppUpdating(false);
+            setAppUpdateProgress({
+              phase: 'ready',
+              loaded: task.downloadedBytes,
+              total: task.totalBytes,
+            });
+          });
+        return;
+      }
+      const available = availableApk();
+      if (!available) return;
+      setAppUpdateProgress({
+        phase: 'download',
+        loaded: 0,
+        total: available.expectedBytes ?? null,
+      });
+      void startAndroidApkDownload({
+        url: apkUrl,
+        releaseVersion: available.version,
+        ...(available.expectedSha256 ? { expectedSha256: available.expectedSha256 } : {}),
+        ...(available.expectedBytes ? { expectedBytes: available.expectedBytes } : {}),
       })
+        .then(({ taskId }) => observeApkTask(taskId))
         .catch((cause: unknown) => {
           setAppUpdateError(describeUpdateError(cause, 'Не удалось загрузить обновление.'));
-        })
-        .finally(() => {
           setAppUpdating(false);
           setAppUpdateProgress(undefined);
         });
@@ -164,6 +304,14 @@ export function useAppSession() {
     setAppUpdateProgress(undefined);
   };
 
+  const cancelAvailableUpdate = (): void => {
+    const task = apkTask();
+    if (!task || (task.state !== 'downloading' && task.state !== 'verifying')) return;
+    void cancelAndroidApkDownload(task.taskId).catch((cause: unknown) => {
+      setAppUpdateError(describeUpdateError(cause, 'Не удалось отменить загрузку обновления.'));
+    });
+  };
+
   const connectInstalledModules = async (): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
@@ -172,9 +320,6 @@ export function useAppSession() {
       const nextSearchCore = new WorkerSearchMedicalCore(core);
       setSearchCore(nextSearchCore);
       if (previousSearchCore) void previousSearchCore.close();
-      const assistant = assistantCore();
-      if (assistant) assistant.setBase(nextSearchCore);
-      else setAssistantCore(new GroundedMedicalCore(nextSearchCore, modelController));
     });
     coreToClose = next.core;
     setReady(next);
@@ -197,7 +342,7 @@ export function useAppSession() {
     if (Capacitor.getPlatform() === 'android') {
       void checkNativeApkUpdate()
         .then((update) => {
-          if (update) setAvailableApk(update);
+          if (update) setNextAvailableApk(update);
         })
         .catch((cause: unknown) => {
           setAppUpdateError(describeUpdateError(cause, 'Не удалось проверить обновление.'));
@@ -205,6 +350,7 @@ export function useAppSession() {
     }
     window.addEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.addEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
+    document.addEventListener('visibilitychange', refreshApkTask);
     refreshDueReminders();
     ensureUserLibraryIngestRunning();
     reminderTimer = setInterval(refreshDueReminders, 30_000);
@@ -227,7 +373,6 @@ export function useAppSession() {
       const initializedSearchCore = new WorkerSearchMedicalCore(initialized.core);
       coreToClose = initialized.core;
       setSearchCore(initializedSearchCore);
-      setAssistantCore(new GroundedMedicalCore(initializedSearchCore, modelController));
       setReady(initialized);
       const moduleRuntimeLoad = scheduleIdle(() =>
         Promise.all([
@@ -269,16 +414,17 @@ export function useAppSession() {
     document.documentElement.classList.remove('platform-android');
     window.removeEventListener(PATIENT_NOTES_EVENT, refreshDueReminders);
     window.removeEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
+    document.removeEventListener('visibilitychange', refreshApkTask);
     if (reminderTimer) clearInterval(reminderTimer);
     if (bootTimer) clearTimeout(bootTimer);
     if (updateFeedbackTimer) clearTimeout(updateFeedbackTimer);
+    void apkTaskListener?.remove();
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
     stopButtonHaptics?.();
     if (coreToClose) void coreToClose.close();
     const activeSearchCore = searchCore();
     if (activeSearchCore) void activeSearchCore.close();
-    void modelController.dispose();
   });
 
   return {
@@ -299,10 +445,13 @@ export function useAppSession() {
     appUpdateUpToDate,
     appUpdateProgress,
     appUpdateError,
-    modelController,
-    assistantCore,
+    appUpdateCancellable: () => {
+      const state = apkTask()?.state;
+      return state === 'downloading' || state === 'verifying';
+    },
     searchCore,
     activateAvailableUpdate,
+    cancelAvailableUpdate,
     checkAvailableUpdate,
     connectInstalledModules,
   };

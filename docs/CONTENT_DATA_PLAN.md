@@ -15,13 +15,53 @@ Detailed shortlist from the private library and OCR inventory: [CONTENT_BACKLOG.
 | --- | --- | --- | --- |
 | Clinical recommendations | 744 official recommendations synced, largest existing asset | Ministry API, official structured JSON | [CURRENT_STATE.md](CURRENT_STATE.md) |
 | Regulatory acts | 32 drafted, `publicationState: local-dev`, unpublished | Official RF orders/laws | [REGULATORY_PILOT.md](REGULATORY_PILOT.md) |
-| Pediatric norms / growth | WHO standards reference-carded but no calculator yet; private textbooks surveyed | WHO Child Growth Standards + cited textbook pages | [LITERATURE_BANK.md](LITERATURE_BANK.md), [CALCULATORS.md](CALCULATORS.md) |
-| Calculators | Built-in `unit-conversion` plus seven downloadable DB modules (core-clinical, obstetrics-gynecology, psychology, gastroenterology, neonatology, pediatrics, emergency); Hadlock biometry stays TS-only; z-score/percentile spec written, not built | Authoritative source or cited book page | [CALCULATORS.md](CALCULATORS.md) |
+| Pediatric norms / growth | WHO 0–5 and 5–19 z-score/percentile calculator built as an experimental downloadable module; reference cards bundled | WHO Child Growth Standards + cited textbook pages | [LITERATURE_BANK.md](LITERATURE_BANK.md), [CALCULATORS.md](CALCULATORS.md) |
+| Medical glossary | 19,972 compact catalog pointers and 44,211 aliases are bundled in `core.db`; titles and declared aliases become inline links with definition previews | Clinical-recommendation definitions plus compact MKB/RLS and linked disease-reference routing; full articles stay in companion packs | [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md) |
+| Laboratory reference intervals | Sourced pilot bundled in `reference.db`: common age-specific CBC, biochemistry and CSF ranges plus adult urine orientation | Method-specific CALIPER data + official formularies; the performing laboratory's interval always takes precedence | this doc |
+| Calculators | Built-in `unit-conversion` plus downloadable DB modules, including experimental WHO pediatric anthropometry; calculator pages expose source links before calculation | Authoritative source or cited book page | [CALCULATORS.md](CALCULATORS.md) |
 | Assessments/questionnaires | Schema-defined clinical scales and psychology/obstetric instruments in downloadable tool modules only | Independent authored questions or validated instrument | [ASSESSMENTS.md](ASSESSMENTS.md) |
 | Medications | one-drug pipeline proof (Miramistin), 9 pilot instructions syncing | Official GRLS + instruction PDFs | [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md) |
 | Diets (лечебные столы) | №1/5/7/8/9/15 + standard-diet-system drafted, `local-dev`, pediatric scope not reviewed | `reference` category (`content/reference-rf-pilot/`); relaxed sourcing (web/clinic sites), see below | this doc |
 | Vaccination calendars | referenced by `order-1122n-vaccination-calendars.md` (regulatory pilot), not a standalone reference/calculator | Official immunization schedule order | [REGULATORY_PILOT.md](REGULATORY_PILOT.md) |
 | Nutrition/feeding norms | candidate sources found (`ПДБ/PITANIE.pdf`, `ПДБ/кормление_1год.pdf`, `Нутрициология`), not extracted | Cited textbook page | [LITERATURE_BANK.md](LITERATURE_BANK.md) |
+
+## Glossary and cross-document terms
+
+The glossary reuses the existing document and knowledge graph instead of introducing another term store.
+`core.db` already carries compact disease and medication pointers with titles, declared aliases, keywords,
+ICD-10 codes, specialties, age categories, and target module IDs. A deterministic pass also copies an
+exact source-backed definition from a recommendation's `Термины и определения` section when its term
+matches the catalog title or an accepted alias. The compact copy retains one stable definition ID and the
+source document/version/section/chunk/anchor; it is not merged or rewritten. The document matcher indexes
+`core_catalog_pointer` titles and declared aliases alongside installed reference and clinical documents;
+search still indexes broader keywords, but they never become inline links because a diagnostic method or
+symptom listed by one recommendation is not an alias of its disease. When the full target document is
+installed it wins over the pointer. This provides offline term lookup and basic classification
+without a second, drifting glossary. A linked term with a canonical definition opens an in-place preview;
+its explicit action opens the pointer card or installed full document. Definition coverage remains partial and explicit; terms without an
+exact source match still show their available classification/materials instead of generated prose.
+
+The core now adds 15,904 compact MKB/RLS and disease-reference pointers without copying article bodies or
+images. After title/ICD grouping and runtime fixture filtering, the visible catalog contains 9,030
+diseases, 2,547 conditions, 402 syndromes, and 339 symptoms. Its 6,068 short disease-reference excerpts plus 79 strict KR definitions
+provide 6,147 source-backed inline previews; complete articles and images remain in companion packs.
+The remaining coverage gap is definitions and diagnostic methods absent from clinical recommendations.
+The current local-development/personal-use core retains short sourced excerpts from the already collected
+disease corpus. The [krasotaimedicina audit](research/krasotaimedicina-source-audit-2026-09.md) found no
+open redistribution or image license, so public release must replace/remove those excerpts or obtain an
+explicit grant. Images remain a separate optional asset pack and are not bundled in core.
+
+## Laboratory reference intervals
+
+`content/reference-rf-pilot/laboratory-reference-intervals.md` is the first bundled vertical slice. It is
+compiled into `apps/app/public/content/reference.db` and the published reference module rather than being
+hand-written into SQLite. It contains selected common CBC intervals from CALIPER for the Beckman Coulter
+DxH 900 and age-partitioned chemistry/CSF values from the Bangladesh National Formulary hosted by WHO;
+adult urine values are explicitly labelled as non-pediatric orientation.
+
+Every surface must show the limitation: reference intervals depend on population, specimen, preanalytics,
+method, analyzer, and reagents. A range supplied by the performing laboratory takes precedence, while
+condition-specific decision limits come from the relevant clinical recommendation.
 
 ## Diets (лечебные столы / Pevzner system)
 
@@ -49,7 +89,7 @@ accepted source here.
 traces to the actual Ministry order rather than lifestyle sites), all `editionVerified: false` (matches the
 relaxed-rigor decision above — flagged honestly rather than dressed up as authoritative), still
 `publicationState: local-dev` pending rights/lint review like the rest of this pilot corpus. Lints and
-builds cleanly (`medbase lint`/`medbase build --input content/reference-rf-pilot`, 17 documents, 0 errors).
+builds cleanly (`medbase lint`/`medbase build --input content/reference-rf-pilot`, 18 documents, 0 errors).
 
 - [`diet-table-1-gastric-ulcer.md`](../content/reference-rf-pilot/diet-table-1-gastric-ulcer.md) — стол №1
 - [`diet-table-5-hepatobiliary.md`](../content/reference-rf-pilot/diet-table-5-hepatobiliary.md) — стол №5,
@@ -129,8 +169,8 @@ Open questions before any of this moves further:
   works for any future table content in this category).
 - **Now published as a real module (2026-08-11)**: `minimed.reference.pediatrics.ru` in
   `apps/app/src/features/modules/catalog.preview.json` flipped from `releaseState: "planned"` (empty
-  `artifacts`/`documents`) to `"published"`, `version: "0.1.0-preview.1"`, pointing at
-  `apps/app/public/content/modules/minimed-reference-pediatrics-0.1.0-preview.1.db` (913,408 bytes, 17
+  `artifacts`/`documents`) to `"published"`, `version: "0.1.0-preview.2"`, pointing at
+  `apps/app/public/content/modules/minimed-reference-pediatrics-0.1.0-preview.1.db` (1,019,904 bytes, 18
   documents) via the same `raw.githubusercontent.com/.../public/content/modules/` pattern already used by
   `minimed.regulatory.pediatrics.ru`. Verified mechanically, not just by inspection:
   `local-artifact-checksums.test.ts` recomputes the file's sha256 and compares it against the catalog entry

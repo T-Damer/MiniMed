@@ -968,10 +968,6 @@
   margin-top: 1rem;
 }
 
-.user-library-page__search-chrome.knowledge-subroute-heading--blurred::before {
-  height: calc(100% + var(--safe-top) + 0.5rem);
-}
-
 @media (hover: hover) and (pointer: fine) {
   .user-library-card.paper-card:not(.user-library-card--selected):hover,
   .user-library-folder-card.paper-card:hover {

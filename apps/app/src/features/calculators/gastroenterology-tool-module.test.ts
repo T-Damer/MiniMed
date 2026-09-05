@@ -15,6 +15,7 @@ import {
   getCalculatorRegistry,
   registerDownloadedCalculator,
 } from '@/features/calculators/calculator-registry';
+import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import type { CalculatorSchemaNumberOutput } from '@/features/calculators/calculator-schema-engine';
 import { evaluateCalculatorSchema } from '@/features/calculators/calculator-schema-engine';
 
@@ -49,8 +50,10 @@ describe('gastroenterology tool module', () => {
       }
     }
 
-    const downloaded = getCalculatorRegistry().filter((calculator) =>
-      calculator.id.startsWith('minimed.calculator.'),
+    const downloaded = getCalculatorRegistry().filter(
+      (calculator) =>
+        calculator.id.startsWith('minimed.calculator.') &&
+        getCalculatorSchema(calculator.id) !== undefined,
     );
     expect(downloaded).toHaveLength(3);
     expect(downloaded.map((calculator) => calculator.id)).toEqual(

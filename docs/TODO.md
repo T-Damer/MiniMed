@@ -26,10 +26,25 @@ Short-term 1.0 follow-up work that remains after the 0.6.0 release-candidate imp
 - [x] assessments-subpage-header column layout on mobile; animated next-button progress ring.
 - [x] Floating windows: collapse to header, marquee title.
 - [ ] ASR ONNX inference quality pass on device (worker + engine seam are ready).
-- [ ] Highlighting for PDF/EPUB surfaces (text documents only for now).
+- [ ] Highlighting for PDF surfaces (text documents and EPUB are done).
 - [ ] PDF text-selection quality check in a live browser.
 - [ ] Reading scale for text/markdown content (PDF-only today).
 - [ ] e2e + on-device validation of the whole batch.
+
+## In progress — core glossary, definitions, and document links
+
+- [x] Keep broad clinical keywords searchable without treating them as aliases for inline links.
+- [x] Show a separate `КР ↗` action on condition cards; open the core pointer when the full module is absent.
+- [x] Copy source-backed canonical definitions into core pointers with stable KR section/chunk anchors.
+- [x] Reject truncated or ambiguous canonical-definition matches and rebuild `core.db` from the audited set.
+- [x] Show canonical definitions in an inline Wikipedia-style preview with an explicit card link.
+- [x] Open calculator and questionnaire links from a reader in non-persistent, route-owned windows.
+- [x] Make reader Back traverse the document-link trail before returning to its origin.
+- [x] Add database/linking regressions for definition identity, keyword false links, pointer/full replacement,
+      tooltip navigation, and Back.
+- [x] Bundle compact MKB/disease pointers and diagnostic aliases in `core.db`; keep full articles separate.
+- [ ] Publish the full `minimed.mkb.ru` companion pack for Experimental downloads after replacing or
+      clearing third-party text/image rights; the local personal-use pack is ready.
 
 ## Памятки для пациентов (proposal, awaiting approval)
 

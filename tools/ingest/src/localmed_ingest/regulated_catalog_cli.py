@@ -102,6 +102,7 @@ def clinical_aliases_command(
                 "aliases": result.summary.aliases_total,
                 "recordsWithKeywords": result.summary.records_with_keywords,
                 "keywords": result.summary.keywords_total,
+                "recordsWithDefinitions": result.summary.records_with_definitions,
                 "recordsWithMedicationLinks": result.summary.records_with_medication_links,
                 "medicationLinks": result.summary.medication_links_total,
                 "matchedDatabases": result.summary.matched_databases,

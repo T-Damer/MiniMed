@@ -25,6 +25,10 @@ import { medicalImageViewerActive } from '@/features/library/document-reading-mo
 import { getFloatingWindowsEnabled, subscribeAppPreferences } from '@/state/app-preferences';
 import { createFloatingWindows } from '@/state/floating-windows';
 import { rememberReturnTo } from '@/state/return-navigation';
+import {
+  ROUTE_WINDOW_REQUEST_EVENT,
+  type RouteWindowRequestDetail,
+} from '@/state/route-window-request';
 
 const loadAssessmentsView = () =>
   import('@/features/assessments/AssessmentsView').then(({ AssessmentsView: component }) => ({
@@ -102,12 +106,34 @@ export function App(): JSX.Element {
         `${window.innerHeight}px`,
       );
     };
+    const currentOwnerRoute = (): string => window.location.hash || `#/${navigation.view()}`;
+    const handleRouteWindowRequest = (event: Event): void => {
+      if (embeddedFloatingWindow || !navigation.documentReadActive()) return;
+      const request = event as CustomEvent<RouteWindowRequestDetail>;
+      if (
+        request.detail &&
+        floatingWindows.openTransient(
+          request.detail.view,
+          request.detail.route,
+          currentOwnerRoute(),
+        )
+      ) {
+        event.preventDefault();
+      }
+    };
+    const closeTransientWindows = (): void => {
+      floatingWindows.closeTransientOutside(currentOwnerRoute());
+    };
+    window.addEventListener(ROUTE_WINDOW_REQUEST_EVENT, handleRouteWindowRequest);
+    window.addEventListener('hashchange', closeTransientWindows);
     if (embeddedFloatingWindow) {
       syncFloatingViewport();
       window.addEventListener('resize', syncFloatingViewport);
     }
     onCleanup(unsubscribePreferences);
     onCleanup(() => {
+      window.removeEventListener(ROUTE_WINDOW_REQUEST_EVENT, handleRouteWindowRequest);
+      window.removeEventListener('hashchange', closeTransientWindows);
       window.removeEventListener('resize', syncFloatingViewport);
       document.documentElement.style.removeProperty('--floating-viewport-width');
       document.documentElement.style.removeProperty('--floating-viewport-height');
@@ -115,7 +141,9 @@ export function App(): JSX.Element {
   });
   createEffect(() => {
     if (floatingWindowsEnabled()) return;
-    for (const windowState of floatingWindows.windows()) floatingWindows.close(windowState.id);
+    for (const windowState of floatingWindows.windows()) {
+      if (!windowState.ownerRoute) floatingWindows.close(windowState.id);
+    }
   });
   const bottomNav = useBottomNav({
     view: navigation.view,
@@ -226,14 +254,8 @@ export function App(): JSX.Element {
               {rootPane('search', () => (
                 <SearchHome
                   baseCore={session.searchCore() ?? state().core}
-                  assistantCore={session.assistantCore()}
-                  localModelController={session.modelController}
                   active={navigation.view() === 'search'}
                   onOpenKnowledgeBase={() => navigation.navigate('modules')}
-                  onOpenModelSettings={() => {
-                    rememberReturnTo();
-                    navigation.navigate('settings');
-                  }}
                   {...(session.availableUpdateVersion()
                     ? { appUpdateVersion: session.availableUpdateVersion() as string }
                     : {})}
@@ -254,7 +276,6 @@ export function App(): JSX.Element {
               ))}
               {rootPane('settings', () => (
                 <SettingsView
-                  controller={session.modelController}
                   status={state().status}
                   appUpdateReady={Boolean(session.appUpdateWorker() || session.availableApkUrl())}
                   appUpdating={session.appUpdating()}
@@ -262,8 +283,10 @@ export function App(): JSX.Element {
                   appUpdateUpToDate={session.appUpdateUpToDate()}
                   appUpdateProgress={session.appUpdateProgress()}
                   appUpdateError={session.appUpdateError()}
+                  appUpdateCancellable={session.appUpdateCancellable()}
                   onCheckAppUpdate={session.checkAvailableUpdate}
                   onActivateAppUpdate={session.activateAvailableUpdate}
+                  onCancelAppUpdate={session.cancelAvailableUpdate}
                 />
               ))}
               {rootPane('notes', () => (
@@ -298,7 +321,13 @@ export function App(): JSX.Element {
         </Show>
       </main>
 
-      <Show when={session.ready() && !embeddedFloatingWindow && floatingWindowsEnabled()}>
+      <Show
+        when={
+          session.ready() &&
+          !embeddedFloatingWindow &&
+          (floatingWindowsEnabled() || floatingWindows.hasTransientWindows())
+        }
+      >
         <FloatingWindowLayer manager={floatingWindows} onClose={closeFloatingWindow} />
       </Show>
 
@@ -320,7 +349,6 @@ export function App(): JSX.Element {
             downloadedModuleCount={session.downloadedModuleCount}
             dueReminderCount={session.dueReminderCount}
             appUpdateReady={() => Boolean(session.appUpdateWorker() || session.availableApkUrl())}
-            modelController={session.modelController}
             bubbleStyle={bottomNav.bubbleStyle}
             bindNav={bottomNav.bindNav}
             onPrefetch={preloadRootView}

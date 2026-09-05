@@ -4,6 +4,7 @@ version = "0.3.0a1"
 description = "Deterministic LocalMed content-pack builder"
 requires-python = ">=3.12"
 dependencies = [
+  "crawlee[beautifulsoup]==1.9.3",
   "pydantic==2.13.4",
   "pymupdf==1.28.2",
   "pyyaml==6.0.3",

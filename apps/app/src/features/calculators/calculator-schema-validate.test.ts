@@ -64,6 +64,18 @@ describe('validateCalculatorSchema', () => {
     expect(result.errors.some((error) => error.includes('"b"'))).toBe(true);
   });
 
+  it('rejects an input dependency that does not point to an earlier input', () => {
+    const candidate = {
+      ...ADULT_EGFR_CKD_EPI_2021_SCHEMA,
+      inputs: ADULT_EGFR_CKD_EPI_2021_SCHEMA.inputs.map((input, index) =>
+        index === 0 ? { ...input, requiresInput: 'missing_input' } : input,
+      ),
+    };
+    const result = validateCalculatorSchema(candidate);
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((error) => error.includes('missing_input'))).toBe(true);
+  });
+
   it('rejects malformed expression syntax with a clear per-step error', () => {
     const candidate = {
       ...ADULT_EGFR_CKD_EPI_2021_SCHEMA,

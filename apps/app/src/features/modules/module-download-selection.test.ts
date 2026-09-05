@@ -1,7 +1,7 @@
 import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
-import { selectBulkDownloadModules } from './module-download-selection';
+import { estimateDownloadStorage, selectBulkDownloadModules } from './module-download-selection';
 
 function module(id: string): ContentModuleCatalogEntry {
   return {
@@ -113,8 +113,31 @@ describe('selectBulkDownloadModules', () => {
     ).toBe(filtered);
   });
 
-  it('scopes to regular modules on the documents overview', () => {
+  it('includes recommendations in download-all on the documents overview', () => {
     const regular = [module('regular')];
-    expect(selectBulkDownloadModules(baseInput({ regularModules: regular }))).toBe(regular);
+    expect(
+      selectBulkDownloadModules(baseInput({ regularModules: regular })).map((entry) => entry.id),
+    ).toEqual(['regular', 'recommendation']);
+  });
+});
+
+describe('download confirmation storage estimate', () => {
+  it('prefers installed size, falls back to download size, and identifies unknown sizes', () => {
+    const entry = module('known');
+    expect(
+      estimateDownloadStorage([
+        { ...entry, sizes: { ...entry.sizes, installedBytes: 200, downloadBytes: 50 } },
+        {
+          ...entry,
+          id: 'fallback',
+          sizes: { ...entry.sizes, installedBytes: null, downloadBytes: 30 },
+        },
+      ]),
+    ).toEqual({ bytes: 230, incomplete: false });
+    expect(
+      estimateDownloadStorage([
+        { ...entry, sizes: { ...entry.sizes, installedBytes: null, downloadBytes: null } },
+      ]),
+    ).toEqual({ bytes: 0, incomplete: true });
   });
 });

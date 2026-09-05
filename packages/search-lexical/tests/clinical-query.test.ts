@@ -20,6 +20,32 @@ const aliases = [
 ];
 
 describe('clinical query retrieval sanitation', () => {
+  it('searches positive symptoms in a plain description without requiring a diagnostic question', () => {
+    const query = 'апноэ на фоне вирусной инфекции, без хрипов';
+    for (const text of [query, `найти документы: ${query}`]) {
+      const plan = analyzeClinicalQuery(text, []);
+      expect(plan.analysis.intent?.primary).toBe('unknown');
+      expect(plan.branches[0]).toMatchObject({
+        id: 'canonical-symptoms',
+        terms: ['апноэ'],
+        ftsQuery: '"апноэ"*',
+      });
+    }
+  });
+
+  it('recognizes literal respiratory findings and keeps negated findings out of positive facts', () => {
+    const query = 'Апноэ и раздувание крыльев носа, без хрипов';
+    const { analysis } = analyzeClinicalQuery(query, []);
+    const positive = analysis.facts.filter(
+      (fact) => fact.kind === 'symptom' && fact.polarity === 'positive',
+    );
+    expect(positive.map((fact) => fact.normalizedValue)).toEqual(
+      expect.arrayContaining(['апноэ', 'раздувание крыльев носа']),
+    );
+    expect(positive.some((fact) => fact.normalizedValue === 'хрипы')).toBe(false);
+    for (const fact of positive)
+      expect(query.slice(fact.range.start, fact.range.end)).toBe(fact.value);
+  });
   it('keeps current therapy visible but removes it from diagnosis retrieval', () => {
     const plan = analyzeClinicalQuery(
       'Мальчик 5 лет, температура 39,2, часто дышит, кашля нет, принимает аугментин',

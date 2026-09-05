@@ -17,11 +17,6 @@
   border-radius: var(--theme-radius-panel);
 }
 
-.medication-route-heading.sticky-surface--stuck {
-  margin-top: calc(-1 * var(--safe-top));
-  padding-top: calc(var(--safe-top) + 0.25rem);
-}
-
 .medication-catalog-section {
   display: grid;
   gap: 0.75rem;

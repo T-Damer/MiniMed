@@ -1,4 +1,5 @@
 import type {
+  MedicalCore,
   MedicalDocument,
   MedicalDocumentSummary,
   MedicalSection,
@@ -27,7 +28,6 @@ import {
   displayDocumentSubtitle,
   displayDocumentTitle,
   documentSectionHeadingTag,
-  isFullTextDocumentId,
   nestDocumentSections,
   resolveReadableDocumentId,
   sourceTypeReaderLabel,
@@ -48,6 +48,8 @@ import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
+import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
+import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
 import {
   ALLMED_SOURCE_URL,
@@ -64,6 +66,7 @@ import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-
 import type { DocumentTrail } from '@/state/document-trail';
 
 interface OfficialDocumentReaderProps {
+  readonly core?: MedicalCore | undefined;
   readonly document: MedicalDocument | undefined;
   readonly pendingTitle?: string;
   readonly availableDocuments?: readonly MedicalDocumentSummary[];
@@ -184,6 +187,60 @@ function AllmedSupplementPanel(props: { readonly supplement: TradeNameSupplement
         </a>
       </div>
     </details>
+  );
+}
+
+function ReferencePointerImage(props: { readonly documentId: string }): JSX.Element {
+  const [image, setImage] = createSignal<ResolvedReferenceImage | null>();
+  const [failed, setFailed] = createSignal(false);
+
+  onMount(() => {
+    void getReferenceImageResolver()
+      .resolveFirst(props.documentId)
+      .then((value) => setImage(value))
+      .catch(() => setFailed(true));
+  });
+
+  return (
+    <Show
+      when={image()}
+      fallback={
+        <Show when={failed()}>
+          <p class="document-reference-image__fallback">Не удалось загрузить иллюстрацию.</p>
+        </Show>
+      }
+    >
+      {(value) => (
+        <figure class="document-reference-image document-reference-image--pointer">
+          <img
+            class="document-reference-image__image"
+            src={value().url}
+            alt={value().alt}
+            loading="lazy"
+            onError={() => setFailed(true)}
+            hidden={failed()}
+          />
+          <Show when={!failed()}>
+            <figcaption class="document-reference-image__caption">
+              <span>Источник: Красота и медицина</span>{' '}
+              <a
+                class="document-reference-image__source"
+                href={value().sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Открыть источник
+              </a>
+            </figcaption>
+          </Show>
+          <Show when={failed()}>
+            <p class="document-reference-image__fallback">
+              Иллюстрация недоступна в подключённом наборе.
+            </p>
+          </Show>
+        </figure>
+      )}
+    </Show>
   );
 }
 
@@ -478,17 +535,30 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     });
   });
 
-  onMount(() => {
-    requestAnimationFrame(() => {
-      const anchor = props.initialAnchor;
+  let initialScrollKey: string | undefined;
+  createEffect(() => {
+    const document = props.document;
+    const anchor = props.initialAnchor;
+    if (!document) {
+      initialScrollKey = undefined;
+      return;
+    }
+    if (mountedSectionCount() === 0) return;
+    const key = `${document.id}\n${anchor ?? ''}`;
+    if (initialScrollKey === key) return;
+    // The route mounts before its asynchronous document arrives. Scroll after the target renders,
+    // once per document/anchor; later section batches must not reset the reader's position.
+    const frame = requestAnimationFrame(() => {
       const target = anchor ? globalThis.document.getElementById(anchor) : null;
-      const paper = globalThis.document.querySelector<HTMLElement>('.document-overlay-paper');
-      if (target) {
-        target.scrollIntoView({ behavior: 'instant', block: 'start' });
-      } else {
-        paper?.scrollTo({ top: 0, behavior: 'instant' });
-      }
+      if (anchor && !target) return;
+      initialScrollKey = key;
+      if (target) target.scrollIntoView({ behavior: 'instant', block: 'start' });
+      else
+        globalThis.document
+          .querySelector<HTMLElement>('.document-overlay-paper')
+          ?.scrollTo({ top: 0, behavior: 'instant' });
     });
+    onCleanup(() => cancelAnimationFrame(frame));
   });
 
   const availableIds = createMemo(
@@ -503,21 +573,24 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     const readableId = resolveReadableDocumentId(document.id, availableIds());
     return readableId === document.id ? null : readableId;
   });
-  const showDocumentLinks = createMemo(() =>
-    Boolean(
-      props.document &&
-        (isFullTextDocumentId(props.document.id) ||
-          props.document.sourceType === 'clinical_recommendation' ||
-          props.document.sourceType === 'medical_reference' ||
-          props.document.sourceType === 'rls_mkb_reference'),
-    ),
-  );
   const documentLinkMatcher = createMemo(() =>
-    showDocumentLinks() ? createDocumentLinkMatcher(documentLinks()) : null,
+    props.document ? createDocumentLinkMatcher(documentLinks()) : null,
   );
   const isClinicalSummary = createMemo(
     () => props.document?.sourceType === 'clinical_recommendation_summary',
   );
+  const referenceImageResolver = createMemo(() => {
+    const document = props.document;
+    if (
+      !document ||
+      (document.sourceType !== 'krasotaimedicina_reference' &&
+        document.metadata['sourceKind'] !== 'disease-reference')
+    ) {
+      return undefined;
+    }
+    const resolver = getReferenceImageResolver();
+    return (documentId: string, source: string) => resolver.resolve(documentId, source);
+  });
 
   const copySectionLink = async (documentId: string, sectionAnchor: string): Promise<void> => {
     const url = buildDocumentSectionLink(documentId, sectionAnchor);
@@ -641,6 +714,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
         </Show>
       }
       showLayout={Boolean(props.document) && !props.openError}
+      outlineEnabled={orderedSections().length > 1}
       loadingBody={
         <Show when={!props.document && !props.openError}>
           <div
@@ -714,7 +788,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
                   {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
                 </Show>
-                <h1 class="document-overlay-paper__title">
+                <h1
+                  class="document-overlay-paper__title"
+                  classList={{
+                    'document-overlay-paper__title--pointer': Boolean(props.modulePointer),
+                  }}
+                >
                   <QueryHighlightedText
                     text={displayDocumentTitle(documentValue())}
                     query={findState().query}
@@ -761,7 +840,11 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           id="document-module-pointer-title"
                           class="document-module-pointer__title"
                         >
-                          Полный документ доступен после загрузки
+                          {resolution().state === 'unavailable'
+                            ? 'Полный документ пока недоступен'
+                            : resolution().state === 'installed'
+                              ? 'Подключение полного документа'
+                              : 'Полный документ доступен после загрузки'}
                         </h2>
                         <Show when={resolution().module}>
                           {(module) => (
@@ -886,6 +969,21 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   </section>
                 </Show>
 
+                <Show
+                  when={
+                    documentValue().sourceType === 'core_catalog_pointer' &&
+                    documentValue().metadata['sourceKind'] === 'disease-reference'
+                  }
+                >
+                  <ReferencePointerImage
+                    documentId={
+                      typeof documentValue().metadata['sourceDocumentId'] === 'string'
+                        ? (documentValue().metadata['sourceDocumentId'] as string)
+                        : documentValue().id
+                    }
+                  />
+                </Show>
+
                 <For each={visibleSectionTree()}>
                   {(node) => {
                     const renderSection = (treeNode: typeof node): JSX.Element => {
@@ -977,6 +1075,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                         paragraphClass="document-overlay-section__paragraph"
                                         // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.
                                         sourceSpans={item.chunk.metadata?.['sourceSpans']}
+                                        documentId={documentValue().id}
+                                        resolveImage={referenceImageResolver()}
+                                        core={props.core}
                                         documentLinkMatcher={documentLinkMatcher() ?? undefined}
                                         onDocumentLink={(documentId) => {
                                           openDocumentOverlay(documentId, null, {

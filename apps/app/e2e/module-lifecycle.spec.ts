@@ -9,8 +9,7 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
-const REGULATORY_QUERY =
-  'Какие дети подлежат диспансерному наблюдению после заболевания, травмы или отравления';
+const REGULATORY_QUERY = 'Диспансерное наблюдение несовершеннолетних приказ 192н';
 
 interface TestCatalog {
   publishedAt: string;
@@ -87,7 +86,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await hideBuiltInRegulatoryPack(page);
 
   await mountBuiltApp(page, { persistentOrigin: true });
-  await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
   await page.getByTestId('search-input').fill(REGULATORY_QUERY);
   await page.getByTestId('search-submit').click();
   await expect(page.getByTestId('search-results')).toBeVisible();
@@ -100,7 +98,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   });
 
   await navigationButton(page, 'Поиск').click();
-  await page.getByRole('radio', { name: /Правовые документы/u }).click();
   await expect(page.getByTestId('search-input')).toHaveValue(REGULATORY_QUERY);
   await expect
     .poll(() => page.getByTestId('search-results').locator('.result-group').count(), {
@@ -122,7 +119,6 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   });
 
   await navigationButton(page, 'Поиск').click();
-  await page.getByRole('radio', { name: /Всё без диагностики/u }).click();
   await page.getByTestId('search-input').fill('пневмония');
   await page.getByTestId('search-submit').click();
   await expect(

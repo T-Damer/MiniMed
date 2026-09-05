@@ -80,9 +80,10 @@ type UserLibraryFileCapabilityId =
   | 'pages'
   | 'binary';
 
-const PDF_READING_ACTIONS = ['print', 'fullscreen', 'two-page', 'zoom'] as const;
-const TEXT_READING_ACTIONS = ['print', 'fullscreen', 'reading-mode'] as const;
-const RICH_READING_ACTIONS = ['print', 'fullscreen'] as const;
+const PDF_READING_ACTIONS = ['print', 'two-page', 'zoom'] as const;
+const TEXT_READING_ACTIONS = ['print', 'reading-mode'] as const;
+const RICH_READING_ACTIONS = ['print'] as const;
+const SHEET_READING_ACTIONS = ['print', 'fullscreen'] as const;
 
 export const USER_LIBRARY_FILE_CAPABILITIES = {
   questionnaire: {
@@ -206,7 +207,7 @@ export const USER_LIBRARY_FILE_CAPABILITIES = {
     textExtraction: 'none',
     reader: {
       renderer: 'image',
-      actions: ['print', 'fullscreen'],
+      actions: ['print'],
       search: 'none',
       print: 'rendered',
       printOrientation: 'portrait',
@@ -281,7 +282,7 @@ export const USER_LIBRARY_FILE_CAPABILITIES = {
     textExtraction: 'spreadsheet',
     reader: {
       renderer: 'sheet',
-      actions: [...RICH_READING_ACTIONS],
+      actions: [...SHEET_READING_ACTIONS],
       search: 'text',
       print: 'rendered',
       printOrientation: 'landscape',
@@ -303,7 +304,7 @@ export const USER_LIBRARY_FILE_CAPABILITIES = {
     textExtraction: 'spreadsheet',
     reader: {
       renderer: 'sheet',
-      actions: [...RICH_READING_ACTIONS],
+      actions: [...SHEET_READING_ACTIONS],
       search: 'text',
       print: 'rendered',
       printOrientation: 'landscape',
@@ -318,7 +319,7 @@ export const USER_LIBRARY_FILE_CAPABILITIES = {
     textExtraction: 'spreadsheet',
     reader: {
       renderer: 'sheet',
-      actions: [...RICH_READING_ACTIONS],
+      actions: [...SHEET_READING_ACTIONS],
       search: 'text',
       print: 'rendered',
       printOrientation: 'landscape',
