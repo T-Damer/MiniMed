@@ -9,7 +9,7 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
-const REGULATORY_QUERY = 'Диспансерное наблюдение несовершеннолетних приказ 192н';
+const REGULATORY_QUERY = 'Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н';
 
 interface TestCatalog {
   publishedAt: string;
@@ -104,7 +104,11 @@ test('installs a regulatory dataset, searches it live, and removes it without re
       timeout: 20_000,
     })
     .toBeGreaterThan(0);
-  await expect(page.locator('.result-group-header__kind-label').first()).toHaveText(
+  const installedOrder = page
+    .getByTestId('search-results')
+    .locator('.result-group')
+    .filter({ hasText: REGULATORY_QUERY });
+  await expect(installedOrder.locator('.result-group-header__kind-label')).toHaveText(
     'Нормативный акт',
   );
   await expect(page.locator('.error-card')).toHaveCount(0);
