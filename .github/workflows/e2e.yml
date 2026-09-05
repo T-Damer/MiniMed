@@ -24,6 +24,10 @@ jobs:
   chromium:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
@@ -174,6 +178,30 @@ jobs:
               encoding='utf-8',
           )
           PY
+      - name: Download verified pointer-test fixtures
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import urllib.request
+          from pathlib import Path
+
+          catalog = json.loads(Path('apps/app/src/features/modules/catalog.preview.json').read_text())
+          fixtures = {
+              'minimed.clinical.recommendation.1006_1': 'data/build/e2e-clinical-1006-release.db',
+              'minimed.medications.antiparasitic.ru': 'data/build/release-esklp/minimed.medications.antiparasitic.ru.db',
+          }
+          for module_id, destination in fixtures.items():
+              module = next(item for item in catalog['modules'] if item['id'] == module_id)
+              artifact = next(item for item in module['artifacts'] if item['kind'] == 'index')
+              with urllib.request.urlopen(artifact['url'], timeout=120) as response:
+                  data = response.read()
+              assert len(data) == artifact['sizeBytes'], module_id
+              assert 'sha256:' + hashlib.sha256(data).hexdigest() == artifact['sha256'], module_id
+              path = Path(destination)
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_bytes(data)
+          PY
       - name: Install Chromium system dependencies
         run: bunx playwright install-deps chromium
       - name: Install Chromium headless shell
@@ -183,11 +211,11 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          bun run test:e2e 2>&1 | tee playwright-e2e.log
+          bun run test:e2e --shard=${{ matrix.shard }}/3 2>&1 | tee playwright-e2e.log
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: |
             playwright-report
             playwright-e2e.log
