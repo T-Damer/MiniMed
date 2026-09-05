@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@capacitor/core": "8.5.0",
+    "@capacitor/core": "8.5.1",
     "@localmed/contracts": "workspace:*",
     "@localmed/domain": "workspace:*",
     "@localmed/storage": "workspace:*"
