@@ -2,13 +2,15 @@ import { expect, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
 
-test('shows a verified local reference illustration and keeps it available offline', async ({
+test('shows a verified mirrored reference illustration and keeps it available offline', async ({
   page,
   context,
 }) => {
   const imageRequests: string[] = [];
   page.on('request', (request) => {
-    if (request.url().includes('/reference-images/assets/')) imageRequests.push(request.url());
+    if (request.url().includes('/datasets/content-2026-09-06/assets/')) {
+      imageRequests.push(request.url());
+    }
   });
   await mountBuiltApp(page);
   const id =

@@ -42,6 +42,13 @@ module install/search/remove, offline retry, a fresh ECG download, and cancellat
 illustrations. Physical Android and iOS devices were not tested; the new APK is a local test build,
 not a published application release.
 
+Release qualification: the full local browser sweep passed 64 scenarios, skipped 7, and failed 3.
+The EPUB scenario passed on a serial retry; the illustration cache scenario passed after its request
+observer was updated for the public mirror. The local-only full medication companion still exceeds
+the 10-second search assertion; this remains an open latency limitation. The published Pages smoke
+passed in GitHub CI. Live smoke skips the unused local preview server and allows time to download
+the full discovery core on a fresh browser.
+
 ### 0.6.33 release preparation — 5 September 2026
 
 - PR cleanup found that fresh CI runners lacked the two released pointer-test databases.
