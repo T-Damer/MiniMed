@@ -1,5 +1,4 @@
 import { Capacitor } from '@capacitor/core';
-import { LocalMedDatabase } from '@localmed/storage-capacitor';
 
 import type { ResumableDownloadOptions } from '@/features/network/resumable-download';
 
@@ -141,7 +140,7 @@ export function createNativeDownloadTransport(
             id,
             url: options.url,
             destination,
-            headers: options.headers,
+            ...(options.headers ? { headers: options.headers } : {}),
             notification: 'visible',
           });
           acquired = true;
@@ -210,6 +209,7 @@ function getPlugin(): Promise<AndroidDownloadPlugin> {
 
 async function getTransport(): Promise<ReturnType<typeof createNativeDownloadTransport>> {
   const plugin = await getPlugin();
+  const { LocalMedDatabase } = await import('@localmed/storage-capacitor');
   transport ??= createNativeDownloadTransport(plugin, LocalMedDatabase);
   return transport;
 }
@@ -239,7 +239,7 @@ export async function downloadNativeBytes(options: ResumableDownloadOptions): Pr
     // Legacy module/model consumers still require bytes. Core installation never takes this path.
     // No base64 bridge, global fetch patch, or simultaneous download body retained in WebView.
     const response = await fetch(Capacitor.convertFileSrc(file.filePath), {
-      signal: options.signal,
+      signal: options.signal ?? null,
     });
     if (!response.ok) throw new Error('Не удалось прочитать скачанный файл.');
     const bytes = new Uint8Array(await response.arrayBuffer());

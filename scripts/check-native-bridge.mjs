@@ -59,7 +59,12 @@ requireText(
   'typescriptPlugin',
   'registerPlugin<LocalMedDatabasePlugin & NativeCoreDownloadPlugin>',
 );
-for (const method of ['hasCorePack', 'downloadCorePack']) {
+for (const method of [
+  'hasCorePack',
+  'prepareNativeDownload',
+  'inspectNativeDownload',
+  'installDownloadedCore',
+]) {
   requireText('typescriptPlugin', `${method}(`);
   requireText('androidPlugin', `void ${method}(`);
 }
@@ -133,7 +138,7 @@ requireText('androidPlugin', '".backup"');
 requireText('iosPlugin', 'appendingPathExtension("backup")');
 requireText('androidPlugin', 'SQLiteDatabase.OPEN_READONLY');
 requireText('androidPlugin', 'import io.requery.android.database.sqlite.SQLiteDatabase;');
-requireText('androidGradle', "com.github.requery:sqlite-android:3.50.4");
+requireText('androidGradle', 'com.github.requery:sqlite-android:3.50.4');
 for (const method of ['prepareNativeDownload', 'inspectNativeDownload', 'installDownloadedCore']) {
   requireText('androidPlugin', `void ${method}(`);
   requireText('typescriptPlugin', `${method}(`);

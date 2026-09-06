@@ -33,7 +33,7 @@ out of WASM or unify all feature queue UIs.
 
 Upstream's Android implementation stores app-ID → system-ID mappings only in memory. A versioned Bun
 patch persists mappings synchronously, reconciles the enqueue/journal crash window using the staging
-URI and original URL, reuses an existing transfer, and bounds active system transfers to three,
+URI, opaque system-record marker and original URL (also while the pending file URI is null), reuses an existing transfer, and bounds active system transfers to three,
 including those retained across process death. It also confines destinations to opaque app-owned
 staging IDs and stops event polling when the plugin is destroyed (not the transfer). The patch keeps
 the upstream license and fails to apply on unexpected source changes; updates require review.
@@ -55,7 +55,7 @@ local notes, Allmed/private files, clinical claims and publication state are unc
 
 Regression tests cover completed-file lifetime, length mismatch, checksum/install failure, cancellation,
 restored-slot admission, serialization, native file commit and interrupted source reads. Instrumentation
-executes the bundled FTS5 binary and can open/reopen the full installed core without changing it. The
+also exercises the real DownloadManager across plugin recreation and a missing journal entry; this is not an OS process-kill test. SQLite instrumentation executes the bundled FTS5 binary and can open/reopen the full installed core without changing it. The
 latter requires a real prepared core and must not be silently replaced with a fixture.
 
 Physical-device PSS, process eviction, bulk navigation, all optional-package ownership, iOS background
