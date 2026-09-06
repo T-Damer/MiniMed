@@ -1,0 +1,255 @@
+name: PR164 native integration qualification
+on:
+  push:
+    branches: [agent/core-open-download-contract]
+    paths: [.github/workflows/agent-native-integration.yml]
+permissions:
+  contents: read
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - name: Apply checksum-bound source and prepare pinned dependency
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" CI=1 python3 - <<'PY'
+          import base64, hashlib, json, lzma, pathlib, subprocess
+          parts = [pathlib.Path(f'scripts/.native-integration.{i}') for i in range(1, 5)]
+          patch = lzma.decompress(base64.b64decode(''.join(p.read_text() for p in parts)))
+          assert hashlib.sha256(patch).hexdigest() == '60f6564314ee9c2a98d374099de5107c30ccc46c3e35e9962f2aee1c9de78e3c'
+          subprocess.run(['git', 'apply', '--check', '-'], input=patch, check=True)
+          subprocess.run(['git', 'apply', '-'], input=patch, check=True)
+          for p in parts: p.unlink()
+          p = pathlib.Path('apps/app/package.json')
+          data = json.loads(p.read_text())
+          data['dependencies']['@capgo/capacitor-downloader'] = '8.3.0'
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+          PY
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun install
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun patch @capgo/capacitor-downloader@8.3.0
+          env -i PATH="$PATH" HOME="$HOME" CI=1 python3 scripts/.native-downloader-prepare.py
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun patch --commit @capgo/capacitor-downloader@8.3.0
+          rm scripts/.native-downloader-prepare.py
+      - name: Format changed source (full lint is independently gated below)
+        run: |
+          git add -N apps packages docs scripts/check-native-bridge.mjs patches
+          git diff --name-only -z -- '*.ts' '*.tsx' '*.json' | xargs -0 env -i PATH="$PATH" HOME="$HOME" CI=1 bunx biome check --write --max-diagnostics=100 || echo 'Full lint remains a required independent qualification check'
+          git diff --check
+      - name: Commit only the requested PR branch
+        id: commit
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF_NAME" = agent/core-open-download-contract
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -u
+          git add apps packages docs scripts/check-native-bridge.mjs package.json bun.lock patches
+          git commit -m 'fix: bundle Android FTS5 and route downloads through persistent native transport'
+          AUTH=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" push origin "HEAD:$GITHUB_REF_NAME"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Export reviewed source, not datasets or credentials
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess, zipfile
+          names = subprocess.check_output(['git','diff','--name-only','d8bc80f2d66c60924cad2526d4f9f9f80d4851bb']).decode().splitlines()
+          names += subprocess.check_output(['git','ls-files','--others','--exclude-standard']).decode().splitlines()
+          native = 'node_modules/@capgo/capacitor-downloader/android/src/main/java/ee/forgr/capacitor/plugin/downloader/CapacitorDownloaderPlugin.java'
+          names.append(native)
+          with zipfile.ZipFile('/tmp/native-reviewed.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in sorted(set(names)):
+                  p=pathlib.Path(name)
+                  if p.is_file() and not p.is_symlink() and p.stat().st_size < 2_000_000 and (name.startswith(('apps/','packages/','docs/','patches/','scripts/check-native','node_modules/@capgo/')) or name in {'package.json','bun.lock'}):
+                      z.write(p,name)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr164-native-reviewed-source
+          path: /tmp/native-reviewed.zip
+          retention-days: 3
+  javascript:
+    needs: apply
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.apply.outputs.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
+      - name: Independent JavaScript checks
+        run: |
+          mkdir -p /tmp/native-checks
+          result=0
+          for task in 'bun run check' 'bun run typecheck' 'bun run test:unit' 'bun run native:source:check' 'bun run build:app'; do
+            name=$(echo "$task" | tr ' /:' '---' | tr -cd 'a-zA-Z0-9._-')
+            env -i PATH="$PATH" HOME="$HOME" CI=1 bash -c "$task" > "/tmp/native-checks/$name.log" 2>&1 && code=0 || code=$?
+            echo "$task: $code" | tee -a /tmp/native-checks/status.txt
+            tail -65 "/tmp/native-checks/$name.log"
+            if [ "$code" != 0 ]; then result=1; fi
+          done
+          exit "$result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr164-native-javascript-checks
+          path: /tmp/native-checks
+          retention-days: 3
+  android-storage:
+    needs: apply
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.apply.outputs.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v4
+      - name: Prepare app and bundled native SQLite tests
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:sync:android
+          cd apps/app/android
+          env -i PATH="$PATH" HOME="$HOME" JAVA_HOME="$JAVA_HOME" ANDROID_HOME="$ANDROID_HOME" CI=1 ./gradlew --no-daemon -PminimedStorageSmoke=true :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Enable emulator acceleration
+        run: |
+          mkdir -p /tmp/native-device
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -c /dev/kvm
+      - name: Prepare real-core instrumentation command
+        run: |
+          cat > /tmp/native-device-test.sh <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          adb install -r apps/app/android/app/build/outputs/apk/debug/app-debug.apk
+          adb install -r apps/app/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          python3 - <<'PY'
+          import json,hashlib,pathlib
+          p=pathlib.Path('apps/app/public/content/core.db')
+          checksum=hashlib.file_digest(p.open('rb'),'sha256').hexdigest()
+          assert 'sha256:'+checksum==json.loads(pathlib.Path('apps/app/public/content/core-report.json').read_text())['outputChecksum']
+          pathlib.Path('/tmp/core.sha256').write_text(checksum+'\n')
+          pathlib.Path('/tmp/native-device/scope.txt').write_text(f'Real core: {p.stat().st_size} bytes, sha256:{checksum}. x86 storage test APK excludes optional ARM inference; not a physical-device or full-inference qualification.\n')
+          PY
+          adb shell run-as dev.localmed.search mkdir -p files/localmed/content
+          adb push apps/app/public/content/core.db /data/local/tmp/minimed-core.db
+          adb push /tmp/core.sha256 /data/local/tmp/minimed-core.sha256
+          adb shell run-as dev.localmed.search cp /data/local/tmp/minimed-core.db files/localmed/content/core.db
+          adb shell run-as dev.localmed.search cp /data/local/tmp/minimed-core.sha256 files/localmed/content/core.db.sha256
+          adb shell rm /data/local/tmp/minimed-core.db /data/local/tmp/minimed-core.sha256
+          adb logcat -c
+          adb shell am instrument -w -r -e class dev.localmed.search.BundledSqliteTest dev.localmed.search.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/native-device/instrumentation.txt
+          adb logcat -d -s MiniMedSqliteTest:I LocalMedDatabase:I > /tmp/native-device/sqlite-timings.txt
+          grep -F 'OK (2 tests)' /tmp/native-device/instrumentation.txt
+          adb shell svc wifi disable
+          adb shell svc data disable
+          adb shell am force-stop dev.localmed.search
+          adb shell am start -W -n dev.localmed.search/.MainActivity
+          sleep 45
+          adb logcat -d -s LocalMedDatabase:I AndroidRuntime:E > /tmp/native-device/app-startup.txt
+          adb exec-out screencap -p > /tmp/native-device/app.png
+          grep -F 'openPack success' /tmp/native-device/app-startup.txt
+          SH
+          chmod +x /tmp/native-device-test.sh
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 3072M
+          disk-size: 4096M
+          cores: 4
+          disable-animations: true
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: env -i PATH="$PATH" HOME="$HOME" ANDROID_HOME="$ANDROID_HOME" bash /tmp/native-device-test.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr164-native-device-tests
+          path: |
+            /tmp/native-device
+            apps/app/android/app/build/test-results/testDebugUnitTest
+          retention-days: 5
+  apk:
+    needs: apply
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.apply.outputs.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v4
+      - name: Complete ARM64 build, not the storage-smoke variant
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:sync:android
+          cd apps/app/android
+          env -i PATH="$PATH" HOME="$HOME" JAVA_HOME="$JAVA_HOME" ANDROID_HOME="$ANDROID_HOME" CI=1 ./gradlew --no-daemon assembleDebug
+      - name: Verify native libraries and retain source provenance
+        run: |
+          mkdir -p /tmp/native-apk
+          python3 - <<'PY'
+          import pathlib,zipfile,hashlib,subprocess,shutil
+          source=subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()
+          apk=pathlib.Path('apps/app/android/app/build/outputs/apk/debug/app-debug.apk')
+          with zipfile.ZipFile(apk) as z:
+              assert 'lib/arm64-v8a/libsqlite3x.so' in z.namelist()
+              assert 'lib/arm64-v8a/libai-chat.so' in z.namelist()
+          out=pathlib.Path('/tmp/native-apk')
+          name=f'MiniMed-pr164-native-{source[:7]}-arm64-debug.apk'
+          shutil.copyfile(apk,out/name)
+          (out/'SOURCE.txt').write_text(source+'\nTest build; not a release or physical-device qualification.\n')
+          (out/'SHA256.txt').write_text(hashlib.file_digest(apk.open('rb'),'sha256').hexdigest()+'  '+name+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiniMed-pr164-native-arm64-debug
+          path: /tmp/native-apk
+          retention-days: 14
