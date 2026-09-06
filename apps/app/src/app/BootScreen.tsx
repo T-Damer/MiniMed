@@ -14,7 +14,7 @@ export function BootScreen(props: {
   return (
     <section class="boot-screen boot-screen--shell-booting archive-boot">
       <div class="boot-card paper-sheet">
-        <Show when={!props.coreDownloadRequired || props.coreDownloading}>
+        <Show when={!props.error && (!props.coreDownloadRequired || props.coreDownloading)}>
           <span class="boot-spinner" />
         </Show>
         <p class="archive-kicker">Локальная медицинская база</p>
@@ -30,8 +30,8 @@ export function BootScreen(props: {
             (props.coreDownloadRequired
               ? 'Приложение установлено. Для первого запуска скачайте базу — около 490 МБ. После установки поиск и скачанные документы работают без интернета. Иллюстрации и дополнительные наборы доступны в настройках.'
               : props.bootSlow
-                ? 'Открытие базы занимает больше времени, чем обычно. Оставьте окно открытым.'
-                : 'Подготавливаем локальный поиск. Интернет для работы не нужен.')}
+                ? 'Подготовка базы продолжается. Калькуляторы и шкалы уже доступны через нижнее меню.'
+                : 'Подготавливаем локальный поиск. Калькуляторы и шкалы уже доступны через нижнее меню.')}
         </p>
         <Show when={props.coreDownloadRequired && !props.error}>
           <Show
@@ -52,7 +52,7 @@ export function BootScreen(props: {
             </p>
           </Show>
         </Show>
-        <Show when={props.error || (props.bootSlow && !props.coreDownloadRequired)}>
+        <Show when={props.error}>
           <button class="boot-card__action" type="button" onClick={() => window.location.reload()}>
             Повторить
           </button>

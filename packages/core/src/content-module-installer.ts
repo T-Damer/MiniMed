@@ -3,6 +3,7 @@ import {
   type ContentModuleCatalogEntry,
   ContentModuleCatalogSchema,
   type ContentModuleDownloadTask,
+  hasDownloadableModuleIndex,
   type InstallContentModuleRequest,
   type InstalledContentModule,
 } from '@localmed/contracts';
@@ -259,6 +260,9 @@ export class ForegroundContentModuleInstaller {
     if (!module) throw new Error(`Unknown module version: ${request.moduleId}@${request.version}.`);
     if (module.releaseState !== 'published' && module.releaseState !== 'preview') {
       throw new Error(`Module ${module.id}@${module.version} is not installable.`);
+    }
+    if (!hasDownloadableModuleIndex(module)) {
+      throw new Error(`Module ${module.id}@${module.version} has no downloadable verified index.`);
     }
     if (!module.sourceSetDigest) throw new Error(`Module ${module.id} has no source-set digest.`);
     assertRuntimeCompatible(module, this.runtime);

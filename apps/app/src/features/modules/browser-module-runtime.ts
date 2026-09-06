@@ -756,16 +756,30 @@ export class BrowserContentModuleRuntime {
   }
 
   public install(module: ContentModuleCatalogEntry): ContentModuleDownloadTask {
+    const current = this.catalog.modules.find(
+      (candidate) => candidate.id === module.id && candidate.version === module.version,
+    );
+    if (!current || !isModuleReleased(current)) {
+      throw new Error(`Набор ${module.id}@${module.version} пока недоступен для скачивания.`);
+    }
+    module = current;
     this.clearRetry(module.id, module.version);
     const includeSourceAssets = module.artifacts.some(
       (artifact) => artifact.kind === 'source-assets',
     );
     enqueuePendingModuleInstall(module.id, module.version, includeSourceAssets);
-    return this.installer.install({
-      moduleId: module.id,
-      version: module.version,
-      includeSourceAssets,
-    });
+    try {
+      return this.installer.install({
+        moduleId: module.id,
+        version: module.version,
+        includeSourceAssets,
+      });
+    } catch (cause) {
+      // Compatibility/dependency checks are synchronous too. Do not poison future boots with a
+      // durable entry that the installer never accepted.
+      discardPendingModuleInstall(module.id, module.version);
+      throw cause;
+    }
   }
 
   public updateCatalog(catalog: ContentModuleCatalog): void {

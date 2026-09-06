@@ -394,6 +394,7 @@ export function useAppSession() {
       coreToClose = initialized.core;
       setSearchCore(initializedSearchCore);
       setReady(initialized);
+      performance.mark('minimed:search-ready');
       const moduleRuntimeLoad = scheduleIdle(() =>
         Promise.all([
           import('@/features/modules/module-catalog'),

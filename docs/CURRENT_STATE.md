@@ -9,6 +9,35 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### Core startup and download eligibility — 6 September 2026
+
+- Android probes FTS5 in a disposable in-memory database before installed-file inspection, hashing,
+  opening the content database or quick-check. Native logcat diagnostics split capabilities,
+  installed-file validation, SQLite open, integrity, metadata and total time, including failed phases.
+  Successful SHA-256/quick-check validation is stamped for an immutable edition with checksum,
+  SQLite/verifier revision and file identity; replacement and interrupted-install recovery invalidate
+  the stamp. The adapter no longer races native opening against an uncancellable JS timeout;
+  concurrent initialization shares one acquisition, and close awaits opening before releasing it.
+- Unknown-size or large cores go directly to the existing OPFS worker importer. A dishonest small
+  HEAD cannot force unbounded JS buffering: the bounded reader cancels and reopens the URL in OPFS.
+  Android no longer attempts the intentionally unbundled local Allmed companion during startup.
+  These code-path changes are not a measured Android PSS reduction or a leak/OS-eviction result.
+- Bottom navigation is available before the search database, including built-in calculators and
+  assessments. Database-dependent routes retain their preparation/error screen. Local Performance
+  marks distinguish `minimed:navigation-ready` from `minimed:search-ready`; there is no remote
+  telemetry. A slow but still pending open no longer offers a page-reload retry.
+- A shared downloadable-index predicate is applied to publication validation, UI eligibility,
+  installer entry, runtime queue admission and pending-job restoration. Discovery-only previews
+  stay in the catalog without becoming downloadable. Invalid restored jobs cannot block later jobs;
+  exact-version registry checks, pointer membership, schema and artifact checksums remain in place.
+  Allmed content is not published. The foreground runtime already uses concurrency 3; this change
+  does not establish background transfers or a unified core/image/ECG queue.
+
+Qualification is tracked in the PR checks. No physical Android/iOS, before/after PSS, real-core
+stage timings, process-kill restoration, ECG 99%, bulk-transfer navigation or Brotli measurements
+were performed for this slice. Repeat the same installed-core run on Android and capture native
+phase logs plus both JS marks before judging startup/memory acceptance.
+
 ### Download and reader fixes — 6 September 2026
 
 - Android excludes the core, full medication companion, and reference illustrations from the APK.

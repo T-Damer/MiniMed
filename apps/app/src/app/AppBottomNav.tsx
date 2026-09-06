@@ -15,6 +15,7 @@ function compactCount(value: number, cap: number): string {
 
 export function AppBottomNav(props: {
   readonly view: Accessor<RootView>;
+  readonly downloadsReady?: Accessor<boolean>;
   readonly dragIndex: Accessor<number | undefined>;
   readonly dragging: Accessor<boolean>;
   readonly pressed: Accessor<boolean>;
@@ -64,7 +65,7 @@ export function AppBottomNav(props: {
           };
           return (
             <div class="app-nav-item">
-              <Show when={item.id === 'settings'}>
+              <Show when={item.id === 'settings' && (props.downloadsReady?.() ?? true)}>
                 <Suspense>
                   <ContentDownloadNavIndicator />
                 </Suspense>

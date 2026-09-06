@@ -323,6 +323,8 @@ export class CapacitorMedicalStore implements MedicalStore {
   private initialized = false;
   private nativeHealth: NativeDatabaseHealth | undefined;
   private nativeSession: NativeDatabaseSession | undefined;
+  private opening: Promise<NativeDatabaseSession> | undefined;
+  private closing: Promise<void> | undefined;
 
   public constructor(private readonly options: CapacitorMedicalStoreOptions) {
     this.plugin = options.plugin ?? LocalMedDatabase;
@@ -332,14 +334,21 @@ export class CapacitorMedicalStore implements MedicalStore {
     if (seed) {
       throw new Error('The native SQLite store accepts compiled content packs only.');
     }
+    if (this.closing) await this.closing;
     if (!this.initialized) {
-      this.nativeSession = await acquireNativeDatabase(this.plugin, {
+      this.opening ??= acquireNativeDatabase(this.plugin, {
         assetPath: this.options.assetPath,
         databaseName: this.options.databaseName,
         expectedSha256: this.options.expectedSha256,
       });
-      this.nativeHealth = this.nativeSession.health;
-      this.initialized = true;
+      const opening = this.opening;
+      try {
+        this.nativeSession = await opening;
+        this.nativeHealth = this.nativeSession.health;
+        this.initialized = true;
+      } finally {
+        if (this.opening === opening) this.opening = undefined;
+      }
     }
     return this.getHealth();
   }
@@ -592,7 +601,21 @@ export class CapacitorMedicalStore implements MedicalStore {
       .slice(0, request.limit);
   }
 
-  public async close(): Promise<void> {
+  public close(): Promise<void> {
+    if (this.closing) return this.closing;
+    // An uncancellable native open owns the bridge until it settles. Never leave a late native
+    // session alive behind a JS timeout, and never release the same adapter lease twice.
+    this.closing = this.closeAfterOpen().finally(() => {
+      this.closing = undefined;
+    });
+    return this.closing;
+  }
+
+  private async closeAfterOpen(): Promise<void> {
+    if (this.opening) {
+      // A failed open has no acquired session. Its caller still receives the original rejection.
+      await this.opening.catch(() => undefined);
+    }
     const session = this.nativeSession;
     this.nativeSession = undefined;
     this.nativeHealth = undefined;

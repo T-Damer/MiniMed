@@ -10,6 +10,15 @@ export interface OpenPackOptions {
 }
 
 export interface NativeDatabaseHealth {
+  readonly openTimings?: {
+    readonly capabilitiesMs: number;
+    readonly installedFileMs: number;
+    readonly sqliteOpenMs: number;
+    readonly integrityMs: number;
+    readonly integrityCached: boolean;
+    readonly metadataMs: number;
+    readonly totalMs: number;
+  };
   readonly schemaVersion: number;
   readonly sqliteVersion: string;
   readonly fts5Available: boolean;

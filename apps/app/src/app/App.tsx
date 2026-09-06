@@ -92,6 +92,11 @@ export function App(): JSX.Element {
     getFloatingWindowsEnabled(),
   );
   onMount(() => {
+    // Local diagnostic marks: shell interactivity and searchable content are independent gates.
+    const navigationFrame = requestAnimationFrame(() =>
+      performance.mark('minimed:navigation-ready'),
+    );
+    onCleanup(() => cancelAnimationFrame(navigationFrame));
     const unsubscribePreferences = subscribeAppPreferences((preferences) => {
       setFloatingWindowsEnabled(preferences.floatingWindowsEnabled);
     });
@@ -148,7 +153,7 @@ export function App(): JSX.Element {
   const bottomNav = useBottomNav({
     view: navigation.view,
     navigate: navigation.navigate,
-    enabled: () => Boolean(session.ready()),
+    enabled: () => true,
   });
   useFindShortcut();
   useNativeBack({ view: navigation.view, navigate: navigation.navigate });
@@ -205,7 +210,6 @@ export function App(): JSX.Element {
     <div
       class="app-shell archive-app"
       classList={{
-        'app-shell--booting': !session.ready(),
         'app-shell--native': session.isNativeShell,
         'app-shell--medical-image': medicalImageViewerActive(),
         'app-shell--chrome-hidden': navigation.chromeHidden(),
@@ -340,7 +344,6 @@ export function App(): JSX.Element {
 
       <Show
         when={
-          session.ready() &&
           !embeddedFloatingWindow &&
           !medicalImageViewerActive() &&
           !floatingWindows.fullscreenWindowId()
@@ -348,6 +351,7 @@ export function App(): JSX.Element {
       >
         <Portal>
           <AppBottomNav
+            downloadsReady={() => Boolean(session.ready())}
             view={navigation.view}
             dragIndex={bottomNav.dragIndex}
             dragging={bottomNav.dragging}

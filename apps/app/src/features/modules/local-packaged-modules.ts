@@ -1,7 +1,8 @@
-import type {
-  ContentModuleCatalog,
-  ContentModuleCatalogEntry,
-  InstalledContentModule,
+import {
+  type ContentModuleCatalog,
+  type ContentModuleCatalogEntry,
+  hasDownloadableModuleIndex,
+  type InstalledContentModule,
 } from '@localmed/contracts';
 import type { OverviewDocumentCounts } from '@/features/modules/overview-document-counts';
 import { getExperimentalModulesEnabled } from '@/state/app-preferences';
@@ -14,10 +15,13 @@ export const PACKAGED_MEDICATIONS_SIZE_BYTES = 514_322_432;
  * A module the catalog lets the user install right now: everything published,
  * plus preview ("Experimental") packs while the settings toggle is on.
  */
-export function isModuleReleased(module: Pick<ContentModuleCatalogEntry, 'releaseState'>): boolean {
+export function isModuleReleased(
+  module: Pick<ContentModuleCatalogEntry, 'releaseState' | 'artifacts' | 'sourceSetDigest'>,
+): boolean {
   return (
-    module.releaseState === 'published' ||
-    (module.releaseState === 'preview' && getExperimentalModulesEnabled())
+    hasDownloadableModuleIndex(module) &&
+    (module.releaseState === 'published' ||
+      (module.releaseState === 'preview' && getExperimentalModulesEnabled()))
   );
 }
 
@@ -113,7 +117,7 @@ export function localPackagedModulesToInstall(
       module.kind === 'tool' &&
       autoInstallable &&
       contentModuleNeedsInstall(module, installed) &&
-      module.artifacts.some((artifact) => artifact.kind === 'index' && Boolean(artifact.url))
+      hasDownloadableModuleIndex(module)
     );
   });
 }

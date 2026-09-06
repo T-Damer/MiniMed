@@ -161,38 +161,62 @@ describe('createRequiredWebCoreStore', () => {
     expect(open).not.toHaveBeenCalled();
   });
 
-  it('moves an unexpectedly large GET response to OPFS through a revoked Blob URL', async () => {
-    const buffer = new ArrayBuffer(SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1);
-    new Uint8Array(buffer).set(new TextEncoder().encode('SQLite format 3\u0000'));
-    const opfsStore = store();
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(null))
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        arrayBuffer: async () => buffer,
-      } as Response);
-    vi.stubGlobal('fetch', fetchMock);
-    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:minimed-core');
-    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+  it.each([null, '0', 'invalid'])(
+    'streams a core of unknown size (%s) directly in its OPFS owner',
+    async (length) => {
+      const fetchMock = vi.fn(
+        async () =>
+          new Response(null, {
+            headers: length === null ? {} : { 'Content-Length': length },
+          }),
+      );
+      vi.stubGlobal('fetch', fetchMock);
+      const open = vi
+        .spyOn(WorkerOpfsMedicalStore, 'open')
+        .mockResolvedValue(store() as WorkerOpfsMedicalStore);
+      const createFromBytes = vi.spyOn(SqliteMedicalStore, 'createFromBytes');
+      await createRequiredWebCoreStore('https://example.test/app/');
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(open).toHaveBeenCalledWith(
+        expect.objectContaining({ url: 'https://example.test/app/content/core.db' }),
+      );
+      expect(createFromBytes).not.toHaveBeenCalled();
+    },
+  );
+
+  it('cancels an oversized GET despite a small HEAD and gives the original URL to OPFS', async () => {
+    const cancel = vi.fn();
+    const response = new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new Uint8Array(SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1));
+        },
+        cancel,
+      }),
+    );
+    const arrayBuffer = vi.spyOn(response, 'arrayBuffer');
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(null, {
+            headers: { 'Content-Length': '32' },
+          }),
+        )
+        .mockResolvedValueOnce(response),
+    );
     const open = vi
       .spyOn(WorkerOpfsMedicalStore, 'open')
-      .mockResolvedValue(opfsStore as WorkerOpfsMedicalStore);
-    const createFromBytes = vi.spyOn(SqliteMedicalStore, 'createFromBytes');
-
-    const result = await createRequiredWebCoreStore('https://example.test/app/');
-
-    expect(result).toBe(opfsStore);
-    expect(createObjectUrl).toHaveBeenCalledOnce();
-    expect(open).toHaveBeenCalledWith({
-      url: 'blob:minimed-core',
-      databaseName: 'core.db',
-      fetchTimeoutMs: 180_000,
-      poolName: 'minimed-sah-core',
-    });
-    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:minimed-core');
-    expect(createFromBytes).not.toHaveBeenCalled();
+      .mockResolvedValue(store() as WorkerOpfsMedicalStore);
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL');
+    await createRequiredWebCoreStore('https://example.test/app/');
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(arrayBuffer).not.toHaveBeenCalled();
+    expect(createObjectUrl).not.toHaveBeenCalled();
+    expect(open).toHaveBeenCalledWith(
+      expect.objectContaining({ url: 'https://example.test/app/content/core.db' }),
+    );
   });
 
   it('rejects a required core whose GET response is not SQLite', async () => {

@@ -1,5 +1,5 @@
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   CapacitorMedicalStore,
@@ -290,5 +290,53 @@ describe('CapacitorMedicalStore', () => {
       limit: 100,
     });
     expect(Buffer.from(vectorCall?.vectorBase64 ?? '', 'base64')).toHaveLength(profile.dimensions);
+  });
+});
+
+describe('native open lifetime', () => {
+  it('shares one acquisition for concurrent initialize calls on the same adapter', async () => {
+    const plugin = new FakeNativePlugin();
+    const adapter = createStore(plugin);
+    await Promise.all([adapter.initialize(), adapter.initialize(), adapter.initialize()]);
+    expect(plugin.openCount).toBe(1);
+    await adapter.close();
+    expect(plugin.closeCount).toBe(1);
+  });
+
+  it('waits for a delayed native open before closing and allows a clean re-open', async () => {
+    const plugin = new FakeNativePlugin();
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const originalOpen = plugin.openPack.bind(plugin);
+    const open = vi.spyOn(plugin, 'openPack').mockImplementationOnce(async () => {
+      await gate;
+      return originalOpen();
+    });
+    const adapter = createStore(plugin);
+    const opening = adapter.initialize();
+    await vi.waitFor(() => expect(open).toHaveBeenCalledOnce());
+    const closing = adapter.close();
+    expect(plugin.closeCount).toBe(0);
+    release?.();
+    await opening;
+    await closing;
+    expect(plugin.openCount).toBe(1);
+    expect(plugin.closeCount).toBe(1);
+    await adapter.initialize();
+    expect(plugin.openCount).toBe(2);
+    await adapter.close();
+    expect(plugin.closeCount).toBe(2);
+  });
+
+  it('does not retain a failed opening promise when retrying', async () => {
+    const plugin = new FakeNativePlugin();
+    vi.spyOn(plugin, 'openPack').mockRejectedValueOnce(new Error('FTS5 unavailable'));
+    const adapter = createStore(plugin);
+    await expect(adapter.initialize()).rejects.toThrow('FTS5 unavailable');
+    await adapter.close();
+    await expect(adapter.initialize()).resolves.toMatchObject({ fts5Available: true });
+    await adapter.close();
   });
 });

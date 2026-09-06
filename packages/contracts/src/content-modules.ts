@@ -187,8 +187,7 @@ export const ContentModuleCatalogEntrySchema = z
       }
     }
     if (module.releaseState === 'published') {
-      const indexArtifact = module.artifacts.find((artifact) => artifact.kind === 'index');
-      if (!module.sourceSetDigest || !indexArtifact?.url || !indexArtifact.sha256) {
+      if (!hasDownloadableModuleIndex(module)) {
         context.addIssue({
           code: 'custom',
           path: ['artifacts'],
@@ -198,6 +197,30 @@ export const ContentModuleCatalogEntrySchema = z
       }
     }
   });
+
+/** Release state alone does not prove that a prepared, verifiable index can be installed.
+ * Keep local previews in discovery, but never advertise them as downloads.
+ */
+export function hasDownloadableModuleIndex(module: {
+  readonly sourceSetDigest: string | null;
+  readonly artifacts: readonly z.infer<typeof ContentModuleArtifactSchema>[];
+}): boolean {
+  if (!module.sourceSetDigest) return false;
+  const indexes = module.artifacts.filter((artifact) => artifact.kind === 'index');
+  return (
+    indexes.length === 1 &&
+    indexes.every(
+      (artifact) =>
+        artifact.required &&
+        Boolean(artifact.url) &&
+        Boolean(artifact.sha256) &&
+        artifact.sourceSetDigest === module.sourceSetDigest,
+    ) &&
+    module.artifacts
+      .filter((artifact) => artifact.required)
+      .every((artifact) => Boolean(artifact.url) && Boolean(artifact.sha256))
+  );
+}
 
 export const ContentModuleCategorySchema = z.object({
   id: z.string().min(1),

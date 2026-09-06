@@ -4,6 +4,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.util.Base64;
+import android.util.Log;
+import android.os.SystemClock;
+import android.system.Os;
+import android.system.StructStat;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -40,6 +44,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
 
     private final Object databaseLock = new Object();
     private SQLiteDatabase database;
+    private final java.util.concurrent.ExecutorService openExecutor = Executors.newSingleThreadExecutor();
 
     @PluginMethod
     public void hasCorePack(PluginCall call) {
@@ -101,48 +106,129 @@ public final class LocalMedDatabasePlugin extends Plugin {
             return;
         }
 
-        synchronized (databaseLock) {
-            try {
-                closeDatabase();
-                File directory = new File(getContext().getFilesDir(), "localmed/content");
-                ensureDirectory(directory);
-                File target = new File(directory, databaseName);
-                File checksumMarker = new File(directory, databaseName + ".sha256");
-                boolean copied = installAssetIfNeeded(assetPath, target, checksumMarker, expectedSha256);
-
-                SQLiteDatabase opened = SQLiteDatabase.openDatabase(
-                    target.getAbsolutePath(),
-                    null,
-                    SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS
-                );
-                database = opened;
-
-                String integrity = scalarString("PRAGMA quick_check");
-                if (!"ok".equalsIgnoreCase(integrity)) {
-                    throw new SQLiteException("Packaged database integrity check failed: " + integrity);
+        // Do not block the bridge while inspecting a large edition. JS awaits this operation to
+        // completion (including cleanup); it must never race an uncancellable timeout against it.
+        openExecutor.execute(() -> {
+            synchronized (databaseLock) {
+                JSObject timings = new JSObject();
+                long started = SystemClock.elapsedRealtime();
+                long phaseStarted = started;
+                String phase = "capabilities";
+                File validationMarker = null;
+                try {
+                    closeDatabase();
+                    // Probe the runtime, not the 490 MiB pack. This must precede installation,
+                    // hashing, opening and quick_check, including on already-installed editions.
+                    String sqliteVersion = probeRuntimeFts5();
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    phase = "installedFile";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    File directory = new File(getContext().getFilesDir(), "localmed/content");
+                    ensureDirectory(directory);
+                    File target = new File(directory, databaseName);
+                    File checksumMarker = new File(directory, databaseName + ".sha256");
+                    validationMarker = validationMarker(target);
+                    boolean copied = installAssetIfNeeded(assetPath, target, checksumMarker, expectedSha256);
+                    String identity = validationIdentity(target, expectedSha256, sqliteVersion);
+                    boolean verified = identity.equals(readMarker(validationMarker));
+                    if (!verified && !expectedSha256.equals(sha256(target))) {
+                        throw new PackValidationException("Installed database checksum mismatch.");
+                    }
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    phase = "sqliteOpen";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    database = SQLiteDatabase.openDatabase(
+                        target.getAbsolutePath(), null,
+                        SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS
+                    );
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    phase = "integrity";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    if (!verified) {
+                        String integrity = scalarString("PRAGMA quick_check");
+                        if (!"ok".equalsIgnoreCase(integrity)) {
+                            throw new PackValidationException("Packaged database integrity check failed.");
+                        }
+                    }
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    timings.put("integrityCached", verified);
+                    phase = "metadata";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    if (!probeFts5()) {
+                        throw new SQLiteException("The installed pack FTS5 index cannot be queried.");
+                    }
+                    JSObject result = new JSObject();
+                    result.put("schemaVersion", scalarLong(
+                        "SELECT CAST(value AS INTEGER) FROM app_metadata WHERE key = 'schema_version'"
+                    ));
+                    result.put("sqliteVersion", sqliteVersion);
+                    result.put("fts5Available", true);
+                    result.put("contentPackIds", contentPackIds());
+                    result.put("documentCount", scalarLong("SELECT count(*) FROM documents"));
+                    result.put("databasePath", target.getAbsolutePath());
+                    result.put("copied", copied);
+                    result.put("sizeBytes", target.length());
+                    if (!identity.equals(validationIdentity(target, expectedSha256, sqliteVersion))) {
+                        throw new PackValidationException("Installed database changed while opening.");
+                    }
+                    if (!verified) writeMarker(validationMarker, identity);
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    timings.put("totalMs", SystemClock.elapsedRealtime() - started);
+                    result.put("openTimings", timings);
+                    Log.i("LocalMedDatabase", "openPack success " + timings);
+                    call.resolve(result);
+                } catch (Exception error) {
+                    closeDatabase();
+                    if (validationMarker != null) deleteBestEffort(validationMarker);
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    timings.put("failedPhase", phase);
+                    timings.put("totalMs", SystemClock.elapsedRealtime() - started);
+                    // No paths, queries, content, or native arguments in diagnostic logs.
+                    Log.w("LocalMedDatabase", "openPack failed " + timings);
+                    call.reject("Unable to open the packaged LocalMed database: " + safeMessage(error),
+                        error instanceof PackValidationException ? "NATIVE_PACK_VALIDATION_FAILED"
+                            : "capabilities".equals(phase) ? "NATIVE_SQLITE_UNSUPPORTED" : "NATIVE_PACK_OPEN_FAILED");
                 }
-                boolean fts5Available = probeFts5();
-                if (!fts5Available) {
-                    throw new SQLiteException("The system SQLite runtime cannot query the FTS5 index.");
-                }
+            }
+        });
+    }
 
-                JSObject result = new JSObject();
-                result.put("schemaVersion", scalarLong(
-                    "SELECT CAST(value AS INTEGER) FROM app_metadata WHERE key = 'schema_version'"
-                ));
-                result.put("sqliteVersion", scalarString("SELECT sqlite_version()"));
-                result.put("fts5Available", true);
-                result.put("contentPackIds", contentPackIds());
-                result.put("documentCount", scalarLong("SELECT count(*) FROM documents"));
-                result.put("databasePath", target.getAbsolutePath());
-                result.put("copied", copied);
-                result.put("sizeBytes", target.length());
-                call.resolve(result);
-            } catch (Exception error) {
-                closeDatabase();
-                call.reject("Unable to open the packaged LocalMed database: " + safeMessage(error));
+    private static final class PackValidationException extends IOException {
+        PackValidationException(String message) { super(message); }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        openExecutor.execute(() -> {
+            synchronized (databaseLock) { closeDatabase(); }
+        });
+        openExecutor.shutdown();
+    }
+
+    private static String probeRuntimeFts5() {
+        try (SQLiteDatabase probe = SQLiteDatabase.create(null)) {
+            probe.execSQL("CREATE VIRTUAL TABLE runtime_probe USING fts5(value)");
+            try (Cursor cursor = probe.rawQuery(
+                "SELECT count(*) FROM runtime_probe WHERE runtime_probe MATCH 'localmed'", null
+            )) {
+                if (!cursor.moveToFirst()) throw new SQLiteException("FTS5 probe returned no row.");
+            }
+            try (Cursor cursor = probe.rawQuery("SELECT sqlite_version()", null)) {
+                if (!cursor.moveToFirst()) throw new SQLiteException("SQLite version is unavailable.");
+                return cursor.getString(0);
             }
         }
+    }
+
+    private static File validationMarker(File target) {
+        return new File(target.getParentFile(), target.getName() + ".validated");
+    }
+
+    private static String validationIdentity(File target, String checksum, String sqliteVersion)
+        throws android.system.ErrnoException {
+        StructStat stat = Os.stat(target.getAbsolutePath());
+        return PackValidationIdentity.create(checksum, sqliteVersion, stat.st_dev, stat.st_ino,
+            stat.st_ctime, target.lastModified(), target.length());
     }
 
     @PluginMethod
@@ -298,6 +384,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
     ) throws IOException, NoSuchAlgorithmException {
         File temporary = new File(target.getParentFile(), target.getName() + ".tmp");
         File backup = new File(target.getParentFile(), target.getName() + ".backup");
+        if (backup.exists()) deleteIfExists(validationMarker(target));
         recoverInterruptedInstall(target, backup, checksumMarker, expectedSha256);
 
         String installedChecksum = readMarker(checksumMarker);
@@ -352,6 +439,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
             throw new IOException("Packaged database checksum mismatch.");
         }
 
+        deleteIfExists(validationMarker(target));
         boolean hadPreviousPack = target.isFile();
         if (hadPreviousPack && !target.renameTo(backup)) {
             deleteIfExists(temporary);
@@ -559,15 +647,21 @@ public final class LocalMedDatabasePlugin extends Plugin {
     private static String readMarker(File marker) throws IOException {
         if (!marker.isFile()) return null;
         try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(marker))) {
-            byte[] bytes = new byte[(int) Math.min(marker.length(), 256L)];
+            byte[] bytes = new byte[(int) Math.min(marker.length(), 1024L)];
             int read = input.read(bytes);
             return read <= 0 ? null : new String(bytes, 0, read, StandardCharsets.US_ASCII).trim();
         }
     }
 
     private static void writeMarker(File marker, String checksum) throws IOException {
-        try (FileOutputStream output = new FileOutputStream(marker, false)) {
+        File temporary = new File(marker.getParentFile(), marker.getName() + ".tmp");
+        try (FileOutputStream output = new FileOutputStream(temporary, false)) {
             output.write((checksum + "\n").getBytes(StandardCharsets.US_ASCII));
+            output.getFD().sync();
+        }
+        if (!temporary.renameTo(marker)) {
+            deleteBestEffort(temporary);
+            throw new IOException("Unable to commit database verification marker.");
         }
     }
 

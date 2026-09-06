@@ -1,10 +1,13 @@
+import type { ContentModuleCatalog } from '@localmed/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 
 import {
   dequeuePendingModuleInstall,
   discardPendingModuleInstall,
   enqueuePendingModuleInstall,
   listPendingModuleInstalls,
+  recoverPendingModuleInstalls,
 } from '@/features/modules/pending-module-installs';
 
 interface LocalStorageHarness {
@@ -93,5 +96,60 @@ describe('pending-module-installs', () => {
     enqueuePendingModuleInstall('clinical.100', '1.0.0', false);
 
     expect(listPendingModuleInstalls()).toHaveLength(1);
+  });
+});
+
+describe('restoring queued downloads', () => {
+  beforeEach(() => {
+    installLocalStorageMock();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  function catalogFixture(): ContentModuleCatalog {
+    const published = MODULE_CATALOG.modules.find((module) => module.releaseState === 'published');
+    const local = MODULE_CATALOG.modules.find((module) => module.id === 'minimed.medications.ru');
+    if (!published || !local) throw new Error('Expected released and local-only catalog entries.');
+    return {
+      ...MODULE_CATALOG,
+      modules: [{ ...local, artifacts: [], releaseState: 'preview' }, published],
+    };
+  }
+
+  it('drops an unbuilt local preview without blocking a valid queued module', () => {
+    const catalog = catalogFixture();
+    for (const module of catalog.modules)
+      enqueuePendingModuleInstall(module.id, module.version, false);
+    const install = vi.fn();
+    recoverPendingModuleInstalls({ listTasks: () => [], install }, catalog, new Set());
+    expect(install).toHaveBeenCalledOnce();
+    expect(install).toHaveBeenCalledWith(catalog.modules[1]);
+    expect(listPendingModuleInstalls().map((pending) => pending.moduleId)).toEqual([
+      catalog.modules[1]?.id,
+    ]);
+  });
+
+  it('a rejected restored job cannot abort restoration of subsequent jobs', () => {
+    const fixture = catalogFixture();
+    const released = fixture.modules[1];
+    if (!released) throw new Error('Expected published fixture.');
+    const modules = [released, { ...released, id: 'test.next-module' }];
+    for (const module of modules) enqueuePendingModuleInstall(module.id, module.version, false);
+    const install = vi.fn().mockImplementationOnce(() => {
+      throw new Error('incompatible version');
+    });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    recoverPendingModuleInstalls(
+      { listTasks: () => [], install },
+      { ...fixture, modules },
+      new Set(),
+    );
+    expect(install).toHaveBeenCalledTimes(2);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(listPendingModuleInstalls().map((pending) => pending.moduleId)).toEqual([
+      'test.next-module',
+    ]);
   });
 });

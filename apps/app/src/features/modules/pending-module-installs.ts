@@ -1,6 +1,11 @@
-import type { ContentModuleCatalog, ContentModuleCatalogEntry } from '@localmed/contracts';
+import {
+  type ContentModuleCatalog,
+  type ContentModuleCatalogEntry,
+  hasDownloadableModuleIndex,
+} from '@localmed/contracts';
 
 import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
+import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 
 const STORAGE_KEY = 'minimed.pending-module-installs.v1';
 const INSTALLED_MODULES_STORAGE_KEY = 'localmed.installed-modules.v1';
@@ -106,7 +111,7 @@ function findCatalogModule(
 }
 
 export function recoverPendingModuleInstalls(
-  runtime: BrowserContentModuleRuntime,
+  runtime: Pick<BrowserContentModuleRuntime, 'listTasks' | 'install'>,
   catalog: ContentModuleCatalog,
   installedModuleIds: ReadonlySet<string>,
 ): void {
@@ -119,8 +124,15 @@ export function recoverPendingModuleInstalls(
       continue;
     }
     const module = findCatalogModule(catalog, pending);
-    if (!module || (module.releaseState !== 'published' && module.releaseState !== 'preview'))
+    if (!module) continue; // A later remote catalog can still supply this exact version.
+    if (
+      !hasDownloadableModuleIndex(module) ||
+      (module.releaseState !== 'published' && module.releaseState !== 'preview')
+    ) {
+      discardPendingModuleInstall(pending.moduleId, pending.version);
       continue;
+    }
+    if (!isModuleReleased(module)) continue; // Keep an explicitly paused experimental download.
     const activeTask = runtime
       .listTasks()
       .find(
@@ -130,6 +142,12 @@ export function recoverPendingModuleInstalls(
           !['completed', 'failed', 'cancelled'].includes(task.state),
       );
     if (activeTask) continue;
-    runtime.install(module);
+    try {
+      runtime.install(module);
+    } catch (cause) {
+      // One stale/unsupported job must not abort runtime construction or block the next job.
+      discardPendingModuleInstall(pending.moduleId, pending.version);
+      console.warn('Pending module install was rejected by the current catalog/runtime.', cause);
+    }
   }
 }
