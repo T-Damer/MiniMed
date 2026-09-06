@@ -2,6 +2,7 @@ package dev.localmed.search;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.database.sqlite.SQLiteException;
 import android.util.Base64;
 import android.util.Log;
@@ -115,6 +116,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                 long phaseStarted = started;
                 String phase = "capabilities";
                 File validationMarker = null;
+                File checksumMarker = null;
                 try {
                     closeDatabase();
                     // Probe the runtime, not the 490 MiB pack. This must precede installation,
@@ -126,7 +128,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     File directory = new File(getContext().getFilesDir(), "localmed/content");
                     ensureDirectory(directory);
                     File target = new File(directory, databaseName);
-                    File checksumMarker = new File(directory, databaseName + ".sha256");
+                    checksumMarker = new File(directory, databaseName + ".sha256");
                     validationMarker = validationMarker(target);
                     boolean copied = installAssetIfNeeded(assetPath, target, checksumMarker, expectedSha256);
                     String identity = validationIdentity(target, expectedSha256, sqliteVersion);
@@ -180,13 +182,25 @@ public final class LocalMedDatabasePlugin extends Plugin {
                 } catch (Exception error) {
                     closeDatabase();
                     if (validationMarker != null) deleteBestEffort(validationMarker);
+                    boolean invalidPack = error instanceof PackValidationException
+                        || error instanceof SQLiteDatabaseCorruptException;
+                    if (invalidPack && checksumMarker != null) {
+                        // A rejected file must not keep looking installed on the next launch.
+                        // Retain its bytes until the verified replacement is atomically committed.
+                        try {
+                            deleteIfExists(checksumMarker);
+                        } catch (IOException cleanupError) {
+                            error.addSuppressed(cleanupError);
+                            Log.w("LocalMedDatabase", "Unable to invalidate the installation marker.");
+                        }
+                    }
                     timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
                     timings.put("failedPhase", phase);
                     timings.put("totalMs", SystemClock.elapsedRealtime() - started);
                     // No paths, queries, content, or native arguments in diagnostic logs.
                     Log.w("LocalMedDatabase", "openPack failed " + timings);
                     call.reject("Unable to open the packaged LocalMed database: " + safeMessage(error),
-                        error instanceof PackValidationException ? "NATIVE_PACK_VALIDATION_FAILED"
+                        invalidPack ? "NATIVE_PACK_VALIDATION_FAILED"
                             : "capabilities".equals(phase) ? "NATIVE_SQLITE_UNSUPPORTED" : "NATIVE_PACK_OPEN_FAILED");
                 }
             }
