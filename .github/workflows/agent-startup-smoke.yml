@@ -1,0 +1,65 @@
+name: PR 164 targeted startup smoke
+on:
+  push:
+    branches: [agent/startup-smoke-164]
+    paths: [.github/workflows/agent-startup-smoke.yml]
+permissions:
+  contents: read
+jobs:
+  delayed-database-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: d8bc80f2d66c60924cad2526d4f9f9f80d4851bb
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
+      - run: env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+      - run: env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright install --with-deps chromium --only-shell
+      - name: Two viewport startup regression cases
+        run: |
+          set -o pipefail
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright test apps/app/e2e/startup-shell.spec.ts --reporter=list 2>&1 | tee startup-e2e.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr164-startup-e2e
+          path: |
+            startup-e2e.log
+            test-results
+          retention-days: 3
+  native-java:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: d8bc80f2d66c60924cad2526d4f9f9f80d4851bb
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v4
+      - run: env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
+      - run: env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+      - run: env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:sync:android
+      - name: Java compilation and JVM regression tests
+        working-directory: apps/app/android
+        run: env -i PATH="$PATH" HOME="$HOME" JAVA_HOME="$JAVA_HOME" ANDROID_HOME="$ANDROID_HOME" CI=1 ./gradlew :app:compileDebugJavaWithJavac :app:testDebugUnitTest -x externalNativeBuildDebug -x mergeDebugNativeLibs -x stripDebugDebugSymbols
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr164-native-junit
+          path: apps/app/android/app/build/test-results/testDebugUnitTest
+          retention-days: 3
