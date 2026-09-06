@@ -1,8 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 
 describe('resolveContentModuleArtifactUrl', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+  it('uses the remote clinical artifact in a default native WebView build', () => {
+    vi.stubGlobal('window', { location: { href: 'https://localhost/' } });
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/clinical-test/clinical-1.db',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/clinical-test/apps/app/public/content/clinical/clinical-1.db',
+    );
+  });
   it('rewrites MiniMed specialty release assets to raw.githubusercontent.com on main', () => {
     expect(
       resolveContentModuleArtifactUrl(

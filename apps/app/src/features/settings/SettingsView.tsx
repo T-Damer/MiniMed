@@ -12,6 +12,7 @@ import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus'
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
 import { PackagingImagesSettings } from '@/features/settings/PackagingImagesSettings';
+import { ReferenceImagesSettings } from '@/features/settings/ReferenceImagesSettings';
 import {
   readSettingsRoute,
   SETTINGS_DOWNLOADS_HASH,
@@ -286,6 +287,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         </a>
 
         <EcgModelSettings />
+        <ReferenceImagesSettings />
 
         <AsrSettings />
 

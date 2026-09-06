@@ -118,6 +118,59 @@ describe('ReferenceImageResolver', () => {
     resolver.dispose();
   });
 
+  it('resumes verified files after cancellation, opens them offline, and deletes the download', async () => {
+    const fixture = await imageFixture();
+    vi.stubGlobal('window', { location: { origin: 'http://localhost' } });
+    const entries = new Map<string, Response>();
+    const cache = {
+      match: async (key: string) => entries.get(key)?.clone(),
+      put: async (key: string, response: Response) => {
+        entries.set(key, response.clone());
+      },
+      delete: async (key: string) => entries.delete(key),
+      keys: async () => [...entries.keys()].map((key) => new Request(key)),
+    };
+    vi.stubGlobal('caches', {
+      open: async () => cache,
+      delete: async () => {
+        entries.clear();
+        return true;
+      },
+    });
+    let imageFetches = 0;
+    const resolver = new ReferenceImageResolver({
+      baseUrl: 'http://localhost/content/reference-images/',
+      manifestSha256: await sha256(fixture.manifest),
+      fetch: async (input) => {
+        if (String(input).includes('/manifest.json?sha256='))
+          return fixtureResponse(fixture.manifest);
+        if (++imageFetches > 1) throw new Error('offline');
+        return fixtureResponse(fixture.image);
+      },
+    });
+    const cancelled = new AbortController();
+    await expect(
+      resolver.downloadAll(cancelled.signal, (loaded) => {
+        if (loaded > 0) cancelled.abort();
+      }),
+    ).rejects.toThrow();
+    expect(await resolver.downloadStatus()).toMatchObject({ complete: false, files: 1 });
+    await resolver.downloadAll(new AbortController().signal, () => undefined);
+    expect(await resolver.downloadStatus()).toMatchObject({
+      complete: true,
+      files: 1,
+      totalBytes: fixture.image.byteLength,
+    });
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:offline');
+    await expect(resolver.resolveFirst(fixture.documentId)).resolves.toMatchObject({
+      url: 'blob:offline',
+    });
+    expect(imageFetches).toBe(1);
+    await resolver.removeDownloaded();
+    expect(await resolver.downloadStatus()).toMatchObject({ complete: false, files: 0 });
+    resolver.dispose();
+  });
+
   it('clears cached blobs explicitly', async () => {
     const fixture = await imageFixture();
     const fetchValue = vi.fn(async (input: RequestInfo | URL) => {

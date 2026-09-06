@@ -26,6 +26,14 @@ function task(
 }
 
 describe('latestVisibleDownloadTasks', () => {
+  it('does not revive an old error after a successful retry', () => {
+    expect(
+      latestVisibleDownloadTasks([
+        task({ id: 'old', moduleId: 'laws', state: 'failed' }),
+        task({ id: 'new', moduleId: 'laws', state: 'completed' }),
+      ]),
+    ).toEqual([]);
+  });
   it('keeps the latest active or failed task per module version', () => {
     const visible = latestVisibleDownloadTasks([
       task({ id: 'old', moduleId: 'laws', state: 'downloading', downloadedBytes: 10 }),

@@ -12,6 +12,7 @@ export interface ResumableDownloadProgress {
 export interface ResumableDownloadOptions {
   readonly url: string;
   readonly cacheKey: string;
+  readonly headers?: Readonly<Record<string, string>>;
   readonly expectedBytes?: number | null;
   readonly signal?: AbortSignal;
   readonly onProgress?: (progress: ResumableDownloadProgress) => void;
@@ -163,9 +164,10 @@ export async function downloadWithResume(options: ResumableDownloadOptions): Pro
   if (downloadedBytes > 0) reportProgress();
 
   const requestInit: RequestInit = { cache: 'no-store' };
+  if (options.headers) requestInit.headers = { ...options.headers };
   if (signal) requestInit.signal = signal;
   if (downloadedBytes > 0) {
-    requestInit.headers = { Range: `bytes=${downloadedBytes}-` };
+    requestInit.headers = { ...options.headers, Range: `bytes=${downloadedBytes}-` };
   }
 
   const response = await fetch(url, requestInit);
@@ -175,6 +177,7 @@ export async function downloadWithResume(options: ResumableDownloadOptions): Pro
     downloadedBytes = 0;
     pendingParts = [];
     const retryInit: RequestInit = { cache: 'no-store' };
+    if (options.headers) retryInit.headers = { ...options.headers };
     if (signal) retryInit.signal = signal;
     const retry = await fetch(url, retryInit);
     if (!retry.ok) throw new Error(`Сервер ответил HTTP ${retry.status}.`);

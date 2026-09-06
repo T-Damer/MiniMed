@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { type MedicalStore, type MedicalStoreMount, MultiMedicalStore } from '@localmed/storage';
-import { CapacitorMedicalStore } from '@localmed/storage-capacitor';
+import { CapacitorMedicalStore, LocalMedDatabase } from '@localmed/storage-capacitor';
 import {
   hasOpfsSahPoolApis,
   SQLITE_WASM_DESERIALIZE_MAX_BYTES,
@@ -115,15 +115,38 @@ async function readPackReport(
     typeof value !== 'object' ||
     value === null ||
     !('outputChecksum' in value) ||
-    typeof value.outputChecksum !== 'string'
+    typeof value.outputChecksum !== 'string' ||
+    !/^sha256:[a-f0-9]{64}$/u.test(value.outputChecksum)
   ) {
     throw new Error('Content-pack report does not contain outputChecksum.');
   }
   return { outputChecksum: value.outputChecksum };
 }
 
-async function createNativeStore(): Promise<CapacitorMedicalStore> {
+export interface CoreDownloadUi {
+  readonly requestDownload: () => Promise<void>;
+  readonly onProgress: (progress: { readonly loaded: number; readonly total: number }) => void;
+}
+
+export async function createNativeStore(
+  downloadUi?: CoreDownloadUi,
+): Promise<CapacitorMedicalStore> {
   const report = await readPackReport();
+  if (Capacitor.getPlatform() === 'android' && downloadUi) {
+    const options = { expectedSha256: report.outputChecksum };
+    if (!(await LocalMedDatabase.hasCorePack(options)).installed) {
+      await downloadUi.requestDownload();
+      const listener = await LocalMedDatabase.addListener(
+        'coreDownloadProgress',
+        downloadUi.onProgress,
+      );
+      try {
+        await LocalMedDatabase.downloadCorePack(options);
+      } finally {
+        await listener.remove();
+      }
+    }
+  }
   const store = new CapacitorMedicalStore({
     assetPath: PACK_ASSET_PATH,
     databaseName: PACK_DATABASE_NAME,
@@ -198,20 +221,27 @@ async function packagedContentLength(url: URL): Promise<number | undefined> {
   }
 }
 
-function openRequiredCoreFromOpfs(url: string): Promise<WorkerOpfsMedicalStore> {
+function openRequiredCoreFromOpfs(
+  url: string,
+  databaseName = PACK_DATABASE_NAME,
+): Promise<WorkerOpfsMedicalStore> {
   return WorkerOpfsMedicalStore.open({
     url,
-    databaseName: PACK_DATABASE_NAME,
+    databaseName,
     fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
     poolName: 'minimed-sah-core',
   });
 }
 
-export async function createRequiredWebCoreStore(contentBaseUrl: string): Promise<MedicalStore> {
-  const url = new URL(`content/${PACK_DATABASE_NAME}`, contentBaseUrl);
+export async function createRequiredWebCoreStore(
+  contentBaseUrl: string,
+  databaseUrl?: string,
+  cacheName = PACK_DATABASE_NAME,
+): Promise<MedicalStore> {
+  const url = new URL(databaseUrl ?? `content/${PACK_DATABASE_NAME}`, contentBaseUrl);
   const contentLength = await packagedContentLength(url);
   if (contentLength !== undefined && contentLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
-    return await openRequiredCoreFromOpfs(url.href);
+    return await openRequiredCoreFromOpfs(url.href, cacheName);
   }
   const response = await fetchContent(url);
   if (!response.ok) {
@@ -225,7 +255,7 @@ export async function createRequiredWebCoreStore(contentBaseUrl: string): Promis
   if (bytes.byteLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
     const blobUrl = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.sqlite3' }));
     try {
-      return await openRequiredCoreFromOpfs(blobUrl);
+      return await openRequiredCoreFromOpfs(blobUrl, cacheName);
     } finally {
       URL.revokeObjectURL(blobUrl);
     }
@@ -402,7 +432,7 @@ async function createPackagedCompanionStores(
   return companions;
 }
 
-export async function createBrowserCore() {
+export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
   try {
     const externalCore = await createRegisteredExternalMedicalCore();
     if (externalCore) return externalCore;
@@ -414,13 +444,15 @@ export async function createBrowserCore() {
   const platform =
     nativePlatform === 'android' || nativePlatform === 'ios' ? nativePlatform : 'web';
 
+  let fallbackCoreUrl: string | undefined;
   if (platform === 'android' || platform === 'ios') {
     try {
+      const nativeStore = await createNativeStore(downloadUi);
       const contentBaseUrl = getPackagedContentBaseUrl();
       const companions = await createPackagedCompanionStores(contentBaseUrl, {
         includeMedications: !isFloatingWindowRuntime(),
       });
-      const store = await withInstalledModules(await createNativeStore(), companions);
+      const store = await withInstalledModules(nativeStore, companions);
       return createMedicalCore({
         store,
         platform,
@@ -428,13 +460,26 @@ export async function createBrowserCore() {
         searchExecution: companions.medicationsStore ? 'direct-only' : undefined,
       });
     } catch (error) {
+      if (platform === 'android') {
+        const report = await readPackReport();
+        const local = await LocalMedDatabase.hasCorePack({ expectedSha256: report.outputChecksum });
+        if (!local.installed || !local.databasePath) throw error;
+        // Keep the existing WASM fallback on Android builds whose system SQLite lacks FTS5.
+        // Serve the verified app-private file locally, without another network download.
+        fallbackCoreUrl = Capacitor.convertFileSrc(local.databasePath);
+      }
       console.warn('Native SQLite unavailable; falling back to the packaged WASM database.', error);
     }
   }
 
   try {
     const contentBaseUrl = getPackagedContentBaseUrl();
-    const coreStore = await createRequiredWebCoreStore(contentBaseUrl);
+    const report = await readPackReport(contentBaseUrl);
+    const coreStore = await createRequiredWebCoreStore(
+      contentBaseUrl,
+      fallbackCoreUrl,
+      `core.${report.outputChecksum.slice(7)}.db`,
+    );
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: !isFloatingWindowRuntime(),
     });
@@ -458,7 +503,12 @@ export async function createBrowserCore() {
 
 export async function createBrowserWorkerCore(contentBaseUrl: string) {
   try {
-    const coreStore = await createRequiredWebCoreStore(contentBaseUrl);
+    const report = await readPackReport(contentBaseUrl);
+    const coreStore = await createRequiredWebCoreStore(
+      contentBaseUrl,
+      undefined,
+      `core.${report.outputChecksum.slice(7)}.db`,
+    );
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: shouldOpenPackagedMedicationsInSearchWorker(),
     });

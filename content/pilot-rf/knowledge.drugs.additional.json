@@ -170,8 +170,8 @@
           "documentId": "drug.rf.azithromycin.suspension-200mg-5ml",
           "documentVersionId": "drug.rf.azithromycin.suspension-200mg-5ml@registry-2026-07-03",
           "sectionId": "section.c0613d93b6cf34a1",
-          "chunkId": "chunk.7142363f43639b5c",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат «Сумамед форте»: МНН — азитромицин, лекарственная форма — порошок для приготовления суспензии для приема внутрь, дозировка 200 мг/5 мл, регистрационное удостоверение ЛП-№(001367)-(РГ-RU). Дата вступления решения в силу — 3 июля 2026 года.",
+          "chunkId": "chunk.67f037cf693ff696",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат «Сумамед форте»: МНН — азитромицин, лекарственная форма — порошок для приготовления суспензии для приема внутрь, дозировка 200 мг/5 мл, регистрационное удостоверение ЛП-№(001367)-(РГ-RU). Дата вступления решения в силу — 3 июля 2026 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=20&per_page=30",
             "recordId": "1000107564"
@@ -215,8 +215,8 @@
           "documentId": "drug.rf.ceftriaxone.injection-1g",
           "documentVersionId": "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07",
           "sectionId": "section.0eebcb7adb823156",
-          "chunkId": "chunk.a0322c4239fad577",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат с МНН цефтриаксон: порошок для приготовления раствора для внутривенного и внутримышечного введения, дозировка 1 г, регистрационное удостоверение ЛП-№(005496)-(РГ-RU). Дата вступления решения в силу — 7 июля 2026 года.",
+          "chunkId": "chunk.bed2a8a3807f295e",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат с МНН цефтриаксон: порошок для приготовления раствора для внутривенного и внутримышечного введения, дозировка 1 г, регистрационное удостоверение ЛП-№(005496)-(РГ-RU). Дата вступления решения в силу — 7 июля 2026 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=3456",
             "recordId": "1000135207"
@@ -260,8 +260,8 @@
           "documentId": "drug.rf.oral-rehydration-salts.powder-18-9g",
           "documentVersionId": "drug.rf.oral-rehydration-salts.powder-18-9g@registry-2026-02-25",
           "sectionId": "section.9ee99f0b0ec736bf",
-          "chunkId": "chunk.a3db70a869d4b4eb",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат «Регидрон»: МНН — декстроза+калия хлорид+натрия хлорид+натрия цитрат, лекарственная форма — порошок для приготовления раствора для приема внутрь, масса пакетика 18,9 г, регистрационное удостоверение ЛП-№(012750)-(РГ-RU). Дата вступления решения в силу — 25 февраля 2026 года.",
+          "chunkId": "chunk.3d3797d001094d17",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат «Регидрон»: МНН — декстроза+калия хлорид+натрия хлорид+натрия цитрат, лекарственная форма — порошок для приготовления раствора для приема внутрь, масса пакетика 18,9 г, регистрационное удостоверение ЛП-№(012750)-(РГ-RU). Дата вступления решения в силу — 25 февраля 2026 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=1045",
             "recordId": "1000120007"
@@ -304,8 +304,8 @@
           "documentId": "drug.rf.oseltamivir.capsules-30mg",
           "documentVersionId": "drug.rf.oseltamivir.capsules-30mg@registry-2026-07-08",
           "sectionId": "section.ccdd5c9136fdc603",
-          "chunkId": "chunk.bf824f9cc712e695",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат с МНН осельтамивир: капсулы 30 мг, регистрационное удостоверение ЛП-№(002417)-(РГ-RU). Дата вступления решения в силу — 8 июля 2026 года.",
+          "chunkId": "chunk.016e92524c164a64",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат с МНН осельтамивир: капсулы 30 мг, регистрационное удостоверение ЛП-№(002417)-(РГ-RU). Дата вступления решения в силу — 8 июля 2026 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=2422&per_page=15",
             "recordId": "1000165168"
@@ -332,7 +332,7 @@
       "documentId": "drug.rf.azithromycin.suspension-200mg-5ml",
       "documentVersionId": "drug.rf.azithromycin.suspension-200mg-5ml@registry-2026-07-03",
       "sectionId": "section.c0613d93b6cf34a1",
-      "chunkId": "chunk.7142363f43639b5c",
+      "chunkId": "chunk.67f037cf693ff696",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"
@@ -343,7 +343,7 @@
       "documentId": "drug.rf.ceftriaxone.injection-1g",
       "documentVersionId": "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07",
       "sectionId": "section.0eebcb7adb823156",
-      "chunkId": "chunk.a0322c4239fad577",
+      "chunkId": "chunk.bed2a8a3807f295e",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"
@@ -354,7 +354,7 @@
       "documentId": "drug.rf.oral-rehydration-salts.powder-18-9g",
       "documentVersionId": "drug.rf.oral-rehydration-salts.powder-18-9g@registry-2026-02-25",
       "sectionId": "section.9ee99f0b0ec736bf",
-      "chunkId": "chunk.a3db70a869d4b4eb",
+      "chunkId": "chunk.3d3797d001094d17",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"
@@ -365,7 +365,7 @@
       "documentId": "drug.rf.oseltamivir.capsules-30mg",
       "documentVersionId": "drug.rf.oseltamivir.capsules-30mg@registry-2026-07-08",
       "sectionId": "section.ccdd5c9136fdc603",
-      "chunkId": "chunk.bf824f9cc712e695",
+      "chunkId": "chunk.016e92524c164a64",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"

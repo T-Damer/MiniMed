@@ -16,10 +16,10 @@ export function latestVisibleDownloadTasks(
   const seen = new Set<string>();
   const latest: ContentModuleDownloadTask[] = [];
   for (const task of [...tasks].reverse()) {
-    if (TERMINAL_STATES.has(task.state)) continue;
     const key = `${task.moduleId}@${task.version}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    if (TERMINAL_STATES.has(task.state)) continue;
     latest.push(task);
   }
   return latest.reverse();

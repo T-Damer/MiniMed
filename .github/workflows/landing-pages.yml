@@ -68,6 +68,7 @@ jobs:
           mkdir -p apps/app/public/content/releases/models-preview-1
           gh release download models-preview-1 --repo "$GITHUB_REPOSITORY" \
             --pattern minimed-ecg-open-digitizer-2026.1-q8.zip \
+            --pattern minimed-ecg-numeric-adult-2026.2.zip \
             --dir apps/app/public/content/releases/models-preview-1 --clobber
       - name: Build regulatory and reference databases
         run: |

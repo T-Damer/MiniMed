@@ -80,7 +80,13 @@ test('keeps an inline document preview inside the viewport', async ({ page }) =>
   const box = await card.boundingBox();
   if (!box) throw new Error('Document preview geometry is unavailable.');
   expect(box.y).toBeGreaterThanOrEqual(0);
-  expect(box.y + box.height).toBeLessThanOrEqual(600);
+  const nav = await page.locator('.app-bottom-nav').boundingBox();
+  if (!nav) throw new Error('App navigation geometry is unavailable.');
+  expect(box.y + box.height).toBeLessThanOrEqual(nav.y - 7);
+  const header = page.locator('.document-inline-preview__header');
+  expect(await header.evaluate((node) => getComputedStyle(node).position)).toBe('sticky');
+  await page.evaluate(() => document.dispatchEvent(new Event('scroll')));
+  await expect(card).toHaveCount(0);
 });
 
 test('opens a document tool in a route-owned window even when mini-windows are disabled', async ({

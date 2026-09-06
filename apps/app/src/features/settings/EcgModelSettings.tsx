@@ -2,94 +2,70 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { openCalculator } from '@/features/calculators/calculator-links';
+import { ECG_PHOTO_CALIPER_ID } from '@/features/calculators/calculator-registry';
+import { readEcgModelDescriptor, subscribeEcgModel } from '@/features/calculators/ecg-model';
 import {
-  ECG_MODEL_CATALOG,
-  type EcgModelCatalogItem,
-  type EcgModelDescriptor,
-  installEcgModelFromCatalog,
-  readEcgModelDescriptor,
-  removeEcgModel,
-  subscribeEcgModel,
-} from '@/features/calculators/ecg-model';
-import {
-  ECG_DIAGNOSTIC_MODEL_CATALOG,
-  type EcgDiagnosticModelDescriptor,
-  installEcgDiagnosticModelFromCatalog,
   readEcgDiagnosticModelDescriptor,
-  removeEcgDiagnosticModel,
   subscribeEcgDiagnosticModel,
 } from '@/features/calculators/ecg-numeric-diagnostic';
-
-function formatBytes(value: number): string {
-  return `${(value / 1024 / 1024).toFixed(value >= 100 * 1024 * 1024 ? 0 : 1)} МБ`;
-}
+import {
+  ECG_PACKAGE_COMPONENTS,
+  installEcgPackage,
+  isEcgPackageInstalled,
+  removeEcgPackage,
+} from '@/features/calculators/ecg-package';
 
 export function EcgModelSettings(): JSX.Element {
-  const [model, setModel] = createSignal<EcgModelDescriptor | null>(null);
-  const [busyModelId, setBusyModelId] = createSignal<string | null>(null);
-  const [progress, setProgress] = createSignal<number | null>(null);
+  const [installed, setInstalled] = createSignal(false);
+  const [hasFiles, setHasFiles] = createSignal(false);
+  const [busy, setBusy] = createSignal<'download' | 'remove' | null>(null);
+  const [progress, setProgress] = createSignal(0);
   const [error, setError] = createSignal('');
-  let activeDownload: AbortController | null = null;
-
+  let activeDownload: AbortController | undefined;
   const sync = (): void => {
-    setModel(readEcgModelDescriptor());
+    setInstalled(isEcgPackageInstalled());
+    setHasFiles(Boolean(readEcgModelDescriptor() || readEcgDiagnosticModelDescriptor()));
   };
   onMount(() => {
     sync();
-    const unsubscribe = subscribeEcgModel(sync);
+    const subscriptions = [subscribeEcgModel(sync), subscribeEcgDiagnosticModel(sync)];
     onCleanup(() => {
-      unsubscribe();
+      for (const unsubscribe of subscriptions) unsubscribe();
       activeDownload?.abort();
     });
   });
-
-  const install = async (candidate: EcgModelCatalogItem): Promise<void> => {
-    if (busyModelId() === candidate.id) {
-      activeDownload?.abort();
-      return;
-    }
-    activeDownload?.abort();
+  const install = async (): Promise<void> => {
+    if (busy()) return;
     const controller = new AbortController();
     activeDownload = controller;
-    setBusyModelId(candidate.id);
+    setBusy('download');
     setProgress(0);
     setError('');
     try {
-      setModel(
-        await installEcgModelFromCatalog(candidate, {
-          signal: controller.signal,
-          onProgress: (downloadedBytes, totalBytes) =>
-            setProgress(totalBytes > 0 ? downloadedBytes / totalBytes : 0),
-        }),
-      );
+      await installEcgPackage(controller.signal, setProgress);
     } catch (cause) {
-      if (!controller.signal.aborted) {
-        setError(cause instanceof Error ? cause.message : 'Не удалось установить оцифровщик ЭКГ.');
-      }
+      if (!controller.signal.aborted)
+        setError(cause instanceof Error ? cause.message : 'Не удалось скачать распознавание ЭКГ.');
     } finally {
-      if (activeDownload === controller) activeDownload = null;
-      setBusyModelId(null);
-      setProgress(null);
+      sync();
+      activeDownload = undefined;
+      setBusy(null);
     }
   };
-
   const remove = async (): Promise<void> => {
-    activeDownload?.abort();
-    setBusyModelId('remove');
+    if (busy()) return;
+    setBusy('remove');
     setError('');
     try {
-      await removeEcgModel();
-      setModel(null);
+      await removeEcgPackage();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось удалить оцифровщик ЭКГ.');
+      setError(cause instanceof Error ? cause.message : 'Не удалось удалить распознавание ЭКГ.');
     } finally {
-      setBusyModelId(null);
+      sync();
+      setBusy(null);
     }
   };
-
-  const installed = (candidate: EcgModelCatalogItem): boolean =>
-    model()?.checksum === candidate.bundleSha256;
-
   return (
     <section
       class="settings-section settings-section--ecg-model paper-sheet ecg-model-settings"
@@ -100,307 +76,96 @@ export function EcgModelSettings(): JSX.Element {
           <AppGlyph name="brain" class="settings-section__icon" />
           <div class="settings-section__heading-copy">
             <h2 id="settings-ecg-model-heading" class="settings-section__title">
-              Модули ЭКГ
+              Распознавание ЭКГ
             </h2>
             <p class="settings-section__description">
-              MiniMed скачивает и проверяет выбранные модули. Фото, числовые измерения и результаты
-              не покидают устройство.
+              Фото, измерения и результаты остаются на устройстве. После скачивания работает офлайн.
             </p>
           </div>
         </div>
       </header>
-
-      <Show
-        when={model()}
-        fallback={<p class="ecg-model-settings__status">Оцифровщик ЭКГ не установлен.</p>}
-      >
-        {(installed) => (
-          <div class="ecg-model-settings__installed">
-            <div class="ecg-model-settings__copy">
-              <strong class="ecg-model-settings__name">
-                {installed().name} · {installed().version}
-              </strong>
-              <span class="ecg-model-settings__meta">
-                {formatBytes(installed().fileBytes)} · {installed().license}
-              </span>
-              <span class="ecg-model-settings__source">Источник: {installed().source}</span>
-            </div>
+      <p class="ecg-model-settings__status">
+        {installed()
+          ? 'Установлено'
+          : hasFiles()
+            ? 'Скачано частично — продолжите установку'
+            : `${(ECG_PACKAGE_COMPONENTS.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024).toFixed(1)} МБ`}
+      </p>
+      <div class="ecg-model-settings__option-footer">
+        <Show
+          when={installed()}
+          fallback={
             <Button
               type="button"
-              variant="danger"
-              disabled={busyModelId() !== null}
-              onClick={() => void remove()}
+              variant="primary"
+              class="ecg-model-settings__action"
+              disabled={busy() !== null}
+              onClick={() => void install()}
             >
-              Удалить
+              {busy() === 'download' ? `Скачиваем ${Math.round(progress() * 100)}%` : 'Скачать'}
             </Button>
-          </div>
-        )}
-      </Show>
-
-      <ul class="ecg-model-settings__catalog" aria-label="Доступные оцифровщики ЭКГ">
-        <For each={ECG_MODEL_CATALOG}>
-          {(candidate) => {
-            const busy = () => busyModelId() === candidate.id;
-            return (
-              <li
-                class="ecg-model-settings__option"
-                classList={{ 'ecg-model-settings__option--installed': installed(candidate) }}
+          }
+        >
+          <Button
+            type="button"
+            variant="primary"
+            class="ecg-model-settings__action"
+            onClick={() => openCalculator(ECG_PHOTO_CALIPER_ID)}
+          >
+            Открыть
+          </Button>
+        </Show>
+        <Show when={busy() === 'download'}>
+          <Button
+            type="button"
+            variant="danger"
+            class="ecg-model-settings__action"
+            onClick={() => activeDownload?.abort()}
+          >
+            Отменить
+          </Button>
+        </Show>
+        <Show when={hasFiles() && busy() !== 'download'}>
+          <Button
+            type="button"
+            variant="danger"
+            class="ecg-model-settings__action"
+            disabled={busy() !== null}
+            onClick={() => void remove()}
+          >
+            Удалить
+          </Button>
+        </Show>
+      </div>
+      <details class="ecg-model-settings__details">
+        <summary class="ecg-model-settings__details-summary">Подробнее о пакете</summary>
+        <For each={ECG_PACKAGE_COMPONENTS}>
+          {(candidate) => (
+            <div class="ecg-model-settings__option">
+              <h3 class="ecg-model-settings__option-name">{candidate.name}</h3>
+              <p class="ecg-model-settings__option-description">{candidate.description}</p>
+              <a
+                class="ecg-model-settings__license-link"
+                href={candidate.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
               >
-                <div class="ecg-model-settings__option-header">
-                  <div class="ecg-model-settings__option-title">
-                    <h3 class="ecg-model-settings__option-name">{candidate.name}</h3>
-                    <div class="ecg-model-settings__badges">
-                      <Show when={installed(candidate)}>
-                        <span class="ecg-model-settings__badge ecg-model-settings__badge--installed">
-                          Установлена
-                        </span>
-                      </Show>
-                    </div>
-                  </div>
-                  <span class="ecg-model-settings__option-version">v{candidate.version}</span>
-                </div>
-                <p class="ecg-model-settings__option-description">{candidate.description}</p>
-                <p class="ecg-model-settings__option-meta">
-                  {formatBytes(candidate.downloadBytes)} ·{' '}
-                  <a
-                    class="ecg-model-settings__license-link"
-                    href={candidate.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {candidate.license}
-                  </a>
-                </p>
-                <Show when={busy() && progress() !== null}>
-                  <div
-                    class="ecg-model-settings__progress"
-                    role="progressbar"
-                    aria-label={`Загрузка ${candidate.name}`}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round((progress() ?? 0) * 100)}
-                  >
-                    <span
-                      class="ecg-model-settings__progress-fill"
-                      style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }}
-                    />
-                  </div>
-                </Show>
-                <div class="ecg-model-settings__option-footer">
-                  <span class="ecg-model-settings__privacy">После установки работает офлайн</span>
-                  <Button
-                    type="button"
-                    variant={busy() ? 'danger' : 'primary'}
-                    class="ecg-model-settings__action"
-                    disabled={
-                      installed(candidate) ||
-                      (busyModelId() !== null && busyModelId() !== candidate.id)
-                    }
-                    onClick={() => void install(candidate)}
-                  >
-                    {busy() ? 'Отменить' : installed(candidate) ? 'Установлена' : 'Скачать'}
-                  </Button>
-                </div>
-              </li>
-            );
-          }}
+                {candidate.license} · {candidate.version}
+              </a>
+            </div>
+          )}
         </For>
-      </ul>
-
-      <p class="ecg-model-settings__notice">
-        Оцифровщик не ставит диагноз и не выдаёт вероятности заболеваний. Интерпретация строится
-        отдельно по измеренным параметрам и объяснимым правилам.
-      </p>
-      <EcgDiagnosticModelSettings />
+        <p class="ecg-model-settings__notice">
+          Только для взрослых 18+. Оцифровщик извлекает кривые; числовая модель принимает 30
+          подтверждённых измерений и выдаёт пять исследовательских гипотез. Результат требует
+          проверки по исходной ЭКГ врачом и не подтверждает острый инфаркт.
+        </p>
+      </details>
       <Show when={error()}>
         <p class="ecg-model-settings__error" role="alert">
           {error()}
         </p>
       </Show>
     </section>
-  );
-}
-
-function EcgDiagnosticModelSettings(): JSX.Element {
-  const [model, setModel] = createSignal<EcgDiagnosticModelDescriptor | null>(null);
-  const [busyModelId, setBusyModelId] = createSignal<string | null>(null);
-  const [progress, setProgress] = createSignal<number | null>(null);
-  const [error, setError] = createSignal('');
-  let activeDownload: AbortController | null = null;
-
-  onMount(() => {
-    const sync = (): void => {
-      setModel(readEcgDiagnosticModelDescriptor());
-    };
-    sync();
-    const unsubscribe = subscribeEcgDiagnosticModel(sync);
-    onCleanup(() => {
-      unsubscribe();
-      activeDownload?.abort();
-    });
-  });
-
-  const install = async (candidate: EcgModelCatalogItem): Promise<void> => {
-    if (busyModelId() === candidate.id) {
-      activeDownload?.abort();
-      return;
-    }
-    activeDownload?.abort();
-    const controller = new AbortController();
-    activeDownload = controller;
-    setBusyModelId(candidate.id);
-    setProgress(0);
-    setError('');
-    try {
-      setModel(
-        await installEcgDiagnosticModelFromCatalog(candidate, {
-          signal: controller.signal,
-          onProgress: (downloadedBytes, totalBytes) =>
-            setProgress(totalBytes > 0 ? downloadedBytes / totalBytes : 0),
-        }),
-      );
-    } catch (cause) {
-      if (!controller.signal.aborted) {
-        setError(
-          cause instanceof Error ? cause.message : 'Не удалось установить числовую модель ЭКГ.',
-        );
-      }
-    } finally {
-      if (activeDownload === controller) activeDownload = null;
-      setBusyModelId(null);
-      setProgress(null);
-    }
-  };
-
-  const remove = async (): Promise<void> => {
-    activeDownload?.abort();
-    setBusyModelId('remove');
-    setError('');
-    try {
-      await removeEcgDiagnosticModel();
-      setModel(null);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось удалить числовую модель ЭКГ.');
-    } finally {
-      setBusyModelId(null);
-    }
-  };
-
-  const installed = (candidate: EcgModelCatalogItem): boolean =>
-    model()?.checksum === candidate.bundleSha256;
-
-  return (
-    <div class="ecg-model-settings__diagnostic">
-      <div class="ecg-model-settings__subheading">
-        <h3 class="ecg-model-settings__subtitle">Распознавание по числовым данным</h3>
-        <p class="ecg-model-settings__subdescription">
-          Выберите готовую локальную модель. Загружать ZIP вручную не нужно.
-        </p>
-      </div>
-
-      <Show
-        when={model()}
-        fallback={<p class="ecg-model-settings__status">Числовая модель ЭКГ не установлена.</p>}
-      >
-        {(current) => (
-          <div class="ecg-model-settings__installed">
-            <div class="ecg-model-settings__copy">
-              <strong class="ecg-model-settings__name">
-                {current().name} · {current().version}
-              </strong>
-              <span class="ecg-model-settings__meta">
-                {formatBytes(current().fileBytes)} · {current().license}
-              </span>
-              <span class="ecg-model-settings__source">Источник: {current().source}</span>
-            </div>
-            <Button
-              type="button"
-              variant="danger"
-              disabled={busyModelId() !== null}
-              onClick={() => void remove()}
-            >
-              Удалить
-            </Button>
-          </div>
-        )}
-      </Show>
-
-      <ul class="ecg-model-settings__catalog" aria-label="Доступные числовые модели ЭКГ">
-        <For each={ECG_DIAGNOSTIC_MODEL_CATALOG}>
-          {(candidate) => {
-            const busy = () => busyModelId() === candidate.id;
-            return (
-              <li
-                class="ecg-model-settings__option"
-                classList={{ 'ecg-model-settings__option--installed': installed(candidate) }}
-              >
-                <div class="ecg-model-settings__option-header">
-                  <div class="ecg-model-settings__option-title">
-                    <h4 class="ecg-model-settings__option-name">{candidate.name}</h4>
-                    <Show when={installed(candidate)}>
-                      <span class="ecg-model-settings__badge ecg-model-settings__badge--installed">
-                        Установлена
-                      </span>
-                    </Show>
-                  </div>
-                  <span class="ecg-model-settings__option-version">v{candidate.version}</span>
-                </div>
-                <p class="ecg-model-settings__option-description">{candidate.description}</p>
-                <p class="ecg-model-settings__option-meta">
-                  {formatBytes(candidate.downloadBytes)} ·{' '}
-                  <a
-                    class="ecg-model-settings__license-link"
-                    href={candidate.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {candidate.license}
-                  </a>
-                </p>
-                <Show when={busy() && progress() !== null}>
-                  <div
-                    class="ecg-model-settings__progress"
-                    role="progressbar"
-                    aria-label={`Загрузка ${candidate.name}`}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round((progress() ?? 0) * 100)}
-                  >
-                    <span
-                      class="ecg-model-settings__progress-fill"
-                      style={{ width: `${Math.round((progress() ?? 0) * 100)}%` }}
-                    />
-                  </div>
-                </Show>
-                <div class="ecg-model-settings__option-footer">
-                  <span class="ecg-model-settings__privacy">После установки работает офлайн</span>
-                  <Button
-                    type="button"
-                    variant={busy() ? 'danger' : 'primary'}
-                    class="ecg-model-settings__action"
-                    disabled={
-                      installed(candidate) ||
-                      (busyModelId() !== null && busyModelId() !== candidate.id)
-                    }
-                    onClick={() => void install(candidate)}
-                  >
-                    {busy() ? 'Отменить' : installed(candidate) ? 'Установлена' : 'Скачать'}
-                  </Button>
-                </div>
-              </li>
-            );
-          }}
-        </For>
-      </ul>
-      <p class="ecg-model-settings__notice">
-        Модель принимает 30 подтверждённых значений в мс и мВ и выдаёт пять исследовательских
-        гипотез. Она не анализирует фото, не заменяет врача и не подтверждает острый инфаркт.
-      </p>
-      <Show when={error()}>
-        <p class="ecg-model-settings__error" role="alert">
-          {error()}
-        </p>
-      </Show>
-    </div>
   );
 }

@@ -66,8 +66,8 @@
           "documentId": "drug.rf.amoxicillin-clavulanate.suspension-400-57",
           "documentVersionId": "drug.rf.amoxicillin-clavulanate.suspension-400-57@registry-2025-04-14",
           "sectionId": "section.bf6f7c3f7b38950d",
-          "chunkId": "chunk.5ef6c7113d8f5fdf",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат «Аугментин»: МНН — амоксициллин+[клавулановая кислота], лекарственная форма — порошок для приготовления суспензии для приема внутрь, дозировка 400 мг+57 мг/5 мл, регистрационное удостоверение ЛП-№(003017)-(РГ-RU). Дата вступления решения в силу — 14 апреля 2025 года.",
+          "chunkId": "chunk.ad983d75a45f54e7",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат «Аугментин»: МНН — амоксициллин+[клавулановая кислота], лекарственная форма — порошок для приготовления суспензии для приема внутрь, дозировка 400 мг+57 мг/5 мл, регистрационное удостоверение ЛП-№(003017)-(РГ-RU). Дата вступления решения в силу — 14 апреля 2025 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=128&per_page=30",
             "recordId": "1000045857"
@@ -94,7 +94,7 @@
       "documentId": "drug.rf.amoxicillin-clavulanate.suspension-400-57",
       "documentVersionId": "drug.rf.amoxicillin-clavulanate.suspension-400-57@registry-2025-04-14",
       "sectionId": "section.bf6f7c3f7b38950d",
-      "chunkId": "chunk.5ef6c7113d8f5fdf",
+      "chunkId": "chunk.ad983d75a45f54e7",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"

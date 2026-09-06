@@ -5,6 +5,7 @@ import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'sol
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { stripKnownHtmlMarkup } from '@/components/html-markup';
+import { useInlinePreviewBounds } from '@/components/useInlinePreviewBounds';
 import { openAssessment } from '@/features/assessments/assessment-links';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import {
@@ -118,6 +119,14 @@ function InlineDocumentLink(props: {
   readonly rangeOffset: number;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
+  const [previewCard, setPreviewCard] = createSignal<HTMLElement>();
+  const [choice, setChoice] = createSignal('');
+  const manyChoices = () => (props.segment.alternatives?.length ?? 0) > 2;
+  const selectedAlternative = () =>
+    props.segment.alternatives?.find((_item, index) => String(index) === choice());
+  const primarySource = () =>
+    selectedAlternative()?.preview?.source ?? props.segment.preview?.source;
+  useInlinePreviewBounds(open, previewCard, () => setOpen(false));
 
   const [excerpts, setExcerpts] = createSignal<readonly MedicationPreviewExcerpt[]>();
   const [previewError, setPreviewError] = createSignal<string>();
@@ -185,6 +194,7 @@ function InlineDocumentLink(props: {
       <Show when={canPreview()}>
         <Popover.Portal>
           <Popover.Content
+            ref={setPreviewCard}
             class="document-inline-preview__card"
             aria-label={
               ambiguous()
@@ -195,13 +205,94 @@ function InlineDocumentLink(props: {
               if (!ambiguous()) event.preventDefault();
             }}
           >
-            <strong class="document-inline-preview__title">
-              {ambiguous()
-                ? `${props.segment.value}: выберите значение`
-                : (props.segment.preview?.title ?? props.segment.value)}
-            </strong>
+            <div class="document-inline-preview__header">
+              <strong class="document-inline-preview__title">
+                {ambiguous()
+                  ? `${props.segment.value}: выберите значение`
+                  : (props.segment.preview?.title ?? props.segment.value)}
+              </strong>
+              <Show when={manyChoices()}>
+                <select
+                  class="document-inline-preview__choice"
+                  aria-label="Выберите документ"
+                  value={choice()}
+                  onChange={(event) => setChoice(event.currentTarget.value)}
+                >
+                  <option class="document-inline-preview__choice-option" value="">
+                    Выберите документ…
+                  </option>
+                  <For each={props.segment.alternatives}>
+                    {(alternative, index) => (
+                      <option
+                        class="document-inline-preview__choice-option"
+                        value={String(index())}
+                      >
+                        {alternative.title}
+                      </option>
+                    )}
+                  </For>
+                </select>
+              </Show>
+              <Show when={ambiguous() && !manyChoices()}>
+                <For each={props.segment.alternatives}>
+                  {(alternative) => (
+                    <button
+                      type="button"
+                      class="document-inline-preview__open"
+                      onClick={() => {
+                        setOpen(false);
+                        const source = alternative.preview?.source;
+                        if (source)
+                          openDocumentOverlay(source.documentId, source.anchor ?? null, {
+                            preferSummary: true,
+                          });
+                        else props.onOpen(alternative.documentId);
+                      }}
+                    >
+                      Открыть источник: {alternative.preview?.source?.label ?? alternative.title}
+                      <AppGlyph
+                        name="arrow-square-up-right"
+                        class="document-inline-preview__open-icon"
+                      />
+                    </button>
+                  )}
+                </For>
+              </Show>
+              <Show when={!ambiguous() || selectedAlternative()}>
+                <button
+                  type="button"
+                  class="document-inline-preview__open"
+                  onClick={() => {
+                    setOpen(false);
+                    const source = primarySource();
+                    if (source)
+                      openDocumentOverlay(source.documentId, source.anchor ?? null, {
+                        preferSummary: true,
+                      });
+                    else
+                      props.onOpen(selectedAlternative()?.documentId ?? props.segment.documentId);
+                  }}
+                >
+                  {primarySource()
+                    ? `Открыть источник: ${primarySource()?.label}`
+                    : 'Открыть карточку и источники'}
+                  <AppGlyph
+                    name="arrow-square-up-right"
+                    class="document-inline-preview__open-icon"
+                  />
+                </button>
+              </Show>
+            </div>
             <Show when={ambiguous()}>
-              <For each={props.segment.alternatives}>
+              <For
+                each={
+                  manyChoices()
+                    ? props.segment.alternatives?.filter(
+                        (_item, index) => String(index) === choice(),
+                      )
+                    : props.segment.alternatives
+                }
+              >
                 {(alternative) => (
                   <div class="document-inline-preview__meaning">
                     <button
@@ -220,24 +311,6 @@ function InlineDocumentLink(props: {
                           <p class="document-inline-preview__definition document-inline-preview__definition--choice">
                             {preview().definition}
                           </p>
-                          <Show when={preview().source}>
-                            {(source) => (
-                              <button
-                                type="button"
-                                class="document-inline-preview__source"
-                                onClick={() => {
-                                  setOpen(false);
-                                  openDocumentOverlay(
-                                    source().documentId,
-                                    source().anchor ?? null,
-                                    { preferSummary: true },
-                                  );
-                                }}
-                              >
-                                Источник: {source().label}
-                              </button>
-                            )}
-                          </Show>
                         </>
                       )}
                     </Show>
@@ -247,25 +320,7 @@ function InlineDocumentLink(props: {
             </Show>
             <Show when={!ambiguous() && props.segment.preview}>
               {(preview) => (
-                <>
-                  <p class="document-inline-preview__definition">{preview().definition}</p>
-                  <Show when={preview().source}>
-                    {(source) => (
-                      <button
-                        type="button"
-                        class="document-inline-preview__source"
-                        onClick={() => {
-                          setOpen(false);
-                          openDocumentOverlay(source().documentId, source().anchor ?? null, {
-                            preferSummary: true,
-                          });
-                        }}
-                      >
-                        Источник: {source().label}
-                      </button>
-                    )}
-                  </Show>
-                </>
+                <p class="document-inline-preview__definition">{preview().definition}</p>
               )}
             </Show>
             <Show when={!ambiguous() && !props.segment.preview}>
@@ -311,19 +366,6 @@ function InlineDocumentLink(props: {
                 Источник: {sourceLabel() ?? props.segment.value}. Сведения о препарате; не схема
                 дозирования.
               </p>
-            </Show>
-            <Show when={!ambiguous()}>
-              <button
-                type="button"
-                class="document-inline-preview__open"
-                onClick={() => {
-                  setOpen(false);
-                  props.onOpen(props.segment.documentId);
-                }}
-              >
-                Открыть карточку и источники
-                <AppGlyph name="arrow-square-up-right" class="document-inline-preview__open-icon" />
-              </button>
             </Show>
           </Popover.Content>
         </Popover.Portal>

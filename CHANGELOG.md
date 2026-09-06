@@ -4,6 +4,22 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.34] - 2026-09-06
+
+- Android downloads the verified core at first launch with visible progress; the APK excludes
+  the core, full medication companion and reference illustrations to stay below 150 MiB.
+- Illustration downloads support cancellation and reuse of verified files for offline reading.
+- ECG recognition installs both components with one action; the PTB-XL download uses a working mirror.
+- Content downloads use the correct Android URLs, retry failed queued items, and show bulk/section
+  progress. Unavailable document cards offer their exact package download.
+- Source previews avoid visible app chrome, keep source actions sticky, and improve dark-theme
+  contrast. Navigation and download feedback and backdrop blur are restored.
+- Eight registration summaries identify the GRLS price-limit section explicitly.
+
+All 770 existing catalog artifacts remain available, including experimental packages with unchanged
+review status. Schema version 2, source identifiers, evidence links and anchors are preserved.
+This is a debug-signed engineering prerelease; physical-device and clinical qualification remain open.
+
 ## [0.6.33] - 2026-09-05
 
 - All 770 catalog package artifacts are included in release archives, including experimental

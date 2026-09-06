@@ -134,6 +134,8 @@ function excludeOptionalPublicAssets(): Plugin {
       outDir = config.build.outDir;
     },
     closeBundle() {
+      // Illustrations are verified optional downloads; keep their small manifest in the app.
+      rmSync(join(outDir, 'content/reference-images/assets'), { recursive: true, force: true });
       const packageLarge = process.env['VITE_PACKAGE_LARGE_COMPANIONS'] === 'true';
       const inCi = process.env['CI'] === 'true' || process.env['GITHUB_ACTIONS'] === 'true';
       if (packageLarge || !inCi) return;
@@ -181,7 +183,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-    sourcemap: true,
+    sourcemap: false,
   },
   server: {
     host: '127.0.0.1',

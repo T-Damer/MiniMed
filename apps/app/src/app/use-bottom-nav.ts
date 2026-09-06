@@ -2,6 +2,7 @@ import { type Accessor, createEffect, createSignal, onCleanup, onMount } from 's
 
 import { ROOT_VIEW_ORDER, ROOT_VIEWS, type RootView } from '@/app/root-view';
 import { hapticFeedback } from '@/state/haptics';
+import { uiSounds } from '@/state/ui-sounds';
 
 interface BottomNavBubblePosition {
   readonly left: number;
@@ -245,6 +246,7 @@ export function useBottomNav(options: {
       suppressNavClickUntil = performance.now() + 350;
       if (target && target.id !== options.view()) {
         hapticFeedback('medium');
+        uiSounds.play('forward');
         options.navigate(target.id);
       }
     }

@@ -152,8 +152,8 @@
           "documentId": "drug.rf.paracetamol.pediatric-suspension",
           "documentVersionId": "drug.rf.paracetamol.pediatric-suspension@registry-2026-05-07",
           "sectionId": "section.83a0a0be7aa3a0a0",
-          "chunkId": "chunk.c6571f9984f6462b",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат «Парацетамол-АКОС»: МНН — парацетамол, лекарственная форма — суспензия для приема внутрь для детей, дозировка 120 мг/5 мл, регистрационное удостоверение ЛП-№(002094)-(РГ-RU). Дата вступления решения в силу — 7 мая 2026 года.",
+          "chunkId": "chunk.d931ca5a3f4d8315",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат «Парацетамол-АКОС»: МНН — парацетамол, лекарственная форма — суспензия для приема внутрь для детей, дозировка 120 мг/5 мл, регистрационное удостоверение ЛП-№(002094)-(РГ-RU). Дата вступления решения в силу — 7 мая 2026 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=2494&per_page=15",
             "recordId": "1000114162"
@@ -199,8 +199,8 @@
           "documentId": "drug.rf.ibuprofen.pediatric-suspension",
           "documentVersionId": "drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11",
           "sectionId": "section.5319d1d9bbc34c46",
-          "chunkId": "chunk.77115f24d182141d",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат с МНН ибупрофен: суспензия для приема внутрь для детей, дозировка 100 мг/5 мл, регистрационное удостоверение ЛП-№(006579)-(РГ-RU). Дата вступления решения в силу — 11 ноября 2024 года.",
+          "chunkId": "chunk.ab1284b70dd9feed",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат с МНН ибупрофен: суспензия для приема внутрь для детей, дозировка 100 мг/5 мл, регистрационное удостоверение ЛП-№(006579)-(РГ-RU). Дата вступления решения в силу — 11 ноября 2024 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=1188",
             "recordId": "1000141345"
@@ -244,8 +244,8 @@
           "documentId": "drug.rf.amoxicillin.tablets-500",
           "documentVersionId": "drug.rf.amoxicillin.tablets-500@registry-2026-03-19",
           "sectionId": "section.65ebf591a4642ac2",
-          "chunkId": "chunk.35fef50290ecf58f",
-          "quote": "В государственном реестре предельных отпускных цен присутствует лекарственный препарат с МНН амоксициллин: таблетки 500 мг, регистрационное удостоверение ЛП-№(013359)-(РГ-RU). Дата вступления решения в силу — 19 марта 2026 года.",
+          "chunkId": "chunk.2805dfebc386a515",
+          "quote": "В ГРЛС, в разделе предельных отпускных цен, указан лекарственный препарат с МНН амоксициллин: таблетки 500 мг, регистрационное удостоверение ЛП-№(013359)-(РГ-RU). Дата вступления решения в силу — 19 марта 2026 года.",
           "sourceLocator": {
             "url": "https://pots.minzdrav.gov.ru/public_price_limits?page=236",
             "recordId": "1000035147"
@@ -320,7 +320,7 @@
       "documentId": "drug.rf.paracetamol.pediatric-suspension",
       "documentVersionId": "drug.rf.paracetamol.pediatric-suspension@registry-2026-05-07",
       "sectionId": "section.83a0a0be7aa3a0a0",
-      "chunkId": "chunk.c6571f9984f6462b",
+      "chunkId": "chunk.d931ca5a3f4d8315",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"
@@ -331,7 +331,7 @@
       "documentId": "drug.rf.ibuprofen.pediatric-suspension",
       "documentVersionId": "drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11",
       "sectionId": "section.5319d1d9bbc34c46",
-      "chunkId": "chunk.77115f24d182141d",
+      "chunkId": "chunk.ab1284b70dd9feed",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"
@@ -342,7 +342,7 @@
       "documentId": "drug.rf.amoxicillin.tablets-500",
       "documentVersionId": "drug.rf.amoxicillin.tablets-500@registry-2026-03-19",
       "sectionId": "section.65ebf591a4642ac2",
-      "chunkId": "chunk.35fef50290ecf58f",
+      "chunkId": "chunk.2805dfebc386a515",
       "linkType": "registration-record",
       "weight": 1,
       "reviewStatus": "proposed"

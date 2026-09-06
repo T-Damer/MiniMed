@@ -3,7 +3,7 @@ const GITHUB_RELEASE_PATTERN =
 
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
-export const usesLocalModuleArtifacts = import.meta.env.VITE_USE_LOCAL_MODULE_ARTIFACTS !== 'false';
+export const usesLocalModuleArtifacts = import.meta.env.VITE_USE_LOCAL_MODULE_ARTIFACTS === 'true';
 
 function resolveRelativeModulePath(path: string): string {
   const normalized = path.replace(/^\./u, '');

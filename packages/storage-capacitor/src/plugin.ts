@@ -1,4 +1,4 @@
-import { registerPlugin } from '@capacitor/core';
+import { type PluginListenerHandle, registerPlugin } from '@capacitor/core';
 
 export type NativeSqlValue = string | number | null;
 export type NativeSqlRow = Readonly<Record<string, NativeSqlValue>>;
@@ -49,6 +49,17 @@ export interface NativeVectorSearchResult {
   readonly hits: readonly NativeVectorHit[];
 }
 
+export interface NativeCoreDownloadPlugin {
+  hasCorePack(options: {
+    readonly expectedSha256: string;
+  }): Promise<{ readonly installed: boolean; readonly databasePath?: string }>;
+  downloadCorePack(options: { readonly expectedSha256: string }): Promise<void>;
+  addListener(
+    event: 'coreDownloadProgress',
+    listener: (progress: { readonly loaded: number; readonly total: number }) => void,
+  ): Promise<PluginListenerHandle>;
+}
+
 export interface LocalMedDatabasePlugin {
   openPack(options: OpenPackOptions): Promise<NativeDatabaseHealth>;
   query(options: NativeQueryOptions): Promise<NativeQueryResult>;
@@ -56,4 +67,6 @@ export interface LocalMedDatabasePlugin {
   close(): Promise<void>;
 }
 
-export const LocalMedDatabase = registerPlugin<LocalMedDatabasePlugin>('LocalMedDatabase');
+export const LocalMedDatabase = registerPlugin<LocalMedDatabasePlugin & NativeCoreDownloadPlugin>(
+  'LocalMedDatabase',
+);

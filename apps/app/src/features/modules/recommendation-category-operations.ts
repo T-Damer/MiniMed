@@ -25,8 +25,14 @@ export async function installPublishedCategoryModules(
   }
 
   const tasks = [];
+  let schedulingError: string | null = null;
   for (const module of pending) {
-    tasks.push(runtime.install(module));
+    try {
+      tasks.push(runtime.install(module));
+    } catch (cause) {
+      schedulingError ??=
+        cause instanceof Error ? cause.message : 'Не удалось начать скачивание набора.';
+    }
     await yieldToBrowser();
   }
   const completions = tasks.map((task) => runtime.wait(task.id));
@@ -35,7 +41,7 @@ export async function installPublishedCategoryModules(
   const failed = results.find((task) => task.state === 'failed');
   return {
     changed,
-    errorMessage: failed?.errorMessage ?? null,
+    errorMessage: schedulingError ?? failed?.errorMessage ?? null,
   };
 }
 

@@ -78,6 +78,19 @@ function createRuntimeStub(): BrowserContentModuleRuntime {
 }
 
 describe('recommendation-category-operations', () => {
+  it('continues the queue when one module cannot be scheduled', async () => {
+    const runtime = createRuntimeStub();
+    vi.mocked(runtime.install).mockImplementationOnce(() => {
+      throw new Error('incompatible');
+    });
+    const result = await installPublishedCategoryModules(
+      runtime,
+      [module('a'), module('b')],
+      new Set(),
+    );
+    expect(runtime.wait).toHaveBeenCalledWith('task:b');
+    expect(result).toEqual({ changed: true, errorMessage: 'incompatible' });
+  });
   it('starts parallel installs for unpublished category modules', async () => {
     const runtime = createRuntimeStub();
     const modules = [module('a'), module('b')];

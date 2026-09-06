@@ -479,7 +479,7 @@ main {
   transform: rotate(-0.35deg);
 }
 
-.boot-card h1 {
+.boot-card__title {
   margin: 0.875rem 0 0.875rem;
   font-family: var(--font-serif);
   font-size: clamp(2.125rem, 5vw, 3.25rem);
@@ -488,7 +488,7 @@ main {
   letter-spacing: -0.035em;
 }
 
-.boot-card > p:last-of-type {
+.boot-card__description {
   margin: 0;
   color: var(--ink-soft);
   line-height: 1.65;

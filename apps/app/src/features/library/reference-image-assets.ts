@@ -1,5 +1,7 @@
 const SOURCE_ORIGIN = 'https://www.krasotaimedicina.ru';
 const STATIC_ASSET_ROOT = './content/reference-images/';
+const IMAGE_MIRROR =
+  'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/content-2026-09-06/';
 // Updated by the static reference-image build. A mismatched manifest is never trusted.
 export const REFERENCE_IMAGE_MANIFEST_SHA256 =
   'sha256:2c94aa201d6313a621a4e3a361264b035d01935a291b20aace5212936820b42e';
@@ -132,9 +134,19 @@ export class ReferenceImageResolver {
   private readonly images = new Map<string, Promise<ResolvedReferenceImage | null>>();
   private readonly objectUrls = new Set<string>();
   private cacheGeneration = 0;
+  private readonly localAssets: boolean;
+
+  private cacheName(): string {
+    return `minimed.reference-images:${this.manifestSha256}`;
+  }
+
+  private async cache(): Promise<Cache | null> {
+    return typeof caches === 'undefined' ? null : caches.open(this.cacheName());
+  }
 
   public constructor(options: ReferenceImageResolverOptions = {}) {
     this.fetchValue = options.fetch ?? globalThis.fetch.bind(globalThis);
+    this.localAssets = Boolean(options.baseUrl) || import.meta.env.DEV;
     this.baseUrl = options.baseUrl ?? defaultAssetBaseUrl();
     this.manifestSha256 = options.manifestSha256 ?? REFERENCE_IMAGE_MANIFEST_SHA256;
   }
@@ -184,13 +196,7 @@ export class ReferenceImageResolver {
     if (!parsed || !record || !record.path.startsWith('assets/')) return null;
     const assetUrl = sameOriginUrl(this.baseUrl, record.path);
     if (!assetUrl) return null;
-    const response = await this.fetchValue(assetUrl, { credentials: 'same-origin' });
-    if (!response.ok)
-      throw new Error(`Не удалось загрузить локальную иллюстрацию (${response.status}).`);
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength !== record.size || (await digest(bytes)) !== record.sha256) {
-      throw new Error('Локальная иллюстрация не прошла проверку контрольной суммы.');
-    }
+    const bytes = await this.imageBytes(record);
     const blobBytes = new Uint8Array(bytes.byteLength);
     blobBytes.set(bytes);
     const url = URL.createObjectURL(new Blob([blobBytes.buffer], { type: record.contentType }));
@@ -200,6 +206,95 @@ export class ReferenceImageResolver {
     }
     this.objectUrls.add(url);
     return { alt: record.alt, contentType: record.contentType, sourceUrl: record.sourceUrl, url };
+  }
+
+  private async imageBytes(record: ManifestImageRecord, signal?: AbortSignal): Promise<Uint8Array> {
+    const assetUrl = sameOriginUrl(this.baseUrl, record.path);
+    if (!assetUrl) throw new Error('Некорректный адрес локального изображения.');
+    const cache = await this.cache();
+    const cached = await cache?.match(assetUrl);
+    if (cached) {
+      const bytes = new Uint8Array(await cached.arrayBuffer());
+      if (bytes.byteLength === record.size && (await digest(bytes)) === record.sha256) return bytes;
+      await cache?.delete(assetUrl);
+    }
+    const response = await this.fetchValue(
+      this.localAssets ? assetUrl : new URL(record.path, IMAGE_MIRROR).href,
+      {
+        credentials: 'omit',
+        ...(signal ? { signal } : {}),
+      },
+    );
+    if (!response.ok) throw new Error(`Не удалось скачать иллюстрацию (HTTP ${response.status}).`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.byteLength !== record.size || (await digest(bytes)) !== record.sha256) {
+      throw new Error('Иллюстрация не прошла проверку контрольной суммы.');
+    }
+    await cache?.put(
+      assetUrl,
+      new Response(Uint8Array.from(bytes), { headers: { 'Content-Type': record.contentType } }),
+    );
+    return bytes;
+  }
+
+  public async downloadStatus(): Promise<{
+    readonly complete: boolean;
+    readonly files: number;
+    readonly totalBytes: number;
+  }> {
+    const cache = await this.cache();
+    const complete = Boolean(await cache?.match(new URL('complete', this.baseUrl).href));
+    const files = (await cache?.keys())?.length ?? 0;
+    const manifest = await this.manifest();
+    const records = new Map(
+      [...(manifest?.images.values() ?? [])].flat().map((record) => [record.path, record]),
+    );
+    const totalBytes = [...records.values()].reduce((sum, record) => sum + record.size, 0);
+    return { complete, files: Math.max(0, files - Number(complete)), totalBytes };
+  }
+
+  public async downloadAll(
+    signal: AbortSignal,
+    onProgress: (downloadedBytes: number, totalBytes: number) => void,
+  ): Promise<void> {
+    const cache = await this.cache();
+    if (!cache) throw new Error('Хранилище изображений недоступно.');
+    const manifest = await this.manifest();
+    if (!manifest) throw new Error('Каталог иллюстраций недоступен.');
+    const records = new Map(
+      [...manifest.images.values()].flat().map((record) => [record.path, record]),
+    );
+    const total = [...records.values()].reduce((sum, record) => sum + record.size, 0);
+    const pending = records.values();
+    let downloaded = 0;
+    let failed = false;
+    onProgress(0, total);
+    const results = await Promise.allSettled(
+      Array.from({ length: 3 }, async () => {
+        try {
+          while (!failed) {
+            signal.throwIfAborted();
+            const next = pending.next();
+            if (next.done) return;
+            await this.imageBytes(next.value, signal);
+            downloaded += next.value.size;
+            onProgress(downloaded, total);
+          }
+        } catch (cause) {
+          failed = true;
+          throw cause;
+        }
+      }),
+    );
+    const error = results.find((result) => result.status === 'rejected');
+    if (error?.status === 'rejected') throw error.reason;
+    signal.throwIfAborted();
+    await cache.put(new URL('complete', this.baseUrl).href, new Response(this.manifestSha256));
+  }
+
+  public async removeDownloaded(): Promise<void> {
+    if (typeof caches !== 'undefined') await caches.delete(this.cacheName());
+    this.clear();
   }
 
   public resolve(

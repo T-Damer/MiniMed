@@ -223,6 +223,7 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
       expectedBytes: artifact.sizeBytes,
       signal,
       retryDelaysMs: MODULE_RETRY_DELAYS_MS,
+      retryMissingAssets: false,
       onProgress: ({ downloadedBytes, totalBytes }) => onProgress({ downloadedBytes, totalBytes }),
     });
   }
@@ -504,7 +505,10 @@ export class BrowserContentModuleRuntime {
         this.clearRetry(task.moduleId, task.version);
         discardPendingModuleInstall(task.moduleId, task.version);
       } else if (task.state === 'failed') {
-        if (isTransientDownloadError(new Error(task.errorMessage ?? ''))) {
+        if (
+          !task.errorMessage?.toLowerCase().includes('http 404') &&
+          isTransientDownloadError(new Error(task.errorMessage ?? ''))
+        ) {
           this.scheduleRetry(task);
         } else {
           discardPendingModuleInstall(task.moduleId, task.version);
@@ -801,8 +805,9 @@ export class BrowserContentModuleRuntime {
     const retried = new Set<string>();
     for (const task of this.installer.listTasks().toReversed()) {
       const key = this.retryKey(task.moduleId, task.version);
-      if (task.state !== 'failed' || retried.has(key)) continue;
+      if (retried.has(key)) continue;
       retried.add(key);
+      if (task.state !== 'failed') continue;
       this.retry(task.id);
     }
   }

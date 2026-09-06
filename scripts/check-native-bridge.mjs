@@ -55,7 +55,14 @@ for (const method of ['openPack', 'query', 'searchVectors', 'close']) {
   requireText('androidPlugin', `void ${method}(`);
   requireText('iosPlugin', `name: "${method}"`);
 }
-requireText('typescriptPlugin', "registerPlugin<LocalMedDatabasePlugin>('LocalMedDatabase')");
+requireText(
+  'typescriptPlugin',
+  'registerPlugin<LocalMedDatabasePlugin & NativeCoreDownloadPlugin>',
+);
+for (const method of ['hasCorePack', 'downloadCorePack']) {
+  requireText('typescriptPlugin', `${method}(`);
+  requireText('androidPlugin', `void ${method}(`);
+}
 requireText('androidPlugin', '@CapacitorPlugin(name = "LocalMedDatabase")');
 requireText('androidActivity', 'registerPlugin(LocalMedDatabasePlugin.class)');
 requireText('iosPlugin', 'public let jsName = "LocalMedDatabase"');
@@ -141,15 +148,15 @@ if (/(?:^|:)[*][.]db(?::|$)/u.test(ignoreAssetsPattern.replaceAll(/\s/gu, ''))) 
     'ignoreAssetsPattern must not ignore all database files; aapt has no keep exception and that omits core.db',
   );
 }
-if (ignoreAssetsPattern.includes('core.db')) {
-  throw new Error('ignoreAssetsPattern must keep core.db in the APK');
+if (!ignoreAssetsPattern.includes('core.db')) {
+  throw new Error('ignoreAssetsPattern must omit downloadable core.db from the APK');
 }
-for (const kept of ['medications.db', 'regulatory.db', 'reference.db']) {
+for (const kept of ['regulatory.db', 'reference.db']) {
   if (ignoreAssetsPattern.includes(kept)) {
     throw new Error(`ignoreAssetsPattern must keep ${kept} in the APK`);
   }
 }
-for (const skipped of ['mkb.db', 'ambulatory.db']) {
+for (const skipped of ['medications.db', 'mkb.db', 'ambulatory.db']) {
   if (!ignoreAssetsPattern.includes(skipped)) {
     throw new Error(`ignoreAssetsPattern must skip ${skipped}`);
   }

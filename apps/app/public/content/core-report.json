@@ -4,7 +4,7 @@
   "definitionsAdded": 194,
   "definitionsPreserved": 79,
   "aliasesUpdated": 0,
-  "builtAt": "2026-09-05T00:00:00Z",
+  "builtAt": "2026-09-06T00:00:00Z",
   "documents": 19987,
   "sections": 54468,
   "chunks": 54481,
@@ -410,5 +410,24 @@
   "errors": [],
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0,
-  "outputChecksum": "sha256:056804c563b8da8ad30c6c43d782745e64d98f7a5a00c1ddc94c7fe999dee5ab"
+  "outputChecksum": "sha256:0b2d0705af4108b4c6d84f2ce5ee627b9e5978858dc03ddc2d0f16d677571e25",
+  "registryCopyMigration": {
+    "migration": "007-registry-summary-label",
+    "summariesUpdated": 8,
+    "builtAt": "2026-09-06T00:00:00Z",
+    "sourceChecksums": {
+      "drug.rf.amoxicillin-clavulanate.suspension-400-57": "sha256:94c9359903530ee396b3eaceb7cee6b530f6487c16b8d5090d44adbdbba295f2",
+      "drug.rf.azithromycin.suspension-200mg-5ml": "sha256:1044e6416ecb6fc2ffee7fac845338e1eb3e14e9b0cb4076ac880af9c8e8de17",
+      "drug.rf.ceftriaxone.injection-1g": "sha256:9c777abc29d573cb430e14b17dc4c93cd17f5246d5908e97cbce1153674e71fe",
+      "drug.rf.amoxicillin.tablets-500": "sha256:2fc567fcbcd315dd63273f553bc832a1679cf4fd1f813bd54ca21ba36142cd40",
+      "drug.rf.ibuprofen.pediatric-suspension": "sha256:f6527160b0853a6d147d90f04e326d14910ca932b1cd056698eb3ffcaacbf697",
+      "drug.rf.paracetamol.pediatric-suspension": "sha256:5e74184cfe84ee57500d3e37a02979e2d20aa907fc87d57db2ec5120acee652b",
+      "drug.rf.oral-rehydration-salts.powder-18-9g": "sha256:cc0aadd211171bbbb6fb0faf2656195a21b49538400a5b25679b2c7a37566f41",
+      "drug.rf.oseltamivir.capsules-30mg": "sha256:ed2bbd122b0caefa05a766a9cfd2878a0105ea75cf68d0d53c5f44df6d0da769"
+    },
+    "inputChecksum": "sha256:056804c563b8da8ad30c6c43d782745e64d98f7a5a00c1ddc94c7fe999dee5ab",
+    "outputChecksum": "sha256:0b2d0705af4108b4c6d84f2ce5ee627b9e5978858dc03ddc2d0f16d677571e25",
+    "sqliteIntegrity": "ok",
+    "foreignKeyViolations": 0
+  }
 }

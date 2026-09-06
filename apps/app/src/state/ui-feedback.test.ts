@@ -222,11 +222,11 @@ describe('feedbackForClick', () => {
     expect(feedbackForClick(asElement(link))).toEqual({ cue: 'forward', haptic: 'light' });
   });
 
-  it('maps toggles using the resulting pressed state', () => {
+  it('maps toggles before their click handler changes the pressed state', () => {
     const toggle = createNode('button', null, { role: 'switch', ariaChecked: 'true' });
-    expect(feedbackForClick(asElement(toggle))).toEqual({ cue: 'toggle-on', haptic: 'light' });
-    toggle.ariaChecked = 'false';
     expect(feedbackForClick(asElement(toggle))).toEqual({ cue: 'toggle-off', haptic: 'light' });
+    toggle.ariaChecked = 'false';
+    expect(feedbackForClick(asElement(toggle))).toEqual({ cue: 'toggle-on', haptic: 'light' });
   });
 
   it('maps ordinary buttons to press feedback', () => {

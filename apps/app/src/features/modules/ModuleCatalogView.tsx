@@ -551,9 +551,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const installedModule = (moduleId: string): InstalledContentModule | undefined =>
     installedById().get(moduleId);
   const moduleTask = (moduleId: string): ContentModuleDownloadTask | undefined => {
-    const latest = tasks()
-      .filter((task) => task.moduleId === moduleId)
-      .toSorted((left, right) => right.id.localeCompare(left.id))[0];
+    const latest = tasks().findLast((task) => task.moduleId === moduleId);
     return latest && !['completed', 'cancelled'].includes(latest.state) ? latest : undefined;
   };
   const moduleRetryScheduled = (moduleId: string): boolean => {
@@ -644,6 +642,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       setTasks(runtime().listTasks());
       setInstalled(runtime().listInstalled());
       if (result.changed) await connectContentChanges();
+      if (result.errorMessage) setWarning(result.errorMessage);
     } catch (cause) {
       const message =
         cause instanceof Error ? cause.message : 'Не удалось скачать доступные наборы.';
@@ -1800,6 +1799,28 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         <Show when={detailsModule()}>
           {(module) => (
             <div class="recommendation-section-help-body">
+              <Show
+                when={
+                  isModuleReleased(module()) &&
+                  !installedModule(module().id) &&
+                  !isPreinstalledCatalogModule(module(), preinstallOptions())
+                }
+              >
+                <Button
+                  type="button"
+                  class="recommendation-section-help-download"
+                  disabled={Boolean(
+                    moduleTask(module().id) && moduleTask(module().id)?.state !== 'failed',
+                  )}
+                  onClick={() => void install(module())}
+                >
+                  {moduleTask(module().id)?.state === 'queued'
+                    ? 'В очереди'
+                    : moduleTask(module().id)?.state === 'downloading'
+                      ? 'Скачиваем…'
+                      : 'Скачать'}
+                </Button>
+              </Show>
               <p>{module().description}</p>
               <ul class="recommendation-section-help-facts">
                 <li>{moduleDocumentCountFact(module())}</li>

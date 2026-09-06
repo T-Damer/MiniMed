@@ -75,6 +75,17 @@ export function useAppSession() {
   const isNativeShell = Capacitor.getPlatform() !== 'web';
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();
+  const [coreDownloadRequired, setCoreDownloadRequired] = createSignal(false);
+  const [coreDownloading, setCoreDownloading] = createSignal(false);
+  const [coreProgress, setCoreProgress] = createSignal<{
+    readonly loaded: number;
+    readonly total: number;
+  }>();
+  let beginCoreDownload: (() => void) | undefined;
+  const downloadCore = (): void => {
+    setCoreDownloading(true);
+    beginCoreDownload?.();
+  };
   const [bootSlow, setBootSlow] = createSignal(false);
   const [availableModuleCount, setAvailableModuleCount] = createSignal(0);
   const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
@@ -363,7 +374,16 @@ export function useAppSession() {
       unsubscribeInstalledModules = runtime.subscribe(syncInstalledCount);
     };
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
-    const initializedPromise = initializeMedicalCore(createBrowserCore);
+    const initializedPromise = initializeMedicalCore(() =>
+      createBrowserCore({
+        requestDownload: () =>
+          new Promise<void>((resolve) => {
+            setCoreDownloadRequired(true);
+            beginCoreDownload = resolve;
+          }),
+        onProgress: setCoreProgress,
+      }),
+    );
     try {
       const initialized = await initializedPromise;
       if (disposed) {
@@ -429,6 +449,10 @@ export function useAppSession() {
 
   return {
     isNativeShell,
+    coreDownloadRequired,
+    coreDownloading,
+    coreProgress,
+    downloadCore,
     ready,
     error,
     bootSlow,

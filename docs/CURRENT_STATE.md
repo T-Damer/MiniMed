@@ -1,13 +1,46 @@
 # Current state
 
-> Updated: 5 September 2026
-> Repository version: `0.6.33`
-> Active target: `0.6.33` public prerelease toward `1.0`
+> Updated: 6 September 2026
+> Repository version: `0.6.34`
+> Active target: `0.6.34` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
+
+### Download and reader fixes — 6 September 2026
+
+- Android excludes the core, full medication companion, and reference illustrations from the APK.
+  First launch asks the user to download the core, shows byte progress, and opens it after SHA-256
+  verification and atomic installation. Matching installed cores are reused; failed downloads can be
+  retried. Android systems without native FTS5 keep the WASM fallback, reading the verified local
+  file. OPFS core identities include its checksum so equal-sized updates cannot reuse stale text.
+  This foreground download requires the app to remain open. iOS keeps its bundled core.
+- The verified core and 9,084 previously released reference illustrations have a separate public
+  mirror on `datasets/content-2026-09-06`. Illustration settings provide download/cancel/delete;
+  checked files survive cancellation, are reused offline, and are checksum-verified when read.
+- ECG recognition has one download action for both existing components, expandable source/model
+  details, and Open/Delete after installation. PTB-XL uses a verified CORS-safe mirror instead of
+  the missing Pages artifact. Clinical module URLs on Android use the published artifact resolver.
+- Download-all includes failed items in retries, and displays transferring/queued states on its
+  action and section cards. An unavailable document card offers its exact package download.
+- Inline document previews stay above bottom navigation and below visible headers, keep the source
+  action with a sticky title, offer a selector for more than two meanings, and close on outside
+  scrolling. Their primary source action uses theme contrast colors. Navigation, previews, and
+  download controls receive feedback even when a control stops event propagation; shared chrome
+  uses a stronger backdrop blur.
+- Numbered migration 007 clarifies eight registry summaries as «В ГРЛС, в разделе предельных
+  отпускных цен…», preserving their source anchors, evidence links, and review states. The core
+  schema and original clinical claims are unchanged; the compact-FTS experiment was discarded.
+
+Validation: lint, strict TypeScript, build, 2,722 JavaScript tests, 233 Python tests, Python
+format/lint/type checks, benchmarks, and native source checks passed. Android assembled and its
+unit tests passed; the signed debug APK is 85,449,773 bytes (81.49 MiB), with no core, large
+companions, illustration files, or source maps. Browser checks covered preview bounds/sticky actions,
+module install/search/remove, offline retry, a fresh ECG download, and cancellation with 88 retained
+illustrations. Physical Android and iOS devices were not tested; the new APK is a local test build,
+not a published application release.
 
 ### 0.6.33 release preparation — 5 September 2026
 

@@ -178,11 +178,14 @@ test('shows the real download state and resumes automatically when the network r
   await expect(page).toHaveURL(/#\/settings\/downloads/u);
   const manager = page.getByTestId('content-download-status');
   await expect(manager).toContainText('Нет сети');
-  await expect(manager.getByRole('button', { name: 'Отменить', exact: true })).toBeVisible();
+  const regulatoryTask = manager
+    .getByRole('listitem')
+    .filter({ hasText: 'Нормативные документы РФ: педиатрия' });
+  await expect(regulatoryTask.getByRole('button', { name: 'Отменить', exact: true })).toBeVisible();
 
   downloadAvailable = true;
   await context.setOffline(false);
-  await expect(manager).toContainText('Тут будут ваши загрузки', { timeout: 30_000 });
+  await expect(regulatoryTask).toHaveCount(0, { timeout: 30_000 });
   await navigationButton(page, 'База знаний').click();
   await expect(page.getByRole('button', { name: /^Открыть «/u }).first()).toBeVisible();
 });

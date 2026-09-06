@@ -59,7 +59,7 @@ export const ECG_DIAGNOSTIC_MODEL_CATALOG: readonly EcgModelCatalogItem[] = [
     license: 'CC BY 4.0',
     sourceUrl: 'https://physionet.org/content/ptb-xl-plus/1.0.1/',
     bundleUrl:
-      'https://github.com/T-Damer/MiniMed/releases/download/models-preview-1/minimed-ecg-numeric-adult-2026.2.zip',
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/content-2026-09-06/models/minimed-ecg-numeric-adult-2026.2.zip',
     bundleSha256: 'f51d88ced3687fe0840eff51d8187ea59a6ba401b5c364368cf0b6140e09832d',
     downloadBytes: 261_070,
   },

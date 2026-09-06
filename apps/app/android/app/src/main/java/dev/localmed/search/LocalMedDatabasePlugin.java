@@ -18,6 +18,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.Executors;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -37,6 +40,47 @@ public final class LocalMedDatabasePlugin extends Plugin {
 
     private final Object databaseLock = new Object();
     private SQLiteDatabase database;
+
+    @PluginMethod
+    public void hasCorePack(PluginCall call) {
+        String checksum = normalizeChecksum(call.getString("expectedSha256"));
+        File directory = new File(getContext().getFilesDir(), "localmed/content");
+        JSObject result = new JSObject();
+        result.put("databasePath", new File(directory, "core.db").getAbsolutePath());
+        try {
+        result.put("installed", checksum != null &&
+            new File(directory, "core.db").isFile() &&
+            checksum.equals(readMarker(new File(directory, "core.db.sha256"))));
+        call.resolve(result);
+        } catch (IOException error) {
+            call.reject("Unable to inspect core database: " + safeMessage(error));
+        }
+    }
+
+    @PluginMethod
+    public void downloadCorePack(PluginCall call) {
+        String checksum = normalizeChecksum(call.getString("expectedSha256"));
+        if (checksum == null || !checksum.matches("[a-f0-9]{64}")) {
+            call.reject("A valid core checksum is required.");
+            return;
+        }
+        var executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            synchronized (databaseLock) {
+                try {
+                    File directory = new File(getContext().getFilesDir(), "localmed/content");
+                    ensureDirectory(directory);
+                    installAssetIfNeeded(null, new File(directory, "core.db"),
+                        new File(directory, "core.db.sha256"), checksum);
+                    call.resolve();
+                } catch (Exception error) {
+                    call.reject("Не удалось скачать ядро: " + safeMessage(error));
+                } finally {
+                    executor.shutdown();
+                }
+            }
+        });
+    }
 
     @PluginMethod
     public void openPack(PluginCall call) {
@@ -260,15 +304,46 @@ public final class LocalMedDatabasePlugin extends Plugin {
         if (target.isFile() && expectedSha256.equals(installedChecksum)) return false;
 
         deleteIfExists(temporary);
+        HttpURLConnection connection = null;
+        if (assetPath == null) {
+            connection = (HttpURLConnection) new URL(
+                "https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db").openConnection();
+            connection.setConnectTimeout(30_000);
+            connection.setReadTimeout(60_000);
+            if (connection.getResponseCode() != 200) {
+                int status = connection.getResponseCode();
+                connection.disconnect();
+                throw new IOException("Core download HTTP " + status);
+            }
+        }
+        long total = connection == null ? 0 : connection.getContentLengthLong();
         try (
-            InputStream source = new BufferedInputStream(getContext().getAssets().open(assetPath));
+            InputStream source = new BufferedInputStream(connection == null
+                ? getContext().getAssets().open(assetPath) : connection.getInputStream());
             BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(temporary))
         ) {
             byte[] buffer = new byte[BUFFER_SIZE];
             int read;
+            long loaded = 0;
+            long lastUpdate = 0;
             while ((read = source.read(buffer)) >= 0) {
-                if (read > 0) output.write(buffer, 0, read);
+                if (read > 0) {
+                    output.write(buffer, 0, read);
+                    loaded += read;
+                    if (connection != null && loaded - lastUpdate >= 1024 * 1024) {
+                        JSObject progress = new JSObject();
+                        progress.put("loaded", loaded);
+                        progress.put("total", total);
+                        notifyListeners("coreDownloadProgress", progress);
+                        lastUpdate = loaded;
+                    }
+                }
             }
+        } catch (IOException error) {
+            deleteBestEffort(temporary);
+            throw error;
+        } finally {
+            if (connection != null) connection.disconnect();
         }
 
         String actualSha256 = sha256(temporary);

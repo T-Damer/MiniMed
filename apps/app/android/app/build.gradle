@@ -24,7 +24,7 @@ android {
              // aapt `!` only silences skip warnings; it does not keep a file. Skip only the
              // multi-hundred-megabyte optional companions (mkb.db, ambulatory.db). Keep
              // medications.db, regulatory.db, and reference.db when those files are in www.
-            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:mkb.db:ambulatory.db'
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:core.db:medications.db:mkb.db:ambulatory.db'
         }
         ndk {
             // The vendored llama.cpp build only targets arm64-v8a (see src/main/cpp/CMakeLists.txt)
@@ -42,6 +42,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    packagingOptions {
+        jniLibs {
+            // Smaller sideload APK; Android extracts the same libraries during installation.
+            useLegacyPackaging true
         }
     }
     externalNativeBuild {

@@ -244,7 +244,7 @@ export class ForegroundContentModuleInstaller {
   }
 
   public listTasks(): readonly ContentModuleDownloadTask[] {
-    return [...this.tasks.values()].toSorted((left, right) => left.id.localeCompare(right.id));
+    return [...this.tasks.values()];
   }
 
   public subscribe(listener: ContentModuleTaskListener): () => void {

@@ -56,7 +56,8 @@ apps/app/public/content/medications.db
 apps/app/public/content/mkb.db
 
 # Locally prepared reference illustrations; regenerate from the source crawl.
-apps/app/public/content/reference-images/
+apps/app/public/content/reference-images/*
+!apps/app/public/content/reference-images/manifest.json
 
 # Optional companion databases and module packs must not ship in dist/APK builds.
 apps/app/dist/content/medications.db

@@ -245,7 +245,14 @@ export function App(): JSX.Element {
           when={session.ready()}
           fallback={
             <Show when={navigation.view() !== 'assessments' && navigation.view() !== 'calculators'}>
-              <BootScreen error={session.error()} bootSlow={session.bootSlow()} />
+              <BootScreen
+                error={session.error()}
+                bootSlow={session.bootSlow()}
+                coreDownloadRequired={session.coreDownloadRequired()}
+                coreDownloading={session.coreDownloading()}
+                coreProgress={session.coreProgress()}
+                onDownloadCore={session.downloadCore}
+              />
             </Show>
           }
         >

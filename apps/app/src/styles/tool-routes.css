@@ -81,7 +81,7 @@
   padding-right: 0;
 }
 
-.boot-card > button {
+.boot-card__action {
   min-height: 2.75rem;
   margin-top: 0.75rem;
   padding: 0.625rem 0.9rem;

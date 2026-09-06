@@ -4,6 +4,7 @@ import type {
   ContentModuleDownloadTask,
   InstalledContentModule,
 } from '@localmed/contracts';
+import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 
 export function modulesInCategory(
   modules: readonly ContentModuleCatalogEntry[],
@@ -51,9 +52,7 @@ export function moduleCollectionStats(
   installedById: ReadonlyMap<string, InstalledContentModule>,
   options?: { readonly publishedOnly?: boolean },
 ): ModuleCollectionStats {
-  const scoped = options?.publishedOnly
-    ? modules.filter((module) => module.releaseState === 'published')
-    : modules;
+  const scoped = options?.publishedOnly ? modules.filter(isModuleReleased) : modules;
   const installedCount = scoped.filter((module) => installedById.has(module.id)).length;
 
   return {
@@ -69,9 +68,7 @@ export function recommendationCategoryStats(
   category: ContentModuleCategory,
   installedById: ReadonlyMap<string, InstalledContentModule>,
 ): RecommendationCategoryStats {
-  const published = modulesInCategory(modules, category.id).filter(
-    (module) => module.releaseState === 'published',
-  );
+  const published = modulesInCategory(modules, category.id).filter(isModuleReleased);
   const stats = moduleCollectionStats(published, installedById);
 
   return {
@@ -116,7 +113,7 @@ export function moduleGroupDownloadProgress(
   installedModuleIds: ReadonlySet<string>,
   tasks: readonly ContentModuleDownloadTask[],
 ): RecommendationCategoryDownloadProgress {
-  const published = modules.filter((module) => module.releaseState === 'published');
+  const published = modules.filter(isModuleReleased);
   const publishedIds = new Set(published.map((module) => module.id));
   const installedCount = published.filter((module) => installedModuleIds.has(module.id)).length;
   const activeTasks = tasks.filter(

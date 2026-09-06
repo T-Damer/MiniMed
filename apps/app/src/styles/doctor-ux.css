@@ -1053,6 +1053,7 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   width: min(24rem, calc(100vw - 2rem));
   max-height: min(calc(100dvh - 1rem), var(--kb-popper-content-available-height));
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0.875rem;
   border: 1px solid var(--paper-line);
   border-radius: 0.625rem;
@@ -1061,6 +1062,24 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   color: var(--ink);
   font: inherit;
   text-align: start;
+}
+
+.document-inline-preview__header {
+  position: sticky;
+  top: -0.875rem;
+  z-index: 1;
+  padding-block: 0.5rem;
+  background: var(--paper-light);
+}
+
+.document-inline-preview__choice {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.4rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
 }
 
 .document-inline-preview__title {
@@ -1086,7 +1105,7 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #355b69;
+  color: var(--theme-link);
   cursor: pointer;
   font: inherit;
   font-weight: 650;
@@ -1113,10 +1132,11 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   align-items: center;
   gap: 0.3rem;
   margin-block-start: 0.7rem;
-  padding: 0;
+  padding: 0.45rem 0.6rem;
   border: 0;
-  background: transparent;
-  color: #355b69;
+  border-radius: 0.4rem;
+  background: var(--theme-accent, #355b69);
+  color: var(--theme-accent-contrast);
   cursor: pointer;
   font: inherit;
   font-weight: 650;
@@ -1907,7 +1927,7 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   padding: 0;
   border: 0;
   background: transparent;
-  color: inherit;
+  color: var(--theme-link);
   font: inherit;
   font-size: 0.8rem;
   text-align: start;
@@ -1930,4 +1950,19 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
   overflow: hidden;
+}
+
+.reference-images-settings__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.reference-images-settings__status {
+  color: var(--ink-soft);
+}
+.reference-images-settings__error {
+  color: var(--theme-danger);
+}
+.boot-card__progress {
+  font-variant-numeric: tabular-nums;
 }

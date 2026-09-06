@@ -67,7 +67,7 @@ function toggleCue(element: Element): CueName {
   const pressed =
     element.getAttribute('aria-pressed') === 'true' ||
     element.getAttribute('aria-checked') === 'true';
-  return pressed ? 'toggle-on' : 'toggle-off';
+  return pressed ? 'toggle-off' : 'toggle-on';
 }
 
 export interface ClickFeedback {
@@ -126,6 +126,13 @@ export function sonifiedControl(target: Element): Element | null {
 }
 
 function buttonClickFeedback(button: Element): ClickFeedback {
+  if (button.matches('.document-inline-link')) {
+    return {
+      cue: button.getAttribute('aria-expanded') === 'true' ? 'close' : 'open',
+      haptic: 'light',
+    };
+  }
+  if (button.matches('.app-nav-button')) return { cue: 'forward', haptic: 'medium' };
   if (button.matches(DELETE_SELECTOR)) return { cue: 'delete', haptic: 'heavy' };
   if (button.matches(PRINT_SELECTOR) || button.matches(SHARE_SELECTOR)) {
     return { cue: 'send', haptic: 'light' };
@@ -226,7 +233,7 @@ export function installUiFeedback(root: Document = document): () => void {
   root.addEventListener('pointerdown', unlock, { capture: true });
   root.addEventListener('keydown', unlock, { capture: true });
   root.addEventListener('keydown', handleKeyboardFocus, { capture: true });
-  root.addEventListener('click', handleClick);
+  root.addEventListener('click', handleClick, { capture: true });
   root.addEventListener('input', handleInput);
   root.addEventListener('pointerover', handlePointerOver);
   root.addEventListener('pointerout', handlePointerOut);
@@ -236,7 +243,7 @@ export function installUiFeedback(root: Document = document): () => void {
     root.removeEventListener('pointerdown', unlock, { capture: true });
     root.removeEventListener('keydown', unlock, { capture: true });
     root.removeEventListener('keydown', handleKeyboardFocus, { capture: true });
-    root.removeEventListener('click', handleClick);
+    root.removeEventListener('click', handleClick, { capture: true });
     root.removeEventListener('input', handleInput);
     root.removeEventListener('pointerover', handlePointerOver);
     root.removeEventListener('pointerout', handlePointerOut);

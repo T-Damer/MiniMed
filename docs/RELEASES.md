@@ -16,11 +16,13 @@
 8. Push a release commit only from a clean working tree; the release workflow creates the tag and
    prerelease after all gates pass.
 
-Application and embedded-corpus versions are independent. An app-only release may reuse the current
+Application and downloadable-corpus versions are independent. An app-only release may reuse the current
 verified corpus version; release evidence records both versions.
 
-Android verifies the bundled `core.db` against the tracked build report, checksum, SQLite integrity,
-foreign keys and FTS counts. Automatic pilot rebuilds produce benchmark evidence only; they do not
+Android release checks verify the downloadable `core.db` against the tracked build report, checksum, SQLite integrity,
+foreign keys and FTS counts, and assert that the APK omits the core. First launch installs the
+checksum-verified core from the pinned public mirror; keep that mirror reachable before publishing.
+Automatic pilot rebuilds produce benchmark evidence only; they do not
 commit a replacement core. GitHub Pages and Android use the same canonical filename. Git stores `content/bundled/core.db.gz`
 (the uncompressed database exceeds GitHub’s file limit); update that archive together with the
 report whenever the discovery core changes. Dev/build/verification restore and checksum-check it.
@@ -55,7 +57,5 @@ Breaking changes are allowed, but every release must state:
 
 ## Rollback
 
-Bundled native pack replacement is checksum-verified and preserves a backup until commit. External
-downloadable packs remain disabled until the same invariant is covered by physical process-kill tests and
-a signed installer contract. A failed update must leave the previously active pack untouched. Application releases should retain the prior installable
+Native core replacement is checksum-verified and preserves a backup until commit. Physical process-kill and low-storage qualification of downloadable packs remains open. A failed update must leave the previously active pack untouched. Application releases should retain the prior installable
 artifact until the new version completes closed-beta smoke testing.

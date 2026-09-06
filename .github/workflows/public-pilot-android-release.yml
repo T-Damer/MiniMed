@@ -52,15 +52,6 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;${BUILD_TOOLS_VERSION}"
 
-      - name: Restore verified reference illustrations
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download v0.6.33 --repo "$GITHUB_REPOSITORY" \
-            --pattern reference-images.tar.gz --dir "$RUNNER_TEMP" --clobber
-          (cd "$RUNNER_TEMP" && sha256sum -c "$GITHUB_WORKSPACE/content/bundled/reference-images.sha256")
-          tar -xzf "$RUNNER_TEMP/reference-images.tar.gz" -C apps/app/public/content
-
       - name: Install and verify release tree
         run: |
           bun install --frozen-lockfile
@@ -81,7 +72,7 @@ jobs:
         working-directory: apps/app/android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
 
-      - name: Verify APK, signature and embedded source-linked corpus
+      - name: Verify APK, signature and downloadable source-linked corpus
         shell: bash
         run: |
           set -euo pipefail
@@ -94,7 +85,6 @@ jobs:
           example_ct="release-output/example-ct.dcm"
           example_mri="release-output/example-mri.nii"
           example_epub="release-output/pg11-images-3.epub"
-          extracted_db="$RUNNER_TEMP/core-from-apk.db"
 
           test -s "$apk_source"
           cp "$apk_source" "$apk"
@@ -115,18 +105,11 @@ jobs:
             return "$status"
           }
           unzip_apk -l "$apk" | tee release-output/APK-CONTENTS.txt
-          # Parse the listing file instead of `unzip -Z1 | awk … exit`, which SIGPIPEs on a
-          # 490-file APK when the core pack is not last. unzip -l prints the full archive path
-          # as $NF (e.g. assets/public/content/core.db), so match a path suffix, not a
-          # bare filename token.
           embedded_path="$(awk '$(NF) ~ /(^|\/)core\.db$/ { print $NF; exit }' release-output/APK-CONTENTS.txt)"
-          if [ -z "$embedded_path" ]; then
-            echo "APK is missing embedded core.db" >&2
+          if [ -n "$embedded_path" ]; then
+            echo "APK must download core.db at first launch" >&2
             exit 1
           fi
-          printf '%s\n' "$embedded_path" | tee release-output/EMBEDDED-DB-PATH.txt
-          unzip_apk -p "$apk" "$embedded_path" > "$extracted_db"
-          cmp "$original_db" "$extracted_db"
 
           aapt="${ANDROID_HOME}/build-tools/${BUILD_TOOLS_VERSION}/aapt"
           apksigner="${ANDROID_HOME}/build-tools/${BUILD_TOOLS_VERSION}/apksigner"
@@ -134,7 +117,7 @@ jobs:
           "$aapt" dump permissions "$apk" | tee release-output/APK-PERMISSIONS.txt
           "$apksigner" verify --verbose --print-certs "$apk" | tee release-output/APK-SIGNATURE.txt
 
-          EMBEDDED_PATH="$embedded_path" SOURCE_SHA="$(git rev-parse HEAD)" APK_FILE="$apk" python3 - <<'PY'
+          SOURCE_SHA="$(git rev-parse HEAD)" APK_FILE="$apk" python3 - <<'PY'
           import hashlib
           import json
           import os
@@ -142,7 +125,7 @@ jobs:
           from pathlib import Path
 
           apk = Path(os.environ['APK_FILE'])
-          db_path = Path(os.environ['RUNNER_TEMP']) / 'core-from-apk.db'
+          db_path = Path('apps/app/public/content/core.db')
           report = json.loads(Path('apps/app/public/content/core-report.json').read_text(encoding='utf-8'))
           db = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
           try:
@@ -186,8 +169,8 @@ jobs:
               'releaseVersion': os.environ['RELEASE_VERSION'],
               'sourceCommit': os.environ['SOURCE_SHA'],
               'apk': {'path': str(apk), 'sha256': apk_sha, 'bytes': apk.stat().st_size},
-              'embeddedDatabase': {
-                  'archivePath': os.environ['EMBEDDED_PATH'],
+              'downloadableDatabase': {
+                  'url': 'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db',
                   'sha256': db_sha,
                   'bytes': db_path.stat().st_size,
                   'pack': {'id': pack[0], 'version': pack[1], 'schemaVersion': pack[2]},
@@ -242,12 +225,13 @@ jobs:
           notes=$(cat <<EOF
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
-          Included in this APK:
-          - checksum-verified discovery core with source-linked disease definitions and reference illustrations;
-          - previews for all 69 downloadable calculators and assessments;
-          - package auto-updates in Settings and bulk-download size confirmation;
-          - updated disease navigation, document readers, notes and large knowledge graphs;
-          - native APK downloads whose cancellation survives network failures.
+          Changes:
+          - small Android shell with explicit first-launch core download and verified offline installation;
+          - optional reference illustrations with download/cancel/delete and offline reuse;
+          - one ECG recognition package, including the repaired PTB-XL download;
+          - corrected Android content URLs, bulk/section progress and retry of failed downloads;
+          - sticky source-preview actions, clearer dark-theme controls, feedback and stronger blur;
+          - clarified GRLS attribution in registration summaries.
 
           Release archives include all 770 catalog package files, including experimental packs.
           Their preview/review status is preserved. The browser application is under /app/.
@@ -263,6 +247,10 @@ jobs:
             gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" "$example_epub" --clobber
           else
             gh release create "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" "$example_epub" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
+          fi
+          if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft')" = true ]; then
+            echo "Draft assets uploaded; update android-latest after final publication."
+            exit 0
           fi
           if gh release view android-latest >/dev/null 2>&1; then
             gh release upload android-latest "$apk_latest" --clobber
