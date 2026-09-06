@@ -21,54 +21,14 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.3
-      - name: Apply checksum-bound source and prepare pinned dependency
+      - name: Apply narrow reviewed integration corrections
         run: |
-          env -i PATH="$PATH" HOME="$HOME" CI=1 python3 - <<'PY'
-          import base64, hashlib, json, lzma, pathlib, subprocess
-          parts = [pathlib.Path(f'scripts/.native-integration.{i}') for i in range(1, 5)]
-          patch = lzma.decompress(base64.b64decode(''.join(p.read_text() for p in parts)))
-          assert hashlib.sha256(patch).hexdigest() == '60f6564314ee9c2a98d374099de5107c30ccc46c3e35e9962f2aee1c9de78e3c'
-          subprocess.run(['git', 'apply', '--check', '-'], input=patch, check=True)
-          subprocess.run(['git', 'apply', '-'], input=patch, check=True)
-          for p in parts: p.unlink()
-          p = pathlib.Path('apps/app/package.json')
-          data = json.loads(p.read_text())
-          data['dependencies']['@capgo/capacitor-downloader'] = '8.3.0'
-          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
-          p = pathlib.Path('apps/app/src/features/network/native-download.ts')
-          s = p.read_text().replace('    let operationError: unknown;\n    try {', '    const execute = async (): Promise<T> => {', 1)
-          start = s.index('    } catch (error) {\n      operationError = error;')
-          end = s.index('\n  };\n}', start)
-          s = s[:start] + '''    };
-              const outcome = await execute().then(
-                (value) => ({ ok: true as const, value }),
-                (error: unknown) => ({ ok: false as const, error }),
-              );
-              try {
-                // Cancellation waits for the real native stop; files survive until consumed.
-                if (acquired) await plugin.stop({ id });
-              } catch (cleanupError) {
-                throw new AggregateError(
-                  outcome.ok ? [cleanupError] : [outcome.error, cleanupError],
-                  'Не удалось освободить системное задание загрузки.',
-                );
-              } finally {
-                release();
-                if (tails.get(id) === tail) tails.delete(id);
-              }
-              if (!outcome.ok) throw outcome.error;
-              return outcome.value;''' + s[end:]
-          p.write_text(s)
-          PY
-          env -i PATH="$PATH" HOME="$HOME" CI=1 bun install
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun patch @capgo/capacitor-downloader@8.3.0
-          env -i PATH="$PATH" HOME="$HOME" CI=1 python3 scripts/.native-downloader-prepare.py
+          env -i PATH="$PATH" HOME="$HOME" CI=1 python3 scripts/.native-finalize.py
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun patch --commit @capgo/capacitor-downloader@8.3.0
-          rm scripts/.native-downloader-prepare.py
-      - name: Format changed source and preserve unified patch context
-        run: |
-          git add -N apps packages docs scripts/check-native-bridge.mjs patches
-          git diff --name-only -z -- '*.ts' '*.tsx' '*.json' | xargs -0 env -i PATH="$PATH" HOME="$HOME" CI=1 bunx biome check --write --max-diagnostics=100
+          rm scripts/.native-finalize.py
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bunx biome check --write apps/app/src/features/network/native-download.ts scripts/check-native-bridge.mjs package.json
           git diff --check -- . ':!patches/*.patch'
       - name: Commit only the requested PR branch
         id: commit
@@ -79,8 +39,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -u
-          git add apps packages docs scripts/check-native-bridge.mjs package.json bun.lock patches
-          git commit -m 'fix: bundle Android FTS5 and route downloads through persistent native transport'
+          git commit -m 'fix: preserve browser isolation and adopt pending native downloads without duplicates'
           AUTH=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" push origin "HEAD:$GITHUB_REF_NAME"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -108,7 +67,7 @@ jobs:
   javascript:
     needs: apply
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -125,7 +84,7 @@ jobs:
         run: |
           mkdir -p /tmp/native-checks
           result=0
-          for task in 'bun run check' 'bun run typecheck' 'bun run test:unit' 'bun run native:source:check' 'bun run build:app'; do
+          for task in 'bunx biome check --diagnostic-level=error --max-diagnostics=100 .' 'bun run typecheck' 'bun run test:unit' 'bun run native:source:check' 'bun run build:app'; do
             name=$(echo "$task" | tr ' /:' '---' | tr -cd 'a-zA-Z0-9._-')
             env -i PATH="$PATH" HOME="$HOME" CI=1 bash -c "$task" > "/tmp/native-checks/$name.log" 2>&1 && code=0 || code=$?
             echo "$task: $code" | tee -a /tmp/native-checks/status.txt
@@ -142,7 +101,7 @@ jobs:
   android-storage:
     needs: apply
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
         with:
@@ -186,7 +145,7 @@ jobs:
           checksum=hashlib.file_digest(p.open('rb'),'sha256').hexdigest()
           assert 'sha256:'+checksum==json.loads(pathlib.Path('apps/app/public/content/core-report.json').read_text())['outputChecksum']
           pathlib.Path('/tmp/core.sha256').write_text(checksum+'\n')
-          pathlib.Path('/tmp/native-device/scope.txt').write_text(f'Real core: {p.stat().st_size} bytes, sha256:{checksum}. x86 storage test APK excludes optional ARM inference; not a physical-device or full-inference qualification.\n')
+          pathlib.Path('/tmp/native-device/scope.txt').write_text(f'Real core: {p.stat().st_size} bytes, sha256:{checksum}. x86 storage test APK excludes optional ARM inference. Tests use real SQLite and DownloadManager; plugin recreation is not an OS process-kill qualification.\n')
           PY
           adb shell run-as dev.localmed.search mkdir -p files/localmed/content
           adb push apps/app/public/content/core.db /data/local/tmp/minimed-core.db
@@ -194,12 +153,12 @@ jobs:
           adb shell run-as dev.localmed.search cp /data/local/tmp/minimed-core.db files/localmed/content/core.db
           adb shell run-as dev.localmed.search cp /data/local/tmp/minimed-core.sha256 files/localmed/content/core.db.sha256
           adb shell rm /data/local/tmp/minimed-core.db /data/local/tmp/minimed-core.sha256
-          adb logcat -c
-          adb shell am instrument -w -r -e class dev.localmed.search.BundledSqliteTest dev.localmed.search.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/native-device/instrumentation.txt
-          adb logcat -d -s MiniMedSqliteTest:I LocalMedDatabase:I > /tmp/native-device/sqlite-timings.txt
-          grep -F 'OK (2 tests)' /tmp/native-device/instrumentation.txt
           adb shell svc wifi disable
           adb shell svc data disable
+          adb logcat -c
+          adb shell am instrument -w -r -e class dev.localmed.search.BundledSqliteTest,dev.localmed.search.NativeDownloaderTest dev.localmed.search.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/native-device/instrumentation.txt
+          adb logcat -d -s MiniMedSqliteTest:I MiniMedDownloadTest:I LocalMedDatabase:I > /tmp/native-device/native-timings.txt
+          grep -F 'OK (3 tests)' /tmp/native-device/instrumentation.txt
           adb shell am force-stop dev.localmed.search
           adb shell am start -W -n dev.localmed.search/.MainActivity
           sleep 45
