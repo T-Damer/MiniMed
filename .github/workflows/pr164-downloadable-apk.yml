@@ -1,0 +1,69 @@
+name: PR 164 downloadable Android APK
+on:
+  push:
+    branches: [agent/startup-smoke-164]
+    paths: [.github/workflows/pr164-downloadable-apk.yml]
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      SOURCE_SHA: d8bc80f2d66c60924cad2526d4f9f9f80d4851bb
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: d8bc80f2d66c60924cad2526d4f9f9f80d4851bb
+          persist-credentials: false
+          lfs: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v4
+      - name: Install pinned Android SDK components
+        run: sdkmanager 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.3.13750724' 'cmake;3.22.1'
+      - name: Build exact PR source using existing content and native adapters
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:source:check
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:sync:android
+      - name: Assemble complete arm64 APK including JNI (not emulator-only variant)
+        working-directory: apps/app/android
+        run: env -i PATH="$PATH" HOME="$HOME" JAVA_HOME="$JAVA_HOME" ANDROID_HOME="$ANDROID_HOME" CI=1 ./gradlew --no-daemon --stacktrace assembleDebug
+      - name: Verify and retain APK with exact source provenance
+        run: |
+          set -euo pipefail
+          mkdir -p apk-output
+          apk=apk-output/MiniMed-pr164-d8bc80f-arm64-debug.apk
+          cp apps/app/android/app/build/outputs/apk/debug/app-debug.apk "$apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$apk" > apk-output/APK-SIGNATURE.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$apk" > apk-output/APK-BADGING.txt
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess, zipfile
+          apk = pathlib.Path('apk-output/MiniMed-pr164-d8bc80f-arm64-debug.apk')
+          with zipfile.ZipFile(apk) as z:
+              names = z.namelist()
+              assert any(n.startswith('lib/arm64-v8a/') and n.endswith('.so') for n in names), 'Missing ARM64 JNI libraries'
+              assert any(n.endswith('/libai-chat.so') for n in names), 'Missing inference JNI library'
+              assert not any(n.endswith('/core.db') for n in names), 'Large core must remain downloadable'
+          sha = hashlib.file_digest(apk.open('rb'), 'sha256').hexdigest()
+          source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          evidence = {'sourceCommit': source, 'pullRequest': 164, 'file': apk.name, 'bytes': apk.stat().st_size, 'sha256': sha, 'architecture': 'arm64-v8a', 'signing': 'Android debug key generated on CI runner; not production signing', 'scope': 'Complete APK built with JNI. Main and releases unchanged. Build success is not a passing full E2E or physical-device qualification.'}
+          pathlib.Path('apk-output/BUILD.json').write_text(json.dumps(evidence, indent=2) + '\n')
+          pathlib.Path('apk-output/SHA256SUMS.txt').write_text(f'{sha}  {apk.name}\n')
+          print(json.dumps(evidence, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiniMed-pr164-d8bc80f-arm64-debug
+          path: apk-output/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
