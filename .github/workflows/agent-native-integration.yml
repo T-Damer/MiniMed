@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.3
@@ -35,17 +35,41 @@ jobs:
           data = json.loads(p.read_text())
           data['dependencies']['@capgo/capacitor-downloader'] = '8.3.0'
           p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+          p = pathlib.Path('apps/app/src/features/network/native-download.ts')
+          s = p.read_text().replace('    let operationError: unknown;\n    try {', '    const execute = async (): Promise<T> => {', 1)
+          start = s.index('    } catch (error) {\n      operationError = error;')
+          end = s.index('\n  };\n}', start)
+          s = s[:start] + '''    };
+              const outcome = await execute().then(
+                (value) => ({ ok: true as const, value }),
+                (error: unknown) => ({ ok: false as const, error }),
+              );
+              try {
+                // Cancellation waits for the real native stop; files survive until consumed.
+                if (acquired) await plugin.stop({ id });
+              } catch (cleanupError) {
+                throw new AggregateError(
+                  outcome.ok ? [cleanupError] : [outcome.error, cleanupError],
+                  'Не удалось освободить системное задание загрузки.',
+                );
+              } finally {
+                release();
+                if (tails.get(id) === tail) tails.delete(id);
+              }
+              if (!outcome.ok) throw outcome.error;
+              return outcome.value;''' + s[end:]
+          p.write_text(s)
           PY
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun install
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun patch @capgo/capacitor-downloader@8.3.0
           env -i PATH="$PATH" HOME="$HOME" CI=1 python3 scripts/.native-downloader-prepare.py
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun patch --commit @capgo/capacitor-downloader@8.3.0
           rm scripts/.native-downloader-prepare.py
-      - name: Format changed source (full lint is independently gated below)
+      - name: Format changed source and preserve unified patch context
         run: |
           git add -N apps packages docs scripts/check-native-bridge.mjs patches
-          git diff --name-only -z -- '*.ts' '*.tsx' '*.json' | xargs -0 env -i PATH="$PATH" HOME="$HOME" CI=1 bunx biome check --write --max-diagnostics=100 || echo 'Full lint remains a required independent qualification check'
-          git diff --check
+          git diff --name-only -z -- '*.ts' '*.tsx' '*.json' | xargs -0 env -i PATH="$PATH" HOME="$HOME" CI=1 bunx biome check --write --max-diagnostics=100
+          git diff --check -- . ':!patches/*.patch'
       - name: Commit only the requested PR branch
         id: commit
         env:
