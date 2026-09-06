@@ -1,7 +1,7 @@
 package dev.localmed.search;
 
 import android.database.Cursor;
-import io.requery.android.database.sqlite.SQLiteDatabase;
+import net.zetetic.database.sqlcipher.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.database.sqlite.SQLiteException;
 import android.util.Base64;
@@ -164,8 +164,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
             return;
         }
 
-        // Do not block the bridge while inspecting a large edition. JS awaits this operation to
-        // completion (including cleanup); it must never race an uncancellable timeout against it.
+        // JS awaits actual completion and cleanup; it must not race an uncancellable timeout.
         openExecutor.execute(() -> {
             synchronized (databaseLock) {
                 JSObject timings = new JSObject();
@@ -176,8 +175,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                 File checksumMarker = null;
                 try {
                     closeDatabase();
-                    // Probe the runtime, not the 490 MiB pack. This must precede installation,
-                    // hashing, opening and quick_check, including on already-installed editions.
+                    // Probe the bundled runtime, not the 490 MiB pack, before touching its bytes.
                     String sqliteVersion = probeRuntimeFts5();
                     timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
                     phase = "installedFile";
@@ -196,10 +194,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
                     phase = "sqliteOpen";
                     phaseStarted = SystemClock.elapsedRealtime();
-                    database = SQLiteDatabase.openDatabase(
-                        target.getAbsolutePath(), null,
-                        SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS
-                    );
+                    database = NativePackDatabase.openReadOnly(target);
                     timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
                     phase = "integrity";
                     phaseStarted = SystemClock.elapsedRealtime();
@@ -242,8 +237,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     boolean invalidPack = error instanceof PackValidationException
                         || error instanceof SQLiteDatabaseCorruptException;
                     if (invalidPack && checksumMarker != null) {
-                        // A rejected file must not keep looking installed on the next launch.
-                        // Retain its bytes until the verified replacement is atomically committed.
+                        // Retain rejected bytes until a verified replacement is committed.
                         try {
                             deleteIfExists(checksumMarker);
                         } catch (IOException cleanupError) {
@@ -254,7 +248,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
                     timings.put("failedPhase", phase);
                     timings.put("totalMs", SystemClock.elapsedRealtime() - started);
-                    // No paths, queries, content, or native arguments in diagnostic logs.
                     Log.w("LocalMedDatabase", "openPack failed " + timings);
                     call.reject("Unable to open the packaged LocalMed database: " + safeMessage(error),
                         invalidPack ? "NATIVE_PACK_VALIDATION_FAILED"
@@ -277,6 +270,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
     }
 
     private static String probeRuntimeFts5() {
+        NativePackDatabase.ensureLoaded();
         try (SQLiteDatabase probe = SQLiteDatabase.create(null)) {
             probe.execSQL("CREATE VIRTUAL TABLE runtime_probe USING fts5(value)");
             try (Cursor cursor = probe.rawQuery(
@@ -309,10 +303,8 @@ public final class LocalMedDatabasePlugin extends Plugin {
             call.reject("Only a single read-only SELECT or WITH query is allowed.");
             return;
         }
-
         String argsJson = call.getString("argsJson");
         if (argsJson == null) argsJson = "[]";
-
         synchronized (databaseLock) {
             try {
                 SQLiteDatabase opened = requireDatabase();
@@ -322,7 +314,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     Object value = arguments.get(index);
                     selectionArgs[index] = value == JSONObject.NULL ? null : String.valueOf(value);
                 }
-
                 JSArray rows = new JSArray();
                 try (Cursor cursor = opened.rawQuery(sql, selectionArgs)) {
                     String[] columnNames = cursor.getColumnNames();
@@ -353,7 +344,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
         Integer requestedLimit = call.getInt("limit");
         JSArray documentIds = call.getArray("documentIds");
         JSArray sectionTypes = call.getArray("sectionTypes");
-
         if (profileId == null || profileId.isEmpty()) {
             call.reject("An embedding profile id is required.");
             return;
@@ -366,7 +356,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
             call.reject("A positive finite query-vector norm is required.");
             return;
         }
-
         final byte[] queryVector;
         try {
             queryVector = Base64.decode(vectorBase64, Base64.DEFAULT);
@@ -379,7 +368,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
             return;
         }
         int limit = Math.max(1, Math.min(requestedLimit == null ? 50 : requestedLimit, 500));
-
         synchronized (databaseLock) {
             try {
                 SQLiteDatabase opened = requireDatabase();
@@ -389,7 +377,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                 args.add(profileId);
                 appendInFilter(clauses, args, "d.id", documentIds);
                 appendInFilter(clauses, args, "s.section_type", sectionTypes);
-
                 String sql =
                     "SELECT ce.chunk_id, ce.vector, ce.vector_norm " +
                     "FROM chunk_embeddings ce " +
@@ -398,7 +385,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     "JOIN document_versions dv ON dv.id = c.document_version_id " +
                     "JOIN documents d ON d.id = dv.document_id " +
                     "WHERE " + String.join(" AND ", clauses);
-
                 List<VectorHit> hits = new ArrayList<>();
                 try (Cursor cursor = opened.rawQuery(sql, args.toArray(new String[0]))) {
                     while (cursor.moveToNext()) {
@@ -415,7 +401,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                         hits.add(new VectorHit(cursor.getString(0), Math.max(-1.0, Math.min(1.0, score))));
                     }
                 }
-
                 Collections.sort(hits, (left, right) -> {
                     int scoreOrder = Double.compare(right.score, left.score);
                     return scoreOrder != 0 ? scoreOrder : left.chunkId.compareTo(right.chunkId);
@@ -447,31 +432,21 @@ public final class LocalMedDatabasePlugin extends Plugin {
         }
     }
 
-    private boolean installAssetIfNeeded(
-        String assetPath,
-        File target,
-        File checksumMarker,
-        String expectedSha256
-    ) throws IOException, NoSuchAlgorithmException {
+    private boolean installAssetIfNeeded(String assetPath, File target, File checksumMarker,
+        String expectedSha256) throws IOException, NoSuchAlgorithmException {
         File backup = new File(target.getParentFile(), target.getName() + ".backup");
         if (backup.exists()) deleteIfExists(validationMarker(target));
         recoverInterruptedInstall(target, backup, checksumMarker, expectedSha256);
-
         String installedChecksum = readMarker(checksumMarker);
         if (target.isFile() && expectedSha256.equals(installedChecksum)) return false;
-
         try (InputStream source = getContext().getAssets().open(assetPath)) {
             VerifiedPackFiles.install(source, target, checksumMarker, validationMarker(target), expectedSha256);
         }
         return true;
     }
 
-    private static void recoverInterruptedInstall(
-        File target,
-        File backup,
-        File checksumMarker,
-        String expectedSha256
-    ) throws IOException {
+    private static void recoverInterruptedInstall(File target, File backup, File checksumMarker,
+        String expectedSha256) throws IOException {
         if (!target.exists() && backup.isFile()) {
             if (!backup.renameTo(target)) {
                 throw new IOException("Unable to restore an interrupted packaged database update.");
@@ -479,25 +454,19 @@ public final class LocalMedDatabasePlugin extends Plugin {
             return;
         }
         if (!target.exists() || !backup.exists()) return;
-
         String installedChecksum = readMarker(checksumMarker);
         if (expectedSha256.equals(installedChecksum)) {
             deleteIfExists(backup);
             return;
         }
-
         deleteIfExists(target);
         if (!backup.renameTo(target)) {
             throw new IOException("Unable to restore the previous packaged database after interruption.");
         }
     }
 
-    private static void appendInFilter(
-        List<String> clauses,
-        List<String> arguments,
-        String column,
-        JSArray values
-    ) throws JSONException {
+    private static void appendInFilter(List<String> clauses, List<String> arguments, String column,
+        JSArray values) throws JSONException {
         if (values == null || values.length() == 0) return;
         StringBuilder placeholders = new StringBuilder();
         for (int index = 0; index < values.length(); index++) {
@@ -513,7 +482,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
     private static final class VectorHit {
         final String chunkId;
         final double score;
-
         VectorHit(String chunkId, double score) {
             this.chunkId = chunkId;
             this.score = score;
@@ -522,9 +490,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
 
     private boolean probeFts5() {
         try (Cursor cursor = requireDatabase().rawQuery(
-            "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH ?",
-            new String[] { "localmed" }
-        )) {
+            "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH ?", new String[] { "localmed" })) {
             return cursor.moveToFirst();
         } catch (SQLiteException error) {
             return false;
@@ -592,11 +558,8 @@ public final class LocalMedDatabasePlugin extends Plugin {
     }
 
     private static boolean isSafeAssetPath(String assetPath) {
-        return assetPath != null
-            && assetPath.startsWith("public/content/")
-            && !assetPath.contains("..")
-            && !assetPath.contains("\\")
-            && assetPath.length() <= 240;
+        return assetPath != null && assetPath.startsWith("public/content/")
+            && !assetPath.contains("..") && !assetPath.contains("\\") && assetPath.length() <= 240;
     }
 
     private static boolean isReadOnlyQuery(String sql) {

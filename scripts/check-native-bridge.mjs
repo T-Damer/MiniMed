@@ -6,6 +6,7 @@ const root = resolve(import.meta.dirname, '..');
 const files = {
   androidPlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedDatabasePlugin.java',
+  androidEngine: 'apps/app/android/app/src/main/java/dev/localmed/search/NativePackDatabase.java',
   androidActivity: 'apps/app/android/app/src/main/java/dev/localmed/search/MainActivity.java',
   androidStyles: 'apps/app/android/app/src/main/res/values/styles.xml',
   androidManifest: 'apps/app/android/app/src/main/AndroidManifest.xml',
@@ -136,16 +137,12 @@ for (const native of ['androidPlugin', 'iosPlugin']) {
 }
 requireText('androidPlugin', '".backup"');
 requireText('iosPlugin', 'appendingPathExtension("backup")');
-requireText('androidPlugin', 'SQLiteDatabase.OPEN_READONLY');
-requireText('androidPlugin', 'import io.requery.android.database.sqlite.SQLiteDatabase;');
-requireText(
-  'androidGradle',
-  'com.github.requery:sqlite-android:0bbaa7a8b4c485c0d4b385425113fe33ead6c3c0',
-);
-for (const method of ['prepareNativeDownload', 'inspectNativeDownload', 'installDownloadedCore']) {
-  requireText('androidPlugin', `void ${method}(`);
-  requireText('typescriptPlugin', `${method}(`);
-}
+requireText('androidEngine', 'SQLiteDatabase.OPEN_READONLY');
+requireText('androidEngine', 'System.loadLibrary("sqlcipher")');
+requireText('androidEngine', 'throw error;');
+requireText('androidPlugin', 'NativePackDatabase.openReadOnly(target)');
+requireText('androidPlugin', 'import net.zetetic.database.sqlcipher.SQLiteDatabase;');
+requireText('androidGradle', 'net.zetetic:sqlcipher-android:4.18.0');
 requireText('iosPlugin', 'SQLITE_OPEN_READONLY');
 requireText('iosPlugin', 'isExcludedFromBackup = true');
 requireText('androidManifest', 'android:fullBackupContent="@xml/backup_rules"');

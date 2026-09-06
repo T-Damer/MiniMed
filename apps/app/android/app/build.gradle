@@ -14,8 +14,6 @@ def releaseMetadata = new JsonSlurper().parse(file('../../../../release.json'))
 android {
     namespace = "dev.localmed.search"
     compileSdk = rootProject.ext.compileSdkVersion
-    // Pinned to the NDK actually installed for this project — see
-    // docs/adr/0015-native-llama-cpp-android-runtime.md.
     ndkVersion "27.3.13750724"
     defaultConfig {
         applicationId "dev.localmed.search"
@@ -29,7 +27,6 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:core.db:medications.db:mkb.db:ambulatory.db'
         }
         ndk {
-            // The optional inference runtime is ARM-only; storage qualification is explicitly x86.
             abiFilters(storageSmoke ? 'x86_64' : 'arm64-v8a')
         }
         if (!storageSmoke) {
@@ -72,8 +69,9 @@ repositories {
 }
 
 dependencies {
-    // SQLite 3.50.4 source pin: upstream README names an unpublished tag. Never use master-SNAPSHOT.
-    implementation 'com.github.requery:sqlite-android:0bbaa7a8b4c485c0d4b385425113fe33ead6c3c0'
+    // Published Community edition, pinned. Public packs use its empty-key plaintext mode.
+    implementation 'net.zetetic:sqlcipher-android:4.18.0'
+    implementation 'androidx.sqlite:sqlite:2.7.0'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"

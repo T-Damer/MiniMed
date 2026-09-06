@@ -4,60 +4,68 @@ Date: 2026-09-06. Status: implemented in draft PR #164; qualification remains ex
 
 ## Context and decision
 
-The owner's measurements found two native opens failing after 75–98 seconds because system SQLite
-had no FTS5. PR #164 first moved capability probing before large-file work. The owner subsequently
-approved ready native SQLite and downloader integration in the same PR, without a UI rewrite.
+The owner's measurements found native opens failing after 75–98 seconds, with missing system FTS5.
+This does not attribute all that time to quick_check. PR #164 first moved capability probing before
+large-file work. The owner subsequently approved native SQLite and a ready downloader in the same
+PR, without a UI rewrite.
 
-Keep Solid/Capacitor, `MedicalStore`, native vector scoring and immutable pack semantics. Use requery
-SQLite 3.50.4 source commit `0bbaa7a8b4c485c0d4b385425113fe33ead6c3c0` behind `LocalMedDatabase`.
-The upstream README's `3.50.4` tag is unpublished (qualification found a dependency-resolution error),
-so the JitPack coordinate is pinned to that exact commit, never `master-SNAPSHOT`. Binary resolution
-and device execution must pass CI before this dependency can be considered qualified. JitPack is
-restricted to the requery group. Verification-stamp revision changes with the engine.
+Keep Solid/Capacitor, MedicalStore, native vector scoring and immutable pack semantics. The final
+Android engine is SQLCipher Community `net.zetetic:sqlcipher-android:4.18.0`, with the documented
+`androidx.sqlite:sqlite:2.7.0` companion. Kotlin is pinned to 2.2.10 to match the artifact's runtime.
+The Maven Central publication is real; earlier requery 3.50.4 and JitPack-commit candidates failed
+resolution and are not dependencies of this implementation. No JitPack repository is required.
 
-The community Capacitor SQLite plugin was considered. Replacing the existing bridge would also need
-reworking native BLOB vector scoring or introducing another connection owner. The smaller requery
-variant preserves it. iOS native SQLite and browser WASM/OPFS are unchanged. No PSS reduction is
-claimed without matched measurements; the engine pin still needs future security updates.
+SQLCipher is used with an empty key: downloaded and bundled public packs remain ordinary SQLite,
+with no encryption, rekeying, schema migration or second connection owner. Existing paths, native
+BLOB vector scoring and read-only access remain. Load the bundled library during native capability
+qualification, not in the UI. The engine is behind NativePackDatabase, whose corruption handler
+retains rejected bytes instead of the library default's deletion. Disable library Java SQL logging;
+our diagnostics contain only phases. A new verifier identity invalidates old cached validation.
+
+The community Capacitor SQLite plugin was considered. Replacing the entire existing bridge would
+also require reworking native BLOB scoring or creating a second owner. Using the published native
+engine directly keeps the smaller existing bridge. iOS SQLite and browser WASM/OPFS are unchanged.
+No PSS reduction is claimed without matched measurements. The engine pin requires security updates.
 
 ## Native downloads
 
-Pin `@capgo/capacitor-downloader` 8.3.0 (MPL-2.0). Android remote HTTPS calls through `downloadWithRetry`
+Pin `@capgo/capacitor-downloader` 8.3.0 (MPL-2.0). Android remote HTTPS calls through downloadWithRetry
 use system DownloadManager. Relative/bundled files, browser and iOS retain their existing transport.
-The core uses `downloadFileWithRetry`: it retains a staged file through native streaming SHA-256,
-fsync and atomic replacement, never materializing the core in JavaScript. Optional module/model
-consumers still request bytes after transfer; exact membership, size, checksum and schema checks
-are preserved. This does not move all optional databases out of WASM or unify every queue UI.
+Core uses downloadFileWithRetry: retain the staged file through native streaming SHA-256, fsync and
+atomic replacement, without materializing the core in JavaScript. Optional module/model consumers
+still request bytes after transfer; exact membership, size, checksum and schema checks are preserved.
+This does not move all optional databases out of WASM or unify every feature's queue presentation.
 
 A versioned Bun patch persists upstream's app-ID to system-ID mappings synchronously. It reconciles
-the enqueue/journal interruption using the staged URI, opaque system-record marker and original URL,
-including pending transfers without a local URI. It reuses existing transfers and limits pending,
-running and paused system transfers to three across plugin instances. Destinations are confined to
-opaque app-owned staging files. Plugin destruction stops polling, not the OS transfer. The patch
-preserves the upstream license and must be reviewed on updates. Staging and device-specific system
-IDs are excluded from cloud backup and device transfer; user notes are not touched.
+enqueue/journal interruption using staged URI, opaque system-record marker and original URL, even
+when a pending transfer's local URI is null. Reuse existing transfers and cap pending, running and
+paused system transfers at three across plugin instances. This is a conservative limit, not a
+measured optimum. Destinations are confined to opaque app-owned staging files. Plugin destruction
+stops polling, not the OS transfer. The patch preserves its license and needs review on upgrades.
+Staging bytes and device-specific system IDs are excluded from backup; user notes are untouched.
 
-Existing queues still validate catalog eligibility on restoration. Completed transfers are not
-installed modules. An existing consented core transfer is resumed automatically; a first download
-still requires explicit user action. Cancellation awaits OS removal. Android per-transfer pause and
-resume are not supported by this plugin, so no unsupported controls are added. OS force-stop is not
-equivalent to an ordinary background transition and does not imply guaranteed execution.
+Existing queues validate catalog eligibility on restoration. Transport completion is not installation.
+An existing consented core transfer is recovered on launch; a first download still requires a user
+action. Cancellation awaits OS removal. The Android plugin does not support individual pause/resume,
+so no such controls are claimed. OS force-stop is not an ordinary background transition. Native
+transfer does not imply verification/installation continues while the application is not running.
 
 ## Trust and validation
 
-A failed hash or interrupted copy cannot replace the prior core. Verification and installation have
-separate progress labels. Source data, schema, stable IDs, notes, private Allmed and release state
-are unchanged. Tests cover staged-file lifetime, size mismatch, failed validation, cancellation,
-restored admission, serialization and native file commit. Instrumentation uses real FTS5 and the
-full core; the DownloadManager test covers plugin recreation and a missing journal entry, not an
-actual OS process-kill. The permanent Android qualification workflow retains the complete ARM64 APK
-separately from the x86 storage-test variant and reports real device logs without claiming UI timing.
+Bad hash or interrupted copy cannot replace a prior core. Verification and installation have separate
+labels. Source data, schema, stable IDs, notes, private Allmed and release state are unchanged.
+Tests cover file lifetime, size mismatch, failed validation, cancellation, restored admission,
+serialization and native file commit. Instrumentation executes real FTS5 against the full core.
+DownloadManager instrumentation covers plugin recreation and a missing journal entry, not actual
+OS process-kill. Permanent native CI saves the complete ARM64 APK separately from x86 storage tests.
+Each check must pass on the relevant source commit; source-only tests do not prove device behavior.
 
 Physical PSS, OS eviction, bulk navigation, optional-package ownership, iOS background transfers,
-ECG 99% and fully unified download presentation remain separate work and acceptance tests.
+ECG 99% and completely unified download presentation remain separate acceptance work.
 
 ## Primary sources
 
-- https://github.com/requery/sqlite-android/tree/0bbaa7a8b4c485c0d4b385425113fe33ead6c3c0
+- https://github.com/sqlcipher/sqlcipher-android
+- https://central.sonatype.com/artifact/net.zetetic/sqlcipher-android/4.18.0
 - https://github.com/Cap-go/capacitor-downloader/tree/fbc88a3517fda3f5d39de4e2aad9e73147a191d0
 - https://bun.com/docs/pm/cli/patch
