@@ -1,4 +1,12 @@
 import {
+  downloadNativeBytes,
+  hasRetainedNativeDownload,
+  type NativeDownloadedFile,
+  shouldUseNativeDownload,
+  withNativeDownloadedFile,
+} from '@/features/network/native-download';
+
+import {
   downloadWithResume,
   type ResumableDownloadOptions,
 } from '@/features/network/resumable-download';
@@ -73,7 +81,33 @@ export interface RetryingDownloadOptions extends ResumableDownloadOptions {
  * preserved between attempts by the resumable layer, so a retry continues instead of restarting.
  * Only an exhausted retry budget, an abort, or a non-transient cause reaches the caller.
  */
-export async function downloadWithRetry(options: RetryingDownloadOptions): Promise<Uint8Array> {
+export function downloadWithRetry(options: RetryingDownloadOptions): Promise<Uint8Array> {
+  return retryTransfer(
+    options,
+    shouldUseNativeDownload(options.url) ? downloadNativeBytes : downloadWithResume,
+  );
+}
+
+export function hasRetainedFileDownload(options: ResumableDownloadOptions): Promise<boolean> {
+  return shouldUseNativeDownload(options.url)
+    ? hasRetainedNativeDownload(options)
+    : Promise.resolve(false);
+}
+
+/** Native core uses the same retry/admission path, retaining file ownership through installation. */
+export function downloadFileWithRetry<T>(
+  options: RetryingDownloadOptions,
+  consume: (file: NativeDownloadedFile) => Promise<T>,
+): Promise<T> {
+  if (!shouldUseNativeDownload(options.url))
+    throw new Error('Native file transfer requires Android HTTPS.');
+  return retryTransfer(options, (request) => withNativeDownloadedFile(request, consume));
+}
+
+async function retryTransfer<T>(
+  options: RetryingDownloadOptions,
+  transfer: (request: ResumableDownloadOptions) => Promise<T>,
+): Promise<T> {
   const {
     retryDelaysMs = DOWNLOAD_RETRY_DELAYS_MS,
     retryForever = false,
@@ -88,7 +122,7 @@ export async function downloadWithRetry(options: RetryingDownloadOptions): Promi
       attempt === 0 ? 0 : (retryDelaysMs[Math.min(attempt - 1, retryDelaysMs.length - 1)] ?? 0);
     if (delay > 0) await waitForRetry(delay, downloadOptions.signal);
     try {
-      return await downloadWithResume(downloadOptions);
+      return await transfer(downloadOptions);
     } catch (cause) {
       lastError = cause;
       const missingAsset =

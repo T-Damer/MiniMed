@@ -10,7 +10,7 @@ adapter behind the existing `MedicalStore` contract.
 SolidJS UI
   → MedicalCore
   → MedicalStore
-      ├─ CapacitorMedicalStore → Android/iOS system SQLite
+      ├─ CapacitorMedicalStore → bundled Android SQLite / iOS SQLite
       ├─ SqliteMedicalStore    → SQLite WASM fallback
       └─ InMemoryMedicalStore  → tests
 ```
@@ -19,6 +19,8 @@ No UI feature owns SQL or platform code. Search analysis, branch planning, resul
 and source navigation remain in portable TypeScript.
 
 ## Startup sequence
+
+See ADR 0018 for the Android bundled engine and persistent native transfer integration.
 
 The current Android APK downloads the required core into private storage after explicit consent;
 iOS retains the bundled copy. The immutable artifact remains identified by its published SHA-256.

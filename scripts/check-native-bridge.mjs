@@ -132,6 +132,12 @@ for (const native of ['androidPlugin', 'iosPlugin']) {
 requireText('androidPlugin', '".backup"');
 requireText('iosPlugin', 'appendingPathExtension("backup")');
 requireText('androidPlugin', 'SQLiteDatabase.OPEN_READONLY');
+requireText('androidPlugin', 'import io.requery.android.database.sqlite.SQLiteDatabase;');
+requireText('androidGradle', "com.github.requery:sqlite-android:3.50.4");
+for (const method of ['prepareNativeDownload', 'inspectNativeDownload', 'installDownloadedCore']) {
+  requireText('androidPlugin', `void ${method}(`);
+  requireText('typescriptPlugin', `${method}(`);
+}
 requireText('iosPlugin', 'SQLITE_OPEN_READONLY');
 requireText('iosPlugin', 'isExcludedFromBackup = true');
 requireText('androidManifest', 'android:fullBackupContent="@xml/backup_rules"');

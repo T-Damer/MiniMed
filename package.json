@@ -151,5 +151,8 @@
     "tsx": "4.23.12",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
+  },
+  "patchedDependencies": {
+    "@capgo/capacitor-downloader@8.3.0": "patches/@capgo%2Fcapacitor-downloader@8.3.0.patch"
   }
 }

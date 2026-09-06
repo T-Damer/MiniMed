@@ -9,6 +9,27 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### Bundled Android SQLite and system transfers — draft PR #164
+
+- Android's existing SQLite bridge now uses the pinned requery engine with bundled FTS5 instead of
+  system SQLite. The immutable validation stamp is revised; the file path, native vector scoring,
+  read-only contract and early runtime probe are preserved. iOS and browser backends are unchanged.
+- Remote Android HTTPS transfers in `downloadWithRetry` use the pinned Capgo DownloadManager plugin
+  with a versioned persistence/idempotence patch and a limit of three active native transfers,
+  including retained system jobs. Browser/local/iOS transfers retain their existing implementation.
+- Core download shares the retry layer but stays a file through streaming SHA-256 and atomic native
+  installation. An existing consented transfer is recovered on launch; first download still waits
+  for a user action. Progress distinguishes transfer, verification and installation. Files are not
+  installed merely because the transport reports completion.
+- Optional module/model byte consumers, exact membership/schema/checksum validation, current feature
+  queues and WASM optional database mounts remain. This is not a claim of fully native optional-pack
+  storage or a unified core/image/ECG queue UI. No Allmed publication or corpus migration is included.
+
+See ADR 0018 for the exact upstream patch and tradeoffs. New-head verification results belong in the
+PR checks; older d8bc80f green checks do not qualify these changes. No physical-device memory,
+OS-eviction, iOS-native download or leak claim is made from source changes.
+
+
 ### Core startup and download eligibility — 6 September 2026
 
 - Android probes FTS5 in a disposable in-memory database before installed-file inspection, hashing,

@@ -1,7 +1,7 @@
 package dev.localmed.search;
 
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import io.requery.android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.database.sqlite.SQLiteException;
 import android.util.Base64;
@@ -16,15 +16,12 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.concurrent.Executors;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -63,26 +60,86 @@ public final class LocalMedDatabasePlugin extends Plugin {
         }
     }
 
+    /** Only app-owned opaque IDs are accepted; never accept a caller-controlled file path. */
+    private File downloadStage(String id) throws IOException {
+        if (id == null || !id.matches("[a-f0-9]{64}")) {
+            throw new IOException("Invalid download identifier.");
+        }
+        File external = getContext().getExternalFilesDir(null);
+        if (external == null) throw new IOException("Download storage is unavailable.");
+        File directory = new File(external, "minimed-downloads");
+        ensureDirectory(directory);
+        File stage = new File(directory, id + ".part");
+        if (!directory.getCanonicalFile().getParentFile().equals(external.getCanonicalFile())
+            || !stage.getCanonicalFile().getParentFile().equals(directory.getCanonicalFile())) {
+            throw new IOException("Download path escapes its staging directory.");
+        }
+        return stage;
+    }
+
     @PluginMethod
-    public void downloadCorePack(PluginCall call) {
+    public void prepareNativeDownload(PluginCall call) {
+        try {
+            String id = call.getString("id");
+            File stage = downloadStage(id);
+            JSObject result = new JSObject();
+            result.put("destination", "minimed-downloads/" + id + ".part");
+            result.put("filePath", stage.getAbsolutePath());
+            call.resolve(result);
+        } catch (IOException error) {
+            call.reject("Не удалось подготовить файл загрузки.", "NATIVE_DOWNLOAD_STORAGE_FAILED");
+        }
+    }
+
+    @PluginMethod
+    public void inspectNativeDownload(PluginCall call) {
+        try {
+            File stage = downloadStage(call.getString("id"));
+            if (!stage.isFile()) throw new IOException("Download file is absent.");
+            JSObject result = new JSObject();
+            result.put("filePath", stage.getAbsolutePath());
+            result.put("sizeBytes", stage.length());
+            call.resolve(result);
+        } catch (IOException error) {
+            call.reject("Скачанный файл недоступен.", "NATIVE_DOWNLOAD_STORAGE_FAILED");
+        }
+    }
+
+    @PluginMethod
+    public void installDownloadedCore(PluginCall call) {
         String checksum = normalizeChecksum(call.getString("expectedSha256"));
         if (checksum == null || !checksum.matches("[a-f0-9]{64}")) {
             call.reject("A valid core checksum is required.");
             return;
         }
-        var executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
+        openExecutor.execute(() -> {
             synchronized (databaseLock) {
                 try {
+                    if (database != null && database.isOpen()) {
+                        throw new IOException("Close the active database before replacement.");
+                    }
+                    File stage = downloadStage(call.getString("id"));
                     File directory = new File(getContext().getFilesDir(), "localmed/content");
                     ensureDirectory(directory);
-                    installAssetIfNeeded(null, new File(directory, "core.db"),
-                        new File(directory, "core.db.sha256"), checksum);
+                    File target = new File(directory, "core.db");
+                    File marker = new File(directory, "core.db.sha256");
+                    if (new File(directory, "core.db.backup").exists()) {
+                        deleteIfExists(validationMarker(target));
+                    }
+                    recoverInterruptedInstall(target, new File(directory, "core.db.backup"), marker, checksum);
+                    try (InputStream input = new FileInputStream(stage)) {
+                        VerifiedPackFiles.install(input, target, marker, validationMarker(target), checksum, phase -> {
+                            JSObject progress = new JSObject();
+                            progress.put("loaded", stage.length());
+                            progress.put("total", stage.length());
+                            progress.put("phase", phase);
+                            notifyListeners("coreDownloadProgress", progress);
+                        });
+                    }
                     call.resolve();
                 } catch (Exception error) {
-                    call.reject("Не удалось скачать ядро: " + safeMessage(error));
-                } finally {
-                    executor.shutdown();
+                    // Do not turn transport completion into installation success on validation failure.
+                    call.reject("Не удалось проверить или установить ядро.", "NATIVE_CORE_INSTALL_FAILED");
                 }
             }
         });
@@ -102,7 +159,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
             call.reject("Invalid packaged database file name.");
             return;
         }
-        if (expectedSha256 == null || expectedSha256.length() != 64) {
+        if (expectedSha256 == null || !expectedSha256.matches("[a-f0-9]{64}")) {
             call.reject("A SHA-256 checksum is required for the packaged database.");
             return;
         }
@@ -157,7 +214,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     phase = "metadata";
                     phaseStarted = SystemClock.elapsedRealtime();
                     if (!probeFts5()) {
-                        throw new SQLiteException("The installed pack FTS5 index cannot be queried.");
+                        throw new PackValidationException("The installed pack FTS5 index cannot be queried.");
                     }
                     JSObject result = new JSObject();
                     result.put("schemaVersion", scalarLong(
@@ -179,7 +236,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     result.put("openTimings", timings);
                     Log.i("LocalMedDatabase", "openPack success " + timings);
                     call.resolve(result);
-                } catch (Exception error) {
+                } catch (Exception | LinkageError error) {
                     closeDatabase();
                     if (validationMarker != null) deleteBestEffort(validationMarker);
                     boolean invalidPack = error instanceof PackValidationException
@@ -396,7 +453,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
         File checksumMarker,
         String expectedSha256
     ) throws IOException, NoSuchAlgorithmException {
-        File temporary = new File(target.getParentFile(), target.getName() + ".tmp");
         File backup = new File(target.getParentFile(), target.getName() + ".backup");
         if (backup.exists()) deleteIfExists(validationMarker(target));
         recoverInterruptedInstall(target, backup, checksumMarker, expectedSha256);
@@ -404,81 +460,9 @@ public final class LocalMedDatabasePlugin extends Plugin {
         String installedChecksum = readMarker(checksumMarker);
         if (target.isFile() && expectedSha256.equals(installedChecksum)) return false;
 
-        deleteIfExists(temporary);
-        HttpURLConnection connection = null;
-        if (assetPath == null) {
-            connection = (HttpURLConnection) new URL(
-                "https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db").openConnection();
-            connection.setConnectTimeout(30_000);
-            connection.setReadTimeout(60_000);
-            if (connection.getResponseCode() != 200) {
-                int status = connection.getResponseCode();
-                connection.disconnect();
-                throw new IOException("Core download HTTP " + status);
-            }
+        try (InputStream source = getContext().getAssets().open(assetPath)) {
+            VerifiedPackFiles.install(source, target, checksumMarker, validationMarker(target), expectedSha256);
         }
-        long total = connection == null ? 0 : connection.getContentLengthLong();
-        try (
-            InputStream source = new BufferedInputStream(connection == null
-                ? getContext().getAssets().open(assetPath) : connection.getInputStream());
-            BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(temporary))
-        ) {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int read;
-            long loaded = 0;
-            long lastUpdate = 0;
-            while ((read = source.read(buffer)) >= 0) {
-                if (read > 0) {
-                    output.write(buffer, 0, read);
-                    loaded += read;
-                    if (connection != null && loaded - lastUpdate >= 1024 * 1024) {
-                        JSObject progress = new JSObject();
-                        progress.put("loaded", loaded);
-                        progress.put("total", total);
-                        notifyListeners("coreDownloadProgress", progress);
-                        lastUpdate = loaded;
-                    }
-                }
-            }
-        } catch (IOException error) {
-            deleteBestEffort(temporary);
-            throw error;
-        } finally {
-            if (connection != null) connection.disconnect();
-        }
-
-        String actualSha256 = sha256(temporary);
-        if (!expectedSha256.equals(actualSha256)) {
-            deleteIfExists(temporary);
-            throw new IOException("Packaged database checksum mismatch.");
-        }
-
-        deleteIfExists(validationMarker(target));
-        boolean hadPreviousPack = target.isFile();
-        if (hadPreviousPack && !target.renameTo(backup)) {
-            deleteIfExists(temporary);
-            throw new IOException("Unable to preserve the previous packaged database.");
-        }
-
-        try {
-            if (!temporary.renameTo(target)) {
-                throw new IOException("Unable to atomically install the packaged database.");
-            }
-            writeMarker(checksumMarker, expectedSha256);
-        } catch (IOException error) {
-            deleteBestEffort(target);
-            if (hadPreviousPack && backup.isFile() && !backup.renameTo(target)) {
-                throw new IOException(
-                    "Pack installation failed and the previous database could not be restored.",
-                    error
-                );
-            }
-            throw error;
-        } finally {
-            deleteBestEffort(temporary);
-        }
-
-        deleteBestEffort(backup);
         return true;
     }
 
@@ -679,7 +663,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
         }
     }
 
-    private static String safeMessage(Exception error) {
+    private static String safeMessage(Throwable error) {
         String message = error.getMessage();
         return message == null || message.trim().isEmpty() ? error.getClass().getSimpleName() : message;
     }

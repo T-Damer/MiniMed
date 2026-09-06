@@ -7,7 +7,13 @@ export function BootScreen(props: {
   readonly bootSlow: boolean;
   readonly coreDownloadRequired?: boolean;
   readonly coreDownloading?: boolean;
-  readonly coreProgress?: { readonly loaded: number; readonly total: number } | undefined;
+  readonly coreProgress?:
+    | {
+        readonly loaded: number;
+        readonly total: number;
+        readonly phase?: 'downloading' | 'verifying' | 'installing';
+      }
+    | undefined;
   readonly onDownloadCore?: () => void;
 }): JSX.Element {
   const progress = () => props.coreProgress;
@@ -43,12 +49,17 @@ export function BootScreen(props: {
             }
           >
             <p class="boot-card__progress" role="status" aria-live="polite">
-              {progress()
-                ? `Скачано ${formatModuleBytes(progress()?.loaded ?? 0)}${(progress()?.total ?? 0) > 0 ? ` из ${formatModuleBytes(progress()?.total ?? 0)}` : ''}. Затем проверим и откроем базу.`
-                : 'Соединяемся с сервером…'}
+              {progress()?.phase === 'verifying'
+                ? 'Проверяем контрольную сумму ядра…'
+                : progress()?.phase === 'installing'
+                  ? 'Устанавливаем проверенное ядро…'
+                  : progress()
+                    ? `Скачано ${formatModuleBytes(progress()?.loaded ?? 0)}${(progress()?.total ?? 0) > 0 ? ` из ${formatModuleBytes(progress()?.total ?? 0)}` : ''}. Затем проверим и откроем базу.`
+                    : 'Соединяемся с сервером…'}
             </p>
             <p class="boot-card__description">
-              Держите приложение открытым до завершения установки.
+              Скачивание продолжается в фоне. Вернитесь в приложение, чтобы завершить проверку и
+              открытие базы.
             </p>
           </Show>
         </Show>

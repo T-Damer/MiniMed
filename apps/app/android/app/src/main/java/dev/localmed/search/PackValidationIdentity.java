@@ -9,7 +9,7 @@ final class PackValidationIdentity {
 
     static String create(String checksum, String sqliteVersion, long device, long inode,
                          long changeTime, long modifiedMillis, long size) {
-        return "verified-v1:" + checksum + ":" + sqliteVersion + ":" + device + ":" + inode
+        return "verified-requery-v2:" + checksum + ":" + sqliteVersion + ":" + device + ":" + inode
             + ":" + changeTime + ":" + modifiedMillis + ":" + size;
     }
 }

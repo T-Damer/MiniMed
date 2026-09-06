@@ -8,11 +8,11 @@ import {
   SQLITE_WASM_DESERIALIZE_MAX_BYTES,
   SqliteMedicalStore,
 } from '@localmed/storage-sqlite';
-
 import { readBoundedResponse } from '@/composition/bounded-response';
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
+import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
 
 interface PackBuildReport {
   readonly outputChecksum: string;
@@ -125,8 +125,12 @@ async function readPackReport(
 }
 
 export interface CoreDownloadUi {
-  readonly requestDownload: () => Promise<void>;
-  readonly onProgress: (progress: { readonly loaded: number; readonly total: number }) => void;
+  readonly requestDownload: (resuming?: boolean) => Promise<void>;
+  readonly onProgress: (progress: {
+    readonly loaded: number;
+    readonly total: number;
+    readonly phase?: 'downloading' | 'verifying' | 'installing';
+  }) => void;
 }
 
 export async function createNativeStore(
@@ -136,13 +140,35 @@ export async function createNativeStore(
   if (Capacitor.getPlatform() === 'android' && downloadUi) {
     const options = { expectedSha256: report.outputChecksum };
     if (!(await LocalMedDatabase.hasCorePack(options)).installed) {
-      await downloadUi.requestDownload();
+      const transfer = {
+        url: 'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db',
+        cacheKey: report.outputChecksum,
+      };
+      await downloadUi.requestDownload(await hasRetainedFileDownload(transfer));
       const listener = await LocalMedDatabase.addListener(
         'coreDownloadProgress',
         downloadUi.onProgress,
       );
       try {
-        await LocalMedDatabase.downloadCorePack(options);
+        await downloadFileWithRetry(
+          {
+            ...transfer,
+            onProgress: ({ downloadedBytes, totalBytes }) =>
+              downloadUi.onProgress({
+                loaded: downloadedBytes,
+                total: totalBytes ?? 0,
+                phase: 'downloading',
+              }),
+          },
+          async (file) => {
+            downloadUi.onProgress({
+              loaded: file.sizeBytes,
+              total: file.sizeBytes,
+              phase: 'verifying',
+            });
+            await LocalMedDatabase.installDownloadedCore({ ...options, id: file.id });
+          },
+        );
       } finally {
         await listener.remove();
       }

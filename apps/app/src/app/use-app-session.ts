@@ -80,6 +80,7 @@ export function useAppSession() {
   const [coreProgress, setCoreProgress] = createSignal<{
     readonly loaded: number;
     readonly total: number;
+    readonly phase?: 'downloading' | 'verifying' | 'installing';
   }>();
   let beginCoreDownload: (() => void) | undefined;
   const downloadCore = (): void => {
@@ -376,10 +377,15 @@ export function useAppSession() {
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
     const initializedPromise = initializeMedicalCore(() =>
       createBrowserCore({
-        requestDownload: () =>
+        requestDownload: (resuming) =>
           new Promise<void>((resolve) => {
             setCoreDownloadRequired(true);
-            beginCoreDownload = resolve;
+            if (resuming) {
+              setCoreDownloading(true);
+              resolve();
+            } else {
+              beginCoreDownload = resolve;
+            }
           }),
         onProgress: setCoreProgress,
       }),

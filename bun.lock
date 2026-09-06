@@ -22,6 +22,7 @@
         "@capacitor/core": "8.5.0",
         "@capacitor/haptics": "^8.0.2",
         "@capacitor/local-notifications": "8.3.0",
+        "@capgo/capacitor-downloader": "8.3.0",
         "@cornerstonejs/core": "5.8.2",
         "@cornerstonejs/dicom-image-loader": "5.8.2",
         "@cornerstonejs/metadata": "5.8.2",
@@ -197,6 +198,9 @@
       },
     },
   },
+  "patchedDependencies": {
+    "@capgo/capacitor-downloader@8.3.0": "patches/@capgo%2Fcapacitor-downloader@8.3.0.patch",
+  },
   "overrides": {
     "onnxruntime-web": "1.27.0",
   },
@@ -334,6 +338,8 @@
     "@capacitor/ios": ["@capacitor/ios@8.5.0", "", { "peerDependencies": { "@capacitor/core": "^8.5.0" } }, "sha512-7k1TfohJu5BzRXc1F3g04Q8QQ0fyQgms6h1AvhnHb04VaNr9EdHOx03hL8O+OigEKMQnyJd1ZOjTPPNHCqL5Yw=="],
 
     "@capacitor/local-notifications": ["@capacitor/local-notifications@8.3.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-QvgW2ucBAwtI/arLrUP1XRTJVzJxmdI9BOCl+E9J2HAmYuSWZtDFb3e1fpnciVzwZaq6RDP00baBQgG6eYik/Q=="],
+
+    "@capgo/capacitor-downloader": ["@capgo/capacitor-downloader@8.3.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-EPbgtvEtMFrq3sM4iXDp5ux9WhWZBboYSdeMD5ChUs0HTnEmQg1o5slKHV7AiTcTtksVcNYFGUOxwwqjqtqwUQ=="],
 
     "@capsizecss/unpack": ["@capsizecss/unpack@4.0.1", "", { "dependencies": { "fontkitten": "^1.0.3" } }, "sha512-CuNiSqg7+e1cO/GjffyMOm5Tt2jUF9CWHHnvQ/UkqvtkGfHdgwEC0wpmq7fkN3gxwpRnrAN0WzO3vREKmNolMQ=="],
 

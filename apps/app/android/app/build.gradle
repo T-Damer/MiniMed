@@ -3,6 +3,12 @@ apply plugin: 'org.jetbrains.kotlin.android'
 
 import groovy.json.JsonSlurper
 
+// Explicit emulator-only storage qualification. Normal APK tasks keep the full ARM inference runtime.
+def storageSmoke = providers.gradleProperty('minimedStorageSmoke').orNull == 'true'
+if (storageSmoke && gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }) {
+    throw new GradleException('Storage-smoke variant must never be packaged as a release')
+}
+
 def releaseMetadata = new JsonSlurper().parse(file('../../../../release.json'))
 
 android {
@@ -29,12 +35,14 @@ android {
         ndk {
             // The vendored llama.cpp build only targets arm64-v8a (see src/main/cpp/CMakeLists.txt)
             // — no GPU backend is built for Android, and 32-bit devices are out of scope.
-            abiFilters 'arm64-v8a'
+            abiFilters(storageSmoke ? 'x86_64' : 'arm64-v8a')
         }
-        externalNativeBuild {
-            cmake {
-                arguments "-DANDROID_STL=c++_shared"
-                targets "ai-chat"
+        if (!storageSmoke) {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_STL=c++_shared"
+                    targets "ai-chat"
+                }
             }
         }
     }
@@ -50,10 +58,12 @@ android {
             useLegacyPackaging true
         }
     }
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-            version "3.22.1"
+    if (!storageSmoke) {
+        externalNativeBuild {
+            cmake {
+                path "src/main/cpp/CMakeLists.txt"
+                version "3.22.1"
+            }
         }
     }
     kotlinOptions {
@@ -68,6 +78,8 @@ repositories {
 }
 
 dependencies {
+    // Read-only packs require FTS5 independently of the device's system SQLite.
+    implementation 'com.github.requery:sqlite-android:3.50.4'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
