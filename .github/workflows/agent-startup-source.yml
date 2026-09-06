@@ -1,0 +1,39 @@
+name: Temporary startup source snapshot
+
+on:
+  push:
+    branches: [agent/core-open-download-contract]
+    paths: [.github/workflows/agent-startup-source.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          lfs: false
+      - name: Snapshot tracked public source only
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess, zipfile
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          roots = ('apps/app/src/', 'apps/app/android/', 'apps/app/ios/', 'packages/', 'scripts/', 'docs/', '.github/', 'tools/ingest/src/', 'tools/ingest/tests/', 'tests/')
+          suffixes = {'.ts', '.tsx', '.js', '.mjs', '.json', '.java', '.swift', '.md', '.py', '.yml', '.yaml', '.toml', '.scss', '.xml', '.gradle', '.properties', '.txt', '.sh'}
+          with zipfile.ZipFile('/tmp/minimed-source.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              for name in paths:
+                  path = pathlib.Path(name)
+                  if not path.is_file() or path.is_symlink():
+                      continue
+                  if ('/' not in name or name.startswith(roots)) and (path.suffix in suffixes or path.name in {'bun.lock', 'bun.lockb', '.bun-version', 'gradlew'}):
+                      archive.write(path, name)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: startup-source
+          path: /tmp/minimed-source.zip
+          retention-days: 1
