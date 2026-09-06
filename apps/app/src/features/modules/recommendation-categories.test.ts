@@ -61,7 +61,18 @@ function module(
       precision: 'exact',
     },
     previewDocumentCount: 1,
-    artifacts: [],
+    artifacts: [
+      {
+        id: `${id}-index`,
+        kind: 'index',
+        required: true,
+        url: `https://example.com/${id}.db`,
+        sha256: `sha256:${'b'.repeat(64)}`,
+        sizeBytes: 1_000_000,
+        compression: 'none',
+        sourceSetDigest: `sha256:${'a'.repeat(64)}`,
+      },
+    ],
     ...overrides,
   };
 }
@@ -107,6 +118,16 @@ describe('recommendation-categories', () => {
       pendingCount: 1,
       downloadBytes: 2_000_000,
       installedBytes: 1_000_000,
+    });
+  });
+
+  it('excludes metadata-only previews from downloadable category totals', () => {
+    const modules = [module('ready'), module('local', { releaseState: 'preview', artifacts: [] })];
+
+    expect(recommendationCategoryStats(modules, category, installedById([]))).toMatchObject({
+      publishedCount: 1,
+      pendingCount: 1,
+      downloadBytes: 1_000_000,
     });
   });
 

@@ -45,7 +45,18 @@ function module(id: string): ContentModuleCatalogEntry {
       precision: 'exact',
     },
     previewDocumentCount: 1,
-    artifacts: [],
+    artifacts: [
+      {
+        id: `${id}-index`,
+        kind: 'index',
+        required: true,
+        url: `https://example.com/${id}.db`,
+        sha256: `sha256:${'b'.repeat(64)}`,
+        sizeBytes: 1_000,
+        compression: 'none',
+        sourceSetDigest: `sha256:${'a'.repeat(64)}`,
+      },
+    ],
   };
 }
 
@@ -91,7 +102,7 @@ describe('recommendation-category-operations', () => {
     expect(runtime.wait).toHaveBeenCalledWith('task:b');
     expect(result).toEqual({ changed: true, errorMessage: 'incompatible' });
   });
-  it('starts parallel installs for unpublished category modules', async () => {
+  it('starts parallel installs for not-yet-installed category modules', async () => {
     const runtime = createRuntimeStub();
     const modules = [module('a'), module('b')];
 
@@ -101,6 +112,21 @@ describe('recommendation-category-operations', () => {
     expect(runtime.install).toHaveBeenCalledWith(modules[1]);
     expect(runtime.wait).toHaveBeenCalledWith('task:b');
     expect(result).toEqual({ changed: true, errorMessage: null });
+  });
+
+  it('does not enqueue a local preview without a verified index', async () => {
+    const runtime = createRuntimeStub();
+    const unavailable: ContentModuleCatalogEntry = {
+      ...module('local'),
+      releaseState: 'preview',
+      artifacts: [],
+    };
+
+    const result = await installPublishedCategoryModules(runtime, [unavailable], new Set());
+
+    expect(runtime.install).not.toHaveBeenCalled();
+    expect(runtime.wait).not.toHaveBeenCalled();
+    expect(result).toEqual({ changed: false, errorMessage: null });
   });
 
   it('removes installed category modules in parallel', async () => {
