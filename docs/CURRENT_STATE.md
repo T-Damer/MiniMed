@@ -11,7 +11,7 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ### Bundled Android SQLite and system transfers — draft PR #164
 
-- Android's existing SQLite bridge now uses the pinned requery engine with bundled FTS5 instead of
+- Android's existing SQLite bridge now uses pinned SQLCipher Community in plaintext mode instead of
   system SQLite. The immutable validation stamp is revised; the file path, native vector scoring,
   read-only contract and early runtime probe are preserved. iOS and browser backends are unchanged.
 - Remote Android HTTPS transfers in `downloadWithRetry` use the pinned Capgo DownloadManager plugin

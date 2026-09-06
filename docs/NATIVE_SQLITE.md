@@ -20,7 +20,8 @@ and source navigation remain in portable TypeScript.
 
 ## Startup sequence
 
-See ADR 0018 for the Android bundled engine and persistent native transfer integration.
+See ADR 0018 for SQLCipher Community 4.18.0 (empty-key plaintext packs) and persistent native transfers.
+The pinned artifact requires an explicit empty password for in-memory probes; file opens remain read-only.
 
 The current Android APK downloads the required core into private storage after explicit consent;
 iOS retains the bundled copy. The immutable artifact remains identified by its published SHA-256.

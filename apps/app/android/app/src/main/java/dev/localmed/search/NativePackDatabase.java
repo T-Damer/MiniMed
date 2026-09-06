@@ -1,6 +1,7 @@
 package dev.localmed.search;
 
 import java.io.File;
+import android.database.sqlite.SQLiteDatabaseCorruptException;
 import net.zetetic.database.Logger;
 import net.zetetic.database.NoopTarget;
 import net.zetetic.database.sqlcipher.SQLiteDatabase;
@@ -23,8 +24,10 @@ final class NativePackDatabase {
         // This overload passes an empty key. Never encrypt, migrate or recreate published packs.
         return SQLiteDatabase.openDatabase(file.getAbsolutePath(), null,
             SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS,
-            (database, error) -> {
+            database -> {
                 // The library's default handler deletes corrupt files. Retain ours for atomic repair.
+                SQLiteDatabaseCorruptException error =
+                    new SQLiteDatabaseCorruptException("Content database is corrupt.");
                 throw error;
             });
     }

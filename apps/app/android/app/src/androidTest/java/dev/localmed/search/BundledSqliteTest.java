@@ -13,7 +13,7 @@ import org.junit.Test;
 public class BundledSqliteTest {
     @Test public void bundledRuntimeSupportsRealFts5Queries() {
         NativePackDatabase.ensureLoaded();
-        try (SQLiteDatabase db = SQLiteDatabase.create(null)) {
+        try (SQLiteDatabase db = SQLiteDatabase.create(null, new char[0])) {
             db.execSQL("CREATE VIRTUAL TABLE documents USING fts5(text, tokenize='unicode61')");
             db.execSQL("INSERT INTO documents VALUES ('бронхиальная астма')");
             try (Cursor row = db.rawQuery("SELECT count(*) FROM documents WHERE documents MATCH ?", new String[] {"астма"})) {
