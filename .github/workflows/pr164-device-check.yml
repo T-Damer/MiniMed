@@ -5,6 +5,9 @@ on:
     paths: [.github/workflows/pr164-device-check.yml]
 permissions:
   contents: read
+concurrency:
+  group: pr164-isolated-emulator
+  cancel-in-progress: true
 jobs:
   installed-core:
     runs-on: ubuntu-24.04
@@ -59,11 +62,10 @@ jobs:
           s = s.replace('appendFileSync}', 'appendFileSync, openSync, closeSync, statSync}')
           s = s.replace('coreBytes:readFileSync(corePath).length', 'coreBytes:statSync(corePath).size')
           s = s.replace('timeout:20000', 'timeout:45000').replace('},10000);', '},30000);')
-          s = s.replace("run.memory.push(memory(`${mode}:${Date.now()-start}`));", '// Do not interrupt startup with synchronous process-memory sampling.')
+          s = s.replace("run.memory.push(memory(`${mode}:${Date.now()-start}`));", '/* No synchronous memory sampling during startup. */')
           s = s.replace("const logger=spawn('adb',['logcat','-v','threadtime','LocalMedDatabase:I','Capacitor/Console:W','AndroidRuntime:E','chromium:E','*:S']);", "const logfd=openSync(`${out}/${mode}-logcat.txt`,'w');\n const logger=spawn('adb',['logcat','-v','threadtime','LocalMedDatabase:V','Capacitor/Console:V','AndroidRuntime:E','chromium:W','ActivityManager:I','*:W'],{stdio:['ignore',logfd,logfd]});")
           s = '\n'.join(line for line in s.split('\n') if not line.strip().startswith('logger.stdout.on('))
-          s = s.replace("await capture(cdp,`${mode}-calculators`);", '// Capture screenshots only after startup.')
-          # Avoid losing all diagnostics to a transient navigation/context timeout.
+          s = s.replace("await capture(cdp,`${mode}-calculators`);", '/* Capture only after startup. */')
           s = s.replace('const snap=await cdp.eval(snapshotExpr);run.samples.push', "let snap;try{snap=await cdp.eval(snapshotExpr);}catch(error){run.samples.push({harnessError:String(error),hostElapsedMs:Date.now()-start});cdp.close();cdp=await connect();continue;}run.samples.push")
           s = s.replace("}catch(error){run.harnessError=String(error);}", "}catch(error){run.harnessError=String(error);try{save(`${mode}-device-health.txt`,adb('shell','uptime'));}catch(healthError){run.deviceHealthError=String(healthError);}}")
           s = s.replace('logger.kill();run.hostTotalMs', 'logger.kill();closeSync(logfd);run.hostTotalMs')
