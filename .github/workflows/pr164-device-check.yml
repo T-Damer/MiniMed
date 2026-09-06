@@ -49,13 +49,30 @@ jobs:
         working-directory: source/apps/app/android
         run: |
           env -i PATH="$PATH" HOME="$HOME" JAVA_HOME="$JAVA_HOME" ANDROID_HOME="$ANDROID_HOME" CI=1 ./gradlew --no-daemon assembleDebug -x externalNativeBuildDebug -x mergeDebugNativeLibs -x stripDebugDebugSymbols
-      - name: Prepare test harness and record scope
+      - name: Prepare diagnostic retry (application sources unchanged)
         run: |
           mkdir -p /tmp/pr164-device
-          # Correct quoting in the test-only selector, without changing application sources.
-          sed 's/JSON.stringify(JSON.stringify(label))/JSON.stringify(label)/g' qualification/scripts/qa-pr164-device.mjs > /tmp/pr164-harness.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          s = Path('qualification/scripts/qa-pr164-device.mjs').read_text()
+          s = s.replace('JSON.stringify(JSON.stringify(label))', 'JSON.stringify(label)')
+          s = s.replace('appendFileSync}', 'appendFileSync, openSync, closeSync, statSync}')
+          s = s.replace('coreBytes:readFileSync(corePath).length', 'coreBytes:statSync(corePath).size')
+          s = s.replace('timeout:20000', 'timeout:45000').replace('},10000);', '},30000);')
+          s = s.replace("run.memory.push(memory(`${mode}:${Date.now()-start}`));", '// Do not interrupt startup with synchronous process-memory sampling.')
+          s = s.replace("const logger=spawn('adb',['logcat','-v','threadtime','LocalMedDatabase:I','Capacitor/Console:W','AndroidRuntime:E','chromium:E','*:S']);", "const logfd=openSync(`${out}/${mode}-logcat.txt`,'w');\n const logger=spawn('adb',['logcat','-v','threadtime','LocalMedDatabase:V','Capacitor/Console:V','AndroidRuntime:E','chromium:W','ActivityManager:I','*:W'],{stdio:['ignore',logfd,logfd]});")
+          s = '\n'.join(line for line in s.split('\n') if not line.strip().startswith('logger.stdout.on('))
+          s = s.replace("await capture(cdp,`${mode}-calculators`);", '// Capture screenshots only after startup.')
+          # Avoid losing all diagnostics to a transient navigation/context timeout.
+          s = s.replace('const snap=await cdp.eval(snapshotExpr);run.samples.push', "let snap;try{snap=await cdp.eval(snapshotExpr);}catch(error){run.samples.push({harnessError:String(error),hostElapsedMs:Date.now()-start});cdp.close();cdp=await connect();continue;}run.samples.push")
+          s = s.replace("}catch(error){run.harnessError=String(error);}", "}catch(error){run.harnessError=String(error);try{save(`${mode}-device-health.txt`,adb('shell','uptime'));}catch(healthError){run.deviceHealthError=String(healthError);}}")
+          s = s.replace('logger.kill();run.hostTotalMs', 'logger.kill();closeSync(logfd);run.hostTotalMs')
+          s = s.replace("console.log(JSON.stringify(run,null,2));}", "console.log(JSON.stringify(run,null,2));}\n if(run.deviceHealthError)break;")
+          Path('/tmp/pr164-harness.mjs').write_text(s)
+          PY
           node --check /tmp/pr164-harness.mjs
-          printf '%s\n' 'Exact application TS/Java source d8bc80f; optional ARM-only inference JNI libraries excluded for x86 emulator. No production APK, physical-device, LLM, process-eviction or matched before/after memory claim.' > /tmp/pr164-device/SCOPE.txt
+          cp /tmp/pr164-harness.mjs /tmp/pr164-device/executed-harness.mjs
+          printf '%s\n' 'Exact TS/Java source d8bc80f. Optional ARM-only inference JNI packaging excluded. Retry uses 4 emulator cores, smaller display and no early PSS sampling. No matched before/after, physical-device, LLM or process-eviction claim.' > /tmp/pr164-device/SCOPE.txt
           git -C source diff --stat > /tmp/pr164-device/source-build-diff.txt
       - name: Cold installed core and warm relaunch on Android 15
         uses: reactivecircus/android-emulator-runner@v2
@@ -66,12 +83,22 @@ jobs:
           profile: pixel_2
           ram-size: 3072M
           disk-size: 4096M
-          cores: 2
+          cores: 4
           emulator-boot-timeout: 300
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           working-directory: source
-          script: env -i PATH="$PATH" HOME="$HOME" ANDROID_HOME="$ANDROID_HOME" SOURCE_SHA="$SOURCE_SHA" node /tmp/pr164-harness.mjs /tmp/pr164-device
+          script: |
+            adb shell wm size 720x1280
+            adb shell wm density 320
+            sleep 15
+            env -i PATH="$PATH" HOME="$HOME" ANDROID_HOME="$ANDROID_HOME" SOURCE_SHA="$SOURCE_SHA" node /tmp/pr164-harness.mjs /tmp/pr164-device
+      - name: Preserve independent host and guest diagnostics
+        if: always()
+        run: |
+          free -m > /tmp/pr164-device/host-memory.txt
+          df -h > /tmp/pr164-device/host-disk.txt
+          ps -eo pid,pcpu,pmem,args | grep -E 'qemu|emulator|adb' > /tmp/pr164-device/host-processes.txt || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
