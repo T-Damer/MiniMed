@@ -185,7 +185,7 @@ jobs:
           }
           Path('release-output/APK-SHA256.txt').write_text(f'{apk_sha}  {apk.name}\n', encoding='utf-8')
           Path('release-output/DB-SHA256.txt').write_text(
-              f'{db_sha}  {os.environ["EMBEDDED_PATH"]}\n', encoding='utf-8'
+              f'{db_sha}  {os.environ["CORE_DATABASE_NAME"]}\n', encoding='utf-8'
           )
           Path('release-output/VERIFICATION.json').write_text(
               json.dumps(evidence, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'

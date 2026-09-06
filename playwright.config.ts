@@ -20,12 +20,14 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   // Serve large SQLite assets over HTTP, not a base64 CDP message (100 MiB channel limit).
-  webServer: {
-    command: 'bun run --cwd apps/app preview -- --host 127.0.0.1 --port 4173 --strictPort',
-    url: localModelSmokeOrigin ?? 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: process.env.MINIMED_LIVE_URL
+    ? undefined
+    : {
+        command: 'bun run --cwd apps/app preview -- --host 127.0.0.1 --port 4173 --strictPort',
+        url: localModelSmokeOrigin ?? 'http://127.0.0.1:4173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
   projects: [
     {
       name: 'chromium',
