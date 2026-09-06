@@ -25,14 +25,17 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
       - name: Install pinned Android SDK components
         run: sdkmanager 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.3.13750724' 'cmake;3.22.1'
       - name: Build exact PR source using existing content and native adapters
         run: |
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
-          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:source:check
+          # build:app restores and verifies core.db before the source checker reads it.
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:source:check
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun run native:sync:android
       - name: Assemble complete arm64 APK including JNI (not emulator-only variant)
         working-directory: apps/app/android
@@ -53,7 +56,8 @@ jobs:
               assert any(n.startswith('lib/arm64-v8a/') and n.endswith('.so') for n in names), 'Missing ARM64 JNI libraries'
               assert any(n.endswith('/libai-chat.so') for n in names), 'Missing inference JNI library'
               assert not any(n.endswith('/core.db') for n in names), 'Large core must remain downloadable'
-          sha = hashlib.file_digest(apk.open('rb'), 'sha256').hexdigest()
+          with apk.open('rb') as stream:
+              sha = hashlib.file_digest(stream, 'sha256').hexdigest()
           source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
           evidence = {'sourceCommit': source, 'pullRequest': 164, 'file': apk.name, 'bytes': apk.stat().st_size, 'sha256': sha, 'architecture': 'arm64-v8a', 'signing': 'Android debug key generated on CI runner; not production signing', 'scope': 'Complete APK built with JNI. Main and releases unchanged. Build success is not a passing full E2E or physical-device qualification.'}
           pathlib.Path('apk-output/BUILD.json').write_text(json.dumps(evidence, indent=2) + '\n')
