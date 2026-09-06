@@ -138,7 +138,10 @@ requireText('androidPlugin', '".backup"');
 requireText('iosPlugin', 'appendingPathExtension("backup")');
 requireText('androidPlugin', 'SQLiteDatabase.OPEN_READONLY');
 requireText('androidPlugin', 'import io.requery.android.database.sqlite.SQLiteDatabase;');
-requireText('androidGradle', 'com.github.requery:sqlite-android:3.50.4');
+requireText(
+  'androidGradle',
+  'com.github.requery:sqlite-android:0bbaa7a8b4c485c0d4b385425113fe33ead6c3c0',
+);
 for (const method of ['prepareNativeDownload', 'inspectNativeDownload', 'installDownloadedCore']) {
   requireText('androidPlugin', `void ${method}(`);
   requireText('typescriptPlugin', `${method}(`);
@@ -172,8 +175,11 @@ for (const skipped of ['medications.db', 'mkb.db', 'ambulatory.db']) {
     throw new Error(`ignoreAssetsPattern must skip ${skipped}`);
   }
 }
-requireText('androidBackupRules', 'path="localmed/content/"');
-requireText('androidExtractionRules', 'path="localmed/content/"');
+for (const rules of ['androidBackupRules', 'androidExtractionRules']) {
+  requireText(rules, 'path="localmed/content/"');
+  requireText(rules, 'domain="external" path="minimed-downloads/"');
+  requireText(rules, 'domain="sharedpref" path="minimed.native.downloads.v1.xml"');
+}
 if (content.androidStyles.includes('windowFullscreen')) {
   throw new Error(
     `${files.androidStyles} must not use windowFullscreen; splash and boot draw under system bars from the first frame`,

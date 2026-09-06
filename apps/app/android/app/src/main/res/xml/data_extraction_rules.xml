@@ -2,8 +2,12 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="file" path="localmed/content/" />
+        <exclude domain="external" path="minimed-downloads/" />
+        <exclude domain="sharedpref" path="minimed.native.downloads.v1.xml" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="file" path="localmed/content/" />
+        <exclude domain="external" path="minimed-downloads/" />
+        <exclude domain="sharedpref" path="minimed.native.downloads.v1.xml" />
     </device-transfer>
 </data-extraction-rules>

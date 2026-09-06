@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
     <exclude domain="file" path="localmed/content/" />
+    <!-- Reproducible staging bytes and device-specific system IDs are not user data. -->
+    <exclude domain="external" path="minimed-downloads/" />
+    <exclude domain="sharedpref" path="minimed.native.downloads.v1.xml" />
 </full-backup-content>

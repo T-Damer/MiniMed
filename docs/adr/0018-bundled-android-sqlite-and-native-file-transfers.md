@@ -1,6 +1,6 @@
 # ADR 0018 — Bundled Android SQLite and persistent system transfers
 
-Date: 2026-09-06. Status: implemented in draft PR #164; device qualification remains explicit.
+Date: 2026-09-06. Status: implemented in draft PR #164; qualification remains explicit.
 
 ## Context and decision
 
@@ -8,61 +8,56 @@ The owner's measurements found two native opens failing after 75–98 seconds be
 had no FTS5. PR #164 first moved capability probing before large-file work. The owner subsequently
 approved ready native SQLite and downloader integration in the same PR, without a UI rewrite.
 
-Keep Solid/Capacitor, `MedicalStore`, native vector scoring and immutable pack semantics. On Android,
-use `com.github.requery:sqlite-android:3.50.4` behind the existing `LocalMedDatabase` plugin. Its FTS5
-binary is shipped with the app, not selected by the OS vendor. JitPack is restricted to that group.
-Verification-stamp revision changes with the engine. This is not a new ORM or a database migration.
+Keep Solid/Capacitor, `MedicalStore`, native vector scoring and immutable pack semantics. Use requery
+SQLite 3.50.4 source commit `0bbaa7a8b4c485c0d4b385425113fe33ead6c3c0` behind `LocalMedDatabase`.
+The upstream README's `3.50.4` tag is unpublished (qualification found a dependency-resolution error),
+so the JitPack coordinate is pinned to that exact commit, never `master-SNAPSHOT`. Binary resolution
+and device execution must pass CI before this dependency can be considered qualified. JitPack is
+restricted to the requery group. Verification-stamp revision changes with the engine.
 
-The community Capacitor SQLite plugin was considered. Its NC connection can open a file read-only,
-but replacing our already-integrated bridge would also require reworking native BLOB vector scoring
-or introducing a second connection owner. The smaller requery variant preserves that implementation.
-The iOS native SQLite path and browser WASM/OPFS are unchanged. No claim is made about reduced PSS
-until matched measurements are available. Dependency/security updates remain necessary; this pin is
-not a claim that SQLite 3.50.4 is the latest upstream SQLite release.
+The community Capacitor SQLite plugin was considered. Replacing the existing bridge would also need
+reworking native BLOB vector scoring or introducing another connection owner. The smaller requery
+variant preserves it. iOS native SQLite and browser WASM/OPFS are unchanged. No PSS reduction is
+claimed without matched measurements; the engine pin still needs future security updates.
 
 ## Native downloads
 
-Pin `@capgo/capacitor-downloader` 8.3.0 (MPL-2.0). On Android all remote HTTPS calls through
-`downloadWithRetry` use its system DownloadManager transport. Relative/bundled files, browser and iOS
-keep the existing transport. No global fetch patch is installed and no downloader SDK reaches UI.
-The core uses `downloadFileWithRetry` from that same retry/admission layer: it retains a file handle
-through native streaming SHA-256, fsync and atomic replacement, never reading the core into JS.
-Module/model consumers still request bytes after transfer; their existing size/checksum/schema and
-exact document-membership verification remain unchanged. This does not move every optional database
-out of WASM or unify all feature queue UIs.
+Pin `@capgo/capacitor-downloader` 8.3.0 (MPL-2.0). Android remote HTTPS calls through `downloadWithRetry`
+use system DownloadManager. Relative/bundled files, browser and iOS retain their existing transport.
+The core uses `downloadFileWithRetry`: it retains a staged file through native streaming SHA-256,
+fsync and atomic replacement, never materializing the core in JavaScript. Optional module/model
+consumers still request bytes after transfer; exact membership, size, checksum and schema checks
+are preserved. This does not move all optional databases out of WASM or unify every queue UI.
 
-Upstream's Android implementation stores app-ID → system-ID mappings only in memory. A versioned Bun
-patch persists mappings synchronously, reconciles the enqueue/journal crash window using the staging
-URI, opaque system-record marker and original URL (also while the pending file URI is null), reuses an existing transfer, and bounds active system transfers to three,
-including those retained across process death. It also confines destinations to opaque app-owned
-staging IDs and stops event polling when the plugin is destroyed (not the transfer). The patch keeps
-the upstream license and fails to apply on unexpected source changes; updates require review.
+A versioned Bun patch persists upstream's app-ID to system-ID mappings synchronously. It reconciles
+the enqueue/journal interruption using the staged URI, opaque system-record marker and original URL,
+including pending transfers without a local URI. It reuses existing transfers and limits pending,
+running and paused system transfers to three across plugin instances. Destinations are confined to
+opaque app-owned staging files. Plugin destruction stops polling, not the OS transfer. The patch
+preserves the upstream license and must be reviewed on updates. Staging and device-specific system
+IDs are excluded from cloud backup and device transfer; user notes are not touched.
 
-Application queues still validate catalog eligibility on restoration. A completed native transfer is
-not an installed module. Reopening the core restores an existing consented transfer automatically;
-first download still requires the owner's explicit action. User cancellation awaits system removal.
-Android does not support per-transfer pause/resume in this plugin; no pause button or promise is added.
-DownloadManager handles network interruptions within its supported conditions. A terminal failure
-may require a fresh download. Force-stop and OS restrictions are not equivalent to a normal background
-transition and do not imply guaranteed execution while the app is stopped.
+Existing queues still validate catalog eligibility on restoration. Completed transfers are not
+installed modules. An existing consented core transfer is resumed automatically; a first download
+still requires explicit user action. Cancellation awaits OS removal. Android per-transfer pause and
+resume are not supported by this plugin, so no unsupported controls are added. OS force-stop is not
+equivalent to an ordinary background transition and does not imply guaranteed execution.
 
 ## Trust and validation
 
-The native stage is outside the installed content directory. Failed SHA-256 or interrupted writes
-cannot replace the prior core. Verification and installation have distinct progress labels; queued
-and transferred bytes are not presented as search readiness. Third-party sources, schema, stable IDs,
-local notes, Allmed/private files, clinical claims and publication state are unchanged.
+A failed hash or interrupted copy cannot replace the prior core. Verification and installation have
+separate progress labels. Source data, schema, stable IDs, notes, private Allmed and release state
+are unchanged. Tests cover staged-file lifetime, size mismatch, failed validation, cancellation,
+restored admission, serialization and native file commit. Instrumentation uses real FTS5 and the
+full core; the DownloadManager test covers plugin recreation and a missing journal entry, not an
+actual OS process-kill. The permanent Android qualification workflow retains the complete ARM64 APK
+separately from the x86 storage-test variant and reports real device logs without claiming UI timing.
 
-Regression tests cover completed-file lifetime, length mismatch, checksum/install failure, cancellation,
-restored-slot admission, serialization, native file commit and interrupted source reads. Instrumentation
-also exercises the real DownloadManager across plugin recreation and a missing journal entry; this is not an OS process-kill test. SQLite instrumentation executes the bundled FTS5 binary and can open/reopen the full installed core without changing it. The
-latter requires a real prepared core and must not be silently replaced with a fixture.
+Physical PSS, OS eviction, bulk navigation, optional-package ownership, iOS background transfers,
+ECG 99% and fully unified download presentation remain separate work and acceptance tests.
 
-Physical-device PSS, process eviction, bulk navigation, all optional-package ownership, iOS background
-transport, ECG 99% and unified download presentation remain separate qualification/work items.
+## Primary sources
 
-## Reviewed primary sources
-
-- https://github.com/requery/sqlite-android
+- https://github.com/requery/sqlite-android/tree/0bbaa7a8b4c485c0d4b385425113fe33ead6c3c0
 - https://github.com/Cap-go/capacitor-downloader/tree/fbc88a3517fda3f5d39de4e2aad9e73147a191d0
 - https://bun.com/docs/pm/cli/patch
