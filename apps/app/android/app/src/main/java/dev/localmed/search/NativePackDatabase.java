@@ -1,7 +1,7 @@
 package dev.localmed.search;
 
-import java.io.File;
 import android.database.sqlite.SQLiteDatabaseCorruptException;
+import java.io.File;
 import net.zetetic.database.Logger;
 import net.zetetic.database.NoopTarget;
 import net.zetetic.database.sqlcipher.SQLiteDatabase;
@@ -21,7 +21,8 @@ final class NativePackDatabase {
 
     static SQLiteDatabase openReadOnly(File file) {
         ensureLoaded();
-        // This overload passes an empty key. Never encrypt, migrate or recreate published packs.
+        // The published 4.18.0 overload uses an empty key and a one-argument error callback.
+        // Never encrypt, migrate or recreate a published pack during an open.
         return SQLiteDatabase.openDatabase(file.getAbsolutePath(), null,
             SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS,
             database -> {
