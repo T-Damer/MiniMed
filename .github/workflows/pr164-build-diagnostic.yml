@@ -1,34 +1,53 @@
-name: PR164 bounded build diagnostic
+name: PR164 source and dependency inspection
 on:
   push:
     branches: [agent/core-open-download-contract]
     paths: [.github/workflows/pr164-build-diagnostic.yml]
 permissions:
   contents: read
-  actions: read
 jobs:
   inspect:
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
+    timeout-minutes: 4
     steps:
-      - name: Extract errors from the completed native build
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Export tracked source and inspect published SDK compatibility
         run: |
-          mkdir -p /tmp/pr164-diagnostic
-          gh api /repos/T-Damer/MiniMed/actions/jobs/101520682708/logs > /tmp/pr164-build.log
-          python3 - <<'PY'
-          import pathlib
-          lines=pathlib.Path('/tmp/pr164-build.log').read_text(encoding='utf-8-sig').splitlines()
-          hits=[i for i,s in enumerate(lines) if any(t in s for t in ('error:', 'What went wrong:', 'Execution failed', 'FAILURE:', 'BUILD FAILED', 'Could not resolve'))]
-          selected=set()
-          for i in hits[-15:]: selected.update(range(max(0,i-3),min(len(lines),i+14)))
-          output='\n'.join(lines[i] for i in sorted(selected))[-18000:]
-          pathlib.Path('/tmp/pr164-diagnostic/errors.txt').write_text(output)
-          print(output)
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import pathlib,subprocess,zipfile,urllib.request,io,json,hashlib
+          out=pathlib.Path('/tmp/pr164-source');out.mkdir()
+          names=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          manifest={}
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in names:
+                  p=pathlib.Path(name)
+                  if not name or not p.is_file() or p.is_symlink() or p.stat().st_size>4_000_000: continue
+                  if not (name.startswith(('apps/','packages/','docs/','scripts/','tools/','.github/')) or '/' not in name): continue
+                  b=p.read_bytes()
+                  try: b.decode('utf-8')
+                  except UnicodeDecodeError: continue
+                  z.writestr(name,b)
+                  manifest[name]=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+          (out/'manifest.json').write_text(json.dumps(manifest))
+          (out/'SOURCE.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          for version in ['4.17.0','4.18.0']:
+              base=f'https://repo.maven.apache.org/maven2/net/zetetic/sqlcipher-android/{version}/sqlcipher-android-{version}'
+              with urllib.request.urlopen(base+'.aar', timeout=60) as r: data=r.read()
+              with zipfile.ZipFile(io.BytesIO(data)) as z:
+                  meta=z.read('META-INF/com/android/build/gradle/aar-metadata.properties').decode()
+                  (out/f'sqlcipher-{version}-metadata.txt').write_text(meta)
+                  print(version,meta)
+              with urllib.request.urlopen(base+'-sources.jar', timeout=60) as r: data=r.read()
+              with zipfile.ZipFile(io.BytesIO(data)) as z:
+                  for name in z.namelist():
+                      if name.endswith(('SQLiteDatabase.java','DatabaseErrorHandler.java')):
+                          (out/(version+'-'+pathlib.Path(name).name)).write_bytes(z.read(name))
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: pr164-build-diagnostic
-          path: /tmp/pr164-diagnostic/errors.txt
-          retention-days: 1
+          name: pr164-current-source
+          path: /tmp/pr164-source
+          retention-days: 3
