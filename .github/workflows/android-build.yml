@@ -97,7 +97,8 @@ jobs:
           cores: 4
           disable-animations: true
           emulator-boot-timeout: 300
-          emulator-options: -no-window -gpu swiftshader -feature -Vulkan -no-snapshot -noaudio -no-boot-anim -camera-back none
+          # SwiftShader in emulator 37.1.11 segfaults in host RenderThread when WebView opens.
+          emulator-options: -no-window -gpu lavapipe -feature -Vulkan -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: env -i PATH="$PATH" HOME="$HOME" ANDROID_HOME="$ANDROID_HOME" bash scripts/test-native-storage.sh
       - name: Capture runner memory and kernel diagnostics
         if: always()
