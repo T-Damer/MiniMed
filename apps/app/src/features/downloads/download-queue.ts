@@ -117,7 +117,7 @@ const safeText = (value: unknown, max: number): value is string =>
   typeof value === 'string' &&
   value.length > 0 &&
   value.length <= max &&
-  !/[\u0000-\u001f]/u.test(value);
+  Array.from(value).every((character) => character.charCodeAt(0) >= 32);
 
 export function isDownloadActive(task: Pick<DownloadTask, 'state'>): boolean {
   return !TERMINAL.has(task.state);
