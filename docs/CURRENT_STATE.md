@@ -1,8 +1,8 @@
 # Current state
 
 > Updated: 7 September 2026
-> Repository version: `0.6.34`
-> Active target: `0.6.34` public prerelease toward `1.0`
+> Repository version: `0.6.35`
+> Active target: `0.6.35` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
