@@ -16,6 +16,7 @@ import type {
   QueryFact,
   QueryIntent,
   Result,
+  SearchDocumentDescriptor,
   SearchRequest,
   SearchResponse,
   SearchResult,
@@ -199,7 +200,7 @@ function medicationResultText(result: SearchResult, groupTitle?: string): string
     .join(' ');
 }
 
-function isMedicationSearchDocument(document: MedicalDocumentSummary): boolean {
+function isMedicationSearchDocument(document: SearchDocumentDescriptor): boolean {
   if (searchResultDocumentKind(document) === 'medication') return true;
   if (document.sourceType !== 'rls_mkb_reference') return false;
   const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
@@ -208,7 +209,7 @@ function isMedicationSearchDocument(document: MedicalDocumentSummary): boolean {
 
 function filterMedicationDocuments(
   response: SearchResponse,
-  documents: readonly MedicalDocumentSummary[],
+  documents: readonly SearchDocumentDescriptor[],
   scope: SearchScope,
 ): SearchResponse {
   const positiveMedicationFacts = response.analysis.facts.filter(
@@ -330,7 +331,7 @@ export function searchResultDocumentKind(
 
 export function rankSearchGroupsByAudience(
   groups: readonly SearchResultGroup[],
-  documents: readonly MedicalDocumentSummary[],
+  documents: readonly SearchDocumentDescriptor[],
   audience: SearchAudience | undefined,
 ): readonly SearchResultGroup[] {
   const documentsById = new Map(documents.map((document) => [document.id, document]));
@@ -403,12 +404,20 @@ export class ScopedMedicalCore implements MedicalCore {
     return this.base.listDocuments();
   }
 
+  public listSearchDocuments(): Promise<
+    Result<readonly SearchDocumentDescriptor[], LocalMedError>
+  > {
+    return this.base.listSearchDocuments
+      ? this.base.listSearchDocuments()
+      : this.base.listDocuments();
+  }
+
   public analyzeQuery(request: AnalyzeQueryRequest): Promise<Result<QueryAnalysis, LocalMedError>> {
     return this.base.analyzeQuery(request);
   }
 
   public async search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
-    const documents = await this.base.listDocuments();
+    const documents = await this.listSearchDocuments();
     if (!documents.ok) return { ok: false, error: documents.error };
 
     const sourceTypes = SOURCE_TYPES_BY_SCOPE[this.scope];

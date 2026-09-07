@@ -31,7 +31,7 @@ export async function installEcgPackage(
   signal: AbortSignal,
   onProgress: (fraction: number) => void,
 ): Promise<void> {
-  return getDownloadQueue().run(
+  await getDownloadQueue().run(
     {
       id: ECG_DOWNLOAD_ID,
       kind: 'ecg',
@@ -45,6 +45,7 @@ export async function installEcgPackage(
       retry: () => installEcgPackage(new AbortController().signal, () => undefined),
     },
   );
+  onProgress(1);
 }
 
 async function installComponents(

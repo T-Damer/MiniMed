@@ -57,7 +57,11 @@ afterEach(() => {
 describe('ReferenceImageResolver', () => {
   it('rejects corrupted image bytes and retries after a failed read', async () => {
     const fixture = await imageFixture();
-    vi.stubGlobal('window', { location: { origin: 'http://localhost' } });
+    vi.stubGlobal('window', {
+      location: { origin: 'http://localhost' },
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
     let corrupt = true;
     const fetchValue = vi.fn(async (input: RequestInfo | URL) => {
       if (String(input).includes('/manifest.json?sha256=')) {
@@ -120,7 +124,11 @@ describe('ReferenceImageResolver', () => {
 
   it('resumes verified files after cancellation, opens them offline, and deletes the download', async () => {
     const fixture = await imageFixture();
-    vi.stubGlobal('window', { location: { origin: 'http://localhost' } });
+    vi.stubGlobal('window', {
+      location: { origin: 'http://localhost' },
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
     const entries = new Map<string, Response>();
     const cache = {
       match: async (key: string) => entries.get(key)?.clone(),

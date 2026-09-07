@@ -133,13 +133,16 @@ async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<v
           });
           // The metadata API consumes headers only. Cancel even a server's ignored-range 200 body.
           await head.body?.cancel();
+          const headers: [string, string][] = [];
+          head.headers.forEach((value, key) => {
+            if (['content-type', 'content-length', 'content-range'].includes(key))
+              headers.push([key, value]);
+          });
           return {
             type: 'asset-response',
             requestId: request.requestId,
             status: head.status,
-            headers: [...head.headers].filter(([key]) =>
-              ['content-type', 'content-length', 'content-range'].includes(key),
-            ),
+            headers,
             bytes: null,
           };
         },

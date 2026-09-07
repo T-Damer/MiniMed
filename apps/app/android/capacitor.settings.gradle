@@ -10,3 +10,6 @@ project(':capacitor-haptics').projectDir = new File('../../../node_modules/@capa
 
 include ':capacitor-local-notifications'
 project(':capacitor-local-notifications').projectDir = new File('../../../node_modules/@capacitor/local-notifications/android')
+
+include ':capgo-capacitor-downloader'
+project(':capgo-capacitor-downloader').projectDir = new File('../../../node_modules/@capgo/capacitor-downloader/android')

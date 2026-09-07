@@ -3,6 +3,7 @@ import type {
   MedicalDocument,
   MedicalDocumentSummary,
   MedicalSection,
+  SearchDocumentDescriptor,
 } from './documents';
 import type { LocalMedError } from './errors';
 import type { Result } from './result';
@@ -59,6 +60,7 @@ export interface MedicalCore {
   initialize(): Promise<Result<CoreStatus, LocalMedError>>;
   getCapabilities(): Promise<Result<CoreCapabilities, LocalMedError>>;
   listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>;
+  listSearchDocuments?(): Promise<Result<readonly SearchDocumentDescriptor[], LocalMedError>>;
   analyzeQuery(request: AnalyzeQueryRequest): Promise<Result<QueryAnalysis, LocalMedError>>;
   search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>>;
   getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>>;

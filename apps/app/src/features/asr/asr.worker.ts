@@ -103,7 +103,7 @@ let assetCounter = 0;
 const originalFetch = env.fetch;
 // Use the library's supported fetch hook, not a global fetch monkey-patch in the application.
 env.fetch = async (input, init) => {
-  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  const url = typeof input === 'string' ? input : input.href;
   const parsed = new URL(url, self.location.href);
   if (parsed.origin !== 'https://huggingface.co') return originalFetch(input, init);
   const modelId = parsed.pathname.match(
@@ -197,7 +197,7 @@ scope.onmessage = (event) => {
       pending.resolve(
         new Response(message.bytes, {
           status: message.status,
-          headers: message.headers.map(([key, value]) => [key, value]),
+          headers: message.headers.map(([key, value]): [string, string] => [key, value]),
         }),
       );
     return;

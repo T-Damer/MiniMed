@@ -38,15 +38,13 @@ describe('APK common queue adapter', () => {
     mocks.queue = new DownloadQueue(3);
     mocks.start.mockReset().mockResolvedValue({ taskId: 'native-task' });
     mocks.cancel.mockReset().mockResolvedValue(undefined);
-    mocks.status
-      .mockReset()
-      .mockResolvedValue({
-        taskId: 'native-task',
-        state: 'ready',
-        downloadedBytes: 100,
-        totalBytes: 100,
-        transportActive: false,
-      });
+    mocks.status.mockReset().mockResolvedValue({
+      taskId: 'native-task',
+      state: 'ready',
+      downloadedBytes: 100,
+      totalBytes: 100,
+      transportActive: false,
+    });
   });
   afterEach(() => vi.useRealTimers());
 

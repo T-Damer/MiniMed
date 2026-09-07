@@ -19,6 +19,8 @@ function asDirectSearchCore(core: MedicalCore): MedicalCore {
       };
     },
     listDocuments: () => core.listDocuments(),
+    listSearchDocuments: () =>
+      core.listSearchDocuments ? core.listSearchDocuments() : core.listDocuments(),
     analyzeQuery: (request) => core.analyzeQuery(request),
     search: (request) => core.search(request),
     getDocument: (documentId) => core.getDocument(documentId),

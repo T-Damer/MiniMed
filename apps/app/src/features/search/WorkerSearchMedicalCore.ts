@@ -14,6 +14,7 @@ import type {
   MedicalSection,
   QueryAnalysis,
   Result,
+  SearchDocumentDescriptor,
   SearchRequest,
   SearchResponse,
   SearchResult,
@@ -105,6 +106,14 @@ export class WorkerSearchMedicalCore implements MedicalCore {
 
   public listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>> {
     return this.base.listDocuments();
+  }
+
+  public listSearchDocuments(): Promise<
+    Result<readonly SearchDocumentDescriptor[], LocalMedError>
+  > {
+    return this.base.listSearchDocuments
+      ? this.base.listSearchDocuments()
+      : this.base.listDocuments();
   }
 
   public async analyzeQuery(

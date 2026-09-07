@@ -321,6 +321,20 @@ function coreWithDocuments(documents: readonly MedicalDocumentSummary[]) {
 }
 
 describe('ScopedMedicalCore', () => {
+  it('uses compact search documents without loading the full catalog', async () => {
+    const base = coreWithDocuments([]);
+    const listSearchDocuments = vi.fn(async () => ({ ok: true as const, value: [] }));
+    Object.assign(base.core, { listSearchDocuments });
+    base.listDocuments.mockImplementation(async () => {
+      throw new Error('Full catalog is not needed');
+    });
+    const result = await new ScopedMedicalCore(base.core, 'all').search(request());
+    expect(result.ok).toBe(true);
+    expect(listSearchDocuments).toHaveBeenCalledOnce();
+    expect(base.listDocuments).not.toHaveBeenCalled();
+    expect(base.search).toHaveBeenCalledOnce();
+  });
+
   const documents = [
     document('guideline', 'clinical_recommendation'),
     document('guideline-summary', 'clinical_recommendation_summary'),

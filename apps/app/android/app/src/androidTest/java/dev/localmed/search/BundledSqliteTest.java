@@ -5,6 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.core.app.ActivityScenario;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.zetetic.database.sqlcipher.SQLiteDatabase;
 import java.io.File;
 import org.junit.Test;
@@ -46,4 +50,31 @@ public class BundledSqliteTest {
             assertEquals(modified, file.lastModified());
         }
     }
+
+    @Test public void fullApplicationReachesSearchAndReturnsResultsWithoutExhaustingTheBridge() throws Exception {
+        try (ActivityScenario<MainActivity> app = ActivityScenario.launch(MainActivity.class)) {
+            awaitWebCondition(app, "Boolean(document.querySelector('[data-testid=search-input]'))");
+            app.onActivity(activity -> activity.getBridge().getWebView().evaluateJavascript(
+                "(() => { const input = document.querySelector('[data-testid=search-input]');"
+                + " input.value = 'астма'; input.dispatchEvent(new Event('input', {bubbles:true})); })()", null));
+            awaitWebCondition(app, "document.querySelectorAll('[data-testid=search-result]').length > 0");
+        }
+    }
+
+    private static void awaitWebCondition(ActivityScenario<MainActivity> app, String condition) throws Exception {
+        long deadline = android.os.SystemClock.elapsedRealtime() + 60_000;
+        while (android.os.SystemClock.elapsedRealtime() < deadline) {
+            AtomicBoolean ready = new AtomicBoolean();
+            CountDownLatch evaluated = new CountDownLatch(1);
+            app.onActivity(activity -> activity.getBridge().getWebView().evaluateJavascript(condition, value -> {
+                ready.set("true".equals(value));
+                evaluated.countDown();
+            }));
+            assertTrue("WebView must respond while opening the full corpus", evaluated.await(5, TimeUnit.SECONDS));
+            if (ready.get()) return;
+            Thread.sleep(200);
+        }
+        fail("Full-corpus app did not reach the expected search state within 60 seconds");
+    }
+
 }

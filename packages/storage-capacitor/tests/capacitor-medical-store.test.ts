@@ -15,7 +15,7 @@ function json(value: unknown): string {
   return result;
 }
 
-function fixtureRow(): NativeSqlRow {
+function fixtureRow() {
   const document = DEMO_CONTENT_PACK.documents.find(
     (item) => item.id === 'kr.demo.pediatrics.pneumonia',
   );
@@ -62,7 +62,7 @@ function fixtureRow(): NativeSqlRow {
     chunk_anchor: chunk.anchor,
     chunk_metadata_json: json(chunk.metadata),
     bm25_rank: -2.5,
-  };
+  } satisfies NativeSqlRow;
 }
 
 function fixtureChunkId(): string {
@@ -95,6 +95,10 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
     if (this.closed) throw new Error('native database is closed');
     this.calls.push(options);
 
+    if (options.sql.includes('current_version_id FROM documents')) {
+      const row = fixtureRow();
+      return { rows: [{ id: row.id, current_version_id: row.version_id }] };
+    }
     if (options.sql.includes('FROM embedding_profiles')) {
       const profile = DEMO_CONTENT_PACK.embeddingProfiles[0];
       if (!profile) throw new Error('Expected a demo embedding profile.');
@@ -145,6 +149,73 @@ function createStore(plugin: FakeNativePlugin): CapacitorMedicalStore {
 }
 
 describe('CapacitorMedicalStore', () => {
+  it('caches ranking fields separately from the full document catalog until close', async () => {
+    const plugin = new FakeNativePlugin();
+    const store = createStore(plugin);
+    await store.initialize();
+    const documents = await store.listSearchDocuments();
+    expect(documents[0]).toEqual({
+      id: fixtureRow().id,
+      sourceType: fixtureRow().source_type,
+      metadata: JSON.parse(String(fixtureRow().metadata_json)),
+    });
+    expect(await store.listSearchDocuments()).toBe(documents);
+    expect(plugin.calls).toHaveLength(1);
+    expect(plugin.calls[0]?.sql).toContain("json_type(metadata_json, '$.notLegalAdvice') = 'true'");
+    expect(plugin.calls[0]?.sql).not.toContain('source_checksum');
+    await store.close();
+    await store.initialize();
+    await store.listSearchDocuments();
+    expect(plugin.calls).toHaveLength(2);
+    await store.close();
+  });
+
+  it('reads document identities without metadata for composition validation', async () => {
+    const plugin = new FakeNativePlugin();
+    const query = vi
+      .spyOn(plugin, 'query')
+      .mockResolvedValue({ rows: [{ id: 'document', current_version_id: 'version' }] });
+    const store = createStore(plugin);
+    await store.initialize();
+    expect(await store.listDocumentIdentities()).toEqual([
+      { id: 'document', versionId: 'version' },
+    ]);
+    expect(query).toHaveBeenCalledWith({
+      sql: 'SELECT id, current_version_id FROM documents ORDER BY title COLLATE NOCASE, id',
+    });
+  });
+
+  it('pages the entire immutable catalog and shares it until the store closes', async () => {
+    const plugin = new FakeNativePlugin();
+    const rows = Array.from({ length: 2050 }, (_, index) => ({
+      ...fixtureRow(),
+      id: `document-${String(index).padStart(4, '0')}`,
+      metadata_json: json({ retained: 'x'.repeat(2048) }),
+    }));
+    const query = vi.spyOn(plugin, 'query').mockImplementation(async (options) => {
+      if (!options.argsJson)
+        return { rows: rows.map((row) => ({ id: row.id, current_version_id: row.version_id })) };
+      const [encodedIds] = JSON.parse(options.argsJson) as [string];
+      const ids = JSON.parse(encodedIds) as string[];
+      expect(ids.length).toBeGreaterThan(0);
+      expect(ids.length).toBeLessThanOrEqual(1024);
+      expect(options.sql).not.toContain('OFFSET');
+      return { rows: rows.filter((row) => ids.includes(row.id)) };
+    });
+    const store = createStore(plugin);
+    await store.initialize();
+    const [first, second] = await Promise.all([store.listDocuments(), store.listDocuments()]);
+    expect(first).toHaveLength(2050);
+    expect(new Set(first.map((row) => row.id)).size).toBe(2050);
+    expect(first.at(-1)?.metadata['retained']).toBe('x'.repeat(2048));
+    expect(second).toBe(first);
+    expect(query).toHaveBeenCalledTimes(4);
+    await store.close();
+    await store.initialize();
+    expect(await store.listDocuments()).toHaveLength(2050);
+    expect(query).toHaveBeenCalledTimes(8);
+  });
+
   it('reports a persistent native SQLite backend', async () => {
     const plugin = new FakeNativePlugin();
     const store = createStore(plugin);

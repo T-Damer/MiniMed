@@ -144,7 +144,8 @@ export class LlamaNativeRuntime implements LocalModelRuntime {
     _profile: LocalModelDeviceProfile,
     callbacks: LocalModelLoadCallbacks,
   ): Promise<LocalModelSession> {
-    if (!artifact.sha256) {
+    const expectedSha256 = artifact.sha256;
+    if (!expectedSha256) {
       throw new Error(
         `${model.name}: у нативного артефакта llama.cpp отсутствует проверочная контрольная сумма SHA-256.`,
       );
@@ -163,7 +164,7 @@ export class LlamaNativeRuntime implements LocalModelRuntime {
           url: artifact.upstreamUrl,
           mirrorUrl,
           fileName: artifact.mirrorPath ?? `${artifact.id}.gguf`,
-          expectedSha256: artifact.sha256,
+          expectedSha256,
           expectedBytes: artifact.downloadBytes,
         });
       const context = callbacks.downloadContext;

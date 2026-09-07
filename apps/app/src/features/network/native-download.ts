@@ -190,17 +190,10 @@ export function createNativeDownloadTransport(
 }
 
 let transport: ReturnType<typeof createNativeDownloadTransport> | undefined;
-let pluginPromise: Promise<AndroidDownloadPlugin> | undefined;
-
-function getPlugin(): Promise<AndroidDownloadPlugin> {
-  pluginPromise ??= import('@capgo/capacitor-downloader').then(
-    ({ CapacitorDownloader }) => CapacitorDownloader as unknown as AndroidDownloadPlugin,
-  );
-  return pluginPromise;
-}
-
+// Await the module, never the Capacitor proxy: its synthetic `then` is a native method.
 async function getTransport(): Promise<ReturnType<typeof createNativeDownloadTransport>> {
-  const plugin = await getPlugin();
+  const { CapacitorDownloader } = await import('@capgo/capacitor-downloader');
+  const plugin = CapacitorDownloader as unknown as AndroidDownloadPlugin;
   const { LocalMedDatabase } = await import('@localmed/storage-capacitor');
   transport ??= createNativeDownloadTransport(plugin, LocalMedDatabase);
   return transport;
@@ -211,7 +204,9 @@ export async function hasRetainedNativeDownload(
   options: ResumableDownloadOptions,
 ): Promise<boolean> {
   try {
-    const status = await (await getPlugin()).checkStatus({ id: await identity(options) });
+    const { CapacitorDownloader } = await import('@capgo/capacitor-downloader');
+    const plugin = CapacitorDownloader as unknown as AndroidDownloadPlugin;
+    const status = await plugin.checkStatus({ id: await identity(options) });
     return [1, 2, 4, 8].includes(status.status);
   } catch (error) {
     if (errorCode(error) === 'NATIVE_DOWNLOAD_NOT_FOUND') return false;

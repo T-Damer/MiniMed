@@ -38,6 +38,7 @@ import type { LexicalHit, MedicalStore, VectorHit } from '@localmed/storage';
 import { isSupersededSummaryDocument } from './document-siblings';
 import {
   groupChunksBySection,
+  metadataStrings,
   toDocumentSummary,
   toMedicalDocument,
   toMedicalSection,
@@ -855,6 +856,24 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       return result;
     },
 
+    async listSearchDocuments() {
+      try {
+        const ready = await ensureInitialized();
+        if (!ready.ok) return err(ready.error);
+        const documents = await (options.store.listSearchDocuments
+          ? options.store.listSearchDocuments()
+          : options.store.listDocuments());
+        return ok(
+          documents.map((document) => ({
+            ...document,
+            ageGroups: metadataStrings(document.metadata, 'ageGroups'),
+          })),
+        );
+      } catch (error) {
+        return err(asLocalMedError(error));
+      }
+    },
+
     async analyzeQuery(untrustedRequest): Promise<Result<QueryAnalysis, LocalMedError>> {
       const parsed = AnalyzeQueryRequestSchema.safeParse(untrustedRequest);
       if (!parsed.success) {
@@ -917,7 +936,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
         const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 
-        const documents = await options.store.listDocuments();
+        const documents = await (options.store.listSearchDocuments
+          ? options.store.listSearchDocuments()
+          : options.store.listDocuments());
         const exactAliasDocumentIds = new Set(
           documents
             .filter((document) => matchesDocumentAlias(parsed.data.query, document))

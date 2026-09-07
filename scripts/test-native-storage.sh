@@ -23,7 +23,7 @@ adb shell svc data disable
 adb logcat -c
 adb shell am instrument -w -r -e class dev.localmed.search.BundledSqliteTest,dev.localmed.search.NativeDownloaderTest dev.localmed.search.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/native-device/instrumentation.txt
 adb logcat -d -s MiniMedSqliteTest:I MiniMedDownloadTest:I LocalMedDatabase:I > /tmp/native-device/native-timings.txt
-grep -F 'OK (3 tests)' /tmp/native-device/instrumentation.txt
+grep -F 'OK (4 tests)' /tmp/native-device/instrumentation.txt
 adb shell am force-stop dev.localmed.search
 adb shell am start -W -n dev.localmed.search/.MainActivity
 sleep 45

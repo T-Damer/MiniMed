@@ -42,7 +42,11 @@ afterEach(() => {
 describe('Android core first launch', () => {
   it('waits for the download action, forwards progress, and reuses an installed core offline', async () => {
     vi.spyOn(Capacitor, 'getPlatform').mockReturnValue('android');
-    vi.stubGlobal('window', { location: { href: 'http://localhost/' } });
+    vi.stubGlobal('window', {
+      location: { href: 'http://localhost/' },
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
     vi.stubGlobal(
       'fetch',
       vi.fn(

@@ -5,6 +5,7 @@ import type {
   LexicalHit,
   LexicalSearchRequest,
   MedicalStore,
+  SearchDocumentDescriptor,
   StorageHealth,
   VectorHit,
   VectorSearchRequest,
@@ -192,6 +193,17 @@ export class MultiMedicalStore implements MedicalStore {
       .toSorted((left, right) => left.title.localeCompare(right.title));
   }
 
+  public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
+    this.assertInitialized();
+    return (
+      await Promise.all(
+        this.activeMounts().map(({ store }) =>
+          store.listSearchDocuments ? store.listSearchDocuments() : store.listDocuments(),
+        ),
+      )
+    ).flat();
+  }
+
   public async getDocument(id: string): Promise<DocumentRecord | null> {
     return this.firstMatch((store) => store.getDocument(id));
   }
@@ -333,15 +345,24 @@ export class MultiMedicalStore implements MedicalStore {
 
     const documentIds = new Set<string>();
     const versionIds = new Set<string>();
-    for (const documents of await Promise.all(active.map((mount) => mount.store.listDocuments()))) {
+    for (const documents of await Promise.all(
+      active.map(async ({ store }) =>
+        store.listDocumentIdentities
+          ? store.listDocumentIdentities()
+          : (await store.listDocuments()).map((document) => ({
+              id: document.id,
+              versionId: document.version.id,
+            })),
+      ),
+    )) {
       for (const document of documents) {
         if (documentIds.has(document.id))
           throw new Error(`Duplicate active document ID: ${document.id}`);
-        if (versionIds.has(document.version.id)) {
-          throw new Error(`Duplicate active document-version ID: ${document.version.id}`);
+        if (versionIds.has(document.versionId)) {
+          throw new Error(`Duplicate active document-version ID: ${document.versionId}`);
         }
         documentIds.add(document.id);
-        versionIds.add(document.version.id);
+        versionIds.add(document.versionId);
       }
     }
 

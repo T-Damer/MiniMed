@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 6 September 2026
+> Updated: 7 September 2026
 > Repository version: `0.6.34`
 > Active target: `0.6.34` public prerelease toward `1.0`
 
@@ -8,6 +8,28 @@ This file records what exists now and the next ordered work. The target architec
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
+
+
+### Android startup recovery and bounded catalog reads — PR #164, 7 September 2026
+
+- Native download loading awaits the module rather than the Capacitor proxy, whose synthetic `then`
+  method stalled startup before first-download consent. The existing transport and verified install
+  remain; a real 490 MiB core download completed, including a background interval, on an API 36 emulator.
+- Cross-pack validation reads document/version identities. Native search reads compact ranking,
+  audience and content-kind metadata through an optional core/store projection, with full-record
+  fallback for other implementations. Scoped and worker views preserve this projection. Full catalog
+  reads retain every record and metadata field, use cached 1,024-row pages, and finish before close.
+- Search renders before the full catalog used for inline links is loaded. Duplicate identity/version
+  checks, source aliases, age groups, pointer classification and ranking metadata remain intact.
+- With the verified 19,987-document core, offline ARM64 emulator starts without concurrent test load
+  reached navigation in 0.53–0.61 s and search readiness in 3.14–4.49 s from WebView time origin
+  (about 3.9–5.1 s from the launch command). One first query rendered in 6.34 s; catalog and alias
+  initialization still make the first query slower. The original full-catalog bridge response caused
+  a Java heap OOM; the fixed app passes a real launch-and-search instrumentation regression.
+- Local checks pass: 2,782 JavaScript tests, 233 Python tests, strict type checks, lint, builds,
+  retrieval benchmarks, native source checks, Android JVM tests, four Android instrumentation tests
+  and seven targeted browser scenarios. These are emulator observations, not physical-device, iOS,
+  process-eviction or release qualification. No private corpus regeneration was needed.
 
 ### Unified download admission and presentation — draft PR #164
 
