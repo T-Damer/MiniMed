@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 2,
+  "id": "body-surface-area-mosteller",
+  "slug": "body-surface-area-mosteller",
+  "title": "Площадь поверхности тела — Mosteller",
+  "shortTitle": "ППТ Mosteller",
+  "aliases": ["площадь поверхности тела", "ППТ", "BSA", "Mosteller"],
+  "summary": "ППТ по росту и массе с отображением исходной формулы и промежуточных шагов.",
+  "audience": "all",
+  "category": "anthropometry",
+  "clinical": true,
+  "formulaDisplay": "Mosteller, 1987: BSA = √((рост, см × масса, кг) / 3600)",
+  "population": "Пациенты с известными ростом и массой; возраст отдельно не используется.",
+  "limitations": [
+    "Результат является оценкой, а не измерением.",
+    "Протокол или инструкция могут требовать другую формулу ППТ."
+  ],
+  "inputs": [
+    {
+      "id": "heightCm",
+      "label": "Рост",
+      "unit": "см",
+      "kind": "number",
+      "minimum": 1,
+      "maximum": 260,
+      "required": true,
+      "step": 0,
+      "patientBinding": {
+        "kind": "latestObservation",
+        "metricId": "body-height",
+        "unit": "см",
+        "maxAgeDays": 365
+      }
+    },
+    {
+      "id": "weightKg",
+      "label": "Масса",
+      "unit": "кг",
+      "kind": "number",
+      "minimum": 0.1,
+      "maximum": 500,
+      "required": true,
+      "step": 0,
+      "patientBinding": {
+        "kind": "latestObservation",
+        "metricId": "body-mass",
+        "unit": "кг",
+        "maxAgeDays": 365
+      }
+    }
+  ],
+  "steps": [
+    {
+      "id": "product",
+      "label": "Произведение роста и массы",
+      "unit": "см·кг",
+      "expression": "heightCm * weightKg",
+      "displayPrecision": 0,
+      "isOutput": false,
+      "valueKind": "number",
+      "stepRequired": 0
+    },
+    {
+      "id": "ratio",
+      "label": "Деление на 3600",
+      "unit": "м⁴",
+      "expression": "product / 3600",
+      "displayPrecision": 4,
+      "isOutput": false,
+      "valueKind": "number",
+      "stepRequired": 0
+    },
+    {
+      "id": "bsa",
+      "label": "Площадь поверхности тела",
+      "unit": "м²",
+      "expression": "sqrt(ratio)",
+      "displayPrecision": 2,
+      "isOutput": true,
+      "valueKind": "number",
+      "stepRequired": 0
+    }
+  ],
+  "warnings": [
+    {
+      "code": "formula-estimate",
+      "message": "Это расчётная площадь поверхности тела. Для дозирования и протоколов используйте именно формулу, указанную в соответствующем источнике."
+    }
+  ],
+  "interpretations": [],
+  "assertions": [],
+  "sources": [
+    {
+      "title": "Simplified calculation of body-surface area",
+      "publisher": "New England Journal of Medicine / PubMed",
+      "version": "Mosteller 1987",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/3657876/",
+      "reviewedAt": "2026-08-03"
+    }
+  ],
+  "evaluation": {
+    "status": "unavailable",
+    "rules": [],
+    "missingContext": [],
+    "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+    "sourceIds": ["body-surface-area-mosteller-mosteller-1987"]
+  },
+  "observationMappings": [
+    {
+      "metricId": "body-surface-area-mosteller.bsa",
+      "label": "Площадь поверхности тела",
+      "unit": "м²",
+      "stepId": "bsa",
+      "method": "calculator:body-surface-area-mosteller"
+    }
+  ]
+}

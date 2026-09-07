@@ -9,6 +9,30 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### Landing presentation and lightweight demos — 7 September 2026
+
+- Landing uses the app's primary paper-theme tokens, grain, and dark-theme palette. Its interactive
+  showcase sits below «Оффлайн медицинский справочник», above Android/browser actions; the browser
+  action reads «Открыть». The page omits the version label and installation footnote.
+- Search filters three verbatim snapshots from the bundled core database and opens their original
+  chunks in native modal dialogs. Snapshots preserve document/chunk IDs, anchors, version labels,
+  source checksums and links. Clinical summaries and the medication registry record remain labelled
+  accurately instead of being presented as full official documents.
+- The Mosteller body-surface-area demo evaluates the selected source schema's arithmetic steps and
+  input bounds. The complete two-question Whooley demo uses the source questions, response options,
+  interpretation bands, intended population and disclaimer. Checks cover known calculations,
+  invalid input, both screening outcomes and exact schema parity. Inputs stay in page memory.
+- Five small preview slices each for MRI/CT derive from the repository's anonymized 3D Slicer samples;
+  source acknowledgements and licenses accompany them. No full readers, volumes, app runtime,
+  or complete tool-module bundles are delivered to the landing browser.
+- The showcase advances after 30 seconds without pointer movement, clicks, typing, scrolling, or
+  focus changes; each advance starts a new 30-second interval. The hint and playback controls are
+  omitted. Modal reading and background tabs suspend advances; reduced motion disables autoplay
+  and decorative animations. Returning to the page starts a fresh idle interval.
+- Quiet interaction sounds reuse the installed `uisfx` zen pack and start enabled. Browser audio
+  starts on interaction; an immediately available button mutes it. Selected Phosphor SVGs are
+  vendored with their MIT license. No content-pack or native behavior changed.
+
 
 ### Android startup recovery and bounded catalog reads — PR #164, 7 September 2026
 

@@ -1,0 +1,88 @@
+{
+  "id": "minimed.assessment.whooley",
+  "slug": "perinatal-mood-whooley",
+  "title": "Скрининг настроения Whooley (2 вопроса)",
+  "shortTitle": "Скрининг Whooley",
+  "aliases": [
+    "Whooley questions",
+    "вопросы Whooley",
+    "краткий скрининг депрессии",
+    "скрининг настроения"
+  ],
+  "bankId": "obstetrics",
+  "bankLabel": "Акушерство и гинекология",
+  "category": "perinatal-mood",
+  "description": "Сверхкороткий скрининг из двух вопросов для быстрой первичной оценки сниженного настроения во время беременности и после родов.",
+  "estimatedMinutes": 1,
+  "audience": "Женщины в период беременности и в первый год после родов",
+  "responseOptions": [
+    {
+      "value": 0,
+      "label": "Нет"
+    },
+    {
+      "value": 1,
+      "label": "Да"
+    }
+  ],
+  "scales": [
+    {
+      "id": "whooley-total",
+      "label": "Результат скрининга Whooley",
+      "shortLabel": "Whooley",
+      "description": "Положительный ответ хотя бы на один из двух вопросов — положительный скрининг."
+    }
+  ],
+  "questions": [
+    {
+      "id": "perinatal-mood-whooley-01",
+      "scaleId": "whooley-total",
+      "prompt": "За последний месяц вас часто беспокоило подавленное настроение, тоска или чувство безнадёжности?"
+    },
+    {
+      "id": "perinatal-mood-whooley-02",
+      "scaleId": "whooley-total",
+      "prompt": "За последний месяц вас часто беспокоило заметно сниженное чувство интереса или удовольствия от дел?"
+    }
+  ],
+  "interpretations": [
+    {
+      "minScore": 1,
+      "maxScore": 2,
+      "scaleId": "whooley-total",
+      "headline": "Положительный результат скрининга",
+      "message": "Положительный ответ хотя бы на один вопрос — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента или консультации специалиста."
+    },
+    {
+      "minScore": 0,
+      "maxScore": 0,
+      "scaleId": "whooley-total",
+      "headline": "Отрицательный результат скрининга",
+      "message": "Отрицательные ответы на оба вопроса связаны с низкой вероятностью текущего депрессивного эпизода, но не исключают его полностью."
+    }
+  ],
+  "disclaimer": "Это сверхкороткий скрининг, а не диагноз. Положительный результат — повод для более подробного разговора и, при необходимости, развёрнутого инструмента (например, EPDS) или консультации специалиста.",
+  "evidenceNote": "Соответствует двум валидированным «вопросам Whooley» (Whooley M.A. et al., 1997) — короткому скринингу депрессии, широко используемому как первый шаг перед более развёрнутыми инструментами.",
+  "license": {
+    "kind": "public-domain-derived",
+    "notice": "Whooley M.A., Avins A.L., Miranda J., Browner W.S. Case-finding instruments for depression: two questions as good as many. J Gen Intern Med. 1997;12(7):439–445. Инструмент опубликован в открытой научной литературе и широко воспроизводится без ограничений в клинической и скрининговой практике.",
+    "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1497134/"
+  },
+  "schemaVersion": 2,
+  "evaluation": {
+    "status": "unavailable",
+    "rules": [],
+    "missingContext": [],
+    "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
+    "sourceIds": ["perinatal-mood-whooley-perinatal-mood-whooley"]
+  },
+  "observationMappings": [
+    {
+      "metricId": "minimed.assessment.whooley.whooley-total",
+      "label": "Результат скрининга Whooley",
+      "unit": "баллы",
+      "scaleId": "whooley-total",
+      "method": "assessment:minimed.assessment.whooley"
+    }
+  ]
+}

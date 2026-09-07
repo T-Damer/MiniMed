@@ -1,0 +1,64 @@
+---
+// biome-ignore lint/correctness/noUnusedImports: Astro template data.
+import calculator from '../data/calculator.json';
+// biome-ignore lint/correctness/noUnusedImports: Astro template data.
+import questionnaire from '../data/questionnaire.json';
+import searchCards from '../data/searchCards.json';
+
+// biome-ignore lint/correctness/noUnusedVariables: Astro template data.
+const cards = searchCards.cards;
+---
+
+<section class="contents" id="capabilities" aria-label="Попробуйте возможности MiniMed">
+  <div class="showcase" data-showcase>
+    <div data-sound="select" class="showcase__controls" role="group" aria-label="Выберите пример">
+      <button data-sound="select" class="showcase__control showcase__control--active" type="button" aria-pressed="true" aria-controls="feature-search" data-feature="search"><img class="showcase__icon" src="./icons/magnifying-glass.svg" alt="" width="24" height="24" /><span>Поиск</span></button>
+      <button data-sound="select" class="showcase__control" type="button" aria-pressed="false" aria-controls="feature-library" data-feature="library"><img class="showcase__icon" src="./icons/books.svg" alt="" width="24" height="24" /><span>Библиотека</span></button>
+      <button data-sound="select" class="showcase__control" type="button" aria-pressed="false" aria-controls="feature-tools" data-feature="tools"><img class="showcase__icon" src="./icons/calculator.svg" alt="" width="24" height="24" /><span>Калькулятор</span></button>
+      <button data-sound="select" class="showcase__control" type="button" aria-pressed="false" aria-controls="feature-imaging" data-feature="imaging"><img class="showcase__icon" src="./icons/scan.svg" alt="" width="24" height="24" /><span>МРТ / КТ</span></button>
+      <button data-sound="select" class="showcase__control" type="button" aria-pressed="false" aria-controls="feature-survey" data-feature="survey"><img class="showcase__icon" src="./icons/note-pencil.svg" alt="" width="24" height="24" /><span>Опрос</span></button>
+    </div>
+    <div class="showcase__stage">
+      <section class="showcase-panel" id="feature-search" data-feature-panel="search" aria-label="Пример поиска">
+        <label class="demo__label" for="demo-query">Поиск по трём примерам</label>
+        <div class="demo__search"><img class="demo__search-icon" src="./icons/magnifying-glass.svg" alt="" width="20" height="20" /><input class="demo__input demo__input--search" id="demo-query" type="search" value="пневмония" placeholder="Название документа или препарата" autocomplete="off" maxlength="120" data-demo-query /></div>
+        <div class="demo__suggestions" role="group" aria-label="Примеры запросов">{cards.map((card) => (<button class="demo__chip" type="button" data-sound="select" data-demo-query-value={card.query}>{card.query}</button>))}</div>
+        <div class="demo__results" aria-live="polite">
+          {cards.map((card, index) => (<article class="demo-result" data-demo-record={`${card.title} ${card.query}`} hidden={index !== 0}><span class="demo-result__kind">{card.label}</span><h3 class="demo-result__title">{card.title}</h3><p class="demo-result__copy">{card.chunks[0]?.text}</p><button class="demo__chip demo-result__open" type="button" data-sound="open" data-demo-open={`card-${index}`}>Открыть карточку ↗</button></article>))}
+          <p class="demo__note" data-demo-empty hidden>В этих трёх карточках совпадений нет. Попробуйте запрос выше.</p>
+        </div>
+        {cards.map((card, index) => (<dialog class="card-dialog" id={`card-${index}`} aria-labelledby={`card-title-${index}`}><div class="card-dialog__top"><span class="demo__caption">{card.label}</span><form method="dialog"><button class="demo__chip card-dialog__close" type="submit" aria-label="Закрыть карточку" title="Закрыть"><img class="card-dialog__close-icon" src="./icons/x.svg" alt="" width="24" height="24" /></button></form></div><h2 class="card-dialog__title" id={`card-title-${index}`}>{card.title}</h2><p class="demo__note">Скопировано из базы MiniMed · {card.version}</p>{card.chunks.map((chunk) => (<section class="card-dialog__section"><h3 class="card-dialog__heading">{chunk.title}</h3><p class="card-dialog__text">{chunk.text}</p></section>))}<a class="text-link" href={card.sourceUrl} target="_blank" rel="noreferrer">Официальный источник ↗</a></dialog>))}
+      </section>
+      <section class="showcase-panel" id="feature-library" data-feature-panel="library" aria-label="Библиотека" hidden>
+        <h3 class="showcase-panel__title">Документы и свои книги</h3><p class="showcase-panel__copy">Выбирайте нужные модули или добавляйте книги EPUB и FB2.</p>
+        <ul class="showcase-panel__items"><li class="showcase-panel__item">744 модуля клинических рекомендаций</li><li class="showcase-panel__item">21 медицинский раздел</li><li class="showcase-panel__item">Оглавление, поиск и выделения</li><li class="showcase-panel__item">Личные заметки и напоминания</li></ul>
+      </section>
+      <section class="showcase-panel" id="feature-tools" data-feature-panel="tools" aria-label="Пример калькулятора" hidden>
+        <p class="demo__caption">Клинический калькулятор</p><h3 class="showcase-panel__title">{calculator.title}</h3>
+        <div class="demo__fields demo__fields--pair">{calculator.inputs.map((input, index) => (<label class="demo__field"><span class="demo__label">{input.label}, {input.unit}</span><input class="demo__input" type="number" min={input.minimum} max={input.maximum} step="any" value={index === 0 ? 170 : 65} inputmode="decimal" data-demo-calculator-input={input.id} /></label>))}</div>
+        <output class="demo__result" aria-live="polite" data-demo-calculator-result>1,75 м²</output>
+        <p class="demo__note">{calculator.formulaDisplay}</p>
+        <ol class="calculator-demo__steps">{calculator.steps.map((step) => (<li class="calculator-demo__step">{step.label}: <output data-demo-calculator-step={step.id}>—</output> {step.unit}</li>))}</ol>
+        <p class="demo__note">{calculator.limitations.join(' ')}</p>
+      </section>
+      <section class="showcase-panel" id="feature-imaging" data-feature-panel="imaging" aria-label="Пример просмотра МРТ и КТ" hidden>
+        <div class="image-demo">
+          <div class="image-demo__canvas"><img class="image-demo__image" src="./examples/mri-3.png" width="192" height="192" alt="Демонстрационный срез МРТ головы, 3 из 5" loading="lazy" data-demo-image /></div>
+          <div class="image-demo__controls"><p class="demo__caption">Попробуйте сменить срез</p><div class="demo__suggestions" role="group" aria-label="Тип исследования"><button class="demo__chip demo__chip--selected" type="button" data-sound="select" aria-pressed="true" data-demo-modality="mri">МРТ</button><button class="demo__chip" type="button" data-sound="select" aria-pressed="false" data-demo-modality="ct">КТ</button></div><label class="demo__label" for="demo-slice">Срез <output data-demo-slice-label>3 / 5</output></label><input class="image-demo__range" id="demo-slice" type="range" min="1" max="5" value="3" step="1" data-demo-slice /><p class="demo__note">Пять срезов из учебного примера. В приложении можно открыть исследование DICOM или NIfTI, добавить пометки и выбрать снимки для печати.</p></div>
+        </div>
+      </section>
+      <section class="showcase-panel" id="feature-survey" data-feature-panel="survey" aria-label="Пример заполнения опроса" hidden>
+        <p class="demo__caption">Опрос за одну минуту</p><h3 class="showcase-panel__title">{questionnaire.title}</h3>
+        <p class="demo__note">{questionnaire.audience}. Ответьте на оба вопроса.</p>
+        <form class="survey-demo" data-demo-survey>
+          {questionnaire.questions.map((question, index) => (
+            <fieldset class="survey-demo__question" tabindex="-1" data-demo-question hidden={index !== 0}><legend class="survey-demo__prompt">{question.prompt}</legend><div class="survey-demo__options">{questionnaire.responseOptions.map((option) => (<label class="survey-demo__option"><input class="survey-demo__radio" type="radio" data-sound="select" name={question.id} value={option.value} /><span>{option.label}</span></label>))}</div></fieldset>
+          ))}
+          <div class="survey-demo__navigation"><button class="demo__chip" type="button" data-sound="select" data-demo-survey-back disabled>Назад</button><span class="demo__note" aria-live="polite" data-demo-survey-progress>Вопрос 1 из 2</span><button class="demo__chip" type="button" data-sound="select" data-demo-survey-next disabled>Далее</button></div>
+          <div class="survey-demo__result" aria-live="polite" data-demo-survey-complete hidden><h4 class="survey-demo__result-title" data-demo-survey-headline></h4><p class="demo__note" data-demo-survey-message></p></div>
+          <p class="demo__note">{questionnaire.disclaimer}</p><a class="text-link demo__source" href={questionnaire.license.sourceUrl} target="_blank" rel="noreferrer">Whooley et al., 1997 ↗</a>
+        </form>
+      </section>
+    </div>
+  </div>
+</section>

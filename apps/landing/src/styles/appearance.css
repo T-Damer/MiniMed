@@ -1,0 +1,150 @@
+.landing {
+  --landing-icon-filter: none;
+  --landing-button-icon-filter: invert(1);
+}
+
+.landing--dark {
+  color-scheme: dark;
+  color: var(--theme-text);
+  background: var(--theme-background);
+  --theme-background: #211b17;
+  --theme-surface: #2d2721;
+  --theme-surface-raised: #372e26;
+  --theme-surface-muted: #251f1a;
+  --theme-border: #594735;
+  --theme-text: #dfc7a8;
+  --theme-text-muted: #b89b78;
+  --theme-text-faint: #b69776;
+  --theme-accent: #82a88d;
+  --theme-accent-contrast: #1c1712;
+  --theme-accent-soft: rgb(130 168 141 / 15%);
+  --theme-link: #9bc7a7;
+  --theme-search-surface: #243029;
+  --theme-search-surface-muted: #2c3a31;
+  --theme-floating-surface: #456452;
+  --theme-floating-border: #78947f;
+  --theme-floating-text: #fff9e8;
+  --theme-danger: #d98578;
+  --theme-kicker: #d98578;
+  --theme-personal: #925a78;
+  --theme-personal-soft: color-mix(in srgb, #925a78 14%, var(--theme-surface));
+  --theme-personal-contrast: #f6eef5;
+  --theme-warning: #f0cd71;
+  --theme-warning-soft: color-mix(in srgb, #f0cd71 42%, #372e26);
+  --theme-info: #91c4e4;
+  --theme-info-soft: rgb(145 196 228 / 16%);
+  --theme-note: #302d25;
+  --theme-graph-stroke: #c4a882;
+  --theme-control-hover-shadow:
+    inset 0 0.05rem 0 rgb(255 255 255 / 8%), inset 0 -0.08rem 0 rgb(0 0 0 / 14%),
+    0 0.16rem 0.3rem rgb(0 0 0 / 32%), 0 0.5rem 1rem rgb(0 0 0 / 24%);
+  --theme-card-hover-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 6%), 0 0.125rem 0.3rem rgb(0 0 0 / 22%),
+    0 1.5rem 3rem rgb(0 0 0 / 40%);
+  --folder: #2e261f;
+  --folder-light: #342c23;
+  --folder-dark: #2a241e;
+  --desk: var(--theme-background);
+  --desk-dark: #16120d;
+  --stamp-faded: rgb(217 133 120 / 15%);
+  --shadow-paper:
+    0 1px 0 rgb(255 255 255 / 5%) inset, 0 0.25rem 0.75rem rgb(0 0 0 / 20%),
+    0 1.375rem 2.875rem rgb(0 0 0 / 30%);
+  --shadow-folder: 0 0.25rem 0.75rem rgb(0 0 0 / 24%), 0 1.625rem 4.0625rem rgb(0 0 0 / 38%);
+  --page-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.27' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='luminanceToAlpha'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  --masked-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='luminanceToAlpha'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.62'/%3E%3C/svg%3E");
+  --landing-icon-filter: invert(0.85) sepia(0.3);
+  --landing-button-icon-filter: none;
+}
+
+.sheet__settings {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sound-toggle__icon,
+.showcase__icon,
+.button__icon {
+  filter: var(--landing-icon-filter);
+}
+
+.button__icon--light {
+  filter: var(--landing-button-icon-filter);
+}
+
+.intro {
+  padding: 1.25rem 0 1.5rem;
+}
+
+.intro__title {
+  font-size: clamp(3rem, 7vw, 4.25rem);
+}
+
+.intro__description {
+  margin: 0.75rem 0 0;
+}
+
+.contents {
+  margin-top: 0;
+}
+
+.access {
+  margin-top: 2rem;
+}
+
+.showcase-panel {
+  animation: page-turn 300ms ease-out;
+}
+
+@keyframes page-turn {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) rotate(-0.4deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+}
+
+.button,
+.demo__chip,
+.showcase__control,
+.intro__mark {
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.button:active,
+.demo__chip:active,
+.showcase__control:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover,
+  .demo__chip:hover,
+  .showcase__control:hover {
+    transform: translateY(-0.125rem);
+  }
+
+  .intro__mark:hover {
+    transform: rotate(-8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-panel {
+    animation: none;
+  }
+  .button,
+  .demo__chip,
+  .showcase__control,
+  .intro__mark {
+    transition: none;
+    transform: none;
+  }
+}
