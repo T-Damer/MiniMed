@@ -18,7 +18,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Cross-pack validation reads document/version identities. Native and WASM SQLite read compact ranking,
   audience and content-kind metadata through an optional core/store projection, with full-record
   fallback for other implementations. OPFS forwards these reads to its existing worker owner; scoped
-  and search-worker views preserve the projection. Full catalog
+  and search-worker views preserve the projection. Core reuses the search projection until
+  reinitialization or close, retries failed reads, and shares concurrent reads. Full catalog
   reads retain every record and metadata field, use cached 1,024-row pages, and finish before close.
 - Search renders before the full catalog used for inline links is loaded. Duplicate identity/version
   checks, source aliases, age groups, pointer classification and ranking metadata remain intact.
@@ -30,7 +31,10 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 - Local checks pass: 2,783 JavaScript tests, 233 Python tests, strict type checks, lint, builds,
   retrieval benchmarks, native source checks, Android JVM tests, four Android instrumentation tests
   and seven targeted browser scenarios. These are emulator observations, not physical-device, iOS,
-  process-eviction or release qualification. No private corpus regeneration was needed.
+  process-eviction or release qualification. CI uses Lavapipe after a host SwiftShader crash;
+  cold native integrity validation took 100 s there, so its startup wait is 180 s. Browser
+  full-corpus result assertions allow 60 s while retaining their content checks.
+  No private corpus regeneration was needed.
 
 ### Unified download admission and presentation — draft PR #164
 

@@ -55,6 +55,7 @@ async function hideBuiltInRegulatoryPack(page: Page): Promise<void> {
 test('installs a regulatory dataset, searches it live, and removes it without reload', async ({
   page,
 }) => {
+  test.setTimeout(240_000);
   const [catalog, database] = await Promise.all([
     readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
     readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
@@ -88,7 +89,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
   await mountBuiltApp(page, { persistentOrigin: true });
   await page.getByTestId('search-input').fill(REGULATORY_QUERY);
   await page.getByTestId('search-submit').click();
-  await expect(page.getByTestId('search-results')).toBeVisible();
+  await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 60_000 });
   await navigationButton(page, 'База знаний').click();
   await regulatorySection(page).click();
 
@@ -110,6 +111,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
     .filter({ hasText: REGULATORY_QUERY });
   await expect(installedOrder.locator('.result-group-header__kind-label')).toHaveText(
     'Нормативный акт',
+    { timeout: 60_000 },
   );
   await expect(page.locator('.error-card')).toHaveCount(0);
 
@@ -130,7 +132,7 @@ test('installs a regulatory dataset, searches it live, and removes it without re
       .getByTestId('search-results')
       .getByText(/Пневмония/u)
       .first(),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 60_000 });
 });
 
 test('shows the real download state and resumes automatically when the network returns', async ({

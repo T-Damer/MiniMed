@@ -544,6 +544,7 @@ describe('MedicalCore', () => {
       .spyOn(store, 'listDocuments')
       .mockRejectedValue(new Error('Full catalog should not be read'));
 
+    await core.initialize();
     const compact = await core.listSearchDocuments?.();
     expect(compact?.ok).toBe(true);
     const result = await core.search(request);
@@ -554,8 +555,17 @@ describe('MedicalCore', () => {
       expect(result.value.groups.length).toBeGreaterThan(0);
       expect(result.value.groups).toEqual(baseline.value.groups);
     }
-    expect(listSearchDocuments).toHaveBeenCalledTimes(2);
+    expect(listSearchDocuments).toHaveBeenCalledTimes(1);
     expect(listDocuments).not.toHaveBeenCalled();
+
+    await core.initialize();
+    await Promise.all([core.listSearchDocuments?.(), core.listSearchDocuments?.()]);
+    expect(listSearchDocuments).toHaveBeenCalledTimes(2);
+    await core.close();
+    listSearchDocuments.mockRejectedValueOnce(new Error('Transient catalog read failure'));
+    expect((await core.listSearchDocuments?.())?.ok).toBe(false);
+    expect((await core.listSearchDocuments?.())?.ok).toBe(true);
+    expect(listSearchDocuments).toHaveBeenCalledTimes(4);
   });
 
   it('shares concurrent document-list reads', async () => {

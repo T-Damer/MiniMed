@@ -2,6 +2,7 @@ import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { E2E_ASSET_ORIGIN, hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
 
+// These assertions qualify full-corpus results on CI; latency is measured by benchmarks.
 const query = 'пневмония';
 
 // Routes stay mounted to preserve search state, so assertions must target the active results container
@@ -136,7 +137,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(page.getByTestId('search-input')).toBeVisible();
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
-  await expect(pneumoniaResult(page)).toBeVisible();
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('.result-group-header__kind-label').first()).toHaveText(
     'Клиническая рекомендация',
   );
@@ -247,7 +248,7 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
-  await expect(pneumoniaResult(page)).toBeVisible();
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
   await page.getByTestId('search-results').getByTestId('search-result').first().click();
   await expect(page.getByTestId('reader-context')).toBeVisible();
   await page.getByRole('button', { name: 'Открыть полный документ' }).click();
@@ -294,7 +295,7 @@ test('renders the complete virtualized document list', async ({ page }) => {
   await page.getByTestId('search-submit').click();
 
   const groups = page.locator('.result-group');
-  await expect.poll(() => groups.count(), { timeout: 15_000 }).toBeGreaterThan(0);
+  await expect.poll(() => groups.count(), { timeout: 60_000 }).toBeGreaterThan(0);
   await expect(page.getByRole('button', { name: /Показать ещё/u })).toHaveCount(0);
 });
 
@@ -302,7 +303,7 @@ test('preserves the active search while navigating between mounted routes', asyn
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
-  await expect(pneumoniaResult(page)).toBeVisible();
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 
   await navigationButton(page, 'База знаний').click();
   await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible();
@@ -464,7 +465,7 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 30_000 });
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 
   // History now lives behind a floating button so the search view stays compact.
   await page.getByRole('button', { name: 'Показать историю поиска' }).click();
@@ -479,13 +480,13 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await expect(page.getByTestId('search-input')).toHaveValue(query);
   await expect(page.locator('.search-mode-picker--single')).toHaveText('Свободный поиск');
   await expect(page.getByRole('radio')).toHaveCount(0);
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 30_000 });
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 });
 
 test('runs a debounced clinical search without requiring submit', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 15_000 });
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 });
 
 test('autosearch leaves the typed text untouched, including trailing space', async ({ page }) => {
@@ -493,7 +494,7 @@ test('autosearch leaves the typed text untouched, including trailing space', asy
   // The debounced search used to write the trimmed query back into the field, deleting the space a
   // doctor had just typed mid-sentence.
   await page.getByTestId('search-input').fill(`${query} `);
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 15_000 });
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId('search-input')).toHaveValue(`${query} `);
 });
 
@@ -513,7 +514,7 @@ test('filters the document library and opens a document with one click', async (
 test('opens only the exact fragment without surrounding source context', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 15_000 });
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
   await page.getByTestId('search-results').getByTestId('search-result').first().click();
   await expect(page.locator('.source-paragraph')).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Показать текст вокруг' })).toHaveCount(0);

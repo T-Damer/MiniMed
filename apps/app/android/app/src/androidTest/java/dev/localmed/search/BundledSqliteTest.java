@@ -53,16 +53,19 @@ public class BundledSqliteTest {
 
     @Test public void fullApplicationReachesSearchAndReturnsResultsWithoutExhaustingTheBridge() throws Exception {
         try (ActivityScenario<MainActivity> app = ActivityScenario.launch(MainActivity.class)) {
-            awaitWebCondition(app, "Boolean(document.querySelector('[data-testid=search-input]'))");
+            // Cold integrity validation of the 490 MiB corpus takes about 100 s on the CI emulator.
+            long start = android.os.SystemClock.elapsedRealtime();
+            awaitWebCondition(app, "Boolean(document.querySelector('[data-testid=search-input]'))", 180_000);
+            Log.i("MiniMedSqliteTest", "appReadyMs=" + (android.os.SystemClock.elapsedRealtime() - start));
             app.onActivity(activity -> activity.getBridge().getWebView().evaluateJavascript(
                 "(() => { const input = document.querySelector('[data-testid=search-input]');"
                 + " input.value = 'астма'; input.dispatchEvent(new Event('input', {bubbles:true})); })()", null));
-            awaitWebCondition(app, "document.querySelectorAll('[data-testid=search-result]').length > 0");
+            awaitWebCondition(app, "document.querySelectorAll('[data-testid=search-result]').length > 0", 60_000);
         }
     }
 
-    private static void awaitWebCondition(ActivityScenario<MainActivity> app, String condition) throws Exception {
-        long deadline = android.os.SystemClock.elapsedRealtime() + 60_000;
+    private static void awaitWebCondition(ActivityScenario<MainActivity> app, String condition, long timeoutMs) throws Exception {
+        long deadline = android.os.SystemClock.elapsedRealtime() + timeoutMs;
         while (android.os.SystemClock.elapsedRealtime() < deadline) {
             AtomicBoolean ready = new AtomicBoolean();
             CountDownLatch evaluated = new CountDownLatch(1);
@@ -74,7 +77,7 @@ public class BundledSqliteTest {
             if (ready.get()) return;
             Thread.sleep(200);
         }
-        fail("Full-corpus app did not reach the expected search state within 60 seconds");
+        fail("Full-corpus app did not reach " + condition + " within " + timeoutMs + " ms");
     }
 
 }

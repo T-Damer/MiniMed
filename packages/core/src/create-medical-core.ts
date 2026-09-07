@@ -33,7 +33,12 @@ import {
   tokenize,
 } from '@localmed/search-lexical';
 import { profilesCompatible, type QueryEmbedder } from '@localmed/search-semantic';
-import type { LexicalHit, MedicalStore, VectorHit } from '@localmed/storage';
+import type {
+  LexicalHit,
+  MedicalStore,
+  SearchDocumentDescriptor,
+  VectorHit,
+} from '@localmed/storage';
 
 import { isSupersededSummaryDocument } from './document-siblings';
 import {
@@ -696,6 +701,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   const seed = options.seed === undefined ? undefined : ContentPackSeedSchema.parse(options.seed);
   let initialized = false;
   let aliasesPromise: Promise<Result<MedicalAliasRecords, LocalMedError>> | undefined;
+  let searchDocumentsPromise: Promise<readonly SearchDocumentDescriptor[]> | undefined;
   let documentSummariesPromise:
     | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
     | undefined;
@@ -704,6 +710,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     try {
       aliasesPromise = undefined;
       documentSummariesPromise = undefined;
+      searchDocumentsPromise = undefined;
       const health = await options.store.initialize(seed);
       initialized = true;
       return ok({
@@ -732,6 +739,18 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       }
     }
     return initialize();
+  };
+
+  const getSearchDocuments = (): Promise<readonly SearchDocumentDescriptor[]> => {
+    searchDocumentsPromise ??= (
+      options.store.listSearchDocuments
+        ? options.store.listSearchDocuments()
+        : options.store.listDocuments()
+    ).catch((error: unknown) => {
+      searchDocumentsPromise = undefined;
+      throw error;
+    });
+    return searchDocumentsPromise;
   };
 
   const getAliases = async (): Promise<
@@ -860,9 +879,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       try {
         const ready = await ensureInitialized();
         if (!ready.ok) return err(ready.error);
-        const documents = await (options.store.listSearchDocuments
-          ? options.store.listSearchDocuments()
-          : options.store.listDocuments());
+        const documents = await getSearchDocuments();
         return ok(
           documents.map((document) => ({
             ...document,
@@ -936,9 +953,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
         const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 
-        const documents = await (options.store.listSearchDocuments
-          ? options.store.listSearchDocuments()
-          : options.store.listDocuments());
+        const documents = await getSearchDocuments();
         const exactAliasDocumentIds = new Set(
           documents
             .filter((document) => matchesDocumentAlias(parsed.data.query, document))
@@ -1155,6 +1170,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       initialized = false;
       aliasesPromise = undefined;
       documentSummariesPromise = undefined;
+      searchDocumentsPromise = undefined;
     },
   };
 }
