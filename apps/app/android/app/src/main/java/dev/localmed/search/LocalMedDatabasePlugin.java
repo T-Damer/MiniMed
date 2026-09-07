@@ -1,9 +1,14 @@
 package dev.localmed.search;
 
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import net.zetetic.database.sqlcipher.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.database.sqlite.SQLiteException;
 import android.util.Base64;
+import android.util.Log;
+import android.os.SystemClock;
+import android.system.Os;
+import android.system.StructStat;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -11,15 +16,12 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.concurrent.Executors;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -40,6 +42,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
 
     private final Object databaseLock = new Object();
     private SQLiteDatabase database;
+    private final java.util.concurrent.ExecutorService openExecutor = Executors.newSingleThreadExecutor();
 
     @PluginMethod
     public void hasCorePack(PluginCall call) {
@@ -57,26 +60,86 @@ public final class LocalMedDatabasePlugin extends Plugin {
         }
     }
 
+    /** Only app-owned opaque IDs are accepted; never accept a caller-controlled file path. */
+    private File downloadStage(String id) throws IOException {
+        if (id == null || !id.matches("[a-f0-9]{64}")) {
+            throw new IOException("Invalid download identifier.");
+        }
+        File external = getContext().getExternalFilesDir(null);
+        if (external == null) throw new IOException("Download storage is unavailable.");
+        File directory = new File(external, "minimed-downloads");
+        ensureDirectory(directory);
+        File stage = new File(directory, id + ".part");
+        if (!directory.getCanonicalFile().getParentFile().equals(external.getCanonicalFile())
+            || !stage.getCanonicalFile().getParentFile().equals(directory.getCanonicalFile())) {
+            throw new IOException("Download path escapes its staging directory.");
+        }
+        return stage;
+    }
+
     @PluginMethod
-    public void downloadCorePack(PluginCall call) {
+    public void prepareNativeDownload(PluginCall call) {
+        try {
+            String id = call.getString("id");
+            File stage = downloadStage(id);
+            JSObject result = new JSObject();
+            result.put("destination", "minimed-downloads/" + id + ".part");
+            result.put("filePath", stage.getAbsolutePath());
+            call.resolve(result);
+        } catch (IOException error) {
+            call.reject("Не удалось подготовить файл загрузки.", "NATIVE_DOWNLOAD_STORAGE_FAILED");
+        }
+    }
+
+    @PluginMethod
+    public void inspectNativeDownload(PluginCall call) {
+        try {
+            File stage = downloadStage(call.getString("id"));
+            if (!stage.isFile()) throw new IOException("Download file is absent.");
+            JSObject result = new JSObject();
+            result.put("filePath", stage.getAbsolutePath());
+            result.put("sizeBytes", stage.length());
+            call.resolve(result);
+        } catch (IOException error) {
+            call.reject("Скачанный файл недоступен.", "NATIVE_DOWNLOAD_STORAGE_FAILED");
+        }
+    }
+
+    @PluginMethod
+    public void installDownloadedCore(PluginCall call) {
         String checksum = normalizeChecksum(call.getString("expectedSha256"));
         if (checksum == null || !checksum.matches("[a-f0-9]{64}")) {
             call.reject("A valid core checksum is required.");
             return;
         }
-        var executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
+        openExecutor.execute(() -> {
             synchronized (databaseLock) {
                 try {
+                    if (database != null && database.isOpen()) {
+                        throw new IOException("Close the active database before replacement.");
+                    }
+                    File stage = downloadStage(call.getString("id"));
                     File directory = new File(getContext().getFilesDir(), "localmed/content");
                     ensureDirectory(directory);
-                    installAssetIfNeeded(null, new File(directory, "core.db"),
-                        new File(directory, "core.db.sha256"), checksum);
+                    File target = new File(directory, "core.db");
+                    File marker = new File(directory, "core.db.sha256");
+                    if (new File(directory, "core.db.backup").exists()) {
+                        deleteIfExists(validationMarker(target));
+                    }
+                    recoverInterruptedInstall(target, new File(directory, "core.db.backup"), marker, checksum);
+                    try (InputStream input = new FileInputStream(stage)) {
+                        VerifiedPackFiles.install(input, target, marker, validationMarker(target), checksum, phase -> {
+                            JSObject progress = new JSObject();
+                            progress.put("loaded", stage.length());
+                            progress.put("total", stage.length());
+                            progress.put("phase", phase);
+                            notifyListeners("coreDownloadProgress", progress);
+                        });
+                    }
                     call.resolve();
                 } catch (Exception error) {
-                    call.reject("Не удалось скачать ядро: " + safeMessage(error));
-                } finally {
-                    executor.shutdown();
+                    // Do not turn transport completion into installation success on validation failure.
+                    call.reject("Не удалось проверить или установить ядро.", "NATIVE_CORE_INSTALL_FAILED");
                 }
             }
         });
@@ -96,53 +159,141 @@ public final class LocalMedDatabasePlugin extends Plugin {
             call.reject("Invalid packaged database file name.");
             return;
         }
-        if (expectedSha256 == null || expectedSha256.length() != 64) {
+        if (expectedSha256 == null || !expectedSha256.matches("[a-f0-9]{64}")) {
             call.reject("A SHA-256 checksum is required for the packaged database.");
             return;
         }
 
-        synchronized (databaseLock) {
-            try {
-                closeDatabase();
-                File directory = new File(getContext().getFilesDir(), "localmed/content");
-                ensureDirectory(directory);
-                File target = new File(directory, databaseName);
-                File checksumMarker = new File(directory, databaseName + ".sha256");
-                boolean copied = installAssetIfNeeded(assetPath, target, checksumMarker, expectedSha256);
-
-                SQLiteDatabase opened = SQLiteDatabase.openDatabase(
-                    target.getAbsolutePath(),
-                    null,
-                    SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS
-                );
-                database = opened;
-
-                String integrity = scalarString("PRAGMA quick_check");
-                if (!"ok".equalsIgnoreCase(integrity)) {
-                    throw new SQLiteException("Packaged database integrity check failed: " + integrity);
+        // JS awaits actual completion and cleanup; it must not race an uncancellable timeout.
+        openExecutor.execute(() -> {
+            synchronized (databaseLock) {
+                JSObject timings = new JSObject();
+                long started = SystemClock.elapsedRealtime();
+                long phaseStarted = started;
+                String phase = "capabilities";
+                File validationMarker = null;
+                File checksumMarker = null;
+                try {
+                    closeDatabase();
+                    // Probe the bundled runtime, not the 490 MiB pack, before touching its bytes.
+                    String sqliteVersion = probeRuntimeFts5();
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    phase = "installedFile";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    File directory = new File(getContext().getFilesDir(), "localmed/content");
+                    ensureDirectory(directory);
+                    File target = new File(directory, databaseName);
+                    checksumMarker = new File(directory, databaseName + ".sha256");
+                    validationMarker = validationMarker(target);
+                    boolean copied = installAssetIfNeeded(assetPath, target, checksumMarker, expectedSha256);
+                    String identity = validationIdentity(target, expectedSha256, sqliteVersion);
+                    boolean verified = identity.equals(readMarker(validationMarker));
+                    if (!verified && !expectedSha256.equals(sha256(target))) {
+                        throw new PackValidationException("Installed database checksum mismatch.");
+                    }
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    phase = "sqliteOpen";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    database = NativePackDatabase.openReadOnly(target);
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    phase = "integrity";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    if (!verified) {
+                        String integrity = scalarString("PRAGMA quick_check");
+                        if (!"ok".equalsIgnoreCase(integrity)) {
+                            throw new PackValidationException("Packaged database integrity check failed.");
+                        }
+                    }
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    timings.put("integrityCached", verified);
+                    phase = "metadata";
+                    phaseStarted = SystemClock.elapsedRealtime();
+                    if (!probeFts5()) {
+                        throw new PackValidationException("The installed pack FTS5 index cannot be queried.");
+                    }
+                    JSObject result = new JSObject();
+                    result.put("schemaVersion", scalarLong(
+                        "SELECT CAST(value AS INTEGER) FROM app_metadata WHERE key = 'schema_version'"
+                    ));
+                    result.put("sqliteVersion", sqliteVersion);
+                    result.put("fts5Available", true);
+                    result.put("contentPackIds", contentPackIds());
+                    result.put("documentCount", scalarLong("SELECT count(*) FROM documents"));
+                    result.put("databasePath", target.getAbsolutePath());
+                    result.put("copied", copied);
+                    result.put("sizeBytes", target.length());
+                    if (!identity.equals(validationIdentity(target, expectedSha256, sqliteVersion))) {
+                        throw new PackValidationException("Installed database changed while opening.");
+                    }
+                    if (!verified) writeMarker(validationMarker, identity);
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    timings.put("totalMs", SystemClock.elapsedRealtime() - started);
+                    result.put("openTimings", timings);
+                    Log.i("LocalMedDatabase", "openPack success " + timings);
+                    call.resolve(result);
+                } catch (Exception | LinkageError error) {
+                    closeDatabase();
+                    if (validationMarker != null) deleteBestEffort(validationMarker);
+                    boolean invalidPack = error instanceof PackValidationException
+                        || error instanceof SQLiteDatabaseCorruptException;
+                    if (invalidPack && checksumMarker != null) {
+                        // Retain rejected bytes until a verified replacement is committed.
+                        try {
+                            deleteIfExists(checksumMarker);
+                        } catch (IOException cleanupError) {
+                            error.addSuppressed(cleanupError);
+                            Log.w("LocalMedDatabase", "Unable to invalidate the installation marker.");
+                        }
+                    }
+                    timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
+                    timings.put("failedPhase", phase);
+                    timings.put("totalMs", SystemClock.elapsedRealtime() - started);
+                    Log.w("LocalMedDatabase", "openPack failed " + timings);
+                    call.reject("Unable to open the packaged LocalMed database: " + safeMessage(error),
+                        invalidPack ? "NATIVE_PACK_VALIDATION_FAILED"
+                            : "capabilities".equals(phase) ? "NATIVE_SQLITE_UNSUPPORTED" : "NATIVE_PACK_OPEN_FAILED");
                 }
-                boolean fts5Available = probeFts5();
-                if (!fts5Available) {
-                    throw new SQLiteException("The system SQLite runtime cannot query the FTS5 index.");
-                }
+            }
+        });
+    }
 
-                JSObject result = new JSObject();
-                result.put("schemaVersion", scalarLong(
-                    "SELECT CAST(value AS INTEGER) FROM app_metadata WHERE key = 'schema_version'"
-                ));
-                result.put("sqliteVersion", scalarString("SELECT sqlite_version()"));
-                result.put("fts5Available", true);
-                result.put("contentPackIds", contentPackIds());
-                result.put("documentCount", scalarLong("SELECT count(*) FROM documents"));
-                result.put("databasePath", target.getAbsolutePath());
-                result.put("copied", copied);
-                result.put("sizeBytes", target.length());
-                call.resolve(result);
-            } catch (Exception error) {
-                closeDatabase();
-                call.reject("Unable to open the packaged LocalMed database: " + safeMessage(error));
+    private static final class PackValidationException extends IOException {
+        PackValidationException(String message) { super(message); }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        openExecutor.execute(() -> {
+            synchronized (databaseLock) { closeDatabase(); }
+        });
+        openExecutor.shutdown();
+    }
+
+    private static String probeRuntimeFts5() {
+        NativePackDatabase.ensureLoaded();
+        try (SQLiteDatabase probe = SQLiteDatabase.create(null)) {
+            probe.execSQL("CREATE VIRTUAL TABLE runtime_probe USING fts5(value)");
+            try (Cursor cursor = probe.rawQuery(
+                "SELECT count(*) FROM runtime_probe WHERE runtime_probe MATCH 'localmed'", null
+            )) {
+                if (!cursor.moveToFirst()) throw new SQLiteException("FTS5 probe returned no row.");
+            }
+            try (Cursor cursor = probe.rawQuery("SELECT sqlite_version()", null)) {
+                if (!cursor.moveToFirst()) throw new SQLiteException("SQLite version is unavailable.");
+                return cursor.getString(0);
             }
         }
+    }
+
+    private static File validationMarker(File target) {
+        return new File(target.getParentFile(), target.getName() + ".validated");
+    }
+
+    private static String validationIdentity(File target, String checksum, String sqliteVersion)
+        throws android.system.ErrnoException {
+        StructStat stat = Os.stat(target.getAbsolutePath());
+        return PackValidationIdentity.create(checksum, sqliteVersion, stat.st_dev, stat.st_ino,
+            stat.st_ctime, target.lastModified(), target.length());
     }
 
     @PluginMethod
@@ -152,10 +303,8 @@ public final class LocalMedDatabasePlugin extends Plugin {
             call.reject("Only a single read-only SELECT or WITH query is allowed.");
             return;
         }
-
         String argsJson = call.getString("argsJson");
         if (argsJson == null) argsJson = "[]";
-
         synchronized (databaseLock) {
             try {
                 SQLiteDatabase opened = requireDatabase();
@@ -165,7 +314,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     Object value = arguments.get(index);
                     selectionArgs[index] = value == JSONObject.NULL ? null : String.valueOf(value);
                 }
-
                 JSArray rows = new JSArray();
                 try (Cursor cursor = opened.rawQuery(sql, selectionArgs)) {
                     String[] columnNames = cursor.getColumnNames();
@@ -196,7 +344,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
         Integer requestedLimit = call.getInt("limit");
         JSArray documentIds = call.getArray("documentIds");
         JSArray sectionTypes = call.getArray("sectionTypes");
-
         if (profileId == null || profileId.isEmpty()) {
             call.reject("An embedding profile id is required.");
             return;
@@ -209,7 +356,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
             call.reject("A positive finite query-vector norm is required.");
             return;
         }
-
         final byte[] queryVector;
         try {
             queryVector = Base64.decode(vectorBase64, Base64.DEFAULT);
@@ -222,7 +368,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
             return;
         }
         int limit = Math.max(1, Math.min(requestedLimit == null ? 50 : requestedLimit, 500));
-
         synchronized (databaseLock) {
             try {
                 SQLiteDatabase opened = requireDatabase();
@@ -232,7 +377,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                 args.add(profileId);
                 appendInFilter(clauses, args, "d.id", documentIds);
                 appendInFilter(clauses, args, "s.section_type", sectionTypes);
-
                 String sql =
                     "SELECT ce.chunk_id, ce.vector, ce.vector_norm " +
                     "FROM chunk_embeddings ce " +
@@ -241,7 +385,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     "JOIN document_versions dv ON dv.id = c.document_version_id " +
                     "JOIN documents d ON d.id = dv.document_id " +
                     "WHERE " + String.join(" AND ", clauses);
-
                 List<VectorHit> hits = new ArrayList<>();
                 try (Cursor cursor = opened.rawQuery(sql, args.toArray(new String[0]))) {
                     while (cursor.moveToNext()) {
@@ -258,7 +401,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
                         hits.add(new VectorHit(cursor.getString(0), Math.max(-1.0, Math.min(1.0, score))));
                     }
                 }
-
                 Collections.sort(hits, (left, right) -> {
                     int scoreOrder = Double.compare(right.score, left.score);
                     return scoreOrder != 0 ? scoreOrder : left.chunkId.compareTo(right.chunkId);
@@ -290,102 +432,21 @@ public final class LocalMedDatabasePlugin extends Plugin {
         }
     }
 
-    private boolean installAssetIfNeeded(
-        String assetPath,
-        File target,
-        File checksumMarker,
-        String expectedSha256
-    ) throws IOException, NoSuchAlgorithmException {
-        File temporary = new File(target.getParentFile(), target.getName() + ".tmp");
+    private boolean installAssetIfNeeded(String assetPath, File target, File checksumMarker,
+        String expectedSha256) throws IOException, NoSuchAlgorithmException {
         File backup = new File(target.getParentFile(), target.getName() + ".backup");
+        if (backup.exists()) deleteIfExists(validationMarker(target));
         recoverInterruptedInstall(target, backup, checksumMarker, expectedSha256);
-
         String installedChecksum = readMarker(checksumMarker);
         if (target.isFile() && expectedSha256.equals(installedChecksum)) return false;
-
-        deleteIfExists(temporary);
-        HttpURLConnection connection = null;
-        if (assetPath == null) {
-            connection = (HttpURLConnection) new URL(
-                "https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db").openConnection();
-            connection.setConnectTimeout(30_000);
-            connection.setReadTimeout(60_000);
-            if (connection.getResponseCode() != 200) {
-                int status = connection.getResponseCode();
-                connection.disconnect();
-                throw new IOException("Core download HTTP " + status);
-            }
+        try (InputStream source = getContext().getAssets().open(assetPath)) {
+            VerifiedPackFiles.install(source, target, checksumMarker, validationMarker(target), expectedSha256);
         }
-        long total = connection == null ? 0 : connection.getContentLengthLong();
-        try (
-            InputStream source = new BufferedInputStream(connection == null
-                ? getContext().getAssets().open(assetPath) : connection.getInputStream());
-            BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(temporary))
-        ) {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int read;
-            long loaded = 0;
-            long lastUpdate = 0;
-            while ((read = source.read(buffer)) >= 0) {
-                if (read > 0) {
-                    output.write(buffer, 0, read);
-                    loaded += read;
-                    if (connection != null && loaded - lastUpdate >= 1024 * 1024) {
-                        JSObject progress = new JSObject();
-                        progress.put("loaded", loaded);
-                        progress.put("total", total);
-                        notifyListeners("coreDownloadProgress", progress);
-                        lastUpdate = loaded;
-                    }
-                }
-            }
-        } catch (IOException error) {
-            deleteBestEffort(temporary);
-            throw error;
-        } finally {
-            if (connection != null) connection.disconnect();
-        }
-
-        String actualSha256 = sha256(temporary);
-        if (!expectedSha256.equals(actualSha256)) {
-            deleteIfExists(temporary);
-            throw new IOException("Packaged database checksum mismatch.");
-        }
-
-        boolean hadPreviousPack = target.isFile();
-        if (hadPreviousPack && !target.renameTo(backup)) {
-            deleteIfExists(temporary);
-            throw new IOException("Unable to preserve the previous packaged database.");
-        }
-
-        try {
-            if (!temporary.renameTo(target)) {
-                throw new IOException("Unable to atomically install the packaged database.");
-            }
-            writeMarker(checksumMarker, expectedSha256);
-        } catch (IOException error) {
-            deleteBestEffort(target);
-            if (hadPreviousPack && backup.isFile() && !backup.renameTo(target)) {
-                throw new IOException(
-                    "Pack installation failed and the previous database could not be restored.",
-                    error
-                );
-            }
-            throw error;
-        } finally {
-            deleteBestEffort(temporary);
-        }
-
-        deleteBestEffort(backup);
         return true;
     }
 
-    private static void recoverInterruptedInstall(
-        File target,
-        File backup,
-        File checksumMarker,
-        String expectedSha256
-    ) throws IOException {
+    private static void recoverInterruptedInstall(File target, File backup, File checksumMarker,
+        String expectedSha256) throws IOException {
         if (!target.exists() && backup.isFile()) {
             if (!backup.renameTo(target)) {
                 throw new IOException("Unable to restore an interrupted packaged database update.");
@@ -393,25 +454,19 @@ public final class LocalMedDatabasePlugin extends Plugin {
             return;
         }
         if (!target.exists() || !backup.exists()) return;
-
         String installedChecksum = readMarker(checksumMarker);
         if (expectedSha256.equals(installedChecksum)) {
             deleteIfExists(backup);
             return;
         }
-
         deleteIfExists(target);
         if (!backup.renameTo(target)) {
             throw new IOException("Unable to restore the previous packaged database after interruption.");
         }
     }
 
-    private static void appendInFilter(
-        List<String> clauses,
-        List<String> arguments,
-        String column,
-        JSArray values
-    ) throws JSONException {
+    private static void appendInFilter(List<String> clauses, List<String> arguments, String column,
+        JSArray values) throws JSONException {
         if (values == null || values.length() == 0) return;
         StringBuilder placeholders = new StringBuilder();
         for (int index = 0; index < values.length(); index++) {
@@ -427,7 +482,6 @@ public final class LocalMedDatabasePlugin extends Plugin {
     private static final class VectorHit {
         final String chunkId;
         final double score;
-
         VectorHit(String chunkId, double score) {
             this.chunkId = chunkId;
             this.score = score;
@@ -436,9 +490,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
 
     private boolean probeFts5() {
         try (Cursor cursor = requireDatabase().rawQuery(
-            "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH ?",
-            new String[] { "localmed" }
-        )) {
+            "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH ?", new String[] { "localmed" })) {
             return cursor.moveToFirst();
         } catch (SQLiteException error) {
             return false;
@@ -506,11 +558,8 @@ public final class LocalMedDatabasePlugin extends Plugin {
     }
 
     private static boolean isSafeAssetPath(String assetPath) {
-        return assetPath != null
-            && assetPath.startsWith("public/content/")
-            && !assetPath.contains("..")
-            && !assetPath.contains("\\")
-            && assetPath.length() <= 240;
+        return assetPath != null && assetPath.startsWith("public/content/")
+            && !assetPath.contains("..") && !assetPath.contains("\\") && assetPath.length() <= 240;
     }
 
     private static boolean isReadOnlyQuery(String sql) {
@@ -559,19 +608,25 @@ public final class LocalMedDatabasePlugin extends Plugin {
     private static String readMarker(File marker) throws IOException {
         if (!marker.isFile()) return null;
         try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(marker))) {
-            byte[] bytes = new byte[(int) Math.min(marker.length(), 256L)];
+            byte[] bytes = new byte[(int) Math.min(marker.length(), 1024L)];
             int read = input.read(bytes);
             return read <= 0 ? null : new String(bytes, 0, read, StandardCharsets.US_ASCII).trim();
         }
     }
 
     private static void writeMarker(File marker, String checksum) throws IOException {
-        try (FileOutputStream output = new FileOutputStream(marker, false)) {
+        File temporary = new File(marker.getParentFile(), marker.getName() + ".tmp");
+        try (FileOutputStream output = new FileOutputStream(temporary, false)) {
             output.write((checksum + "\n").getBytes(StandardCharsets.US_ASCII));
+            output.getFD().sync();
+        }
+        if (!temporary.renameTo(marker)) {
+            deleteBestEffort(temporary);
+            throw new IOException("Unable to commit database verification marker.");
         }
     }
 
-    private static String safeMessage(Exception error) {
+    private static String safeMessage(Throwable error) {
         String message = error.getMessage();
         return message == null || message.trim().isEmpty() ? error.getClass().getSimpleName() : message;
     }

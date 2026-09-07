@@ -12,14 +12,22 @@ import {
   shouldOpenPackagedWasmCompanion,
 } from '@/composition/create-browser-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
+import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
 
 vi.mock('@localmed/storage-capacitor', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@localmed/storage-capacitor')>()),
   LocalMedDatabase: {
     hasCorePack: vi.fn(),
-    downloadCorePack: vi.fn(),
+    installDownloadedCore: vi.fn(),
     addListener: vi.fn(),
   },
+}));
+
+vi.mock('@/features/network/download-retry', () => ({
+  hasRetainedFileDownload: vi.fn(async () => false),
+  downloadFileWithRetry: vi.fn(async (_options, consume) =>
+    consume({ id: 'a'.repeat(64), filePath: '/stage', sizeBytes: 512 }),
+  ),
 }));
 
 function store(): MedicalStore {
@@ -34,7 +42,11 @@ afterEach(() => {
 describe('Android core first launch', () => {
   it('waits for the download action, forwards progress, and reuses an installed core offline', async () => {
     vi.spyOn(Capacitor, 'getPlatform').mockReturnValue('android');
-    vi.stubGlobal('window', { location: { href: 'http://localhost/' } });
+    vi.stubGlobal('window', {
+      location: { href: 'http://localhost/' },
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
     vi.stubGlobal(
       'fetch',
       vi.fn(
@@ -59,7 +71,7 @@ describe('Android core first launch', () => {
       listener({ loaded: 128, total: 512 });
       return { remove };
     });
-    vi.mocked(LocalMedDatabase.downloadCorePack).mockResolvedValue();
+    vi.mocked(LocalMedDatabase.installDownloadedCore).mockResolvedValue();
     let start: (() => void) | undefined;
     const requestDownload = vi.fn(
       () =>
@@ -69,21 +81,32 @@ describe('Android core first launch', () => {
     );
     const pending = createNativeStore({ requestDownload, onProgress });
     await vi.waitFor(() => expect(requestDownload).toHaveBeenCalledOnce());
-    expect(LocalMedDatabase.downloadCorePack).not.toHaveBeenCalled();
+    expect(LocalMedDatabase.installDownloadedCore).not.toHaveBeenCalled();
     start?.();
     await pending;
-    expect(LocalMedDatabase.downloadCorePack).toHaveBeenCalledOnce();
+    expect(LocalMedDatabase.installDownloadedCore).toHaveBeenCalledOnce();
     expect(onProgress).toHaveBeenCalledWith({ loaded: 128, total: 512 });
+    expect(LocalMedDatabase.installDownloadedCore).toHaveBeenCalledWith({
+      expectedSha256: `sha256:${'a'.repeat(64)}`,
+      id: 'a'.repeat(64),
+    });
+    expect(downloadFileWithRetry).toHaveBeenCalledOnce();
+    expect(requestDownload).toHaveBeenCalledWith(false);
     expect(remove).toHaveBeenCalledOnce();
     vi.mocked(LocalMedDatabase.hasCorePack).mockResolvedValue({ installed: true });
     await createNativeStore({ requestDownload, onProgress });
     expect(requestDownload).toHaveBeenCalledOnce();
-    expect(LocalMedDatabase.downloadCorePack).toHaveBeenCalledOnce();
+    expect(LocalMedDatabase.installDownloadedCore).toHaveBeenCalledOnce();
     vi.mocked(LocalMedDatabase.hasCorePack).mockResolvedValue({ installed: false });
-    vi.mocked(LocalMedDatabase.downloadCorePack).mockRejectedValue(new Error('checksum mismatch'));
-    await expect(
-      createNativeStore({ requestDownload: async () => undefined, onProgress }),
-    ).rejects.toThrow('checksum mismatch');
+    vi.mocked(hasRetainedFileDownload).mockResolvedValue(true);
+    vi.mocked(LocalMedDatabase.installDownloadedCore).mockRejectedValue(
+      new Error('checksum mismatch'),
+    );
+    const resume = vi.fn(async () => undefined);
+    await expect(createNativeStore({ requestDownload: resume, onProgress })).rejects.toThrow(
+      'checksum mismatch',
+    );
+    expect(resume).toHaveBeenCalledWith(true);
     expect(remove).toHaveBeenCalledTimes(2);
   });
 });
@@ -161,38 +184,62 @@ describe('createRequiredWebCoreStore', () => {
     expect(open).not.toHaveBeenCalled();
   });
 
-  it('moves an unexpectedly large GET response to OPFS through a revoked Blob URL', async () => {
-    const buffer = new ArrayBuffer(SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1);
-    new Uint8Array(buffer).set(new TextEncoder().encode('SQLite format 3\u0000'));
-    const opfsStore = store();
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(null))
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        arrayBuffer: async () => buffer,
-      } as Response);
-    vi.stubGlobal('fetch', fetchMock);
-    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:minimed-core');
-    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+  it.each([null, '0', 'invalid'])(
+    'streams a core of unknown size (%s) directly in its OPFS owner',
+    async (length) => {
+      const fetchMock = vi.fn(
+        async () =>
+          new Response(null, {
+            headers: length === null ? {} : { 'Content-Length': length },
+          }),
+      );
+      vi.stubGlobal('fetch', fetchMock);
+      const open = vi
+        .spyOn(WorkerOpfsMedicalStore, 'open')
+        .mockResolvedValue(store() as WorkerOpfsMedicalStore);
+      const createFromBytes = vi.spyOn(SqliteMedicalStore, 'createFromBytes');
+      await createRequiredWebCoreStore('https://example.test/app/');
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(open).toHaveBeenCalledWith(
+        expect.objectContaining({ url: 'https://example.test/app/content/core.db' }),
+      );
+      expect(createFromBytes).not.toHaveBeenCalled();
+    },
+  );
+
+  it('cancels an oversized GET despite a small HEAD and gives the original URL to OPFS', async () => {
+    const cancel = vi.fn();
+    const response = new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new Uint8Array(SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1));
+        },
+        cancel,
+      }),
+    );
+    const arrayBuffer = vi.spyOn(response, 'arrayBuffer');
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(null, {
+            headers: { 'Content-Length': '32' },
+          }),
+        )
+        .mockResolvedValueOnce(response),
+    );
     const open = vi
       .spyOn(WorkerOpfsMedicalStore, 'open')
-      .mockResolvedValue(opfsStore as WorkerOpfsMedicalStore);
-    const createFromBytes = vi.spyOn(SqliteMedicalStore, 'createFromBytes');
-
-    const result = await createRequiredWebCoreStore('https://example.test/app/');
-
-    expect(result).toBe(opfsStore);
-    expect(createObjectUrl).toHaveBeenCalledOnce();
-    expect(open).toHaveBeenCalledWith({
-      url: 'blob:minimed-core',
-      databaseName: 'core.db',
-      fetchTimeoutMs: 180_000,
-      poolName: 'minimed-sah-core',
-    });
-    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:minimed-core');
-    expect(createFromBytes).not.toHaveBeenCalled();
+      .mockResolvedValue(store() as WorkerOpfsMedicalStore);
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL');
+    await createRequiredWebCoreStore('https://example.test/app/');
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(arrayBuffer).not.toHaveBeenCalled();
+    expect(createObjectUrl).not.toHaveBeenCalled();
+    expect(open).toHaveBeenCalledWith(
+      expect.objectContaining({ url: 'https://example.test/app/content/core.db' }),
+    );
   });
 
   it('rejects a required core whose GET response is not SQLite', async () => {

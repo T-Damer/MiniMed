@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ContentModuleCatalogEntrySchema,
   ContentModuleCatalogSchema,
+  hasDownloadableModuleIndex,
 } from '../src/content-modules';
 
 const digest = `sha256:${'a'.repeat(64)}`;
@@ -182,5 +183,56 @@ describe('content module catalog contracts', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe('downloadable index eligibility', () => {
+  const index = {
+    id: 'index',
+    kind: 'index' as const,
+    required: true,
+    compression: 'none' as const,
+    url: 'https://example.test/index.db',
+    sha256: artifactDigest,
+    sizeBytes: 128,
+    sourceSetDigest: digest,
+  };
+  const prepared = { ...moduleFixture(), artifacts: [index] };
+  it('requires one required checksummed index of the declared source set', () => {
+    expect(hasDownloadableModuleIndex(prepared)).toBe(true);
+    expect(hasDownloadableModuleIndex({ ...prepared, artifacts: [] })).toBe(false);
+    expect(
+      hasDownloadableModuleIndex({ ...prepared, artifacts: [index, { ...index, id: 'other' }] }),
+    ).toBe(false);
+    expect(
+      hasDownloadableModuleIndex({ ...prepared, artifacts: [{ ...index, required: false }] }),
+    ).toBe(false);
+    expect(hasDownloadableModuleIndex({ ...prepared, artifacts: [{ ...index, url: null }] })).toBe(
+      false,
+    );
+    expect(
+      hasDownloadableModuleIndex({ ...prepared, artifacts: [{ ...index, sha256: null }] }),
+    ).toBe(false);
+    expect(hasDownloadableModuleIndex({ ...prepared, sourceSetDigest: artifactDigest })).toBe(
+      false,
+    );
+  });
+  it('keeps unbuilt previews as discovery metadata, not downloadable releases', () => {
+    const preview = { ...moduleFixture(), releaseState: 'preview' as const };
+    expect(ContentModuleCatalogEntrySchema.safeParse(preview).success).toBe(true);
+    expect(hasDownloadableModuleIndex(preview)).toBe(false);
+    expect(
+      ContentModuleCatalogEntrySchema.safeParse({ ...preview, releaseState: 'published' }).success,
+    ).toBe(false);
+  });
+  it('rejects missing mandatory source artifacts without requiring optional sources', () => {
+    const source = { ...index, id: 'source', kind: 'source-assets' as const, url: null };
+    expect(hasDownloadableModuleIndex({ ...prepared, artifacts: [index, source] })).toBe(false);
+    expect(
+      hasDownloadableModuleIndex({
+        ...prepared,
+        artifacts: [index, { ...source, required: false }],
+      }),
+    ).toBe(true);
   });
 });

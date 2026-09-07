@@ -5,6 +5,8 @@ export type OpfsPackWorkerMethod =
   | 'initialize'
   | 'getHealth'
   | 'inspectIntegrity'
+  | 'listDocumentIdentities'
+  | 'listSearchDocuments'
   | 'listDocuments'
   | 'getDocument'
   | 'getDocumentByVersionId'
@@ -51,6 +53,8 @@ export type OpfsPackWorkerCallArgs = {
   readonly initialize: readonly [seed?: ContentPackSeed];
   readonly getHealth: readonly [];
   readonly inspectIntegrity: readonly [];
+  readonly listDocumentIdentities: readonly [];
+  readonly listSearchDocuments: readonly [];
   readonly listDocuments: readonly [];
   readonly getDocument: readonly [id: string];
   readonly getDocumentByVersionId: readonly [versionId: string];

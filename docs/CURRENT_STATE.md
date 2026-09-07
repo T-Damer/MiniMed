@@ -1,13 +1,111 @@
 # Current state
 
-> Updated: 6 September 2026
-> Repository version: `0.6.34`
-> Active target: `0.6.34` public prerelease toward `1.0`
+> Updated: 7 September 2026
+> Repository version: `0.6.35`
+> Active target: `0.6.35` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
+
+
+### Android startup recovery and bounded catalog reads — PR #164, 7 September 2026
+
+- Native download loading awaits the module rather than the Capacitor proxy, whose synthetic `then`
+  method stalled startup before first-download consent. The existing transport and verified install
+  remain; a real 490 MiB core download completed, including a background interval, on an API 36 emulator.
+- Cross-pack validation reads document/version identities. Native and WASM SQLite read compact ranking,
+  audience and content-kind metadata through an optional core/store projection, with full-record
+  fallback for other implementations. OPFS forwards these reads to its existing worker owner; scoped
+  and search-worker views preserve the projection. Core reuses the search projection until
+  reinitialization or close, retries failed reads, and shares concurrent reads. Full catalog
+  reads retain every record and metadata field, use cached 1,024-row pages, and finish before close.
+- Search renders before the full catalog used for inline links is loaded. Duplicate identity/version
+  checks, source aliases, age groups, pointer classification and ranking metadata remain intact.
+- With the verified 19,987-document core, offline ARM64 emulator starts without concurrent test load
+  reached navigation in 0.53–0.61 s and search readiness in 3.14–4.49 s from WebView time origin
+  (about 3.9–5.1 s from the launch command). One first query rendered in 6.34 s; catalog and alias
+  initialization still make the first query slower. The original full-catalog bridge response caused
+  a Java heap OOM; the fixed app passes a real launch-and-search instrumentation regression.
+- Local checks pass: 2,783 JavaScript tests, 233 Python tests, strict type checks, lint, builds,
+  retrieval benchmarks, native source checks, Android JVM tests, four Android instrumentation tests
+  and seven targeted browser scenarios. These are emulator observations, not physical-device, iOS,
+  process-eviction or release qualification. CI uses Lavapipe after a host SwiftShader crash;
+  cold native integrity validation took 100 s there, so its startup wait is 180 s. Browser
+  full-corpus result assertions allow 60 s while retaining their content checks.
+  Full browser E2E and Android qualification now run manually in GitHub. PRs keep fast code/unit
+  and content checks; release APK builds run only on a release commit on main or manual dispatch.
+  No private corpus regeneration was needed.
+
+### Unified download admission and presentation — draft PR #164
+
+- A lightweight app-wide queue tracks core, content modules, reference images, ECG, speech,
+  local models, generic artifacts and APK updates. Transfer attempts share a three-slot scheduler;
+  retry delays do not occupy a slot. Feature owners retain checksum, schema and atomic-install rules.
+- A versioned public-metadata journal restores interrupted intents, never arbitrary saved URLs or
+  callbacks. Reference-image, ECG and speech recipes are revalidated against current descriptors.
+  Content-module and core recovery retain their existing verified-catalog/native owners.
+- Settings and the navigation indicator read the same state. `#/settings/downloads` is available
+  before database readiness. Leaving a settings card removes its UI subscription, not the download.
+  Transfer, verification, installation, cancellation and retry are distinct states.
+- The Android SQLCipher pin is 4.17.0 with androidx.sqlite 2.6.2: the 4.18.0 artifact requires
+  compileSdk 37 and failed the existing compileSdk 36 build. No SDK checks are bypassed.
+- This work was recovered from staged patch fragments; its missing tail was reconstructed and is
+  subject to fresh CI. No new release, successful device timing, PSS reduction, process-kill recovery
+  or complete background installation is claimed by these source changes.
+
+
+
+### Bundled Android SQLite and system transfers — draft PR #164
+
+- Android's existing SQLite bridge now uses pinned SQLCipher Community in plaintext mode instead of
+  system SQLite. The immutable validation stamp is revised; the file path, native vector scoring,
+  read-only contract and early runtime probe are preserved. iOS and browser backends are unchanged.
+- Remote Android HTTPS transfers in `downloadWithRetry` use the pinned Capgo DownloadManager plugin
+  with a versioned persistence/idempotence patch and a limit of three active native transfers,
+  including retained system jobs. Browser/local/iOS transfers retain their existing implementation.
+- Core download shares the retry layer but stays a file through streaming SHA-256 and atomic native
+  installation. An existing consented transfer is recovered on launch; first download still waits
+  for a user action. Progress distinguishes transfer, verification and installation. Files are not
+  installed merely because the transport reports completion.
+- Optional module/model byte consumers, exact membership/schema/checksum validation, current feature
+  queues and WASM optional database mounts remain. This is not a claim of fully native optional-pack
+  storage or a unified core/image/ECG queue UI. No Allmed publication or corpus migration is included.
+
+See ADR 0018 for the exact upstream patch and tradeoffs. New-head verification results belong in the
+PR checks; older d8bc80f green checks do not qualify these changes. No physical-device memory,
+OS-eviction, iOS-native download or leak claim is made from source changes.
+
+
+### Core startup and download eligibility — 6 September 2026
+
+- Android probes FTS5 in a disposable in-memory database before installed-file inspection, hashing,
+  opening the content database or quick-check. Native logcat diagnostics split capabilities,
+  installed-file validation, SQLite open, integrity, metadata and total time, including failed phases.
+  Successful SHA-256/quick-check validation is stamped for an immutable edition with checksum,
+  SQLite/verifier revision and file identity; replacement and interrupted-install recovery invalidate
+  the stamp. The adapter no longer races native opening against an uncancellable JS timeout;
+  concurrent initialization shares one acquisition, and close awaits opening before releasing it.
+- Unknown-size or large cores go directly to the existing OPFS worker importer. A dishonest small
+  HEAD cannot force unbounded JS buffering: the bounded reader cancels and reopens the URL in OPFS.
+  Android no longer attempts the intentionally unbundled local Allmed companion during startup.
+  These code-path changes are not a measured Android PSS reduction or a leak/OS-eviction result.
+- Bottom navigation is available before the search database, including built-in calculators and
+  assessments. Database-dependent routes retain their preparation/error screen. Local Performance
+  marks distinguish `minimed:navigation-ready` from `minimed:search-ready`; there is no remote
+  telemetry. A slow but still pending open no longer offers a page-reload retry.
+- A shared downloadable-index predicate is applied to publication validation, UI eligibility,
+  installer entry, runtime queue admission and pending-job restoration. Discovery-only previews
+  stay in the catalog without becoming downloadable. Invalid restored jobs cannot block later jobs;
+  exact-version registry checks, pointer membership, schema and artifact checksums remain in place.
+  Allmed content is not published. The foreground runtime already uses concurrency 3; this change
+  does not establish background transfers or a unified core/image/ECG queue.
+
+Qualification is tracked in the PR checks. No physical Android/iOS, before/after PSS, real-core
+stage timings, process-kill restoration, ECG 99%, bulk-transfer navigation or Brotli measurements
+were performed for this slice. Repeat the same installed-core run on Android and capture native
+phase logs plus both JS marks before judging startup/memory acceptance.
 
 ### Download and reader fixes — 6 September 2026
 

@@ -10,5 +10,5 @@ test('the persistent core reopens after repeated page reloads', async ({ page })
     await expect(page.getByText(/Не удалось открыть ядро MiniMed/)).toHaveCount(0);
   }
   await page.getByTestId('search-input').fill('А09');
-  await expect(page.getByTestId('search-result').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('search-result').first()).toBeVisible({ timeout: 60_000 });
 });

@@ -70,7 +70,8 @@
     "unified": "11.0.5",
     "unist-util-visit": "5.1.0",
     "virtua": "0.50.1",
-    "xlsx": "0.18.5"
+    "xlsx": "0.18.5",
+    "@capgo/capacitor-downloader": "8.3.0"
   },
   "devDependencies": {
     "@capacitor/android": "8.5.0",

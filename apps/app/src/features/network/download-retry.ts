@@ -1,3 +1,13 @@
+import { getDownloadQueue } from '@/features/downloads/download-service';
+
+import {
+  downloadNativeBytes,
+  hasRetainedNativeDownload,
+  type NativeDownloadedFile,
+  shouldUseNativeDownload,
+  withNativeDownloadedFile,
+} from '@/features/network/native-download';
+
 import {
   downloadWithResume,
   type ResumableDownloadOptions,
@@ -39,6 +49,7 @@ export function isTransientDownloadError(cause: unknown): boolean {
   if (cause instanceof DOMException && cause.name === 'AbortError') return false;
   if (cause instanceof Error && cause.name === 'AbortError') return false;
   if (!(cause instanceof Error)) return false;
+  if ('code' in cause && cause.code === 'NATIVE_DOWNLOAD_BUSY') return true;
   const normalized = cause.message.toLowerCase();
   return TRANSIENT_MESSAGE_MARKERS.some((marker) => normalized.includes(marker));
 }
@@ -60,6 +71,10 @@ function waitForRetry(delayMs: number, signal: AbortSignal | undefined): Promise
 }
 
 export interface RetryingDownloadOptions extends ResumableDownloadOptions {
+  /** Logical job whose owner includes validation/installation after this transfer. */
+  readonly jobId?: string;
+  /** Multi-artifact owners report aggregate progress themselves. */
+  readonly trackProgress?: boolean;
   /** Overridable so tests do not have to wait out the real backoff. */
   readonly retryDelaysMs?: readonly number[];
   /** Keep retrying transient failures until the caller aborts. */
@@ -73,11 +88,56 @@ export interface RetryingDownloadOptions extends ResumableDownloadOptions {
  * preserved between attempts by the resumable layer, so a retry continues instead of restarting.
  * Only an exhausted retry budget, an abort, or a non-transient cause reaches the caller.
  */
-export async function downloadWithRetry(options: RetryingDownloadOptions): Promise<Uint8Array> {
+export function downloadWithRetry(options: RetryingDownloadOptions): Promise<Uint8Array> {
+  return queuedTransfer(
+    options,
+    shouldUseNativeDownload(options.url) ? downloadNativeBytes : downloadWithResume,
+  );
+}
+
+export function hasRetainedFileDownload(options: ResumableDownloadOptions): Promise<boolean> {
+  return shouldUseNativeDownload(options.url)
+    ? hasRetainedNativeDownload(options)
+    : Promise.resolve(false);
+}
+
+/** Native core uses the same retry/admission path, retaining file ownership through installation. */
+export function downloadFileWithRetry<T>(
+  options: RetryingDownloadOptions,
+  consume: (file: NativeDownloadedFile) => Promise<T>,
+): Promise<T> {
+  if (!shouldUseNativeDownload(options.url))
+    throw new Error('Native file transfer requires Android HTTPS.');
+  return queuedTransfer(options, (request) => withNativeDownloadedFile(request, consume));
+}
+
+async function queuedTransfer<T>(
+  options: RetryingDownloadOptions,
+  transfer: (request: ResumableDownloadOptions) => Promise<T>,
+): Promise<T> {
+  if (options.jobId) return retryTransfer(options, transfer);
+  // A legacy caller still participates in global admission. No URLs/headers enter the UI journal.
+  const hash = new Uint8Array(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(options.cacheKey)),
+  );
+  const id = `file:${Array.from(hash, (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+  return getDownloadQueue().run(
+    { id, title: 'Файл приложения', kind: 'document', totalBytes: options.expectedBytes ?? null },
+    (context) => retryTransfer({ ...options, jobId: id, signal: context.signal }, transfer),
+    { ...(options.signal ? { signal: options.signal } : {}) },
+  );
+}
+
+async function retryTransfer<T>(
+  options: RetryingDownloadOptions,
+  transfer: (request: ResumableDownloadOptions) => Promise<T>,
+): Promise<T> {
   const {
     retryDelaysMs = DOWNLOAD_RETRY_DELAYS_MS,
     retryForever = false,
     retryMissingAssets = true,
+    jobId = '',
+    trackProgress = true,
     ...downloadOptions
   } = options;
   let lastError: unknown;
@@ -86,10 +146,50 @@ export async function downloadWithRetry(options: RetryingDownloadOptions): Promi
   while (retryForever || attempt <= retryDelaysMs.length) {
     const delay =
       attempt === 0 ? 0 : (retryDelaysMs[Math.min(attempt - 1, retryDelaysMs.length - 1)] ?? 0);
-    if (delay > 0) await waitForRetry(delay, downloadOptions.signal);
+    if (delay > 0) {
+      getDownloadQueue().retrying(jobId, attempt, delay);
+      await waitForRetry(delay, downloadOptions.signal);
+    }
     try {
-      return await downloadWithResume(downloadOptions);
+      const signal = downloadOptions.signal ?? new AbortController().signal;
+      let requiresNetwork =
+        /^https?:\/\//u.test(options.url) &&
+        (typeof window === 'undefined' || new URL(options.url).origin !== window.location.origin);
+      if (
+        requiresNetwork &&
+        shouldUseNativeDownload(options.url) &&
+        (await hasRetainedNativeDownload(downloadOptions))
+      )
+        requiresNetwork = false;
+      return await getDownloadQueue().transfer(
+        jobId,
+        `${options.cacheKey}:${options.url}`,
+        signal,
+        () =>
+          transfer({
+            ...downloadOptions,
+            signal,
+            onProgress: (progress) => {
+              if (trackProgress)
+                getDownloadQueue().progress(jobId, progress.downloadedBytes, progress.totalBytes);
+              downloadOptions.onProgress?.(progress);
+            },
+          }),
+        requiresNetwork,
+      );
     } catch (cause) {
+      // Restored OS tasks count towards the native cap. Yield the JS slot so those tasks can
+      // be adopted, instead of three new callers holding every slot while polling BUSY forever.
+      if (
+        typeof cause === 'object' &&
+        cause !== null &&
+        'code' in cause &&
+        cause.code === 'NATIVE_DOWNLOAD_BUSY'
+      ) {
+        getDownloadQueue().retrying(jobId, attempt, 500);
+        await waitForRetry(500, downloadOptions.signal);
+        continue;
+      }
       lastError = cause;
       const missingAsset =
         cause instanceof Error && cause.message.toLowerCase().includes('http 404');

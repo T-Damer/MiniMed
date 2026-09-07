@@ -100,12 +100,27 @@ async function loadModelFromResumableUrl(
   const bytes = await downloadWithRetry({
     url,
     cacheKey,
+    ...(callbacks.downloadContext ? { jobId: callbacks.downloadContext.id } : {}),
     expectedBytes,
     signal,
     retryForever: true,
     onProgress: ({ downloadedBytes, totalBytes }) =>
       callbacks.onProgress(downloadedBytes, totalBytes ?? expectedBytes ?? downloadedBytes),
   });
+  signal.throwIfAborted();
+  callbacks.downloadContext?.phase('verifying');
+  if (artifact.sha256) {
+    const digest = new Uint8Array(
+      await crypto.subtle.digest(
+        'SHA-256',
+        new Uint8Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength),
+      ),
+    );
+    const checksum = `sha256:${Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+    if (checksum !== artifact.sha256) throw new Error('Модель не прошла проверку SHA-256.');
+  }
+  signal.throwIfAborted();
+  callbacks.downloadContext?.phase('installing');
   await instance.loadModel([new Blob([Uint8Array.from(bytes)])], {
     n_ctx: Math.min(artifact.maxContextTokens, 2048),
     n_threads: Math.max(1, Math.min(6, profile.hardwareConcurrency - 1)),
@@ -289,11 +304,14 @@ export class BrowserWllamaRuntime implements LocalModelRuntime {
         return new BrowserWllamaSession(model, artifact.id, instance);
       } catch (cause) {
         lastError = cause;
+        if (loadController.signal.aborted) break;
       }
     }
     this.activeInstance = null;
     this.activeLoadController = null;
     await instance.exit?.();
+    if (loadController.signal.aborted)
+      throw new DOMException('Model download cancelled.', 'AbortError');
     const detail = lastError instanceof Error ? lastError.message : 'неизвестная ошибка';
     throw new Error(`Не удалось скачать или открыть ${model.name}: ${detail}`);
   }

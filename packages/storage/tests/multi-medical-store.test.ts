@@ -1,5 +1,5 @@
 import type { ContentPackSeed } from '@localmed/contracts';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { InMemoryMedicalStore, MultiMedicalStore } from '../src';
 
@@ -109,6 +109,30 @@ async function store(value: ContentPackSeed): Promise<InMemoryMedicalStore> {
 }
 
 describe('MultiMedicalStore', () => {
+  it('validates native identities without loading full document metadata', async () => {
+    const native = await store(
+      seed({ packId: 'native', documentId: 'native.topic', term: 'кашель' }),
+    );
+    const companion = await store(
+      seed({ packId: 'other', documentId: 'other.topic', term: 'кашель' }),
+    );
+    const identities = vi.fn(async () => [{ id: 'native.topic', versionId: 'native.topic@1' }]);
+    Object.assign(native, { listDocumentIdentities: identities });
+    const documents = vi
+      .spyOn(native, 'listDocuments')
+      .mockRejectedValue(new Error('Full catalog read'));
+    const multi = new MultiMedicalStore([
+      { moduleId: 'native', store: native, required: true },
+      { moduleId: 'other', store: companion },
+    ]);
+    expect((await multi.initialize()).documentCount).toBe(2);
+    expect(documents).not.toHaveBeenCalled();
+    identities.mockResolvedValue([{ id: 'other.topic', versionId: 'native.topic@1' }]);
+    await expect(multi.initialize()).rejects.toThrow('Duplicate active document ID');
+    identities.mockResolvedValue([{ id: 'native.topic', versionId: 'other.topic@1' }]);
+    await expect(multi.initialize()).rejects.toThrow('Duplicate active document-version ID');
+  });
+
   it('combines enabled stores and routes exact records', async () => {
     const core = await store(seed({ packId: 'core', documentId: 'core.topic', term: 'лихорадка' }));
     const clinical = await store(

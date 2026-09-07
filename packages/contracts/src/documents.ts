@@ -52,3 +52,9 @@ export interface ChunkContext {
   readonly previousChunkId: string | null;
   readonly nextChunkId: string | null;
 }
+
+/** Compact fields used to rank and label search groups; metadata is not a full document record. */
+export type SearchDocumentDescriptor = Pick<
+  MedicalDocumentSummary,
+  'id' | 'sourceType' | 'metadata' | 'ageGroups'
+>;

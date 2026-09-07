@@ -1,3 +1,8 @@
+import type { DownloadContext } from '@/features/downloads/download-queue';
+import { getDownloadQueue } from '@/features/downloads/download-service';
+import { downloadWithRetry } from '@/features/network/download-retry';
+
+export const REFERENCE_IMAGES_DOWNLOAD_ID = 'images:reference';
 const SOURCE_ORIGIN = 'https://www.krasotaimedicina.ru';
 const STATIC_ASSET_ROOT = './content/reference-images/';
 const IMAGE_MIRROR =
@@ -135,6 +140,7 @@ export class ReferenceImageResolver {
   private readonly objectUrls = new Set<string>();
   private cacheGeneration = 0;
   private readonly localAssets: boolean;
+  private readonly customFetch: boolean;
 
   private cacheName(): string {
     return `minimed.reference-images:${this.manifestSha256}`;
@@ -146,6 +152,7 @@ export class ReferenceImageResolver {
 
   public constructor(options: ReferenceImageResolverOptions = {}) {
     this.fetchValue = options.fetch ?? globalThis.fetch.bind(globalThis);
+    this.customFetch = Boolean(options.fetch);
     this.localAssets = Boolean(options.baseUrl) || import.meta.env.DEV;
     this.baseUrl = options.baseUrl ?? defaultAssetBaseUrl();
     this.manifestSha256 = options.manifestSha256 ?? REFERENCE_IMAGE_MANIFEST_SHA256;
@@ -208,7 +215,11 @@ export class ReferenceImageResolver {
     return { alt: record.alt, contentType: record.contentType, sourceUrl: record.sourceUrl, url };
   }
 
-  private async imageBytes(record: ManifestImageRecord, signal?: AbortSignal): Promise<Uint8Array> {
+  private async imageBytes(
+    record: ManifestImageRecord,
+    signal?: AbortSignal,
+    jobId?: string,
+  ): Promise<Uint8Array> {
     const assetUrl = sameOriginUrl(this.baseUrl, record.path);
     if (!assetUrl) throw new Error('Некорректный адрес локального изображения.');
     const cache = await this.cache();
@@ -218,15 +229,32 @@ export class ReferenceImageResolver {
       if (bytes.byteLength === record.size && (await digest(bytes)) === record.sha256) return bytes;
       await cache?.delete(assetUrl);
     }
-    const response = await this.fetchValue(
-      this.localAssets ? assetUrl : new URL(record.path, IMAGE_MIRROR).href,
-      {
+    const url = this.localAssets ? assetUrl : new URL(record.path, IMAGE_MIRROR).href;
+    const read = async (): Promise<Uint8Array> => {
+      const response = await this.fetchValue(url, {
         credentials: 'omit',
         ...(signal ? { signal } : {}),
-      },
-    );
-    if (!response.ok) throw new Error(`Не удалось скачать иллюстрацию (HTTP ${response.status}).`);
-    const bytes = new Uint8Array(await response.arrayBuffer());
+      });
+      if (!response.ok)
+        throw new Error(`Не удалось скачать иллюстрацию (HTTP ${response.status}).`);
+      return new Uint8Array(await response.arrayBuffer());
+    };
+    const bytes = this.customFetch
+      ? await getDownloadQueue().transfer(
+          jobId ?? REFERENCE_IMAGES_DOWNLOAD_ID,
+          record.sha256,
+          signal ?? new AbortController().signal,
+          read,
+        )
+      : await downloadWithRetry({
+          url,
+          cacheKey: record.sha256,
+          expectedBytes: record.size,
+          ...(signal ? { signal } : {}),
+          ...(jobId ? { jobId, trackProgress: false } : {}),
+          retryMissingAssets: false,
+        });
+    signal?.throwIfAborted();
     if (bytes.byteLength !== record.size || (await digest(bytes)) !== record.sha256) {
       throw new Error('Иллюстрация не прошла проверку контрольной суммы.');
     }
@@ -241,6 +269,7 @@ export class ReferenceImageResolver {
     readonly complete: boolean;
     readonly files: number;
     readonly totalBytes: number;
+    readonly totalFiles: number;
   }> {
     const cache = await this.cache();
     const complete = Boolean(await cache?.match(new URL('complete', this.baseUrl).href));
@@ -250,13 +279,42 @@ export class ReferenceImageResolver {
       [...(manifest?.images.values() ?? [])].flat().map((record) => [record.path, record]),
     );
     const totalBytes = [...records.values()].reduce((sum, record) => sum + record.size, 0);
-    return { complete, files: Math.max(0, files - Number(complete)), totalBytes };
+    return {
+      complete,
+      files: Math.max(0, files - Number(complete)),
+      totalBytes,
+      totalFiles: records.size,
+    };
   }
 
   public async downloadAll(
     signal: AbortSignal,
     onProgress: (downloadedBytes: number, totalBytes: number) => void,
   ): Promise<void> {
+    return getDownloadQueue().run(
+      {
+        id: REFERENCE_IMAGES_DOWNLOAD_ID,
+        kind: 'images',
+        title: 'Иллюстрации справочника',
+        resume: {
+          kind: 'reference-images',
+          id: REFERENCE_IMAGES_DOWNLOAD_ID,
+          version: this.manifestSha256,
+        },
+      },
+      (context) => this.downloadBatch(context, onProgress),
+      {
+        signal,
+        retry: () => this.downloadAll(new AbortController().signal, () => undefined),
+      },
+    );
+  }
+
+  private async downloadBatch(
+    context: DownloadContext,
+    onProgress: (downloadedBytes: number, totalBytes: number) => void,
+  ): Promise<void> {
+    const { signal } = context;
     const cache = await this.cache();
     if (!cache) throw new Error('Хранилище изображений недоступно.');
     const manifest = await this.manifest();
@@ -267,8 +325,10 @@ export class ReferenceImageResolver {
     const total = [...records.values()].reduce((sum, record) => sum + record.size, 0);
     const pending = records.values();
     let downloaded = 0;
+    let completedFiles = 0;
     let failed = false;
     onProgress(0, total);
+    context.progress(0, total, 0, records.size);
     const results = await Promise.allSettled(
       Array.from({ length: 3 }, async () => {
         try {
@@ -276,8 +336,10 @@ export class ReferenceImageResolver {
             signal.throwIfAborted();
             const next = pending.next();
             if (next.done) return;
-            await this.imageBytes(next.value, signal);
+            await this.imageBytes(next.value, signal, context.id);
             downloaded += next.value.size;
+            completedFiles += 1;
+            context.progress(downloaded, total, completedFiles, records.size);
             onProgress(downloaded, total);
           }
         } catch (cause) {
@@ -289,10 +351,12 @@ export class ReferenceImageResolver {
     const error = results.find((result) => result.status === 'rejected');
     if (error?.status === 'rejected') throw error.reason;
     signal.throwIfAborted();
+    context.phase('installing');
     await cache.put(new URL('complete', this.baseUrl).href, new Response(this.manifestSha256));
   }
 
   public async removeDownloaded(): Promise<void> {
+    await getDownloadQueue().cancel(REFERENCE_IMAGES_DOWNLOAD_ID);
     if (typeof caches !== 'undefined') await caches.delete(this.cacheName());
     this.clear();
   }

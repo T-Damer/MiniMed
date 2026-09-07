@@ -525,6 +525,49 @@ describe('MedicalCore', () => {
     if (status.ok) expect(status.value.documentCount).toBe(3);
   });
 
+  it('searches through the ranking projection without loading full document metadata', async () => {
+    const store = new InMemoryMedicalStore();
+    const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+    cores.push(core);
+    const request = { query: 'пневмония', mode: 'lexical' as const, limit: 20 };
+    const baseline = await core.search(request);
+    const documents = await store.listDocuments();
+    const listSearchDocuments = vi.fn(async () =>
+      documents.map(({ id, sourceType, metadata }) => ({
+        id,
+        sourceType,
+        metadata,
+      })),
+    );
+    Object.assign(store, { listSearchDocuments });
+    const listDocuments = vi
+      .spyOn(store, 'listDocuments')
+      .mockRejectedValue(new Error('Full catalog should not be read'));
+
+    await core.initialize();
+    const compact = await core.listSearchDocuments?.();
+    expect(compact?.ok).toBe(true);
+    const result = await core.search(request);
+
+    expect(result.ok).toBe(true);
+    expect(baseline.ok).toBe(true);
+    if (result.ok && baseline.ok) {
+      expect(result.value.groups.length).toBeGreaterThan(0);
+      expect(result.value.groups).toEqual(baseline.value.groups);
+    }
+    expect(listSearchDocuments).toHaveBeenCalledTimes(1);
+    expect(listDocuments).not.toHaveBeenCalled();
+
+    await core.initialize();
+    await Promise.all([core.listSearchDocuments?.(), core.listSearchDocuments?.()]);
+    expect(listSearchDocuments).toHaveBeenCalledTimes(2);
+    await core.close();
+    listSearchDocuments.mockRejectedValueOnce(new Error('Transient catalog read failure'));
+    expect((await core.listSearchDocuments?.())?.ok).toBe(false);
+    expect((await core.listSearchDocuments?.())?.ok).toBe(true);
+    expect(listSearchDocuments).toHaveBeenCalledTimes(4);
+  });
+
   it('shares concurrent document-list reads', async () => {
     const store = new InMemoryMedicalStore();
     const listDocuments = vi.spyOn(store, 'listDocuments');

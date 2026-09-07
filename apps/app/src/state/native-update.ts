@@ -15,6 +15,8 @@ export interface ApkTaskStatus {
   readonly downloadedBytes: number;
   readonly totalBytes: number | null;
   readonly errorCode: string | null;
+  /** True until the native stream has closed, even if its public state is terminal. */
+  readonly transportActive: boolean;
 }
 
 export interface LocalMedUpdatePlugin {

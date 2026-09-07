@@ -22,6 +22,7 @@ import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
+import { readSettingsRoute } from '@/features/settings/settings-routing';
 import { getFloatingWindowsEnabled, subscribeAppPreferences } from '@/state/app-preferences';
 import { createFloatingWindows } from '@/state/floating-windows';
 import { rememberReturnTo } from '@/state/return-navigation';
@@ -66,6 +67,11 @@ const KnowledgeBaseView = lazy(loadKnowledgeBaseView);
 const NotesView = lazy(loadNotesView);
 const SearchHome = lazy(loadSearchHome);
 const SettingsView = lazy(loadSettingsView);
+const DownloadsPage = lazy(() =>
+  import('@/features/downloads/DownloadsPage').then(({ DownloadsPage }) => ({
+    default: DownloadsPage,
+  })),
+);
 
 const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
   search: loadSearchHome,
@@ -87,11 +93,24 @@ export function App(): JSX.Element {
     embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
   const navigation = useRootNavigation();
+  const [settingsRoute, setSettingsRoute] = createSignal(readSettingsRoute());
+  const earlyDownloads = () =>
+    !session.ready() && navigation.view() === 'settings' && settingsRoute() === 'downloads';
+  onMount(() => {
+    const refresh = () => setSettingsRoute(readSettingsRoute());
+    window.addEventListener('hashchange', refresh);
+    onCleanup(() => window.removeEventListener('hashchange', refresh));
+  });
   const floatingWindows = createFloatingWindows();
   const [floatingWindowsEnabled, setFloatingWindowsEnabled] = createSignal(
     getFloatingWindowsEnabled(),
   );
   onMount(() => {
+    // Local diagnostic marks: shell interactivity and searchable content are independent gates.
+    const navigationFrame = requestAnimationFrame(() =>
+      performance.mark('minimed:navigation-ready'),
+    );
+    onCleanup(() => cancelAnimationFrame(navigationFrame));
     const unsubscribePreferences = subscribeAppPreferences((preferences) => {
       setFloatingWindowsEnabled(preferences.floatingWindowsEnabled);
     });
@@ -148,7 +167,7 @@ export function App(): JSX.Element {
   const bottomNav = useBottomNav({
     view: navigation.view,
     navigate: navigation.navigate,
-    enabled: () => Boolean(session.ready()),
+    enabled: () => true,
   });
   useFindShortcut();
   useNativeBack({ view: navigation.view, navigate: navigation.navigate });
@@ -205,7 +224,6 @@ export function App(): JSX.Element {
     <div
       class="app-shell archive-app"
       classList={{
-        'app-shell--booting': !session.ready(),
         'app-shell--native': session.isNativeShell,
         'app-shell--medical-image': medicalImageViewerActive(),
         'app-shell--chrome-hidden': navigation.chromeHidden(),
@@ -241,10 +259,29 @@ export function App(): JSX.Element {
         {rootPane('calculators', () => (
           <CalculatorsView />
         ))}
+        <Show when={earlyDownloads()}>
+          <section class="app-view active" aria-hidden={false}>
+            <Suspense
+              fallback={
+                <p class="app-view__loading" role="status">
+                  Открываем очередь…
+                </p>
+              }
+            >
+              <DownloadsPage />
+            </Suspense>
+          </section>
+        </Show>
         <Show
           when={session.ready()}
           fallback={
-            <Show when={navigation.view() !== 'assessments' && navigation.view() !== 'calculators'}>
+            <Show
+              when={
+                navigation.view() !== 'assessments' &&
+                navigation.view() !== 'calculators' &&
+                !earlyDownloads()
+              }
+            >
               <BootScreen
                 error={session.error()}
                 bootSlow={session.bootSlow()}
@@ -340,7 +377,6 @@ export function App(): JSX.Element {
 
       <Show
         when={
-          session.ready() &&
           !embeddedFloatingWindow &&
           !medicalImageViewerActive() &&
           !floatingWindows.fullscreenWindowId()
@@ -348,6 +384,7 @@ export function App(): JSX.Element {
       >
         <Portal>
           <AppBottomNav
+            downloadsReady={() => Boolean(session.ready())}
             view={navigation.view}
             dragIndex={bottomNav.dragIndex}
             dragging={bottomNav.dragging}

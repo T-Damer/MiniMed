@@ -1,9 +1,11 @@
 import type { ContentPackSeed, EmbeddingProfile } from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 import type {
+  DocumentIdentity,
   LexicalHit,
   LexicalSearchRequest,
   MedicalStore,
+  SearchDocumentDescriptor,
   StorageHealth,
   VectorHit,
   VectorSearchRequest,
@@ -131,6 +133,14 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     return this.owner.request('call', 'inspectIntegrity', []) as Promise<SqliteIntegrityReport>;
   }
 
+  public listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
+    return this.call('listDocumentIdentities', []);
+  }
+
+  public listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
+    return this.call('listSearchDocuments', []);
+  }
+
   public listDocuments(): Promise<readonly DocumentRecord[]> {
     return this.call('listDocuments', []);
   }
@@ -233,9 +243,9 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   private call<M extends Exclude<OpfsPackWorkerMethod, 'inspectIntegrity'>>(
     method: M,
     args: OpfsPackWorkerCallArgs[M],
-  ): Promise<Awaited<ReturnType<MedicalStore[Extract<M, keyof MedicalStore>]>>> {
+  ): Promise<Awaited<ReturnType<NonNullable<MedicalStore[Extract<M, keyof MedicalStore>]>>>> {
     return this.owner.request('call', method, args) as Promise<
-      Awaited<ReturnType<MedicalStore[Extract<M, keyof MedicalStore>]>>
+      Awaited<ReturnType<NonNullable<MedicalStore[Extract<M, keyof MedicalStore>]>>>
     >;
   }
 

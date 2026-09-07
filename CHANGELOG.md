@@ -4,6 +4,24 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.35] - 2026-09-07
+
+- Android startup no longer stalls on a Capacitor plugin proxy or exhausts the Java heap while
+  loading the full document catalog. Composition validates identities; search uses compact metadata;
+  full catalog reads are paged and inline links load after search results appear.
+- Browser OPFS uses the same compact identity/search projections through its existing worker owner,
+  avoiding full-catalog transfers on startup and the search path.
+- Android uses bundled FTS5 and system downloads. A shared persistent queue tracks core, modules,
+  images, ECG, speech, models and APKs; Settings shows transfer, verification, installation and retry.
+- Navigation, built-in calculators and the download queue remain accessible while the core opens.
+  Verified installation, exact package membership, source aliases and document anchors are preserved.
+- Fixed TypeScript and Android test compilation, native plugin registration and completed ECG
+  progress callbacks. Real-core Android launch/search and browser lifecycle regressions now pass.
+
+The application reuses the existing verified discovery corpus; SQL/content-pack schema remains 2.
+This is a debug-signed engineering prerelease. Emulator qualification passed; physical-device,
+process-eviction, production-signing and clinical qualification remain outstanding.
+
 ## [0.6.34] - 2026-09-06
 
 - Android downloads the verified core at first launch with visible progress; the APK excludes

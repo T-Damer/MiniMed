@@ -267,14 +267,28 @@ describe('local packaged modules', () => {
 });
 
 describe('isModuleReleased', () => {
+  const artifacts: ContentModuleCatalogEntry['artifacts'] = [
+    {
+      id: 'index',
+      kind: 'index',
+      required: true,
+      compression: 'none',
+      sizeBytes: 12,
+      url: 'https://example.test/index.db',
+      sha256: `sha256:${'b'.repeat(64)}`,
+      sourceSetDigest: `sha256:${'a'.repeat(64)}`,
+    },
+  ];
   const previewModule = module({
     id: 'minimed.clinical.preview',
+    artifacts,
     kind: 'clinical',
     releaseState: 'preview',
     required: false,
   });
   const publishedModule = module({
     id: 'minimed.clinical.published',
+    artifacts,
     kind: 'clinical',
     releaseState: 'published',
     required: false,
@@ -298,6 +312,19 @@ describe('isModuleReleased', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('never offers an unbuilt local preview even when experiments are enabled', () => {
+    installLocalStorageMock();
+    setExperimentalModulesEnabled(true);
+    expect(isModuleReleased({ ...previewModule, artifacts: [] })).toBe(false);
+    expect(isModuleReleased({ ...publishedModule, artifacts: [] })).toBe(false);
+    expect(
+      isModuleReleased({
+        ...previewModule,
+        artifacts: artifacts.map((artifact) => ({ ...artifact, required: false })),
+      }),
+    ).toBe(false);
   });
 
   it('keeps published modules installable regardless of the experimental toggle', () => {

@@ -8,11 +8,13 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import java.io.File
+import java.util.concurrent.Executors
 import org.json.JSONObject
 
 @CapacitorPlugin(name = "LocalMedUpdate")
 class LocalMedUpdatePlugin : Plugin() {
     private val updateManager: ApkUpdateManager get() = ApkUpdateRuntime.manager(context)
+    private val cancellationExecutor = Executors.newSingleThreadExecutor()
     private var removeUpdateListener: (() -> Unit)? = null
 
     override fun load() {
@@ -25,6 +27,7 @@ class LocalMedUpdatePlugin : Plugin() {
     override fun handleOnDestroy() {
         removeUpdateListener?.invoke()
         removeUpdateListener = null
+        cancellationExecutor.shutdown() // Accepted cancellations still acknowledge actual stream cleanup.
         super.handleOnDestroy()
     }
 
@@ -85,13 +88,19 @@ class LocalMedUpdatePlugin : Plugin() {
     @PluginMethod
     fun cancelApkDownload(call: PluginCall) {
         val taskId = taskId(call) ?: return
-        try {
-            if (updateManager.cancel(taskId).state == ApkTaskState.CANCELLED) {
-                ApkUpdateScheduler.cancel(context.applicationContext)
+        // The bridge must remain free to read progress while a blocking network read unwinds.
+        val manager = updateManager
+        val applicationContext = context.applicationContext
+        cancellationExecutor.execute {
+            try {
+                if (manager.cancel(taskId).state == ApkTaskState.CANCELLED) {
+                    ApkUpdateScheduler.cancel(applicationContext)
+                }
+                while (manager.isRunning(taskId)) Thread.sleep(50)
+                call.resolve()
+            } catch (error: Exception) {
+                call.reject(safeMessage(error))
             }
-            call.resolve()
-        } catch (error: Exception) {
-            call.reject(safeMessage(error))
         }
     }
 
@@ -156,6 +165,7 @@ class LocalMedUpdatePlugin : Plugin() {
         .put("downloadedBytes", downloadedBytes)
         .put("totalBytes", totalBytes ?: JSONObject.NULL)
         .put("errorCode", errorCode ?: JSONObject.NULL)
+        .put("transportActive", updateManager.isRunning(taskId))
 
     private fun safeMessage(error: Exception): String =
         error.message?.take(160) ?: "Unable to update the APK."

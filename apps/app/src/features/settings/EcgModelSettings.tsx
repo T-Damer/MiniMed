@@ -1,5 +1,4 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { openCalculator } from '@/features/calculators/calculator-links';
@@ -10,52 +9,72 @@ import {
   subscribeEcgDiagnosticModel,
 } from '@/features/calculators/ecg-numeric-diagnostic';
 import {
+  ECG_DOWNLOAD_ID,
   ECG_PACKAGE_COMPONENTS,
   installEcgPackage,
   isEcgPackageInstalled,
   removeEcgPackage,
 } from '@/features/calculators/ecg-package';
+import { downloadTaskFraction, isDownloadActive } from '@/features/downloads/download-queue';
+import { getDownloadQueue } from '@/features/downloads/download-service';
 
 export function EcgModelSettings(): JSX.Element {
   const [installed, setInstalled] = createSignal(false);
   const [hasFiles, setHasFiles] = createSignal(false);
-  const [busy, setBusy] = createSignal<'download' | 'remove' | null>(null);
-  const [progress, setProgress] = createSignal(0);
+  const queue = getDownloadQueue();
+  const [task, setTask] = createSignal(queue.get(ECG_DOWNLOAD_ID));
+  const [removing, setRemoving] = createSignal(false);
+  const busy = () => {
+    const current = task();
+    return removing() ? 'remove' : current && isDownloadActive(current) ? 'download' : null;
+  };
+  const progress = () => {
+    const current = task();
+    return current ? (downloadTaskFraction(current) ?? 0) : 0;
+  };
   const [error, setError] = createSignal('');
-  let activeDownload: AbortController | undefined;
+  let disposed = false;
   const sync = (): void => {
     setInstalled(isEcgPackageInstalled());
     setHasFiles(Boolean(readEcgModelDescriptor() || readEcgDiagnosticModelDescriptor()));
   };
   onMount(() => {
     sync();
-    const subscriptions = [subscribeEcgModel(sync), subscribeEcgDiagnosticModel(sync)];
+    const updateTask = () => {
+      setTask(queue.get(ECG_DOWNLOAD_ID));
+      sync();
+    };
+    updateTask();
+    const subscriptions = [
+      subscribeEcgModel(sync),
+      subscribeEcgDiagnosticModel(sync),
+      queue.subscribe(updateTask),
+    ];
     onCleanup(() => {
       for (const unsubscribe of subscriptions) unsubscribe();
-      activeDownload?.abort();
+      disposed = true;
     });
   });
   const install = async (): Promise<void> => {
     if (busy()) return;
-    const controller = new AbortController();
-    activeDownload = controller;
-    setBusy('download');
-    setProgress(0);
     setError('');
     try {
-      await installEcgPackage(controller.signal, setProgress);
+      await installEcgPackage(new AbortController().signal, () => undefined);
     } catch (cause) {
-      if (!controller.signal.aborted)
-        setError(cause instanceof Error ? cause.message : 'Не удалось скачать распознавание ЭКГ.');
+      if (!disposed && !(cause instanceof Error && cause.name === 'AbortError'))
+        setError('Не удалось скачать или проверить распознавание ЭКГ.');
     } finally {
-      sync();
-      activeDownload = undefined;
-      setBusy(null);
+      if (!disposed) sync();
     }
+  };
+  const cancel = (): void => {
+    void queue.cancel(ECG_DOWNLOAD_ID).catch(() => {
+      if (!disposed) setError('Не удалось подтвердить отмену загрузки.');
+    });
   };
   const remove = async (): Promise<void> => {
     if (busy()) return;
-    setBusy('remove');
+    setRemoving(true);
     setError('');
     try {
       await removeEcgPackage();
@@ -63,7 +82,7 @@ export function EcgModelSettings(): JSX.Element {
       setError(cause instanceof Error ? cause.message : 'Не удалось удалить распознавание ЭКГ.');
     } finally {
       sync();
-      setBusy(null);
+      setRemoving(false);
     }
   };
   return (
@@ -102,7 +121,15 @@ export function EcgModelSettings(): JSX.Element {
               disabled={busy() !== null}
               onClick={() => void install()}
             >
-              {busy() === 'download' ? `Скачиваем ${Math.round(progress() * 100)}%` : 'Скачать'}
+              {busy() === 'download'
+                ? task()?.state === 'verifying'
+                  ? 'Проверяем данные'
+                  : task()?.state === 'installing'
+                    ? 'Сохраняем данные'
+                    : task()?.state === 'queued'
+                      ? 'В очереди'
+                      : `Скачиваем ${Math.floor(progress() * 100)}%`
+                : 'Скачать'}
             </Button>
           }
         >
@@ -120,7 +147,8 @@ export function EcgModelSettings(): JSX.Element {
             type="button"
             variant="danger"
             class="ecg-model-settings__action"
-            onClick={() => activeDownload?.abort()}
+            disabled={!task()?.canCancel}
+            onClick={cancel}
           >
             Отменить
           </Button>

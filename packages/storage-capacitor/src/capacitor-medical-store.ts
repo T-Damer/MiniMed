@@ -13,9 +13,11 @@ import {
   type SectionRecord,
 } from '@localmed/domain';
 import type {
+  DocumentIdentity,
   LexicalHit,
   LexicalSearchRequest,
   MedicalStore,
+  SearchDocumentDescriptor,
   StorageHealth,
   VectorHit,
   VectorSearchRequest,
@@ -321,8 +323,13 @@ export interface CapacitorMedicalStoreOptions extends OpenPackOptions {
 export class CapacitorMedicalStore implements MedicalStore {
   private readonly plugin: LocalMedDatabasePlugin;
   private initialized = false;
+  private documents: Promise<readonly DocumentRecord[]> | undefined;
+  private searchDocuments: Promise<readonly SearchDocumentDescriptor[]> | undefined;
+  private identities: Promise<readonly DocumentIdentity[]> | undefined;
   private nativeHealth: NativeDatabaseHealth | undefined;
   private nativeSession: NativeDatabaseSession | undefined;
+  private opening: Promise<NativeDatabaseSession> | undefined;
+  private closing: Promise<void> | undefined;
 
   public constructor(private readonly options: CapacitorMedicalStoreOptions) {
     this.plugin = options.plugin ?? LocalMedDatabase;
@@ -332,14 +339,21 @@ export class CapacitorMedicalStore implements MedicalStore {
     if (seed) {
       throw new Error('The native SQLite store accepts compiled content packs only.');
     }
+    if (this.closing) await this.closing;
     if (!this.initialized) {
-      this.nativeSession = await acquireNativeDatabase(this.plugin, {
+      this.opening ??= acquireNativeDatabase(this.plugin, {
         assetPath: this.options.assetPath,
         databaseName: this.options.databaseName,
         expectedSha256: this.options.expectedSha256,
       });
-      this.nativeHealth = this.nativeSession.health;
-      this.initialized = true;
+      const opening = this.opening;
+      try {
+        this.nativeSession = await opening;
+        this.nativeHealth = this.nativeSession.health;
+        this.initialized = true;
+      } finally {
+        if (this.opening === opening) this.opening = undefined;
+      }
     }
     return this.getHealth();
   }
@@ -361,8 +375,85 @@ export class CapacitorMedicalStore implements MedicalStore {
     };
   }
 
+  public async listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
+    this.assertInitialized();
+    this.identities ??= this.query(
+      'SELECT id, current_version_id FROM documents ORDER BY title COLLATE NOCASE, id',
+    )
+      .then((rows) =>
+        rows.map((row) => ({
+          id: readString(row, 'id'),
+          versionId: readString(row, 'current_version_id'),
+        })),
+      )
+      .catch((error: unknown) => {
+        this.identities = undefined;
+        throw error;
+      });
+    return this.identities;
+  }
+
+  public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
+    this.assertInitialized();
+    this.searchDocuments ??= this.query(`
+      SELECT id, source_type, json_object(
+        'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
+        'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
+        'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
+        'ageGroups', json_extract(metadata_json, '$.ageGroups'),
+        'entityType', json_extract(metadata_json, '$.entityType'),
+        'contentMode', json_extract(metadata_json, '$.contentMode'),
+        'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
+        'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
+        'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
+          THEN 'true' ELSE 'false' END),
+        'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
+          THEN 'true' ELSE 'false' END)
+      ) AS metadata_json FROM documents ORDER BY title COLLATE NOCASE, id
+    `)
+      .then((rows) =>
+        rows.map((row) => ({
+          id: readString(row, 'id'),
+          sourceType: readString(row, 'source_type'),
+          metadata: parseJsonObject(readString(row, 'metadata_json')),
+        })),
+      )
+      .catch((error: unknown) => {
+        this.searchDocuments = undefined;
+        throw error;
+      });
+    return this.searchDocuments;
+  }
+
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
-    return (await this.query(`${DOCUMENT_SELECT} ORDER BY d.title COLLATE NOCASE`)).map(toDocument);
+    this.assertInitialized();
+    if (!this.documents) {
+      this.documents = this.loadDocuments().catch((error: unknown) => {
+        this.documents = undefined;
+        throw error;
+      });
+    }
+    return this.documents;
+  }
+
+  private async loadDocuments(): Promise<readonly DocumentRecord[]> {
+    const identities = await this.listDocumentIdentities();
+    const documents: DocumentRecord[] = [];
+    // ponytail: row pages fit the released corpus; use byte-capped native pages for larger metadata.
+    const pageSize = 1024;
+    for (let offset = 0; offset < identities.length; offset += pageSize) {
+      const ids = identities.slice(offset, offset + pageSize).map((document) => document.id);
+      // Read metadata only for this page; the immutable identity list is already title-sorted.
+      const rows = await this.query(
+        `${DOCUMENT_SELECT} WHERE d.id IN (SELECT value FROM json_each(?))
+         ORDER BY d.title COLLATE NOCASE, d.id`,
+        [JSON.stringify(ids)],
+      );
+      if (rows.length !== ids.length)
+        throw new Error('Native document catalog changed while reading.');
+      documents.push(...rows.map(toDocument));
+    }
+    return documents;
   }
 
   public async getDocument(id: string): Promise<DocumentRecord | null> {
@@ -592,7 +683,28 @@ export class CapacitorMedicalStore implements MedicalStore {
       .slice(0, request.limit);
   }
 
-  public async close(): Promise<void> {
+  public close(): Promise<void> {
+    if (this.closing) return this.closing;
+    // An uncancellable native open owns the bridge until it settles. Never leave a late native
+    // session alive behind a JS timeout, and never release the same adapter lease twice.
+    this.closing = this.closeAfterOpen().finally(() => {
+      this.closing = undefined;
+    });
+    return this.closing;
+  }
+
+  private async closeAfterOpen(): Promise<void> {
+    if (this.opening) {
+      // A failed open has no acquired session. Its caller still receives the original rejection.
+      await this.opening.catch(() => undefined);
+    }
+    // Finish reads against their original owner; the caller still receives a failed read.
+    if (this.searchDocuments) await this.searchDocuments.catch(() => undefined);
+    this.searchDocuments = undefined;
+    if (this.documents) await this.documents.catch(() => undefined);
+    this.documents = undefined;
+    if (this.identities) await this.identities.catch(() => undefined);
+    this.identities = undefined;
     const session = this.nativeSession;
     this.nativeSession = undefined;
     this.nativeHealth = undefined;

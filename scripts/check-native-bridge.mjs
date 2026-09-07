@@ -6,6 +6,7 @@ const root = resolve(import.meta.dirname, '..');
 const files = {
   androidPlugin:
     'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedDatabasePlugin.java',
+  androidEngine: 'apps/app/android/app/src/main/java/dev/localmed/search/NativePackDatabase.java',
   androidActivity: 'apps/app/android/app/src/main/java/dev/localmed/search/MainActivity.java',
   androidStyles: 'apps/app/android/app/src/main/res/values/styles.xml',
   androidManifest: 'apps/app/android/app/src/main/AndroidManifest.xml',
@@ -59,7 +60,12 @@ requireText(
   'typescriptPlugin',
   'registerPlugin<LocalMedDatabasePlugin & NativeCoreDownloadPlugin>',
 );
-for (const method of ['hasCorePack', 'downloadCorePack']) {
+for (const method of [
+  'hasCorePack',
+  'prepareNativeDownload',
+  'inspectNativeDownload',
+  'installDownloadedCore',
+]) {
   requireText('typescriptPlugin', `${method}(`);
   requireText('androidPlugin', `void ${method}(`);
 }
@@ -131,7 +137,12 @@ for (const native of ['androidPlugin', 'iosPlugin']) {
 }
 requireText('androidPlugin', '".backup"');
 requireText('iosPlugin', 'appendingPathExtension("backup")');
-requireText('androidPlugin', 'SQLiteDatabase.OPEN_READONLY');
+requireText('androidEngine', 'SQLiteDatabase.OPEN_READONLY');
+requireText('androidEngine', 'System.loadLibrary("sqlcipher")');
+requireText('androidEngine', 'throw error;');
+requireText('androidPlugin', 'NativePackDatabase.openReadOnly(target)');
+requireText('androidPlugin', 'import net.zetetic.database.sqlcipher.SQLiteDatabase;');
+requireText('androidGradle', 'net.zetetic:sqlcipher-android:4.17.0');
 requireText('iosPlugin', 'SQLITE_OPEN_READONLY');
 requireText('iosPlugin', 'isExcludedFromBackup = true');
 requireText('androidManifest', 'android:fullBackupContent="@xml/backup_rules"');
@@ -161,8 +172,11 @@ for (const skipped of ['medications.db', 'mkb.db', 'ambulatory.db']) {
     throw new Error(`ignoreAssetsPattern must skip ${skipped}`);
   }
 }
-requireText('androidBackupRules', 'path="localmed/content/"');
-requireText('androidExtractionRules', 'path="localmed/content/"');
+for (const rules of ['androidBackupRules', 'androidExtractionRules']) {
+  requireText(rules, 'path="localmed/content/"');
+  requireText(rules, 'domain="external" path="minimed-downloads/"');
+  requireText(rules, 'domain="sharedpref" path="minimed.native.downloads.v1.xml"');
+}
 if (content.androidStyles.includes('windowFullscreen')) {
   throw new Error(
     `${files.androidStyles} must not use windowFullscreen; splash and boot draw under system bars from the first frame`,

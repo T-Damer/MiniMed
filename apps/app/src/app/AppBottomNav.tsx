@@ -15,6 +15,7 @@ function compactCount(value: number, cap: number): string {
 
 export function AppBottomNav(props: {
   readonly view: Accessor<RootView>;
+  readonly downloadsReady?: Accessor<boolean>;
   readonly dragIndex: Accessor<number | undefined>;
   readonly dragging: Accessor<boolean>;
   readonly pressed: Accessor<boolean>;

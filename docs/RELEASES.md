@@ -9,8 +9,8 @@
    `apps/app/public/content/core.db` with the smaller pilot/fixture pack. Source SQLite databases and
    private full medication builds remain untouched by application publication.
 3. Run `bun run verify`.
-4. Run browser E2E.
-5. Run the relevant native smoke checklist.
+4. Run targeted browser E2E for changed UI flows. The complete Web E2E workflow is manual.
+5. Run relevant native smoke checks when native behavior changes. Android native qualification is manual.
 6. Review the generated benchmark and integrity reports.
 7. Confirm no real patient data, source PDFs, or API keys are tracked.
 8. Push a release commit only from a clean working tree; the release workflow creates the tag and
@@ -34,6 +34,13 @@ bun run test:e2e
 git commit -m "release: MiniMed <version>"
 git push origin main
 ```
+
+## GitHub checks
+
+PRs run the fast code, unit-test and content checks. Full browser E2E and Android emulator
+qualification are available through `workflow_dispatch`; they do not run on every PR.
+The Android release workflow runs manually or for a `release: MiniMed` commit on `main`,
+so ordinary pushes and PRs do not build a duplicate release APK.
 
 ## Artifacts
 

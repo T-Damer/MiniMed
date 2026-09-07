@@ -1,0 +1,216 @@
+diff --git a/node_modules/@capgo/capacitor-downloader/.bun-tag-d557e20b4d475dea b/.bun-tag-d557e20b4d475dea
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/android/src/main/java/ee/forgr/capacitor/plugin/downloader/CapacitorDownloaderPlugin.java b/android/src/main/java/ee/forgr/capacitor/plugin/downloader/CapacitorDownloaderPlugin.java
+index c6fd6ec028a7d76d602cec59c9aa8ab8dca6dfff..e8aaa4f5945da7c84889e73b5f62093ab2fc368a 100644
+--- a/android/src/main/java/ee/forgr/capacitor/plugin/downloader/CapacitorDownloaderPlugin.java
++++ b/android/src/main/java/ee/forgr/capacitor/plugin/downloader/CapacitorDownloaderPlugin.java
+@@ -26,13 +26,21 @@ public class CapacitorDownloaderPlugin extends Plugin {
+     private final String pluginVersion = "8.3.0";
+ 
+     private DownloadManager downloadManager;
+-    private final Map<String, Long> downloads = new HashMap<>();
++    // MiniMed patch (MPL-2.0): persist opaque application IDs; system transfer outlives WebView.
++    private final Map<String, Long> downloads = new java.util.concurrent.ConcurrentHashMap<>();
++    private android.content.SharedPreferences journal;
+     private final Handler handler = new Handler(Looper.getMainLooper());
+     private BroadcastReceiver downloadReceiver;
+ 
+     @Override
+     public void load() {
+         downloadManager = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
++        journal = getContext().getSharedPreferences("minimed.native.downloads.v1", Context.MODE_PRIVATE);
++        for (Map.Entry<String, ?> entry : journal.getAll().entrySet()) {
++            if (entry.getKey().matches("[a-f0-9]{64}") && entry.getValue() instanceof Long) {
++                downloads.put(entry.getKey(), (Long) entry.getValue());
++            }
++        }
+         registerDownloadReceiver();
+     }
+ 
+@@ -65,23 +73,45 @@ public class CapacitorDownloaderPlugin extends Plugin {
+     }
+ 
+     @PluginMethod
+-    public void download(PluginCall call) {
++    public synchronized void download(PluginCall call) {
+         String id = call.getString("id");
+         String url = call.getString("url");
+         String destination = call.getString("destination");
+ 
+-        if (id == null || url == null || destination == null) {
++        if (id == null || !id.matches("[a-f0-9]{64}") || url == null
++            || !"https".equals(Uri.parse(url).getScheme())
++            || !("minimed-downloads/" + id + ".part").equals(destination)) {
+             call.reject("Missing required parameters");
+             return;
+         }
+ 
+         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
++            .setTitle("Загрузка данных MiniMed")
++            // An opaque stable marker survives enqueue-before-journal interruption even while
++            // COLUMN_LOCAL_URI is null. It contains no URL, credentials or clinical content.
++            .setDescription("minimed-transfer:" + id)
+             .setNotificationVisibility(DownloadNotificationVisibility.resolve(call.getString("notification")))
+             .setAllowedOverMetered(true)
+             .setAllowedOverRoaming(true);
+ 
+         // Handle custom destination
+-        File destinationFile = new File(getContext().getExternalFilesDir(null), destination);
++        File external = getContext().getExternalFilesDir(null);
++        if (external == null) {
++            call.reject("Download storage is unavailable", "NATIVE_DOWNLOAD_STORAGE_FAILED");
++            return;
++        }
++        File destinationFile = new File(external, destination);
++        try {
++            File directory = new File(external, "minimed-downloads");
++            if (!directory.getCanonicalFile().getParentFile().equals(external.getCanonicalFile())
++                || !destinationFile.getCanonicalFile().getParentFile().equals(directory.getCanonicalFile())) {
++                throw new java.io.IOException("Invalid staging path");
++            }
++            if (!directory.isDirectory() && !directory.mkdirs()) throw new java.io.IOException("Cannot create staging directory");
++        } catch (java.io.IOException error) {
++            call.reject("Cannot prepare download storage", "NATIVE_DOWNLOAD_STORAGE_FAILED");
++            return;
++        }
+         Uri destinationUri = Uri.fromFile(destinationFile);
+         request.setDestinationUri(destinationUri);
+ 
+@@ -100,6 +130,22 @@ public class CapacitorDownloaderPlugin extends Plugin {
+             request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+         }
+ 
++        try {
++            Long existing = recoverDownload(id, url, destinationUri.toString(), destinationFile);
++            if (existing != null) {
++                remember(id, existing);
++                call.resolve(new JSObject().put("id", id).put("status", DownloadManager.STATUS_PENDING));
++                startProgressCheck(id, existing);
++                return;
++            }
++            if (activeTransferCount() >= 3) {
++                call.reject("Native download slots are occupied", "NATIVE_DOWNLOAD_BUSY");
++                return;
++            }
++        } catch (Exception error) {
++            call.reject("Cannot recover the native download", "NATIVE_DOWNLOAD_STATE_FAILED");
++            return;
++        }
+         long downloadId;
+         try {
+             downloadId = downloadManager.enqueue(request);
+@@ -111,7 +157,13 @@ public class CapacitorDownloaderPlugin extends Plugin {
+             }
+             return;
+         }
+-        downloads.put(id, downloadId);
++        try {
++            remember(id, downloadId);
++        } catch (IllegalStateException error) {
++            downloadManager.remove(downloadId);
++            call.reject("Cannot persist the native download", "NATIVE_DOWNLOAD_STATE_FAILED");
++            return;
++        }
+ 
+         JSObject result = new JSObject();
+         result.put("id", id);
+@@ -122,6 +174,52 @@ public class CapacitorDownloaderPlugin extends Plugin {
+         startProgressCheck(id, downloadId);
+     }
+ 
++    private void remember(String id, long nativeId) {
++        if (!journal.edit().putLong(id, nativeId).commit()) {
++            throw new IllegalStateException("Cannot persist download ID");
++        }
++        downloads.put(id, nativeId);
++    }
++
++    private int activeTransferCount() {
++        DownloadManager.Query query = new DownloadManager.Query().setFilterByStatus(
++            DownloadManager.STATUS_PENDING | DownloadManager.STATUS_RUNNING | DownloadManager.STATUS_PAUSED);
++        try (Cursor cursor = downloadManager.query(query)) {
++            // Includes transfers retained by the system from an earlier process, even before adoption.
++            if (cursor == null) throw new IllegalStateException("System download registry unavailable");
++            return cursor.getCount();
++        }
++    }
++
++    private Long recoverDownload(String id, String url, String destination, File file) throws java.io.IOException {
++        Long found = null;
++        int foundStatus = 0;
++        // Also close the enqueue -> journal crash window by matching the opaque staging URI.
++        try (Cursor cursor = downloadManager.query(new DownloadManager.Query())) {
++            if (cursor == null) throw new java.io.IOException("System download registry unavailable");
++            while (cursor.moveToNext()) {
++                String local = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI));
++                String description = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_DESCRIPTION));
++                long nativeId = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID));
++                boolean journalMatch = Long.valueOf(nativeId).equals(downloads.get(id));
++                boolean markerMatch = ("minimed-transfer:" + id).equals(description);
++                if (!journalMatch && !markerMatch && !destination.equals(local)) continue;
++                if (local != null && !destination.equals(local)) throw new java.io.IOException("Conflicting staged path");
++                String storedUrl = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_URI));
++                if (!url.equals(storedUrl) || found != null) throw new java.io.IOException("Conflicting staged download");
++                found = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID));
++                foundStatus = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
++            }
++        }
++        if (found != null && foundStatus != DownloadManager.STATUS_FAILED
++            && (foundStatus != DownloadManager.STATUS_SUCCESSFUL || file.isFile())) return found;
++        if (found != null) downloadManager.remove(found);
++        if (!journal.edit().remove(id).commit()) throw new java.io.IOException("Cannot clear stale download ID");
++        downloads.remove(id);
++        if (file.exists() && !file.delete()) throw new java.io.IOException("Cannot clear stale staging file");
++        return null;
++    }
++
+     private void startProgressCheck(final String id, final long downloadId) {
+         handler.post(
+             new Runnable() {
+@@ -188,13 +286,17 @@ public class CapacitorDownloaderPlugin extends Plugin {
+     }
+ 
+     @PluginMethod
+-    public void stop(PluginCall call) {
++    public synchronized void stop(PluginCall call) {
+         String id = call.getString("id");
+         if (id == null || !downloads.containsKey(id)) {
+-            call.reject("Download not found");
++            call.reject("Download not found", "NATIVE_DOWNLOAD_NOT_FOUND");
+             return;
+         }
+         int removedDownloads = downloadManager.remove(downloads.get(id));
++        if (!journal.edit().remove(id).commit()) {
++            call.reject("Cannot persist download cancellation", "NATIVE_DOWNLOAD_STATE_FAILED");
++            return;
++        }
+         downloads.remove(id);
+         call.resolve(new JSObject().put("removed", removedDownloads > 0));
+     }
+@@ -203,7 +305,7 @@ public class CapacitorDownloaderPlugin extends Plugin {
+     public void checkStatus(PluginCall call) {
+         String id = call.getString("id");
+         if (id == null || !downloads.containsKey(id)) {
+-            call.reject("Download not found");
++            call.reject("Download not found", "NATIVE_DOWNLOAD_NOT_FOUND");
+             return;
+         }
+ 
+@@ -213,7 +315,7 @@ public class CapacitorDownloaderPlugin extends Plugin {
+                 JSObject result = getDownloadStatus(cursor);
+                 call.resolve(result);
+             } else {
+-                call.reject("Download not found");
++                call.reject("Download not found", "NATIVE_DOWNLOAD_NOT_FOUND");
+             }
+         }
+     }
+@@ -280,6 +382,7 @@ public class CapacitorDownloaderPlugin extends Plugin {
+ 
+     @Override
+     protected void handleOnDestroy() {
++        handler.removeCallbacksAndMessages(null);
+         super.handleOnDestroy();
+         if (downloadReceiver != null) {
+             getContext().unregisterReceiver(downloadReceiver);

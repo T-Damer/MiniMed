@@ -7,14 +7,20 @@ export function BootScreen(props: {
   readonly bootSlow: boolean;
   readonly coreDownloadRequired?: boolean;
   readonly coreDownloading?: boolean;
-  readonly coreProgress?: { readonly loaded: number; readonly total: number } | undefined;
+  readonly coreProgress?:
+    | {
+        readonly loaded: number;
+        readonly total: number;
+        readonly phase?: 'downloading' | 'verifying' | 'installing';
+      }
+    | undefined;
   readonly onDownloadCore?: () => void;
 }): JSX.Element {
   const progress = () => props.coreProgress;
   return (
     <section class="boot-screen boot-screen--shell-booting archive-boot">
       <div class="boot-card paper-sheet">
-        <Show when={!props.coreDownloadRequired || props.coreDownloading}>
+        <Show when={!props.error && (!props.coreDownloadRequired || props.coreDownloading)}>
           <span class="boot-spinner" />
         </Show>
         <p class="archive-kicker">Локальная медицинская база</p>
@@ -30,8 +36,8 @@ export function BootScreen(props: {
             (props.coreDownloadRequired
               ? 'Приложение установлено. Для первого запуска скачайте базу — около 490 МБ. После установки поиск и скачанные документы работают без интернета. Иллюстрации и дополнительные наборы доступны в настройках.'
               : props.bootSlow
-                ? 'Открытие базы занимает больше времени, чем обычно. Оставьте окно открытым.'
-                : 'Подготавливаем локальный поиск. Интернет для работы не нужен.')}
+                ? 'Подготовка базы продолжается. Калькуляторы и шкалы уже доступны через нижнее меню.'
+                : 'Подготавливаем локальный поиск. Калькуляторы и шкалы уже доступны через нижнее меню.')}
         </p>
         <Show when={props.coreDownloadRequired && !props.error}>
           <Show
@@ -43,16 +49,21 @@ export function BootScreen(props: {
             }
           >
             <p class="boot-card__progress" role="status" aria-live="polite">
-              {progress()
-                ? `Скачано ${formatModuleBytes(progress()?.loaded ?? 0)}${(progress()?.total ?? 0) > 0 ? ` из ${formatModuleBytes(progress()?.total ?? 0)}` : ''}. Затем проверим и откроем базу.`
-                : 'Соединяемся с сервером…'}
+              {progress()?.phase === 'verifying'
+                ? 'Проверяем контрольную сумму ядра…'
+                : progress()?.phase === 'installing'
+                  ? 'Устанавливаем проверенное ядро…'
+                  : progress()
+                    ? `Скачано ${formatModuleBytes(progress()?.loaded ?? 0)}${(progress()?.total ?? 0) > 0 ? ` из ${formatModuleBytes(progress()?.total ?? 0)}` : ''}. Затем проверим и откроем базу.`
+                    : 'Соединяемся с сервером…'}
             </p>
             <p class="boot-card__description">
-              Держите приложение открытым до завершения установки.
+              Скачивание продолжается в фоне. Вернитесь в приложение, чтобы завершить проверку и
+              открытие базы.
             </p>
           </Show>
         </Show>
-        <Show when={props.error || (props.bootSlow && !props.coreDownloadRequired)}>
+        <Show when={props.error}>
           <button class="boot-card__action" type="button" onClick={() => window.location.reload()}>
             Повторить
           </button>

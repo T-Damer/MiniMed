@@ -15,9 +15,11 @@ import {
   type SectionRecord,
 } from '@localmed/domain';
 import type {
+  DocumentIdentity,
   LexicalHit,
   LexicalSearchRequest,
   MedicalStore,
+  SearchDocumentDescriptor,
   StorageHealth,
   VectorHit,
   VectorSearchRequest,
@@ -689,6 +691,44 @@ export class SqliteMedicalStore implements MedicalStore {
       installation: this.healthHints.installation,
       sizeBytes: this.healthHints.sizeBytes,
     };
+  }
+
+  public async listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
+    this.assertInitialized();
+    return queryRows(
+      this.database,
+      'SELECT id, current_version_id FROM documents ORDER BY title COLLATE NOCASE, id',
+    ).map((row) => ({
+      id: readString(row, 'id'),
+      versionId: readString(row, 'current_version_id'),
+    }));
+  }
+
+  public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
+    this.assertInitialized();
+    return queryRows(
+      this.database,
+      `
+      SELECT id, source_type, json_object(
+        'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
+        'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
+        'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
+        'ageGroups', json_extract(metadata_json, '$.ageGroups'),
+        'entityType', json_extract(metadata_json, '$.entityType'),
+        'contentMode', json_extract(metadata_json, '$.contentMode'),
+        'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
+        'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
+        'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
+          THEN 'true' ELSE 'false' END),
+        'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
+          THEN 'true' ELSE 'false' END)
+      ) AS metadata_json FROM documents ORDER BY title COLLATE NOCASE, id
+    `,
+    ).map((row) => ({
+      id: readString(row, 'id'),
+      sourceType: readString(row, 'source_type'),
+      metadata: parseJsonObject(readString(row, 'metadata_json')),
+    }));
   }
 
   public async listDocuments(): Promise<readonly DocumentRecord[]> {

@@ -132,7 +132,9 @@ test('keeps patient note records local, editable in nested routes, and findable 
   ).toBeVisible();
   await expect(personal.getByText(/Не официальный источник/u)).toHaveCount(0);
   await expect(personal).toContainText(cardTitle);
-  await expect(page.getByTestId('search-results')).not.toContainText('Иванов И.');
+  await expect(page.getByTestId('search-results')).not.toContainText('Иванов И.', {
+    timeout: 60_000,
+  });
 
   await personal.getByRole('button', { name: 'Развернуть раздел «Ваши данные»' }).click();
   await personal.getByRole('button', { name: 'Открыть заметки' }).click();

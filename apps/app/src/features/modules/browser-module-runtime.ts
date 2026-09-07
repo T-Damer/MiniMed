@@ -19,7 +19,6 @@ import {
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
-
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import {
   getAssessmentCatalog,
@@ -31,6 +30,7 @@ import {
   removeAssessmentModuleDependencies,
   setAssessmentModuleDependencies,
 } from '@/features/assessments/assessment-packs';
+import { getDownloadQueue } from '@/features/downloads/download-service';
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 import {
   contentModuleNeedsInstall,
@@ -207,6 +207,7 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     artifact: ModuleArtifact,
     signal: AbortSignal,
     onProgress: (progress: { downloadedBytes: number; totalBytes: number | null }) => void,
+    module?: Pick<ContentModuleCatalogEntry, 'id' | 'version'>,
   ): Promise<Uint8Array> {
     if (!artifact.url) throw new Error('Для набора не указан адрес загрузки.');
     if (
@@ -218,6 +219,7 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
     const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
     return downloadWithRetry({
+      ...(module ? { jobId: `module:${module.id}@${module.version}`, trackProgress: false } : {}),
       url: resolvedUrl,
       cacheKey,
       expectedBytes: artifact.sizeBytes,
@@ -514,6 +516,38 @@ export class BrowserContentModuleRuntime {
           discardPendingModuleInstall(task.moduleId, task.version);
         }
       }
+      const descriptor = this.catalog.modules.find(
+        (item) => item.id === task.moduleId && item.version === task.version,
+      );
+      getDownloadQueue().observe(
+        {
+          id: `module:${task.moduleId}@${task.version}`,
+          kind: 'module',
+          title: descriptor?.title ?? 'Набор документов',
+          totalBytes: task.totalBytes,
+        },
+        {
+          state: this.isRetryScheduled(task) ? 'retrying' : task.state,
+          downloadedBytes: task.downloadedBytes,
+          totalBytes: task.totalBytes,
+          errorMessage:
+            task.state === 'failed'
+              ? 'Набор не установлен: загрузка или проверка не завершена.'
+              : null,
+        },
+        {
+          cancel: async () => {
+            this.cancel(task.id);
+            const result = await this.wait(task.id);
+            if (result.state === 'failed') throw new Error('Не удалось завершить отмену набора.');
+          },
+          retry: async () => {
+            const retried = this.retry(task.id);
+            const result = await this.wait(retried.id);
+            if (result.state === 'failed') throw new Error('Набор не удалось установить.');
+          },
+        },
+      );
     });
     window.addEventListener('online', this.handleOnline);
     recoverPendingModuleInstalls(
@@ -521,6 +555,30 @@ export class BrowserContentModuleRuntime {
       catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
     );
+    const queue = getDownloadQueue();
+    for (const task of queue
+      .list()
+      .filter((item) => item.kind === 'module' && item.state === 'interrupted')) {
+      const module = catalog.modules.find(
+        (item) => `module:${item.id}@${item.version}` === task.id && isModuleReleased(item),
+      );
+      if (!module) {
+        queue.rejectRestoration(task.id);
+        continue;
+      }
+      if (this.registry.get(module.id)?.version === module.version) {
+        queue.observe(
+          { id: task.id, kind: 'module', title: module.title },
+          { state: 'completed', errorMessage: null },
+          {},
+        );
+      } else {
+        queue.setRestorer(task.id, async () => {
+          const next = this.install(module);
+          return this.wait(next.id);
+        });
+      }
+    }
     this.reconcileAssessmentDependencies();
     this.localPackagedModulesReady = this.ensureLocalPackagedModules();
   }
@@ -756,16 +814,30 @@ export class BrowserContentModuleRuntime {
   }
 
   public install(module: ContentModuleCatalogEntry): ContentModuleDownloadTask {
+    const current = this.catalog.modules.find(
+      (candidate) => candidate.id === module.id && candidate.version === module.version,
+    );
+    if (!current || !isModuleReleased(current)) {
+      throw new Error(`Набор ${module.id}@${module.version} пока недоступен для скачивания.`);
+    }
+    module = current;
     this.clearRetry(module.id, module.version);
     const includeSourceAssets = module.artifacts.some(
       (artifact) => artifact.kind === 'source-assets',
     );
     enqueuePendingModuleInstall(module.id, module.version, includeSourceAssets);
-    return this.installer.install({
-      moduleId: module.id,
-      version: module.version,
-      includeSourceAssets,
-    });
+    try {
+      return this.installer.install({
+        moduleId: module.id,
+        version: module.version,
+        includeSourceAssets,
+      });
+    } catch (cause) {
+      // Compatibility/dependency checks are synchronous too. Do not poison future boots with a
+      // durable entry that the installer never accepted.
+      discardPendingModuleInstall(module.id, module.version);
+      throw cause;
+    }
   }
 
   public updateCatalog(catalog: ContentModuleCatalog): void {

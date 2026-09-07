@@ -277,6 +277,35 @@ const runtime = {
 } as const;
 
 describe('ForegroundContentModuleInstaller', () => {
+  it('rejects an unbuilt preview before adding a task or starting a download', async () => {
+    const fixture = await moduleFixture({ indexBytes: new Uint8Array([1]) });
+    const unbuilt = { ...fixture.module, releaseState: 'preview' as const, artifacts: [] };
+    const catalog = {
+      ...fixture.catalog,
+      modules: [fixture.catalog.modules[0] as ContentModuleCatalogEntry, unbuilt],
+    };
+    const downloader = new TestDownloader({});
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(validatedInstallation());
+    const installer = new ForegroundContentModuleInstaller(
+      catalog,
+      runtime,
+      downloader,
+      new TestBackend(),
+      validator(),
+      registry,
+    );
+    expect(() =>
+      installer.install({
+        moduleId: unbuilt.id,
+        version: unbuilt.version,
+        includeSourceAssets: false,
+      }),
+    ).toThrow('no downloadable verified index');
+    expect(installer.listTasks()).toEqual([]);
+    expect(downloader.calls).toEqual([]);
+  });
+
   it('keeps installs above the concurrency limit queued', async () => {
     const indexBytes = new Uint8Array([1, 2, 3]);
     const fixture = await moduleFixture({ indexBytes });

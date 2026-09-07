@@ -86,14 +86,35 @@ describe('WorkerOpfsMedicalStore', () => {
     } as MessageEvent);
     await expect(integrityPromise).resolves.toMatchObject({ integrity: 'ok' });
 
+    const projections = [
+      { method: 'listDocumentIdentities', rows: [{ id: 'doc-1', versionId: 'version-1' }] },
+      {
+        method: 'listSearchDocuments',
+        rows: [{ id: 'doc-1', sourceType: 'medical_reference', metadata: {} }],
+      },
+    ] as const;
+    for (const [index, projection] of projections.entries()) {
+      const id = 4 + index;
+      const pending = store[projection.method]();
+      expect(postMessage).toHaveBeenCalledWith({
+        id,
+        type: 'call',
+        method: projection.method,
+        args: [],
+      });
+      worker.onmessage?.({ data: { id, result: projection.rows } } as MessageEvent);
+      await expect(pending).resolves.toEqual(projection.rows);
+    }
+    expect(Worker).toHaveBeenCalledOnce();
+
     const closePromise = store.close();
     expect(postMessage).toHaveBeenCalledWith({
-      id: 4,
+      id: 6,
       type: 'call',
       method: 'close',
       args: [],
     });
-    worker.onmessage?.({ data: { id: 4, result: undefined } } as MessageEvent);
+    worker.onmessage?.({ data: { id: 6, result: undefined } } as MessageEvent);
     await closePromise;
     expect(terminate).toHaveBeenCalledOnce();
   });

@@ -581,16 +581,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setError(undefined);
     setContext(undefined);
 
-    const [result, available] = await Promise.all([
-      props.core.search({
-        query: trimmed,
-        mode: 'auto',
-        filters: {},
-        limit: 20,
-        includeSuggestions: true,
-      }),
-      contextDocuments().length === 0 ? props.core.listDocuments() : undefined,
-    ]);
+    const result = await props.core.search({
+      query: trimmed,
+      mode: 'auto',
+      filters: {},
+      limit: 20,
+      includeSuggestions: true,
+    });
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
     setLoading(false);
@@ -600,11 +597,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
 
     lastSearchedQuery = trimmed;
-    if (available?.ok) setContextDocuments(available.value);
-    else if (available) setError(available.error.message);
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
     if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value);
+    // Inline links enhance the rendered results; the full catalog must not delay first search.
+    if (contextDocuments().length === 0) {
+      const available = await props.core.listDocuments();
+      if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
+      if (available.ok) setContextDocuments(available.value);
+      else setError(available.error.message);
+    }
   }
 
   async function openResult(result: SearchResult): Promise<void> {

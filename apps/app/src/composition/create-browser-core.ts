@@ -8,10 +8,12 @@ import {
   SQLITE_WASM_DESERIALIZE_MAX_BYTES,
   SqliteMedicalStore,
 } from '@localmed/storage-sqlite';
-
+import { readBoundedResponse } from '@/composition/bounded-response';
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
+import { getDownloadQueue } from '@/features/downloads/download-service';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
+import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
 
 interface PackBuildReport {
   readonly outputChecksum: string;
@@ -124,8 +126,12 @@ async function readPackReport(
 }
 
 export interface CoreDownloadUi {
-  readonly requestDownload: () => Promise<void>;
-  readonly onProgress: (progress: { readonly loaded: number; readonly total: number }) => void;
+  readonly requestDownload: (resuming?: boolean) => Promise<void>;
+  readonly onProgress: (progress: {
+    readonly loaded: number;
+    readonly total: number;
+    readonly phase?: 'downloading' | 'verifying' | 'installing';
+  }) => void;
 }
 
 export async function createNativeStore(
@@ -135,25 +141,78 @@ export async function createNativeStore(
   if (Capacitor.getPlatform() === 'android' && downloadUi) {
     const options = { expectedSha256: report.outputChecksum };
     if (!(await LocalMedDatabase.hasCorePack(options)).installed) {
-      await downloadUi.requestDownload();
-      const listener = await LocalMedDatabase.addListener(
-        'coreDownloadProgress',
-        downloadUi.onProgress,
+      const transfer = {
+        url: 'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db',
+        cacheKey: report.outputChecksum,
+      };
+      await downloadUi.requestDownload(await hasRetainedFileDownload(transfer));
+      return getDownloadQueue().run(
+        { id: `core:${report.outputChecksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
+        async (context) => {
+          const listener = await LocalMedDatabase.addListener('coreDownloadProgress', (event) => {
+            context.progress(event.loaded, event.total > 0 ? event.total : null);
+            if (event.phase) context.phase(event.phase, false);
+            downloadUi.onProgress(event);
+          });
+          try {
+            await downloadFileWithRetry(
+              {
+                ...transfer,
+                jobId: context.id,
+                signal: context.signal,
+                onProgress: ({ downloadedBytes, totalBytes }) =>
+                  downloadUi.onProgress({
+                    loaded: downloadedBytes,
+                    total: totalBytes ?? 0,
+                    phase: 'downloading',
+                  }),
+              },
+              async (file) => {
+                context.phase('verifying', false);
+                downloadUi.onProgress({
+                  loaded: file.sizeBytes,
+                  total: file.sizeBytes,
+                  phase: 'verifying',
+                });
+                await LocalMedDatabase.installDownloadedCore({ ...options, id: file.id });
+              },
+            );
+            context.phase('verifying', false);
+            return await openNativeStore(report.outputChecksum);
+          } finally {
+            await listener.remove();
+          }
+        },
+        { retry: () => window.location.reload() },
       );
-      try {
-        await LocalMedDatabase.downloadCorePack(options);
-      } finally {
-        await listener.remove();
-      }
     }
   }
+  return openNativeStore(report.outputChecksum);
+}
+
+async function openNativeStore(checksum: string): Promise<CapacitorMedicalStore> {
   const store = new CapacitorMedicalStore({
     assetPath: PACK_ASSET_PATH,
     databaseName: PACK_DATABASE_NAME,
-    expectedSha256: report.outputChecksum,
+    expectedSha256: checksum,
   });
-  await withTimeout(store.initialize(), CONTENT_OPEN_TIMEOUT_MS, 'Native content database');
-  return store;
+  try {
+    // The native bridge has no cancellation API. A Promise.race timeout orphaned its open and
+    // allowed the fallback to start while SQLite still owned the core. Await settlement instead.
+    await store.initialize();
+    const queue = getDownloadQueue();
+    if (queue.get(`core:${checksum}`)?.state === 'interrupted') {
+      queue.observe(
+        { id: `core:${checksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
+        { state: 'completed', errorMessage: null },
+        {},
+      );
+    }
+    return store;
+  } catch (cause) {
+    await store.close();
+    throw cause;
+  }
 }
 
 export function parseUnsafeWasmCompanionAllowlist(
@@ -240,25 +299,25 @@ export async function createRequiredWebCoreStore(
 ): Promise<MedicalStore> {
   const url = new URL(databaseUrl ?? `content/${PACK_DATABASE_NAME}`, contentBaseUrl);
   const contentLength = await packagedContentLength(url);
-  if (contentLength !== undefined && contentLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
+  if (
+    contentLength === undefined ||
+    contentLength === 0 ||
+    contentLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES
+  ) {
     return await openRequiredCoreFromOpfs(url.href, cacheName);
   }
   const response = await fetchContent(url);
   if (!response.ok) {
     throw new Error(`Unable to load compiled content pack (${response.status}).`);
   }
-  const buffer = await response.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
+  const bytes = await readBoundedResponse(response, SQLITE_WASM_DESERIALIZE_MAX_BYTES);
+  if (!bytes) {
+    // A server may under-report HEAD. Cancel the bounded read and stream the original resource
+    // in its worker instead of retaining a whole-core ArrayBuffer plus a copied Blob.
+    return await openRequiredCoreFromOpfs(url.href, cacheName);
+  }
   if (!hasSqliteHeader(bytes)) {
     throw new Error(`Unable to load compiled content pack (${PACK_DATABASE_NAME} is not SQLite).`);
-  }
-  if (bytes.byteLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
-    const blobUrl = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.sqlite3' }));
-    try {
-      return await openRequiredCoreFromOpfs(blobUrl, cacheName);
-    } finally {
-      URL.revokeObjectURL(blobUrl);
-    }
   }
   return await withTimeout(
     SqliteMedicalStore.createFromBytes(bytes),
@@ -446,11 +505,12 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
 
   let fallbackCoreUrl: string | undefined;
   if (platform === 'android' || platform === 'ios') {
+    let nativeStore: CapacitorMedicalStore | undefined;
     try {
-      const nativeStore = await createNativeStore(downloadUi);
+      nativeStore = await createNativeStore(downloadUi);
       const contentBaseUrl = getPackagedContentBaseUrl();
       const companions = await createPackagedCompanionStores(contentBaseUrl, {
-        includeMedications: !isFloatingWindowRuntime(),
+        includeMedications: platform !== 'android' && !isFloatingWindowRuntime(),
       });
       const store = await withInstalledModules(nativeStore, companions);
       return createMedicalCore({
@@ -460,6 +520,16 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
         searchExecution: companions.medicationsStore ? 'direct-only' : undefined,
       });
     } catch (error) {
+      await nativeStore?.close();
+      // A corrupt edition is not a backend capability failure. Never bypass native validation
+      // by opening the same damaged bytes in WASM.
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'NATIVE_PACK_VALIDATION_FAILED'
+      )
+        throw error;
       if (platform === 'android') {
         const report = await readPackReport();
         const local = await LocalMedDatabase.hasCorePack({ expectedSha256: report.outputChecksum });
@@ -481,7 +551,7 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
       `core.${report.outputChecksum.slice(7)}.db`,
     );
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
-      includeMedications: !isFloatingWindowRuntime(),
+      includeMedications: platform !== 'android' && !isFloatingWindowRuntime(),
     });
     const store = await withInstalledModules(coreStore, companions);
     return createMedicalCore({

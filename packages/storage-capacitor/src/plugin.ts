@@ -10,6 +10,15 @@ export interface OpenPackOptions {
 }
 
 export interface NativeDatabaseHealth {
+  readonly openTimings?: {
+    readonly capabilitiesMs: number;
+    readonly installedFileMs: number;
+    readonly sqliteOpenMs: number;
+    readonly integrityMs: number;
+    readonly integrityCached: boolean;
+    readonly metadataMs: number;
+    readonly totalMs: number;
+  };
   readonly schemaVersion: number;
   readonly sqliteVersion: string;
   readonly fts5Available: boolean;
@@ -53,10 +62,23 @@ export interface NativeCoreDownloadPlugin {
   hasCorePack(options: {
     readonly expectedSha256: string;
   }): Promise<{ readonly installed: boolean; readonly databasePath?: string }>;
-  downloadCorePack(options: { readonly expectedSha256: string }): Promise<void>;
+  prepareNativeDownload(options: {
+    readonly id: string;
+  }): Promise<{ readonly destination: string; readonly filePath: string }>;
+  inspectNativeDownload(options: {
+    readonly id: string;
+  }): Promise<{ readonly filePath: string; readonly sizeBytes: number }>;
+  installDownloadedCore(options: {
+    readonly id: string;
+    readonly expectedSha256: string;
+  }): Promise<void>;
   addListener(
     event: 'coreDownloadProgress',
-    listener: (progress: { readonly loaded: number; readonly total: number }) => void,
+    listener: (progress: {
+      readonly loaded: number;
+      readonly total: number;
+      readonly phase?: 'downloading' | 'verifying' | 'installing';
+    }) => void,
   ): Promise<PluginListenerHandle>;
 }
 

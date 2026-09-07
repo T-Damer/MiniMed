@@ -6,7 +6,7 @@ import type {
 } from '@localmed/contracts';
 import type { ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 
-function metadataStrings(
+export function metadataStrings(
   metadata: Readonly<Record<string, unknown>>,
   key: string,
 ): readonly string[] {

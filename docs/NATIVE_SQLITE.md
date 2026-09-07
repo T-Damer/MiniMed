@@ -10,7 +10,7 @@ adapter behind the existing `MedicalStore` contract.
 SolidJS UI
   → MedicalCore
   → MedicalStore
-      ├─ CapacitorMedicalStore → Android/iOS system SQLite
+      ├─ CapacitorMedicalStore → bundled Android SQLite / iOS SQLite
       ├─ SqliteMedicalStore    → SQLite WASM fallback
       └─ InMemoryMedicalStore  → tests
 ```
@@ -20,21 +20,39 @@ and source navigation remain in portable TypeScript.
 
 ## Startup sequence
 
-1. The application reads `public/content/core-report.json` and obtains the expected SHA-256.
-2. On Android/iOS, `CapacitorMedicalStore` calls the local `LocalMedDatabase` plugin.
-3. The plugin copies the bundled `.db` into private application storage only when the checksum
-   marker differs.
-4. Installation uses a temporary file and preserves the previous pack as a backup until the new
-   file and checksum marker are committed.
-5. The plugin opens the installed file read-only.
-6. `PRAGMA quick_check`, schema metadata, document count, and a real FTS5 `MATCH` query are probed.
-7. If registration, copy, integrity, or FTS5 fails, composition closes the native attempt and opens
-   the same packaged database through SQLite WASM.
-8. If the compiled database itself is unavailable, the small JSON seed remains the last recovery
-   path for the synthetic demo only.
+See ADR 0018 for SQLCipher Community 4.18.0 (empty-key plaintext packs) and persistent native transfers.
+The pinned artifact requires an explicit empty password for in-memory probes; file opens remain read-only.
 
-The fallback is intentional: some platform SQLite builds may lack a compatible FTS5 module. A
-mobile build must remain usable rather than fail at boot.
+The current Android APK downloads the required core into private storage after explicit consent;
+iOS retains the bundled copy. The immutable artifact remains identified by its published SHA-256.
+
+1. Read `core-report.json`; ensure the Android core is installed, downloading only on user action.
+2. Android `openPack` probes FTS5 on a tiny in-memory database **before** touching the large file.
+   Unsupported runtimes immediately select the existing WASM/OPFS fallback on the installed file.
+3. Recover interrupted installs and compare the verified-edition stamp. If the stamp does not match,
+   stream SHA-256 over the file. Open SQLite read-only and perform `PRAGMA quick_check` only on an
+   unstamped edition. Query schema metadata and the actual FTS index on each open.
+4. Save the stamp only after all checks succeed and the file identity remains unchanged. It contains
+   expected checksum, SQLite version, verifier revision, device/inode, change time, mtime and size.
+   Replacement/recovery explicitly delete it; content migrations change the artifact checksum and
+   validation changes must bump `PackValidationIdentity`'s revision. This is a cache for immutable
+   app-private files, not protection against malicious same-identity filesystem modifications.
+5. Native operations are serialized. JS awaits actual completion and cleanup rather than racing
+   an uncancellable timeout. Closing an adapter waits for its acquisition; repeated initialization
+   of one adapter acquires one lease. A failed integrity check must not fall back onto corrupt bytes.
+6. Unknown-size and large cores stream through the existing OPFS worker. The small-core JS path
+   has a bounded body reader even when HEAD underreports its size. The worker retains ownership
+   of its pool for queries and must close before another owner can reuse it.
+
+Android logcat tag `LocalMedDatabase` reports `capabilitiesMs`, `installedFileMs`, `sqliteOpenMs`,
+`integrityMs`, `metadataMs`, `totalMs`, `integrityCached` and `failedPhase` when applicable. Unreached
+phases are absent, not zero-duration successes. Timing logs exclude query text, SQL arguments and
+file paths. Successful bridge health includes `openTimings`; these local diagnostics do not upload
+telemetry. The UI separately marks navigation and search readiness with the Performance API.
+
+Native capability probing/cache behavior still needs real-device timing and interruption
+qualification. An unavailable compiled core is an explicit preparation/error state, not a silent
+substitution of a small demonstration corpus.
 
 ## Bridge surface
 

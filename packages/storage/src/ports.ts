@@ -45,10 +45,21 @@ export interface VectorHit {
   readonly score: number;
 }
 
+export type SearchDocumentDescriptor = Pick<DocumentRecord, 'id' | 'sourceType' | 'metadata'>;
+
+export interface DocumentIdentity {
+  readonly id: string;
+  readonly versionId: string;
+}
+
 export interface MedicalStore {
   initialize(seed?: ContentPackSeed): Promise<StorageHealth>;
   getHealth(): Promise<StorageHealth>;
   listDocuments(): Promise<readonly DocumentRecord[]>;
+  /** Optional narrow projection for cross-pack validation without loading document metadata. */
+  listDocumentIdentities?(): Promise<readonly DocumentIdentity[]>;
+  /** Compact ranking, audience and content-kind metadata; never a full document record. */
+  listSearchDocuments?(): Promise<readonly SearchDocumentDescriptor[]>;
   getDocument(id: string): Promise<DocumentRecord | null>;
   getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null>;
   getSectionsByDocument(documentId: string): Promise<readonly SectionRecord[]>;
