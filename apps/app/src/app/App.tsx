@@ -96,6 +96,11 @@ export function App(): JSX.Element {
   const [settingsRoute, setSettingsRoute] = createSignal(readSettingsRoute());
   const earlyDownloads = () =>
     !session.ready() && navigation.view() === 'settings' && settingsRoute() === 'downloads';
+  const showingBootScreen = () =>
+    !session.ready() &&
+    navigation.view() !== 'assessments' &&
+    navigation.view() !== 'calculators' &&
+    !earlyDownloads();
   onMount(() => {
     const refresh = () => setSettingsRoute(readSettingsRoute());
     window.addEventListener('hashchange', refresh);
@@ -224,6 +229,7 @@ export function App(): JSX.Element {
     <div
       class="app-shell archive-app"
       classList={{
+        'app-shell--booting': showingBootScreen(),
         'app-shell--native': session.isNativeShell,
         'app-shell--medical-image': medicalImageViewerActive(),
         'app-shell--chrome-hidden': navigation.chromeHidden(),
@@ -275,13 +281,7 @@ export function App(): JSX.Element {
         <Show
           when={session.ready()}
           fallback={
-            <Show
-              when={
-                navigation.view() !== 'assessments' &&
-                navigation.view() !== 'calculators' &&
-                !earlyDownloads()
-              }
-            >
+            <Show when={showingBootScreen()}>
               <BootScreen
                 error={session.error()}
                 bootSlow={session.bootSlow()}
@@ -377,6 +377,7 @@ export function App(): JSX.Element {
 
       <Show
         when={
+          !(showingBootScreen() && session.coreDownloadRequired()) &&
           !embeddedFloatingWindow &&
           !medicalImageViewerActive() &&
           !floatingWindows.fullscreenWindowId()

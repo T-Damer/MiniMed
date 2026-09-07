@@ -227,12 +227,10 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Changes:
-          - small Android shell with explicit first-launch core download and verified offline installation;
-          - optional reference illustrations with download/cancel/delete and offline reuse;
-          - one ECG recognition package, including the repaired PTB-XL download;
-          - corrected Android content URLs, bulk/section progress and retry of failed downloads;
-          - sticky source-preview actions, clearer dark-theme controls, feedback and stronger blur;
-          - clarified GRLS attribution in registration summaries.
+          - first-launch core setup, progress and retry now fill the screen without bottom navigation;
+          - installed-core startup retains early access to calculators and assessments;
+          - startup sizing and navigation spacing are corrected on phone and desktop;
+          - browser regressions cover the missing-core prompt and early navigation through initialization.
 
           Release archives include all 770 catalog package files, including experimental packs.
           Their preview/review status is preserved. The browser application is under /app/.

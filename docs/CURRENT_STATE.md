@@ -1,13 +1,23 @@
 # Current state
 
 > Updated: 7 September 2026
-> Repository version: `0.6.35`
-> Active target: `0.6.35` public prerelease toward `1.0`
+> Repository version: `0.6.36`
+> Active target: `0.6.36` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
+
+### Full-screen core setup and startup geometry — 7 September 2026
+
+- The first-launch core prompt, its progress, and its retry state use a full-screen setup surface
+  without bottom navigation. Installed-core loading retains early calculators and assessments.
+- A shared boot visibility condition restores the shell's viewport sizing only while the boot
+  surface is visible. Ordinary startup reserves navigation space; core setup uses safe-area padding.
+- Browser regressions cover phone/desktop startup, early calculator state through initialization,
+  and the Android missing-core prompt through a simulated native bridge. This does not qualify a
+  physical Android device or native transfer lifecycle.
 
 ### Landing presentation and lightweight demos — 7 September 2026
 

@@ -18,7 +18,10 @@ export function BootScreen(props: {
 }): JSX.Element {
   const progress = () => props.coreProgress;
   return (
-    <section class="boot-screen boot-screen--shell-booting archive-boot">
+    <section
+      class="boot-screen boot-screen--shell-booting archive-boot"
+      classList={{ 'boot-screen--core-setup': props.coreDownloadRequired }}
+    >
       <div class="boot-card paper-sheet">
         <Show when={!props.error && (!props.coreDownloadRequired || props.coreDownloading)}>
           <span class="boot-spinner" />

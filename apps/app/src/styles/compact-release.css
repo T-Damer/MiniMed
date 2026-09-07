@@ -1066,19 +1066,21 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   padding-bottom: var(--nav-safe-bottom);
 }
 
-/* While booting there's no bottom nav to reserve space for, and the boot card alone should
-   never make the page tall enough to scroll. */
+/* The boot surface owns viewport sizing and space for the already interactive navigation. */
 .app-shell--booting {
   min-height: 100dvh;
-  height: 100dvh;
-  overflow: hidden;
   padding: 0;
   background: var(--paper-light);
 }
 
 .boot-screen--shell-booting {
-  min-height: 100%;
+  min-height: 100dvh;
+  padding-bottom: calc(5rem + var(--nav-safe-bottom));
   overflow: auto;
+}
+
+.boot-screen--core-setup {
+  padding-bottom: calc(1.25rem + var(--safe-bottom));
 }
 
 .app-main {

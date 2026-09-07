@@ -4,6 +4,17 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.36] - 2026-09-07
+
+- First-launch core download is a full-screen setup step without bottom navigation, including
+  download progress and retry. Loading an installed core still exposes calculators and assessments.
+- Restored viewport-sized startup layout and reserved navigation space only where navigation is
+  visible. Early tool navigation survives core initialization.
+
+The application reuses the verified discovery corpus. SQL/content-pack schema remains 2;
+installed packs, source identifiers, bookmarks and anchors are unchanged. This is a debug-signed
+engineering prerelease; physical-device and clinical qualification remain outstanding.
+
 ## [0.6.35] - 2026-09-07
 
 - Android startup no longer stalls on a Capacitor plugin proxy or exhausts the Java heap while
