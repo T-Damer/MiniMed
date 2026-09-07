@@ -1,4 +1,4 @@
-name: PR164 source and dependency inspection
+name: Recover staged PR164 queue patch
 on:
   push:
     branches: [agent/core-open-download-contract]
@@ -6,48 +6,50 @@ on:
 permissions:
   contents: read
 jobs:
-  inspect:
+  recover:
     runs-on: ubuntu-24.04
-    timeout-minutes: 4
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - name: Export tracked source and inspect published SDK compatibility
+      - name: Recover known content-addressed patch fragments (no source execution)
+        env:
+          READ_TOKEN: ${{ github.token }}
         run: |
-          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import pathlib,subprocess,zipfile,urllib.request,io,json,hashlib
-          out=pathlib.Path('/tmp/pr164-source');out.mkdir()
-          names=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
-          manifest={}
-          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
-              for name in names:
-                  p=pathlib.Path(name)
-                  if not name or not p.is_file() or p.is_symlink() or p.stat().st_size>4_000_000: continue
-                  if not (name.startswith(('apps/','packages/','docs/','scripts/','tools/','.github/')) or '/' not in name): continue
-                  b=p.read_bytes()
-                  try: b.decode('utf-8')
-                  except UnicodeDecodeError: continue
-                  z.writestr(name,b)
-                  manifest[name]=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
-          (out/'manifest.json').write_text(json.dumps(manifest))
-          (out/'SOURCE.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
-          for version in ['4.17.0','4.18.0']:
-              base=f'https://repo.maven.apache.org/maven2/net/zetetic/sqlcipher-android/{version}/sqlcipher-android-{version}'
-              with urllib.request.urlopen(base+'.aar', timeout=60) as r: data=r.read()
-              with zipfile.ZipFile(io.BytesIO(data)) as z:
-                  meta=z.read('META-INF/com/android/build/gradle/aar-metadata.properties').decode()
-                  (out/f'sqlcipher-{version}-metadata.txt').write_text(meta)
-                  print(version,meta)
-              with urllib.request.urlopen(base+'-sources.jar', timeout=60) as r: data=r.read()
-              with zipfile.ZipFile(io.BytesIO(data)) as z:
-                  for name in z.namelist():
-                      if name.endswith(('SQLiteDatabase.java','DatabaseErrorHandler.java')):
-                          (out/(version+'-'+pathlib.Path(name).name)).write_bytes(z.read(name))
+          python3 - <<'PY'
+          import base64, hashlib, json, lzma, os, pathlib, urllib.request
+          shas = [
+            '211d8d6f532db296161e6cc26b55823519e5d00d',
+            '3b800e8dc19d3801a820db0cae7dc3ea4b396da3',
+            'aaa15b3386bc5b72d1e0641666c0bc12b1e1e638',
+            'c67da4935aff06cd99667f822a97a0300a891021',
+            'c7b370a38be830bb829f30adb4a864c91e687539',
+            'b82f7265300c930419f53174b96122dd99ac7198',
+            'b285f726d96bad2bb57520529ff1225fe0bfd017',
+          ]
+          out = pathlib.Path('/tmp/queue-recovery'); out.mkdir()
+          parts = []
+          for i, sha in enumerate(shas):
+              request = urllib.request.Request(
+                  f'https://api.github.com/repos/T-Damer/MiniMed/git/blobs/{sha}',
+                  headers={'Authorization': 'Bearer ' + os.environ['READ_TOKEN'], 'Accept': 'application/vnd.github+json'})
+              with urllib.request.urlopen(request, timeout=30) as r: data = json.load(r)
+              part = base64.b64decode(data['content'])
+              assert hashlib.sha1(b'blob '+str(len(part)).encode()+b'\0'+part).hexdigest() == sha
+              parts.append(part)
+              (out/f'part-{i+1}.txt').write_bytes(part)
+          stream = b''.join(parts)
+          (out/'fragments.base64').write_bytes(stream)
+          decoder = lzma.LZMADecompressor()
+          patch = decoder.decompress(base64.b64decode(stream[:len(stream)//4*4]))
+          (out/'recovered.patch').write_bytes(patch)
+          report = {'partBytes': [len(p) for p in parts], 'patchBytes': len(patch), 'complete': decoder.eof,
+                    'sha256': hashlib.sha256(patch).hexdigest(), 'files': patch.decode('utf8', errors='replace').count('diff --git ')}
+          (out/'RECOVERY.json').write_text(json.dumps(report, indent=2))
+          print(json.dumps(report, indent=2))
+          print(patch[-1200:].decode('utf8',errors='replace'))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pr164-current-source
-          path: /tmp/pr164-source
-          retention-days: 3
+          name: pr164-recovered-queue
+          path: /tmp/queue-recovery
+          retention-days: 7
