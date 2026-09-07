@@ -2,16 +2,6 @@ name: Web E2E
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/e2e.yml"
-      - "apps/app/**"
-      - "content/regulatory-rf-pilot/**"
-      - "content/reference-rf-pilot/**"
-      - "packages/**"
-      - "tools/ingest/**"
-      - "playwright.config.ts"
-      - "bun.lock"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}

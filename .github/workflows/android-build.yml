@@ -2,21 +2,6 @@ name: Android native qualification
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'apps/app/android/**'
-      - 'apps/app/src/features/network/**'
-      - 'apps/app/src/features/downloads/**'
-      - 'apps/app/src/features/models/**'
-      - 'scripts/check-native-bridge.mjs'
-      - 'apps/app/src/composition/create-browser-core*'
-      - 'packages/storage-capacitor/**'
-      - 'patches/**'
-      - 'bun.lock'
-      - 'package.json'
-      - 'apps/app/package.json'
-      - 'scripts/test-native-storage.sh'
-      - '.github/workflows/android-build.yml'
 
 permissions:
   contents: read

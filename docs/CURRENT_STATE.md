@@ -34,6 +34,8 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
   process-eviction or release qualification. CI uses Lavapipe after a host SwiftShader crash;
   cold native integrity validation took 100 s there, so its startup wait is 180 s. Browser
   full-corpus result assertions allow 60 s while retaining their content checks.
+  Full browser E2E and Android qualification now run manually in GitHub. PRs keep fast code/unit
+  and content checks; release APK builds run only on a release commit on main or manual dispatch.
   No private corpus regeneration was needed.
 
 ### Unified download admission and presentation — draft PR #164
