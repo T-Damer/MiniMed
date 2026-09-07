@@ -1,3 +1,4 @@
+import { getDownloadQueue } from '@/features/downloads/download-service';
 import { LlamaInference } from '@/features/models/llama-plugin';
 import { SerialAsyncQueue } from '@/features/models/serial-async-queue';
 import {
@@ -157,17 +158,29 @@ export class LlamaNativeRuntime implements LocalModelRuntime {
         this.options.mirrorBaseUrl.trim() && artifact.mirrorPath
           ? joinUrl(this.options.mirrorBaseUrl, artifact.mirrorPath)
           : null;
-      const ensured = await LlamaInference.ensureModel({
-        url: artifact.upstreamUrl,
-        mirrorUrl,
-        fileName: artifact.mirrorPath ?? `${artifact.id}.gguf`,
-        expectedSha256: artifact.sha256,
-        expectedBytes: artifact.downloadBytes,
-      });
-      if (this.cancelled) throw new Error('Загрузка отменена.');
+      const ensure = () =>
+        LlamaInference.ensureModel({
+          url: artifact.upstreamUrl,
+          mirrorUrl,
+          fileName: artifact.mirrorPath ?? `${artifact.id}.gguf`,
+          expectedSha256: artifact.sha256,
+          expectedBytes: artifact.downloadBytes,
+        });
+      const context = callbacks.downloadContext;
+      const ensured = context
+        ? await getDownloadQueue().transfer(
+            context.id,
+            'native-llama-model',
+            context.signal,
+            ensure,
+          )
+        : await ensure();
+      if (this.cancelled) throw new DOMException('Загрузка отменена.', 'AbortError');
+      context?.phase('installing');
       await LlamaInference.initializeModel({ path: ensured.path });
       return new LlamaNativeSession(model, artifact.id);
     } catch (cause) {
+      if (this.cancelled) throw new DOMException('Загрузка отменена.', 'AbortError');
       const detail = cause instanceof Error ? cause.message : 'неизвестная ошибка';
       throw new Error(`Не удалось загрузить ${model.name}: ${detail}`);
     } finally {

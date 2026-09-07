@@ -1,5 +1,4 @@
 import { Capacitor } from '@capacitor/core';
-
 import {
   ECG_DIGITIZER_CONFIG_FILE,
   ECG_DIGITIZER_WEIGHTS_FILE,
@@ -11,6 +10,7 @@ import {
   type EcgPhotoCorners,
   ecgModelStorageUrl,
 } from '@/features/calculators/ecg-model-contract';
+import type { DownloadContext } from '@/features/downloads/download-queue';
 import { downloadWithRetry } from '@/features/network/download-retry';
 import { listZipEntries, readZipEntry } from '@/state/user-library-zip';
 
@@ -309,10 +309,12 @@ export async function installEcgModelFromCatalog(
   model: EcgModelCatalogItem,
   options: {
     readonly signal?: AbortSignal;
+    readonly downloadContext?: DownloadContext;
     readonly onProgress?: (downloadedBytes: number, totalBytes: number) => void;
   } = {},
 ): Promise<EcgModelDescriptor> {
   const bytes = await downloadWithRetry({
+    ...(options.downloadContext ? { jobId: options.downloadContext.id, trackProgress: false } : {}),
     url: resolveEcgModelDownloadUrl(model.bundleUrl),
     cacheKey: `ecg-digitizer:${model.id}:${model.bundleSha256}`,
     expectedBytes: model.downloadBytes,
@@ -321,7 +323,12 @@ export async function installEcgModelFromCatalog(
     onProgress: ({ downloadedBytes, totalBytes }) =>
       options.onProgress?.(downloadedBytes, totalBytes ?? model.downloadBytes),
   });
-  return installEcgModelArchive(await verifyEcgModelDownload(model, bytes));
+  options.signal?.throwIfAborted();
+  options.downloadContext?.phase('verifying');
+  const verified = await verifyEcgModelDownload(model, bytes);
+  options.signal?.throwIfAborted();
+  // Cache activation is atomic; the package observes its result before honouring a late abort.
+  return installEcgModelArchive(verified);
 }
 
 export async function removeEcgModel(): Promise<void> {

@@ -22,6 +22,7 @@ import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
+import { readSettingsRoute } from '@/features/settings/settings-routing';
 import { getFloatingWindowsEnabled, subscribeAppPreferences } from '@/state/app-preferences';
 import { createFloatingWindows } from '@/state/floating-windows';
 import { rememberReturnTo } from '@/state/return-navigation';
@@ -66,6 +67,11 @@ const KnowledgeBaseView = lazy(loadKnowledgeBaseView);
 const NotesView = lazy(loadNotesView);
 const SearchHome = lazy(loadSearchHome);
 const SettingsView = lazy(loadSettingsView);
+const DownloadsPage = lazy(() =>
+  import('@/features/downloads/DownloadsPage').then(({ DownloadsPage }) => ({
+    default: DownloadsPage,
+  })),
+);
 
 const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
   search: loadSearchHome,
@@ -87,6 +93,14 @@ export function App(): JSX.Element {
     embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
   const navigation = useRootNavigation();
+  const [settingsRoute, setSettingsRoute] = createSignal(readSettingsRoute());
+  const earlyDownloads = () =>
+    !session.ready() && navigation.view() === 'settings' && settingsRoute() === 'downloads';
+  onMount(() => {
+    const refresh = () => setSettingsRoute(readSettingsRoute());
+    window.addEventListener('hashchange', refresh);
+    onCleanup(() => window.removeEventListener('hashchange', refresh));
+  });
   const floatingWindows = createFloatingWindows();
   const [floatingWindowsEnabled, setFloatingWindowsEnabled] = createSignal(
     getFloatingWindowsEnabled(),
@@ -245,10 +259,29 @@ export function App(): JSX.Element {
         {rootPane('calculators', () => (
           <CalculatorsView />
         ))}
+        <Show when={earlyDownloads()}>
+          <section class="app-view active" aria-hidden={false}>
+            <Suspense
+              fallback={
+                <p class="app-view__loading" role="status">
+                  Открываем очередь…
+                </p>
+              }
+            >
+              <DownloadsPage />
+            </Suspense>
+          </section>
+        </Show>
         <Show
           when={session.ready()}
           fallback={
-            <Show when={navigation.view() !== 'assessments' && navigation.view() !== 'calculators'}>
+            <Show
+              when={
+                navigation.view() !== 'assessments' &&
+                navigation.view() !== 'calculators' &&
+                !earlyDownloads()
+              }
+            >
               <BootScreen
                 error={session.error()}
                 bootSlow={session.bootSlow()}

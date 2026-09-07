@@ -3,11 +3,11 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { Switch } from '@/components/Switch';
 import { AsrSettings } from '@/features/asr/AsrSettings';
+import { DownloadsPage } from '@/features/downloads/DownloadsPage';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
@@ -16,7 +16,6 @@ import { ReferenceImagesSettings } from '@/features/settings/ReferenceImagesSett
 import {
   readSettingsRoute,
   SETTINGS_DOWNLOADS_HASH,
-  SETTINGS_ROOT_HASH,
   type SettingsRoute,
 } from '@/features/settings/settings-routing';
 import { StatusPanel } from '@/features/status/StatusPanel';
@@ -105,23 +104,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   return (
     <section class="settings-page page-surface page-grain">
       <Show when={route() === 'downloads'}>
-        <Page
-          class="settings-page__heading settings-page__heading--subroute"
-          navigation={
-            <NavBack
-              class="knowledge-back-button"
-              aria-label="К настройкам"
-              onClick={() => {
-                window.location.hash = SETTINGS_ROOT_HASH;
-              }}
-              icon={<AppGlyph name="arrow-left" class="settings-page__back-icon" />}
-            />
-          }
-          icon={<AppGlyph name="download" class="page__icon-glyph" />}
-          title={<h1 class="settings-page__title">Загрузки</h1>}
-          description="Наборы документов, прогресс и повтор прерванных загрузок."
-        />
-        <ContentDownloadStatus />
+        <DownloadsPage />
         <PackagingImagesSettings />
       </Show>
       <Show when={route() === 'index'}>

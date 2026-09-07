@@ -11,6 +11,7 @@ import {
 import { readBoundedResponse } from '@/composition/bounded-response';
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
+import { getDownloadQueue } from '@/features/downloads/download-service';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
 import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
 
@@ -145,44 +146,68 @@ export async function createNativeStore(
         cacheKey: report.outputChecksum,
       };
       await downloadUi.requestDownload(await hasRetainedFileDownload(transfer));
-      const listener = await LocalMedDatabase.addListener(
-        'coreDownloadProgress',
-        downloadUi.onProgress,
+      return getDownloadQueue().run(
+        { id: `core:${report.outputChecksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
+        async (context) => {
+          const listener = await LocalMedDatabase.addListener('coreDownloadProgress', (event) => {
+            context.progress(event.loaded, event.total > 0 ? event.total : null);
+            if (event.phase) context.phase(event.phase, false);
+            downloadUi.onProgress(event);
+          });
+          try {
+            await downloadFileWithRetry(
+              {
+                ...transfer,
+                jobId: context.id,
+                signal: context.signal,
+                onProgress: ({ downloadedBytes, totalBytes }) =>
+                  downloadUi.onProgress({
+                    loaded: downloadedBytes,
+                    total: totalBytes ?? 0,
+                    phase: 'downloading',
+                  }),
+              },
+              async (file) => {
+                context.phase('verifying', false);
+                downloadUi.onProgress({
+                  loaded: file.sizeBytes,
+                  total: file.sizeBytes,
+                  phase: 'verifying',
+                });
+                await LocalMedDatabase.installDownloadedCore({ ...options, id: file.id });
+              },
+            );
+            context.phase('verifying', false);
+            return await openNativeStore(report.outputChecksum);
+          } finally {
+            await listener.remove();
+          }
+        },
+        { retry: () => window.location.reload() },
       );
-      try {
-        await downloadFileWithRetry(
-          {
-            ...transfer,
-            onProgress: ({ downloadedBytes, totalBytes }) =>
-              downloadUi.onProgress({
-                loaded: downloadedBytes,
-                total: totalBytes ?? 0,
-                phase: 'downloading',
-              }),
-          },
-          async (file) => {
-            downloadUi.onProgress({
-              loaded: file.sizeBytes,
-              total: file.sizeBytes,
-              phase: 'verifying',
-            });
-            await LocalMedDatabase.installDownloadedCore({ ...options, id: file.id });
-          },
-        );
-      } finally {
-        await listener.remove();
-      }
     }
   }
+  return openNativeStore(report.outputChecksum);
+}
+
+async function openNativeStore(checksum: string): Promise<CapacitorMedicalStore> {
   const store = new CapacitorMedicalStore({
     assetPath: PACK_ASSET_PATH,
     databaseName: PACK_DATABASE_NAME,
-    expectedSha256: report.outputChecksum,
+    expectedSha256: checksum,
   });
   try {
     // The native bridge has no cancellation API. A Promise.race timeout orphaned its open and
     // allowed the fallback to start while SQLite still owned the core. Await settlement instead.
     await store.initialize();
+    const queue = getDownloadQueue();
+    if (queue.get(`core:${checksum}`)?.state === 'interrupted') {
+      queue.observe(
+        { id: `core:${checksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
+        { state: 'completed', errorMessage: null },
+        {},
+      );
+    }
     return store;
   } catch (cause) {
     await store.close();

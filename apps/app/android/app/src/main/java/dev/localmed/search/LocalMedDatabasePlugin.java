@@ -271,7 +271,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
 
     private static String probeRuntimeFts5() {
         NativePackDatabase.ensureLoaded();
-        try (SQLiteDatabase probe = SQLiteDatabase.create(null, new char[0])) {
+        try (SQLiteDatabase probe = SQLiteDatabase.create(null)) {
             probe.execSQL("CREATE VIRTUAL TABLE runtime_probe USING fts5(value)");
             try (Cursor cursor = probe.rawQuery(
                 "SELECT count(*) FROM runtime_probe WHERE runtime_probe MATCH 'localmed'", null

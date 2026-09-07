@@ -1,3 +1,4 @@
+import type { DownloadContext } from '@/features/downloads/download-queue';
 export type LocalModelPlatform = 'browser' | 'android' | 'ios';
 export type LocalModelRuntimeKind =
   | 'wllama-web'
@@ -125,6 +126,7 @@ export interface LocalModelState {
 }
 
 export interface LocalModelLoadCallbacks {
+  readonly downloadContext?: DownloadContext;
   readonly onProgress: (loaded: number, total: number) => void;
 }
 

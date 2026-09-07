@@ -1,3 +1,4 @@
+import { getDownloadQueue } from '@/features/downloads/download-service';
 import { BrowserWllamaRuntime } from '@/features/models/browser-runtime';
 import { loadLocalModelCatalog, parseLocalModelCatalog } from '@/features/models/catalog';
 import bundledCatalog from '@/features/models/catalog.preview.json';
@@ -338,6 +339,7 @@ export class LocalModelController {
   private session: LocalModelSession | null = null;
   private activeRuntime: LocalModelRuntime | null = null;
   private runGeneration = 0;
+  private activeDownloadId: string | null = null;
 
   public constructor(private readonly options: LocalModelControllerOptions) {
     this.preference = loadPreference(options.defaultAutoLoad);
@@ -392,6 +394,11 @@ export class LocalModelController {
   }
 
   public async start(): Promise<void> {
+    if (this.activeDownloadId) {
+      const id = this.activeDownloadId;
+      await getDownloadQueue().cancel(id);
+      await getDownloadQueue().wait(id);
+    }
     const generation = ++this.runGeneration;
     await this.session?.unload().catch(() => undefined);
     this.session = null;
@@ -473,77 +480,103 @@ export class LocalModelController {
         selectedModelId: candidate.model.id,
         error: null,
       });
+      const downloadId = `model:${candidate.model.id}:${candidate.artifact.id}`;
+      this.activeDownloadId = downloadId;
       try {
-        const session = await runtime.load(candidate.model, candidate.artifact, profile, {
-          onProgress: (loaded, total) => {
-            if (generation !== this.runGeneration) return;
-            this.update({
-              phase: loaded >= total && total > 0 ? 'loading' : 'downloading',
-              message:
-                loaded >= total && total > 0
-                  ? `Запускаем ${candidate.model.name}…`
-                  : `Загружаем ${candidate.model.name}…`,
-              progress: total > 0 ? Math.max(0, Math.min(1, loaded / total)) : null,
-            });
+        await getDownloadQueue().run(
+          {
+            id: downloadId,
+            kind: 'model',
+            title: candidate.model.name,
+            totalBytes: candidate.artifact.downloadBytes,
           },
-        });
-        if (generation !== this.runGeneration) {
-          await session.unload();
-          return;
-        }
-        const loadMs = performance.now() - loadStartedAt;
-        const cached = cachedBenchmark(
-          candidate.model.id,
-          candidate.artifact.id,
-          profile.fingerprint,
+          async (context) => {
+            const abort = (): void => runtime.cancelActiveLoad?.();
+            context.signal.addEventListener('abort', abort, { once: true });
+            let loadedSession: LocalModelSession | undefined;
+            let accepted = false;
+            try {
+              const session = await runtime.load(candidate.model, candidate.artifact, profile, {
+                downloadContext: context,
+                onProgress: (loaded, total) => {
+                  if (generation !== this.runGeneration) return;
+                  context.progress(loaded, total > 0 ? total : null);
+                  this.update({
+                    phase: loaded >= total && total > 0 ? 'loading' : 'downloading',
+                    message:
+                      loaded >= total && total > 0
+                        ? `Запускаем ${candidate.model.name}…`
+                        : `Загружаем ${candidate.model.name}…`,
+                    progress: total > 0 ? Math.max(0, Math.min(1, loaded / total)) : null,
+                  });
+                },
+              });
+              loadedSession = session;
+              context.signal.throwIfAborted();
+              if (generation !== this.runGeneration)
+                throw new DOMException('Model load cancelled.', 'AbortError');
+              context.phase('verifying', false);
+              const loadMs = performance.now() - loadStartedAt;
+              const cached = cachedBenchmark(
+                candidate.model.id,
+                candidate.artifact.id,
+                profile.fingerprint,
+              );
+              let benchmark: LocalModelBenchmark;
+              if (cached?.validStructuredOutput) {
+                benchmark = { ...cached, loadMs };
+              } else {
+                this.update({
+                  phase: 'benchmarking',
+                  message: `Проверяем ${candidate.model.name} на коротком русском запросе…`,
+                  progress: null,
+                });
+                const measured = await session.benchmark();
+                if (generation !== this.runGeneration)
+                  throw new DOMException('Model load cancelled.', 'AbortError');
+                benchmark = {
+                  ...measured,
+                  loadMs,
+                  measuredAt: new Date().toISOString(),
+                  deviceFingerprint: profile.fingerprint,
+                };
+                saveBenchmark(benchmark);
+              }
+              if (!benchmark.validStructuredOutput) {
+                throw new Error(`${candidate.model.name} не прошла структурный тест.`);
+              }
+              clearFailure(candidate.model.id);
+              this.session = session;
+              accepted = true;
+              this.update({
+                phase: 'ready',
+                message: `${candidate.model.name} готова и работает локально.`,
+                progress: 1,
+                activeModelId: candidate.model.id,
+                selectedModelId: candidate.model.id,
+                benchmark,
+                error: null,
+              });
+            } finally {
+              context.signal.removeEventListener('abort', abort);
+              if (!accepted && loadedSession) await loadedSession.unload();
+            }
+          },
+          { retry: () => this.selectModel(candidate.model.id) },
         );
-        let benchmark: LocalModelBenchmark;
-        if (cached?.validStructuredOutput) {
-          benchmark = { ...cached, loadMs };
-        } else {
-          this.update({
-            phase: 'benchmarking',
-            message: `Проверяем ${candidate.model.name} на коротком русском запросе…`,
-            progress: null,
-          });
-          const measured = await session.benchmark();
-          if (generation !== this.runGeneration) {
-            await session.unload();
-            return;
-          }
-          benchmark = {
-            ...measured,
-            loadMs,
-            measuredAt: new Date().toISOString(),
-            deviceFingerprint: profile.fingerprint,
-          };
-          saveBenchmark(benchmark);
-        }
-        if (!benchmark.validStructuredOutput) {
-          await session.unload();
-          recordFailure(candidate.model.id, 'Модель не вернула валидный структурированный ответ.');
-          finalError = `${candidate.model.name} не прошла структурный тест.`;
-          continue;
-        }
-        clearFailure(candidate.model.id);
-        this.session = session;
-        this.update({
-          phase: 'ready',
-          message: `${candidate.model.name} готова и работает локально.`,
-          progress: 1,
-          activeModelId: candidate.model.id,
-          selectedModelId: candidate.model.id,
-          benchmark,
-          error: null,
-        });
         return;
       } catch (cause) {
         if (generation !== this.runGeneration) return;
+        if (cause instanceof Error && cause.name === 'AbortError') {
+          this.cancelLoad();
+          return;
+        }
         finalError =
           cause instanceof Error ? cause.message : `Не удалось загрузить ${candidate.model.name}.`;
         recordFailure(candidate.model.id, finalError);
       } finally {
         if (this.activeRuntime === runtime) this.activeRuntime = null;
+        if (this.activeDownloadId === downloadId) this.activeDownloadId = null;
       }
     }
     if (generation !== this.runGeneration) return;
@@ -587,6 +620,10 @@ export class LocalModelController {
   }
 
   public cancelLoad(): void {
+    if (this.activeDownloadId)
+      void getDownloadQueue()
+        .cancel(this.activeDownloadId)
+        .catch(() => this.update({ error: 'Не удалось подтвердить отмену загрузки модели.' }));
     ++this.runGeneration;
     this.activeRuntime?.cancelActiveLoad?.();
     this.activeRuntime = null;
@@ -603,6 +640,11 @@ export class LocalModelController {
   }
 
   public async unload(): Promise<void> {
+    if (this.activeDownloadId) {
+      const id = this.activeDownloadId;
+      await getDownloadQueue().cancel(id);
+      await getDownloadQueue().wait(id);
+    }
     ++this.runGeneration;
     this.activeRuntime?.cancelActiveLoad?.();
     this.activeRuntime = null;
@@ -619,6 +661,11 @@ export class LocalModelController {
   }
 
   public async dispose(): Promise<void> {
+    if (this.activeDownloadId) {
+      const id = this.activeDownloadId;
+      await getDownloadQueue().cancel(id);
+      await getDownloadQueue().wait(id);
+    }
     ++this.runGeneration;
     await this.session?.unload().catch(() => undefined);
     this.session = null;

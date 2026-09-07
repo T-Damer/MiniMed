@@ -65,7 +65,7 @@ export function AppBottomNav(props: {
           };
           return (
             <div class="app-nav-item">
-              <Show when={item.id === 'settings' && (props.downloadsReady?.() ?? true)}>
+              <Show when={item.id === 'settings'}>
                 <Suspense>
                   <ContentDownloadNavIndicator />
                 </Suspense>

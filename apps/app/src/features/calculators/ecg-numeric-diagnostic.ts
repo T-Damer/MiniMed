@@ -2,6 +2,7 @@ import {
   type EcgModelCatalogItem,
   resolveEcgModelDownloadUrl,
 } from '@/features/calculators/ecg-model';
+import type { DownloadContext } from '@/features/downloads/download-queue';
 import { downloadWithRetry } from '@/features/network/download-retry';
 import { listZipEntries, readZipEntry } from '@/state/user-library-zip';
 import {
@@ -271,10 +272,12 @@ export async function installEcgDiagnosticModelFromCatalog(
   model: EcgModelCatalogItem,
   options: {
     readonly signal?: AbortSignal;
+    readonly downloadContext?: DownloadContext;
     readonly onProgress?: (downloadedBytes: number, totalBytes: number) => void;
   } = {},
 ): Promise<EcgDiagnosticModelDescriptor> {
   const bytes = await downloadWithRetry({
+    ...(options.downloadContext ? { jobId: options.downloadContext.id, trackProgress: false } : {}),
     url: resolveEcgModelDownloadUrl(model.bundleUrl),
     cacheKey: `ecg-diagnostic:${model.id}:${model.bundleSha256}`,
     expectedBytes: model.downloadBytes,
@@ -283,7 +286,12 @@ export async function installEcgDiagnosticModelFromCatalog(
     onProgress: ({ downloadedBytes, totalBytes }) =>
       options.onProgress?.(downloadedBytes, totalBytes ?? model.downloadBytes),
   });
-  return installArchive(await verifyEcgDiagnosticModelDownload(model, bytes));
+  options.signal?.throwIfAborted();
+  options.downloadContext?.phase('verifying');
+  const verified = await verifyEcgDiagnosticModelDownload(model, bytes);
+  options.signal?.throwIfAborted();
+  // Cache activation is atomic; the package observes its result before honouring a late abort.
+  return installArchive(verified);
 }
 
 export async function removeEcgDiagnosticModel(): Promise<void> {

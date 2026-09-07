@@ -142,7 +142,7 @@ requireText('androidEngine', 'System.loadLibrary("sqlcipher")');
 requireText('androidEngine', 'throw error;');
 requireText('androidPlugin', 'NativePackDatabase.openReadOnly(target)');
 requireText('androidPlugin', 'import net.zetetic.database.sqlcipher.SQLiteDatabase;');
-requireText('androidGradle', 'net.zetetic:sqlcipher-android:4.18.0');
+requireText('androidGradle', 'net.zetetic:sqlcipher-android:4.17.0');
 requireText('iosPlugin', 'SQLITE_OPEN_READONLY');
 requireText('iosPlugin', 'isExcludedFromBackup = true');
 requireText('androidManifest', 'android:fullBackupContent="@xml/backup_rules"');

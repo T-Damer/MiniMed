@@ -1,6 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
+import { asrDownloadId } from '@/features/asr/asr-download-protocol';
 import {
   ASR_MODELS,
   AsrCancelledError,
@@ -13,6 +13,8 @@ import {
   selectedAsrModelId,
   subscribeAsr,
 } from '@/features/asr/asr-models';
+import { isDownloadActive } from '@/features/downloads/download-queue';
+import { getDownloadQueue } from '@/features/downloads/download-service';
 
 /**
  * Settings card for on-device speech recognition: checking a model downloads
@@ -35,6 +37,17 @@ export function AsrSettings(): JSX.Element {
   onMount(() => {
     sync();
     const unsubscribe = subscribeAsr(sync);
+    const queue = getDownloadQueue();
+    const updateQueue = (): void => {
+      const active = ASR_MODELS.find((model) => {
+        const task = queue.get(asrDownloadId(model.id));
+        return task && isDownloadActive(task);
+      });
+      setBusy(active?.id ?? null);
+      sync();
+    };
+    updateQueue();
+    onCleanup(queue.subscribe(updateQueue));
     const offs = ASR_MODELS.map((model) =>
       onAsrProgress(model.id, (fraction) => {
         setProgress((current) => ({ ...current, [model.id]: fraction }));

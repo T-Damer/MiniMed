@@ -255,3 +255,23 @@
     box-shadow: 0 0 0 0.125rem var(--theme-accent-soft);
   }
 }
+
+/* Shared queue remains readable on narrow screens and with long public package titles. */
+.content-download-status__detail {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.content-download-status__state {
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  .content-download-status__row {
+    flex-wrap: wrap;
+  }
+  .content-download-status__identity {
+    flex-basis: 100%;
+  }
+}

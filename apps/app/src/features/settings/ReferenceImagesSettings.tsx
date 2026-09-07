@@ -2,51 +2,94 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
+import { downloadTaskFraction, isDownloadActive } from '@/features/downloads/download-queue';
+import { getDownloadQueue } from '@/features/downloads/download-service';
+import {
+  getReferenceImageResolver,
+  REFERENCE_IMAGES_DOWNLOAD_ID,
+} from '@/features/library/reference-image-assets';
 import { formatModuleBytes } from '@/features/modules/module-display';
 
 export function ReferenceImagesSettings(): JSX.Element {
   const resolver = getReferenceImageResolver();
-  const [status, setStatus] = createSignal({ complete: false, files: 0 });
-  const [busy, setBusy] = createSignal(false);
-  const [progress, setProgress] = createSignal(0);
-  const [total, setTotal] = createSignal<number | null>(null);
+  const queue = getDownloadQueue();
+  const [task, setTask] = createSignal(queue.get(REFERENCE_IMAGES_DOWNLOAD_ID));
+  const [status, setStatus] = createSignal<Awaited<ReturnType<typeof resolver.downloadStatus>>>();
+  const [removing, setRemoving] = createSignal(false);
   const [error, setError] = createSignal('');
-  let controller: AbortController | undefined;
+  const busy = () => {
+    const current = task();
+    return Boolean(current && isDownloadActive(current));
+  };
+  const progress = () => {
+    const current = task();
+    return current ? downloadTaskFraction(current) : null;
+  };
+  let disposed = false;
   const sync = async (): Promise<void> => {
     const next = await resolver.downloadStatus();
-    setStatus(next);
-    setTotal(next.totalBytes);
+    if (!disposed) setStatus(next);
   };
-  onMount(() => void sync().catch((cause: unknown) => setError(String(cause))));
-  onCleanup(() => controller?.abort());
-  const download = async (): Promise<void> => {
-    if (busy()) return;
-    setBusy(true);
+  const syncSafely = (): void => {
+    void sync().catch(() => {
+      if (!disposed) setError('Не удалось проверить сохранённые иллюстрации.');
+    });
+  };
+  onMount(() => {
+    let previous = queue.get(REFERENCE_IMAGES_DOWNLOAD_ID)?.state;
+    const update = (): void => {
+      const current = queue.get(REFERENCE_IMAGES_DOWNLOAD_ID);
+      setTask(current);
+      if (current?.state !== previous && current && !isDownloadActive(current)) syncSafely();
+      previous = current?.state;
+    };
+    update();
+    syncSafely();
+    onCleanup(queue.subscribe(update));
+  });
+  // Leaving Settings removes subscriptions only. The app-wide owner retains the transfer.
+  onCleanup(() => {
+    disposed = true;
+  });
+  const download = (): void => {
+    if (busy() || removing()) return;
     setError('');
-    controller = new AbortController();
-    try {
-      await resolver.downloadAll(controller.signal, (downloaded, bytes) => {
-        setTotal(bytes);
-        setProgress(bytes > 0 ? downloaded / bytes : 0);
+    void resolver
+      .downloadAll(new AbortController().signal, () => undefined)
+      .catch((cause: unknown) => {
+        if (!disposed && !(cause instanceof Error && cause.name === 'AbortError'))
+          setError('Не удалось скачать или проверить иллюстрации.');
       });
-    } catch (cause) {
-      if (!controller.signal.aborted)
-        setError(cause instanceof Error ? cause.message : 'Не удалось скачать иллюстрации.');
-    } finally {
-      controller = undefined;
-      setBusy(false);
-      await sync().catch((cause: unknown) => setError(String(cause)));
-    }
+  };
+  const cancel = (): void => {
+    void queue.cancel(REFERENCE_IMAGES_DOWNLOAD_ID).catch(() => {
+      if (!disposed) setError('Не удалось подтвердить отмену загрузки.');
+    });
   };
   const remove = async (): Promise<void> => {
+    if (busy() || removing()) return;
+    setRemoving(true);
     setError('');
     try {
       await resolver.removeDownloaded();
       await sync();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось удалить иллюстрации.');
+    } catch {
+      if (!disposed) setError('Не удалось удалить иллюстрации.');
+    } finally {
+      if (!disposed) setRemoving(false);
     }
+  };
+  const downloadLabel = (): string => {
+    const current = task();
+    if (current?.state === 'verifying') return 'Проверяем данные';
+    if (current?.state === 'installing') return 'Сохраняем данные';
+    if (current?.state === 'cancelling') return 'Останавливаем';
+    if (current?.state === 'queued') return 'В очереди';
+    return busy()
+      ? progress() === null
+        ? 'Скачиваем'
+        : `Скачиваем ${Math.floor((progress() ?? 0) * 100)}%`
+      : 'Скачать';
   };
   return (
     <section
@@ -68,25 +111,37 @@ export function ReferenceImagesSettings(): JSX.Element {
         </div>
       </header>
       <p class="reference-images-settings__status" role="status">
-        {status().complete ? 'Скачаны все иллюстрации' : `Сохранено файлов: ${status().files}`}
-        <Show when={total() !== null}> · {formatModuleBytes(total())}</Show>
+        <Show when={status()} fallback={'Проверяем каталог иллюстраций…'}>
+          {(current) => (
+            <>
+              {current().complete
+                ? 'Скачаны все иллюстрации'
+                : current().files > 0
+                  ? `Сохранено файлов: ${current().files}`
+                  : 'Ещё не скачано'}
+              {' · '}Файлы: {current().totalFiles}
+              {' · '}
+              {formatModuleBytes(current().totalBytes)}
+            </>
+          )}
+        </Show>
       </p>
       <div class="reference-images-settings__actions">
-        <Show when={!status().complete}>
+        <Show when={!status()?.complete}>
           <Button
             type="button"
             class="reference-images-settings__action"
             variant="primary"
-            disabled={busy()}
+            disabled={busy() || removing() || !status()}
             onClick={() => void download()}
           >
-            {busy() ? `Скачиваем ${Math.round(progress() * 100)}%` : 'Скачать'}
+            {downloadLabel()}
           </Button>
         </Show>
         <Show
           when={busy()}
           fallback={
-            <Show when={status().files > 0}>
+            <Show when={(status()?.files ?? 0) > 0}>
               <Button
                 type="button"
                 class="reference-images-settings__action"
@@ -102,7 +157,8 @@ export function ReferenceImagesSettings(): JSX.Element {
             type="button"
             class="reference-images-settings__action"
             variant="danger"
-            onClick={() => controller?.abort()}
+            disabled={!task()?.canCancel}
+            onClick={cancel}
           >
             Отменить
           </Button>

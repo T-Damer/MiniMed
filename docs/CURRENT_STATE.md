@@ -9,6 +9,25 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### Unified download admission and presentation — draft PR #164
+
+- A lightweight app-wide queue tracks core, content modules, reference images, ECG, speech,
+  local models, generic artifacts and APK updates. Transfer attempts share a three-slot scheduler;
+  retry delays do not occupy a slot. Feature owners retain checksum, schema and atomic-install rules.
+- A versioned public-metadata journal restores interrupted intents, never arbitrary saved URLs or
+  callbacks. Reference-image, ECG and speech recipes are revalidated against current descriptors.
+  Content-module and core recovery retain their existing verified-catalog/native owners.
+- Settings and the navigation indicator read the same state. `#/settings/downloads` is available
+  before database readiness. Leaving a settings card removes its UI subscription, not the download.
+  Transfer, verification, installation, cancellation and retry are distinct states.
+- The Android SQLCipher pin is 4.17.0 with androidx.sqlite 2.6.2: the 4.18.0 artifact requires
+  compileSdk 37 and failed the existing compileSdk 36 build. No SDK checks are bypassed.
+- This work was recovered from staged patch fragments; its missing tail was reconstructed and is
+  subject to fresh CI. No new release, successful device timing, PSS reduction, process-kill recovery
+  or complete background installation is claimed by these source changes.
+
+
+
 ### Bundled Android SQLite and system transfers — draft PR #164
 
 - Android's existing SQLite bridge now uses pinned SQLCipher Community in plaintext mode instead of

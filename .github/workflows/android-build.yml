@@ -6,6 +6,9 @@ on:
     paths:
       - 'apps/app/android/**'
       - 'apps/app/src/features/network/**'
+      - 'apps/app/src/features/downloads/**'
+      - 'apps/app/src/features/models/**'
+      - 'scripts/check-native-bridge.mjs'
       - 'apps/app/src/composition/create-browser-core*'
       - 'packages/storage-capacitor/**'
       - 'patches/**'

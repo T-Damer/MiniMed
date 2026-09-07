@@ -74,12 +74,15 @@ describe('native download file ownership', () => {
     await rejection;
   });
 
-  it('waits for slots occupied by restored native jobs without starting browser fetch', async () => {
+  it('yields native capacity errors to shared admission without starting browser fetch', async () => {
     const download = vi
       .fn()
       .mockRejectedValueOnce({ code: 'NATIVE_DOWNLOAD_BUSY' })
       .mockResolvedValue({ id });
     const { run } = setup({ download });
+    await expect(run(request, async () => 'ok')).rejects.toMatchObject({
+      code: 'NATIVE_DOWNLOAD_BUSY',
+    });
     await expect(run(request, async () => 'ok')).resolves.toBe('ok');
     expect(download).toHaveBeenCalledTimes(2);
   });

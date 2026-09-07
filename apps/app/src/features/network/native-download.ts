@@ -133,23 +133,15 @@ export function createNativeDownloadTransport(
       await previous;
       throwIfAborted(options.signal);
       const { destination } = await files.prepareNativeDownload({ id });
-      while (!acquired) {
-        throwIfAborted(options.signal);
-        try {
-          await plugin.download({
-            id,
-            url: options.url,
-            destination,
-            ...(options.headers ? { headers: options.headers } : {}),
-            notification: 'visible',
-          });
-          acquired = true;
-        } catch (error) {
-          // The versioned native patch enforces 3 transfers INCLUDING jobs from an earlier process.
-          if (errorCode(error) !== 'NATIVE_DOWNLOAD_BUSY') throw error;
-          await delay(pollMs, options.signal);
-        }
-      }
+      throwIfAborted(options.signal);
+      await plugin.download({
+        id,
+        url: options.url,
+        destination,
+        ...(options.headers ? { headers: options.headers } : {}),
+        notification: 'visible',
+      });
+      acquired = true;
       for (;;) {
         throwIfAborted(options.signal);
         const status = await plugin.checkStatus({ id });

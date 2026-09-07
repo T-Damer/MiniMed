@@ -725,6 +725,8 @@ internal class ApkUpdateManager(
         return snapshot
     }
 
+    fun isRunning(taskId: String): Boolean = synchronized(lock) { tasks[taskId]?.running == true }
+
     fun status(taskId: String): ApkTaskSnapshot = synchronized(lock) { snapshot(taskFor(taskId)) }
 
     fun statusOrNull(taskId: String): ApkTaskSnapshot? = synchronized(lock) {

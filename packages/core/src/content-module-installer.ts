@@ -28,6 +28,7 @@ export interface ContentModuleArtifactDownloader {
     artifact: ModuleArtifact,
     signal: AbortSignal,
     onProgress: (progress: ContentModuleDownloadProgress) => void,
+    module?: Pick<ContentModuleCatalogEntry, 'id' | 'version'>,
   ): Promise<Uint8Array>;
 }
 
@@ -343,15 +344,20 @@ export class ForegroundContentModuleInstaller {
         if (!artifact.url || !artifact.sha256) {
           throw new Error(`Artifact ${artifact.id} has no immutable URL/checksum.`);
         }
-        const bytes = await this.downloader.download(artifact, signal, (progress) => {
-          const previousArtifacts = [...completedBytes.values()].reduce(
-            (total, value) => total + value,
-            0,
-          );
-          this.setTask(task.id, {
-            downloadedBytes: previousArtifacts + progress.downloadedBytes,
-          });
-        });
+        const bytes = await this.downloader.download(
+          artifact,
+          signal,
+          (progress) => {
+            const previousArtifacts = [...completedBytes.values()].reduce(
+              (total, value) => total + value,
+              0,
+            );
+            this.setTask(task.id, {
+              downloadedBytes: previousArtifacts + progress.downloadedBytes,
+            });
+          },
+          module,
+        );
         if (signal.aborted) throw new DOMException('Installation cancelled.', 'AbortError');
         if (artifact.sizeBytes !== null && bytes.byteLength !== artifact.sizeBytes) {
           throw new Error(

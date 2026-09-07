@@ -51,6 +51,7 @@ describe('Android APK updater bridge', () => {
       downloadedBytes: 1024,
       totalBytes: 1024,
       errorCode: null,
+      transportActive: false,
     }));
     const cancelApkDownload = vi.fn(async () => undefined);
     const installDownloadedApk = vi.fn(async () => undefined);
@@ -74,6 +75,7 @@ describe('Android APK updater bridge', () => {
         downloadedBytes: 512,
         totalBytes: 1024,
         errorCode: 'interrupted',
+        transportActive: false,
       },
     }));
 

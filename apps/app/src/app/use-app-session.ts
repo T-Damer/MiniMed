@@ -1,7 +1,6 @@
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, onCleanup, onMount } from 'solid-js';
-
 import { countPublishedCatalogModules } from '@/app/root-view';
 import { createBrowserCore } from '@/composition/create-browser-core';
 import {
@@ -9,6 +8,10 @@ import {
   initializeMedicalCore,
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
+import {
+  cancelQueuedAndroidApkDownload,
+  startQueuedAndroidApkDownload,
+} from '@/features/downloads/native-apk-download';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 import {
   APP_UPDATE_READY_EVENT,
@@ -23,11 +26,9 @@ import {
 import { notifyContentChanged } from '@/state/content-events';
 import {
   type ApkTaskStatus,
-  cancelAndroidApkDownload,
   getAndroidApkTaskStatus,
   getLatestAndroidApkTaskStatus,
   installAndroidApk,
-  startAndroidApkDownload,
   watchAndroidApkTasks,
 } from '@/state/native-update';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
@@ -199,7 +200,20 @@ export function useAppSession() {
     })
       .then((task) => {
         if (disposed || !task || !sameApkUpdate(availableApk(), update)) return;
-        return observeApkTask(task.taskId);
+        const observation = observeApkTask(task.taskId);
+        if (task.state === 'downloading' || task.state === 'verifying') {
+          void startQueuedAndroidApkDownload(
+            {
+              url: update.url,
+              releaseVersion: update.version,
+              ...(update.expectedSha256 ? { expectedSha256: update.expectedSha256 } : {}),
+              ...(update.expectedBytes ? { expectedBytes: update.expectedBytes } : {}),
+            },
+            observeApkTask,
+            task,
+          ).catch(() => setAppUpdateError('Не удалось восстановить загрузку обновления.'));
+        }
+        return observation;
       })
       .catch(() => undefined);
   };
@@ -292,18 +306,19 @@ export function useAppSession() {
         loaded: 0,
         total: available.expectedBytes ?? null,
       });
-      void startAndroidApkDownload({
-        url: apkUrl,
-        releaseVersion: available.version,
-        ...(available.expectedSha256 ? { expectedSha256: available.expectedSha256 } : {}),
-        ...(available.expectedBytes ? { expectedBytes: available.expectedBytes } : {}),
-      })
-        .then(({ taskId }) => observeApkTask(taskId))
-        .catch((cause: unknown) => {
-          setAppUpdateError(describeUpdateError(cause, 'Не удалось загрузить обновление.'));
-          setAppUpdating(false);
-          setAppUpdateProgress(undefined);
-        });
+      void startQueuedAndroidApkDownload(
+        {
+          url: apkUrl,
+          releaseVersion: available.version,
+          ...(available.expectedSha256 ? { expectedSha256: available.expectedSha256 } : {}),
+          ...(available.expectedBytes ? { expectedBytes: available.expectedBytes } : {}),
+        },
+        observeApkTask,
+      ).catch((cause: unknown) => {
+        setAppUpdateError(describeUpdateError(cause, 'Не удалось загрузить обновление.'));
+        setAppUpdating(false);
+        setAppUpdateProgress(undefined);
+      });
       return;
     }
     const worker = appUpdateWorker();
@@ -317,11 +332,15 @@ export function useAppSession() {
   };
 
   const cancelAvailableUpdate = (): void => {
-    const task = apkTask();
-    if (!task || (task.state !== 'downloading' && task.state !== 'verifying')) return;
-    void cancelAndroidApkDownload(task.taskId).catch((cause: unknown) => {
-      setAppUpdateError(describeUpdateError(cause, 'Не удалось отменить загрузку обновления.'));
-    });
+    const update = availableApk();
+    if (!update) return;
+    void cancelQueuedAndroidApkDownload({
+      url: update.url,
+      releaseVersion: update.version,
+      ...(update.expectedSha256 ? { expectedSha256: update.expectedSha256 } : {}),
+    }).catch((cause: unknown) =>
+      setAppUpdateError(describeUpdateError(cause, 'Не удалось отменить загрузку обновления.')),
+    );
   };
 
   const connectInstalledModules = async (): Promise<void> => {
@@ -365,6 +384,9 @@ export function useAppSession() {
     document.addEventListener('visibilitychange', refreshApkTask);
     refreshDueReminders();
     ensureUserLibraryIngestRunning();
+    void import('@/features/downloads/restore-downloads')
+      .then(({ restoreDownloadIntents }) => restoreDownloadIntents())
+      .catch(() => setAppUpdateError('Не удалось восстановить очередь загрузок.'));
     reminderTimer = setInterval(refreshDueReminders, 30_000);
     const bindModuleRuntime = (runtime: ContentModuleRuntime): void => {
       unsubscribeInstalledModules?.();

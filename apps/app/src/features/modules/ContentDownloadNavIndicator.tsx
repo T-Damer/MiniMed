@@ -1,62 +1,35 @@
-import type { ContentModuleDownloadTask } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
-
-import {
-  activeContentDownloadTasks,
-  downloadNavPieBackground,
-  downloadProgressFraction,
-} from '@/features/modules/content-download-progress';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
-import {
-  getContentModuleRuntime,
-  peekContentModuleRuntime,
-  subscribeContentModuleRuntime,
-} from '@/features/modules/module-runtime-service';
+import { aggregateDownloadFraction, isDownloadActive } from '@/features/downloads/download-queue';
+import { getDownloadQueue } from '@/features/downloads/download-service';
+import { downloadNavPieBackground } from '@/features/modules/content-download-progress';
 import { SETTINGS_DOWNLOADS_HASH } from '@/features/settings/settings-routing';
 
-function openDownloads(): void {
-  if (window.location.hash === SETTINGS_DOWNLOADS_HASH) return;
-  window.location.hash = SETTINGS_DOWNLOADS_HASH;
-}
-
 export function ContentDownloadNavIndicator(): JSX.Element {
-  const [tasks, setTasks] = createSignal<readonly ContentModuleDownloadTask[]>([]);
-  let unsubscribeTasks: (() => void) | undefined;
-  let unsubscribeRuntime: (() => void) | undefined;
-
+  const queue = getDownloadQueue();
+  const [tasks, setTasks] = createSignal(queue.list());
   onMount(() => {
-    unsubscribeRuntime = subscribeContentModuleRuntime((runtime) => {
-      unsubscribeTasks?.();
-      setTasks(runtime.listTasks());
-      unsubscribeTasks = runtime.subscribe(() => setTasks(runtime.listTasks()));
-    });
-    if (!peekContentModuleRuntime()) getContentModuleRuntime(MODULE_CATALOG);
+    setTasks(queue.list());
+    onCleanup(queue.subscribe(() => setTasks(queue.list())));
   });
-  onCleanup(() => {
-    unsubscribeTasks?.();
-    unsubscribeRuntime?.();
-  });
-
-  const active = () => activeContentDownloadTasks(tasks());
-  const progress = () => downloadProgressFraction(active());
-  const label = (): string => {
-    const fraction = Math.round(progress() * 100);
-    return `Загрузка наборов: ${fraction}%. Открыть загрузки`;
-  };
-
+  const active = () => tasks().filter(isDownloadActive);
+  const attention = () =>
+    tasks().some((task) => task.state === 'failed' || task.state === 'interrupted');
+  const progress = () => aggregateDownloadFraction(tasks());
+  const label = () =>
+    `Загрузки: ${active().length}${progress() === null ? '' : `, ${Math.floor((progress() ?? 0) * 100)}%`}${attention() ? '. Есть прерванные задания' : ''}. Открыть загрузки`;
   return (
-    <Show when={active().length > 0}>
+    <Show when={active().length > 0 || attention()}>
       <div class="content-download-nav">
         <button
           type="button"
           class="content-download-nav__pie"
-          style={{ background: downloadNavPieBackground(progress(), false) }}
+          style={{ background: downloadNavPieBackground(progress() ?? 0.08, attention()) }}
           data-testid="content-download-nav"
           title={label()}
           aria-label={label()}
           onClick={(event) => {
             event.stopPropagation();
-            openDownloads();
+            window.location.hash = SETTINGS_DOWNLOADS_HASH;
           }}
         />
       </div>

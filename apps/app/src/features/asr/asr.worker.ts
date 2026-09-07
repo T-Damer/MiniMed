@@ -4,6 +4,11 @@ import {
   type ProgressInfo,
   pipeline,
 } from '@huggingface/transformers';
+import {
+  type AsrAssetRequest,
+  type AsrAssetResponse,
+  assertAsrAssetRequest,
+} from './asr-download-protocol';
 
 export interface AsrLoadMessage {
   readonly type: 'load';
@@ -17,7 +22,7 @@ export interface AsrTranscribeMessage {
   readonly modelId: string;
 }
 
-export type AsrWorkerInMessage = AsrLoadMessage | AsrTranscribeMessage;
+export type AsrWorkerInMessage = AsrLoadMessage | AsrTranscribeMessage | AsrAssetResponse;
 
 export interface AsrLoadingMessage {
   readonly type: 'loading';
@@ -53,7 +58,8 @@ export type AsrWorkerOutMessage =
   | AsrReadyMessage
   | AsrLoadErrorMessage
   | AsrResultMessage
-  | AsrTranscribeErrorMessage;
+  | AsrTranscribeErrorMessage
+  | AsrAssetRequest;
 
 interface ModelSpec {
   readonly options: {
@@ -87,6 +93,39 @@ env.allowLocalModels = false;
 const scope = self as unknown as {
   postMessage(message: AsrWorkerOutMessage): void;
   onmessage: ((event: MessageEvent<AsrWorkerInMessage>) => void) | null;
+};
+
+const pendingAssets = new Map<
+  number,
+  { resolve: (response: Response) => void; reject: (error: Error) => void }
+>();
+let assetCounter = 0;
+const originalFetch = env.fetch;
+// Use the library's supported fetch hook, not a global fetch monkey-patch in the application.
+env.fetch = async (input, init) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  const parsed = new URL(url, self.location.href);
+  if (parsed.origin !== 'https://huggingface.co') return originalFetch(input, init);
+  const modelId = parsed.pathname.match(
+    /^\/(onnx-community\/whisper-(?:base|small))\/resolve\//u,
+  )?.[1];
+  if (!modelId || (init?.method && init.method !== 'GET') || init?.body)
+    throw new Error('Unsupported speech download.');
+  const range = new Headers(init?.headers).get('range');
+  if (range !== null && range !== 'bytes=0-0')
+    throw new Error('Unsupported speech metadata range.');
+  const request: AsrAssetRequest = {
+    type: 'fetch-asset',
+    requestId: ++assetCounter,
+    modelId,
+    url: parsed.href,
+    metadataOnly: range !== null,
+  };
+  assertAsrAssetRequest(request);
+  return new Promise<Response>((resolve, reject) => {
+    pendingAssets.set(request.requestId, { resolve, reject });
+    scope.postMessage(request);
+  });
 };
 
 type SpeechPipeline = AutomaticSpeechRecognitionPipeline;
@@ -149,6 +188,20 @@ async function loadPipeline(modelId: string): Promise<SpeechPipeline> {
 
 scope.onmessage = (event) => {
   const message = event.data;
+  if (message.type === 'asset-response') {
+    const pending = pendingAssets.get(message.requestId);
+    if (!pending) return;
+    pendingAssets.delete(message.requestId);
+    if (message.error) pending.reject(new Error(message.error));
+    else
+      pending.resolve(
+        new Response(message.bytes, {
+          status: message.status,
+          headers: message.headers.map(([key, value]) => [key, value]),
+        }),
+      );
+    return;
+  }
   if (message.type === 'load') {
     void enqueue(async () => {
       scope.postMessage({ type: 'loading', modelId: message.modelId, progress: 0 });

@@ -10,9 +10,9 @@ large-file work. The owner subsequently approved native SQLite and a ready downl
 PR, without a UI rewrite.
 
 Keep Solid/Capacitor, MedicalStore, native vector scoring and immutable pack semantics. The final
-Android engine is SQLCipher Community `net.zetetic:sqlcipher-android:4.18.0`, with the documented
-`androidx.sqlite:sqlite:2.7.0` companion. Kotlin is pinned to 2.2.10 to match the artifact's runtime.
-The Maven Central publication is real; earlier requery 3.50.4 and JitPack-commit candidates failed
+Android engine is SQLCipher Community `net.zetetic:sqlcipher-android:4.17.0`, with the documented
+`androidx.sqlite:sqlite:2.6.2` companion. Kotlin is pinned to 2.2.10 to match the artifact's runtime.
+4.18.0 requires compileSdk 37; this project remains on 36. The selected publication is SDK-compatible; earlier requery 3.50.4 and JitPack-commit candidates failed
 resolution and are not dependencies of this implementation. No JitPack repository is required.
 
 SQLCipher is used with an empty key: downloaded and bundled public packs remain ordinary SQLite,
@@ -66,6 +66,6 @@ ECG 99% and completely unified download presentation remain separate acceptance 
 ## Primary sources
 
 - https://github.com/sqlcipher/sqlcipher-android
-- https://central.sonatype.com/artifact/net.zetetic/sqlcipher-android/4.18.0
+- https://central.sonatype.com/artifact/net.zetetic/sqlcipher-android/4.17.0
 - https://github.com/Cap-go/capacitor-downloader/tree/fbc88a3517fda3f5d39de4e2aad9e73147a191d0
 - https://bun.com/docs/pm/cli/patch
