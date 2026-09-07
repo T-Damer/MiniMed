@@ -21,6 +21,10 @@ adb shell rm /data/local/tmp/minimed-core.db /data/local/tmp/minimed-core.sha256
 adb shell svc wifi disable
 adb shell svc data disable
 adb logcat -c
+# Preserve the last native failure even if the emulator disconnects before instrumentation returns.
+adb logcat -v threadtime -s LocalMedDatabase:I AndroidRuntime:E > /tmp/native-device/runtime-logcat.txt &
+minimed_logcat_pid=$!
+trap 'kill "$minimed_logcat_pid" 2>/dev/null || true' EXIT
 adb shell am instrument -w -r -e class dev.localmed.search.BundledSqliteTest,dev.localmed.search.NativeDownloaderTest dev.localmed.search.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/native-device/instrumentation.txt
 adb logcat -d -s MiniMedSqliteTest:I MiniMedDownloadTest:I LocalMedDatabase:I > /tmp/native-device/native-timings.txt
 grep -F 'OK (4 tests)' /tmp/native-device/instrumentation.txt

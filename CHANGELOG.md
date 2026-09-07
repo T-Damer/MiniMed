@@ -9,6 +9,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 - Android startup no longer stalls on a Capacitor plugin proxy or exhausts the Java heap while
   loading the full document catalog. Composition validates identities; search uses compact metadata;
   full catalog reads are paged and inline links load after search results appear.
+- Browser OPFS uses the same compact identity/search projections through its existing worker owner,
+  avoiding full-catalog transfers on startup and the search path.
 - Android uses bundled FTS5 and system downloads. A shared persistent queue tracks core, modules,
   images, ECG, speech, models and APKs; Settings shows transfer, verification, installation and retry.
 - Navigation, built-in calculators and the download queue remain accessible while the core opens.

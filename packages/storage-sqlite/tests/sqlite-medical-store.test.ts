@@ -13,6 +13,42 @@ afterEach(async () => {
 });
 
 describe('SqliteMedicalStore', () => {
+  it('projects identities and ranking fields without unrelated metadata', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    const metadata = {
+      declaredAliases: ['название'],
+      navigationAliases: ['синоним'],
+      catalogFamily: 'clinical',
+      ageGroups: ['children'],
+      entityType: 'disease',
+      contentMode: 'module-pointer',
+      interactiveAssessmentId: 'assessment',
+      interactiveCalculatorId: 'calculator',
+      calculationRequired: true,
+      notLegalAdvice: true,
+    };
+    const seed = {
+      ...DEMO_CONTENT_PACK,
+      documents: DEMO_CONTENT_PACK.documents.map((document) => ({
+        ...document,
+        metadata: { ...metadata, unrelated: 'x'.repeat(4096) },
+      })),
+    };
+    await store.initialize(seed);
+    const identities = await store.listDocumentIdentities();
+    expect(identities).toHaveLength(seed.documents.length);
+    expect(identities).toContainEqual({
+      id: seed.documents[0]?.id,
+      versionId: seed.documents[0]?.version.id,
+    });
+    const projected = await store.listSearchDocuments();
+    expect(projected).toHaveLength(seed.documents.length);
+    expect(projected.every((document) => Object.keys(document).length === 3)).toBe(true);
+    for (const document of projected) expect(document.metadata).toEqual(metadata);
+    expect((await store.listDocuments())[0]?.metadata['unrelated']).toHaveLength(4096);
+  });
+
   it('rejects an empty database that has no schema_version metadata', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
