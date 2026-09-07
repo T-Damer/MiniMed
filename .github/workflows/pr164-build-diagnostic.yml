@@ -21,22 +21,21 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.3
-      - name: Verify base and retrieve exact reviewed patch bytes
+      - name: Retrieve exact reviewed source patches
         env:
           READ_TOKEN: ${{ github.token }}
         run: |
           git diff --exit-code e8629d18325ff1ddef30b8b7ab3ffedcdc8b6445 HEAD -- . ':!.github/workflows/pr164-build-diagnostic.yml'
           python3 - <<'PY'
-          import base64, hashlib, json, lzma, os, pathlib, urllib.request
-          shas = ['211d8d6f532db296161e6cc26b55823519e5d00d','3b800e8dc19d3801a820db0cae7dc3ea4b396da3','aaa15b3386bc5b72d1e0641666c0bc12b1e1e638','c67da4935aff06cd99667f822a97a0300a891021','c7b370a38be830bb829f30adb4a864c91e687539','b82f7265300c930419f53174b96122dd99ac7198','b285f726d96bad2bb57520529ff1225fe0bfd017']
+          import base64,hashlib,json,lzma,os,pathlib,urllib.request
+          shas=['211d8d6f532db296161e6cc26b55823519e5d00d','3b800e8dc19d3801a820db0cae7dc3ea4b396da3','aaa15b3386bc5b72d1e0641666c0bc12b1e1e638','c67da4935aff06cd99667f822a97a0300a891021','c7b370a38be830bb829f30adb4a864c91e687539','b82f7265300c930419f53174b96122dd99ac7198','b285f726d96bad2bb57520529ff1225fe0bfd017']
           def blob(sha):
               req=urllib.request.Request(f'https://api.github.com/repos/T-Damer/MiniMed/git/blobs/{sha}',headers={'Authorization':'Bearer '+os.environ['READ_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(req,timeout=30) as r: value=json.load(r)
               data=base64.b64decode(value['content'])
               assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha
               return data
-          decoder=lzma.LZMADecompressor()
-          recovered=decoder.decompress(base64.b64decode(b''.join(blob(sha) for sha in shas)))
+          recovered=lzma.LZMADecompressor().decompress(base64.b64decode(b''.join(blob(s) for s in shas)))
           prefix=recovered[:recovered.rfind(b'diff --git ')]
           assert hashlib.sha256(prefix).hexdigest()=='8b3b64ae51c7542d50a4493f5ed231905321b156a86662a2918c8264e90287be'
           tail=lzma.decompress(blob('e7617d91c94b89f1be2fcc6f95ad8364573cb9a6'))
@@ -44,23 +43,23 @@ jobs:
           pathlib.Path('/tmp/queue-prefix.patch').write_bytes(prefix)
           pathlib.Path('/tmp/queue-tail.patch').write_bytes(tail)
           PY
-      - name: Apply source patches without credential environment
+      - name: Apply source and remove temporary helper
         run: |
           env -i PATH="$PATH" HOME="$HOME" git apply --check /tmp/queue-prefix.patch
           env -i PATH="$PATH" HOME="$HOME" git apply /tmp/queue-prefix.patch
-          env -i PATH="$PATH" HOME="$HOME" git apply --check /tmp/queue-tail.patch
-          env -i PATH="$PATH" HOME="$HOME" git apply /tmp/queue-tail.patch
+          env -i PATH="$PATH" HOME="$HOME" git apply --exclude=.github/workflows/pr164-build-diagnostic.yml --check /tmp/queue-tail.patch
+          env -i PATH="$PATH" HOME="$HOME" git apply --exclude=.github/workflows/pr164-build-diagnostic.yml /tmp/queue-tail.patch
           rm .github/workflows/pr164-build-diagnostic.yml
           git add -N apps packages docs
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
-      - name: Format and organize changed source (independent full checks below)
+      - name: Format changed source; full checks remain independent
         run: |
           mkdir -p /tmp/queue-upload
           git diff --name-only -z -- '*.ts' '*.tsx' '*.css' '*.json' | xargs -0 env -i PATH="$PATH" HOME="$HOME" CI=1 bunx biome check --write --max-diagnostics=100 > /tmp/queue-upload/format.log 2>&1 && code=0 || code=$?
-          echo "Formatting/lint exit: $code (full lint remains independently required)"
+          echo "Formatting/lint exit: $code (independent full lint is still required)"
           tail -80 /tmp/queue-upload/format.log
           git diff --check
-      - name: Commit source only to the requested PR branch (no force push)
+      - name: Commit only the requested branch, without force
         id: commit
         env:
           PUSH_TOKEN: ${{ github.token }}
@@ -180,7 +179,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v4
-      - name: Build complete ARM64 APK with the compatible SQLite engine
+      - name: Build complete ARM64 APK with compatible SQLite
         run: |
           mkdir -p /tmp/queue-android
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
@@ -189,7 +188,7 @@ jobs:
           cd apps/app/android
           set -o pipefail
           env -i PATH="$PATH" HOME="$HOME" JAVA_HOME="$JAVA_HOME" ANDROID_HOME="$ANDROID_HOME" CI=1 ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest 2>&1 | tee /tmp/queue-android/build.log
-      - name: Record exact APK provenance and native contents
+      - name: Record APK provenance and native contents
         run: |
           python3 - <<'PY'
           import pathlib,subprocess,hashlib,zipfile,shutil
