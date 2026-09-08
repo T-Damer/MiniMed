@@ -10,8 +10,16 @@ test.describe('published MiniMed prototype', () => {
     await page.goto(LIVE_URL as string, { waitUntil: 'domcontentloaded', timeout: 60_000 });
 
     const nav = page.locator('.app-bottom-nav');
+    await expect(nav.getByRole('button', { name: 'Настройки', exact: true })).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(nav.locator('.app-nav-button')).toHaveCount(3);
+    await nav.getByRole('button', { name: 'Настройки', exact: true }).click();
+    const splitNavigation = page.getByRole('switch', { name: 'Разбивать навигацию на разделы' });
+    await splitNavigation.click();
+    await expect(splitNavigation).toHaveAttribute('aria-checked', 'true');
     await expect(nav.getByRole('button', { name: 'Тесты', exact: true })).toBeVisible({
-      // A fresh browser downloads and opens the full discovery core before showing navigation.
+      // Expanded navigation becomes available once the discovery core is ready.
       timeout: 180_000,
     });
     await nav.getByRole('button', { name: 'Тесты', exact: true }).click();
